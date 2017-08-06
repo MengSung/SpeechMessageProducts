@@ -1,0 +1,137 @@
+﻿@model ChurchReport.ViewModel.GalleryViewModel
+
+<div class="widget-container" style="padding: 10px;">
+    @(Html.DevExtreme().Gallery()
+        .ID("gallery")
+        .DataSource(Model.Images)
+        .Height(250)
+        .StretchImages(true)
+        .Loop(true)
+        .SlideshowDelay(1500)
+        .ShowNavButtons(true)
+        .ShowIndicator(true)
+    )
+</div>
+
+<div class="long-title"><h3>小組長登入系統</h3></div>
+
+<form data-ajax="true" data-ajax-begin="onBegin" data-ajax-success="onSuccess" asp-action="ProcessLogin" asp-controller="Home" method="post" style="text-align: center;">
+
+    <div class="dx-field" style="text-align: center;">
+        <div class="form-container-class" id="form-container" style="text-align: center;">
+            @(Html.DevExtreme().Form()
+                .ID("form")
+                .Items(items =>
+                {
+
+                    items.AddSimple()
+                        .DataField("Account")
+                        .Label(l => l.Text("帳號"))
+                        .Editor(e => e
+                            .TextBox()
+                            .Disabled(false)
+                            .Placeholder("輸入帳號")
+                            .ShowClearButton(true)
+                       //.Width(200)
+                       );
+
+                    items.AddSimple()
+                        .DataField("Password")
+                        .Label(l => l.Text("密碼"))
+                        .Editor(e => e
+                            .TextBox()
+                            .Mode(TextBoxMode.Password)
+                            .Disabled(false)
+                            .Placeholder("輸入密碼")
+                            .ShowClearButton(true)
+                       //.Width(200)
+                       );
+                })
+            )
+        </div>
+    </div>
+    <div class="dx-field" style="text-align: center;">
+        <div id="buttonContainer" class="dx-button-icon">
+            @(Html.DevExtreme().Button()
+                    .Text("登入")
+                    //.Type(ButtonType.Success)
+                    //.Type(ButtonType.Normal)
+                    .Type(ButtonType.Default)
+                    .ID("save-button")
+                    .UseSubmitBehavior(true)
+                    .OnClick("Login")
+                    .Width(100)
+            )
+        </div>
+        <div id="LoadPanel">
+            @(Html.DevExtreme().LoadPanel()
+                    .ID("loadPanel")
+                    .ShadingColor("rgba(0,0,0,0.4)")
+                    .Position(p => p.Of("#form-container"))
+                    .Visible(false)
+                    .ShowIndicator(true)
+                    .ShowPane(true)
+                    .Shading(true)
+                    .CloseOnOutsideClick(false)
+                    .Message("登入中...")
+                    .Animation(l => l.Show(k => k.Easing(AnimationEasing.Swing)))
+            //.OnShown("loadPanel_shown")
+            //.OnHidden("loadPanel_hidden")
+            )
+        </div>
+    </div>
+</form>
+
+<script>
+    function getLoadPanelInstance() {
+        return $("#loadPanel").dxLoadPanel("instance");
+    }
+
+    function button_click() {
+        getLoadPanelInstance().show();
+    }
+
+    function loadPanel_shown(e) {
+        //    setTimeout(function () {
+        //        e.component.hide();
+        //    }, 3000);
+    }
+
+    function loadPanel_hidden() {
+    }
+
+    function Login(arg) {
+
+        getLoadPanelInstance().show();
+    }
+
+</script>
+
+<script type="text/javascript">
+    function onBegin() {
+    }
+
+    function onSuccess(data) {
+
+        getLoadPanelInstance().hide();
+
+        if (data.status == 1) {
+            DevExpress.ui.notify(data.message, "success", 2000);
+            //window.location.href = "/Home/SmallGroupReportView"
+        }
+        else {
+            DevExpress.ui.notify(data.message, "error", 3000);
+        }
+    }
+
+    function onComplete(data) {
+        if (data.status == 1) {
+        }
+        else {
+        }
+    }
+</script>
+
+<script src="~/lib/jquery-ajax-unobtrusive/jquery.unobtrusive-ajax.js"></script>
+<link href="~/css/Gallery.css" rel="stylesheet" />
+<link href="~/css/WeeklyReport.css" rel="stylesheet" />
