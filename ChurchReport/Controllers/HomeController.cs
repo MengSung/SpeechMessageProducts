@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using ChurchReport.ViewModel;
 
+using ToolUtilityNameSpace;
+
 namespace ChurchReport.Controllers
 {
     public class HomeController : Controller
@@ -28,14 +30,26 @@ namespace ChurchReport.Controllers
             // 模擬上傳資料
             System.Threading.Thread.Sleep(2000);
 
-            if (aGalleryViewModel.Account == "mhu")
+            ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass();
+
+            String FullName = m_ToolUtilityClass.RetrieveContactByAccountNumber(aGalleryViewModel.Account, aGalleryViewModel.Password);
+            //String FullName = "耶和華";
+
+            if (aGalleryViewModel.Account == "123")
             {
-                return Json(new { status = "1", message = "登入成功!" });
+                return Json(new { status = "1", message = "登入成功!", fullname = FullName });
             }
             else
             {
-                return Json(new { status = "2", message = "密碼錯誤!" });
+                return Json(new { status = "2", message = "密碼錯誤!", fullname = FullName });
             }
+        }
+
+
+        [Route("/Home/InputReport/{FullName}")]
+        public IActionResult InputReport(String FullName)
+        {
+            return View((object)FullName);
         }
 
     }
