@@ -27,21 +27,18 @@ namespace ChurchReport.Controllers
         [HttpPost]
         public IActionResult ProcessLogin(GalleryViewModel aGalleryViewModel)
         {
-            // 模擬上傳資料
-            //System.Threading.Thread.Sleep(2000);
-
-            ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass();
+            //ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
+            ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("CRM2011");
 
             String FullName = m_ToolUtilityClass.RetrieveContactByAccountNumber(aGalleryViewModel.Account, aGalleryViewModel.Password);
-            //String FullName = "耶和華";
 
-            if (aGalleryViewModel.Account == "123")
+            if ( FullName != "密碼錯誤" && FullName != "系統沒有設定密碼" && FullName != "帳號錯誤")
             {
                 return Json(new { status = "1", message = "登入成功!", fullname = FullName });
             }
             else
             {
-                return Json(new { status = "2", message = "密碼錯誤!", fullname = FullName });
+                return Json(new { status = "2", message = FullName, fullname = FullName });
             }
         }
 
