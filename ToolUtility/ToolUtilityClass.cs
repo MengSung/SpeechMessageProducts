@@ -40,8 +40,11 @@ namespace ToolUtilityNameSpace
     public class ToolUtilityClass
     {
         #region 資料區
-        public IOrganizationService m_OrganizationService;
+        public IOrganizationService m_Crm2011OrganizationService;
         private bool _disposed = false;
+
+        // public OrganizationServiceProxy m_OrganizationProxy;
+        public OrganizationServiceProxy m_OrganizationService;
 
         #region CRM 2011 WCF Service Port，新增組織修改區
 
@@ -103,13 +106,13 @@ namespace ToolUtilityNameSpace
         #endregion
 
         #region 楊梅靈糧堂組織(公司內部發展)
-        private const String SERVER = "speechmessage.com.tw";
-        private const String PORT = "7777";
-        private const String ORGANIZATION = "yangmeillc";
-        private const String USERNAME = "Administrator";
-        //private const String USERNAME = "Administrator@speechmessage.com.tw";
-        private const String PASSWORD = "hu9840";
-        private const String DOMAIN = "SPEECHMESSAGE";
+        //private const String SERVER = "speechmessage.com.tw";
+        //private const String PORT = "7777";
+        //private const String ORGANIZATION = "yangmeillc";
+        //private const String USERNAME = "Administrator";
+        ////private const String USERNAME = "Administrator@speechmessage.com.tw";
+        //private const String PASSWORD = "hu9840";
+        //private const String DOMAIN = "SPEECHMESSAGE";
         #endregion
 
         #region 音訊科技組織(公司內部發展)
@@ -141,6 +144,40 @@ namespace ToolUtilityNameSpace
         #endregion
 
         #endregion
+
+
+        #region Dynamics 365，新增組織修改區
+        //private const String SERVER = "speechmessage.com.tw";
+        //private const String PORT = "7777";
+        //private const String ORGANIZATION = "tpehoc";
+        //private const String USERNAME = "Administrator@speechmessage.com.tw";
+        //private const String PASSWORD = "hu9840";
+        ////private const String DOMAIN = "DYNAMICS-365";
+        //private const String DOMAIN = "speechmessage.com.tw";
+
+        // To get discovery service address and organization unique name, 
+        // Sign in to your CRM org and click Settings, Customization, Developer Resources.
+        // On Developer Resource page, find the discovery service address under Service Endpoints and organization unique name under Your Organization Information.
+
+        private const String SERVER = "speechmessage.com.tw";
+        private const String PORT = "7777";
+        private const String ORGANIZATION = "tpehoc";
+        private const String USERNAME = "administrator@speechmessage.com.tw";
+        private const String PASSWORD = "hu9840";
+        private const String DOMAIN = "DYNAMICS-365";
+
+        //private String _discoveryServiceAddress = "https://tpehoc.speechmessage.com.tw/XRMServices/2011/Discovery.svc";
+        private String BASE_DISCOVERY_SERVICE_ADDRESS = "/XRMServices/2011/Discovery.svc";
+        //private String _organizationUniqueName = "tpehoc";
+        // Provide your user name and password.
+        //private String _userName = "administrator@speechmessage.com.tw";
+        //private String _password = "hu9840";
+
+        // Provide domain name for the On-Premises org.
+        //private String _domain = "DYNAMICS-365";
+
+        #endregion Class Level Members
+
         #region 有效截止日期
         private DateTime ExpireDate = new DateTime(2013, 3, 30);
         //private DateTime ExpireDate = new DateTime( 2012, 1, 28 );
@@ -179,7 +216,9 @@ namespace ToolUtilityNameSpace
         {
             //SetOrganizationService();
 
-            SetClaimsBasedAuthenticationOrganizationService();
+            //SetClaimsBasedAuthenticationOrganizationService();
+
+            SetFederatedOrganizationProxy();
         }
         public ToolUtilityClass(ref bool ValidFlag)
         {
@@ -274,7 +313,7 @@ namespace ToolUtilityNameSpace
                 // This statement is required to enable early-bound type support.
                 loServiceProxy.ServiceConfiguration.CurrentServiceEndpoint.Behaviors.Add(new ProxyTypesBehavior());
 
-                m_OrganizationService = (IOrganizationService)loServiceProxy;
+                m_Crm2011OrganizationService = (IOrganizationService)loServiceProxy;
             }
 
             return m_OrganizationService;
@@ -295,7 +334,7 @@ namespace ToolUtilityNameSpace
                 // This statement is required to enable early-bound type support.
                 loServiceProxy.ServiceConfiguration.CurrentServiceEndpoint.Behaviors.Add(new ProxyTypesBehavior());
 
-                m_OrganizationService = (IOrganizationService)loServiceProxy;
+                m_Crm2011OrganizationService = (IOrganizationService)loServiceProxy;
             }
 
             return m_OrganizationService;
@@ -323,7 +362,7 @@ namespace ToolUtilityNameSpace
                 //    // This statement is required to enable early-bound type support.
                 //    loServiceProxy.ServiceConfiguration.CurrentServiceEndpoint.Behaviors.Add(new ProxyTypesBehavior());
                 //
-                m_OrganizationService = (IOrganizationService)loServiceProxy;
+                m_Crm2011OrganizationService = (IOrganizationService)loServiceProxy;
                 DebugStriing += "004" + Environment.NewLine;
             }
 
@@ -332,6 +371,207 @@ namespace ToolUtilityNameSpace
             //return m_OrganizationService;
             return DebugStriing;
         }
+        #endregion
+        #region 連接 Dynamics 365 服務
+        public OrganizationServiceProxy SetFederatedOrganizationProxy()
+        {
+            String aDiscoveryServiceAddress = "https://" + ORGANIZATION + "." + SERVER + BASE_DISCOVERY_SERVICE_ADDRESS;
+            IServiceManagement<IDiscoveryService> serviceManagement = ServiceConfigurationFactory.CreateManagement<IDiscoveryService>(new Uri(aDiscoveryServiceAddress));
+
+
+            AuthenticationProviderType endpointType = serviceManagement.AuthenticationType;
+
+            // Set the credentials.
+            AuthenticationCredentials authCredentials = GetCredentials(serviceManagement, endpointType);
+
+
+            String organizationUri = String.Empty;
+            // Get the discovery service proxy.
+            using (DiscoveryServiceProxy discoveryProxy = GetProxy<IDiscoveryService, DiscoveryServiceProxy>(serviceManagement, authCredentials))
+            {
+                // Obtain organization information from the Discovery service. 
+                if (discoveryProxy != null)
+                {
+                    // Obtain information about the organizations that the system user belongs to.
+                    OrganizationDetailCollection orgs = DiscoverOrganizations(discoveryProxy);
+                    // Obtains the Web address (Uri) of the target organization.
+                    organizationUri = FindOrganization(ORGANIZATION, orgs.ToArray()).Endpoints[EndpointType.OrganizationService];
+                }
+            }
+
+
+            if (!String.IsNullOrWhiteSpace(organizationUri))
+            {
+                IServiceManagement<IOrganizationService> orgServiceManagement =
+                    ServiceConfigurationFactory.CreateManagement<IOrganizationService>(
+                    new Uri(organizationUri));
+
+                // Set the credentials.
+                AuthenticationCredentials credentials = GetCredentials(orgServiceManagement, endpointType);
+
+                // Get the organization service proxy.
+                using (this.m_OrganizationService = GetProxy<IOrganizationService, OrganizationServiceProxy>(orgServiceManagement, credentials))
+                {
+                    // This statement is required to enable early-bound type support.
+                    this.m_OrganizationService.EnableProxyTypes();
+
+                    // Now make an SDK call with the organization service proxy.
+                    // Display information about the logged on user.
+                    //Guid userid = ((WhoAmIResponse)this.m_OrganizationService.Execute(new WhoAmIRequest())).UserId;
+
+                    //String FullName = RetrieveContactByAccountNumber("123", "123");
+                    //SystemUser systemUser = organizationProxy.Retrieve("systemuser", userid,
+                    //    new ColumnSet(new string[] { "firstname", "lastname" })).ToEntity<SystemUser>();
+                    //Console.WriteLine("Logged on user is {0} {1}.",
+                    //    systemUser.FirstName, systemUser.LastName);
+                }
+
+                return m_OrganizationService;
+            }
+            else
+            {
+                return null;
+            }
+
+
+        }
+
+
+
+        /// <summary>
+        /// Obtain the AuthenticationCredentials based on AuthenticationProviderType.
+        /// </summary>
+        /// <param name="service">A service management object.</param>
+        /// <param name="endpointType">An AuthenticationProviderType of the CRM environment.</param>
+        /// <returns>Get filled credentials.</returns>
+        private AuthenticationCredentials GetCredentials<TService>(IServiceManagement<TService> service, AuthenticationProviderType endpointType)
+        {
+            AuthenticationCredentials authCredentials = new AuthenticationCredentials();
+
+            switch (endpointType)
+            {
+                case AuthenticationProviderType.ActiveDirectory:
+                    authCredentials.ClientCredentials.Windows.ClientCredential = new System.Net.NetworkCredential(USERNAME, PASSWORD, DOMAIN);
+                    break;
+                case AuthenticationProviderType.LiveId:
+                    authCredentials.ClientCredentials.UserName.UserName = USERNAME;
+                    authCredentials.ClientCredentials.UserName.Password = PASSWORD;
+                    authCredentials.SupportingCredentials = new AuthenticationCredentials();
+                    //authCredentials.SupportingCredentials.ClientCredentials = Microsoft.Crm.Services.Utility.DeviceIdManager.LoadOrRegisterDevice();
+                    break;
+                default: // For Federated and OnlineFederated environments.                    
+                    authCredentials.ClientCredentials.UserName.UserName = USERNAME;
+                    authCredentials.ClientCredentials.UserName.Password = PASSWORD;
+                    // For OnlineFederated single-sign on, you could just use current UserPrincipalName instead of passing user name and password.
+                    // authCredentials.UserPrincipalName = UserPrincipal.Current.UserPrincipalName;  // Windows Kerberos
+
+                    // The service is configured for User Id authentication, but the user might provide Microsoft
+                    // account credentials. If so, the supporting credentials must contain the device credentials.
+                    if (endpointType == AuthenticationProviderType.OnlineFederation)
+                    {
+                        //IdentityProvider provider = service.GetIdentityProvider(authCredentials.ClientCredentials.UserName.UserName);
+                        //if (provider != null & amp; &amp; provider.IdentityProviderType == IdentityProviderType.LiveId)
+                        //{
+                        //    authCredentials.SupportingCredentials = new AuthenticationCredentials();
+                        //    authCredentials.SupportingCredentials.ClientCredentials =
+                        //        Microsoft.Crm.Services.Utility.DeviceIdManager.LoadOrRegisterDevice();
+                        //}
+                    }
+
+                    break;
+            }
+
+            return authCredentials;
+        }
+
+        /// <summary>
+        /// Discovers the organizations that the calling user belongs to.
+        /// </summary>
+        /// <param name="service">A Discovery service proxy instance.</param>
+        /// <returns>Array containing detailed information on each organization that 
+        /// the user belongs to.</returns>
+        public OrganizationDetailCollection DiscoverOrganizations(IDiscoveryService service)
+
+        {
+            if (service == null) throw new ArgumentNullException("service");
+            RetrieveOrganizationsRequest orgRequest = new RetrieveOrganizationsRequest();
+            RetrieveOrganizationsResponse orgResponse = (RetrieveOrganizationsResponse)service.Execute(orgRequest);
+
+            return orgResponse.Details;
+        }
+
+        /// <summary>
+        /// Finds a specific organization detail in the array of organization details
+        /// returned from the Discovery service.
+        /// </summary>
+        /// <param name="orgUniqueName">The unique name of the organization to find.</param>
+        /// <param name="orgDetails">Array of organization detail object returned from the discovery service.</param>
+        /// <returns>Organization details or null if the organization was not found.</returns>
+        /// <seealso cref="DiscoveryOrganizations"/>
+        public OrganizationDetail FindOrganization(string orgUniqueName, OrganizationDetail[] orgDetails)
+        {
+            if (String.IsNullOrWhiteSpace(orgUniqueName))
+            {
+                throw new ArgumentNullException("orgUniqueName");
+            }
+            if (orgDetails == null)
+            {
+                throw new ArgumentNullException("orgDetails");
+            }
+            OrganizationDetail orgDetail = null;
+
+            foreach (OrganizationDetail detail in orgDetails)
+            {
+                if (String.Compare(detail.UniqueName, orgUniqueName, StringComparison.InvariantCultureIgnoreCase) == 0)
+                {
+                    orgDetail = detail;
+                    break;
+                }
+            }
+            return orgDetail;
+        }
+
+        /// <summary>
+        /// Generic method to obtain discovery/organization service proxy instance.
+        /// </summary>
+        /// <typeparam name="TService">
+        /// Set IDiscoveryService or IOrganizationService type to request respective service proxy instance.
+        /// </typeparam>
+        /// <typeparam name="TProxy">
+        /// Set the return type to either DiscoveryServiceProxy or OrganizationServiceProxy type based on TService type.
+        /// </typeparam>
+        /// <param name="serviceManagement">An instance of IServiceManagement</param>
+        /// <param name="authCredentials">The user's Microsoft Dynamics CRM logon credentials.</param>
+        /// <returns></returns>
+        private TProxy GetProxy<TService, TProxy>(
+            IServiceManagement<TService> serviceManagement,
+            AuthenticationCredentials authCredentials)
+            where TService : class
+            where TProxy : ServiceProxy<TService>
+        {
+            Type classType = typeof(TProxy);
+
+            if (serviceManagement.AuthenticationType !=
+                AuthenticationProviderType.ActiveDirectory)
+            {
+                AuthenticationCredentials tokenCredentials =
+                    serviceManagement.Authenticate(authCredentials);
+                // Obtain discovery/organization service proxy for Federated, LiveId and OnlineFederated environments. 
+                // Instantiate a new class of type using the 2 parameter constructor of type IServiceManagement and SecurityTokenResponse.
+                return (TProxy)classType
+                    .GetConstructor(new Type[] { typeof(IServiceManagement<TService>), typeof(SecurityTokenResponse) })
+                    .Invoke(new object[] { serviceManagement, tokenCredentials.SecurityTokenResponse });
+            }
+
+            // Obtain discovery/organization service proxy for ActiveDirectory environment.
+            // Instantiate a new class of type using the 2 parameter constructor of type IServiceManagement and ClientCredentials.
+            return (TProxy)classType
+                .GetConstructor(new Type[] { typeof(IServiceManagement<TService>), typeof(ClientCredentials) })
+                .Invoke(new object[] { serviceManagement, authCredentials.ClientCredentials });
+        }
+
+
+
         #endregion
         #region 透過屬性取得實體
         #region 取得聯絡人
@@ -1697,7 +1937,7 @@ namespace ToolUtilityNameSpace
             }
         }
 
-        public Guid CreateEntity(ref IOrganizationService aOrganizationService, Entity aEntityTobeToCreate)
+        public Guid CreateEntity(ref OrganizationServiceProxy aOrganizationService, Entity aEntityTobeToCreate)
         {
             try
             {
@@ -3465,8 +3705,6 @@ namespace ToolUtilityNameSpace
             }
         }
         #endregion
-
-
 }
 
 

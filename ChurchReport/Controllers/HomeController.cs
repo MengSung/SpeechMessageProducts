@@ -30,14 +30,10 @@ namespace ChurchReport.Controllers
             // 模擬上傳資料
             //System.Threading.Thread.Sleep(2000);
 
-            AuthenticateWithNoHelp aAuthenticateWithNoHelp = new AuthenticateWithNoHelp();
-            aAuthenticateWithNoHelp.Run();
+            ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass();
 
-
-            //ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass();
-
-            //String FullName = m_ToolUtilityClass.RetrieveContactByAccountNumber(aGalleryViewModel.Account, aGalleryViewModel.Password);
-            String FullName = "耶和華";
+            String FullName = m_ToolUtilityClass.RetrieveContactByAccountNumber(aGalleryViewModel.Account, aGalleryViewModel.Password);
+            //String FullName = "耶和華";
 
             if (aGalleryViewModel.Account == "123")
             {
