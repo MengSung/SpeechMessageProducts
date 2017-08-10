@@ -37,13 +37,13 @@ namespace ToolUtilityNameSpace
 
         #region 楊梅靈糧堂組織
         //private const String SERVER = "crm2011"; // 機房雲端要用此網址
-        private const String SERVER = "system.speechmessage.com.tw";
-        
-        private const String PORT = "7777";
-        private const String ORGANIZATION = "yangmeillc";
-        private const String USERNAME = "Administrator";
-        private const String PASSWORD = "hu9840";
-        private const String DOMAIN = "SPEECHMESSAGE";
+        //private const String SERVER = "system.speechmessage.com.tw";
+        //
+        //private const String PORT = "7777";
+        //private const String ORGANIZATION = "yangmeillc";
+        //private const String USERNAME = "Administrator";
+        //private const String PASSWORD = "hu9840";
+        //private const String DOMAIN = "SPEECHMESSAGE";
         #endregion
 
         #region 林口靈糧堂組織
@@ -138,12 +138,12 @@ namespace ToolUtilityNameSpace
         // Sign in to your CRM org and click Settings, Customization, Developer Resources.
         // On Developer Resource page, find the discovery service address under Service Endpoints and organization unique name under Your Organization Information.
 
-        //private const String SERVER = "speechmessage.com.tw";
-        //private const String PORT = "7777";
-        //private const String ORGANIZATION = "tpehoc";
-        //private const String USERNAME = "administrator@speechmessage.com.tw";
-        //private const String PASSWORD = "hu9840";
-        //private const String DOMAIN = "DYNAMICS-365";
+        private const String SERVER = "speechmessage.com.tw";
+        private const String PORT = "7777";
+        private const String ORGANIZATION = "tpehoc";
+        private const String USERNAME = "administrator@speechmessage.com.tw";
+        private const String PASSWORD = "hu9840";
+        private const String DOMAIN = "DYNAMICS-365";
 
         #region 僅供參考區塊
         //private String _discoveryServiceAddress = "https://tpehoc.speechmessage.com.tw/XRMServices/2011/Discovery.svc";
@@ -978,7 +978,8 @@ namespace ToolUtilityNameSpace
                             if (aContactPassword == aPassword)
                             {
                                 this.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "小組長:" + retrieved.Entities[0].Attributes["fullname"].ToString() );
-                                return retrieved.Entities[0].Attributes["fullname"].ToString();
+                                //return retrieved.Entities[0].Attributes["fullname"].ToString();
+                                return retrieved.Entities[0].Attributes["contactid"].ToString();
                             }
                             else
                             {
