@@ -2,7 +2,7 @@
 
             debugger;
 
-            alert("要上傳資料")
+            alert("要上傳資料囉!")
             //Request.arguments = "Hello";
             //request.data = "Hello";
             //data: "Hello";

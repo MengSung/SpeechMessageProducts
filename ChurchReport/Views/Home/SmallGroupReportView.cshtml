@@ -40,15 +40,15 @@
 
                     success: function (arg) 
                     {
-                alert("001");
+                        //alert("001");
                         $("#loadPanel").dxLoadPanel("instance").hide();
 
                         //var dataGridInstance = $("#gridContainer").dxDataGrid("instance");
                         //dataGridInstance.refresh();
-                alert("002");
+                        //alert("002");
 
                         window.location.href = "/Home/SmallGroupReportView"
-                alert("003");
+                        //alert("003");
 
                     },
 
@@ -432,110 +432,7 @@
         )
     </div>
 
-<script>
-            function GetResult002() {
-
-            //debugger;
-
-            alert("要上傳資料")
-            //Request.arguments = "Hello";
-            //request.data = "Hello";
-            //data: "Hello";
-            //aResult: "ZZZZ";
-            //return "耶和華";
-
-            //$.ajax({
-            //    url: '@Url.Action("SaveSmallGroup", "Home")',
-            //    data: { aResult: "Hello" }
-            //    type: 'POST', //POST if you want to save, GET if you want to fetch data from server
-            //
-            //
-            //
-            //});
-
-            var Section = $("#gridContainer").dxDataGrid("instance").getDataSource().items();
-
-            $.each( Section, function (index, aSection) {
-
-            var SmallGroup = aSection.items;
-
-            $.each(SmallGroup, function (index1, aSmallGroupElement) {
-            var SmallGroupMember = aSmallGroupElement.items;
-
-            $.each(SmallGroupMember, function (index2, aMember) {
-
-            for (var prop in aMember) {
-
-            //result += "&Members[" + index + "]." + prop + "=" + member[prop];
-            // alert("prop = " + prop + " Value = " + aMember[prop]);
-            }
-
-            });
-
-            });
-
-            //for (var prop in member) {
-            //    result += "&Members[" + index + "]." + prop + "=" + member[prop];
-            //    alert("Result = " + result)
-            //}
-            });
-
-            //var result = "";
-            //$.each(members, function (index, member) {
-            //    for (var prop in member) {
-            //        result += "&Members[" + index + "]." + prop + "=" + member[prop];
-            //        alert("Result = " + result)
-            //    }
-            //})
-            ////request.data += result;
-            //
-            ////request.data = "HELLO";
-            //
-            //data.aResult = "Hello";
-
-            return "耶和華是我家的主";
-
-    }
-
-    function getODataLocalDateFilter(date) {
-        //-- Description: For converting the date object to local time format
-        //-- You can also convert this to UTC Date format
-        //-- UTC Usage: getUTCMonth(), getUTCFullYear(), getUTCHours() ...
-
-        alert("天下一統");
-
-        var monthString;
-        var rawMonth = (date.getMonth() + 1).toString();
-        if (rawMonth.length == 1) {
-            monthString = "0" + rawMonth;
-        }
-        else { monthString = rawMonth; }
-
-        var dateString;
-        //var rawDate = date.getUTCDate().toString();
-        var rawDate = date.getDate().toString();
-        if (rawDate.length == 1) {
-            dateString = "0" + rawDate;
-        }
-        else { dateString = rawDate; }
-
-
-        var DateFilter = "";
-        //DateFilter += date.getFullYear() + "-";
-        //DateFilter += monthString + "-";
-        //DateFilter += dateString;
-        //DateFilter += " T" + date.getHours() + ":";
-        //DateFilter += date.getMinutes() + ":";
-        //DateFilter += date.getSeconds() + ":";
-        //DateFilter += date.getMilliseconds();
-
-        //return DateFilter;
-
-        return date.getFullYear() + "/" + rawMonth + "/" + rawDate;
-    }
-
-</script>
-
+<script src="~/js/Ajax.js"></script>
 <script src="~/js/DataGridAjax.js"></script>
 <script src="~/js/SelectDate.js"></script>
 <script src="~/js/DropDownBox.js"></script>
