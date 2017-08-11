@@ -22,6 +22,10 @@ namespace ChurchReport.Models
 
         static public SmallGroupData m_SmallGroupData = new SmallGroupData();
 
+        public static void SetupContactIdString(String ContactIdString)
+        {
+            m_SmallGroupData.SmallGroupLeaderContactId = ContactIdString;
+        }
         public static void SetupSmallGroupDate(String ContactIdString)
         {
             Guid aContactGuid = new Guid(ContactIdString);

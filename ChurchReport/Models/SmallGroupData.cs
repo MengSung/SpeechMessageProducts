@@ -12,6 +12,7 @@ namespace ChurchReport.Models
         {
 
         }
+        public String SmallGroupLeaderContactId { get; set; }
         public String SmallGroupLeaderFullName { get; set; }
         public DateTime SundayPrayers { get; set; }
 

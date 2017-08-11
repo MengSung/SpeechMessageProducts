@@ -25,6 +25,8 @@ namespace ChurchReport.Controllers
         ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
         //ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("CRM2011");
 
+        String m_ContactIdStrin;
+
         public IActionResult Login()
         {
             var images = new List<string>();
@@ -43,7 +45,9 @@ namespace ChurchReport.Controllers
         {
             //ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
 
-            String ContactIdString = m_ToolUtilityClass.RetrieveContactByAccountNumber(aGalleryViewModel.Account, aGalleryViewModel.Password);
+            String ContactIdString = m_ContactIdStrin = m_ToolUtilityClass.RetrieveContactByAccountNumber(aGalleryViewModel.Account, aGalleryViewModel.Password);
+
+            SmallGroupDataList.SetupContactIdString(ContactIdString);
 
             if (ContactIdString != "密碼錯誤" && ContactIdString != "系統沒有設定密碼" && ContactIdString != "帳號錯誤")
             {
@@ -59,13 +63,12 @@ namespace ChurchReport.Controllers
             }
         }
 
-
-
         [Route("/Home/SmallGroupReportView/{ContactIdString}")]
         public ActionResult SmallGroupReportView(String ContactIdString)
         {
-
-            SmallGroupDataList.SetupSmallGroupDate( ContactIdString );
+            //SmallGroupDataList.SetupSmallGroupDate(ContactIdString);
+            //SmallGroupDataList.SetupSmallGroupDate(m_ContactIdStrin);
+            SmallGroupDataList.SetupSmallGroupDate(SmallGroupDataList.m_SmallGroupData.SmallGroupLeaderContactId);
 
             return View(SmallGroupDataList.m_SmallGroupData);
         }
