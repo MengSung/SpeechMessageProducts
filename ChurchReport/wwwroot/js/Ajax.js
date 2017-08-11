@@ -75,6 +75,8 @@
             //-- You can also convert this to UTC Date format
             //-- UTC Usage: getUTCMonth(), getUTCFullYear(), getUTCHours() ...
 
+            alert("天下一統");
+
             var monthString;
             var rawMonth = (date.getMonth() + 1).toString();
             if (rawMonth.length == 1) {

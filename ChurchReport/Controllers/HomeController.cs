@@ -53,6 +53,8 @@ namespace ChurchReport.Controllers
 
                 String FullName = this.m_ToolUtilityClass.RetrieveEntity( "contact", aContactGuid).Attributes["fullname"].ToString();
 
+                SmallGroupDataList.SetupSmallGroupDate(SmallGroupDataList.m_SmallGroupData.SmallGroupLeaderContactId);
+
                 return Json(new { status = "1", message = "歡迎" + FullName + "登入成功!", fullname = ContactIdString });
             }
             else
@@ -64,10 +66,28 @@ namespace ChurchReport.Controllers
         //[Route("/Home/SmallGroupReportView/{ContactIdString}")]
         public ActionResult SmallGroupReportView()
         {
-            SmallGroupDataList.SetupSmallGroupDate(SmallGroupDataList.m_SmallGroupData.SmallGroupLeaderContactId);
-
             return View(SmallGroupDataList.m_SmallGroupData);
         }
+
+        [HttpPost]
+        public IActionResult SaveSmallGroup(String aResult)
+        {
+            //Thread.Sleep(5000);
+
+            return Json(new { status = "1", message = "成功上傳了...." });
+        }
+
+
+        [HttpGet]
+        public IActionResult UpdateDate(string SelectedDate)
+        {
+            SmallGroupDataList.SetupSmallGroupDate(SmallGroupDataList.m_SmallGroupData.SmallGroupLeaderContactId, SelectedDate);
+            //return View(SmallGroupDataList.m_SmallGroupData);
+            //return Json(new { status = "1", message = "成功上傳了...." });
+            return Ok();
+
+        }
+
 
         [Route("/Home/InputReport/{FullName}")]
         public IActionResult InputReport(String FullName)

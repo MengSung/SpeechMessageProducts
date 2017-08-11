@@ -12,15 +12,14 @@
 
 </head>
 
-<h4>@(Model.SmallGroupLeaderFullName+"小組長")</h4>
+    <h3>@(Model.SmallGroupLeaderFullName + "回報")</h3>
 
+    <div class="dx-field">
+        <div id="the whole thing" style="height:100%; width:100%; overflow: hidden;">
+            <div id="SundayLabel" class="dx-field-label" style="float: left; width:15%; background-color:white;">主日</div>
+            <div id="dateBoxContainer" class="dx-field-value" style="float: left; width:55%; background-color:white;">
 
-<div class="dx-field">
-    <div id="the whole thing" style="height:100%; width:100%; overflow: hidden;">
-        <div id="SundayLabel" class="dx-field-label" style="float: left; width:15%; background-color:white;">主日</div>
-        <div id="dateBoxContainer" class="dx-field-value" style="float: left; width:55%; background-color:white;">
-
-            @(Html.DevExtreme()
+                @(Html.DevExtreme()
                     //.DateBox()
                     .DateBoxFor(m => m.SundayPrayers)
                     .Type(DateBoxType.Date)
@@ -30,7 +29,7 @@
 
 
                     .OnValueChanged(@<text>
-                    function(arg) {
+                function(arg) {
 
                     $("#loadPanel").dxLoadPanel("instance").show();
 
@@ -39,15 +38,17 @@
                     data: { SelectedDate: getODataLocalDateFilter(arg.value) },
                     type: 'GET', //POST if you want to save, GET if you want to fetch data from server
 
-                    success: function (arg) {
+                    success: function (arg) 
+                    {
+                alert("001");
+                        $("#loadPanel").dxLoadPanel("instance").hide();
 
+                        //var dataGridInstance = $("#gridContainer").dxDataGrid("instance");
+                        //dataGridInstance.refresh();
+                alert("002");
 
-                    $("#loadPanel").dxLoadPanel("instance").hide();
-
-                    //var dataGridInstance = $("#gridContainer").dxDataGrid("instance");
-                    //dataGridInstance.refresh();
-
-                    window.location.href = "/Home/SmallGroupReportView"
+                        window.location.href = "/Home/SmallGroupReportView"
+                alert("003");
 
                     },
 
@@ -55,54 +56,53 @@
                     //alert('Something happened');
                     }
 
-                    });
-                    }
-                    </text>
+            });
+            }
+            </text>
                    )
 
-            )
-        </div>
-        <div id="buttonContainer" class="dx-button-icon" style="float: left; width:30%; text-align: left; background-color:white;">
-            @(Html.DevExtreme().Button()
+                )
+            </div>
+            <div id="buttonContainer" class="dx-button-icon" style="float: left; width:30%; text-align: left; background-color:white;">
+                @(Html.DevExtreme().Button()
                 .Text("上傳")
                 .Type(ButtonType.Success)
                 .ID("save-button")
                 //.UseSubmitBehavior(true)
 
                 .OnClick(@<text>
-                function(arg) {
+                    function(arg) {
 
-                $("#loadPanel").dxLoadPanel("instance").show();
+                    $("#loadPanel").dxLoadPanel("instance").show();
 
-                $.ajax({
-                url: '@Url.Action("SaveSmallGroup", "Home")',
-                data: { aResult: GetData() },
-                type: 'POST', //POST if you want to save, GET if you want to fetch data from server
+                    $.ajax({
+                        url: '@Url.Action("SaveSmallGroup", "Home")',
+                        data: { aResult: GetResult() },
+                        type: 'POST', //POST if you want to save, GET if you want to fetch data from server
 
-                success: function (arg) {
+                        success: function (arg) 
+                        {
+                            $("#loadPanel").dxLoadPanel("instance").hide();
 
-                $("#loadPanel").dxLoadPanel("instance").hide();
+                            //var dataGridInstance = $("#gridContainer").dxDataGrid("instance");
+                            //dataGridInstance.refresh();
 
-                //var dataGridInstance = $("#gridContainer").dxDataGrid("instance");
-                //dataGridInstance.refresh();
+                            //window.location.href = "/Home/SmallGroupReportView"
 
-                //window.location.href = "/Home/SmallGroupReportView"
+                       },
 
-                },
+                        error: function (obj) {
+                        //alert('Something happened');
+                        }
 
-                error: function (obj) {
-                //alert('Something happened');
-                }
-
-                });
-                }
+                    });
+                    }
                 </text>
                    )
-
-            )
-        </div>
-        <div id="ToastContainer">
-            @(Html.DevExtreme().Toast()
+                )
+            </div>
+            <div id="ToastContainer">
+                @(Html.DevExtreme().Toast()
                 .ID("toast")
                 .Position(p => p
                 .At(HorizontalAlignment.Center, VerticalAlignment.Center)
@@ -110,11 +110,11 @@
                 .Message("上傳成功了!")
                 .DisplayTime(2000)
                 .MaxWidth(200)
-            )
+                )
 
-        </div>
-        <div id="LoadPanel">
-            @(Html.DevExtreme().LoadPanel()
+            </div>
+            <div id="LoadPanel">
+                @(Html.DevExtreme().LoadPanel()
                 .ID("loadPanel")
                 .ShadingColor("rgba(0,0,0,0.4)")
                 .Position(p => p.Of("#data-grid"))
@@ -127,13 +127,16 @@
                 .Animation(l => l.Show(k => k.Easing(AnimationEasing.Swing)))
                 //.OnShown("loadPanel_shown")
                 //.OnHidden("loadPanel_hidden")
-            )
+                )
+            </div>
         </div>
     </div>
-</div>
 
-<div id="data-grid">
-    @(Html.DevExtreme().DataGrid()
+    <hr />
+    <h3>牧養</h3>
+
+    <div id="data-grid">
+        @(Html.DevExtreme().DataGrid()
     .ID("gridContainer")
     .ShowBorders(true)
     .ColumnAutoWidth(true)
@@ -213,10 +216,10 @@
                 .AllowFiltering(false)
                 .AllowSorting(false)
                 .CellTemplate(@<text>
-                <div class="img-container">
-                    <img src="<%= value %>" alt="" />
-                </div>
-                </text>        );
+    <div class="img-container">
+        <img src="<%= value %>" alt="" />
+    </div>
+    </text>        );
 
 
                 //columns.Add()
@@ -276,11 +279,264 @@
                 //.DataSource(d => d.WebApi().Controller("SmallGroupReport").Key("Id"))
                 .DataSource(Model.Members)
                 //.DataSourceOptions(d => d.Filter("['Id', '<=' , 6]"))
+        )
+    </div>
+
+    <br />
+    <hr />
+    <h3>新人關懷</h3>
+
+    <div id="newman-grid">
+        @(Html.DevExtreme().DataGrid()
+    .ID("NewMangridContainer")
+    .ShowBorders(true)
+    .ColumnAutoWidth(true)
+    .Paging(p => p.PageSize(10))
+    .Paging(paging => paging.Enabled(true))
+    .AllowColumnResizing(true)
+    .ColumnResizingMode(ColumnResizingMode.Widget)
+    .ColumnFixing(c => c.Enabled(true))
+    .LoadPanel(l => l.Text("更新資料中..."))
+    .SearchPanel(s => s.Visible(true).Placeholder("搜尋.."))
+
+
+    //.StateStoring(s => s
+    //    .Enabled(true)
+    //    .Type(StateStoringType.LocalStorage)
+    //    .StorageKey("Id")
+    //)
+
+    //.OnRowUpdated("function () { alert('OnRowUpdated'); }")
+    //.OnRowClick("function () { alert('OnRowClick'); }")
+    //.OnSelectionChanged("function () { alert('OnSelectionChanged'); }" )
+    //.OnCellClick("function () { alert('OnCellClick'); }")
+    //.OnEditingStart("function () { alert('OnEditingStart'); }")
+    //.OnEditorPrepared("function () { alert('OnEditorPrepared'); }")
+
+
+
+
+    .ShowColumnLines(true)
+    .ShowRowLines(true)
+    .RowAlternationEnabled(true)
+    .ShowBorders(true)
+
+    .TwoWayBindingEnabled(true)
+
+    .Grouping
+    (g => g
+    .ContextMenuEnabled(true)
+    .ExpandMode(GridGroupingExpandMode.RowClick)
     )
-</div>
+
+    .GroupPanel
+    (p => p
+    .EmptyPanelText("請把小組名稱拉到這裡")
+    .Visible(false) // 讓使用者不能自己決定誰被Grouping起來
+    .AllowColumnDragging(true)
+    )
+
+    //.GroupPanel(p => p.Visible(true))
+    //.GroupPanel(p => p.AllowColumnDragging(false))
+    //.GroupPanel(p => p.(false))
+    //.Grouping(g => g.AutoExpandAll(true))
+
+
+    .Editing(editing =>
+    {
+    //editing.Mode(GridEditMode.Batch);
+    //editing.Mode(GridEditMode.Row);
+    editing.Mode(GridEditMode.Cell);
+    //editing.Mode(GridEditMode.Batch);
+    //editing.Mode(GridEditMode.Form);
+    //editing.Mode(GridEditMode.Popup);
+    editing.AllowUpdating(true);
+    //editing.AllowAdding(true);
+    //editing.
+    editing.Texts(a => a.SaveAllChanges("上傳檔案").AddRow("新增").CancelAllChanges("取消變更"));
+    //editing.AllowDeleting(true);
+})
+
+    .Columns(columns =>
+    {
+        columns.Add()
+            .DataField("Picture")
+            .Caption("照片")
+            .Width(60)
+            .AllowFiltering(false)
+            .AllowSorting(false)
+            .CellTemplate(@<text>
+    <div class="img-container">
+        <img src="<%= value %>" alt="" />
+    </div>
+    </text>        );
+
+
+                //columns.Add()
+                //    .Caption("測試")
+                //    //.DataField("Shepherd")
+                //    .Width(250)
+                //
+                //    .CellTemplate(@<text> @(Html.Partial("DropDownBox") )
+                //    </text>);
+
+                columns.Add().DataField("FullName").Caption("姓名").Fixed(true).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Left);
+                columns.Add().DataField("Status").Caption("報到日期").Fixed(true).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Center);
+                columns.Add().DataField("Sunday").Caption("主日").DataType(GridColumnDataType.Boolean).Width(45).MinWidth(45);
+                columns.Add().DataField("SmallGroup").Caption("小組").DataType(GridColumnDataType.Boolean).Width(45).MinWidth(45);
+                columns.Add().DataField("PrayItem").Caption("代禱事項").Fixed(false).MinWidth(90);
+                columns.Add().DataField("SectionName").Caption("族系").GroupIndex(0).MinWidth(10);
+                columns.Add().DataField("SmallGroupName").Caption("小組").GroupIndex(1).MinWidth(10);
+
+                columns.Add()
+                    .DataField("StateID1")
+                    .Caption("牧養活動")
+                    .Width(80).MinWidth(30)
+                    .Lookup(lookup => lookup
+                    .DataSource(d => d.WebApi().Controller("ShepherdMethodLookup").LoadAction("Get").Key("ID"))
+                    .DisplayExpr("Name")
+                    .ValueExpr("ID")
+                );
+
+                //columns.Add()
+                //    .Caption("牧養次數")
+                //    //.DataField("Shepherd")
+                //    .Width(80)
+                //
+                //    .CellTemplate(@<text> @(Html.DevExtreme().NumberBox()
+                //    .Value(0)
+                //    .Min(0)
+                //    .Max(20)
+                //    .ShowSpinButtons(true) )
+                //    </text>        );
+
+                columns.Add().DataField("Number1").Caption("次數").DataType(GridColumnDataType.Number).Width(50).MinWidth(10);
+
+                columns.Add()
+                    .DataField("StateID2")
+                    .Caption("牧養活動")
+                    .Width(80).MinWidth(30)
+                    .Lookup(lookup => lookup
+                    .DataSource(d => d.WebApi().Controller("ShepherdMethodLookup").LoadAction("Get").Key("ID"))
+                    .DisplayExpr("Name")
+                    .ValueExpr("ID")
+                );
+
+                columns.Add().DataField("Number2").Caption("次數").DataType(GridColumnDataType.Number).Width(50).MinWidth(10);
+
+
+                })
+                //.DataSource(d => d.WebApi().Controller("SmallGroupReport").Key("Id"))
+                .DataSource(Model.Members)
+                //.DataSourceOptions(d => d.Filter("['Id', '<=' , 6]"))
+        )
+    </div>
+
+<script>
+            function GetResult002() {
+
+            //debugger;
+
+            alert("要上傳資料")
+            //Request.arguments = "Hello";
+            //request.data = "Hello";
+            //data: "Hello";
+            //aResult: "ZZZZ";
+            //return "耶和華";
+
+            //$.ajax({
+            //    url: '@Url.Action("SaveSmallGroup", "Home")',
+            //    data: { aResult: "Hello" }
+            //    type: 'POST', //POST if you want to save, GET if you want to fetch data from server
+            //
+            //
+            //
+            //});
+
+            var Section = $("#gridContainer").dxDataGrid("instance").getDataSource().items();
+
+            $.each( Section, function (index, aSection) {
+
+            var SmallGroup = aSection.items;
+
+            $.each(SmallGroup, function (index1, aSmallGroupElement) {
+            var SmallGroupMember = aSmallGroupElement.items;
+
+            $.each(SmallGroupMember, function (index2, aMember) {
+
+            for (var prop in aMember) {
+
+            //result += "&Members[" + index + "]." + prop + "=" + member[prop];
+            // alert("prop = " + prop + " Value = " + aMember[prop]);
+            }
+
+            });
+
+            });
+
+            //for (var prop in member) {
+            //    result += "&Members[" + index + "]." + prop + "=" + member[prop];
+            //    alert("Result = " + result)
+            //}
+            });
+
+            //var result = "";
+            //$.each(members, function (index, member) {
+            //    for (var prop in member) {
+            //        result += "&Members[" + index + "]." + prop + "=" + member[prop];
+            //        alert("Result = " + result)
+            //    }
+            //})
+            ////request.data += result;
+            //
+            ////request.data = "HELLO";
+            //
+            //data.aResult = "Hello";
+
+            return "耶和華是我家的主";
+
+    }
+
+    function getODataLocalDateFilter(date) {
+        //-- Description: For converting the date object to local time format
+        //-- You can also convert this to UTC Date format
+        //-- UTC Usage: getUTCMonth(), getUTCFullYear(), getUTCHours() ...
+
+        alert("天下一統");
+
+        var monthString;
+        var rawMonth = (date.getMonth() + 1).toString();
+        if (rawMonth.length == 1) {
+            monthString = "0" + rawMonth;
+        }
+        else { monthString = rawMonth; }
+
+        var dateString;
+        //var rawDate = date.getUTCDate().toString();
+        var rawDate = date.getDate().toString();
+        if (rawDate.length == 1) {
+            dateString = "0" + rawDate;
+        }
+        else { dateString = rawDate; }
+
+
+        var DateFilter = "";
+        //DateFilter += date.getFullYear() + "-";
+        //DateFilter += monthString + "-";
+        //DateFilter += dateString;
+        //DateFilter += " T" + date.getHours() + ":";
+        //DateFilter += date.getMinutes() + ":";
+        //DateFilter += date.getSeconds() + ":";
+        //DateFilter += date.getMilliseconds();
+
+        //return DateFilter;
+
+        return date.getFullYear() + "/" + rawMonth + "/" + rawDate;
+    }
+
+</script>
 
 <script src="~/js/DataGridAjax.js"></script>
-
 <script src="~/js/SelectDate.js"></script>
 <script src="~/js/DropDownBox.js"></script>
 <script src="~/js/DataGridAjax.js"></script>
