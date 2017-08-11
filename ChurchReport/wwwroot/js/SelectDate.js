@@ -30,7 +30,10 @@
 
         function getODataLocalDateFilter(date) {
 
-            debugger;
+            //debugger;
+
+            //alert("getODataLocalDateFilter !" + date);
+            //alert("HELLO 我愛嘟嘟妞妞 006!" + date);
 
             //-- Description: For converting the date object to local time format
             //-- You can also convert this to UTC Date format
