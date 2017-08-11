@@ -30,5 +30,17 @@ namespace ChurchReport.Controllers
             return Json(new { status = "1", message = "成功上傳了...." });
         }
 
+
+        [HttpGet]
+        public IActionResult UpdateDate(string SelectedDate)
+        {
+            SmallGroupDataList.SetupSmallGroupDate(SmallGroupDataList.m_SmallGroupData.SmallGroupLeaderContactId, SelectedDate);
+            //return View(SmallGroupDataList.m_SmallGroupData);
+            //return Json(new { status = "1", message = "成功上傳了...." });
+            return Ok();
+
+        }
+
+
     }
 }

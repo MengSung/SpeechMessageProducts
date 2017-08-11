@@ -217,7 +217,7 @@ namespace ChurchReport.Models
                 #region 加入新成員
             new Member {
                           Id =1,
-                          FullName = "林國仁",
+                          FullName = "胡逸凡",
                           Status = "族系族長",
                           SmallGroupName = "國仁哥小組",
                           SectionName = "國仁哥族系",
@@ -235,13 +235,13 @@ namespace ChurchReport.Models
                         new Member
                         {
                             Id = 2,
-                            FullName = "林萬全",
+                            FullName = "胡逸祥",
                             Status = "組員",
                             SmallGroupName = "國仁哥小組",
                             SectionName = "國仁哥族系",
                             PrayItem = "工作順利、敬拜到達神寶座前，非常順利!",
                             Sunday = true,
-                            SmallGroup = false,
+                            SmallGroup = true,
                             StateID1 = 5,
                             Number1 = 2,
                             StateID2 =3,
@@ -256,8 +256,8 @@ namespace ChurchReport.Models
                             SmallGroupName = "國仁哥小組",
                             SectionName = "國仁哥族系",
                             PrayItem = "有智慧處理組織問題",
-                            Sunday = true,
-                            SmallGroup = true,
+                            Sunday = false,
+                            SmallGroup = false,
                             StateID1 = 4,
                             Number1 = 2,
                             StateID2 = 1,

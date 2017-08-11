@@ -34,7 +34,7 @@
                     $("#loadPanel").dxLoadPanel("instance").show();
 
                     $.ajax({
-                    url: '@Url.Action("UpdateDate", "Home")',
+                    url: '@Url.Action("UpdateDate", "SmallGroupReport")',
                     data: { SelectedDate: getODataLocalDateFilter(arg.value) },
                     type: 'GET', //POST if you want to save, GET if you want to fetch data from server
 
@@ -76,7 +76,7 @@
                     $("#loadPanel").dxLoadPanel("instance").show();
 
                     $.ajax({
-                        url: '@Url.Action("SaveSmallGroup", "Home")',
+                        url: '@Url.Action("SaveSmallGroup", "SmallGroupReport")',
                         data: { aResult: GetResult() },
                         type: 'POST', //POST if you want to save, GET if you want to fetch data from server
 
