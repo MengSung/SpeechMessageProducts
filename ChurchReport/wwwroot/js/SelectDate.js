@@ -29,6 +29,9 @@
         }
 
         function getODataLocalDateFilter(date) {
+
+            debugger;
+
             //-- Description: For converting the date object to local time format
             //-- You can also convert this to UTC Date format
             //-- UTC Usage: getUTCMonth(), getUTCFullYear(), getUTCHours() ...
