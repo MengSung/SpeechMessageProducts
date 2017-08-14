@@ -1,4 +1,5 @@
-﻿function GetResult() {
+﻿
+function GetResult() {
 
             debugger;
 

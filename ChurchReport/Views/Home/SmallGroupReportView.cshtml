@@ -94,6 +94,7 @@
                             
                             //@DataStatus="HELLO";
 
+                            DataUploadStatus = "好棒棒，上傳已經成功了喔!"
                             $("#toast").dxToast("instance").show();
 
                             //window.location.href = "/Home/SmallGroupReportView"
@@ -116,7 +117,7 @@
                 .Position(p => p
                 .At(HorizontalAlignment.Center, VerticalAlignment.Center)
                 .Offset(0, 50))
-                .Message(@DataStatus)
+                .Message(DataStatus)
                 .DisplayTime(2000)
                 .MaxWidth(200)
                 )
@@ -440,6 +441,8 @@
                 //.DataSourceOptions(d => d.Filter("['Id', '<=' , 6]"))
         )
     </div>
+
+<script>var DataUploadStatus = "尚未上傳喔!";</script>
 
 <script src="~/js/DataGridAjax.js"></script>
 <script src="~/js/SelectDate.js"></script>
