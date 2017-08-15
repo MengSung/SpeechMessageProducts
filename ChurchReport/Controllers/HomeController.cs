@@ -67,7 +67,7 @@ namespace ChurchReport.Controllers
                 };
 
 
-                aDownloader.GetMemberDataPackage(DateTime.Now, aAccountPasswordData);
+                MemberInfomationPackage aMemberInfomationPackage = aDownloader.GetMemberDataPackage(DateTime.Now, aAccountPasswordData);
 
                 return Json(new { status = "1", message = "歡迎" + FullName + "登入成功!", fullname = ContactIdString });
             }

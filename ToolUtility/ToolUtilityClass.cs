@@ -1747,8 +1747,15 @@ namespace ToolUtilityNameSpace
                     //retrievePrincipal.ReturnDynamicEntities = true;
 
                     // Execute the request.
-                    RetrieveMultipleResponse principalResponse = (RetrieveMultipleResponse)this.m_OrganizationService.Execute(retrievePrincipal);
-
+                    RetrieveMultipleResponse principalResponse ;
+                    if (CRM_TYPE == "DYNAMICS365")
+                    {
+                        principalResponse = (RetrieveMultipleResponse)this.m_OrganizationService.Execute(retrievePrincipal);
+                    }
+                    else
+                    {
+                        principalResponse = (RetrieveMultipleResponse)this.m_Crm2011OrganizationService.Execute(retrievePrincipal);
+                    }
                     //BusinessEntityCollection BloodReportCollection = aCrmService.RetrieveMultiple(queryPrincipal);
 
                     return principalResponse.EntityCollection;
