@@ -13,6 +13,8 @@ using Microsoft.Xrm.Sdk.Client;
 using Microsoft.Xrm.Sdk.Discovery;
 using Microsoft.Crm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Messages;
+using ChurchReport.WebServiceConnector;
+using ChurchReport.Models.CrmTransmitModule;
 
 namespace ChurchReport.Models
 {
@@ -381,6 +383,47 @@ namespace ChurchReport.Models
                         },
                         #endregion
             };
+
+        }
+        public static void SetupSmallGroupData(String FullName, String Account, String Password, DateTime SundayDate)
+        {
+            DownloadData aDownloader = new DownloadData();
+            AccountPasswordData aAccountPasswordData = new AccountPasswordData
+            {
+                Account = Account,
+                Password = Password
+            };
+
+            MemberInfomationPackage aMemberInfomationPackage = aDownloader.GetMemberDataPackage(SundayDate, aAccountPasswordData);
+
+            m_SmallGroupData.SmallGroupLeaderFullName = FullName;
+            m_SmallGroupData.SundayPrayers = SundayDate;
+
+            foreach( MemberInfomation aMemberInfomation in aMemberInfomationPackage.ListMemberInfomation)
+            {
+                Member aMember = new Member
+                {
+                    Id = 1,
+                    FullName = aMemberInfomation.Name,
+                    Status = aMemberInfomation.Status,
+                    SmallGroupName = aMemberInfomation.Group,
+                    SectionName = aMemberInfomation.Group,
+                    PrayItem = "請為黎巴嫩行程代禱，努力禱告",
+                    Sunday = aMemberInfomation.SundayPresent,
+                    SmallGroup = aMemberInfomation.SmallGroupPresent,
+                    StateID1 = 2,
+                    Number1 = 4,
+                    StateID2 = 1,
+                    Number2 = 2,
+                    //Picture = "../../images/employees/01.png" //D:\暫存區\ASP.NET CORE 練習區\DevExtremeAspNetCoreApp1\DevExtremeAspNetCoreApp1\wwwroot\images\employees
+                    Picture = "../../images/employees/01.png" //D:\暫存區\ASP.NET CORE 練習區\DevExtremeAspNetCoreApp1\DevExtremeAspNetCoreApp1\wwwroot\images\employees
+                                                              //Picture = "https://tpehoc.speechmessage.com.tw/image/download.aspx?attribute=entityimage&entity=contact&id=66cd8034-953f-e711-80d9-00155d00640b" //D:\暫存區\ASP.NET CORE 練習區\DevExtremeAspNetCoreApp1\DevExtremeAspNetCoreApp1\wwwroot\images\employees
+
+                };
+
+                SmallGroupDataList.m_SmallGroupData.members.Add(aMember);
+
+            }
 
         }
     }

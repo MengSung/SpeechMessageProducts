@@ -56,18 +56,7 @@ namespace ChurchReport.Controllers
                 //String FullName = this.m_ToolUtilityClass.RetrieveEntityDynamics365("contact", aContactGuid).Attributes["fullname"].ToString();
                 String FullName = this.m_ToolUtilityClass.RetrieveEntityCrm2011("contact", aContactGuid).Attributes["fullname"].ToString();
 
-                SmallGroupDataList.SetupSmallGroupDate(SmallGroupDataList.m_SmallGroupData.SmallGroupLeaderContactId);
-
-
-                DownloadData aDownloader = new DownloadData();
-                AccountPasswordData aAccountPasswordData = new AccountPasswordData
-                {
-                    Account = aGalleryViewModel.Account,
-                    Password = aGalleryViewModel.Password
-                };
-
-
-                MemberInfomationPackage aMemberInfomationPackage = aDownloader.GetMemberDataPackage(DateTime.Now, aAccountPasswordData);
+                SmallGroupDataList.SetupSmallGroupData(FullName, aGalleryViewModel.Account, aGalleryViewModel.Password, DateTime.Now.AddDays(-(int)DateTime.Now.DayOfWeek) ;
 
                 return Json(new { status = "1", message = "歡迎" + FullName + "登入成功!", fullname = ContactIdString });
             }
@@ -91,7 +80,6 @@ namespace ChurchReport.Controllers
             return Json(new { status = "1", message = "成功上傳了...." });
         }
 
-
         [HttpGet]
         public IActionResult UpdateDate(string SelectedDate)
         {
@@ -101,7 +89,6 @@ namespace ChurchReport.Controllers
             return Ok();
 
         }
-
 
         [Route("/Home/InputReport/{FullName}")]
         public IActionResult InputReport(String FullName)
