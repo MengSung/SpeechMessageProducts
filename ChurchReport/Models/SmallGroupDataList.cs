@@ -20,6 +20,9 @@ namespace ChurchReport.Models
 {
     static public class SmallGroupDataList
     {
+        static String m_FullName;
+        static String m_Account;
+        static String m_Password;
         //static ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
         static ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("CRM2011");
 
@@ -387,6 +390,9 @@ namespace ChurchReport.Models
         }
         public static void SetupSmallGroupData(String FullName, String Account, String Password, DateTime SundayDate)
         {
+            m_FullName = FullName;
+            m_Account = Account;
+            m_Password = Password;
             DownloadData aDownloader = new DownloadData();
             AccountPasswordData aAccountPasswordData = new AccountPasswordData
             {
@@ -401,7 +407,7 @@ namespace ChurchReport.Models
 
             SmallGroupDataList.m_SmallGroupData.members = new List<Member>();
 
-            foreach ( MemberInfomation aMemberInfomation in aMemberInfomationPackage.ListMemberInfomation)
+            foreach (MemberInfomation aMemberInfomation in aMemberInfomationPackage.ListMemberInfomation)
             {
                 Member aMember = new Member
                 {
@@ -425,6 +431,47 @@ namespace ChurchReport.Models
 
                 SmallGroupDataList.m_SmallGroupData.members.Add(aMember);
 
+            }
+
+        }
+        public static void SetupSmallGroupData( DateTime SundayDate )
+        {
+            DownloadData aDownloader = new DownloadData();
+            AccountPasswordData aAccountPasswordData = new AccountPasswordData
+            {
+                Account = m_Account,
+                Password = m_Password
+            };
+
+            MemberInfomationPackage aMemberInfomationPackage = aDownloader.GetMemberDataPackage(SundayDate, aAccountPasswordData);
+
+            m_SmallGroupData.SmallGroupLeaderFullName = m_FullName;
+            m_SmallGroupData.SundayPrayers = SundayDate;
+
+            SmallGroupDataList.m_SmallGroupData.members.Clear();
+
+            foreach (MemberInfomation aMemberInfomation in aMemberInfomationPackage.ListMemberInfomation)
+            {
+                Member aMember = new Member
+                {
+                    Id = 1,
+                    FullName = aMemberInfomation.Name,
+                    Status = aMemberInfomation.Identity,
+                    SmallGroupName = aMemberInfomation.Group,
+                    SectionName = aMemberInfomation.Group,
+                    PrayItem = aMemberInfomation.Note,
+                    Sunday = aMemberInfomation.SundayPresent,
+                    SmallGroup = aMemberInfomation.SmallGroupPresent,
+                    StateID1 = 2,
+                    Number1 = 4,
+                    StateID2 = 1,
+                    Number2 = 2,
+                    //Picture = "../../images/employees/01.png" //D:\暫存區\ASP.NET CORE 練習區\DevExtremeAspNetCoreApp1\DevExtremeAspNetCoreApp1\wwwroot\images\employees
+                    Picture = "../../images/employees/01.png" //D:\暫存區\ASP.NET CORE 練習區\DevExtremeAspNetCoreApp1\DevExtremeAspNetCoreApp1\wwwroot\images\employees
+                                                              //Picture = "https://tpehoc.speechmessage.com.tw/image/download.aspx?attribute=entityimage&entity=contact&id=66cd8034-953f-e711-80d9-00155d00640b" //D:\暫存區\ASP.NET CORE 練習區\DevExtremeAspNetCoreApp1\DevExtremeAspNetCoreApp1\wwwroot\images\employees
+
+                };
+                SmallGroupDataList.m_SmallGroupData.members.Add(aMember);
             }
 
         }

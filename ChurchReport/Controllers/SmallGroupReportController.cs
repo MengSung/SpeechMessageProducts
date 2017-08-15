@@ -34,7 +34,7 @@ namespace ChurchReport.Controllers
         [HttpGet]
         public IActionResult UpdateDate(string SelectedDate)
         {
-            SmallGroupDataList.SetupSmallGroupDate(SmallGroupDataList.m_SmallGroupData.SmallGroupLeaderContactId, SelectedDate);
+            SmallGroupDataList.SetupSmallGroupData( DateTime.Parse(SelectedDate));
             //return View(SmallGroupDataList.m_SmallGroupData);
             //return Json(new { status = "1", message = "成功上傳了...." });
             return Ok();
