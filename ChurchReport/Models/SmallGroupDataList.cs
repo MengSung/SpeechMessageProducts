@@ -18,7 +18,8 @@ namespace ChurchReport.Models
 {
     static public class SmallGroupDataList
     {
-        static ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
+        //static ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
+        static ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("CRM2011");
 
         static public SmallGroupData m_SmallGroupData = new SmallGroupData();
 
@@ -30,7 +31,8 @@ namespace ChurchReport.Models
         {
             Guid aContactGuid = new Guid(ContactIdString);
 
-            String FullName = m_ToolUtilityClass.RetrieveEntity("contact", aContactGuid).Attributes["fullname"].ToString();
+            //String FullName = m_ToolUtilityClass.RetrieveEntityDynamics365("contact", aContactGuid).Attributes["fullname"].ToString();
+            String FullName = m_ToolUtilityClass.RetrieveEntityCrm2011("contact", aContactGuid).Attributes["fullname"].ToString();
 
             m_SmallGroupData.SmallGroupLeaderFullName = FullName;
             m_SmallGroupData.SundayPrayers = DateTime.Parse("2017/07/30");
@@ -207,7 +209,8 @@ namespace ChurchReport.Models
         {
             Guid aContactGuid = new Guid(ContactIdString);
 
-            String FullName = m_ToolUtilityClass.RetrieveEntity("contact", aContactGuid).Attributes["fullname"].ToString();
+            //String FullName = m_ToolUtilityClass.RetrieveEntityDynamics365("contact", aContactGuid).Attributes["fullname"].ToString();
+            String FullName = m_ToolUtilityClass.RetrieveEntityCrm2011("contact", aContactGuid).Attributes["fullname"].ToString();
 
             m_SmallGroupData.SmallGroupLeaderFullName = FullName;
             m_SmallGroupData.SundayPrayers = DateTime.Parse(SundayDate);

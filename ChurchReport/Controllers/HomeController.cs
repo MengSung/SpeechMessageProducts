@@ -8,6 +8,8 @@ using ChurchReport.ViewModel;
 using ToolUtilityNameSpace;
 using ChurchReport.Models;
 
+using ChurchReport.WebServiceConnector;
+using ChurchReport.Models.CrmTransmitModule;
 
 // These namespaces are found in the Microsoft.Xrm.Sdk.dll assembly
 // located in the SDK\bin folder of the SDK download.
@@ -22,8 +24,8 @@ namespace ChurchReport.Controllers
 {
     public class HomeController : Controller
     {
-        ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
-        //ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("CRM2011");
+        //ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
+        ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("CRM2011");
 
         public IActionResult Login()
         {
@@ -51,9 +53,21 @@ namespace ChurchReport.Controllers
             {
                 Guid aContactGuid = new Guid(ContactIdString);
 
-                String FullName = this.m_ToolUtilityClass.RetrieveEntity( "contact", aContactGuid).Attributes["fullname"].ToString();
+                //String FullName = this.m_ToolUtilityClass.RetrieveEntityDynamics365("contact", aContactGuid).Attributes["fullname"].ToString();
+                String FullName = this.m_ToolUtilityClass.RetrieveEntityCrm2011("contact", aContactGuid).Attributes["fullname"].ToString();
 
                 SmallGroupDataList.SetupSmallGroupDate(SmallGroupDataList.m_SmallGroupData.SmallGroupLeaderContactId);
+
+
+                DownloadData aDownloader = new DownloadData();
+                AccountPasswordData aAccountPasswordData = new AccountPasswordData
+                {
+                    Account = aGalleryViewModel.Account,
+                    Password = aGalleryViewModel.Password
+                };
+
+
+                aDownloader.GetMemberDataPackage(DateTime.Now, aAccountPasswordData);
 
                 return Json(new { status = "1", message = "歡迎" + FullName + "登入成功!", fullname = ContactIdString });
             }

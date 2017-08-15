@@ -25,6 +25,7 @@ namespace ToolUtilityNameSpace
     {
         #region 資料區
 
+        private String CRM_TYPE = "CRM2011";
         String m_DiscoveryServiceType = "";
 
         public IOrganizationService m_Crm2011OrganizationService;
@@ -37,13 +38,13 @@ namespace ToolUtilityNameSpace
 
         #region 楊梅靈糧堂組織
         //private const String SERVER = "crm2011"; // 機房雲端要用此網址
-        //private const String SERVER = "system.speechmessage.com.tw";
-        //
-        //private const String PORT = "7777";
-        //private const String ORGANIZATION = "yangmeillc";
-        //private const String USERNAME = "Administrator";
-        //private const String PASSWORD = "hu9840";
-        //private const String DOMAIN = "SPEECHMESSAGE";
+        private const String SERVER = "system.speechmessage.com.tw";
+        
+        private const String PORT = "7777";
+        private const String ORGANIZATION = "yangmeillc";
+        private const String USERNAME = "Administrator";
+        private const String PASSWORD = "hu9840";
+        private const String DOMAIN = "SPEECHMESSAGE";
         #endregion
 
         #region 林口靈糧堂組織
@@ -138,12 +139,12 @@ namespace ToolUtilityNameSpace
         // Sign in to your CRM org and click Settings, Customization, Developer Resources.
         // On Developer Resource page, find the discovery service address under Service Endpoints and organization unique name under Your Organization Information.
 
-        private const String SERVER = "speechmessage.com.tw";
-        private const String PORT = "7777";
-        private const String ORGANIZATION = "tpehoc";
-        private const String USERNAME = "administrator@speechmessage.com.tw";
-        private const String PASSWORD = "hu9840";
-        private const String DOMAIN = "DYNAMICS-365";
+        //private const String SERVER = "speechmessage.com.tw";
+        //private const String PORT = "7777";
+        //private const String ORGANIZATION = "tpehoc";
+        //private const String USERNAME = "administrator@speechmessage.com.tw";
+        //private const String PASSWORD = "hu9840";
+        //private const String DOMAIN = "DYNAMICS-365";
 
         #region 僅供參考區塊
         //private String _discoveryServiceAddress = "https://tpehoc.speechmessage.com.tw/XRMServices/2011/Discovery.svc";
@@ -218,6 +219,8 @@ namespace ToolUtilityNameSpace
             {
                 SetOrganizationService();
             }
+
+            CRM_TYPE = DiscoveryServiceType;
         }
         public ToolUtilityClass(ref bool ValidFlag)
         {
@@ -603,7 +606,15 @@ namespace ToolUtilityNameSpace
 
                     //Console.WriteLine("除錯 002");
                     //  Query passed to the service proxy
-                    EntityCollection retrieved = this.m_OrganizationService.RetrieveMultiple(querybyexpression);
+                    EntityCollection retrieved;
+                    if (CRM_TYPE == "DYNAMICS365")
+                    {
+                        retrieved = this.m_OrganizationService.RetrieveMultiple(querybyexpression);
+                    }
+                    else
+                    {
+                        retrieved = this.m_Crm2011OrganizationService.RetrieveMultiple(querybyexpression);
+                    }
 
                     //Console.WriteLine("除錯 003");
 
@@ -699,7 +710,15 @@ namespace ToolUtilityNameSpace
 
                     //Console.WriteLine("除錯 002");
                     //  Query passed to the service proxy
-                    EntityCollection retrieved = this.m_OrganizationService.RetrieveMultiple(querybyexpression);
+                    EntityCollection retrieved;
+                    if (CRM_TYPE == "DYNAMICS365")
+                    {
+                        retrieved = this.m_OrganizationService.RetrieveMultiple(querybyexpression);
+                    }
+                    else
+                    {
+                        retrieved = this.m_Crm2011OrganizationService.RetrieveMultiple(querybyexpression);
+                    }
 
                     String ContactInformation = "";
 
@@ -1006,7 +1025,7 @@ namespace ToolUtilityNameSpace
                 throw e;
             }
         }
-        public Guid RetrieveContactIdByAccountNumber(String AccountNumber, String aPassword)
+        public Guid RetrieveContactIdByAccountNumberDynamics365(String AccountNumber, String aPassword)
         {
             try
             {
@@ -1065,7 +1084,68 @@ namespace ToolUtilityNameSpace
                 throw e;
             }
         }
-        public Entity RetrieveContactEntityByAccountNumber(String AccountNumber, String aPassword)
+        public Guid RetrieveContactIdByAccountNumberCrm2011(String AccountNumber, String aPassword)
+        {
+            try
+            {
+                lock (m_RetrieveContactLocker)
+                {
+                    //  Create query using querybyattribute
+                    //Console.WriteLine("除錯 001");
+
+                    QueryByAttribute querybyexpression = new QueryByAttribute("contact");
+                    querybyexpression.ColumnSet = new ColumnSet();
+                    querybyexpression.ColumnSet.AllColumns = true;
+                    //  Attribute to query
+                    //querybyexpression.Attributes.AddRange("new_account", "statecode");
+                    //楊梅靈糧堂小組長帳號
+                    querybyexpression.Attributes.AddRange("new_app_acount", "statecode");
+                    //  Value of queried attribute to return
+                    querybyexpression.Values.AddRange(AccountNumber, 0);
+
+                    //Console.WriteLine("除錯 002");
+                    //  Query passed to the service proxy
+                    EntityCollection retrieved = this.m_Crm2011OrganizationService.RetrieveMultiple(querybyexpression);
+
+                    //Console.WriteLine("除錯 003");
+                    if (retrieved.Entities.Count > 0 && retrieved != null)
+                    {
+                        Entity aEntity = retrieved.Entities[0];
+
+                        //if (retrieved.Entities[0].Attributes.Contains("new_password"))
+                        if (retrieved.Entities[0].Attributes.Contains("new_app_pass"))
+                        {
+                            //String aContactPassword = retrieved.Entities[0].Attributes["new_password"].ToString();
+                            String aContactPassword = retrieved.Entities[0].Attributes["new_app_pass"].ToString();
+                            if (aContactPassword == aPassword)
+                            {
+                                return retrieved.Entities[0].Id;
+                            }
+                            else
+                            {
+                                return Guid.Empty;
+                            }
+                        }
+                        else
+                        {
+                            return Guid.Empty;
+                        }
+                    }
+                    else
+                    {
+                        return Guid.Empty;
+                    }
+                }
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                throw e;
+            }
+        }
+
+
+        public Entity RetrieveContactEntityByAccountNumberDynamics365(String AccountNumber, String aPassword)
         {
             try
             {
@@ -1124,6 +1204,66 @@ namespace ToolUtilityNameSpace
                 throw e;
             }
         }
+        public Entity RetrieveContactEntityByAccountNumberCrm2011(String AccountNumber, String aPassword)
+        {
+            try
+            {
+                lock (m_RetrieveContactLocker)
+                {
+                    //  Create query using querybyattribute
+                    //Console.WriteLine("除錯 001");
+
+                    QueryByAttribute querybyexpression = new QueryByAttribute("contact");
+                    querybyexpression.ColumnSet = new ColumnSet();
+                    querybyexpression.ColumnSet.AllColumns = true;
+                    //  Attribute to query
+                    //querybyexpression.Attributes.AddRange("new_account", "statecode");
+                    //楊梅靈糧堂小組長帳號
+                    querybyexpression.Attributes.AddRange("new_app_acount", "statecode");
+                    //  Value of queried attribute to return
+                    querybyexpression.Values.AddRange(AccountNumber, 0);
+
+                    //Console.WriteLine("除錯 002");
+                    //  Query passed to the service proxy
+                    EntityCollection retrieved = this.m_Crm2011OrganizationService.RetrieveMultiple(querybyexpression);
+
+                    //Console.WriteLine("除錯 003");
+                    if (retrieved.Entities.Count > 0 && retrieved != null)
+                    {
+                        Entity aEntity = retrieved.Entities[0];
+
+                        //if (retrieved.Entities[0].Attributes.Contains("new_password"))
+                        if (retrieved.Entities[0].Attributes.Contains("new_app_pass"))
+                        {
+                            //String aContactPassword = retrieved.Entities[0].Attributes["new_password"].ToString();
+                            String aContactPassword = retrieved.Entities[0].Attributes["new_app_pass"].ToString();
+                            if (aContactPassword == aPassword)
+                            {
+                                return retrieved.Entities[0];
+                            }
+                            else
+                            {
+                                return null;
+                            }
+                        }
+                        else
+                        {
+                            return null;
+                        }
+                    }
+                    else
+                    {
+                        return null;
+                    }
+                }
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                throw e;
+            }
+        }
+
         public Entity RetrieveContactEntityByFullNameAndMobileNumber(String FullName, String MobileNumber)
         {   // 依據全名及行動電話找尋連絡人
             try
@@ -1142,7 +1282,15 @@ namespace ToolUtilityNameSpace
                     //  Value of queried attribute to return
                     querybyexpression.Values.AddRange(FullName, MobileNumber, 0);
                     //  Query passed to the service proxy
-                    EntityCollection retrieved = this.m_OrganizationService.RetrieveMultiple(querybyexpression);
+                    EntityCollection retrieved;
+                    if (CRM_TYPE == "DYNAMICS365")
+                    {
+                        retrieved = this.m_OrganizationService.RetrieveMultiple(querybyexpression);
+                    }
+                    else
+                    {
+                        retrieved = this.m_Crm2011OrganizationService.RetrieveMultiple(querybyexpression);
+                    }
 
                     if (retrieved.Entities.Count > 0 && retrieved != null)
                     {
@@ -1177,7 +1325,14 @@ namespace ToolUtilityNameSpace
                     //  Value of queried attribute to return
                     querybyexpression.Values.AddRange(FullName, 0);
                     //  Query passed to the service proxy
-                    return this.m_OrganizationService.RetrieveMultiple(querybyexpression);
+                    if (CRM_TYPE == "DYNAMICS365")
+                    {
+                        return this.m_OrganizationService.RetrieveMultiple(querybyexpression);
+                    }
+                    else
+                    {
+                        return this.m_Crm2011OrganizationService.RetrieveMultiple(querybyexpression);
+                    }
                 }
             }
             catch (System.Exception e)
@@ -1188,6 +1343,67 @@ namespace ToolUtilityNameSpace
         }
 
         public EntityCollection RetrieveMemberListCollectionByListId(ref IOrganizationService aOrganizationService, Guid aListId)
+        {
+            try
+            {
+                lock (m_RetrieveContactLocker)
+                {
+
+                    QueryByAttribute query = new QueryByAttribute("listmember");
+                    query.AddAttributeValue("listid", aListId);
+                    query.ColumnSet = new ColumnSet(true);
+
+                    #region// 根據建立時間排序後傳回來
+                    //OrderExpression OrderBySunday = new OrderExpression();
+                    //OrderBySunday.AttributeName = "new_sunday_date";
+                    ////OrderBySunday.OrderType = OrderType.Ascending;
+                    //OrderBySunday.OrderType = OrderType.Descending;
+                    //////OrderBySerial.OrderType = OrderType.Descending;
+                    //query.Orders.Add(OrderBySunday);
+                    #endregion
+
+                    EntityCollection entityCollection = aOrganizationService.RetrieveMultiple(query);
+
+                    return entityCollection;
+                }
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                throw e;
+            }
+        }
+        public EntityCollection RetrieveMemberListCollectionByListIdDynamics365(ref OrganizationServiceProxy aOrganizationService, Guid aListId)
+        {
+            try
+            {
+                lock (m_RetrieveContactLocker)
+                {
+
+                    QueryByAttribute query = new QueryByAttribute("listmember");
+                    query.AddAttributeValue("listid", aListId);
+                    query.ColumnSet = new ColumnSet(true);
+
+                    #region// 根據建立時間排序後傳回來
+                    //OrderExpression OrderBySunday = new OrderExpression();
+                    //OrderBySunday.AttributeName = "new_sunday_date";
+                    ////OrderBySunday.OrderType = OrderType.Ascending;
+                    //OrderBySunday.OrderType = OrderType.Descending;
+                    //////OrderBySerial.OrderType = OrderType.Descending;
+                    //query.Orders.Add(OrderBySunday);
+                    #endregion
+
+                    EntityCollection entityCollection = aOrganizationService.RetrieveMultiple(query);
+                    return entityCollection;
+                }
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                throw e;
+            }
+        }
+        public EntityCollection RetrieveMemberListCollectionByListIdCrm2011(ref IOrganizationService aOrganizationService, Guid aListId)
         {
             try
             {
@@ -1228,7 +1444,28 @@ namespace ToolUtilityNameSpace
             EntityCollection dynamicmemberec = service.RetrieveMultiple(new FetchExpression(dynamicQuery));
             return dynamicmemberec;
         }
-        public EntityCollection RetrieveDynamicMemberList( ref IOrganizationService service, Guid aListId)
+        public EntityCollection RetrieveDynamicMemberListDynamics365(OrganizationServiceProxy service, string strList)
+        {
+            ColumnSet cols = new ColumnSet(new string[] { "query" });
+
+            // GUID of the Dynamic Marketing List
+            var entity = service.Retrieve("list", new Guid(strList), cols);
+            var dynamicQuery = entity.Attributes["query"].ToString();
+            EntityCollection dynamicmemberec = service.RetrieveMultiple(new FetchExpression(dynamicQuery));
+            return dynamicmemberec;
+        }
+        public EntityCollection RetrieveDynamicMemberListCrm2011(IOrganizationService service, string strList)
+        {
+            ColumnSet cols = new ColumnSet(new string[] { "query" });
+
+            // GUID of the Dynamic Marketing List
+            var entity = service.Retrieve("list", new Guid(strList), cols);
+            var dynamicQuery = entity.Attributes["query"].ToString();
+            EntityCollection dynamicmemberec = service.RetrieveMultiple(new FetchExpression(dynamicQuery));
+            return dynamicmemberec;
+        }
+
+        public EntityCollection RetrieveDynamicMemberList(ref IOrganizationService service, Guid aListId)
         {
             ColumnSet cols = new ColumnSet(new string[] { "query" });
 
@@ -1239,6 +1476,29 @@ namespace ToolUtilityNameSpace
             EntityCollection dynamicmemberec = service.RetrieveMultiple(new FetchExpression(dynamicQuery));
             return dynamicmemberec;
         }
+        public EntityCollection RetrieveDynamicMemberListDynamics365(ref OrganizationServiceProxy service, Guid aListId)
+        {
+            ColumnSet cols = new ColumnSet(new string[] { "query" });
+
+            // GUID of the Dynamic Marketing List
+            var entity = service.Retrieve("list", aListId, cols);
+            var dynamicQuery = entity.Attributes["query"].ToString();
+
+            EntityCollection dynamicmemberec = service.RetrieveMultiple(new FetchExpression(dynamicQuery));
+            return dynamicmemberec;
+        }
+        public EntityCollection RetrieveDynamicMemberListCrm2011(ref IOrganizationService service, Guid aListId)
+        {
+            ColumnSet cols = new ColumnSet(new string[] { "query" });
+
+            // GUID of the Dynamic Marketing List
+            var entity = service.Retrieve("list", aListId, cols);
+            var dynamicQuery = entity.Attributes["query"].ToString();
+
+            EntityCollection dynamicmemberec = service.RetrieveMultiple(new FetchExpression(dynamicQuery));
+            return dynamicmemberec;
+        }
+
         #endregion
         #region 取得組織
 
@@ -1256,7 +1516,16 @@ namespace ToolUtilityNameSpace
                 querybyexpression.Values.AddRange(AccountName, 0);
 
                 //  Query passed to the service proxy
-                EntityCollection retrieved = this.m_OrganizationService.RetrieveMultiple(querybyexpression);
+                EntityCollection retrieved;
+                if (CRM_TYPE == "DYNAMICS365")
+                {
+                    retrieved = this.m_OrganizationService.RetrieveMultiple(querybyexpression);
+                }
+                else
+                {
+                    retrieved = this.m_Crm2011OrganizationService.RetrieveMultiple(querybyexpression);
+                }
+
 
                 return (Guid) retrieved.Entities[0].Id;
             }
@@ -1294,7 +1563,17 @@ namespace ToolUtilityNameSpace
                     query1.EntityName = "task";
                     query1.Criteria.AddCondition(condition);
 
-                    EntityCollection result1 = this.m_OrganizationService.RetrieveMultiple(query1);
+                    EntityCollection result1 ;
+
+                    if (CRM_TYPE == "DYNAMICS365")
+                    {
+                        result1 = this.m_OrganizationService.RetrieveMultiple(query1);
+                    }
+                    else
+                    {
+                        result1 = this.m_Crm2011OrganizationService.RetrieveMultiple(query1);
+                    }
+
 
                     return result1;
                 }
@@ -1362,7 +1641,15 @@ namespace ToolUtilityNameSpace
                     //retrievePrincipal.ReturnDynamicEntities = true;
 
                     // Execute the request.
-                    RetrieveMultipleResponse principalResponse = (RetrieveMultipleResponse)this.m_OrganizationService.Execute(retrievePrincipal);
+                    RetrieveMultipleResponse principalResponse ;
+                    if (CRM_TYPE == "DYNAMICS365")
+                    {
+                        principalResponse = (RetrieveMultipleResponse)this.m_OrganizationService.Execute(retrievePrincipal);
+                    }
+                    else
+                    {
+                        principalResponse = (RetrieveMultipleResponse)this.m_Crm2011OrganizationService.Execute(retrievePrincipal);
+                    }
 
                     //BusinessEntityCollection BloodReportCollection = aCrmService.RetrieveMultiple(queryPrincipal);
 
@@ -1554,7 +1841,15 @@ namespace ToolUtilityNameSpace
                     //retrieve.ReturnDynamicEntities = true;
 
                     // Execute the request.
-                    RetrieveMultipleResponse request = (RetrieveMultipleResponse)this.m_OrganizationService.Execute(retrieve);
+                    RetrieveMultipleResponse request ;
+                    if (CRM_TYPE == "DYNAMICS365")
+                    {
+                        request = (RetrieveMultipleResponse)this.m_OrganizationService.Execute(retrieve);
+                    }
+                    else
+                    {
+                        request = (RetrieveMultipleResponse)this.m_Crm2011OrganizationService.Execute(retrieve);
+                    }
 
                     #endregion
 
@@ -1647,7 +1942,15 @@ namespace ToolUtilityNameSpace
                     //retrieve.ReturnDynamicEntities = true;
 
                     // Execute the request.
-                    RetrieveMultipleResponse request = (RetrieveMultipleResponse)this.m_OrganizationService.Execute(retrieve);
+                    RetrieveMultipleResponse request;
+                    if (CRM_TYPE == "DYNAMICS365")
+                    {
+                        request = (RetrieveMultipleResponse)this.m_OrganizationService.Execute(retrieve);
+                    }
+                    else
+                    {
+                        request = (RetrieveMultipleResponse)this.m_Crm2011OrganizationService.Execute(retrieve);
+                    }
 
                     #endregion
 
@@ -1704,6 +2007,14 @@ namespace ToolUtilityNameSpace
                     // Execute Query using RetrieveMultiple
 
                     EntityCollection contacts = this.m_OrganizationService.RetrieveMultiple(query);
+                    if (CRM_TYPE == "DYNAMICS365")
+                    {
+                        contacts = this.m_OrganizationService.RetrieveMultiple(query);
+                    }
+                    else
+                    {
+                        contacts = this.m_Crm2011OrganizationService.RetrieveMultiple(query);
+                    }
 
                     if (contacts != null) 
                     {
@@ -1821,7 +2132,15 @@ namespace ToolUtilityNameSpace
                     //retrieve.ReturnDynamicEntities = true;
 
                     // Execute the request.
-                    RetrieveMultipleResponse request = (RetrieveMultipleResponse)this.m_OrganizationService.Execute(retrieve);
+                    RetrieveMultipleResponse request;
+                    if (CRM_TYPE == "DYNAMICS365")
+                    {
+                        request = (RetrieveMultipleResponse)this.m_OrganizationService.Execute(retrieve);
+                    }
+                    else
+                    {
+                        request = (RetrieveMultipleResponse)this.m_Crm2011OrganizationService.Execute(retrieve);
+                    }
 
                     #endregion
 
@@ -1916,9 +2235,16 @@ namespace ToolUtilityNameSpace
                     retrieve.Query = query;
                     //retrieve.ReturnDynamicEntities = true;
 
-                    // Execute the request.
-                    RetrieveMultipleResponse request = (RetrieveMultipleResponse)this.m_OrganizationService.Execute(retrieve);
-
+                    // Execute the request
+                    RetrieveMultipleResponse request;
+                    if (CRM_TYPE == "DYNAMICS365")
+                    {
+                        request = (RetrieveMultipleResponse)this.m_OrganizationService.Execute(retrieve);
+                    }
+                    else
+                    {
+                        request = (RetrieveMultipleResponse)this.m_Crm2011OrganizationService.Execute(retrieve);
+                    }
                     #endregion
 
                     return request.EntityCollection;
@@ -1943,7 +2269,44 @@ namespace ToolUtilityNameSpace
             {
                 lock (m_EntityLocker)
                 {
+                    if (CRM_TYPE == "DYNAMICS365")
+                    {
+                        return this.m_OrganizationService.Retrieve(EntityName, EntityId, new ColumnSet(true));
+                    }
+                    else
+                    {
+                        return this.m_Crm2011OrganizationService.Retrieve(EntityName, EntityId, new ColumnSet(true));
+                    }
+                }
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                throw e;
+            }
+        }
+        public Entity RetrieveEntityDynamics365(String EntityName, Guid EntityId)
+        {
+            try
+            {
+                lock (m_EntityLocker)
+                {
                     return this.m_OrganizationService.Retrieve(EntityName, EntityId, new ColumnSet(true));
+                }
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                throw e;
+            }
+        }
+        public Entity RetrieveEntityCrm2011(String EntityName, Guid EntityId)
+        {
+            try
+            {
+                lock (m_EntityLocker)
+                {
+                    return this.m_Crm2011OrganizationService.Retrieve(EntityName, EntityId, new ColumnSet(true));
                 }
             }
             catch (System.Exception e)
@@ -1961,6 +2324,31 @@ namespace ToolUtilityNameSpace
                 {
                     if (EXCUTION_FLAG == true)
                     {
+                        if (CRM_TYPE == "DYNAMICS365")
+                        {
+                            return this.m_OrganizationService.Create(aEntityTobeToCreate);
+                        }
+                        else
+                        {
+                            return this.m_Crm2011OrganizationService.Create(aEntityTobeToCreate);
+                        }
+                    }
+                }
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                throw e;
+            }
+        }
+        public Guid CreateEntityDynamics365(ref OrganizationServiceProxy aOrganizationService, Entity aEntityTobeToCreate)
+        {
+            try
+            {
+                lock (m_EntityLocker)
+                {
+                    if (EXCUTION_FLAG == true)
+                    {
                         return aOrganizationService.Create(aEntityTobeToCreate);
                     }
                 }
@@ -1971,6 +2359,25 @@ namespace ToolUtilityNameSpace
                 throw e;
             }
         }
+        public Guid CreateEntityCrm2011(ref IOrganizationService aCrm2011OrganizationService, Entity aEntityTobeToCreate)
+        {
+            try
+            {
+                lock (m_EntityLocker)
+                {
+                    if (EXCUTION_FLAG == true)
+                    {
+                        return aCrm2011OrganizationService.Create(aEntityTobeToCreate);
+                    }
+                }
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                throw e;
+            }
+        }
+
         public async Task<Guid> CreateEntityAsync(IOrganizationService aOrganizationService, Entity aEntityTobeToCreate)
         {
             try
@@ -1980,6 +2387,57 @@ namespace ToolUtilityNameSpace
                     if (EXCUTION_FLAG == true)
                     {
                         return aOrganizationService.Create(aEntityTobeToCreate);
+                    }
+                }
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                throw e;
+            }
+        }
+
+        public void UpdateEntity(ref Entity aEntityTobeUpdated)
+        {
+            try
+            {
+                lock (m_EntityLocker)
+                {
+                    if (EXCUTION_FLAG == true)
+                    {
+                        if (CRM_TYPE == "DYNAMICS365")
+                        {
+                            this.m_OrganizationService.Update(aEntityTobeUpdated);
+                        }
+                        else
+                        {
+                            this.m_Crm2011OrganizationService.Update(aEntityTobeUpdated);
+                        }
+                    }
+                }
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                throw e;
+            }
+        }
+        public void UpdateEntity(Entity aEntityTobeUpdated)
+        {
+            try
+            {
+                lock (m_EntityLocker)
+                {
+                    if (EXCUTION_FLAG == true)
+                    {
+                        if (CRM_TYPE == "DYNAMICS365")
+                        {
+                            this.m_OrganizationService.Update(aEntityTobeUpdated);
+                        }
+                        else
+                        {
+                            this.m_Crm2011OrganizationService.Update(aEntityTobeUpdated);
+                        }
                     }
                 }
             }
@@ -2026,6 +2484,80 @@ namespace ToolUtilityNameSpace
                 throw e;
             }
         }
+
+        public void UpdateEntityCrm2011(ref IOrganizationService aOrganizationService, ref Entity aEntityTobeUpdated)
+        {
+            try
+            {
+                lock (m_EntityLocker)
+                {
+                    if (EXCUTION_FLAG == true)
+                    {
+                        aOrganizationService.Update(aEntityTobeUpdated);
+                    }
+                }
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                throw e;
+            }
+        }
+        public void UpdateEntityDynamics365(ref OrganizationServiceProxy aOrganizationService, ref Entity aEntityTobeUpdated)
+        {
+            try
+            {
+                lock (m_EntityLocker)
+                {
+                    if (EXCUTION_FLAG == true)
+                    {
+                        aOrganizationService.Update(aEntityTobeUpdated);
+                    }
+                }
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                throw e;
+            }
+        }
+        public void UpdateEntityCrm2011(ref IOrganizationService aOrganizationService, Entity aEntityTobeUpdated)
+        {
+            try
+            {
+                lock (m_EntityLocker)
+                {
+                    if (EXCUTION_FLAG == true)
+                    {
+                        aOrganizationService.Update(aEntityTobeUpdated);
+                    }
+                }
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                throw e;
+            }
+        }
+        public void UpdateEntityDynamics365(ref OrganizationServiceProxy aOrganizationService, Entity aEntityTobeUpdated)
+        {
+            try
+            {
+                lock (m_EntityLocker)
+                {
+                    if (EXCUTION_FLAG == true)
+                    {
+                        aOrganizationService.Update(aEntityTobeUpdated);
+                    }
+                }
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                throw e;
+            }
+        }
+
         public async Task UpdateEntityAsync(IOrganizationService aOrganizationService, Entity aEntityTobeUpdated)
         {
             try
@@ -3042,6 +3574,61 @@ namespace ToolUtilityNameSpace
                 throw e;
             }
         }
+
+        public void AddMembersToMarketingList(Guid thisListGuid, List<Guid> memberGuidList)
+        {
+            try
+            {
+                lock (m_MembersToMarketingListLocker)
+                {
+                    AddListMembersListRequest orgServiceRequest = new AddListMembersListRequest();
+                    orgServiceRequest.ListId = thisListGuid;
+                    orgServiceRequest.MemberIds = memberGuidList.ToArray();
+                    if (CRM_TYPE == "DYNAMICS365")
+                    {
+                        this.m_OrganizationService.Execute(orgServiceRequest);
+                    }
+                    else
+                    {
+                        this.m_Crm2011OrganizationService.Execute(orgServiceRequest);
+                    }
+                }
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                throw e;
+            }
+        }
+
+        public void RemoveMembersToMarketingList(Guid aListGuid, Guid MemberGuid)
+        {
+            try
+            {
+                lock (m_MembersToMarketingListLocker)
+                {
+                    RemoveMemberListRequest orgServiceRequest = new RemoveMemberListRequest();
+                    orgServiceRequest.ListId = aListGuid;
+                    orgServiceRequest.EntityId = MemberGuid;
+                    if (CRM_TYPE == "DYNAMICS365")
+                    {
+                        this.m_OrganizationService.Execute(orgServiceRequest);
+                    }
+                    else
+                    {
+                        this.m_Crm2011OrganizationService.Execute(orgServiceRequest);
+                    }
+                }
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                throw e;
+            }
+        }
+
         #endregion
         #region 處理附加檔
         public EntityCollection DownloadAnAttachment(ref IOrganizationService aCrmService, Guid AnEntityId)
