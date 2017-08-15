@@ -75,41 +75,42 @@
                 .ID("save-button")
                 //.UseSubmitBehavior(true)
 
-                .OnClick(@<text>
-                    function(arg) {
+                .OnClick
+                (@<text>
+                    function(arg) 
+                    {
+                            // 顯示旋轉鈕
+                            $("#loadPanel").dxLoadPanel("instance").show();
 
-                    $("#loadPanel").dxLoadPanel("instance").show();
+                            // AJAX 區塊
+                            $.ajax
+                            (
+                               {
+                                    url: '@Url.Action("SaveSmallGroup", "SmallGroupReport")',
+                                    data: { aResult: GetResult() }, // 整理回傳給 Server 的點名資料
+                                    type: 'POST', //POST if you want to save, GET if you want to fetch data from server
 
-                    $.ajax({
-                        url: '@Url.Action("SaveSmallGroup", "SmallGroupReport")',
-                        data: { aResult: GetResult() },
-                        type: 'POST', //POST if you want to save, GET if you want to fetch data from server
+                                    success: function (arg) 
+                                    {
+                                        // 隱藏旋轉鈕
+                                        $("#loadPanel").dxLoadPanel("instance").hide();
 
-                        success: function (arg) 
-                        {
-                            $("#loadPanel").dxLoadPanel("instance").hide();
+                                        // 顯示上傳成功
+                                        $("#toast").dxToast("instance").show();
+                                    },
 
-                            //var dataGridInstance = $("#gridContainer").dxDataGrid("instance");
-                            //dataGridInstance.refresh();
-                            
-                            //@DataStatus="HELLO";
+                                    error: function (obj) 
+                                    {
+                                       //alert('Something happened');
+                                    }
 
-                            DataUploadStatus = "好棒棒，上傳已經成功了喔!"
-                            $("#toast").dxToast("instance").show();
+                                 }
+                              );
+                              // AJAX 區塊
 
-                            //window.location.href = "/Home/SmallGroupReportView"
-
-                            },
-
-                            error: function (obj) {
-                            //alert('Something happened');
-                            }
-
-                            });
-                            }
-                        </text>
-                   )
-                )
+                      }
+                   </text>)
+             )
             </div>
             <div id="ToastContainer">
                 @(Html.DevExtreme().Toast()
