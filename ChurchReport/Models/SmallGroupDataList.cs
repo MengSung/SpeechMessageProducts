@@ -410,7 +410,7 @@ namespace ChurchReport.Models
                     Status = aMemberInfomation.Identity,
                     SmallGroupName = aMemberInfomation.Group,
                     SectionName = aMemberInfomation.Group,
-                    PrayItem = "請為黎巴嫩行程代禱，努力禱告",
+                    PrayItem = aMemberInfomation.Note,
                     Sunday = aMemberInfomation.SundayPresent,
                     SmallGroup = aMemberInfomation.SmallGroupPresent,
                     StateID1 = 2,
