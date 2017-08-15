@@ -151,7 +151,7 @@
     .ShowBorders(true)
     .ColumnAutoWidth(true)
     .Paging(p => p.PageSize(10))
-    .Paging(paging => paging.Enabled(true))
+    .Paging(paging => paging.Enabled(false))
     .AllowColumnResizing(true)
     .ColumnResizingMode(ColumnResizingMode.Widget)
     .ColumnFixing(c => c.Enabled(true))
@@ -241,12 +241,12 @@
                 //    </text>);
 
                 columns.Add().DataField("FullName").Caption("姓名").Fixed(true).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Left);
-                columns.Add().DataField("Status").Caption("委身類型").Fixed(true).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Center);
+                columns.Add().DataField("Status").Caption("委身類型").Fixed(false).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Center);
                 columns.Add().DataField("Sunday").Caption("主日").DataType(GridColumnDataType.Boolean).Width(45).MinWidth(45);
                 columns.Add().DataField("SmallGroup").Caption("小組").DataType(GridColumnDataType.Boolean).Width(45).MinWidth(45);
                 columns.Add().DataField("PrayItem").Caption("代禱事項").Fixed(false).MinWidth(90);
-                columns.Add().DataField("SectionName").Caption("族系").GroupIndex(0).MinWidth(10);
-                columns.Add().DataField("SmallGroupName").Caption("小組").GroupIndex(1).MinWidth(10);
+                //columns.Add().DataField("SectionName").Caption("族系").GroupIndex(-1).MinWidth(10);
+                columns.Add().DataField("SmallGroupName").Caption("小組").GroupIndex(0).MinWidth(10);
 
                 columns.Add()
                     .DataField("StateID1")
@@ -302,7 +302,7 @@
     .ShowBorders(true)
     .ColumnAutoWidth(true)
     .Paging(p => p.PageSize(10))
-    .Paging(paging => paging.Enabled(true))
+    .Paging(paging => paging.Enabled(false))
     .AllowColumnResizing(true)
     .ColumnResizingMode(ColumnResizingMode.Widget)
     .ColumnFixing(c => c.Enabled(true))
@@ -391,12 +391,12 @@
                 //    </text>);
 
                 columns.Add().DataField("FullName").Caption("姓名").Fixed(true).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Left);
-                columns.Add().DataField("Status").Caption("報到日期").Fixed(true).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Center);
+                columns.Add().DataField("Status").Caption("報到日期").Fixed(false).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Center);
                 columns.Add().DataField("Sunday").Caption("主日").DataType(GridColumnDataType.Boolean).Width(45).MinWidth(45);
                 columns.Add().DataField("SmallGroup").Caption("小組").DataType(GridColumnDataType.Boolean).Width(45).MinWidth(45);
                 columns.Add().DataField("PrayItem").Caption("代禱事項").Fixed(false).MinWidth(90);
-                columns.Add().DataField("SectionName").Caption("族系").GroupIndex(0).MinWidth(10);
-                columns.Add().DataField("SmallGroupName").Caption("小組").GroupIndex(1).MinWidth(10);
+                //columns.Add().DataField("SectionName").Caption("族系").GroupIndex(-1).MinWidth(10);
+                columns.Add().DataField("SmallGroupName").Caption("小組").GroupIndex(0).MinWidth(10);
 
                 columns.Add()
                     .DataField("StateID1")

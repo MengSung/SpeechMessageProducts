@@ -399,13 +399,15 @@ namespace ChurchReport.Models
             m_SmallGroupData.SmallGroupLeaderFullName = FullName;
             m_SmallGroupData.SundayPrayers = SundayDate;
 
-            foreach( MemberInfomation aMemberInfomation in aMemberInfomationPackage.ListMemberInfomation)
+            SmallGroupDataList.m_SmallGroupData.members = new List<Member>();
+
+            foreach ( MemberInfomation aMemberInfomation in aMemberInfomationPackage.ListMemberInfomation)
             {
                 Member aMember = new Member
                 {
                     Id = 1,
                     FullName = aMemberInfomation.Name,
-                    Status = aMemberInfomation.Status,
+                    Status = aMemberInfomation.Identity,
                     SmallGroupName = aMemberInfomation.Group,
                     SectionName = aMemberInfomation.Group,
                     PrayItem = "請為黎巴嫩行程代禱，努力禱告",
