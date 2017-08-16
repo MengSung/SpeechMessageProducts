@@ -483,6 +483,20 @@ namespace ChurchReport.Models
             }
 
         }
+
+        public static void UploadMemberInfomationPackage()
+        {
+            UploadData aUploadData = new UploadData();
+
+            AccountPasswordData aAccountPasswordData = new AccountPasswordData
+            {
+                Account = m_Account,
+                Password = m_Password
+            };
+
+            aUploadData.UploadMemberDataPackage(aAccountPasswordData, m_SmallGroupData.SundayPrayers, "主日點名", m_MemberInfomationPackage);
+        }
+
         public static void TransferToMemberInfomationPackage()
         {
             int MemberCounter = 0;

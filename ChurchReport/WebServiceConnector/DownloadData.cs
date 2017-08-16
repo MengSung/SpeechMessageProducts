@@ -593,9 +593,13 @@ namespace ChurchReport.WebServiceConnector
 
                         // 楊梅靈糧堂
                         String aNote = "";
-                        if (PresentRecordEntity.Attributes.Contains("new_name"))
+                        //if (PresentRecordEntity.Attributes.Contains("new_name"))
+                        //{
+                        //    aNote = (string)PresentRecordEntity.Attributes["new_name"];
+                        //}
+                        if (PresentRecordEntity.Attributes.Contains("new_explanation"))
                         {
-                            aNote = (string)PresentRecordEntity.Attributes["new_name"];
+                            aNote = (string)PresentRecordEntity.Attributes["new_explanation"];
                         }
                         // 內壢得勝靈糧堂
                         //String aNote = "";

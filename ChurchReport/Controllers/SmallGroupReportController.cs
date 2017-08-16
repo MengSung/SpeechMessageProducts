@@ -35,6 +35,7 @@ namespace ChurchReport.Controllers
             SmallGroupDataList.m_SmallGroupData.members = JsonConvert.DeserializeObject<List<Member>>(aResult);
 
             SmallGroupDataList.TransferToMemberInfomationPackage();
+            SmallGroupDataList.UploadMemberInfomationPackage();
 
             return Json(new { status = "1", message = "成功上傳了...." });
         }
