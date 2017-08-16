@@ -19,22 +19,27 @@ function GetResult() {
             //
             //});
 
-            var Section = $("#gridContainer").dxDataGrid("instance").getDataSource().items();
+            var result = "[";
 
-            $.each( Section, function (index, aSection) {
+            //var Section = $("#gridContainer").dxDataGrid("instance").getDataSource().items();
+            var SmallGroup = $("#gridContainer").dxDataGrid("instance").getDataSource().items();
 
-                var SmallGroup = aSection.items;
+            //$.each( Section, function (index, aSection) {
+
+                //var SmallGroup = aSection.items;
 
                 $.each(SmallGroup, function (index1, aSmallGroupElement) {
                     var SmallGroupMember = aSmallGroupElement.items;
 
                     $.each(SmallGroupMember, function (index2, aMember) {
-
+                        result += "{";
                         for (var prop in aMember) {
 
                            //result += "&Members[" + index + "]." + prop + "=" + member[prop];
                            // alert("prop = " + prop + " Value = " + aMember[prop]);
+                            result += "'" + prop + "':" + "'" + aMember[prop] + "'"  + ",";
                        }
+                        result += "},";
 
                     });
 
@@ -44,8 +49,9 @@ function GetResult() {
                 //    result += "&Members[" + index + "]." + prop + "=" + member[prop];
                 //    alert("Result = " + result)
                 //}
-            });
+            //});
 
+            result += "]";
             //var result = "";
             //$.each(members, function (index, member) {
             //    for (var prop in member) {
@@ -59,7 +65,7 @@ function GetResult() {
             //
             //data.aResult = "Hello";
 
-            return "耶和華是我家的主";
+            return result;
 
 }
 
