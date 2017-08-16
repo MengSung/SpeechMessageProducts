@@ -266,6 +266,7 @@ namespace ChurchReport.Models.CrmTransmitModule
         public MemberInfomationPackage()
         {
         }
+
         Guid m_WeeklyReportGuid = Guid.NewGuid();
         public Guid WeeklyReportGuid
         {

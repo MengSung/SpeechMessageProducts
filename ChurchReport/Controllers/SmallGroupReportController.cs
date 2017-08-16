@@ -26,91 +26,15 @@ namespace ChurchReport.Controllers
         [HttpPost]
         public IActionResult SaveSmallGroup(String aResult)
         {
-            //   //Thread.Sleep(5000);
-            //
-            //   string json = @"{
-            //     'Name': 'Bad Boys',
-            //     'ReleaseDate': '1995-4-7T00:00:00',
-            //     'Genres': [
-            //       'Action',
-            //       'Comedy'
-            //     ]
-            //   }";
-            //
-            //   Movie m = JsonConvert.DeserializeObject<Movie>(json);
-            //
-            //   string name = m.Name;
-            //   // Bad Boys
-            //   JsonConvert.DeserializeObject()
-            //
-            //
-            //
-            //           //JSON字串
-            //   string Json = "{ 'Table1': [ { 'id': 1, 'item': '這是第1個項目' }, { 'id': 2, 'item': '這是第2個項目' }, { 'id': 3, 'item': '這是第3個項目' }, { 'id': 4, 'item': '這是第4個項目' } ] }";
-            //
-            //   //將JSON字串轉為DataSet
-            //   DataSet dataSet = JsonConvert.DeserializeObject<DataSet>(Json);
-            //
-            //
-            //
-            //
-            //
-            //
-            //   Member aMember = new Member
-            //   {
-            //       Id = 1,
-            //       FullName = aMemberInfomation.Name,
-            //       Status = aMemberInfomation.Identity,
-            //       SmallGroupName = aMemberInfomation.Group,
-            //       SectionName = aMemberInfomation.Group,
-            //       PrayItem = aMemberInfomation.Note,
-            //       Sunday = aMemberInfomation.SundayPresent,
-            //       SmallGroup = aMemberInfomation.SmallGroupPresent,
-            //       StateID1 = 2,
-            //       Number1 = 4,
-            //       StateID2 = 1,
-            //       Number2 = 2,
-            //       //Picture = "../../images/employees/01.png" //D:\暫存區\ASP.NET CORE 練習區\DevExtremeAspNetCoreApp1\DevExtremeAspNetCoreApp1\wwwroot\images\employees
-            //       Picture = "../../images/employees/01.png" //D:\暫存區\ASP.NET CORE 練習區\DevExtremeAspNetCoreApp1\DevExtremeAspNetCoreApp1\wwwroot\images\employees
-            //                                                 //Picture = "https://tpehoc.speechmessage.com.tw/image/download.aspx?attribute=entityimage&entity=contact&id=66cd8034-953f-e711-80d9-00155d00640b" //D:\暫存區\ASP.NET CORE 練習區\DevExtremeAspNetCoreApp1\DevExtremeAspNetCoreApp1\wwwroot\images\employees
-            //
-            //   };
-            //
-
-
-            //string json = @"[
-            //          {
-            //            'Id': 1,
-            //            'FullName': '黃仁宏',
-            //            'Status': '組員',
-            //            'SmallGroupName': '夢嵩小組',
-            //            'SectionName': '國仁哥族系',
-            //            'PrayItem': '要陪讀',
-            //            'Sunday': true,
-            //            'SmallGroup': false,
-            //            'Picture': '../../images/employees/01.png'
-            //          },
-            //        ]
-            //";
-            //
-
-            //string json = @"[
-            //    { 'Id':1,'FullName':吳連碧,'Status':小組長,'SmallGroupName':0201 連碧小組 - 主日出席率:50 % 小組出席率:0 %,'SectionName':0201 連碧小組 - 主日出席率:50 % 小組出席率:0 %,'PrayItem':未填,'Sunday':false,'SmallGroup':true,'StateID1':2,'Number1':4,'StateID2':1,'Number2':2,'Picture':../../ images / employees / 01.png,'Shepherd':null,},
-            //    { 'Id':1,'FullName':鄭芸軒,'Status':小組組員,'SmallGroupName':0201 連碧小組 - 主日出席率:50 % 小組出席率:0 %,'SectionName':0201 連碧小組 - 主日出席率:50 % 小組出席率:0 %,'PrayItem':未填,'Sunday':false,'SmallGroup':false,'StateID1':2,'Number1':4,'StateID2':1,'Number2':2,'Picture':../../ images / employees / 01.png,'Shepherd':null,},
-            //    { 'Id':1,'FullName':陳新潔,'Status':小組組員,'SmallGroupName':0201 連碧小組 - 主日出席率:50 % 小組出席率:0 %,'SectionName':0201 連碧小組 - 主日出席率:50 % 小組出席率:0 %,'PrayItem':未填,'Sunday':true,'SmallGroup':false,'StateID1':2,'Number1':4,'StateID2':1,'Number2':2,'Picture':../../ images / employees / 01.png,'Shepherd':null,},
-            //    { 'Id':1,'FullName':葉曉君,'Status':小組組員,'SmallGroupName':0201 連碧小組 - 主日出席率:50 % 小組出席率:0 %,'SectionName':0201 連碧小組 - 主日出席率:50 % 小組出席率:0 %,'PrayItem':未填,'Sunday':false,'SmallGroup':false,'StateID1':2,'Number1':4,'StateID2':1,'Number2':2,'Picture':../../ images / employees / 01.png,'Shepherd':null,},
-            //    { 'Id':1,'FullName':陳巧玲,'Status':小組組員,'SmallGroupName':0201 連碧小組 - 主日出席率:50 % 小組出席率:0 %,'SectionName':0201 連碧小組 - 主日出席率:50 % 小組出席率:0 %,'PrayItem':未填,'Sunday':true,'SmallGroup':false,'StateID1':2,'Number1':4,'StateID2':1,'Number2':2,'Picture':../../ images / employees / 01.png,'Shepherd':null,},
-            //    { 'Id':1,'FullName':陳秀真,'Status':小組組員,'SmallGroupName':0201 連碧小組 - 主日出席率:50 % 小組出席率:0 %,'SectionName':0201 連碧小組 - 主日出席率:50 % 小組出席率:0 %,'PrayItem':未填,'Sunday':true,'SmallGroup':false,'StateID1':2,'Number1':4,'StateID2':1,'Number2':2,'Picture':../../ images / employees / 01.png,'Shepherd':null,},
-            //    { 'Id':1,'FullName':黃瓊瑤,'Status':小組組員,'SmallGroupName':0201 連碧小組 - 主日出席率:50 % 小組出席率:0 %,'SectionName':0201 連碧小組 - 主日出席率:50 % 小組出席率:0 %,'PrayItem':未填,'Sunday':false,'SmallGroup':false,'StateID1':2,'Number1':4,'StateID2':1,'Number2':2,'Picture':../../ images / employees / 01.png,'Shepherd':null,},
-            //    { 'Id':1,'FullName':趙曉芸,'Status':小組組員,'SmallGroupName':0201 連碧小組 - 主日出席率:50 % 小組出席率:0 %,'SectionName':0201 連碧小組 - 主日出席率:50 % 小組出席率:0 %,'PrayItem':未填,'Sunday':false,'SmallGroup':false,'StateID1':2,'Number1':4,'StateID2':1,'Number2':2,'Picture':../../ images / employees / 01.png,'Shepherd':null,},
-            //    ]";
-
             //string json = @"[
             //    { 'Id':1,'FullName':'吳連碧','Status':'小組長','SmallGroupName':'0201 連碧小組 - 主日出席率:50 % 小組出席率:0 %','SectionName':'0201 連碧小組 - 主日出席率:50 % 小組出席率:0 %','PrayItem':'未填','Sunday':'false','SmallGroup':'true','StateID1':'2','Number1':'4','StateID2':'1','Number2':'2','Picture':'../../ images / employees / 01.png','Shepherd':'null',},
             //    ]";
 
             //SmallGroupDataList.m_SmallGroupData.members = JsonConvert.DeserializeObject<List<Member>>(json);
+            SmallGroupDataList.m_SmallGroupData.members.Clear();
             SmallGroupDataList.m_SmallGroupData.members = JsonConvert.DeserializeObject<List<Member>>(aResult);
+
+            SmallGroupDataList.TransferToMemberInfomationPackage();
 
             return Json(new { status = "1", message = "成功上傳了...." });
         }

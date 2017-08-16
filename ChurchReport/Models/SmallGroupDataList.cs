@@ -28,6 +28,9 @@ namespace ChurchReport.Models
 
         static public SmallGroupData m_SmallGroupData = new SmallGroupData();
 
+
+        static public MemberInfomationPackage m_MemberInfomationPackage;
+
         public static void SetupContactIdString(String ContactIdString)
         {
             m_SmallGroupData.SmallGroupLeaderContactId = ContactIdString;
@@ -400,18 +403,20 @@ namespace ChurchReport.Models
                 Password = Password
             };
 
-            MemberInfomationPackage aMemberInfomationPackage = aDownloader.GetMemberDataPackage(SundayDate, aAccountPasswordData);
+            // 從雲端後台下載下來小組點名資料
+            m_MemberInfomationPackage = aDownloader.GetMemberDataPackage(SundayDate, aAccountPasswordData);
 
             m_SmallGroupData.SmallGroupLeaderFullName = FullName;
             m_SmallGroupData.SundayPrayers = SundayDate;
 
             SmallGroupDataList.m_SmallGroupData.members = new List<Member>();
 
-            foreach (MemberInfomation aMemberInfomation in aMemberInfomationPackage.ListMemberInfomation)
+            int IdIndex = 0;
+            foreach (MemberInfomation aMemberInfomation in m_MemberInfomationPackage.ListMemberInfomation)
             {
                 Member aMember = new Member
                 {
-                    Id = 1,
+                    Id= IdIndex,
                     FullName = aMemberInfomation.Name,
                     Status = aMemberInfomation.Identity,
                     SmallGroupName = aMemberInfomation.Group,
@@ -431,6 +436,7 @@ namespace ChurchReport.Models
 
                 SmallGroupDataList.m_SmallGroupData.members.Add(aMember);
 
+                IdIndex++;
             }
 
         }
@@ -443,14 +449,15 @@ namespace ChurchReport.Models
                 Password = m_Password
             };
 
-            MemberInfomationPackage aMemberInfomationPackage = aDownloader.GetMemberDataPackage(SundayDate, aAccountPasswordData);
+            m_MemberInfomationPackage = aDownloader.GetMemberDataPackage(SundayDate, aAccountPasswordData);
 
             m_SmallGroupData.SmallGroupLeaderFullName = m_FullName;
             m_SmallGroupData.SundayPrayers = SundayDate;
 
             SmallGroupDataList.m_SmallGroupData.members.Clear();
 
-            foreach (MemberInfomation aMemberInfomation in aMemberInfomationPackage.ListMemberInfomation)
+            int IdIndex = 0;
+            foreach (MemberInfomation aMemberInfomation in m_MemberInfomationPackage.ListMemberInfomation)
             {
                 Member aMember = new Member
                 {
@@ -472,8 +479,29 @@ namespace ChurchReport.Models
 
                 };
                 SmallGroupDataList.m_SmallGroupData.members.Add(aMember);
+                IdIndex++;
             }
 
         }
+        public static void TransferToMemberInfomationPackage()
+        {
+            int MemberCounter = 0;
+            foreach (Member aMember in SmallGroupDataList.m_SmallGroupData.members)
+            {
+                MappingMembers(m_MemberInfomationPackage.ListMemberInfomation[MemberCounter], aMember);
+
+                MemberCounter++;
+            }
+        }
+        public static void MappingMembers(MemberInfomation aMemberInfomation, Member aMember)
+        {
+            if (aMemberInfomation.Name == aMember.FullName)
+            {
+                aMemberInfomation.SundayPresent = aMember.Sunday;
+                aMemberInfomation.SmallGroupPresent = aMember.SmallGroup;
+                aMemberInfomation.Note = aMember.PrayItem;
+            }
+        }
     }
 }
+
