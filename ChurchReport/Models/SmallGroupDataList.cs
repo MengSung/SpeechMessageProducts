@@ -417,6 +417,7 @@ namespace ChurchReport.Models
                 Member aMember = new Member
                 {
                     Id= IdIndex,
+                    Group = aMemberInfomation.Group,
                     FullName = aMemberInfomation.Name,
                     Status = aMemberInfomation.Identity,
                     SmallGroupName = aMemberInfomation.Group,
@@ -462,6 +463,7 @@ namespace ChurchReport.Models
                 Member aMember = new Member
                 {
                     Id = 1,
+                    Group = aMemberInfomation.Group,
                     FullName = aMemberInfomation.Name,
                     Status = aMemberInfomation.Identity,
                     SmallGroupName = aMemberInfomation.Group,
@@ -502,7 +504,8 @@ namespace ChurchReport.Models
             int MemberCounter = 0;
             foreach (Member aMember in SmallGroupDataList.m_SmallGroupData.members)
             {
-                MappingMembers(m_MemberInfomationPackage.ListMemberInfomation[MemberCounter], aMember);
+                //MappingMembers(m_MemberInfomationPackage.ListMemberInfomation[MemberCounter], aMember);
+                MappingMembers( aMember);
 
                 MemberCounter++;
             }
@@ -514,6 +517,19 @@ namespace ChurchReport.Models
                 aMemberInfomation.SundayPresent = aMember.Sunday;
                 aMemberInfomation.SmallGroupPresent = aMember.SmallGroup;
                 aMemberInfomation.Note = aMember.PrayItem;
+            }
+        }
+        public static void MappingMembers(Member aMember)
+        {
+            foreach (MemberInfomation aMemberInfomation in m_MemberInfomationPackage.ListMemberInfomation)
+            {
+                if (aMember.Group == aMemberInfomation.Group && aMember.FullName == aMemberInfomation.Name )
+                {
+                    aMemberInfomation.SundayPresent = aMember.Sunday;
+                    aMemberInfomation.SmallGroupPresent = aMember.SmallGroup;
+                    aMemberInfomation.Note = aMember.PrayItem;
+                    break;
+                }
             }
         }
     }

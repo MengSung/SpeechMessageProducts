@@ -11,6 +11,7 @@ namespace ChurchReport.Models {
         { }
 
         public int Id { get; set; }
+        public string Group { get; set; }
         public string FullName { get; set; }
         public string Status { get; set; } // 委身類型
         public string SmallGroupName { get; set; }
