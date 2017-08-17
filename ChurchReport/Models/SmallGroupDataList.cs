@@ -504,19 +504,9 @@ namespace ChurchReport.Models
             int MemberCounter = 0;
             foreach (Member aMember in SmallGroupDataList.m_SmallGroupData.members)
             {
-                //MappingMembers(m_MemberInfomationPackage.ListMemberInfomation[MemberCounter], aMember);
                 MappingMembers( aMember);
 
                 MemberCounter++;
-            }
-        }
-        public static void MappingMembers(MemberInfomation aMemberInfomation, Member aMember)
-        {
-            if (aMemberInfomation.Name == aMember.FullName)
-            {
-                aMemberInfomation.SundayPresent = aMember.Sunday;
-                aMemberInfomation.SmallGroupPresent = aMember.SmallGroup;
-                aMemberInfomation.Note = aMember.PrayItem;
             }
         }
         public static void MappingMembers(Member aMember)
