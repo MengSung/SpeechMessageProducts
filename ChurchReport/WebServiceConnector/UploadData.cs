@@ -1518,167 +1518,177 @@ namespace ChurchReport.WebServiceConnector
         #region 更新出席紀錄
         private void UpdatePresentRecord(ref Entity aListEntity, ref Guid aWeeklyReportId, Double ValidNumber, ref Double aWeeklySundayRate, ref Double aWeeklySmallGroupRate, ref int aWeeklySundayNumber, ref int aWeeklySmallGroupNumber, ref int ValidSundayMemberNumber, ref int ValidSmallGroupMemberNumber)
         {
-            #region 取得跟週報相關的靈修紀錄
-            EntityCollection PresentRecordCollection = m_ToolUtilityClass.RetrieveManyToOneRelationship("new_group_present_weekly_report", "new_group_present_weekly_reportid", aWeeklyReportId.ToString(), "new_group_present_weekly_report_prese", "new_present_record");
-            #endregion
-
-            #region 更新每個靈修紀錄
-            ValidSundayMemberNumber = 0;
-            ValidSmallGroupMemberNumber = 0;
-            foreach (MemberInfomation aMemberInfomation in this.m_GroupNamedListMemberInfomation)
-            {
-                Entity aMachedPresentRecordEntity = SearchPresentRecordByName(aMemberInfomation.Name, ref PresentRecordCollection);
-                if (aMachedPresentRecordEntity != null)
+            try
+            { 
+                #region 取得跟週報相關的靈修紀錄
+                EntityCollection PresentRecordCollection = m_ToolUtilityClass.RetrieveManyToOneRelationship("new_group_present_weekly_report", "new_group_present_weekly_reportid", aWeeklyReportId.ToString(), "new_group_present_weekly_report_prese", "new_present_record");
+                #endregion
+                #region 更新每個靈修紀錄
+                ValidSundayMemberNumber = 0;
+                ValidSmallGroupMemberNumber = 0;
+                foreach (MemberInfomation aMemberInfomation in this.m_GroupNamedListMemberInfomation)
                 {
-                    // 有找到靈修紀錄
-                    // 更新個人資料:手機、家裡電話、地址、設定委身類型
-                    // 更新個人聚會與靈修記錄
-
-                    #region 更新個人資料:手機、家裡電話、地址、委身類型
-                    EntityReference aFullNameEntityReference = new EntityReference();
-                    if (aMachedPresentRecordEntity.Attributes.Contains("new_contact_new_present_record"))
+                    Entity aMachedPresentRecordEntity = SearchPresentRecordByName(aMemberInfomation.Name, ref PresentRecordCollection);
+                    if (aMachedPresentRecordEntity != null)
                     {
-                        aFullNameEntityReference = (EntityReference)aMachedPresentRecordEntity.Attributes["new_contact_new_present_record"];
-                    }
-                    Entity aContactEntity = this.m_ToolUtilityClass.RetrieveEntity("contact", aFullNameEntityReference.Id);
+                        // 有找到靈修紀錄
+                        // 更新個人資料:手機、家裡電話、地址、設定委身類型
+                        // 更新個人聚會與靈修記錄
 
-                    // 更新個人資料:手機、家裡電話、地址、設定委身類型
-                    // 但是不知何故，更新連絡人之後，委身類型卻會"自動變成" 新朋友，所以就先用一個可以受影響的Entity aToUpdateContactEntity，去更新連絡人
-                    Entity aToUpdateContactEntity = this.m_ToolUtilityClass.RetrieveEntity("contact", aFullNameEntityReference.Id);
-                    UpdateContactInfomation(aListEntity.Id, aMemberInfomation, ref aToUpdateContactEntity);
-
-                    #endregion
-
-                    #region 設定及更新個人聚會與靈修記錄
-                    // 是否符合累積出席率可以貢獻出席的的委身類型，並且順便取的委身類型
-                    String ClearIdentity = "";
-                    bool AccumulateFlag = this.IsValidMember(aMachedPresentRecordEntity, ref ClearIdentity);
-
-                    #region 設定主日出席
-                    if (aMemberInfomation.SundayPresent == true)
-                    {
-                        this.m_ToolUtilityClass.SetEntityIntAttribute(ref aMachedPresentRecordEntity, "new_sunday_present_this_week", 1);
-
-                        AddToDictionaryByIdentity(aListEntity.Id, "主日", ref ClearIdentity, ref aContactEntity, true);
-
-                        aWeeklySundayNumber += 1;
-                    }
-                    else
-                    {
-                        AddToDictionaryByIdentity(aListEntity.Id, "主日", ref ClearIdentity, ref aContactEntity, false);
-                        this.m_ToolUtilityClass.SetEntityIntAttribute(ref aMachedPresentRecordEntity, "new_sunday_present_this_week", 0);
-                    }
-                    #endregion
-                    #region 設定主日出席率
-                    if (aMemberInfomation.SundayPresent == true)
-                    {
-                        if (ValidNumber != 0)
+                        #region 更新個人資料:手機、家裡電話、地址、委身類型
+                        EntityReference aFullNameEntityReference = new EntityReference();
+                        if (aMachedPresentRecordEntity.Attributes.Contains("new_contact_new_present_record"))
                         {
-                            this.m_ToolUtilityClass.SetEntityDoubleAttribute(ref aMachedPresentRecordEntity, "new_sunday_rate", 1 / ValidNumber);
+                            aFullNameEntityReference = (EntityReference)aMachedPresentRecordEntity.Attributes["new_contact_new_present_record"];
+                        }
+                        Entity aContactEntity = this.m_ToolUtilityClass.RetrieveEntity("contact", aFullNameEntityReference.Id);
 
-                            if (AccumulateFlag == true)
+                        // 更新個人資料:手機、家裡電話、地址、設定委身類型
+                        // 但是不知何故，更新連絡人之後，委身類型卻會"自動變成" 新朋友，所以就先用一個可以受影響的Entity aToUpdateContactEntity，去更新連絡人
+                        Entity aToUpdateContactEntity = this.m_ToolUtilityClass.RetrieveEntity("contact", aFullNameEntityReference.Id);
+                        UpdateContactInfomation(aListEntity.Id, aMemberInfomation, ref aToUpdateContactEntity);
+
+                        #endregion
+
+                        #region 設定及更新個人聚會與靈修記錄
+                        // 是否符合累積出席率可以貢獻出席的的委身類型，並且順便取的委身類型
+                        String ClearIdentity = "";
+                        bool AccumulateFlag = this.IsValidMember(aMachedPresentRecordEntity, ref ClearIdentity);
+
+                        #region 設定主日出席
+                        if (aMemberInfomation.SundayPresent == true)
+                        {
+                            this.m_ToolUtilityClass.SetEntityIntAttribute(ref aMachedPresentRecordEntity, "new_sunday_present_this_week", 1);
+
+                            AddToDictionaryByIdentity(aListEntity.Id, "主日", ref ClearIdentity, ref aContactEntity, true);
+
+                            aWeeklySundayNumber += 1;
+                        }
+                        else
+                        {
+                            AddToDictionaryByIdentity(aListEntity.Id, "主日", ref ClearIdentity, ref aContactEntity, false);
+                            this.m_ToolUtilityClass.SetEntityIntAttribute(ref aMachedPresentRecordEntity, "new_sunday_present_this_week", 0);
+                        }
+                        #endregion
+                        #region 設定主日出席率
+                        if (aMemberInfomation.SundayPresent == true)
+                        {
+                            if (ValidNumber != 0)
                             {
-                                ValidSundayMemberNumber += 1;
+                                //this.m_ToolUtilityClass.SetEntityDoubleAttribute(ref aMachedPresentRecordEntity, "new_sunday_rate", 1 / ValidNumber);
 
-                                aWeeklySundayRate += 1 / ValidNumber;
+                                if (AccumulateFlag == true)
+                                {
+                                    ValidSundayMemberNumber += 1;
+
+                                    aWeeklySundayRate += 1 / ValidNumber;
+                                }
                             }
                         }
-                    }
-                    else
-                    {
-                        this.m_ToolUtilityClass.SetEntityDoubleAttribute(ref aMachedPresentRecordEntity, "new_sunday_rate", 0.0);
-                    }
-                    #endregion
-                    #region 設定小組出席
-                    if (aMemberInfomation.SmallGroupPresent == true)
-                    {
-                        this.m_ToolUtilityClass.SetEntityIntAttribute(ref aMachedPresentRecordEntity, "new_group_present_this_week", 1);
-                        AddToDictionaryByIdentity(aListEntity.Id, "小組", ref ClearIdentity, ref aContactEntity, true);
-                        aWeeklySmallGroupNumber += 1;
-                    }
-                    else
-                    {
-                        AddToDictionaryByIdentity(aListEntity.Id, "小組", ref ClearIdentity, ref aContactEntity, false);
-                        this.m_ToolUtilityClass.SetEntityIntAttribute(ref aMachedPresentRecordEntity, "new_group_present_this_week", 0);
-                    }
-                    #endregion
-                    #region 設定小組出席率
-                    if (aMemberInfomation.SmallGroupPresent == true)
-                    {
-                        if (ValidNumber != 0)
+                        else
                         {
-                            this.m_ToolUtilityClass.SetEntityDoubleAttribute(ref aMachedPresentRecordEntity, "new_small_group_rate", 1 / ValidNumber);
-
-                            if (AccumulateFlag == true)
+                            //this.m_ToolUtilityClass.SetEntityDoubleAttribute(ref aMachedPresentRecordEntity, "new_sunday_rate", 0.0);
+                        }
+                        #endregion
+                        #region 設定小組出席
+                        if (aMemberInfomation.SmallGroupPresent == true)
+                        {
+                            this.m_ToolUtilityClass.SetEntityIntAttribute(ref aMachedPresentRecordEntity, "new_group_present_this_week", 1);
+                            AddToDictionaryByIdentity(aListEntity.Id, "小組", ref ClearIdentity, ref aContactEntity, true);
+                            aWeeklySmallGroupNumber += 1;
+                        }
+                        else
+                        {
+                            AddToDictionaryByIdentity(aListEntity.Id, "小組", ref ClearIdentity, ref aContactEntity, false);
+                            this.m_ToolUtilityClass.SetEntityIntAttribute(ref aMachedPresentRecordEntity, "new_group_present_this_week", 0);
+                        }
+                        #endregion
+                        #region 設定小組出席率
+                        if (aMemberInfomation.SmallGroupPresent == true)
+                        {
+                            if (ValidNumber != 0)
                             {
-                                ValidSmallGroupMemberNumber += 1;
-                                aWeeklySmallGroupRate += 1 / ValidNumber;
+                                //this.m_ToolUtilityClass.SetEntityDoubleAttribute(ref aMachedPresentRecordEntity, "new_small_group_rate", 1 / ValidNumber);
+
+                                if (AccumulateFlag == true)
+                                {
+                                    ValidSmallGroupMemberNumber += 1;
+                                    aWeeklySmallGroupRate += 1 / ValidNumber;
+                                }
                             }
                         }
-                    }
-                    else
-                    {
-                        this.m_ToolUtilityClass.SetEntityDoubleAttribute(ref aMachedPresentRecordEntity, "new_small_group_rate", 0);
-                    }
-                    #endregion
-                    #region 設定附註或是代禱事項
-                    // 楊梅靈糧堂
-                    //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aMachedPresentRecordEntity, "new_name", aMemberInfomation.Note);
-                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aMachedPresentRecordEntity, "new_explanation", aMemberInfomation.Note);
+                        else
+                        {
+                            //this.m_ToolUtilityClass.SetEntityDoubleAttribute(ref aMachedPresentRecordEntity, "new_small_group_rate", 0);
+                        }
+                        #endregion
+                        #region 設定附註或是代禱事項
+                        // 楊梅靈糧堂
+                        //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aMachedPresentRecordEntity, "new_name", aMemberInfomation.Note);
+                        this.m_ToolUtilityClass.SetEntityStringAttribute(ref aMachedPresentRecordEntity, "new_explanation", aMemberInfomation.Note);
                     
-                    // 內壢得勝靈糧堂
-                    //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aMachedPresentRecordEntity, "new_memo", aMemberInfomation.Note);
-                    #endregion
-                    #region 內壢得勝靈糧堂的欄位
-                    #region// 靈修次數
-                    this.m_ToolUtilityClass.SetEntityIntAttribute(ref aMachedPresentRecordEntity, "new_general_care", aMemberInfomation.PrayNumber);
-                    this.m_ToolUtilityClass.SetEntityIntAttribute(ref aMachedPresentRecordEntity, "new_spiritual_work", aMemberInfomation.SpiritNumber);
-                    //this.m_ToolUtilityClass.SetEntityIntAttribute(ref aMachedPresentRecordEntity, "new_morning_pray", aMemberInfomation.FamilyNumber);
-                    //this.m_ToolUtilityClass.SetEntityIntAttribute(ref aMachedPresentRecordEntity, "new_evening_pray", aMemberInfomation.WorkAndCampusNumber);
-                    #endregion
+                        // 內壢得勝靈糧堂
+                        //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aMachedPresentRecordEntity, "new_memo", aMemberInfomation.Note);
+                        #endregion
+                        #region 內壢得勝靈糧堂的欄位
+                        #region// 靈修次數
+                        this.m_ToolUtilityClass.SetEntityIntAttribute(ref aMachedPresentRecordEntity, "new_general_care", aMemberInfomation.PrayNumber);
+                        this.m_ToolUtilityClass.SetEntityIntAttribute(ref aMachedPresentRecordEntity, "new_spiritual_work", aMemberInfomation.SpiritNumber);
+                        //this.m_ToolUtilityClass.SetEntityIntAttribute(ref aMachedPresentRecordEntity, "new_morning_pray", aMemberInfomation.FamilyNumber);
+                        //this.m_ToolUtilityClass.SetEntityIntAttribute(ref aMachedPresentRecordEntity, "new_evening_pray", aMemberInfomation.WorkAndCampusNumber);
+                        #endregion
 
-                    #region// 牧養狀態
-                    //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aMachedPresentRecordEntity, "new_shepherd_situation", aMemberInfomation.ShepherdStatus);
-                    //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aMachedPresentRecordEntity, "new_onebyone_situation", aMemberInfomation.OneOnOne);
-                    //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aMachedPresentRecordEntity, "new_training_system", aMemberInfomation.Training);
-                    //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aMachedPresentRecordEntity, "new_equipment_class", aMemberInfomation.Incubate);
-                    #endregion
+                        #region// 牧養狀態
+                        //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aMachedPresentRecordEntity, "new_shepherd_situation", aMemberInfomation.ShepherdStatus);
+                        //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aMachedPresentRecordEntity, "new_onebyone_situation", aMemberInfomation.OneOnOne);
+                        //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aMachedPresentRecordEntity, "new_training_system", aMemberInfomation.Training);
+                        //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aMachedPresentRecordEntity, "new_equipment_class", aMemberInfomation.Incubate);
+                        #endregion
 
-                    #region// 新人跟進
+                        #region// 新人跟進
 
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(ref aMachedPresentRecordEntity, "new_weeks", ConvertFollowUpWeekPickerToIndex(aMemberInfomation.FollowUpWeek));
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(ref aMachedPresentRecordEntity, "new_conclusion_choise", ConvertFollowUpResultPickerToIndex(aMemberInfomation.FollowUpResult));
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(ref aMachedPresentRecordEntity, "new_next_step", ConvertFollowUpNextStepPickerToIndex(aMemberInfomation.FollowUpNextStep));
-                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aMachedPresentRecordEntity, "new_follow_up", aMemberInfomation.FollowUp);
+                        this.m_ToolUtilityClass.SetOptionSetAttribute(ref aMachedPresentRecordEntity, "new_weeks", ConvertFollowUpWeekPickerToIndex(aMemberInfomation.FollowUpWeek));
+                        this.m_ToolUtilityClass.SetOptionSetAttribute(ref aMachedPresentRecordEntity, "new_conclusion_choise", ConvertFollowUpResultPickerToIndex(aMemberInfomation.FollowUpResult));
+                        this.m_ToolUtilityClass.SetOptionSetAttribute(ref aMachedPresentRecordEntity, "new_next_step", ConvertFollowUpNextStepPickerToIndex(aMemberInfomation.FollowUpNextStep));
+                        this.m_ToolUtilityClass.SetEntityStringAttribute(ref aMachedPresentRecordEntity, "new_follow_up", aMemberInfomation.FollowUp);
 
-                    // 因為之前APP無法直接把代禱事項和新人跟進關懷用在表單中
-                    // 但是網頁現在可以了
-                    //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aMachedPresentRecordEntity, "new_explanation", aMemberInfomation.FollowUpNote);
-                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aMachedPresentRecordEntity, "new_explanation", aMemberInfomation.Note);
+                        // 因為之前APP無法直接把代禱事項和新人跟進關懷用在表單中
+                        // 但是網頁現在可以了
+                        //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aMachedPresentRecordEntity, "new_explanation", aMemberInfomation.FollowUpNote);
+                        this.m_ToolUtilityClass.SetEntityStringAttribute(ref aMachedPresentRecordEntity, "new_explanation", aMemberInfomation.Note);
 
-                    AddToDictionaryFollowByIdentity(ref ClearIdentity, ref aContactEntity, aMemberInfomation);
+                        AddToDictionaryFollowByIdentity(ref ClearIdentity, ref aContactEntity, aMemberInfomation);
 
-                    #endregion
+                        #endregion
 
-                    #endregion
-                    #region 更新個人聚會與靈修記錄
-                    this.m_ToolUtilityClass.UpdateEntity(ref aMachedPresentRecordEntity);
-                    #endregion
+                        #endregion
+                        #region 更新個人聚會與靈修記錄
+                        this.m_ToolUtilityClass.UpdateEntity(ref aMachedPresentRecordEntity);
+                        #endregion
 
-                    #endregion
+                        #endregion
 
+                    }
+                    else
+                    {
+                        // 沒找到靈修紀錄
+                        CreatePresentRecord(aMemberInfomation, ref aListEntity, ref aWeeklyReportId, ValidNumber, ref aWeeklySundayRate, ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber, ref ValidSundayMemberNumber, ref ValidSmallGroupMemberNumber);
+                    }
                 }
-                else
-                {
-                    // 沒找到靈修紀錄
-                    CreatePresentRecord(aMemberInfomation, ref aListEntity, ref aWeeklyReportId, ValidNumber, ref aWeeklySundayRate, ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber, ref ValidSundayMemberNumber, ref ValidSmallGroupMemberNumber);
-                }
+
+                #endregion
+            }
+            catch (System.Exception Exception)
+            {
+                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
+                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                throw Exception;
             }
 
-            #endregion
-        }
+}
 
-        private String ConvertIndexToClearIdentity(int Identity)
+private String ConvertIndexToClearIdentity(int Identity)
         {
             // 取得比較易懂的委身類型
             switch (Identity)
