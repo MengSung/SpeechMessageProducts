@@ -30,10 +30,14 @@ namespace ChurchReport.Controllers
         public IActionResult Login()
         {
             var images = new List<string>();
-            images.Add(Url.Content("~/assets/images/photo-1.jpg"));
-            images.Add(Url.Content("~/assets/images/photo-10.jpg"));
-            images.Add(Url.Content("~/assets/images/photo-6.jpg"));
-            images.Add(Url.Content("~/assets/images/photo-9.jpg"));
+            images.Add(Url.Content("~/assets/images/tpehoc-001.png"));
+            images.Add(Url.Content("~/assets/images/tpehoc-002.jpg"));
+            images.Add(Url.Content("~/assets/images/tpehoc-003.jpg"));
+            images.Add(Url.Content("~/assets/images/tpehoc-004.jpg"));
+            //images.Add(Url.Content("~/assets/images/photo-1.jpg"));
+            //images.Add(Url.Content("~/assets/images/photo-10.jpg"));
+            //images.Add(Url.Content("~/assets/images/photo-6.jpg"));
+            //images.Add(Url.Content("~/assets/images/photo-9.jpg"));
             return View(new GalleryViewModel
             {
                 Images = images
