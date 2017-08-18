@@ -24,8 +24,8 @@ namespace ChurchReport.Controllers
 {
     public class HomeController : Controller
     {
-        //ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
-        ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("CRM2011");
+        ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
+        //ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("CRM2011");
 
         public IActionResult Login()
         {
@@ -43,8 +43,6 @@ namespace ChurchReport.Controllers
         [HttpPost]
         public IActionResult ProcessLogin(GalleryViewModel aGalleryViewModel)
         {
-            //ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
-
             String ContactIdString = m_ToolUtilityClass.RetrieveContactByAccountNumber(aGalleryViewModel.Account, aGalleryViewModel.Password);
 
             SmallGroupDataList.SetupContactIdString(ContactIdString);
@@ -53,8 +51,8 @@ namespace ChurchReport.Controllers
             {
                 Guid aContactGuid = new Guid(ContactIdString);
 
-                //String FullName = this.m_ToolUtilityClass.RetrieveEntityDynamics365("contact", aContactGuid).Attributes["fullname"].ToString();
-                String FullName = this.m_ToolUtilityClass.RetrieveEntityCrm2011("contact", aContactGuid).Attributes["fullname"].ToString();
+                String FullName = this.m_ToolUtilityClass.RetrieveEntityDynamics365("contact", aContactGuid).Attributes["fullname"].ToString();
+                //String FullName = this.m_ToolUtilityClass.RetrieveEntityCrm2011("contact", aContactGuid).Attributes["fullname"].ToString();
 
                 SmallGroupDataList.SetupSmallGroupData(FullName, aGalleryViewModel.Account, aGalleryViewModel.Password, DateTime.Now.AddDays(-(int)DateTime.Now.DayOfWeek) );
 

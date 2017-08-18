@@ -24,8 +24,8 @@ namespace ChurchReport.WebServiceConnector
     {
         #region 資料區
         #region 參數資料
-        //ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
-        ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("CRM2011");
+        ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
+        //ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("CRM2011");
 
         private static Regex DigitsOnly = new Regex(@"[^\d]");
 
@@ -36,8 +36,8 @@ namespace ChurchReport.WebServiceConnector
 
         #region 常數參數
 
-        private const String CRM_TYPE = "CRM2011";
-        //private const String CRM_TYPE = "DYNAMICS365";
+        //private const String CRM_TYPE = "CRM2011";
+        private const String CRM_TYPE = "DYNAMICS365";
 
         //private const int MONTH_PERIOD = 2;      //幾個月內出席超過這次數就會改變委身類型=>小組組員
         private const int WEEK_PERIOD = 8;      //過去幾　WEEK_PERIOD　周內出席超過這次數就會改變委身類型=>小組組員

@@ -24,8 +24,8 @@ namespace ChurchReport.WebServiceConnector
     {
         #region 資料區
         #region 參數資料
-        //ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
-        ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("CRM2011");
+        ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
+        //ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("CRM2011");
 
         private static Regex DigitsOnly = new Regex(@"[^\d]");
 
@@ -1249,7 +1249,11 @@ namespace ChurchReport.WebServiceConnector
                 this.m_ToolUtilityClass.SetOptionSetAttribute(ref aPresentRecord, "new_conclusion_choise", ConvertFollowUpResultPickerToIndex(aMemberInfomation.FollowUpResult));
                 this.m_ToolUtilityClass.SetOptionSetAttribute(ref aPresentRecord, "new_next_step", ConvertFollowUpNextStepPickerToIndex(aMemberInfomation.FollowUpNextStep));
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_follow_up", aMemberInfomation.FollowUp);
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_explanation", aMemberInfomation.FollowUpNote);
+
+                // 因為之前APP無法直接把代禱事項和新人跟進關懷用在表單中
+                // 但是網頁現在可以了
+                //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aMachedPresentRecordEntity, "new_explanation", aMemberInfomation.FollowUpNote);
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_explanation", aMemberInfomation.Note);
 
                 AddToDictionaryFollowByIdentity(ref ClearIdentity, ref aContactEntity, aMemberInfomation);
 
