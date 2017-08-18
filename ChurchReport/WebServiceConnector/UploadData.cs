@@ -1519,7 +1519,7 @@ namespace ChurchReport.WebServiceConnector
         private void UpdatePresentRecord(ref Entity aListEntity, ref Guid aWeeklyReportId, Double ValidNumber, ref Double aWeeklySundayRate, ref Double aWeeklySmallGroupRate, ref int aWeeklySundayNumber, ref int aWeeklySmallGroupNumber, ref int ValidSundayMemberNumber, ref int ValidSmallGroupMemberNumber)
         {
             try
-            { 
+            {
                 #region 取得跟週報相關的靈修紀錄
                 EntityCollection PresentRecordCollection = m_ToolUtilityClass.RetrieveManyToOneRelationship("new_group_present_weekly_report", "new_group_present_weekly_reportid", aWeeklyReportId.ToString(), "new_group_present_weekly_report_prese", "new_present_record");
                 #endregion
@@ -1626,7 +1626,7 @@ namespace ChurchReport.WebServiceConnector
                         // 楊梅靈糧堂
                         //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aMachedPresentRecordEntity, "new_name", aMemberInfomation.Note);
                         this.m_ToolUtilityClass.SetEntityStringAttribute(ref aMachedPresentRecordEntity, "new_explanation", aMemberInfomation.Note);
-                    
+
                         // 內壢得勝靈糧堂
                         //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aMachedPresentRecordEntity, "new_memo", aMemberInfomation.Note);
                         #endregion
@@ -1685,10 +1685,9 @@ namespace ChurchReport.WebServiceConnector
 
                 throw Exception;
             }
+        }
 
-}
-
-private String ConvertIndexToClearIdentity(int Identity)
+        private String ConvertIndexToClearIdentity(int Identity)
         {
             // 取得比較易懂的委身類型
             switch (Identity)

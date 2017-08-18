@@ -19,6 +19,7 @@ using Microsoft.Xrm.Sdk.Client;
 using Microsoft.Xrm.Sdk.Discovery;
 using Microsoft.Crm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Messages;
+using ChurchReport.ViewModels;
 
 namespace ChurchReport.Controllers
 {
@@ -81,6 +82,42 @@ namespace ChurchReport.Controllers
 
             return Json(new { status = "1", message = "成功上傳了...." });
         }
+
+
+
+        public IActionResult WeeklyReport()
+        {
+            WeeklyReportViewModel aWeeklyReportViewModel = new WeeklyReportViewModel
+            {
+                WeeklyReportData = "耶和華必拯救",
+                WeeklyReportAnalysis = "我愛嘟嘟扭扭"
+            };
+
+            //if (WeeklyReportViewModel.m_WeeklyReportData.m_WeeklyReport == "")
+            //{
+            //    //如果小組日誌是空白，則去DYNAMICS 365 後台去抓資料
+            //    WeeklyReportViewModel.m_WeeklyReportData.m_WeeklyReport = "耶和華必拯救";
+            //}
+            //else
+            //{
+            //    //否則就表示一經下載過一次了，或是曾經打字輸入過了
+            //}
+
+            return View(aWeeklyReportViewModel);
+        }
+
+        [HttpPost]
+        public IActionResult SaveWeeklyReport( WeeklyReportData aWeeklyReportData )
+        {
+            // 模擬上傳資料
+            //Thread.Sleep(2000);
+
+            //SmallGroupReportData.SmallGroupReport = aWeeklyReport.SmallGroupReport;
+
+            return Json(new { status = "1", message = "成功上傳了...." });
+            //return Json(new { status = "2", message = "密碼錯誤...." });
+        }
+
 
         [HttpGet]
         public IActionResult UpdateDate(string SelectedDate)

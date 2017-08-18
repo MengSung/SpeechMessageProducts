@@ -1,0 +1,210 @@
+﻿@model ChurchReport.ViewModels.WeeklyReportViewModel
+
+<div class="long-title"><h3>小組日誌</h3></div>
+
+<form data-ajax="true" data-ajax-begin="onBegin" data-ajax-success="onSuccess" asp-action="SaveWeeklyReport" asp-controller="Home" method="post">
+    <div class="dx-field">
+
+        <div id="buttonContainer" class="dx-button-icon">
+            @(Html.DevExtreme().Button()
+                    .Text("上傳")
+                    .Type(ButtonType.Success)
+                    .ID("save-button")
+                    .UseSubmitBehavior(true)
+                //.ValidationGroup()
+                //.Width(60)
+
+                .OnClick("SaveWeeklyReport")
+
+                //.OnClick(@<text>
+                //function(data) {
+                //
+                //        $.ajax({
+                //            url: '@Url.Action("SaveNewPerson", "Home")',
+                //            data: { aNewPerson: Model.FormData.Notes.Value },
+                //            type: 'POST', //POST if you want to save, GET if you want to fetch data from server
+                //            success: function (obj)
+                //            {
+                //                $("#toast").dxToast("instance").show();
+                //            },
+                //
+                //            error: function (obj)
+                //            {
+                //                //alert('Something happened');
+                //            }
+                //
+                //        });
+                //}
+                //</text>)
+            )
+        </div>
+        <div id="ToastContainer">
+            @(Html.DevExtreme().Toast()
+                .ID("toast")
+                .Position(p => p
+                    .At(HorizontalAlignment.Center, VerticalAlignment.Center)
+                    .Offset(0, 50))
+                    .Message("上傳成功了!")
+                    .DisplayTime(20000)
+                    .MaxWidth(200)
+            )
+
+        </div>
+        <div id="LoadPanel">
+            @(Html.DevExtreme().LoadPanel()
+                    .ID("loadPanel")
+                    .ShadingColor("rgba(0,0,0,0.4)")
+                    .Position(p => p.Of("#form-container"))
+                    .Visible(false)
+                    .ShowIndicator(true)
+                    .ShowPane(true)
+                    .Shading(true)
+                    .CloseOnOutsideClick(false)
+                    .Message("上傳資料中...")
+                    .Animation(l => l.Show(k => k.Easing(AnimationEasing.Swing)))
+            //.OnShown("loadPanel_shown")
+            //.OnHidden("loadPanel_hidden")
+            )
+
+        </div>
+
+    </div>
+    <div id="form-container">
+        @(Html.DevExtreme().Form()
+        .ID("form")
+        .ColCount(1)
+        .Items(items =>
+        {
+            items.AddSimple()
+                .ColSpan(2)
+                .Label(l => l.Text("小組日誌").Visible(false))
+                .DataField("WeeklyReportData")
+                .Editor(e => e
+                    .TextArea()
+                    .Placeholder("請輸入小組日誌，離開或是切換網頁前記得按上傳鈕")
+                    .Height(350)
+                );
+            items.AddSimple()
+                .ColSpan(2)
+                .Label(l => l.Text("小組出席紀錄").Visible(false))
+                .DataField("WeeklyReportAnalysis")
+                .Editor(e => e
+                    .TextArea()
+                    .Height(350)
+                );
+
+        })
+        .OnContentReady(@<text>
+        function(e) {
+        e.component.validate();
+        }
+        </text>)
+        .FormData(Model)
+        )
+    </div>
+</form>
+<script>
+            function getLoadPanelInstance() {
+                return $("#loadPanel").dxLoadPanel("instance");
+            }
+
+            function button_click() {
+                getLoadPanelInstance().show();
+            }
+
+            function loadPanel_shown(e) {
+            //    setTimeout(function () {
+            //        e.component.hide();
+            //    }, 3000);
+            }
+
+            function loadPanel_hidden() {
+            }
+
+            function SaveWeeklyReport(arg) {
+
+                //debugger;
+
+                getLoadPanelInstance().show();
+                //$("#toast").dxToast("instance").show();
+                //alert("SaveNewPerson!!!");
+                //alert("OnValueChanged : " + arg.value);
+
+                //alert("OnValueChanged : " + arg.attribute('text'));
+                //alert("OnValueChanged : " + text: arg.attribute("text"));
+
+                //alert( getODataLocalDateFilter(arg.value) );
+            }
+
+</script>
+
+<script type="text/javascript">
+            function onBegin() {
+                //alert("開始!");
+                //$("#divProcessing").show()
+
+                //$("#form-signin").hide();
+                //$("#form-signin").hide();
+                //$("#divLoading").html('<image src="~/images/ajax-loader_circle.gif" alt="處理中...." />');
+                //$("#spinner-img").show();
+
+            }
+
+            function onSuccess(data) {
+
+                //window.location.href = "/Jesus/Index";
+                //window.location.href = "/Jesus/Index.html";
+
+                //$("#spinner-img").hide();
+                //alert("成功 001");
+
+                getLoadPanelInstance().hide();
+
+                //DevExpress.ui.notify("新增新人已完成...", "info", 2000);
+                //alert("成功 1" + status);
+                //alert("成功 1" + data);
+                //alert("成功 2" + data.status);
+                //Account.data = data.status * 5;
+                //$("#divLoading").html("TOTAL = " + data.status );
+                //alert("成功 002");
+
+                //$("#toast").dxToast("instance").show();
+
+                //$("#toast").dxToast("instance").show();
+
+                if ( data.status == 1) {
+                    //alert("成功 3" + status);
+
+                    //DevExpress.ui.notify(data.message, "info", 2000);
+                    DevExpress.ui.notify(data.message, "success", 2000);
+                    //window.location.href = "/Jesus/Login";
+                    //window.location.href = "/Home/NewPerson";
+                }
+                else {
+                    //alert("成功 4" + status);
+                    //window.location.href = "/Home/NewPerson";
+                    //window.location.href = "/Home/InputReport/" + data.status;
+                    DevExpress.ui.notify(data.message, "error", 5000);
+                }
+            }
+
+            function onComplete(data) {
+                //alert("結束!");
+                //$("#form-signin").show();
+                //$("#divProcessing").hide();
+
+                if (data.status == 1) {
+                    //window.location.href = "/Jesus/Login";
+                }
+                else {
+                    //window.location.href = "/Home/Index";
+
+                }
+
+                //$("#divLoading").html("");
+            }
+</script>
+
+<script src="~/lib/jquery-ajax-unobtrusive/jquery.unobtrusive-ajax.js"></script>
+
+<link href="~/css/WeeklyReport.css" rel="stylesheet" />
