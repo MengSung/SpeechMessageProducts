@@ -3,12 +3,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
+using ChurchReport.ViewModels;
+
 namespace ChurchReport.Models
 {
-    public class WeeklyReportData
+    static public class WeeklyReportData
     {
-        public String m_WeeklyReport { get; set; }
+        static public WeeklyReportViewModel m_WeeklyReportViewModel = new WeeklyReportViewModel
+        {
+            WeeklyReportData = "耶和華必拯救",
+            WeeklyReportAnalysis = "我愛嘟嘟扭扭"
+        };
 
-        public String m_WeeklyReportAnalysis { get; set; }
     }
 }

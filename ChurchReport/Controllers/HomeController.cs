@@ -87,27 +87,23 @@ namespace ChurchReport.Controllers
 
         public IActionResult WeeklyReport()
         {
-            WeeklyReportViewModel aWeeklyReportViewModel = new WeeklyReportViewModel
+            //  This type returns a redirect to an action or destination
+            //  (using Redirect, LocalRedirect, RedirectToAction, or RedirectToRoute). 
+            //  For example, return RedirectToAction("Complete", new { id = 123 });
+            //  redirects to Complete, passing an anonymous object.
+
+            if (SmallGroupDataList.m_Account != "")
             {
-                WeeklyReportData = "耶和華必拯救",
-                WeeklyReportAnalysis = "我愛嘟嘟扭扭"
-            };
-
-            //if (WeeklyReportViewModel.m_WeeklyReportData.m_WeeklyReport == "")
-            //{
-            //    //如果小組日誌是空白，則去DYNAMICS 365 後台去抓資料
-            //    WeeklyReportViewModel.m_WeeklyReportData.m_WeeklyReport = "耶和華必拯救";
-            //}
-            //else
-            //{
-            //    //否則就表示一經下載過一次了，或是曾經打字輸入過了
-            //}
-
-            return View(aWeeklyReportViewModel);
+                return View(WeeklyReportData.m_WeeklyReportViewModel);
+            }
+            else
+            {
+                return RedirectToAction("Login");
+            }
         }
 
         [HttpPost]
-        public IActionResult SaveWeeklyReport( WeeklyReportData aWeeklyReportData )
+        public IActionResult SaveWeeklyReport(WeeklyReportViewModel aWeeklyReportViewModel)
         {
             // 模擬上傳資料
             //Thread.Sleep(2000);

@@ -20,14 +20,13 @@ namespace ChurchReport.Models
 {
     static public class SmallGroupDataList
     {
-        static String m_FullName;
-        static String m_Account;
-        static String m_Password;
+        static public String m_FullName = "";
+        static public String m_Account  = "";
+        static public String m_Password = "";
         static ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
         //static ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("CRM2011");
 
         static public SmallGroupData m_SmallGroupData = new SmallGroupData();
-
 
         static public MemberInfomationPackage m_MemberInfomationPackage;
 
@@ -485,7 +484,6 @@ namespace ChurchReport.Models
             }
 
         }
-
         public static void UploadMemberInfomationPackage()
         {
             UploadData aUploadData = new UploadData();
@@ -498,7 +496,6 @@ namespace ChurchReport.Models
 
             aUploadData.UploadMemberDataPackage(aAccountPasswordData, m_SmallGroupData.SundayPrayers, "主日點名", m_MemberInfomationPackage);
         }
-
         public static void TransferToMemberInfomationPackage()
         {
             int MemberCounter = 0;
