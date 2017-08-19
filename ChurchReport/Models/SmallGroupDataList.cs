@@ -18,24 +18,24 @@ using ChurchReport.Models.CrmTransmitModule;
 
 namespace ChurchReport.Models
 {
-    static public class SmallGroupDataList
+    public class SmallGroupDataList
     {
-        static public String m_FullName = "";
-        static public String m_Account  = "";
-        static public String m_Password = "";
-        static public DateTime m_SundayDate ;
-        static ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
+        public String m_FullName = "";
+        public String m_Account  = "";
+        public String m_Password = "";
+        public DateTime m_SundayDate ;
+        ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
         //static ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("CRM2011");
 
-        static public SmallGroupData m_SmallGroupData = new SmallGroupData();
+        public SmallGroupData m_SmallGroupData = new SmallGroupData();
 
-        static public MemberInfomationPackage m_MemberInfomationPackage;
+        public MemberInfomationPackage m_MemberInfomationPackage;
 
-        public static void SetupContactIdString(String ContactIdString)
+        public void SetupContactIdString(String ContactIdString)
         {
             m_SmallGroupData.SmallGroupLeaderContactId = ContactIdString;
         }
-        public static void SetupSmallGroupDate(String ContactIdString)
+        public void SetupSmallGroupDate(String ContactIdString)
         {
             Guid aContactGuid = new Guid(ContactIdString);
 
@@ -45,7 +45,7 @@ namespace ChurchReport.Models
             m_SmallGroupData.SmallGroupLeaderFullName = FullName;
             m_SmallGroupData.SundayPrayers = DateTime.Parse("2017/07/30");
 
-            SmallGroupDataList.m_SmallGroupData.members = new List<Member>()
+            m_SmallGroupData.members = new List<Member>()
             {
                 #region 加入新成員
             new Member {
@@ -213,7 +213,7 @@ namespace ChurchReport.Models
             };
 
         }
-        public static void SetupSmallGroupDate(String ContactIdString, String SelectedDate)
+        public void SetupSmallGroupDate(String ContactIdString, String SelectedDate)
         {
             Guid aContactGuid = new Guid(ContactIdString);
 
@@ -226,7 +226,7 @@ namespace ChurchReport.Models
 
             m_SmallGroupData.SundayPrayers = m_SundayDate;
 
-            SmallGroupDataList.m_SmallGroupData.members = new List<Member>()
+            m_SmallGroupData.members = new List<Member>()
             {
                 #region 加入新成員
             new Member {
@@ -394,7 +394,7 @@ namespace ChurchReport.Models
             };
 
         }
-        public static void SetupSmallGroupData(String FullName, String Account, String Password, DateTime SundayDate)
+        public void SetupSmallGroupData(String FullName, String Account, String Password, DateTime SundayDate)
         {
             m_FullName = FullName;
             m_Account = Account;
@@ -412,7 +412,7 @@ namespace ChurchReport.Models
             m_SmallGroupData.SmallGroupLeaderFullName = FullName;
             m_SmallGroupData.SundayPrayers = m_SundayDate = SundayDate;
 
-            SmallGroupDataList.m_SmallGroupData.members = new List<Member>();
+            m_SmallGroupData.members = new List<Member>();
 
             int IdIndex = 0;
             foreach (MemberInfomation aMemberInfomation in m_MemberInfomationPackage.ListMemberInfomation)
@@ -438,13 +438,13 @@ namespace ChurchReport.Models
 
                 };
 
-                SmallGroupDataList.m_SmallGroupData.members.Add(aMember);
+                m_SmallGroupData.members.Add(aMember);
 
                 IdIndex++;
             }
 
         }
-        public static void SetupSmallGroupData( DateTime SundayDate )
+        public void SetupSmallGroupData( DateTime SundayDate )
         {
             DownloadData aDownloader = new DownloadData();
             AccountPasswordData aAccountPasswordData = new AccountPasswordData
@@ -458,7 +458,7 @@ namespace ChurchReport.Models
             m_SmallGroupData.SmallGroupLeaderFullName = m_FullName;
             m_SmallGroupData.SundayPrayers = SundayDate;
 
-            SmallGroupDataList.m_SmallGroupData.members.Clear();
+            m_SmallGroupData.members.Clear();
 
             int IdIndex = 0;
             foreach (MemberInfomation aMemberInfomation in m_MemberInfomationPackage.ListMemberInfomation)
@@ -483,12 +483,12 @@ namespace ChurchReport.Models
                                                               //Picture = "https://tpehoc.speechmessage.com.tw/image/download.aspx?attribute=entityimage&entity=contact&id=66cd8034-953f-e711-80d9-00155d00640b" //D:\暫存區\ASP.NET CORE 練習區\DevExtremeAspNetCoreApp1\DevExtremeAspNetCoreApp1\wwwroot\images\employees
 
                 };
-                SmallGroupDataList.m_SmallGroupData.members.Add(aMember);
+                m_SmallGroupData.members.Add(aMember);
                 IdIndex++;
             }
 
         }
-        public static void UploadMemberInfomationPackage()
+        public void UploadMemberInfomationPackage()
         {
             UploadData aUploadData = new UploadData();
 
@@ -500,17 +500,17 @@ namespace ChurchReport.Models
 
             aUploadData.UploadMemberDataPackage(aAccountPasswordData, m_SmallGroupData.SundayPrayers, "主日點名", m_MemberInfomationPackage);
         }
-        public static void TransferToMemberInfomationPackage()
+        public void TransferToMemberInfomationPackage()
         {
             int MemberCounter = 0;
-            foreach (Member aMember in SmallGroupDataList.m_SmallGroupData.members)
+            foreach (Member aMember in m_SmallGroupData.members)
             {
                 MappingMembers( aMember);
 
                 MemberCounter++;
             }
         }
-        public static void MappingMembers(Member aMember)
+        public void MappingMembers(Member aMember)
         {
             foreach (MemberInfomation aMemberInfomation in m_MemberInfomationPackage.ListMemberInfomation)
             {

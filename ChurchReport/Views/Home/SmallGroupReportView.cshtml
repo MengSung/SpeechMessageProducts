@@ -39,7 +39,7 @@
                     $("#loadPanel").dxLoadPanel("instance").show();
 
                     $.ajax({
-                    url: '@Url.Action("UpdateDate", "SmallGroupReport")',
+                    url: '@Url.Action("UpdateDate", "Home")',
                     data: { SelectedDate: getODataLocalDateFilter(arg.value) },
                     type: 'GET', //POST if you want to save, GET if you want to fetch data from server
 
@@ -86,7 +86,7 @@
                             $.ajax
                             (
                                {
-                                    url: '@Url.Action("SaveSmallGroup", "SmallGroupReport")',
+                                    url: '@Url.Action("SaveSmallGroup", "Home")',
                                     data: { aResult: GetResult() }, // 整理回傳給 Server 的點名資料
                                     type: 'POST', //POST if you want to save, GET if you want to fetch data from server
 

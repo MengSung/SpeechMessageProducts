@@ -30,12 +30,12 @@ namespace ChurchReport.Controllers
             //    { 'Id':1,'FullName':'吳連碧','Status':'小組長','SmallGroupName':'0201 連碧小組 - 主日出席率:50 % 小組出席率:0 %','SectionName':'0201 連碧小組 - 主日出席率:50 % 小組出席率:0 %','PrayItem':'未填','Sunday':'false','SmallGroup':'true','StateID1':'2','Number1':'4','StateID2':'1','Number2':'2','Picture':'../../ images / employees / 01.png','Shepherd':'null',},
             //    ]";
 
-            //SmallGroupDataList.m_SmallGroupData.members = JsonConvert.DeserializeObject<List<Member>>(json);
-            SmallGroupDataList.m_SmallGroupData.members.Clear();
-            SmallGroupDataList.m_SmallGroupData.members = JsonConvert.DeserializeObject<List<Member>>(aResult);
+            ////SmallGroupDataList.m_SmallGroupData.members = JsonConvert.DeserializeObject<List<Member>>(json);
+            //m_SmallGroupDataList.m_SmallGroupData.members.Clear();
+            //SmallGroupDataList.m_SmallGroupData.members = JsonConvert.DeserializeObject<List<Member>>(aResult);
 
-            SmallGroupDataList.TransferToMemberInfomationPackage();
-            SmallGroupDataList.UploadMemberInfomationPackage();
+            //SmallGroupDataList.TransferToMemberInfomationPackage();
+            //SmallGroupDataList.UploadMemberInfomationPackage();
 
             return Json(new { status = "1", message = "成功上傳了...." });
         }
@@ -44,9 +44,9 @@ namespace ChurchReport.Controllers
         [HttpGet]
         public IActionResult UpdateDate(string SelectedDate)
         {
-            SmallGroupDataList.SetupSmallGroupData( DateTime.Parse(SelectedDate));
-            //return View(SmallGroupDataList.m_SmallGroupData);
-            //return Json(new { status = "1", message = "成功上傳了...." });
+            //SmallGroupDataList.SetupSmallGroupData( DateTime.Parse(SelectedDate));
+            ////return View(SmallGroupDataList.m_SmallGroupData);
+            ////return Json(new { status = "1", message = "成功上傳了...." });
             return Ok();
 
         }

@@ -25,12 +25,12 @@ namespace ChurchReport.Models
 
             AccountPasswordData aAccountPasswordData = new AccountPasswordData
             {
-                Account = SmallGroupDataList.m_Account,
-                Password = SmallGroupDataList.m_Password
+                //Account = SmallGroupDataList.m_Account,
+                //Password = SmallGroupDataList.m_Password
             };
 
             // 從雲端後台下載下來小組日誌
-            m_WeeklyReport = aWeeklyReportManager.DownloadWeeklyReport(aAccountPasswordData, SmallGroupDataList.m_SundayDate);
+            //m_WeeklyReport = aWeeklyReportManager.DownloadWeeklyReport(aAccountPasswordData, SmallGroupDataList.m_SundayDate);
 
 
             m_WeeklyReportViewModel.WeeklyReportData = m_WeeklyReport.WeeklyReportContent;
@@ -44,12 +44,12 @@ namespace ChurchReport.Models
 
             AccountPasswordData aAccountPasswordData = new AccountPasswordData
             {
-                Account = SmallGroupDataList.m_Account,
-                Password = SmallGroupDataList.m_Password
+                //Account = SmallGroupDataList.m_Account,
+                //Password = SmallGroupDataList.m_Password
             };
 
             // 從雲端後台下載下來小組日誌
-            m_WeeklyReport = aWeeklyReportManager.UploadWeeklyReport(aAccountPasswordData, SmallGroupDataList.m_SundayDate, m_WeeklyReport);
+            //m_WeeklyReport = aWeeklyReportManager.UploadWeeklyReport(aAccountPasswordData, SmallGroupDataList.m_SundayDate, m_WeeklyReport);
 
 
 
