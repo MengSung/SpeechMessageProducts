@@ -287,6 +287,79 @@ namespace ChurchReport.Models.CrmTransmitModule
             get { return m_ListMemberInfomation; }
             set { m_ListMemberInfomation = value; }
         }
+
     }
+
+    public class WeeklyReport
+    {
+        public WeeklyReport()
+        {
+        }
+
+        //慕道友數
+        int m_ReligiousInvestigator = 0;
+        public int ReligiousInvestigator
+        {
+            get { return m_ReligiousInvestigator; }
+            set { m_ReligiousInvestigator = value; }
+        }
+
+        //受洗數
+        int m_Baptized = 0;
+        public int Baptized
+        {
+            get { return m_Baptized; }
+            set { m_Baptized = value; }
+        }
+
+        //跟進次數
+        int m_FollowNumber = 0;
+        public int FollowNumber
+        {
+            get { return m_FollowNumber; }
+            set { m_FollowNumber = value; }
+        }
+
+        // 推動方式
+        string m_PushMethod = "";
+        public string PushMethod
+        {
+            get { return m_PushMethod; }
+            set { m_PushMethod = value; }
+        }
+
+        // 進行方式
+        string m_ProgressMethod = "";
+        public string ProgressMethod
+        {
+            get { return m_ProgressMethod; }
+            set { m_ProgressMethod = value; }
+        }
+
+        // 一對一材料及人數結果
+        string m_OneOnOne = "";
+        public string OneOnOne
+        {
+            get { return m_OneOnOne; }
+            set { m_OneOnOne = value; }
+        }
+
+        // 小組日誌
+        string m_WeeklyReportContent = "";
+        public string WeeklyReportContent
+        {
+            get { return m_WeeklyReportContent; }
+            set { m_WeeklyReportContent = value; }
+        }
+
+        // 出席紀錄
+        string m_PresentContent = "";
+        public string PresentContent
+        {
+            get { return m_PresentContent; }
+            set { m_PresentContent = value; }
+        }
+    }
+
 
 }

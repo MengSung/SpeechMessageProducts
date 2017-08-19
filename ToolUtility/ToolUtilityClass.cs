@@ -24,8 +24,9 @@ namespace ToolUtilityNameSpace
     public class ToolUtilityClass
     {
         #region 資料區
+        //private String CRM_TYPE = "CRM2011";
+        private String CRM_TYPE = "DYNAMICS365";
 
-        private String CRM_TYPE = "CRM2011";
         String m_DiscoveryServiceType = "";
 
         public IOrganizationService m_Crm2011OrganizationService;

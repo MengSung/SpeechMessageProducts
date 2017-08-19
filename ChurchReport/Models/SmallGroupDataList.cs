@@ -23,6 +23,7 @@ namespace ChurchReport.Models
         static public String m_FullName = "";
         static public String m_Account  = "";
         static public String m_Password = "";
+        static public DateTime m_SundayDate ;
         static ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
         //static ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("CRM2011");
 
@@ -212,7 +213,7 @@ namespace ChurchReport.Models
             };
 
         }
-        public static void SetupSmallGroupDate(String ContactIdString, String SundayDate)
+        public static void SetupSmallGroupDate(String ContactIdString, String SelectedDate)
         {
             Guid aContactGuid = new Guid(ContactIdString);
 
@@ -220,7 +221,10 @@ namespace ChurchReport.Models
             //String FullName = m_ToolUtilityClass.RetrieveEntityCrm2011("contact", aContactGuid).Attributes["fullname"].ToString();
 
             m_SmallGroupData.SmallGroupLeaderFullName = FullName;
-            m_SmallGroupData.SundayPrayers = DateTime.Parse(SundayDate);
+
+            m_SundayDate = DateTime.Parse(SelectedDate).AddDays(-(int)DateTime.Now.DayOfWeek);
+
+            m_SmallGroupData.SundayPrayers = m_SundayDate;
 
             SmallGroupDataList.m_SmallGroupData.members = new List<Member>()
             {
@@ -406,7 +410,7 @@ namespace ChurchReport.Models
             m_MemberInfomationPackage = aDownloader.GetMemberDataPackage(SundayDate, aAccountPasswordData);
 
             m_SmallGroupData.SmallGroupLeaderFullName = FullName;
-            m_SmallGroupData.SundayPrayers = SundayDate;
+            m_SmallGroupData.SundayPrayers = m_SundayDate = SundayDate;
 
             SmallGroupDataList.m_SmallGroupData.members = new List<Member>();
 
