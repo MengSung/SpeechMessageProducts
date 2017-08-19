@@ -19,7 +19,7 @@ namespace ChurchReport.Models
 
         static public WeeklyReport m_WeeklyReport;
 
-        public static void SetupWeeklyReport(String FullName, String Account, String Password, DateTime SundayDate)
+        public static void SetupWeeklyReport()
         {
             WeeklyReportManager aWeeklyReportManager = new WeeklyReportManager();
 
@@ -29,12 +29,34 @@ namespace ChurchReport.Models
                 Password = SmallGroupDataList.m_Password
             };
 
-            // 從雲端後台下載下來小組點名資料
+            // 從雲端後台下載下來小組日誌
             m_WeeklyReport = aWeeklyReportManager.DownloadWeeklyReport(aAccountPasswordData, SmallGroupDataList.m_SundayDate);
+
+
+            m_WeeklyReportViewModel.WeeklyReportData = m_WeeklyReport.WeeklyReportContent;
+            m_WeeklyReportViewModel.WeeklyReportAnalysis = m_WeeklyReport.PresentContent;
+
+        }
+
+        public static void UploadWeeklyReport()
+        {
+            WeeklyReportManager aWeeklyReportManager = new WeeklyReportManager();
+
+            AccountPasswordData aAccountPasswordData = new AccountPasswordData
+            {
+                Account = SmallGroupDataList.m_Account,
+                Password = SmallGroupDataList.m_Password
+            };
+
+            // 從雲端後台下載下來小組日誌
+            m_WeeklyReport = aWeeklyReportManager.UploadWeeklyReport(aAccountPasswordData, SmallGroupDataList.m_SundayDate, m_WeeklyReport);
+
 
 
         }
 
-
     }
+
+
+
 }

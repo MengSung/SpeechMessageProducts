@@ -95,6 +95,8 @@ namespace ChurchReport.Controllers
 
             if (SmallGroupDataList.m_Account != "")
             {
+                WeeklyReportData.SetupWeeklyReport();
+
                 return View(WeeklyReportData.m_WeeklyReportViewModel);
             }
             else
@@ -106,10 +108,10 @@ namespace ChurchReport.Controllers
         [HttpPost]
         public IActionResult SaveWeeklyReport(WeeklyReportViewModel aWeeklyReportViewModel)
         {
-            // 模擬上傳資料
-            //Thread.Sleep(2000);
+            WeeklyReportData.m_WeeklyReport.WeeklyReportContent = aWeeklyReportViewModel.WeeklyReportData;
+            WeeklyReportData.m_WeeklyReport.PresentContent = aWeeklyReportViewModel.WeeklyReportAnalysis;
 
-            //SmallGroupReportData.SmallGroupReport = aWeeklyReport.SmallGroupReport;
+            WeeklyReportData.UploadWeeklyReport();
 
             return Json(new { status = "1", message = "成功上傳了...." });
             //return Json(new { status = "2", message = "密碼錯誤...." });
