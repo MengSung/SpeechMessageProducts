@@ -30,12 +30,12 @@ namespace ChurchReport.Controllers
         ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
         //ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("CRM2011");
 
-        SmallGroupDataList m_SmallGroupDataList = new SmallGroupDataList();
+        //SmallGroupDataList m_SmallGroupDataList = new SmallGroupDataList();
 
-        private String m_FullName ="";
-        private String m_Account = "";
-        private String m_Password = "";
-        private DateTime m_SundayDate = DateTime.Now;
+        //private String m_FullName ="";
+        //private String m_Account = "";
+        //private String m_Password = "";
+        //private DateTime m_SundayDate = DateTime.Now;
 
         public IActionResult Login()
         {
@@ -59,6 +59,7 @@ namespace ChurchReport.Controllers
         {
             String ContactIdString = m_ToolUtilityClass.RetrieveContactByAccountNumber(aGalleryViewModel.Account, aGalleryViewModel.Password);
 
+            SmallGroupDataList m_SmallGroupDataList = new SmallGroupDataList();
             m_SmallGroupDataList.SetupContactIdString(ContactIdString);
 
             if (ContactIdString != "密碼錯誤" && ContactIdString != "系統沒有設定密碼" && ContactIdString != "帳號錯誤")
@@ -67,13 +68,14 @@ namespace ChurchReport.Controllers
 
                 String FullName = this.m_ToolUtilityClass.RetrieveEntityDynamics365("contact", aContactGuid).Attributes["fullname"].ToString();
                 //String FullName = this.m_ToolUtilityClass.RetrieveEntityCrm2011("contact", aContactGuid).Attributes["fullname"].ToString();
-
-                //m_SmallGroupDataList.SetupSmallGroupData(FullName, aGalleryViewModel.Account, aGalleryViewModel.Password, DateTime.Now.AddDays(-(int)DateTime.Now.DayOfWeek));
+                
+                m_SmallGroupDataList.SetupSmallGroupData(FullName, aGalleryViewModel.Account, aGalleryViewModel.Password, DateTime.Now.AddDays(-(int)DateTime.Now.DayOfWeek));
 
                 TempData["FullName"] = FullName;
                 TempData["Account"] = aGalleryViewModel.Account;
                 TempData["Password"] = aGalleryViewModel.Password;
                 TempData["SundayDate"] = DateTime.Now;
+                TempData["SmallGroupDataList"] = JsonConvert.SerializeObject(m_SmallGroupDataList);
                 //TempData["SmallGroupDataList"] = m_SmallGroupDataList;
 
 
@@ -95,18 +97,23 @@ namespace ChurchReport.Controllers
 
             //m_SmallGroupDataList = (SmallGroupDataList)TempData["SmallGroupDataList"];
 
-            String FullNname = (String)TempData.Peek("FullName");
-            TempData.Keep("FullName");
-            String Account = (String)TempData.Peek("Account");
-            TempData.Keep("Account");
-            String Password = (String)TempData.Peek("Password");
-            TempData.Keep("Password");
-            DateTime SundayDate = (DateTime)TempData.Peek("SundayDate");
-            TempData.Keep("SundayDate");
+            //String FullNname = (String)TempData.Peek("FullName");
+            //TempData.Keep("FullName");
+            //String Account = (String)TempData.Peek("Account");
+            //TempData.Keep("Account");
+            //String Password = (String)TempData.Peek("Password");
+            //TempData.Keep("Password");
+            //DateTime SundayDate = (DateTime)TempData.Peek("SundayDate");
+            //TempData.Keep("SundayDate");
+
+            String SmallGroupDataList = (String)TempData.Peek("SmallGroupDataList");
+            TempData.Keep("SmallGroupDataList");
 
             //m_SmallGroupDataList.SetupSmallGroupData((String)TempData["FullName"], (String)TempData["Account"], (String)TempData["Password"], ((DateTime)TempData["SundayDate"]).AddDays(-(int)DateTime.Now.DayOfWeek));
-            SmallGroupDataList m_SmallGroupDataList = new SmallGroupDataList();
-            m_SmallGroupDataList.SetupSmallGroupData(FullNname, Account, Password, SundayDate.AddDays(-(int)DateTime.Now.DayOfWeek));
+            //SmallGroupDataList m_SmallGroupDataList = new SmallGroupDataList();
+            //m_SmallGroupDataList.SetupSmallGroupData(FullNname, Account, Password, SundayDate.AddDays(-(int)DateTime.Now.DayOfWeek));
+
+            SmallGroupDataList m_SmallGroupDataList = JsonConvert.DeserializeObject<SmallGroupDataList>(SmallGroupDataList);
 
             return View(m_SmallGroupDataList.m_SmallGroupData);
         }
@@ -120,6 +127,15 @@ namespace ChurchReport.Controllers
             //    ]";
 
             //SmallGroupDataList.m_SmallGroupData.members = JsonConvert.DeserializeObject<List<Member>>(json);
+
+
+
+
+
+            String SmallGroupDataList = (String)TempData.Peek("SmallGroupDataList");
+            TempData.Keep("SmallGroupDataList");
+            SmallGroupDataList m_SmallGroupDataList = JsonConvert.DeserializeObject<SmallGroupDataList>(SmallGroupDataList);
+
             m_SmallGroupDataList.m_SmallGroupData.members.Clear();
             m_SmallGroupDataList.m_SmallGroupData.members = JsonConvert.DeserializeObject<List<Member>>(aResult);
 
@@ -133,8 +149,29 @@ namespace ChurchReport.Controllers
         [HttpGet]
         public IActionResult UpdateDate(string SelectedDate)
         {
-            //this.m_SundayDate = DateTime.Parse(SelectedDate).AddDays(-(int)DateTime.Now.DayOfWeek);
+
+
+           //String FullName = (String)TempData.Peek("FullName");
+           //TempData.Keep("FullName");
+           //String Account = (String)TempData.Peek("Account");
+           //TempData.Keep("Account");
+           //String Password = (String)TempData.Peek("Password");
+           //TempData.Keep("Password");
+           //DateTime SundayDate = (DateTime)TempData.Peek("SundayDate");
+           //TempData.Keep("SundayDate");
+
             TempData["SundayDate"] = DateTime.Parse(SelectedDate).AddDays(-(int)DateTime.Now.DayOfWeek);
+
+            String SmallGroupDataList = (String)TempData.Peek("SmallGroupDataList");
+            TempData.Keep("SmallGroupDataList");
+            SmallGroupDataList m_SmallGroupDataList = JsonConvert.DeserializeObject<SmallGroupDataList>(SmallGroupDataList);
+
+            //SmallGroupDataList m_SmallGroupDataList = new SmallGroupDataList();
+            m_SmallGroupDataList.SetupSmallGroupData(m_SmallGroupDataList.m_FullName, m_SmallGroupDataList.m_Account, m_SmallGroupDataList.m_Password, DateTime.Parse(SelectedDate).AddDays(-(int)DateTime.Now.DayOfWeek));
+
+            TempData["SmallGroupDataList"] = JsonConvert.SerializeObject(m_SmallGroupDataList);
+
+            //this.m_SundayDate = DateTime.Parse(SelectedDate).AddDays(-(int)DateTime.Now.DayOfWeek);
             //m_SmallGroupDataList.SetupSmallGroupData();
             //return View(SmallGroupDataList.m_SmallGroupData);
             //return Json(new { status = "1", message = "成功上傳了...." });
@@ -150,6 +187,7 @@ namespace ChurchReport.Controllers
             //  For example, return RedirectToAction("Complete", new { id = 123 });
             //  redirects to Complete, passing an anonymous object.
 
+            SmallGroupDataList m_SmallGroupDataList = new SmallGroupDataList();
             if (m_SmallGroupDataList.m_Account != "")
             {
                 WeeklyReportData.SetupWeeklyReport();

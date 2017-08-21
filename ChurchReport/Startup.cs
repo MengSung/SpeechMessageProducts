@@ -35,8 +35,8 @@ namespace ChurchReport
             services.AddMemoryCache();
             services.AddDistributedMemoryCache();
             //services.AddSingleton<ITempDataProvider, CookieTempDataProvider>();
-            services.AddSession();
-                
+            //services.AddCookieTempData();
+            services.AddSession(options => options.IdleTimeout = TimeSpan.FromMinutes(30));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
