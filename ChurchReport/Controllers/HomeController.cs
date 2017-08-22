@@ -172,23 +172,32 @@ namespace ChurchReport.Controllers
                 String WeeklyReportDataString = (String)TempData.Peek("WeeklyReportData");
                 TempData.Keep("WeeklyReportData");
 
-                if ( WeeklyReportDataString == null)
-                {
-                    WeeklyReportData aWeeklyReportData = new WeeklyReportData();
+                WeeklyReportData aWeeklyReportData = new WeeklyReportData();
 
-                    aWeeklyReportData.SetupWeeklyReport(m_SmallGroupDataList.m_Account, m_SmallGroupDataList.m_Password, m_SmallGroupDataList.m_SundayDate);
+                aWeeklyReportData.SetupWeeklyReport(m_SmallGroupDataList.m_Account, m_SmallGroupDataList.m_Password, m_SmallGroupDataList.m_SundayDate);
 
-                    String SerializedWeeklyReportData = JsonConvert.SerializeObject(aWeeklyReportData);
-                    TempData["WeeklyReportData"] = SerializedWeeklyReportData;
+                String SerializedWeeklyReportData = JsonConvert.SerializeObject(aWeeklyReportData);
+                TempData["WeeklyReportData"] = SerializedWeeklyReportData;
 
-                    return View(aWeeklyReportData.m_WeeklyReportViewModel);
-                }
-                else
-                {
-                    WeeklyReportData aWeeklyReportData = JsonConvert.DeserializeObject<WeeklyReportData>(WeeklyReportDataString);
+                return View(aWeeklyReportData.m_WeeklyReportViewModel);
 
-                    return View(aWeeklyReportData.m_WeeklyReportViewModel);
-                }
+                //if ( WeeklyReportDataString == null)
+                //{
+                //    WeeklyReportData aWeeklyReportData = new WeeklyReportData();
+                //
+                //    aWeeklyReportData.SetupWeeklyReport(m_SmallGroupDataList.m_Account, m_SmallGroupDataList.m_Password, m_SmallGroupDataList.m_SundayDate);
+                //
+                //    String SerializedWeeklyReportData = JsonConvert.SerializeObject(aWeeklyReportData);
+                //    TempData["WeeklyReportData"] = SerializedWeeklyReportData;
+                //
+                //    return View(aWeeklyReportData.m_WeeklyReportViewModel);
+                //}
+                //else
+                //{
+                //    WeeklyReportData aWeeklyReportData = JsonConvert.DeserializeObject<WeeklyReportData>(WeeklyReportDataString);
+                //
+                //    return View(aWeeklyReportData.m_WeeklyReportViewModel);
+                //}
             }
             else
             {
