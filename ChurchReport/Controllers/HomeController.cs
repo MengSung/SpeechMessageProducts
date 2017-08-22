@@ -172,32 +172,32 @@ namespace ChurchReport.Controllers
                 String WeeklyReportDataString = (String)TempData.Peek("WeeklyReportData");
                 TempData.Keep("WeeklyReportData");
 
-                WeeklyReportData aWeeklyReportData = new WeeklyReportData();
+                //WeeklyReportData aWeeklyReportData = new WeeklyReportData();
 
-                aWeeklyReportData.SetupWeeklyReport(m_SmallGroupDataList.m_Account, m_SmallGroupDataList.m_Password, m_SmallGroupDataList.m_SundayDate);
+                //aWeeklyReportData.SetupWeeklyReport(m_SmallGroupDataList.m_Account, m_SmallGroupDataList.m_Password, m_SmallGroupDataList.m_SundayDate);
 
-                String SerializedWeeklyReportData = JsonConvert.SerializeObject(aWeeklyReportData);
-                TempData["WeeklyReportData"] = SerializedWeeklyReportData;
+                //String SerializedWeeklyReportData = JsonConvert.SerializeObject(aWeeklyReportData);
+                //TempData["WeeklyReportData"] = SerializedWeeklyReportData;
 
-                return View(aWeeklyReportData.m_WeeklyReportViewModel);
+                //return View(aWeeklyReportData.m_WeeklyReportViewModel);
 
-                //if ( WeeklyReportDataString == null)
-                //{
-                //    WeeklyReportData aWeeklyReportData = new WeeklyReportData();
-                //
-                //    aWeeklyReportData.SetupWeeklyReport(m_SmallGroupDataList.m_Account, m_SmallGroupDataList.m_Password, m_SmallGroupDataList.m_SundayDate);
-                //
-                //    String SerializedWeeklyReportData = JsonConvert.SerializeObject(aWeeklyReportData);
-                //    TempData["WeeklyReportData"] = SerializedWeeklyReportData;
-                //
-                //    return View(aWeeklyReportData.m_WeeklyReportViewModel);
-                //}
-                //else
-                //{
-                //    WeeklyReportData aWeeklyReportData = JsonConvert.DeserializeObject<WeeklyReportData>(WeeklyReportDataString);
-                //
-                //    return View(aWeeklyReportData.m_WeeklyReportViewModel);
-                //}
+                if (WeeklyReportDataString == null)
+                {
+                    WeeklyReportData aWeeklyReportData = new WeeklyReportData();
+
+                    aWeeklyReportData.SetupWeeklyReport(m_SmallGroupDataList.m_Account, m_SmallGroupDataList.m_Password, m_SmallGroupDataList.m_SundayDate);
+
+                    String SerializedWeeklyReportData = JsonConvert.SerializeObject(aWeeklyReportData);
+                    TempData["WeeklyReportData"] = SerializedWeeklyReportData;
+
+                    return View(aWeeklyReportData.m_WeeklyReportViewModel);
+                }
+                else
+                {
+                    WeeklyReportData aWeeklyReportData = JsonConvert.DeserializeObject<WeeklyReportData>(WeeklyReportDataString);
+
+                    return View(aWeeklyReportData.m_WeeklyReportViewModel);
+                }
             }
             else
             {
@@ -219,10 +219,15 @@ namespace ChurchReport.Controllers
 
                 if (WeeklyReportDataString != null)
                 {
-                    WeeklyReportData aWeeklyReportData = new WeeklyReportData();
+                    WeeklyReportData aWeeklyReportData = JsonConvert.DeserializeObject<WeeklyReportData>(WeeklyReportDataString);
 
+                    // 給上傳用的
                     aWeeklyReportData.m_WeeklyReport.WeeklyReportContent = aWeeklyReportViewModel.WeeklyReportData;
                     aWeeklyReportData.m_WeeklyReport.PresentContent = aWeeklyReportViewModel.WeeklyReportAnalysis;
+
+                    // 給網頁顯示用的
+                    aWeeklyReportData.m_WeeklyReportViewModel.WeeklyReportData = aWeeklyReportViewModel.WeeklyReportData;
+                    aWeeklyReportData.m_WeeklyReportViewModel.WeeklyReportAnalysis = aWeeklyReportViewModel.WeeklyReportAnalysis;
 
                     String SerializedWeeklyReportData = JsonConvert.SerializeObject(aWeeklyReportData);
                     TempData["WeeklyReportData"] = SerializedWeeklyReportData;
