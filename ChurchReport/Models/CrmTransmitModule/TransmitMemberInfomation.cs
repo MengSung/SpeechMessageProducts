@@ -362,4 +362,104 @@ namespace ChurchReport.Models.CrmTransmitModule
     }
 
 
+    public class NewContact
+    {
+        public NewContact()
+        {
+        }
+
+        string m_Name = "";
+        public string Name
+        {
+            get { return m_Name; }
+            set { m_Name = value; }
+        }
+
+        string m_MobilePhone = "";
+        public string MobilePhone
+        {
+            get { return m_MobilePhone; }
+            set { m_MobilePhone = value; }
+        }
+
+        string m_HomePhone = "";
+        public string HomePhone
+        {
+            get { return m_HomePhone; }
+            set { m_HomePhone = value; }
+        }
+
+        string m_GroupName = "";
+        public string GroupName
+        {
+            get { return m_GroupName; }
+            set { m_GroupName = value; }
+        }
+
+        string m_Address = "";
+        public string Address
+        {
+            get { return m_Address; }
+            set { m_Address = value; }
+        }
+
+        bool m_Gender = false;
+        public bool Gender
+        {
+            get { return m_Gender; }
+            set { m_Gender = value; }
+        }
+
+        DateTime m_BirthDate;
+        public DateTime BirthDate
+        {
+            get { return m_BirthDate; }
+            set { m_BirthDate = value; }
+        }
+
+        DateTime m_FirstActionDate;
+        public DateTime FirstActionDate
+        {
+            get { return m_FirstActionDate; }
+            set { m_FirstActionDate = value; }
+        }
+
+        DateTime m_FirstChurchDate;
+        public DateTime FirstChurchDate
+        {
+            get { return m_FirstChurchDate; }
+            set { m_FirstChurchDate = value; }
+        }
+
+        string m_Email = "";
+        public string Email
+        {
+            get { return m_Email; }
+            set { m_Email = value; }
+        }
+
+        string m_MerrageState = "";
+        public string MerrageState
+        {
+            get { return m_MerrageState; }
+            set { m_MerrageState = value; }
+        }
+
+        string m_Source = "";
+        public string Source
+        {
+            get { return m_Source; }
+            set { m_Source = value; }
+        }
+
+        string m_Note = "";
+        public string Note
+        {
+            get { return m_Note; }
+            set { m_Note = value; }
+        }
+    }
+
+
+
 }

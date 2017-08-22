@@ -346,7 +346,7 @@ namespace ChurchReport.WebServiceConnector
         }
         #endregion
 
-
+        #region 所需要的工具
         private void FindGroupLeader(AccountPasswordData aAccountPasswordData)
         {
             // 找小組長及其ID
@@ -436,7 +436,6 @@ namespace ChurchReport.WebServiceConnector
                 throw Exception;
             }
         }
-
 
         private EntityCollection MergeCollection(ref EntityCollection aListEntityCollection, ref EntityCollection aFamilyLeaderListEntityCollection)
         {
@@ -588,6 +587,7 @@ namespace ChurchReport.WebServiceConnector
                 throw Exception;
             }
         }
+        #endregion
 
         #endregion
         #endregion

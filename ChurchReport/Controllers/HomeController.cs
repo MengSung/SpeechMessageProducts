@@ -292,6 +292,10 @@ namespace ChurchReport.Controllers
             String NewPersonString = JsonConvert.SerializeObject(aNewPerson);
             TempData["NewPerson"] = NewPersonString;
 
+            NewPerson aNewPersonManager = new NewPerson();
+
+            //aNewPersonManager.CreateNewContact();
+
             return Json(new { status = "1", message = "成功上傳了...." });
             //return Json(new { status = "2", message = "密碼錯誤...." });
         }
