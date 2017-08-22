@@ -18,8 +18,9 @@ namespace ChurchReport.Models
 
         public String DataStatus { get; set; }
 
-        public List<Member> members;
+        //public List<Member> m_Members;
 
-        public List<Member> Members { get => members; set => members = value; }
+        //public List<Member> Members { get => m_Members; set => m_Members = value; }
+        public List<Member> Members { get ; set ; }
     }
 }

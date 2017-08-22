@@ -45,7 +45,7 @@ namespace ChurchReport.Models
             m_SmallGroupData.SmallGroupLeaderFullName = FullName;
             m_SmallGroupData.SundayPrayers = DateTime.Parse("2017/07/30");
 
-            m_SmallGroupData.members = new List<Member>()
+            m_SmallGroupData.Members = new List<Member>()
             {
                 #region 加入新成員
             new Member {
@@ -226,7 +226,7 @@ namespace ChurchReport.Models
 
             m_SmallGroupData.SundayPrayers = m_SundayDate;
 
-            m_SmallGroupData.members = new List<Member>()
+            m_SmallGroupData.Members = new List<Member>()
             {
                 #region 加入新成員
             new Member {
@@ -412,7 +412,7 @@ namespace ChurchReport.Models
             m_SmallGroupData.SmallGroupLeaderFullName = FullName;
             m_SmallGroupData.SundayPrayers = m_SundayDate = SundayDate;
 
-            m_SmallGroupData.members = new List<Member>();
+            m_SmallGroupData.Members = new List<Member>();
 
             int IdIndex = 0;
             foreach (MemberInfomation aMemberInfomation in m_MemberInfomationPackage.ListMemberInfomation)
@@ -438,7 +438,7 @@ namespace ChurchReport.Models
 
                 };
 
-                m_SmallGroupData.members.Add(aMember);
+                m_SmallGroupData.Members.Add(aMember);
 
                 IdIndex++;
             }
@@ -458,7 +458,7 @@ namespace ChurchReport.Models
             m_SmallGroupData.SmallGroupLeaderFullName = m_FullName;
             m_SmallGroupData.SundayPrayers = SundayDate;
 
-            m_SmallGroupData.members.Clear();
+            m_SmallGroupData.Members.Clear();
 
             int IdIndex = 0;
             foreach (MemberInfomation aMemberInfomation in m_MemberInfomationPackage.ListMemberInfomation)
@@ -483,7 +483,7 @@ namespace ChurchReport.Models
                                                               //Picture = "https://tpehoc.speechmessage.com.tw/image/download.aspx?attribute=entityimage&entity=contact&id=66cd8034-953f-e711-80d9-00155d00640b" //D:\暫存區\ASP.NET CORE 練習區\DevExtremeAspNetCoreApp1\DevExtremeAspNetCoreApp1\wwwroot\images\employees
 
                 };
-                m_SmallGroupData.members.Add(aMember);
+                m_SmallGroupData.Members.Add(aMember);
                 IdIndex++;
             }
 
@@ -503,7 +503,7 @@ namespace ChurchReport.Models
         public void TransferToMemberInfomationPackage()
         {
             int MemberCounter = 0;
-            foreach (Member aMember in m_SmallGroupData.members)
+            foreach (Member aMember in m_SmallGroupData.Members)
             {
                 MappingMembers( aMember);
 

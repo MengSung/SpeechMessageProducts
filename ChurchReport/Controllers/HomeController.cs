@@ -71,12 +71,17 @@ namespace ChurchReport.Controllers
                 
                 m_SmallGroupDataList.SetupSmallGroupData(FullName, aGalleryViewModel.Account, aGalleryViewModel.Password, DateTime.Now.AddDays(-(int)DateTime.Now.DayOfWeek));
 
-                TempData["FullName"] = FullName;
-                TempData["Account"] = aGalleryViewModel.Account;
-                TempData["Password"] = aGalleryViewModel.Password;
-                TempData["SundayDate"] = DateTime.Now;
-                TempData["SmallGroupDataList"] = JsonConvert.SerializeObject(m_SmallGroupDataList);
-                //TempData["SmallGroupDataList"] = m_SmallGroupDataList;
+                //TempData["FullName"] = FullName;
+                //TempData["Account"] = aGalleryViewModel.Account;
+                //TempData["Password"] = aGalleryViewModel.Password;
+                //TempData["SundayDate"] = DateTime.Now;
+
+                String SerializedSmallGroupDataList = JsonConvert.SerializeObject(m_SmallGroupDataList);
+                TempData["SmallGroupDataList"] = SerializedSmallGroupDataList;
+
+                //SmallGroupDataList XXX_SmallGroupDataList = JsonConvert.DeserializeObject<SmallGroupDataList>(SerializedSmallGroupDataList);
+
+                //TempData["SmallGroupDataList"] = JsonConvert.SerializeObject(m_SmallGroupDataList);
 
 
                 return Json(new { status = "1", message = "歡迎" + FullName + "登入成功!", fullname = FullName, account = aGalleryViewModel.Account , password = aGalleryViewModel.Password });
@@ -106,14 +111,35 @@ namespace ChurchReport.Controllers
             //DateTime SundayDate = (DateTime)TempData.Peek("SundayDate");
             //TempData.Keep("SundayDate");
 
-            String SmallGroupDataList = (String)TempData.Peek("SmallGroupDataList");
+            String SmallGroupDataListString = (String)TempData.Peek("SmallGroupDataList");
             TempData.Keep("SmallGroupDataList");
 
             //m_SmallGroupDataList.SetupSmallGroupData((String)TempData["FullName"], (String)TempData["Account"], (String)TempData["Password"], ((DateTime)TempData["SundayDate"]).AddDays(-(int)DateTime.Now.DayOfWeek));
             //SmallGroupDataList m_SmallGroupDataList = new SmallGroupDataList();
             //m_SmallGroupDataList.SetupSmallGroupData(FullNname, Account, Password, SundayDate.AddDays(-(int)DateTime.Now.DayOfWeek));
 
-            SmallGroupDataList m_SmallGroupDataList = JsonConvert.DeserializeObject<SmallGroupDataList>(SmallGroupDataList);
+            SmallGroupDataList m_SmallGroupDataList = JsonConvert.DeserializeObject<SmallGroupDataList>(SmallGroupDataListString);
+
+
+
+
+
+
+
+            //String FullNname = (String)TempData.Peek("FullName");
+            //TempData.Keep("FullName");
+            //String Account = (String)TempData.Peek("Account");
+            //TempData.Keep("Account");
+            //String Password = (String)TempData.Peek("Password");
+            //TempData.Keep("Password");
+            //DateTime SundayDate = (DateTime)TempData.Peek("SundayDate");
+            //TempData.Keep("SundayDate");
+
+            //SmallGroupDataList m_SmallGroupDataList = new SmallGroupDataList();
+            //m_SmallGroupDataList.SetupSmallGroupData(FullNname, Account, Password, SundayDate.AddDays(-(int)DateTime.Now.DayOfWeek));
+
+
+
 
             return View(m_SmallGroupDataList.m_SmallGroupData);
         }
@@ -136,8 +162,8 @@ namespace ChurchReport.Controllers
             TempData.Keep("SmallGroupDataList");
             SmallGroupDataList m_SmallGroupDataList = JsonConvert.DeserializeObject<SmallGroupDataList>(SmallGroupDataList);
 
-            m_SmallGroupDataList.m_SmallGroupData.members.Clear();
-            m_SmallGroupDataList.m_SmallGroupData.members = JsonConvert.DeserializeObject<List<Member>>(aResult);
+            m_SmallGroupDataList.m_SmallGroupData.Members.Clear();
+            m_SmallGroupDataList.m_SmallGroupData.Members = JsonConvert.DeserializeObject<List<Member>>(aResult);
 
             m_SmallGroupDataList.TransferToMemberInfomationPackage();
             m_SmallGroupDataList.UploadMemberInfomationPackage();
