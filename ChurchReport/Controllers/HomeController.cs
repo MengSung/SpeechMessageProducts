@@ -36,7 +36,6 @@ namespace ChurchReport.Controllers
         //private String m_Account = "";
         //private String m_Password = "";
         //private DateTime m_SundayDate = DateTime.Now;
-
         public IActionResult Login()
         {
             var images = new List<string>();
@@ -53,7 +52,6 @@ namespace ChurchReport.Controllers
                 Images = images
             });
         }
-
         [HttpPost]
         public IActionResult ProcessLogin(GalleryViewModel aGalleryViewModel)
         {
@@ -91,60 +89,16 @@ namespace ChurchReport.Controllers
                 return Json(new { status = "2", message = ContactIdString, fullname = ContactIdString });
             }
         }
-
         //[Route("/Home/SmallGroupReportView/{LoginParameter}")]
         //public ActionResult SmallGroupReportView(String LoginParameter)
         public ActionResult SmallGroupReportView()
         {
-            //String[] ParameterArray = LoginParameter.Split(',');
-
-            //String FullName = (String) TempData["FullName"];
-
-            //m_SmallGroupDataList = (SmallGroupDataList)TempData["SmallGroupDataList"];
-
-            //String FullNname = (String)TempData.Peek("FullName");
-            //TempData.Keep("FullName");
-            //String Account = (String)TempData.Peek("Account");
-            //TempData.Keep("Account");
-            //String Password = (String)TempData.Peek("Password");
-            //TempData.Keep("Password");
-            //DateTime SundayDate = (DateTime)TempData.Peek("SundayDate");
-            //TempData.Keep("SundayDate");
-
             String SmallGroupDataListString = (String)TempData.Peek("SmallGroupDataList");
             TempData.Keep("SmallGroupDataList");
-
-            //m_SmallGroupDataList.SetupSmallGroupData((String)TempData["FullName"], (String)TempData["Account"], (String)TempData["Password"], ((DateTime)TempData["SundayDate"]).AddDays(-(int)DateTime.Now.DayOfWeek));
-            //SmallGroupDataList m_SmallGroupDataList = new SmallGroupDataList();
-            //m_SmallGroupDataList.SetupSmallGroupData(FullNname, Account, Password, SundayDate.AddDays(-(int)DateTime.Now.DayOfWeek));
-
             SmallGroupDataList m_SmallGroupDataList = JsonConvert.DeserializeObject<SmallGroupDataList>(SmallGroupDataListString);
-
-
-
-
-
-
-
-            //String FullNname = (String)TempData.Peek("FullName");
-            //TempData.Keep("FullName");
-            //String Account = (String)TempData.Peek("Account");
-            //TempData.Keep("Account");
-            //String Password = (String)TempData.Peek("Password");
-            //TempData.Keep("Password");
-            //DateTime SundayDate = (DateTime)TempData.Peek("SundayDate");
-            //TempData.Keep("SundayDate");
-
-            //SmallGroupDataList m_SmallGroupDataList = new SmallGroupDataList();
-            //m_SmallGroupDataList.SetupSmallGroupData(FullNname, Account, Password, SundayDate.AddDays(-(int)DateTime.Now.DayOfWeek));
-
-
-
 
             return View(m_SmallGroupDataList.m_SmallGroupData);
         }
-
-
         [HttpPost]
         public IActionResult SaveSmallGroup(String aResult)
         {
@@ -153,10 +107,6 @@ namespace ChurchReport.Controllers
             //    ]";
 
             //SmallGroupDataList.m_SmallGroupData.members = JsonConvert.DeserializeObject<List<Member>>(json);
-
-
-
-
 
             String SmallGroupDataList = (String)TempData.Peek("SmallGroupDataList");
             TempData.Keep("SmallGroupDataList");
@@ -168,10 +118,12 @@ namespace ChurchReport.Controllers
             m_SmallGroupDataList.TransferToMemberInfomationPackage();
             m_SmallGroupDataList.UploadMemberInfomationPackage();
 
+
+            String SerializedSmallGroupDataList = JsonConvert.SerializeObject(m_SmallGroupDataList);
+            TempData["SmallGroupDataList"] = SerializedSmallGroupDataList;
+
             return Json(new { status = "1", message = "成功上傳了...." });
         }
-
-
         [HttpGet]
         public IActionResult UpdateDate(string SelectedDate)
         {
@@ -204,8 +156,6 @@ namespace ChurchReport.Controllers
             return Ok();
 
         }
-
-
         public IActionResult WeeklyReport()
         {
             //  This type returns a redirect to an action or destination
@@ -225,7 +175,6 @@ namespace ChurchReport.Controllers
                 return RedirectToAction("Login");
             }
         }
-
         [HttpPost]
         public IActionResult SaveWeeklyReport(WeeklyReportViewModel aWeeklyReportViewModel)
         {
@@ -237,8 +186,6 @@ namespace ChurchReport.Controllers
             return Json(new { status = "1", message = "成功上傳了...." });
             //return Json(new { status = "2", message = "密碼錯誤...." });
         }
-
-
         //[HttpGet]
         //public IActionResult UpdateDate(string SelectedDate)
         //{
@@ -248,7 +195,6 @@ namespace ChurchReport.Controllers
         //    return Ok();
 
         //}
-
         [Route("/Home/InputReport/{FullName}")]
         public IActionResult InputReport(String FullName)
         {
