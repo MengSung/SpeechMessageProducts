@@ -9,28 +9,28 @@ using ChurchReport.WebServiceConnector;
 
 namespace ChurchReport.Models
 {
-    static public class WeeklyReportData
+    public class WeeklyReportData
     {
-        static public WeeklyReportViewModel m_WeeklyReportViewModel = new WeeklyReportViewModel
+        public WeeklyReportViewModel m_WeeklyReportViewModel = new WeeklyReportViewModel
         {
             WeeklyReportData = "耶和華必拯救",
             WeeklyReportAnalysis = "我愛嘟嘟扭扭"
         };
 
-        static public WeeklyReport m_WeeklyReport;
+        public WeeklyReport m_WeeklyReport = new WeeklyReport();
 
-        public static void SetupWeeklyReport()
+        public void SetupWeeklyReport( String Account, String Password, DateTime SundayDate )
         {
             WeeklyReportManager aWeeklyReportManager = new WeeklyReportManager();
 
             AccountPasswordData aAccountPasswordData = new AccountPasswordData
             {
-                //Account = SmallGroupDataList.m_Account,
-                //Password = SmallGroupDataList.m_Password
+                Account = Account,
+                Password = Password
             };
 
             // 從雲端後台下載下來小組日誌
-            //m_WeeklyReport = aWeeklyReportManager.DownloadWeeklyReport(aAccountPasswordData, SmallGroupDataList.m_SundayDate);
+            m_WeeklyReport = aWeeklyReportManager.DownloadWeeklyReport(aAccountPasswordData, SundayDate);
 
 
             m_WeeklyReportViewModel.WeeklyReportData = m_WeeklyReport.WeeklyReportContent;
@@ -38,18 +38,18 @@ namespace ChurchReport.Models
 
         }
 
-        public static void UploadWeeklyReport()
+        public void UploadWeeklyReport(String Account, String Password, DateTime SundayDate, WeeklyReport aWeeklyReport)
         {
             WeeklyReportManager aWeeklyReportManager = new WeeklyReportManager();
 
             AccountPasswordData aAccountPasswordData = new AccountPasswordData
             {
-                //Account = SmallGroupDataList.m_Account,
-                //Password = SmallGroupDataList.m_Password
+                Account = Account,
+                Password = Password
             };
 
-            // 從雲端後台下載下來小組日誌
-            //m_WeeklyReport = aWeeklyReportManager.UploadWeeklyReport(aAccountPasswordData, SmallGroupDataList.m_SundayDate, m_WeeklyReport);
+            // 上傳小組日誌到雲端後台
+            m_WeeklyReport = aWeeklyReportManager.UploadWeeklyReport(aAccountPasswordData, SundayDate, aWeeklyReport );
 
 
 

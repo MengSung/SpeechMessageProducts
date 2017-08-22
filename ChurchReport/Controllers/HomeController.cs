@@ -163,12 +163,32 @@ namespace ChurchReport.Controllers
             //  For example, return RedirectToAction("Complete", new { id = 123 });
             //  redirects to Complete, passing an anonymous object.
 
-            SmallGroupDataList m_SmallGroupDataList = new SmallGroupDataList();
+            String SmallGroupDataList = (String)TempData.Peek("SmallGroupDataList");
+            TempData.Keep("SmallGroupDataList");
+            SmallGroupDataList m_SmallGroupDataList = JsonConvert.DeserializeObject<SmallGroupDataList>(SmallGroupDataList);
+
             if (m_SmallGroupDataList.m_Account != "")
             {
-                WeeklyReportData.SetupWeeklyReport();
+                String WeeklyReportDataString = (String)TempData.Peek("WeeklyReportData");
+                TempData.Keep("WeeklyReportData");
 
-                return View(WeeklyReportData.m_WeeklyReportViewModel);
+                if ( WeeklyReportDataString == null)
+                {
+                    WeeklyReportData aWeeklyReportData = new WeeklyReportData();
+
+                    aWeeklyReportData.SetupWeeklyReport(m_SmallGroupDataList.m_Account, m_SmallGroupDataList.m_Password, m_SmallGroupDataList.m_SundayDate);
+
+                    String SerializedWeeklyReportData = JsonConvert.SerializeObject(aWeeklyReportData);
+                    TempData["WeeklyReportData"] = SerializedWeeklyReportData;
+
+                    return View(aWeeklyReportData.m_WeeklyReportViewModel);
+                }
+                else
+                {
+                    WeeklyReportData aWeeklyReportData = JsonConvert.DeserializeObject<WeeklyReportData>(WeeklyReportDataString);
+
+                    return View(aWeeklyReportData.m_WeeklyReportViewModel);
+                }
             }
             else
             {
@@ -178,10 +198,32 @@ namespace ChurchReport.Controllers
         [HttpPost]
         public IActionResult SaveWeeklyReport(WeeklyReportViewModel aWeeklyReportViewModel)
         {
-            WeeklyReportData.m_WeeklyReport.WeeklyReportContent = aWeeklyReportViewModel.WeeklyReportData;
-            WeeklyReportData.m_WeeklyReport.PresentContent = aWeeklyReportViewModel.WeeklyReportAnalysis;
 
-            WeeklyReportData.UploadWeeklyReport();
+            String SmallGroupDataList = (String)TempData.Peek("SmallGroupDataList");
+            TempData.Keep("SmallGroupDataList");
+            SmallGroupDataList m_SmallGroupDataList = JsonConvert.DeserializeObject<SmallGroupDataList>(SmallGroupDataList);
+
+            if (m_SmallGroupDataList.m_Account != "")
+            {
+                String WeeklyReportDataString = (String)TempData.Peek("WeeklyReportData");
+                TempData.Keep("WeeklyReportData");
+
+                if (WeeklyReportDataString != null)
+                {
+                    WeeklyReportData aWeeklyReportData = new WeeklyReportData();
+
+                    aWeeklyReportData.m_WeeklyReport.WeeklyReportContent = aWeeklyReportViewModel.WeeklyReportData;
+                    aWeeklyReportData.m_WeeklyReport.PresentContent = aWeeklyReportViewModel.WeeklyReportAnalysis;
+
+                    String SerializedWeeklyReportData = JsonConvert.SerializeObject(aWeeklyReportData);
+                    TempData["WeeklyReportData"] = SerializedWeeklyReportData;
+
+                    aWeeklyReportData.UploadWeeklyReport(m_SmallGroupDataList.m_Account, m_SmallGroupDataList.m_Password, m_SmallGroupDataList.m_SundayDate, aWeeklyReportData.m_WeeklyReport);
+                }
+                else
+                {
+                }
+            }
 
             return Json(new { status = "1", message = "成功上傳了...." });
             //return Json(new { status = "2", message = "密碼錯誤...." });
