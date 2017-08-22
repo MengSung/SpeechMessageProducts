@@ -1,8 +1,10 @@
-﻿@model ChurchReport.ViewModels.WeeklyReportViewModel
+﻿@model ChurchReport.ViewModels.PersonFormViewModel
+@{
+    var priorities = new[] { "Low", "Normal", "Urgent", "High" };
+}
+<div class="long-title"><h3>新人資訊</h3></div>
 
-<div class="long-title"><h3>小組日誌</h3></div>
-
-<form data-ajax="true" data-ajax-begin="onBegin" data-ajax-success="onSuccess" asp-action="SaveWeeklyReport" asp-controller="Home" method="post">
+<form data-ajax="true" data-ajax-begin="onBegin" data-ajax-success="onSuccess" asp-action="SaveNewPerson" asp-controller="Home" method="post">
     <div class="dx-field">
 
         <div id="buttonContainer" class="dx-button-icon">
@@ -14,7 +16,7 @@
                 //.ValidationGroup()
                 //.Width(60)
 
-                .OnClick("SaveWeeklyReport")
+                .OnClick("SaveNewPerson")
 
                 //.OnClick(@<text>
                 //function(data) {
@@ -62,8 +64,8 @@
                     .CloseOnOutsideClick(false)
                     .Message("上傳資料中...")
                     .Animation(l => l.Show(k => k.Easing(AnimationEasing.Swing)))
-            //.OnShown("loadPanel_shown")
-            //.OnHidden("loadPanel_hidden")
+                //.OnShown("loadPanel_shown")
+                //.OnHidden("loadPanel_hidden")
             )
 
         </div>
@@ -72,28 +74,130 @@
     <div id="form-container">
         @(Html.DevExtreme().Form()
         .ID("form")
-        .LabelLocation(FormLabelLocation.Top)
-        .ColCount(1)
+        .ColCount(3)
         .Items(items =>
         {
+            //items.AddSimple()
+            //    .DataField("ID")
+            //    .IsRequired(false);
+
+            //items.AddSimple()
+            //   .DataField("FirstName")
+            //   .Label(l => l.Text("姓"))
+            //   .Editor(e => e
+            //        .TextBox()
+            //        .Disabled(true)
+            //    );
+
             items.AddSimple()
-                .ColSpan(2)
-                .Label(l => l.Text("小組日誌").Visible(true))
-                .DataField("WeeklyReportData")
+                .DataField("LastName")
+                .Label(l => l.Text("姓名"))
                 .Editor(e => e
-                    .TextArea()
-                    .Placeholder("請輸入小組日誌，離開或是切換網頁前記得按上傳鈕")
-                    .Height(250)
-                );
-            items.AddSimple()
-                .ColSpan(2)
-                .Label(l => l.Text("小組出席紀錄").Visible(true))
-                .DataField("WeeklyReportAnalysis")
-                .Editor(e => e
-                    .TextArea()
-                    .ReadOnly(true)
+                    .TextBox()
                     .Disabled(false)
-                    .Height(350)
+                    .Placeholder("輸入姓名")
+               );
+
+            items.AddSimple()
+                .DataField("Phone")
+                .Label(l => l.Text("電話"))
+                .Editor(e => e
+                    .TextBox()
+                    .Mask("+886 (X000) 000-000")
+                    .MaskRules(new { X = new JS("/[02-9]/") })
+                );
+
+            items.AddSimple()
+                .DataField("Address")
+                .Label(l => l.Text("地址"))
+                ;
+
+            items.AddSimple()
+               .Label(l => l.Text("性別"))
+               .DataField("Gender")
+               .Editor(e => e
+                   .RadioGroup()
+                   .Items(new[] { "男性", "女性" })
+                   .Layout(Orientation.Horizontal)
+               );
+
+            items.AddSimple()
+                .DataField("Position")
+                .Label(l => l.Text("職位"))
+                .Editor(e => e
+                    .SelectBox()
+                    .DataSource(new string[] {
+                                        "人事室主管",
+                                        "資訊室主管",
+                                        "總經理",
+                                        "業務經理",
+                                        "行銷經理",
+                                        "售服經理"
+                        }
+                    )
+                    //.Value("")
+                    )
+                    .ValidationRules(r => r
+                        .AddRequired()
+                        .Message("Position is required")
+                    );
+
+            items.AddSimple()
+                .DataField("BirthDate")
+                .Label(l => l.Text("生日"))
+                .Editor(e => e
+                    .DateBox()
+                    .Disabled(false)
+                    .Placeholder("生日")
+                )
+                .IsRequired(true);
+
+            items.AddSimple()
+                .DataField("HireDate")
+                .Label(l => l.Text("教會日期"))
+                .Editor(e => e
+                    .DateBox()
+                //.Value(new JS("null"))
+                )
+                .ValidationRules(r => r
+                    .AddRequired()
+                    .Message("Hire date is required")
+                );
+
+            items.AddSimple()
+                .DataField("ReadBibleNumber")
+                .Label(l => l.Text("讀經次數"))
+                .Editor(e => e
+                    .NumberBox()
+                    .Min(0)
+                    .Max(50)
+                    .ShowSpinButtons(true)
+                )
+                .IsRequired(false);
+
+            items.AddSimple()
+                   .ColSpan(1)
+                   .Label(l => l.Text("信仰狀況"))
+                   .DataField("Status")
+                   .Editor(e => e
+                       .RadioGroup()
+                       .Items(new[] { "慕道友", "基督徒" })
+                       .Layout(Orientation.Horizontal)
+                   );
+
+
+
+
+
+
+
+            items.AddSimple()
+                .ColSpan(3)
+                .Label(l => l.Text("附註"))
+                .DataField("Notes")
+                .Editor(e => e
+                    .TextArea()
+                    .Height(200)
                 );
 
         })
@@ -106,6 +210,22 @@
         )
     </div>
 </form>
+
+
+<div id="ToastContainer">
+    @(Html.DevExtreme().Toast()
+                .ID("toast")
+                .Position(p => p
+                .At(HorizontalAlignment.Center, VerticalAlignment.Bottom)
+                .Offset(0, 50))
+                .Message("上傳成功了!")
+                .DisplayTime(2000)
+                .MaxWidth(200)
+    )
+
+</div>
+
+
 <script>
             function getLoadPanelInstance() {
                 return $("#loadPanel").dxLoadPanel("instance");
@@ -124,10 +244,9 @@
             function loadPanel_hidden() {
             }
 
-            function SaveWeeklyReport(arg) {
+            function SaveNewPerson(arg) {
 
                 //debugger;
-
                 getLoadPanelInstance().show();
                 //$("#toast").dxToast("instance").show();
                 //alert("SaveNewPerson!!!");
@@ -150,7 +269,9 @@
                 //$("#form-signin").hide();
                 //$("#divLoading").html('<image src="~/images/ajax-loader_circle.gif" alt="處理中...." />');
                 //$("#spinner-img").show();
-
+                @{
+                    Model.Notes = "GOD !!!!";
+                }
             }
 
             function onSuccess(data) {
@@ -192,9 +313,21 @@
             }
 
             function onComplete(data) {
-                //alert("結束!");
+                alert("結束!");
                 //$("#form-signin").show();
                 //$("#divProcessing").hide();
+
+                //$("#spinner-img").hide();
+                //$("#spinner-img").show();
+
+                //window.location.href = "/Jesus/Index";
+                //window.location.href = "/Home/Index";
+
+                //alert("完成");
+
+                //alert("完成 1" + status);
+                //alert("完成 1" + data);
+                //alert("完成 2" + data.status);
 
                 if (data.status == 1) {
                     //window.location.href = "/Jesus/Login";
@@ -209,5 +342,4 @@
 </script>
 
 <script src="~/lib/jquery-ajax-unobtrusive/jquery.unobtrusive-ajax.js"></script>
-
-<link href="~/css/WeeklyReport.css" rel="stylesheet" />
+<link href="~/css/NewPerson.css" rel="stylesheet" />

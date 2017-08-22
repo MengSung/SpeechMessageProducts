@@ -248,5 +248,54 @@ namespace ChurchReport.Controllers
             return View((object)FullName);
         }
 
+
+
+        public IActionResult NewPerson()
+        {
+            String NewPersonString = (String)TempData.Peek("NewPerson");
+            TempData.Keep("NewPerson");
+
+            if (NewPersonString == null)
+            {
+                return View(new PersonFormViewModel
+                {
+                    ID = 1,
+                    FirstName = "張",
+                    LastName = "張大同",
+                    Gender = "男性",
+                    Phone = "0910-391-931",
+                    Position = "行銷經理",
+                    BirthDate = DateTime.Parse("1962/09/27"),
+                    HireDate = DateTime.Parse("2005/06/25"),
+                    Notes = "先生換工作，所以剛搬來楊梅，正在尋找教會中....",
+                    Address = "桃園市楊梅區中山路2段5號3樓",
+                    ReadBibleNumber = 5,
+                    Status = "慕道友"
+                });
+
+            }
+            else
+            {
+                PersonFormViewModel aPersonFormViewModel = JsonConvert.DeserializeObject<PersonFormViewModel>(NewPersonString);
+
+                return View(aPersonFormViewModel);
+
+            }
+
+        }
+
+        [HttpPost]
+        public IActionResult SaveNewPerson(PersonFormViewModel aNewPerson)
+        {
+            //Thread.Sleep(2000);
+
+            String NewPersonString = JsonConvert.SerializeObject(aNewPerson);
+            TempData["NewPerson"] = NewPersonString;
+
+            return Json(new { status = "1", message = "成功上傳了...." });
+            //return Json(new { status = "2", message = "密碼錯誤...." });
+        }
+
+
     }
 }
