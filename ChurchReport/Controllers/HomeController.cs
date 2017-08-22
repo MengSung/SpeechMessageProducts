@@ -257,42 +257,41 @@ namespace ChurchReport.Controllers
 
             if (NewPersonString == null)
             {
-                return View(new PersonFormViewModel
-                {
-                    ID = 1,
-                    FirstName = "張",
-                    LastName = "張大同",
-                    Gender = "男性",
-                    Phone = "0910-391-931",
-                    Position = "行銷經理",
-                    BirthDate = DateTime.Parse("1962/09/27"),
-                    HireDate = DateTime.Parse("2005/06/25"),
-                    Notes = "先生換工作，所以剛搬來楊梅，正在尋找教會中....",
-                    Address = "桃園市楊梅區中山路2段5號3樓",
-                    ReadBibleNumber = 5,
-                    Status = "慕道友"
-                });
+                NewPersonModel aNewPersonModel = new NewPersonModel();
 
+                String SerializedNewPersonModel = JsonConvert.SerializeObject(aNewPersonModel);
+                TempData["NewPerson"] = SerializedNewPersonModel;
+
+                return View(aNewPersonModel.PersonFormViewModel);
             }
             else
             {
-                PersonFormViewModel aPersonFormViewModel = JsonConvert.DeserializeObject<PersonFormViewModel>(NewPersonString);
+                NewPersonModel aNewPersonModel = JsonConvert.DeserializeObject<NewPersonModel>(NewPersonString);
 
-                return View(aPersonFormViewModel);
+                return View(aNewPersonModel.PersonFormViewModel);
 
             }
 
         }
 
         [HttpPost]
-        public IActionResult SaveNewPerson(PersonFormViewModel aNewPerson)
+        public IActionResult SaveNewPerson(PersonFormViewModel aPersonFormViewModel)
         {
             //Thread.Sleep(2000);
+            String SmallGroupDataList = (String)TempData.Peek("SmallGroupDataList");
+            TempData.Keep("SmallGroupDataList");
+            SmallGroupDataList m_SmallGroupDataList = JsonConvert.DeserializeObject<SmallGroupDataList>(SmallGroupDataList);
 
-            String NewPersonString = JsonConvert.SerializeObject(aNewPerson);
-            TempData["NewPerson"] = NewPersonString;
+            String NewPersonString = (String)TempData.Peek("NewPerson");
+            TempData.Keep("NewPerson");
+            NewPersonModel aNewPersonModel = JsonConvert.DeserializeObject<NewPersonModel>(NewPersonString);
 
-            NewPerson aNewPersonManager = new NewPerson();
+            aNewPersonModel.UploadWeeklyReport(m_SmallGroupDataList.m_Account, m_SmallGroupDataList.m_Password, aPersonFormViewModel);
+
+            String SerializedNewPersonModel = JsonConvert.SerializeObject(aNewPersonModel);
+            TempData["NewPerson"] = SerializedNewPersonModel;
+
+            //NewPerson aNewPersonManager = new NewPerson();
 
             //aNewPersonManager.CreateNewContact();
 
