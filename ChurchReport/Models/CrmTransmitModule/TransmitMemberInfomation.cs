@@ -452,6 +452,14 @@ namespace ChurchReport.Models.CrmTransmitModule
             set { m_Source = value; }
         }
 
+        //信仰狀態
+        string m_FaithStatus = "";
+        public string FaithStatus
+        {
+            get { return m_FaithStatus; }
+            set { m_FaithStatus = value; }
+        }
+
         string m_Note = "";
         public string Note
         {

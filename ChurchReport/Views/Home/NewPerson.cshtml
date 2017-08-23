@@ -160,15 +160,32 @@
                 );
 
             items.AddSimple()
-                .DataField("ReadBibleNumber")
-                .Label(l => l.Text("讀經次數"))
+                .DataField("MerrageState")
+                .Label(l => l.Text("婚姻狀態"))
                 .Editor(e => e
-                    .NumberBox()
-                    .Min(0)
-                    .Max(50)
-                    .ShowSpinButtons(true)
-                )
-                .IsRequired(false);
+                    .SelectBox()
+                    .DataSource(new string[] {
+                                        "已婚",
+                                        "未婚",
+                                        "離異",
+                                        "喪偶",
+                                        "單身",
+                        }
+                    //.DisplayExpr("Name")
+                    )
+                    .Value("未婚")
+                    );
+
+            //items.AddSimple()
+            //    .DataField("ReadBibleNumber")
+            //    .Label(l => l.Text("讀經次數"))
+            //    .Editor(e => e
+            //        .NumberBox()
+            //        .Min(0)
+            //        .Max(50)
+            //        .ShowSpinButtons(true)
+            //    )
+            //    .IsRequired(false);
 
             items.AddSimple()
                    .ColSpan(1)
@@ -264,9 +281,9 @@
                 //$("#form-signin").hide();
                 //$("#divLoading").html('<image src="~/images/ajax-loader_circle.gif" alt="處理中...." />');
                 //$("#spinner-img").show();
-                @{
+                @*@{
                     Model.Notes = "GOD !!!!";
-                }
+                }*@
             }
 
             function onSuccess(data) {

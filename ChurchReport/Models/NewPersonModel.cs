@@ -19,6 +19,7 @@ namespace ChurchReport.Models
             Gender = "男性",
             Phone = "",
             Position = "",
+            MerrageState="未婚",
             BirthDate = DateTime.Parse("1975/01/1"),
             HireDate = DateTime.Parse("2017/08/25"),
             Notes = "",
@@ -86,11 +87,19 @@ namespace ChurchReport.Models
                 m_NewContact.Gender = false;
             }
 
-            m_NewContact.GroupName = aPersonFormViewModel.Position;
-            //m_NewContact.MerrageState
+            m_NewContact.MerrageState = aPersonFormViewModel.MerrageState;
 
-            //int GroupIndex = Convert.ToInt32(aPersonFormViewModel.Position);
-            //m_NewContact.GroupName = AssignSmallGroupList.AssignSmallGroupListData[Convert.ToInt32(aPersonFormViewModel.Position)].Name;
+            if (aPersonFormViewModel.Position == "0" || aPersonFormViewModel.Position == "1" || aPersonFormViewModel.Position == "2" || aPersonFormViewModel.Position == "3" || aPersonFormViewModel.Position == "4" || aPersonFormViewModel.Position == "5")
+            {
+                int GroupIndex = Convert.ToInt32(aPersonFormViewModel.Position);
+                m_NewContact.GroupName = AssignSmallGroupList.AssignSmallGroupListData[Convert.ToInt32(aPersonFormViewModel.Position)].Name;
+            }
+            else
+            {
+                m_NewContact.GroupName = aPersonFormViewModel.Position;
+            }
+
+            m_NewContact.FaithStatus = aPersonFormViewModel.Status;
 
             //PersonFormViewModel.FirstName = aPersonFormViewModel.FirstName;
             //PersonFormViewModel.LastName = aPersonFormViewModel.LastName;
