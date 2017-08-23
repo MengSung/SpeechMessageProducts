@@ -174,7 +174,7 @@ namespace ChurchReport.WebServiceConnector
                 Guid NewContactEntityId = this.m_ToolUtilityClass.CreateEntity(ref this.m_ToolUtilityClass.m_OrganizationService, aNewContactEntity);
 
                 // 將剛剛新增的聯絡人加入至成員名單
-                aListEntity = ConnectNewContactInMemberList(NewContactEntityId, aNewContact.GroupName);
+                ConnectNewContactInMemberList(NewContactEntityId, aNewContact.GroupName, aListEntity );
 
 
                 #region// 建立個人聚會與靈修記錄
@@ -345,17 +345,10 @@ namespace ChurchReport.WebServiceConnector
                 throw e;
             }
         }
-        private Entity ConnectNewContactInMemberList(Guid NewContactEntityId, String GroupName)
+        private void ConnectNewContactInMemberList(Guid NewContactEntityId, String GroupName, Entity aListEntity)
         {
             try
             {
-                // 根據是否是族系族長還是小組長會設定不同的要上傳的名單集合
-                // 並且該名單是有勾選APP點名的才被允許進來
-                this.FindListCollection();
-
-                // 找到要被關聯的小組名單集合
-                Entity aListEntity = FindListByName(GroupName);
-
                 if (aListEntity != null)
                 {
                     #region 有找到被關聯的小組名單
@@ -383,8 +376,6 @@ namespace ChurchReport.WebServiceConnector
                     }
                     #endregion
                 }
-
-                return aListEntity;
             }
             catch (System.Exception e)
             {
