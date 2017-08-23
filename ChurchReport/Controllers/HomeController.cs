@@ -287,8 +287,19 @@ namespace ChurchReport.Controllers
 
             String Result = aNewPersonModel.UploadNewPerson(m_SmallGroupDataList.m_Account, m_SmallGroupDataList.m_Password, aPersonFormViewModel);
 
+            if (aPersonFormViewModel.Position == "0" || aPersonFormViewModel.Position == "1" || aPersonFormViewModel.Position == "2" || aPersonFormViewModel.Position == "3" || aPersonFormViewModel.Position == "4" || aPersonFormViewModel.Position == "5")
+            {
+                int GroupIndex = Convert.ToInt32(aPersonFormViewModel.Position);
+                aPersonFormViewModel.Position = AssignSmallGroupList.AssignSmallGroupListData[Convert.ToInt32(aPersonFormViewModel.Position)].Name;
+            }
+
+            m_SmallGroupDataList.AddNewPersonToSmallGroup(aPersonFormViewModel);
+
             String SerializedNewPersonModel = JsonConvert.SerializeObject(aNewPersonModel);
             TempData["NewPerson"] = SerializedNewPersonModel;
+
+            String SerializedSmallGroupDataList = JsonConvert.SerializeObject(m_SmallGroupDataList);
+            TempData["SmallGroupDataList"] = SerializedSmallGroupDataList;
 
             if (Result.Contains("жие\"))
             {

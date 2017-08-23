@@ -15,6 +15,7 @@ using Microsoft.Crm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Messages;
 using ChurchReport.WebServiceConnector;
 using ChurchReport.Models.CrmTransmitModule;
+using ChurchReport.ViewModels;
 
 namespace ChurchReport.Models
 {
@@ -539,6 +540,58 @@ namespace ChurchReport.Models
                 }
             }
         }
+
+        public void AddNewPersonToSmallGroup(PersonFormViewModel aPersonFormViewModel)
+        {
+            String aGroupName = ConvertGroupName(aPersonFormViewModel.Position);
+            Member aMember = new Member
+            {
+                Id = m_SmallGroupData.Members.Count,
+                Group = aGroupName,
+                FullName = aPersonFormViewModel.LastName,
+                Status = "新朋友",
+                SmallGroupName = aGroupName,
+                SectionName = aGroupName,
+                PrayItem = aPersonFormViewModel.Notes,
+                Sunday = false,
+                SmallGroup = false,
+                StateID1 = 2,
+                Number1 = 4,
+                StateID2 = 1,
+                Number2 = 2,
+                //Picture = "../../images/employees/01.png" //D:\暫存區\ASP.NET CORE 練習區\DevExtremeAspNetCoreApp1\DevExtremeAspNetCoreApp1\wwwroot\images\employees
+                Picture = "../../images/employees/01.png" //D:\暫存區\ASP.NET CORE 練習區\DevExtremeAspNetCoreApp1\DevExtremeAspNetCoreApp1\wwwroot\images\employees
+                                                          //Picture = "https://tpehoc.speechmessage.com.tw/image/download.aspx?attribute=entityimage&entity=contact&id=66cd8034-953f-e711-80d9-00155d00640b" //D:\暫存區\ASP.NET CORE 練習區\DevExtremeAspNetCoreApp1\DevExtremeAspNetCoreApp1\wwwroot\images\employees
+
+            };
+            m_SmallGroupData.Members.Add(aMember);
+
+            MemberInfomation aMemberInfomation = new MemberInfomation
+            {
+                Group = aGroupName,
+                Name = aPersonFormViewModel.LastName,
+                Phone = aPersonFormViewModel.Phone,
+                Address = aPersonFormViewModel.Address,
+                Note = aPersonFormViewModel.Notes,
+                SundayPresent = false,
+                SmallGroupPresent = false
+            };
+
+            m_MemberInfomationPackage.ListMemberInfomation.Add(aMemberInfomation);
+
+        }
+        public String ConvertGroupName(String GroupNameWithoutPercentage)
+        {
+            foreach(GroupWeeklyReportGuid aGroupWeeklyReportGuid in m_MemberInfomationPackage.GroupWeeklyReportGuidList)
+            {
+                if(aGroupWeeklyReportGuid.GroupName.Contains(GroupNameWithoutPercentage))
+                {
+                    return aGroupWeeklyReportGuid.GroupName;
+                }
+            }
+            return "";
+        }
+
     }
 }
 
