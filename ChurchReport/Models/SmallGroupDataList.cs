@@ -437,11 +437,25 @@ namespace ChurchReport.Models
                                                               //Picture = "https://tpehoc.speechmessage.com.tw/image/download.aspx?attribute=entityimage&entity=contact&id=66cd8034-953f-e711-80d9-00155d00640b" //D:\暫存區\ASP.NET CORE 練習區\DevExtremeAspNetCoreApp1\DevExtremeAspNetCoreApp1\wwwroot\images\employees
 
                 };
-
                 m_SmallGroupData.Members.Add(aMember);
 
                 IdIndex++;
             }
+
+            IdIndex = 0;
+            AssignSmallGroupList.AssignSmallGroupListData.Clear();
+            foreach (GroupWeeklyReportGuid aGroupWeeklyReportGuid in m_MemberInfomationPackage.GroupWeeklyReportGuidList)
+            {
+                AssignSmallGroup aAssignSmallGroup = new AssignSmallGroup
+                {
+                    ID = IdIndex,
+                    Name = aGroupWeeklyReportGuid.GroupName
+                };
+                AssignSmallGroupList.AssignSmallGroupListData.Add(aAssignSmallGroup);
+                IdIndex++;
+
+            }
+
 
         }
         public void SetupSmallGroupData( DateTime SundayDate )
