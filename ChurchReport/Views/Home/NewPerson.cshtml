@@ -126,16 +126,10 @@
                 .Label(l => l.Text("職位"))
                 .Editor(e => e
                     .SelectBox()
-                    .DataSource(new string[] {
-                                        "人事室主管",
-                                        "資訊室主管",
-                                        "總經理",
-                                        "業務經理",
-                                        "行銷經理",
-                                        "售服經理"
-                        }
-                    )
-                    //.Value("")
+                    //.DataSource(d => d.Mvc().Controller("ShepherdMethodLookup").LoadAction("GetType").Key("ID"))
+                    .DataSource(d => d.WebApi().Controller("ShepherdMethodLookup").LoadAction("Get").Key("ID"))
+                    .DisplayExpr("Name")
+                    .Value(1)
                     )
                     .ValidationRules(r => r
                         .AddRequired()

@@ -18,7 +18,7 @@ namespace ChurchReport.Models
             LastName = "張大同",
             Gender = "男性",
             Phone = "0910-391-931",
-            Position = "行銷經理",
+            Position = "陪讀聖經",
             BirthDate = DateTime.Parse("1962/09/27"),
             HireDate = DateTime.Parse("2005/06/25"),
             Notes = "先生換工作，所以剛搬來楊梅，正在尋找教會中....",
@@ -35,10 +35,9 @@ namespace ChurchReport.Models
             CopyPersonFormViewModel(aPersonFormViewModel);
         }
 
-        public void UploadWeeklyReport( String Account, String Password, PersonFormViewModel aPersonFormViewModel)
+        public String UploadWeeklyReport( String Account, String Password, PersonFormViewModel aPersonFormViewModel)
         {
             CopyPersonFormViewModel(aPersonFormViewModel);
-
 
             AccountPasswordData aAccountPasswordData = new AccountPasswordData
             {
@@ -50,8 +49,7 @@ namespace ChurchReport.Models
 
             MappingPersonFormViewModelToNewContact(aPersonFormViewModel);
 
-            aNewPersonManager.CreateNewContact( aAccountPasswordData, m_NewContact );
-
+            return aNewPersonManager.CreateNewContact( aAccountPasswordData, m_NewContact );
         }
 
         public void CopyPersonFormViewModel(PersonFormViewModel aPersonFormViewModel)
@@ -71,10 +69,14 @@ namespace ChurchReport.Models
         }
         public void MappingPersonFormViewModelToNewContact(PersonFormViewModel aPersonFormViewModel)
         {
-            m_NewContact.Name           = aPersonFormViewModel.FirstName;
-            m_NewContact.MobilePhone    = aPersonFormViewModel.Phone;
-            m_NewContact.Note           = aPersonFormViewModel.Notes;
-            m_NewContact.Address        = aPersonFormViewModel.Address;
+            //m_NewContact.Name               = aPersonFormViewModel.FirstName;
+            m_NewContact.Name               = aPersonFormViewModel.LastName;
+            m_NewContact.MobilePhone        = aPersonFormViewModel.Phone;
+            m_NewContact.Note               = aPersonFormViewModel.Notes;
+            m_NewContact.Address            = aPersonFormViewModel.Address;
+            m_NewContact.BirthDate          = aPersonFormViewModel.BirthDate;
+            m_NewContact.FirstActionDate    = aPersonFormViewModel.HireDate;
+            m_NewContact.FirstChurchDate    = aPersonFormViewModel.HireDate;
 
             //PersonFormViewModel.FirstName = aPersonFormViewModel.FirstName;
             //PersonFormViewModel.LastName = aPersonFormViewModel.LastName;

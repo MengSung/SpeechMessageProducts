@@ -286,7 +286,7 @@ namespace ChurchReport.Controllers
             TempData.Keep("NewPerson");
             NewPersonModel aNewPersonModel = JsonConvert.DeserializeObject<NewPersonModel>(NewPersonString);
 
-            aNewPersonModel.UploadWeeklyReport(m_SmallGroupDataList.m_Account, m_SmallGroupDataList.m_Password, aPersonFormViewModel);
+            String Result = aNewPersonModel.UploadWeeklyReport(m_SmallGroupDataList.m_Account, m_SmallGroupDataList.m_Password, aPersonFormViewModel);
 
             String SerializedNewPersonModel = JsonConvert.SerializeObject(aNewPersonModel);
             TempData["NewPerson"] = SerializedNewPersonModel;
@@ -295,7 +295,15 @@ namespace ChurchReport.Controllers
 
             //aNewPersonManager.CreateNewContact();
 
-            return Json(new { status = "1", message = "成功上傳了...." });
+            if (Result.Contains("成功"))
+            {
+                return Json(new { status = "1", message = Result });
+                //return Json(new { status = "1", message = "成功上傳了...." });
+            }
+            else
+            {
+                return Json(new { status = "2", message = Result });
+            }
             //return Json(new { status = "2", message = "密碼錯誤...." });
         }
 
