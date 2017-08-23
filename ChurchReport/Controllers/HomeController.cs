@@ -277,7 +277,6 @@ namespace ChurchReport.Controllers
         [HttpPost]
         public IActionResult SaveNewPerson(PersonFormViewModel aPersonFormViewModel)
         {
-            //Thread.Sleep(2000);
             String SmallGroupDataList = (String)TempData.Peek("SmallGroupDataList");
             TempData.Keep("SmallGroupDataList");
             SmallGroupDataList m_SmallGroupDataList = JsonConvert.DeserializeObject<SmallGroupDataList>(SmallGroupDataList);
@@ -291,20 +290,14 @@ namespace ChurchReport.Controllers
             String SerializedNewPersonModel = JsonConvert.SerializeObject(aNewPersonModel);
             TempData["NewPerson"] = SerializedNewPersonModel;
 
-            //NewPerson aNewPersonManager = new NewPerson();
-
-            //aNewPersonManager.CreateNewContact();
-
             if (Result.Contains("成功"))
             {
                 return Json(new { status = "1", message = Result });
-                //return Json(new { status = "1", message = "成功上傳了...." });
             }
             else
             {
                 return Json(new { status = "2", message = Result });
             }
-            //return Json(new { status = "2", message = "密碼錯誤...." });
         }
 
 

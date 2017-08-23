@@ -11,18 +11,17 @@ using Newtonsoft.Json;
 
 namespace ChurchReport.Controllers
 {
-    public class ShepherdMethodLookupController : Controller
+    public class AssignSmallGroupController : Controller
     {
-
         [HttpGet]
         public object Get(DataSourceLoadOptions loadOptions)
         {
-            return DataSourceLoader.Load(ShepherdMethodData.ShepherdMethodList, loadOptions);
+            return DataSourceLoader.Load(AssignSmallGroupList.AssignSmallGroupListData, loadOptions);
         }
         [HttpGet]
         public ActionResult GetType(DataSourceLoadOptions loadOptions)
         {
-            return Content(JsonConvert.SerializeObject(DataSourceLoader.Load(ShepherdMethodData.ShepherdMethodList, loadOptions)), "application/json");
+            return Content(JsonConvert.SerializeObject(DataSourceLoader.Load(AssignSmallGroupList.AssignSmallGroupListData, loadOptions)), "application/json");
         }
     }
 }

@@ -123,11 +123,11 @@
 
             items.AddSimple()
                 .DataField("Position")
-                .Label(l => l.Text("職位"))
+                .Label(l => l.Text("所屬小組"))
                 .Editor(e => e
                     .SelectBox()
-                    //.DataSource(d => d.Mvc().Controller("ShepherdMethodLookup").LoadAction("GetType").Key("ID"))
-                    .DataSource(d => d.WebApi().Controller("ShepherdMethodLookup").LoadAction("Get").Key("ID"))
+                    .DataSource(d => d.WebApi().Controller("AssignSmallGroup").LoadAction("Get").Key("ID"))
+                    //.DataSource(d => d.Mvc().Controller("AssignSmallGroup").LoadAction("GetType").Key("ID"))
                     .DisplayExpr("Name")
                     .Value(1)
                     )
