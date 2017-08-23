@@ -167,7 +167,7 @@ namespace ChurchReport.WebServiceConnector
                 Entity aNewContactEntity = new Entity("contact");
 
                 // 設定連絡人相關屬性
-                Entity aListEntity = GetRelatedList(aNewContact.GroupName);
+                Entity aListEntity = GetRelatedList(aAccountPasswordData, aNewContact.GroupName);
                 SetupNewContactParameter(ref aNewContactEntity, aAccountPasswordData, ref aNewContact, aListEntity.Id );
 
                 // 新增連絡人
@@ -233,7 +233,10 @@ namespace ChurchReport.WebServiceConnector
             { this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aNewContactEntity, "new_race_leader_contact", "contact", m_RaceLeaderId); }
             #endregion
             #region 關聯主要小組
-            this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aNewContactEntity, "new_cell_list_contact", "list", aListEntityId );
+            if (aListEntityId != null && aListEntityId != Guid.Empty)
+            {
+                this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aNewContactEntity, "new_cell_list_contact", "list", aListEntityId);
+            }
             #endregion
             #endregion
 
@@ -309,10 +312,24 @@ namespace ChurchReport.WebServiceConnector
             #endregion
         }
 
-        private Entity GetRelatedList( String GroupName)
+        private Entity GetRelatedList(AccountPasswordData aAccountPasswordData, String GroupName)
         {
             try
             {
+                #region 關聯小組長屬性 找到小組長ID
+                m_ContactEntity = m_ToolUtilityClass.RetrieveContactEntityByAccountNumber(aAccountPasswordData.Account, aAccountPasswordData.Password);
+                m_ContactId = m_ContactEntity.Id;
+                #endregion
+
+                #region 蒐集建立新人所需要的屬性
+
+                // 搜尋小組長的門徒小組名單Lookup Id
+                m_DecipleGroupListId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref m_ContactEntity, "new_deciple_group_list_contact");
+                // 搜尋小組長的族系組長 Lookup Id
+                m_RaceLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref m_ContactEntity, "new_race_leader_contact");
+
+                #endregion
+
                 // 根據是否是族系族長還是小組長會設定不同的要上傳的名單集合
                 // 並且該名單是有勾選APP點名的才被允許進來
                 this.FindListCollection();
