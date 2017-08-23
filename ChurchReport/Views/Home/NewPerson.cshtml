@@ -105,6 +105,7 @@
                     .TextBox()
                     .Mask("+886 (X000) 000-000")
                     .MaskRules(new { X = new JS("/[02-9]/") })
+                    .Placeholder("輸入手機號碼")
                 );
 
             items.AddSimple()
@@ -129,7 +130,7 @@
                     .DataSource(d => d.WebApi().Controller("AssignSmallGroup").LoadAction("Get").Key("ID"))
                     //.DataSource(d => d.Mvc().Controller("AssignSmallGroup").LoadAction("GetType").Key("ID"))
                     .DisplayExpr("Name")
-                    .Value(1)
+                    .Value(0)
                     )
                     .ValidationRules(r => r
                         .AddRequired()

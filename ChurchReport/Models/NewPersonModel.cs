@@ -15,14 +15,14 @@ namespace ChurchReport.Models
         {
             ID = 1,
             FirstName = "張",
-            LastName = "張大同",
+            LastName = "",
             Gender = "男性",
-            Phone = "0910-391-931",
-            Position = "陪讀聖經",
-            BirthDate = DateTime.Parse("1962/09/27"),
-            HireDate = DateTime.Parse("2005/06/25"),
-            Notes = "先生換工作，所以剛搬來楊梅，正在尋找教會中....",
-            Address = "桃園市楊梅區中山路2段5號3樓",
+            Phone = "",
+            Position = "",
+            BirthDate = DateTime.Parse("1975/01/1"),
+            HireDate = DateTime.Parse("2017/08/25"),
+            Notes = "",
+            Address = "",
             ReadBibleNumber = 5,
             Status = "慕道友"
 
@@ -35,7 +35,7 @@ namespace ChurchReport.Models
             CopyPersonFormViewModel(aPersonFormViewModel);
         }
 
-        public String UploadWeeklyReport( String Account, String Password, PersonFormViewModel aPersonFormViewModel)
+        public String UploadNewPerson( String Account, String Password, PersonFormViewModel aPersonFormViewModel)
         {
             CopyPersonFormViewModel(aPersonFormViewModel);
 
@@ -77,6 +77,20 @@ namespace ChurchReport.Models
             m_NewContact.BirthDate          = aPersonFormViewModel.BirthDate;
             m_NewContact.FirstActionDate    = aPersonFormViewModel.HireDate;
             m_NewContact.FirstChurchDate    = aPersonFormViewModel.HireDate;
+            if(aPersonFormViewModel.Gender == "男性")
+            {
+                m_NewContact.Gender = true;
+            }
+            else
+            {
+                m_NewContact.Gender = false;
+            }
+
+            m_NewContact.GroupName = aPersonFormViewModel.Position;
+            //m_NewContact.MerrageState
+
+            //int GroupIndex = Convert.ToInt32(aPersonFormViewModel.Position);
+            //m_NewContact.GroupName = AssignSmallGroupList.AssignSmallGroupListData[Convert.ToInt32(aPersonFormViewModel.Position)].Name;
 
             //PersonFormViewModel.FirstName = aPersonFormViewModel.FirstName;
             //PersonFormViewModel.LastName = aPersonFormViewModel.LastName;

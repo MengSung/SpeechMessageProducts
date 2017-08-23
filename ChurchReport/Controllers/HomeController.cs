@@ -285,7 +285,7 @@ namespace ChurchReport.Controllers
             TempData.Keep("NewPerson");
             NewPersonModel aNewPersonModel = JsonConvert.DeserializeObject<NewPersonModel>(NewPersonString);
 
-            String Result = aNewPersonModel.UploadWeeklyReport(m_SmallGroupDataList.m_Account, m_SmallGroupDataList.m_Password, aPersonFormViewModel);
+            String Result = aNewPersonModel.UploadNewPerson(m_SmallGroupDataList.m_Account, m_SmallGroupDataList.m_Password, aPersonFormViewModel);
 
             String SerializedNewPersonModel = JsonConvert.SerializeObject(aNewPersonModel);
             TempData["NewPerson"] = SerializedNewPersonModel;

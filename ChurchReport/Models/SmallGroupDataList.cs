@@ -446,10 +446,12 @@ namespace ChurchReport.Models
             AssignSmallGroupList.AssignSmallGroupListData.Clear();
             foreach (GroupWeeklyReportGuid aGroupWeeklyReportGuid in m_MemberInfomationPackage.GroupWeeklyReportGuidList)
             {
+                String TrimedGroup = this.m_ToolUtilityClass.TrimPresentRate(aGroupWeeklyReportGuid.GroupName);
+
                 AssignSmallGroup aAssignSmallGroup = new AssignSmallGroup
                 {
                     ID = IdIndex,
-                    Name = aGroupWeeklyReportGuid.GroupName
+                    Name = TrimedGroup
                 };
                 AssignSmallGroupList.AssignSmallGroupListData.Add(aAssignSmallGroup);
                 IdIndex++;

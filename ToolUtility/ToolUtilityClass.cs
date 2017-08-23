@@ -4474,6 +4474,31 @@ namespace ToolUtilityNameSpace
                 throw e;
             }
         }
+        public String TrimPresentRate(String StringToProcess)
+        {
+            try
+            {
+                String SpotKeyString = "-主日出席率:";
+
+                int StartPosition = StringToProcess.IndexOf(SpotKeyString);
+
+                String LeftString = "";
+                if (StartPosition > 0)
+                {
+                    LeftString = StringToProcess.Substring(0, StartPosition);
+                    return LeftString;
+                }
+                else
+                {
+                    return StringToProcess;
+                }
+            }
+            catch (System.Exception e)
+            {
+                //String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                throw e;
+            }
+        }
         #endregion
         #region 除錯追蹤區
         public void TraceByLevel(Int32 TotalLevel, Int32 QualifiedLevel, String StringToProcess)
