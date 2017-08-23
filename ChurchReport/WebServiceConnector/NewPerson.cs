@@ -175,12 +175,22 @@ namespace ChurchReport.WebServiceConnector
                 // 將剛剛新增的聯絡人加入至成員名單
                 Entity aListEntity = ConnectNewContactInMemberList(NewContactEntityId, aNewContact.GroupName);
 
-                // 建立個人聚會與靈修記錄
+                #region 關聯主要小組
+                this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aNewContactEntity, "new_cell_list_contact", "list", aListEntity.Id);
+                #endregion
+
+                #region// 建立個人聚會與靈修記錄
                 if (aListEntity != null)
                 {
                     // 有找到被關聯的小組名單
                     CreateNewContactPresentRecord(aListEntity, NewContactEntityId, aNewContact.GroupName);
                 }
+                #endregion
+
+                #region 更新新建立的連絡人
+                aNewContactEntity = this.m_ToolUtilityClass.RetrieveEntity("contact", NewContactEntityId);
+                this.m_ToolUtilityClass.UpdateEntity(ref aNewContactEntity);
+                #endregion
 
                 return "成功建立新人";
             }
