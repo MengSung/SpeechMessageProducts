@@ -167,17 +167,15 @@ namespace ChurchReport.WebServiceConnector
                 Entity aNewContactEntity = new Entity("contact");
 
                 // 設定連絡人相關屬性
-                SetupNewContactParameter(ref aNewContactEntity, aAccountPasswordData, ref aNewContact);
+                Entity aListEntity = GetRelatedList(aNewContact.GroupName);
+                SetupNewContactParameter(ref aNewContactEntity, aAccountPasswordData, ref aNewContact, aListEntity.Id );
 
                 // 新增連絡人
                 Guid NewContactEntityId = this.m_ToolUtilityClass.CreateEntity(ref this.m_ToolUtilityClass.m_OrganizationService, aNewContactEntity);
 
                 // 將剛剛新增的聯絡人加入至成員名單
-                Entity aListEntity = ConnectNewContactInMemberList(NewContactEntityId, aNewContact.GroupName);
+                aListEntity = ConnectNewContactInMemberList(NewContactEntityId, aNewContact.GroupName);
 
-                #region 關聯主要小組
-                this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aNewContactEntity, "new_cell_list_contact", "list", aListEntity.Id);
-                #endregion
 
                 #region// 建立個人聚會與靈修記錄
                 if (aListEntity != null)
@@ -187,9 +185,12 @@ namespace ChurchReport.WebServiceConnector
                 }
                 #endregion
 
+                #region 關聯主要小組
+                //this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aNewContactEntity, "new_cell_list_contact", "list", aListEntity.Id);
+                #endregion
                 #region 更新新建立的連絡人
-                aNewContactEntity = this.m_ToolUtilityClass.RetrieveEntity("contact", NewContactEntityId);
-                this.m_ToolUtilityClass.UpdateEntity(ref aNewContactEntity);
+                //aNewContactEntity = this.m_ToolUtilityClass.RetrieveEntity("contact", NewContactEntityId);
+                //this.m_ToolUtilityClass.UpdateEntity(ref aNewContactEntity);
                 #endregion
 
                 return "成功建立新人";
@@ -204,7 +205,7 @@ namespace ChurchReport.WebServiceConnector
         }
 
 
-        private void SetupNewContactParameter(ref Entity aNewContactEntity, AccountPasswordData aAccountPasswordData, ref NewContact aNewContact)
+        private void SetupNewContactParameter(ref Entity aNewContactEntity, AccountPasswordData aAccountPasswordData, ref NewContact aNewContact, Guid aListEntityId )
         {
             #region 關聯小組長屬性 找到小組長ID
             m_ContactEntity = m_ToolUtilityClass.RetrieveContactEntityByAccountNumber(aAccountPasswordData.Account, aAccountPasswordData.Password);
@@ -230,6 +231,9 @@ namespace ChurchReport.WebServiceConnector
             #region 關聯族系組長屬性
             if (m_RaceLeaderId != Guid.Empty)
             { this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aNewContactEntity, "new_race_leader_contact", "contact", m_RaceLeaderId); }
+            #endregion
+            #region 關聯主要小組
+            this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aNewContactEntity, "new_cell_list_contact", "list", aListEntityId );
             #endregion
             #endregion
 
@@ -305,6 +309,25 @@ namespace ChurchReport.WebServiceConnector
             #endregion
         }
 
+        private Entity GetRelatedList( String GroupName)
+        {
+            try
+            {
+                // 根據是否是族系族長還是小組長會設定不同的要上傳的名單集合
+                // 並且該名單是有勾選APP點名的才被允許進來
+                this.FindListCollection();
+
+                // 找到要被關聯的小組名單集合
+                return FindListByName(GroupName);
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                throw e;
+            }
+        }
         private Entity ConnectNewContactInMemberList(Guid NewContactEntityId, String GroupName)
         {
             try
