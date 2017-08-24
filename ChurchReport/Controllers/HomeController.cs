@@ -112,38 +112,17 @@ namespace ChurchReport.Controllers
         [HttpPost]
         public IActionResult ProcessRegister(RegisterViewModel aRegisterViewModel)
         {
-            String ContactIdString = m_ToolUtilityClass.RetrieveContactByAccountNumber(aRegisterViewModel.Account, aRegisterViewModel.Password);
+            RegisterManager aRegisterManager = new RegisterManager();
 
-            SmallGroupDataList m_SmallGroupDataList = new SmallGroupDataList();
-            m_SmallGroupDataList.SetupContactIdString(ContactIdString);
+            String RegisterResult = aRegisterManager.Register(aRegisterViewModel.FullName, aRegisterViewModel.Mobile, aRegisterViewModel.Account, aRegisterViewModel.Password, aRegisterViewModel.ConfirmPassword);
 
-            if (ContactIdString != "密碼錯誤" && ContactIdString != "系統沒有設定密碼" && ContactIdString != "帳號錯誤")
+            if (RegisterResult.StartsWith("註冊成功"))
             {
-                Guid aContactGuid = new Guid(ContactIdString);
-
-                String FullName = this.m_ToolUtilityClass.RetrieveEntityDynamics365("contact", aContactGuid).Attributes["fullname"].ToString();
-                //String FullName = this.m_ToolUtilityClass.RetrieveEntityCrm2011("contact", aContactGuid).Attributes["fullname"].ToString();
-
-                m_SmallGroupDataList.SetupSmallGroupData(FullName, aRegisterViewModel.Account, aRegisterViewModel.Password, DateTime.Now.AddDays(-(int)DateTime.Now.DayOfWeek));
-
-                //TempData["FullName"] = FullName;
-                //TempData["Account"] = aGalleryViewModel.Account;
-                //TempData["Password"] = aGalleryViewModel.Password;
-                //TempData["SundayDate"] = DateTime.Now;
-
-                String SerializedSmallGroupDataList = JsonConvert.SerializeObject(m_SmallGroupDataList);
-                TempData["SmallGroupDataList"] = SerializedSmallGroupDataList;
-
-                //SmallGroupDataList XXX_SmallGroupDataList = JsonConvert.DeserializeObject<SmallGroupDataList>(SerializedSmallGroupDataList);
-
-                //TempData["SmallGroupDataList"] = JsonConvert.SerializeObject(m_SmallGroupDataList);
-
-
-                return Json(new { status = "1", message = "歡迎" + FullName + "登入成功!", fullname = FullName, account = aRegisterViewModel.Account, password = aRegisterViewModel.Password });
+                return Json(new { status = "1", message = aRegisterViewModel.FullName + RegisterResult, fullname = aRegisterViewModel.FullName, account = aRegisterViewModel.Account, password = aRegisterViewModel.Password });
             }
             else
             {
-                return Json(new { status = "2", message = ContactIdString, fullname = ContactIdString });
+                return Json(new { status = "2", message = RegisterResult, fullname = RegisterResult });
             }
         }
         #endregion

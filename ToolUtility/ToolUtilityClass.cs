@@ -933,7 +933,7 @@ namespace ToolUtilityNameSpace
                 throw e;
             }
         }
-        public EntityCollection RetrieveContactCollectionByName(ref IOrganizationService aOrganizationService, String ContactFullName)
+        public EntityCollection RetrieveContactCollectionByName(String ContactFullName)
         {
             try
             {
@@ -948,16 +948,16 @@ namespace ToolUtilityNameSpace
                     //  Value of queried attribute to return
                     querybyexpression.Values.AddRange(ContactFullName, 0);
 
-                    //  Query passed to the service proxy
-                    EntityCollection retrieved = aOrganizationService.RetrieveMultiple(querybyexpression);
-
-                    //  Iterate through returned collection
-                    foreach (var c in retrieved.Entities)
+                    EntityCollection retrieved;
+                    if (CRM_TYPE == "DYNAMICS365")
                     {
-                        System.Console.WriteLine("Name: " + c.Attributes["fullname"]);
-                        System.Console.WriteLine("Telephone: " + c.Attributes["telephone1"]);
-                        System.Console.WriteLine("E-mail: " + c.Attributes["emailaddress1"]);
+                        retrieved = this.m_OrganizationService.RetrieveMultiple(querybyexpression);
                     }
+                    else
+                    {
+                        retrieved = this.m_Crm2011OrganizationService.RetrieveMultiple(querybyexpression);
+                    }
+
 
                     return retrieved;
                 }
@@ -1183,6 +1183,57 @@ namespace ToolUtilityNameSpace
                     else
                     {
                         return Guid.Empty;
+                    }
+                }
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                throw e;
+            }
+        }
+
+        public Entity DoesAccountExist(String AccountNumber)
+        {
+            try
+            {
+                lock (m_RetrieveContactLocker)
+                {
+                    //  Create query using querybyattribute
+                    //Console.WriteLine("除錯 001");
+
+                    QueryByAttribute querybyexpression = new QueryByAttribute("contact");
+                    querybyexpression.ColumnSet = new ColumnSet();
+                    querybyexpression.ColumnSet.AllColumns = true;
+                    //  Attribute to query
+                    //querybyexpression.Attributes.AddRange("new_account", "statecode");
+                    //楊梅靈糧堂小組長帳號
+                    querybyexpression.Attributes.AddRange("new_app_acount", "statecode");
+                    //  Value of queried attribute to return
+                    querybyexpression.Values.AddRange(AccountNumber, 0);
+
+                    //Console.WriteLine("除錯 002");
+                    //  Query passed to the service proxy
+                    EntityCollection retrieved;
+                    if (this.m_DiscoveryServiceType == "DYNAMICS365")
+                    {
+                        retrieved = this.m_OrganizationService.RetrieveMultiple(querybyexpression);
+                    }
+                    else
+                    {
+                        retrieved = this.m_Crm2011OrganizationService.RetrieveMultiple(querybyexpression);
+                    }
+
+                    //Console.WriteLine("除錯 003");
+                    if (retrieved.Entities.Count > 0 && retrieved != null)
+                    {
+                        // 已經有帳號
+                        return retrieved[0];
+                    }
+                    else
+                    {
+                        // 帳號還不存在
+                        return null;
                     }
                 }
             }
@@ -3401,6 +3452,29 @@ namespace ToolUtilityNameSpace
         }
 
         public void SetEntityStringAttribute(ref Entity aEntity, string PropertyName, String PropertyValue)
+        {
+            try
+            {
+                lock (m_StringAttributeLocker)
+                {
+                    if (aEntity.Attributes.Contains(PropertyName))
+                    {
+                        aEntity.Attributes[PropertyName] = PropertyValue;
+                    }
+                    else
+                    {
+                        aEntity.Attributes.Add(PropertyName, PropertyValue);
+                    }
+                }
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                throw e;
+            }
+        }
+        public void SetEntityStringAttribute( Entity aEntity, string PropertyName, String PropertyValue)
         {
             try
             {
