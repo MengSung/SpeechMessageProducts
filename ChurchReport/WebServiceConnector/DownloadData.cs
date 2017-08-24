@@ -637,34 +637,40 @@ namespace ChurchReport.WebServiceConnector
                         {
                             aSpiritNumber = (int)PresentRecordEntity.Attributes["new_spiritual_work"];
                         }
+                        // 早禱
                         int aFamilyNumber = 0;
                         if (PresentRecordEntity.Attributes.Contains("new_morning_pray"))
                         {
                             aFamilyNumber = (int)PresentRecordEntity.Attributes["new_morning_pray"];
                         }
+                        // 晚禱
                         int aWorkAndCampusNumber = 0;
                         if (PresentRecordEntity.Attributes.Contains("new_evening_pray"))
                         {
                             aWorkAndCampusNumber = (int)PresentRecordEntity.Attributes["new_evening_pray"];
                         }
                         #endregion
-                        #region// 牧養狀態
+                        #region// 本週牧養狀態
+                        // 本週牧養狀態(內壢得勝靈糧堂專用)
                         String aShepherdStatus = "";
                         if (PresentRecordEntity.Attributes.Contains("new_shepherd_situation"))
                         {
                             aShepherdStatus = (String)PresentRecordEntity.Attributes["new_shepherd_situation"];
                         }
+                        //一對一牧養材料(內壢得勝靈糧堂專用)
                         String aOneOnOne = "";
                         if (PresentRecordEntity.Attributes.Contains("new_onebyone_situation"))
                         {
                             aOneOnOne = (String)PresentRecordEntity.Attributes["new_onebyone_situation"];
                         }
+                        // 培訓系統選項(內壢得勝靈糧堂專用)
                         String aTraining = "";
                         if (PresentRecordEntity.Attributes.Contains("new_training_system"))
                         {
                             aTraining = (String)PresentRecordEntity.Attributes["new_training_system"];
                         }
                         // 裝備課程的英文名字可能是有點取錯了可是因為表單已經取了，就先將錯就錯先了
+                        // 裝備課程(內壢得勝靈糧堂專用)
                         String aIncubate = "";
                         if (PresentRecordEntity.Attributes.Contains("new_equipment_class"))
                         {
@@ -697,12 +703,14 @@ namespace ChurchReport.WebServiceConnector
                             aFollowUpNextStep = ConvertIndexToFollowUpNextStepPicker(OptionValue);
                         }
 
+                        // 跟進方式
                         String aFollowUp = "";
                         if (PresentRecordEntity.Attributes.Contains("new_follow_up"))
                         {
                             aFollowUp = (String)PresentRecordEntity.Attributes["new_follow_up"];
                         }
 
+                        // 備註
                         String aFollowUpNote = "";
                         if (PresentRecordEntity.Attributes.Contains("new_explanation"))
                         {
@@ -728,22 +736,22 @@ namespace ChurchReport.WebServiceConnector
                             Note = aNote,
                             Date = "2015/10/6", //隨意設定的日期，只是預備將來要用的
                             Number = 5,         //隨意設定的數字，只是預備將來要用的
-                            SundayPresent = aSundayPresent,
-                            SmallGroupPresent = aSmallGroupPresent,
-                            PrayNumber = aPrayNumber,
-                            SpiritNumber = aSpiritNumber,
-                            FamilyNumber = aFamilyNumber,
-                            WorkAndCampusNumber = aWorkAndCampusNumber,
-                            ShepherdStatus = aShepherdStatus,
-                            OneOnOne = aOneOnOne,
-                            Training = aTraining,
-                            Incubate = aIncubate,
-                            FollowUpWeek = aFollowUpWeek,
-                            FollowUpResult = aFollowUpResult,
-                            FollowUpNextStep = aFollowUpNextStep,
-                            FollowUp = aFollowUp,
-                            FollowUpNote = aFollowUpNote,
-                            NewComerNote = aNewComerNote
+                            SundayPresent = aSundayPresent, //主日出席
+                            SmallGroupPresent = aSmallGroupPresent,//小組出席
+                            PrayNumber = aPrayNumber, //禱告次數
+                            SpiritNumber = aSpiritNumber,// 靈修次數
+                            FamilyNumber = aFamilyNumber, // 早禱
+                            WorkAndCampusNumber = aWorkAndCampusNumber,// 晚禱
+                            ShepherdStatus = aShepherdStatus,// 本週牧養狀態(內壢得勝靈糧堂專用)
+                            OneOnOne = aOneOnOne,//一對一牧養材料(內壢得勝靈糧堂專用)
+                            Training = aTraining, //培訓系統選項(內壢得勝靈糧堂專用)
+                            Incubate = aIncubate, // 裝備課程(內壢得勝靈糧堂專用)
+                            FollowUpWeek = aFollowUpWeek, //新人跟進週次
+                            FollowUpResult = aFollowUpResult,//新人跟進結果
+                            FollowUpNextStep = aFollowUpNextStep,//新人跟進下一步驟
+                            FollowUp = aFollowUp,// 跟進方式
+                            FollowUpNote = aFollowUpNote,// 備註
+                            NewComerNote = aNewComerNote // 取得新人跟進週次，及跟進歷程記錄
                         };
                         #endregion
 

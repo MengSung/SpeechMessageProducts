@@ -115,6 +115,7 @@ namespace ChurchReport.Models.CrmTransmitModule
             set { m_Note = value; }
         }
 
+        //隨意設定的日期，只是預備將來要用的
         string m_Date = "";
         public string Date
         {
@@ -122,13 +123,16 @@ namespace ChurchReport.Models.CrmTransmitModule
             set { m_Date = value; }
         }
 
+        //隨意設定的數字，只是預備將來要用的
         int m_Number = 0;
         public int Number
         {
             get { return m_Number; }
             set { m_Number = value; }
         }
+        #region 小組牧養
 
+        //主日出席
         bool m_SundayPresent = false;
         public bool SundayPresent
         {
@@ -136,6 +140,7 @@ namespace ChurchReport.Models.CrmTransmitModule
             set { m_SundayPresent = value; }
         }
 
+        //小組出席
         bool m_SmallGroupPresent = false;
         public bool SmallGroupPresent
         {
@@ -143,6 +148,7 @@ namespace ChurchReport.Models.CrmTransmitModule
             set { m_SmallGroupPresent = value; }
         }
 
+        // 禱告次數
         int m_PrayNumber = 0;
         public int PrayNumber
         {
@@ -150,6 +156,7 @@ namespace ChurchReport.Models.CrmTransmitModule
             set { m_PrayNumber = value; }
         }
 
+        // 靈修次數
         int m_SpiritNumber = 0;
         public int SpiritNumber
         {
@@ -157,6 +164,7 @@ namespace ChurchReport.Models.CrmTransmitModule
             set { m_SpiritNumber = value; }
         }
 
+        // 早禱
         int m_FamilyNumber = 0;
         public int FamilyNumber
         {
@@ -164,14 +172,17 @@ namespace ChurchReport.Models.CrmTransmitModule
             set { m_FamilyNumber = value; }
         }
 
+        // 晚禱
         int m_WorkAndCampusNumber = 0;
         public int WorkAndCampusNumber
         {
             get { return m_WorkAndCampusNumber; }
             set { m_WorkAndCampusNumber = value; }
         }
-
+        #endregion
+        #region 內壢得勝靈糧堂專用
         // 牧養狀態
+        // 本週牧養狀態(內壢得勝靈糧堂專用)
         string m_ShepherdStatus = "";
         public string ShepherdStatus
         {
@@ -180,6 +191,7 @@ namespace ChurchReport.Models.CrmTransmitModule
         }
 
         // 一對一牧養材料選項
+        // 一對一牧養材料(內壢得勝靈糧堂專用)
         string m_OneOnOne = "";
         public string OneOnOne
         {
@@ -202,7 +214,9 @@ namespace ChurchReport.Models.CrmTransmitModule
             get { return m_Incubate; }
             set { m_Incubate = value; }
         }
+        #endregion
 
+        #region 新人跟進關懷
         // 跟進週次
         string m_FollowUpWeek = "";
         public string FollowUpWeek
@@ -250,6 +264,7 @@ namespace ChurchReport.Models.CrmTransmitModule
             get { return m_NewComerNote; }
             set { m_NewComerNote = value; }
         }
+        #endregion
     }
 
     public class MemberInfomationPackage

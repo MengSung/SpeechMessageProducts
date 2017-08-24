@@ -176,14 +176,14 @@ namespace ChurchReport.Controllers
         {
 
 
-           //String FullName = (String)TempData.Peek("FullName");
-           //TempData.Keep("FullName");
-           //String Account = (String)TempData.Peek("Account");
-           //TempData.Keep("Account");
-           //String Password = (String)TempData.Peek("Password");
-           //TempData.Keep("Password");
-           //DateTime SundayDate = (DateTime)TempData.Peek("SundayDate");
-           //TempData.Keep("SundayDate");
+            //String FullName = (String)TempData.Peek("FullName");
+            //TempData.Keep("FullName");
+            //String Account = (String)TempData.Peek("Account");
+            //TempData.Keep("Account");
+            //String Password = (String)TempData.Peek("Password");
+            //TempData.Keep("Password");
+            //DateTime SundayDate = (DateTime)TempData.Peek("SundayDate");
+            //TempData.Keep("SundayDate");
 
             TempData["SundayDate"] = DateTime.Parse(SelectedDate).AddDays(-(int)DateTime.Now.DayOfWeek);
 
@@ -202,6 +202,50 @@ namespace ChurchReport.Controllers
             //return Json(new { status = "1", message = "成功上傳了...." });
             return Ok();
 
+        }
+        #endregion
+        #region 新人跟進關懷
+        [HttpGet]
+        public ActionResult NewPersonFollowUpView()
+        {
+            String SmallGroupDataListString = (String)TempData.Peek("SmallGroupDataList");
+            TempData.Keep("SmallGroupDataList");
+
+            if (SmallGroupDataListString != null)
+            {
+                SmallGroupDataList m_SmallGroupDataList = JsonConvert.DeserializeObject<SmallGroupDataList>(SmallGroupDataListString);
+
+                return View(m_SmallGroupDataList.m_NewPersonFollowUpData);
+            }
+            else
+            {
+                return RedirectToAction("Login");
+            }
+        }
+        [HttpPost]
+        public IActionResult SaveNewPersonFollowUp(String aResult)
+        {
+            //string json = @"[
+            //    { 'Id':1,'FullName':'吳連碧','Status':'小組長','SmallGroupName':'0201 連碧小組 - 主日出席率:50 % 小組出席率:0 %','SectionName':'0201 連碧小組 - 主日出席率:50 % 小組出席率:0 %','PrayItem':'未填','Sunday':'false','SmallGroup':'true','StateID1':'2','Number1':'4','StateID2':'1','Number2':'2','Picture':'../../ images / employees / 01.png','Shepherd':'null',},
+            //    ]";
+
+            //SmallGroupDataList.m_SmallGroupData.members = JsonConvert.DeserializeObject<List<Member>>(json);
+
+            String SmallGroupDataList = (String)TempData.Peek("SmallGroupDataList");
+            TempData.Keep("SmallGroupDataList");
+            SmallGroupDataList m_SmallGroupDataList = JsonConvert.DeserializeObject<SmallGroupDataList>(SmallGroupDataList);
+
+            m_SmallGroupDataList.m_SmallGroupData.Members.Clear();
+            m_SmallGroupDataList.m_SmallGroupData.Members = JsonConvert.DeserializeObject<List<Member>>(aResult);
+
+            m_SmallGroupDataList.TransferToMemberInfomationPackage();
+            m_SmallGroupDataList.UploadMemberInfomationPackage();
+
+
+            String SerializedSmallGroupDataList = JsonConvert.SerializeObject(m_SmallGroupDataList);
+            TempData["SmallGroupDataList"] = SerializedSmallGroupDataList;
+
+            return Json(new { status = "1", message = "成功上傳了...." });
         }
         #endregion
         #region 週報管理

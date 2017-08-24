@@ -24,6 +24,50 @@ namespace ChurchReport.Models {
         public int StateID2 { get; set; }
         public int Number2 { get; set; }
 
+        #region 新人跟進關懷
+        // 跟進週次
+        public string FollowUpWeek
+        {
+            get;
+            set;
+        }
+
+        // 跟進結果
+        public string FollowUpResult
+        {
+            get;
+            set;
+        }
+
+        // 跟進方式
+        public string FollowUp
+        {
+            get;
+            set;
+        }
+
+        // 跟進下一步驟
+        public string FollowUpNextStep
+        {
+            get;
+            set;
+        }
+
+        // 跟進附註
+        public string FollowUpNote
+        {
+            get;
+            set;
+        }
+
+        // 新人跟進歷程
+        public string NewComerNote
+        {
+            get;
+            set;
+        }
+        #endregion
+
         public string Picture { get; set; }
         public string Shepherd { get; set; }
     }

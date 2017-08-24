@@ -53,7 +53,6 @@ namespace ChurchReport.WebServiceConnector
 
         #endregion
         #endregion
-
         #region 下載資料時所需要的參數
         DateTime m_Sunday;
         Entity m_ContactEntity; //登入者在系統裡的實體
@@ -69,7 +68,6 @@ namespace ChurchReport.WebServiceConnector
 
         private const bool RACE_LEADER_CAN_CREATE_WEEKLYREPORT = true; // 族系組長能否幫小組長建立週報， true是可以
         #endregion
-
         #region 處理註冊區
         public String Register(String FullName, String Mobile, String Account, String Password, String ConfirmPassword)
         {

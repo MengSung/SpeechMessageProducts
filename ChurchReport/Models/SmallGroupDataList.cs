@@ -28,7 +28,11 @@ namespace ChurchReport.Models
         ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
         //static ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("CRM2011");
 
+        // 小組長點名
         public SmallGroupData m_SmallGroupData = new SmallGroupData();
+
+        // 新人跟進關懷
+        public SmallGroupData m_NewPersonFollowUpData = new SmallGroupData();
 
         public MemberInfomationPackage m_MemberInfomationPackage;
 
@@ -413,7 +417,11 @@ namespace ChurchReport.Models
             m_SmallGroupData.SmallGroupLeaderFullName = FullName;
             m_SmallGroupData.SundayPrayers = m_SundayDate = SundayDate;
 
+            m_NewPersonFollowUpData.SmallGroupLeaderFullName = FullName;
+            m_NewPersonFollowUpData.SundayPrayers = m_SundayDate = SundayDate;
+
             m_SmallGroupData.Members = new List<Member>();
+            m_NewPersonFollowUpData.Members = new List<Member>();
 
             int IdIndex = 0;
             foreach (MemberInfomation aMemberInfomation in m_MemberInfomationPackage.ListMemberInfomation)
@@ -423,12 +431,20 @@ namespace ChurchReport.Models
                     Id= IdIndex,
                     Group = aMemberInfomation.Group,
                     FullName = aMemberInfomation.Name,
-                    Status = aMemberInfomation.Identity,
+                    Status = aMemberInfomation.Identity, // 委身類型
                     SmallGroupName = aMemberInfomation.Group,
                     SectionName = aMemberInfomation.Group,
                     PrayItem = aMemberInfomation.Note,
                     Sunday = aMemberInfomation.SundayPresent,
                     SmallGroup = aMemberInfomation.SmallGroupPresent,
+                    #region 新人跟進關懷
+                    FollowUpWeek = aMemberInfomation.FollowUpWeek,
+                    FollowUpResult = aMemberInfomation.FollowUpResult,
+                    FollowUp = aMemberInfomation.FollowUp,
+                    FollowUpNextStep = aMemberInfomation.FollowUpNextStep,
+                    FollowUpNote = aMemberInfomation.FollowUpNote,
+                    NewComerNote = aMemberInfomation.NewComerNote,
+                    #endregion
                     StateID1 = 2,
                     Number1 = 4,
                     StateID2 = 1,
@@ -438,7 +454,18 @@ namespace ChurchReport.Models
                                                               //Picture = "https://tpehoc.speechmessage.com.tw/image/download.aspx?attribute=entityimage&entity=contact&id=66cd8034-953f-e711-80d9-00155d00640b" //D:\暫存區\ASP.NET CORE 練習區\DevExtremeAspNetCoreApp1\DevExtremeAspNetCoreApp1\wwwroot\images\employees
 
                 };
-                m_SmallGroupData.Members.Add(aMember);
+
+                if (aMember.Status == "區牧長" || aMember.Status == "區牧" || aMember.Status == "區長" || aMember.Status == "小組長" || aMember.Status == "實習小組長" || aMember.Status == "小組組員")
+                {
+                    m_SmallGroupData.Members.Add(aMember);
+                }
+                else
+                {
+                    if( aMember.Status != "結案")
+                    {
+                        m_NewPersonFollowUpData.Members.Add(aMember);
+                    }
+                }
 
                 IdIndex++;
             }
