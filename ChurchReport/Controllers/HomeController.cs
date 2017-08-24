@@ -67,7 +67,7 @@ namespace ChurchReport.Controllers
 
                 String FullName = this.m_ToolUtilityClass.RetrieveEntityDynamics365("contact", aContactGuid).Attributes["fullname"].ToString();
                 //String FullName = this.m_ToolUtilityClass.RetrieveEntityCrm2011("contact", aContactGuid).Attributes["fullname"].ToString();
-                
+
                 m_SmallGroupDataList.SetupSmallGroupData(FullName, aGalleryViewModel.Account, aGalleryViewModel.Password, DateTime.Now.AddDays(-(int)DateTime.Now.DayOfWeek));
 
                 //TempData["FullName"] = FullName;
@@ -83,7 +83,63 @@ namespace ChurchReport.Controllers
                 //TempData["SmallGroupDataList"] = JsonConvert.SerializeObject(m_SmallGroupDataList);
 
 
-                return Json(new { status = "1", message = "歡迎" + FullName + "登入成功!", fullname = FullName, account = aGalleryViewModel.Account , password = aGalleryViewModel.Password });
+                return Json(new { status = "1", message = "歡迎" + FullName + "登入成功!", fullname = FullName, account = aGalleryViewModel.Account, password = aGalleryViewModel.Password });
+            }
+            else
+            {
+                return Json(new { status = "2", message = ContactIdString, fullname = ContactIdString });
+            }
+        }
+        #endregion
+        #region 註冊帳號
+        public IActionResult Register()
+        {
+            var images = new List<string>();
+            images.Add(Url.Content("~/assets/images/tpehoc-005.jpg"));
+            images.Add(Url.Content("~/assets/images/tpehoc-006.jpg"));
+            images.Add(Url.Content("~/assets/images/tpehoc-007.jpg"));
+            images.Add(Url.Content("~/assets/images/tpehoc-008.jpg"));
+            images.Add(Url.Content("~/assets/images/tpehoc-009.jpg"));
+            //images.Add(Url.Content("~/assets/images/photo-1.jpg"));
+            //images.Add(Url.Content("~/assets/images/photo-10.jpg"));
+            //images.Add(Url.Content("~/assets/images/photo-6.jpg"));
+            //images.Add(Url.Content("~/assets/images/photo-9.jpg"));
+            return View(new RegisterViewModel
+            {
+                Images = images
+            });
+        }
+        [HttpPost]
+        public IActionResult ProcessRegister(RegisterViewModel aRegisterViewModel)
+        {
+            String ContactIdString = m_ToolUtilityClass.RetrieveContactByAccountNumber(aRegisterViewModel.Account, aRegisterViewModel.Password);
+
+            SmallGroupDataList m_SmallGroupDataList = new SmallGroupDataList();
+            m_SmallGroupDataList.SetupContactIdString(ContactIdString);
+
+            if (ContactIdString != "密碼錯誤" && ContactIdString != "系統沒有設定密碼" && ContactIdString != "帳號錯誤")
+            {
+                Guid aContactGuid = new Guid(ContactIdString);
+
+                String FullName = this.m_ToolUtilityClass.RetrieveEntityDynamics365("contact", aContactGuid).Attributes["fullname"].ToString();
+                //String FullName = this.m_ToolUtilityClass.RetrieveEntityCrm2011("contact", aContactGuid).Attributes["fullname"].ToString();
+
+                m_SmallGroupDataList.SetupSmallGroupData(FullName, aRegisterViewModel.Account, aRegisterViewModel.Password, DateTime.Now.AddDays(-(int)DateTime.Now.DayOfWeek));
+
+                //TempData["FullName"] = FullName;
+                //TempData["Account"] = aGalleryViewModel.Account;
+                //TempData["Password"] = aGalleryViewModel.Password;
+                //TempData["SundayDate"] = DateTime.Now;
+
+                String SerializedSmallGroupDataList = JsonConvert.SerializeObject(m_SmallGroupDataList);
+                TempData["SmallGroupDataList"] = SerializedSmallGroupDataList;
+
+                //SmallGroupDataList XXX_SmallGroupDataList = JsonConvert.DeserializeObject<SmallGroupDataList>(SerializedSmallGroupDataList);
+
+                //TempData["SmallGroupDataList"] = JsonConvert.SerializeObject(m_SmallGroupDataList);
+
+
+                return Json(new { status = "1", message = "歡迎" + FullName + "登入成功!", fullname = FullName, account = aRegisterViewModel.Account, password = aRegisterViewModel.Password });
             }
             else
             {
@@ -99,9 +155,17 @@ namespace ChurchReport.Controllers
         {
             String SmallGroupDataListString = (String)TempData.Peek("SmallGroupDataList");
             TempData.Keep("SmallGroupDataList");
-            SmallGroupDataList m_SmallGroupDataList = JsonConvert.DeserializeObject<SmallGroupDataList>(SmallGroupDataListString);
 
-            return View(m_SmallGroupDataList.m_SmallGroupData);
+            if (SmallGroupDataListString != null)
+            {
+                SmallGroupDataList m_SmallGroupDataList = JsonConvert.DeserializeObject<SmallGroupDataList>(SmallGroupDataListString);
+
+                return View(m_SmallGroupDataList.m_SmallGroupData);
+            }
+            else
+            {
+                return RedirectToAction("Login");
+            }
         }
         [HttpPost]
         public IActionResult SaveSmallGroup(String aResult)
@@ -171,8 +235,17 @@ namespace ChurchReport.Controllers
             //  redirects to Complete, passing an anonymous object.
 
             String SmallGroupDataList = (String)TempData.Peek("SmallGroupDataList");
-            TempData.Keep("SmallGroupDataList");
-            SmallGroupDataList m_SmallGroupDataList = JsonConvert.DeserializeObject<SmallGroupDataList>(SmallGroupDataList);
+            SmallGroupDataList m_SmallGroupDataList;
+
+            if (SmallGroupDataList != null)
+            {
+                TempData.Keep("SmallGroupDataList");
+                m_SmallGroupDataList = JsonConvert.DeserializeObject<SmallGroupDataList>(SmallGroupDataList);
+            }
+            else
+            {
+                return RedirectToAction("Login");
+            }
 
             if (m_SmallGroupDataList.m_Account != "")
             {
@@ -259,6 +332,12 @@ namespace ChurchReport.Controllers
         #region 新增新人
         public IActionResult NewPerson()
         {
+            String SmallGroupDataList = (String)TempData.Peek("SmallGroupDataList");
+            if (SmallGroupDataList == null)
+            {
+                return RedirectToAction("Login");
+            }
+
             String NewPersonString = (String)TempData.Peek("NewPerson");
             TempData.Keep("NewPerson");
 

@@ -1,4 +1,4 @@
-﻿@model ChurchReport.ViewModel.GalleryViewModel
+﻿@model ChurchReport.ViewModel.RegisterViewModel
 
 <div class="widget-container" style="padding: 10px;">
     @(Html.DevExtreme().Gallery()
@@ -15,9 +15,9 @@
     )
 </div>
 
-<div class="long-title"><h3>小組長登入系統</h3></div>
+<div class="long-title"><h3>小組長註冊系統</h3></div>
 
-<form data-ajax="true" data-ajax-begin="onBegin" data-ajax-success="onSuccess" asp-action="ProcessLogin" asp-controller="Home" method="post" style="text-align: center;">
+<form data-ajax="true" data-ajax-begin="onBegin" data-ajax-success="onSuccess" asp-action="ProcessRegister" asp-controller="Home" method="post" style="text-align: center;">
 
     <div class="dx-field" style="text-align: center;">
         <div class="form-container-class" id="form-container" style="text-align: center;">
@@ -26,6 +26,28 @@
                 .Items(items =>
                 {
 
+                    items.AddSimple()
+                        .DataField("FullName")
+                        .Label(l => l.Text("姓名"))
+                        .Editor(e => e
+                            .TextBox()
+                            .Mode(TextBoxMode.Text)
+                            .Disabled(false)
+                            .Placeholder("輸入姓名")
+                            .ShowClearButton(true)
+                       //.Width(200)
+                       );
+                    items.AddSimple()
+                        .DataField("Mobile")
+                        .Label(l => l.Text("行動電話"))
+                        .Editor(e => e
+                            .TextBox()
+                            .Mode(TextBoxMode.Text)
+                            .Disabled(false)
+                            .Placeholder("輸入行動電話")
+                            .ShowClearButton(true)
+                       //.Width(200)
+                       );
                     items.AddSimple()
                         .DataField("Account")
                         .Label(l => l.Text("帳號"))
@@ -48,6 +70,17 @@
                             .ShowClearButton(true)
                        //.Width(200)
                        );
+                    items.AddSimple()
+                        .DataField("ConfirmPassword")
+                        .Label(l => l.Text("確認密碼"))
+                        .Editor(e => e
+                            .TextBox()
+                            .Mode(TextBoxMode.Password)
+                            .Disabled(false)
+                            .Placeholder("輸入確認密碼")
+                            .ShowClearButton(true)
+                       //.Width(200)
+                       );
 
                 })
             )
@@ -56,24 +89,14 @@
     <div class="dx-field" style="text-align: center;">
         <div id="buttonContainer" class="dx-button-icon">
             @(Html.DevExtreme().Button()
-            .Text("登入")
+            .Text("註冊")
             //.Type(ButtonType.Success)
             //.Type(ButtonType.Normal)
             .Type(ButtonType.Default)
-            .ID("save-button")
+            .ID("register-button")
             .UseSubmitBehavior(true)
-            .OnClick("Login")
+            .OnClick("Register")
             .Width(100)
-            )
-            @(Html.DevExtreme().Button()
-                    .Text("註冊")
-                    //.Type(ButtonType.Success)
-                    //.Type(ButtonType.Normal)
-                    .Type(ButtonType.Default)
-                    .ID("register-button")
-                    .UseSubmitBehavior(false)
-                    .OnClick("Register")
-                    .Width(100)
             )
         </div>
         <div id="LoadPanel">
@@ -86,7 +109,7 @@
                     .ShowPane(true)
                     .Shading(true)
                     .CloseOnOutsideClick(false)
-                    .Message("登入中...")
+                    .Message("註冊中...")
                     .Animation(l => l.Show(k => k.Easing(AnimationEasing.Swing)))
             //.OnShown("loadPanel_shown")
             //.OnHidden("loadPanel_hidden")
@@ -113,14 +136,9 @@
     function loadPanel_hidden() {
     }
 
-    function Login(arg) {
-
-        getLoadPanelInstance().show();
-    }
-
     function Register(arg) {
 
-        window.location.href = "/Home/Register";
+        getLoadPanelInstance().show();
     }
 
 </script>
@@ -135,7 +153,7 @@
 
         if (data.status == 1) {
             DevExpress.ui.notify(data.message, "success", 2000);
-            window.location.href = "/Home/SmallGroupReportView";
+            window.location.href = "/Home/Login";
             //window.location.href = "/Home/SmallGroupReportView/" + data.fullname + "," + data.account+ "," + data.password;
 
             //window.location.href = "/Home/SmallGroupReportView/" + data.fullname;
@@ -143,7 +161,8 @@
         }
         else {
             DevExpress.ui.notify(data.message, "error", 3000);
-        }
+            window.location.href = "/Home/Register";
+   }
     }
 
     function onComplete(data) {

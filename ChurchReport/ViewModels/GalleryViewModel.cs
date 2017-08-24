@@ -10,4 +10,13 @@ namespace ChurchReport.ViewModel
         public string Account { get; set; }
         public string Password { get; set; }
     }
+    public class RegisterViewModel
+    {
+        public IEnumerable<string> Images { get; set; }
+        public string FullName { get; set; }
+        public string Mobile { get; set; }
+        public string Account { get; set; }
+        public string Password { get; set; }
+        public string ConfirmPassword { get; set; }
+    }
 }
