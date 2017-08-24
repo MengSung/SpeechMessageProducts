@@ -36,6 +36,7 @@ namespace ChurchReport.Controllers
         //private String m_Account = "";
         //private String m_Password = "";
         //private DateTime m_SundayDate = DateTime.Now;
+        #region 登入帳號
         public IActionResult Login()
         {
             var images = new List<string>();
@@ -89,6 +90,9 @@ namespace ChurchReport.Controllers
                 return Json(new { status = "2", message = ContactIdString, fullname = ContactIdString });
             }
         }
+        #endregion
+        #region 小組長點名
+
         //[Route("/Home/SmallGroupReportView/{LoginParameter}")]
         //public ActionResult SmallGroupReportView(String LoginParameter)
         public ActionResult SmallGroupReportView()
@@ -156,6 +160,9 @@ namespace ChurchReport.Controllers
             return Ok();
 
         }
+        #endregion
+        #region 週報管理
+
         public IActionResult WeeklyReport()
         {
             //  This type returns a redirect to an action or destination
@@ -248,8 +255,8 @@ namespace ChurchReport.Controllers
             return View((object)FullName);
         }
 
-
-
+        #endregion
+        #region 新增新人
         public IActionResult NewPerson()
         {
             String NewPersonString = (String)TempData.Peek("NewPerson");
@@ -310,7 +317,6 @@ namespace ChurchReport.Controllers
                 return Json(new { status = "2", message = Result });
             }
         }
-
-
+        #endregion
     }
 }

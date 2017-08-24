@@ -458,8 +458,6 @@ namespace ChurchReport.Models
                 IdIndex++;
 
             }
-
-
         }
         public void SetupSmallGroupData( DateTime SundayDate )
         {
@@ -540,7 +538,6 @@ namespace ChurchReport.Models
                 }
             }
         }
-
         public void AddNewPersonToSmallGroup(PersonFormViewModel aPersonFormViewModel)
         {
             String aGroupName = ConvertGroupName(aPersonFormViewModel.Position);

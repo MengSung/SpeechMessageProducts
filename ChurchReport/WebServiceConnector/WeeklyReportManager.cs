@@ -104,7 +104,7 @@ namespace ChurchReport.WebServiceConnector
             #region 取得該組的小組日誌
             SetupWeeklyReport(ref aWeeklyReport);
             #endregion
-            #region 取得整個族系或小組的出席紀錄
+            #region 取得整個族系或小組的出席紀錄報告
             SetupPresentReport(ref aWeeklyReport);
             #endregion
 
@@ -117,60 +117,68 @@ namespace ChurchReport.WebServiceConnector
             try
             {
                 // 處理每個點名名單
-                foreach (Entity ListEntity in this.m_Lists.Entities)
+                if (this.m_Lists.Entities.Count > 0)
                 {
-                    // 取得每個需要點名的名單裡的每個週報
-                    EntityCollection GroupWeeklyReportEntityCollection = m_ToolUtilityClass.RetrieveManyToOneRelationship("list", "listid", ListEntity.Id.ToString(), "new_list_group_present_weekly_report", "new_group_present_weekly_report");
-
-                    // 根據日期看有沒有那個週報
-                    Entity GroupWeeklyReportEntity = FilterWeeklyReportByDate(ref GroupWeeklyReportEntityCollection);
-
-                    //依據找到的週報有還是沒有來決定下一步:  
-                    //      有: 建立GroupName及WeeklyReportId
-                    //    沒有: 建立GroupName及WeeklyReportId = Guid.Empty();
-                    if (GroupWeeklyReportEntity != null)
+                    foreach (Entity ListEntity in this.m_Lists.Entities)
                     {
-                        #region 內壢得勝靈糧堂
-                        //if (( aWeeklyReport.ReligiousInvestigator = this.m_ToolUtilityClass.GetEntityIntAttribute(ref GroupWeeklyReportEntity, "new_number_of_seekers")) < 0 )
-                        //{
-                        //    aWeeklyReport.ReligiousInvestigator = 0;
-                        //}
-                        //
-                        //if(( aWeeklyReport.Baptized = this.m_ToolUtilityClass.GetEntityIntAttribute(ref GroupWeeklyReportEntity, "new_predict_to_be_baptized")) < 0 )
-                        //{
-                        //    aWeeklyReport.Baptized = 0;
-                        //}
-                        //
-                        //if(( aWeeklyReport.FollowNumber = this.m_ToolUtilityClass.GetEntityIntAttribute(ref GroupWeeklyReportEntity, "new_times_of_followup")) < 0 )
-                        //{
-                        //    aWeeklyReport.FollowNumber = 0;
-                        //}
-                        //
-                        //aWeeklyReport.PushMethod = this.m_ToolUtilityClass.GetEntityStringAttribute(ref GroupWeeklyReportEntity, "new_push_mode");
-                        //aWeeklyReport.ProgressMethod = this.m_ToolUtilityClass.GetEntityStringAttribute(ref GroupWeeklyReportEntity, "new_methods_and_number");
-                        //aWeeklyReport.OneOnOne = this.m_ToolUtilityClass.GetEntityStringAttribute(ref GroupWeeklyReportEntity, "new_onebynoe_and_number");
-                        #endregion
-                        #region 楊梅得勝靈糧堂
-                        // 小組日誌
-                        aWeeklyReport.WeeklyReportContent = this.m_ToolUtilityClass.GetEntityStringAttribute(ref GroupWeeklyReportEntity, "new_memo");
-                        #endregion
+                        // 取得每個需要點名的名單裡的每個週報
+                        EntityCollection GroupWeeklyReportEntityCollection = m_ToolUtilityClass.RetrieveManyToOneRelationship("list", "listid", ListEntity.Id.ToString(), "new_list_group_present_weekly_report", "new_group_present_weekly_report");
+
+                        // 根據日期看有沒有那個週報
+                        //Entity GroupWeeklyReportEntity = FilterWeeklyReportByDate(ref GroupWeeklyReportEntityCollection);
+                        Entity GroupWeeklyReportEntity = FilterWeeklyReportByDateAndGroupLeader(ref GroupWeeklyReportEntityCollection);
+
+                        //依據找到的週報有還是沒有來決定下一步:  
+                        //      有: 建立GroupName及WeeklyReportId
+                        //    沒有: 建立GroupName及WeeklyReportId = Guid.Empty();
+                        if (GroupWeeklyReportEntity != null)
+                        {
+                            #region 內壢得勝靈糧堂
+                            //if (( aWeeklyReport.ReligiousInvestigator = this.m_ToolUtilityClass.GetEntityIntAttribute(ref GroupWeeklyReportEntity, "new_number_of_seekers")) < 0 )
+                            //{
+                            //    aWeeklyReport.ReligiousInvestigator = 0;
+                            //}
+                            //
+                            //if(( aWeeklyReport.Baptized = this.m_ToolUtilityClass.GetEntityIntAttribute(ref GroupWeeklyReportEntity, "new_predict_to_be_baptized")) < 0 )
+                            //{
+                            //    aWeeklyReport.Baptized = 0;
+                            //}
+                            //
+                            //if(( aWeeklyReport.FollowNumber = this.m_ToolUtilityClass.GetEntityIntAttribute(ref GroupWeeklyReportEntity, "new_times_of_followup")) < 0 )
+                            //{
+                            //    aWeeklyReport.FollowNumber = 0;
+                            //}
+                            //
+                            //aWeeklyReport.PushMethod = this.m_ToolUtilityClass.GetEntityStringAttribute(ref GroupWeeklyReportEntity, "new_push_mode");
+                            //aWeeklyReport.ProgressMethod = this.m_ToolUtilityClass.GetEntityStringAttribute(ref GroupWeeklyReportEntity, "new_methods_and_number");
+                            //aWeeklyReport.OneOnOne = this.m_ToolUtilityClass.GetEntityStringAttribute(ref GroupWeeklyReportEntity, "new_onebynoe_and_number");
+                            #endregion
+                            #region 楊梅得勝靈糧堂
+                            // 小組日誌
+                            aWeeklyReport.WeeklyReportContent = this.m_ToolUtilityClass.GetEntityStringAttribute(ref GroupWeeklyReportEntity, "new_memo");
+                            #endregion
+                        }
+                        else
+                        {
+                            #region 內壢得勝靈糧堂
+                            //aWeeklyReport.ReligiousInvestigator = 0;
+                            //aWeeklyReport.Baptized = 0;
+                            //aWeeklyReport.FollowNumber = 0;
+                            //aWeeklyReport.ProgressMethod = "還未建立小家回報單";
+                            //aWeeklyReport.PushMethod = "還未建立小家回報單";
+                            //aWeeklyReport.OneOnOne = "還未建立小家回報單";
+                            #endregion
+                            #region 楊梅得勝靈糧堂
+                            // 小組日誌
+                            //aWeeklyReport.WeeklyReportContent = "還沒有點過名，所以沒有小組日誌，請先點過名之後，才能上傳小組日誌";
+                            aWeeklyReport.WeeklyReportContent = "沒有週報資料，您可能是區長，但不是小組長，所以沒有小組長日誌需要回報";
+                            #endregion
+                        }
                     }
-                    else
-                    {
-                        #region 內壢得勝靈糧堂
-                        //aWeeklyReport.ReligiousInvestigator = 0;
-                        //aWeeklyReport.Baptized = 0;
-                        //aWeeklyReport.FollowNumber = 0;
-                        //aWeeklyReport.ProgressMethod = "還未建立小家回報單";
-                        //aWeeklyReport.PushMethod = "還未建立小家回報單";
-                        //aWeeklyReport.OneOnOne = "還未建立小家回報單";
-                        #endregion
-                        #region 楊梅得勝靈糧堂
-                        // 小組日誌
-                        //aWeeklyReport.WeeklyReportContent = "還沒有點過名，所以沒有小組日誌，請先點過名之後，才能上傳小組日誌";
-                        aWeeklyReport.WeeklyReportContent = "";
-                        #endregion
-                    }
+                }
+                else
+                {
+                    aWeeklyReport.WeeklyReportContent = "沒有週報資料，您可能是區長，但不是小組長，所以沒有小組長日誌需要回報";
                 }
                 return;
             }
@@ -308,8 +316,8 @@ namespace ChurchReport.WebServiceConnector
                     // 取得每個需要點名的名單裡的每個週報
                     EntityCollection GroupWeeklyReportEntityCollection = m_ToolUtilityClass.RetrieveManyToOneRelationship("list", "listid", ListEntity.Id.ToString(), "new_list_group_present_weekly_report", "new_group_present_weekly_report");
 
-                    // 根據日期看有沒有那個週報
-                    Entity GroupWeeklyReportEntity = FilterWeeklyReportByDate(ref GroupWeeklyReportEntityCollection);
+                    // 根據日期看有沒有那個週報，並且該週報的小組長與登入的小組長是同一個人
+                    Entity GroupWeeklyReportEntity = FilterWeeklyReportByDateAndGroupLeader(ref GroupWeeklyReportEntityCollection);
 
                     //依據找到的週報有還是沒有來決定下一步:  
                     if (GroupWeeklyReportEntity != null)
@@ -436,6 +444,37 @@ namespace ChurchReport.WebServiceConnector
                 throw Exception;
             }
         }
+        private Entity FilterWeeklyReportByDateAndGroupLeader(ref EntityCollection GroupWeeklyReportEntityCollection)
+        {
+            try
+            {
+                // 處理每個點名名單
+                DateTime GroupWeeklyReportSunday;
+                foreach ( Entity GroupWeeklyReportEntity in GroupWeeklyReportEntityCollection.Entities )
+                {
+                    // 尋找週報的星期天的日期
+                    //DateTime GroupWeeklyReportSunday = aToolUtilityClass.GetEntityDateTimeAttribute(GroupWeeklyReportEntity, "new_sunday_date").ToUniversalTime();
+                    GroupWeeklyReportSunday = m_ToolUtilityClass.GetEntityDateTimeAttribute(GroupWeeklyReportEntity, "new_sunday_date").ToLocalTime();
+
+                    // 取得該週報的小組長
+                    Guid aSmallGroupLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(GroupWeeklyReportEntity, "new_groupleader_group_present_weekly_");
+
+                    if ( GroupWeeklyReportSunday.ToShortDateString() == this.m_Sunday.ToShortDateString() && this.m_ContactId == aSmallGroupLeaderId )
+                    {
+                        // 有找到主日周報，去找個人聚會與靈修記錄集合
+                        // 而且該週報小組長與登入的小組長是同一個人
+                        return GroupWeeklyReportEntity; // 回傳個人聚會與靈修記錄集合
+                    }
+                }
+                return null;
+            }
+            catch (System.Exception Exception)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
+
+                throw Exception;
+            }
+        }
 
         private EntityCollection MergeCollection(ref EntityCollection aListEntityCollection, ref EntityCollection aFamilyLeaderListEntityCollection)
         {
@@ -526,7 +565,7 @@ namespace ChurchReport.WebServiceConnector
 
                         if (AppNamed == true)
                         {
-                            if (aIdentity == "族長")
+                            if (aIdentity == "族長") // 一般教會稱為區長
                             {
                                 //  族長   = new_contact_race_leager_list
                                 //  小組長 = new_contact_family_leader_list
@@ -540,7 +579,7 @@ namespace ChurchReport.WebServiceConnector
                                 //if (FamilyLeaderId == Guid.Empty && GroupLeaderId == Guid.Empty)
                                 if (GroupLeaderId == Guid.Empty || GroupLeaderId == m_ContactId)
                                 {
-                                    if (!ListName.Contains("門徒")) // 不包含"門徒"名單
+                                    if (!ListName.Contains("門徒")) // 包含"門徒"名單
                                     {
                                         this.m_Lists.Entities.Add(ListEntity);
                                     }
