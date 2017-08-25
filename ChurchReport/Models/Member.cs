@@ -32,6 +32,11 @@ namespace ChurchReport.Models {
             get;
             set;
         }
+        public string Industry
+        {
+            get;
+            set;
+        }
         #endregion
 
         public string SmallGroupName { get; set; }

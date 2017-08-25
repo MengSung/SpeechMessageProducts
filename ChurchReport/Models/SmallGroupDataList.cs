@@ -442,6 +442,7 @@ namespace ChurchReport.Models
                     Phone = aMemberInfomation.Phone,
                     HomePhone = aMemberInfomation.HomePhone,
                     Address = aMemberInfomation.Address,
+                    Industry = aMemberInfomation.Industry,
 
                     #endregion
                     Status = aMemberInfomation.Identity, // 委身類型
@@ -578,6 +579,11 @@ namespace ChurchReport.Models
             {
                 if (aMember.Group == aMemberInfomation.Group && aMember.FullName == aMemberInfomation.Name )
                 {
+                    aMemberInfomation.Phone = aMember.Phone;
+                    aMemberInfomation.HomePhone = aMember.HomePhone;
+                    aMemberInfomation.Address = aMember.Address;
+                    aMemberInfomation.Industry = aMember.Industry;
+
                     aMemberInfomation.SundayPresent = aMember.Sunday;
                     aMemberInfomation.SmallGroupPresent = aMember.SmallGroup;
                     aMemberInfomation.Note = aMember.PrayItem;

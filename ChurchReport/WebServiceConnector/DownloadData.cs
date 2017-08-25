@@ -572,6 +572,12 @@ namespace ChurchReport.WebServiceConnector
                         {
                             aAddress = (string)aContactEntity.Attributes["address2_line1"];
                         }
+                        // 組員的職業及專長
+                        String aIndustry = "";
+                        if (aContactEntity.Attributes.Contains("new_industry"))
+                        {
+                            aIndustry = (string)aContactEntity.Attributes["new_industry"];
+                        }
 
                         #endregion
                         #region// 委身類型
@@ -741,6 +747,7 @@ namespace ChurchReport.WebServiceConnector
                             Phone = DigitsOnly.Replace(aMobilePhone, ""),
                             HomePhone = DigitsOnly.Replace(aHomePhone, ""),
                             Address = aAddress,
+                            Industry = aIndustry,
                             Note = aNote,
                             Date = "2015/10/6", //隨意設定的日期，只是預備將來要用的
                             Number = 5,         //隨意設定的數字，只是預備將來要用的
@@ -1649,6 +1656,12 @@ namespace ChurchReport.WebServiceConnector
                         {
                             aAddress = (string)ContactEntity.Attributes["address2_line1"];
                         }
+                        // 組員的職業及專長
+                        String aIndustry = "";
+                        if (ContactEntity.Attributes.Contains("new_industry"))
+                        {
+                            aIndustry = (string)ContactEntity.Attributes["new_industry"];
+                        }
 
                         #region// 委身類型
                         String aIdentity = this.ConvertIndexToIdentity(this.m_ToolUtilityClass.GetOptionSetAttribute(ref ContactEntity, "customertypecode"));
@@ -1672,6 +1685,7 @@ namespace ChurchReport.WebServiceConnector
                             Phone = DigitsOnly.Replace(aMobilePhone, ""),
                             HomePhone = DigitsOnly.Replace(aHomePhone, ""),
                             Address = aAddress,
+                            Industry= aIndustry,
                             Note = "",
                             Date = "2015/10/6",
                             Number = 5,

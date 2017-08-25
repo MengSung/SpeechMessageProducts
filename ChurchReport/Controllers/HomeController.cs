@@ -246,10 +246,10 @@ namespace ChurchReport.Controllers
             TempData.Keep("SmallGroupDataList");
             SmallGroupDataList m_SmallGroupDataList = JsonConvert.DeserializeObject<SmallGroupDataList>(SmallGroupDataList);
 
-            m_SmallGroupDataList.m_NewPersonFollowUpData.Members.Clear();
-            m_SmallGroupDataList.m_NewPersonFollowUpData.Members = JsonConvert.DeserializeObject<List<Member>>(aResult);
+            m_SmallGroupDataList.m_AllMemeberData.Members.Clear();
+            m_SmallGroupDataList.m_AllMemeberData.Members = JsonConvert.DeserializeObject<List<Member>>(aResult);
 
-            m_SmallGroupDataList.TransferToMemberInfomationPackage(m_SmallGroupDataList.m_NewPersonFollowUpData);
+            m_SmallGroupDataList.TransferToMemberInfomationPackage(m_SmallGroupDataList.m_AllMemeberData);
             m_SmallGroupDataList.UploadMemberInfomationPackage();
 
 

@@ -1397,7 +1397,6 @@ namespace ChurchReport.WebServiceConnector
                     ModifyFlag = true;
                 }
             }
-
             // 組員的地址
             String aAddress = "";
             if (aContactEntity.Attributes.Contains("address2_line1"))
@@ -1407,6 +1406,18 @@ namespace ChurchReport.WebServiceConnector
                 {
                     // 系統裡的聯絡人家裡電話跟APP上傳的不一致
                     this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactEntity, "address2_line1", aMemberInfomation.Address);
+                    ModifyFlag = true;
+                }
+            }
+            // 組員的職業及專長(台北基督之家)
+            String aIndustry = "";
+            if (aContactEntity.Attributes.Contains("new_industry"))
+            {
+                aIndustry = (string)aContactEntity.Attributes["new_industry"];
+                if (aMemberInfomation.Industry != aIndustry)
+                {
+                    // 系統裡的聯絡人職業及專長跟APP上傳的不一致
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactEntity, "new_industry", aMemberInfomation.Address);
                     ModifyFlag = true;
                 }
             }
@@ -1494,6 +1505,27 @@ namespace ChurchReport.WebServiceConnector
                 if (aMemberInfomation.Address != "")
                 {
                     this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactEntity, "address2_line1", aMemberInfomation.Address);
+                    ModifyFlag = true;
+                }
+            }
+
+            // 組員的職業及專長(台北基督之家)
+            String aIndustry = "";
+            if (aContactEntity.Attributes.Contains("new_industry"))
+            {
+                aIndustry = (string)aContactEntity.Attributes["new_industry"];
+                if (aMemberInfomation.Industry != aIndustry)
+                {
+                    // 系統裡的聯絡人職業及專長跟APP上傳的不一致
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactEntity, "new_industry", aMemberInfomation.Address);
+                    ModifyFlag = true;
+                }
+            }
+            else
+            {
+                if (aMemberInfomation.Industry != "")
+                {
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactEntity, "new_industry", aMemberInfomation.Industry);
                     ModifyFlag = true;
                 }
             }

@@ -107,6 +107,14 @@ namespace ChurchReport.Models.CrmTransmitModule
             get { return m_Address; }
             set { m_Address = value; }
         }
+
+        // 職業或專長
+        string m_Industry = "";
+        public string Industry
+        {
+            get { return m_Industry; }
+            set { m_Industry = value; }
+        }
         #endregion
         string m_Note = "";
         public string Note
