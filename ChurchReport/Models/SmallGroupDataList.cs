@@ -34,6 +34,9 @@ namespace ChurchReport.Models
         // 新人跟進關懷
         public SmallGroupData m_NewPersonFollowUpData = new SmallGroupData();
 
+        // 全部的名單，更新基本資料要用的
+        public SmallGroupData m_AllMemeberData = new SmallGroupData();
+
         public MemberInfomationPackage m_MemberInfomationPackage;
 
         public void SetupContactIdString(String ContactIdString)
@@ -416,12 +419,15 @@ namespace ChurchReport.Models
 
             m_SmallGroupData.SmallGroupLeaderFullName = FullName;
             m_SmallGroupData.SundayPrayers = m_SundayDate = SundayDate;
+            m_SmallGroupData.Members = new List<Member>();
 
             m_NewPersonFollowUpData.SmallGroupLeaderFullName = FullName;
             m_NewPersonFollowUpData.SundayPrayers = m_SundayDate = SundayDate;
-
-            m_SmallGroupData.Members = new List<Member>();
             m_NewPersonFollowUpData.Members = new List<Member>();
+
+            m_AllMemeberData.SmallGroupLeaderFullName = FullName;
+            m_AllMemeberData.SundayPrayers = m_SundayDate = SundayDate;
+            m_AllMemeberData.Members = new List<Member>();
 
             int IdIndex = 0;
             foreach (MemberInfomation aMemberInfomation in m_MemberInfomationPackage.ListMemberInfomation)
@@ -431,6 +437,13 @@ namespace ChurchReport.Models
                     Id= IdIndex,
                     Group = aMemberInfomation.Group,
                     FullName = aMemberInfomation.Name,
+                    #region 個人基本資料
+
+                    Phone = aMemberInfomation.Phone,
+                    HomePhone = aMemberInfomation.HomePhone,
+                    Address = aMemberInfomation.Address,
+
+                    #endregion
                     Status = aMemberInfomation.Identity, // 委身類型
                     SmallGroupName = aMemberInfomation.Group,
                     SectionName = aMemberInfomation.Group,
@@ -456,17 +469,23 @@ namespace ChurchReport.Models
 
                 };
 
+                // 全部的名單，更新基本資料要用的
+                m_AllMemeberData.Members.Add(aMember);
+
                 if (aMember.Status == "區牧長" || aMember.Status == "區牧" || aMember.Status == "區長" || aMember.Status == "小組長" || aMember.Status == "實習小組長" || aMember.Status == "小組組員")
                 {
+                    // 小組長牧養點名
                     m_SmallGroupData.Members.Add(aMember);
                 }
                 else
                 {
                     if( aMember.Status != "結案")
                     {
+                        // 新人跟進關懷
                         m_NewPersonFollowUpData.Members.Add(aMember);
                     }
                 }
+
 
                 IdIndex++;
             }

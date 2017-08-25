@@ -127,7 +127,6 @@ namespace ChurchReport.Controllers
         }
         #endregion
         #region 小組長點名
-
         //[Route("/Home/SmallGroupReportView/{LoginParameter}")]
         //public ActionResult SmallGroupReportView(String LoginParameter)
         public ActionResult SmallGroupReportView()
@@ -146,27 +145,6 @@ namespace ChurchReport.Controllers
                 return RedirectToAction("Login");
             }
         }
-        #endregion
-        #region 新人跟進關懷
-        [HttpGet]
-        public ActionResult NewPersonFollowUpView()
-        {
-            String SmallGroupDataListString = (String)TempData.Peek("SmallGroupDataList");
-            TempData.Keep("SmallGroupDataList");
-
-            if (SmallGroupDataListString != null)
-            {
-                SmallGroupDataList m_SmallGroupDataList = JsonConvert.DeserializeObject<SmallGroupDataList>(SmallGroupDataListString);
-
-                return View(m_SmallGroupDataList.m_NewPersonFollowUpData);
-            }
-            else
-            {
-                return RedirectToAction("Login");
-            }
-        }
-        #endregion
-        #region 上傳、更換日期
         [HttpPost]
         public IActionResult SaveSmallGroup(String aResult)
         {
@@ -192,6 +170,26 @@ namespace ChurchReport.Controllers
 
             return Json(new { status = "1", message = "成功上傳了...." });
         }
+        #endregion
+        #region 新人跟進關懷
+        [HttpGet]
+        public ActionResult NewPersonFollowUpView()
+        {
+            String SmallGroupDataListString = (String)TempData.Peek("SmallGroupDataList");
+            TempData.Keep("SmallGroupDataList");
+
+            if (SmallGroupDataListString != null)
+            {
+                SmallGroupDataList m_SmallGroupDataList = JsonConvert.DeserializeObject<SmallGroupDataList>(SmallGroupDataListString);
+
+                return View(m_SmallGroupDataList.m_NewPersonFollowUpData);
+            }
+            else
+            {
+                return RedirectToAction("Login");
+            }
+        }
+        [HttpPost]
         public IActionResult SaveNewPersonFollowUp(String aResult)
         {
             //string json = @"[
@@ -216,6 +214,52 @@ namespace ChurchReport.Controllers
 
             return Json(new { status = "1", message = "成功上傳了...." });
         }
+        #endregion
+        #region 基本資料維護
+        [HttpGet]
+        public ActionResult MaintainPersonInfomationView()
+        {
+            String SmallGroupDataListString = (String)TempData.Peek("SmallGroupDataList");
+            TempData.Keep("SmallGroupDataList");
+
+            if (SmallGroupDataListString != null)
+            {
+                SmallGroupDataList m_SmallGroupDataList = JsonConvert.DeserializeObject<SmallGroupDataList>(SmallGroupDataListString);
+
+                return View(m_SmallGroupDataList.m_AllMemeberData);
+            }
+            else
+            {
+                return RedirectToAction("Login");
+            }
+        }
+        [HttpPost]
+        public IActionResult SavePersonInfomation(String aResult)
+        {
+            //string json = @"[
+            //    { 'Id':1,'FullName':'吳連碧','Status':'小組長','SmallGroupName':'0201 連碧小組 - 主日出席率:50 % 小組出席率:0 %','SectionName':'0201 連碧小組 - 主日出席率:50 % 小組出席率:0 %','PrayItem':'未填','Sunday':'false','SmallGroup':'true','StateID1':'2','Number1':'4','StateID2':'1','Number2':'2','Picture':'../../ images / employees / 01.png','Shepherd':'null',},
+            //    ]";
+
+            //SmallGroupDataList.m_SmallGroupData.members = JsonConvert.DeserializeObject<List<Member>>(json);
+
+            String SmallGroupDataList = (String)TempData.Peek("SmallGroupDataList");
+            TempData.Keep("SmallGroupDataList");
+            SmallGroupDataList m_SmallGroupDataList = JsonConvert.DeserializeObject<SmallGroupDataList>(SmallGroupDataList);
+
+            m_SmallGroupDataList.m_NewPersonFollowUpData.Members.Clear();
+            m_SmallGroupDataList.m_NewPersonFollowUpData.Members = JsonConvert.DeserializeObject<List<Member>>(aResult);
+
+            m_SmallGroupDataList.TransferToMemberInfomationPackage(m_SmallGroupDataList.m_NewPersonFollowUpData);
+            m_SmallGroupDataList.UploadMemberInfomationPackage();
+
+
+            String SerializedSmallGroupDataList = JsonConvert.SerializeObject(m_SmallGroupDataList);
+            TempData["SmallGroupDataList"] = SerializedSmallGroupDataList;
+
+            return Json(new { status = "1", message = "成功上傳了...." });
+        }
+        #endregion
+        #region 更換日期
         [HttpGet]
         public IActionResult UpdateDate(string SelectedDate)
         {

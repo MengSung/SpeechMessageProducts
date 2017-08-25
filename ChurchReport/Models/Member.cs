@@ -14,6 +14,26 @@ namespace ChurchReport.Models {
         public string Group { get; set; }
         public string FullName { get; set; }
         public string Status { get; set; } // 委身類型
+        #region 個人基本資料
+        public string Phone
+        {
+            get;
+            set;
+        }
+
+        public string HomePhone
+        {
+            get;
+            set;
+        }
+
+        public string Address
+        {
+            get;
+            set;
+        }
+        #endregion
+
         public string SmallGroupName { get; set; }
         public string SectionName { get; set; }
         public string PrayItem { get; set; }

@@ -86,7 +86,7 @@ namespace ChurchReport.Models.CrmTransmitModule
             get { return m_Status; }
             set { m_Status = value; }
         }
-
+        #region 個人基本資料
         string m_Phone = "";
         public string Phone
         {
@@ -107,7 +107,7 @@ namespace ChurchReport.Models.CrmTransmitModule
             get { return m_Address; }
             set { m_Address = value; }
         }
-
+        #endregion
         string m_Note = "";
         public string Note
         {
