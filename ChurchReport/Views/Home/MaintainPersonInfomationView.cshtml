@@ -198,10 +198,10 @@
                 columns.Add().DataField("FullName").Caption("姓名").Fixed(true).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Left);
                 columns.Add().DataField("Status").Caption("委身類型").Fixed(false).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Center);
 
-                columns.Add().DataField("Phone").Caption("行動電話").Fixed(false).Width(120).MinWidth(90).Alignment(HorizontalAlignment.Center);
-                columns.Add().DataField("HomePhone").Caption("家裡電話").Fixed(false).Width(120).MinWidth(90).Alignment(HorizontalAlignment.Center);
-                columns.Add().DataField("Industry").Caption("職業及專長").Fixed(false).Width(80).MinWidth(90).Alignment(HorizontalAlignment.Center);
-                columns.Add().DataField("Address").Caption("地址").Fixed(false).Width(200).MinWidth(90).Alignment(HorizontalAlignment.Center);
+                columns.Add().DataField("Phone").Caption("行動電話").Fixed(false).Width(120).MinWidth(90).Alignment(HorizontalAlignment.Left);
+                columns.Add().DataField("HomePhone").Caption("家裡電話").Fixed(false).Width(120).MinWidth(90).Alignment(HorizontalAlignment.Left);
+                columns.Add().DataField("Industry").Caption("職業及專長").Fixed(false).Width(100).MinWidth(90).Alignment(HorizontalAlignment.Left);
+                columns.Add().DataField("Address").Caption("地址").Fixed(false).Width(200).MinWidth(90).Alignment(HorizontalAlignment.Left);
                 })
                 //.DataSource(d => d.WebApi().Controller("SmallGroupReport").Key("Id"))
                 .DataSource(Model.Members)
