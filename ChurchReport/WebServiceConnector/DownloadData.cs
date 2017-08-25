@@ -1467,30 +1467,32 @@ namespace ChurchReport.WebServiceConnector
                     return "七";
                 case 100000007:
                     return "八";
-                case 100000008:
-                    return "九";
                 case 100000009:
-                    return "十";
+                    return "九";
                 case 100000010:
-                    return "十一";
+                    return "十";
                 case 100000011:
-                    return "十二";
+                    return "十一";
                 case 100000012:
-                    return "十三";
+                    return "十二";
                 case 100000013:
-                    return "十四";
+                    return "十三";
                 case 100000014:
-                    return "十五";
+                    return "十四";
                 case 100000015:
-                    return "十六";
+                    return "十五";
                 case 100000016:
-                    return "十七";
+                    return "十六";
                 case 100000017:
-                    return "十八";
+                    return "十七";
                 case 100000018:
-                    return "十九";
+                    return "十八";
                 case 100000019:
+                    return "十九";
+                case 100000020:
                     return "二十";
+                case 100000008:
+                    return "未選擇";
                 default:
                     return ".";
             }
