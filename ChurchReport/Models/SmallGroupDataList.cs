@@ -543,12 +543,12 @@ namespace ChurchReport.Models
 
             aUploadData.UploadMemberDataPackage(aAccountPasswordData, m_SmallGroupData.SundayPrayers, "主日點名", m_MemberInfomationPackage);
         }
-        public void TransferToMemberInfomationPackage()
+        public void TransferToMemberInfomationPackage(SmallGroupData aGroupDataList)
         {
             int MemberCounter = 0;
-            foreach (Member aMember in m_SmallGroupData.Members)
+            foreach (Member aMember in aGroupDataList.Members)
             {
-                MappingMembers( aMember);
+                MappingMembers(aMember);
 
                 MemberCounter++;
             }
@@ -562,6 +562,11 @@ namespace ChurchReport.Models
                     aMemberInfomation.SundayPresent = aMember.Sunday;
                     aMemberInfomation.SmallGroupPresent = aMember.SmallGroup;
                     aMemberInfomation.Note = aMember.PrayItem;
+                    aMemberInfomation.FollowUpOption = aMember.FollowUpOption;
+                    aMemberInfomation.FollowUp = aMember.FollowUp;
+                    aMemberInfomation.FollowUpResult = aMember.FollowUpResult;
+                    aMemberInfomation.FollowUpNextStep = aMember.FollowUpNextStep;
+                    aMemberInfomation.FollowUpNote = aMember.FollowUpNote;
                     break;
                 }
             }

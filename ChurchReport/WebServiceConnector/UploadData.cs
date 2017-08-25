@@ -1650,6 +1650,7 @@ namespace ChurchReport.WebServiceConnector
                         this.m_ToolUtilityClass.SetOptionSetAttribute(ref aMachedPresentRecordEntity, "new_weeks", ConvertFollowUpWeekPickerToIndex(aMemberInfomation.FollowUpWeek));
                         this.m_ToolUtilityClass.SetOptionSetAttribute(ref aMachedPresentRecordEntity, "new_conclusion_choise", ConvertFollowUpResultPickerToIndex(aMemberInfomation.FollowUpResult));
                         this.m_ToolUtilityClass.SetOptionSetAttribute(ref aMachedPresentRecordEntity, "new_next_step", ConvertFollowUpNextStepPickerToIndex(aMemberInfomation.FollowUpNextStep));
+                        this.m_ToolUtilityClass.SetOptionSetAttribute(ref aMachedPresentRecordEntity, "new_followup_ways", ConvertFollowUpOptionToIndex(aMemberInfomation.FollowUpOption));
                         this.m_ToolUtilityClass.SetEntityStringAttribute(ref aMachedPresentRecordEntity, "new_follow_up", aMemberInfomation.FollowUp);
 
                         // 因為之前APP無法直接把代禱事項和新人跟進關懷用在表單中
@@ -1792,6 +1793,30 @@ namespace ChurchReport.WebServiceConnector
                     return 100000001;
                 case "轉介":
                     return 100000002;
+                default:
+                    return 100000000;
+            }
+        }
+        private int ConvertFollowUpOptionToIndex(String FollowUpNextStep)
+        {
+            switch (FollowUpNextStep)
+            {
+                case "電話":
+                    return 100000000;
+                case "探訪":
+                    return 100000001;
+                case "Line/FB":
+                    return 100000002;
+                case "出遊/吃飯":
+                    return 100000003;
+                case "懷鄉/其他課程":
+                    return 100000004;
+                case "約談":
+                    return 100000005;
+                case "沒跟進":
+                    return 100000006;
+                case "其他":
+                    return 100000007;
                 default:
                     return 100000000;
             }

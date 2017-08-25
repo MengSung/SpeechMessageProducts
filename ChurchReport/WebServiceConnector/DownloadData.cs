@@ -994,10 +994,12 @@ namespace ChurchReport.WebServiceConnector
                     //}
 
                     #region //跟進方式
+                    int FollowUpOptionValue = this.m_ToolUtilityClass.GetOptionSetAttribute(PresentRecordEntity, "new_followup_ways");
+                    String aFollowUpOption = ConvertIndexToFollowUpOptionPicker(FollowUpOptionValue);
                     String aFollowUpMethod = this.m_ToolUtilityClass.GetEntityStringAttribute(PresentRecordEntity, "new_follow_up");
                     if (aFollowUpMethod != "")
                     {
-                        aFollowUpHistoryReport += "跟進方式:" + aFollowUpMethod + "，";
+                        aFollowUpHistoryReport += "跟進方式:" + aFollowUpOption + aFollowUpMethod + "，";
                     }
                     #endregion
                     #region//新人跟進結果
