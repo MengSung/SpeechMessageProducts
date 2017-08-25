@@ -32,8 +32,8 @@ namespace ChurchReport.Models {
             set;
         }
 
-        // 跟進結果
-        public string FollowUpResult
+        // 跟進方式選項
+        public string FollowUpOption
         {
             get;
             set;
@@ -41,6 +41,13 @@ namespace ChurchReport.Models {
 
         // 跟進方式
         public string FollowUp
+        {
+            get;
+            set;
+        }
+
+        // 跟進結果
+        public string FollowUpResult
         {
             get;
             set;

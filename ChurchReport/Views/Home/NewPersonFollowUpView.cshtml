@@ -220,44 +220,96 @@
 
     .Columns(columns =>
     {
-        @*columns.Add()
-            .DataField("Picture")
-            .Caption("照片")
-            .Width(60)
-            .AllowFiltering(false)
-            .AllowSorting(false)
-            .CellTemplate(@<text>
-            <div class="img-container">
-                <img src="<%= value %>" alt="" />
-            </div>
-            </text>        );*@
+                @*columns.Add()
+                    .DataField("Picture")
+                    .Caption("照片")
+                    .Width(60)
+                    .AllowFiltering(false)
+                    .AllowSorting(false)
+                    .CellTemplate(@<text>
+                    <div class="img-container">
+                        <img src="<%= value %>" alt="" />
+                    </div>
+                    </text>        );*@
 
 
-                //columns.Add()
-                //    .Caption("測試")
-                //    //.DataField("Shepherd")
-                //    .Width(250)
-                //
-                //    .CellTemplate(@<text> @(Html.Partial("DropDownBox") )
-                //    </text>);
+                @*columns.Add()
+                    .Caption("測試")
+                    //.DataField("Shepherd")
+                    .Width(250)
+                
+                    .CellTemplate(@<text> @(Html.Partial("DropDownBox") )
+                    </text>);*@
+
+                @*columns.Add().DataField("SectionName").Caption("族系").GroupIndex(-1).MinWidth(10);*@
+                columns.Add().DataField("SmallGroupName").Caption("小組").GroupIndex(0).MinWidth(10);
 
                 columns.Add().DataField("FullName").Caption("姓名").Fixed(true).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Left);
                 columns.Add().DataField("Status").Caption("委身類型").Fixed(false).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Center);
                 columns.Add().DataField("Sunday").Caption("主日").DataType(GridColumnDataType.Boolean).Width(45).MinWidth(45);
                 columns.Add().DataField("SmallGroup").Caption("小組").DataType(GridColumnDataType.Boolean).Width(45).MinWidth(45);
-                columns.Add().DataField("PrayItem").Caption("代禱事項").Fixed(false).MinWidth(90);
-                //columns.Add().DataField("SectionName").Caption("族系").GroupIndex(-1).MinWidth(10);
-                columns.Add().DataField("SmallGroupName").Caption("小組").GroupIndex(0).MinWidth(10);
 
-                //columns.Add()
-                //    .DataField("StateID1")
-                //    .Caption("牧養活動")
-                //    .Width(80).MinWidth(30)
-                //    .Lookup(lookup => lookup
-                //    .DataSource(d => d.WebApi().Controller("ShepherdMethodLookup").LoadAction("Get").Key("ID"))
-                //    .DisplayExpr("Name")
-                //    .ValueExpr("ID")
-                //);
+
+
+                //columns.Add().DataField("FollowUp").Caption("跟進方式").Fixed(false).Width(120).MinWidth(90);
+
+                columns.Add()
+                    .DataField("FollowUpOption")
+                    .Caption("跟進方式")
+                    .Width(120).MinWidth(30)
+                    .Lookup(lookup => lookup
+                    .DataSource(new string[] {
+                                      "電話",
+                                      "探訪",
+                                      "Line/FB",
+                                      "出遊/吃飯",
+                                      "懷鄉/其他課程",
+                                      "約談",
+                                      "沒跟進",
+                                      "其他"
+                    })
+                    //.DisplayExpr("Name")
+                    //.ValueExpr("ID")
+                );
+
+                columns.Add()
+                    .DataField("FollowUpResult")
+                    .Caption("跟進結果")
+                    .Width(120).MinWidth(30)
+                    .Lookup(lookup => lookup
+                    .DataSource(new string[] {
+                                      "未選擇",
+                                      "熱情回應",
+                                      "渴慕認識信仰",
+                                      "沒連絡上",
+                                      "反應冷淡",
+                                      "考慮中，繼續跟進",
+                                      "入小組",
+                                      "來主日",
+                                      "轉介",
+                                      "其他",
+                    })
+                    //.DisplayExpr("Name")
+                    //.ValueExpr("ID")
+                );
+                columns.Add()
+                    .DataField("FollowUpNextStep")
+                    .Caption("下一步驟")
+                    .Width(120).MinWidth(30)
+                    .Lookup(lookup => lookup
+                    .DataSource(new string[] {
+                                      "未選擇",
+                                      "繼續跟進",
+                                      "轉介",
+                    })
+                    //.DisplayExpr("Name")
+                    //.ValueExpr("ID")
+                );
+
+                columns.Add().DataField("PrayItem").Caption("跟進關懷說明").Fixed(false).MinWidth(90);
+                columns.Add().DataField("NewComerNote").Caption("跟進關懷歷程").Fixed(false).MinWidth(90);
+
+
 
                 //columns.Add()
                 //    .Caption("牧養次數")

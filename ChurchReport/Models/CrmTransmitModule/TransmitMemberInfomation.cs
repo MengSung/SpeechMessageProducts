@@ -215,7 +215,6 @@ namespace ChurchReport.Models.CrmTransmitModule
             set { m_Incubate = value; }
         }
         #endregion
-
         #region 新人跟進關懷
         // 跟進週次
         string m_FollowUpWeek = "";
@@ -231,6 +230,14 @@ namespace ChurchReport.Models.CrmTransmitModule
         {
             get { return m_FollowUpResult; }
             set { m_FollowUpResult = value; }
+        }
+
+        // 跟進方式選項
+        string m_FollowUpOption = "";
+        public string FollowUpOption
+        {
+            get { return m_FollowUpOption; }
+            set { m_FollowUpOption = value; }
         }
 
         // 跟進方式

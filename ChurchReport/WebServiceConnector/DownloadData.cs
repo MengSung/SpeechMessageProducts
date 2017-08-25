@@ -703,6 +703,14 @@ namespace ChurchReport.WebServiceConnector
                             aFollowUpNextStep = ConvertIndexToFollowUpNextStepPicker(OptionValue);
                         }
 
+                        // 跟進方式選項
+                        String aFollowUpOption = "";
+                        if (PresentRecordEntity.Attributes.Contains("new_followup_ways"))
+                        {
+                            int OptionValue = this.m_ToolUtilityClass.GetOptionSetAttribute(PresentRecordEntity, "new_followup_ways");
+                            aFollowUpOption = ConvertIndexToFollowUpOptionPicker(OptionValue);
+                        }
+
                         // 跟進方式
                         String aFollowUp = "";
                         if (PresentRecordEntity.Attributes.Contains("new_follow_up"))
@@ -749,6 +757,7 @@ namespace ChurchReport.WebServiceConnector
                             FollowUpWeek = aFollowUpWeek, //新人跟進週次
                             FollowUpResult = aFollowUpResult,//新人跟進結果
                             FollowUpNextStep = aFollowUpNextStep,//新人跟進下一步驟
+                            FollowUpOption = aFollowUpOption,// 跟進方式選項
                             FollowUp = aFollowUp,// 跟進方式
                             FollowUpNote = aFollowUpNote,// 備註
                             NewComerNote = aNewComerNote // 取得新人跟進週次，及跟進歷程記錄
@@ -1528,6 +1537,31 @@ namespace ChurchReport.WebServiceConnector
                     return "";
             }
         }
+        private String ConvertIndexToFollowUpOptionPicker(int FollowUpWays )
+        {
+            switch (FollowUpWays)
+            {
+                case 100000000:
+                    return "電話";
+                case 100000001:
+                    return "探訪";
+                case 100000002:
+                    return "Line/FB";
+                case 100000003:
+                    return "出遊/吃飯";
+                case 100000004:
+                    return "懷鄉/其他課程";
+                case 100000005:
+                    return "約談";
+                case 100000006:
+                    return "沒跟進";
+                case 100000007:
+                    return "其他";
+                default:
+                    return "";
+            }
+        }
+
         private void GetSmallGroupLeaderMemberData(String GroupName, Guid ListEntityId)
         {
             #region // 處理每個小組名單
@@ -1651,6 +1685,7 @@ namespace ChurchReport.WebServiceConnector
                             FollowUpWeek = aFollowUpWeek,
                             FollowUpResult = ".",
                             FollowUpNextStep = ".",
+                            FollowUpOption = "",
                             FollowUp = "",
                             FollowUpNote = "",
                             NewComerNote = aNewComerNote

@@ -440,6 +440,7 @@ namespace ChurchReport.Models
                     #region 新人跟進關懷
                     FollowUpWeek = aMemberInfomation.FollowUpWeek,
                     FollowUpResult = aMemberInfomation.FollowUpResult,
+                    FollowUpOption = aMemberInfomation.FollowUpOption,
                     FollowUp = aMemberInfomation.FollowUp,
                     FollowUpNextStep = aMemberInfomation.FollowUpNextStep,
                     FollowUpNote = aMemberInfomation.FollowUpNote,
