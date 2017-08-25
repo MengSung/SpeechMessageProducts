@@ -589,7 +589,9 @@ namespace ChurchReport.Models
                                                           //Picture = "https://tpehoc.speechmessage.com.tw/image/download.aspx?attribute=entityimage&entity=contact&id=66cd8034-953f-e711-80d9-00155d00640b" //D:\暫存區\ASP.NET CORE 練習區\DevExtremeAspNetCoreApp1\DevExtremeAspNetCoreApp1\wwwroot\images\employees
 
             };
-            m_SmallGroupData.Members.Add(aMember);
+
+            //m_SmallGroupData.Members.Add(aMember);
+            m_NewPersonFollowUpData.Members.Add(aMember);
 
             MemberInfomation aMemberInfomation = new MemberInfomation
             {
