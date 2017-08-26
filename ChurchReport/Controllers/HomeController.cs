@@ -466,5 +466,40 @@ namespace ChurchReport.Controllers
             }
         }
         #endregion
+
+        #region Line綁定
+        [Route("/Home/LineBindingView/{LineBindingParameter}")]
+        public IActionResult LineBindingView(String LineBindingParameter)
+        {
+            var images = new List<string>();
+            images.Add(Url.Content("~/assets/images/tpehoc-001.png"));
+            images.Add(Url.Content("~/assets/images/tpehoc-002.jpg"));
+            images.Add(Url.Content("~/assets/images/tpehoc-003.jpg"));
+            images.Add(Url.Content("~/assets/images/tpehoc-004.jpg"));
+            //images.Add(Url.Content("~/assets/images/photo-1.jpg"));
+            //images.Add(Url.Content("~/assets/images/photo-10.jpg"));
+            //images.Add(Url.Content("~/assets/images/photo-6.jpg"));
+            //images.Add(Url.Content("~/assets/images/photo-9.jpg"));
+            return View(new LineBindingViewModel
+            {
+                FullName = LineBindingParameter,
+                Images = images
+            });
+        }
+
+        [HttpPost]
+        public IActionResult ProcessLineBinding(LineBindingViewModel aRegisterViewModel)
+        {
+            if (true)
+            {
+                return Json(new { status = "1", message = "歡迎綁定成功!" });
+            }
+            else
+            {
+                return Json(new { status = "2", message = "綁定失敗!" });
+            }
+        }
+
+        #endregion
     }
 }

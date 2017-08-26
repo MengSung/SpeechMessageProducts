@@ -19,4 +19,10 @@ namespace ChurchReport.ViewModel
         public string Password { get; set; }
         public string ConfirmPassword { get; set; }
     }
+    public class LineBindingViewModel
+    {
+        public IEnumerable<string> Images { get; set; }
+        public string FullName { get; set; }
+        public string Mobile { get; set; }
+    }
 }
