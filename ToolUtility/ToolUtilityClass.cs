@@ -166,8 +166,6 @@ namespace ToolUtilityNameSpace
         //private DateTime ExpireDate = new DateTime( 2012, 1, 28 );
         #endregion
         #region 常數參數
-        //private const String FILTERED_PROJECT = "970G"; // 過濾只要做的建案，冠德鼎峰
-        //private const String FILTERED_PROJECT = "990I"; // 過濾只要做的建案，冠德鼎華
         #region 一般常數參數
 
         private const String FILTERED_PROJECT = ""; // 不過濾建案
@@ -237,7 +235,11 @@ namespace ToolUtilityNameSpace
         #region 解構式
         protected virtual void Dispose(bool disposing)
         {
+
             if (_disposed) return;
+
+            // Free any unmanaged objects here.
+            this.m_OrganizationService.Dispose();
 
             _disposed = true;
         }
@@ -426,6 +428,9 @@ namespace ToolUtilityNameSpace
                     // This statement is required to enable early-bound type support.
                     this.m_OrganizationService.EnableProxyTypes();
 
+                    TimeSpan aInterval = new TimeSpan(3, 0, 0);
+                    this.m_OrganizationService.Timeout = aInterval;
+
                     // Now make an SDK call with the organization service proxy.
                     // Display information about the logged on user.
                     //Guid userid = ((WhoAmIResponse)this.m_OrganizationService.Execute(new WhoAmIRequest())).UserId;
@@ -586,7 +591,7 @@ namespace ToolUtilityNameSpace
         #endregion
         #region 透過屬性取得實體
         #region 取得聯絡人
-        static readonly object m_RetrieveContactLocker = new object();
+        private readonly object m_RetrieveContactLocker = new object();
 
         public String RetrieveContactByContactId(String ContactId)
         {
@@ -1791,7 +1796,7 @@ namespace ToolUtilityNameSpace
         #endregion
         #endregion
         #region 搜尋 N:1 的集合
-        static readonly object m_QueryManyToOneLocker = new object();
+        private readonly object m_QueryManyToOneLocker = new object();
 
         public EntityCollection RetrieveManyToOneCollection()
         {
@@ -1950,6 +1955,7 @@ namespace ToolUtilityNameSpace
 
                     // Set the ConditionExpressions properties so that the condition is true when the 
                     // ownerid of the account equals the principalId.
+
                     ContactConditionPrincipal.AttributeName = "new_contact_new_present_record";
                     ContactConditionPrincipal.Operator = ConditionOperator.Equal;
 
@@ -2304,7 +2310,7 @@ namespace ToolUtilityNameSpace
             }
         }
 
-        public EntityCollection QueryContactWeeklyReportBySunday( DateTime aSunday, String ParentEntityName, String ParentEntityIdName, String ParentEntityId, String AssociationName, String ChildEntityName)
+        public EntityCollection QueryWeeklyReportBySunday( DateTime aSunday, String ParentEntityName, String ParentEntityIdName, String ParentEntityId, String AssociationName, String ChildEntityName)
         {
             try
             {
@@ -2333,9 +2339,10 @@ namespace ToolUtilityNameSpace
                     //
                     //// Set the ConditionExpressions properties so that the condition is true when the 
                     //// ownerid of the account equals the principalId.
-                    //DateTimeConditionPrincipal.AttributeName = @"new_sunday_date";
-                    //DateTimeConditionPrincipal.Operator = ConditionOperator.Equal;
-                    //DateTimeConditionPrincipal.Values.Add( aSunday.ToString() );
+                    ConditionExpression DateTimeConditionPrincipal = new ConditionExpression();
+                    DateTimeConditionPrincipal.AttributeName = @"new_sunday_date";
+                    DateTimeConditionPrincipal.Operator = ConditionOperator.Equal;
+                    DateTimeConditionPrincipal.Values.Add( aSunday.ToString() );
 
 
                     // Build the filter that is based on the condition.
@@ -2367,12 +2374,17 @@ namespace ToolUtilityNameSpace
                     #endregion
 
                     #region// Create an instance of the query expression class.
+                    OrderExpression OrderByDate = new OrderExpression();
+                    OrderByDate.AttributeName = "new_sunday_date";
+                    OrderByDate.OrderType = OrderType.Descending;
+
                     QueryExpression query = new QueryExpression();
 
                     // Set the query properties.
                     query.EntityName = ChildEntityName;
                     query.ColumnSet.AllColumns = true;
                     query.LinkEntities.Add(link);
+                    query.Orders.Add(OrderByDate);
                     #endregion
 
                     #region// 根據數字排序後傳回來
@@ -2522,7 +2534,7 @@ namespace ToolUtilityNameSpace
         #endregion
         #region 實體操作區
         #region 新增、修改、刪除實體
-        static readonly object m_EntityLocker = new object();
+        private readonly object m_EntityLocker = new object();
         public Entity RetrieveEntity(String EntityName, Guid EntityId)
         {
             try
@@ -2870,7 +2882,7 @@ namespace ToolUtilityNameSpace
         #endregion
         #region 屬性操作區
         #region 布林屬性
-        static readonly object m_BooleanAttributeLocker = new object();
+        private readonly object m_BooleanAttributeLocker = new object();
 
         public bool GetEntityBoolAttribute(ref Entity aEntity, string PropertyName)
         {
@@ -2967,7 +2979,7 @@ namespace ToolUtilityNameSpace
         }
         #endregion
         #region 整數屬性
-        static readonly object m_IntAttributeLocker = new object();
+        private readonly object m_IntAttributeLocker = new object();
 
         public int GetEntityIntAttribute(ref Entity aEntity, string PropertyName)
         {
@@ -3064,7 +3076,7 @@ namespace ToolUtilityNameSpace
         }
         #endregion
         #region 浮點屬性
-        static readonly object m_FloatAttributeLocker = new object();
+        private readonly object m_FloatAttributeLocker = new object();
 
         public float GetEntityFloatAttribute(ref Entity aEntity, string PropertyName)
         {
@@ -3184,7 +3196,7 @@ namespace ToolUtilityNameSpace
         }
         #endregion
         #region 小數點屬性
-        static readonly object m_DoubleAttributeLocker = new object();
+        private readonly object m_DoubleAttributeLocker = new object();
 
         public Double GetEntityDoubleAttribute(ref Entity aEntity, string PropertyName)
         {
@@ -3304,7 +3316,7 @@ namespace ToolUtilityNameSpace
         }
         #endregion
         #region 時間屬性
-        static readonly object m_DateTimeAttributeLocker = new object();
+        private readonly object m_DateTimeAttributeLocker = new object();
         public DateTime GetEntityDateTimeAttribute(ref Entity aEntity, string PropertyName)
         {
             try
@@ -3401,7 +3413,7 @@ namespace ToolUtilityNameSpace
         }
         #endregion
         #region 文字屬性
-        static readonly object m_StringAttributeLocker = new object();
+        private readonly object m_StringAttributeLocker = new object();
 
         public String GetEntityStringAttribute(ref Entity aEntity, string PropertyName)
         {
@@ -3501,7 +3513,7 @@ namespace ToolUtilityNameSpace
 
         #endregion
         #region 選項屬性
-        static readonly object m_OptionSetAttributeLocker = new object();
+        private readonly object m_OptionSetAttributeLocker = new object();
         public int GetOptionSetAttribute(ref Entity aEntity, string PropertyName)
         {
             try
@@ -3610,7 +3622,7 @@ namespace ToolUtilityNameSpace
         #endregion
         #region LookUp 屬性
 
-        static readonly object m_LookupAttributeLocker = new object();
+        private readonly object m_LookupAttributeLocker = new object();
 
         public Guid GetEntityLookupAttribute(ref Entity aEntity, string PropertyName)
         {
@@ -3818,7 +3830,7 @@ namespace ToolUtilityNameSpace
         #endregion
         #region 將連絡人加入或移除至名單
 
-        static readonly object m_MembersToMarketingListLocker = new object();
+        private readonly object m_MembersToMarketingListLocker = new object();
         public void AddMembersToMarketingList(Guid thisListGuid, List<Guid> memberGuidList, ref IOrganizationService gCRMService)
         {
             try

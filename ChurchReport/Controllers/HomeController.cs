@@ -27,7 +27,7 @@ namespace ChurchReport.Controllers
 {
     public class HomeController : Controller
     {
-        ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
+        private ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
         //ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("CRM2011");
 
         //SmallGroupDataList m_SmallGroupDataList = new SmallGroupDataList();
@@ -468,27 +468,28 @@ namespace ChurchReport.Controllers
         #endregion
 
         #region Line¸j©w
-        [Route("/Home/LineBindingView/{LineBindingParameter}")]
+        //[Route("/Home/LineBindingView/{LineBindingParameter}")]
+        [HttpGet("{LineBindingParameter}")]
         public IActionResult LineBindingView(String LineBindingParameter)
         {
             var images = new List<string>();
-            images.Add(Url.Content("~/assets/images/tpehoc-001.png"));
-            images.Add(Url.Content("~/assets/images/tpehoc-002.jpg"));
-            images.Add(Url.Content("~/assets/images/tpehoc-003.jpg"));
-            images.Add(Url.Content("~/assets/images/tpehoc-004.jpg"));
+            images.Add(Url.Content("~/assets/images/tpehoc-005.jpg"));
+            images.Add(Url.Content("~/assets/images/tpehoc-006.jpg"));
+            images.Add(Url.Content("~/assets/images/tpehoc-007.jpg"));
+            images.Add(Url.Content("~/assets/images/tpehoc-008.jpg"));
+            images.Add(Url.Content("~/assets/images/tpehoc-009.jpg"));
             //images.Add(Url.Content("~/assets/images/photo-1.jpg"));
             //images.Add(Url.Content("~/assets/images/photo-10.jpg"));
             //images.Add(Url.Content("~/assets/images/photo-6.jpg"));
             //images.Add(Url.Content("~/assets/images/photo-9.jpg"));
-            return View(new LineBindingViewModel
+            return View(new RegisterViewModel
             {
-                FullName = LineBindingParameter,
                 Images = images
             });
         }
 
         [HttpPost]
-        public IActionResult ProcessLineBinding(LineBindingViewModel aRegisterViewModel)
+        public IActionResult ProcessLineBinding(RegisterViewModel aRegisterViewModel)
         {
             if (true)
             {

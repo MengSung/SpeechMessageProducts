@@ -13,7 +13,7 @@ namespace ChurchReport.WebServiceConnector
     {
         #region 資料區
         #region 參數資料
-        ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass();
+        private ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass();
 
         private static Regex DigitsOnly = new Regex(@"[^\d]");
 

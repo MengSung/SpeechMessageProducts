@@ -10,12 +10,9 @@ namespace ChurchReport.ViewModels
 {
     public class WeeklyReportViewModel
     {
-        ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
-
         public String WeeklyReportData { get; set; }
         public String WeeklyReportAnalysis { get; set; }
 
         //static public WeeklyReportData m_WeeklyReportData = new WeeklyReportData();
-
     }
 }

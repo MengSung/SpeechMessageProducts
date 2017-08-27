@@ -24,7 +24,7 @@ namespace ChurchReport.WebServiceConnector
     {
         #region 資料區
         #region 參數資料
-        ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
+        private ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
         //ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("CRM2011");
 
         private static Regex DigitsOnly = new Regex(@"[^\d]");
@@ -103,6 +103,7 @@ namespace ChurchReport.WebServiceConnector
 
                 Entity aGraceLeaderWeeklyReportEntity = null;// 族系族長的週報
 
+                // 一個一個上傳的週報
                 foreach (GroupWeeklyReportGuid aGroupWeeklyReportGuid in m_MemberInfomationPackage.GroupWeeklyReportGuidList)
                 {
                     // 初始化報告字串
@@ -118,8 +119,9 @@ namespace ChurchReport.WebServiceConnector
                     // 去除掉主日出席率及小組出席率之後的小組名稱
                     String FilteredGroupName = ToolUtilityClass.DeletePresentRate(GroupName);
 
-                    String FilteredOutDigitGroupName = Regex.Replace(FilteredGroupName, "[0-9]", "");//過濾掉數字
-                    FilteredOutDigitGroupName = FilteredOutDigitGroupName.Replace(" ", ""); // //過濾掉空白
+                    //台北基督之家小組名稱含有數字
+                    //String FilteredOutDigitGroupName = Regex.Replace(FilteredGroupName, "[0-9]", "");//過濾掉數字
+                    String FilteredOutDigitGroupName = FilteredGroupName.Replace(" ", ""); // //過濾掉空白
                     AddToDictionary(ref this.m_FeedBackReport, "主日出席統計表頭", FilteredOutDigitGroupName + Environment.NewLine + "主日出席紀錄:");
                     //AddToDictionary(ref this.m_FeedBackReport, "小組出席統計表頭" , "");
                     //AddToDictionary(ref this.m_FeedBackReport, "跟進統計表頭"     , "");
@@ -174,7 +176,7 @@ namespace ChurchReport.WebServiceConnector
                                 #endregion
                                 #region// 要建立週報
                                 this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "要建立週報");
-                                if (this.CreateWeeklyReportOrNot(ref aListEntity)) // 判斷是否真要建立週報
+                                if (this.CreateWeeklyReportOrNot(ref aListEntity, aSunday)) // 判斷是否真要建立週報
                                 {
                                     // 建立週報
                                     aGraceLeaderWeeklyReportEntity = ToCreateWeeklyReport(aGroupWeeklyReportGuid, ref aListEntity, UploadCategory, ValidNumber, ref aWeeklySundayRate, ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber);
@@ -489,6 +491,8 @@ namespace ChurchReport.WebServiceConnector
             try
             {
                 // 過濾掉需要點名的名單才進來
+                // this.m_Lists = 需要點名的名單
+
                 if (this.m_Lists != null && this.m_Lists.Entities != null)
                 {
                     this.m_Lists.Entities.Clear();
@@ -520,6 +524,7 @@ namespace ChurchReport.WebServiceConnector
             try
             {
                 // 過濾掉需要點名的名單才進來
+                // this.m_Lists = 需要點名的名單
                 if (this.m_Lists != null && this.m_Lists.Entities != null)
                 {
                     this.m_Lists.Entities.Clear();
@@ -595,10 +600,26 @@ namespace ChurchReport.WebServiceConnector
             }
         }
 
-        private bool CreateWeeklyReportOrNot(ref Entity aListEntity)
+        private bool CreateWeeklyReportOrNot(ref Entity aListEntity, DateTime aSunday )
         {
             try
             {
+                // 待完成事項，若是名單的相關週報已經有該週主日的週報則不建立
+
+                //public EntityCollection QueryContactWeeklyReportBySunday(DateTime aSunday, String ParentEntityName, String ParentEntityIdName, String ParentEntityId, String AssociationName, String ChildEntityName)
+
+                EntityCollection aWeeklyReportCollection = this.m_ToolUtilityClass.QueryWeeklyReportBySunday(aSunday, "list", "listid", aListEntity.Id.ToString(), "new_list_group_present_weekly_report", "new_group_present_weekly_report");
+
+                foreach( Entity aWeeklyReport in aWeeklyReportCollection.Entities )
+                {
+                    DateTime WeeklyReportSunday = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(aWeeklyReport, "new_sunday_date");
+
+                    if (aSunday.Date == WeeklyReportSunday.Date)
+                    {
+                        // 已經有相同主日的週報了
+                        return false;
+                    }
+                }
                 return true; // 永遠都是通過，可以建立周報、靈修紀錄單
                 #region
                 //if (aListEntity != null)
@@ -609,7 +630,7 @@ namespace ChurchReport.WebServiceConnector
                 //    Guid aSmallGroupLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_family_leader_list");
                 //    // 名單裡的族系族長 ID
                 //    Guid aRaceGroupLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_race_leager_list");
-                //
+
                 //    if (this.m_RaceLeaderId == Guid.Empty) // m_RaceLeaderId 是指小組長的族系組長ID
                 //    {
                 //        #region// 是族系組長
@@ -2161,34 +2182,64 @@ namespace ChurchReport.WebServiceConnector
             }
         }
 
+        //台北基督之家
         private String ConvertIndexToIdentity(int Identity)
         {
             switch (Identity)
             {
                 case 100000000:
-                    return "8. 新朋友";
+                    return "7. 新朋友";
                 case 100000001:
-                    return "5. 神學生";
+                    return "100,000,001";
                 case 100000002:
-                    return "4. 小組長";
+                    return "3. 小組長";
                 case 100000003:
-                    return "3. 全職同工";
+                    return "2. 區長";
                 case 100000004:
-                    return "7. 未入組";
-                case 100000005:
-                    return "1. 牧師";
+                    return "6. 未入組";
                 case 100000006:
-                    return "2, 師母";
+                    return "1. 區牧";
                 case 100000007:
-                    return "9. 外教會";
+                    return "8. 外教會.訪客";
                 case 100000008:
-                    return "10. 未入組結案";
+                    return "4. 實習小組長";
+                case 100000009:
+                    return "0. 區牧長";
                 case 1:
-                    return "6. 小組組員";
+                    return "5. 小組組員";
                 default:
                     return ".";
             }
         }
+        //楊梅靈糧堂
+        //private String ConvertIndexToIdentity(int Identity)
+        //{
+        //    switch (Identity)
+        //    {
+        //        case 100000000:
+        //            return "8. 新朋友";
+        //        case 100000001:
+        //            return "5. 神學生";
+        //        case 100000002:
+        //            return "4. 小組長";
+        //        case 100000003:
+        //            return "3. 全職同工";
+        //        case 100000004:
+        //            return "7. 未入組";
+        //        case 100000005:
+        //            return "1. 牧師";
+        //        case 100000006:
+        //            return "2, 師母";
+        //        case 100000007:
+        //            return "9. 外教會";
+        //        case 100000008:
+        //            return "10. 未入組結案";
+        //        case 1:
+        //            return "6. 小組組員";
+        //        default:
+        //            return ".";
+        //    }
+        //}
 
         #endregion
 

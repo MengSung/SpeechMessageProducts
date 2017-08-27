@@ -25,7 +25,7 @@ namespace ChurchReport.Models
         public String m_Account  = "";
         public String m_Password = "";
         public DateTime m_SundayDate ;
-        ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
+        private ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
         //static ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("CRM2011");
 
         // 小組長點名
