@@ -9,6 +9,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Serialization;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
+using System.Globalization;
+using Microsoft.AspNetCore.Localization;
 
 namespace ChurchReport
 {
@@ -54,6 +56,21 @@ namespace ChurchReport
             {
                 app.UseExceptionHandler("/Home/Error");
             }
+
+            //var supportedCultures = new[]
+            //{
+            //    new CultureInfo("en"),
+            //    new CultureInfo("en-US"),
+            //    new CultureInfo("zh"),
+            //    new CultureInfo("zh-TW")
+            //};
+            //app.UseRequestLocalization(new RequestLocalizationOptions
+            //{
+            //    DefaultRequestCulture = new RequestCulture("zh-TW"),
+            //    SupportedCultures = supportedCultures,
+            //    SupportedUICultures = supportedCultures
+            //});
+
 
             app.UseStaticFiles();
             app.UseSession();

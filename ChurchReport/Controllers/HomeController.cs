@@ -492,13 +492,14 @@ namespace ChurchReport.Controllers
         [HttpPost]
         public IActionResult ProcessLineBinding(LineBindingViewModel aLineBindingViewModel)
         {
+            
             if (true)
             {
-                return Json(new { status = "1", message = "歡迎綁定成功!" });
+                return Json(new { status = "1", message = "歡迎 " + aLineBindingViewModel.FullName + " 綁定成功!" });
             }
             else
             {
-                return Json(new { status = "2", message = "綁定失敗!" });
+                return Json(new { status = "2", message = aLineBindingViewModel.FullName + " 綁定失敗!" });
             }
         }
 

@@ -95,39 +95,6 @@
                             .ShowClearButton(true)
                        //.Width(200)
                        );
-                    items.AddSimple()
-                        .DataField("Account")
-                        .Label(l => l.Text("帳號"))
-                        .Editor(e => e
-                            .TextBox()
-                            .Disabled(false)
-                            .Placeholder("輸入帳號")
-                            .ShowClearButton(true)
-                       //.Width(200)
-                       );
-
-                    items.AddSimple()
-                        .DataField("Password")
-                        .Label(l => l.Text("密碼"))
-                        .Editor(e => e
-                            .TextBox()
-                            .Mode(TextBoxMode.Password)
-                            .Disabled(false)
-                            .Placeholder("輸入密碼")
-                            .ShowClearButton(true)
-                       //.Width(200)
-                       );
-                    items.AddSimple()
-                        .DataField("ConfirmPassword")
-                        .Label(l => l.Text("確認密碼"))
-                        .Editor(e => e
-                            .TextBox()
-                            .Mode(TextBoxMode.Password)
-                            .Disabled(false)
-                            .Placeholder("輸入確認密碼")
-                            .ShowClearButton(true)
-                       //.Width(200)
-                       );
 
                 })
                 )
@@ -157,6 +124,7 @@
                     .Shading(true)
                     .CloseOnOutsideClick(false)
                     .Message("綁定中...")
+                    .Delay(5000)
                     .Animation(l => l.Show(k => k.Easing(AnimationEasing.Swing)))
             //.OnShown("loadPanel_shown")
             //.OnHidden("loadPanel_hidden")
