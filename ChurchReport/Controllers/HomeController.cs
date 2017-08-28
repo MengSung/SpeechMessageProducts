@@ -468,8 +468,8 @@ namespace ChurchReport.Controllers
         #endregion
 
         #region Line¸j©w
-        //[Route("/Home/LineBindingView/{LineBindingParameter}")]
-        [HttpGet("{LineBindingParameter}")]
+        [Route("/Home/LineBindingView/{LineBindingParameter}")]
+        //[HttpGet("{LineBindingParameter}")]
         public IActionResult LineBindingView(String LineBindingParameter)
         {
             var images = new List<string>();
@@ -482,14 +482,15 @@ namespace ChurchReport.Controllers
             //images.Add(Url.Content("~/assets/images/photo-10.jpg"));
             //images.Add(Url.Content("~/assets/images/photo-6.jpg"));
             //images.Add(Url.Content("~/assets/images/photo-9.jpg"));
-            return View(new RegisterViewModel
+            return View(new LineBindingViewModel
             {
+                FullName = LineBindingParameter,
                 Images = images
             });
         }
 
         [HttpPost]
-        public IActionResult ProcessLineBinding(RegisterViewModel aRegisterViewModel)
+        public IActionResult ProcessLineBinding(LineBindingViewModel aLineBindingViewModel)
         {
             if (true)
             {

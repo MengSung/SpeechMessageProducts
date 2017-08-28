@@ -1664,6 +1664,7 @@ namespace ChurchReport.WebServiceConnector
                     return "小組組員";
             }
         }
+
         private void AddToDictionaryByIdentity(Guid aListEntityId, String Type, ref String Identity, ref Entity aContact, bool Presentflag)
         {
             try

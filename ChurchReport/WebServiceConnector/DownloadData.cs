@@ -1926,30 +1926,60 @@ namespace ChurchReport.WebServiceConnector
             }
         }
 
+        //private String ConvertIndexToIdentity(int Identity)
+        //{
+        //    switch (Identity)
+        //    {
+        //        case 100000000:
+        //            return "8. 新朋友";
+        //        case 100000001:
+        //            return "5. 神學生";
+        //        case 100000002:
+        //            return "4. 小組長";
+        //        case 100000003:
+        //            return "3. 全職同工";
+        //        case 100000004:
+        //            return "7. 未入組";
+        //        case 100000005:
+        //            return "1. 牧師";
+        //        case 100000006:
+        //            return "2, 師母";
+        //        case 100000007:
+        //            return "9. 外教會";
+        //        case 100000008:
+        //            return "10. 未入組結案";
+        //        case 1:
+        //            return "6. 小組組員";
+        //        default:
+        //            return ".";
+        //    }
+        //}
+
+        //台北基督之家
         private String ConvertIndexToIdentity(int Identity)
         {
             switch (Identity)
             {
                 case 100000000:
-                    return "8. 新朋友";
+                    return "7. 新朋友";
                 case 100000001:
-                    return "5. 神學生";
+                    return "100,000,001";
                 case 100000002:
-                    return "4. 小組長";
+                    return "3. 小組長";
                 case 100000003:
-                    return "3. 全職同工";
+                    return "2. 區長";
                 case 100000004:
-                    return "7. 未入組";
-                case 100000005:
-                    return "1. 牧師";
+                    return "6. 未入組";
                 case 100000006:
-                    return "2, 師母";
+                    return "1. 區牧";
                 case 100000007:
-                    return "9. 外教會";
+                    return "8. 外教會.訪客";
                 case 100000008:
-                    return "10. 未入組結案";
+                    return "4. 實習小組長";
+                case 100000009:
+                    return "0. 區牧長";
                 case 1:
-                    return "6. 小組組員";
+                    return "5. 小組組員";
                 default:
                     return ".";
             }
