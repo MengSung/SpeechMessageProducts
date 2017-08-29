@@ -22,6 +22,8 @@ namespace ChurchReport.ViewModel
     public class LineBindingViewModel
     {
         public IEnumerable<string> Images { get; set; }
+        public string DisplayName { get; set; }
+        public string LineUserId { get; set; }
         public string FullName { get; set; }
         public string Mobile { get; set; }
     }

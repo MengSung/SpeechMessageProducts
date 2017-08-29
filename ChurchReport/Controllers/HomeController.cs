@@ -472,6 +472,8 @@ namespace ChurchReport.Controllers
         //[HttpGet("{LineBindingParameter}")]
         public IActionResult LineBindingView(String LineBindingParameter)
         {
+            String[] LineBindingParameterArray = LineBindingParameter.Split(',');
+
             var images = new List<string>();
             images.Add(Url.Content("~/assets/images/tpehoc-005.jpg"));
             images.Add(Url.Content("~/assets/images/tpehoc-006.jpg"));
@@ -482,17 +484,26 @@ namespace ChurchReport.Controllers
             //images.Add(Url.Content("~/assets/images/photo-10.jpg"));
             //images.Add(Url.Content("~/assets/images/photo-6.jpg"));
             //images.Add(Url.Content("~/assets/images/photo-9.jpg"));
-            return View(new LineBindingViewModel
+
+            if (LineBindingParameterArray.Length >= 2)
             {
-                FullName = LineBindingParameter,
-                Images = images
-            });
+                return View(new LineBindingViewModel
+                {
+                    DisplayName = LineBindingParameterArray[0],
+                    LineUserId = LineBindingParameterArray[1],
+                    FullName = LineBindingParameter,
+                    Images = images
+                });
+            }
+            else
+            {
+                return RedirectToAction("Register");
+            }
         }
 
         [HttpPost]
         public IActionResult ProcessLineBinding(LineBindingViewModel aLineBindingViewModel)
         {
-            
             if (true)
             {
                 return Json(new { status = "1", message = "歡迎 " + aLineBindingViewModel.FullName + " 綁定成功!" });
