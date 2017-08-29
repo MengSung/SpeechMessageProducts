@@ -196,7 +196,14 @@
 
             if (data.status == 1) {
 
-                DevExpress.ui.notify(data.message, "success", 15000);
+                //DevExpress.ui.notify( data.message, "success", 15000 );
+
+                DevExpress.ui.notify({
+                    displayTime: 15000,
+                    closeOnClick: true,
+                    message: data.message,
+                    type: 'success',
+                });
 
                 //$("#toast").dxToast("show");
                 
