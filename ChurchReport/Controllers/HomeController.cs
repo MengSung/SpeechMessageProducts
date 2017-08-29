@@ -22,6 +22,7 @@ using Microsoft.Xrm.Sdk.Messages;
 using ChurchReport.ViewModels;
 using Microsoft.AspNetCore.Routing;
 using Newtonsoft.Json;
+using System.Text.RegularExpressions;
 
 namespace ChurchReport.Controllers
 {
@@ -485,13 +486,16 @@ namespace ChurchReport.Controllers
             //images.Add(Url.Content("~/assets/images/photo-6.jpg"));
             //images.Add(Url.Content("~/assets/images/photo-9.jpg"));
 
+            String EncodeName = System.Net.WebUtility.UrlEncode(LineBindingParameterArray[0]) + "," + System.Net.WebUtility.UrlEncode(LineBindingParameterArray[1]);
+
             if (LineBindingParameterArray.Length >= 2)
             {
                 return View(new LineBindingViewModel
                 {
                     DisplayName = LineBindingParameterArray[0],
                     LineUserId = LineBindingParameterArray[1],
-                    FullName = LineBindingParameter,
+                    FullName = LineBindingParameterArray[0],
+                    EncodeUrl = System.Net.WebUtility.UrlEncode(LineBindingParameterArray[0]) + "," + System.Net.WebUtility.UrlEncode(LineBindingParameterArray[1]),
                     Images = images
                 });
             }
@@ -504,13 +508,82 @@ namespace ChurchReport.Controllers
         [HttpPost]
         public IActionResult ProcessLineBinding(LineBindingViewModel aLineBindingViewModel)
         {
-            if (true)
+
+            if (aLineBindingViewModel.FullName == null || aLineBindingViewModel.FullName == "")
             {
-                return Json(new { status = "1", message = "歡迎 " + aLineBindingViewModel.FullName + " 綁定成功!" });
+                return Json(new { status = "2", message = aLineBindingViewModel.DisplayName + " 沒有輸入姓名!" });
+
+            }
+            if (aLineBindingViewModel.Mobile == null || aLineBindingViewModel.Mobile == "")
+            {
+                return Json(new { status = "2", message = aLineBindingViewModel.DisplayName + " 沒有輸入行動電話!" });
+
+            }
+
+            Regex DigitsOnly = new Regex(@"[^\d]");
+            String Mobile = DigitsOnly.Replace(aLineBindingViewModel.Mobile, "");
+
+            String BindingString = "//" + aLineBindingViewModel.FullName + "," + aLineBindingViewModel.Mobile;
+
+            Guid aLineEntityId = CreateLineMessage(aLineBindingViewModel.LineUserId, BindingString, 100000000);
+
+            if (aLineEntityId != null && aLineEntityId != Guid.Empty)
+            {
+                return Json(new { status = "1", message = "歡迎 " + aLineBindingViewModel.FullName + " 開始綁定程序，請至台北基督之家接收綁定結果訊息，謝謝您!", encoded = aLineBindingViewModel.DisplayName + "," + aLineBindingViewModel.LineUserId } );
             }
             else
             {
                 return Json(new { status = "2", message = aLineBindingViewModel.FullName + " 綁定失敗!" });
+            }
+        }
+
+
+        public Guid CreateLineMessage(string UserId, string Message, int OptionSetValueOfMessageType)
+        {
+            try
+            {
+                Entity aContact = this.m_ToolUtilityClass.RetrieveContactCollectionByLineId(UserId);
+
+                //await SendMessage(UserId, "001: " + UserId);
+
+                if (aContact != null)
+                {
+                    //await SendMessage(UserId, "002");
+                    Entity aEntity = new Entity("letter");
+                    m_ToolUtilityClass.SetEntityStringAttribute(ref aEntity, "subject", Message);
+                    m_ToolUtilityClass.SetEntityLookUpAttribute(ref aEntity, "regardingobjectid", "contact", aContact.Id);
+                    m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aEntity, "scheduledend", DateTime.Now);
+                    m_ToolUtilityClass.SetEntityBoolAttribute(ref aEntity, "directioncode", false);
+
+                    //await SendMessage(UserId, "003");
+                    //設定訊息種類為文字 
+                    m_ToolUtilityClass.SetOptionSetAttribute(ref aEntity, "new_message_category", OptionSetValueOfMessageType);
+
+                    //await SendMessage(UserId, "004");
+                    Entity Fromparty = new Entity("activityparty");
+
+                    //await SendMessage(UserId, "005");
+                    Fromparty["partyid"] = new EntityReference("contact", aContact.Id);
+
+                    //await SendMessage(UserId, "006");
+                    aEntity["from"] = new Entity[] { Fromparty };
+
+                    //await SendMessage(UserId, "007");
+                    return m_ToolUtilityClass.CreateEntity(aEntity);
+                    //return m_ToolUtilityClass.CreateEntity( ref m_ToolUtilityClass.m_OrganizationService, aEntity);
+                }
+                else
+                {
+                    //await SendMessage(UserId, "008");
+                    return Guid.Empty;
+                }
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                //Monitor.Exit(this);
+                throw e;
             }
         }
 

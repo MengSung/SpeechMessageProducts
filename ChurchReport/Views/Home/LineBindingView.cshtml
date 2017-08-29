@@ -96,6 +96,20 @@
                        //.Width(200)
                        );
 
+                    items.AddSimple()
+                        .DataField("LineUserId")
+                        .Label(l => l.Text("Line Id").Visible(false))
+                        .Editor(e => e
+                            .TextBox()
+                            .Mode(TextBoxMode.Text)
+                            .Disabled(false)
+                            .Placeholder("輸入行動電話")
+                            .ShowClearButton(true)
+                            .Value( Model.LineUserId)
+                            .Visible(false)
+                       //.Width(200)
+                       );
+
                 })
                 )
             </div>
@@ -131,7 +145,21 @@
                 )
             </div>
         </div>
+
     </form>
+
+    <div id="ToastContainer">
+        @(Html.DevExtreme().Toast()
+                .ID("toast")
+                .Position(p => p
+                .At(HorizontalAlignment.Center, VerticalAlignment.Center)
+                .Offset(0, 50))
+                .Message("以利亞")
+                .DisplayTime(2000)
+                .MaxWidth(200)
+        )
+
+    </div>
 
     <script>
         function getLoadPanelInstance() {
@@ -167,16 +195,20 @@
             getLoadPanelInstance().hide();
 
             if (data.status == 1) {
-                DevExpress.ui.notify(data.message, "success", 2000);
-                window.location.href = "/Home/Login";
+
+                DevExpress.ui.notify(data.message, "success", 15000);
+
+                //$("#toast").dxToast("show");
+                
+                window.location.href = "/Home/LineBindingView/" + '@Model.EncodeUrl';
                 //window.location.href = "/Home/SmallGroupReportView/" + data.fullname + "," + data.account+ "," + data.password;
 
                 //window.location.href = "/Home/SmallGroupReportView/" + data.fullname;
                 //window.location.href = "/Home/InputReport/" + data.fullname;
             }
             else {
-                DevExpress.ui.notify(data.message, "error", 3000);
-                window.location.href = "/Home/Register";
+                DevExpress.ui.notify(data.message, "error", 5000);
+                window.location.href = "/Home/LineBindingView/" + '@Model.EncodeUrl';
             }
         }
 

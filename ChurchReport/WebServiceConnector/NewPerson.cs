@@ -171,7 +171,7 @@ namespace ChurchReport.WebServiceConnector
                 SetupNewContactParameter(ref aNewContactEntity, aAccountPasswordData, ref aNewContact, aListEntity.Id );
 
                 // 新增連絡人
-                Guid NewContactEntityId = this.m_ToolUtilityClass.CreateEntity(ref this.m_ToolUtilityClass.m_OrganizationService, aNewContactEntity);
+                Guid NewContactEntityId = this.m_ToolUtilityClass.CreateEntity(aNewContactEntity);
 
                 // 將剛剛新增的聯絡人加入至成員名單
                 ConnectNewContactInMemberList(NewContactEntityId, aNewContact.GroupName, aListEntity );
@@ -489,7 +489,7 @@ namespace ChurchReport.WebServiceConnector
                 this.SetupPresentRecordEntityAttributes(aPresentRecord, aMemberInfomation, ref aNewContactEntity, ref aListEntity, ref aWeeklyReportId, DUM_DOUBLE, ref DUM_DOUBLE, ref DUM_DOUBLE, ref DUM_INT, ref DUM_INT, ref DUM_INT, ref DUM_INT);
 
                 // 新增個人聚會與靈修記錄
-                Guid aPresentRecordId = this.m_ToolUtilityClass.CreateEntity(ref this.m_ToolUtilityClass.m_OrganizationService, aPresentRecord);
+                Guid aPresentRecordId = this.m_ToolUtilityClass.CreateEntity(aPresentRecord);
 
                 #endregion
             }

@@ -973,7 +973,7 @@ namespace ToolUtilityNameSpace
                 throw e;
             }
         }
-        public Entity RetrieveContactCollectionByLineId(ref IOrganizationService aOrganizationService, String ContactFullName)
+        public Entity RetrieveContactCollectionByLineId(String ContactFullName)
         {
             try
             {
@@ -989,7 +989,15 @@ namespace ToolUtilityNameSpace
                     querybyexpression.Values.AddRange(ContactFullName, 0);
 
                     //  Query passed to the service proxy
-                    EntityCollection retrieved = aOrganizationService.RetrieveMultiple(querybyexpression);
+                    EntityCollection retrieved;
+                    if (this.m_DiscoveryServiceType == "DYNAMICS365")
+                    {
+                        retrieved = this.m_OrganizationService.RetrieveMultiple(querybyexpression);
+                    }
+                    else
+                    {
+                        retrieved = this.m_Crm2011OrganizationService.RetrieveMultiple(querybyexpression);
+                    }
 
                     if (retrieved.Entities.Count > 0)
                     {
@@ -2588,7 +2596,7 @@ namespace ToolUtilityNameSpace
             }
         }
 
-        public Guid CreateEntity(ref OrganizationServiceProxy aOrganizationService, Entity aEntityTobeToCreate)
+        public Guid CreateEntity(Entity aEntityTobeToCreate)
         {
             try
             {
@@ -4484,11 +4492,7 @@ namespace ToolUtilityNameSpace
                 aAnnotationEntity.Attributes["mimetype"] = MimeType;
                 aAnnotationEntity.Attributes["filename"] = FileName;
 
-
-
-
-
-                CreateEntity(ref m_OrganizationService, aAnnotationEntity);
+                CreateEntity(aAnnotationEntity);
                 #endregion
             }
             catch (System.Exception e)

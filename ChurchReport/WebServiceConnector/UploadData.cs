@@ -1037,7 +1037,7 @@ namespace ChurchReport.WebServiceConnector
                 this.SetupWeeklyReortEntityAttributes(ref aWeeklyReportEntity, FamilyLeaderId, GroupLeaderId, RaceLeaderId, m_DecipleGroupListId, aListEntity.Id, m_Sunday, m_SmallGroupPlace, m_SmallGroupTime);
 
                 // 新增週報
-                return this.m_ToolUtilityClass.CreateEntity(ref this.m_ToolUtilityClass.m_OrganizationService, aWeeklyReportEntity);
+                return this.m_ToolUtilityClass.CreateEntity(aWeeklyReportEntity);
             }
             catch (System.Exception Exception)
             {
@@ -1123,7 +1123,7 @@ namespace ChurchReport.WebServiceConnector
                 this.SetupPresentRecordEntityAttributes(aPresentRecord, aMemberInfomation, ref aContactEntity, ref aListEntity, ref aWeeklyReportId, ValidNumber, ref aWeeklySundayRate, ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber, ref ValidSundayMemberNumber, ref ValidSmallGroupMemberNumber);
 
                 // 新增個人聚會與靈修記錄
-                Guid aPresentRecordId = this.m_ToolUtilityClass.CreateEntity(ref this.m_ToolUtilityClass.m_OrganizationService, aPresentRecord);
+                Guid aPresentRecordId = this.m_ToolUtilityClass.CreateEntity(aPresentRecord);
 
                 //取得新建的聚會與靈修記錄
                 //Entity aRetrievedPresentRecord = this.m_ToolUtilityClass.RetrieveEntity("new_present_record", aPresentRecordId);
