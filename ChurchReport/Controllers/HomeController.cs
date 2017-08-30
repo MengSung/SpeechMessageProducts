@@ -467,7 +467,6 @@ namespace ChurchReport.Controllers
             }
         }
         #endregion
-
         #region Line¸j©w
         [Route("/Home/LineBindingView/{LineBindingParameter}")]
         //[HttpGet("{LineBindingParameter}")]
@@ -588,5 +587,11 @@ namespace ChurchReport.Controllers
         }
 
         #endregion
+        public ActionResult Scheduler()
+        {
+            AppointmentsList aAppointmentsList = new AppointmentsList();
+            return View(aAppointmentsList);
+        }
+
     }
 }

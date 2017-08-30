@@ -1,0 +1,29 @@
+﻿.options {
+    padding: 20px;
+    background-color: #f5f5f5;
+    margin-top: 20px;
+}
+
+.caption {
+    font-size: 18px;
+    font-weight: 500;
+}
+
+.option {
+    margin-top: 10px;
+    display: inline-block;
+    width: 19%;
+}
+
+.switcher-mode {
+    width: 100%;
+}
+
+.option > span {
+    margin-right: 10px;
+}
+
+.option > .dx-selectbox {
+    display: inline-block;
+    vertical-align: middle;
+}

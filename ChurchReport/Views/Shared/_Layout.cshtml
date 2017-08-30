@@ -27,11 +27,17 @@
     <script src="~/js/devextreme/globalize.js"></script>
     <script src="~/js/devextreme/globalize/message.js"></script>
     <script src="~/js/devextreme/globalize/number.js"></script>
-    <script src="~/js/devextreme/globalize/currency.js"></script>
+    @*<script src="~/js/devextreme/globalize/currency.js"></script>*@
     <script src="~/js/devextreme/globalize/date.js"></script>
-
     @* JSZip for client side export *@
     @*<script src="~/js/devextreme/jszip.js"></script>*@
+
+    
+    @* 台灣中文化的檔案 *@
+    @*<script type="text/javascript" src="js/localization/dx.messages.de.js"></script>*@
+    @*<script src="~/js/devextreme/localization/dx.messages.tw.js"></script>*@
+    @*<script src="~/js/devextreme/localization/dx.messages.en.js"></script>*@
+    
 
     <script src="~/js/devextreme/dx.all.js"></script>
     <script src="~/js/devextreme/vectormap-data/world.js"></script>
@@ -60,6 +66,8 @@
                     <!--<li><a href="/Home/Login">登入</a></li>-->
                     <li><a href="/Home/WeeklyReport">小組日誌</a></li>
                     <li><a href="/Home/MaintainPersonInfomationView">維護基本資料</a></li>
+                    <li><a href="/Home/Scheduler">行事曆</a></li>
+                    @*<li><a href="/Scheduler/Scheduler">行事曆</a></li>*@
                     @*<li><a href="/Home/ReportChart">出席率報表</a></li>*@
                     <li><a href="/Home/NewPerson">新增新人</a></li>
                 </ul>
