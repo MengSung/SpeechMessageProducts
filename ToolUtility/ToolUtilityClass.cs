@@ -129,23 +129,31 @@ namespace ToolUtilityNameSpace
         //private const String USERNAME = "Administrator@speechmessage.com.tw";
         //private const String PASSWORD = "hu9840";
         ////private const String DOMAIN = "DYNAMICS-365";
-        //private const String DOMAIN = "speechmessage.com.tw";
         #endregion
 
         #endregion
 
 
         #region Dynamics 365，新增組織修改區
-        // To get discovery service address and organization unique name, 
-        // Sign in to your CRM org and click Settings, Customization, Developer Resources.
-        // On Developer Resource page, find the discovery service address under Service Endpoints and organization unique name under Your Organization Information.
 
+        #region 台北基督之家(公司內部發展)
         private const String SERVER = "speechmessage.com.tw";
         private const String PORT = "7777";
-        private const String ORGANIZATION = "tpehoc";
+        private const String ORGANIZATION = "tpehocback";
         private const String USERNAME = "administrator@speechmessage.com.tw";
         private const String PASSWORD = "hu9840";
-        private const String DOMAIN = "DYNAMICS-365";
+        private const String DOMAIN = "SPEECHMESSAGE";
+        #endregion
+
+        #region 台北基督之家(雲端機房)
+        //private const String SERVER = "speechmessage.com.tw";
+        //private const String PORT = "7777";
+        //private const String ORGANIZATION = "tpehoc";
+        //private const String USERNAME = "administrator@speechmessage.com.tw";
+        //private const String PASSWORD = "hu9840";
+        //private const String DOMAIN = "DYNAMICS-365";
+        #endregion
+
 
         #region 僅供參考區塊
         //private String _discoveryServiceAddress = "https://tpehoc.speechmessage.com.tw/XRMServices/2011/Discovery.svc";
