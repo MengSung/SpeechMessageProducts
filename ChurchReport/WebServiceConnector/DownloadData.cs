@@ -59,7 +59,6 @@ namespace ChurchReport.WebServiceConnector
 
         #endregion
         #endregion
-
         #region 下載資料時所需要的參數
 
         MemberInfomationPackage m_MemberInfomationPackage = new MemberInfomationPackage();
@@ -81,10 +80,7 @@ namespace ChurchReport.WebServiceConnector
         //List<Place2> m_GroupNamePlaces = new List<Place2>(); // 依據群組名稱過濾出來的會眾集合
         List<MemberInfomation> m_GroupNamedListMemberInfomation = new List<MemberInfomation>(); // 依據群組名稱過濾出來的會眾集合
         #endregion
-
         #region 下載資料區
-        #region WCF 端
-
         #region 真實運作區塊，並非模擬區塊
         public MemberInfomationPackage GetMemberDataPackage(DateTime aDownloadDate, AccountPasswordData aAccountPasswordData)
         {
@@ -1272,7 +1268,6 @@ namespace ChurchReport.WebServiceConnector
                 throw e;
             }
         }
-
         private void TransferIdentity(Entity aContact, int Counter, int NewComeMaxiNumber, int UnGroupMaxiNumber)
         {
             //switch (Identity)
@@ -1359,7 +1354,6 @@ namespace ChurchReport.WebServiceConnector
             }
 
         }
-
         private String ConvertNumberToFollowUpWeekPicker(int FollowUpWeekIndex)
         {
             switch (FollowUpWeekIndex)
@@ -1572,7 +1566,6 @@ namespace ChurchReport.WebServiceConnector
                     return "";
             }
         }
-
         private void GetSmallGroupLeaderMemberData(String GroupName, Guid ListEntityId)
         {
             #region // 處理每個小組名單
@@ -1727,7 +1720,6 @@ namespace ChurchReport.WebServiceConnector
             return;
         }
         #endregion
-
         #region 模擬回覆下載資料
         public MemberInfomationPackage DownloadMemberPackageDataByDate_XamarinSimulation(DateTime aDownloadDate, AccountPasswordData aAccountPasswordData)
         {
@@ -1807,10 +1799,7 @@ namespace ChurchReport.WebServiceConnector
             return aMemberInfomationPackage;
         }
         #endregion
-
         #endregion
-        #endregion
-
         #region 設定委身類型
 
         public void SetIdentity(Guid aListEntityId, ref Entity aContact, ref MemberInfomation aMemberInfomation)
@@ -1986,7 +1975,5 @@ namespace ChurchReport.WebServiceConnector
         }
 
         #endregion
-
-
     }
 }
