@@ -24,6 +24,8 @@ using Microsoft.AspNetCore.Routing;
 using Newtonsoft.Json;
 using System.Text.RegularExpressions;
 
+using LineMessagingProcessor;
+
 namespace ChurchReport.Controllers
 {
     public class HomeController : Controller
@@ -132,7 +134,7 @@ namespace ChurchReport.Controllers
         public ActionResult SmallGroupReportView(String LoginParameter)
         //public ActionResult SmallGroupReportView()
         {
-            if ( LoginParameter == "AccountPassword" )
+            if (LoginParameter == "AccountPassword" )
             {
                 String SmallGroupDataListString = (String)TempData.Peek("SmallGroupDataList");
                 TempData.Keep("SmallGroupDataList");
@@ -148,13 +150,36 @@ namespace ChurchReport.Controllers
                     return RedirectToAction("Login");
                 }
             }
+            else if( LoginParameter =="jquery.js" )
+            {
+                return Ok();
+            }
             else
             {
                 String FullName = m_ToolUtilityClass.RetrieveContactEntityByLineUserId(LoginParameter).Attributes["fullname"].ToString();
 
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                List<UserProfile> aList = aLineMessagingProcessorClass.GetUserProfile(LoginParameter);
+
+                // 寫入LINE的個人基本資料
+                //String LineUserDisplayName = aList[0].DisplayName;
+                //aLineMessagingProcessorClass.SendMessage(LoginParameter, "您的顯示名稱是:" + LineUserDisplayName);
+
+                if (FullName.EndsWith("(Line)"))
+                {
+                    aLineMessagingProcessorClass.NotifyLineBinding(LoginParameter);
+                }
+                else
+                {
+
+                }
+
                 //m_SmallGroupDataList.SetupSmallGroupData(FullName, aGalleryViewModel.Account, aGalleryViewModel.Password, DateTime.Now.AddDays(-(int)DateTime.Now.DayOfWeek));
 
-                return RedirectToAction("Login");
+                //return RedirectToAction("Login");
+
+                return Ok();
             }
         }
         [HttpPost]

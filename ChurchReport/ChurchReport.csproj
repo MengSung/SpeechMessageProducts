@@ -51,6 +51,7 @@
     </DotNetCliToolReference>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\LineMessagingProcessor\LineMessagingProcessor.csproj" />
     <ProjectReference Include="..\ToolUtility\ToolUtility.csproj" />
   </ItemGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">

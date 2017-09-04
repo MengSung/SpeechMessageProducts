@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ChurchReport", "ChurchRepor
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ToolUtility", "ToolUtility\ToolUtility.csproj", "{377E7CC4-320A-48ED-ACA9-E3BC718F150F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LineMessagingProcessor", "LineMessagingProcessor\LineMessagingProcessor.csproj", "{49A3E352-8564-4A14-9814-B655B2A6B202}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{377E7CC4-320A-48ED-ACA9-E3BC718F150F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{377E7CC4-320A-48ED-ACA9-E3BC718F150F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{377E7CC4-320A-48ED-ACA9-E3BC718F150F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{49A3E352-8564-4A14-9814-B655B2A6B202}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{49A3E352-8564-4A14-9814-B655B2A6B202}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{49A3E352-8564-4A14-9814-B655B2A6B202}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{49A3E352-8564-4A14-9814-B655B2A6B202}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
