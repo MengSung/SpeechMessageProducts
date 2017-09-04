@@ -293,6 +293,8 @@ namespace ChurchReport.Models.CrmTransmitModule
         private const int LEVEL_5 = 5; // 比較不會被看到的，可能是比較細節的部分
         #endregion
 
+        public String m_LoginType = "小組長";
+
         public MemberInfomationPackage()
         {
         }

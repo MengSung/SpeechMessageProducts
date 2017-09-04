@@ -417,6 +417,8 @@ namespace ChurchReport.Models
             // 從雲端後台下載下來小組點名資料
             m_MemberInfomationPackage = aDownloader.GetMemberDataPackage(SundayDate, aAccountPasswordData);
 
+            m_MemberInfomationPackage.m_LoginType = "個人回報";
+
             m_SmallGroupData.SmallGroupLeaderFullName = FullName;
             m_SmallGroupData.SundayPrayers = m_SundayDate = SundayDate;
             m_SmallGroupData.Members = new List<Member>();
@@ -486,7 +488,6 @@ namespace ChurchReport.Models
                         m_NewPersonFollowUpData.Members.Add(aMember);
                     }
                 }
-
 
                 IdIndex++;
             }

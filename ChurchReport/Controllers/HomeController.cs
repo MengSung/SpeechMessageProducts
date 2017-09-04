@@ -137,8 +137,6 @@ namespace ChurchReport.Controllers
 
             if (LoginParameter == "AccountPassword" )
             {
-                ViewBag.LoginType = "小組長1";
-
                 String SmallGroupDataListString = (String)TempData.Peek("SmallGroupDataList");
                 TempData.Keep("SmallGroupDataList");
 
@@ -146,6 +144,7 @@ namespace ChurchReport.Controllers
                 {
                     SmallGroupDataList m_SmallGroupDataList = JsonConvert.DeserializeObject<SmallGroupDataList>(SmallGroupDataListString);
 
+                    ViewBag.LoginType = m_SmallGroupDataList.m_MemberInfomationPackage.m_LoginType;// 看是小組長還是個人回報
                     return View(m_SmallGroupDataList.m_SmallGroupData);
                 }
                 else
@@ -160,8 +159,6 @@ namespace ChurchReport.Controllers
             }
             else
             {
-                ViewBag.LoginType = "小組長1";
-
                 String FullName = m_ToolUtilityClass.RetrieveContactEntityByLineUserId(LoginParameter).Attributes["fullname"].ToString();
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
@@ -182,6 +179,7 @@ namespace ChurchReport.Controllers
                     String SerializedSmallGroupDataList = JsonConvert.SerializeObject(m_SmallGroupDataList);
                     TempData["SmallGroupDataList"] = SerializedSmallGroupDataList;
 
+                    ViewBag.LoginType = m_SmallGroupDataList.m_MemberInfomationPackage.m_LoginType;// 看是小組長還是個人回報
                     return View(m_SmallGroupDataList.m_SmallGroupData);
                 }
 
@@ -229,6 +227,7 @@ namespace ChurchReport.Controllers
             {
                 SmallGroupDataList m_SmallGroupDataList = JsonConvert.DeserializeObject<SmallGroupDataList>(SmallGroupDataListString);
 
+                ViewBag.LoginType = m_SmallGroupDataList.m_MemberInfomationPackage.m_LoginType;// 看是小組長還是個人回報
                 return View(m_SmallGroupDataList.m_NewPersonFollowUpData);
             }
             else
@@ -273,6 +272,7 @@ namespace ChurchReport.Controllers
             {
                 SmallGroupDataList m_SmallGroupDataList = JsonConvert.DeserializeObject<SmallGroupDataList>(SmallGroupDataListString);
 
+                ViewBag.LoginType = m_SmallGroupDataList.m_MemberInfomationPackage.m_LoginType;// 看是小組長還是個人回報
                 return View(m_SmallGroupDataList.m_AllMemeberData);
             }
             else
@@ -377,12 +377,14 @@ namespace ChurchReport.Controllers
                     String SerializedWeeklyReportData = JsonConvert.SerializeObject(aWeeklyReportData);
                     TempData["WeeklyReportData"] = SerializedWeeklyReportData;
 
+                    ViewBag.LoginType = m_SmallGroupDataList.m_MemberInfomationPackage.m_LoginType;// 看是小組長還是個人回報
                     return View(aWeeklyReportData.m_WeeklyReportViewModel);
                 }
                 else
                 {
                     WeeklyReportData aWeeklyReportData = JsonConvert.DeserializeObject<WeeklyReportData>(WeeklyReportDataString);
 
+                    ViewBag.LoginType = m_SmallGroupDataList.m_MemberInfomationPackage.m_LoginType;// 看是小組長還是個人回報
                     return View(aWeeklyReportData.m_WeeklyReportViewModel);
                 }
             }
@@ -445,11 +447,42 @@ namespace ChurchReport.Controllers
         }
 
         #endregion
+        #region 行事曆
+        public ActionResult Scheduler()
+        {
+            String SmallGroupDataList = (String)TempData.Peek("SmallGroupDataList");
+
+            SmallGroupDataList m_SmallGroupDataList;
+            if (SmallGroupDataList != null)
+            {
+                TempData.Keep("SmallGroupDataList");
+                m_SmallGroupDataList = JsonConvert.DeserializeObject<SmallGroupDataList>(SmallGroupDataList);
+            }
+            else
+            {
+                return RedirectToAction("Login");
+            }
+
+            AppointmentsList aAppointmentsList = new AppointmentsList();
+
+            ViewBag.LoginType = m_SmallGroupDataList.m_MemberInfomationPackage.m_LoginType;// 看是小組長還是個人回報
+
+            return View(aAppointmentsList);
+        }
+        #endregion
         #region 新增新人
         public IActionResult NewPerson()
         {
+
             String SmallGroupDataList = (String)TempData.Peek("SmallGroupDataList");
-            if (SmallGroupDataList == null)
+
+            SmallGroupDataList m_SmallGroupDataList;
+            if (SmallGroupDataList != null)
+            {
+                TempData.Keep("SmallGroupDataList");
+                m_SmallGroupDataList = JsonConvert.DeserializeObject<SmallGroupDataList>(SmallGroupDataList);
+            }
+            else
             {
                 return RedirectToAction("Login");
             }
@@ -464,12 +497,14 @@ namespace ChurchReport.Controllers
                 String SerializedNewPersonModel = JsonConvert.SerializeObject(aNewPersonModel);
                 TempData["NewPerson"] = SerializedNewPersonModel;
 
+                ViewBag.LoginType = m_SmallGroupDataList.m_MemberInfomationPackage.m_LoginType;// 看是小組長還是個人回報
                 return View(aNewPersonModel.PersonFormViewModel);
             }
             else
             {
                 NewPersonModel aNewPersonModel = JsonConvert.DeserializeObject<NewPersonModel>(NewPersonString);
 
+                ViewBag.LoginType = m_SmallGroupDataList.m_MemberInfomationPackage.m_LoginType;// 看是小組長還是個人回報
                 return View(aNewPersonModel.PersonFormViewModel);
 
             }
@@ -639,11 +674,5 @@ namespace ChurchReport.Controllers
         }
 
         #endregion
-        public ActionResult Scheduler()
-        {
-            AppointmentsList aAppointmentsList = new AppointmentsList();
-            return View(aAppointmentsList);
-        }
-
     }
 }
