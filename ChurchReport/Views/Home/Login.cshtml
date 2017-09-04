@@ -1,7 +1,58 @@
-﻿@model ChurchReport.ViewModel.GalleryViewModel
+﻿<!DOCTYPE html>
 
-<div class="widget-container" style="padding: 10px;">
-    @(Html.DevExtreme().Gallery()
+@{
+    Layout = null;
+}
+
+
+@model ChurchReport.ViewModel.GalleryViewModel
+
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>台北基督之家</title>
+    <link href="~/favicon.ico" rel="shortcut icon" type="image/x-icon" />
+
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.css" />
+    <link rel="stylesheet" href="~/css/site.css" />
+    <link href="~/css/devextreme/dx.common.css" rel="stylesheet" />
+    <link href="~/css/devextreme/dx.light.css" rel="stylesheet" />
+
+    <script src="~/lib/jquery/dist/jquery.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.js"></script>
+
+    <script src="~/js/devextreme/cldr.js"></script>
+    <script src="~/js/devextreme/cldr/event.js"></script>
+    <script src="~/js/devextreme/cldr/supplemental.js"></script>
+    <script src="~/js/devextreme/cldr/unresolved.js"></script>
+
+    <script src="~/js/devextreme/globalize.js"></script>
+    <script src="~/js/devextreme/globalize/message.js"></script>
+    <script src="~/js/devextreme/globalize/number.js"></script>
+    <script src="~/js/devextreme/globalize/currency.js"></script>
+    <script src="~/js/devextreme/globalize/date.js"></script>
+
+    @* JSZip for client side export *@
+    @*<script src="~/js/devextreme/jszip.js"></script>*@
+
+    <script src="~/js/devextreme/dx.all.js"></script>
+    <script src="~/js/devextreme/vectormap-data/world.js"></script>
+    <script src="~/lib/devextreme-aspnet-data/js/dx.aspnet.data.js"></script>
+    <script src="~/js/devextreme/aspnet/dx.aspnet.mvc.js"></script>
+
+</head>
+
+
+<body>
+
+    <div class="widget-container" style="padding: 10px;">
+        @(Html.DevExtreme().Gallery()
         .ID("gallery")
         .DataSource(Model.Images)
         .Height(250)
@@ -12,16 +63,16 @@
         .SlideshowDelay(1500)
         .ShowNavButtons(true)
         .ShowIndicator(true)
-    )
-</div>
+        )
+    </div>
 
-<div class="long-title"><h3>小組長登入系統</h3></div>
+    <div class="long-title"><h3>小組長登入系統</h3></div>
 
-<form data-ajax="true" data-ajax-begin="onBegin" data-ajax-success="onSuccess" asp-action="ProcessLogin" asp-controller="Home" method="post" style="text-align: center;">
+    <form data-ajax="true" data-ajax-begin="onBegin" data-ajax-success="onSuccess" asp-action="ProcessLogin" asp-controller="Home" method="post" style="text-align: center;">
 
-    <div class="dx-field" style="text-align: center;">
-        <div class="form-container-class" id="form-container" style="text-align: center;">
-            @(Html.DevExtreme().Form()
+        <div class="dx-field" style="text-align: center;">
+            <div class="form-container-class" id="form-container" style="text-align: center;">
+                @(Html.DevExtreme().Form()
                 .ID("form")
                 .Items(items =>
                 {
@@ -50,12 +101,12 @@
                        );
 
                 })
-            )
+                )
+            </div>
         </div>
-    </div>
-    <div class="dx-field" style="text-align: center;">
-        <div id="buttonContainer" class="dx-button-icon">
-            @(Html.DevExtreme().Button()
+        <div class="dx-field" style="text-align: center;">
+            <div id="buttonContainer" class="dx-button-icon">
+                @(Html.DevExtreme().Button()
             .Text("登入")
             //.Type(ButtonType.Success)
             //.Type(ButtonType.Normal)
@@ -64,8 +115,8 @@
             .UseSubmitBehavior(true)
             .OnClick("Login")
             .Width(100)
-            )
-            @(Html.DevExtreme().Button()
+                )
+                @(Html.DevExtreme().Button()
                     .Text("註冊")
                     //.Type(ButtonType.Success)
                     //.Type(ButtonType.Normal)
@@ -74,10 +125,10 @@
                     .UseSubmitBehavior(false)
                     .OnClick("Register")
                     .Width(100)
-            )
-        </div>
-        <div id="LoadPanel">
-            @(Html.DevExtreme().LoadPanel()
+                )
+            </div>
+            <div id="LoadPanel">
+                @(Html.DevExtreme().LoadPanel()
                     .ID("loadPanel")
                     .ShadingColor("rgba(0,0,0,0.4)")
                     .Position(p => p.Of("#form-container"))
@@ -90,12 +141,12 @@
                     .Animation(l => l.Show(k => k.Easing(AnimationEasing.Swing)))
             //.OnShown("loadPanel_shown")
             //.OnHidden("loadPanel_hidden")
-            )
+                )
+            </div>
         </div>
-    </div>
-</form>
+    </form>
 
-<script>
+    <script>
     function getLoadPanelInstance() {
         return $("#loadPanel").dxLoadPanel("instance");
     }
@@ -123,39 +174,45 @@
         window.location.href = "/Home/Register";
     }
 
-</script>
+    </script>
 
-<script type="text/javascript">
-    function onBegin() {
-    }
-
-    function onSuccess(data) {
-
-        getLoadPanelInstance().hide();
-
-        if (data.status == 1) {
-            DevExpress.ui.notify(data.message, "success", 2000);
-
-            window.location.href = "/Home/SmallGroupReportView";
-
-            //window.location.href = "/Home/SmallGroupReportView/" + data.fullname + "," + data.account+ "," + data.password;
-
-            //window.location.href = "/Home/SmallGroupReportView/" + data.fullname;
-            //window.location.href = "/Home/InputReport/" + data.fullname;
+    <script type="text/javascript">
+        function onBegin() {
         }
-        else {
-            DevExpress.ui.notify(data.message, "error", 3000);
-        }
-    }
 
-    function onComplete(data) {
-        if (data.status == 1) {
-        }
-        else {
-        }
-    }
-</script>
+        function onSuccess(data) {
 
-<script src="~/lib/jquery-ajax-unobtrusive/jquery.unobtrusive-ajax.js"></script>
-<link href="~/css/Gallery.css" rel="stylesheet" />
-<link href="~/css/WeeklyReport.css" rel="stylesheet" />
+            getLoadPanelInstance().hide();
+
+            if (data.status == 1) {
+                DevExpress.ui.notify(data.message, "success", 2000);
+
+                //window.location.href = "/Home/SmallGroupReportView";
+                window.location.href = "/Home/SmallGroupReportView/AccountPassword";
+                
+                //window.location.href = "/Home/SmallGroupReportView/" + data.fullname + "," + data.account+ "," + data.password;
+
+                //window.location.href = "/Home/SmallGroupReportView/" + data.fullname;
+                //window.location.href = "/Home/InputReport/" + data.fullname;
+            }
+            else {
+                DevExpress.ui.notify(data.message, "error", 3000);
+            }
+        }
+
+        function onComplete(data) {
+            if (data.status == 1) {
+            }
+            else {
+            }
+        }
+    </script>
+
+    <script src="~/lib/jquery-ajax-unobtrusive/jquery.unobtrusive-ajax.js"></script>
+    <link href="~/css/Gallery.css" rel="stylesheet" />
+    <link href="~/css/WeeklyReport.css" rel="stylesheet" />
+
+
+</body>
+
+</html>

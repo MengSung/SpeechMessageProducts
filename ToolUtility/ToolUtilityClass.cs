@@ -137,21 +137,21 @@ namespace ToolUtilityNameSpace
         #region Dynamics 365，新增組織修改區
 
         #region 台北基督之家(公司內部發展)
-        private const String SERVER = "speechmessage.com.tw";
-        private const String PORT = "7777";
-        private const String ORGANIZATION = "tpehocback";
-        private const String USERNAME = "administrator@speechmessage.com.tw";
-        private const String PASSWORD = "hu9840";
-        private const String DOMAIN = "SPEECHMESSAGE";
+        //private const String SERVER = "speechmessage.com.tw";
+        //private const String PORT = "7777";
+        //private const String ORGANIZATION = "tpehocback";
+        //private const String USERNAME = "administrator@speechmessage.com.tw";
+        //private const String PASSWORD = "hu9840";
+        //private const String DOMAIN = "SPEECHMESSAGE";
         #endregion
 
         #region 台北基督之家(雲端機房)
-        //private const String SERVER = "speechmessage.com.tw";
-        //private const String PORT = "7777";
-        //private const String ORGANIZATION = "tpehoc";
-        //private const String USERNAME = "administrator@speechmessage.com.tw";
-        //private const String PASSWORD = "hu9840";
-        //private const String DOMAIN = "DYNAMICS-365";
+        private const String SERVER = "speechmessage.com.tw";
+        private const String PORT = "7777";
+        private const String ORGANIZATION = "tpehoc";
+        private const String USERNAME = "administrator@speechmessage.com.tw";
+        private const String PASSWORD = "hu9840";
+        private const String DOMAIN = "DYNAMICS-365";
         #endregion
 
 
@@ -1086,124 +1086,6 @@ namespace ToolUtilityNameSpace
                     {
                         this.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "帳號錯誤");
                         return "帳號錯誤";
-                    }
-                }
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                throw e;
-            }
-        }
-        public Guid RetrieveContactIdByAccountNumberDynamics365(String AccountNumber, String aPassword)
-        {
-            try
-            {
-                lock (m_RetrieveContactLocker)
-                {
-                    //  Create query using querybyattribute
-                    //Console.WriteLine("除錯 001");
-
-                    QueryByAttribute querybyexpression = new QueryByAttribute("contact");
-                    querybyexpression.ColumnSet = new ColumnSet();
-                    querybyexpression.ColumnSet.AllColumns = true;
-                    //  Attribute to query
-                    //querybyexpression.Attributes.AddRange("new_account", "statecode");
-                    //楊梅靈糧堂小組長帳號
-                    querybyexpression.Attributes.AddRange("new_app_acount", "statecode");
-                    //  Value of queried attribute to return
-                    querybyexpression.Values.AddRange(AccountNumber, 0);
-
-                    //Console.WriteLine("除錯 002");
-                    //  Query passed to the service proxy
-                    EntityCollection retrieved = this.m_OrganizationService.RetrieveMultiple(querybyexpression);
-
-                    //Console.WriteLine("除錯 003");
-                    if (retrieved.Entities.Count > 0 && retrieved != null)
-                    {
-                        Entity aEntity = retrieved.Entities[0];
-
-                        //if (retrieved.Entities[0].Attributes.Contains("new_password"))
-                        if (retrieved.Entities[0].Attributes.Contains("new_app_pass"))
-                        {
-                            //String aContactPassword = retrieved.Entities[0].Attributes["new_password"].ToString();
-                            String aContactPassword = retrieved.Entities[0].Attributes["new_app_pass"].ToString();
-                            if (aContactPassword == aPassword)
-                            {
-                                return retrieved.Entities[0].Id;
-                            }
-                            else
-                            {
-                                return Guid.Empty;
-                            }
-                        }
-                        else
-                        {
-                            return Guid.Empty;
-                        }
-                    }
-                    else
-                    {
-                        return Guid.Empty;
-                    }
-                }
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                throw e;
-            }
-        }
-        public Guid RetrieveContactIdByAccountNumberCrm2011(String AccountNumber, String aPassword)
-        {
-            try
-            {
-                lock (m_RetrieveContactLocker)
-                {
-                    //  Create query using querybyattribute
-                    //Console.WriteLine("除錯 001");
-
-                    QueryByAttribute querybyexpression = new QueryByAttribute("contact");
-                    querybyexpression.ColumnSet = new ColumnSet();
-                    querybyexpression.ColumnSet.AllColumns = true;
-                    //  Attribute to query
-                    //querybyexpression.Attributes.AddRange("new_account", "statecode");
-                    //楊梅靈糧堂小組長帳號
-                    querybyexpression.Attributes.AddRange("new_app_acount", "statecode");
-                    //  Value of queried attribute to return
-                    querybyexpression.Values.AddRange(AccountNumber, 0);
-
-                    //Console.WriteLine("除錯 002");
-                    //  Query passed to the service proxy
-                    EntityCollection retrieved = this.m_Crm2011OrganizationService.RetrieveMultiple(querybyexpression);
-
-                    //Console.WriteLine("除錯 003");
-                    if (retrieved.Entities.Count > 0 && retrieved != null)
-                    {
-                        Entity aEntity = retrieved.Entities[0];
-
-                        //if (retrieved.Entities[0].Attributes.Contains("new_password"))
-                        if (retrieved.Entities[0].Attributes.Contains("new_app_pass"))
-                        {
-                            //String aContactPassword = retrieved.Entities[0].Attributes["new_password"].ToString();
-                            String aContactPassword = retrieved.Entities[0].Attributes["new_app_pass"].ToString();
-                            if (aContactPassword == aPassword)
-                            {
-                                return retrieved.Entities[0].Id;
-                            }
-                            else
-                            {
-                                return Guid.Empty;
-                            }
-                        }
-                        else
-                        {
-                            return Guid.Empty;
-                        }
-                    }
-                    else
-                    {
-                        return Guid.Empty;
                     }
                 }
             }

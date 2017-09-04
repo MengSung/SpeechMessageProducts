@@ -128,21 +128,37 @@ namespace ChurchReport.Controllers
         }
         #endregion
         #region 小組長點名
-        //[Route("/Home/SmallGroupReportView/{LoginParameter}")]
-        //public ActionResult SmallGroupReportView(String LoginParameter)
-        public ActionResult SmallGroupReportView()
+        [Route("/Home/SmallGroupReportView/{LoginParameter}")]
+        public ActionResult SmallGroupReportView(String LoginParameter)
+        //public ActionResult SmallGroupReportView()
         {
-            String SmallGroupDataListString = (String)TempData.Peek("SmallGroupDataList");
-            TempData.Keep("SmallGroupDataList");
-
-            if (SmallGroupDataListString != null)
+            if ( LoginParameter == "AccountPassword" )
             {
-                SmallGroupDataList m_SmallGroupDataList = JsonConvert.DeserializeObject<SmallGroupDataList>(SmallGroupDataListString);
+                String SmallGroupDataListString = (String)TempData.Peek("SmallGroupDataList");
+                TempData.Keep("SmallGroupDataList");
 
-                return View(m_SmallGroupDataList.m_SmallGroupData);
+                if (SmallGroupDataListString != null)
+                {
+                    SmallGroupDataList m_SmallGroupDataList = JsonConvert.DeserializeObject<SmallGroupDataList>(SmallGroupDataListString);
+
+                    return View(m_SmallGroupDataList.m_SmallGroupData);
+                }
+                else
+                {
+                    return RedirectToAction("Login");
+                }
             }
             else
             {
+                //String ContactIdString = m_ToolUtilityClass.RetrieveContactByAccountNumber(aGalleryViewModel.Account, aGalleryViewModel.Password);
+
+                //Guid aContactGuid = new Guid(ContactIdString);
+
+                //String FullName = this.m_ToolUtilityClass.RetrieveEntityDynamics365("contact", aContactGuid).Attributes["fullname"].ToString();
+                ////String FullName = this.m_ToolUtilityClass.RetrieveEntityCrm2011("contact", aContactGuid).Attributes["fullname"].ToString();
+
+                //m_SmallGroupDataList.SetupSmallGroupData(FullName, aGalleryViewModel.Account, aGalleryViewModel.Password, DateTime.Now.AddDays(-(int)DateTime.Now.DayOfWeek));
+
                 return RedirectToAction("Login");
             }
         }
