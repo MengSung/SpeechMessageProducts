@@ -134,8 +134,11 @@ namespace ChurchReport.Controllers
         public ActionResult SmallGroupReportView(String LoginParameter)
         //public ActionResult SmallGroupReportView()
         {
+
             if (LoginParameter == "AccountPassword" )
             {
+                ViewBag.LoginType = "小組長1";
+
                 String SmallGroupDataListString = (String)TempData.Peek("SmallGroupDataList");
                 TempData.Keep("SmallGroupDataList");
 
@@ -152,27 +155,34 @@ namespace ChurchReport.Controllers
             }
             else if( LoginParameter =="jquery.js" )
             {
+                ViewBag.LoginType = "個人登入";
                 return Ok();
             }
             else
             {
+                ViewBag.LoginType = "小組長1";
+
                 String FullName = m_ToolUtilityClass.RetrieveContactEntityByLineUserId(LoginParameter).Attributes["fullname"].ToString();
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                List<UserProfile> aList = aLineMessagingProcessorClass.GetUserProfile(LoginParameter);
-
                 // 寫入LINE的個人基本資料
-                //String LineUserDisplayName = aList[0].DisplayName;
-                //aLineMessagingProcessorClass.SendMessage(LoginParameter, "您的顯示名稱是:" + LineUserDisplayName);
-
                 if (FullName.EndsWith("(Line)"))
                 {
                     aLineMessagingProcessorClass.NotifyLineBinding(LoginParameter);
+
+                    return RedirectToAction("Login");
                 }
                 else
                 {
+                    SmallGroupDataList m_SmallGroupDataList = new SmallGroupDataList();
 
+                    m_SmallGroupDataList.SetupSmallGroupData(FullName, "LineIdLogin", LoginParameter, DateTime.Now.AddDays(-(int)DateTime.Now.DayOfWeek));
+
+                    String SerializedSmallGroupDataList = JsonConvert.SerializeObject(m_SmallGroupDataList);
+                    TempData["SmallGroupDataList"] = SerializedSmallGroupDataList;
+
+                    return View(m_SmallGroupDataList.m_SmallGroupData);
                 }
 
                 //m_SmallGroupDataList.SetupSmallGroupData(FullName, aGalleryViewModel.Account, aGalleryViewModel.Password, DateTime.Now.AddDays(-(int)DateTime.Now.DayOfWeek));
@@ -469,6 +479,11 @@ namespace ChurchReport.Controllers
         [HttpPost]
         public IActionResult SaveNewPerson(PersonFormViewModel aPersonFormViewModel)
         {
+            if(aPersonFormViewModel.Phone == "" || aPersonFormViewModel.Phone == null)
+            {
+                return Json(new { status = "2", message = "新增新人必須要有行動電話" });
+            }
+
             String SmallGroupDataList = (String)TempData.Peek("SmallGroupDataList");
             TempData.Keep("SmallGroupDataList");
             SmallGroupDataList m_SmallGroupDataList = JsonConvert.DeserializeObject<SmallGroupDataList>(SmallGroupDataList);
@@ -477,6 +492,7 @@ namespace ChurchReport.Controllers
             TempData.Keep("NewPerson");
             NewPersonModel aNewPersonModel = JsonConvert.DeserializeObject<NewPersonModel>(NewPersonString);
 
+            // 上傳至系統
             String Result = aNewPersonModel.UploadNewPerson(m_SmallGroupDataList.m_Account, m_SmallGroupDataList.m_Password, aPersonFormViewModel);
 
             if (aPersonFormViewModel.Position == "0" || aPersonFormViewModel.Position == "1" || aPersonFormViewModel.Position == "2" || aPersonFormViewModel.Position == "3" || aPersonFormViewModel.Position == "4" || aPersonFormViewModel.Position == "5")

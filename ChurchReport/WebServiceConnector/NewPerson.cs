@@ -208,7 +208,14 @@ namespace ChurchReport.WebServiceConnector
         private void SetupNewContactParameter(ref Entity aNewContactEntity, AccountPasswordData aAccountPasswordData, ref NewContact aNewContact, Guid aListEntityId )
         {
             #region 關聯小組長屬性 找到小組長ID
-            m_ContactEntity = m_ToolUtilityClass.RetrieveContactEntityByAccountNumber(aAccountPasswordData.Account, aAccountPasswordData.Password);
+            if (aAccountPasswordData.Account != "LineIdLogin")
+            {
+                this.m_ContactEntity = this.m_ToolUtilityClass.RetrieveContactEntityByAccountNumber(aAccountPasswordData.Account, aAccountPasswordData.Password);
+            }
+            else
+            {
+                this.m_ContactEntity = this.m_ToolUtilityClass.RetrieveContactEntityByLineUserId(aAccountPasswordData.Password);
+            }
             m_ContactId = m_ContactEntity.Id;
             #endregion
 
@@ -317,8 +324,17 @@ namespace ChurchReport.WebServiceConnector
             try
             {
                 #region 關聯小組長屬性 找到小組長ID
-                m_ContactEntity = m_ToolUtilityClass.RetrieveContactEntityByAccountNumber(aAccountPasswordData.Account, aAccountPasswordData.Password);
-                m_ContactId = m_ContactEntity.Id;
+                // 找小組長及其ID
+                if (aAccountPasswordData.Account != "LineIdLogin")
+                {
+                    this.m_ContactEntity = this.m_ToolUtilityClass.RetrieveContactEntityByAccountNumber(aAccountPasswordData.Account, aAccountPasswordData.Password);
+                }
+                else
+                {
+                    this.m_ContactEntity = this.m_ToolUtilityClass.RetrieveContactEntityByLineUserId(aAccountPasswordData.Password);
+                }
+
+                this.m_ContactId = m_ContactEntity.Id;
                 #endregion
 
                 #region 蒐集建立新人所需要的屬性

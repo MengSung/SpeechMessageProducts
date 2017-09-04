@@ -367,7 +367,15 @@ namespace ChurchReport.WebServiceConnector
                 m_Sunday = aSunday;
 
                 // 找到操作使用者登入的小組長ID
-                m_ContactEntity = m_ToolUtilityClass.RetrieveContactEntityByAccountNumber(aAccountPasswordData.Account, aAccountPasswordData.Password);
+                if (aAccountPasswordData.Account != "LineIdLogin")
+                {
+                    this.m_ContactEntity = this.m_ToolUtilityClass.RetrieveContactEntityByAccountNumber(aAccountPasswordData.Account, aAccountPasswordData.Password);
+                }
+                else
+                {
+                    this.m_ContactEntity = this.m_ToolUtilityClass.RetrieveContactEntityByLineUserId(aAccountPasswordData.Password);
+                }
+
                 m_ContactId = m_ContactEntity.Id;
 
                 #region 蒐集建立週報所需要的屬性

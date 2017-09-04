@@ -358,7 +358,15 @@ namespace ChurchReport.WebServiceConnector
         private void FindGroupLeader(AccountPasswordData aAccountPasswordData)
         {
             // 找小組長及其ID
-            this.m_ContactEntity = this.m_ToolUtilityClass.RetrieveContactEntityByAccountNumber(aAccountPasswordData.Account, aAccountPasswordData.Password);
+            if (aAccountPasswordData.Account != "LineIdLogin")
+            {
+                this.m_ContactEntity = this.m_ToolUtilityClass.RetrieveContactEntityByAccountNumber(aAccountPasswordData.Account, aAccountPasswordData.Password);
+            }
+            else
+            {
+                this.m_ContactEntity = this.m_ToolUtilityClass.RetrieveContactEntityByLineUserId(aAccountPasswordData.Password);
+            }
+
             this.m_ContactId = m_ContactEntity.Id;
         }
         private void FindListCollectionForWeeklyReport()
