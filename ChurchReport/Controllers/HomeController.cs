@@ -56,7 +56,7 @@ namespace ChurchReport.Controllers
                 Images = images
             });
         }
-        [HttpPost]
+        [HttpPost] 
         public IActionResult ProcessLogin(GalleryViewModel aGalleryViewModel)
         {
             String ContactIdString = m_ToolUtilityClass.RetrieveContactByAccountNumber(aGalleryViewModel.Account, aGalleryViewModel.Password);
