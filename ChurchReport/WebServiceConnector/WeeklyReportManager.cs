@@ -358,15 +358,7 @@ namespace ChurchReport.WebServiceConnector
         private void FindGroupLeader(AccountPasswordData aAccountPasswordData)
         {
             // 找小組長及其ID
-            if (CRM_TYPE == "DYNAMICS365")
-            {
-                this.m_ContactEntity = this.m_ToolUtilityClass.RetrieveContactEntityByAccountNumberDynamics365(aAccountPasswordData.Account, aAccountPasswordData.Password);
-            }
-            else
-            {
-                this.m_ContactEntity = this.m_ToolUtilityClass.RetrieveContactEntityByAccountNumberCrm2011(aAccountPasswordData.Account, aAccountPasswordData.Password);
-            }
-
+            this.m_ContactEntity = this.m_ToolUtilityClass.RetrieveContactEntityByAccountNumber(aAccountPasswordData.Account, aAccountPasswordData.Password);
             this.m_ContactId = m_ContactEntity.Id;
         }
         private void FindListCollectionForWeeklyReport()
