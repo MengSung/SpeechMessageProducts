@@ -2362,6 +2362,268 @@ namespace ToolUtilityNameSpace
             }
         }
         #endregion
+        #region 搜尋 N:N( ManyToMany) 的集合
+
+        public EntityCollection QueryManyToMany(Guid ContactId)
+        {
+            try
+            {
+                #region // 過濾條件:需要點名的各類名單
+                ConditionExpression condition = new ConditionExpression();
+
+                // Set the condition to be when the account owner's last name is not Cannon. new_new_receive_drugs_prescribed_new_
+                condition.AttributeName = "new_app_named";
+                condition.Operator = ConditionOperator.Equal;
+                condition.Values.Add(true);
+
+                ConditionExpression StateCondidtion = new ConditionExpression();
+                StateCondidtion.AttributeName = "statecode";
+                StateCondidtion.Operator = ConditionOperator.Equal;
+                StateCondidtion.Values.Add(0);
+
+                // Build the filter that is based on the condition.
+                FilterExpression filter = new FilterExpression();
+                filter.FilterOperator = LogicalOperator.And;
+                filter.Conditions.Add(condition);
+                filter.Conditions.Add(StateCondidtion);
+                #endregion
+
+                //Create Query Expression.
+                QueryExpression query = new QueryExpression()
+                {
+                    Criteria = filter,
+                    //EntityName = "role",
+                    EntityName = "list",
+                    //EntityName = "invoice",
+                    //EntityName = "quote",
+                    //EntityName = "listmember",
+                    LinkEntities =
+                        {
+                            new LinkEntity
+                            {
+
+                                //LinkFromEntityName = "invoice",
+                                //LinkFromAttributeName = "invoiceid",
+                                //LinkToEntityName = "contactinvoices",
+                                //LinkToAttributeName = "invoiceid",
+
+                                LinkFromEntityName = "list",
+                                LinkFromAttributeName = "listid",
+                                LinkToEntityName = "listmember",
+                                LinkToAttributeName = "listid",
+
+                                //LinkFromEntityName = "contact",
+                                //LinkFromAttributeName = "contactid",
+                                //LinkToEntityName = "list",
+                                //LinkToAttributeName = "listid",
+
+                                //LinkFromEntityName = "contact",
+                                //LinkFromAttributeName = "contactid",
+                                //LinkToEntityName = "listmember",
+                                //LinkToAttributeName = "contactid",
+
+                                // listcontact_association
+
+                                //LinkFromEntityName = Role.EntityLogicalName,
+                                //LinkFromAttributeName = "roleid",
+                                //LinkToEntityName = SystemUserRoles.EntityLogicalName,
+                                //LinkToAttributeName = "roleid",
+
+                                //LinkFromEntityName = "role",
+                                //LinkFromAttributeName = "roleid",
+                                //LinkToEntityName = "systemuserroles",
+                                //LinkToAttributeName = "roleid",
+ 
+
+                                //LinkFromEntityName = Role.EntityLogicalName,
+                                //LinkFromAttributeName = "roleid",
+                                //LinkToEntityName = SystemUserRoles.EntityLogicalName,
+                                //LinkToAttributeName = "roleid",
+
+                                //LinkFromEntityName = "contact",
+                                //LinkFromAttributeName = "contactid",
+                                //LinkToEntityName = "list",
+                                //LinkToAttributeName = "listid",
+
+                                //LinkFromAttributeName = "",
+
+                                LinkCriteria = new FilterExpression
+                                {
+                                    FilterOperator = LogicalOperator.And,
+                                    Conditions =
+                                    {
+                                        new ConditionExpression
+                                        {
+                                            //AttributeName = "systemuserid",
+                                            //AttributeName = "contactid",
+                                            AttributeName = "entityid",
+                                            Operator = ConditionOperator.Equal,
+                                            Values = { ContactId }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                };
+
+                query.ColumnSet.AllColumns = true;
+
+                // Execute the request.
+                EntityCollection request;
+                if (CRM_TYPE == "DYNAMICS365")
+                {
+                    request = (EntityCollection)this.m_OrganizationService.RetrieveMultiple(query);
+                }
+                else
+                {
+                    request = (EntityCollection)this.m_Crm2011OrganizationService.RetrieveMultiple(query);
+                }
+
+                return request;
+
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                //Monitor.Exit(this);
+                throw e;
+            }
+        }
+
+        // 連絡人相關的各類名單:
+        // 過濾條件:需要點名的各類名單
+        public EntityCollection QueryListOfContactManyToMany(Guid ContactId)
+        {
+            try
+            {
+                #region // 過濾條件:需要點名的各類名單及使用中的
+                ConditionExpression condition = new ConditionExpression();
+
+                // 需要點名的
+                condition.AttributeName = "new_app_named";
+                condition.Operator = ConditionOperator.Equal;
+                condition.Values.Add(true);
+
+                // 使用中的
+                ConditionExpression StateCondidtion = new ConditionExpression();
+                StateCondidtion.AttributeName = "statecode";
+                StateCondidtion.Operator = ConditionOperator.Equal;
+                StateCondidtion.Values.Add(0);
+
+                // 合併過濾條件
+                FilterExpression filter = new FilterExpression();
+                filter.FilterOperator = LogicalOperator.And;
+                filter.Conditions.Add(condition);
+                filter.Conditions.Add(StateCondidtion);
+                #endregion
+
+                //Create Query Expression.
+                QueryExpression query = new QueryExpression()
+                {
+                    Criteria = filter,
+                    //EntityName = "role",
+                    EntityName = "list",
+                    //EntityName = "invoice",
+                    //EntityName = "quote",
+                    //EntityName = "listmember",
+                    LinkEntities =
+                        {
+                            new LinkEntity
+                            {
+
+                                //LinkFromEntityName = "invoice",
+                                //LinkFromAttributeName = "invoiceid",
+                                //LinkToEntityName = "contactinvoices",
+                                //LinkToAttributeName = "invoiceid",
+
+                                LinkFromEntityName = "list",
+                                LinkFromAttributeName = "listid",
+                                LinkToEntityName = "listmember",
+                                LinkToAttributeName = "listid",
+
+                                //LinkFromEntityName = "contact",
+                                //LinkFromAttributeName = "contactid",
+                                //LinkToEntityName = "list",
+                                //LinkToAttributeName = "listid",
+
+                                //LinkFromEntityName = "contact",
+                                //LinkFromAttributeName = "contactid",
+                                //LinkToEntityName = "listmember",
+                                //LinkToAttributeName = "contactid",
+
+                                // listcontact_association
+
+                                //LinkFromEntityName = Role.EntityLogicalName,
+                                //LinkFromAttributeName = "roleid",
+                                //LinkToEntityName = SystemUserRoles.EntityLogicalName,
+                                //LinkToAttributeName = "roleid",
+
+                                //LinkFromEntityName = "role",
+                                //LinkFromAttributeName = "roleid",
+                                //LinkToEntityName = "systemuserroles",
+                                //LinkToAttributeName = "roleid",
+ 
+
+                                //LinkFromEntityName = Role.EntityLogicalName,
+                                //LinkFromAttributeName = "roleid",
+                                //LinkToEntityName = SystemUserRoles.EntityLogicalName,
+                                //LinkToAttributeName = "roleid",
+
+                                //LinkFromEntityName = "contact",
+                                //LinkFromAttributeName = "contactid",
+                                //LinkToEntityName = "list",
+                                //LinkToAttributeName = "listid",
+
+                                //LinkFromAttributeName = "",
+
+                                LinkCriteria = new FilterExpression
+                                {
+                                    FilterOperator = LogicalOperator.And,
+                                    Conditions =
+                                    {
+                                        new ConditionExpression
+                                        {
+                                            //AttributeName = "systemuserid",
+                                            //AttributeName = "contactid",
+                                            AttributeName = "entityid",
+                                            Operator = ConditionOperator.Equal,
+                                            Values = { ContactId }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                };
+
+                query.ColumnSet.AllColumns = true;
+
+                // Execute the request.
+                EntityCollection request;
+                if (CRM_TYPE == "DYNAMICS365")
+                {
+                    request = (EntityCollection)this.m_OrganizationService.RetrieveMultiple(query);
+                }
+                else
+                {
+                    request = (EntityCollection)this.m_Crm2011OrganizationService.RetrieveMultiple(query);
+                }
+
+                return request;
+
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                //Monitor.Exit(this);
+                throw e;
+            }
+        }
+
+        #endregion
         #region 實體操作區
         #region 新增、修改、刪除實體
         private readonly object m_EntityLocker = new object();
