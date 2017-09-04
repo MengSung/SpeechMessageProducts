@@ -2364,15 +2364,26 @@ namespace ToolUtilityNameSpace
         #endregion
         #region 搜尋 N:N( ManyToMany) 的集合
 
-        public EntityCollection QueryManyToMany(Guid ContactId)
+        public EntityCollection QueryManyToMany( String ConditionAttributeName, String EntityNameToSearch, String LinkFromEntityName, String LinkFromAttributeName, String LinkToEntityName, String LinkToAttributeName, String AttributeName,  Guid EntityIdValue )
         {
             try
             {
-                #region // 過濾條件:需要點名的各類名單
+                #region 說明:例如我要找連絡人的關聯的小組名單
+                // String ConditionAttributeName    : 名單的是否要點名，值是 Boolean
+                //String EntityNameToSearch         : 要搜尋出來的實體名稱，名單的 Entity Name = "list"
+                //String LinkFromEntityName         : 兒子的實體名稱 => 名單 = "list"
+                //String LinkFromAttributeName      : 兒子實體的 Id 名稱 => 名單的 Id 名稱 = "listid"
+                //String LinkToEntityName           : Intersect 的名稱，也就是 N:N 的名稱 => "listname" 
+                //String LinkToAttributeName        : Intersect 連到的 id名稱 => "listid"
+                //String AttributeName              : Intersect或是父的 Id 名稱 => 連絡人的 Id名稱  
+                //Guid EntityIdValue                : Intersect或是父的 Id 值 => 連絡人的 Id 值 
+                #endregion
+
+                #region // 過濾條件
                 ConditionExpression condition = new ConditionExpression();
 
                 // Set the condition to be when the account owner's last name is not Cannon. new_new_receive_drugs_prescribed_new_
-                condition.AttributeName = "new_app_named";
+                condition.AttributeName = ConditionAttributeName;
                 condition.Operator = ConditionOperator.Equal;
                 condition.Values.Add(true);
 
@@ -2392,60 +2403,16 @@ namespace ToolUtilityNameSpace
                 QueryExpression query = new QueryExpression()
                 {
                     Criteria = filter,
-                    //EntityName = "role",
-                    EntityName = "list",
-                    //EntityName = "invoice",
-                    //EntityName = "quote",
-                    //EntityName = "listmember",
+                    EntityName = EntityNameToSearch,
                     LinkEntities =
                         {
                             new LinkEntity
                             {
+                                LinkFromEntityName = LinkFromEntityName,
+                                LinkFromAttributeName = LinkFromAttributeName,
+                                LinkToEntityName = LinkToEntityName,
+                                LinkToAttributeName = LinkToAttributeName,
 
-                                //LinkFromEntityName = "invoice",
-                                //LinkFromAttributeName = "invoiceid",
-                                //LinkToEntityName = "contactinvoices",
-                                //LinkToAttributeName = "invoiceid",
-
-                                LinkFromEntityName = "list",
-                                LinkFromAttributeName = "listid",
-                                LinkToEntityName = "listmember",
-                                LinkToAttributeName = "listid",
-
-                                //LinkFromEntityName = "contact",
-                                //LinkFromAttributeName = "contactid",
-                                //LinkToEntityName = "list",
-                                //LinkToAttributeName = "listid",
-
-                                //LinkFromEntityName = "contact",
-                                //LinkFromAttributeName = "contactid",
-                                //LinkToEntityName = "listmember",
-                                //LinkToAttributeName = "contactid",
-
-                                // listcontact_association
-
-                                //LinkFromEntityName = Role.EntityLogicalName,
-                                //LinkFromAttributeName = "roleid",
-                                //LinkToEntityName = SystemUserRoles.EntityLogicalName,
-                                //LinkToAttributeName = "roleid",
-
-                                //LinkFromEntityName = "role",
-                                //LinkFromAttributeName = "roleid",
-                                //LinkToEntityName = "systemuserroles",
-                                //LinkToAttributeName = "roleid",
- 
-
-                                //LinkFromEntityName = Role.EntityLogicalName,
-                                //LinkFromAttributeName = "roleid",
-                                //LinkToEntityName = SystemUserRoles.EntityLogicalName,
-                                //LinkToAttributeName = "roleid",
-
-                                //LinkFromEntityName = "contact",
-                                //LinkFromAttributeName = "contactid",
-                                //LinkToEntityName = "list",
-                                //LinkToAttributeName = "listid",
-
-                                //LinkFromAttributeName = "",
 
                                 LinkCriteria = new FilterExpression
                                 {
@@ -2456,9 +2423,9 @@ namespace ToolUtilityNameSpace
                                         {
                                             //AttributeName = "systemuserid",
                                             //AttributeName = "contactid",
-                                            AttributeName = "entityid",
+                                            AttributeName = AttributeName,
                                             Operator = ConditionOperator.Equal,
-                                            Values = { ContactId }
+                                            Values = { EntityIdValue }
                                         }
                                     }
                                 }
@@ -2494,7 +2461,7 @@ namespace ToolUtilityNameSpace
 
         // 連絡人相關的各類名單:
         // 過濾條件:需要點名的各類名單
-        public EntityCollection QueryListOfContactManyToMany(Guid ContactId)
+        public EntityCollection QueryListOfContactManyToMany( Guid ContactId )
         {
             try
             {
@@ -2523,61 +2490,21 @@ namespace ToolUtilityNameSpace
                 QueryExpression query = new QueryExpression()
                 {
                     Criteria = filter,
-                    //EntityName = "role",
                     EntityName = "list",
-                    //EntityName = "invoice",
-                    //EntityName = "quote",
-                    //EntityName = "listmember",
                     LinkEntities =
                         {
                             new LinkEntity
                             {
-
-                                //LinkFromEntityName = "invoice",
-                                //LinkFromAttributeName = "invoiceid",
-                                //LinkToEntityName = "contactinvoices",
-                                //LinkToAttributeName = "invoiceid",
-
                                 LinkFromEntityName = "list",
                                 LinkFromAttributeName = "listid",
                                 LinkToEntityName = "listmember",
                                 LinkToAttributeName = "listid",
-
-                                //LinkFromEntityName = "contact",
-                                //LinkFromAttributeName = "contactid",
-                                //LinkToEntityName = "list",
-                                //LinkToAttributeName = "listid",
-
-                                //LinkFromEntityName = "contact",
-                                //LinkFromAttributeName = "contactid",
-                                //LinkToEntityName = "listmember",
-                                //LinkToAttributeName = "contactid",
-
-                                // listcontact_association
-
-                                //LinkFromEntityName = Role.EntityLogicalName,
-                                //LinkFromAttributeName = "roleid",
-                                //LinkToEntityName = SystemUserRoles.EntityLogicalName,
-                                //LinkToAttributeName = "roleid",
 
                                 //LinkFromEntityName = "role",
                                 //LinkFromAttributeName = "roleid",
                                 //LinkToEntityName = "systemuserroles",
                                 //LinkToAttributeName = "roleid",
  
-
-                                //LinkFromEntityName = Role.EntityLogicalName,
-                                //LinkFromAttributeName = "roleid",
-                                //LinkToEntityName = SystemUserRoles.EntityLogicalName,
-                                //LinkToAttributeName = "roleid",
-
-                                //LinkFromEntityName = "contact",
-                                //LinkFromAttributeName = "contactid",
-                                //LinkToEntityName = "list",
-                                //LinkToAttributeName = "listid",
-
-                                //LinkFromAttributeName = "",
-
                                 LinkCriteria = new FilterExpression
                                 {
                                     FilterOperator = LogicalOperator.And,
@@ -2585,8 +2512,6 @@ namespace ToolUtilityNameSpace
                                     {
                                         new ConditionExpression
                                         {
-                                            //AttributeName = "systemuserid",
-                                            //AttributeName = "contactid",
                                             AttributeName = "entityid",
                                             Operator = ConditionOperator.Equal,
                                             Values = { ContactId }
