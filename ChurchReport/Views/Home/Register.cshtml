@@ -154,10 +154,6 @@
         if (data.status == 1) {
             DevExpress.ui.notify(data.message, "success", 2000);
             window.location.href = "/Home/Login";
-            //window.location.href = "/Home/SmallGroupReportView/" + data.fullname + "," + data.account+ "," + data.password;
-
-            //window.location.href = "/Home/SmallGroupReportView/" + data.fullname;
-            //window.location.href = "/Home/InputReport/" + data.fullname;
         }
         else {
             DevExpress.ui.notify(data.message, "error", 3000);

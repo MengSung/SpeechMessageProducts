@@ -113,34 +113,577 @@ namespace ChurchReport.WebServiceConnector
 
             #region 找登入使用者及其ID
             FindLoginUser(aAccountPasswordData);
-            if (m_ContactId == Guid.Empty) //是否有找到小組長的ID
+            if (m_ContactId == Guid.Empty) //是否有找到登入使用者及其ID
             { return null; } // 沒找到就回傳 null 
             #endregion
 
             #region 先尋找帶領族系名單，若找到表示就是族系族長，若沒有則在繼續尋找帶領小組名單
             FindListCollection();
-            if (m_Lists.Entities.Count == 0)
+            if (m_Lists.Entities.Count != 0)
             {
-                return null;// 沒找到任何要點名的名單 
+                // 有找到要點名的名單，所以是小組長以上回報
+                m_MemberInfomationPackage.m_LoginType = "小組長";
+                #region 處理每個要點名的名單
+                m_SetIdentityFlag = false; // 因為新朋友、未入組會變更委身類型，旗標防止設定太多次，false表示尚未設定
+                ProcessListEntity();
+                #endregion
+
+                #region 排序委身類型、並且去除掉數字、空白、逗號
+                // 排序委身類型
+                m_MemberInfomationPackage.ListMemberInfomation = m_MemberInfomationPackage.ListMemberInfomation.OrderBy(o => o.Identity).ToList();
+                // 去除掉數字、空白、逗號
+                RemoveNumericAndBlank();
+                #endregion
+
+                return m_MemberInfomationPackage;
+            }
+            else
+            {
+                // 沒找到任何要點名的名單，所以是個人回報
+                m_MemberInfomationPackage.m_LoginType = "個人回報";
+
+                #region 取得個人回報的名單
+                this.m_Lists = this.m_ToolUtilityClass.QueryListOfContactManyToMany(this.m_ContactEntity.Id);
+                #endregion
+
+                #region 處理每個要點名的名單
+                m_SetIdentityFlag = false; // 因為新朋友、未入組會變更委身類型，旗標防止設定太多次，false表示尚未設定
+                ProcessPersonalListEntity();
+                #endregion
+
+                #region 排序委身類型、並且去除掉數字、空白、逗號
+                // 排序委身類型
+                m_MemberInfomationPackage.ListMemberInfomation = m_MemberInfomationPackage.ListMemberInfomation.OrderBy(o => o.Identity).ToList();
+                // 去除掉數字、空白、逗號
+                RemoveNumericAndBlank();
+                #endregion
+
+                return m_MemberInfomationPackage;
+            }
+            #endregion
+        }
+        #endregion
+        #region 處理個人回報
+        private void ProcessPersonalListEntity()
+        {
+            try
+            {
+                // 處理每個點名名單
+                foreach (Entity ListEntity in this.m_Lists.Entities)
+                {
+                    // 取得每個需要點名的名單裡的每個週報
+                    EntityCollection GroupWeeklyReportEntityCollection = m_ToolUtilityClass.RetrieveManyToOneRelationship("list", "listid", ListEntity.Id.ToString(), "new_list_group_present_weekly_report", "new_group_present_weekly_report");
+
+
+                    // 根據日期看有沒有那個週報
+                    Entity GroupWeeklyReportEntity = FilterWeeklyReportByDate(ref GroupWeeklyReportEntityCollection);
+
+                    //依據找到的週報有還是沒有來決定下一步:  
+                    //      有: 建立GroupName及WeeklyReportId
+                    //    沒有: 建立GroupName及WeeklyReportId = Guid.Empty();
+                    String GroupName = this.m_ToolUtilityClass.GetEntityStringAttribute(ListEntity, "listname");
+                    SetupPersonalMemberInfomationPackage(GroupName, ref GroupWeeklyReportEntity, ListEntity);
+                }
+                return;
+            }
+            catch (System.Exception Exception)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
+
+                throw Exception;
+            }
+        }
+
+        private void SetupPersonalMemberInfomationPackage(String GroupName, ref Entity GroupWeeklyReportEntity, Entity ListEntity)
+        {
+            try
+            {
+                GroupWeeklyReportGuid aGroupWeeklyReportGuid = new GroupWeeklyReportGuid();
+
+                if (GroupWeeklyReportEntity != null)
+                {
+                    #region 這個點名名單有找到主日周報，去找個人聚會與靈修記錄集合
+                    // 這個點名名單有找到主日周報，去找個人聚會與靈修記錄集合
+                    aGroupWeeklyReportGuid.WeeklyReportGuid = GroupWeeklyReportEntity.Id;
+                    // 回傳 APP 主日出席率
+                    aGroupWeeklyReportGuid.SundayPresentRate = m_ToolUtilityClass.GetEntityDoubleAttribute(GroupWeeklyReportEntity, "new_sunday_present_rate");
+                    // 回傳 APP 小組出席率
+                    aGroupWeeklyReportGuid.SmallGroupRate = m_ToolUtilityClass.GetEntityDoubleAttribute(GroupWeeklyReportEntity, "new_small_group_rate");
+                    this.m_MemberInfomationPackage.GroupWeeklyReportGuidList.Add(aGroupWeeklyReportGuid);
+
+                    // 在 APP 中會呈現的小組名稱
+                    aGroupWeeklyReportGuid.GroupName = GroupName;
+                    GetPersonalWeeklyReportMemberData(GroupName, GroupWeeklyReportEntity.Id);
+                    #endregion
+                }
+                else
+                {
+                    #region 這個點名名單沒有找到主日周報， 找點名名單的小組組員做為要點名的清單
+                    // 這個點名名單沒有找到主日周報， 找點名名單的小組組員做為要點名的清單
+                    // 回傳 APP 這是空的 Guid，表示沒找到週報
+                    aGroupWeeklyReportGuid.WeeklyReportGuid = Guid.Empty;
+                    // 回傳 APP 主日出席率
+                    aGroupWeeklyReportGuid.SundayPresentRate = 0;
+                    // 回傳 APP 小組出席率
+                    aGroupWeeklyReportGuid.SmallGroupRate = 0;
+
+                    this.m_MemberInfomationPackage.GroupWeeklyReportGuidList.Add(aGroupWeeklyReportGuid);
+
+                    // 在 APP 中會呈現的小組名稱
+                    aGroupWeeklyReportGuid.GroupName = GroupName;
+                    GetPersonalSmallGroupLeaderMemberData(GroupName, ListEntity.Id);
+                    #endregion
+                }
+            }
+            catch (System.Exception Exception)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
+
+                throw Exception;
+            }
+        }
+
+
+        private void GetPersonalWeeklyReportMemberData(String GroupName, Guid WeeklyReportId)
+        {
+            // 搜尋這個週報裡的所有個人聚會與靈修記錄集合
+            EntityCollection PresentRecordCollection = m_ToolUtilityClass.RetrieveManyToOneRelationship("new_group_present_weekly_report", "new_group_present_weekly_reportid", WeeklyReportId.ToString(), "new_group_present_weekly_report_prese", "new_present_record");
+
+            #region// 處理每個出席紀錄(個人聚會與靈修記錄集合)
+
+            foreach (Entity PresentRecordEntity in PresentRecordCollection.Entities)
+            {
+                if (this.m_ToolUtilityClass.GetEntityLookupAttribute(PresentRecordEntity, "new_contact_new_present_record") == this.m_ContactEntity.Id)
+                {
+                    // 有找到登入者的個人聚會與靈修記錄
+                    // 每個出席紀錄(個人聚會與靈修記錄集合)
+                    if (PresentRecordEntity.Attributes.Contains("statecode"))
+                    {
+                        OptionSetValue aOptionState = PresentRecordEntity.Attributes["statecode"] as OptionSetValue;
+
+                        if (aOptionState.Value == 0)
+                        {
+                            #region 只回傳使用中的每個出席紀錄
+                            #region 填寫 MemberInfomation 所需要的每個欄位
+                            #region// 出席紀錄組員的全名
+                            String FullName = "";
+                            EntityReference aFullNameEntityReference = new EntityReference();
+                            if (PresentRecordEntity.Attributes.Contains("new_contact_new_present_record"))
+                            {
+                                aFullNameEntityReference = (EntityReference)PresentRecordEntity.Attributes["new_contact_new_present_record"];
+
+                                FullName = (string)aFullNameEntityReference.Name;
+                            }
+                            else
+                            {
+                                continue;
+                            }
+                            #endregion
+                            #region// 依據紀錄組員的全名，找到手機號碼、家裡電話、地址
+                            Entity aContactEntity = this.m_ToolUtilityClass.RetrieveEntity("contact", aFullNameEntityReference.Id);
+                            // 組員的手機
+                            String aMobilePhone = "";
+                            if (aContactEntity.Attributes.Contains("mobilephone"))
+                            {
+                                aMobilePhone = (string)aContactEntity.Attributes["mobilephone"];
+                            }
+                            // 組員的家裡電話
+                            String aHomePhone = "";
+                            if (aContactEntity.Attributes.Contains("telephone2"))
+                            {
+                                aHomePhone = (string)aContactEntity.Attributes["telephone2"];
+                            }
+                            // 組員的地址
+                            String aAddress = "";
+                            if (aContactEntity.Attributes.Contains("address2_line1"))
+                            {
+                                aAddress = (string)aContactEntity.Attributes["address2_line1"];
+                            }
+                            // 組員的職業及專長
+                            String aIndustry = "";
+                            if (aContactEntity.Attributes.Contains("new_industry"))
+                            {
+                                aIndustry = (string)aContactEntity.Attributes["new_industry"];
+                            }
+
+                            #endregion
+                            #region// 委身類型
+                            String aIdentity = this.ConvertIndexToIdentity(this.m_ToolUtilityClass.GetOptionSetAttribute(ref aContactEntity, "customertypecode"));
+
+                            //aIdentity = Regex.Replace(aIdentity, "[0-9]", "");//過濾掉數字
+                            //aIdentity = aIdentity.Replace(" ", ""); // //過濾掉空白
+                            //aIdentity = aIdentity.Replace(".", ""); // //過濾掉逗號
+
+                            #endregion
+                            #region// 出席紀錄組員的手機
+                            String Telephone = "";
+                            if (PresentRecordEntity.Attributes.Contains("new_cell_hpone"))
+                            {
+                                Telephone = (string)PresentRecordEntity.Attributes["new_cell_hpone"];
+                            }
+                            #endregion
+                            #region// 出席紀錄組員的附註
+
+                            // 楊梅靈糧堂
+                            String aNote = "";
+                            //if (PresentRecordEntity.Attributes.Contains("new_name"))
+                            //{
+                            //    aNote = (string)PresentRecordEntity.Attributes["new_name"];
+                            //}
+                            if (PresentRecordEntity.Attributes.Contains("new_explanation"))
+                            {
+                                aNote = (string)PresentRecordEntity.Attributes["new_explanation"];
+                            }
+                            // 內壢得勝靈糧堂
+                            //String aNote = "";
+                            //if (PresentRecordEntity.Attributes.Contains("new_memo"))
+                            //{
+                            //    aNote = (string)PresentRecordEntity.Attributes["new_memo"];
+                            //}
+                            #endregion
+                            #region// 主日點名
+                            bool aSundayPresent = false;
+                            if (PresentRecordEntity.Attributes.Contains("new_sunday_present_this_week"))
+                            {
+                                if ((int)PresentRecordEntity.Attributes["new_sunday_present_this_week"] > 0)
+                                { aSundayPresent = true; }
+                            }
+                            #endregion
+                            #region// 小組點名
+                            bool aSmallGroupPresent = false;
+                            if (PresentRecordEntity.Attributes.Contains("new_group_present_this_week"))
+                            {
+                                if ((int)PresentRecordEntity.Attributes["new_group_present_this_week"] > 0)
+                                { aSmallGroupPresent = true; }
+                            }
+                            #endregion
+                            #region// 禱告次數，靈修次數
+                            // 禱告次數
+                            int aPrayNumber = 0;
+                            if (PresentRecordEntity.Attributes.Contains("new_general_care"))
+                            {
+                                aPrayNumber = (int)PresentRecordEntity.Attributes["new_general_care"];
+                            }
+                            // 靈修次數
+                            int aSpiritNumber = 0;
+                            if (PresentRecordEntity.Attributes.Contains("new_spiritual_work"))
+                            {
+                                aSpiritNumber = (int)PresentRecordEntity.Attributes["new_spiritual_work"];
+                            }
+                            // 早禱
+                            int aFamilyNumber = 0;
+                            if (PresentRecordEntity.Attributes.Contains("new_morning_pray"))
+                            {
+                                aFamilyNumber = (int)PresentRecordEntity.Attributes["new_morning_pray"];
+                            }
+                            // 晚禱
+                            int aWorkAndCampusNumber = 0;
+                            if (PresentRecordEntity.Attributes.Contains("new_evening_pray"))
+                            {
+                                aWorkAndCampusNumber = (int)PresentRecordEntity.Attributes["new_evening_pray"];
+                            }
+                            #endregion
+                            #region// 本週牧養狀態
+                            // 本週牧養狀態(內壢得勝靈糧堂專用)
+                            String aShepherdStatus = "";
+                            if (PresentRecordEntity.Attributes.Contains("new_shepherd_situation"))
+                            {
+                                aShepherdStatus = (String)PresentRecordEntity.Attributes["new_shepherd_situation"];
+                            }
+                            //一對一牧養材料(內壢得勝靈糧堂專用)
+                            String aOneOnOne = "";
+                            if (PresentRecordEntity.Attributes.Contains("new_onebyone_situation"))
+                            {
+                                aOneOnOne = (String)PresentRecordEntity.Attributes["new_onebyone_situation"];
+                            }
+                            // 培訓系統選項(內壢得勝靈糧堂專用)
+                            String aTraining = "";
+                            if (PresentRecordEntity.Attributes.Contains("new_training_system"))
+                            {
+                                aTraining = (String)PresentRecordEntity.Attributes["new_training_system"];
+                            }
+                            // 裝備課程的英文名字可能是有點取錯了可是因為表單已經取了，就先將錯就錯先了
+                            // 裝備課程(內壢得勝靈糧堂專用)
+                            String aIncubate = "";
+                            if (PresentRecordEntity.Attributes.Contains("new_equipment_class"))
+                            {
+                                aIncubate = (String)PresentRecordEntity.Attributes["new_equipment_class"];
+                            }
+                            #endregion
+                            #region// 新人跟進週次、結果、下一步驟、歷程記錄
+
+                            //新人跟進週次
+                            String aFollowUpWeek = "";
+                            if (PresentRecordEntity.Attributes.Contains("new_weeks"))
+                            {
+                                int OptionValue = this.m_ToolUtilityClass.GetOptionSetAttribute(PresentRecordEntity, "new_weeks");
+                                aFollowUpWeek = ConvertIndexToFollowUpWeekPicker(OptionValue);
+                            }
+
+                            //新人跟進結果
+                            String aFollowUpResult = "";
+                            if (PresentRecordEntity.Attributes.Contains("new_conclusion_choise"))
+                            {
+                                int OptionValue = this.m_ToolUtilityClass.GetOptionSetAttribute(PresentRecordEntity, "new_conclusion_choise");
+                                aFollowUpResult = ConvertIndexToFollowUpResultPicker(OptionValue);
+                            }
+
+                            //新人跟進下一步驟
+                            String aFollowUpNextStep = "";
+                            if (PresentRecordEntity.Attributes.Contains("new_next_step"))
+                            {
+                                int OptionValue = this.m_ToolUtilityClass.GetOptionSetAttribute(PresentRecordEntity, "new_next_step");
+                                aFollowUpNextStep = ConvertIndexToFollowUpNextStepPicker(OptionValue);
+                            }
+
+                            // 跟進方式選項
+                            String aFollowUpOption = "";
+                            if (PresentRecordEntity.Attributes.Contains("new_followup_ways"))
+                            {
+                                int OptionValue = this.m_ToolUtilityClass.GetOptionSetAttribute(PresentRecordEntity, "new_followup_ways");
+                                aFollowUpOption = ConvertIndexToFollowUpOptionPicker(OptionValue);
+                            }
+
+                            // 跟進方式
+                            String aFollowUp = "";
+                            if (PresentRecordEntity.Attributes.Contains("new_follow_up"))
+                            {
+                                aFollowUp = (String)PresentRecordEntity.Attributes["new_follow_up"];
+                            }
+
+                            // 備註
+                            String aFollowUpNote = "";
+                            if (PresentRecordEntity.Attributes.Contains("new_explanation"))
+                            {
+                                aFollowUpNote = (String)PresentRecordEntity.Attributes["new_explanation"];
+                            }
+
+
+                            // 取得新人跟進週次，及跟進歷程記錄
+                            String aNewComerNote = GetNewComerFollowupInfo(aFullNameEntityReference.Id, ref aFollowUpWeek);
+
+                            #endregion
+                            #endregion
+
+                            #region 傳回給手機的資料
+                            MemberInfomation aMemberInfomation = new MemberInfomation()
+                            {
+                                Group = GroupName,
+                                Name = FullName,
+                                Identity = aIdentity,
+                                Phone = DigitsOnly.Replace(aMobilePhone, ""),
+                                HomePhone = DigitsOnly.Replace(aHomePhone, ""),
+                                Address = aAddress,
+                                Industry = aIndustry,
+                                Note = aNote,
+                                Date = "2015/10/6", //隨意設定的日期，只是預備將來要用的
+                                Number = 5,         //隨意設定的數字，只是預備將來要用的
+                                SundayPresent = aSundayPresent, //主日出席
+                                SmallGroupPresent = aSmallGroupPresent,//小組出席
+                                PrayNumber = aPrayNumber, //禱告次數
+                                SpiritNumber = aSpiritNumber,// 靈修次數
+                                FamilyNumber = aFamilyNumber, // 早禱
+                                WorkAndCampusNumber = aWorkAndCampusNumber,// 晚禱
+                                ShepherdStatus = aShepherdStatus,// 本週牧養狀態(內壢得勝靈糧堂專用)
+                                OneOnOne = aOneOnOne,//一對一牧養材料(內壢得勝靈糧堂專用)
+                                Training = aTraining, //培訓系統選項(內壢得勝靈糧堂專用)
+                                Incubate = aIncubate, // 裝備課程(內壢得勝靈糧堂專用)
+                                FollowUpWeek = aFollowUpWeek, //新人跟進週次
+                                FollowUpResult = aFollowUpResult,//新人跟進結果
+                                FollowUpNextStep = aFollowUpNextStep,//新人跟進下一步驟
+                                FollowUpOption = aFollowUpOption,// 跟進方式選項
+                                FollowUp = aFollowUp,// 跟進方式
+                                FollowUpNote = aFollowUpNote,// 備註
+                                NewComerNote = aNewComerNote // 取得新人跟進週次，及跟進歷程記錄
+                            };
+                            #endregion
+
+                            #region 10.未入組結案" 不用進入 APP
+                            if (aIdentity != "10. 未入組結案")
+                            {
+                                // 10.未入組結案" 不用進入 APP
+                                // 其他的則加入進來
+                                this.m_MemberInfomationPackage.ListMemberInfomation.Add(aMemberInfomation);
+                            }
+                            #endregion
+
+                            #endregion
+                        }
+                        else
+                        {
+                            //String StateCode = "非使用中";
+                        }
+                    }
+                    break;// 有找到登入者的個人聚會與靈修記錄，所以就跳出迴圈
+                }
             }
             #endregion
 
-            #region 處理每個要點名的名單
-            m_SetIdentityFlag = false; // 因為新朋友、未入組會變更委身類型，旗標防止設定太多次，false表示尚未設定
-            ProcessListEntity();
-            #endregion
-
-            #region 排序委身類型、並且去除掉數字、空白、逗號
-            // 排序委身類型
-            m_MemberInfomationPackage.ListMemberInfomation = m_MemberInfomationPackage.ListMemberInfomation.OrderBy(o => o.Identity).ToList();
-            // 去除掉數字、空白、逗號
-            RemoveNumericAndBlank();
-            #endregion
-
-            return m_MemberInfomationPackage;
-
+            return;
         }
+
+        private void GetPersonalSmallGroupLeaderMemberData(String GroupName, Guid ListEntityId)
+        {
+            #region // 處理每個小組名單
+            //搜尋名單的組員
+            //EntityCollection Contacts = m_ToolUtilityClass.RetrieveManyToOneRelationship("list", "listid", ListEntityId.ToString(), "new_cell_list_contact", "contact");
+
+            Entity ListEntity = this.m_ToolUtilityClass.RetrieveEntity("list", ListEntityId);
+
+            bool ListType = this.m_ToolUtilityClass.GetEntityBoolAttribute(ListEntity, "type");
+            EntityCollection MemberCollection;
+            if (ListType == false)
+            {
+                // 靜態名單
+                if (CRM_TYPE == "DYNAMICS365")
+                {
+                    MemberCollection = this.m_ToolUtilityClass.RetrieveMemberListCollectionByListIdDynamics365(ref this.m_ToolUtilityClass.m_OrganizationService, ListEntityId);
+                }
+                else
+                {
+                    MemberCollection = this.m_ToolUtilityClass.RetrieveMemberListCollectionByListIdCrm2011(ref this.m_ToolUtilityClass.m_Crm2011OrganizationService, ListEntityId);
+                }
+            }
+            else
+            {
+                // 動態名單
+                if (CRM_TYPE == "DYNAMICS365")
+                {
+                    MemberCollection = this.m_ToolUtilityClass.RetrieveDynamicMemberListDynamics365(ref this.m_ToolUtilityClass.m_OrganizationService, ListEntityId);
+                }
+                else
+                {
+                    MemberCollection = this.m_ToolUtilityClass.RetrieveDynamicMemberListCrm2011(ref this.m_ToolUtilityClass.m_Crm2011OrganizationService, ListEntityId);
+                }
+            }
+
+            foreach (Entity MemberEntity in MemberCollection.Entities)
+            {
+                // 每個組員
+                Entity ContactEntity;
+
+                if (ListType == false)
+                {
+                    // 靜態名單
+                    ContactEntity = m_ToolUtilityClass.RetrieveEntity("contact", ((EntityReference)MemberEntity.Attributes["entityid"]).Id);
+                }
+                else
+                {
+                    // 動態名單
+                    ContactEntity = m_ToolUtilityClass.RetrieveEntity("contact", (Guid)MemberEntity.Attributes["contactid"]);
+                }
+
+                if (ContactEntity.Id == this.m_ContactEntity.Id)
+                {
+                    // 在名單中找到登入者的ID 
+                    if (ContactEntity.Attributes.Contains("statecode"))
+                    {
+                        OptionSetValue aOptionState = ContactEntity.Attributes["statecode"] as OptionSetValue;
+
+                        if (aOptionState.Value == 0)
+                        {
+                            #region 只回傳使用中的組員
+
+                            // 組員的全名
+                            String FullName = "";
+                            if (ContactEntity.Attributes.Contains("fullname"))
+                            {
+                                FullName = (string)ContactEntity.Attributes["fullname"];
+                            }
+                            // 組員的手機
+                            String aMobilePhone = "";
+                            if (ContactEntity.Attributes.Contains("mobilephone"))
+                            {
+                                aMobilePhone = (string)ContactEntity.Attributes["mobilephone"];
+                            }
+                            // 組員的家裡電話
+                            String aHomePhone = "";
+                            if (ContactEntity.Attributes.Contains("telephone2"))
+                            {
+                                aHomePhone = (string)ContactEntity.Attributes["telephone2"];
+                            }
+                            // 組員的地址
+                            String aAddress = "";
+                            if (ContactEntity.Attributes.Contains("address2_line1"))
+                            {
+                                aAddress = (string)ContactEntity.Attributes["address2_line1"];
+                            }
+                            // 組員的職業及專長
+                            String aIndustry = "";
+                            if (ContactEntity.Attributes.Contains("new_industry"))
+                            {
+                                aIndustry = (string)ContactEntity.Attributes["new_industry"];
+                            }
+
+                            #region// 委身類型
+                            String aIdentity = this.ConvertIndexToIdentity(this.m_ToolUtilityClass.GetOptionSetAttribute(ref ContactEntity, "customertypecode"));
+
+                            //aIdentity = Regex.Replace(aIdentity, "[0-9]", "");//過濾掉數字
+                            //aIdentity = aIdentity.Replace(" ", ""); // //過濾掉空白
+                            //aIdentity = aIdentity.Replace(".", ""); // //過濾掉逗號
+
+                            #endregion
+
+
+                            // 取得新人跟進週次，及跟進歷程記錄
+                            String aFollowUpWeek = "";
+                            String aNewComerNote = GetNewComerFollowupInfo(ContactEntity.Id, ref aFollowUpWeek);
+
+                            MemberInfomation aMemberInfomation = new MemberInfomation()
+                            {
+                                Group = GroupName,
+                                Name = FullName,
+                                Identity = aIdentity,
+                                Phone = DigitsOnly.Replace(aMobilePhone, ""),
+                                HomePhone = DigitsOnly.Replace(aHomePhone, ""),
+                                Address = aAddress,
+                                Industry = aIndustry,
+                                Note = "",
+                                Date = "2015/10/6",
+                                Number = 5,
+                                SundayPresent = false,
+                                SmallGroupPresent = false,
+
+                                PrayNumber = 0,
+                                SpiritNumber = 0,
+                                FamilyNumber = 0,
+                                WorkAndCampusNumber = 0,
+                                ShepherdStatus = "",
+                                OneOnOne = "",
+                                Training = "",
+                                Incubate = "",
+                                FollowUpWeek = aFollowUpWeek,
+                                FollowUpResult = ".",
+                                FollowUpNextStep = ".",
+                                FollowUpOption = "",
+                                FollowUp = "",
+                                FollowUpNote = "",
+                                NewComerNote = aNewComerNote
+                            };
+
+                            if (aIdentity != "10.未入組結案")
+                            {
+                                // "10.未入組結案" 不用進入 APP
+                                this.m_MemberInfomationPackage.ListMemberInfomation.Add(aMemberInfomation);
+                            }
+
+                            #endregion
+                        }
+                        else
+                        { //String StateCode = "非使用中";
+                        }
+                    }
+
+                    break; // 在名單中找到登入者的ID就跳出
+                }
+            }
+            #endregion
+
+            return;
+        }
+
         #endregion
+
         #region 副程式呼叫
         private void RemoveNumericAndBlank()
         {
@@ -268,6 +811,7 @@ namespace ChurchReport.WebServiceConnector
         {
             try
             {
+                // 族系族長或是區長的名單若是與小組長名單重疊，則要過濾出僅有族長/區長的名單
                 // 合併小組名單至族系名單，單扣除掉重複的
                 // 然後放在小組名單裡面
                 foreach (Entity RaceListEntity in aListEntityCollection.Entities)
@@ -322,6 +866,7 @@ namespace ChurchReport.WebServiceConnector
 
                         if (AppNamed == true)
                         {
+                            // 需要點名的名單才進來
                             this.m_Lists.Entities.Add(ListEntity);
                         }
                     }
@@ -423,6 +968,7 @@ namespace ChurchReport.WebServiceConnector
                 {
                     // 取得每個需要點名的名單裡的每個週報
                     EntityCollection GroupWeeklyReportEntityCollection = m_ToolUtilityClass.RetrieveManyToOneRelationship("list", "listid", ListEntity.Id.ToString(), "new_list_group_present_weekly_report", "new_group_present_weekly_report");
+                    
 
                     // 根據日期看有沒有那個週報
                     Entity GroupWeeklyReportEntity = FilterWeeklyReportByDate(ref GroupWeeklyReportEntityCollection);

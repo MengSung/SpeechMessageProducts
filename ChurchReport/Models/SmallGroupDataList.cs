@@ -475,18 +475,29 @@ namespace ChurchReport.Models
                 // 全部的名單，更新基本資料要用的
                 m_AllMemeberData.Members.Add(aMember);
 
-                if (aMember.Status == "區牧長" || aMember.Status == "區牧" || aMember.Status == "區長" || aMember.Status == "小組長" || aMember.Status == "實習小組長" || aMember.Status == "小組組員")
+                if ( m_MemberInfomationPackage.m_LoginType == "小組長")
                 {
-                    // 小組長牧養點名
-                    m_SmallGroupData.Members.Add(aMember);
+                    #region 登入者是小組長
+                    if (aMember.Status == "區牧長" || aMember.Status == "區牧" || aMember.Status == "區長" || aMember.Status == "小組長" || aMember.Status == "實習小組長" || aMember.Status == "小組組員")
+                    {
+                        // 小組長牧養點名
+                        m_SmallGroupData.Members.Add(aMember);
+                    }
+                    else
+                    {
+                        if (aMember.Status != "結案")
+                        {
+                            // 新人跟進關懷
+                            m_NewPersonFollowUpData.Members.Add(aMember);
+                        }
+                    }
+                    #endregion
                 }
                 else
                 {
-                    if( aMember.Status != "結案")
-                    {
-                        // 新人跟進關懷
-                        m_NewPersonFollowUpData.Members.Add(aMember);
-                    }
+                    #region 登入者是個人回報
+                    m_SmallGroupData.Members.Add(aMember);
+                    #endregion
                 }
 
                 IdIndex++;

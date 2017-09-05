@@ -2172,7 +2172,7 @@ namespace ToolUtilityNameSpace
                     ConditionExpression DateTimeConditionPrincipal = new ConditionExpression();
                     DateTimeConditionPrincipal.AttributeName = @"new_sunday_date";
                     DateTimeConditionPrincipal.Operator = ConditionOperator.Equal;
-                    DateTimeConditionPrincipal.Values.Add( aSunday.ToString() );
+                    DateTimeConditionPrincipal.Values.Add(aSunday.ToString());
 
 
                     // Build the filter that is based on the condition.
@@ -2180,7 +2180,7 @@ namespace ToolUtilityNameSpace
                     filter.FilterOperator = LogicalOperator.And;
                     filter.Conditions.Add(condition);
                     filter.Conditions.Add(StateCondidtion);
-                    //filter.Conditions.Add(DateTimeConditionPrincipal);
+                    filter.Conditions.Add(DateTimeConditionPrincipal);
                     #endregion
 
                     #region // Create a LinkEntity to link the owner's information to the account.
@@ -2199,7 +2199,8 @@ namespace ToolUtilityNameSpace
                         LinkToAttributeName = ParentEntityIdName,
 
                         // The entity being linked to is systemuser.
-                        LinkToEntityName = ParentEntityName
+                        LinkToEntityName = ParentEntityName,
+
                     };
                     #endregion
 
