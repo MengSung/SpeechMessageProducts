@@ -82,6 +82,7 @@ namespace ChurchReport.WebServiceConnector
         #endregion
         #region 下載資料區
         #region 真實運作區塊，並非模擬區塊
+        #region 主程式區
         public MemberInfomationPackage GetMemberDataPackage(DateTime aDownloadDate, AccountPasswordData aAccountPasswordData)
         {
             #region 先根據日期尋找當週主日日期
@@ -110,8 +111,8 @@ namespace ChurchReport.WebServiceConnector
             this.m_Sunday = aDownloadDate.AddDays(-DayOfWeek);
             #endregion
 
-            #region 找小組長及其ID
-            FindGroupLeader(aAccountPasswordData);
+            #region 找登入使用者及其ID
+            FindLoginUser(aAccountPasswordData);
             if (m_ContactId == Guid.Empty) //是否有找到小組長的ID
             { return null; } // 沒找到就回傳 null 
             #endregion
@@ -139,6 +140,8 @@ namespace ChurchReport.WebServiceConnector
             return m_MemberInfomationPackage;
 
         }
+        #endregion
+        #region 副程式呼叫
         private void RemoveNumericAndBlank()
         {
             foreach (MemberInfomation aMemberInfomation in m_MemberInfomationPackage.ListMemberInfomation)
@@ -149,9 +152,9 @@ namespace ChurchReport.WebServiceConnector
                 aMemberInfomation.Identity = aMemberInfomation.Identity.Replace(".", ""); // //過濾掉逗號
             }
         }
-        private void FindGroupLeader(AccountPasswordData aAccountPasswordData)
+        private void FindLoginUser(AccountPasswordData aAccountPasswordData)
         {
-            // 找小組長及其ID
+            // 找登入使用者及其ID
             if (aAccountPasswordData.Account != "LineIdLogin")
             {
                 this.m_ContactEntity = this.m_ToolUtilityClass.RetrieveContactEntityByAccountNumber(aAccountPasswordData.Account, aAccountPasswordData.Password);
@@ -1719,6 +1722,7 @@ namespace ChurchReport.WebServiceConnector
 
             return;
         }
+        #endregion
         #endregion
         #region 模擬回覆下載資料
         public MemberInfomationPackage DownloadMemberPackageDataByDate_XamarinSimulation(DateTime aDownloadDate, AccountPasswordData aAccountPasswordData)
