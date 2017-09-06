@@ -154,7 +154,6 @@ namespace ToolUtilityNameSpace
         private const String DOMAIN = "DYNAMICS-365";
         #endregion
 
-
         #region 僅供參考區塊
         //private String _discoveryServiceAddress = "https://tpehoc.speechmessage.com.tw/XRMServices/2011/Discovery.svc";
         private String BASE_DISCOVERY_SERVICE_ADDRESS = "/XRMServices/2011/Discovery.svc";

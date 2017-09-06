@@ -2898,7 +2898,7 @@ namespace ChurchReport.WebServiceConnector
                         }
                         else
                         {
-                            //this.m_ToolUtilityClass.SetEntityDoubleAttribute(ref aMachedPresentRecordEntity, "new_sunday_rate", 0.0);
+                            this.m_ToolUtilityClass.SetEntityDoubleAttribute(ref aMachedPresentRecordEntity, "new_sunday_rate", 0.0);
                         }
                         #endregion
                         #region 設定小組出席
@@ -2930,7 +2930,7 @@ namespace ChurchReport.WebServiceConnector
                         }
                         else
                         {
-                            //this.m_ToolUtilityClass.SetEntityDoubleAttribute(ref aMachedPresentRecordEntity, "new_small_group_rate", 0);
+                            this.m_ToolUtilityClass.SetEntityDoubleAttribute(ref aMachedPresentRecordEntity, "new_small_group_rate", 0);
                         }
                         #endregion
                         #region 設定附註或是代禱事項
