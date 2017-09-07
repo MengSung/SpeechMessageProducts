@@ -1,5 +1,6 @@
 ﻿@{
     String DataStatus = "上傳成功了!";
+    String ReUpload = "您的代禱事項尚未儲存，請再上傳一次!";
 }
 
 
@@ -82,6 +83,13 @@
                 // 顯示旋轉鈕
                 $("#loadPanel").dxLoadPanel("instance").show();
 
+                var dataGrid = $("#gridContainer").dxDataGrid("instance");
+
+                //debugger;
+                var Flag = dataGrid.hasEditData();
+
+                if(Flag == false)
+                {
                 // AJAX 區塊
                 $.ajax
                 (
@@ -107,11 +115,20 @@
                 }
                 );
                 // AJAX 區塊
+                }
+                else
+                {
+                // 隱藏旋轉鈕
+                $("#loadPanel").dxLoadPanel("instance").hide();
 
+                // 顯示再上傳一次
+                $("#ToastReUpload").dxToast("instance").show();
+                }
                 }
                 </text>)
             )
         </div>
+
         <div id="ToastContainer">
             @(Html.DevExtreme().Toast()
                 .ID("toast")
@@ -124,6 +141,20 @@
             )
 
         </div>
+        <div id="ToastContainer">
+            @(Html.DevExtreme().Toast()
+                    .ID("ToastReUpload")
+                    .Position(p => p
+                    .At(HorizontalAlignment.Center, VerticalAlignment.Center)
+                    .Offset(0, 50))
+                    .Message(ReUpload)
+                    .DisplayTime(5000)
+                    .Type(ToastType.Error)
+                    .MaxWidth(500)
+            )
+
+        </div>
+
         <div id="LoadPanel">
             @(Html.DevExtreme().LoadPanel()
                 .ID("loadPanel")
