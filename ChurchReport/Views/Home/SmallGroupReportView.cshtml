@@ -1,5 +1,6 @@
 ﻿@{
     String DataStatus = "上傳成功了!";
+    String ReUpload = "您的代禱事項尚未儲存，請再上傳一次!";
 }
 
 
@@ -77,38 +78,67 @@
 
                 .OnClick
                 (@<text>
+
                     function(arg) 
                     {
                             // 顯示旋轉鈕
                             $("#loadPanel").dxLoadPanel("instance").show();
 
-                            // AJAX 區塊
-                            $.ajax
-                            (
-                               {
-                                    url: '@Url.Action("SaveSmallGroup", "Home")',
-                                    data: { aResult: GetResult() }, // 整理回傳給 Server 的點名資料
-                                    type: 'POST', //POST if you want to save, GET if you want to fetch data from server
+                            var dataGrid = $("#gridContainer").dxDataGrid("instance");
+                
+                            debugger;
+                            var Flag = dataGrid.hasEditData();
+                            //var Status = dataGrid.state();
 
-                                    success: function (arg) 
-                                    {
-                                        // 隱藏旋轉鈕
-                                        $("#loadPanel").dxLoadPanel("instance").hide();
+                            //dataGrid.saveEditData();
+                            //dataGrid.repaint();
+                            //dataGrid.refresh();
+                            //dataGrid.closeEditCell();
+                            //dataGrid.focus();
 
-                                        // 顯示上傳成功
-                                        $("#toast").dxToast("instance").show();
-                                    },
+                
+                            if( Flag )
+                            {
+                                // 隱藏旋轉鈕
+                                $("#loadPanel").dxLoadPanel("instance").hide();
 
-                                    error: function (obj) 
-                                    {
-                                       //alert('Something happened');
-                                    }
+                                // 顯示請再上傳一次
+                                $("#ToastReUpload").dxToast("instance").show();
+                            }
+                            else
+                            {
 
-                                 }
-                              );
-                              // AJAX 區塊
+                                        // AJAX 區塊
+                                        $.ajax
+                                        (
+                                           {
+                                                url: '@Url.Action("SaveSmallGroup", "Home")',
+                                                data: { aResult: GetResult() }, // 整理回傳給 Server 的點名資料
+                                                type: 'POST', //POST if you want to save, GET if you want to fetch data from server
 
-                      }
+                                                success: function (arg) 
+                                                {
+                                                    // 隱藏旋轉鈕
+                                                    $("#loadPanel").dxLoadPanel("instance").hide();
+
+                                                    // 顯示上傳成功
+                                                    $("#toast").dxToast("instance").show();
+                                                },
+
+                                                error: function (obj) 
+                                                {
+                                                   //alert('Something happened');
+                                                }
+
+                                             }
+                                          );
+                                          // AJAX 區塊
+
+
+                              }//else
+
+                      }//function(arg) 
+
                    </text>)
              )
             </div>
@@ -141,6 +171,18 @@
                 //.OnHidden("loadPanel_hidden")
                 )
             </div>
+            <div id="ToastContainer">
+                @(Html.DevExtreme().Toast()
+                .ID("ToastReUpload")
+                .Position(p => p
+                .At(HorizontalAlignment.Center, VerticalAlignment.Center)
+                .Offset(0, 50))
+                .Message(ReUpload)
+                .DisplayTime(5000)
+                .MaxWidth(200)
+                )
+
+            </div>
         </div>
     </div>
 
@@ -161,6 +203,11 @@
             .SearchPanel(s => s.Visible(true).Placeholder("搜尋.."))
 
 
+            .StateStoring(s => s
+            .Enabled(true)
+            .Type(StateStoringType.LocalStorage)
+            .StorageKey("FullName")
+            )
             //.StateStoring(s => s
             //    .Enabled(true)
             //    .Type(StateStoringType.LocalStorage)
@@ -184,7 +231,6 @@
 
             .TwoWayBindingEnabled(true)
 
-
             .Grouping
             (g => g
             .ContextMenuEnabled(true)
@@ -206,17 +252,17 @@
 
             .Editing(editing =>
             {
-            //editing.Mode(GridEditMode.Batch);
-            //editing.Mode(GridEditMode.Row);
-            editing.Mode(GridEditMode.Cell);
-            //editing.Mode(GridEditMode.Batch);
-            //editing.Mode(GridEditMode.Form);
-            //editing.Mode(GridEditMode.Popup);
-            editing.AllowUpdating(true);
-            //editing.AllowAdding(true);
-            //editing.
-            editing.Texts(a => a.SaveAllChanges("上傳檔案").AddRow("新增").CancelAllChanges("取消變更"));
-            //editing.AllowDeleting(true);
+                //editing.Mode(GridEditMode.Batch);
+                //editing.Mode(GridEditMode.Row);
+                editing.Mode(GridEditMode.Cell);
+                //editing.Mode(GridEditMode.Batch);
+                //editing.Mode(GridEditMode.Form);
+                //editing.Mode(GridEditMode.Popup);
+                editing.AllowUpdating(true);
+                editing.AllowDeleting(true);
+                //editing.AllowAdding(true);
+                editing.Texts(a => a.SaveAllChanges("上傳檔案").AddRow("新增").CancelAllChanges("取消變更"));
+                //editing.AllowDeleting(true);
             })
 
     .Columns(columns =>
