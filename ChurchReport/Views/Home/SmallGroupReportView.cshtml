@@ -83,7 +83,7 @@
 
                         var dataGrid = $("#gridContainer").dxDataGrid("instance");
 
-                        debugger;
+                        //debugger;
                         var Flag = dataGrid.hasEditData();
 
                         if(Flag == false)
@@ -119,44 +119,9 @@
                         }
                         else
                         {
-                            // 顯示旋轉鈕
-                            //$("#loadPanel").dxLoadPanel("instance").show();
-
-                            // 隱藏旋轉鈕
-                            //$("#loadPanel").dxLoadPanel("instance").hide();
 
                             // 顯示再上傳一次
-                            //$("#ToastReUpload").dxToast("instance").show();
-
-                            dataGrid.refresh();
-
-                            setTimeout(function(){ alert("Hello"); }, 3000);
-
-                            // AJAX 區塊
-                            $.ajax
-                            (
-                                {
-                                    url: '@Url.Action("SaveSmallGroup", "Home")',
-                                    data: { aResult: GetResult() }, // 整理回傳給 Server 的點名資料
-                                    type: 'POST', //POST if you want to save, GET if you want to fetch data from server
-
-                                    success: function (arg)
-                                    {
-                                        // 隱藏旋轉鈕
-                                        $("#loadPanel").dxLoadPanel("instance").hide();
-
-                                        // 顯示上傳成功
-                                        $("#toast").dxToast("instance").show();
-                                    },
-
-                                    error: function (obj)
-                                    {
-                                        //alert('Something happened');
-                                    }
-
-                                }
-                            );
-                            // AJAX 區塊
+                            $("#ToastReUpload").dxToast("instance").show();
 
                         }
                     }
