@@ -2168,10 +2168,10 @@ namespace ToolUtilityNameSpace
                     //
                     //// Set the ConditionExpressions properties so that the condition is true when the 
                     //// ownerid of the account equals the principalId.
-                    ConditionExpression DateTimeConditionPrincipal = new ConditionExpression();
-                    DateTimeConditionPrincipal.AttributeName = @"new_sunday_date";
-                    DateTimeConditionPrincipal.Operator = ConditionOperator.Equal;
-                    DateTimeConditionPrincipal.Values.Add(aSunday.ToString());
+                    //ConditionExpression DateTimeConditionPrincipal = new ConditionExpression();
+                    //DateTimeConditionPrincipal.AttributeName = @"new_sunday_date";
+                    //DateTimeConditionPrincipal.Operator = ConditionOperator.Equal;
+                    //DateTimeConditionPrincipal.Values.Add(aSunday.ToString());
 
 
                     // Build the filter that is based on the condition.
@@ -2179,7 +2179,7 @@ namespace ToolUtilityNameSpace
                     filter.FilterOperator = LogicalOperator.And;
                     filter.Conditions.Add(condition);
                     filter.Conditions.Add(StateCondidtion);
-                    filter.Conditions.Add(DateTimeConditionPrincipal);
+                    //filter.Conditions.Add(DateTimeConditionPrincipal);
                     #endregion
 
                     #region // Create a LinkEntity to link the owner's information to the account.

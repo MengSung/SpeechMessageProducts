@@ -1,5 +1,5 @@
 ﻿function syncTreeViewSelection(treeView, value) {
-    debugger;
+    //debugger;
 
     //alert("syncTreeViewSelection");
 
@@ -19,7 +19,7 @@
 }
 
 function treeBox_valueChanged(e) {
-    debugger;
+    //debugger;
 
     //alert("treeBox_valueChanged");
 

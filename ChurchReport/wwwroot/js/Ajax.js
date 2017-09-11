@@ -19,7 +19,7 @@
         function Save(arg) {
             //alert("上傳了!");
 
-            debugger;
+            //debugger;
 
             //alert('上傳了! 001');
             var dataGrid = $('#gridContainer');
@@ -75,7 +75,7 @@
             //-- You can also convert this to UTC Date format
             //-- UTC Usage: getUTCMonth(), getUTCFullYear(), getUTCHours() ...
 
-            debugger;
+            //debugger;
 
             alert("天下一統");
 

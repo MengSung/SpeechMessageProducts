@@ -59,10 +59,13 @@ namespace ChurchReport.WebServiceConnector
 
         #endregion
         #endregion
-
         #region 上傳資料時所需要的參數
 
+        //使用者 Client端傳回來的資料
         MemberInfomationPackage m_MemberInfomationPackage = new MemberInfomationPackage();
+        //沒有週報，需要初始化的Member Data
+        MemberInfomationPackage m_InitializedMemberInfomationPackage = new MemberInfomationPackage();
+
         DateTime m_Sunday;
         Entity m_ContactEntity; //登入者在系統裡的實體
         Guid m_ContactId; //登入者在系統裡的ID
@@ -81,9 +84,7 @@ namespace ChurchReport.WebServiceConnector
         //List<Place2> m_GroupNamePlaces = new List<Place2>(); // 依據群組名稱過濾出來的會眾集合
         List<MemberInfomation> m_GroupNamedListMemberInfomation = new List<MemberInfomation>(); // 依據群組名稱過濾出來的會眾集合
         #endregion
-
         #region 上傳資料區
-
         #region WCF Service端
         #region 主程式
         public List<GroupWeeklyReportGuid> UploadMemberDataPackage(AccountPasswordData aAccountPasswordData, DateTime aSunday, String UploadCategory, MemberInfomationPackage aMemberInfomationPackage)
@@ -181,7 +182,7 @@ namespace ChurchReport.WebServiceConnector
                                     int aWeeklySundayNumber = 0;
                                     int aWeeklySmallGroupNumber = 0;
 
-                                    aGraceLeaderWeeklyReportEntity = ToCreateWeeklyReport( GroupName, aGroupWeeklyReportGuid, ref aListEntity, UploadCategory, ValidNumber, ref aWeeklySundayRate, ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber);
+                                    aGraceLeaderWeeklyReportEntity = CreateWeeklyReportAndPresentRecord( GroupName, aGroupWeeklyReportGuid, ref aListEntity, UploadCategory, ValidNumber, ref aWeeklySundayRate, ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber);
                                 }
                                 #endregion
                                 #endregion
@@ -746,64 +747,6 @@ namespace ChurchReport.WebServiceConnector
         }
         #endregion
         #region 建立的週報
-        private Entity ToCreateWeeklyReport( String GroupName, GroupWeeklyReportGuid aGroupWeeklyReportGuid, ref Entity aListEntity, String UploadCategory, Double ValidNumber, ref Double aWeeklySundayRate, ref Double aWeeklySmallGroupRate, ref int aWeeklySundayNumber, ref int aWeeklySmallGroupNumber)
-        {
-            try
-            {
-                // 建立週報
-                Guid aCreatedWeeklyReportId = CreateWeeklyReport(ref aListEntity);
-
-                // 更新個人資料:手機、家裡電話、地址、設定委身類型
-                // 建立的個人聚會與靈修記錄
-                // 同時整理並取得:主日出席回報、小組出席回報、新人跟進字串，因為這樣就可以一魚兩吃，比較有效能一點
-                int ValidSundayMemberNumber = 0;
-                int ValidSmallGroupMemberNumber = 0;
-                CreatePresentRecordList( GroupName, ref aListEntity, ref aCreatedWeeklyReportId, ValidNumber, ref aWeeklySundayRate, ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber, ref ValidSundayMemberNumber, ref ValidSmallGroupMemberNumber);
-
-                #region 設定週報狀態，設定為已點名、週報主日出席率、小組出席率
-                Entity aWeeklyReportEntity = this.m_ToolUtilityClass.RetrieveEntity("new_group_present_weekly_report", aCreatedWeeklyReportId);
-
-                // 設定週報點名狀態
-                this.SetupWeeklyReportStatus(UploadCategory, ref aWeeklyReportEntity);
-                //this.m_ToolUtilityClass.SetOptionSetAttribute(ref aWeeklyReportEntity, "new_weekly_report_status", 100000001);
-
-                this.m_ToolUtilityClass.SetEntityDoubleAttribute(ref aWeeklyReportEntity, "new_sunday_present_rate", aWeeklySundayRate);
-                this.m_ToolUtilityClass.SetEntityDoubleAttribute(ref aWeeklyReportEntity, "new_small_group_rate", aWeeklySmallGroupRate);
-                this.m_ToolUtilityClass.SetEntityIntAttribute(ref aWeeklyReportEntity, "new_sunday_present_number", aWeeklySundayNumber);
-                this.m_ToolUtilityClass.SetEntityIntAttribute(ref aWeeklyReportEntity, "new_small_group_number", aWeeklySmallGroupNumber);
-
-                //百分比 
-                AddToDictionary(ref this.m_FeedBackReport, "主日出席統計表頭", ValidSundayMemberNumber.ToString() + "/" + ValidNumber.ToString() + "，" + String.Format("{0:0%}", aWeeklySundayRate) + Environment.NewLine);
-                AddToDictionary(ref this.m_FeedBackReport, "小組出席統計表頭", ValidSmallGroupMemberNumber.ToString() + "/" + ValidNumber.ToString() + "，" + String.Format("{0:0%}", aWeeklySmallGroupRate) + Environment.NewLine);
-
-                //AddToDictionary(ref this.m_FeedBackReport, "主日出席統計表頭", ValidSundayMemberNumber.ToString() + "/" + ValidNumber.ToString() + "，" + aWeeklySundayRate.ToString("{0:0%}") + Environment.NewLine);
-                //AddToDictionary(ref this.m_FeedBackReport, "小組出席統計表頭", ValidSmallGroupMemberNumber.ToString() + "/" + ValidNumber.ToString() + "，" + aWeeklySmallGroupRate.ToString("{0:0%}") + Environment.NewLine);
-
-                // 建立週報主日出席、小組出席、新人跟進字串內容
-                this.SetupWeeklyReportResult(ref aWeeklyReportEntity);
-
-                // 更新週報
-                this.m_ToolUtilityClass.UpdateEntity(ref aWeeklyReportEntity);
-                #endregion
-
-                #region 回傳至 APP
-                aGroupWeeklyReportGuid.WeeklyReportGuid = aCreatedWeeklyReportId;   // 回傳至 APP 的週報 Id
-                aGroupWeeklyReportGuid.SundayPresentRate = aWeeklySundayRate;       // 回傳至 APP 的主日出席率
-                aGroupWeeklyReportGuid.SmallGroupRate = aWeeklySmallGroupRate;      // 回傳至 APP 的小組出席率
-                #endregion
-
-                // 傳回建立的週報
-                return aWeeklyReportEntity;
-
-            }
-            catch (System.Exception Exception)
-            {
-                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
-                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
-
-                throw Exception;
-            }
-        }
         //private void UpdateWeeklyReport(GroupWeeklyReportGuid aGroupWeeklyReportGuid, Guid aWeeklyReportId, ref Double ValidNumber, ref Entity aListEntity, String UploadCategory, ref Double aWeeklySundayRate, ref Double aWeeklySmallGroupRate, ref int aWeeklySundayNumber, ref int aWeeklySmallGroupNumber, bool CalculateFlag)
         //{
         //    try
@@ -919,7 +862,6 @@ namespace ChurchReport.WebServiceConnector
                 throw Exception;
             }
         }
-
         private Entity SetWeeklyReportRelatedInfo(int ValidSundayMemberNumber, int ValidSmallGroupMemberNumber, Double ValidNumber, GroupWeeklyReportGuid aGroupWeeklyReportGuid, Guid aWeeklyReportId, String UploadCategory, ref Double aWeeklySundayRate, ref Double aWeeklySmallGroupRate, ref int aWeeklySundayNumber, ref int aWeeklySmallGroupNumber)
         {
             try
@@ -974,8 +916,6 @@ namespace ChurchReport.WebServiceConnector
                 throw Exception;
             }
         }
-
-
         private void SetupWeeklyReportResult(ref Entity aWeeklyReportEntity)
         {
             try
@@ -1210,65 +1150,380 @@ namespace ChurchReport.WebServiceConnector
                 throw Exception;
             }
         }
+
+
+
+        private Entity CreateWeeklyReportAndPresentRecord(String GroupName, GroupWeeklyReportGuid aGroupWeeklyReportGuid, ref Entity aListEntity, String UploadCategory, Double ValidNumber, ref Double aWeeklySundayRate, ref Double aWeeklySmallGroupRate, ref int aWeeklySundayNumber, ref int aWeeklySmallGroupNumber)
+        {
+            try
+            {
+                if (this.m_MemberInfomationPackage.m_LoginType != "小組長")
+                {
+                    // COPY MEMBER DATA 的 Group Weekly Report 的部分
+                    CopyMemberInfomationPackage(this.m_MemberInfomationPackage, this.m_InitializedMemberInfomationPackage);
+
+                    // 初始化 Member Data 清單
+                    InitialSmallGroupLeaderMemberData(GroupName, aListEntity.Id);
+
+                    // 根據使用者上傳的點名資料，更新初始化 Member Data 清單
+                    this.UpdateMemberDataFromUploadData();
+                }
+
+                // 建立週報
+                Guid aCreatedWeeklyReportId = CreateWeeklyReport(ref aListEntity);
+
+                // 更新個人資料:手機、家裡電話、地址、設定委身類型
+                // 建立的個人聚會與靈修記錄
+                // 同時整理並取得:主日出席回報、小組出席回報、新人跟進字串，因為這樣就可以一魚兩吃，比較有效能一點
+                int ValidSundayMemberNumber = 0;
+                int ValidSmallGroupMemberNumber = 0;
+                EntityCollection aPresentRecordCollection;
+                if (this.m_MemberInfomationPackage.m_LoginType == "小組長")
+                {
+                    aPresentRecordCollection = CreatePresentRecordList( this.m_MemberInfomationPackage, GroupName, ref aListEntity, ref aCreatedWeeklyReportId, ValidNumber, ref aWeeklySundayRate, ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber, ref ValidSundayMemberNumber, ref ValidSmallGroupMemberNumber);
+                }
+                else
+                {
+                    aPresentRecordCollection = CreatePresentRecordList(this.m_InitializedMemberInfomationPackage, GroupName, ref aListEntity, ref aCreatedWeeklyReportId, ValidNumber, ref aWeeklySundayRate, ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber, ref ValidSundayMemberNumber, ref ValidSmallGroupMemberNumber);
+                }
+
+                return UpdateWeeklyReport(aGroupWeeklyReportGuid, aPresentRecordCollection, ref aListEntity, ref aCreatedWeeklyReportId, ValidNumber, ref aWeeklySundayRate, ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber);
+            }
+            catch (System.Exception Exception)
+            {
+                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
+                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                throw Exception;
+            }
+        }
+        private void InitialSmallGroupLeaderMemberData(String GroupName, Guid ListEntityId)
+        {
+            #region // 初始化每個小組名單，建立原始的 Member Data
+
+            #region 取得小組名單，一個一個的連絡人實體
+            //搜尋名單的組員
+            //EntityCollection Contacts = m_ToolUtilityClass.RetrieveManyToOneRelationship("list", "listid", ListEntityId.ToString(), "new_cell_list_contact", "contact");
+
+            Entity ListEntity = this.m_ToolUtilityClass.RetrieveEntity("list", ListEntityId);
+
+            bool ListType = this.m_ToolUtilityClass.GetEntityBoolAttribute(ListEntity, "type");
+            EntityCollection MemberCollection;
+            if (ListType == false)
+            {
+                // 靜態名單
+                if (CRM_TYPE == "DYNAMICS365")
+                {
+                    MemberCollection = this.m_ToolUtilityClass.RetrieveMemberListCollectionByListIdDynamics365(ref this.m_ToolUtilityClass.m_OrganizationService, ListEntityId);
+                }
+                else
+                {
+                    MemberCollection = this.m_ToolUtilityClass.RetrieveMemberListCollectionByListIdCrm2011(ref this.m_ToolUtilityClass.m_Crm2011OrganizationService, ListEntityId);
+                }
+            }
+            else
+            {
+                // 動態名單
+                if (CRM_TYPE == "DYNAMICS365")
+                {
+                    MemberCollection = this.m_ToolUtilityClass.RetrieveDynamicMemberListDynamics365(ref this.m_ToolUtilityClass.m_OrganizationService, ListEntityId);
+                }
+                else
+                {
+                    MemberCollection = this.m_ToolUtilityClass.RetrieveDynamicMemberListCrm2011(ref this.m_ToolUtilityClass.m_Crm2011OrganizationService, ListEntityId);
+                }
+            }
+            #endregion
+
+            #region 針對每一個連絡人，建立 Member Data
+            this.m_InitializedMemberInfomationPackage.ListMemberInfomation = new List<MemberInfomation>();
+            foreach (Entity MemberEntity in MemberCollection.Entities)
+            {
+                // 每個組員
+                Entity ContactEntity;
+
+                if (ListType == false)
+                {
+                    // 靜態名單
+                    ContactEntity = m_ToolUtilityClass.RetrieveEntity("contact", ((EntityReference)MemberEntity.Attributes["entityid"]).Id);
+                }
+                else
+                {
+                    // 動態名單
+                    ContactEntity = m_ToolUtilityClass.RetrieveEntity("contact", (Guid)MemberEntity.Attributes["contactid"]);
+                }
+
+                if (ContactEntity.Attributes.Contains("statecode"))
+                {
+                    OptionSetValue aOptionState = ContactEntity.Attributes["statecode"] as OptionSetValue;
+
+                    if (aOptionState.Value == 0)
+                    {
+                        #region 只回傳使用中的組員
+
+                        #region // 組員基本資料
+                        // 組員的全名
+                        String FullName = "";
+                        if (ContactEntity.Attributes.Contains("fullname"))
+                        {
+                            FullName = (string)ContactEntity.Attributes["fullname"];
+                        }
+                        // 組員的手機
+                        String aMobilePhone = "";
+                        if (ContactEntity.Attributes.Contains("mobilephone"))
+                        {
+                            aMobilePhone = (string)ContactEntity.Attributes["mobilephone"];
+                        }
+                        // 組員的家裡電話
+                        String aHomePhone = "";
+                        if (ContactEntity.Attributes.Contains("telephone2"))
+                        {
+                            aHomePhone = (string)ContactEntity.Attributes["telephone2"];
+                        }
+                        // 組員的地址
+                        String aAddress = "";
+                        if (ContactEntity.Attributes.Contains("address2_line1"))
+                        {
+                            aAddress = (string)ContactEntity.Attributes["address2_line1"];
+                        }
+                        // 組員的職業及專長
+                        String aIndustry = "";
+                        if (ContactEntity.Attributes.Contains("new_industry"))
+                        {
+                            aIndustry = (string)ContactEntity.Attributes["new_industry"];
+                        }
+                        #endregion
+                        #region// 委身類型
+                        String aIdentity = this.ConvertIndexToIdentity(this.m_ToolUtilityClass.GetOptionSetAttribute(ref ContactEntity, "customertypecode"));
+
+                        //aIdentity = Regex.Replace(aIdentity, "[0-9]", "");//過濾掉數字
+                        //aIdentity = aIdentity.Replace(" ", ""); // //過濾掉空白
+                        //aIdentity = aIdentity.Replace(".", ""); // //過濾掉逗號
+
+                        #endregion
+
+                        // 取得新人跟進週次，及跟進歷程記錄
+                        String aFollowUpWeek = "";
+                        String aNewComerNote = GetNewComerFollowupInfo(ContactEntity.Id, ref aFollowUpWeek);
+
+                        MemberInfomation aMemberInfomation = new MemberInfomation()
+                        {
+                            Group = GroupName,
+                            Name = FullName,
+                            Identity = aIdentity,
+                            Phone = DigitsOnly.Replace(aMobilePhone, ""),
+                            HomePhone = DigitsOnly.Replace(aHomePhone, ""),
+                            Address = aAddress,
+                            Industry = aIndustry,
+                            Note = "",
+                            Date = "2015/10/6",
+                            Number = 5,
+                            SundayPresent = false,
+                            SmallGroupPresent = false,
+
+                            PrayNumber = 0,
+                            SpiritNumber = 0,
+                            FamilyNumber = 0,
+                            WorkAndCampusNumber = 0,
+                            ShepherdStatus = "",
+                            OneOnOne = "",
+                            Training = "",
+                            Incubate = "",
+                            FollowUpWeek = aFollowUpWeek,
+                            FollowUpResult = ".",
+                            FollowUpNextStep = ".",
+                            FollowUpOption = "",
+                            FollowUp = "",
+                            FollowUpNote = "",
+                            NewComerNote = aNewComerNote
+                        };
+
+                        if (aIdentity != "10.未入組結案")
+                        {
+                            // "10.未入組結案" 不用進入 APP
+                            this.m_InitializedMemberInfomationPackage.ListMemberInfomation.Add(aMemberInfomation);
+                        }
+
+                        #endregion
+                    }
+                    else
+                    { //String StateCode = "非使用中";
+                    }
+                }
+            }
+            #endregion
+
+            #endregion
+
+            return;
+        }
+        private void UpdateMemberDataFromUploadData()
+        {
+            try
+            {
+                foreach ( MemberInfomation aUploadMemberData in this.m_MemberInfomationPackage.ListMemberInfomation)
+                {
+                    // 上傳的點名與系統的靈修紀錄對應尋找
+                    MemberInfomation aMatchedMemberInfomation = SearchMemberDataByName(aUploadMemberData);
+
+                    if (aMatchedMemberInfomation != null)
+                    {
+                        CopyMemberData(aUploadMemberData, aMatchedMemberInfomation);
+                    }
+                }
+            }
+            catch (System.Exception Exception)
+            {
+                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
+                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                throw Exception;
+            }
+        }
+        private MemberInfomation SearchMemberDataByName(MemberInfomation aUploadMemberData)
+        {
+            try
+            {
+                foreach (MemberInfomation aMemberInfomation in this.m_InitializedMemberInfomationPackage.ListMemberInfomation)
+                {
+                    if (aUploadMemberData.Name == aMemberInfomation.Name)
+                    {
+                        return aMemberInfomation;
+                    }
+                }
+                return null;
+
+            }
+            catch (System.Exception Exception)
+            {
+                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
+                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                throw Exception;
+            }
+        }
+        private void CopyMemberData(MemberInfomation aFromMemberInfomation, MemberInfomation aToMemberInfomation)
+        {
+            try
+            {
+                aToMemberInfomation.Group               = aFromMemberInfomation.Group               ;
+                aToMemberInfomation.Name                = aFromMemberInfomation.Name                ;
+                aToMemberInfomation.Identity            = aFromMemberInfomation.Identity            ;
+                aToMemberInfomation.Phone               = aFromMemberInfomation.Phone               ;
+                aToMemberInfomation.HomePhone           = aFromMemberInfomation.HomePhone           ;
+                aToMemberInfomation.Address             = aFromMemberInfomation.Address             ;
+                aToMemberInfomation.Industry            = aFromMemberInfomation.Industry            ;
+                aToMemberInfomation.Note                = aFromMemberInfomation.Note                ;
+                aToMemberInfomation.Date                = aFromMemberInfomation.Date                ;
+                aToMemberInfomation.Number              = aFromMemberInfomation.Number              ;
+                aToMemberInfomation.SundayPresent       = aFromMemberInfomation.SundayPresent       ;
+                aToMemberInfomation.SmallGroupPresent   = aFromMemberInfomation.SmallGroupPresent   ;
+                aToMemberInfomation.PrayNumber          = aFromMemberInfomation.PrayNumber          ;
+                aToMemberInfomation.SpiritNumber        = aFromMemberInfomation.SpiritNumber        ;
+                aToMemberInfomation.FamilyNumber        = aFromMemberInfomation.FamilyNumber        ;
+                aToMemberInfomation.WorkAndCampusNumber = aFromMemberInfomation.WorkAndCampusNumber ;
+                aToMemberInfomation.ShepherdStatus      = aFromMemberInfomation.ShepherdStatus      ;
+                aToMemberInfomation.OneOnOne            = aFromMemberInfomation.OneOnOne            ;
+                aToMemberInfomation.Training            = aFromMemberInfomation.Training            ;
+                aToMemberInfomation.Incubate            = aFromMemberInfomation.Incubate            ;
+                aToMemberInfomation.FollowUpWeek        = aFromMemberInfomation.FollowUpWeek        ;
+                aToMemberInfomation.FollowUpResult      = aFromMemberInfomation.FollowUpResult      ;
+                aToMemberInfomation.FollowUpNextStep    = aFromMemberInfomation.FollowUpNextStep    ;
+                aToMemberInfomation.FollowUpOption      = aFromMemberInfomation.FollowUpOption      ;
+                aToMemberInfomation.FollowUp            = aFromMemberInfomation.FollowUp            ;
+                aToMemberInfomation.FollowUpNote        = aFromMemberInfomation.FollowUpNote        ;
+                aToMemberInfomation.NewComerNote        = aFromMemberInfomation.NewComerNote        ;
+            }
+            catch (System.Exception Exception)
+            {
+                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
+                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                throw Exception;
+            }
+        }
+
+        private void CopyMemberInfomationPackage(MemberInfomationPackage aFromMemberInfomationPackage, MemberInfomationPackage aToMemberInfomationPackage )
+        {
+            try
+            {
+                if (aToMemberInfomationPackage.GroupWeeklyReportGuidList == null)
+                {
+                    aToMemberInfomationPackage.GroupWeeklyReportGuidList = new List<GroupWeeklyReportGuid>();
+                }
+                else
+                {
+                    aToMemberInfomationPackage.GroupWeeklyReportGuidList.Clear();
+                }
+
+                foreach ( GroupWeeklyReportGuid aFromGroupWeeklyReportGuid in aFromMemberInfomationPackage.GroupWeeklyReportGuidList )
+                {
+                    GroupWeeklyReportGuid aToGroupWeeklyReportGuid = new GroupWeeklyReportGuid
+                    {
+                        GroupName = aFromGroupWeeklyReportGuid.GroupName,
+                        SundayPresentRate = aFromGroupWeeklyReportGuid.SundayPresentRate,
+                        SmallGroupRate = aFromGroupWeeklyReportGuid.SmallGroupRate,
+                        WeeklyReportGuid = aFromGroupWeeklyReportGuid.WeeklyReportGuid
+                    };
+
+                    aToMemberInfomationPackage.GroupWeeklyReportGuidList.Add(aToGroupWeeklyReportGuid);
+
+                }
+                aToMemberInfomationPackage.WeeklyReportGuid = aFromMemberInfomationPackage.WeeklyReportGuid;
+
+                aToMemberInfomationPackage.m_LoginType = aFromMemberInfomationPackage.m_LoginType;
+
+            }
+            catch (System.Exception Exception)
+            {
+                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
+                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                throw Exception;
+            }
+        }
+
         #endregion
         #region 建立的個人聚會與靈修記錄
-        private void CreatePresentRecordList( String GroupName, ref Entity aListEntity, ref Guid aWeeklyReportId, Double ValidNumber, ref Double aWeeklySundayRate, ref Double aWeeklySmallGroupRate, ref int aWeeklySundayNumber, ref int aWeeklySmallGroupNumber, ref int ValidSundayMemberNumber, ref int ValidSmallGroupMemberNumber)
+        private EntityCollection CreatePresentRecordList( MemberInfomationPackage  aMemberInfomationPackage, String GroupName, ref Entity aListEntity, ref Guid aWeeklyReportId, Double ValidNumber, ref Double aWeeklySundayRate, ref Double aWeeklySmallGroupRate, ref int aWeeklySundayNumber, ref int aWeeklySmallGroupNumber, ref int ValidSundayMemberNumber, ref int ValidSmallGroupMemberNumber)
         {
-            if (this.m_MemberInfomationPackage.m_LoginType == "小組長")
+            EntityCollection PresentRecordEntityCollection = new EntityCollection();
+
+            if (aMemberInfomationPackage.m_LoginType == "小組長")
             {
                 foreach (MemberInfomation aMemberInfomation in this.m_GroupNamedListMemberInfomation)
                 {
                     // 更新個人資料:手機、家裡電話、地址、設定委身類型
                     // 新增個人聚會與靈修記錄
-                    CreatePresentRecord(aMemberInfomation, ref aListEntity, ref aWeeklyReportId, ValidNumber, ref aWeeklySundayRate, ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber );
+                    Entity aPresentRecord = CreatePresentRecord(aMemberInfomation, ref aListEntity, ref aWeeklyReportId, ValidNumber, ref aWeeklySundayRate, ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber );
+                    if(aPresentRecord != null)
+                    {
+                        PresentRecordEntityCollection.Entities.Add(aPresentRecord);
+                    }
                 }
             }
             else
             {
-                Entity aWeeklyReport = this.m_ToolUtilityClass.RetrieveEntity("new_group_present_weekly_report", aWeeklyReportId);
+                #region 個人回報
+                //Entity aWeeklyReport = this.m_ToolUtilityClass.RetrieveEntity("new_group_present_weekly_report", aWeeklyReportId);
 
-                SetupPersonalMemberInfomationPackage(GroupName, ref aWeeklyReport, aListEntity);
+                //SetupPersonalMemberInfomationPackage(GroupName, ref aWeeklyReport, aListEntity);
 
-                foreach (MemberInfomation aMemberInfomation in this.m_MemberInfomationPackage.ListMemberInfomation)
+                foreach (MemberInfomation aMemberInfomation in aMemberInfomationPackage.ListMemberInfomation)
                 {
                     // 更新個人資料:手機、家裡電話、地址、設定委身類型
                     // 新增個人聚會與靈修記錄
-                    CreatePresentRecord(aMemberInfomation, ref aListEntity, ref aWeeklyReportId, ValidNumber, ref aWeeklySundayRate, ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber );
+                    Entity aPresentRecord = CreatePresentRecord(aMemberInfomation, ref aListEntity, ref aWeeklyReportId, ValidNumber, ref aWeeklySundayRate, ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber );
+                    if (aPresentRecord != null)
+                    {
+                        PresentRecordEntityCollection.Entities.Add(aPresentRecord);
+                    }
                 }
-
+                #endregion
             }
+
+            return PresentRecordEntityCollection;
         }
-        private void CreatePresentRecord(MemberInfomation aMemberInfomation, ref Entity aListEntity, ref Guid aWeeklyReportId, Double ValidNumber, ref Double aWeeklySundayRate, ref Double aWeeklySmallGroupRate, ref int aWeeklySundayNumber, ref int aWeeklySmallGroupNumber)
-        {
-            Entity aContactEntity = m_ToolUtilityClass.RetrieveContactEntityByName( aMemberInfomation.Name);
-            //Entity aSearchedContactEntity = m_ToolUtilityClass.RetrieveContactByNameAndMobile(ref m_ToolUtilityClass.m_OrganizationService, aMemberInfomation.Name, aMemberInfomation.Phone );
-
-            Entity aToUpdateContactEntity = this.m_ToolUtilityClass.RetrieveEntity("contact", aContactEntity.Id);
-            //Entity aContactEntity = this.m_ToolUtilityClass.RetrieveEntity("contact", aSearchedContactEntity.Id);
-
-            if (aContactEntity != null)
-            {
-                // 更新個人資料:手機、家裡電話、地址、設定委身類型
-                // 但是不知何故，更新連絡人之後，委身類型卻會"自動變成" 新朋友，所以就先用一個可以受影響的Entity aToUpdateContactEntity，去更新連絡人
-                UpdateContactInfomation(aListEntity.Id, ref aMemberInfomation, ref aToUpdateContactEntity);
-
-                // 這是新建立的個人聚會與靈修記錄
-                Entity aPresentRecord = new Entity("new_present_record");
-
-                // 設定個人聚會與靈修記錄相關屬性
-                this.SetupPresentRecordEntityAttributes(aPresentRecord, aMemberInfomation, ref aContactEntity, ref aListEntity, ref aWeeklyReportId, ValidNumber, ref aWeeklySundayRate, ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber );
-
-                // 新增個人聚會與靈修記錄
-                Guid aPresentRecordId = this.m_ToolUtilityClass.CreateEntity(aPresentRecord);
-
-                //取得新建的聚會與靈修記錄
-                //Entity aRetrievedPresentRecord = this.m_ToolUtilityClass.RetrieveEntity("new_present_record", aPresentRecordId);
-
-                //更新聚會與靈修記錄，以便交由SDK自己計算出席率
-                //this.m_ToolUtilityClass.UpdateEntity(ref this.m_ToolUtilityClass.m_OrganizationService, ref aRetrievedPresentRecord);
-            }
-        }
-
         private void SetupPersonalMemberInfomationPackage(String GroupName, ref Entity GroupWeeklyReportEntity, Entity ListEntity)
         {
             try
@@ -1296,6 +1551,40 @@ namespace ChurchReport.WebServiceConnector
                 String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
 
                 throw Exception;
+            }
+        }
+
+        private Entity CreatePresentRecord(MemberInfomation aMemberInfomation, ref Entity aListEntity, ref Guid aWeeklyReportId, Double ValidNumber, ref Double aWeeklySundayRate, ref Double aWeeklySmallGroupRate, ref int aWeeklySundayNumber, ref int aWeeklySmallGroupNumber)
+        {
+            EntityCollection PresentRecordEntityCollection = new EntityCollection();
+
+            Entity aContactEntity = m_ToolUtilityClass.RetrieveContactEntityByName(aMemberInfomation.Name);
+            //Entity aSearchedContactEntity = m_ToolUtilityClass.RetrieveContactByNameAndMobile(ref m_ToolUtilityClass.m_OrganizationService, aMemberInfomation.Name, aMemberInfomation.Phone );
+
+            Entity aToUpdateContactEntity = this.m_ToolUtilityClass.RetrieveEntity("contact", aContactEntity.Id);
+            //Entity aContactEntity = this.m_ToolUtilityClass.RetrieveEntity("contact", aSearchedContactEntity.Id);
+
+            if (aContactEntity != null)
+            {
+                // 更新個人資料:手機、家裡電話、地址、設定委身類型
+                // 但是不知何故，更新連絡人之後，委身類型卻會"自動變成" 新朋友，所以就先用一個可以受影響的Entity aToUpdateContactEntity，去更新連絡人
+                UpdateContactInfomation(aListEntity.Id, ref aMemberInfomation, ref aToUpdateContactEntity);
+
+                // 這是新建立的個人聚會與靈修記錄
+                Entity aPresentRecord = new Entity("new_present_record");
+
+                // 設定個人聚會與靈修記錄相關屬性
+                this.SetupPresentRecordEntityAttributes(aPresentRecord, aMemberInfomation, ref aContactEntity, ref aListEntity, ref aWeeklyReportId, ValidNumber, ref aWeeklySundayRate, ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber);
+
+                // 新增個人聚會與靈修記錄
+                Guid aPresentRecordId = this.m_ToolUtilityClass.CreateEntity(aPresentRecord);
+
+                //取得並回傳新建的聚會與靈修記錄
+                return  this.m_ToolUtilityClass.RetrieveEntity("new_present_record", aPresentRecordId);
+            }
+            else
+            {
+                return null;
             }
         }
 
@@ -1509,7 +1798,6 @@ namespace ChurchReport.WebServiceConnector
 
             return;
         }
-
         private String GetNewComerFollowupInfo(Guid aNewComerId, ref String aFollowUpWeek)
         {
             try
@@ -1575,7 +1863,6 @@ namespace ChurchReport.WebServiceConnector
                 throw e;
             }
         }
-
         private bool VerifyNewComerIdentity(Entity aContact)
         {
             try
@@ -1631,8 +1918,6 @@ namespace ChurchReport.WebServiceConnector
                 throw e;
             }
         }
-
-
         private String GetFollowUpWeek(Entity aContact, ref String MatchedWeekDay)
         {
             try
@@ -1994,7 +2279,6 @@ namespace ChurchReport.WebServiceConnector
                 throw e;
             }
         }
-
         private void TransferIdentity(Entity aContact, int Counter, int NewComeMaxiNumber, int UnGroupMaxiNumber)
         {
             //switch (Identity)
@@ -2446,7 +2730,6 @@ namespace ChurchReport.WebServiceConnector
 
             return;
         }
-
         private void SetupPresentRecordEntityAttributes(Entity aPresentRecord, MemberInfomation aMemberInfomation, ref Entity aContactEntity, ref Entity aListEntity, ref Guid aWeeklyReportId, Double ValidNumber, ref Double aWeeklySundayRate, ref Double aWeeklySmallGroupRate, ref int aWeeklySundayNumber, ref int aWeeklySmallGroupNumber)
         {
             try
@@ -2603,7 +2886,6 @@ namespace ChurchReport.WebServiceConnector
                 throw e;
             }
         }
-
         private double GetEffecttiveSmallGroupNumber(Guid ListEntityId)
         {
             #region // 處理每個小組名單
@@ -2693,7 +2975,6 @@ namespace ChurchReport.WebServiceConnector
 
             return EffectiveNumber;
         }
-
         #endregion
         #region 更新個人紀錄:手機、家裡電話、地址、設定委身類型
         private void UpdateContactInfomation(Guid aListEntityId, ref MemberInfomation aMemberInfomation, ref Entity aContactEntity)
@@ -2880,7 +3161,6 @@ namespace ChurchReport.WebServiceConnector
         #endregion
         #region 更新個人聚會與靈修記錄
 
-
         #region 更新出席紀錄
         private void UpdatePresentRecord_BACKUP(List<MemberInfomation> aGroupNamedListMemberInfomation, ref Entity aListEntity, ref Guid aWeeklyReportId, Double ValidNumber, ref Double aWeeklySundayRate, ref Double aWeeklySmallGroupRate, ref int aWeeklySundayNumber, ref int aWeeklySmallGroupNumber, ref int ValidSundayMemberNumber, ref int ValidSmallGroupMemberNumber)
         {
@@ -3053,7 +3333,6 @@ namespace ChurchReport.WebServiceConnector
                 throw Exception;
             }
         }
-
         private Entity UpdateWeeklyReport(GroupWeeklyReportGuid aGroupWeeklyReportGuid, EntityCollection PresentRecordCollection, ref Entity aListEntity, ref Guid aWeeklyReportId, Double ValidNumber, ref Double aWeeklySundayRate, ref Double aWeeklySmallGroupRate, ref int aWeeklySundayNumber, ref int aWeeklySmallGroupNumber)
         {
             try
@@ -3208,7 +3487,6 @@ namespace ChurchReport.WebServiceConnector
                 throw Exception;
             }
         }
-
         private void UpdatePresentRecord(List<MemberInfomation> aGroupNamedListMemberInfomation, EntityCollection PresentRecordCollection, ref Entity aListEntity, ref Guid aWeeklyReportId, Double ValidNumber, ref Double aWeeklySundayRate, ref Double aWeeklySmallGroupRate, ref int aWeeklySundayNumber, ref int aWeeklySmallGroupNumber)
         {
             try
@@ -3373,7 +3651,6 @@ namespace ChurchReport.WebServiceConnector
                 throw Exception;
             }
         }
-
         private String ConvertIndexToClearIdentity(int Identity)
         {
             // 取得比較易懂的委身類型
@@ -3391,7 +3668,6 @@ namespace ChurchReport.WebServiceConnector
                     return "小組組員";
             }
         }
-
         private int ConvertFollowUpWeekPickerToIndex(String FollowUpWeek)
         {
             switch (FollowUpWeek)
@@ -3440,7 +3716,6 @@ namespace ChurchReport.WebServiceConnector
                     return 100000008;
             }
         }
-
         private int ConvertFollowUpResultPickerToIndex(String FollowUpResult)
         {
             switch (FollowUpResult)
@@ -3507,10 +3782,9 @@ namespace ChurchReport.WebServiceConnector
                     return 100000000;
             }
         }
-
-
         private Entity SearchPresentRecordByName(String Name, ref EntityCollection PresentRecordCollection)
         {
+            //回傳與上傳姓名符合的靈修單
             foreach ( Entity PresentRecordEntity in PresentRecordCollection.Entities )
             {
                 String aPresentRecordName = this.m_ToolUtilityClass.GetEntityLookupDisplayName(PresentRecordEntity, "new_contact_new_present_record");
@@ -3522,8 +3796,6 @@ namespace ChurchReport.WebServiceConnector
 
             return null;
         }
-
-
         public Double GetValidMemberNumber(EntityCollection aPresentRecordCollection)
         {
             try
@@ -3643,7 +3915,6 @@ namespace ChurchReport.WebServiceConnector
                 throw e;
             }
         }
-
         private const int EMPTY_VALUE = -999999999;
         public bool IsValidContact(Entity aContactEntity)
         {
@@ -3689,15 +3960,12 @@ namespace ChurchReport.WebServiceConnector
                 throw e;
             }
         }
-
         #endregion
 
         #endregion
         #endregion
         #endregion
-
         #region 設定委身類型
-
         public void SetIdentity(Guid aListEntityId, ref Entity aContact, ref MemberInfomation aMemberInfomation)
         {
             try
@@ -3810,7 +4078,6 @@ namespace ChurchReport.WebServiceConnector
                 throw e;
             }
         }
-
         //台北基督之家
         private String ConvertIndexToIdentity(int Identity)
         {
@@ -3871,7 +4138,6 @@ namespace ChurchReport.WebServiceConnector
         //}
 
         #endregion
-
         #region 字典處理函式庫
         private void InitializeDictionary(DateTime aSunday)
         {
@@ -4130,7 +4396,6 @@ namespace ChurchReport.WebServiceConnector
                 throw e;
             }
         }
-
         private bool AddToDictionary(ref Dictionary<String, String> aDictionary, String Method, String Content)
         {
             try
@@ -4195,6 +4460,5 @@ namespace ChurchReport.WebServiceConnector
             }
         }
         #endregion
-
     }
 }
