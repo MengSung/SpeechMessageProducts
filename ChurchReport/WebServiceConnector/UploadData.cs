@@ -1569,7 +1569,7 @@ namespace ChurchReport.WebServiceConnector
             {
                 String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
 
-                throw Exception;
+                throw Exception;  
             }
         }
 
