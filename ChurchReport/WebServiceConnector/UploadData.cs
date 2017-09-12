@@ -1081,8 +1081,8 @@ namespace ChurchReport.WebServiceConnector
                 Entity aWeeklyReportEntity = new Entity("new_group_present_weekly_report");
 
                 #region 指派週報的負責人
-                Guid ListOwnerId = aListEntity.GetAttributeValue<EntityReference>("ownerid").Id;
-                this.m_ToolUtilityClass.AssignOwner("new_group_present_weekly_report", aWeeklyReportEntity, ListOwnerId);
+                //Guid ListOwnerId = aListEntity.GetAttributeValue<EntityReference>("ownerid").Id;
+                //this.m_ToolUtilityClass.AssignOwner("new_group_present_weekly_report", aWeeklyReportEntity, ListOwnerId);
                 #endregion
 
                 // 小組聚會地點和時間
@@ -2754,8 +2754,8 @@ namespace ChurchReport.WebServiceConnector
             try
             {
                 #region 指派主日小組靈修出席單的負責人
-                Guid ListOwnerId = aListEntity.GetAttributeValue<EntityReference>("ownerid").Id;
-                this.m_ToolUtilityClass.AssignOwner("new_present_record", aPresentRecord, ListOwnerId);
+                //Guid ListOwnerId = aListEntity.GetAttributeValue<EntityReference>("ownerid").Id;
+                //this.m_ToolUtilityClass.AssignOwner("new_present_record", aPresentRecord, ListOwnerId);
                 #endregion
                 #region 設定姓名
                 // 找到組員ID
