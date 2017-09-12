@@ -74,7 +74,8 @@ namespace ChurchReport.WebServiceConnector
 
         Guid m_DecipleGroupListId;
         //Guid m_GroupLeaderId; // 小組長
-        Guid m_RaceLeaderId; // 族系族長
+        Guid m_RaceLeaderId; // 族系族長/區長
+        Guid m_ShepherdLeaderId; // 區牧
         String m_SmallGroupPlace;
         String m_SmallGroupTime;
 
@@ -1079,6 +1080,11 @@ namespace ChurchReport.WebServiceConnector
                 // 這是新建立的週報
                 Entity aWeeklyReportEntity = new Entity("new_group_present_weekly_report");
 
+                #region 指派週報的負責人
+                Guid ListOwnerId = aListEntity.GetAttributeValue<EntityReference>("ownerid").Id;
+                this.m_ToolUtilityClass.AssignOwner("new_group_present_weekly_report", aWeeklyReportEntity, ListOwnerId);
+                #endregion
+
                 // 小組聚會地點和時間
                 m_SmallGroupPlace = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aListEntity, "new_group_place");
                 m_SmallGroupTime = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aListEntity, "new_group_time");
@@ -1092,8 +1098,14 @@ namespace ChurchReport.WebServiceConnector
                 // 區長 ID
                 Guid RaceLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_race_leager_list");
 
+                // 區牧長 ID
+                Guid ShepherdLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_list_arealeader");
+
+                // 區名
+                String AreaName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aListEntity, "new_area_name");
+
                 // 設定週報相關屬性
-                this.SetupWeeklyReortEntityAttributes(ref aWeeklyReportEntity, FamilyLeaderId, GroupLeaderId, RaceLeaderId, m_DecipleGroupListId, aListEntity.Id, m_Sunday, m_SmallGroupPlace, m_SmallGroupTime);
+                this.SetupWeeklyReortEntityAttributes(ref aWeeklyReportEntity, AreaName, FamilyLeaderId, GroupLeaderId, RaceLeaderId, ShepherdLeaderId, m_DecipleGroupListId, aListEntity.Id, m_Sunday, m_SmallGroupPlace, m_SmallGroupTime);
 
                 // 新增週報
                 return this.m_ToolUtilityClass.CreateEntity(aWeeklyReportEntity);
@@ -1106,10 +1118,13 @@ namespace ChurchReport.WebServiceConnector
                 throw Exception;
             }
         }
-        private void SetupWeeklyReortEntityAttributes(ref Entity aWeeklyReportEntity, Guid aFamilyLeaderId, Guid aGroupLeaderId, Guid aRaceLeaderId, Guid aDecipleGroupList, Guid ListEntityId, DateTime aSunday, String SmallGroupPlace, String SmallGroupTime)
+        private void SetupWeeklyReortEntityAttributes(ref Entity aWeeklyReportEntity, String AreaName, Guid aFamilyLeaderId, Guid aGroupLeaderId, Guid aRaceLeaderId, Guid aShepherdLeaderId , Guid aDecipleGroupList, Guid ListEntityId, DateTime aSunday, String SmallGroupPlace, String SmallGroupTime)
         {
             try
             {
+                #region 設定區名
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aWeeklyReportEntity, "new_area_name", AreaName);
+                #endregion
                 #region 關聯小家長屬性
                 if (aFamilyLeaderId != Guid.Empty)
                 { this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aWeeklyReportEntity, "new_contact_weekly_report_parents", "contact", aFamilyLeaderId); }
@@ -1118,9 +1133,13 @@ namespace ChurchReport.WebServiceConnector
                 if (aGroupLeaderId != Guid.Empty)
                 { this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aWeeklyReportEntity, "new_groupleader_group_present_weekly_", "contact", aGroupLeaderId); }
                 #endregion
-                #region 關聯族系組長屬性
+                #region 關聯族系族長/區長屬性
                 if (aRaceLeaderId != Guid.Empty)
                 { this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aWeeklyReportEntity, "new_group_head_group_present_weekly_r", "contact", aRaceLeaderId); }
+                #endregion
+                #region 關聯區牧長屬性
+                if (aShepherdLeaderId != Guid.Empty)
+                { this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aWeeklyReportEntity, "new_contact_arealeader_weekly_report", "contact", aShepherdLeaderId); }
                 #endregion
                 #region 關聯小組名單 Lookup
                 if (ListEntityId != Guid.Empty)
@@ -2734,6 +2753,10 @@ namespace ChurchReport.WebServiceConnector
         {
             try
             {
+                #region 指派主日小組靈修出席單的負責人
+                Guid ListOwnerId = aListEntity.GetAttributeValue<EntityReference>("ownerid").Id;
+                this.m_ToolUtilityClass.AssignOwner("new_present_record", aPresentRecord, ListOwnerId);
+                #endregion
                 #region 設定姓名
                 // 找到組員ID
                 Guid aContactEntityId = aContactEntity.Id;
@@ -2743,7 +2766,7 @@ namespace ChurchReport.WebServiceConnector
                 if (aWeeklyReportId != Guid.Empty)
                 { this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aPresentRecord, "new_group_present_weekly_report_prese", "new_group_present_weekly_report", aWeeklyReportId); }
                 #endregion
-                #region 從名單取得 小家長 ID、小組長 ID、區長 ID
+                #region 從名單取得 區名、小家長 ID、小組長 ID、區長、區牧長 ID
                 // 小家長 ID
                 Guid aFamilyLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_familyhead_list");
 
@@ -2752,6 +2775,16 @@ namespace ChurchReport.WebServiceConnector
 
                 // 區長 ID
                 Guid aRaceLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_race_leager_list");
+
+                // 區牧長 ID
+                Guid aShepherdLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_list_arealeader");
+
+                // 區名
+                String AreaName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aListEntity, "new_area_name");
+
+                #endregion
+                #region 設定區名
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_area_name", AreaName);
                 #endregion
                 #region 關聯小家長屬性
                 if (aFamilyLeaderId != Guid.Empty)
@@ -2765,6 +2798,11 @@ namespace ChurchReport.WebServiceConnector
                 if (aRaceLeaderId != Guid.Empty)
                 { this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aPresentRecord, "new_race_leader_present_record", "contact", aRaceLeaderId); }
                 #endregion
+                #region 關聯區牧長屬性
+                if (aShepherdLeaderId != Guid.Empty)
+                { this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aPresentRecord, "new_contact_arealeader_present_record", "contact", aShepherdLeaderId); }
+                #endregion
+
                 #region 關聯小組名單 Lookup
                 if (aListEntity.Id != Guid.Empty)
                 { this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aPresentRecord, "new_list_new_present_record", "list", aListEntity.Id); }

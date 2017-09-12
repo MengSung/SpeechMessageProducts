@@ -3845,6 +3845,63 @@ namespace ToolUtilityNameSpace
         }
         #endregion
         #endregion
+        #region 負責人管理
+        #endregion
+        public Guid GetOwnerId(Entity aEntity)
+        {
+            try
+            {
+                return aEntity.GetAttributeValue<EntityReference>("ownerid").Id;
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                throw e;
+            }
+        }
+        public void AssignOwner( String EntityName , Entity aEntity, Guid OwnerId)
+        {
+            try
+            {
+                AssignRequest assign = new AssignRequest
+                {
+                    Assignee = new EntityReference("systemuser", OwnerId ),
+                    Target = new EntityReference(EntityName, aEntity.Id)
+                };
+
+
+                // Execute the Request
+                if (CRM_TYPE == "DYNAMICS365")
+                {
+                   this.m_OrganizationService.Execute(assign);
+                }
+                else
+                {
+                    this.m_Crm2011OrganizationService.Execute(assign);
+                }
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                throw e;
+            }
+        }
+        public String GetOwnerName(Entity aEntity)
+        {
+            try
+            {
+                return aEntity.GetAttributeValue<EntityReference>("ownerid").Name;
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                throw e;
+            }
+        }
+
         #region 將連絡人加入或移除至名單
 
         private readonly object m_MembersToMarketingListLocker = new object();
