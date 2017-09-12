@@ -3846,7 +3846,6 @@ namespace ToolUtilityNameSpace
         #endregion
         #endregion
         #region 負責人管理
-        #endregion
         public Guid GetOwnerId(Entity aEntity)
         {
             try
@@ -3901,7 +3900,7 @@ namespace ToolUtilityNameSpace
                 throw e;
             }
         }
-
+        #endregion
         #region 將連絡人加入或移除至名單
 
         private readonly object m_MembersToMarketingListLocker = new object();
