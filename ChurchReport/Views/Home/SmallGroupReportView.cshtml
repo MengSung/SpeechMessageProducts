@@ -31,6 +31,8 @@
                     .Type(DateBoxType.Date)
                     .Value(Model.SundayPrayers)
                     .Width(50)
+                    .DisplayFormat("yyyy/M/d")
+                    //.DisplayFormat("yyyy/MM/dd")
                     //.OnValueChanged("OnValueChanged")
 
 
@@ -184,7 +186,6 @@
             .Paging(p => p.PageSize(10))
             .Paging(paging => paging.Enabled(false))
             .AllowColumnResizing(true)
-            .ColumnResizingMode(ColumnResizingMode.Widget)
             .ColumnFixing(c => c.Enabled(true))
             .LoadPanel(l => l.Text("更新資料中..."))
             .SearchPanel(s => s.Visible(true).Placeholder("搜尋.."))
@@ -246,7 +247,7 @@
                 //editing.Mode(GridEditMode.Form);
                 //editing.Mode(GridEditMode.Popup);
                 editing.AllowUpdating(true);
-                editing.AllowDeleting(true);
+                editing.AllowDeleting(false);
                 //editing.AllowAdding(true);
                 editing.Texts(a => a.SaveAllChanges("上傳檔案").AddRow("新增").CancelAllChanges("取消變更"));
                 //editing.AllowDeleting(true);

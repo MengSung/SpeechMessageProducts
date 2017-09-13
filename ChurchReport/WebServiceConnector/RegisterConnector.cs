@@ -98,12 +98,12 @@ namespace ChurchReport.WebServiceConnector
                 {
                     // 找到姓名相同且行動相同的人
 
-                    // 是否是小組長或是區長
+                    // 是否是小組長或是區長，發展到個人版也可以回報
                     FindListCollection(aContact);
 
-                    if (m_Lists.Entities.Count > 0)
+                    if (m_Lists.Entities.Count >= 0)
                     {
-                        #region 是小組長或是區長
+                        #region 是小組長或是區長，發展到個人版也可以回報
 
                         // 是否有相同帳號
                         Entity Contact = this.m_ToolUtilityClass.DoesAccountExist(Account);
