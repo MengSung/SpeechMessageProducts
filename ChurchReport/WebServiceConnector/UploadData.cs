@@ -4065,7 +4065,9 @@ namespace ChurchReport.WebServiceConnector
                     foreach (Entity PresentRecordEntity in PresentRecordCollection.Entities)
                     {
                         // 主日次數
-                        TotalNumber += this.m_ToolUtilityClass.GetEntityIntAttribute(PresentRecordEntity, "new_sunday_present_this_week");
+                        int Number = this.m_ToolUtilityClass.GetEntityIntAttribute(PresentRecordEntity, "new_sunday_present_this_week");
+                        if (Number >= 0)
+                            TotalNumber += Number;
                     }
 
                     return TotalNumber;
@@ -4076,7 +4078,9 @@ namespace ChurchReport.WebServiceConnector
                     foreach (Entity PresentRecordEntity in PresentRecordCollection.Entities)
                     {
                         // 小組次數
-                        TotalNumber += this.m_ToolUtilityClass.GetEntityIntAttribute(PresentRecordEntity, "new_group_present_this_week");
+                        int Number = this.m_ToolUtilityClass.GetEntityIntAttribute(PresentRecordEntity, "new_group_present_this_week");
+                        if (Number >= 0)
+                            TotalNumber += Number;
                     }
 
                     return TotalNumber;

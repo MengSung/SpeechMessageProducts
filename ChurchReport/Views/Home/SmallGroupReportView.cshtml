@@ -178,84 +178,87 @@
     <hr />
     <h3>牧養</h3>
 
+@if (Model.LoginType == "小組長")
+{
     <div id="data-grid">
         @(Html.DevExtreme().DataGrid()
-            .ID("gridContainer")
-            .ShowBorders(true)
-            .ColumnAutoWidth(true)
-            .Paging(p => p.PageSize(10))
-            .Paging(paging => paging.Enabled(false))
-            .AllowColumnResizing(true)
-            .ColumnFixing(c => c.Enabled(true))
-            .LoadPanel(l => l.Text("更新資料中..."))
-            .SearchPanel(s => s.Visible(true).Placeholder("搜尋.."))
+                .ID("gridContainer")
+                .ShowBorders(true)
+                .ColumnAutoWidth(true)
+                .Paging(p => p.PageSize(10))
+                .Paging(paging => paging.Enabled(false))
+                .AllowColumnResizing(true)
+                .ColumnResizingMode(ColumnResizingMode.Widget)
+                .ColumnFixing(c => c.Enabled(true))
+                .LoadPanel(l => l.Text("更新資料中..."))
+                .SearchPanel(s => s.Visible(true).Placeholder("搜尋.."))
 
 
-            .StateStoring(s => s
-            .Enabled(true)
-            .Type(StateStoringType.LocalStorage)
-            .StorageKey("FullName")
-            )
-            //.StateStoring(s => s
-            //    .Enabled(true)
-            //    .Type(StateStoringType.LocalStorage)
-            //    .StorageKey("Id")
-            //)
+                .StateStoring(s => s
+                .Enabled(true)
+                .Type(StateStoringType.LocalStorage)
+                .StorageKey("FullName")
+                )
+                //.StateStoring(s => s
+                //    .Enabled(true)
+                //    .Type(StateStoringType.LocalStorage)
+                //    .StorageKey("Id")
+                //)
 
-            //.OnRowUpdated("function () { alert('OnRowUpdated'); }")
-            //.OnRowClick("function () { alert('OnRowClick'); }")
-            //.OnSelectionChanged("function () { alert('OnSelectionChanged'); }" )
-            //.OnCellClick("function () { alert('OnCellClick'); }")
-            //.OnEditingStart("function () { alert('OnEditingStart'); }")
-            //.OnEditorPrepared("function () { alert('OnEditorPrepared'); }")
-
-
+                //.OnRowUpdated("function () { alert('OnRowUpdated'); }")
+                //.OnRowClick("function () { alert('OnRowClick'); }")
+                //.OnSelectionChanged("function () { alert('OnSelectionChanged'); }" )
+                //.OnCellClick("function () { alert('OnCellClick'); }")
+                //.OnEditingStart("function () { alert('OnEditingStart'); }")
+                //.OnEditorPrepared("function () { alert('OnEditorPrepared'); }")
 
 
-            .ShowColumnLines(true)
-            .ShowRowLines(true)
-            .RowAlternationEnabled(true)
-            .ShowBorders(true)
-
-            .TwoWayBindingEnabled(true)
-
-            .Grouping
-            (g => g
-            .ContextMenuEnabled(true)
-            .ExpandMode(GridGroupingExpandMode.RowClick)
-            )
-
-            .GroupPanel
-            (p => p
-            .EmptyPanelText("請把小組名稱拉到這裡")
-            .Visible(false) // 讓使用者不能自己決定誰被Grouping起來
-            .AllowColumnDragging(true)
-            )
-
-            //.GroupPanel(p => p.Visible(true))
-            //.GroupPanel(p => p.AllowColumnDragging(false))
-            //.GroupPanel(p => p.(false))
-            //.Grouping(g => g.AutoExpandAll(true))
 
 
-            .Editing(editing =>
-            {
-                //editing.Mode(GridEditMode.Batch);
-                //editing.Mode(GridEditMode.Row);
-                editing.Mode(GridEditMode.Cell);
-                //editing.Mode(GridEditMode.Batch);
-                //editing.Mode(GridEditMode.Form);
-                //editing.Mode(GridEditMode.Popup);
-                editing.AllowUpdating(true);
-                editing.AllowDeleting(false);
-                //editing.AllowAdding(true);
-                editing.Texts(a => a.SaveAllChanges("上傳檔案").AddRow("新增").CancelAllChanges("取消變更"));
-                //editing.AllowDeleting(true);
-            })
+                .ShowColumnLines(true)
+                .ShowRowLines(true)
+                .RowAlternationEnabled(true)
+                .ShowBorders(true)
 
-    .Columns(columns =>
-    {
-                @*columns.Add()
+                .TwoWayBindingEnabled(true)
+
+                .Grouping
+                (g => g
+                .ContextMenuEnabled(true)
+                .ExpandMode(GridGroupingExpandMode.RowClick)
+                )
+
+                .GroupPanel
+                (p => p
+                .EmptyPanelText("請把小組名稱拉到這裡")
+                .Visible(false) // 讓使用者不能自己決定誰被Grouping起來
+                .AllowColumnDragging(true)
+                )
+
+                //.GroupPanel(p => p.Visible(true))
+                //.GroupPanel(p => p.AllowColumnDragging(false))
+                //.GroupPanel(p => p.(false))
+                //.Grouping(g => g.AutoExpandAll(true))
+
+
+                .Editing(editing =>
+                {
+                    //editing.Mode(GridEditMode.Batch);
+                    //editing.Mode(GridEditMode.Row);
+                    editing.Mode(GridEditMode.Cell);
+                    //editing.Mode(GridEditMode.Batch);
+                    //editing.Mode(GridEditMode.Form);
+                    //editing.Mode(GridEditMode.Popup);
+                    editing.AllowUpdating(true);
+                    editing.AllowDeleting(false);
+                    //editing.AllowAdding(false);
+                    editing.Texts(a => a.SaveAllChanges("上傳檔案").AddRow("新增").CancelAllChanges("取消變更").SaveRowChanges("儲存").CancelRowChanges("取消").EditRow("編輯").DeleteRow("刪除"));
+                    //editing.AllowDeleting(true);
+                })
+
+        .Columns(columns =>
+        {
+            @*columns.Add()
                 .DataField("Picture")
                 .Caption("照片")
                 .Width(60)
@@ -268,72 +271,254 @@
                 </text>        );*@
 
 
-                //columns.Add()
-                //    .Caption("測試")
-                //    //.DataField("Shepherd")
-                //    .Width(250)
-                //
-                //    .CellTemplate(@<text> @(Html.Partial("DropDownBox") )
-                //    </text>);
+                    //columns.Add()
+                    //    .Caption("測試")
+                    //    //.DataField("Shepherd")
+                    //    .Width(250)
+                    //
+                    //    .CellTemplate(@<text> @(Html.Partial("DropDownBox") )
+                    //    </text>);
 
-                columns.Add().DataField("FullName").Caption("姓名").Fixed(true).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Left);
-                columns.Add().DataField("Status").Caption("委身類型").Fixed(false).Width(100).MinWidth(20).Alignment(HorizontalAlignment.Center);
-                columns.Add().DataField("Sunday").Caption("主日").DataType(GridColumnDataType.Boolean).Width(45).MinWidth(45);
-                columns.Add().DataField("SmallGroup").Caption("小組").DataType(GridColumnDataType.Boolean).Width(45).MinWidth(45);
-                columns.Add().DataField("PrayItem").Caption("代禱事項").Fixed(false).MinWidth(90);
-                //columns.Add().DataField("SectionName").Caption("族系").GroupIndex(-1).MinWidth(10);
-                columns.Add().DataField("SmallGroupName").Caption("小組").GroupIndex(0).MinWidth(10);
+                    columns.Add().DataField("FullName").Caption("姓名").Fixed(true).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Left);
+                    columns.Add().DataField("Status").Caption("委身類型").Fixed(false).Width(100).MinWidth(20).Alignment(HorizontalAlignment.Center);
+                    columns.Add().DataField("Sunday").Caption("主日").DataType(GridColumnDataType.Boolean).Width(45).MinWidth(45);
+                    columns.Add().DataField("SmallGroup").Caption("小組").DataType(GridColumnDataType.Boolean).Width(45).MinWidth(45);
+                    columns.Add().DataField("PrayItem").Caption("代禱事項").Fixed(false).MinWidth(90);
+                    //columns.Add().DataField("SectionName").Caption("族系").GroupIndex(-1).MinWidth(10);
+                    columns.Add().DataField("SmallGroupName").Caption("小組").GroupIndex(0).MinWidth(10);
 
-                //columns.Add()
-                //    .DataField("StateID1")
-                //    .Caption("牧養活動")
-                //    .Width(80).MinWidth(30)
-                //    .Lookup(lookup => lookup
-                //    .DataSource(d => d.WebApi().Controller("ShepherdMethodLookup").LoadAction("Get").Key("ID"))
-                //    .DisplayExpr("Name")
-                //    .ValueExpr("ID")
-                //);
+                    //columns.Add()
+                    //    .DataField("StateID1")
+                    //    .Caption("牧養活動")
+                    //    .Width(80).MinWidth(30)
+                    //    .Lookup(lookup => lookup
+                    //    .DataSource(d => d.WebApi().Controller("ShepherdMethodLookup").LoadAction("Get").Key("ID"))
+                    //    .DisplayExpr("Name")
+                    //    .ValueExpr("ID")
+                    //);
 
-                //columns.Add()
-                //    .Caption("牧養次數")
-                //    //.DataField("Shepherd")
-                //    .Width(80)
-                //    .CellTemplate(@<text> @(Html.DevExtreme().NumberBox()
-                //    .Value(0)
-                //    .Min(0)
-                //    .Max(20)
-                //    .ShowSpinButtons(true) )
-                //    </text>        );
+                    //columns.Add()
+                    //    .Caption("牧養次數")
+                    //    //.DataField("Shepherd")
+                    //    .Width(80)
+                    //    .CellTemplate(@<text> @(Html.DevExtreme().NumberBox()
+                    //    .Value(0)
+                    //    .Min(0)
+                    //    .Max(20)
+                    //    .ShowSpinButtons(true) )
+                    //    </text>        );
 
-                //columns.Add().DataField("Number1").Caption("次數").DataType(GridColumnDataType.Number).Width(50).MinWidth(10);
-                //
-                //columns.Add()
-                //    .DataField("StateID2")
-                //    .Caption("牧養活動")
-                //    .Width(80).MinWidth(30)
-                //    .Lookup(lookup => lookup
-                //    .DataSource(d => d.WebApi().Controller("ShepherdMethodLookup").LoadAction("Get").Key("ID"))
-                //    .DisplayExpr("Name")
-                //    .ValueExpr("ID")
-                //);
-                //
-                //columns.Add().DataField("Number2").Caption("次數").DataType(GridColumnDataType.Number).Width(50).MinWidth(10);
+                    //columns.Add().DataField("Number1").Caption("次數").DataType(GridColumnDataType.Number).Width(50).MinWidth(10);
+                    //
+                    //columns.Add()
+                    //    .DataField("StateID2")
+                    //    .Caption("牧養活動")
+                    //    .Width(80).MinWidth(30)
+                    //    .Lookup(lookup => lookup
+                    //    .DataSource(d => d.WebApi().Controller("ShepherdMethodLookup").LoadAction("Get").Key("ID"))
+                    //    .DisplayExpr("Name")
+                    //    .ValueExpr("ID")
+                    //);
+                    //
+                    //columns.Add().DataField("Number2").Caption("次數").DataType(GridColumnDataType.Number).Width(50).MinWidth(10);
 
 
-                })
-                //.DataSource(d => d.WebApi().Controller("SmallGroupReport").Key("Id"))
-                .DataSource(Model.Members)
-                //.DataSourceOptions(d => d.Filter("['Id', '<=' , 6]"))
+                    })
+                    //.DataSource(d => d.WebApi().Controller("SmallGroupReport").Key("Id"))
+                    .DataSource(Model.Members)
+                    //.DataSourceOptions(d => d.Filter("['Id', '<=' , 6]"))
         )
     </div>
+}
+else
+{
+    <div id="data-grid">
+        @(Html.DevExtreme().DataGrid()
+                .ID("gridContainer")
+                .ShowBorders(true)
+                .ColumnAutoWidth(true)
+                .Paging(p => p.PageSize(10))
+                .Paging(paging => paging.Enabled(false))
+                .AllowColumnResizing(true)
+                .ColumnResizingMode(ColumnResizingMode.Widget)
+                .ColumnFixing(c => c.Enabled(true))
+                .LoadPanel(l => l.Text("更新資料中..."))
+                .SearchPanel(s => s.Visible(true).Placeholder("搜尋.."))
 
 
+                .StateStoring(s => s
+                .Enabled(true)
+                .Type(StateStoringType.LocalStorage)
+                .StorageKey("FullName")
+                )
+                //.StateStoring(s => s
+                //    .Enabled(true)
+                //    .Type(StateStoringType.LocalStorage)
+                //    .StorageKey("Id")
+                //)
+
+                //.OnRowUpdated("function () { alert('OnRowUpdated'); }")
+                //.OnRowClick("function () { alert('OnRowClick'); }")
+                //.OnSelectionChanged("function () { alert('OnSelectionChanged'); }" )
+                //.OnCellClick("function () { alert('OnCellClick'); }")
+                //.OnEditingStart("function () { alert('OnEditingStart'); }")
+                //.OnEditorPrepared("function () { alert('OnEditorPrepared'); }")
+
+                .OnContentReady(@<text>
+                function(e) {
+                moveEditColumnToLeft(e.component);
+                }
+                </text>            )
+
+                .OnCellPrepared("cell_prepared")
+
+
+
+                .ShowColumnLines(true)
+                .ShowRowLines(true)
+                .RowAlternationEnabled(true)
+                .ShowBorders(true)
+
+                .TwoWayBindingEnabled(true)
+
+                .Grouping
+                (g => g
+                .ContextMenuEnabled(true)
+                .ExpandMode(GridGroupingExpandMode.RowClick)
+                )
+
+                .GroupPanel
+                (p => p
+                .EmptyPanelText("請把小組名稱拉到這裡")
+                .Visible(false) // 讓使用者不能自己決定誰被Grouping起來
+                .AllowColumnDragging(true)
+                )
+
+                //.GroupPanel(p => p.Visible(true))
+                //.GroupPanel(p => p.AllowColumnDragging(false))
+                //.GroupPanel(p => p.(false))
+                //.Grouping(g => g.AutoExpandAll(true))
+
+
+                .Editing(editing =>
+                {
+                    //editing.Mode(GridEditMode.Batch);
+                    //editing.Mode(GridEditMode.Row);
+                    //editing.Mode(GridEditMode.Cell);
+                    //editing.Mode(GridEditMode.Batch);
+                    //editing.Mode(GridEditMode.Form);
+                    editing.Mode(GridEditMode.Popup);
+                    editing.AllowUpdating(true);
+                    editing.AllowDeleting(false);
+                    //editing.AllowAdding(false);
+                    editing.Texts(a => a.SaveAllChanges("上傳檔案").AddRow("新增").CancelAllChanges("取消變更").SaveRowChanges("儲存").CancelRowChanges("取消").EditRow("編輯").DeleteRow("刪除"));
+                    //editing.AllowDeleting(true);
+                })
+
+        .Columns(columns =>
+        {
+                @*columns.Add()
+                    .DataField("Picture")
+                    .Caption("照片")
+                    .Width(60)
+                    .AllowFiltering(false)
+                    .AllowSorting(false)
+                    .CellTemplate(@<text>
+                    <div class="img-container">
+                        <img src="<%= value %>" alt="" />
+                    </div>
+                    </text>        );*@
+
+
+                    //columns.Add()
+                    //    .Caption("測試")
+                    //    //.DataField("Shepherd")
+                    //    .Width(250)
+                    //
+                    //    .CellTemplate(@<text> @(Html.Partial("DropDownBox") )
+                    //    </text>);
+
+                    columns.Add().DataField("FullName").Caption("姓名").Fixed(true).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Left);
+                    columns.Add().DataField("Status").Caption("委身類型").Fixed(false).Width(100).MinWidth(20).Alignment(HorizontalAlignment.Center);
+                    columns.Add().DataField("Sunday").Caption("主日").DataType(GridColumnDataType.Boolean).Width(45).MinWidth(45);
+                    columns.Add().DataField("SmallGroup").Caption("小組").DataType(GridColumnDataType.Boolean).Width(45).MinWidth(45);
+                    columns.Add().DataField("PrayItem").Caption("代禱事項").Fixed(false).MinWidth(90);
+                    //columns.Add().DataField("SectionName").Caption("族系").GroupIndex(-1).MinWidth(10);
+                    columns.Add().DataField("SmallGroupName").Caption("小組").GroupIndex(0).MinWidth(10);
+
+                    //columns.Add()
+                    //    .DataField("StateID1")
+                    //    .Caption("牧養活動")
+                    //    .Width(80).MinWidth(30)
+                    //    .Lookup(lookup => lookup
+                    //    .DataSource(d => d.WebApi().Controller("ShepherdMethodLookup").LoadAction("Get").Key("ID"))
+                    //    .DisplayExpr("Name")
+                    //    .ValueExpr("ID")
+                    //);
+
+                    //columns.Add()
+                    //    .Caption("牧養次數")
+                    //    //.DataField("Shepherd")
+                    //    .Width(80)
+                    //    .CellTemplate(@<text> @(Html.DevExtreme().NumberBox()
+                    //    .Value(0)
+                    //    .Min(0)
+                    //    .Max(20)
+                    //    .ShowSpinButtons(true) )
+                    //    </text>        );
+
+                    //columns.Add().DataField("Number1").Caption("次數").DataType(GridColumnDataType.Number).Width(50).MinWidth(10);
+                    //
+                    //columns.Add()
+                    //    .DataField("StateID2")
+                    //    .Caption("牧養活動")
+                    //    .Width(80).MinWidth(30)
+                    //    .Lookup(lookup => lookup
+                    //    .DataSource(d => d.WebApi().Controller("ShepherdMethodLookup").LoadAction("Get").Key("ID"))
+                    //    .DisplayExpr("Name")
+                    //    .ValueExpr("ID")
+                    //);
+                    //
+                    //columns.Add().DataField("Number2").Caption("次數").DataType(GridColumnDataType.Number).Width(50).MinWidth(10);
+
+
+                    })
+                    //.DataSource(d => d.WebApi().Controller("SmallGroupReport").Key("Id"))
+                    .DataSource(Model.Members)
+                    //.DataSourceOptions(d => d.Filter("['Id', '<=' , 6]"))
+        )
+    </div>
+}
 <script>var DataUploadStatus = "尚未上傳喔!";</script>
-
 <script src="~/js/DataGridAjax.js"></script>
 <script src="~/js/SelectDate.js"></script>
 <script src="~/js/DropDownBox.js"></script>
 <script src="~/js/DataGridAjax.js"></script>
 <script src="~/js/LoadPanel.js"></script>
+<script>
+    function moveEditColumnToLeft(dataGrid) {
+        dataGrid.columnOption("command:edit", {
+            visibleIndex: -1,
+            width: 50
+        });
+    }
+
+    function cell_prepared(e) {
+        if (e.rowType === "data" && e.column.command === "edit") {
+            var isEditing = e.row.isEditing,
+                $links = e.cellElement.find(".dx-link");
+
+            $links.text("");
+
+            if (isEditing) {
+                $links.filter(".dx-link-save").addClass("dx-icon-save");
+                $links.filter(".dx-link-cancel").addClass("dx-icon-revert");
+            } else {
+                $links.filter(".dx-link-edit").addClass("dx-icon-edit");
+                $links.filter(".dx-link-delete").addClass("dx-icon-trash");
+            }
+        }
+    }
+</script>
 <link href="~/css/SmallGroupReportController.css" rel="stylesheet" />
 

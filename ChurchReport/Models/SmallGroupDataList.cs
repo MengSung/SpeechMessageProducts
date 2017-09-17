@@ -58,6 +58,8 @@ namespace ChurchReport.Models
             // 從雲端後台下載下來小組點名資料
             m_MemberInfomationPackage = aDownloader.GetMemberDataPackage(SundayDate, aAccountPasswordData);
 
+            m_SmallGroupData.LoginType = m_MemberInfomationPackage.m_LoginType;
+
             m_SmallGroupData.SmallGroupLeaderFullName = FullName;
             m_SmallGroupData.SundayPrayers = m_SundayDate = SundayDate;
             m_SmallGroupData.Members = new List<Member>();
