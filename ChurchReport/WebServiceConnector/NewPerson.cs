@@ -555,6 +555,15 @@ namespace ChurchReport.WebServiceConnector
                     // 帶領族系裡有名單，所以是族系組長，就不用在往下找看是不是小組長了 
                     return;
                 }
+                else
+                {
+                    // 都沒找到要點名的名單，就是個人回報
+                    EntityCollection aSmallGroupList = this.m_ToolUtilityClass.QueryListOfContactManyToMany(m_ContactId);
+                    foreach (Entity aListEntity in aSmallGroupList.Entities)
+                    {
+                        this.m_Lists.Entities.Add(aListEntity);
+                    }
+                }
 
                 // 找到小家長小組名單集合 
                 //aListEntityCollection = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_familyhead_list", "list");
