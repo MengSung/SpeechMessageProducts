@@ -1,5 +1,6 @@
 ﻿@{
     String DataStatus = "上傳成功了!";
+    String ReUpload = "請再按一次上傳鈕!";
 }
 
 
@@ -13,7 +14,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="shortcut icon" href="assets/images/logo.png" type="image/x-icon">
     <meta name="description" content="">
-    <title>台北基督之家</title>
+    <title>林口靈糧堂</title>
 
 </head>
 
@@ -33,34 +34,48 @@
                 (@<text>
                 function(arg)
                 {
-                // 顯示旋轉鈕
-                $("#loadPanel").dxLoadPanel("instance").show();
+                    // 顯示旋轉鈕
+                    $("#loadPanel").dxLoadPanel("instance").show();
 
-                // AJAX 區塊
-                $.ajax
-                (
-                {
-                url: '@Url.Action("SavePersonInfomation", "Home")',
-                data: { aResult: GetResult() }, // 整理回傳給 Server 的點名資料
-                type: 'POST', //POST if you want to save, GET if you want to fetch data from server
+                    var dataGrid = $("#gridContainer").dxDataGrid("instance");
 
-                success: function (arg)
-                {
-                // 隱藏旋轉鈕
-                $("#loadPanel").dxLoadPanel("instance").hide();
+                    var Flag = dataGrid.hasEditData();
 
-                // 顯示上傳成功
-                $("#toast").dxToast("instance").show();
-                },
+                    if(Flag == false)
+                    {
+                            // AJAX 區塊
+                            $.ajax
+                            (
+                                    {
+                                        url: '@Url.Action("SavePersonInfomation", "Home")',
+                                        data: { aResult: GetResult() }, // 整理回傳給 Server 的點名資料
+                                        type: 'POST', //POST if you want to save, GET if you want to fetch data from server
 
-                error: function (obj)
-                {
-                //alert('Something happened');
-                }
+                                        success: function (arg)
+                                        {
+                                            // 隱藏旋轉鈕
+                                            $("#loadPanel").dxLoadPanel("instance").hide();
 
-                }
-                );
-                // AJAX 區塊
+                                            // 顯示上傳成功
+                                            $("#toast").dxToast("instance").show();
+                                        },
+
+                                        error: function (obj)
+                                        {
+                                            //alert('Something happened');
+                                        }
+                                    }
+                            );
+                            // AJAX 區塊
+                    }
+                    else
+                    {
+                        // 隱藏旋轉鈕
+                        $("#loadPanel").dxLoadPanel("instance").hide();
+
+                        // 顯示再上傳一次
+                        $("#ToastReUpload").dxToast("instance").show();
+                    }
 
                 }
                 </text>)
@@ -94,6 +109,19 @@
                 //.OnHidden("loadPanel_hidden")
             )
         </div>
+        <div id="ToastContainer">
+            @(Html.DevExtreme().Toast()
+                    .ID("ToastReUpload")
+                    .Position(p => p
+                    .At(HorizontalAlignment.Center, VerticalAlignment.Center)
+                    .Offset(0, 50))
+                    .Message(ReUpload)
+                    .DisplayTime(5000)
+                    .Type(ToastType.Error)
+                    .MaxWidth(500)
+            )
+        </div>
+
     </div>
 </div>
 

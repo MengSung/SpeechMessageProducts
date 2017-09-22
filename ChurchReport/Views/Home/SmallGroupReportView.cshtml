@@ -1,6 +1,6 @@
 ﻿@{
     String DataStatus = "上傳成功了!";
-    String ReUpload = "您的代禱事項尚未儲存，請再上傳一次!";
+    String ReUpload = "請再按一次上傳鈕!";
 }
 
 
@@ -122,6 +122,8 @@
                         else
                         {
 
+                            // 隱藏旋轉鈕
+                            $("#loadPanel").dxLoadPanel("instance").hide();
                             // 顯示再上傳一次
                             $("#ToastReUpload").dxToast("instance").show();
 
