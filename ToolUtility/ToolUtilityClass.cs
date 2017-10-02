@@ -3346,7 +3346,8 @@ namespace ToolUtilityNameSpace
                     }
                     else
                     {
-                        return DateTime.Now.AddYears(-9999);
+                        return new DateTime(1, 1, 1);
+                        //return DateTime.Now.AddYears(-9999);
                     }
                 }
             }
@@ -3369,7 +3370,8 @@ namespace ToolUtilityNameSpace
                     }
                     else
                     {
-                        return DateTime.Now.AddYears(-9999);
+                        return new DateTime(1, 1, 1);
+                        //return DateTime.Now.AddYears(-9999);
                     }
                 }
             }
@@ -3377,7 +3379,8 @@ namespace ToolUtilityNameSpace
             {
                 String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
 
-                return DateTime.Now.AddYears(-9999);
+                return new DateTime(1, 1, 1);
+                //return DateTime.Now.AddYears(-9999);
 
                 //throw e;
             }
