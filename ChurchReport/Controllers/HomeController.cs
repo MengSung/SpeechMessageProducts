@@ -43,14 +43,12 @@ namespace ChurchReport.Controllers
         public IActionResult Login()
         {
             var images = new List<string>();
-            images.Add(Url.Content("~/assets/images/tpehoc-001.png"));
-            images.Add(Url.Content("~/assets/images/tpehoc-002.jpg"));
-            images.Add(Url.Content("~/assets/images/tpehoc-003.jpg"));
-            images.Add(Url.Content("~/assets/images/tpehoc-004.jpg"));
-            //images.Add(Url.Content("~/assets/images/photo-1.jpg"));
-            //images.Add(Url.Content("~/assets/images/photo-10.jpg"));
-            //images.Add(Url.Content("~/assets/images/photo-6.jpg"));
-            //images.Add(Url.Content("~/assets/images/photo-9.jpg"));
+
+            images.Add(Url.Content("~/assets/images/pastor-gary-kuo.png"));
+            images.Add(Url.Content("~/assets/images/page2-img2.png"));
+            images.Add(Url.Content("~/assets/images/page2-img3.png"));
+            images.Add(Url.Content("~/assets/images/page2-img4.png"));
+            images.Add(Url.Content("~/assets/images/page2-img5.png"));
             return View(new GalleryViewModel
             {
                 Images = images
@@ -615,7 +613,7 @@ namespace ChurchReport.Controllers
 
             if (aLineEntityId != null && aLineEntityId != Guid.Empty)
             {
-                return Json(new { status = "1", message = "歡迎 " + aLineBindingViewModel.FullName + " 開始綁定程序，請至台北基督之家接收綁定結果訊息，謝謝您!", encoded = aLineBindingViewModel.DisplayName + "," + aLineBindingViewModel.LineUserId } );
+                return Json(new { status = "1", message = "歡迎 " + aLineBindingViewModel.FullName + " 開始綁定程序，請至台中思恩堂豐富教會接收綁定結果訊息，謝謝您!", encoded = aLineBindingViewModel.DisplayName + "," + aLineBindingViewModel.LineUserId } );
             }
             else
             {

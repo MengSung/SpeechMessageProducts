@@ -1098,14 +1098,14 @@ namespace ChurchReport.WebServiceConnector
                 // 區長 ID
                 Guid RaceLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_race_leager_list");
 
-                // 區牧長 ID
+                // 上代組長 ID
                 Guid ShepherdLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_list_arealeader");
 
                 // 區名
-                String AreaName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aListEntity, "new_area_name");
+                //String AreaName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aListEntity, "new_area_name");
 
                 // 設定週報相關屬性
-                this.SetupWeeklyReortEntityAttributes(ref aWeeklyReportEntity, AreaName, FamilyLeaderId, GroupLeaderId, RaceLeaderId, ShepherdLeaderId, m_DecipleGroupListId, aListEntity.Id, m_Sunday, m_SmallGroupPlace, m_SmallGroupTime);
+                this.SetupWeeklyReortEntityAttributes(ref aWeeklyReportEntity, FamilyLeaderId, GroupLeaderId, RaceLeaderId, ShepherdLeaderId, m_DecipleGroupListId, aListEntity.Id, m_Sunday, m_SmallGroupPlace, m_SmallGroupTime);
 
                 // 新增週報
                 return this.m_ToolUtilityClass.CreateEntity(aWeeklyReportEntity);
@@ -1118,12 +1118,12 @@ namespace ChurchReport.WebServiceConnector
                 throw Exception;
             }
         }
-        private void SetupWeeklyReortEntityAttributes(ref Entity aWeeklyReportEntity, String AreaName, Guid aFamilyLeaderId, Guid aGroupLeaderId, Guid aRaceLeaderId, Guid aShepherdLeaderId , Guid aDecipleGroupList, Guid ListEntityId, DateTime aSunday, String SmallGroupPlace, String SmallGroupTime)
+        private void SetupWeeklyReortEntityAttributes(ref Entity aWeeklyReportEntity, Guid aFamilyLeaderId, Guid aGroupLeaderId, Guid aRaceLeaderId, Guid aShepherdLeaderId , Guid aDecipleGroupList, Guid ListEntityId, DateTime aSunday, String SmallGroupPlace, String SmallGroupTime)
         {
             try
             {
                 #region 設定區名
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aWeeklyReportEntity, "new_area_name", AreaName);
+                //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aWeeklyReportEntity, "new_area_name", AreaName);
                 #endregion
                 #region 關聯小家長屬性
                 if (aFamilyLeaderId != Guid.Empty)
@@ -1137,7 +1137,7 @@ namespace ChurchReport.WebServiceConnector
                 if (aRaceLeaderId != Guid.Empty)
                 { this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aWeeklyReportEntity, "new_group_head_group_present_weekly_r", "contact", aRaceLeaderId); }
                 #endregion
-                #region 關聯區牧長屬性
+                #region 關聯上代組長屬性
                 if (aShepherdLeaderId != Guid.Empty)
                 { this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aWeeklyReportEntity, "new_contact_arealeader_weekly_report", "contact", aShepherdLeaderId); }
                 #endregion
@@ -2780,11 +2780,11 @@ namespace ChurchReport.WebServiceConnector
                 Guid aShepherdLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_list_arealeader");
 
                 // 區名
-                String AreaName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aListEntity, "new_area_name");
+                //String AreaName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aListEntity, "new_area_name");
 
                 #endregion
                 #region 設定區名
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_area_name", AreaName);
+                //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_area_name", AreaName);
                 #endregion
                 #region 關聯小家長屬性
                 if (aFamilyLeaderId != Guid.Empty)
@@ -4120,35 +4120,41 @@ namespace ChurchReport.WebServiceConnector
                 throw e;
             }
         }
-        //台北基督之家
+
+        //台中思恩堂豐富教會
         private String ConvertIndexToIdentity(int Identity)
         {
             switch (Identity)
             {
-                case 100000000:
-                    return "7. 新朋友";
-                case 100000001:
-                    return "100,000,001";
-                case 100000002:
-                    return "3. 小組長";
-                case 100000003:
-                    return "2. 區長";
-                case 100000004:
-                    return "6. 未入組";
                 case 100000006:
-                    return "1. 區牧";
-                case 100000007:
-                    return "8. 外教會.訪客";
+                    return "01. 牧師師母";
+                case 100000003:
+                    return "02. 區長";
                 case 100000008:
-                    return "4. 實習小組長";
-                case 100000009:
-                    return "0. 區牧長";
+                    return "03. 小組長";
+                case 100000012:
+                    return "04. 副組長";
                 case 1:
-                    return "5. 小組組員";
+                    return "05. 小組組員";
+                case 100000005:
+                    return "06. 幸福BEST";
+                case 100000004:
+                    return "07. 未入組";
+                case 100000000:
+                    return "08. 新朋友";
+                case 100000007:
+                    return "09. 外教會.訪客";
+                case 100000001:
+                    return "10. 結案";
                 default:
                     return ".";
             }
         }
+
+
+
+
+
         //楊梅靈糧堂
         //private String ConvertIndexToIdentity(int Identity)
         //{

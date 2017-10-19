@@ -119,7 +119,8 @@ namespace ChurchReport.Models
                 if ( m_MemberInfomationPackage.m_LoginType == "小組長")
                 {
                     #region 登入者是小組長
-                    if (aMember.Status == "區牧長" || aMember.Status == "區牧" || aMember.Status == "區長" || aMember.Status == "小組長" || aMember.Status == "實習小組長" || aMember.Status == "小組組員")
+                    // 委身類型客製化
+                    if (aMember.Status == "牧師師母" || aMember.Status == "區長" || aMember.Status == "小組長" || aMember.Status == "副組長" || aMember.Status == "小組組員")
                     {
                         // 小組長牧養點名
                         m_SmallGroupData.Members.Add(aMember);

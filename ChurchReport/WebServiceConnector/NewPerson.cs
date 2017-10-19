@@ -1672,6 +1672,7 @@ namespace ChurchReport.WebServiceConnector
             }
 
         }
+
         private String ConvertIndexToClearIdentity(int Identity)
         {
             // 取得比較易懂的委身類型

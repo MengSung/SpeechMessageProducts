@@ -1408,6 +1408,7 @@ namespace ChurchReport.WebServiceConnector
                 // 確認是否是新人或是未入組
                 int aIdentityNumber = this.m_ToolUtilityClass.GetOptionSetAttribute(aContact, "customertypecode");
 
+                // 委身類型客製化
                 if (aIdentityNumber == 100000000 || aIdentityNumber == 100000004)
                 {
                     //    case 100000000:
@@ -2251,7 +2252,8 @@ namespace ChurchReport.WebServiceConnector
                             NewComerNote = aNewComerNote
                         };
 
-                        if (aIdentity != "10.未入組結案")
+                        // 委身類型客製化
+                        if (aIdentity != "10. 結案")
                         {
                             // "10.未入組結案" 不用進入 APP
                             this.m_MemberInfomationPackage.ListMemberInfomation.Add(aMemberInfomation);
@@ -2360,8 +2362,7 @@ namespace ChurchReport.WebServiceConnector
                 int aIdentity = this.m_ToolUtilityClass.GetOptionSetAttribute(ref aContact, "customertypecode");
 
                 String aIdentityType = ConvertIndexToIdentity(aIdentity);
-
-                if (aIdentityType == "7. 未入組" || aIdentityType == "8. 新朋友")
+                if (aIdentityType == "07. 未入組" || aIdentityType == "08. 新朋友")
                 {
                     // 如果委身型態是"未入組"或是"新朋友"
                     // 先搜尋過去2個月的靈修出席紀錄
@@ -2380,7 +2381,7 @@ namespace ChurchReport.WebServiceConnector
                         }
                     }
                 }
-                else if (aIdentityType == "06. 小組組員")
+                else if (aIdentityType == "05. 小組組員")
                 {
                     // 如果主日次數+小組次數 小於 8 次，則委身類型設定為"未入組"
                     if (PassOrFail(aListEntityId, ref aContact) == false)
@@ -2494,31 +2495,32 @@ namespace ChurchReport.WebServiceConnector
         //    }
         //}
 
-        //台北基督之家
+        // 委身類型客製化
+        //台中思恩堂豐富教會
         private String ConvertIndexToIdentity(int Identity)
         {
             switch (Identity)
             {
-                case 100000000:
-                    return "7. 新朋友";
-                case 100000001:
-                    return "100,000,001";
-                case 100000002:
-                    return "3. 小組長";
-                case 100000003:
-                    return "2. 區長";
-                case 100000004:
-                    return "6. 未入組";
                 case 100000006:
-                    return "1. 區牧";
-                case 100000007:
-                    return "8. 外教會.訪客";
+                    return "01. 牧師師母";
+                case 100000003:
+                    return "02. 區長";
                 case 100000008:
-                    return "4. 實習小組長";
-                case 100000009:
-                    return "0. 區牧長";
+                    return "03. 小組長";
+                case 100000012:
+                    return "04. 副組長";
                 case 1:
-                    return "5. 小組組員";
+                    return "05. 小組組員";
+                case 100000005:
+                    return "06. 幸福BEST";
+                case 100000004:
+                    return "07. 未入組";
+                case 100000000:
+                    return "08. 新朋友";
+                case 100000007:
+                    return "09. 外教會.訪客";
+                case 100000001:
+                    return "10. 結案";
                 default:
                     return ".";
             }
