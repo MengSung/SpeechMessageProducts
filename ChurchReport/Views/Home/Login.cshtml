@@ -16,7 +16,7 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <title>台中思恩堂豐富教會</title>
+    <title>林口靈糧堂</title>
     <link href="~/favicon.ico" rel="shortcut icon" type="image/x-icon" />
 
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.css" />
@@ -55,7 +55,9 @@
         @(Html.DevExtreme().Gallery()
         .ID("gallery")
         .DataSource(Model.Images)
-        .Height(250)
+        //.Height(250)
+        .Height("250px")
+        //.Height("100%")
         //.Width(600)
         //.InitialItemWidth(250)
         .StretchImages(true)
@@ -147,32 +149,32 @@
     </form>
 
     <script>
-    function getLoadPanelInstance() {
-        return $("#loadPanel").dxLoadPanel("instance");
-    }
+        function getLoadPanelInstance() {
+            return $("#loadPanel").dxLoadPanel("instance");
+        }
 
-    function button_click() {
-        getLoadPanelInstance().show();
-    }
+        function button_click() {
+            getLoadPanelInstance().show();
+        }
 
-    function loadPanel_shown(e) {
-        //    setTimeout(function () {
-        //        e.component.hide();
-        //    }, 3000);
-    }
+        function loadPanel_shown(e) {
+            //    setTimeout(function () {
+            //        e.component.hide();
+            //    }, 3000);
+        }
 
-    function loadPanel_hidden() {
-    }
+        function loadPanel_hidden() {
+        }
 
-    function Login(arg) {
+        function Login(arg) {
 
-        getLoadPanelInstance().show();
-    }
+            getLoadPanelInstance().show();
+        }
 
-    function Register(arg) {
+        function Register(arg) {
 
-        window.location.href = "/Home/Register";
-    }
+            window.location.href = "/Home/Register";
+        }
 
     </script>
 
@@ -188,6 +190,11 @@
                 DevExpress.ui.notify(data.message, "success", 2000);
 
                 window.location.href = "/Home/SmallGroupReportView/AccountPassword";
+            }
+            else if (data.status == 2) {
+                DevExpress.ui.notify(data.message, "success", 2000);
+
+                window.location.href = "/Home/HappyGroup";
             }
             else {
                 DevExpress.ui.notify(data.message, "error", 3000);

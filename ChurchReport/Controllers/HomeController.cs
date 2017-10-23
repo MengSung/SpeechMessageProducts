@@ -64,6 +64,8 @@ namespace ChurchReport.Controllers
             SmallGroupDataList m_SmallGroupDataList = new SmallGroupDataList();
             m_SmallGroupDataList.SetupContactIdString(ContactIdString);
 
+            HappyGroupDataManager m_HappyGroupDataManager = new HappyGroupDataManager();
+
             if (ContactIdString != "密碼錯誤" && ContactIdString != "系統沒有設定密碼" && ContactIdString != "帳號錯誤")
             {
                 Guid aContactGuid = new Guid(ContactIdString);
@@ -81,16 +83,28 @@ namespace ChurchReport.Controllers
                 String SerializedSmallGroupDataList = JsonConvert.SerializeObject(m_SmallGroupDataList);
                 TempData["SmallGroupDataList"] = SerializedSmallGroupDataList;
 
-                //SmallGroupDataList XXX_SmallGroupDataList = JsonConvert.DeserializeObject<SmallGroupDataList>(SerializedSmallGroupDataList);
+                // 設定幸福小組資料
+                m_HappyGroupDataManager.SetupHappyGroupData(aGalleryViewModel.Account, aGalleryViewModel.Password);
 
-                //TempData["SmallGroupDataList"] = JsonConvert.SerializeObject(m_SmallGroupDataList);
+                String SerializedHappyGroupDataManager = JsonConvert.SerializeObject(m_HappyGroupDataManager);
+                TempData["HappyGroupDataManager"] = SerializedHappyGroupDataManager;
 
-
-                return Json(new { status = "1", message = "歡迎" + FullName + "登入成功!", fullname = FullName, account = aGalleryViewModel.Account, password = aGalleryViewModel.Password });
+                if (m_SmallGroupDataList.m_MemberInfomationPackage.m_LoginType == "小組長" && m_HappyGroupDataManager.m_ActiveHappyGroupWeeklyReportList != null)
+                {
+                    return Json(new { status = "1", message = "歡迎" + FullName + "登入成功!", fullname = FullName, account = aGalleryViewModel.Account, password = aGalleryViewModel.Password });
+                }
+                else if (m_SmallGroupDataList.m_MemberInfomationPackage.m_LoginType == "小組長" && m_HappyGroupDataManager.m_ActiveHappyGroupWeeklyReportList == null)
+                {
+                    return Json(new { status = "1", message = "歡迎" + FullName + "登入成功!", fullname = FullName, account = aGalleryViewModel.Account, password = aGalleryViewModel.Password });
+                }
+                else
+                {
+                    return Json(new { status = "2", message = "歡迎" + FullName + "登入成功!", fullname = FullName, account = aGalleryViewModel.Account, password = aGalleryViewModel.Password });
+                }
             }
             else
             {
-                return Json(new { status = "2", message = ContactIdString, fullname = ContactIdString });
+                return Json(new { status = "3", message = ContactIdString, fullname = ContactIdString });
             }
         }
         #endregion

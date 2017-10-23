@@ -24,8 +24,8 @@ namespace ToolUtilityNameSpace
     public class ToolUtilityClass
     {
         #region 資料區
-        private String CRM_TYPE = "CRM2011";
-        //private String CRM_TYPE = "DYNAMICS365";
+        //private String CRM_TYPE = "CRM2011";
+        private String CRM_TYPE = "DYNAMICS365";
 
         String m_DiscoveryServiceType = "";
 
@@ -49,12 +49,12 @@ namespace ToolUtilityNameSpace
 
         #region 林口靈糧堂組織
         //private const String SERVER = "crm2011"; // 機房雲端要用此網址
-        private const String SERVER = "system.speechmessage.com.tw";
-        private const String PORT = "7777";
-        private const String ORGANIZATION = "lkllc";
-        private const String USERNAME = "Administrator";
-        private const String PASSWORD = "hu9840";
-        private const String DOMAIN = "SPEECHMESSAGE";
+        //private const String SERVER = "system.speechmessage.com.tw";
+        //private const String PORT = "7777";
+        //private const String ORGANIZATION = "lkllc";
+        //private const String USERNAME = "Administrator";
+        //private const String PASSWORD = "hu9840";
+        //private const String DOMAIN = "SPEECHMESSAGE";
         #endregion
 
         #region 內壢得勝靈糧堂組織
@@ -148,6 +148,16 @@ namespace ToolUtilityNameSpace
         //private const String PASSWORD = "hu9840";
         //private const String DOMAIN = "DYNAMICS-365";
         #endregion
+
+        #region 台中思恩堂豐富教會(公司內部發展)
+        private const String SERVER = "speechmessage.com.tw";
+        private const String PORT = "7777";
+        private const String ORGANIZATION = "abundanceback";
+        private const String USERNAME = "Administrator@speechmessage.com.tw";
+        private const String PASSWORD = "hu9840";
+        private const String DOMAIN = "SPEECHMESSAGE";
+        #endregion
+
 
         #region 僅供參考區塊
         //private String _discoveryServiceAddress = "https://tpehoc.speechmessage.com.tw/XRMServices/2011/Discovery.svc";
