@@ -67,7 +67,7 @@ namespace ChurchReport.Controllers
                 String FullName = this.m_ToolUtilityClass.RetrieveEntityDynamics365("contact", aContactGuid).Attributes["fullname"].ToString();
                 //String FullName = this.m_ToolUtilityClass.RetrieveEntityCrm2011("contact", aContactGuid).Attributes["fullname"].ToString();
 
-                m_SmallGroupDataList.SetupSmallGroupData(FullName, aGalleryViewModel.Account, aGalleryViewModel.Password, DateTime.Now.AddDays(-(int)DateTime.Now.DayOfWeek));
+                m_SmallGroupDataList.SetupSmallGroupData(FullName, aGalleryViewModel.Account, aGalleryViewModel.Password, DateTime.Now.AddDays(-(int)DateTime.Now.DayOfWeek), false);
 
                 //TempData["FullName"] = FullName;
                 //TempData["Account"] = aGalleryViewModel.Account;
@@ -257,6 +257,18 @@ namespace ChurchReport.Controllers
                 SmallGroupDataList m_SmallGroupDataList = JsonConvert.DeserializeObject<SmallGroupDataList>(SmallGroupDataListString);
 
                 ViewBag.LoginType = m_SmallGroupDataList.m_MemberInfomationPackage.m_LoginType;// 看是小組長還是個人回報
+
+                String SerializedHappyGroupDataManager = (String)TempData.Peek("HappyGroupDataManager");
+                TempData.Keep("HappyGroupDataManager");
+                HappyGroupDataManager m_HappyGroupDataManager = JsonConvert.DeserializeObject<HappyGroupDataManager>(SerializedHappyGroupDataManager);
+                if (m_HappyGroupDataManager.m_ActiveHappyGroupWeeklyReportList != null)
+                {
+                    ViewBag.HappyType = "有幸福小組名單";
+                }
+                else
+                {
+                    ViewBag.HappyType = "沒幸福小組名單";
+                }
                 return View(m_SmallGroupDataList.m_NewPersonFollowUpData);
             }
             else
@@ -302,6 +314,19 @@ namespace ChurchReport.Controllers
                 SmallGroupDataList m_SmallGroupDataList = JsonConvert.DeserializeObject<SmallGroupDataList>(SmallGroupDataListString);
 
                 ViewBag.LoginType = m_SmallGroupDataList.m_MemberInfomationPackage.m_LoginType;// 看是小組長還是個人回報
+
+                String SerializedHappyGroupDataManager = (String)TempData.Peek("HappyGroupDataManager");
+                TempData.Keep("HappyGroupDataManager");
+                HappyGroupDataManager m_HappyGroupDataManager = JsonConvert.DeserializeObject<HappyGroupDataManager>(SerializedHappyGroupDataManager);
+                if (m_HappyGroupDataManager.m_ActiveHappyGroupWeeklyReportList != null)
+                {
+                    ViewBag.HappyType = "有幸福小組名單";
+                }
+                else
+                {
+                    ViewBag.HappyType = "沒幸福小組名單";
+                }
+
                 return View(m_SmallGroupDataList.m_AllMemeberData);
             }
             else
@@ -358,7 +383,7 @@ namespace ChurchReport.Controllers
 
             //SmallGroupDataList m_SmallGroupDataList = new SmallGroupDataList();
             DateTime aSelectDate = DateTime.Parse(SelectedDate);
-            m_SmallGroupDataList.SetupSmallGroupData(m_SmallGroupDataList.m_FullName, m_SmallGroupDataList.m_Account, m_SmallGroupDataList.m_Password, aSelectDate.AddDays(-(int)aSelectDate.DayOfWeek));
+            m_SmallGroupDataList.SetupSmallGroupData(m_SmallGroupDataList.m_FullName, m_SmallGroupDataList.m_Account, m_SmallGroupDataList.m_Password, aSelectDate.AddDays(-(int)aSelectDate.DayOfWeek), false);
 
             TempData["SmallGroupDataList"] = JsonConvert.SerializeObject(m_SmallGroupDataList);
 
@@ -407,6 +432,19 @@ namespace ChurchReport.Controllers
                     TempData["WeeklyReportData"] = SerializedWeeklyReportData;
 
                     ViewBag.LoginType = m_SmallGroupDataList.m_MemberInfomationPackage.m_LoginType;// 看是小組長還是個人回報
+
+                    String SerializedHappyGroupDataManager = (String)TempData.Peek("HappyGroupDataManager");
+                    TempData.Keep("HappyGroupDataManager");
+                    HappyGroupDataManager m_HappyGroupDataManager = JsonConvert.DeserializeObject<HappyGroupDataManager>(SerializedHappyGroupDataManager);
+                    if (m_HappyGroupDataManager.m_ActiveHappyGroupWeeklyReportList != null)
+                    {
+                        ViewBag.HappyType = "有幸福小組名單";
+                    }
+                    else
+                    {
+                        ViewBag.HappyType = "沒幸福小組名單";
+                    }
+
                     return View(aWeeklyReportData.m_WeeklyReportViewModel);
                 }
                 else
@@ -414,6 +452,19 @@ namespace ChurchReport.Controllers
                     WeeklyReportData aWeeklyReportData = JsonConvert.DeserializeObject<WeeklyReportData>(WeeklyReportDataString);
 
                     ViewBag.LoginType = m_SmallGroupDataList.m_MemberInfomationPackage.m_LoginType;// 看是小組長還是個人回報
+
+                    String SerializedHappyGroupDataManager = (String)TempData.Peek("HappyGroupDataManager");
+                    TempData.Keep("HappyGroupDataManager");
+                    HappyGroupDataManager m_HappyGroupDataManager = JsonConvert.DeserializeObject<HappyGroupDataManager>(SerializedHappyGroupDataManager);
+                    if (m_HappyGroupDataManager.m_ActiveHappyGroupWeeklyReportList != null)
+                    {
+                        ViewBag.HappyType = "有幸福小組名單";
+                    }
+                    else
+                    {
+                        ViewBag.HappyType = "沒幸福小組名單";
+                    }
+
                     return View(aWeeklyReportData.m_WeeklyReportViewModel);
                 }
             }
@@ -644,6 +695,19 @@ namespace ChurchReport.Controllers
                 TempData["NewPerson"] = SerializedNewPersonModel;
 
                 ViewBag.LoginType = m_SmallGroupDataList.m_MemberInfomationPackage.m_LoginType;// 看是小組長還是個人回報
+
+                String SerializedHappyGroupDataManager = (String)TempData.Peek("HappyGroupDataManager");
+                TempData.Keep("HappyGroupDataManager");
+                HappyGroupDataManager m_HappyGroupDataManager = JsonConvert.DeserializeObject<HappyGroupDataManager>(SerializedHappyGroupDataManager);
+                if (m_HappyGroupDataManager.m_ActiveHappyGroupWeeklyReportList != null)
+                {
+                    ViewBag.HappyType = "有幸福小組名單";
+                }
+                else
+                {
+                    ViewBag.HappyType = "沒幸福小組名單";
+                }
+
                 return View(aNewPersonModel.m_PersonFormViewModel);
             }
             else
@@ -651,6 +715,19 @@ namespace ChurchReport.Controllers
                 NewPersonModel aNewPersonModel = JsonConvert.DeserializeObject<NewPersonModel>(NewPersonString);
 
                 ViewBag.LoginType = m_SmallGroupDataList.m_MemberInfomationPackage.m_LoginType;// 看是小組長還是個人回報
+
+                String SerializedHappyGroupDataManager = (String)TempData.Peek("HappyGroupDataManager");
+                TempData.Keep("HappyGroupDataManager");
+                HappyGroupDataManager m_HappyGroupDataManager = JsonConvert.DeserializeObject<HappyGroupDataManager>(SerializedHappyGroupDataManager);
+                if (m_HappyGroupDataManager.m_ActiveHappyGroupWeeklyReportList != null)
+                {
+                    ViewBag.HappyType = "有幸福小組名單";
+                }
+                else
+                {
+                    ViewBag.HappyType = "沒幸福小組名單";
+                }
+
                 return View(aNewPersonModel.m_PersonFormViewModel);
 
             }
