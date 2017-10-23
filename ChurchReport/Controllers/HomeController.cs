@@ -35,12 +35,6 @@ namespace ChurchReport.Controllers
         private ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
         //ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("CRM2011");
 
-        //SmallGroupDataList m_SmallGroupDataList = new SmallGroupDataList();
-
-        //private String m_FullName ="";
-        //private String m_Account = "";
-        //private String m_Password = "";
-        //private DateTime m_SundayDate = DateTime.Now;
         #region µn¤J±b¸¹
         public IActionResult Login()
         {

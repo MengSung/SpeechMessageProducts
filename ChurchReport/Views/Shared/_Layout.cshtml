@@ -8,7 +8,7 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <title>台中思恩堂豐富教會</title>
+    <title>林口靈糧堂</title>
     <link href="~/favicon.ico" rel="shortcut icon" type="image/x-icon" />
 
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.css" />
@@ -32,7 +32,7 @@
     @* JSZip for client side export *@
     @*<script src="~/js/devextreme/jszip.js"></script>*@
 
-    
+
     @* 台灣中文化的檔案 *@
     @*<script type="text/javascript" src="js/localization/dx.messages.de.js"></script>*@
     @*<script src="~/js/devextreme/localization/dx.messages.tw.js"></script>*@
@@ -80,33 +80,35 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                <a class="navbar-brand" href="/">台中思恩堂豐富教會回報</a>
+                <a class="navbar-brand" href="/">林口靈糧堂回報</a>
+                @*<a class="navbar-brand" href="/">台北基督之家回報</a>*@
             </div>
             <div id="navbar" class="collapse navbar-collapse">
                 <ul class="nav navbar-nav">
-                    @if (@ViewBag.LoginType == "小組長")
+                    @if (@ViewBag.LoginType == "小組長" && @ViewBag.HappyType == "有幸福小組名單")
                     {
                         <li><a href="/Home/SmallGroupReportView/AccountPassword">小組牧養</a></li>
-                        <li><a href="/Home/NewPersonFollowUpView">跟進關懷</a></li>
-                        <!--<li><a href="/Home/Login">登入</a></li>-->
+                        <li><a href="/Home/HappyGroup">幸福小組回報</a></li>
                         <li><a href="/Home/WeeklyReport">小組日誌</a></li>
                         <li><a href="/Home/MaintainPersonInfomationView">維護基本資料</a></li>
-                        @*<li><a href="/Home/Scheduler">行事曆</a></li>*@
-                        @*<li><a href="/Scheduler/Scheduler">行事曆</a></li>*@
-                        @*<li><a href="/Home/ReportChart">出席率報表</a></li>*@
-                        <li><a href="/Home/NewPerson">新增新人</a></li>
+                        @*<li><a href="/Home/NewPerson">新增新人</a></li>*@
+                    }
+                    else if (@ViewBag.LoginType == "小組長" && @ViewBag.HappyType == "沒幸福小組名單")
+                    {
+                        <li><a href="/Home/SmallGroupReportView/AccountPassword">小組牧養</a></li>
+                        <li><a href="/Home/WeeklyReport">小組日誌</a></li>
+                        <li><a href="/Home/MaintainPersonInfomationView">維護基本資料</a></li>
+                        @*<li><a href="/Home/NewPerson">新增新人</a></li>*@
+                    }
+                    else if (@ViewBag.LoginType != "小組長" && @ViewBag.HappyType == "有幸福小組名單")
+                    {
+                        <li><a href="/Home/HappyGroup">幸福小組回報</a></li>
+                        @*<li><a href="/Home/WeeklyReport">小組日誌</a></li>*@
+                        @*<li><a href="/Home/MaintainPersonInfomationView">維護基本資料</a></li>*@
                     }
                     else
                     {
-                        <li><a href="/Home/SmallGroupReportView/AccountPassword">個人回報</a></li>
-                        @*<li><a href="/Home/NewPersonFollowUpView">跟進關懷</a></li>*@
-                        <!--<li><a href="/Home/Login">登入</a></li>-->
-                        @*<li><a href="/Home/WeeklyReport">小組日誌</a></li>*@
-                        <li><a href="/Home/MaintainPersonInfomationView">維護基本資料</a></li>
-                        @*<li><a href="/Home/Scheduler">行事曆</a></li>*@
-                        @*<li><a href="/Scheduler/Scheduler">行事曆</a></li>*@
-                        @*<li><a href="/Home/ReportChart">出席率報表</a></li>*@
-                        <li><a href="/Home/NewPerson">新增新人</a></li>
+                        @*<li><a href="/Home/MaintainPersonInfomationView">維護基本資料</a></li>*@
                     }
                 </ul>
             </div>
