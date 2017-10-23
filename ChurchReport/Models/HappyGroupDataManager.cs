@@ -15,8 +15,8 @@ namespace ChurchReport.Models
         public String m_Password = "";
         public DateTime m_SundayDate;
 
-        //private ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
-        private ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("CRM2011");
+        private ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
+        //private ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("CRM2011");
         DownloadHappyGroup m_DownloadHappyGroup = new DownloadHappyGroup();
 
         // 進行中的幸福小組
