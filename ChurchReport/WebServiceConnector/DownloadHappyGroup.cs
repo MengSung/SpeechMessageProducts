@@ -638,7 +638,7 @@ namespace ChurchReport.WebServiceConnector
                 #endregion
 
                 // 設定週報相關屬性
-                this.SetupWeeklyReortEntityAttributes(ref aWeeklyReportEntity, AreaName, FamilyLeaderId, GroupLeaderId, RaceLeaderId, ShepherdLeaderId, aListEntity.Id, aHappyGroupWeeklyReportToBeAdded.MeetingDate, HappyGroupStartTime, HappyGroupEndTime, m_SmallGroupPlace, m_SmallGroupTime, aHappyGroupWeeklyReportToBeAdded);
+                this.SetupWeeklyReortEntityAttributes(ref aWeeklyReportEntity, AreaName, FamilyLeaderId, GroupLeaderId, RaceLeaderId, ShepherdLeaderId, aListEntity, aHappyGroupWeeklyReportToBeAdded.MeetingDate, HappyGroupStartTime, HappyGroupEndTime, m_SmallGroupPlace, m_SmallGroupTime, aHappyGroupWeeklyReportToBeAdded);
 
                 // 新增週報
                 aHappyGroupWeeklyReportToBeAdded.HappyGroupWeeklyReportId = this.m_ToolUtilityClass.CreateEntity(aWeeklyReportEntity).ToString();
@@ -664,10 +664,20 @@ namespace ChurchReport.WebServiceConnector
             }
         }
 
-        private void SetupWeeklyReortEntityAttributes(ref Entity aWeeklyReportEntity, String AreaName, Guid aFamilyLeaderId, Guid aGroupLeaderId, Guid aRaceLeaderId, Guid aShepherdLeaderId, Guid ListEntityId, DateTime aMeetingDate, String HappyGroupStartTime, String HappyGroupEndTime, String SmallGroupPlace, String SmallGroupTime, HappyGroupWeeklyReport aHappyGroupWeeklyReportToBeAdded)
+        private void SetupWeeklyReortEntityAttributes(ref Entity aWeeklyReportEntity, String AreaName, Guid aFamilyLeaderId, Guid aGroupLeaderId, Guid aRaceLeaderId, Guid aShepherdLeaderId, Entity aListEntity, DateTime aMeetingDate, String HappyGroupStartTime, String HappyGroupEndTime, String SmallGroupPlace, String SmallGroupTime, HappyGroupWeeklyReport aHappyGroupWeeklyReportToBeAdded)
         {
             try
             {
+                #region 設定週報名稱
+                // 取得小組名單的名稱
+                String WeeklyReportName = "";
+                String GroupName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aListEntity, "listname");
+                if (aHappyGroupWeeklyReportToBeAdded.Topic != null)
+                {
+                    WeeklyReportName = GroupName + "-" + aHappyGroupWeeklyReportToBeAdded.Topic;
+                }
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aWeeklyReportEntity, "new_name", WeeklyReportName);
+                #endregion
                 #region 設定區名
                 //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aWeeklyReportEntity, "new_area_name", AreaName);
                 #endregion
@@ -688,8 +698,8 @@ namespace ChurchReport.WebServiceConnector
                 { this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aWeeklyReportEntity, "new_contact_arealeader_weekly_report", "contact", aShepherdLeaderId); }
                 #endregion
                 #region 關聯小組名單 Lookup
-                if (ListEntityId != Guid.Empty)
-                { this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aWeeklyReportEntity, "new_list_group_present_weekly_report", "list", ListEntityId); }
+                if (aListEntity.Id != Guid.Empty)
+                { this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aWeeklyReportEntity, "new_list_group_present_weekly_report", "list", aListEntity.Id); }
                 #endregion
                 #region 設定主日及小組聚會日期
                 //設定主日日期
@@ -913,8 +923,9 @@ namespace ChurchReport.WebServiceConnector
                 SetContactSpiritLeader(ref aQueryBestContactEntity, ref aHappyGroupWeeklyReportListClassToBeAdded, ref aBestRecord);
 
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aQueryBestContactEntity, "mobilephone", aBestRecord.MobilePhone);
-                this.m_ToolUtilityClass.SetOptionSetAttribute(ref aQueryBestContactEntity, "customertypecode", 100000006);
 
+                // 客製委身類型欄位，每間教會委身類型都不一樣，台中思恩堂豐富教會=>"幸福小組BEST" = 100000005
+                this.m_ToolUtilityClass.SetOptionSetAttribute(ref aQueryBestContactEntity, "customertypecode", 100000005);
 
                 if (this.m_ContactEntity == null)
                 {
@@ -985,7 +996,6 @@ namespace ChurchReport.WebServiceConnector
 
                     this.m_ToolUtilityClass.SetEntityIntAttribute(ref BestContactEntity, "new_happy_times", CourseCounter.Length - 1);
                 }
-
             }
             catch (System.Exception Exception)
             {
@@ -1605,7 +1615,7 @@ namespace ChurchReport.WebServiceConnector
                 #region 設定BEST 行動電話
                 if (aBestRecord.MobilePhone != null)
                 {
-                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref BestContactEntity, "mobilephone", aBestRecord.FullName);
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref BestContactEntity, "mobilephone", aBestRecord.MobilePhone);
                 }
                 #endregion
                 #region 設定屬靈帶領者

@@ -85,14 +85,21 @@ namespace ChurchReport.Controllers
 
                 if (m_SmallGroupDataList.m_MemberInfomationPackage.m_LoginType == "小組長" && m_HappyGroupDataManager.m_ActiveHappyGroupWeeklyReportList != null)
                 {
+                    ViewBag.LoginType = m_SmallGroupDataList.m_MemberInfomationPackage.m_LoginType;
+                    ViewBag.HappyType = "有幸福小組名單";
                     return Json(new { status = "1", message = "歡迎" + FullName + "登入成功!", fullname = FullName, account = aGalleryViewModel.Account, password = aGalleryViewModel.Password });
                 }
                 else if (m_SmallGroupDataList.m_MemberInfomationPackage.m_LoginType == "小組長" && m_HappyGroupDataManager.m_ActiveHappyGroupWeeklyReportList == null)
                 {
+                    ViewBag.LoginType = m_SmallGroupDataList.m_MemberInfomationPackage.m_LoginType;
+                    ViewBag.HappyType = "沒幸福小組名單";
                     return Json(new { status = "1", message = "歡迎" + FullName + "登入成功!", fullname = FullName, account = aGalleryViewModel.Account, password = aGalleryViewModel.Password });
                 }
                 else
                 {
+                    ViewBag.LoginType = m_SmallGroupDataList.m_MemberInfomationPackage.m_LoginType;
+                    ViewBag.HappyType = "沒幸福小組名單";
+
                     return Json(new { status = "2", message = "歡迎" + FullName + "登入成功!", fullname = FullName, account = aGalleryViewModel.Account, password = aGalleryViewModel.Password });
                 }
             }
@@ -538,9 +545,10 @@ namespace ChurchReport.Controllers
             String SerializedHappyGroupDataManager = (String)TempData.Peek("HappyGroupDataManager");
             TempData.Keep("HappyGroupDataManager");
             HappyGroupDataManager m_HappyGroupDataManager = JsonConvert.DeserializeObject<HappyGroupDataManager>(SerializedHappyGroupDataManager);
-            ViewBag.SpiritLeaderList = m_HappyGroupDataManager.m_ActiveHappyGroupWeeklyReportList.SpiritLeaderList;
+            
             if (m_HappyGroupDataManager.m_ActiveHappyGroupWeeklyReportList != null)
             {
+                ViewBag.SpiritLeaderList = m_HappyGroupDataManager.m_ActiveHappyGroupWeeklyReportList.SpiritLeaderList;
                 ViewBag.HappyType = "有幸福小組名單";
             }
             else
@@ -560,7 +568,14 @@ namespace ChurchReport.Controllers
 
             HappyGroupDataManager m_HappyGroupDataManager = JsonConvert.DeserializeObject<HappyGroupDataManager>(SerializedHappyGroupDataManager);
 
-            return DataSourceLoader.Load(m_HappyGroupDataManager.m_ActiveHappyGroupWeeklyReportList.HappyGroupWeeklyReportList, loadOptions);
+            if (m_HappyGroupDataManager.m_ActiveHappyGroupWeeklyReportList != null)
+            {
+                return DataSourceLoader.Load(m_HappyGroupDataManager.m_ActiveHappyGroupWeeklyReportList.HappyGroupWeeklyReportList, loadOptions);
+            }
+            else
+            {
+                return null;
+            }
         }
 
         [HttpGet]
@@ -571,10 +586,14 @@ namespace ChurchReport.Controllers
 
             HappyGroupDataManager m_HappyGroupDataManager = JsonConvert.DeserializeObject<HappyGroupDataManager>(SerializedHappyGroupDataManager);
 
-            //var tasks = SampleData_001.DataGridEmployees.Where(e => e.ID == id).Select(e => e.Tasks).FirstOrDefault();
-            var tasks = m_HappyGroupDataManager.m_ActiveHappyGroupWeeklyReportList.HappyGroupWeeklyReportList.Where(e => e.HappyGroupWeeklyReportId == id).Select(e => e.BestRecordList).FirstOrDefault();
+            if (m_HappyGroupDataManager.m_ActiveHappyGroupWeeklyReportList != null)
+            {
+                //var tasks = SampleData_001.DataGridEmployees.Where(e => e.ID == id).Select(e => e.Tasks).FirstOrDefault();
+                var tasks = m_HappyGroupDataManager.m_ActiveHappyGroupWeeklyReportList.HappyGroupWeeklyReportList.Where(e => e.HappyGroupWeeklyReportId == id).Select(e => e.BestRecordList).FirstOrDefault();
 
-            return DataSourceLoader.Load(tasks, loadOptions);
+                return DataSourceLoader.Load(tasks, loadOptions);
+            }
+            else { return null; }
 
         }
 

@@ -1128,7 +1128,6 @@ namespace ChurchReport.WebServiceConnector
                 String WeeklyReportName = GroupName + String.Format("-{0:00}/{1:00}/{2:00}" , aSunday.Year , aSunday.Month, aSunday.Day);
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aWeeklyReportEntity, "new_name", WeeklyReportName);
                 #endregion
-
                 #region 設定區名
                 //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aWeeklyReportEntity, "new_area_name", AreaName);
                 #endregion
