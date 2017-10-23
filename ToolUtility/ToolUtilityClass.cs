@@ -24,8 +24,8 @@ namespace ToolUtilityNameSpace
     public class ToolUtilityClass
     {
         #region 資料區
-        //private String CRM_TYPE = "CRM2011";
-        private String CRM_TYPE = "DYNAMICS365";
+        private String CRM_TYPE = "CRM2011";
+        //private String CRM_TYPE = "DYNAMICS365";
 
         String m_DiscoveryServiceType = "";
 
@@ -35,12 +35,11 @@ namespace ToolUtilityNameSpace
         // public OrganizationServiceProxy m_OrganizationProxy;
         public OrganizationServiceProxy m_OrganizationService;
 
-        #region CRM 2011 WCF Service Port，新增組織修改區
+        #region CRM 2011 新增組織修改區
 
         #region 楊梅靈糧堂組織
-        ////private const String SERVER = "crm2011"; // 機房雲端要用此網址
+        //private const String SERVER = "crm2011"; // 機房雲端要用此網址
         //private const String SERVER = "system.speechmessage.com.tw";
-        //
         //private const String PORT = "7777";
         //private const String ORGANIZATION = "yangmeillc";
         //private const String USERNAME = "Administrator";
@@ -50,15 +49,12 @@ namespace ToolUtilityNameSpace
 
         #region 林口靈糧堂組織
         //private const String SERVER = "crm2011"; // 機房雲端要用此網址
-        ////private const String SERVER = "system.speechmessage.com.tw";
-        ////private const String SERVER = "speechmessage.com.tw";
-        //////private const String SERVER = "202.153.204.60";
-        ////
-        //private const String PORT = "7777";
-        //private const String ORGANIZATION = "lkllc";
-        //private const String USERNAME = "Administrator";
-        //private const String PASSWORD = "hu9840";
-        //private const String DOMAIN = "SPEECHMESSAGE";
+        private const String SERVER = "system.speechmessage.com.tw";
+        private const String PORT = "7777";
+        private const String ORGANIZATION = "lkllc";
+        private const String USERNAME = "Administrator";
+        private const String PASSWORD = "hu9840";
+        private const String DOMAIN = "SPEECHMESSAGE";
         #endregion
 
         #region 內壢得勝靈糧堂組織
@@ -133,8 +129,7 @@ namespace ToolUtilityNameSpace
 
         #endregion
 
-
-        #region Dynamics 365，新增組織修改區
+        #region Dynamics 365 新增組織修改區
 
         #region 台北基督之家(公司內部發展)
         //private const String SERVER = "speechmessage.com.tw";
@@ -149,20 +144,10 @@ namespace ToolUtilityNameSpace
         //private const String SERVER = "speechmessage.com.tw";
         //private const String PORT = "7777";
         //private const String ORGANIZATION = "tpehoc";
-        //private const String USERNAME = "Administrator@speechmessage.com.tw";
+        //private const String USERNAME = "administrator@speechmessage.com.tw";
         //private const String PASSWORD = "hu9840";
-        ////private const String DOMAIN = "DYNAMICS-365";
+        //private const String DOMAIN = "DYNAMICS-365";
         #endregion
-
-        #region 台中思恩堂豐富教會(公司內部發展)
-        private const String SERVER = "speechmessage.com.tw";
-        private const String PORT = "7777";
-        private const String ORGANIZATION = "abundanceback";
-        private const String USERNAME = "Administrator@speechmessage.com.tw";
-        private const String PASSWORD = "hu9840";
-        private const String DOMAIN = "SPEECHMESSAGE";
-        #endregion
-
 
         #region 僅供參考區塊
         //private String _discoveryServiceAddress = "https://tpehoc.speechmessage.com.tw/XRMServices/2011/Discovery.svc";
@@ -227,7 +212,7 @@ namespace ToolUtilityNameSpace
             //SetFederatedOrganizationProxy(DiscoveryServiceType);
             m_DiscoveryServiceType = DiscoveryServiceType;
 
-            if ( DiscoveryServiceType == "DYNAMICS365")
+            if (DiscoveryServiceType == "DYNAMICS365")
             {
                 SetFederatedOrganizationProxy(DiscoveryServiceType);
             }
@@ -395,7 +380,7 @@ namespace ToolUtilityNameSpace
         }
         #endregion
         #region 連接 Dynamics 365 服務
-        public OrganizationServiceProxy SetFederatedOrganizationProxy( String DiscoveryServiceType )
+        public OrganizationServiceProxy SetFederatedOrganizationProxy(String DiscoveryServiceType)
         {
             String aDiscoveryServiceAddress = "";
             if (DiscoveryServiceType == "DYNAMICS365")
@@ -862,7 +847,7 @@ namespace ToolUtilityNameSpace
                 throw e;
             }
         }
-        public Entity RetrieveContactByNameAndMobile(ref IOrganizationService aOrganizationService, String ContactFullName, String Mobile )
+        public Entity RetrieveContactByNameAndMobile(ref IOrganizationService aOrganizationService, String ContactFullName, String Mobile)
         {
             try
             {
@@ -874,9 +859,9 @@ namespace ToolUtilityNameSpace
                     querybyexpression.ColumnSet = new ColumnSet();
                     querybyexpression.ColumnSet.AllColumns = true;
                     //  Attribute to query
-                    querybyexpression.Attributes.AddRange("fullname",  "statecode");
+                    querybyexpression.Attributes.AddRange("fullname", "statecode");
                     //  Value of queried attribute to return
-                    querybyexpression.Values.AddRange( ContactFullName, 0);
+                    querybyexpression.Values.AddRange(ContactFullName, 0);
 
                     //  Query passed to the service proxy
                     EntityCollection retrieved = aOrganizationService.RetrieveMultiple(querybyexpression);
@@ -885,10 +870,10 @@ namespace ToolUtilityNameSpace
 
                     if (retrieved.Entities.Count > 0 && retrieved != null)
                     {
-                        foreach( Entity aContactEntity in retrieved.Entities)
+                        foreach (Entity aContactEntity in retrieved.Entities)
                         {
                             String MobilePhone = this.GetEntityStringAttribute(aContactEntity, "mobilephone");
-                            if( DigitsOnly.Replace(MobilePhone, "") == DigitsOnly.Replace(Mobile, "") )
+                            if (DigitsOnly.Replace(MobilePhone, "") == DigitsOnly.Replace(Mobile, ""))
                             {
                                 return aContactEntity;
                             }
@@ -1075,7 +1060,7 @@ namespace ToolUtilityNameSpace
                             String aContactPassword = retrieved.Entities[0].Attributes["new_app_pass"].ToString();
                             if (aContactPassword == aPassword)
                             {
-                                this.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "小組長:" + retrieved.Entities[0].Attributes["fullname"].ToString() );
+                                this.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "小組長:" + retrieved.Entities[0].Attributes["fullname"].ToString());
                                 //return retrieved.Entities[0].Attributes["fullname"].ToString();
                                 return retrieved.Entities[0].Attributes["contactid"].ToString();
                             }
@@ -1223,7 +1208,7 @@ namespace ToolUtilityNameSpace
                 throw e;
             }
         }
-        public Entity RetrieveContactEntityByLineUserId( String LineUserId )
+        public Entity RetrieveContactEntityByLineUserId(String LineUserId)
         {
             try
             {
@@ -1488,9 +1473,9 @@ namespace ToolUtilityNameSpace
             ColumnSet cols = new ColumnSet(new string[] { "query" });
 
             // GUID of the Dynamic Marketing List
-            Entity entity ;
-            String dynamicQuery ;
-            EntityCollection dynamicmemberec ;
+            Entity entity;
+            String dynamicQuery;
+            EntityCollection dynamicmemberec;
             if (CRM_TYPE == "DYNAMICS365")
             {
                 entity = this.m_OrganizationService.Retrieve("list", new Guid(strList), cols);
@@ -1542,7 +1527,7 @@ namespace ToolUtilityNameSpace
             ColumnSet cols = new ColumnSet(new string[] { "query" });
 
             // GUID of the Dynamic Marketing List
-            Entity entity ;
+            Entity entity;
             String dynamicQuery;
 
             EntityCollection dynamicmemberec;
@@ -1624,7 +1609,7 @@ namespace ToolUtilityNameSpace
                 }
 
 
-                return (Guid) retrieved.Entities[0].Id;
+                return (Guid)retrieved.Entities[0].Id;
             }
             catch (System.Exception e)
             {
@@ -1660,7 +1645,7 @@ namespace ToolUtilityNameSpace
                     query1.EntityName = "task";
                     query1.Criteria.AddCondition(condition);
 
-                    EntityCollection result1 ;
+                    EntityCollection result1;
 
                     if (CRM_TYPE == "DYNAMICS365")
                     {
@@ -1738,7 +1723,7 @@ namespace ToolUtilityNameSpace
                     //retrievePrincipal.ReturnDynamicEntities = true;
 
                     // Execute the request.
-                    RetrieveMultipleResponse principalResponse ;
+                    RetrieveMultipleResponse principalResponse;
                     if (CRM_TYPE == "DYNAMICS365")
                     {
                         principalResponse = (RetrieveMultipleResponse)this.m_OrganizationService.Execute(retrievePrincipal);
@@ -1772,7 +1757,7 @@ namespace ToolUtilityNameSpace
         }
 
         // 搜尋主日日期是最近2個月的靈修單
-        public EntityCollection QueryPresentRecordByContactIdAndSunday(Guid aListEntityId, Guid ContactId, int MonthPeriod )
+        public EntityCollection QueryPresentRecordByContactIdAndSunday(Guid aListEntityId, Guid ContactId, int MonthPeriod)
         {
             try
             {
@@ -1802,7 +1787,7 @@ namespace ToolUtilityNameSpace
 
                     // Create a ConditionExpression.
                     ConditionExpression DateTimeConditionPrincipal = new ConditionExpression();
-                    
+
                     //DateTimeConditionPrincipal.AttributeName = "createdon";
 
                     // 主日日期
@@ -1845,7 +1830,7 @@ namespace ToolUtilityNameSpace
                     //retrievePrincipal.ReturnDynamicEntities = true;
 
                     // Execute the request.
-                    RetrieveMultipleResponse principalResponse ;
+                    RetrieveMultipleResponse principalResponse;
                     if (CRM_TYPE == "DYNAMICS365")
                     {
                         principalResponse = (RetrieveMultipleResponse)this.m_OrganizationService.Execute(retrievePrincipal);
@@ -1946,7 +1931,7 @@ namespace ToolUtilityNameSpace
                     //retrieve.ReturnDynamicEntities = true;
 
                     // Execute the request.
-                    RetrieveMultipleResponse request ;
+                    RetrieveMultipleResponse request;
                     if (CRM_TYPE == "DYNAMICS365")
                     {
                         request = (RetrieveMultipleResponse)this.m_OrganizationService.Execute(retrieve);
@@ -2080,7 +2065,7 @@ namespace ToolUtilityNameSpace
                 {
                     var query = new QueryExpression("contact");
 
-                    var columnNames = new[] { "fullname","address1_city" };
+                    var columnNames = new[] { "fullname", "address1_city" };
 
                     query.ColumnSet = new ColumnSet(columnNames);
 
@@ -2088,7 +2073,7 @@ namespace ToolUtilityNameSpace
 
                     var colsAccount = new[] { "accountnumber" };
 
-                    LinkEntity linkEntityAccount = new LinkEntity() 
+                    LinkEntity linkEntityAccount = new LinkEntity()
                     {
                         #region LinkEntity 屬性
                         LinkFromEntityName = "contact",
@@ -2121,17 +2106,17 @@ namespace ToolUtilityNameSpace
                         contacts = this.m_Crm2011OrganizationService.RetrieveMultiple(query);
                     }
 
-                    if (contacts != null) 
+                    if (contacts != null)
                     {
 
-                        foreach (var targetEntity in contacts.Entities) 
+                        foreach (var targetEntity in contacts.Entities)
                         {
 
-                        // Read “Account Number” along with Alias
+                            // Read “Account Number” along with Alias
 
-                        var accountNumber = getAttributeValue(targetEntity, "aliasAccount.accountnumber");
+                            var accountNumber = getAttributeValue(targetEntity, "aliasAccount.accountnumber");
 
-                        var contactFullname = getAttributeValue(targetEntity, "fullname");
+                            var contactFullname = getAttributeValue(targetEntity, "fullname");
 
                         }
                     }// if
@@ -2149,7 +2134,7 @@ namespace ToolUtilityNameSpace
             }
         }
 
-        public EntityCollection QueryWeeklyReportBySunday( DateTime aSunday, String ParentEntityName, String ParentEntityIdName, String ParentEntityId, String AssociationName, String ChildEntityName)
+        public EntityCollection QueryWeeklyReportBySunday(DateTime aSunday, String ParentEntityName, String ParentEntityIdName, String ParentEntityId, String AssociationName, String ChildEntityName)
         {
             try
             {
@@ -2374,7 +2359,7 @@ namespace ToolUtilityNameSpace
         #endregion
         #region 搜尋 N:N( ManyToMany) 的集合
 
-        public EntityCollection QueryManyToMany( String ConditionAttributeName, String EntityNameToSearch, String LinkFromEntityName, String LinkFromAttributeName, String LinkToEntityName, String LinkToAttributeName, String AttributeName,  Guid EntityIdValue )
+        public EntityCollection QueryManyToMany(String ConditionAttributeName, String EntityNameToSearch, String LinkFromEntityName, String LinkFromAttributeName, String LinkToEntityName, String LinkToAttributeName, String AttributeName, Guid EntityIdValue)
         {
             try
             {
@@ -2471,7 +2456,7 @@ namespace ToolUtilityNameSpace
 
         // 連絡人相關的各類名單:
         // 過濾條件:需要點名的各類名單
-        public EntityCollection QueryListOfContactManyToMany( Guid ContactId )
+        public EntityCollection QueryListOfContactManyToMany(Guid ContactId)
         {
             try
             {
@@ -3469,7 +3454,7 @@ namespace ToolUtilityNameSpace
             }
         }
 
-        public String GetEntityStringAttribute( Entity aEntity, string PropertyName)
+        public String GetEntityStringAttribute(Entity aEntity, string PropertyName)
         {
             try
             {
@@ -3516,7 +3501,7 @@ namespace ToolUtilityNameSpace
                 throw e;
             }
         }
-        public void SetEntityStringAttribute( Entity aEntity, string PropertyName, String PropertyValue)
+        public void SetEntityStringAttribute(Entity aEntity, string PropertyName, String PropertyValue)
         {
             try
             {
@@ -3571,7 +3556,7 @@ namespace ToolUtilityNameSpace
                 throw e;
             }
         }
-        public int GetOptionSetAttribute( Entity aEntity, string PropertyName)
+        public int GetOptionSetAttribute(Entity aEntity, string PropertyName)
         {
             try
             {
@@ -3624,7 +3609,7 @@ namespace ToolUtilityNameSpace
                 throw e;
             }
         }
-        public void SetOptionSetAttribute( Entity aEntity, string PropertyName, int PropertyValue)
+        public void SetOptionSetAttribute(Entity aEntity, string PropertyName, int PropertyValue)
         {
             try
             {
@@ -3679,7 +3664,7 @@ namespace ToolUtilityNameSpace
                 throw e;
             }
         }
-        public Guid GetEntityLookupAttribute( Entity aEntity, string PropertyName)
+        public Guid GetEntityLookupAttribute(Entity aEntity, string PropertyName)
         {
             try
             {
@@ -3755,6 +3740,34 @@ namespace ToolUtilityNameSpace
             }
         }
         public void SetEntityLookUpAttribute(ref Entity aEntity, string PropertyName, String LookupEntityName, Guid GuidValue)
+        {
+            try
+            {
+                lock (m_LookupAttributeLocker)
+                {
+                    if (GuidValue != null && GuidValue != Guid.Empty)
+                    {
+                        EntityReference aEntityReference = new EntityReference(LookupEntityName, GuidValue);
+                        if (aEntity.Attributes.Contains(PropertyName))
+                        {
+                            aEntity.Attributes[PropertyName] = aEntityReference;
+                        }
+                        else
+                        {
+                            aEntity.Attributes.Add(PropertyName, aEntityReference);
+                        }
+                    }
+                    else { return; }
+                }
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                throw e;
+            }
+        }
+        public void SetEntityLookUpAttribute(Entity aEntity, string PropertyName, String LookupEntityName, Guid GuidValue)
         {
             try
             {
@@ -3872,13 +3885,13 @@ namespace ToolUtilityNameSpace
                 throw e;
             }
         }
-        public void AssignOwner( String EntityName , Entity aEntity, Guid OwnerId)
+        public void AssignOwner(String EntityName, Entity aEntity, Guid OwnerId)
         {
             try
             {
                 AssignRequest assign = new AssignRequest
                 {
-                    Assignee = new EntityReference("systemuser", OwnerId ),
+                    Assignee = new EntityReference("systemuser", OwnerId),
                     Target = new EntityReference(EntityName, aEntity.Id)
                 };
 
@@ -3886,7 +3899,7 @@ namespace ToolUtilityNameSpace
                 // Execute the Request
                 if (CRM_TYPE == "DYNAMICS365")
                 {
-                   this.m_OrganizationService.Execute(assign);
+                    this.m_OrganizationService.Execute(assign);
                 }
                 else
                 {
@@ -4077,7 +4090,7 @@ namespace ToolUtilityNameSpace
             }
         }
 
-        public void UploadAnAttachment(ref IOrganizationService aCrmService, String EntityName, String Subject, String NoteText, String FileName, String MimeType, byte[] DocumentBody, Guid ToBeAttachedEntityId )
+        public void UploadAnAttachment(ref IOrganizationService aCrmService, String EntityName, String Subject, String NoteText, String FileName, String MimeType, byte[] DocumentBody, Guid ToBeAttachedEntityId)
         {
             try
             {
@@ -4559,7 +4572,7 @@ namespace ToolUtilityNameSpace
 
 
                 Entity aAnnotationEntity = new Entity("annotation");
-                aAnnotationEntity.Attributes["objectid"] = new EntityReference(EntityName, ToBeAttachedEntityId );
+                aAnnotationEntity.Attributes["objectid"] = new EntityReference(EntityName, ToBeAttachedEntityId);
                 aAnnotationEntity.Attributes["objecttypecode"] = EntityName;
                 aAnnotationEntity.Attributes["subject"] = Subject;
                 aAnnotationEntity.Attributes["notetext"] = NoteText;
@@ -4710,6 +4723,6 @@ namespace ToolUtilityNameSpace
             }
         }
         #endregion
-}
+    }
 
 }

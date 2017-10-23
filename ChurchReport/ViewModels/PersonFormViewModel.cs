@@ -16,6 +16,7 @@ namespace ChurchReport.ViewModels
         public String LastName { get; set; }
         public String Gender { get; set; }
         public String Phone { get; set; }
+        public String HomePhone { get; set; }
         public String Position { get; set; }
         public String MerrageState { get; set; }
         public DateTime BirthDate { get; set; }

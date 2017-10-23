@@ -109,6 +109,16 @@
                 );
 
             items.AddSimple()
+                .DataField("HomePhone")
+                .Label(l => l.Text("一般電話"))
+                .Editor(e => e
+                    .TextBox()
+                    //.Mask("+886 (X00) 0000-0000")
+                    .MaskRules(new { X = new JS("/[02-9]/") })
+                    .Placeholder("輸入電話號碼")
+                );
+
+            items.AddSimple()
                 .DataField("Address")
                 .Label(l => l.Text("地址"))
                 ;
@@ -145,19 +155,19 @@
                     .Disabled(false)
                     .Placeholder("生日")
                 )
-                .IsRequired(true);
+                //.IsRequired(true)
+                ;
 
             items.AddSimple()
                 .DataField("HireDate")
-                .Label(l => l.Text("教會日期"))
-                .Editor(e => e
-                    .DateBox()
-                //.Value(new JS("null"))
-                )
+                .Label(l => l.Text("輸入日期"))
+                .Editor(
+                        e => e.DateBox()//.Value(new JS("null")) 
+                    )
                 .ValidationRules(r => r
-                    .AddRequired()
-                    .Message("Hire date is required")
-                );
+                        .AddRequired()
+                        .Message("Hire date is required")
+                    );
 
             items.AddSimple()
                 .DataField("MerrageState")
@@ -165,6 +175,7 @@
                 .Editor(e => e
                     .SelectBox()
                     .DataSource(new string[] {
+                                        "未知",
                                         "已婚",
                                         "未婚",
                                         "離異",
@@ -198,13 +209,8 @@
                    );
 
 
-
-
-
-
-
             items.AddSimple()
-                .ColSpan(3)
+                .ColSpan(2)
                 .Label(l => l.Text("附註"))
                 .DataField("Notes")
                 .Editor(e => e

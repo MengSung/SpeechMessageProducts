@@ -245,6 +245,13 @@ namespace ChurchReport.WebServiceConnector
                 this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aNewContactEntity, "new_cell_list_contact", "list", aListEntityId);
             }
             #endregion
+            #region 關聯邀請或轉介人
+            if (m_ContactId != null && m_ContactId != Guid.Empty)
+            {
+                this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aNewContactEntity, "new_invitnewperson_contact", "contact", m_ContactId);
+            }
+            #endregion
+
             #endregion
 
             #region 基本資料
@@ -291,6 +298,8 @@ namespace ChurchReport.WebServiceConnector
             { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "familystatuscode", 4); }
             else if (aNewContact.MerrageState == "單身")
             { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "familystatuscode", 100000000); }
+            else if (aNewContact.MerrageState == "未知")
+            { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "familystatuscode", 100000001); }
             else { }
 
             // "基督徒", "慕道友"

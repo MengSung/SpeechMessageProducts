@@ -25,6 +25,8 @@ using Newtonsoft.Json;
 using System.Text.RegularExpressions;
 
 using LineMessagingProcessor;
+using DevExtreme.AspNet.Mvc;
+using DevExtreme.AspNet.Data;
 
 namespace ChurchReport.Controllers
 {
@@ -445,6 +447,123 @@ namespace ChurchReport.Controllers
         }
 
         #endregion
+        #region 幸福小組回報
+        public ActionResult HappyGroup()
+        {
+            String SmallGroupDataListString = (String)TempData.Peek("SmallGroupDataList");
+            TempData.Keep("SmallGroupDataList");
+            SmallGroupDataList m_SmallGroupDataList = JsonConvert.DeserializeObject<SmallGroupDataList>(SmallGroupDataListString);
+            ViewBag.LoginType = m_SmallGroupDataList.m_MemberInfomationPackage.m_LoginType;// 看是小組長還是個人回報
+
+            String SerializedHappyGroupDataManager = (String)TempData.Peek("HappyGroupDataManager");
+            TempData.Keep("HappyGroupDataManager");
+            HappyGroupDataManager m_HappyGroupDataManager = JsonConvert.DeserializeObject<HappyGroupDataManager>(SerializedHappyGroupDataManager);
+            ViewBag.SpiritLeaderList = m_HappyGroupDataManager.m_ActiveHappyGroupWeeklyReportList.SpiritLeaderList;
+            if (m_HappyGroupDataManager.m_ActiveHappyGroupWeeklyReportList != null)
+            {
+                ViewBag.HappyType = "有幸福小組名單";
+            }
+            else
+            {
+                ViewBag.HappyType = "沒幸福小組名單";
+            }
+
+            return View();
+        }
+
+        [HttpGet]
+        public object LoadHappyWeeklyReport(DataSourceLoadOptions loadOptions)
+        {
+
+            String SerializedHappyGroupDataManager = (String)TempData.Peek("HappyGroupDataManager");
+            TempData.Keep("HappyGroupDataManager");
+
+            HappyGroupDataManager m_HappyGroupDataManager = JsonConvert.DeserializeObject<HappyGroupDataManager>(SerializedHappyGroupDataManager);
+
+            return DataSourceLoader.Load(m_HappyGroupDataManager.m_ActiveHappyGroupWeeklyReportList.HappyGroupWeeklyReportList, loadOptions);
+        }
+
+        [HttpGet]
+        public object LoadBest(string id, DataSourceLoadOptions loadOptions)
+        {
+            String SerializedHappyGroupDataManager = (String)TempData.Peek("HappyGroupDataManager");
+            TempData.Keep("HappyGroupDataManager");
+
+            HappyGroupDataManager m_HappyGroupDataManager = JsonConvert.DeserializeObject<HappyGroupDataManager>(SerializedHappyGroupDataManager);
+
+            //var tasks = SampleData_001.DataGridEmployees.Where(e => e.ID == id).Select(e => e.Tasks).FirstOrDefault();
+            var tasks = m_HappyGroupDataManager.m_ActiveHappyGroupWeeklyReportList.HappyGroupWeeklyReportList.Where(e => e.HappyGroupWeeklyReportId == id).Select(e => e.BestRecordList).FirstOrDefault();
+
+            return DataSourceLoader.Load(tasks, loadOptions);
+
+        }
+
+        // POST api/values
+        [HttpPost]
+        public IActionResult Post(string values)
+        {
+            // 新增週報或是BEST
+            String SerializedHappyGroupDataManager = (String)TempData.Peek("HappyGroupDataManager");
+            TempData.Keep("HappyGroupDataManager");
+
+            HappyGroupDataManager m_HappyGroupDataManager = JsonConvert.DeserializeObject<HappyGroupDataManager>(SerializedHappyGroupDataManager);
+
+            m_HappyGroupDataManager.AddActiveHappyGroup(values);
+
+            SerializedHappyGroupDataManager = JsonConvert.SerializeObject(m_HappyGroupDataManager);
+            TempData["HappyGroupDataManager"] = SerializedHappyGroupDataManager;
+
+            return Ok();
+        }
+
+        // PUT api/values/5
+        [HttpPut]
+        public IActionResult Put(string key, string values)
+        {
+            String SerializedHappyGroupDataManager = (String)TempData.Peek("HappyGroupDataManager");
+            TempData.Keep("HappyGroupDataManager");
+
+            HappyGroupDataManager m_HappyGroupDataManager = JsonConvert.DeserializeObject<HappyGroupDataManager>(SerializedHappyGroupDataManager);
+
+            //Dictionary < string, string> aDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(key);
+            //m_HappyGroupDataManager.UpdateActiveHappyGroup(aDictionary["BestRecordId"], values);
+            m_HappyGroupDataManager.UpdateActiveHappyGroup(key, values);
+
+            SerializedHappyGroupDataManager = JsonConvert.SerializeObject(m_HappyGroupDataManager);
+            TempData["HappyGroupDataManager"] = SerializedHappyGroupDataManager;
+
+
+            return Ok();
+        }
+
+        // DELETE api/values/5
+        [HttpDelete]
+        public void Delete(string key)
+        {
+            String SerializedHappyGroupDataManager = (String)TempData.Peek("HappyGroupDataManager");
+            TempData.Keep("HappyGroupDataManager");
+
+            HappyGroupDataManager m_HappyGroupDataManager = JsonConvert.DeserializeObject<HappyGroupDataManager>(SerializedHappyGroupDataManager);
+
+            //Dictionary < string, string> aDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(key);
+            //m_HappyGroupDataManager.UpdateActiveHappyGroup(aDictionary["BestRecordId"], values);
+            m_HappyGroupDataManager.DeleteActiveHappyGroup(key);
+
+            SerializedHappyGroupDataManager = JsonConvert.SerializeObject(m_HappyGroupDataManager);
+            TempData["HappyGroupDataManager"] = SerializedHappyGroupDataManager;
+
+
+            return;
+        }
+
+
+        [HttpPost]
+        public IActionResult SaveHappyGroup()
+        {
+            return Json(new { status = "1", message = "成功上傳了...." });
+        }
+
+        #endregion
         #region 行事曆
         public ActionResult Scheduler()
         {
@@ -496,14 +615,14 @@ namespace ChurchReport.Controllers
                 TempData["NewPerson"] = SerializedNewPersonModel;
 
                 ViewBag.LoginType = m_SmallGroupDataList.m_MemberInfomationPackage.m_LoginType;// 看是小組長還是個人回報
-                return View(aNewPersonModel.PersonFormViewModel);
+                return View(aNewPersonModel.m_PersonFormViewModel);
             }
             else
             {
                 NewPersonModel aNewPersonModel = JsonConvert.DeserializeObject<NewPersonModel>(NewPersonString);
 
                 ViewBag.LoginType = m_SmallGroupDataList.m_MemberInfomationPackage.m_LoginType;// 看是小組長還是個人回報
-                return View(aNewPersonModel.PersonFormViewModel);
+                return View(aNewPersonModel.m_PersonFormViewModel);
 
             }
 

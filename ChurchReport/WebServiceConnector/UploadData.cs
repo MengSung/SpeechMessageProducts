@@ -1105,7 +1105,7 @@ namespace ChurchReport.WebServiceConnector
                 //String AreaName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aListEntity, "new_area_name");
 
                 // 設定週報相關屬性
-                this.SetupWeeklyReortEntityAttributes(ref aWeeklyReportEntity, FamilyLeaderId, GroupLeaderId, RaceLeaderId, ShepherdLeaderId, m_DecipleGroupListId, aListEntity.Id, m_Sunday, m_SmallGroupPlace, m_SmallGroupTime);
+                this.SetupWeeklyReortEntityAttributes(ref aWeeklyReportEntity, FamilyLeaderId, GroupLeaderId, RaceLeaderId, ShepherdLeaderId, m_DecipleGroupListId, aListEntity, m_Sunday, m_SmallGroupPlace, m_SmallGroupTime);
 
                 // 新增週報
                 return this.m_ToolUtilityClass.CreateEntity(aWeeklyReportEntity);
@@ -1118,10 +1118,17 @@ namespace ChurchReport.WebServiceConnector
                 throw Exception;
             }
         }
-        private void SetupWeeklyReortEntityAttributes(ref Entity aWeeklyReportEntity, Guid aFamilyLeaderId, Guid aGroupLeaderId, Guid aRaceLeaderId, Guid aShepherdLeaderId , Guid aDecipleGroupList, Guid ListEntityId, DateTime aSunday, String SmallGroupPlace, String SmallGroupTime)
+        private void SetupWeeklyReortEntityAttributes(ref Entity aWeeklyReportEntity, Guid aFamilyLeaderId, Guid aGroupLeaderId, Guid aRaceLeaderId, Guid aShepherdLeaderId , Guid aDecipleGroupList, Entity ListEntity, DateTime aSunday, String SmallGroupPlace, String SmallGroupTime)
         {
             try
             {
+                #region 設定週報名稱
+                // 取得小組名單的名稱
+                String GroupName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref ListEntity, "listname");
+                String WeeklyReportName = GroupName + String.Format("-{0:00}/{1:00}/{2:00}" , aSunday.Year , aSunday.Month, aSunday.Day);
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aWeeklyReportEntity, "new_name", WeeklyReportName);
+                #endregion
+
                 #region 設定區名
                 //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aWeeklyReportEntity, "new_area_name", AreaName);
                 #endregion
@@ -1142,8 +1149,8 @@ namespace ChurchReport.WebServiceConnector
                 { this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aWeeklyReportEntity, "new_contact_arealeader_weekly_report", "contact", aShepherdLeaderId); }
                 #endregion
                 #region 關聯小組名單 Lookup
-                if (ListEntityId != Guid.Empty)
-                { this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aWeeklyReportEntity, "new_list_group_present_weekly_report", "list", ListEntityId); }
+                if (ListEntity.Id != Guid.Empty)
+                { this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aWeeklyReportEntity, "new_list_group_present_weekly_report", "list", ListEntity.Id); }
                 #endregion
                 #region 關聯門徒小組名單 Lookup
                 if (aDecipleGroupList != Guid.Empty)
@@ -2753,6 +2760,11 @@ namespace ChurchReport.WebServiceConnector
         {
             try
             {
+                #region 設定名稱
+                String PresentRecordName = aMemberInfomation.Name + String.Format("-{0:00}/{1:00}/{2:00} 出席紀錄", this.m_Sunday.Year, this.m_Sunday.Month, this.m_Sunday.Day);
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_name", PresentRecordName);
+                #endregion
+
                 #region 指派主日小組靈修出席單的負責人
                 //Guid ListOwnerId = aListEntity.GetAttributeValue<EntityReference>("ownerid").Id;
                 //this.m_ToolUtilityClass.AssignOwner("new_present_record", aPresentRecord, ListOwnerId);
@@ -2802,7 +2814,6 @@ namespace ChurchReport.WebServiceConnector
                 if (aShepherdLeaderId != Guid.Empty)
                 { this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aPresentRecord, "new_contact_arealeader_present_record", "contact", aShepherdLeaderId); }
                 #endregion
-
                 #region 關聯小組名單 Lookup
                 if (aListEntity.Id != Guid.Empty)
                 { this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aPresentRecord, "new_list_new_present_record", "list", aListEntity.Id); }

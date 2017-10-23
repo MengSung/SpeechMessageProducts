@@ -11,22 +11,22 @@ namespace ChurchReport.Models
 {
     public class NewPersonModel
     {
-        public PersonFormViewModel PersonFormViewModel = new PersonFormViewModel
+        public PersonFormViewModel m_PersonFormViewModel = new PersonFormViewModel
         {
             ID = 1,
             FirstName = "張",
             LastName = "",
             Gender = "男性",
             Phone = "",
+            HomePhone = "",
             Position = "",
-            MerrageState="未婚",
+            MerrageState="未知",
             BirthDate = DateTime.Parse("1975/01/1"),
             HireDate = DateTime.Parse("2017/08/25"),
             Notes = "",
             Address = "",
             ReadBibleNumber = 5,
             Status = "慕道友"
-
         };
 
         public NewContact m_NewContact = new NewContact();
@@ -55,30 +55,34 @@ namespace ChurchReport.Models
 
         public void CopyPersonFormViewModel(PersonFormViewModel aPersonFormViewModel)
         {
-            PersonFormViewModel.FirstName = aPersonFormViewModel.FirstName;
-            PersonFormViewModel.LastName = aPersonFormViewModel.LastName;
-            PersonFormViewModel.Gender = aPersonFormViewModel.Gender;
-            PersonFormViewModel.Phone = aPersonFormViewModel.Phone;
-            PersonFormViewModel.Position = aPersonFormViewModel.Position;
-            PersonFormViewModel.BirthDate = aPersonFormViewModel.BirthDate;
-            PersonFormViewModel.HireDate = aPersonFormViewModel.HireDate;
-            PersonFormViewModel.Notes = aPersonFormViewModel.Notes;
-            PersonFormViewModel.Address = aPersonFormViewModel.Address;
-            PersonFormViewModel.ReadBibleNumber = aPersonFormViewModel.ReadBibleNumber;
-            PersonFormViewModel.Status = aPersonFormViewModel.Status;
+            m_PersonFormViewModel.FirstName = aPersonFormViewModel.FirstName;
+            m_PersonFormViewModel.LastName = aPersonFormViewModel.LastName;
+            m_PersonFormViewModel.Gender = aPersonFormViewModel.Gender;
+            m_PersonFormViewModel.Phone = aPersonFormViewModel.Phone;
+            m_PersonFormViewModel.HomePhone = aPersonFormViewModel.HomePhone;
+            m_PersonFormViewModel.Position = aPersonFormViewModel.Position;
+            m_PersonFormViewModel.BirthDate = aPersonFormViewModel.BirthDate;
+            m_PersonFormViewModel.HireDate = aPersonFormViewModel.HireDate;
+            m_PersonFormViewModel.Notes = aPersonFormViewModel.Notes;
+            m_PersonFormViewModel.Address = aPersonFormViewModel.Address;
+            m_PersonFormViewModel.ReadBibleNumber = aPersonFormViewModel.ReadBibleNumber;
+            m_PersonFormViewModel.Status = aPersonFormViewModel.Status;
 
         }
         public void MappingPersonFormViewModelToNewContact(PersonFormViewModel aPersonFormViewModel)
         {
-            //m_NewContact.Name               = aPersonFormViewModel.FirstName;
+            //m_NewContact.Name             = aPersonFormViewModel.FirstName;
             m_NewContact.Name               = aPersonFormViewModel.LastName;
             m_NewContact.MobilePhone        = aPersonFormViewModel.Phone;
+            m_NewContact.HomePhone          = aPersonFormViewModel.HomePhone;
             m_NewContact.Note               = aPersonFormViewModel.Notes;
             m_NewContact.Address            = aPersonFormViewModel.Address;
             m_NewContact.BirthDate          = aPersonFormViewModel.BirthDate;
             m_NewContact.FirstActionDate    = aPersonFormViewModel.HireDate;
             m_NewContact.FirstChurchDate    = aPersonFormViewModel.HireDate;
-            if(aPersonFormViewModel.Gender == "男性")
+            
+            // 性別
+            if (aPersonFormViewModel.Gender == "男性")
             {
                 m_NewContact.Gender = true;
             }
@@ -87,6 +91,7 @@ namespace ChurchReport.Models
                 m_NewContact.Gender = false;
             }
 
+            // "未知", "已婚", "未婚", "離異", "喪偶","單身"
             m_NewContact.MerrageState = aPersonFormViewModel.MerrageState;
 
             if (aPersonFormViewModel.Position == "0" || aPersonFormViewModel.Position == "1" || aPersonFormViewModel.Position == "2" || aPersonFormViewModel.Position == "3" || aPersonFormViewModel.Position == "4" || aPersonFormViewModel.Position == "5")
@@ -99,19 +104,8 @@ namespace ChurchReport.Models
                 m_NewContact.GroupName = aPersonFormViewModel.Position;
             }
 
+            // "基督徒", "慕道友"
             m_NewContact.FaithStatus = aPersonFormViewModel.Status;
-
-            //PersonFormViewModel.FirstName = aPersonFormViewModel.FirstName;
-            //PersonFormViewModel.LastName = aPersonFormViewModel.LastName;
-            //PersonFormViewModel.Gender = aPersonFormViewModel.Gender;
-            //PersonFormViewModel.Phone = aPersonFormViewModel.Phone;
-            //PersonFormViewModel.Position = aPersonFormViewModel.Position;
-            //PersonFormViewModel.BirthDate = aPersonFormViewModel.BirthDate;
-            //PersonFormViewModel.HireDate = aPersonFormViewModel.HireDate;
-            //PersonFormViewModel.Notes = aPersonFormViewModel.Notes;
-            //PersonFormViewModel.Address = aPersonFormViewModel.Address;
-            //PersonFormViewModel.ReadBibleNumber = aPersonFormViewModel.ReadBibleNumber;
-            //PersonFormViewModel.Status = aPersonFormViewModel.Status;
 
         }
 
