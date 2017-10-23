@@ -43,7 +43,7 @@ namespace ChurchReport.Models
         {
             m_SmallGroupData.SmallGroupLeaderContactId = ContactIdString;
         }
-        public void SetupSmallGroupData(String FullName, String Account, String Password, DateTime SundayDate)
+        public void SetupSmallGroupData(String FullName, String Account, String Password, DateTime aSelectDate, bool DisplayDateFlag)
         {
             m_FullName = FullName;
             m_Account = Account;
@@ -56,20 +56,38 @@ namespace ChurchReport.Models
             };
 
             // 從雲端後台下載下來小組點名資料
-            m_MemberInfomationPackage = aDownloader.GetMemberDataPackage(SundayDate, aAccountPasswordData);
+
+            m_SundayDate = aSelectDate.AddDays(-(int)aSelectDate.DayOfWeek);
+            m_MemberInfomationPackage = aDownloader.GetMemberDataPackage(m_SundayDate, aAccountPasswordData);
+
 
             m_SmallGroupData.LoginType = m_MemberInfomationPackage.m_LoginType;
 
             m_SmallGroupData.SmallGroupLeaderFullName = FullName;
-            m_SmallGroupData.SundayPrayers = m_SundayDate = SundayDate;
+            //m_SmallGroupData.SundayPrayers = aSelectDate;
+            m_SmallGroupData.SundayPrayers = m_SundayDate;
+            //if (DisplayDateFlag == false)
+            //{
+            //    m_SmallGroupData.SundayPrayers = new DateTime( 1000, 1, 1 );
+            //}
             m_SmallGroupData.Members = new List<Member>();
 
             m_NewPersonFollowUpData.SmallGroupLeaderFullName = FullName;
-            m_NewPersonFollowUpData.SundayPrayers = m_SundayDate = SundayDate;
+            //m_NewPersonFollowUpData.SundayPrayers = aSelectDate;
+            m_NewPersonFollowUpData.SundayPrayers = m_SundayDate;
+            //if (DisplayDateFlag == false)
+            //{
+            //    m_NewPersonFollowUpData.SundayPrayers = new DateTime(1000, 1, 1);
+            //}
             m_NewPersonFollowUpData.Members = new List<Member>();
 
             m_AllMemeberData.SmallGroupLeaderFullName = FullName;
-            m_AllMemeberData.SundayPrayers = m_SundayDate = SundayDate;
+            //m_AllMemeberData.SundayPrayers = aSelectDate;
+            m_AllMemeberData.SundayPrayers = m_SundayDate;
+            //if (DisplayDateFlag == false)
+            //{
+            //    m_AllMemeberData.SundayPrayers = new DateTime(1000, 1, 1);
+            //}
             m_AllMemeberData.Members = new List<Member>();
 
             int IdIndex = 0;
@@ -77,7 +95,7 @@ namespace ChurchReport.Models
             {
                 Member aMember = new Member
                 {
-                    Id= IdIndex,
+                    Id = IdIndex,
                     Group = aMemberInfomation.Group,
                     FullName = aMemberInfomation.Name,
                     #region 個人基本資料
@@ -116,23 +134,24 @@ namespace ChurchReport.Models
                 // 全部的名單，更新基本資料要用的
                 m_AllMemeberData.Members.Add(aMember);
 
-                if ( m_MemberInfomationPackage.m_LoginType == "小組長")
+                if (m_MemberInfomationPackage.m_LoginType == "小組長")
                 {
                     #region 登入者是小組長
-                    // 委身類型客製化
-                    if (aMember.Status == "牧師師母" || aMember.Status == "區長" || aMember.Status == "小組長" || aMember.Status == "副組長" || aMember.Status == "小組組員")
-                    {
-                        // 小組長牧養點名
-                        m_SmallGroupData.Members.Add(aMember);
-                    }
-                    else
-                    {
-                        if (aMember.Status != "結案")
-                        {
-                            // 新人跟進關懷
-                            m_NewPersonFollowUpData.Members.Add(aMember);
-                        }
-                    }
+                    // 轉換版本
+                    //if (aMember.Status == "區牧" || aMember.Status == "區長" || aMember.Status == "小組長" || aMember.Status == "家族家長" || aMember.Status == "小組組員")
+                    //if (aMember.Status == "神學生" || aMember.Status == "小組長" || aMember.Status == "全職同工" || aMember.Status == "牧師" || aMember.Status == "師母" || aMember.Status == "小組組員")
+                    //{
+                    // 小組長牧養點名
+                    m_SmallGroupData.Members.Add(aMember);
+                    //}
+                    //else
+                    //{
+                    //    if (aMember.Status != "結案")
+                    //    {
+                    //        // 新人跟進關懷
+                    //        m_NewPersonFollowUpData.Members.Add(aMember);
+                    //    }
+                    //}
                     #endregion
                 }
                 else
