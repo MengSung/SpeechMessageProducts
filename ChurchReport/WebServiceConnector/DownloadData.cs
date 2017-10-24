@@ -661,7 +661,8 @@ namespace ChurchReport.WebServiceConnector
                                 NewComerNote = aNewComerNote
                             };
 
-                            if (aIdentity != "10.未入組結案")
+                            // 委身類型客製，每間教會不同
+                            if (aIdentity != "10. 結案")
                             {
                                 // "10.未入組結案" 不用進入 APP
                                 this.m_MemberInfomationPackage.ListMemberInfomation.Add(aMemberInfomation);
@@ -1405,8 +1406,30 @@ namespace ChurchReport.WebServiceConnector
         {
             try
             {
+                // 委身類型客製化
                 // 確認是否是新人或是未入組
                 int aIdentityNumber = this.m_ToolUtilityClass.GetOptionSetAttribute(aContact, "customertypecode");
+
+                //case 100000006:
+                //    return "01. 牧師師母";
+                //case 100000003:
+                //    return "02. 區長";
+                //case 100000008:
+                //    return "03. 小組長";
+                //case 100000012:
+                //    return "04. 副組長";
+                //case 1:
+                //    return "05. 小組組員";
+                //case 100000005:
+                //    return "06. 幸福BEST";
+                //case 100000004:
+                //    return "07. 未入組";
+                //case 100000000:
+                //    return "08. 新朋友";
+                //case 100000007:
+                //    return "09. 外教會.訪客";
+                //case 100000001:
+                //    return "10. 結案";
 
                 // 委身類型客製化
                 if (aIdentityNumber == 100000000 || aIdentityNumber == 100000004)
@@ -2495,7 +2518,7 @@ namespace ChurchReport.WebServiceConnector
         //    }
         //}
 
-        // 委身類型客製化
+        // 委身類型客製化，委身類型客製化
         //台中思恩堂豐富教會
         private String ConvertIndexToIdentity(int Identity)
         {

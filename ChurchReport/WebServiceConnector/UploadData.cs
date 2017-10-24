@@ -4131,6 +4131,7 @@ namespace ChurchReport.WebServiceConnector
             }
         }
 
+        // 委身類型客製化
         //台中思恩堂豐富教會
         private String ConvertIndexToIdentity(int Identity)
         {

@@ -27,20 +27,23 @@ namespace ChurchReport.Controllers.ApiControllers
 
             aSpiritLeaderList.SpiritLeaders = new List<SpiritLeader>();
 
-            String[] SpiritLeaderArray = ShepherdLeader.Split(',');
-
-            for (int i = 0; i < SpiritLeaderArray.Length; i++)
+            if (ShepherdLeader != null && ShepherdLeader != "")
             {
-                if (SpiritLeaderArray[i] != "")
+                String[] SpiritLeaderArray = ShepherdLeader.Split(',');
+
+                for (int i = 0; i < SpiritLeaderArray.Length; i++)
                 {
-                    aSpiritLeaderList.SpiritLeaders.Add
-                    (
-                        new SpiritLeader
-                        {
-                            ID = i + 1,
-                            Name = SpiritLeaderArray[i]
-                        }
-                    );
+                    if (SpiritLeaderArray[i] != "")
+                    {
+                        aSpiritLeaderList.SpiritLeaders.Add
+                        (
+                            new SpiritLeader
+                            {
+                                ID = i + 1,
+                                Name = SpiritLeaderArray[i]
+                            }
+                        );
+                    }
                 }
             }
             return aSpiritLeaderList;

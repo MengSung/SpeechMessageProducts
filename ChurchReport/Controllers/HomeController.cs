@@ -85,18 +85,35 @@ namespace ChurchReport.Controllers
 
                 if (m_SmallGroupDataList.m_MemberInfomationPackage.m_LoginType == "小組長" && m_HappyGroupDataManager.m_ActiveHappyGroupWeeklyReportList != null)
                 {
+                    // 小組長回報，而且有幸福小組
                     ViewBag.LoginType = m_SmallGroupDataList.m_MemberInfomationPackage.m_LoginType;
                     ViewBag.HappyType = "有幸福小組名單";
                     return Json(new { status = "1", message = "歡迎" + FullName + "登入成功!", fullname = FullName, account = aGalleryViewModel.Account, password = aGalleryViewModel.Password });
                 }
                 else if (m_SmallGroupDataList.m_MemberInfomationPackage.m_LoginType == "小組長" && m_HappyGroupDataManager.m_ActiveHappyGroupWeeklyReportList == null)
                 {
+                    // 小組長回報，沒有幸福小組
                     ViewBag.LoginType = m_SmallGroupDataList.m_MemberInfomationPackage.m_LoginType;
                     ViewBag.HappyType = "沒幸福小組名單";
                     return Json(new { status = "1", message = "歡迎" + FullName + "登入成功!", fullname = FullName, account = aGalleryViewModel.Account, password = aGalleryViewModel.Password });
                 }
+                else if (m_SmallGroupDataList.m_MemberInfomationPackage.m_LoginType != "小組長" && m_HappyGroupDataManager.m_ActiveHappyGroupWeeklyReportList == null)
+                {
+                    // 個人回報，不是小組長，沒有幸福小組
+                    ViewBag.LoginType = m_SmallGroupDataList.m_MemberInfomationPackage.m_LoginType;
+                    ViewBag.HappyType = "沒幸福小組名單";
+                    return Json(new { status = "1", message = "歡迎" + FullName + "登入成功!", fullname = FullName, account = aGalleryViewModel.Account, password = aGalleryViewModel.Password });
+                }
+                else if (m_SmallGroupDataList.m_MemberInfomationPackage.m_LoginType != "小組長" && m_HappyGroupDataManager.m_ActiveHappyGroupWeeklyReportList != null)
+                {
+                    // 單純幸福小組長回報
+                    ViewBag.LoginType = m_SmallGroupDataList.m_MemberInfomationPackage.m_LoginType;
+                    ViewBag.HappyType = "沒幸福小組名單";
+                    return Json(new { status = "2", message = "歡迎" + FullName + "登入成功!", fullname = FullName, account = aGalleryViewModel.Account, password = aGalleryViewModel.Password });
+                }
                 else
                 {
+                    // 
                     ViewBag.LoginType = m_SmallGroupDataList.m_MemberInfomationPackage.m_LoginType;
                     ViewBag.HappyType = "沒幸福小組名單";
 

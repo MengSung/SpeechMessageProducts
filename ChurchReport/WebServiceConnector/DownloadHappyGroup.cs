@@ -428,9 +428,36 @@ namespace ChurchReport.WebServiceConnector
             {
                 int Identity = this.m_ToolUtilityClass.GetOptionSetAttribute(ref aContactEntity, "customertypecode");
 
-                if (Identity != 100000004 && Identity != 100000000 && Identity != 100000006)
+                //case 100000006:
+                //    return "01. 牧師師母";
+                //case 100000003:
+                //    return "02. 區長";
+                //case 100000008:
+                //    return "03. 小組長";
+                //case 100000012:
+                //    return "04. 副組長";
+                //case 1:
+                //    return "05. 小組組員";
+                //case 100000005:
+                //    return "06. 幸福BEST";
+                //case 100000004:
+                //    return "07. 未入組";
+                //case 100000000:
+                //    return "08. 新朋友";
+                //case 100000007:
+                //    return "09. 外教會.訪客";
+                //case 100000001:
+                //    return "10. 結案";
+
+                // 委身類型客製化
+                //if (Identity != 100000004 && Identity != 100000000 && Identity != 100000005)
+                //{
+                //    // 新朋友、未入組、BEST不能成為屬靈認養者
+                //    return true;
+                //}
+                if ( Identity != 100000005 )
                 {
-                    // 新朋友、未入組、BEST不能成為屬靈認養者
+                    // BEST不能成為屬靈認養者
                     return true;
                 }
                 else
@@ -924,7 +951,7 @@ namespace ChurchReport.WebServiceConnector
 
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aQueryBestContactEntity, "mobilephone", aBestRecord.MobilePhone);
 
-                // 客製委身類型欄位，每間教會委身類型都不一樣，台中思恩堂豐富教會=>"幸福小組BEST" = 100000005
+                // 委身類型客製化，客製委身類型欄位，每間教會委身類型都不一樣，台中思恩堂豐富教會=>"幸福小組BEST" = 100000005
                 this.m_ToolUtilityClass.SetOptionSetAttribute(ref aQueryBestContactEntity, "customertypecode", 100000005);
 
                 if (this.m_ContactEntity == null)

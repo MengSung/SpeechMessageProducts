@@ -187,11 +187,13 @@
             getLoadPanelInstance().hide();
 
             if (data.status == 1) {
+                // 小組長或是個人回報
                 DevExpress.ui.notify(data.message, "success", 2000);
 
                 window.location.href = "/Home/SmallGroupReportView/AccountPassword";
             }
             else if (data.status == 2) {
+                // 單純幸福小組長回報
                 DevExpress.ui.notify(data.message, "success", 2000);
 
                 window.location.href = "/Home/HappyGroup";
