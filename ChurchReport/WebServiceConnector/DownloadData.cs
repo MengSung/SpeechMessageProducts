@@ -205,6 +205,12 @@ namespace ChurchReport.WebServiceConnector
                     #region 這個點名名單有找到主日周報，去找個人聚會與靈修記錄集合
                     // 這個點名名單有找到主日周報，去找個人聚會與靈修記錄集合
                     aGroupWeeklyReportGuid.WeeklyReportGuid = GroupWeeklyReportEntity.Id;
+
+                    // 回傳 APP 小組長姓名
+                    aGroupWeeklyReportGuid.SmallGroupLeaderName = m_ToolUtilityClass.GetEntityLookupDisplayName(ListEntity, "new_contact_family_leader_list");
+                    // 回傳 APP 小組聚會日期
+                    aGroupWeeklyReportGuid.SmallGroupDate = m_ToolUtilityClass.GetEntityDateTimeAttribute(GroupWeeklyReportEntity, "new_group_date");
+
                     // 回傳 APP 主日出席率
                     aGroupWeeklyReportGuid.SundayPresentRate = m_ToolUtilityClass.GetEntityDoubleAttribute(GroupWeeklyReportEntity, "new_sunday_present_rate");
                     // 回傳 APP 小組出席率
@@ -1028,6 +1034,14 @@ namespace ChurchReport.WebServiceConnector
                     #region 這個點名名單有找到主日周報，去找個人聚會與靈修記錄集合
                     // 這個點名名單有找到主日周報，去找個人聚會與靈修記錄集合
                     aGroupWeeklyReportGuid.WeeklyReportGuid = GroupWeeklyReportEntity.Id;
+
+                    // 回傳 APP 小組長姓名
+                    aGroupWeeklyReportGuid.SmallGroupLeaderName = m_ToolUtilityClass.GetEntityLookupDisplayName(ListEntity, "new_contact_family_leader_list");
+                    // 回傳 APP 小組聚會日期
+                    // 非常怪異，取得日期與資料會少一天
+                    //aGroupWeeklyReportGuid.SmallGroupDate = m_ToolUtilityClass.GetEntityDateTimeAttribute(GroupWeeklyReportEntity, "new_group_date");
+                    aGroupWeeklyReportGuid.SmallGroupDate = m_ToolUtilityClass.GetEntityDateTimeAttribute(GroupWeeklyReportEntity, "new_group_date").AddDays(1);
+
                     // 回傳 APP 主日出席率
                     aGroupWeeklyReportGuid.SundayPresentRate = m_ToolUtilityClass.GetEntityDoubleAttribute(GroupWeeklyReportEntity, "new_sunday_present_rate");
                     // 回傳 APP 小組出席率
@@ -1046,6 +1060,16 @@ namespace ChurchReport.WebServiceConnector
                     // 這個點名名單沒有找到主日周報， 找點名名單的小組組員做為要點名的清單
                     // 回傳 APP 這是空的 Guid，表示沒找到週報
                     aGroupWeeklyReportGuid.WeeklyReportGuid = Guid.Empty;
+
+                    // 回傳 APP 小組長姓名
+                    aGroupWeeklyReportGuid.SmallGroupLeaderName = m_ToolUtilityClass.GetEntityLookupDisplayName(ListEntity, "new_contact_family_leader_list");
+                    // 回傳 APP 小組聚會日期
+                    aGroupWeeklyReportGuid.SmallGroupDate = new DateTime(2000, 1, 1);
+
+                    // 非常怪異，取得日期與資料會少一天
+                    //aGroupWeeklyReportGuid.SmallGroupDate = m_ToolUtilityClass.GetEntityDateTimeAttribute(GroupWeeklyReportEntity, "new_group_date");
+                    aGroupWeeklyReportGuid.SmallGroupDate = m_ToolUtilityClass.GetEntityDateTimeAttribute(GroupWeeklyReportEntity, "new_group_date").AddDays(1);
+
                     // 回傳 APP 主日出席率
                     aGroupWeeklyReportGuid.SundayPresentRate = 0;
                     // 回傳 APP 小組出席率

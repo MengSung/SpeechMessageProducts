@@ -25,6 +25,20 @@ namespace ChurchReport.Models.CrmTransmitModule
             set { m_GroupName = value; }
         }
 
+        String m_SmallGroupLeaderName; //小組長姓名
+        public String SmallGroupLeaderName
+        {
+            get { return m_SmallGroupLeaderName; }
+            set { m_SmallGroupLeaderName = value; }
+        }
+
+        DateTime m_SmallGroupDate; //小組聚會日期
+        public DateTime SmallGroupDate
+        {
+            get { return m_SmallGroupDate; }
+            set { m_SmallGroupDate = value; }
+        }
+
         Double m_SundayPresentRate; //主日出席率
         public Double SundayPresentRate
         {

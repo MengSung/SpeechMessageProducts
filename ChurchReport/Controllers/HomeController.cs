@@ -409,7 +409,9 @@ namespace ChurchReport.Controllers
             DateTime aSelectDate = DateTime.Parse(SelectedDate);
             m_SmallGroupDataList.SetupSmallGroupData(m_SmallGroupDataList.m_FullName, m_SmallGroupDataList.m_Account, m_SmallGroupDataList.m_Password, aSelectDate.AddDays(-(int)aSelectDate.DayOfWeek), false);
 
-            TempData["SmallGroupDataList"] = JsonConvert.SerializeObject(m_SmallGroupDataList);
+
+            String SerializedSmallGroupDataList = JsonConvert.SerializeObject(m_SmallGroupDataList);
+            TempData["SmallGroupDataList"] = SerializedSmallGroupDataList;
 
             //this.m_SundayDate = DateTime.Parse(SelectedDate).AddDays(-(int)DateTime.Now.DayOfWeek);
             //m_SmallGroupDataList.SetupSmallGroupData();

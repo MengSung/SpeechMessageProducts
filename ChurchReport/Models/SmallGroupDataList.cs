@@ -24,7 +24,9 @@ namespace ChurchReport.Models
         public String m_FullName = "";
         public String m_Account  = "";
         public String m_Password = "";
-        public DateTime m_SundayDate ;
+        public DateTime m_SelectDate = new DateTime(9999, 1, 1);// 初始值 9999 表示還沒選
+        public DateTime m_SundayDate;
+
         private ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
         //static ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("CRM2011");
 
@@ -58,6 +60,7 @@ namespace ChurchReport.Models
             // 從雲端後台下載下來小組點名資料
 
             m_SundayDate = aSelectDate.AddDays(-(int)aSelectDate.DayOfWeek);
+            // 取得所有需要的資料
             m_MemberInfomationPackage = aDownloader.GetMemberDataPackage(m_SundayDate, aAccountPasswordData);
 
 
@@ -66,6 +69,9 @@ namespace ChurchReport.Models
             m_SmallGroupData.SmallGroupLeaderFullName = FullName;
             //m_SmallGroupData.SundayPrayers = aSelectDate;
             m_SmallGroupData.SundayPrayers = m_SundayDate;
+
+            SetSundayPrayersByWeeklyReport(FullName);
+
             //if (DisplayDateFlag == false)
             //{
             //    m_SmallGroupData.SundayPrayers = new DateTime( 1000, 1, 1 );
@@ -74,22 +80,32 @@ namespace ChurchReport.Models
 
             m_NewPersonFollowUpData.SmallGroupLeaderFullName = FullName;
             //m_NewPersonFollowUpData.SundayPrayers = aSelectDate;
-            m_NewPersonFollowUpData.SundayPrayers = m_SundayDate;
-            //if (DisplayDateFlag == false)
+            m_NewPersonFollowUpData.SundayPrayers = m_SmallGroupData.SundayPrayers;
+            //if (m_SmallGroupData.SundayPrayers.Year != 2000)
             //{
-            //    m_NewPersonFollowUpData.SundayPrayers = new DateTime(1000, 1, 1);
+            //    m_NewPersonFollowUpData.SundayPrayersString = m_SmallGroupData.SundayPrayers.ToShortDateString();
+            //}
+            //else
+            //{
+            //    m_NewPersonFollowUpData.SundayPrayersString = "";
             //}
             m_NewPersonFollowUpData.Members = new List<Member>();
 
             m_AllMemeberData.SmallGroupLeaderFullName = FullName;
             //m_AllMemeberData.SundayPrayers = aSelectDate;
-            m_AllMemeberData.SundayPrayers = m_SundayDate;
-            //if (DisplayDateFlag == false)
+            m_AllMemeberData.SundayPrayers = m_SmallGroupData.SundayPrayers;
+            //if (m_SmallGroupData.SundayPrayers.Year != 2000)
             //{
-            //    m_AllMemeberData.SundayPrayers = new DateTime(1000, 1, 1);
+            //    m_AllMemeberData.SundayPrayersString = m_SmallGroupData.SundayPrayers.ToShortDateString();
             //}
+            //else
+            //{
+            //    m_AllMemeberData.SundayPrayersString = "";
+            //}
+
             m_AllMemeberData.Members = new List<Member>();
 
+            #region// 把後台的資料轉換成前台的資料結構
             int IdIndex = 0;
             foreach (MemberInfomation aMemberInfomation in m_MemberInfomationPackage.ListMemberInfomation)
             {
@@ -178,7 +194,34 @@ namespace ChurchReport.Models
                 IdIndex++;
 
             }
+            #endregion
+
         }
+        public void SetSundayPrayersByWeeklyReport(String FullName)
+        {
+            foreach (GroupWeeklyReportGuid aGroupWeeklyReportGuid in m_MemberInfomationPackage.GroupWeeklyReportGuidList)
+            {
+                if (aGroupWeeklyReportGuid.SmallGroupLeaderName != null && aGroupWeeklyReportGuid.SmallGroupLeaderName.Contains(FullName))
+                {
+                    // 找到登入者的小組，因為登入者有可能是區長，所以要確定登入者的小組聚會日期
+                    m_SmallGroupData.SundayPrayers = aGroupWeeklyReportGuid.SmallGroupDate;
+
+                    if (m_SmallGroupData.SundayPrayers.Year == 9999)
+                    {
+                        // 表示該週報尚未上傳過，後台還沒有該週報
+                        if (this.m_SelectDate.Year != 9999)
+                        {
+                            // 表示登入的使用有更改過日期，所以網頁要顯示出選擇的日期
+                            m_SmallGroupData.SundayPrayers = this.m_SelectDate;
+                        }
+                    }
+                    return;
+                }
+            }
+
+            m_SmallGroupData.SundayPrayers = new DateTime(9999, 1, 1);
+        }
+
         public void UploadMemberInfomationPackage()
         {
             UploadData aUploadData = new UploadData();
@@ -189,8 +232,25 @@ namespace ChurchReport.Models
                 Password = m_Password
             };
 
+            SetSmallGroupDateOfWeeklyReport(m_FullName, m_SmallGroupData.SundayPrayers);
+
             aUploadData.UploadMemberDataPackage(aAccountPasswordData, m_SmallGroupData.SundayPrayers, "主日點名", m_MemberInfomationPackage);
         }
+
+        public void SetSmallGroupDateOfWeeklyReport(String FullName, DateTime SmallGroupDate)
+        {
+            foreach (GroupWeeklyReportGuid aGroupWeeklyReportGuid in m_MemberInfomationPackage.GroupWeeklyReportGuidList)
+            {
+                if (aGroupWeeklyReportGuid.SmallGroupLeaderName != null && aGroupWeeklyReportGuid.SmallGroupLeaderName.Contains(FullName))
+                {
+                    // 找到登入者的小組，因為登入者有可能是區長，所以要確定登入者的小組聚會日期
+                    aGroupWeeklyReportGuid.SmallGroupDate = SmallGroupDate;
+
+                    return;
+                }
+            }
+        }
+
         public void TransferToMemberInfomationPackage(SmallGroupData aGroupDataList)
         {
             int MemberCounter = 0;

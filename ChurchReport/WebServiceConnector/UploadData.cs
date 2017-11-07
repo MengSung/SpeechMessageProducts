@@ -1073,7 +1073,7 @@ namespace ChurchReport.WebServiceConnector
                 throw Exception;
             }
         }
-        private Guid CreateWeeklyReport(ref Entity aListEntity)
+        private Guid CreateWeeklyReport(ref Entity aListEntity, GroupWeeklyReportGuid aGroupWeeklyReportGuid)
         {
             try
             {
@@ -1105,7 +1105,7 @@ namespace ChurchReport.WebServiceConnector
                 //String AreaName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aListEntity, "new_area_name");
 
                 // 設定週報相關屬性
-                this.SetupWeeklyReortEntityAttributes(ref aWeeklyReportEntity, FamilyLeaderId, GroupLeaderId, RaceLeaderId, ShepherdLeaderId, m_DecipleGroupListId, aListEntity, m_Sunday, m_SmallGroupPlace, m_SmallGroupTime);
+                this.SetupWeeklyReortEntityAttributes(ref aWeeklyReportEntity, FamilyLeaderId, GroupLeaderId, RaceLeaderId, ShepherdLeaderId, m_DecipleGroupListId, aListEntity, m_Sunday, m_SmallGroupPlace, m_SmallGroupTime, aGroupWeeklyReportGuid);
 
                 // 新增週報
                 return this.m_ToolUtilityClass.CreateEntity(aWeeklyReportEntity);
@@ -1118,7 +1118,7 @@ namespace ChurchReport.WebServiceConnector
                 throw Exception;
             }
         }
-        private void SetupWeeklyReortEntityAttributes(ref Entity aWeeklyReportEntity, Guid aFamilyLeaderId, Guid aGroupLeaderId, Guid aRaceLeaderId, Guid aShepherdLeaderId , Guid aDecipleGroupList, Entity ListEntity, DateTime aSunday, String SmallGroupPlace, String SmallGroupTime)
+        private void SetupWeeklyReortEntityAttributes(ref Entity aWeeklyReportEntity, Guid aFamilyLeaderId, Guid aGroupLeaderId, Guid aRaceLeaderId, Guid aShepherdLeaderId , Guid aDecipleGroupList, Entity ListEntity, DateTime aSunday, String SmallGroupPlace, String SmallGroupTime, GroupWeeklyReportGuid aGroupWeeklyReportGuid )
         {
             try
             {
@@ -1158,6 +1158,8 @@ namespace ChurchReport.WebServiceConnector
                 #region 設定主日及小組聚會日期
                 this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aWeeklyReportEntity, "new_sunday_date", aSunday);
                 this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aWeeklyReportEntity, "new_group_date", aSunday);
+                this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aWeeklyReportEntity, "new_group_date", aGroupWeeklyReportGuid.SmallGroupDate);
+
                 #endregion
                 #region 設定小組聚會地點和時間
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aWeeklyReportEntity, "new_group_place", SmallGroupPlace);
@@ -1195,7 +1197,7 @@ namespace ChurchReport.WebServiceConnector
                 }
 
                 // 建立週報
-                Guid aCreatedWeeklyReportId = CreateWeeklyReport(ref aListEntity);
+                Guid aCreatedWeeklyReportId = CreateWeeklyReport(ref aListEntity, aGroupWeeklyReportGuid);
 
                 // 更新個人資料:手機、家裡電話、地址、設定委身類型
                 // 建立的個人聚會與靈修記錄
@@ -1487,6 +1489,7 @@ namespace ChurchReport.WebServiceConnector
                     {
                         GroupName = aFromGroupWeeklyReportGuid.GroupName,
                         SundayPresentRate = aFromGroupWeeklyReportGuid.SundayPresentRate,
+                        SmallGroupDate = aFromGroupWeeklyReportGuid.SmallGroupDate,
                         SmallGroupRate = aFromGroupWeeklyReportGuid.SmallGroupRate,
                         WeeklyReportGuid = aFromGroupWeeklyReportGuid.WeeklyReportGuid
                     };
@@ -1559,6 +1562,10 @@ namespace ChurchReport.WebServiceConnector
                 // 這個點名名單沒有找到主日周報， 找點名名單的小組組員做為要點名的清單
                 // 回傳 APP 這是空的 Guid，表示沒找到週報
                 aGroupWeeklyReportGuid.WeeklyReportGuid = Guid.Empty;
+
+                // 回傳 APP 小組聚會日期
+                aGroupWeeklyReportGuid.SmallGroupDate = new DateTime(2000, 1, 1);
+
                 // 回傳 APP 主日出席率
                 aGroupWeeklyReportGuid.SundayPresentRate = 0;
                 // 回傳 APP 小組出席率
@@ -3445,12 +3452,13 @@ namespace ChurchReport.WebServiceConnector
 
                 #endregion
 
-
-
-
                 #region 設定週報狀態，設定為已點名、週報主日出席率、小組出席率
 
                 Entity aWeeklyReportEntity = this.m_ToolUtilityClass.RetrieveEntity("new_group_present_weekly_report", aWeeklyReportId);
+
+                #region 設定小組聚會日期
+                this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aWeeklyReportEntity, "new_group_date", aGroupWeeklyReportGuid.SmallGroupDate);
+                #endregion
 
                 // 設定新人跟進報告
 

@@ -1,7 +1,19 @@
 ﻿@{
     String DataStatus = "上傳成功了!";
     String ReUpload = "請再按一次上傳鈕!";
+    @*String DateVaule = "";
+        @if (@Model.SundayPrayers.Year != 9999)
+        {
+            DateVaule = @Model.SundayPrayers.ToShortDateString();
+
+        }
+        else
+        {
+            DateVaule = "";
+
+        }*@
 }
+
 
 
 @model ChurchReport.Models.SmallGroupData
@@ -18,7 +30,15 @@
 
 </head>
 
-    <h3>@(Model.SmallGroupLeaderFullName + "回報")</h3>
+    @if (Model.SundayPrayers.Year != 2000)
+    {
+        <h3>@(Model.SmallGroupLeaderFullName + "回報")</h3>
+    }
+    else
+    {
+        <h3>@(Model.SmallGroupLeaderFullName + "尚未回報")</h3>
+    }
+
 
     <div class="dx-field">
         <div id="the whole thing" style="height:100%; width:100%; overflow: hidden;">
