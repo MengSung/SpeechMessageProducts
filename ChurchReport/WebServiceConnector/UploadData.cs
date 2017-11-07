@@ -1098,7 +1098,7 @@ namespace ChurchReport.WebServiceConnector
                 // 區長 ID
                 Guid RaceLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_race_leager_list");
 
-                // 上代組長 ID
+                // 上代組長/(原來是:族系族長) ID
                 Guid ShepherdLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_list_arealeader");
 
                 // 區名
