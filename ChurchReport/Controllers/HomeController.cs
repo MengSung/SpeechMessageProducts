@@ -68,7 +68,7 @@ namespace ChurchReport.Controllers
                 //String FullName = this.m_ToolUtilityClass.RetrieveEntityCrm2011("contact", aContactGuid).Attributes["fullname"].ToString();
 
                 //m_SmallGroupDataList.SetupSmallGroupData(FullName, aGalleryViewModel.Account, aGalleryViewModel.Password, DateTime.Now.AddDays(-(int)DateTime.Now.DayOfWeek), false);
-                m_SmallGroupDataList.SetupSmallGroupData(FullName, aGalleryViewModel.Account, aGalleryViewModel.Password, DateTime.Now, false);
+                m_SmallGroupDataList.SetupSmallGroupData(FullName, aGalleryViewModel.Account, aGalleryViewModel.Password, DateTime.Now, true);
 
                 //TempData["FullName"] = FullName;
                 //TempData["Account"] = aGalleryViewModel.Account;
@@ -167,7 +167,6 @@ namespace ChurchReport.Controllers
         public ActionResult SmallGroupReportView(String LoginParameter)
         //public ActionResult SmallGroupReportView()
         {
-
             if (LoginParameter == "AccountPassword")
             {
                 String SmallGroupDataListString = (String)TempData.Peek("SmallGroupDataList");

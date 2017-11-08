@@ -27,6 +27,7 @@ namespace ChurchReport.Models
         //public DateTime m_SelectDate = new DateTime(2000, 1, 1);// 初始值 2000 表示還沒選
         public DateTime m_SelectDate = DateTime.Now;// 初始值 2000 表示還沒選
         public DateTime m_SundayDate;
+        private bool m_FirstLoginFlag;
 
         private ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
         //static ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("CRM2011");
@@ -51,6 +52,8 @@ namespace ChurchReport.Models
             m_FullName = FullName;
             m_Account = Account;
             m_Password = Password;
+            // 是否是首次登入，是的話小組日期就是從後台小組日期決定，否則就是登入想要改小組日期
+            m_FirstLoginFlag = DisplayDateFlag; 
             DownloadData aDownloader = new DownloadData();
             AccountPasswordData aAccountPasswordData = new AccountPasswordData
             {
@@ -209,12 +212,29 @@ namespace ChurchReport.Models
 
                     if ( m_SmallGroupData.SundayPrayers.Year == 9999 || m_SmallGroupData.SundayPrayers.Year == 1 )
                     {
-                        // 表示該週報尚未上傳過，後台還沒有該週報
+                        #region// 表示該週報尚未上傳過，後台還沒有該週報
                         if (this.m_SelectDate.Year != 9999)
                         {
                             // 表示登入的使用有更改過日期，所以網頁要顯示出選擇的日期
                             m_SmallGroupData.SundayPrayers = this.m_SelectDate;
                         }
+                        #endregion
+                    }
+                    else
+                    {
+                        #region// 表示該週報已經上傳過，後台還已經有該週報
+                        if (m_FirstLoginFlag) //是否是首次登入
+                        {
+                            //是首次登入，小組日期顯示後台周報的小組日期
+                            m_SmallGroupData.SundayPrayers = aGroupWeeklyReportGuid.SmallGroupDate;
+                        }
+                        else
+                        {
+                            //不是首次登入，表示登入者想要修改小組日期
+                            m_SmallGroupData.SundayPrayers = this.m_SelectDate;
+                        }
+                        #endregion
+
                     }
                     return;
                 }
