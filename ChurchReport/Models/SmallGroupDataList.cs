@@ -253,9 +253,11 @@ namespace ChurchReport.Models
                 Password = m_Password
             };
 
-            SetSmallGroupDateOfWeeklyReport(m_FullName, m_SmallGroupData.SundayPrayers);
+            DateTime aUploadSmallGroupDate = new DateTime(m_SmallGroupData.SundayPrayers.Year, m_SmallGroupData.SundayPrayers.Month, m_SmallGroupData.SundayPrayers.Day, 0, 0, 0);
 
-            aUploadData.UploadMemberDataPackage(aAccountPasswordData, m_SmallGroupData.SundayPrayers, "主日點名", m_MemberInfomationPackage);
+            SetSmallGroupDateOfWeeklyReport(m_FullName, aUploadSmallGroupDate);
+
+            aUploadData.UploadMemberDataPackage(aAccountPasswordData, aUploadSmallGroupDate, "主日點名", m_MemberInfomationPackage);
         }
 
         public void SetSmallGroupDateOfWeeklyReport(String FullName, DateTime SmallGroupDate)

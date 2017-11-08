@@ -280,75 +280,14 @@
 
         .Columns(columns =>
         {
-            @*columns.Add()
-                .DataField("Picture")
-                .Caption("照片")
-                .Width(60)
-                .AllowFiltering(false)
-                .AllowSorting(false)
-                .CellTemplate(@<text>
-                <div class="img-container">
-                    <img src="<%= value %>" alt="" />
-                </div>
-                </text>        );*@
-
-
-                    //columns.Add()
-                    //    .Caption("測試")
-                    //    //.DataField("Shepherd")
-                    //    .Width(250)
-                    //
-                    //    .CellTemplate(@<text> @(Html.Partial("DropDownBox") )
-                    //    </text>);
-
                     columns.Add().DataField("FullName").Caption("姓名").Fixed(true).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Left);
                     columns.Add().DataField("Status").Caption("委身類型").Fixed(false).Width(100).MinWidth(20).Alignment(HorizontalAlignment.Center);
                     columns.Add().DataField("Sunday").Caption("主日").DataType(GridColumnDataType.Boolean).Width(45).MinWidth(45);
                     columns.Add().DataField("SmallGroup").Caption("小組").DataType(GridColumnDataType.Boolean).Width(45).MinWidth(45);
                     columns.Add().DataField("PrayItem").Caption("代禱事項").Fixed(false).MinWidth(90);
-                    //columns.Add().DataField("SectionName").Caption("族系").GroupIndex(-1).MinWidth(10);
                     columns.Add().DataField("SmallGroupName").Caption("小組").GroupIndex(0).MinWidth(10);
-
-                    //columns.Add()
-                    //    .DataField("StateID1")
-                    //    .Caption("牧養活動")
-                    //    .Width(80).MinWidth(30)
-                    //    .Lookup(lookup => lookup
-                    //    .DataSource(d => d.WebApi().Controller("ShepherdMethodLookup").LoadAction("Get").Key("ID"))
-                    //    .DisplayExpr("Name")
-                    //    .ValueExpr("ID")
-                    //);
-
-                    //columns.Add()
-                    //    .Caption("牧養次數")
-                    //    //.DataField("Shepherd")
-                    //    .Width(80)
-                    //    .CellTemplate(@<text> @(Html.DevExtreme().NumberBox()
-                    //    .Value(0)
-                    //    .Min(0)
-                    //    .Max(20)
-                    //    .ShowSpinButtons(true) )
-                    //    </text>        );
-
-                    //columns.Add().DataField("Number1").Caption("次數").DataType(GridColumnDataType.Number).Width(50).MinWidth(10);
-                    //
-                    //columns.Add()
-                    //    .DataField("StateID2")
-                    //    .Caption("牧養活動")
-                    //    .Width(80).MinWidth(30)
-                    //    .Lookup(lookup => lookup
-                    //    .DataSource(d => d.WebApi().Controller("ShepherdMethodLookup").LoadAction("Get").Key("ID"))
-                    //    .DisplayExpr("Name")
-                    //    .ValueExpr("ID")
-                    //);
-                    //
-                    //columns.Add().DataField("Number2").Caption("次數").DataType(GridColumnDataType.Number).Width(50).MinWidth(10);
-
-
                     })
-                    //.DataSource(d => d.WebApi().Controller("SmallGroupReport").Key("Id"))
                     .DataSource(Model.Members)
-                    //.DataSourceOptions(d => d.Filter("['Id', '<=' , 6]"))
         )
     </div>
 }
