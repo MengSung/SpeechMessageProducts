@@ -96,7 +96,7 @@ namespace ChurchReport.WebServiceConnector
                 this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "設定初始值");
                 this.m_MemberInfomationPackage = aMemberInfomationPackage;
 
-                // 設定參數
+                // 設定參數，設定主日日期，找到操作使用者登入的ENTITY及ID
                 this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "設定參數");
                 SetupCommonParameter(aAccountPasswordData, aSunday);
 
@@ -367,7 +367,11 @@ namespace ChurchReport.WebServiceConnector
             try
             {
                 // 設定主日日期
-                m_Sunday = aSunday;
+                #region 先根據日期尋找當週主日日期
+                // 其值的範圍從 0 (表示 DayOfWeek.Sunday) 為 6 (表示 DayOfWeek.Saturday)。
+                int DayOfWeek = (int)aSunday.DayOfWeek;
+                this.m_Sunday = aSunday.AddDays(-DayOfWeek);
+                #endregion
 
                 // 找到操作使用者登入的小組長ID
                 if (aAccountPasswordData.Account != "LineIdLogin")
@@ -1158,7 +1162,16 @@ namespace ChurchReport.WebServiceConnector
                 #region 設定主日及小組聚會日期
                 this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aWeeklyReportEntity, "new_sunday_date", aSunday);
                 this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aWeeklyReportEntity, "new_group_date", aSunday);
-                this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aWeeklyReportEntity, "new_group_date", aGroupWeeklyReportGuid.SmallGroupDate);
+
+                if (aGroupWeeklyReportGuid.SmallGroupDate.Year > 1)
+                {
+                    this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aWeeklyReportEntity, "new_group_date", aGroupWeeklyReportGuid.SmallGroupDate);
+                }
+                else
+                {
+                    this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aWeeklyReportEntity, "new_group_date", DateTime.Now );
+
+                }
 
                 #endregion
                 #region 設定小組聚會地點和時間
@@ -1186,6 +1199,7 @@ namespace ChurchReport.WebServiceConnector
             {
                 if (this.m_MemberInfomationPackage.m_LoginType != "小組長")
                 {
+                    #region 個人回報
                     // COPY MEMBER DATA 的 Group Weekly Report 的部分
                     CopyMemberInfomationPackage(this.m_MemberInfomationPackage, this.m_InitializedMemberInfomationPackage);
 
@@ -1194,6 +1208,7 @@ namespace ChurchReport.WebServiceConnector
 
                     // 根據使用者上傳的點名資料，更新初始化 Member Data 清單
                     this.UpdateMemberDataFromUploadData();
+                    #endregion
                 }
 
                 // 建立週報
@@ -1207,10 +1222,12 @@ namespace ChurchReport.WebServiceConnector
                 EntityCollection aPresentRecordCollection;
                 if (this.m_MemberInfomationPackage.m_LoginType == "小組長")
                 {
+                    // 小組長回報
                     aPresentRecordCollection = CreatePresentRecordList( this.m_MemberInfomationPackage, GroupName, ref aListEntity, ref aCreatedWeeklyReportId, ValidNumber, ref aWeeklySundayRate, ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber, ref ValidSundayMemberNumber, ref ValidSmallGroupMemberNumber);
                 }
                 else
                 {
+                    // 個人回報
                     aPresentRecordCollection = CreatePresentRecordList(this.m_InitializedMemberInfomationPackage, GroupName, ref aListEntity, ref aCreatedWeeklyReportId, ValidNumber, ref aWeeklySundayRate, ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber, ref ValidSundayMemberNumber, ref ValidSmallGroupMemberNumber);
                 }
 
@@ -3457,7 +3474,20 @@ namespace ChurchReport.WebServiceConnector
                 Entity aWeeklyReportEntity = this.m_ToolUtilityClass.RetrieveEntity("new_group_present_weekly_report", aWeeklyReportId);
 
                 #region 設定小組聚會日期
-                this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aWeeklyReportEntity, "new_group_date", aGroupWeeklyReportGuid.SmallGroupDate);
+
+                // 取得周報的小組長，若是與登入的回報者同一個人
+                // 才有權限更改小組聚會日期
+                if (this.m_ContactEntity.Id == this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aWeeklyReportEntity, "new_groupleader_group_present_weekly_"))
+                {
+                    if (aGroupWeeklyReportGuid.SmallGroupDate.Year > 1)
+                    {
+                        this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aWeeklyReportEntity, "new_group_date", aGroupWeeklyReportGuid.SmallGroupDate);
+                    }
+                    else
+                    {
+                        this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aWeeklyReportEntity, "new_group_date", DateTime.Now);
+                    }
+                }
                 #endregion
 
                 // 設定新人跟進報告
@@ -3531,8 +3561,10 @@ namespace ChurchReport.WebServiceConnector
                 UpdatePresentRecord(this.m_GroupNamedListMemberInfomation, aPresentRecordCollection, ref aListEntity, ref aWeeklyReportId, ValidNumber, ref aWeeklySundayRate, ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber);
                 #endregion
 
-
+                #region 更新週報
                 return UpdateWeeklyReport(aGroupWeeklyReportGuid, aPresentRecordCollection, ref aListEntity, ref aWeeklyReportId, ValidNumber, ref aWeeklySundayRate, ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber);
+                #endregion
+
                 #endregion
             }
             catch (System.Exception Exception)

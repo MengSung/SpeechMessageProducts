@@ -67,7 +67,8 @@ namespace ChurchReport.Controllers
                 String FullName = this.m_ToolUtilityClass.RetrieveEntityDynamics365("contact", aContactGuid).Attributes["fullname"].ToString();
                 //String FullName = this.m_ToolUtilityClass.RetrieveEntityCrm2011("contact", aContactGuid).Attributes["fullname"].ToString();
 
-                m_SmallGroupDataList.SetupSmallGroupData(FullName, aGalleryViewModel.Account, aGalleryViewModel.Password, DateTime.Now.AddDays(-(int)DateTime.Now.DayOfWeek), false);
+                //m_SmallGroupDataList.SetupSmallGroupData(FullName, aGalleryViewModel.Account, aGalleryViewModel.Password, DateTime.Now.AddDays(-(int)DateTime.Now.DayOfWeek), false);
+                m_SmallGroupDataList.SetupSmallGroupData(FullName, aGalleryViewModel.Account, aGalleryViewModel.Password, DateTime.Now, false);
 
                 //TempData["FullName"] = FullName;
                 //TempData["Account"] = aGalleryViewModel.Account;
@@ -220,7 +221,8 @@ namespace ChurchReport.Controllers
                 {
                     SmallGroupDataList m_SmallGroupDataList = new SmallGroupDataList();
 
-                    m_SmallGroupDataList.SetupSmallGroupData(FullName, "LineIdLogin", LoginParameter, DateTime.Now.AddDays(-(int)DateTime.Now.DayOfWeek), true);
+                    //m_SmallGroupDataList.SetupSmallGroupData(FullName, "LineIdLogin", LoginParameter, DateTime.Now.AddDays(-(int)DateTime.Now.DayOfWeek), true);
+                    m_SmallGroupDataList.SetupSmallGroupData(FullName, "LineIdLogin", LoginParameter, DateTime.Now, true);
 
                     String SerializedSmallGroupDataList = JsonConvert.SerializeObject(m_SmallGroupDataList);
                     TempData["SmallGroupDataList"] = SerializedSmallGroupDataList;
@@ -407,8 +409,7 @@ namespace ChurchReport.Controllers
 
             //SmallGroupDataList m_SmallGroupDataList = new SmallGroupDataList();
             DateTime aSelectDate = DateTime.Parse(SelectedDate);
-            m_SmallGroupDataList.SetupSmallGroupData(m_SmallGroupDataList.m_FullName, m_SmallGroupDataList.m_Account, m_SmallGroupDataList.m_Password, aSelectDate.AddDays(-(int)aSelectDate.DayOfWeek), false);
-
+            m_SmallGroupDataList.SetupSmallGroupData(m_SmallGroupDataList.m_FullName, m_SmallGroupDataList.m_Account, m_SmallGroupDataList.m_Password, aSelectDate, false);
 
             String SerializedSmallGroupDataList = JsonConvert.SerializeObject(m_SmallGroupDataList);
             TempData["SmallGroupDataList"] = SerializedSmallGroupDataList;

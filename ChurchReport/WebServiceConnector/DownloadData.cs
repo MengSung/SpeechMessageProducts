@@ -85,25 +85,17 @@ namespace ChurchReport.WebServiceConnector
         #region 主程式區
         public MemberInfomationPackage GetMemberDataPackage(DateTime aDownloadDate, AccountPasswordData aAccountPasswordData)
         {
-            #region 先根據日期尋找當週主日日期
-            // 其值的範圍從 0 (表示 DayOfWeek.Sunday) 為 6 (表示 DayOfWeek.Saturday)。
-            int DayOfWeek = (int)aDownloadDate.DayOfWeek;
-            this.m_Sunday = aDownloadDate.AddDays(-DayOfWeek);
-            #endregion
-
             //實際要回傳，不是模擬
-            //return DownloadMemberPackageDataByDate(aDownloadDate, aAccountPasswordData);
-            return DownloadMemberPackageDataByDate( m_Sunday, aAccountPasswordData);
-
-            // 模擬回覆下載資料，為要快速確認 XAMARIN端可以與WCF 連線
-            //return DownloadMemberPackageDataByDate_XamarinSimulation(aDownloadDate, aAccountPasswordData);
-
+            return DownloadMemberPackageDataByDate(aDownloadDate, aAccountPasswordData);
         }
+
         private MemberInfomationPackage DownloadMemberPackageDataByDate(DateTime aDownloadDate, AccountPasswordData aAccountPasswordData)
         {
+            #region 回傳網頁所需要的資料結構
             m_MemberInfomationPackage = new MemberInfomationPackage();
             m_MemberInfomationPackage.GroupWeeklyReportGuidList = new List<GroupWeeklyReportGuid>();
             m_MemberInfomationPackage.ListMemberInfomation = new List<MemberInfomation>();
+            #endregion
 
             #region 先根據日期尋找當週主日日期
             // 其值的範圍從 0 (表示 DayOfWeek.Sunday) 為 6 (表示 DayOfWeek.Saturday)。
@@ -121,7 +113,7 @@ namespace ChurchReport.WebServiceConnector
             FindListCollection();
             if (m_Lists.Entities.Count != 0)
             {
-                // 有找到要點名的名單，所以是小組長以上回報
+                #region// 有找到要點名的名單，所以是小組長以上回報
                 m_MemberInfomationPackage.m_LoginType = "小組長";
                 #region 處理每個要點名的名單
                 m_SetIdentityFlag = false; // 因為新朋友、未入組會變更委身類型，旗標防止設定太多次，false表示尚未設定
@@ -136,10 +128,11 @@ namespace ChurchReport.WebServiceConnector
                 #endregion
 
                 return m_MemberInfomationPackage;
+                #endregion
             }
             else
             {
-                // 沒找到任何要點名的名單，所以是個人回報
+                #region// 沒找到任何要點名的名單，所以是個人回報
                 m_MemberInfomationPackage.m_LoginType = "個人回報";
 
                 #region 取得個人回報的名單
@@ -159,6 +152,7 @@ namespace ChurchReport.WebServiceConnector
                 #endregion
 
                 return m_MemberInfomationPackage;
+                #endregion
             }
             #endregion
         }

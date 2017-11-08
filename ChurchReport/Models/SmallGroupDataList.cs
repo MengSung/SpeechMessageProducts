@@ -24,7 +24,8 @@ namespace ChurchReport.Models
         public String m_FullName = "";
         public String m_Account  = "";
         public String m_Password = "";
-        public DateTime m_SelectDate = new DateTime(9999, 1, 1);// 初始值 9999 表示還沒選
+        //public DateTime m_SelectDate = new DateTime(2000, 1, 1);// 初始值 2000 表示還沒選
+        public DateTime m_SelectDate = DateTime.Now;// 初始值 2000 表示還沒選
         public DateTime m_SundayDate;
 
         private ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
@@ -58,7 +59,6 @@ namespace ChurchReport.Models
             };
 
             // 從雲端後台下載下來小組點名資料
-
             m_SundayDate = aSelectDate.AddDays(-(int)aSelectDate.DayOfWeek);
             // 取得所有需要的資料
             m_MemberInfomationPackage = aDownloader.GetMemberDataPackage(m_SundayDate, aAccountPasswordData);
@@ -67,8 +67,9 @@ namespace ChurchReport.Models
             m_SmallGroupData.LoginType = m_MemberInfomationPackage.m_LoginType;
 
             m_SmallGroupData.SmallGroupLeaderFullName = FullName;
-            //m_SmallGroupData.SundayPrayers = aSelectDate;
-            m_SmallGroupData.SundayPrayers = m_SundayDate;
+            m_SelectDate = aSelectDate;
+            m_SmallGroupData.SundayPrayers = aSelectDate;
+            //m_SmallGroupData.SundayPrayers = m_SundayDate;
 
             SetSundayPrayersByWeeklyReport(FullName);
 
@@ -206,7 +207,7 @@ namespace ChurchReport.Models
                     // 找到登入者的小組，因為登入者有可能是區長，所以要確定登入者的小組聚會日期
                     m_SmallGroupData.SundayPrayers = aGroupWeeklyReportGuid.SmallGroupDate;
 
-                    if (m_SmallGroupData.SundayPrayers.Year == 9999)
+                    if ( m_SmallGroupData.SundayPrayers.Year == 9999 || m_SmallGroupData.SundayPrayers.Year == 1 )
                     {
                         // 表示該週報尚未上傳過，後台還沒有該週報
                         if (this.m_SelectDate.Year != 9999)
