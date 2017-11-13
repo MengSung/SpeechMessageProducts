@@ -685,6 +685,7 @@ namespace ChurchReport.WebServiceConnector
                 CreateDefaultBestList(ref aWeeklyReportEntity, AreaName, FamilyLeaderId, GroupLeaderId, RaceLeaderId, ShepherdLeaderId, aListEntity, aHappyGroupWeeklyReportToBeAdded.MeetingDate, HappyGroupStartTime, HappyGroupEndTime, m_SmallGroupPlace, m_SmallGroupTime, ref aHappyGroupWeeklyReportListClassToBeAdded, ref aHappyGroupWeeklyReportToBeAdded);
                 #endregion
 
+                // 前台網頁要呈現的周報資料
                 aHappyGroupWeeklyReportListClassToBeAdded.HappyGroupWeeklyReportList.Add(aHappyGroupWeeklyReportToBeAdded);
                 return;
             }
@@ -1159,6 +1160,8 @@ namespace ChurchReport.WebServiceConnector
                         Note = "",
                         BestLeader = this.m_ToolUtilityClass.GetEntityLookupDisplayName(aContactEntity, "new_contact_contact_spiritleader")// 屬靈認領者
                     };
+
+                    // 前台網頁要呈現的新增BEST的資料 
                     aHappyGroupWeeklyReportToBeAdded.BestRecordList.Add(aBestRecord);
 
                 }
