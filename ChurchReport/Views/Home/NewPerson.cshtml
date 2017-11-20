@@ -150,24 +150,23 @@
             items.AddSimple()
                 .DataField("BirthDate")
                 .Label(l => l.Text("生日"))
+                .IsRequired(false)
                 .Editor(e => e
                     .DateBox()
                     .Disabled(false)
                     .Placeholder("生日")
-                )
-                //.IsRequired(true)
-                ;
+                );
 
-            items.AddSimple()
-                .DataField("HireDate")
-                .Label(l => l.Text("輸入日期"))
-                .Editor(
-                        e => e.DateBox()//.Value(new JS("null")) 
-                    )
-                .ValidationRules(r => r
-                        .AddRequired()
-                        .Message("Hire date is required")
-                    );
+            //items.AddSimple()
+            //    .DataField("HireDate")
+            //    .Label(l => l.Text("輸入日期"))
+            //    .Editor(
+            //            e => e.DateBox()//.Value(new JS("null")) 
+            //        )
+            //    //.ValidationRules(r => r
+            //    //        .AddRequired()
+            //    //        .Message("Hire date is required")
+            //    //    );
 
             items.AddSimple()
                 .DataField("MerrageState")
