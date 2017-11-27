@@ -1602,12 +1602,13 @@ namespace ChurchReport.WebServiceConnector
                 throw Exception;  
             }
         }
-
         private Entity CreatePresentRecord(MemberInfomation aMemberInfomation, ref Entity aListEntity, ref Guid aWeeklyReportId, Double ValidNumber, ref Double aWeeklySundayRate, ref Double aWeeklySmallGroupRate, ref int aWeeklySundayNumber, ref int aWeeklySmallGroupNumber)
         {
             EntityCollection PresentRecordEntityCollection = new EntityCollection();
 
-            Entity aContactEntity = m_ToolUtilityClass.RetrieveContactEntityByName(aMemberInfomation.Name);
+            // 必須是名單裡的人，不能是只有依據姓名更新
+            Entity aContactEntity = UpdateContactInfomationFromList(aMemberInfomation.Name, aListEntity.Id);
+            //Entity aContactEntity = m_ToolUtilityClass.RetrieveContactEntityByName(aMemberInfomation.Name);
             //Entity aSearchedContactEntity = m_ToolUtilityClass.RetrieveContactByNameAndMobile(ref m_ToolUtilityClass.m_OrganizationService, aMemberInfomation.Name, aMemberInfomation.Phone );
 
             Entity aToUpdateContactEntity = this.m_ToolUtilityClass.RetrieveEntity("contact", aContactEntity.Id);
@@ -1636,7 +1637,6 @@ namespace ChurchReport.WebServiceConnector
                 return null;
             }
         }
-
         private void GetPersonalSmallGroupLeaderMemberData(String GroupName, Guid ListEntityId)
         {
             #region // 處理每個小組名單
@@ -3047,6 +3047,87 @@ namespace ChurchReport.WebServiceConnector
 
             return EffectiveNumber;
         }
+        private Entity UpdateContactInfomationFromList(String ContactName, Guid ListEntityId)
+        {
+            #region // 處理每個小組名單
+            //搜尋名單的組員
+            //EntityCollection Contacts = m_ToolUtilityClass.RetrieveManyToOneRelationship("list", "listid", ListEntityId.ToString(), "new_cell_list_contact", "contact");
+
+            Entity ListEntity = this.m_ToolUtilityClass.RetrieveEntity("list", ListEntityId);
+
+            bool ListType = this.m_ToolUtilityClass.GetEntityBoolAttribute(ListEntity, "type");
+            EntityCollection MemberCollection;
+            if (ListType == false)
+            {
+                // 靜態名單
+                if (CRM_TYPE == "DYNAMICS365")
+                {
+                    MemberCollection = this.m_ToolUtilityClass.RetrieveMemberListCollectionByListIdDynamics365(ref this.m_ToolUtilityClass.m_OrganizationService, ListEntityId);
+                }
+                else
+                {
+                    MemberCollection = this.m_ToolUtilityClass.RetrieveMemberListCollectionByListIdCrm2011(ref this.m_ToolUtilityClass.m_Crm2011OrganizationService, ListEntityId);
+                }
+            }
+            else
+            {
+                // 動態名單
+                if (CRM_TYPE == "DYNAMICS365")
+                {
+                    MemberCollection = this.m_ToolUtilityClass.RetrieveDynamicMemberListDynamics365(ref this.m_ToolUtilityClass.m_OrganizationService, ListEntityId);
+                }
+                else
+                {
+                    MemberCollection = this.m_ToolUtilityClass.RetrieveDynamicMemberListCrm2011(ref this.m_ToolUtilityClass.m_Crm2011OrganizationService, ListEntityId);
+                }
+            }
+
+            foreach (Entity MemberEntity in MemberCollection.Entities)
+            {
+                // 名單中每個組員
+                Entity ContactEntity;
+
+                if (ListType == false)
+                {
+                    // 靜態名單
+                    ContactEntity = m_ToolUtilityClass.RetrieveEntity("contact", ((EntityReference)MemberEntity.Attributes["entityid"]).Id);
+                }
+                else
+                {
+                    // 動態名單
+                    ContactEntity = m_ToolUtilityClass.RetrieveEntity("contact", (Guid)MemberEntity.Attributes["contactid"]);
+                }
+
+                // 必須是使用中的連絡人
+                if (ContactEntity.Attributes.Contains("statecode"))
+                {
+                    OptionSetValue aOptionState = ContactEntity.Attributes["statecode"] as OptionSetValue;
+
+                    if (aOptionState.Value == 0)
+                    {
+                        #region 只回傳使用中的組員
+                        // 組員的全名
+                        String FullName = "";
+                        if (ContactEntity.Attributes.Contains("fullname"))
+                        {
+                            FullName = (string)ContactEntity.Attributes["fullname"];
+
+                            if (FullName == ContactName)
+                                return ContactEntity;
+                        }
+
+                        #endregion
+                    }
+                    else
+                    { //String StateCode = "非使用中";
+                    }
+                }
+            }
+            #endregion
+
+            return null;
+        }
+
         #endregion
         #region 更新個人紀錄:手機、家裡電話、地址、設定委身類型
         private void UpdateContactInfomation(Guid aListEntityId, ref MemberInfomation aMemberInfomation, ref Entity aContactEntity)
