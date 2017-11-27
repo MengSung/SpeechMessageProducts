@@ -3127,7 +3127,6 @@ namespace ChurchReport.WebServiceConnector
 
             return null;
         }
-
         #endregion
         #region 更新個人紀錄:手機、家裡電話、地址、設定委身類型
         private void UpdateContactInfomation(Guid aListEntityId, ref MemberInfomation aMemberInfomation, ref Entity aContactEntity)
