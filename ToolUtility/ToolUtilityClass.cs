@@ -472,9 +472,6 @@ namespace ToolUtilityNameSpace
 
 
         }
-
-
-
         /// <summary>
         /// Obtain the AuthenticationCredentials based on AuthenticationProviderType.
         /// </summary>
@@ -612,14 +609,13 @@ namespace ToolUtilityNameSpace
         #endregion
         #region 透過屬性取得實體
         #region 取得聯絡人
-        private readonly object m_RetrieveContactLocker = new object();
-
+        //private readonly object m_RetrieveContactLocker = new object();
         public String RetrieveContactByContactId(String ContactId)
         {
             try
             {
-                lock (m_RetrieveContactLocker)
-                {
+                //lock (m_RetrieveContactLocker)
+                //{
                     //  Create query using querybyattribute
                     //Console.WriteLine("除錯 001");
 
@@ -670,7 +666,7 @@ namespace ToolUtilityNameSpace
                     //Console.WriteLine("除錯 004");
 
                     return ContactInformation;
-                }
+                //}
             }
             catch (System.Exception e)
             {
@@ -682,8 +678,8 @@ namespace ToolUtilityNameSpace
         {
             try
             {
-                lock (m_RetrieveContactLocker)
-                {
+                //lock (m_RetrieveContactLocker)
+                //{
                     //  Create query using querybyattribute
                     //Console.WriteLine("除錯 001");
 
@@ -710,7 +706,7 @@ namespace ToolUtilityNameSpace
                         Count = retrieved.Entities.Count;
                         return null;
                     }
-                }
+                //}
             }
             catch (System.Exception e)
             {
@@ -722,8 +718,8 @@ namespace ToolUtilityNameSpace
         {
             try
             {
-                lock (m_RetrieveContactLocker)
-                {
+                //lock (m_RetrieveContactLocker)
+                //{
                     //  Create query using querybyattribute
                     //Console.WriteLine("除錯 001");
 
@@ -775,7 +771,7 @@ namespace ToolUtilityNameSpace
                     //Console.WriteLine("除錯 004");
 
                     return ContactInformation;
-                }
+                //}
             }
             catch (System.Exception e)
             {
@@ -787,8 +783,8 @@ namespace ToolUtilityNameSpace
         {
             try
             {
-                lock (m_RetrieveContactLocker)
-                {
+                //lock (m_RetrieveContactLocker)
+                //{
                     //  Create query using querybyattribute
                     //Console.WriteLine("除錯 001");
 
@@ -823,7 +819,7 @@ namespace ToolUtilityNameSpace
                     {
                         return null;
                     }
-                }
+                //}
             }
             catch (System.Exception e)
             {
@@ -835,8 +831,8 @@ namespace ToolUtilityNameSpace
         {
             try
             {
-                lock (m_RetrieveContactLocker)
-                {
+                //lock (m_RetrieveContactLocker)
+                //{
                     //  Create query using querybyattribute
 
                     QueryByAttribute querybyexpression = new QueryByAttribute("contact");
@@ -858,7 +854,7 @@ namespace ToolUtilityNameSpace
                     {
                         return null;
                     }
-                }
+                //}
             }
             catch (System.Exception e)
             {
@@ -870,8 +866,8 @@ namespace ToolUtilityNameSpace
         {
             try
             {
-                lock (m_RetrieveContactLocker)
-                {
+                //lock (m_RetrieveContactLocker)
+                //{
                     //  Create query using querybyattribute
 
                     QueryByAttribute querybyexpression = new QueryByAttribute("contact");
@@ -903,7 +899,7 @@ namespace ToolUtilityNameSpace
                     {
                         return null;
                     }
-                }
+                //}
             }
             catch (System.Exception e)
             {
@@ -915,8 +911,8 @@ namespace ToolUtilityNameSpace
         {
             try
             {
-                lock (m_RetrieveContactLocker)
-                {
+                //lock (m_RetrieveContactLocker)
+                //{
 
                     //  Create query using querybyattribute
                     QueryByAttribute querybyexpression = new QueryByAttribute("contact");
@@ -951,7 +947,7 @@ namespace ToolUtilityNameSpace
                     ContactInformation += Environment.NewLine;
 
                     return ContactInformation;
-                }
+                //}
             }
             catch (System.Exception e)
             {
@@ -963,8 +959,8 @@ namespace ToolUtilityNameSpace
         {
             try
             {
-                lock (m_RetrieveContactLocker)
-                {
+                //lock (m_RetrieveContactLocker)
+                //{
                     //  Create query using querybyattribute
                     QueryByAttribute querybyexpression = new QueryByAttribute("contact");
                     querybyexpression.ColumnSet = new ColumnSet();
@@ -986,7 +982,7 @@ namespace ToolUtilityNameSpace
 
 
                     return retrieved;
-                }
+                //}
             }
             catch (System.Exception e)
             {
@@ -998,8 +994,8 @@ namespace ToolUtilityNameSpace
         {
             try
             {
-                lock (m_RetrieveContactLocker)
-                {
+                //lock (m_RetrieveContactLocker)
+                //{
                     //  Create query using querybyattribute
                     QueryByAttribute querybyexpression = new QueryByAttribute("contact");
                     querybyexpression.ColumnSet = new ColumnSet();
@@ -1028,7 +1024,7 @@ namespace ToolUtilityNameSpace
                     {
                         return null;
                     }
-                }
+                //}
             }
             catch (System.Exception e)
             {
@@ -1040,8 +1036,8 @@ namespace ToolUtilityNameSpace
         {
             try
             {
-                lock (m_RetrieveContactLocker)
-                {
+                //lock (m_RetrieveContactLocker)
+                //{
                     //  Create query using querybyattribute
                     //Console.WriteLine("除錯 001");
 
@@ -1100,7 +1096,7 @@ namespace ToolUtilityNameSpace
                         this.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "帳號錯誤");
                         return "帳號錯誤";
                     }
-                }
+                //}
             }
             catch (System.Exception e)
             {
@@ -1108,13 +1104,12 @@ namespace ToolUtilityNameSpace
                 throw e;
             }
         }
-
         public Entity DoesAccountExist(String AccountNumber)
         {
             try
             {
-                lock (m_RetrieveContactLocker)
-                {
+                //lock (m_RetrieveContactLocker)
+                //{
                     //  Create query using querybyattribute
                     //Console.WriteLine("除錯 001");
 
@@ -1151,7 +1146,7 @@ namespace ToolUtilityNameSpace
                         // 帳號還不存在
                         return null;
                     }
-                }
+                //}
             }
             catch (System.Exception e)
             {
@@ -1159,13 +1154,12 @@ namespace ToolUtilityNameSpace
                 throw e;
             }
         }
-
         public Entity RetrieveContactEntityByAccountNumber(String AccountNumber, String aPassword)
         {
             try
             {
-                lock (m_RetrieveContactLocker)
-                {
+                //lock (m_RetrieveContactLocker)
+                //{
                     //  Create query using querybyattribute
                     //Console.WriteLine("除錯 001");
 
@@ -1219,7 +1213,7 @@ namespace ToolUtilityNameSpace
                     {
                         return null;
                     }
-                }
+                //}
             }
             catch (System.Exception e)
             {
@@ -1231,8 +1225,8 @@ namespace ToolUtilityNameSpace
         {
             try
             {
-                lock (m_RetrieveContactLocker)
-                {
+                //lock (m_RetrieveContactLocker)
+                //{
                     //  Create query using querybyattribute
                     //Console.WriteLine("除錯 001");
 
@@ -1270,7 +1264,7 @@ namespace ToolUtilityNameSpace
                     {
                         return null;
                     }
-                }
+                //}
             }
             catch (System.Exception e)
             {
@@ -1278,13 +1272,12 @@ namespace ToolUtilityNameSpace
                 throw e;
             }
         }
-
         public Entity RetrieveContactEntityByFullNameAndMobileNumber(String FullName, String MobileNumber)
         {   // 依據全名及行動電話找尋連絡人
             try
             {
-                lock (m_RetrieveContactLocker)
-                {
+                //lock (m_RetrieveContactLocker)
+                //{
 
                     //  Create query using querybyattribute
                     QueryByAttribute querybyexpression = new QueryByAttribute("contact");
@@ -1315,7 +1308,7 @@ namespace ToolUtilityNameSpace
                     {
                         return null;
                     }
-                }
+                //}
             }
             catch (System.Exception e)
             {
@@ -1327,8 +1320,8 @@ namespace ToolUtilityNameSpace
         {   // 依據全名及行動電話找尋連絡人
             try
             {
-                lock (m_RetrieveContactLocker)
-                {
+                //lock (m_RetrieveContactLocker)
+                //{
                     //  Create query using querybyattribute
                     QueryByAttribute querybyexpression = new QueryByAttribute("contact");
                     querybyexpression.ColumnSet = new ColumnSet();
@@ -1348,7 +1341,7 @@ namespace ToolUtilityNameSpace
                     {
                         return this.m_Crm2011OrganizationService.RetrieveMultiple(querybyexpression);
                     }
-                }
+                //}
             }
             catch (System.Exception e)
             {
@@ -1356,13 +1349,12 @@ namespace ToolUtilityNameSpace
                 throw e;
             }
         }
-
         public EntityCollection RetrieveMemberListCollectionByListId(Guid aListId)
         {
             try
             {
-                lock (m_RetrieveContactLocker)
-                {
+                //lock (m_RetrieveContactLocker)
+                //{
 
                     QueryByAttribute query = new QueryByAttribute("listmember");
                     query.AddAttributeValue("listid", aListId);
@@ -1387,7 +1379,7 @@ namespace ToolUtilityNameSpace
                         entityCollection = this.m_Crm2011OrganizationService.RetrieveMultiple(query);
                     }
                     return entityCollection;
-                }
+                //}
             }
             catch (System.Exception e)
             {
@@ -1399,8 +1391,8 @@ namespace ToolUtilityNameSpace
         {
             try
             {
-                lock (m_RetrieveContactLocker)
-                {
+                //lock (m_RetrieveContactLocker)
+                //{
 
                     QueryByAttribute query = new QueryByAttribute("listmember");
                     query.AddAttributeValue("listid", aListId);
@@ -1418,7 +1410,7 @@ namespace ToolUtilityNameSpace
                     EntityCollection entityCollection = aOrganizationService.RetrieveMultiple(query);
 
                     return entityCollection;
-                }
+                //}
             }
             catch (System.Exception e)
             {
@@ -1430,8 +1422,8 @@ namespace ToolUtilityNameSpace
         {
             try
             {
-                lock (m_RetrieveContactLocker)
-                {
+                //lock (m_RetrieveContactLocker)
+                //{
 
                     QueryByAttribute query = new QueryByAttribute("listmember");
                     query.AddAttributeValue("listid", aListId);
@@ -1448,7 +1440,7 @@ namespace ToolUtilityNameSpace
 
                     EntityCollection entityCollection = aOrganizationService.RetrieveMultiple(query);
                     return entityCollection;
-                }
+                //}
             }
             catch (System.Exception e)
             {
@@ -1460,8 +1452,8 @@ namespace ToolUtilityNameSpace
         {
             try
             {
-                lock (m_RetrieveContactLocker)
-                {
+                //lock (m_RetrieveContactLocker)
+                //{
 
                     QueryByAttribute query = new QueryByAttribute("listmember");
                     query.AddAttributeValue("listid", aListId);
@@ -1478,7 +1470,7 @@ namespace ToolUtilityNameSpace
 
                     EntityCollection entityCollection = aOrganizationService.RetrieveMultiple(query);
                     return entityCollection;
-                }
+                //}
             }
             catch (System.Exception e)
             {
@@ -1486,7 +1478,6 @@ namespace ToolUtilityNameSpace
                 throw e;
             }
         }
-
         public EntityCollection RetrieveDynamicMemberList(string strList)
         {
             ColumnSet cols = new ColumnSet(new string[] { "query" });
@@ -1540,7 +1531,6 @@ namespace ToolUtilityNameSpace
             EntityCollection dynamicmemberec = service.RetrieveMultiple(new FetchExpression(dynamicQuery));
             return dynamicmemberec;
         }
-
         public EntityCollection RetrieveDynamicMemberList(Guid aListId)
         {
             ColumnSet cols = new ColumnSet(new string[] { "query" });
@@ -1599,7 +1589,6 @@ namespace ToolUtilityNameSpace
             EntityCollection dynamicmemberec = service.RetrieveMultiple(new FetchExpression(dynamicQuery));
             return dynamicmemberec;
         }
-
         #endregion
         #region 取得組織
 
@@ -1639,15 +1628,14 @@ namespace ToolUtilityNameSpace
         #endregion
         #endregion
         #region 搜尋 N:1 的集合
-        private readonly object m_QueryManyToOneLocker = new object();
+        //private readonly object m_QueryManyToOneLocker = new object();
 
         public EntityCollection RetrieveManyToOneCollection()
         {
             try
             {
-                lock (m_QueryManyToOneLocker)
-                {
-
+                //lock (m_QueryManyToOneLocker)
+                //{
                     Guid acctId = new Guid("B2071325-B861-E011-9E82-001D60789032");
                     // Condition where task attribute equals account id. 
                     ConditionExpression condition = new ConditionExpression();
@@ -1677,7 +1665,7 @@ namespace ToolUtilityNameSpace
 
 
                     return result1;
-                }
+                //}
             }
             catch (System.Exception e)
             {
@@ -1690,8 +1678,8 @@ namespace ToolUtilityNameSpace
         {
             try
             {
-                lock (m_QueryManyToOneLocker)
-                {
+                //lock (m_QueryManyToOneLocker)
+                //{
                     //Monitor.Enter(this);
                     // The following code example demonstrates how to use RetrieveMultiple 
                     // to carry out a RetrieveByPrincipal.
@@ -1764,7 +1752,7 @@ namespace ToolUtilityNameSpace
                         //Monitor.Exit(this);
                         return null;
                     }
-                }
+                //}
             }
             catch (System.Exception e)
             {
@@ -1780,9 +1768,8 @@ namespace ToolUtilityNameSpace
         {
             try
             {
-                lock (m_QueryManyToOneLocker)
-                {
-
+                //lock (m_QueryManyToOneLocker)
+                //{
                     ConditionExpression WeeklyReportConditionPrincipal = new ConditionExpression();
 
                     // Set the ConditionExpressions properties so that the condition is true when the 
@@ -1862,7 +1849,7 @@ namespace ToolUtilityNameSpace
 
                     return principalResponse.EntityCollection;
 
-                }
+                //}
             }
             catch (System.Exception e)
             {
@@ -1877,8 +1864,8 @@ namespace ToolUtilityNameSpace
         {
             try
             {
-                lock (m_QueryManyToOneLocker)
-                {
+                //lock (m_QueryManyToOneLocker)
+                //{
                     #region // Create the ConditionExpression.
                     ConditionExpression condition = new ConditionExpression();
 
@@ -1963,8 +1950,7 @@ namespace ToolUtilityNameSpace
                     #endregion
 
                     return request.EntityCollection;
-                }
-
+                //}
             }
             catch (System.Exception e)
             {
@@ -1978,8 +1964,8 @@ namespace ToolUtilityNameSpace
         {
             try
             {
-                lock (m_QueryManyToOneLocker)
-                {
+                //lock (m_QueryManyToOneLocker)
+                //{
                     #region // Create the ConditionExpression.
                     ConditionExpression condition = new ConditionExpression();
 
@@ -2064,8 +2050,7 @@ namespace ToolUtilityNameSpace
                     #endregion
 
                     return request.EntityCollection;
-                }
-
+                //}
             }
             catch (System.Exception e)
             {
@@ -2080,8 +2065,8 @@ namespace ToolUtilityNameSpace
         {
             try
             {
-                lock (m_QueryManyToOneLocker)
-                {
+                //lock (m_QueryManyToOneLocker)
+                //{
                     var query = new QueryExpression("contact");
 
                     var columnNames = new[] { "fullname", "address1_city" };
@@ -2142,7 +2127,7 @@ namespace ToolUtilityNameSpace
 
                     return contacts;
 
-                }// lock
+                //}// lock
             }//try
             catch (System.Exception e)
             {
@@ -2157,8 +2142,8 @@ namespace ToolUtilityNameSpace
         {
             try
             {
-                lock (m_QueryManyToOneLocker)
-                {
+                //lock (m_QueryManyToOneLocker)
+                //{
                     #region // Create the ConditionExpression.
                     ConditionExpression condition = new ConditionExpression();
 
@@ -2261,8 +2246,7 @@ namespace ToolUtilityNameSpace
                     #endregion
 
                     return request.EntityCollection;
-                }
-
+                //}
             }
             catch (System.Exception e)
             {
@@ -2277,8 +2261,8 @@ namespace ToolUtilityNameSpace
         {
             try
             {
-                lock (m_QueryManyToOneLocker)
-                {
+                //lock (m_QueryManyToOneLocker)
+                //{
                     #region // Create the ConditionExpression.
                     #region ParentEntityIdName Condition
                     ConditionExpression condition = new ConditionExpression();
@@ -2364,8 +2348,7 @@ namespace ToolUtilityNameSpace
                     #endregion
 
                     return request.EntityCollection;
-                }
-
+                //}
             }
             catch (System.Exception e)
             {
@@ -2565,13 +2548,13 @@ namespace ToolUtilityNameSpace
         #endregion
         #region 實體操作區
         #region 新增、修改、刪除實體
-        private readonly object m_EntityLocker = new object();
+        //private readonly object m_EntityLocker = new object();
         public Entity RetrieveEntity(String EntityName, Guid EntityId)
         {
             try
             {
-                lock (m_EntityLocker)
-                {
+                //lock (m_EntityLocker)
+                //{
                     if (CRM_TYPE == "DYNAMICS365")
                     {
                         return this.m_OrganizationService.Retrieve(EntityName, EntityId, new ColumnSet(true));
@@ -2580,7 +2563,7 @@ namespace ToolUtilityNameSpace
                     {
                         return this.m_Crm2011OrganizationService.Retrieve(EntityName, EntityId, new ColumnSet(true));
                     }
-                }
+                //}
             }
             catch (System.Exception e)
             {
@@ -2592,10 +2575,10 @@ namespace ToolUtilityNameSpace
         {
             try
             {
-                lock (m_EntityLocker)
-                {
+                //lock (m_EntityLocker)
+                //{
                     return this.m_OrganizationService.Retrieve(EntityName, EntityId, new ColumnSet(true));
-                }
+                //}
             }
             catch (System.Exception e)
             {
@@ -2607,10 +2590,10 @@ namespace ToolUtilityNameSpace
         {
             try
             {
-                lock (m_EntityLocker)
-                {
+                //lock (m_EntityLocker)
+                //{
                     return this.m_Crm2011OrganizationService.Retrieve(EntityName, EntityId, new ColumnSet(true));
-                }
+                //}
             }
             catch (System.Exception e)
             {
@@ -2623,8 +2606,8 @@ namespace ToolUtilityNameSpace
         {
             try
             {
-                lock (m_EntityLocker)
-                {
+                //lock (m_EntityLocker)
+                //{
                     if (EXCUTION_FLAG == true)
                     {
                         if (CRM_TYPE == "DYNAMICS365")
@@ -2636,7 +2619,7 @@ namespace ToolUtilityNameSpace
                             return this.m_Crm2011OrganizationService.Create(aEntityTobeToCreate);
                         }
                     }
-                }
+                //}
             }
             catch (System.Exception e)
             {
@@ -2648,13 +2631,13 @@ namespace ToolUtilityNameSpace
         {
             try
             {
-                lock (m_EntityLocker)
-                {
+                //lock (m_EntityLocker)
+                //{
                     if (EXCUTION_FLAG == true)
                     {
                         return aOrganizationService.Create(aEntityTobeToCreate);
                     }
-                }
+                //}
             }
             catch (System.Exception e)
             {
@@ -2666,13 +2649,13 @@ namespace ToolUtilityNameSpace
         {
             try
             {
-                lock (m_EntityLocker)
-                {
+                //lock (m_EntityLocker)
+                //{
                     if (EXCUTION_FLAG == true)
                     {
                         return aCrm2011OrganizationService.Create(aEntityTobeToCreate);
                     }
-                }
+                //}
             }
             catch (System.Exception e)
             {
@@ -2685,13 +2668,13 @@ namespace ToolUtilityNameSpace
         {
             try
             {
-                lock (m_EntityLocker)
-                {
+                //lock (m_EntityLocker)
+                //{
                     if (EXCUTION_FLAG == true)
                     {
                         return aOrganizationService.Create(aEntityTobeToCreate);
                     }
-                }
+                //}
             }
             catch (System.Exception e)
             {
@@ -2704,8 +2687,8 @@ namespace ToolUtilityNameSpace
         {
             try
             {
-                lock (m_EntityLocker)
-                {
+                //lock (m_EntityLocker)
+                //{
                     if (EXCUTION_FLAG == true)
                     {
                         if (CRM_TYPE == "DYNAMICS365")
@@ -2717,7 +2700,7 @@ namespace ToolUtilityNameSpace
                             this.m_Crm2011OrganizationService.Update(aEntityTobeUpdated);
                         }
                     }
-                }
+                //}
             }
             catch (System.Exception e)
             {
@@ -2729,8 +2712,8 @@ namespace ToolUtilityNameSpace
         {
             try
             {
-                lock (m_EntityLocker)
-                {
+                //lock (m_EntityLocker)
+                //{
                     if (EXCUTION_FLAG == true)
                     {
                         if (CRM_TYPE == "DYNAMICS365")
@@ -2742,7 +2725,7 @@ namespace ToolUtilityNameSpace
                             this.m_Crm2011OrganizationService.Update(aEntityTobeUpdated);
                         }
                     }
-                }
+                //}
             }
             catch (System.Exception e)
             {
@@ -2755,13 +2738,13 @@ namespace ToolUtilityNameSpace
         {
             try
             {
-                lock (m_EntityLocker)
-                {
+                //lock (m_EntityLocker)
+                //{
                     if (EXCUTION_FLAG == true)
                     {
                         aOrganizationService.Update(aEntityTobeUpdated);
                     }
-                }
+                //}
             }
             catch (System.Exception e)
             {
@@ -2773,13 +2756,13 @@ namespace ToolUtilityNameSpace
         {
             try
             {
-                lock (m_EntityLocker)
-                {
+                //lock (m_EntityLocker)
+                //{
                     if (EXCUTION_FLAG == true)
                     {
                         aOrganizationService.Update(aEntityTobeUpdated);
                     }
-                }
+                //}
             }
             catch (System.Exception e)
             {
@@ -2792,13 +2775,13 @@ namespace ToolUtilityNameSpace
         {
             try
             {
-                lock (m_EntityLocker)
-                {
+                //lock (m_EntityLocker)
+                //{
                     if (EXCUTION_FLAG == true)
                     {
                         aOrganizationService.Update(aEntityTobeUpdated);
                     }
-                }
+                //}
             }
             catch (System.Exception e)
             {
@@ -2810,13 +2793,13 @@ namespace ToolUtilityNameSpace
         {
             try
             {
-                lock (m_EntityLocker)
-                {
+                //lock (m_EntityLocker)
+                //{
                     if (EXCUTION_FLAG == true)
                     {
                         aOrganizationService.Update(aEntityTobeUpdated);
                     }
-                }
+                //}
             }
             catch (System.Exception e)
             {
@@ -2828,13 +2811,13 @@ namespace ToolUtilityNameSpace
         {
             try
             {
-                lock (m_EntityLocker)
-                {
+                //lock (m_EntityLocker)
+                //{
                     if (EXCUTION_FLAG == true)
                     {
                         aOrganizationService.Update(aEntityTobeUpdated);
                     }
-                }
+                //}
             }
             catch (System.Exception e)
             {
@@ -2846,13 +2829,13 @@ namespace ToolUtilityNameSpace
         {
             try
             {
-                lock (m_EntityLocker)
-                {
+                //lock (m_EntityLocker)
+                //{
                     if (EXCUTION_FLAG == true)
                     {
                         aOrganizationService.Update(aEntityTobeUpdated);
                     }
-                }
+                //}
             }
             catch (System.Exception e)
             {
@@ -2865,13 +2848,13 @@ namespace ToolUtilityNameSpace
         {
             try
             {
-                lock (m_EntityLocker)
-                {
+                //lock (m_EntityLocker)
+                //{
                     if (EXCUTION_FLAG == true)
                     {
                         aOrganizationService.Update(aEntityTobeUpdated);
                     }
-                }
+                //}
             }
             catch (System.Exception e)
             {
@@ -2883,13 +2866,13 @@ namespace ToolUtilityNameSpace
         {
             try
             {
-                lock (m_EntityLocker)
-                {
+                //lock (m_EntityLocker)
+                //{
                     if (EXCUTION_FLAG == true)
                     {
                         aOrganizationService.Delete(aEntityName, aEntityId);
                     }
-                }
+                //}
             }
             catch (System.Exception e)
             {
@@ -2913,14 +2896,14 @@ namespace ToolUtilityNameSpace
         #endregion
         #region 屬性操作區
         #region 布林屬性
-        private readonly object m_BooleanAttributeLocker = new object();
+        //private readonly object m_BooleanAttributeLocker = new object();
 
         public bool GetEntityBoolAttribute(ref Entity aEntity, string PropertyName)
         {
             try
             {
-                lock (m_BooleanAttributeLocker)
-                {
+                //lock (m_BooleanAttributeLocker)
+                //{
                     if (aEntity.Attributes.Contains(PropertyName))
                     {
                         return (bool)aEntity.Attributes[PropertyName];
@@ -2929,7 +2912,7 @@ namespace ToolUtilityNameSpace
                     {
                         return false;
                     }
-                }
+                //}
             }
             catch (System.Exception e)
             {
@@ -2942,8 +2925,8 @@ namespace ToolUtilityNameSpace
         {
             try
             {
-                lock (m_BooleanAttributeLocker)
-                {
+                //lock (m_BooleanAttributeLocker)
+                //{
                     if (aEntity.Attributes.Contains(PropertyName))
                     {
                         return (bool)aEntity.Attributes[PropertyName];
@@ -2952,7 +2935,7 @@ namespace ToolUtilityNameSpace
                     {
                         return false;
                     }
-                }
+                //}
             }
             catch (System.Exception e)
             {
@@ -2965,8 +2948,8 @@ namespace ToolUtilityNameSpace
         {
             try
             {
-                lock (m_BooleanAttributeLocker)
-                {
+                //lock (m_BooleanAttributeLocker)
+                //{
                     if (aEntity.Attributes.Contains(PropertyName))
                     {
                         aEntity.Attributes[PropertyName] = PropertyValue;
@@ -2975,7 +2958,7 @@ namespace ToolUtilityNameSpace
                     {
                         aEntity.Attributes.Add(PropertyName, PropertyValue);
                     }
-                }
+                //}
             }
             catch (System.Exception e)
             {
@@ -2988,9 +2971,8 @@ namespace ToolUtilityNameSpace
         {
             try
             {
-                lock (m_BooleanAttributeLocker)
-                {
-
+                //lock (m_BooleanAttributeLocker)
+                //{
                     if (aEntity.Attributes.Contains(PropertyName))
                     {
                         aEntity.Attributes[PropertyName] = null;
@@ -2999,7 +2981,7 @@ namespace ToolUtilityNameSpace
                     {
                         aEntity.Attributes.Add(PropertyName, null);
                     }
-                }
+                //}
             }
             catch (System.Exception e)
             {
@@ -3010,14 +2992,14 @@ namespace ToolUtilityNameSpace
         }
         #endregion
         #region 整數屬性
-        private readonly object m_IntAttributeLocker = new object();
+        //private readonly object m_IntAttributeLocker = new object();
 
         public int GetEntityIntAttribute(ref Entity aEntity, string PropertyName)
         {
             try
             {
-                lock (m_IntAttributeLocker)
-                {
+                //lock (m_IntAttributeLocker)
+                //{
                     if (aEntity.Attributes.Contains(PropertyName))
                     {
                         return (int)aEntity.Attributes[PropertyName];
@@ -3026,7 +3008,7 @@ namespace ToolUtilityNameSpace
                     {
                         return -9999;
                     }
-                }
+                //}
             }
             catch (System.Exception e)
             {
@@ -3039,8 +3021,8 @@ namespace ToolUtilityNameSpace
         {
             try
             {
-                lock (m_IntAttributeLocker)
-                {
+                //lock (m_IntAttributeLocker)
+                //{
                     if (aEntity.Attributes.Contains(PropertyName))
                     {
                         return (int)aEntity.Attributes[PropertyName];
@@ -3049,7 +3031,7 @@ namespace ToolUtilityNameSpace
                     {
                         return -9999;
                     }
-                }
+                //}
             }
             catch (System.Exception e)
             {
@@ -3062,8 +3044,8 @@ namespace ToolUtilityNameSpace
         {
             try
             {
-                lock (m_IntAttributeLocker)
-                {
+                //lock (m_IntAttributeLocker)
+                //{
                     if (aEntity.Attributes.Contains(PropertyName))
                     {
                         aEntity.Attributes[PropertyName] = PropertyValue;
@@ -3072,7 +3054,7 @@ namespace ToolUtilityNameSpace
                     {
                         aEntity.Attributes.Add(PropertyName, PropertyValue);
                     }
-                }
+                //}
             }
             catch (System.Exception e)
             {
@@ -3085,9 +3067,8 @@ namespace ToolUtilityNameSpace
         {
             try
             {
-                lock (m_IntAttributeLocker)
-                {
-
+                //lock (m_IntAttributeLocker)
+                //{
                     if (aEntity.Attributes.Contains(PropertyName))
                     {
                         aEntity.Attributes[PropertyName] = null;
@@ -3096,7 +3077,7 @@ namespace ToolUtilityNameSpace
                     {
                         aEntity.Attributes.Add(PropertyName, null);
                     }
-                }
+                //}
             }
             catch (System.Exception e)
             {
@@ -3107,14 +3088,14 @@ namespace ToolUtilityNameSpace
         }
         #endregion
         #region 浮點屬性
-        private readonly object m_FloatAttributeLocker = new object();
+        //private readonly object m_FloatAttributeLocker = new object();
 
         public float GetEntityFloatAttribute(ref Entity aEntity, string PropertyName)
         {
             try
             {
-                lock (m_FloatAttributeLocker)
-                {
+                //lock (m_FloatAttributeLocker)
+                //{
                     if (aEntity.Attributes.Contains(PropertyName))
                     {
                         return (float)aEntity.Attributes[PropertyName];
@@ -3122,7 +3103,7 @@ namespace ToolUtilityNameSpace
                     else
                     {
                         return -9999;
-                    }
+                    //}
                 }
             }
             catch (System.Exception e)
@@ -3136,8 +3117,8 @@ namespace ToolUtilityNameSpace
         {
             try
             {
-                lock (m_FloatAttributeLocker)
-                {
+                //lock (m_FloatAttributeLocker)
+                //{
                     if (aEntity.Attributes.Contains(PropertyName))
                     {
                         return (float)aEntity.Attributes[PropertyName];
@@ -3146,7 +3127,7 @@ namespace ToolUtilityNameSpace
                     {
                         return -9999;
                     }
-                }
+                //}
             }
             catch (System.Exception e)
             {
@@ -3159,8 +3140,8 @@ namespace ToolUtilityNameSpace
         {
             try
             {
-                lock (m_FloatAttributeLocker)
-                {
+                //lock (m_FloatAttributeLocker)
+                //{
                     if (aEntity.Attributes.Contains(PropertyName))
                     {
                         aEntity.Attributes[PropertyName] = PropertyValue;
@@ -3168,7 +3149,7 @@ namespace ToolUtilityNameSpace
                     else
                     {
                         aEntity.Attributes.Add(PropertyName, PropertyValue);
-                    }
+                    //}
                 }
             }
             catch (System.Exception e)
@@ -3182,8 +3163,8 @@ namespace ToolUtilityNameSpace
         {
             try
             {
-                lock (m_FloatAttributeLocker)
-                {
+                //lock (m_FloatAttributeLocker)
+                //{
                     if (aEntity.Attributes.Contains(PropertyName))
                     {
                         aEntity.Attributes[PropertyName] = PropertyValue;
@@ -3192,7 +3173,7 @@ namespace ToolUtilityNameSpace
                     {
                         aEntity.Attributes.Add(PropertyName, PropertyValue);
                     }
-                }
+                //}
             }
             catch (System.Exception e)
             {
@@ -3205,9 +3186,8 @@ namespace ToolUtilityNameSpace
         {
             try
             {
-                lock (m_FloatAttributeLocker)
-                {
-
+                //lock (m_FloatAttributeLocker)
+                //{
                     if (aEntity.Attributes.Contains(PropertyName))
                     {
                         aEntity.Attributes[PropertyName] = null;
@@ -3216,7 +3196,7 @@ namespace ToolUtilityNameSpace
                     {
                         aEntity.Attributes.Add(PropertyName, null);
                     }
-                }
+                //}
             }
             catch (System.Exception e)
             {
@@ -3227,14 +3207,14 @@ namespace ToolUtilityNameSpace
         }
         #endregion
         #region 小數點屬性
-        private readonly object m_DoubleAttributeLocker = new object();
+        //private readonly object m_DoubleAttributeLocker = new object();
 
         public Double GetEntityDoubleAttribute(ref Entity aEntity, string PropertyName)
         {
             try
             {
-                lock (m_FloatAttributeLocker)
-                {
+                //lock (m_FloatAttributeLocker)
+                //{
                     if (aEntity.Attributes.Contains(PropertyName))
                     {
                         return (Double)aEntity.Attributes[PropertyName];
@@ -3243,7 +3223,7 @@ namespace ToolUtilityNameSpace
                     {
                         return -9999;
                     }
-                }
+                //}
             }
             catch (System.Exception e)
             {
@@ -3256,8 +3236,8 @@ namespace ToolUtilityNameSpace
         {
             try
             {
-                lock (m_FloatAttributeLocker)
-                {
+                //lock (m_FloatAttributeLocker)
+                //{
                     if (aEntity.Attributes.Contains(PropertyName))
                     {
                         return (Double)aEntity.Attributes[PropertyName];
@@ -3266,7 +3246,7 @@ namespace ToolUtilityNameSpace
                     {
                         return -9999;
                     }
-                }
+                //}
             }
             catch (System.Exception e)
             {
@@ -3279,8 +3259,8 @@ namespace ToolUtilityNameSpace
         {
             try
             {
-                lock (m_FloatAttributeLocker)
-                {
+                //lock (m_FloatAttributeLocker)
+                //{
                     if (aEntity.Attributes.Contains(PropertyName))
                     {
                         aEntity.Attributes[PropertyName] = PropertyValue;
@@ -3289,7 +3269,7 @@ namespace ToolUtilityNameSpace
                     {
                         aEntity.Attributes.Add(PropertyName, PropertyValue);
                     }
-                }
+                //}
             }
             catch (System.Exception e)
             {
@@ -3302,8 +3282,8 @@ namespace ToolUtilityNameSpace
         {
             try
             {
-                lock (m_FloatAttributeLocker)
-                {
+                //lock (m_FloatAttributeLocker)
+                //{
                     if (aEntity.Attributes.Contains(PropertyName))
                     {
                         aEntity.Attributes[PropertyName] = PropertyValue;
@@ -3312,7 +3292,7 @@ namespace ToolUtilityNameSpace
                     {
                         aEntity.Attributes.Add(PropertyName, PropertyValue);
                     }
-                }
+                //}
             }
             catch (System.Exception e)
             {
@@ -3325,9 +3305,8 @@ namespace ToolUtilityNameSpace
         {
             try
             {
-                lock (m_FloatAttributeLocker)
-                {
-
+                //lock (m_FloatAttributeLocker)
+                //{
                     if (aEntity.Attributes.Contains(PropertyName))
                     {
                         aEntity.Attributes[PropertyName] = null;
@@ -3336,7 +3315,7 @@ namespace ToolUtilityNameSpace
                     {
                         aEntity.Attributes.Add(PropertyName, null);
                     }
-                }
+                //}
             }
             catch (System.Exception e)
             {
@@ -3347,13 +3326,13 @@ namespace ToolUtilityNameSpace
         }
         #endregion
         #region 時間屬性
-        private readonly object m_DateTimeAttributeLocker = new object();
+        //private readonly object m_DateTimeAttributeLocker = new object();
         public DateTime GetEntityDateTimeAttribute(ref Entity aEntity, string PropertyName)
         {
             try
             {
-                lock (m_DateTimeAttributeLocker)
-                {
+                //lock (m_DateTimeAttributeLocker)
+                //{
                     if (aEntity.Attributes.Contains(PropertyName))
                     {
                         return (DateTime)aEntity.Attributes[PropertyName];
@@ -3363,7 +3342,7 @@ namespace ToolUtilityNameSpace
                         return new DateTime(1, 1, 1);
                         //return DateTime.Now.AddYears(-9999);
                     }
-                }
+                //}
             }
             catch (System.Exception e)
             {
@@ -3376,8 +3355,8 @@ namespace ToolUtilityNameSpace
         {
             try
             {
-                lock (m_DateTimeAttributeLocker)
-                {
+                //lock (m_DateTimeAttributeLocker)
+                //{
                     if (aEntity.Attributes.Contains(PropertyName))
                     {
                         return (DateTime)aEntity.Attributes[PropertyName];
@@ -3387,7 +3366,7 @@ namespace ToolUtilityNameSpace
                         return new DateTime(1, 1, 1);
                         //return DateTime.Now.AddYears(-9999);
                     }
-                }
+                //}
             }
             catch (System.Exception e)
             {
@@ -3403,8 +3382,8 @@ namespace ToolUtilityNameSpace
         {
             try
             {
-                lock (m_DateTimeAttributeLocker)
-                {
+                //lock (m_DateTimeAttributeLocker)
+                //{
                     if (aEntity.Attributes.Contains(PropertyName))
                     {
                         aEntity.Attributes[PropertyName] = PropertyValue;
@@ -3413,7 +3392,7 @@ namespace ToolUtilityNameSpace
                     {
                         aEntity.Attributes.Add(PropertyName, PropertyValue);
                     }
-                }
+                //}
             }
             catch (System.Exception e)
             {
@@ -3426,8 +3405,8 @@ namespace ToolUtilityNameSpace
         {
             try
             {
-                lock (m_DateTimeAttributeLocker)
-                {
+                //lock (m_DateTimeAttributeLocker)
+                //{
                     if (aEntity.Attributes.Contains(PropertyName))
                     {
                         aEntity.Attributes[PropertyName] = null;
@@ -3436,7 +3415,7 @@ namespace ToolUtilityNameSpace
                     {
                         aEntity.Attributes.Add(PropertyName, null);
                     }
-                }
+                //}
             }
             catch (System.Exception e)
             {
@@ -3447,14 +3426,14 @@ namespace ToolUtilityNameSpace
         }
         #endregion
         #region 文字屬性
-        private readonly object m_StringAttributeLocker = new object();
+        //private readonly object m_StringAttributeLocker = new object();
 
         public String GetEntityStringAttribute(ref Entity aEntity, string PropertyName)
         {
             try
             {
-                lock (m_StringAttributeLocker)
-                {
+                //lock (m_StringAttributeLocker)
+                //{
                     if (aEntity.Attributes.Contains(PropertyName))
                     {
                         return (String)aEntity.Attributes[PropertyName];
@@ -3463,7 +3442,7 @@ namespace ToolUtilityNameSpace
                     {
                         return "";
                     }
-                }
+                //}
             }
             catch (System.Exception e)
             {
@@ -3477,8 +3456,8 @@ namespace ToolUtilityNameSpace
         {
             try
             {
-                lock (m_StringAttributeLocker)
-                {
+                //lock (m_StringAttributeLocker)
+                //{
                     if (aEntity.Attributes.Contains(PropertyName))
                     {
                         return (String)aEntity.Attributes[PropertyName];
@@ -3487,7 +3466,7 @@ namespace ToolUtilityNameSpace
                     {
                         return "";
                     }
-                }
+                //}
             }
             catch (System.Exception e)
             {
@@ -3501,8 +3480,8 @@ namespace ToolUtilityNameSpace
         {
             try
             {
-                lock (m_StringAttributeLocker)
-                {
+                //lock (m_StringAttributeLocker)
+                //{
                     if (aEntity.Attributes.Contains(PropertyName))
                     {
                         aEntity.Attributes[PropertyName] = PropertyValue;
@@ -3511,7 +3490,7 @@ namespace ToolUtilityNameSpace
                     {
                         aEntity.Attributes.Add(PropertyName, PropertyValue);
                     }
-                }
+                //}
             }
             catch (System.Exception e)
             {
@@ -3524,8 +3503,8 @@ namespace ToolUtilityNameSpace
         {
             try
             {
-                lock (m_StringAttributeLocker)
-                {
+                //lock (m_StringAttributeLocker)
+                //{
                     if (aEntity.Attributes.Contains(PropertyName))
                     {
                         aEntity.Attributes[PropertyName] = PropertyValue;
@@ -3534,7 +3513,7 @@ namespace ToolUtilityNameSpace
                     {
                         aEntity.Attributes.Add(PropertyName, PropertyValue);
                     }
-                }
+                //}
             }
             catch (System.Exception e)
             {
@@ -3543,17 +3522,15 @@ namespace ToolUtilityNameSpace
                 throw e;
             }
         }
-
-
         #endregion
         #region 選項屬性
-        private readonly object m_OptionSetAttributeLocker = new object();
+        //private readonly object m_OptionSetAttributeLocker = new object();
         public int GetOptionSetAttribute(ref Entity aEntity, string PropertyName)
         {
             try
             {
-                lock (m_OptionSetAttributeLocker)
-                {
+                //lock (m_OptionSetAttributeLocker)
+                //{
                     if (aEntity.Attributes.Contains(PropertyName))
                     {
                         OptionSetValue aOptionSetValue = new OptionSetValue();
@@ -3566,7 +3543,7 @@ namespace ToolUtilityNameSpace
                     {
                         return EMPTY_VALUE;
                     }
-                }
+                //}
             }
             catch (System.Exception e)
             {
@@ -3579,8 +3556,8 @@ namespace ToolUtilityNameSpace
         {
             try
             {
-                lock (m_OptionSetAttributeLocker)
-                {
+                //lock (m_OptionSetAttributeLocker)
+                //{
                     if (aEntity.Attributes.Contains(PropertyName))
                     {
                         OptionSetValue aOptionSetValue = new OptionSetValue();
@@ -3593,7 +3570,7 @@ namespace ToolUtilityNameSpace
                     {
                         return EMPTY_VALUE;
                     }
-                }
+                //}
             }
             catch (System.Exception e)
             {
@@ -3607,8 +3584,8 @@ namespace ToolUtilityNameSpace
         {
             try
             {
-                lock (m_OptionSetAttributeLocker)
-                {
+                //lock (m_OptionSetAttributeLocker)
+                //{
                     OptionSetValue aOptionSetValue = new OptionSetValue(PropertyValue);
 
                     if (aEntity.Attributes.Contains(PropertyName))
@@ -3619,7 +3596,7 @@ namespace ToolUtilityNameSpace
                     {
                         aEntity.Attributes.Add(PropertyName, aOptionSetValue);
                     }
-                }
+                //}
             }
             catch (System.Exception e)
             {
@@ -3632,8 +3609,8 @@ namespace ToolUtilityNameSpace
         {
             try
             {
-                lock (m_OptionSetAttributeLocker)
-                {
+                //lock (m_OptionSetAttributeLocker)
+                //{
                     OptionSetValue aOptionSetValue = new OptionSetValue(PropertyValue);
 
                     if (aEntity.Attributes.Contains(PropertyName))
@@ -3644,7 +3621,7 @@ namespace ToolUtilityNameSpace
                     {
                         aEntity.Attributes.Add(PropertyName, aOptionSetValue);
                     }
-                }
+                //}
             }
             catch (System.Exception e)
             {
@@ -3656,14 +3633,14 @@ namespace ToolUtilityNameSpace
         #endregion
         #region LookUp 屬性
 
-        private readonly object m_LookupAttributeLocker = new object();
+        //private readonly object m_LookupAttributeLocker = new object();
 
         public Guid GetEntityLookupAttribute(ref Entity aEntity, string PropertyName)
         {
             try
             {
-                lock (m_LookupAttributeLocker)
-                {
+                //lock (m_LookupAttributeLocker)
+                //{
                     if (aEntity.Attributes.Contains(PropertyName))
                     {
                         EntityReference aEntityReference = (EntityReference)aEntity.Attributes[PropertyName];
@@ -3674,7 +3651,7 @@ namespace ToolUtilityNameSpace
                     {
                         return Guid.Empty;
                     }
-                }
+                //}
             }
             catch (System.Exception e)
             {
@@ -3687,8 +3664,8 @@ namespace ToolUtilityNameSpace
         {
             try
             {
-                lock (m_LookupAttributeLocker)
-                {
+                //lock (m_LookupAttributeLocker)
+                //{
                     if (aEntity.Attributes.Contains(PropertyName))
                     {
                         EntityReference aEntityReference = (EntityReference)aEntity.Attributes[PropertyName];
@@ -3699,7 +3676,7 @@ namespace ToolUtilityNameSpace
                     {
                         return Guid.Empty;
                     }
-                }
+                //}
             }
             catch (System.Exception e)
             {
@@ -3712,8 +3689,8 @@ namespace ToolUtilityNameSpace
         {
             try
             {
-                lock (m_LookupAttributeLocker)
-                {
+                //lock (m_LookupAttributeLocker)
+                //{
                     if (aEntity.Attributes.Contains(PropertyName))
                     {
                         EntityReference aEntityReference = (EntityReference)aEntity.Attributes[PropertyName];
@@ -3724,7 +3701,7 @@ namespace ToolUtilityNameSpace
                     {
                         return "";
                     }
-                }
+                //}
             }
             catch (System.Exception e)
             {
@@ -3737,8 +3714,8 @@ namespace ToolUtilityNameSpace
         {
             try
             {
-                lock (m_LookupAttributeLocker)
-                {
+                //lock (m_LookupAttributeLocker)
+                //{
                     if (aEntity.Attributes.Contains(PropertyName))
                     {
                         EntityReference aEntityReference = (EntityReference)aEntity.Attributes[PropertyName];
@@ -3749,7 +3726,7 @@ namespace ToolUtilityNameSpace
                     {
                         return "";
                     }
-                }
+                //}
             }
             catch (System.Exception e)
             {
@@ -3762,8 +3739,8 @@ namespace ToolUtilityNameSpace
         {
             try
             {
-                lock (m_LookupAttributeLocker)
-                {
+                //lock (m_LookupAttributeLocker)
+                //{
                     if (GuidValue != null && GuidValue != Guid.Empty)
                     {
                         EntityReference aEntityReference = new EntityReference(LookupEntityName, GuidValue);
@@ -3777,7 +3754,7 @@ namespace ToolUtilityNameSpace
                         }
                     }
                     else { return; }
-                }
+                //}
             }
             catch (System.Exception e)
             {
@@ -3790,8 +3767,8 @@ namespace ToolUtilityNameSpace
         {
             try
             {
-                lock (m_LookupAttributeLocker)
-                {
+                //lock (m_LookupAttributeLocker)
+                //{
                     if (GuidValue != null && GuidValue != Guid.Empty)
                     {
                         EntityReference aEntityReference = new EntityReference(LookupEntityName, GuidValue);
@@ -3805,7 +3782,7 @@ namespace ToolUtilityNameSpace
                         }
                     }
                     else { return; }
-                }
+                //}
             }
             catch (System.Exception e)
             {
@@ -3818,8 +3795,8 @@ namespace ToolUtilityNameSpace
         {
             try
             {
-                lock (m_LookupAttributeLocker)
-                {
+                //lock (m_LookupAttributeLocker)
+                //{
 
                     // 呼叫者必須透過 : ToEntityReference();
                     // 如下例 :
@@ -3832,7 +3809,7 @@ namespace ToolUtilityNameSpace
                     {
                         aEntity.Attributes.Add(PropertyName, aEntityReference);
                     }
-                }
+                //}
             }
             catch (System.Exception e)
             {
@@ -3845,8 +3822,8 @@ namespace ToolUtilityNameSpace
         {
             try
             {
-                lock (m_LookupAttributeLocker)
-                {
+                //lock (m_LookupAttributeLocker)
+                //{
 
                     // 呼叫者必須透過 : ToEntityReference();
                     // 如下例 :
@@ -3859,7 +3836,7 @@ namespace ToolUtilityNameSpace
                     {
                         aEntity.Attributes.Add(PropertyName, null);
                     }
-                }
+                //}
             }
             catch (System.Exception e)
             {
@@ -3948,18 +3925,18 @@ namespace ToolUtilityNameSpace
         #endregion
         #region 將連絡人加入或移除至名單
 
-        private readonly object m_MembersToMarketingListLocker = new object();
+        //private readonly object m_MembersToMarketingListLocker = new object();
         public void AddMembersToMarketingList(Guid thisListGuid, List<Guid> memberGuidList, ref IOrganizationService gCRMService)
         {
             try
             {
-                lock (m_MembersToMarketingListLocker)
-                {
+                //lock (m_MembersToMarketingListLocker)
+                //{
                     AddListMembersListRequest orgServiceRequest = new AddListMembersListRequest();
                     orgServiceRequest.ListId = thisListGuid;
                     orgServiceRequest.MemberIds = memberGuidList.ToArray();
                     gCRMService.Execute(orgServiceRequest);
-                }
+                //}
             }
             catch (System.Exception e)
             {
@@ -3972,13 +3949,13 @@ namespace ToolUtilityNameSpace
         {
             try
             {
-                lock (m_MembersToMarketingListLocker)
-                {
+                //lock (m_MembersToMarketingListLocker)
+                //{
                     RemoveMemberListRequest orgServiceRequest = new RemoveMemberListRequest();
                     orgServiceRequest.ListId = aListGuid;
                     orgServiceRequest.EntityId = MemberGuid;
                     gCRMService.Execute(orgServiceRequest);
-                }
+                //}
             }
             catch (System.Exception e)
             {
@@ -3992,8 +3969,8 @@ namespace ToolUtilityNameSpace
         {
             try
             {
-                lock (m_MembersToMarketingListLocker)
-                {
+                //lock (m_MembersToMarketingListLocker)
+                //{
                     AddListMembersListRequest orgServiceRequest = new AddListMembersListRequest();
                     orgServiceRequest.ListId = thisListGuid;
                     orgServiceRequest.MemberIds = memberGuidList.ToArray();
@@ -4005,7 +3982,7 @@ namespace ToolUtilityNameSpace
                     {
                         this.m_Crm2011OrganizationService.Execute(orgServiceRequest);
                     }
-                }
+                //}
             }
             catch (System.Exception e)
             {
@@ -4019,8 +3996,8 @@ namespace ToolUtilityNameSpace
         {
             try
             {
-                lock (m_MembersToMarketingListLocker)
-                {
+                //lock (m_MembersToMarketingListLocker)
+                //{
                     RemoveMemberListRequest orgServiceRequest = new RemoveMemberListRequest();
                     orgServiceRequest.ListId = aListGuid;
                     orgServiceRequest.EntityId = MemberGuid;
@@ -4032,7 +4009,7 @@ namespace ToolUtilityNameSpace
                     {
                         this.m_Crm2011OrganizationService.Execute(orgServiceRequest);
                     }
-                }
+                //}
             }
             catch (System.Exception e)
             {
