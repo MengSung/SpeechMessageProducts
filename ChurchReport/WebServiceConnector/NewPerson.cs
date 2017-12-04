@@ -316,10 +316,16 @@ namespace ChurchReport.WebServiceConnector
             //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aNewContactEntity, "description", aNewContact.Note);
 
             // 首次參加活動日期
-            this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aNewContactEntity, "new_recently_visitchurch_date", aNewContact.FirstActionDate);
+            if (aNewContact.FirstActionDate.Year > 1000)
+            {
+                this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aNewContactEntity, "new_recently_visitchurch_date", aNewContact.FirstActionDate);
+            }
 
             // 首次參加教會主日日期
-            this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aNewContactEntity, "new_enter_church_date", aNewContact.FirstChurchDate);
+            if (aNewContact.FirstChurchDate.Year > 1000)
+            {
+                this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aNewContactEntity, "new_enter_church_date", aNewContact.FirstChurchDate);
+            }
 
             // 設定描述是由APP建立的
             String aFullName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref m_ContactEntity, "fullname");
