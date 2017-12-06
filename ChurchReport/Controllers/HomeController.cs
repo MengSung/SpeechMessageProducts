@@ -389,19 +389,6 @@ namespace ChurchReport.Controllers
         [HttpGet]
         public IActionResult UpdateDate(string SelectedDate)
         {
-
-
-            //String FullName = (String)TempData.Peek("FullName");
-            //TempData.Keep("FullName");
-            //String Account = (String)TempData.Peek("Account");
-            //TempData.Keep("Account");
-            //String Password = (String)TempData.Peek("Password");
-            //TempData.Keep("Password");
-            //DateTime SundayDate = (DateTime)TempData.Peek("SundayDate");
-            //TempData.Keep("SundayDate");
-
-            //TempData["SundayDate"] = DateTime.Parse(SelectedDate).AddDays(-(int)DateTime.Now.DayOfWeek);
-
             #region 小組 主日 點名
             String SmallGroupDataList = (String)TempData.Peek("SmallGroupDataList");
             TempData.Keep("SmallGroupDataList");
@@ -424,10 +411,6 @@ namespace ChurchReport.Controllers
             TempData["WeeklyReportData"] = SerializedWeeklyReportData;
             #endregion
 
-            //this.m_SundayDate = DateTime.Parse(SelectedDate).AddDays(-(int)DateTime.Now.DayOfWeek);
-            //m_SmallGroupDataList.SetupSmallGroupData();
-            //return View(SmallGroupDataList.m_SmallGroupData);
-            //return Json(new { status = "1", message = "成功上傳了...." });
             return Ok();
 
         }
