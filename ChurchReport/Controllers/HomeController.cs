@@ -402,6 +402,7 @@ namespace ChurchReport.Controllers
 
             //TempData["SundayDate"] = DateTime.Parse(SelectedDate).AddDays(-(int)DateTime.Now.DayOfWeek);
 
+            #region 小組 主日 點名
             String SmallGroupDataList = (String)TempData.Peek("SmallGroupDataList");
             TempData.Keep("SmallGroupDataList");
             SmallGroupDataList m_SmallGroupDataList = JsonConvert.DeserializeObject<SmallGroupDataList>(SmallGroupDataList);
@@ -412,6 +413,16 @@ namespace ChurchReport.Controllers
 
             String SerializedSmallGroupDataList = JsonConvert.SerializeObject(m_SmallGroupDataList);
             TempData["SmallGroupDataList"] = SerializedSmallGroupDataList;
+            #endregion
+
+            #region 小組日誌
+            WeeklyReportData aWeeklyReportData = new WeeklyReportData();
+
+            aWeeklyReportData.SetupWeeklyReport(m_SmallGroupDataList.m_Account, m_SmallGroupDataList.m_Password, m_SmallGroupDataList.m_SundayDate);
+
+            String SerializedWeeklyReportData = JsonConvert.SerializeObject(aWeeklyReportData);
+            TempData["WeeklyReportData"] = SerializedWeeklyReportData;
+            #endregion
 
             //this.m_SundayDate = DateTime.Parse(SelectedDate).AddDays(-(int)DateTime.Now.DayOfWeek);
             //m_SmallGroupDataList.SetupSmallGroupData();
