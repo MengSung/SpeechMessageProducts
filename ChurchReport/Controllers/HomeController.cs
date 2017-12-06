@@ -395,7 +395,8 @@ namespace ChurchReport.Controllers
             SmallGroupDataList m_SmallGroupDataList = JsonConvert.DeserializeObject<SmallGroupDataList>(SmallGroupDataList);
 
             //SmallGroupDataList m_SmallGroupDataList = new SmallGroupDataList();
-            DateTime aSelectDate = DateTime.Parse(SelectedDate);
+            //DateTime aSelectDate = DateTime.Parse(SelectedDate);
+            DateTime aSelectDate = DateTime.Parse(SelectedDate).ToLocalTime();
             m_SmallGroupDataList.SetupSmallGroupData(m_SmallGroupDataList.m_FullName, m_SmallGroupDataList.m_Account, m_SmallGroupDataList.m_Password, aSelectDate, false);
 
             String SerializedSmallGroupDataList = JsonConvert.SerializeObject(m_SmallGroupDataList);

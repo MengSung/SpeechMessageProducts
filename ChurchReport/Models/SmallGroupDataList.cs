@@ -203,6 +203,7 @@ namespace ChurchReport.Models
         }
         public void SetSundayPrayersByWeeklyReport(String FullName)
         {
+            // 依據週報來決定小組日期
             foreach (GroupWeeklyReportGuid aGroupWeeklyReportGuid in m_MemberInfomationPackage.GroupWeeklyReportGuidList)
             {
                 if (aGroupWeeklyReportGuid.SmallGroupLeaderName != null && aGroupWeeklyReportGuid.SmallGroupLeaderName.Contains(FullName))
