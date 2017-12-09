@@ -39,12 +39,12 @@ namespace ChurchReport.Controllers
         public IActionResult Login()
         {
             var images = new List<string>();
-
-            images.Add(Url.Content("~/assets/images/pastor-gary-kuo.png"));
-            images.Add(Url.Content("~/assets/images/page2-img2.png"));
-            images.Add(Url.Content("~/assets/images/page2-img3.png"));
-            images.Add(Url.Content("~/assets/images/page2-img4.png"));
-            images.Add(Url.Content("~/assets/images/page2-img5.png"));
+            images.Add(Url.Content("~/assets/images/login-001.jpg"));
+            images.Add(Url.Content("~/assets/images/login-002.jpg"));
+            images.Add(Url.Content("~/assets/images/login-003.jpg"));
+            images.Add(Url.Content("~/assets/images/login-004.jpg"));
+            images.Add(Url.Content("~/assets/images/login-005.jpg"));
+            images.Add(Url.Content("~/assets/images/login-006.jpg"));
             return View(new GalleryViewModel
             {
                 Images = images
@@ -131,11 +131,11 @@ namespace ChurchReport.Controllers
         public IActionResult Register()
         {
             var images = new List<string>();
-            images.Add(Url.Content("~/assets/images/tpehoc-005.jpg"));
-            images.Add(Url.Content("~/assets/images/tpehoc-006.jpg"));
-            images.Add(Url.Content("~/assets/images/tpehoc-007.jpg"));
-            images.Add(Url.Content("~/assets/images/tpehoc-008.jpg"));
-            images.Add(Url.Content("~/assets/images/tpehoc-009.jpg"));
+            images.Add(Url.Content("~/assets/images/register-001.jpg"));
+            images.Add(Url.Content("~/assets/images/register-002.jpg"));
+            images.Add(Url.Content("~/assets/images/register-003.jpg"));
+            images.Add(Url.Content("~/assets/images/register-004.jpg"));
+            images.Add(Url.Content("~/assets/images/register-005.jpg"));
             //images.Add(Url.Content("~/assets/images/photo-1.jpg"));
             //images.Add(Url.Content("~/assets/images/photo-10.jpg"));
             //images.Add(Url.Content("~/assets/images/photo-6.jpg"));
