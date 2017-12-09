@@ -104,6 +104,8 @@
                     {
 
                         var dataGrid = $("#gridContainer").dxDataGrid("instance");
+                        // 取得上傳的按鈕
+                        var ButtonContainer= $("#save-button").dxButton("instance");
 
                         //debugger;
                         var Flag = dataGrid.hasEditData();
@@ -112,6 +114,9 @@
                         {
                             // 顯示旋轉鈕
                             $("#loadPanel").dxLoadPanel("instance").show();
+
+                            // 上傳按鈕反白
+                            ButtonContainer.option("disabled", true);
 
                             // AJAX 區塊
                             $.ajax
@@ -125,6 +130,9 @@
                                     {
                                         // 隱藏旋轉鈕
                                         $("#loadPanel").dxLoadPanel("instance").hide();
+
+                                        // 上傳按鈕恢復可運作
+                                        ButtonContainer.option("disabled", true);
 
                                         // 顯示上傳成功
                                         $("#toast").dxToast("instance").show();
