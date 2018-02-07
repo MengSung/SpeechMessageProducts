@@ -96,7 +96,8 @@
 
                 var normalizeSorting = dataUtils.normalizeSortingInfo,
                     group = options.group,
-                    filter = options.filter;
+                    filter = options.filter,
+                    select = options.select;
 
                 if(options.sort)
                     result.sort = JSON.stringify(normalizeSorting(options.sort));
@@ -118,6 +119,12 @@
 
                 if(options.groupSummary)
                     result.groupSummary = JSON.stringify(options.groupSummary);
+
+                if(select) {
+                    if(!$.isArray(select))
+                        select = [ select ];
+                    result.select = JSON.stringify(select);
+                }
             }
 
             $.extend(result, loadParams);
@@ -137,19 +144,27 @@
                         data: loadOptionsToActionParams(loadOptions)
                     },
                     function(d, res) {
-                        if("data" in res)
-                            d.resolve(res.data, { totalCount: res.totalCount, summary: res.summary, groupCount: res.groupCount });
-                        else
-                            d.resolve(res);
+                        processLoadResponse(d, res, function(res) {
+                            return [ res.data, createLoadExtra(res) ];
+                        });
                     }
                 );
             },
 
             totalCount: function(loadOptions) {
-                return send("load", false, {
-                    url: loadUrl,
-                    data: loadOptionsToActionParams(loadOptions, true)
-                });
+                return send(
+                    "load",
+                    false,
+                    {
+                        url: loadUrl,
+                        data: loadOptionsToActionParams(loadOptions, true)
+                    },
+                    function(d, res) {
+                        processLoadResponse(d, res, function(res) {
+                            return [ res.totalCount ];
+                        });
+                    }
+                );
             },
 
             byKey: function(key) {
@@ -161,7 +176,9 @@
                         data: loadOptionsToActionParams({ filter: filterByKey(key) })
                     },
                     function(d, res) {
-                        d.resolve(res[0]);
+                        processLoadResponse(d, res, function(res) {
+                            return [ res.data[0] ];
+                        });
                     }
                 );
             },
@@ -196,12 +213,39 @@
         };
     }
 
+    function processLoadResponse(d, res, getResolveArgs) {
+        res = expandLoadResponse(res);
+
+        if(!res || typeof res !== "object")
+            d.reject(new Error("Unexpected response received"));
+        else
+            d.resolve.apply(d, getResolveArgs(res));
+    }
+
+    function expandLoadResponse(value) {
+        if($.isArray(value))
+            return { data: value };
+
+        if(typeof value === "number")
+            return { totalCount: value };
+
+        return value;
+    }
+
+    function createLoadExtra(res) {
+        return {
+            totalCount: "totalCount" in res ? res.totalCount : -1,
+            groupCount: "groupCount" in res ? res.groupCount : -1,
+            summary: res.summary || null
+        };
+    }
+
     function serializeKey(key) {
         if(typeof key === "object")
             return JSON.stringify(key);
 
         return key;
-    }    
+    }
 
     function serializeDate(date) {
 
@@ -219,7 +263,7 @@
             f = date.getMilliseconds();
 
         if(h + m + s + f > 0)
-            builder.push(" ", zpad(h, 2), ":", zpad(m, 2), ":", zpad(s, 2), ".", zpad(f, 3));        
+            builder.push(" ", zpad(h, 2), ":", zpad(m, 2), ":", zpad(s, 2), ".", zpad(f, 3));
 
         return builder.join("");
     }

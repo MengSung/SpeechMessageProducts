@@ -1,9 +1,9 @@
 /*!
 * DevExtreme (dx.messages.en.js)
-* Version: 17.1.4
-* Build date: Tue Jun 27 2017
+* Version: 17.2.5
+* Build date: Tue Jan 23 2018
 *
-* Copyright (c) 2012 - 2017 Developer Express Inc. ALL RIGHTS RESERVED
+* Copyright (c) 2012 - 2018 Developer Express Inc. ALL RIGHTS RESERVED
 * Read about DevExtreme licensing here: https://js.devexpress.com/Licensing/
 */
 "use strict";
@@ -214,6 +214,7 @@
             "dxScheduler-confirmRecurrenceEditOccurrence": "Edit appointment",
             "dxScheduler-confirmRecurrenceDeleteOccurrence": "Delete appointment",
             "dxScheduler-noTimezoneTitle": "No timezone",
+            "dxScheduler-moreAppointments": "{0} more",
             "dxCalendar-todayButtonText": "Today",
             "dxCalendar-ariaWidgetName": "Calendar",
             "dxColorView-ariaRed": "Red",
@@ -221,9 +222,31 @@
             "dxColorView-ariaBlue": "Blue",
             "dxColorView-ariaAlpha": "Transparency",
             "dxColorView-ariaHex": "Color code",
+            "dxTagBox-selected": "{0} selected",
+            "dxTagBox-allSelected": "All selected ({0})",
+            "dxTagBox-moreSelected": "{0} more",
             "vizExport-printingButtonText": "Print",
             "vizExport-titleMenuText": "Exporting/Printing",
-            "vizExport-exportButtonText": "{0} file"
+            "vizExport-exportButtonText": "{0} file",
+            "dxFilterBuilder-and": "And",
+            "dxFilterBuilder-or": "Or",
+            "dxFilterBuilder-notAnd": "Not And",
+            "dxFilterBuilder-notOr": "Not Or",
+            "dxFilterBuilder-addCondition": "Add Condition",
+            "dxFilterBuilder-addGroup": "Add Group",
+            "dxFilterBuilder-enterValueText": "<enter a value>",
+            "dxFilterBuilder-filterOperationEquals": "Equals",
+            "dxFilterBuilder-filterOperationNotEquals": "Does not equal",
+            "dxFilterBuilder-filterOperationLess": "Less than",
+            "dxFilterBuilder-filterOperationLessOrEquals": "Less than or equal to",
+            "dxFilterBuilder-filterOperationGreater": "Greater than",
+            "dxFilterBuilder-filterOperationGreaterOrEquals": "Greater than or equal to",
+            "dxFilterBuilder-filterOperationStartsWith": "Starts with",
+            "dxFilterBuilder-filterOperationContains": "Contains",
+            "dxFilterBuilder-filterOperationNotContains": "Does not contain",
+            "dxFilterBuilder-filterOperationEndsWith": "Ends with",
+            "dxFilterBuilder-filterOperationIsBlank": "Is blank",
+            "dxFilterBuilder-filterOperationIsNotBlank": "Is not blank"
         }
     })
 });

@@ -1,9 +1,9 @@
 /*!
 * DevExtreme (dx.web.ru.js)
-* Version: 17.1.4
-* Build date: Tue Jun 27 2017
+* Version: 17.2.5
+* Build date: Tue Jan 23 2018
 *
-* Copyright (c) 2012 - 2017 Developer Express Inc. ALL RIGHTS RESERVED
+* Copyright (c) 2012 - 2018 Developer Express Inc. ALL RIGHTS RESERVED
 * Read about DevExtreme licensing here: https://js.devexpress.com/Licensing/
 */
 "use strict";
@@ -215,6 +215,7 @@
             "dxScheduler-confirmRecurrenceEditOccurrence": "Только это событие",
             "dxScheduler-confirmRecurrenceDeleteOccurrence": "Только это событие",
             "dxScheduler-noTimezoneTitle": "Часовой пояс не выбран",
+            "dxScheduler-moreAppointments": "и еще {0}",
             "dxCalendar-todayButtonText": "Сегодня",
             "dxCalendar-ariaWidgetName": "Календарь",
             "dxColorView-ariaRed": "Красный",
@@ -222,9 +223,31 @@
             "dxColorView-ariaBlue": "Синий",
             "dxColorView-ariaAlpha": "Прозрачность",
             "dxColorView-ariaHex": "Код цвета",
+            "dxTagBox-selected": "{0} выбрано",
+            "dxTagBox-allSelected": "Выбрано все ({0})",
+            "dxTagBox-moreSelected": "и еще {0}",
             "vizExport-printingButtonText": "Печать",
             "vizExport-titleMenuText": "Экспорт/Печать",
-            "vizExport-exportButtonText": "{0} файл"
+            "vizExport-exportButtonText": "{0} файл",
+            "dxFilterBuilder-and": "И",
+            "dxFilterBuilder-or": "Или",
+            "dxFilterBuilder-notAnd": "Не И",
+            "dxFilterBuilder-notOr": "Не Или",
+            "dxFilterBuilder-addCondition": "Добавить условие",
+            "dxFilterBuilder-addGroup": "Добавить группу",
+            "dxFilterBuilder-enterValueText": "<введите значение>",
+            "dxFilterBuilder-filterOperationEquals": "Равно",
+            "dxFilterBuilder-filterOperationNotEquals": "Не равно",
+            "dxFilterBuilder-filterOperationLess": "Меньше",
+            "dxFilterBuilder-filterOperationLessOrEquals": "Меньше или равно",
+            "dxFilterBuilder-filterOperationGreater": "Больше",
+            "dxFilterBuilder-filterOperationGreaterOrEquals": "Больше или равно",
+            "dxFilterBuilder-filterOperationStartsWith": "Начинается с",
+            "dxFilterBuilder-filterOperationContains": "Содержит",
+            "dxFilterBuilder-filterOperationNotContains": "Не содержит",
+            "dxFilterBuilder-filterOperationEndsWith": "Заканчивается на",
+            "dxFilterBuilder-filterOperationIsBlank": "Пусто",
+            "dxFilterBuilder-filterOperationIsNotBlank": "Не пусто"
         }
     })
 });

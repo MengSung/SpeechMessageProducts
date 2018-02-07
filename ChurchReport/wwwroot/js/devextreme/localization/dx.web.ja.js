@@ -1,9 +1,9 @@
 /*!
 * DevExtreme (dx.web.ja.js)
-* Version: 17.1.4
-* Build date: Tue Jun 27 2017
+* Version: 17.2.5
+* Build date: Tue Jan 23 2018
 *
-* Copyright (c) 2012 - 2017 Developer Express Inc. ALL RIGHTS RESERVED
+* Copyright (c) 2012 - 2018 Developer Express Inc. ALL RIGHTS RESERVED
 * Read about DevExtreme licensing here: https://js.devexpress.com/Licensing/
 */
 "use strict";
@@ -215,6 +215,7 @@
             "dxScheduler-confirmRecurrenceEditOccurrence": "予定を編集",
             "dxScheduler-confirmRecurrenceDeleteOccurrence": "予定を削除",
             "dxScheduler-noTimezoneTitle": "時間帯なし",
+            "dxScheduler-moreAppointments": "その他 {0} つ選択",
             "dxCalendar-todayButtonText": "今日",
             "dxCalendar-ariaWidgetName": "カレンダー",
             "dxColorView-ariaRed": "赤",
@@ -222,9 +223,31 @@
             "dxColorView-ariaBlue": "青",
             "dxColorView-ariaAlpha": "透明度",
             "dxColorView-ariaHex": "色コード",
+            "dxTagBox-selected": "{0} つ選択済み",
+            "dxTagBox-allSelected": "すべて選択済み ({0})",
+            "dxTagBox-moreSelected": "その他 {0} つ選択",
             "vizExport-printingButtonText": "印刷",
             "vizExport-titleMenuText": "エクスポート / 印刷",
-            "vizExport-exportButtonText": "{0} ファイル"
+            "vizExport-exportButtonText": "{0} ファイル",
+            "dxFilterBuilder-and": "And",
+            "dxFilterBuilder-or": "Or",
+            "dxFilterBuilder-notAnd": "Not And",
+            "dxFilterBuilder-notOr": "Not Or",
+            "dxFilterBuilder-addCondition": "条件の追加",
+            "dxFilterBuilder-addGroup": "グループの追加",
+            "dxFilterBuilder-enterValueText": "値を入力",
+            "dxFilterBuilder-filterOperationEquals": "指定の値に等しい",
+            "dxFilterBuilder-filterOperationNotEquals": "指定の値に等しくない",
+            "dxFilterBuilder-filterOperationLess": "指定の値より小さい",
+            "dxFilterBuilder-filterOperationLessOrEquals": "指定の値以下",
+            "dxFilterBuilder-filterOperationGreater": "指定の値より大きい",
+            "dxFilterBuilder-filterOperationGreaterOrEquals": "指定の値以上",
+            "dxFilterBuilder-filterOperationStartsWith": "指定の値で始まる",
+            "dxFilterBuilder-filterOperationContains": "指定の値を含む",
+            "dxFilterBuilder-filterOperationNotContains": "指定の値を含まない",
+            "dxFilterBuilder-filterOperationEndsWith": "指定の値で終わる",
+            "dxFilterBuilder-filterOperationIsBlank": "空白である",
+            "dxFilterBuilder-filterOperationIsNotBlank": "空白ではない"
         }
     })
 });

@@ -1,9 +1,9 @@
 /*!
  * DevExtreme (dx.vectormaputils.debug.js)
- * Version: 17.1.4
- * Build date: Tue Jun 27 2017
+ * Version: 17.2.5
+ * Build date: Tue Jan 23 2018
  *
- * Copyright (c) 2012 - 2017 Developer Express Inc. ALL RIGHTS RESERVED
+ * Copyright (c) 2012 - 2018 Developer Express Inc. ALL RIGHTS RESERVED
  * Read about DevExtreme licensing here: https://js.devexpress.com/Licensing/
  */
 "use strict";
@@ -632,15 +632,9 @@
 
     function sendRequest(url, callback) {
         var request = new XMLHttpRequest;
-        request.onreadystatechange = function() {
-            if (4 === this.readyState) {
-                if ("OK" === this.statusText) {
-                    callback(null, this.response)
-                } else {
-                    callback(this.statusText, null)
-                }
-            }
-        };
+        request.addEventListener("load", function() {
+            callback(this.response ? null : this.statusText, this.response)
+        });
         request.open("GET", url);
         request.responseType = "arraybuffer";
         request.setRequestHeader("X-Requested-With", "XMLHttpRequest");
