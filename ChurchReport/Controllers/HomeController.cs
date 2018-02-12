@@ -569,7 +569,7 @@ namespace ChurchReport.Controllers
             {
                 ViewBag.HappyType = "沒幸福小組名單";
             }
-
+            //
             return View();
         }
 
