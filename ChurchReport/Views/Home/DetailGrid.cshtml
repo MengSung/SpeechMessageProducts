@@ -10,10 +10,10 @@
                         .Editing(editing =>
                         {
                             //editing.Mode(GridEditMode.Row);
-                            //editing.Mode(GridEditMode.Cell);
+                            editing.Mode(GridEditMode.Cell);
                             //editing.Mode(GridEditMode.Batch);
                             //editing.Mode(GridEditMode.Form);
-                            editing.Mode(GridEditMode.Popup);
+                            //editing.Mode(GridEditMode.Popup);
                             editing.AllowUpdating(true);
                             //editing.AllowDeleting(true);
                             editing.AllowAdding(true);
@@ -56,19 +56,19 @@
                                 .DataType(GridColumnDataType.Boolean)
                                 .Width(45);
 
-                           columns.Add()
-                                .DataField("BestLeader")
-                                .Caption("屬靈認領者")
-                                .Width(90)
-                                .Lookup(lookup => lookup
-                                .DataSource(d => d.WebApi()
-                                    .Controller("SpiritLeaderLookup")
-                                    .LoadAction("Get")
-                                    .LoadParams( new { ShepherdLeader =  @ViewBag.SpiritLeaderList })
-                                    .Key("ID"))
-                                    .DisplayExpr("Name")
-                                    .ValueExpr("Name")
-                                );
+                            columns.Add()
+                                 .DataField("BestLeader")
+                                 .Caption("屬靈認領者")
+                                 .Width(90)
+                                 .Lookup(lookup => lookup
+                                 .DataSource(d => d.WebApi()
+                                     .Controller("SpiritLeaderLookup")
+                                     .LoadAction("Get")
+                                     .LoadParams( new { ShepherdLeader =  @ViewBag.SpiritLeaderList })
+                                     .Key("ID"))
+                                     .DisplayExpr("Name")
+                                     .ValueExpr("Name")
+                                 );
 
                             columns.Add()
                                 .DataField("Note")
@@ -80,6 +80,9 @@
                         .DataSource(d => d.WebApi()
                             .Controller("Home")
                             .LoadAction("LoadBest")
+                            .InsertAction("PostBest")
+                            .DeleteAction("DeleteBest")
+                            .UpdateAction("PutBest") 
                         @*.InsertAction("PostBest")
                             .DeleteAction("DeleteBest")
                             .UpdateAction("PutBest")*@

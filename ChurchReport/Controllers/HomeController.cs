@@ -551,8 +551,8 @@ namespace ChurchReport.Controllers
         #region 幸福小組回報
         public ActionResult HappyGroup()
         {
-            String SmallGroupDataListString = (String)TempData.Peek("SmallGroupDataList");
             TempData.Keep("SmallGroupDataList");
+            String SmallGroupDataListString = (String)TempData.Peek("SmallGroupDataList");
             SmallGroupDataList m_SmallGroupDataList = JsonConvert.DeserializeObject<SmallGroupDataList>(SmallGroupDataListString);
             ViewBag.LoginType = m_SmallGroupDataList.m_MemberInfomationPackage.m_LoginType;// 看是小組長還是個人回報
 
@@ -576,9 +576,8 @@ namespace ChurchReport.Controllers
         [HttpGet]
         public object LoadHappyWeeklyReport(DataSourceLoadOptions loadOptions)
         {
-
-            String SerializedHappyGroupDataManager = (String)TempData.Peek("HappyGroupDataManager");
             TempData.Keep("HappyGroupDataManager");
+            String SerializedHappyGroupDataManager = (String)TempData.Peek("HappyGroupDataManager");
 
             HappyGroupDataManager m_HappyGroupDataManager = JsonConvert.DeserializeObject<HappyGroupDataManager>(SerializedHappyGroupDataManager);
 
@@ -613,7 +612,7 @@ namespace ChurchReport.Controllers
 
         // POST api/values
         [HttpPost]
-        public IActionResult Post(string values)
+        public IActionResult PostBest(string values)
         {
             // 新增週報或是BEST
             String SerializedHappyGroupDataManager = (String)TempData.Peek("HappyGroupDataManager");
@@ -631,7 +630,7 @@ namespace ChurchReport.Controllers
 
         // PUT api/values/5
         [HttpPut]
-        public IActionResult Put(string key, string values)
+        public IActionResult PutBest(string key, string values)
         {
             String SerializedHappyGroupDataManager = (String)TempData.Peek("HappyGroupDataManager");
             TempData.Keep("HappyGroupDataManager");
@@ -651,7 +650,7 @@ namespace ChurchReport.Controllers
 
         // DELETE api/values/5
         [HttpDelete]
-        public void Delete(string key)
+        public void DeleteBest(string key)
         {
             String SerializedHappyGroupDataManager = (String)TempData.Peek("HappyGroupDataManager");
             TempData.Keep("HappyGroupDataManager");

@@ -22,334 +22,353 @@
 <div class="dx-field">
     <div id="buttonContainer" class="dx-button-icon" style="float: left; width:30%; text-align: left; background-color:white;">
         @(Html.DevExtreme().Button()
-                .Text("上傳")
-                .Type(ButtonType.Success)
-                .ID("save-button")
-                //.UseSubmitBehavior(true)
+                        .Text("上傳")
+                        .Type(ButtonType.Success)
+                        .ID("save-button")
+                        //.UseSubmitBehavior(true)
 
-                .OnClick
-                (@<text>
-                function(arg)
-                {
-                //debugger;
+                        .OnClick
+                        (@<text>
+                        function(arg)
+                        {
+                        //debugger;
 
-                var dataGrid = $("#gridContainer").dxDataGrid("instance");
+                        var dataGrid = $("#gridContainer").dxDataGrid("instance");
 
-                var Flag = dataGrid.hasEditData();
+                        var Flag = dataGrid.hasEditData();
 
-                if(Flag == false)
-                {
-                // 顯示旋轉鈕
-                //$("#loadPanel").dxLoadPanel("instance").show();
+                        if(Flag == false)
+                        {
+                        // 顯示旋轉鈕
+                        //$("#loadPanel").dxLoadPanel("instance").show();
 
-                // AJAX 區塊
-                $.ajax
-                (
-                {
-                url: '@Url.Action("SaveHappyGroup", "Home")',
-                data: { aResult: "上傳" }, // 整理回傳給 Server 的點名資料
-                type: 'POST', //POST if you want to save, GET if you want to fetch data from server
+                        // AJAX 區塊
+                        $.ajax
+                        (
+                        {
+                        url: '@Url.Action("SaveHappyGroup", "Home")',
+                        data: { aResult: "上傳" }, // 整理回傳給 Server 的點名資料
+                        type: 'POST', //POST if you want to save, GET if you want to fetch data from server
 
-                success: function (arg)
-                {
-                // 隱藏旋轉鈕
-                //$("#loadPanel").dxLoadPanel("instance").hide();
+                        success: function (arg)
+                        {
+                        // 隱藏旋轉鈕
+                        //$("#loadPanel").dxLoadPanel("instance").hide();
 
-                //debugger;
-                //dataGrid.saveEditData();
-                //dataGrid.refresh();
+                        //debugger;
+                        //dataGrid.saveEditData();
+                        //dataGrid.refresh();
 
-                // 顯示上傳成功
-                $("#toast").dxToast("instance").show();
-                },
+                        // 顯示上傳成功
+                        $("#toast").dxToast("instance").show();
+                        },
 
-                error: function (obj)
-                {
-                //alert('Something happened');
-                }
+                        error: function (obj)
+                        {
+                        //alert('Something happened');
+                        }
 
-                }
-                );
-                // AJAX 區塊
-                }
-                else
-                {
+                        }
+                        );
+                        // AJAX 區塊
+                        }
+                        else
+                        {
 
-                // 顯示再上傳一次
-                //$("#ToastReUpload").dxToast("instance").show();
+                        // 顯示再上傳一次
+                        //$("#ToastReUpload").dxToast("instance").show();
 
-                //debugger;
-                //dataGrid.saveEditData();
-                //dataGrid.refresh();
+                        //debugger;
+                        //dataGrid.saveEditData();
+                        //dataGrid.refresh();
 
-                // 顯示上傳成功
-                $("#toast").dxToast("instance").show();
-                }
-                }
-                </text>)
+                        // 顯示上傳成功
+                        $("#toast").dxToast("instance").show();
+                        }
+                        }
+                        </text>)
         )
     </div>
     <div id="ToastContainer">
         @(Html.DevExtreme().Toast()
-                .ID("toast")
-                .Position(p => p
-                .At(HorizontalAlignment.Center, VerticalAlignment.Center)
-                .Offset(0, 50))
-                .Message(DataStatus)
-                .DisplayTime(2000)
-                .MaxWidth(200)
+                        .ID("toast")
+                        .Position(p => p
+                        .At(HorizontalAlignment.Center, VerticalAlignment.Center)
+                        .Offset(0, 50))
+                        .Message(DataStatus)
+                        .DisplayTime(2000)
+                        .MaxWidth(200)
         )
 
     </div>
     <div id="LoadPanel">
         @(Html.DevExtreme().LoadPanel()
-                .ID("loadPanel")
-                .ShadingColor("rgba(0,0,0,0.4)")
-                //.Position(p => p.Of("#data-grid").Of("#buttonContainer"))
-                .Position(p => p.Of("#data-grid"))
-                .Visible(false)
-                .ShowIndicator(true)
-                .ShowPane(true)
-                .Shading(true)
-                .CloseOnOutsideClick(false)
-                .Message("更新資料中...")
-                .Animation(l => l.Show(k => k.Easing(AnimationEasing.Swing)))
-            //.OnShown("loadPanel_shown")
-            //.OnHidden("loadPanel_hidden")
+                        .ID("loadPanel")
+                        .ShadingColor("rgba(0,0,0,0.4)")
+                        //.Position(p => p.Of("#data-grid").Of("#buttonContainer"))
+                        .Position(p => p.Of("#data-grid"))
+                        .Visible(false)
+                        .ShowIndicator(true)
+                        .ShowPane(true)
+                        .Shading(true)
+                        .CloseOnOutsideClick(false)
+                        .Message("更新資料中...")
+                        .Animation(l => l.Show(k => k.Easing(AnimationEasing.Swing)))
+                //.OnShown("loadPanel_shown")
+                //.OnHidden("loadPanel_hidden")
         )
     </div>
     <div id="ToastContainer">
         @(Html.DevExtreme().Toast()
-                .ID("ToastReUpload")
-                .Position(p => p
-                .At(HorizontalAlignment.Center, VerticalAlignment.Center)
-                .Offset(0, 50))
-                .Message(ReUpload)
-                .DisplayTime(5000)
-                .Type(ToastType.Error)
-                .MaxWidth(500)
+                        .ID("ToastReUpload")
+                        .Position(p => p
+                        .At(HorizontalAlignment.Center, VerticalAlignment.Center)
+                        .Offset(0, 50))
+                        .Message(ReUpload)
+                        .DisplayTime(5000)
+                        .Type(ToastType.Error)
+                        .MaxWidth(500)
         )
     </div>
     <div id="ToastContainerNoSelectDate">
         @(Html.DevExtreme().Toast()
-                    .ID("ToastNoSelectDate")
-                    .Position(p => p
-                    .At(HorizontalAlignment.Center, VerticalAlignment.Center)
-                    .Offset(0, 50))
-                    .Message("沒有選擇日期")
-                    .DisplayTime(5000)
-                    .Type(ToastType.Error)
-                    .MaxWidth(500)
+                            .ID("ToastNoSelectDate")
+                            .Position(p => p
+                            .At(HorizontalAlignment.Center, VerticalAlignment.Center)
+                            .Offset(0, 50))
+                            .Message("沒有選擇日期")
+                            .DisplayTime(5000)
+                            .Type(ToastType.Error)
+                            .MaxWidth(500)
         )
     </div>
 </div>
 
 <div id="data-grid">
     @(Html.DevExtreme().DataGrid()
-            .ID("gridContainer")
-            .AllowColumnResizing(true)
-            .AllowColumnReordering(true)
-            //.ColumnAutoWidth(true)
-            .NoDataText("沒有資料")
-            .ShowBorders(true)
-            .DataSource(d => d
-               .WebApi()
-               .Controller("Home")
-               .LoadAction("LoadHappyWeeklyReport")
-               .Key("HappyGroupWeeklyReportId")
-            )
-
-            .Editing(editing =>
-            {
-                //editing.Mode(GridEditMode.Row);
-                //editing.Mode(GridEditMode.Cell);
-                //editing.Mode(GridEditMode.Batch);
-                //editing.Mode(GridEditMode.Form);
-                editing.Mode(GridEditMode.Popup);
-                editing.AllowUpdating(true);
-                //editing.AllowDeleting(true);
-                editing.AllowAdding(true);
-                editing.Texts(a => a.SaveAllChanges("上傳檔案").AddRow("新增").CancelAllChanges("取消變更").SaveRowChanges("確定").CancelRowChanges("取消").EditRow("編輯").DeleteRow("刪除").ConfirmDeleteTitle("確定要刪除嗎?").ConfirmDeleteMessage("刪除幸福小組週報"));
-                //editing.AllowDeleting(true);
-            })
-
-
-            .OnContentReady(
-            @<text>
-            function(e)
-            {
-            moveEditColumnToLeft(e.component);
-            }
-            </text>                                                                                                                                                                                                                                                                                                                                        )
-
-            .OnCellPrepared("cell_prepared")
-            .OnSelectionChanged(
-            @<text>
-            function(e) {
-            //debugger;
-            alert("SELECT");
-            e.component.collapseAll(-1);
-            e.component.expandRow(e.currentSelectedRowKeys[0]);
-            }
-            </text>)
-            .OnRowInserted(
-            @<text>
-            function(e) {
-            //debugger;
-            e.component.collapseAll(-1);
-            if( e.key != "")
-            {
-            e.component.expandRow(e.key);
-            }
-            else
-            {
-            e.component.expandRow(e.data);
-            }
-            }
-            </text>)
-            .OnRowUpdated(
-            @<text>
-            function(e) {
-            //debugger;
-            e.component.collapseAll(-1);
-
-            e.component.expandRow(e.key);
-            }
-            </text>)
-            @*.OnRowCollapsed(
-                @<text>
-                function(e) {
-                    alert("Collapsed001" + e.key);
-                    e.component.collapseAll(-1);
-                    e.component.expandRow(e.key);
-                }
-                </text>)*@
-
-            .Columns(columns =>
-            {
-                columns.Add()
-                    .DataField("HappyGroupName")
-                    .Caption("小組")
-                    .GroupIndex(0).MinWidth(10);
-
-                columns.Add()
-                    .DataField("WeekCounter")
-                    .Caption("週次")
-                    .Fixed(true)
-                    .Width(80)
-
-            @*.GroupIndex(0)*@
-                    .Lookup(lookup => lookup
-                    .DataSource
-                    (
-                        new string[]
-                        {
-                            "第一週",
-                            "第二週",
-                            "第三週",
-                            "第四週",
-                            "第五週",
-                            "第六週",
-                            "第七週",
-                            "第八週",
-                            "第九週",
-                            "第十週",
-                        }
+                    .ID("gridContainer")
+                    .AllowColumnResizing(true)
+                    .AllowColumnReordering(true)
+                    //.ColumnAutoWidth(true)
+                    .NoDataText("沒有資料")
+                    .ShowBorders(true)
+                    .DataSource(d => d
+                       .WebApi()
+                       .Controller("Home")
+                       .LoadAction("LoadHappyWeeklyReport")
+                       .InsertAction("PostBest")
+                       .DeleteAction("DeleteBest")
+                       .UpdateAction("PutBest")
+                       .Key("HappyGroupWeeklyReportId")
                     )
-                    //.DisplayExpr("Name")
-                    //.ValueExpr("ID")
-                );
 
-                columns.Add()
-                    .DataField("MeetingDate")
-                    .DataType(GridColumnDataType.Date)
-                    .Format("yyyy/M/d")
-                    .Caption("聚會日期")
-                    .Width(90);
-
-                columns.Add()
-                    .DataField("Topic")
-                    .Caption("主題")
-                    .Width(200)
-            @*.GroupIndex(0)*@
-                    .Lookup(lookup => lookup
-                    .DataSource
-                    (
-                        new string[]
-                        {
-                                      "福音的能力",
-                                      "幸福小組是符合聖經的佈道小組",
-                                      "真幸福",
-                                      "欺騙者",
-                                      "救贖者耶穌",
-                                      "垂聽禱告的上帝",
-                                      "你要遇見神",
-                                      "耶穌基督十字架的勝利",
-                                      "釋放與自由",
-                                      "帶來幸福的教會",
-                        }
-                    )
-                    //.DisplayExpr("Name")
-                    //.ValueExpr("ID")
-                );
+                    .Editing(editing =>
+                    {
+                        editing.Mode(GridEditMode.Row);
+                        //editing.Mode(GridEditMode.Cell);
+                        //editing.Mode(GridEditMode.Batch);
+                        //editing.Mode(GridEditMode.Form);
+                        //editing.Mode(GridEditMode.Popup);
+                        editing.AllowUpdating(true);
+                        //editing.AllowDeleting(true);
+                        editing.AllowAdding(true);
+                        editing.Texts(a => a.SaveAllChanges("上傳檔案").AddRow("新增").CancelAllChanges("取消變更").SaveRowChanges("確定").CancelRowChanges("取消").EditRow("編輯").DeleteRow("刪除").ConfirmDeleteTitle("確定要刪除嗎?").ConfirmDeleteMessage("刪除幸福小組週報"));
+                        //editing.AllowDeleting(true);
+                    })
 
 
-                columns.Add()
-                    .DataField("Location")
-                    .Caption("聚會地點")
-                    .Width(90);
+                    .OnContentReady(
+                    @<text>
+                    function(e)
+                    {
+                    moveEditColumnToLeft(e.component);
+                    }
+                    </text> )
+
+                                .OnCellPrepared("cell_prepared")
+                                .OnSelectionChanged(
+                                @<text>
+                                function(e) {
+                                //debugger;
+                                alert("SELECT");
+                                e.component.collapseAll(-1);
+                                e.component.expandRow(e.currentSelectedRowKeys[0]);
+                                }
+                                </text>)
+                                            .OnRowInserted(
+                                            @<text>
+                                            function(e) {
+                                            //debugger;
+                                            e.component.collapseAll(-1);
+                                            if( e.key != "")
+                                            {
+                                            e.component.expandRow(e.key);
+                                            }
+                                            else
+                                            {
+                                            e.component.expandRow(e.data);
+                                            }
+                                            }
+                                            </text>)
+                                                        .OnRowUpdated(
+                                                        @<text>
+                                                        function(e) {
+                                                        //debugger;
+                                                        e.component.collapseAll(-1);
+
+                                                        e.component.expandRow(e.key);
+                                                        }
+                                                        </text>)
+                                                                    /**/
+                                                                    @*.OnRowCollapsed(
+                                                                        @<text>
+                                                                        function(e) {
+                                                                            alert("Collapsed001" + e.key);
+                                                                            e.component.collapseAll(-1);
+                                                                            e.component.expandRow(e.key);
+                                                                        }
+                                                                        </text>)*@
+                                                                    /**/
+
+                                                                    .Columns(columns =>
+                                                                    {
+                                                                        columns.Add()
+                                                                            .DataField("HappyGroupName")
+                                                                            .Caption("小組")
+                                                                            .GroupIndex(0).MinWidth(10);
+
+                                                                        columns.Add()
+                                                                            .DataField("WeekCounter")
+                                                                            .Caption("週次")
+                                                                            .Fixed(true)
+                                                                            .Width(80)
+
+                                                                            /**/
+                                                                            @*.GroupIndex(0)*@
+                                                                            /**/
+                                                                            .Lookup(lookup => lookup
+                                                                            .DataSource
+                                                                            (
+                                                                                new string[]
+                                                                                {
+                                                                                    "第一週",
+                                                                                    "第二週",
+                                                                                    "第三週",
+                                                                                    "第四週",
+                                                                                    "第五週",
+                                                                                    "第六週",
+                                                                                    "第七週",
+                                                                                    "第八週",
+                                                                                    "第九週",
+                                                                                    "第十週",
+                                                                                }
+                                                                            )
+                                                                        //.DisplayExpr("Name")
+                                                                        //.ValueExpr("ID")
+                                                                        );
+
+                                                                        columns.Add()
+                                                                            .DataField("MeetingDate")
+                                                                            .DataType(GridColumnDataType.Date)
+                                                                            .Format("yyyy/M/d")
+                                                                            .Caption("聚會日期")
+                                                                            .Width(90);
+
+                                                                        columns.Add()
+                                                                            .DataField("Topic")
+                                                                            .Caption("主題")
+                                                                            .Width(200)
+                                                                            /**/
+                                                                            @*.GroupIndex(0)*@
+                                                                            /**/
+                                                                            .Lookup(lookup => lookup
+                                                                            .DataSource
+                                                                            (
+                                                                                new string[]
+                                                                                {
+                                                                                  "福音的能力",
+                                                                                  "幸福小組是符合聖經的佈道小組",
+                                                                                  "真幸福",
+                                                                                  "欺騙者",
+                                                                                  "救贖者耶穌",
+                                                                                  "垂聽禱告的上帝",
+                                                                                  "你要遇見神",
+                                                                                  "耶穌基督十字架的勝利",
+                                                                                  "釋放與自由",
+                                                                                  "帶來幸福的教會",
+                                                                                }
+                                                                            )
+                                                                        //.DisplayExpr("Name")
+                                                                        //.ValueExpr("ID")
+                                                                        );
 
 
-            @*columns.Add()
-                .Caption("開始時間")
-                .Width(155)
-                .CellTemplate
-                (@<text>
-                    @(Html.DevExtreme().DateBox()
-                    .Type(DateBoxType.Time)
-                    //.OnValueChanged("SelectStartTime")
-                    .OnValueChanged("SelectStartTime.bind(this, arguments[0])")
-                    .Value(new JS("data.StartTime"))
-                )
-                </text>);*@
+                                                                        columns.Add()
+                                                                            .DataField("Location")
+                                                                            .Caption("聚會地點")
+                                                                            .Width(90);
 
-            @*columns.Add()
-                    .DataField("StartTime")
-                    .Caption("開始時間")
-                    .DataType(GridColumnDataType.Date)
-                    .Width(90);
 
-                columns.Add()
-                    .DataField("EndTime")
-                    .Caption("結束時間")
-                    .DataType(GridColumnDataType.Date)
-                    .Width(90);*@
+                                                            /**/
+                                                            @*columns.Add()
+                                                                .Caption("開始時間")
+                                                                .Width(155)
+                                                                .CellTemplate
+                                                                (@<text>
+                                                                    @(Html.DevExtreme().DateBox()
+                                                                    .Type(DateBoxType.Time)
+                                                                    //.OnValueChanged("SelectStartTime")
+                                                                    .OnValueChanged("SelectStartTime.bind(this, arguments[0])")
+                                                                    .Value(new JS("data.StartTime"))
+                                                                )
+                                                                </text>);*@
+                                                            /**/
 
-                columns.Add()
-                    .DataField("StartTime")
-                    .Caption("開始時間")
-                    .Width(75);
+                                                            /**/
+                                                            @*columns.Add()
+                                                                    .DataField("StartTime")
+                                                                    .Caption("開始時間")
+                                                                    .DataType(GridColumnDataType.Date)
+                                                                    .Width(90);
 
-                columns.Add()
-                    .DataField("EndTime")
-                    .Caption("結束時間")
-                    .Width(75);
+                                                                columns.Add()
+                                                                    .DataField("EndTime")
+                                                                    .Caption("結束時間")
+                                                                    .DataType(GridColumnDataType.Date)
+                                                                    .Width(90);*@
+                                                            /**/
 
-                columns.Add()
-                    .DataField("HappyWeeklyReport")
-                    .Caption("幸福小組日誌")
-                    .Width(350);
+                                                                        columns.Add()
+                                                                            .DataField("StartTime")
+                                                                            .Caption("開始時間")
+                                                                            .Width(75);
 
-            })
-            .MasterDetail(md =>
-            {
-                md.Enabled(true);
-                md.Template(@<text>
-            @(Html.Partial("DetailGrid"))
-            </text>);
-            })
+                                                                        columns.Add()
+                                                                            .DataField("EndTime")
+                                                                            .Caption("結束時間")
+                                                                            .Width(75);
+
+                                                                        columns.Add()
+                                                                            .DataField("HappyWeeklyReport")
+                                                                            .Caption("幸福小組日誌")
+                                                                            .Width(350);
+
+                                                                    })
+                                                                    .MasterDetail(md =>
+                                                                    {
+                                                                        md.Enabled(true);
+                                                                        md.Template(new TemplateName("DetailBestList"));
+
+                                                                    })
     )
 </div>
+
+@using (Html.DevExtreme().NamedTemplate("DetailBestList"))
+{
+    @(Html.Partial("DetailGrid"))
+
+}
+
 <script>
     function moveEditColumnToLeft(dataGrid) {
         dataGrid.columnOption("command:edit", {
