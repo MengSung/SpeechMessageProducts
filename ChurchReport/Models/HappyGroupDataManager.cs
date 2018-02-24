@@ -71,13 +71,12 @@ namespace ChurchReport.Models
         }
         public void AddWeeklyReport(HappyGroupWeeklyReport aToAddHappyGroupWeeklyReport)
         {
-            m_DownloadHappyGroup.AddHappyGroupWeeklyReport(ref m_ActiveHappyGroupWeeklyReportList, ref aToAddHappyGroupWeeklyReport);
+            //m_DownloadHappyGroup.AddHappyGroupWeeklyReport(ref m_ActiveHappyGroupWeeklyReportList, ref aToAddHappyGroupWeeklyReport);
 
         }
         public void AddBest(BestRecord aBestRecord)
         {
-            m_DownloadHappyGroup.CreateBest(ref m_ActiveHappyGroupWeeklyReportList, ref aBestRecord);
-
+            //m_DownloadHappyGroup.CreateBest(ref m_ActiveHappyGroupWeeklyReportList, ref aBestRecord);
         }
         private String WeeklyReportOrBest(String values)
         {
@@ -105,7 +104,7 @@ namespace ChurchReport.Models
                 HappyGroupWeeklyReport aUpdatedHappyGroupWeeklyReport = JsonConvert.DeserializeObject<HappyGroupWeeklyReport>(values);
 
                 // 修改系統的幸福小組週報
-                m_DownloadHappyGroup.UpdateHappyGroupWeeklyReport(key, ref aUpdatedHappyGroupWeeklyReport);
+                //m_DownloadHappyGroup.UpdateHappyGroupWeeklyReport(key, ref aUpdatedHappyGroupWeeklyReport);
 
                 // 更新網頁端的幸福小組週報內容
                 bool WeekCounterFlag = values.Contains("WeekCounter") ? true : false;
@@ -119,7 +118,7 @@ namespace ChurchReport.Models
                 bool DecisionFlag = values.Contains("Decision") ? true : false;
 
                 // 修改系統的幸福小組個人出席紀錄
-                m_DownloadHappyGroup.UpdateBestRecord(key, ref aBestRecord, PresentFlag, DecisionFlag);
+                //m_DownloadHappyGroup.UpdateBestRecord(key, ref aBestRecord, PresentFlag, DecisionFlag);
 
                 // 更新網頁端的幸福小組個人出席紀錄內容
                 UpdateDetailActiveHappyGroup(ref m_ActiveHappyGroupWeeklyReportList, MasterIndex, DetailIndex, aBestRecord, PresentFlag, DecisionFlag);

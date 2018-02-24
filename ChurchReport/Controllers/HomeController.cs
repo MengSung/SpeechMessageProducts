@@ -632,6 +632,7 @@ namespace ChurchReport.Controllers
         [HttpPut]
         public IActionResult PutBest(string key, string values)
         {
+            // 修改週報或是BEST
             String SerializedHappyGroupDataManager = (String)TempData.Peek("HappyGroupDataManager");
             TempData.Keep("HappyGroupDataManager");
 
@@ -652,6 +653,7 @@ namespace ChurchReport.Controllers
         [HttpDelete]
         public void DeleteBest(string key)
         {
+            // 刪除週報或是BEST
             String SerializedHappyGroupDataManager = (String)TempData.Peek("HappyGroupDataManager");
             TempData.Keep("HappyGroupDataManager");
 
@@ -672,6 +674,11 @@ namespace ChurchReport.Controllers
         [HttpPost]
         public IActionResult SaveHappyGroup()
         {
+            String SerializedHappyGroupDataManager = (String)TempData.Peek("HappyGroupDataManager");
+            TempData.Keep("HappyGroupDataManager");
+
+            HappyGroupDataManager m_HappyGroupDataManager = JsonConvert.DeserializeObject<HappyGroupDataManager>(SerializedHappyGroupDataManager);
+
             return Json(new { status = "1", message = "成功上傳了...." });
         }
 
