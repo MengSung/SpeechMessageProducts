@@ -75,13 +75,15 @@ namespace ChurchReport.Models
             //m_SmallGroupData.SundayPrayers = m_SundayDate;
 
             SetSundayPrayersByWeeklyReport(FullName);
-
+            #region  小組長回報
             //if (DisplayDateFlag == false)
             //{
             //    m_SmallGroupData.SundayPrayers = new DateTime( 1000, 1, 1 );
             //}
             m_SmallGroupData.Members = new List<Member>();
+            #endregion
 
+            #region 新人跟進關懷
             m_NewPersonFollowUpData.SmallGroupLeaderFullName = FullName;
             //m_NewPersonFollowUpData.SundayPrayers = aSelectDate;
             m_NewPersonFollowUpData.SundayPrayers = m_SmallGroupData.SundayPrayers;
@@ -94,7 +96,9 @@ namespace ChurchReport.Models
             //    m_NewPersonFollowUpData.SundayPrayersString = "";
             //}
             m_NewPersonFollowUpData.Members = new List<Member>();
+            #endregion
 
+            #region 組員基本資料維護
             m_AllMemeberData.SmallGroupLeaderFullName = FullName;
             //m_AllMemeberData.SundayPrayers = aSelectDate;
             m_AllMemeberData.SundayPrayers = m_SmallGroupData.SundayPrayers;
@@ -108,8 +112,9 @@ namespace ChurchReport.Models
             //}
 
             m_AllMemeberData.Members = new List<Member>();
+            #endregion
 
-            #region// 把後台的資料轉換成前台的資料結構
+            #region 把後台的資料轉換成前台的資料結構
             int IdIndex = 0;
             foreach (MemberInfomation aMemberInfomation in m_MemberInfomationPackage.ListMemberInfomation)
             {
