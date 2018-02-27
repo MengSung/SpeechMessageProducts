@@ -57,6 +57,8 @@ namespace ChurchReport.Models
             else
             {
                 #region 新增BEST
+
+                // 轉換(反序列)從網頁有改變的欄位成為C# Best 的結構
                 BestRecord aBestRecord = JsonConvert.DeserializeObject<BestRecord>(values);
 
                 if (aBestRecord.FullName != null && aBestRecord.FullName != "")
@@ -71,12 +73,24 @@ namespace ChurchReport.Models
         }
         public void AddWeeklyReport(HappyGroupWeeklyReport aToAddHappyGroupWeeklyReport)
         {
-            //m_DownloadHappyGroup.AddHappyGroupWeeklyReport(ref m_ActiveHappyGroupWeeklyReportList, ref aToAddHappyGroupWeeklyReport);
+            // 新增幸福小組週報，同時以名單成員作為初始成員
+            m_DownloadHappyGroup.AddHappyGroupWeeklyReport(ref m_ActiveHappyGroupWeeklyReportList, ref aToAddHappyGroupWeeklyReport);
+
+            // 前台網頁要呈現的週報資料，因為已經到後台把幸福小組周報相關資料(聚會時間、地點、組員名單等等)抓回來了，
+            m_ActiveHappyGroupWeeklyReportList.HappyGroupWeeklyReportList.Add(aToAddHappyGroupWeeklyReport);
 
         }
         public void AddBest(BestRecord aBestRecord)
         {
-            //m_DownloadHappyGroup.CreateBest(ref m_ActiveHappyGroupWeeklyReportList, ref aBestRecord);
+
+            m_DownloadHappyGroup.CreateBest(ref m_ActiveHappyGroupWeeklyReportList, ref aBestRecord);
+
+            #region 前台網頁要呈現的Best資料
+            int WeeklyReportListCount = m_ActiveHappyGroupWeeklyReportList.HappyGroupWeeklyReportList.Count;
+            Guid aWeeklyReportId = new Guid(m_ActiveHappyGroupWeeklyReportList.HappyGroupWeeklyReportList[WeeklyReportListCount - 1].HappyGroupWeeklyReportId);
+            HappyGroupWeeklyReport aHappyGroupWeeklyReportToBeAdded = m_ActiveHappyGroupWeeklyReportList.HappyGroupWeeklyReportList[WeeklyReportListCount - 1];
+            aHappyGroupWeeklyReportToBeAdded.BestRecordList.Add(aBestRecord);
+            #endregion
         }
         private String WeeklyReportOrBest(String values)
         {
@@ -103,19 +117,27 @@ namespace ChurchReport.Models
                 // 修改幸福小組週報
                 HappyGroupWeeklyReport aUpdatedHappyGroupWeeklyReport = JsonConvert.DeserializeObject<HappyGroupWeeklyReport>(values);
 
-                // 修改系統的幸福小組週報
-                //m_DownloadHappyGroup.UpdateHappyGroupWeeklyReport(key, ref aUpdatedHappyGroupWeeklyReport);
+                // 設定前端傳來週報有被修改過的旗標
+                aUpdatedHappyGroupWeeklyReport.ModifiedFlag = true;
 
-                // 更新網頁端的幸福小組週報內容
+                // 修改系統的幸福小組週報
+                m_DownloadHappyGroup.UpdateHappyGroupWeeklyReport(key, ref aUpdatedHappyGroupWeeklyReport);
+
+                // 從前端傳來有更改過的週報去更新網頁端的幸福小組週報內容
                 bool WeekCounterFlag = values.Contains("WeekCounter") ? true : false;
                 this.UpdateMasterActiveHappyGroup(ref m_ActiveHappyGroupWeeklyReportList, MasterIndex, aUpdatedHappyGroupWeeklyReport, WeekCounterFlag);
             }
             else
             {
                 // 修改幸福小組個人出席紀錄
+
+                // 取得使用者改過的BEST資料
                 BestRecord aBestRecord = JsonConvert.DeserializeObject<BestRecord>(values);
                 bool PresentFlag = values.Contains("Present") ? true : false;
                 bool DecisionFlag = values.Contains("Decision") ? true : false;
+
+                // 設定幸福小組個人出席紀錄有被修改過的旗標
+                aBestRecord.ModifiedFlag = true;
 
                 // 修改系統的幸福小組個人出席紀錄
                 //m_DownloadHappyGroup.UpdateBestRecord(key, ref aBestRecord, PresentFlag, DecisionFlag);
@@ -152,6 +174,10 @@ namespace ChurchReport.Models
             {
                 aHappyGroupWeeklyReportListClass.HappyGroupWeeklyReportList[MasterIndex].EndTime = aUpdatedHappyGroupWeeklyReport.EndTime;
             }
+            if (aUpdatedHappyGroupWeeklyReport.ModifiedFlag != null)
+            {
+                aHappyGroupWeeklyReportListClass.HappyGroupWeeklyReportList[MasterIndex].ModifiedFlag = aUpdatedHappyGroupWeeklyReport.ModifiedFlag;
+            }
 
             if (aUpdatedHappyGroupWeeklyReport.HappyWeeklyReport != null)
             {
@@ -186,6 +212,10 @@ namespace ChurchReport.Models
             if (aBestRecord.Note != null)
             {
                 aHappyGroupWeeklyReportListClass.HappyGroupWeeklyReportList[MasterIndex].BestRecordList[DetailIndex].Note = aBestRecord.Note;
+            }
+            if (aBestRecord.ModifiedFlag != null)
+            {
+                aHappyGroupWeeklyReportListClass.HappyGroupWeeklyReportList[MasterIndex].BestRecordList[DetailIndex].ModifiedFlag = aBestRecord.ModifiedFlag;
             }
             if (aBestRecord.BestLeader != null)
             {
@@ -223,6 +253,14 @@ namespace ChurchReport.Models
 
             // 移除幸福小組個人出席紀錄欄位有被修改過
             aHappyGroupWeeklyReportListClass.HappyGroupWeeklyReportList[MasterIndex].BestRecordList.RemoveAt(DetailIndex);
+        }
+        #endregion
+        #region 上傳儲存
+        public void SaveActiveHappyGroup(string key)
+        {
+
+            m_DownloadHappyGroup.UpdateHappyGroupWeeklyReportList(m_ActiveHappyGroupWeeklyReportList);
+
         }
         #endregion
         #region 工具區

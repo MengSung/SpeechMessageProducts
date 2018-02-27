@@ -24,6 +24,7 @@ namespace ChurchReport.Models
         public string Topic { set; get; }                       // 主題
         public string HappyWeeklyReport { set; get; }           // 幸福小組日誌回報
 
+        public bool ModifiedFlag { set; get; } = false;         // 設定週報是否有被修改過
         public List<BestRecord> BestRecordList { set; get; }    // 幸福小組出席紀錄單清單
     }
 }

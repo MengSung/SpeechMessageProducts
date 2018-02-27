@@ -19,5 +19,8 @@ namespace ChurchReport.Models
         public bool Decision { get; set; }
         public string Note { get; set; }
         public string BestLeader { get; set; } // 屬靈認領者
+
+        public bool ModifiedFlag { set; get; } = false;         // 是否有被修改過
+
     }
 }

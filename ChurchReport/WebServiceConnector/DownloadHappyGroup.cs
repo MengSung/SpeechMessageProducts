@@ -659,13 +659,12 @@ namespace ChurchReport.WebServiceConnector
                 #endregion
 
                 #region 建立幸福小組的 BEST
-
                 aHappyGroupWeeklyReportToBeAdded.BestRecordList = new List<BestRecord>();
                 CreateDefaultBestList(ref aWeeklyReportEntity, AreaName, FamilyLeaderId, GroupLeaderId, RaceLeaderId, ShepherdLeaderId, aListEntity, aHappyGroupWeeklyReportToBeAdded.MeetingDate, HappyGroupStartTime, HappyGroupEndTime, m_SmallGroupPlace, m_SmallGroupTime, ref aHappyGroupWeeklyReportListClassToBeAdded, ref aHappyGroupWeeklyReportToBeAdded);
                 #endregion
 
-                // 前台網頁要呈現的周報資料
-                aHappyGroupWeeklyReportListClassToBeAdded.HappyGroupWeeklyReportList.Add(aHappyGroupWeeklyReportToBeAdded);
+                // 前台網頁要呈現的週報資料
+                //aHappyGroupWeeklyReportListClassToBeAdded.HappyGroupWeeklyReportList.Add(aHappyGroupWeeklyReportToBeAdded);
                 return;
             }
             catch (System.Exception Exception)
@@ -1092,7 +1091,9 @@ namespace ChurchReport.WebServiceConnector
                 // 每個組員
                 int aWeeklySmallGroupNumber = 0;
                 Entity aPresentRecord = CreatePresentRecord(aBestContactEntity, ref aListEntity, aWeeklyReportEntity.Id, ref aWeeklySmallGroupNumber, aHappyGroupWeeklyReportToBeAdded, ref aBestRecord);
-                aHappyGroupWeeklyReportToBeAdded.BestRecordList.Add(aBestRecord);
+
+                // 前台網頁要呈現的Best資料
+                //aHappyGroupWeeklyReportToBeAdded.BestRecordList.Add(aBestRecord);
             }
             catch (System.Exception Exception)
             {
@@ -1778,6 +1779,31 @@ namespace ChurchReport.WebServiceConnector
             }
         }
         #endregion
+
+
+        #region 下載幸福小組週報
+        public void UpdateHappyGroupWeeklyReportList(HappyGroupWeeklyReportListClass ActiveHappyGroupWeeklyReportList)
+        {
+            try
+            {
+                foreach (HappyGroupWeeklyReport aHappyGroupWeeklyReport in ActiveHappyGroupWeeklyReportList.HappyGroupWeeklyReportList)
+                {
+                    if(aHappyGroupWeeklyReport.WeeklyReportModifiedFlag == true )
+                    {
+
+                    }
+                }
+            }
+            catch (System.Exception Exception)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
+
+                throw Exception;
+            }
+        }
+
+        #endregion
+
         #region 計算幸福小組週報出席人數
         public void CalculateWeeklyReportTotalNumber(ref Entity aPresentRecordEntity)
         {

@@ -29,63 +29,71 @@
 
                         .OnClick
                         (@<text>
-                        function(arg)
-                        {
-                        //debugger;
+                            function(arg)
+                            {
+                                //debugger;
 
-                        var dataGrid = $("#gridContainer").dxDataGrid("instance");
+                                var dataGrid = $("#gridContainer").dxDataGrid("instance");
 
-                        var Flag = dataGrid.hasEditData();
+                                // 取得上傳的按鈕
+                                var ButtonContainer= $("#save-button").dxButton("instance");
 
-                        if(Flag == false)
-                        {
-                        // 顯示旋轉鈕
-                        //$("#loadPanel").dxLoadPanel("instance").show();
+                                var Flag = dataGrid.hasEditData();//是否還殘留尚未回傳的編輯資料
 
-                        // AJAX 區塊
-                        $.ajax
-                        (
-                        {
-                        url: '@Url.Action("SaveHappyGroup", "Home")',
-                        data: { aResult: "上傳" }, // 整理回傳給 Server 的點名資料
-                        type: 'POST', //POST if you want to save, GET if you want to fetch data from server
+                                if(Flag == false)
+                                {
+                                    // 顯示旋轉鈕
+                                    $("#loadPanel").dxLoadPanel("instance").show();
 
-                        success: function (arg)
-                        {
-                        // 隱藏旋轉鈕
-                        //$("#loadPanel").dxLoadPanel("instance").hide();
+                                    // 上傳按鈕反白
+                                    ButtonContainer.option("disabled", true);
 
-                        //debugger;
-                        //dataGrid.saveEditData();
-                        //dataGrid.refresh();
+                                    // AJAX 區塊
+                                    $.ajax
+                                    (
+                                        {
+                                            url: '@Url.Action("SaveHappyGroup", "Home")',
+                                            data: { aResult: "上傳" }, // 整理回傳給 Server 的點名資料
+                                            type: 'POST', //POST if you want to save, GET if you want to fetch data from server
 
-                        // 顯示上傳成功
-                        $("#toast").dxToast("instance").show();
-                        },
+                                            success: function (arg)
+                                            {
+                                                // 隱藏旋轉鈕
+                                                $("#loadPanel").dxLoadPanel("instance").hide();
 
-                        error: function (obj)
-                        {
-                        //alert('Something happened');
-                        }
+                                                // 上傳按鈕恢復可運作
+                                                ButtonContainer.option("disabled", false);
 
-                        }
-                        );
-                        // AJAX 區塊
-                        }
-                        else
-                        {
+                                                //debugger;
+                                                //dataGrid.saveEditData();
+                                                //dataGrid.refresh();
 
-                        // 顯示再上傳一次
-                        //$("#ToastReUpload").dxToast("instance").show();
+                                                // 顯示上傳成功
+                                                $("#toast").dxToast("instance").show();
+                                            },
 
-                        //debugger;
-                        //dataGrid.saveEditData();
-                        //dataGrid.refresh();
+                                            error: function (obj)
+                                            {
+                                                //alert('Something happened');
+                                            }
 
-                        // 顯示上傳成功
-                        $("#toast").dxToast("instance").show();
-                        }
-                        }
+                                        }
+                                    );
+                                    // AJAX 區塊
+                                }
+                                else
+                                {
+                                    // 顯示再上傳一次
+                                    //$("#ToastReUpload").dxToast("instance").show();
+
+                                    //debugger;
+                                    //dataGrid.saveEditData();
+                                    //dataGrid.refresh();
+
+                                    // 顯示上傳成功
+                                    $("#toast").dxToast("instance").show();
+                                }
+                            }
                         </text>)
         )
     </div>
