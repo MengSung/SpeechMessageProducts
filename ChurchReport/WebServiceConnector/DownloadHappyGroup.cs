@@ -1561,6 +1561,65 @@ namespace ChurchReport.WebServiceConnector
                 throw Exception;
             }
         }
+        public void SetHappyGroupWeeklyReport( HappyGroupWeeklyReport aHappyGroupWeeklyReportToBeUpdated, ref Entity aWeeklyReportEntity)
+        {
+            try
+            {
+                #region 設定幸福小組週次
+                if (aHappyGroupWeeklyReportToBeUpdated.WeekCounter != null)
+                {
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aWeeklyReportEntity, "new_weekly_index", aHappyGroupWeeklyReportToBeUpdated.WeekCounter);
+                }
+                #endregion
+                #region 設定小組聚會日期
+                if (aHappyGroupWeeklyReportToBeUpdated.MeetingDate.Year != 1)
+                {
+                    //設定主日日期
+                    int DayOfWeek = (int)aHappyGroupWeeklyReportToBeUpdated.MeetingDate.DayOfWeek + 1;
+                    this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aWeeklyReportEntity, "new_sunday_date", aHappyGroupWeeklyReportToBeUpdated.MeetingDate.AddDays(-DayOfWeek));
+                    //設定小組日期
+                    this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aWeeklyReportEntity, "new_group_date", aHappyGroupWeeklyReportToBeUpdated.MeetingDate);
+                }
+                #endregion
+                #region 設定幸福小組主題
+                if (aHappyGroupWeeklyReportToBeUpdated.Topic != null)
+                {
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(ref aWeeklyReportEntity, "new_topic", ConvertTopicToIndex(aHappyGroupWeeklyReportToBeUpdated.Topic));
+                }
+                #endregion
+                #region 設定幸福小組日誌回報
+                if (aHappyGroupWeeklyReportToBeUpdated.HappyWeeklyReport != null)
+                {
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aWeeklyReportEntity, "new_memo", aHappyGroupWeeklyReportToBeUpdated.HappyWeeklyReport);
+                }
+                #endregion
+                #region 設定小組聚會地點和時間
+                //設定小組聚會地點
+                if (aHappyGroupWeeklyReportToBeUpdated.Location != null)
+                {
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aWeeklyReportEntity, "new_group_place", aHappyGroupWeeklyReportToBeUpdated.Location);
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aWeeklyReportEntity, "new_location", aHappyGroupWeeklyReportToBeUpdated.Location);
+                }
+                //設定小組聚會時間
+                if (aHappyGroupWeeklyReportToBeUpdated.StartTime != null)
+                {
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aWeeklyReportEntity, "new_group_time", aHappyGroupWeeklyReportToBeUpdated.StartTime);
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aWeeklyReportEntity, "new_group_start_time", aHappyGroupWeeklyReportToBeUpdated.StartTime);
+                }
+                if (aHappyGroupWeeklyReportToBeUpdated.EndTime != null)
+                {
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aWeeklyReportEntity, "new_group_end_time", aHappyGroupWeeklyReportToBeUpdated.EndTime);
+                }
+                #endregion
+                return;
+            }
+            catch (System.Exception Exception)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
+
+                throw Exception;
+            }
+        }
         #endregion
         #region 修改幸福小組BEST
         public void UpdateBestRecord(String aPresentRecordId, ref BestRecord aBestRecord, bool PresentFlag, bool DecisionFlag)
@@ -1626,7 +1685,11 @@ namespace ChurchReport.WebServiceConnector
                     }
                     else
                     {
-                        this.m_ToolUtilityClass.SetEntityStringAttribute(ref BestContactEntity, "lastname", aBestRecord.FullName + "(BEST)");
+                        #region 系統已經有這個人了
+                        #region 比對行動電話是否一致，
+                        //this.m_ToolUtilityClass.SetEntityStringAttribute(ref BestContactEntity, "lastname", aBestRecord.FullName + "(BEST)");
+                        #endregion
+                        #endregion
                     }
                 }
                 #endregion
@@ -1781,7 +1844,7 @@ namespace ChurchReport.WebServiceConnector
         #endregion
 
 
-        #region 下載幸福小組週報
+        #region 上傳幸福小組週報
         public void UpdateHappyGroupWeeklyReportList(HappyGroupWeeklyReportListClass ActiveHappyGroupWeeklyReportList)
         {
             try
@@ -1790,7 +1853,34 @@ namespace ChurchReport.WebServiceConnector
                 {
                     if(aHappyGroupWeeklyReport.WeeklyReportModifiedFlag == true )
                     {
-
+                        #region 取得幸福小組週報實體
+                        Entity aWeeklyReportEntity = this.m_ToolUtilityClass.RetrieveEntity("new_group_present_weekly_report", new Guid(aHappyGroupWeeklyReport.HappyGroupWeeklyReportId));
+                        #endregion
+                        #region 幸福小組週報，同時以名單成員作為初始成員
+                        this.SetHappyGroupWeeklyReport( aHappyGroupWeeklyReport, ref aWeeklyReportEntity);
+                        #endregion
+                        #region 取得幸福小組週報實體
+                        this.m_ToolUtilityClass.UpdateEntity(ref aWeeklyReportEntity);
+                        #endregion
+                    }
+                    foreach ( BestRecord aBestRecord in aHappyGroupWeeklyReport.BestRecordList )
+                    {
+                        if (aBestRecord.ModifiedFlag == true)
+                        {
+                            #region 幸福小組週報，同時以名單成員作為初始成員
+                            // 取得 出席紀錄
+                            Entity aPresentRecordEntity = this.m_ToolUtilityClass.RetrieveEntity("new_present_record", new Guid(aBestRecord.BestRecordId));
+                            // 更新連絡人 幸福小組紀錄:次數及課程
+                            UpdateBestContactRecord(aPresentRecordEntity, aBestRecord, aBestRecord.Present, aBestRecord.Decision);
+                            #endregion
+                            #region 幸福小組週報，同時以名單成員作為初始成員
+                            this.SetBestPresentRecord(aBestRecord, ref aPresentRecordEntity, aBestRecord.Present, aBestRecord.Decision);
+                            this.m_ToolUtilityClass.UpdateEntity(ref aPresentRecordEntity);
+                            #endregion
+                            #region 計算幸福小組週報出席人數
+                            CalculateWeeklyReportTotalNumber(ref aPresentRecordEntity);
+                            #endregion
+                        }
                     }
                 }
             }
@@ -1801,7 +1891,86 @@ namespace ChurchReport.WebServiceConnector
                 throw Exception;
             }
         }
+        public void UpdateBestContactRecord(Entity aPresentRecordEntity, BestRecord aBestRecord, bool PresentFlag, bool DecisionFlag)
+        {
+            try
+            {
+                // 取得 BEST 連絡人
+                Entity BestContactEntity = this.m_ToolUtilityClass.RetrieveEntity("contact", this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aPresentRecordEntity, "new_contact_new_present_record"));
 
+                // 設定連絡人參數
+                SetBestContactEntity(ref aPresentRecordEntity, ref aBestRecord, ref BestContactEntity, PresentFlag, DecisionFlag);
+
+                // 更新連絡人
+                this.m_ToolUtilityClass.UpdateEntity(ref BestContactEntity);
+
+                return;
+            }
+            catch (System.Exception Exception)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
+
+                throw Exception;
+            }
+        }
+        public void SetBestPresentRecord( BestRecord aBestRecord, ref Entity aPresentRecordEntity, bool PresentFlag, bool DecisionFlag)
+        {
+            try
+            {
+                #region 設定幸福小組出席
+                if (PresentFlag == true)
+                {
+                    if (aBestRecord.Present == true)
+                    {
+                        this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecordEntity, "new_happy_present", 1);
+                    }
+                    else
+                    {
+                        this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecordEntity, "new_happy_present", 0);
+                    }
+                }
+                #endregion
+                #region 設定幸福小組決志
+                if (DecisionFlag == true)
+                {
+                    if (aBestRecord.Decision == true)
+                    {
+                        this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecordEntity, "new_happy_decision", 1);
+                    }
+                    else
+                    {
+                        this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecordEntity, "new_happy_decision", 0);
+                    }
+                }
+                #endregion
+                #region 設定附註或是代禱事項
+
+                // 轉換版本
+                // 楊梅靈糧堂
+                if (aBestRecord.Note != null)
+                {
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecordEntity, "new_name", aBestRecord.Note);
+                }
+                //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_explanation", aMemberInfomation.Note);
+
+                // 內壢得勝靈糧堂
+                //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_memo", aMemberInfomation.Note);
+                #endregion
+                #region 設定行動電話
+                if (aBestRecord.MobilePhone != null)
+                {
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecordEntity, "new_cell_hpone", aBestRecord.MobilePhone);
+                }
+                #endregion
+                return;
+            }
+            catch (System.Exception Exception)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
+
+                throw Exception;
+            }
+        }
         #endregion
 
         #region 計算幸福小組週報出席人數

@@ -121,7 +121,7 @@ namespace ChurchReport.Models
                 aUpdatedHappyGroupWeeklyReport.ModifiedFlag = true;
 
                 // 修改系統的幸福小組週報
-                m_DownloadHappyGroup.UpdateHappyGroupWeeklyReport(key, ref aUpdatedHappyGroupWeeklyReport);
+                //m_DownloadHappyGroup.UpdateHappyGroupWeeklyReport(key, ref aUpdatedHappyGroupWeeklyReport);
 
                 // 從前端傳來有更改過的週報去更新網頁端的幸福小組週報內容
                 bool WeekCounterFlag = values.Contains("WeekCounter") ? true : false;
@@ -256,11 +256,11 @@ namespace ChurchReport.Models
         }
         #endregion
         #region 上傳儲存
-        public void SaveActiveHappyGroup(string key)
+        public void SaveActiveHappyGroup()
         {
-
+            #region 上傳幸福小組週報
             m_DownloadHappyGroup.UpdateHappyGroupWeeklyReportList(m_ActiveHappyGroupWeeklyReportList);
-
+            #endregion
         }
         #endregion
         #region 工具區

@@ -680,6 +680,8 @@ namespace ChurchReport.Controllers
 
             HappyGroupDataManager m_HappyGroupDataManager = JsonConvert.DeserializeObject<HappyGroupDataManager>(SerializedHappyGroupDataManager);
 
+            m_HappyGroupDataManager.SaveActiveHappyGroup();
+
             return Json(new { status = "1", message = "成功上傳了...." });
         }
 
