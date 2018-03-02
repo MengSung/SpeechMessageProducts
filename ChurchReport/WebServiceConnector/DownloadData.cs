@@ -662,7 +662,7 @@ namespace ChurchReport.WebServiceConnector
                             };
 
                             // 委身類型客製，每間教會不同
-                            if ( aIdentity != "10. 結案" )
+                            if ( aIdentity != "11. 結案" )
                             {
                                 // "10.未入組結案" 不用進入 APP
                                 this.m_MemberInfomationPackage.ListMemberInfomation.Add(aMemberInfomation);
@@ -1431,24 +1431,26 @@ namespace ChurchReport.WebServiceConnector
 
                 //case 100000006:
                 //    return "01. 牧師師母";
+                //case 100000009:
+                //    return "02. 區牧";
                 //case 100000003:
-                //    return "02. 區長";
+                //    return "03. 區長";
                 //case 100000008:
-                //    return "03. 小組長";
-                //case 100000012:
-                //    return "04. 副組長";
+                //    return "04. 小組長";
+                //case 100000002:
+                //    return "05. 實習小組長";
                 //case 1:
-                //    return "05. 小組組員";
+                //    return "06. 小組組員";
                 //case 100000005:
-                //    return "06. 幸福BEST";
+                //    return "07. 幸福BEST";
                 //case 100000004:
-                //    return "07. 未入組";
+                //    return "08. 未入組";
                 //case 100000000:
-                //    return "08. 新朋友";
+                //    return "09. 新朋友";
                 //case 100000007:
-                //    return "09. 外教會.訪客";
+                //    return "10. 外教會.訪客";
                 //case 100000001:
-                //    return "10. 結案";
+                //    return "11. 結案";
 
                 // 委身類型客製化
                 if (aIdentityNumber == 100000000 || aIdentityNumber == 100000004)
@@ -2295,7 +2297,7 @@ namespace ChurchReport.WebServiceConnector
                         };
 
                         // 委身類型客製化
-                        if (aIdentity != "10. 結案")
+                        if (aIdentity != "11. 結案")
                         {
                             // "10.未入組結案" 不用進入 APP
                             this.m_MemberInfomationPackage.ListMemberInfomation.Add(aMemberInfomation);
@@ -2544,17 +2546,15 @@ namespace ChurchReport.WebServiceConnector
             switch (Identity)
             {
                 case 100000006:
-                    return "01. 負責弟兄";
+                    return "01. 牧師師母";
                 case 100000009:
-                    return "02.區牧";
-                case 100000002:
-                    return "03.副區牧";
+                    return "02. 區牧";
                 case 100000003:
-                    return "04. 門徒小組長";
+                    return "03. 區長";
                 case 100000008:
-                    return "05. 小組長";
-                case 100000012:
-                    return "04. 副組長";
+                    return "04. 小組長";
+                case 100000002:
+                    return "05. 實習小組長";
                 case 1:
                     return "06. 小組組員";
                 case 100000005:

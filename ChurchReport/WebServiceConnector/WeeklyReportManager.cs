@@ -171,14 +171,14 @@ namespace ChurchReport.WebServiceConnector
                             #region 楊梅得勝靈糧堂
                             // 小組日誌
                             //aWeeklyReport.WeeklyReportContent = "還沒有點過名，所以沒有小組日誌，請先點過名之後，才能上傳小組日誌";
-                            aWeeklyReport.WeeklyReportContent = "沒有週報資料，您可能是區長，但不是小組長，所以沒有小組長日誌需要回報";
+                            //aWeeklyReport.WeeklyReportContent = "沒有週報資料，您可能是區長，但不是小組長，所以沒有小組長日誌需要回報";
                             #endregion
                         }
                     }
                 }
                 else
                 {
-                    aWeeklyReport.WeeklyReportContent = "沒有週報資料，您可能是區長，但不是小組長，所以沒有小組長日誌需要回報";
+                    //aWeeklyReport.WeeklyReportContent = "沒有週報資料，您可能是區長，但不是小組長，所以沒有小組長日誌需要回報";
                 }
                 return;
             }
