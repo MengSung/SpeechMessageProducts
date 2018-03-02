@@ -919,19 +919,51 @@ namespace ChurchReport.WebServiceConnector
         {
             try
             {
-                // 每個組員
                 Entity aQueryBestContactEntity = this.m_ToolUtilityClass.RetrieveContactEntityByName(aBestRecord.FullName);
 
                 if (aQueryBestContactEntity == null)
                 {
+                    #region 系統裡沒有這個姓名的BEST，就直接建立一個新的 BEST
+
+                    // 建立一個新的 BEST
                     aQueryBestContactEntity = new Entity("contact");
                     this.m_ToolUtilityClass.SetEntityStringAttribute(ref aQueryBestContactEntity, "lastname", aBestRecord.FullName);
+                    #endregion
                 }
                 else
                 {
-                    aQueryBestContactEntity = new Entity("contact");
-                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aQueryBestContactEntity, "lastname", aBestRecord.FullName + "(BEST)");
+                    #region 系統裡有同名同姓的BEST，要額外處理
+
+                    String aQueryBestContactMobile = DigitsOnly.Replace(this.m_ToolUtilityClass.GetEntityStringAttribute(ref aQueryBestContactEntity, "mobilephone"), "");
+
+                    if (aBestRecord.MobilePhone != "")
+                    {
+                        #region// 同名同姓，但是幸福小組長有輸入手機號碼
+                        if (aQueryBestContactMobile != DigitsOnly.Replace(aBestRecord.MobilePhone, ""))
+                        {
+                            #region// 手機不同，建立一個新的 BEST
+                            aQueryBestContactEntity = new Entity("contact");
+                            this.m_ToolUtilityClass.SetEntityStringAttribute(ref aQueryBestContactEntity, "lastname", aBestRecord.FullName);
+                            #endregion
+                        }
+                        else
+                        {
+                            #region// 手機相同，就用系統的姓名
+                            return aQueryBestContactEntity;
+                            #endregion
+                        }
+                        #endregion
+                    }
+                    else
+                    {
+                        #region// 同名同姓，但是幸福小組長沒有輸入手機號碼，就在資料庫新增BEST資料紀錄，但是附加(BEST)字樣
+                        aQueryBestContactEntity = new Entity("contact");
+                        this.m_ToolUtilityClass.SetEntityStringAttribute(ref aQueryBestContactEntity, "lastname", aBestRecord.FullName + "(BEST)");
+                        #endregion
+                    }
+                    #endregion
                 }
+
 
                 SetContactSpiritLeader(ref aQueryBestContactEntity, ref aHappyGroupWeeklyReportListClassToBeAdded, ref aBestRecord);
 

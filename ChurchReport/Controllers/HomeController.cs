@@ -497,7 +497,6 @@ namespace ChurchReport.Controllers
         [HttpPost]
         public IActionResult SaveWeeklyReport(WeeklyReportViewModel aWeeklyReportViewModel)
         {
-
             String SmallGroupDataList = (String)TempData.Peek("SmallGroupDataList");
             TempData.Keep("SmallGroupDataList");
             SmallGroupDataList m_SmallGroupDataList = JsonConvert.DeserializeObject<SmallGroupDataList>(SmallGroupDataList);
@@ -509,6 +508,9 @@ namespace ChurchReport.Controllers
 
                 if (WeeklyReportDataString != null)
                 {
+                    // 先上傳小組點名資料，萬一沒有先上傳小組點名，則仍然可以上傳小組日誌，因為在後台會建立新增周報
+                    m_SmallGroupDataList.UploadMemberInfomationPackage();
+
                     WeeklyReportData aWeeklyReportData = JsonConvert.DeserializeObject<WeeklyReportData>(WeeklyReportDataString);
 
                     // 給上傳用的
