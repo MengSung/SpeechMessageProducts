@@ -775,7 +775,7 @@ namespace ChurchReport.WebServiceConnector
                     EntityCollection aMergeCollection = MergeCollection(ref aListEntityCollection, ref aFamilyLeaderListEntityCollection);
 
 
-                    // 過濾掉需要點名的名單才進來
+                    // 過濾掉需要點名的名單才進來，而且不是幸福小組(因為有時幸福小組也會在APP點名的框框打勾)
                     FilterAppNamedListEntity(aMergeCollection);
 
                     // 帶領族系裡有名單，所以是族系組長，就不用在往下找看是不是小組長了 
@@ -854,9 +854,10 @@ namespace ChurchReport.WebServiceConnector
         {
             try
             {
-                // 過濾掉需要點名的名單才進來
+                // 過濾掉需要點名的名單才進來，而且不是幸福小組(因為有時幸福小組也會在APP點名的框框打勾)
                 if (this.m_Lists != null && this.m_Lists.Entities != null)
                 {
+                    // this.m_Lists 就是要點名的名單
                     this.m_Lists.Entities.Clear();
                 }
 
@@ -866,9 +867,12 @@ namespace ChurchReport.WebServiceConnector
                     {
                         bool AppNamed = (bool)ListEntity.Attributes["new_app_named"];
 
-                        if (AppNamed == true)
+                        DateTime aHappyStartDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ListEntity, "new_happy_start_date");
+                        DateTime aHappyEndDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ListEntity, "new_happy_end_date");
+
+                        if (AppNamed == true && aHappyStartDate.Year == 1 && aHappyEndDate.Year == 1)
                         {
-                            // 需要點名的名單才進來
+                            // 需要點名的名單才進來，而且幸福小組的開始結束時間都沒填才是一般小組的名單
                             this.m_Lists.Entities.Add(ListEntity);
                         }
                     }
