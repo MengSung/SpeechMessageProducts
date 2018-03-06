@@ -1,96 +1,100 @@
 ﻿<div class="internal-grid-container">
-    <div><%= data.FullName %> 幸福小組名單</div>
+    <p style="font-family:標楷體;font-size: 120%;color: red; text-align:right;font-weight: bold">新增BEST請按下面+號</p>
     @(Html.DevExtreme().DataGrid()
-                        .ElementAttr("class", "internal-grid")
-                        //.AllowColumnResizing(true)
-                        //.AllowColumnReordering(true)
-                        //.ColumnAutoWidth(true)
-                        .NoDataText("沒有資料")
-                        .ShowBorders(true)
-                        .Editing(editing =>
-                        {
-                            //editing.Mode(GridEditMode.Row);
-                            editing.Mode(GridEditMode.Cell);
-                            //editing.Mode(GridEditMode.Batch);
-                            //editing.Mode(GridEditMode.Form);
-                            //editing.Mode(GridEditMode.Popup);
-                            editing.AllowUpdating(true);
-                            //editing.AllowDeleting(true);
-                            editing.AllowAdding(true);
-                            editing.Texts(a => a.SaveAllChanges("上傳檔案").AddRow("新增").CancelAllChanges("取消變更").SaveRowChanges("確定").CancelRowChanges("取消").EditRow("編輯").DeleteRow("刪除").ConfirmDeleteTitle("確定要刪除嗎?").ConfirmDeleteMessage("刪除幸福小組組員"));
-                            //editing.AllowDeleting(true);
-                        })
+                                .ElementAttr("class", "internal-grid")
+                                //.AllowColumnResizing(true)
+                                //.AllowColumnReordering(true)
+                                //.ColumnAutoWidth(true)
+                                .NoDataText("沒有資料")
+                                .ShowBorders(true)
+                                .Editing(editing =>
+                                {
+                        //editing.Mode(GridEditMode.Row);
+                        editing.Mode(GridEditMode.Cell);
+                        //editing.Mode(GridEditMode.Batch);
+                        //editing.Mode(GridEditMode.Form);
+                        //editing.Mode(GridEditMode.Popup);
+                        editing.AllowUpdating(true);
+                        //editing.AllowDeleting(true);
+                        editing.AllowAdding(true);
+                                    editing.Texts(a => a.SaveAllChanges("上傳檔案").AddRow("新增").CancelAllChanges("取消變更").SaveRowChanges("確定").CancelRowChanges("取消").EditRow("編輯").DeleteRow("刪除").ConfirmDeleteTitle("確定要刪除嗎?").ConfirmDeleteMessage("刪除幸福小組組員"));
+                        //editing.AllowDeleting(true);
+                    })
 
-                        .OnContentReady(@<text>
-                        function(e)
-                        {
-                        moveEditColumnToLeft(e.component);
-                        }
-                        </text>                )
+                                .OnContentReady(@<text>
+                                function(e)
+                                {
+                                moveEditColumnToLeft(e.component);
+                                }
+                                </text> )
 
-                        .OnCellPrepared("cell_prepared")
+                                                        .OnCellPrepared("cell_prepared")
 
 
-                        .Columns(columns =>
-                        {
-                            columns.Add()
-                                .DataField("FullName")
-                                .Width(90)
-                                .Fixed(true)
-                                .Caption("姓名");
+                                                        .Columns(columns =>
+                                                        {
+                                                            columns.Add()
+                                                                .DataField("FullName")
+                                                                .Width(90)
+                                                                .Fixed(true)
+                                                                .Caption("姓名");
 
-                            columns.Add()
-                                .DataField("MobilePhone")
-                                .Width(110)
-                                .Caption("行動電話");
+                                                            columns.Add()
+                                                                .DataField("MobilePhone")
+                                                                .Width(110)
+                                                                .Caption("行動電話");
 
-                            columns.Add()
-                                .DataField("Present")
-                                .Caption("出席")
-                                .DataType(GridColumnDataType.Boolean)
-                                .Width(45);
+                                                            columns.Add()
+                                                                .DataField("Present")
+                                                                .Caption("出席")
+                                                                .DataType(GridColumnDataType.Boolean)
+                                                                .Width(45);
 
-                            columns.Add()
-                                .DataField("Decision")
-                                .Caption("決志")
-                                .DataType(GridColumnDataType.Boolean)
-                                .Width(45);
+                                                            columns.Add()
+                                                                .DataField("Decision")
+                                                                .Caption("決志")
+                                                                .DataType(GridColumnDataType.Boolean)
+                                                                .Width(45);
 
-                            columns.Add()
-                                 .DataField("BestLeader")
-                                 .Caption("屬靈認領者")
-                                 .Width(90)
-                                 .Lookup(lookup => lookup
-                                 .DataSource(d => d.WebApi()
-                                     .Controller("SpiritLeaderLookup")
-                                     .LoadAction("Get")
-                                     .LoadParams( new { ShepherdLeader =  @ViewBag.SpiritLeaderList })
-                                     .Key("ID"))
-                                     .DisplayExpr("Name")
-                                     .ValueExpr("Name")
-                                 );
+                                                            columns.Add()
+                                                                 .DataField("BestLeader")
+                                                                 .Caption("屬靈認領者")
+                                                                 .Width(90)
+                                                                 .Lookup(lookup => lookup
+                                                                 .DataSource(d => d.WebApi()
+                                                                     .Controller("SpiritLeaderLookup")
+                                                                     .LoadAction("Get")
+                                                                     .LoadParams(new { ShepherdLeader = @ViewBag.SpiritLeaderList })
+                                                                     .Key("ID"))
+                                                                     .DisplayExpr("Name")
+                                                                     .ValueExpr("Name")
+                                                                 );
 
-                            columns.Add()
-                                .DataField("Note")
-                                .Width(200)
-                                .Caption("關懷記事");
+                                                            columns.Add()
+                                                                .DataField("Note")
+                                                                .Width(200)
+                                                                .Caption("關懷記事");
 
-                        })
-                        .OnRowInserting("function(e) {  e.data.BestRecordParentId = e.data.key ; }")
-                        .DataSource(d => d.WebApi()
-                            .Controller("Home")
-                            .LoadAction("LoadBest")
-                            .InsertAction("PostBest")
-                            .DeleteAction("DeleteBest")
-                            .UpdateAction("PutBest") 
-                        @*.InsertAction("PostBest")
-                            .DeleteAction("DeleteBest")
-                            .UpdateAction("PutBest")*@
-                            .Key("BestRecordId")
-                        @*.Key(new string[] {"BestRecordId", "BestRecordParentId"})*@
-                            .LoadParams(new { id = new JS("data.HappyGroupWeeklyReportId")  })
+                                                        })
+                                                        .OnRowInserting("function(e) {  e.data.BestRecordParentId = e.data.key ; }")
+                                                        .DataSource(d => d.WebApi()
+                                                            .Controller("Home")
+                                                            .LoadAction("LoadBest")
+                                                            .InsertAction("PostBest")
+                                                            .DeleteAction("DeleteBest")
+                                                            .UpdateAction("PutBest")
+                                                            /**/
+                                                            @*.InsertAction("PostBest")
+                                                                .DeleteAction("DeleteBest")
+                                                                .UpdateAction("PutBest")*@
+                                                            /**/
+                                                            .Key("BestRecordId")
+                                                            /**/
+                                                            @*.Key(new string[] {"BestRecordId", "BestRecordParentId"})*@
+                                                            /**/
+                                                            .LoadParams(new { id = new JS("data.HappyGroupWeeklyReportId") })
 
-                        )
+                                                        )
 
     )
 </div>
