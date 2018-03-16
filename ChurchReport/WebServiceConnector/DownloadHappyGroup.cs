@@ -737,8 +737,9 @@ namespace ChurchReport.WebServiceConnector
                 else
                 {
                     //設定主日日期
-                    DayOfWeek = (int)aHappyGroupWeeklyReportToBeAdded.MeetingDate.DayOfWeek + 1;
+                    DayOfWeek = (int)aHappyGroupWeeklyReportToBeAdded.MeetingDate.DayOfWeek ;
                 }
+                //設定主日日期
                 this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aWeeklyReportEntity, "new_sunday_date", aMeetingDate.AddDays(-DayOfWeek));
                 //設定小組日期
                 this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aWeeklyReportEntity, "new_group_date", aMeetingDate);

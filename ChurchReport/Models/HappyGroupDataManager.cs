@@ -47,6 +47,7 @@ namespace ChurchReport.Models
 
                 // 不知為何反序列會差一天
                 //aToAddHappyGroupWeeklyReport.MeetingDate = aToAddHappyGroupWeeklyReport.MeetingDate.AddDays(1);
+                aToAddHappyGroupWeeklyReport.MeetingDate = aToAddHappyGroupWeeklyReport.MeetingDate.ToLocalTime();
 
                 // 是否有修改 WeekCounter， 因為如果沒有改變整數，但是反序列之後仍然會有值，而不會是 null，所以要靠旗標來幫忙
                 bool WeekCounterFlag = values.Contains("WeekCounter") ? true : false;
