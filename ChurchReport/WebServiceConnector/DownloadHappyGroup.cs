@@ -101,6 +101,8 @@ namespace ChurchReport.WebServiceConnector
             #region 先尋找帶領族系名單，若找到表示就是族系族長，若沒有則在繼續尋找帶領小組名單
 
             // 取得並過濾需要回報的幸福小組名單
+            // 幸福小組要回報的名單，但是現階段網頁回報端並沒有看2個以上的幸福小組
+            // 所以先過濾只有幸福小組長跟登入同一人才回傳
             FindListCollection();
 
             if (m_Lists.Entities.Count != 0)
@@ -286,8 +288,14 @@ namespace ChurchReport.WebServiceConnector
                     DateTime aHappyEndDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ListEntity, "new_happy_end_date");
                     if (aHappyStartDate.Year != 1 && aHappyEndDate.Year != 1 && aHappyStartDate <= DateTime.Now && aHappyEndDate >= DateTime.Now)
                     {
-                        // 幸福小組要回報的名單
-                        this.m_Lists.Entities.Add(ListEntity);
+                        // 幸福小組要回報的名單，但是現階段網頁回報端並沒有看2個以上的幸福小組
+                        // 所以先過濾只有幸福小組長跟登入同一人才回傳
+                        Guid SmallGroupLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ListEntity, "new_contact_family_leader_list");
+
+                        if (this.m_ContactId == SmallGroupLeaderId)
+                        {
+                            this.m_Lists.Entities.Add(ListEntity);
+                        }
                     }
                 }
                 return;
@@ -714,8 +722,23 @@ namespace ChurchReport.WebServiceConnector
                 { this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aWeeklyReportEntity, "new_list_group_present_weekly_report", "list", aListEntity.Id); }
                 #endregion
                 #region 設定主日及小組聚會日期
-                //設定主日日期
-                int DayOfWeek = (int)aHappyGroupWeeklyReportToBeAdded.MeetingDate.DayOfWeek + 1;
+                if (aMeetingDate.Year == 1)
+                {
+                    aMeetingDate = DateTime.Now;
+                }
+
+                int DayOfWeek = 1;
+                if (aHappyGroupWeeklyReportToBeAdded.MeetingDate.Year == 1)
+                {
+                    aHappyGroupWeeklyReportToBeAdded.MeetingDate = DateTime.Now;
+                    //設定主日日期
+                    DayOfWeek = (int)aHappyGroupWeeklyReportToBeAdded.MeetingDate.DayOfWeek;
+                }
+                else
+                {
+                    //設定主日日期
+                    DayOfWeek = (int)aHappyGroupWeeklyReportToBeAdded.MeetingDate.DayOfWeek + 1;
+                }
                 this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aWeeklyReportEntity, "new_sunday_date", aMeetingDate.AddDays(-DayOfWeek));
                 //設定小組日期
                 this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aWeeklyReportEntity, "new_group_date", aMeetingDate);
