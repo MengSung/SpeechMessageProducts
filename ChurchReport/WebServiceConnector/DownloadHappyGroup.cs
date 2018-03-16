@@ -962,7 +962,7 @@ namespace ChurchReport.WebServiceConnector
 
                     String aQueryBestContactMobile = DigitsOnly.Replace(this.m_ToolUtilityClass.GetEntityStringAttribute(ref aQueryBestContactEntity, "mobilephone"), "");
 
-                    if (aBestRecord.MobilePhone != "")
+                    if ( aBestRecord.MobilePhone != "" && aBestRecord.MobilePhone != null )
                     {
                         #region// 同名同姓，但是幸福小組長有輸入手機號碼
                         if (aQueryBestContactMobile != DigitsOnly.Replace(aBestRecord.MobilePhone, ""))
