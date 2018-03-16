@@ -295,6 +295,8 @@ namespace ChurchReport.WebServiceConnector
                         if (this.m_ContactId == SmallGroupLeaderId)
                         {
                             this.m_Lists.Entities.Add(ListEntity);
+
+                            this.m_HappyGroupWeeklyReportList.HappyGroupName = this.m_ToolUtilityClass.GetEntityStringAttribute(ListEntity, "listname");
                         }
                     }
                 }

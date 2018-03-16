@@ -579,6 +579,7 @@ namespace ChurchReport.Controllers
             {
                 ViewBag.SpiritLeaderList = m_HappyGroupDataManager.m_ActiveHappyGroupWeeklyReportList.SpiritLeaderList;
                 ViewBag.HappyType = "有幸福小組名單";
+                ViewBag.HappyGroupName = m_HappyGroupDataManager.m_ActiveHappyGroupWeeklyReportList.HappyGroupName;
             }
             else
             {
