@@ -986,6 +986,11 @@ namespace ChurchReport.WebServiceConnector
                         aQueryBestContactEntity = new Entity("contact");
                         this.m_ToolUtilityClass.SetEntityStringAttribute(ref aQueryBestContactEntity, "lastname", aBestRecord.FullName + "(BEST)");
                         #endregion
+
+                        //#region// 同名同姓，但是幸福小組長沒有輸入手機號碼，就用系統的姓名
+                        //return aQueryBestContactEntity;
+                        //#endregion
+
                     }
                     #endregion
                 }
