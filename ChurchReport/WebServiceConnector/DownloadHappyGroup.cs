@@ -560,6 +560,18 @@ namespace ChurchReport.WebServiceConnector
                 CreateWeeklyReport(ref HappyGroupListEntity, ref aHappyGroupWeeklyReportListClassToBeAdded, ref aHappyGroupWeeklyReportToBeAdded);
                 #endregion
 
+                #region 設定幸福小組核心同工名單，為了要能區隔過濾出BEST名單
+                if (aHappyGroupWeeklyReportToBeAdded.WeekCounter != null)
+                {
+                    String CoreMembers = this.GetCoreMembers(HappyGroupListEntity.Id, aHappyGroupWeeklyReportToBeAdded);
+                    if (CoreMembers != "")
+                    {
+                        this.m_ToolUtilityClass.SetEntityStringAttribute(ref HappyGroupListEntity, "new_core_members", CoreMembers);
+                    }
+                }
+                this.m_ToolUtilityClass.UpdateEntity(ref HappyGroupListEntity);
+                #endregion
+
 
                 return;
             }
@@ -571,6 +583,55 @@ namespace ChurchReport.WebServiceConnector
             }
         }
 
+        private String GetCoreMembers(Guid ListEntityId, HappyGroupWeeklyReport aHappyGroupWeeklyReportToBeAdded)
+        {
+            try
+            {
+                if (aHappyGroupWeeklyReportToBeAdded.WeekCounter == "第一週")
+                {
+                    bool ListType = false;
+                    EntityCollection MemberCollection = GetPersonalSmallGroupLeaderMemberData(ListEntityId, ref ListType);
+
+                    String CoreMembers = "";
+                    foreach (Entity MemberEntity in MemberCollection.Entities)
+                    {
+                        // 每個組員
+                        Entity aContactEntity;
+
+                        if (ListType == false)
+                        {
+                            // 靜態名單
+                            aContactEntity = m_ToolUtilityClass.RetrieveEntity("contact", ((EntityReference)MemberEntity.Attributes["entityid"]).Id);
+                        }
+                        else
+                        {
+                            // 動態名單
+                            aContactEntity = m_ToolUtilityClass.RetrieveEntity("contact", (Guid)MemberEntity.Attributes["contactid"]);
+                        }
+
+                        CoreMembers += this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContactEntity, "fullname") + ",";
+
+
+                    }
+
+                    ToolUtilityClass.DeleteLastChar(ref CoreMembers);
+
+                    return CoreMembers;
+                }
+                else
+                {
+                    return "";
+                }
+
+            }
+            catch (System.Exception Exception)
+            {
+                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
+                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                throw Exception;
+            }
+        }
 
         private void CreateWeeklyReport(ref Entity aListEntity, ref HappyGroupWeeklyReportListClass aHappyGroupWeeklyReportListClassToBeAdded, ref HappyGroupWeeklyReport aHappyGroupWeeklyReportToBeAdded)
         {

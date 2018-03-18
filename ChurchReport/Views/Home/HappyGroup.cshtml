@@ -1,19 +1,19 @@
 ﻿@{
-    String DataStatus = "上傳成功了!";
-    //String ReUpload = "請再按上傳一次!";
-    String ReUpload = "您有一些操作沒有完成，請檢查一下剛剛輸入的資料!";
+String DataStatus = "上傳成功了!";
+//String ReUpload = "請再按上傳一次!";
+String ReUpload = "您有一些操作沒有完成，請檢查一下剛剛輸入的資料!";
 }
 
 <head>
-    <!-- Site made with Mobirise Website Builder v4.0.16, https://mobirise.com -->
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="generator" content="Mobirise v4.0.16, mobirise.com">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="shortcut icon" href="assets/images/logo.png" type="image/x-icon">
-    <meta name="description" content="">
-    <title>台中生命之道靈糧堂</title>
-    @*<title>台北基督之家</title>*@
+<!-- Site made with Mobirise Website Builder v4.0.16, https://mobirise.com -->
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="generator" content="Mobirise v4.0.16, mobirise.com">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="shortcut icon" href="assets/images/logo.png" type="image/x-icon">
+<meta name="description" content="">
+<title>台中生命之道靈糧堂</title>
+@*<title>台北基督之家</title>*@
 
 </head>
 
@@ -22,160 +22,160 @@
 <br />
 
 <div class="dx-field">
-    <div id="buttonContainer" class="dx-button-icon" style="float: left; width:30%; text-align: left; background-color:white;">
-        @(Html.DevExtreme().Button()
-            .Text("上傳")
-            .Type(ButtonType.Success)
-            .ID("save-button")
-            //.UseSubmitBehavior(true)
+<div id="buttonContainer" class="dx-button-icon" style="float: left; width:30%; text-align: left; background-color:white;">
+@(Html.DevExtreme().Button()
+.Text("上傳")
+.Type(ButtonType.Success)
+.ID("save-button")
+//.UseSubmitBehavior(true)
 
-            .OnClick
-            (@<text>
-            function(arg)
-            {
-            //debugger;
+.OnClick
+(@<text>
+function(arg)
+{
+//debugger;
 
-            var dataGrid = $("#gridContainer").dxDataGrid("instance");
+var dataGrid = $("#gridContainer").dxDataGrid("instance");
 
-            // 取得上傳的按鈕
-            var ButtonContainer= $("#save-button").dxButton("instance");
+// 取得上傳的按鈕
+var ButtonContainer= $("#save-button").dxButton("instance");
 
-            var Flag = dataGrid.hasEditData();//是否還殘留尚未回傳的編輯資料
+var Flag = dataGrid.hasEditData();//是否還殘留尚未回傳的編輯資料
 
-            if(Flag == false)
-            {
-            // 顯示旋轉鈕
-            $("#loadPanel").dxLoadPanel("instance").show();
+if(Flag == false)
+{
+// 顯示旋轉鈕
+$("#loadPanel").dxLoadPanel("instance").show();
 
-            // 上傳按鈕反白
-            ButtonContainer.option("disabled", true);
+// 上傳按鈕反白
+ButtonContainer.option("disabled", true);
 
-            // AJAX 區塊
-            $.ajax
-            (
-            {
-            url: '@Url.Action("SaveHappyGroup", "Home")',
-            data: { aResult: "上傳" }, // 整理回傳給 Server 的點名資料
-            type: 'POST', //POST if you want to save, GET if you want to fetch data from server
+// AJAX 區塊
+$.ajax
+(
+{
+url: '@Url.Action("SaveHappyGroup", "Home")',
+data: { aResult: "上傳" }, // 整理回傳給 Server 的點名資料
+type: 'POST', //POST if you want to save, GET if you want to fetch data from server
 
-            success: function (arg)
-            {
-            // 隱藏旋轉鈕
-            $("#loadPanel").dxLoadPanel("instance").hide();
+success: function (arg)
+{
+// 隱藏旋轉鈕
+$("#loadPanel").dxLoadPanel("instance").hide();
 
-            // 上傳按鈕恢復可運作
-            ButtonContainer.option("disabled", false);
+// 上傳按鈕恢復可運作
+ButtonContainer.option("disabled", false);
 
-            //debugger;
-            //dataGrid.saveEditData();
-            //dataGrid.refresh();
+//debugger;
+//dataGrid.saveEditData();
+//dataGrid.refresh();
 
-            // 顯示上傳成功
-            $("#toast").dxToast("instance").show();
-            },
+// 顯示上傳成功
+$("#toast").dxToast("instance").show();
+},
 
-            error: function (obj)
-            {
-            //alert('Something happened');
-            }
+error: function (obj)
+{
+//alert('Something happened');
+}
 
-            }
-            );
-            // AJAX 區塊
-            }
-            else
-            {
-            // 顯示再上傳一次
-            //$("#ToastReUpload").dxToast("instance").show();
+}
+);
+// AJAX 區塊
+}
+else
+{
+// 顯示再上傳一次
+//$("#ToastReUpload").dxToast("instance").show();
 
-            //debugger;
-            //dataGrid.saveEditData();
-            //dataGrid.refresh();
+//debugger;
+//dataGrid.saveEditData();
+//dataGrid.refresh();
 
-            // 顯示上傳成功
-            $("#toast").dxToast("instance").show();
-            }
-            }
-            </text>)
-        )
-    </div>
-    <div id="ToastContainer">
-        @(Html.DevExtreme().Toast()
-            .ID("toast")
-            .Position(p => p
-            .At(HorizontalAlignment.Center, VerticalAlignment.Center)
-            .Offset(0, 50))
-            .Message(DataStatus)
-            .DisplayTime(2000)
-            .MaxWidth(200)
-        )
+// 顯示上傳成功
+$("#toast").dxToast("instance").show();
+}
+}
+</text>)
+)
+</div>
+<div id="ToastContainer">
+@(Html.DevExtreme().Toast()
+.ID("toast")
+.Position(p => p
+.At(HorizontalAlignment.Center, VerticalAlignment.Center)
+.Offset(0, 50))
+.Message(DataStatus)
+.DisplayTime(2000)
+.MaxWidth(200)
+)
 
-    </div>
-    <div id="LoadPanel">
-        @(Html.DevExtreme().LoadPanel()
-            .ID("loadPanel")
-            .ShadingColor("rgba(0,0,0,0.4)")
-            //.Position(p => p.Of("#data-grid").Of("#buttonContainer"))
-            .Position(p => p.Of("#data-grid"))
-            .Visible(false)
-            .ShowIndicator(true)
-            .ShowPane(true)
-            .Shading(true)
-            .CloseOnOutsideClick(false)
-            .Message("更新資料中...")
-            .Animation(l => l.Show(k => k.Easing(AnimationEasing.Swing)))
-            //.OnShown("loadPanel_shown")
-            //.OnHidden("loadPanel_hidden")
-        )
-    </div>
-    <div id="ToastContainer">
-        @(Html.DevExtreme().Toast()
-            .ID("ToastReUpload")
-            .Position(p => p
-            .At(HorizontalAlignment.Center, VerticalAlignment.Center)
-            .Offset(0, 50))
-            .Message(ReUpload)
-            .DisplayTime(5000)
-            .Type(ToastType.Error)
-            .MaxWidth(500)
-        )
-    </div>
-    <div id="ToastContainerNoSelectDate">
-        @(Html.DevExtreme().Toast()
-            .ID("ToastNoSelectDate")
-            .Position(p => p
-            .At(HorizontalAlignment.Center, VerticalAlignment.Center)
-            .Offset(0, 50))
-            .Message("沒有選擇日期")
-            .DisplayTime(5000)
-            .Type(ToastType.Error)
-            .MaxWidth(500)
-        )
-    </div>
+</div>
+<div id="LoadPanel">
+@(Html.DevExtreme().LoadPanel()
+.ID("loadPanel")
+.ShadingColor("rgba(0,0,0,0.4)")
+//.Position(p => p.Of("#data-grid").Of("#buttonContainer"))
+.Position(p => p.Of("#data-grid"))
+.Visible(false)
+.ShowIndicator(true)
+.ShowPane(true)
+.Shading(true)
+.CloseOnOutsideClick(false)
+.Message("更新資料中...")
+.Animation(l => l.Show(k => k.Easing(AnimationEasing.Swing)))
+//.OnShown("loadPanel_shown")
+//.OnHidden("loadPanel_hidden")
+)
+</div>
+<div id="ToastContainer">
+@(Html.DevExtreme().Toast()
+.ID("ToastReUpload")
+.Position(p => p
+.At(HorizontalAlignment.Center, VerticalAlignment.Center)
+.Offset(0, 50))
+.Message(ReUpload)
+.DisplayTime(5000)
+.Type(ToastType.Error)
+.MaxWidth(500)
+)
+</div>
+<div id="ToastContainerNoSelectDate">
+@(Html.DevExtreme().Toast()
+.ID("ToastNoSelectDate")
+.Position(p => p
+.At(HorizontalAlignment.Center, VerticalAlignment.Center)
+.Offset(0, 50))
+.Message("沒有選擇日期")
+.DisplayTime(5000)
+.Type(ToastType.Error)
+.MaxWidth(500)
+)
+</div>
 </div>
 
 <div id="data-grid">
-    <p style="font-family:標楷體;font-size: 160%; color: darkred; text-align:right;background-color:powderblue;font-weight: bold">請按+號新增幸福小組週報</p>
+<p style="font-family:標楷體;font-size: 160%; color: darkred; text-align:right;background-color:powderblue;font-weight: bold">請按+號新增幸福小組週報</p>
 
-    @(Html.DevExtreme().DataGrid()
-        .ID("gridContainer")
-        .AllowColumnResizing(true)
-        .AllowColumnReordering(true)
-        //.ColumnAutoWidth(true)
-        .NoDataText("沒有資料")
-        .ShowBorders(true)
-        .DataSource(d => d
-        .WebApi()
-        .Controller("Home")
-        .LoadAction("LoadHappyWeeklyReport")
-        .InsertAction("PostBest")
-        .DeleteAction("DeleteBest")
-        .UpdateAction("PutBest")
-        .Key("HappyGroupWeeklyReportId")
-        )
+@(Html.DevExtreme().DataGrid()
+.ID("gridContainer")
+.AllowColumnResizing(true)
+.AllowColumnReordering(true)
+//.ColumnAutoWidth(true)
+.NoDataText("沒有資料")
+.ShowBorders(true)
+.DataSource(d => d
+.WebApi()
+.Controller("Home")
+.LoadAction("LoadHappyWeeklyReport")
+.InsertAction("PostBest")
+.DeleteAction("DeleteBest")
+.UpdateAction("PutBest")
+.Key("HappyGroupWeeklyReportId")
+)
 
-        .Editing(editing =>
-        {
+.Editing(editing =>
+{
 //editing.Mode(GridEditMode.Row);
 editing.Mode(GridEditMode.Cell);
 //editing.Mode(GridEditMode.Batch);
@@ -184,115 +184,109 @@ editing.Mode(GridEditMode.Cell);
 editing.AllowUpdating(true);
 //editing.AllowDeleting(true);
 editing.AllowAdding(true);
-            editing.Texts(a => a.SaveAllChanges("上傳檔案").AddRow("新增").CancelAllChanges("取消變更").SaveRowChanges("確定").CancelRowChanges("取消").EditRow("編輯").DeleteRow("刪除").ConfirmDeleteTitle("確定要刪除嗎?").ConfirmDeleteMessage("刪除幸福小組週報"));
+editing.Texts(a => a.SaveAllChanges("上傳檔案").AddRow("新增").CancelAllChanges("取消變更").SaveRowChanges("確定").CancelRowChanges("取消").EditRow("編輯").DeleteRow("刪除").ConfirmDeleteTitle("確定要刪除嗎?").ConfirmDeleteMessage("刪除幸福小組週報"));
 //editing.AllowDeleting(true);
 })
 
 
-        .OnContentReady(
-        @<text>
-        function(e)
-        {
-        moveEditColumnToLeft(e.component);
-        }
-        </text> )
+.OnContentReady(
+@<text>
+function(e)
+{
+moveEditColumnToLeft(e.component);
+}
+</text> )
 
-        .OnCellPrepared("cell_prepared")
-        .OnSelectionChanged(
-        @<text>
-        function(e) {
-        //debugger;
-        alert("SELECT");
-        e.component.collapseAll(-1);
-        e.component.expandRow(e.currentSelectedRowKeys[0]);
-        }
-        </text>)
-        .OnRowInserted(
-        @<text>
-        function(e) {
-        //debugger;
-        e.component.collapseAll(-1);
-        if( e.key != "")
-        {
-        e.component.expandRow(e.key);
-        }
-        else
-        {
-        e.component.expandRow(e.data);
-        }
-        }
-        </text>)
-        .OnRowUpdated(
-        @<text>
-        function(e) {
-        //debugger;
-        e.component.collapseAll(-1);
+.OnCellPrepared("cell_prepared")
+.OnSelectionChanged(
+@<text>
+function(e) {
+//debugger;
+alert("SELECT");
+e.component.collapseAll(-1);
+e.component.expandRow(e.currentSelectedRowKeys[0]);
+}
+</text>)
+.OnRowInserted(
+@<text>
+function(e) {
+//debugger;
+e.component.collapseAll(-1);
+if( e.key != "")
+{
+e.component.expandRow(e.key);
+}
+else
+{
+e.component.expandRow(e.data);
+}
+}
+</text>)
+.OnRowUpdated(
+@<text>
+function(e) {
+//debugger;
+e.component.collapseAll(-1);
 
-        e.component.expandRow(e.key);
-        }
-        </text>)
-        /**/
-        /**/
-        /**/
-        @*.OnRowCollapsed(
-            @<text>
-            function(e) {
-            alert("Collapsed001" + e.key);
-            e.component.collapseAll(-1);
-            e.component.expandRow(e.key);
-            }
-            </text>)*@
-        /**/
-        /**/
-        /**/
+e.component.expandRow(e.key);
+}
+</text>)
+/**/
+/**/
+/**/
+@*.OnRowCollapsed(
+@<text>
+function(e) {
+alert("Collapsed001" + e.key);
+e.component.collapseAll(-1);
+e.component.expandRow(e.key);
+}
+</text>)*@
+/**/
+/**/
+/**/
 
-        .Columns(columns =>
-        {
-            columns.Add()
+.Columns(columns =>
+{
+columns.Add()
 .DataField("HappyGroupName")
 .Caption("小組")
 .GroupIndex(0).MinWidth(10);
 
+columns.Add()
+.DataField("WeekCounter")
+.Caption("週次")
+.Fixed(true)
+.Width(80)
+.Lookup(lookup => lookup
+.DataSource
+(
+new string[]
+{
+"第一週",
+"第二週",
+"第三週",
+"第四週",
+"第五週",
+"第六週",
+"第七週",
+"第八週",
+"第九週",
+"第十週",
+}
+)
+//.DisplayExpr("Name")
+//.ValueExpr("ID")
+);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-            columns.Add()
+columns.Add()
 .DataField("MeetingDate")
 .DataType(GridColumnDataType.Date)
 .Format("yyyy/M/d")
 .Caption("聚會日期")
 .Width(90);
 
-            columns.Add()
+columns.Add()
 .DataField("Topic")
 .Caption("主題")
 .Width(200)
@@ -318,14 +312,14 @@ new string[]
 "耶穌基督十字架的勝利",
 "釋放與自由",
 "帶來幸福的教會",
-        }
+}
 )
 //.DisplayExpr("Name")
 //.ValueExpr("ID")
 );
 
 
-            columns.Add()
+columns.Add()
 .DataField("Location")
 .Caption("聚會地點")
 .Width(90);
@@ -335,17 +329,17 @@ new string[]
 /**/
 /**/
 @*columns.Add()
-    .Caption("開始時間")
-    .Width(155)
-    .CellTemplate
-    (@<text>
-    @(Html.DevExtreme().DateBox()
-    .Type(DateBoxType.Time)
-    //.OnValueChanged("SelectStartTime")
-    .OnValueChanged("SelectStartTime.bind(this, arguments[0])")
-    .Value(new JS("data.StartTime"))
-    )
-    </text>);*@
+.Caption("開始時間")
+.Width(155)
+.CellTemplate
+(@<text>
+@(Html.DevExtreme().DateBox()
+.Type(DateBoxType.Time)
+//.OnValueChanged("SelectStartTime")
+.OnValueChanged("SelectStartTime.bind(this, arguments[0])")
+.Value(new JS("data.StartTime"))
+)
+</text>);*@
 /**/
 /**/
 /**/
@@ -354,75 +348,75 @@ new string[]
 /**/
 /**/
 @*columns.Add()
-    .DataField("StartTime")
-    .Caption("開始時間")
-    .DataType(GridColumnDataType.Date)
-    .Width(90);
+.DataField("StartTime")
+.Caption("開始時間")
+.DataType(GridColumnDataType.Date)
+.Width(90);
 
-    columns.Add()
-    .DataField("EndTime")
-    .Caption("結束時間")
-    .DataType(GridColumnDataType.Date)
-    .Width(90);*@
+columns.Add()
+.DataField("EndTime")
+.Caption("結束時間")
+.DataType(GridColumnDataType.Date)
+.Width(90);*@
 /**/
 /**/
 /**/
 
-            columns.Add()
+columns.Add()
 .DataField("StartTime")
 .Caption("開始時間")
 .Width(75);
 
-            columns.Add()
+columns.Add()
 .DataField("EndTime")
 .Caption("結束時間")
 .Width(75);
 
-            columns.Add()
+columns.Add()
 .DataField("HappyWeeklyReport")
 .Caption("幸福小組日誌")
 .Width(350);
 
-        })
-        .MasterDetail(md =>
-        {
-            md.Enabled(true);
-            md.Template(new TemplateName("DetailBestList"));
+})
+.MasterDetail(md =>
+{
+md.Enabled(true);
+md.Template(new TemplateName("DetailBestList"));
 
-        })
-    )
+})
+)
 </div>
 
 @using (Html.DevExtreme().NamedTemplate("DetailBestList"))
 {
-    @(Html.Partial("DetailGrid"))
+@(Html.Partial("DetailGrid"))
 
 }
 
 <script>
-    function moveEditColumnToLeft(dataGrid) {
-        dataGrid.columnOption("command:edit", {
-            visibleIndex: -1,
-            width: 50
-        });
-    }
+function moveEditColumnToLeft(dataGrid) {
+dataGrid.columnOption("command:edit", {
+visibleIndex: -1,
+width: 50
+});
+}
 
-    function cell_prepared(e) {
-        if (e.rowType === "data" && e.column.command === "edit") {
-            var isEditing = e.row.isEditing,
-                $links = e.cellElement.find(".dx-link");
+function cell_prepared(e) {
+if (e.rowType === "data" && e.column.command === "edit") {
+var isEditing = e.row.isEditing,
+$links = e.cellElement.find(".dx-link");
 
-            $links.text("");
+$links.text("");
 
-            if (isEditing) {
-                $links.filter(".dx-link-save").addClass("dx-icon-save");
-                $links.filter(".dx-link-cancel").addClass("dx-icon-revert");
-            } else {
-                $links.filter(".dx-link-edit").addClass("dx-icon-edit");
-                $links.filter(".dx-link-delete").addClass("dx-icon-trash");
-            }
-        }
-    }
+if (isEditing) {
+$links.filter(".dx-link-save").addClass("dx-icon-save");
+$links.filter(".dx-link-cancel").addClass("dx-icon-revert");
+} else {
+$links.filter(".dx-link-edit").addClass("dx-icon-edit");
+$links.filter(".dx-link-delete").addClass("dx-icon-trash");
+}
+}
+}
 </script>
 
 <link href="~/css/MasterDetail.css" rel="stylesheet" />
