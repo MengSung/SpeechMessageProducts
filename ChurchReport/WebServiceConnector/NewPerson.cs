@@ -167,8 +167,16 @@ namespace ChurchReport.WebServiceConnector
                 Entity aNewContactEntity = new Entity("contact");
 
                 // 設定連絡人相關屬性
+
                 Entity aListEntity = GetRelatedList(aAccountPasswordData, aNewContact.GroupName);
-                SetupNewContactParameter(ref aNewContactEntity, aAccountPasswordData, ref aNewContact, aListEntity.Id );
+                if (aListEntity != null)
+                {
+                    SetupNewContactParameter(ref aNewContactEntity, aAccountPasswordData, ref aNewContact, aListEntity.Id);
+                }
+                else
+                {
+                    SetupNewContactParameter(ref aNewContactEntity, aAccountPasswordData, ref aNewContact, Guid.Empty);
+                }
 
                 // 新增連絡人
                 Guid NewContactEntityId = this.m_ToolUtilityClass.CreateEntity(aNewContactEntity);

@@ -817,7 +817,12 @@ namespace ChurchReport.Controllers
             if (aPersonFormViewModel.Position == "0" || aPersonFormViewModel.Position == "1" || aPersonFormViewModel.Position == "2" || aPersonFormViewModel.Position == "3" || aPersonFormViewModel.Position == "4" || aPersonFormViewModel.Position == "5")
             {
                 int GroupIndex = Convert.ToInt32(aPersonFormViewModel.Position);
-                aPersonFormViewModel.Position = AssignSmallGroupList.AssignSmallGroupListData[Convert.ToInt32(aPersonFormViewModel.Position)].Name;
+
+                // 幸福小組長上傳新人有可能沒有所屬小組可選
+                if (AssignSmallGroupList.AssignSmallGroupListData.Count > 0)
+                {
+                    aPersonFormViewModel.Position = AssignSmallGroupList.AssignSmallGroupListData[Convert.ToInt32(aPersonFormViewModel.Position)].Name;
+                }
             }
 
             m_SmallGroupDataList.AddNewPersonToSmallGroup(aPersonFormViewModel);
