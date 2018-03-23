@@ -282,6 +282,11 @@ namespace ChurchReport.WebServiceConnector
             {
                 this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aNewContactEntity, "birthdate", aNewContact.BirthDate);
             }
+            // 進教會日期
+            if (aNewContact.BirthDate.Year > 1900)
+            {
+                this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aNewContactEntity, "new_enter_church_date", aNewContact.FirstChurchDate);
+            }
 
             // 性別，楊梅靈糧堂
             if (aNewContact.Gender)
@@ -313,15 +318,20 @@ namespace ChurchReport.WebServiceConnector
             // "基督徒", "慕道友"
             if (aNewContact.FaithStatus == "基督徒")
             { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "new_spiriitual_identity", 100000000); }
-            else if (aNewContact.MerrageState == "慕道友")
+            else if (aNewContact.FaithStatus == "未信主")
             { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "new_spiriitual_identity", 100000001); }
+            else if (aNewContact.FaithStatus == "已決志")
+            { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "new_spiriitual_identity", 100000002); }
             else { }
 
             // 來源
             this.m_ToolUtilityClass.SetEntityStringAttribute(ref aNewContactEntity, "new_coming_reason", aNewContact.Source);
 
-            // 描述
-            //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aNewContactEntity, "description", aNewContact.Note);
+            // 邀請人相關欄位設定
+            this.m_ToolUtilityClass.SetEntityStringAttribute(ref aNewContactEntity, "new_invitor", aNewContact.Introducer);
+            this.m_ToolUtilityClass.SetEntityStringAttribute(ref aNewContactEntity, "assistantphone", aNewContact.IntroducerPhone);
+            this.m_ToolUtilityClass.SetEntityStringAttribute(ref aNewContactEntity, "new_carers", aNewContact.IntroducerRelation);
+            this.m_ToolUtilityClass.SetEntityStringAttribute(ref aNewContactEntity, "new_invitor_group", aNewContact.IntroducerGroup);
 
             // 首次參加活動日期
             if (aNewContact.FirstActionDate.Year > 1000)
@@ -337,7 +347,7 @@ namespace ChurchReport.WebServiceConnector
 
             // 設定描述是由APP建立的
             String aFullName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref m_ContactEntity, "fullname");
-            this.m_ToolUtilityClass.SetEntityStringAttribute(ref aNewContactEntity, "description", aFullName + " 透過 APP 建立的新人" + Environment.NewLine + aNewContact.Note );
+            this.m_ToolUtilityClass.SetEntityStringAttribute(ref aNewContactEntity, "description", aFullName + " 透過網頁回報建立的新人" + Environment.NewLine + aNewContact.Note );
 
             #endregion
         }

@@ -22,11 +22,17 @@ namespace ChurchReport.Models
             Position = "",
             MerrageState="未知",
             BirthDate = DateTime.Parse("1975/01/1"),
-            HireDate = DateTime.Parse("2017/08/25"),
+            //HireDate = DateTime.Parse("2017/08/25"),
+            HireDate = DateTime.Now,
             Notes = "",
             Address = "",
             ReadBibleNumber = 5,
-            Status = "慕道友"
+            Status = "未信主",
+
+            Introducer = "",
+            IntroducerPhone = "",
+            IntroducerGroup ="",
+            IntroducerRelation = ""
         };
 
         public NewContact m_NewContact = new NewContact();
@@ -67,6 +73,10 @@ namespace ChurchReport.Models
             m_PersonFormViewModel.Address = aPersonFormViewModel.Address;
             m_PersonFormViewModel.ReadBibleNumber = aPersonFormViewModel.ReadBibleNumber;
             m_PersonFormViewModel.Status = aPersonFormViewModel.Status;
+            m_PersonFormViewModel.Introducer = aPersonFormViewModel.Introducer;
+            m_PersonFormViewModel.IntroducerPhone = aPersonFormViewModel.IntroducerPhone;
+            m_PersonFormViewModel.IntroducerRelation = aPersonFormViewModel.IntroducerRelation;
+            m_PersonFormViewModel.IntroducerGroup = aPersonFormViewModel.IntroducerGroup;
 
         }
         public void MappingPersonFormViewModelToNewContact(PersonFormViewModel aPersonFormViewModel)
@@ -80,7 +90,11 @@ namespace ChurchReport.Models
             m_NewContact.BirthDate          = aPersonFormViewModel.BirthDate;
             m_NewContact.FirstActionDate    = aPersonFormViewModel.HireDate;
             m_NewContact.FirstChurchDate    = aPersonFormViewModel.HireDate;
-            
+            m_NewContact.Introducer         = aPersonFormViewModel.Introducer;
+            m_NewContact.IntroducerPhone    = aPersonFormViewModel.IntroducerPhone;
+            m_NewContact.IntroducerRelation = aPersonFormViewModel.IntroducerRelation;
+            m_NewContact.IntroducerGroup    = aPersonFormViewModel.IntroducerGroup;
+
             // 性別
             if (aPersonFormViewModel.Gender == "男性")
             {

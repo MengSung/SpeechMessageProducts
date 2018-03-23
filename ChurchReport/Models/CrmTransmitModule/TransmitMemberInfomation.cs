@@ -506,6 +506,30 @@ namespace ChurchReport.Models.CrmTransmitModule
             set { m_FaithStatus = value; }
         }
 
+        string m_Introducer = "";
+        public string Introducer
+        {
+            get { return m_Introducer; }
+            set { m_Introducer = value; }
+        }
+        string m_IntroducerPhone = "";
+        public string IntroducerPhone
+        {
+            get { return m_IntroducerPhone; }
+            set { m_IntroducerPhone = value; }
+        }
+        string m_IntroducerRelation = "";
+        public string IntroducerRelation
+        {
+            get { return m_IntroducerRelation; }
+            set { m_IntroducerRelation = value; }
+        }
+        string m_IntroducerGroup = "";
+        public string IntroducerGroup
+        {
+            get { return m_IntroducerGroup; }
+            set { m_IntroducerGroup = value; }
+        }
         string m_Note = "";
         public string Note
         {

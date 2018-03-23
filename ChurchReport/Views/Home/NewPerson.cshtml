@@ -157,16 +157,17 @@
                     .Placeholder("生日")
                 );
 
-            //items.AddSimple()
-            //    .DataField("HireDate")
-            //    .Label(l => l.Text("輸入日期"))
-            //    .Editor(
-            //            e => e.DateBox()//.Value(new JS("null")) 
-            //        )
-            //    //.ValidationRules(r => r
-            //    //        .AddRequired()
-            //    //        .Message("Hire date is required")
-            //    //    );
+            items.AddSimple()
+                .DataField("HireDate")
+                .Label(l => l.Text("進教會日期"))
+                .Editor(
+                        e => e.DateBox()//.Value(new JS("null")) 
+                        .Placeholder("進教會日期")
+                    );
+            //.ValidationRules(r => r
+            //        .AddRequired()
+            //        .Message("Hire date is required")
+            //    );
 
             items.AddSimple()
                 .DataField("MerrageState")
@@ -186,6 +187,23 @@
                     .Value("未知")
                     );
 
+            items.AddSimple()
+                .DataField("Introducer")
+                .Label(l => l.Text("邀請人"))
+                ;
+            items.AddSimple()
+                .DataField("IntroducerPhone")
+                .Label(l => l.Text("邀請人電話"))
+                ;
+            items.AddSimple()
+                .DataField("IntroducerRelation")
+                .Label(l => l.Text("與邀請人關係"))
+                ;
+            items.AddSimple()
+                .DataField("IntroducerGroup")
+                .Label(l => l.Text("邀請人小組"))
+                ;
+
             //items.AddSimple()
             //    .DataField("ReadBibleNumber")
             //    .Label(l => l.Text("讀經次數"))
@@ -197,19 +215,35 @@
             //    )
             //    .IsRequired(false);
 
+
             items.AddSimple()
-                   .ColSpan(1)
-                   .Label(l => l.Text("信仰狀況"))
-                   .DataField("Status")
-                   .Editor(e => e
-                       .RadioGroup()
-                       .Items(new[] { "慕道友", "基督徒" })
-                       .Layout(Orientation.Horizontal)
-                   );
+                .DataField("Status")
+                .Label(l => l.Text("信仰狀況態"))
+                .Editor(e => e
+                    .SelectBox()
+                    .DataSource(new string[] {
+                                        "未信主",
+                                        "基督徒",
+                                        "已決志",
+                        }
+                    //.DisplayExpr("Name")
+                    )
+                    .Value("未知")
+                    );
+
+            //items.AddSimple()
+            //       .ColSpan(1)
+            //       .Label(l => l.Text("信仰狀況"))
+            //       .DataField("Status")
+            //       .Editor(e => e
+            //           .RadioGroup()
+            //           .Items(new[] { "未信主", "基督徒", "已決志" })
+            //           .Layout(Orientation.Horizontal)
+            //       );
 
 
             items.AddSimple()
-                .ColSpan(2)
+                .ColSpan(3)
                 .Label(l => l.Text("附註"))
                 .DataField("Notes")
                 .Editor(e => e
