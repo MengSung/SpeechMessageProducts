@@ -184,15 +184,13 @@ namespace ChurchReport.WebServiceConnector
                 // 將剛剛新增的聯絡人加入至成員名單
                 ConnectNewContactInMemberList(NewContactEntityId, aNewContact.GroupName, aListEntity );
 
-
-                #region// 建立個人聚會與靈修記錄
+                #region 建立個人聚會與靈修記錄
                 if (aListEntity != null)
                 {
                     // 有找到被關聯的小組名單
                     CreateNewContactPresentRecord(aListEntity, NewContactEntityId, aNewContact.GroupName);
                 }
                 #endregion
-
                 #region 關聯主要小組
                 //this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aNewContactEntity, "new_cell_list_contact", "list", aListEntity.Id);
                 #endregion
@@ -226,7 +224,6 @@ namespace ChurchReport.WebServiceConnector
             }
             m_ContactId = m_ContactEntity.Id;
             #endregion
-
             #region 蒐集建立新人所需要的屬性
 
             // 搜尋小組長的門徒小組名單Lookup Id
@@ -235,7 +232,6 @@ namespace ChurchReport.WebServiceConnector
             m_RaceLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref m_ContactEntity, "new_race_leader_contact");
 
             #endregion
-
             #region 建立關聯
             #region 關聯所屬教會
             //取得小組長的所屬教會
@@ -259,7 +255,6 @@ namespace ChurchReport.WebServiceConnector
                 this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aNewContactEntity, "new_invitnewperson_contact", "contact", m_ContactId);
             }
             #endregion
-
             #endregion
 
             #region 基本資料
