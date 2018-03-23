@@ -1093,7 +1093,14 @@ namespace ChurchReport.WebServiceConnector
 
                 //取得週報 Best 名單，加上現在 Best ，然後存回去
                 String aBestList = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aWeeklyReportEntity, "new_best_name_list");
-                aBestList += "," + aBestFullName;
+                if (aBestList == "")
+                {
+                    aBestList = aBestFullName;
+                }
+                else
+                {
+                    aBestList += "," + aBestFullName;
+                }
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aWeeklyReportEntity, "new_best_name_list", aBestList);
 
 
@@ -2305,15 +2312,41 @@ namespace ChurchReport.WebServiceConnector
                 #region 計算幸福小組週報出席及決志人數
                 int TotalHappyPresent = 0;
                 int TotalHappyDecision = 0;
+                int BestPresentNumber = 0; // Best 出席人數
+                int BestDecisionNumber = 0; // Best 決志人數
+                String BestPresentList = "";
+                String BestDecisionList = "";
+
                 foreach (Entity PresentRecordEntity in PresentRecordCollection.Entities)
                 {
-                    TotalHappyPresent += this.m_ToolUtilityClass.GetEntityIntAttribute(PresentRecordEntity, "new_happy_present");
-                    TotalHappyDecision += this.m_ToolUtilityClass.GetEntityIntAttribute(PresentRecordEntity, "new_happy_decision");
+                    int HappyPresent = this.m_ToolUtilityClass.GetEntityIntAttribute(PresentRecordEntity, "new_happy_present");
+                    int HappyDecision = this.m_ToolUtilityClass.GetEntityIntAttribute(PresentRecordEntity, "new_happy_decision");
+                    TotalHappyPresent += HappyPresent;
+                    TotalHappyDecision += HappyDecision;
+
+                    if (this.m_ToolUtilityClass.GetEntityBoolAttribute(PresentRecordEntity, "new_best_flag") == true)
+                    {
+                        BestPresentNumber += HappyPresent;
+                        BestDecisionNumber += HappyDecision;
+
+                        if (HappyPresent == 1)
+                            BestPresentList += this.m_ToolUtilityClass.GetEntityLookupDisplayName(PresentRecordEntity, "new_contact_new_present_record") + ",";
+                        if (HappyDecision == 1)
+                            BestDecisionList += this.m_ToolUtilityClass.GetEntityLookupDisplayName(PresentRecordEntity, "new_contact_new_present_record") + ",";
+                    }
                 }
+
+                ToolUtilityClass.DeleteLastChar(ref BestPresentList);
+                ToolUtilityClass.DeleteLastChar(ref BestDecisionList);
                 #endregion
 
                 this.m_ToolUtilityClass.SetEntityIntAttribute(ref HappyWeeklyReport, "new_small_group_number", TotalHappyPresent);
                 this.m_ToolUtilityClass.SetEntityIntAttribute(ref HappyWeeklyReport, "new_decision_number", TotalHappyDecision);
+
+                this.m_ToolUtilityClass.SetEntityIntAttribute(ref HappyWeeklyReport, "new_best_attend_number", BestPresentNumber);
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref HappyWeeklyReport, "new_best_attend_list", BestPresentList);
+                this.m_ToolUtilityClass.SetEntityIntAttribute(ref HappyWeeklyReport, "new_best_decision_number", BestDecisionNumber);
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref HappyWeeklyReport, "new_best_decision_list", BestDecisionList);
 
                 this.m_ToolUtilityClass.UpdateEntity(ref HappyWeeklyReport);
 
