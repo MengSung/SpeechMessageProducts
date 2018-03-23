@@ -71,8 +71,18 @@
                                                                  );
 
                                                             columns.Add()
+                                                                 .DataField("BestIntroducer")
+                                                                 .Caption("介紹人")
+                                                                 .Width(90);
+
+                                                            columns.Add()
+                                                                 .DataField("BestRelationship")
+                                                                 .Caption("與介紹人關係")
+                                                                 .Width(110);
+
+                                                            columns.Add()
                                                                 .DataField("Note")
-                                                                .Width(200)
+                                                                .Width(400)
                                                                 .Caption("關懷記事");
 
                                                         })

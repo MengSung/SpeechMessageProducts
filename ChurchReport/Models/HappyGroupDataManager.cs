@@ -223,6 +223,14 @@ namespace ChurchReport.Models
             {
                 aHappyGroupWeeklyReportListClass.HappyGroupWeeklyReportList[MasterIndex].BestRecordList[DetailIndex].BestLeader = aBestRecord.BestLeader;
             }
+            if (aBestRecord.BestIntroducer != null)
+            {
+                aHappyGroupWeeklyReportListClass.HappyGroupWeeklyReportList[MasterIndex].BestRecordList[DetailIndex].BestIntroducer = aBestRecord.BestIntroducer;
+            }
+            if (aBestRecord.BestRelationship != null)
+            {
+                aHappyGroupWeeklyReportListClass.HappyGroupWeeklyReportList[MasterIndex].BestRecordList[DetailIndex].BestRelationship = aBestRecord.BestRelationship;
+            }
         }
         #endregion
         #region 刪除

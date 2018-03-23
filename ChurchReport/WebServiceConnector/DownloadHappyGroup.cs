@@ -532,7 +532,9 @@ namespace ChurchReport.WebServiceConnector
                         Present = this.m_ToolUtilityClass.GetEntityIntAttribute(HappyPresentEntity, "new_happy_present") == 1 ? true : false,
                         Decision = this.m_ToolUtilityClass.GetEntityIntAttribute(HappyPresentEntity, "new_happy_decision") == 1 ? true : false,
                         Note = this.m_ToolUtilityClass.GetEntityStringAttribute(HappyPresentEntity, "new_name"),
-                        BestLeader = SpiritLeaderName// 屬靈認領者
+                        BestLeader = SpiritLeaderName,// 屬靈認領者
+                        BestIntroducer = this.m_ToolUtilityClass.GetEntityStringAttribute(aContactEntity, "new_best_introducer"),
+                        BestRelationship = this.m_ToolUtilityClass.GetEntityStringAttribute(aContactEntity, "new_best_relationship")
                     };
 
                     m_HappyGroupWeeklyReportList.HappyGroupWeeklyReportList[WeeklyReportIndex].BestRecordList.Add(aBestRecord);
@@ -1267,6 +1269,19 @@ namespace ChurchReport.WebServiceConnector
                     SetContactHappyTimesAndHistory(ref aQueryBestContactEntity, aHappyGroupWeeklyReportToBeAdded.Topic);
                 }
 
+                #region 設定 BEST 介紹人
+                if (aBestRecord.BestIntroducer != null)
+                {
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aQueryBestContactEntity, "new_best_introducer", aBestRecord.BestIntroducer);
+                }
+                #endregion
+                #region 設定 BEST 與介紹人關係
+                if (aBestRecord.BestRelationship != null)
+                {
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aQueryBestContactEntity, "new_best_relationship", aBestRecord.BestRelationship);
+                }
+                #endregion
+
                 Guid aBestContactEntityId = this.m_ToolUtilityClass.CreateEntity(aQueryBestContactEntity);
 
                 return this.m_ToolUtilityClass.RetrieveEntity("contact", aBestContactEntityId);
@@ -1453,7 +1468,10 @@ namespace ChurchReport.WebServiceConnector
                         Present = false,
                         Decision = false,
                         Note = "",
-                        BestLeader = this.m_ToolUtilityClass.GetEntityLookupDisplayName(aContactEntity, "new_contact_contact_spiritleader")// 屬靈認領者
+                        BestLeader = this.m_ToolUtilityClass.GetEntityLookupDisplayName(aContactEntity, "new_contact_contact_spiritleader"),// 屬靈認領者
+                        BestIntroducer = this.m_ToolUtilityClass.GetEntityStringAttribute(aContactEntity, "new_best_introducer"),
+                        BestRelationship = this.m_ToolUtilityClass.GetEntityStringAttribute(aContactEntity, "new_best_relationship")
+
                     };
 
                     // 前台網頁要呈現的新增BEST的資料 
@@ -2057,6 +2075,19 @@ namespace ChurchReport.WebServiceConnector
                     }
                 }
                 #endregion
+                #region 設定 BEST 介紹人
+                if (aBestRecord.BestIntroducer != null)
+                {
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref BestContactEntity, "new_best_introducer", aBestRecord.BestIntroducer);
+                }
+                #endregion
+                #region 設定 BEST 與介紹人關係
+                if (aBestRecord.BestRelationship != null)
+                {
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref BestContactEntity, "new_best_relationship", aBestRecord.BestRelationship);
+                }
+                #endregion
+
                 return;
             }
             catch (System.Exception Exception)

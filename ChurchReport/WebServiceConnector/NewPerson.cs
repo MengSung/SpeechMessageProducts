@@ -144,15 +144,15 @@ namespace ChurchReport.WebServiceConnector
                     return ContactEntity;
                 }
 
-                String aExistContactHomePhone = DigitsOnly.Replace(this.m_ToolUtilityClass.GetEntityStringAttribute(ContactEntity, "telephone2"), "");
-                aExistContactHomePhone = DigitsOnly.Replace(aExistContactHomePhone, "");
+                //String aExistContactHomePhone = DigitsOnly.Replace(this.m_ToolUtilityClass.GetEntityStringAttribute(ContactEntity, "telephone2"), "");
+                //aExistContactHomePhone = DigitsOnly.Replace(aExistContactHomePhone, "");
 
-                aNewContact.HomePhone = DigitsOnly.Replace(aNewContact.HomePhone, "");
-                if (aNewContact.HomePhone == aExistContactHomePhone)
-                {
-                    // 住家電話一樣
-                    return ContactEntity;
-                }
+                //aNewContact.HomePhone = DigitsOnly.Replace(aNewContact.HomePhone, "");
+                //if (aNewContact.HomePhone == aExistContactHomePhone)
+                //{
+                //    // 住家電話一樣
+                //    return ContactEntity;
+                //}
             }
 
             return null;
