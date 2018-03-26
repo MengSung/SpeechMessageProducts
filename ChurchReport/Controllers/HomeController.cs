@@ -656,7 +656,7 @@ namespace ChurchReport.Controllers
 
             //Dictionary < string, string> aDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(key);
             //m_HappyGroupDataManager.UpdateActiveHappyGroup(aDictionary["BestRecordId"], values);
-            m_HappyGroupDataManager.UpdateActiveHappyGroup(key, values);
+            m_HappyGroupDataManager.UpdateActiveHappyGroup( key, values );
 
             SerializedHappyGroupDataManager = JsonConvert.SerializeObject(m_HappyGroupDataManager);
             TempData["HappyGroupDataManager"] = SerializedHappyGroupDataManager;
