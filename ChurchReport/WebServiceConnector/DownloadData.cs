@@ -2544,7 +2544,7 @@ namespace ChurchReport.WebServiceConnector
         //}
 
         // 委身類型客製化，委身類型客製化
-        //高雄錫安堂
+        // 台中生命之道靈糧堂
         private String ConvertIndexToIdentity(int Identity)
         {
             switch (Identity)
@@ -2559,18 +2559,22 @@ namespace ChurchReport.WebServiceConnector
                     return "04. 小組長";
                 case 100000002:
                     return "05. 實習小組長";
+                case 100000010:
+                    return "06. 門徒";
                 case 1:
-                    return "06. 小組組員";
+                    return "07. 小組組員";
                 case 100000005:
-                    return "07. 幸福BEST";
+                    return "08. 幸福BEST";
                 case 100000004:
-                    return "08. 未入組";
+                    return "09. 未入組";
                 case 100000000:
-                    return "09. 新朋友";
+                    return "10. 新朋友";
                 case 100000007:
-                    return "10. 外教會.訪客";
+                    return "11. 外教會.訪客";
                 case 100000001:
-                    return "11. 結案";
+                    return "12. 結案";
+                case 100000011:
+                    return "13. 未進小組直系親屬";
                 default:
                     return ".";
             }

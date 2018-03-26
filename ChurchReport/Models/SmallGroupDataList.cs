@@ -75,6 +75,7 @@ namespace ChurchReport.Models
             //m_SmallGroupData.SundayPrayers = m_SundayDate;
 
             SetSundayPrayersByWeeklyReport(FullName);
+
             #region  小組長回報
             //if (DisplayDateFlag == false)
             //{
@@ -163,7 +164,7 @@ namespace ChurchReport.Models
                 {
                     #region 登入者是小組長
                     // 委身類型客製化
-                    if (aMember.Status == "牧師師母" || aMember.Status == "區牧" || aMember.Status == "區長" || aMember.Status == "小組長" || aMember.Status == "實習小組長" || aMember.Status == "小組組員")
+                    if (aMember.Status == "牧師師母" || aMember.Status == "區牧" || aMember.Status == "區長" || aMember.Status == "門徒" || aMember.Status == "小組長" || aMember.Status == "實習小組長" || aMember.Status == "小組組員")
                     {
                         // 小組長牧養點名
                         m_SmallGroupData.Members.Add(aMember);
@@ -246,7 +247,17 @@ namespace ChurchReport.Models
                 }
             }
 
-            m_SmallGroupData.SundayPrayers = new DateTime(9999, 1, 1);
+            // 除錯!
+            // 這是個人回報
+            if (this.m_SelectDate != null)
+            {
+
+                m_SmallGroupData.SundayPrayers = this.m_SelectDate;
+            }
+            else
+            {
+                m_SmallGroupData.SundayPrayers = new DateTime(9999, 1, 1);
+            }
         }
 
         public void UploadMemberInfomationPackage()
