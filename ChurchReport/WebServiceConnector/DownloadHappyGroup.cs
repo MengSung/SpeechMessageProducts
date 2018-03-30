@@ -2393,30 +2393,86 @@ namespace ChurchReport.WebServiceConnector
         }
         #endregion
         #region 轉換下拉選項
+        //private String ConvertIndexToTopic(int FollowUpWeekIndex)
+        //{
+        //    switch (FollowUpWeekIndex)
+        //    {
+        //        case 100000000:
+        //            return "福音的能力";
+        //        case 100000001:
+        //            return "幸福小組是符合聖經的佈道小組";
+        //        case 100000002:
+        //            return "真幸福";
+        //        case 100000003:
+        //            return "欺騙者";
+        //        case 100000004:
+        //            return "救贖者耶穌";
+        //        case 100000005:
+        //            return "垂聽禱告的上帝";
+        //        case 100000006:
+        //            return "你要遇見神";
+        //        case 100000007:
+        //            return "耶穌基督十字架的勝利";
+        //        case 100000008:
+        //            return "釋放與自由";
+        //        case 100000009:
+        //            return "帶來幸福的教會";
+        //        default:
+        //            return "";
+        //    }
+        //}
+        //private int ConvertTopicToIndex(String Topic)
+        //{
+        //    switch (Topic)
+        //    {
+        //        case "福音的能力":
+        //            return 100000000;
+        //        case "幸福小組是符合聖經的佈道小組":
+        //            return 100000001;
+        //        case "真幸福":
+        //            return 100000002;
+        //        case "欺騙者":
+        //            return 100000003;
+        //        case "救贖者耶穌":
+        //            return 100000004;
+        //        case "垂聽禱告的上帝":
+        //            return 100000005;
+        //        case "你要遇見神":
+        //            return 100000006;
+        //        case "耶穌基督十字架的勝利":
+        //            return 100000007;
+        //        case "釋放與自由":
+        //            return 100000008;
+        //        case "帶來幸福的教會":
+        //            return 100000009;
+        //        default:
+        //            return 100000000;
+        //    }
+        //}
+
+        // 客製化，台中生命之道幸福小組專屬主題
         private String ConvertIndexToTopic(int FollowUpWeekIndex)
         {
             switch (FollowUpWeekIndex)
             {
                 case 100000000:
-                    return "福音的能力";
-                case 100000001:
-                    return "幸福小組是符合聖經的佈道小組";
-                case 100000002:
                     return "真幸福";
+                case 100000001:
+                    return "不再被騙";
+                case 100000002:
+                    return "你認識耶穌嗎？";
                 case 100000003:
-                    return "欺騙者";
+                    return "禱告使萬事都可能";
                 case 100000004:
-                    return "救贖者耶穌";
+                    return "上帝是我們在天上的父親";
                 case 100000005:
-                    return "垂聽禱告的上帝";
+                    return "成功的人生法則遇見幸福營";
                 case 100000006:
-                    return "你要遇見神";
+                    return "使你生活幸福的秘訣";
                 case 100000007:
-                    return "耶穌基督十字架的勝利";
+                    return "新人主日";
                 case 100000008:
-                    return "釋放與自由";
-                case 100000009:
-                    return "帶來幸福的教會";
+                    return "名人講座";
                 default:
                     return "";
             }
@@ -2425,26 +2481,24 @@ namespace ChurchReport.WebServiceConnector
         {
             switch (Topic)
             {
-                case "福音的能力":
-                    return 100000000;
-                case "幸福小組是符合聖經的佈道小組":
-                    return 100000001;
                 case "真幸福":
+                    return 100000000;
+                case "不再被騙":
+                    return 100000001;
+                case "你認識耶穌嗎？":
                     return 100000002;
-                case "欺騙者":
+                case "禱告使萬事都可能":
                     return 100000003;
-                case "救贖者耶穌":
+                case "上帝是我們在天上的父親":
                     return 100000004;
-                case "垂聽禱告的上帝":
+                case "成功的人生法則遇見幸福營":
                     return 100000005;
-                case "你要遇見神":
+                case "使你生活幸福的秘訣":
                     return 100000006;
-                case "耶穌基督十字架的勝利":
+                case "新人主日":
                     return 100000007;
-                case "釋放與自由":
+                case "名人講座":
                     return 100000008;
-                case "帶來幸福的教會":
-                    return 100000009;
                 default:
                     return 100000000;
             }
