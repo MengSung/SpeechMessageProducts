@@ -340,6 +340,7 @@ namespace ChurchReport.Models.CrmTransmitModule
     {
         public WeeklyReport()
         {
+            WeeklyReportContent = "尚未初始化";
         }
 
         //慕道友數

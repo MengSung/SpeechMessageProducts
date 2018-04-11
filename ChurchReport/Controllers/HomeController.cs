@@ -191,7 +191,7 @@ namespace ChurchReport.Controllers
             if (LoginParameter == "AccountPassword")
             {
                 #region 用小組長回報網頁登入
-                ViewBag.LoginType = m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_MemberInfomationPackage.m_LoginType;// 看是小組長還是個人回報
+                    ViewBag.LoginType = m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_MemberInfomationPackage.m_LoginType;// 看是小組長還是個人回報
                     ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_FullName;
 
                     String SerializedHappyGroupDataManager = (String)TempData.Peek("HappyGroupDataManager");
@@ -216,6 +216,7 @@ namespace ChurchReport.Controllers
             }
             else
             {
+                #region 小組長 Line 登入
                 String FullName = m_ToolUtilityClass.RetrieveContactEntityByLineUserId(LoginParameter).Attributes["fullname"].ToString();
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
@@ -229,9 +230,6 @@ namespace ChurchReport.Controllers
                 }
                 else
                 {
-                    //SmallGroupDataList m_SmallGroupDataList = new SmallGroupDataList();
-
-                    //m_SmallGroupDataList.SetupSmallGroupData(FullName, "LineIdLogin", LoginParameter, DateTime.Now.AddDays(-(int)DateTime.Now.DayOfWeek), true);
                     m_InMemoryDataContextSmallGroup.SetupSmallGroupData(FullName, "LineIdLogin", LoginParameter, DateTime.Now, true);
 
                     ViewBag.LoginType = m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_MemberInfomationPackage.m_LoginType;// 看是小組長還是個人回報
@@ -251,6 +249,7 @@ namespace ChurchReport.Controllers
 
                     return View(m_InMemoryDataContextSmallGroup.SmallGroupDataList);
                 }
+                #endregion
             }
         }
         [HttpPost]
@@ -260,18 +259,11 @@ namespace ChurchReport.Controllers
             //    { 'Id':1,'FullName':'吳連碧','Status':'小組長','SmallGroupName':'0201 連碧小組 - 主日出席率:50 % 小組出席率:0 %','SectionName':'0201 連碧小組 - 主日出席率:50 % 小組出席率:0 %','PrayItem':'未填','Sunday':'false','SmallGroup':'true','StateID1':'2','Number1':'4','StateID2':'1','Number2':'2','Picture':'../../ images / employees / 01.png','Shepherd':'null',},
             //    ]";
 
-            //SmallGroupDataList.m_SmallGroupData.members = JsonConvert.DeserializeObject<List<Member>>(json);
-
-            //String SmallGroupDataList = (String)TempData.Peek("SmallGroupDataList");
-            //TempData.Keep("SmallGroupDataList");
-            //SmallGroupDataList m_SmallGroupDataList = JsonConvert.DeserializeObject<SmallGroupDataList>(SmallGroupDataList);
-
             m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_SmallGroupData.Members.Clear();
             m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_SmallGroupData.Members = JsonConvert.DeserializeObject<List<Member>>(aResult);
 
             m_InMemoryDataContextSmallGroup.SmallGroupDataList.TransferToMemberInfomationPackage(m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_SmallGroupData);
             m_InMemoryDataContextSmallGroup.SmallGroupDataList.UploadMemberInfomationPackage();
-
 
             return Json(new { status = "1", message = "成功上傳了...." });
         }
@@ -280,15 +272,8 @@ namespace ChurchReport.Controllers
         [HttpGet]
         public ActionResult NewPersonFollowUpView()
         {
-            String SmallGroupDataListString = (String)TempData.Peek("SmallGroupDataList");
-            TempData.Keep("SmallGroupDataList");
-
-            if (SmallGroupDataListString != null)
-            {
-                SmallGroupDataList m_SmallGroupDataList = JsonConvert.DeserializeObject<SmallGroupDataList>(SmallGroupDataListString);
-
-                ViewBag.LoginType = m_SmallGroupDataList.m_MemberInfomationPackage.m_LoginType;// 看是小組長還是個人回報
-                ViewBag.LoginFullName = m_SmallGroupDataList.m_FullName;
+                ViewBag.LoginType = m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_MemberInfomationPackage.m_LoginType;// 看是小組長還是個人回報
+                ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_FullName;
 
                 String SerializedHappyGroupDataManager = (String)TempData.Peek("HappyGroupDataManager");
                 TempData.Keep("HappyGroupDataManager");
@@ -301,36 +286,16 @@ namespace ChurchReport.Controllers
                 {
                     ViewBag.HappyType = "沒幸福小組名單";
                 }
-                return View(m_SmallGroupDataList.m_NewPersonFollowUpData);
-            }
-            else
-            {
-                return RedirectToAction("Login");
-            }
+                return View(m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_NewPersonFollowUpData);
         }
         [HttpPost]
         public IActionResult SaveNewPersonFollowUp(String aResult)
         {
-            //string json = @"[
-            //    { 'Id':1,'FullName':'吳連碧','Status':'小組長','SmallGroupName':'0201 連碧小組 - 主日出席率:50 % 小組出席率:0 %','SectionName':'0201 連碧小組 - 主日出席率:50 % 小組出席率:0 %','PrayItem':'未填','Sunday':'false','SmallGroup':'true','StateID1':'2','Number1':'4','StateID2':'1','Number2':'2','Picture':'../../ images / employees / 01.png','Shepherd':'null',},
-            //    ]";
+            m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_NewPersonFollowUpData.Members.Clear();
+            m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_NewPersonFollowUpData.Members = JsonConvert.DeserializeObject<List<Member>>(aResult);
 
-            //SmallGroupDataList.m_SmallGroupData.members = JsonConvert.DeserializeObject<List<Member>>(json);
-
-            String SmallGroupDataList = (String)TempData.Peek("SmallGroupDataList");
-            TempData.Keep("SmallGroupDataList");
-            SmallGroupDataList m_SmallGroupDataList = JsonConvert.DeserializeObject<SmallGroupDataList>(SmallGroupDataList);
-
-            m_SmallGroupDataList.m_NewPersonFollowUpData.Members.Clear();
-            m_SmallGroupDataList.m_NewPersonFollowUpData.Members = JsonConvert.DeserializeObject<List<Member>>(aResult);
-
-            m_SmallGroupDataList.TransferToMemberInfomationPackage(m_SmallGroupDataList.m_NewPersonFollowUpData);
-            m_SmallGroupDataList.UploadMemberInfomationPackage();
-
-
-            String SerializedSmallGroupDataList = JsonConvert.SerializeObject(m_SmallGroupDataList);
-            TempData["SmallGroupDataList"] = SerializedSmallGroupDataList;
-
+            m_InMemoryDataContextSmallGroup.SmallGroupDataList.TransferToMemberInfomationPackage(m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_NewPersonFollowUpData);
+            m_InMemoryDataContextSmallGroup.SmallGroupDataList.UploadMemberInfomationPackage();
             return Json(new { status = "1", message = "成功上傳了...." });
         }
         #endregion
@@ -338,15 +303,8 @@ namespace ChurchReport.Controllers
         [HttpGet]
         public ActionResult MaintainPersonInfomationView()
         {
-            String SmallGroupDataListString = (String)TempData.Peek("SmallGroupDataList");
-            TempData.Keep("SmallGroupDataList");
-
-            if (SmallGroupDataListString != null)
-            {
-                SmallGroupDataList m_SmallGroupDataList = JsonConvert.DeserializeObject<SmallGroupDataList>(SmallGroupDataListString);
-
-                ViewBag.LoginType = m_SmallGroupDataList.m_MemberInfomationPackage.m_LoginType;// 看是小組長還是個人回報
-                ViewBag.LoginFullName = m_SmallGroupDataList.m_FullName;
+                ViewBag.LoginType = m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_MemberInfomationPackage.m_LoginType;// 看是小組長還是個人回報
+                ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_FullName;
 
                 String SerializedHappyGroupDataManager = (String)TempData.Peek("HappyGroupDataManager");
                 TempData.Keep("HappyGroupDataManager");
@@ -360,35 +318,16 @@ namespace ChurchReport.Controllers
                     ViewBag.HappyType = "沒幸福小組名單";
                 }
 
-                return View(m_SmallGroupDataList.m_AllMemeberData);
-            }
-            else
-            {
-                return RedirectToAction("Login");
-            }
+                return View(m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_AllMemeberData);
         }
         [HttpPost]
         public IActionResult SavePersonInfomation(String aResult)
         {
-            //string json = @"[
-            //    { 'Id':1,'FullName':'吳連碧','Status':'小組長','SmallGroupName':'0201 連碧小組 - 主日出席率:50 % 小組出席率:0 %','SectionName':'0201 連碧小組 - 主日出席率:50 % 小組出席率:0 %','PrayItem':'未填','Sunday':'false','SmallGroup':'true','StateID1':'2','Number1':'4','StateID2':'1','Number2':'2','Picture':'../../ images / employees / 01.png','Shepherd':'null',},
-            //    ]";
+            m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_AllMemeberData.Members.Clear();
+            m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_AllMemeberData.Members = JsonConvert.DeserializeObject<List<Member>>(aResult);
 
-            //SmallGroupDataList.m_SmallGroupData.members = JsonConvert.DeserializeObject<List<Member>>(json);
-
-            String SmallGroupDataList = (String)TempData.Peek("SmallGroupDataList");
-            TempData.Keep("SmallGroupDataList");
-            SmallGroupDataList m_SmallGroupDataList = JsonConvert.DeserializeObject<SmallGroupDataList>(SmallGroupDataList);
-
-            m_SmallGroupDataList.m_AllMemeberData.Members.Clear();
-            m_SmallGroupDataList.m_AllMemeberData.Members = JsonConvert.DeserializeObject<List<Member>>(aResult);
-
-            m_SmallGroupDataList.TransferToMemberInfomationPackage(m_SmallGroupDataList.m_AllMemeberData);
-            m_SmallGroupDataList.UploadMemberInfomationPackage();
-
-
-            String SerializedSmallGroupDataList = JsonConvert.SerializeObject(m_SmallGroupDataList);
-            TempData["SmallGroupDataList"] = SerializedSmallGroupDataList;
+            m_InMemoryDataContextSmallGroup.SmallGroupDataList.TransferToMemberInfomationPackage(m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_AllMemeberData);
+            m_InMemoryDataContextSmallGroup.SmallGroupDataList.UploadMemberInfomationPackage();
 
             return Json(new { status = "1", message = "成功上傳了...." });
         }
@@ -398,26 +337,14 @@ namespace ChurchReport.Controllers
         public IActionResult UpdateDate(string SelectedDate)
         {
             #region 小組 主日 點名
-            String SmallGroupDataList = (String)TempData.Peek("SmallGroupDataList");
-            TempData.Keep("SmallGroupDataList");
-            SmallGroupDataList m_SmallGroupDataList = JsonConvert.DeserializeObject<SmallGroupDataList>(SmallGroupDataList);
-
             //SmallGroupDataList m_SmallGroupDataList = new SmallGroupDataList();
             //DateTime aSelectDate = DateTime.Parse(SelectedDate);
             DateTime aSelectDate = DateTime.Parse(SelectedDate).ToLocalTime();
-            m_SmallGroupDataList.SetupSmallGroupData(m_SmallGroupDataList.m_FullName, m_SmallGroupDataList.m_Account, m_SmallGroupDataList.m_Password, aSelectDate, false);
-
-            String SerializedSmallGroupDataList = JsonConvert.SerializeObject(m_SmallGroupDataList);
-            TempData["SmallGroupDataList"] = SerializedSmallGroupDataList;
+            m_InMemoryDataContextSmallGroup.SmallGroupDataList.SetupSmallGroupData(m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_FullName, m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_Account, m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_Password, aSelectDate, false);
             #endregion
 
             #region 小組日誌
-            WeeklyReportData aWeeklyReportData = new WeeklyReportData();
-
-            aWeeklyReportData.SetupWeeklyReport(m_SmallGroupDataList.m_Account, m_SmallGroupDataList.m_Password, m_SmallGroupDataList.m_SundayDate);
-
-            String SerializedWeeklyReportData = JsonConvert.SerializeObject(aWeeklyReportData);
-            TempData["WeeklyReportData"] = SerializedWeeklyReportData;
+            m_InMemoryDataContextSmallGroup.WeeklyReportData.SetupWeeklyReport(m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_Account, m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_Password, m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_SundayDate);
             #endregion
 
             return Ok();
@@ -428,40 +355,12 @@ namespace ChurchReport.Controllers
 
         public IActionResult WeeklyReport()
         {
-            //  This type returns a redirect to an action or destination
-            //  (using Redirect, LocalRedirect, RedirectToAction, or RedirectToRoute). 
-            //  For example, return RedirectToAction("Complete", new { id = 123 });
-            //  redirects to Complete, passing an anonymous object.
-
-            String SmallGroupDataList = (String)TempData.Peek("SmallGroupDataList");
-            SmallGroupDataList m_SmallGroupDataList;
-
-            if (SmallGroupDataList != null)
-            {
-                TempData.Keep("SmallGroupDataList");
-                m_SmallGroupDataList = JsonConvert.DeserializeObject<SmallGroupDataList>(SmallGroupDataList);
-            }
-            else
-            {
-                return RedirectToAction("Login");
-            }
-
-            if (m_SmallGroupDataList.m_Account != "")
-            {
-                String WeeklyReportDataString = (String)TempData.Peek("WeeklyReportData");
-                TempData.Keep("WeeklyReportData");
-
-                if (WeeklyReportDataString == null)
+                if (m_InMemoryDataContextSmallGroup.WeeklyReportData.m_WeeklyReport.WeeklyReportContent == "尚未初始化")
                 {
-                    WeeklyReportData aWeeklyReportData = new WeeklyReportData();
+                    m_InMemoryDataContextSmallGroup.WeeklyReportData.SetupWeeklyReport(m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_Account, m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_Password, m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_SundayDate);
 
-                    aWeeklyReportData.SetupWeeklyReport(m_SmallGroupDataList.m_Account, m_SmallGroupDataList.m_Password, m_SmallGroupDataList.m_SundayDate);
-
-                    String SerializedWeeklyReportData = JsonConvert.SerializeObject(aWeeklyReportData);
-                    TempData["WeeklyReportData"] = SerializedWeeklyReportData;
-
-                    ViewBag.LoginType = m_SmallGroupDataList.m_MemberInfomationPackage.m_LoginType;// 看是小組長還是個人回報
-                    ViewBag.LoginFullName = m_SmallGroupDataList.m_FullName;
+                    ViewBag.LoginType = m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_MemberInfomationPackage.m_LoginType;// 看是小組長還是個人回報
+                    ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_FullName;
 
                     String SerializedHappyGroupDataManager = (String)TempData.Peek("HappyGroupDataManager");
                     TempData.Keep("HappyGroupDataManager");
@@ -475,14 +374,13 @@ namespace ChurchReport.Controllers
                         ViewBag.HappyType = "沒幸福小組名單";
                     }
 
-                    return View(aWeeklyReportData.m_WeeklyReportViewModel);
+                    return View(m_InMemoryDataContextSmallGroup.WeeklyReportData.m_WeeklyReportViewModel);
                 }
                 else
                 {
-                    WeeklyReportData aWeeklyReportData = JsonConvert.DeserializeObject<WeeklyReportData>(WeeklyReportDataString);
 
-                    ViewBag.LoginType = m_SmallGroupDataList.m_MemberInfomationPackage.m_LoginType;// 看是小組長還是個人回報
-                    ViewBag.LoginFullName = m_SmallGroupDataList.m_FullName;
+                    ViewBag.LoginType = m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_MemberInfomationPackage.m_LoginType;// 看是小組長還是個人回報
+                    ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_FullName;
 
                     String SerializedHappyGroupDataManager = (String)TempData.Peek("HappyGroupDataManager");
                     TempData.Keep("HappyGroupDataManager");
@@ -496,63 +394,32 @@ namespace ChurchReport.Controllers
                         ViewBag.HappyType = "沒幸福小組名單";
                     }
 
-                    return View(aWeeklyReportData.m_WeeklyReportViewModel);
+                    return View(m_InMemoryDataContextSmallGroup.WeeklyReportData.m_WeeklyReportViewModel);
                 }
-            }
-            else
-            {
-                return RedirectToAction("Login");
-            }
         }
         [HttpPost]
         public IActionResult SaveWeeklyReport(WeeklyReportViewModel aWeeklyReportViewModel)
         {
-            String SmallGroupDataList = (String)TempData.Peek("SmallGroupDataList");
-            TempData.Keep("SmallGroupDataList");
-            SmallGroupDataList m_SmallGroupDataList = JsonConvert.DeserializeObject<SmallGroupDataList>(SmallGroupDataList);
-
-            if (m_SmallGroupDataList.m_Account != "")
+            if (m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_Account != "")
             {
-                String WeeklyReportDataString = (String)TempData.Peek("WeeklyReportData");
-                TempData.Keep("WeeklyReportData");
+                // 先上傳小組點名資料，萬一沒有先上傳小組點名，則仍然可以上傳小組日誌，因為在後台會建立新增周報
+                m_InMemoryDataContextSmallGroup.SmallGroupDataList.UploadMemberInfomationPackage();
 
-                if (WeeklyReportDataString != null)
-                {
-                    // 先上傳小組點名資料，萬一沒有先上傳小組點名，則仍然可以上傳小組日誌，因為在後台會建立新增周報
-                    m_SmallGroupDataList.UploadMemberInfomationPackage();
+                // 給上傳用的
+                m_InMemoryDataContextSmallGroup.WeeklyReportData.m_WeeklyReport.WeeklyReportContent = aWeeklyReportViewModel.WeeklyReportData;
+                m_InMemoryDataContextSmallGroup.WeeklyReportData.m_WeeklyReport.PresentContent = aWeeklyReportViewModel.WeeklyReportAnalysis;
 
-                    WeeklyReportData aWeeklyReportData = JsonConvert.DeserializeObject<WeeklyReportData>(WeeklyReportDataString);
+                // 給網頁顯示用的
+                m_InMemoryDataContextSmallGroup.WeeklyReportData.m_WeeklyReportViewModel.WeeklyReportData = aWeeklyReportViewModel.WeeklyReportData;
+                m_InMemoryDataContextSmallGroup.WeeklyReportData.m_WeeklyReportViewModel.WeeklyReportAnalysis = aWeeklyReportViewModel.WeeklyReportAnalysis;
 
-                    // 給上傳用的
-                    aWeeklyReportData.m_WeeklyReport.WeeklyReportContent = aWeeklyReportViewModel.WeeklyReportData;
-                    aWeeklyReportData.m_WeeklyReport.PresentContent = aWeeklyReportViewModel.WeeklyReportAnalysis;
-
-                    // 給網頁顯示用的
-                    aWeeklyReportData.m_WeeklyReportViewModel.WeeklyReportData = aWeeklyReportViewModel.WeeklyReportData;
-                    aWeeklyReportData.m_WeeklyReportViewModel.WeeklyReportAnalysis = aWeeklyReportViewModel.WeeklyReportAnalysis;
-
-                    String SerializedWeeklyReportData = JsonConvert.SerializeObject(aWeeklyReportData);
-                    TempData["WeeklyReportData"] = SerializedWeeklyReportData;
-
-                    aWeeklyReportData.UploadWeeklyReport(m_SmallGroupDataList.m_Account, m_SmallGroupDataList.m_Password, m_SmallGroupDataList.m_SundayDate, aWeeklyReportData.m_WeeklyReport);
-                }
-                else
-                {
-                }
+                m_InMemoryDataContextSmallGroup.WeeklyReportData.UploadWeeklyReport(m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_Account, m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_Password, m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_SundayDate, m_InMemoryDataContextSmallGroup.WeeklyReportData.m_WeeklyReport);
             }
 
             return Json(new { status = "1", message = "成功上傳了...." });
             //return Json(new { status = "2", message = "密碼錯誤...." });
         }
-        //[HttpGet]
-        //public IActionResult UpdateDate(string SelectedDate)
-        //{
-        //    m_SmallGroupDataList.SetupSmallGroupDate(m_SmallGroupDataList.m_SmallGroupData.SmallGroupLeaderContactId, SelectedDate);
-        //    //return View(SmallGroupDataList.m_SmallGroupData);
-        //    //return Json(new { status = "1", message = "成功上傳了...." });
-        //    return Ok();
 
-        //}
         [Route("/Home/InputReport/{FullName}")]
         public IActionResult InputReport(String FullName)
         {

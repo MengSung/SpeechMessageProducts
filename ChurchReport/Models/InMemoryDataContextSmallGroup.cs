@@ -14,12 +14,15 @@ namespace ChurchReport.Models
         private ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
 
         public SmallGroupDataList m_SmallGroupDataList = new SmallGroupDataList();
+        public WeeklyReportData m_WeeklyReportData = new WeeklyReportData();
 
         public InMemoryDataContextSmallGroup(IHttpContextAccessor contextAccessor, IMemoryCache memoryCache)
         {
             _contextAccessor = contextAccessor;
             _memoryCache = memoryCache;
         }
+
+        #region 小組長處理區
 
 
         public void SetupSmallGroupData(String FullName, String Account, String Password, DateTime aSelectDate, bool DisplayDateFlag)
@@ -97,7 +100,38 @@ namespace ChurchReport.Models
                 return _memoryCache.Get< SmallGroupDataList > (key);
             }
         }
+        #endregion
 
+
+        #region 週報處理區
+
+        public void SetupWeeklyReport(String Account, String Password, DateTime SundayDate)
+        {
+            m_WeeklyReportData.SetupWeeklyReport(Account, Password, SundayDate);
+
+        }
+
+        public WeeklyReportData WeeklyReportData
+        {
+            get
+            {
+                var session = _contextAccessor.HttpContext.Session;
+                var key = session.Id + "_WeeklyReportData";
+
+                if (_memoryCache.Get(key) == null)
+                {
+                    _memoryCache.Set<WeeklyReportData>(key, m_WeeklyReportData, new MemoryCacheEntryOptions
+                    {
+                        SlidingExpiration = TimeSpan.FromMinutes(10)
+                    });
+                    session.SetInt32("dirty", 1);
+                }
+
+                return _memoryCache.Get<WeeklyReportData>(key);
+            }
+        }
+
+        #endregion
         public void SaveChanges()
         {
             //foreach (var employee in DiscipleLessons.Where(a => a.DiscipleLessonsId == 0))
