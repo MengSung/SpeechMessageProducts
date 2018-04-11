@@ -1,16 +1,12 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Serialization;
-using Microsoft.AspNetCore.Mvc.ViewFeatures;
-using System.Globalization;
-using Microsoft.AspNetCore.Localization;
 
 namespace ChurchReport
 {
@@ -38,6 +34,8 @@ namespace ChurchReport
             services.AddDistributedMemoryCache();
             //services.AddSingleton<ITempDataProvider, CookieTempDataProvider>();
             //services.AddCookieTempData();
+            services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+
             services.AddSession(options => options.IdleTimeout = TimeSpan.FromMinutes(30));
         }
 

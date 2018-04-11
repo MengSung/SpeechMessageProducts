@@ -27,14 +27,25 @@ using System.Text.RegularExpressions;
 using LineMessagingProcessor;
 using DevExtreme.AspNet.Mvc;
 using DevExtreme.AspNet.Data;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace ChurchReport.Controllers
 {
     public class HomeController : Controller
     {
+        #region 資料區
         private ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
         //ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("CRM2011");
 
+        private InMemoryDataContextSmallGroup m_InMemoryDataContextSmallGroup;
+        #endregion
+        #region 初始化
+        public HomeController(IHttpContextAccessor httpContextAccessor, IMemoryCache memoryCache)
+        {
+            m_InMemoryDataContextSmallGroup = new InMemoryDataContextSmallGroup(httpContextAccessor, memoryCache);
+        }
+        #endregion
         #region 登入帳號
         public IActionResult Login()
         {
@@ -66,8 +77,11 @@ namespace ChurchReport.Controllers
                 String FullName = this.m_ToolUtilityClass.RetrieveEntityDynamics365("contact", aContactGuid).Attributes["fullname"].ToString();
                 //String FullName = this.m_ToolUtilityClass.RetrieveEntityCrm2011("contact", aContactGuid).Attributes["fullname"].ToString();
 
-                //m_SmallGroupDataList.SetupSmallGroupData(FullName, aGalleryViewModel.Account, aGalleryViewModel.Password, DateTime.Now.AddDays(-(int)DateTime.Now.DayOfWeek), false);
-                m_SmallGroupDataList.SetupSmallGroupData(FullName, aGalleryViewModel.Account, aGalleryViewModel.Password, DateTime.Now, true);
+                m_SmallGroupDataList.SetupSmallGroupData(FullName, aGalleryViewModel.Account, aGalleryViewModel.Password, DateTime.Now.AddDays(-(int)DateTime.Now.DayOfWeek), false);
+                m_InMemoryDataContextSmallGroup.SetupSmallGroupData(FullName, aGalleryViewModel.Account, aGalleryViewModel.Password, DateTime.Now, true);
+
+                //m_InMemoryDataContextSmallGroup.SetCacheData();
+                //SmallGroupDataList aSmallGroupDataList = m_InMemoryDataContextSmallGroup.GetCacheData();
 
                 //TempData["FullName"] = FullName;
                 //TempData["Account"] = aGalleryViewModel.Account;
@@ -83,46 +97,46 @@ namespace ChurchReport.Controllers
                 String SerializedHappyGroupDataManager = JsonConvert.SerializeObject(m_HappyGroupDataManager);
                 TempData["HappyGroupDataManager"] = SerializedHappyGroupDataManager;
 
-                if (m_SmallGroupDataList.m_MemberInfomationPackage.m_LoginType == "小組長" && m_HappyGroupDataManager.m_ActiveHappyGroupWeeklyReportList != null)
+                if (m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_MemberInfomationPackage.m_LoginType == "小組長" && m_HappyGroupDataManager.m_ActiveHappyGroupWeeklyReportList != null)
                 {
                     // 小組長回報，而且有幸福小組
-                    ViewBag.LoginType = m_SmallGroupDataList.m_MemberInfomationPackage.m_LoginType;
-                    ViewBag.LoginFullName = m_SmallGroupDataList.m_FullName;
+                    ViewBag.LoginType = m_InMemoryDataContextSmallGroup.m_SmallGroupDataList.m_MemberInfomationPackage.m_LoginType;
+                    ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.m_SmallGroupDataList.m_FullName;
 
                     ViewBag.HappyType = "有幸福小組名單";
                     return Json(new { status = "1", message = "歡迎" + FullName + "登入成功!", fullname = FullName, account = aGalleryViewModel.Account, password = aGalleryViewModel.Password });
                 }
-                else if (m_SmallGroupDataList.m_MemberInfomationPackage.m_LoginType == "小組長" && m_HappyGroupDataManager.m_ActiveHappyGroupWeeklyReportList == null)
+                else if (m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_MemberInfomationPackage.m_LoginType == "小組長" && m_HappyGroupDataManager.m_ActiveHappyGroupWeeklyReportList == null)
                 {
                     // 小組長回報，沒有幸福小組
-                    ViewBag.LoginType = m_SmallGroupDataList.m_MemberInfomationPackage.m_LoginType;
-                    ViewBag.LoginFullName = m_SmallGroupDataList.m_FullName;
+                    ViewBag.LoginType = m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_MemberInfomationPackage.m_LoginType;
+                    ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_FullName;
 
                     ViewBag.HappyType = "沒幸福小組名單";
                     return Json(new { status = "1", message = "歡迎" + FullName + "登入成功!", fullname = FullName, account = aGalleryViewModel.Account, password = aGalleryViewModel.Password });
                 }
-                else if (m_SmallGroupDataList.m_MemberInfomationPackage.m_LoginType != "小組長" && m_HappyGroupDataManager.m_ActiveHappyGroupWeeklyReportList == null)
+                else if (m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_MemberInfomationPackage.m_LoginType != "小組長" && m_HappyGroupDataManager.m_ActiveHappyGroupWeeklyReportList == null)
                 {
                     // 個人回報，不是小組長，沒有幸福小組
-                    ViewBag.LoginType = m_SmallGroupDataList.m_MemberInfomationPackage.m_LoginType;
-                    ViewBag.LoginFullName = m_SmallGroupDataList.m_FullName;
+                    ViewBag.LoginType = m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_MemberInfomationPackage.m_LoginType;
+                    ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_FullName;
 
                     ViewBag.HappyType = "沒幸福小組名單";
                     return Json(new { status = "1", message = "歡迎" + FullName + "登入成功!", fullname = FullName, account = aGalleryViewModel.Account, password = aGalleryViewModel.Password });
                 }
-                else if (m_SmallGroupDataList.m_MemberInfomationPackage.m_LoginType != "小組長" && m_HappyGroupDataManager.m_ActiveHappyGroupWeeklyReportList != null)
+                else if (m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_MemberInfomationPackage.m_LoginType != "小組長" && m_HappyGroupDataManager.m_ActiveHappyGroupWeeklyReportList != null)
                 {
                     // 單純幸福小組長回報
-                    ViewBag.LoginType = m_SmallGroupDataList.m_MemberInfomationPackage.m_LoginType;
-                    ViewBag.LoginFullName = m_SmallGroupDataList.m_FullName;
+                    ViewBag.LoginType = m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_MemberInfomationPackage.m_LoginType;
+                    ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_FullName;
 
                     ViewBag.HappyType = "沒幸福小組名單";
                     return Json(new { status = "2", message = "歡迎" + FullName + "登入成功!", fullname = FullName, account = aGalleryViewModel.Account, password = aGalleryViewModel.Password });
                 }
                 else
                 {
-                    ViewBag.LoginType = m_SmallGroupDataList.m_MemberInfomationPackage.m_LoginType;
-                    ViewBag.LoginFullName = m_SmallGroupDataList.m_FullName;
+                    ViewBag.LoginType = m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_MemberInfomationPackage.m_LoginType;
+                    ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_FullName;
                     ViewBag.HappyType = "沒幸福小組名單";
 
                     return Json(new { status = "2", message = "歡迎" + FullName + "登入成功!", fullname = FullName, account = aGalleryViewModel.Account, password = aGalleryViewModel.Password });
@@ -198,7 +212,7 @@ namespace ChurchReport.Controllers
                         ViewBag.HappyType = "沒幸福小組名單";
                     }
 
-                    return View(m_SmallGroupDataList.m_SmallGroupData);
+                    return View(m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_SmallGroupData);
                 }
                 else
                 {
@@ -248,7 +262,7 @@ namespace ChurchReport.Controllers
                         ViewBag.HappyType = "沒幸福小組名單";
                     }
 
-                    return View(m_SmallGroupDataList.m_SmallGroupData);
+                    return View(m_InMemoryDataContextSmallGroup.SmallGroupDataList);
                 }
             }
         }

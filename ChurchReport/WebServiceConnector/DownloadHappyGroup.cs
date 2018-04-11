@@ -583,10 +583,10 @@ namespace ChurchReport.WebServiceConnector
                 // 取得核心同工名單
                 String CoreMembers = this.m_ToolUtilityClass.GetEntityStringAttribute(ref HappyGroupListEntity, "new_core_members");
 
-                if (aHappyGroupWeeklyReportToBeAdded.WeekCounter == "第一週" && CoreMembers == "")
+                if (aHappyGroupWeeklyReportToBeAdded.Topic == "第一單元 真幸福" && CoreMembers == "")
                 {
-                    // 第一週回報，而且核心同工名單是空的字串
-                    #region 第一週設定幸福小組核心同工名單，為了要能區隔過濾出BEST名單
+                    // 第一單元 真幸福回報，而且核心同工名單是空的字串
+                    #region 第一單元 真幸福設定幸福小組核心同工名單，為了要能區隔過濾出BEST名單
                     ProcessCoreMembers(ref HappyGroupListEntity, ref aHappyGroupWeeklyReportToBeAdded);
 
                     return "";
@@ -615,7 +615,7 @@ namespace ChurchReport.WebServiceConnector
             try
             {
                 #region 設定幸福小組核心同工名單，為了要能區隔過濾出BEST名單
-                if (aHappyGroupWeeklyReportToBeAdded.WeekCounter != null)
+                if (aHappyGroupWeeklyReportToBeAdded.Topic != null)
                 {
                     String CoreMembers = this.GetCoreMembers(HappyGroupListEntity.Id, aHappyGroupWeeklyReportToBeAdded);
                     if (CoreMembers != "")
@@ -639,7 +639,7 @@ namespace ChurchReport.WebServiceConnector
         {
             try
             {
-                if (aHappyGroupWeeklyReportToBeAdded.WeekCounter == "第一週")
+                if (aHappyGroupWeeklyReportToBeAdded.Topic == "第一單元 真幸福")
                 {
                     bool ListType = false;
                     EntityCollection MemberCollection = GetPersonalSmallGroupLeaderMemberData(ListEntityId, ref ListType);
@@ -2456,22 +2456,24 @@ namespace ChurchReport.WebServiceConnector
             switch (FollowUpWeekIndex)
             {
                 case 100000000:
-                    return "真幸福";
+                    return "第一單元 真幸福";
                 case 100000001:
-                    return "不再被騙";
+                    return "第二單元 不再被騙";
                 case 100000002:
-                    return "你認識耶穌嗎？";
+                    return "第三單元 你認識耶穌嗎？";
                 case 100000003:
-                    return "禱告使萬事都可能";
+                    return "第四單元 禱告使萬事都可能";
                 case 100000004:
-                    return "上帝是我們在天上的父親";
+                    return "第五單元 上帝是我們在天上的父親";
                 case 100000005:
-                    return "成功的人生法則遇見幸福營";
+                    return "第六單元 成功的人生法則";
                 case 100000006:
-                    return "使你生活幸福的秘訣";
+                    return "遇見幸福營";
                 case 100000007:
-                    return "新人主日";
+                    return "第七單元 使你生活幸福的秘訣";
                 case 100000008:
+                    return "新人主日";
+                case 100000009:
                     return "名人講座";
                 default:
                     return "";
@@ -2481,24 +2483,26 @@ namespace ChurchReport.WebServiceConnector
         {
             switch (Topic)
             {
-                case "真幸福":
+                case "第一單元 真幸福":
                     return 100000000;
-                case "不再被騙":
+                case "第二單元 不再被騙":
                     return 100000001;
-                case "你認識耶穌嗎？":
+                case "第三單元 你認識耶穌嗎？":
                     return 100000002;
-                case "禱告使萬事都可能":
+                case "第四單元 禱告使萬事都可能":
                     return 100000003;
-                case "上帝是我們在天上的父親":
+                case "第五單元 上帝是我們在天上的父親":
                     return 100000004;
-                case "成功的人生法則遇見幸福營":
+                case "第六單元 成功的人生法則":
                     return 100000005;
-                case "使你生活幸福的秘訣":
+                case "遇見幸福營":
                     return 100000006;
-                case "新人主日":
+                case "第七單元 使你生活幸福的秘訣":
                     return 100000007;
-                case "名人講座":
+                case "新人主日":
                     return 100000008;
+                case "名人講座":
+                    return 100000009;
                 default:
                     return 100000000;
             }

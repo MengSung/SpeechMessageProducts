@@ -253,31 +253,55 @@ columns.Add()
 .Caption("小組")
 .GroupIndex(0).MinWidth(10);
 
+//columns.Add()
+//.DataField("WeekCounter")
+//.Caption("週次")
+//.Fixed(true)
+//.Width(80)
+//.Lookup(lookup => lookup
+//.DataSource
+//(
+//new string[]
+//{
+//"第一週",
+//"第二週",
+//"第三週",
+//"第四週",
+//"第五週",
+//"第六週",
+//"第七週",
+//"第八週",
+//"第九週",
+//"第十週",
+//}
+//)
+////.DisplayExpr("Name")
+////.ValueExpr("ID")
+//);
+
 columns.Add()
-.DataField("WeekCounter")
-.Caption("週次")
-.Fixed(true)
-.Width(80)
+.DataField("Topic")
+.Caption("主題")
+.Width(250)
 .Lookup(lookup => lookup
 .DataSource
 (
 new string[]
 {
-"第一週",
-"第二週",
-"第三週",
-"第四週",
-"第五週",
-"第六週",
-"第七週",
-"第八週",
-"第九週",
-"第十週",
+"第一單元 真幸福",
+"第二單元 不再被騙",
+"第三單元 你認識耶穌嗎？",
+"第四單元 禱告使萬事都可能",
+"第五單元 上帝是我們在天上的父親",
+"第六單元 成功的人生法則",
+"遇見幸福營",
+"第七單元 使你生活幸福的秘訣",
+"新人主日",
+"名人講座",
 }
 )
-//.DisplayExpr("Name")
-//.ValueExpr("ID")
 );
+
 
 columns.Add()
 .DataField("MeetingDate")
@@ -286,36 +310,6 @@ columns.Add()
 .Caption("聚會日期")
 .Width(90);
 
-columns.Add()
-.DataField("Topic")
-.Caption("主題")
-.Width(200)
-/**/
-/**/
-/**/
-@*.GroupIndex(0)*@
-/**/
-/**/
-/**/
-.Lookup(lookup => lookup
-.DataSource
-(
-new string[]
-{
-"真幸福",
-"不再被騙",
-"你認識耶穌嗎？",
-"禱告使萬事都可能",
-"上帝是我們在天上的父親",
-"成功的人生法則遇見幸福營",
-"使你生活幸福的秘訣",
-"新人主日",
-"名人講座",
-}
-)
-//.DisplayExpr("Name")
-//.ValueExpr("ID")
-);
 
 
 columns.Add()
