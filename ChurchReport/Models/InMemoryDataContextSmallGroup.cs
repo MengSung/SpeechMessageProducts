@@ -15,6 +15,7 @@ namespace ChurchReport.Models
 
         public SmallGroupDataList m_SmallGroupDataList = new SmallGroupDataList();
         public WeeklyReportData m_WeeklyReportData = new WeeklyReportData();
+        public NewPersonModel m_NewPersonModel = new NewPersonModel();
 
         public InMemoryDataContextSmallGroup(IHttpContextAccessor contextAccessor, IMemoryCache memoryCache)
         {
@@ -102,7 +103,6 @@ namespace ChurchReport.Models
         }
         #endregion
 
-
         #region 週報處理區
 
         public void SetupWeeklyReport(String Account, String Password, DateTime SundayDate)
@@ -128,6 +128,29 @@ namespace ChurchReport.Models
                 }
 
                 return _memoryCache.Get<WeeklyReportData>(key);
+            }
+        }
+
+        #endregion
+        #region 新增新人處理區
+
+        public NewPersonModel NewPersonModel
+        {
+            get
+            {
+                var session = _contextAccessor.HttpContext.Session;
+                var key = session.Id + "_WeeklyReportData";
+
+                if (_memoryCache.Get(key) == null)
+                {
+                    _memoryCache.Set<NewPersonModel>(key, m_NewPersonModel, new MemoryCacheEntryOptions
+                    {
+                        SlidingExpiration = TimeSpan.FromMinutes(10)
+                    });
+                    session.SetInt32("dirty", 1);
+                }
+
+                return _memoryCache.Get<NewPersonModel>(key);
             }
         }
 

@@ -594,32 +594,8 @@ namespace ChurchReport.Controllers
         #region 新增新人
         public IActionResult NewPerson()
         {
-
-            String SmallGroupDataList = (String)TempData.Peek("SmallGroupDataList");
-
-            SmallGroupDataList m_SmallGroupDataList;
-            if (SmallGroupDataList != null)
-            {
-                TempData.Keep("SmallGroupDataList");
-                m_SmallGroupDataList = JsonConvert.DeserializeObject<SmallGroupDataList>(SmallGroupDataList);
-            }
-            else
-            {
-                return RedirectToAction("Login");
-            }
-
-            String NewPersonString = (String)TempData.Peek("NewPerson");
-            TempData.Keep("NewPerson");
-
-            if (NewPersonString == null)
-            {
-                NewPersonModel aNewPersonModel = new NewPersonModel();
-
-                String SerializedNewPersonModel = JsonConvert.SerializeObject(aNewPersonModel);
-                TempData["NewPerson"] = SerializedNewPersonModel;
-
-                ViewBag.LoginType = m_SmallGroupDataList.m_MemberInfomationPackage.m_LoginType;// 看是小組長還是個人回報
-                ViewBag.LoginFullName = m_SmallGroupDataList.m_FullName;
+                ViewBag.LoginType = m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_MemberInfomationPackage.m_LoginType;// 看是小組長還是個人回報
+                ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_FullName;
 
                 String SerializedHappyGroupDataManager = (String)TempData.Peek("HappyGroupDataManager");
                 TempData.Keep("HappyGroupDataManager");
@@ -633,31 +609,7 @@ namespace ChurchReport.Controllers
                     ViewBag.HappyType = "沒幸福小組名單";
                 }
 
-                return View(aNewPersonModel.m_PersonFormViewModel);
-            }
-            else
-            {
-                NewPersonModel aNewPersonModel = JsonConvert.DeserializeObject<NewPersonModel>(NewPersonString);
-
-                ViewBag.LoginType = m_SmallGroupDataList.m_MemberInfomationPackage.m_LoginType;// 看是小組長還是個人回報
-                ViewBag.LoginFullName = m_SmallGroupDataList.m_FullName;
-
-                String SerializedHappyGroupDataManager = (String)TempData.Peek("HappyGroupDataManager");
-                TempData.Keep("HappyGroupDataManager");
-                HappyGroupDataManager m_HappyGroupDataManager = JsonConvert.DeserializeObject<HappyGroupDataManager>(SerializedHappyGroupDataManager);
-                if (m_HappyGroupDataManager.m_ActiveHappyGroupWeeklyReportList != null)
-                {
-                    ViewBag.HappyType = "有幸福小組名單";
-                }
-                else
-                {
-                    ViewBag.HappyType = "沒幸福小組名單";
-                }
-
-                return View(aNewPersonModel.m_PersonFormViewModel);
-
-            }
-
+                return View(m_InMemoryDataContextSmallGroup.NewPersonModel.m_PersonFormViewModel);
         }
 
         [HttpPost]
@@ -668,16 +620,8 @@ namespace ChurchReport.Controllers
                 return Json(new { status = "2", message = "新增新人必須要有行動電話" });
             }
 
-            String SmallGroupDataList = (String)TempData.Peek("SmallGroupDataList");
-            TempData.Keep("SmallGroupDataList");
-            SmallGroupDataList m_SmallGroupDataList = JsonConvert.DeserializeObject<SmallGroupDataList>(SmallGroupDataList);
-
-            String NewPersonString = (String)TempData.Peek("NewPerson");
-            TempData.Keep("NewPerson");
-            NewPersonModel aNewPersonModel = JsonConvert.DeserializeObject<NewPersonModel>(NewPersonString);
-
             // 上傳至系統
-            String Result = aNewPersonModel.UploadNewPerson(m_SmallGroupDataList.m_Account, m_SmallGroupDataList.m_Password, aPersonFormViewModel);
+            String Result = m_InMemoryDataContextSmallGroup.m_NewPersonModel.UploadNewPerson(m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_Account, m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_Password, aPersonFormViewModel);
 
             if (aPersonFormViewModel.Position == "0" || aPersonFormViewModel.Position == "1" || aPersonFormViewModel.Position == "2" || aPersonFormViewModel.Position == "3" || aPersonFormViewModel.Position == "4" || aPersonFormViewModel.Position == "5")
             {
@@ -690,13 +634,8 @@ namespace ChurchReport.Controllers
                 }
             }
 
-            m_SmallGroupDataList.AddNewPersonToSmallGroup(aPersonFormViewModel);
+            m_InMemoryDataContextSmallGroup.SmallGroupDataList.AddNewPersonToSmallGroup(aPersonFormViewModel);
 
-            String SerializedNewPersonModel = JsonConvert.SerializeObject(aNewPersonModel);
-            TempData["NewPerson"] = SerializedNewPersonModel;
-
-            String SerializedSmallGroupDataList = JsonConvert.SerializeObject(m_SmallGroupDataList);
-            TempData["SmallGroupDataList"] = SerializedSmallGroupDataList;
 
             if (Result.Contains("成功"))
             {
