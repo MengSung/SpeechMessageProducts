@@ -74,6 +74,9 @@ namespace ChurchReport.Controllers
                 // 設定一般小組資料
                 m_InMemoryDataContextSmallGroup.SetupSmallGroupData(FullName, aGalleryViewModel.Account, aGalleryViewModel.Password, DateTime.Now, true);
 
+                // 設定週報資料
+                m_InMemoryDataContextSmallGroup.SetupWeeklyReport(aGalleryViewModel.Account, aGalleryViewModel.Password, m_InMemoryDataContextSmallGroup.m_SmallGroupDataList.m_SundayDate );
+
                 // 設定幸福小組資料
                 m_InMemoryDataContextSmallGroup.SetupHappyGroupData(aGalleryViewModel.Account, aGalleryViewModel.Password);
 

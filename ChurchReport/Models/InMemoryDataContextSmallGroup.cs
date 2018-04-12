@@ -142,7 +142,7 @@ namespace ChurchReport.Models
             get
             {
                 var session = _contextAccessor.HttpContext.Session;
-                var key = session.Id + "_WeeklyReportData";
+                var key = session.Id + "_NewPersonModel";
 
                 if (_memoryCache.Get(key) == null)
                 {
@@ -181,7 +181,7 @@ namespace ChurchReport.Models
             get
             {
                 var session = _contextAccessor.HttpContext.Session;
-                var key = session.Id + "_WeeklyReportData";
+                var key = session.Id + "_HappyGroupDataManager";
 
                 if (_memoryCache.Get(key) == null)
                 {
