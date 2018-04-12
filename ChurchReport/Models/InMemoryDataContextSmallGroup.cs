@@ -8,6 +8,7 @@ namespace ChurchReport.Models
 {
     public class InMemoryDataContextSmallGroup
     {
+        #region 資料區
         IHttpContextAccessor _contextAccessor;
         IMemoryCache _memoryCache;
 
@@ -16,15 +17,18 @@ namespace ChurchReport.Models
         public SmallGroupDataList m_SmallGroupDataList = new SmallGroupDataList();
         public WeeklyReportData m_WeeklyReportData = new WeeklyReportData();
         public NewPersonModel m_NewPersonModel = new NewPersonModel();
+        public HappyGroupDataManager m_HappyGroupDataManager = new HappyGroupDataManager();
+
+        #endregion
+        #region 初始化
 
         public InMemoryDataContextSmallGroup(IHttpContextAccessor contextAccessor, IMemoryCache memoryCache)
         {
             _contextAccessor = contextAccessor;
             _memoryCache = memoryCache;
         }
-
+        #endregion
         #region 小組長處理區
-
 
         public void SetupSmallGroupData(String FullName, String Account, String Password, DateTime aSelectDate, bool DisplayDateFlag)
         {
@@ -102,7 +106,6 @@ namespace ChurchReport.Models
             }
         }
         #endregion
-
         #region 週報處理區
 
         public void SetupWeeklyReport(String Account, String Password, DateTime SundayDate)
@@ -155,6 +158,46 @@ namespace ChurchReport.Models
         }
 
         #endregion
+        #region 幸福小組處理區
+
+        public void SetupHappyGroupData( String Account, String Password)
+        {
+            try
+            {
+                m_HappyGroupDataManager.SetupHappyGroupData(Account, Password);
+
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                throw e;
+            }
+
+        }
+
+        public HappyGroupDataManager HappyGroupDataManager
+        {
+            get
+            {
+                var session = _contextAccessor.HttpContext.Session;
+                var key = session.Id + "_WeeklyReportData";
+
+                if (_memoryCache.Get(key) == null)
+                {
+                    _memoryCache.Set<HappyGroupDataManager>(key, m_HappyGroupDataManager, new MemoryCacheEntryOptions
+                    {
+                        SlidingExpiration = TimeSpan.FromMinutes(10)
+                    });
+                    session.SetInt32("dirty", 1);
+                }
+
+                return _memoryCache.Get<HappyGroupDataManager>(key);
+            }
+        }
+
+        #endregion
+        #region 工具區
         public void SaveChanges()
         {
             //foreach (var employee in DiscipleLessons.Where(a => a.DiscipleLessonsId == 0))
@@ -162,5 +205,6 @@ namespace ChurchReport.Models
             //    employee.ID = DiscipleLessons.Max(a => a.ID) + 1;
             //}
         }
+        #endregion
     }
 }
