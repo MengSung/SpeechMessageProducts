@@ -43,7 +43,7 @@ namespace ChurchReport.Controllers
         #region 初始化
         public HomeController(IHttpContextAccessor httpContextAccessor, IMemoryCache memoryCache)
         {
-            m_InMemoryDataContextSmallGroup = new InMemoryDataContextSmallGroup(httpContextAccessor, memoryCache);
+            m_InMemoryDataContextSmallGroup = ContextDictionary.GetInMemoryDataContextSmallGroup(httpContextAccessor, memoryCache);
         }
         #endregion
         #region 登入帳號
