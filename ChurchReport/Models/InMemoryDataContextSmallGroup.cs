@@ -57,8 +57,6 @@ namespace ChurchReport.Models
 
             if (_memoryCache.Get(key) == null)
             {
-                //m_SmallGroupDataList.m_FullName = "嘟嘟妞妞";
-
                 _memoryCache.Set<SmallGroupDataList>( key, m_SmallGroupDataList, new MemoryCacheEntryOptions
                 {
                     SlidingExpiration = TimeSpan.FromMinutes(10)
@@ -95,11 +93,6 @@ namespace ChurchReport.Models
                         SlidingExpiration = TimeSpan.FromMinutes(10)
                     });
                     session.SetInt32("dirty", 1);
-                    //_memoryCache.Set<ICollection<DiscipleLessons>>(key, m_ClassSheetManager.m_ReportDiscipleLessonsList, options: new MemoryCacheEntryOptions
-                    //{
-                    //    SlidingExpiration = TimeSpan.FromMinutes(10),
-                    //});
-                    //session.SetInt32("dirty", 1);
                 }
 
                 return _memoryCache.Get< SmallGroupDataList > (key);
@@ -173,7 +166,6 @@ namespace ChurchReport.Models
 
                 throw e;
             }
-
         }
 
         public HappyGroupDataManager HappyGroupDataManager
