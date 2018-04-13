@@ -29,7 +29,13 @@ namespace ChurchReport.Models
                 else
                 {
                     // 關鍵( Key )還沒有在字典裡
-                    StaticContextDictionary.Add(Key, new InMemoryDataContextSmallGroup(httpContextAccessor, memoryCache));
+                    InMemoryDataContextSmallGroup aInMemoryDataContextSmallGroup = new InMemoryDataContextSmallGroup(httpContextAccessor, memoryCache);
+
+                    aInMemoryDataContextSmallGroup.HappyGroupDataManager.m_ActiveHappyGroupWeeklyReportList.SpiritLeaderList = "";
+                    //aInMemoryDataContextSmallGroup.HappyGroupDataManager.m_ActiveHappyGroupWeeklyReportList.HappyGroupName = "";
+
+                    StaticContextDictionary.Add( Key, aInMemoryDataContextSmallGroup );
+
                     return StaticContextDictionary[Key]; 
                 }
             }

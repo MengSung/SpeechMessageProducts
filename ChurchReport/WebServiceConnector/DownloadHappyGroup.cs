@@ -390,6 +390,8 @@ namespace ChurchReport.WebServiceConnector
                 bool ListType = false;
                 EntityCollection MemberCollection = GetPersonalSmallGroupLeaderMemberData(aListEntity.Id, ref ListType);
 
+                m_HappyGroupWeeklyReportList.SpiritLeaderList = "";
+
                 foreach (Entity MemberEntity in MemberCollection.Entities)
                 {
                     // 每個組員

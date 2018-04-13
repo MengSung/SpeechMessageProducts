@@ -401,8 +401,8 @@ namespace ChurchReport.Controllers
             if (m_InMemoryDataContextSmallGroup.HappyGroupDataManager.m_ActiveHappyGroupWeeklyReportList != null)
             {
                 ViewBag.SpiritLeaderList = m_InMemoryDataContextSmallGroup.HappyGroupDataManager.m_ActiveHappyGroupWeeklyReportList.SpiritLeaderList;
-                ViewBag.HappyType = "有幸福小組名單";
                 ViewBag.HappyGroupName = m_InMemoryDataContextSmallGroup.HappyGroupDataManager.m_ActiveHappyGroupWeeklyReportList.HappyGroupName;
+                ViewBag.HappyType = "有幸福小組名單";
             }
             else
             {
