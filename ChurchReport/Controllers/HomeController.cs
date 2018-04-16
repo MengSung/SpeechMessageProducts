@@ -50,11 +50,11 @@ namespace ChurchReport.Controllers
         public IActionResult Login()
         {
             var images = new List<string>();
-            images.Add(Url.Content("~/assets/images/sl-1.jpg"));
-            images.Add(Url.Content("~/assets/images/sl-2.jpg"));
-            images.Add(Url.Content("~/assets/images/sl-3.jpg"));
-            images.Add(Url.Content("~/assets/images/sl-4.jpg"));
-            images.Add(Url.Content("~/assets/images/71992.jpg"));
+            images.Add(Url.Content("~/assets/images/pastor-gary-kuo.png"));
+            images.Add(Url.Content("~/assets/images/page2-img2.png"));
+            images.Add(Url.Content("~/assets/images/page2-img3.png"));
+            images.Add(Url.Content("~/assets/images/page2-img4.png"));
+            images.Add(Url.Content("~/assets/images/page2-img5.png"));
             return View(new GalleryViewModel
             {
                 Images = images

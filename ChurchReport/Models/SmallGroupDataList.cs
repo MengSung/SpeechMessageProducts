@@ -164,14 +164,14 @@ namespace ChurchReport.Models
                 {
                     #region 登入者是小組長
                     // 委身類型客製化
-                    if (aMember.Status == "牧師師母" || aMember.Status == "區牧" || aMember.Status == "區長" || aMember.Status == "門徒" || aMember.Status == "小組長" || aMember.Status == "實習小組長" || aMember.Status == "小組組員")
+                    if (aMember.Status == "牧師師母" || aMember.Status == "區長" || aMember.Status == "小組長" || aMember.Status == "副組長" || aMember.Status == "小組組員")
                     {
                         // 小組長牧養點名
                         m_SmallGroupData.Members.Add(aMember);
                     }
                     else
                     {
-                        if (aMember.Status != "結案" && aMember.Status != "外教會.訪客" && aMember.Status != "幸福BEST" )
+                        if (aMember.Status != "結案" && aMember.Status != "外教會.訪客" && aMember.Status != "幸福BEST")
                         {
                             // 新人跟進關懷
                             m_NewPersonFollowUpData.Members.Add(aMember);

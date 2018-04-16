@@ -4252,75 +4252,35 @@ namespace ChurchReport.WebServiceConnector
         }
 
         // 委身類型客製化
-        // 台中生命之道靈糧堂
+        //台中思恩堂豐富教會
         private String ConvertIndexToIdentity(int Identity)
         {
             switch (Identity)
             {
                 case 100000006:
                     return "01. 牧師師母";
-                case 100000009:
-                    return "02. 區牧";
                 case 100000003:
-                    return "03. 區長";
+                    return "02. 區長";
                 case 100000008:
-                    return "04. 小組長";
-                case 100000002:
-                    return "05. 實習小組長";
-                case 100000010:
-                    return "06. 門徒";
+                    return "03. 小組長";
+                case 100000012:
+                    return "04. 副組長";
                 case 1:
-                    return "07. 小組組員";
+                    return "05. 小組組員";
                 case 100000005:
-                    return "08. 幸福BEST";
+                    return "06. 幸福BEST";
                 case 100000004:
-                    return "09. 未入組";
+                    return "07. 未入組";
                 case 100000000:
-                    return "10. 新朋友";
+                    return "08. 新朋友";
                 case 100000007:
-                    return "11. 外教會.訪客";
+                    return "09. 外教會.訪客";
                 case 100000001:
-                    return "12. 結案";
-                case 100000011:
-                    return "13. 未進小組直系親屬";
+                    return "10. 結案";
                 default:
                     return ".";
             }
         }
-
-
-
-
-
-        //楊梅靈糧堂
-        //private String ConvertIndexToIdentity(int Identity)
-        //{
-        //    switch (Identity)
-        //    {
-        //        case 100000000:
-        //            return "8. 新朋友";
-        //        case 100000001:
-        //            return "5. 神學生";
-        //        case 100000002:
-        //            return "4. 小組長";
-        //        case 100000003:
-        //            return "3. 全職同工";
-        //        case 100000004:
-        //            return "7. 未入組";
-        //        case 100000005:
-        //            return "1. 牧師";
-        //        case 100000006:
-        //            return "2, 師母";
-        //        case 100000007:
-        //            return "9. 外教會";
-        //        case 100000008:
-        //            return "10. 未入組結案";
-        //        case 1:
-        //            return "6. 小組組員";
-        //        default:
-        //            return ".";
-        //    }
-        //}
 
         #endregion
         #region 字典處理函式庫
