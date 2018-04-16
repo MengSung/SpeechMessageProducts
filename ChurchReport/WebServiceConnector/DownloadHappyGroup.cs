@@ -585,7 +585,8 @@ namespace ChurchReport.WebServiceConnector
                 // 取得核心同工名單
                 String CoreMembers = this.m_ToolUtilityClass.GetEntityStringAttribute(ref HappyGroupListEntity, "new_core_members");
 
-                if (aHappyGroupWeeklyReportToBeAdded.Topic == "第一單元 真幸福" && CoreMembers == "")
+                // 客製化
+                if (aHappyGroupWeeklyReportToBeAdded.WeekCounter == "第一週" && CoreMembers == "")
                 {
                     // 第一單元 真幸福回報，而且核心同工名單是空的字串
                     #region 第一單元 真幸福設定幸福小組核心同工名單，為了要能區隔過濾出BEST名單
@@ -641,7 +642,8 @@ namespace ChurchReport.WebServiceConnector
         {
             try
             {
-                if (aHappyGroupWeeklyReportToBeAdded.Topic == "第一單元 真幸福")
+                // 客製化
+                if (aHappyGroupWeeklyReportToBeAdded.WeekCounter == "第一週")
                 {
                     bool ListType = false;
                     EntityCollection MemberCollection = GetPersonalSmallGroupLeaderMemberData(ListEntityId, ref ListType);
