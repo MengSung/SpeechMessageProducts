@@ -20,6 +20,10 @@ namespace ChurchReport.Models
         //private ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("CRM2011");
         DownloadHappyGroup m_DownloadHappyGroup = new DownloadHappyGroup();
 
+
+        public HappyGroupListClass m_ActiveHappyGroupListClass = new HappyGroupListClass();
+
+
         // 進行中的幸福小組
         //public DataGridEmployees m_ActiveDataGridEmployees = new DataGridEmployees();
         public HappyGroupWeeklyReportListClass m_ActiveHappyGroupWeeklyReportList = new HappyGroupWeeklyReportListClass();
@@ -32,6 +36,9 @@ namespace ChurchReport.Models
         public void SetupHappyGroupData(String Account, String Password)
         {
             m_ActiveHappyGroupWeeklyReportList = m_DownloadHappyGroup.GetHappyGroupWeeklyReportList(Account, Password);
+
+            m_ActiveHappyGroupListClass.HappyGroupWeeklyReportListClass = new List<HappyGroupWeeklyReportListClass>();
+            m_ActiveHappyGroupListClass.HappyGroupWeeklyReportListClass.Add(m_ActiveHappyGroupWeeklyReportList);
         }
         #endregion
         #region 新增

@@ -11,6 +11,7 @@
     <Content Include="wwwroot\**\*;Views\**\*;Areas\**\Views;appsettings.json;web.config">
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
+    <None Remove="Views\Home\HappyGroupWeeklyReport.cshtml" />
     <Content Include="bower.json" />
     <Content Include="Properties\launchSettings.json" />
   </ItemGroup>

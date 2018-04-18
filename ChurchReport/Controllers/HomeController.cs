@@ -412,13 +412,28 @@ namespace ChurchReport.Controllers
             return View();
         }
 
+
         [HttpGet]
-        public object LoadHappyWeeklyReport(DataSourceLoadOptions loadOptions)
+        public object LoadHappyGroupList( DataSourceLoadOptions loadOptions )
+        {
+            if (m_InMemoryDataContextSmallGroup.HappyGroupDataManager.m_ActiveHappyGroupWeeklyReportList != null)
+            {
+
+                return DataSourceLoader.Load(m_InMemoryDataContextSmallGroup.HappyGroupDataManager.m_ActiveHappyGroupListClass.HappyGroupWeeklyReportListClass, loadOptions);
+
+            }
+            else { return null; }
+        }
+
+        [HttpGet]
+        public object LoadHappyWeeklyReport(string id, DataSourceLoadOptions loadOptions)
         {
 
             if (m_InMemoryDataContextSmallGroup.HappyGroupDataManager.m_ActiveHappyGroupWeeklyReportList != null)
             {
-                return DataSourceLoader.Load(m_InMemoryDataContextSmallGroup.HappyGroupDataManager.m_ActiveHappyGroupWeeklyReportList.HappyGroupWeeklyReportList, loadOptions);
+                var tasks = m_InMemoryDataContextSmallGroup.HappyGroupDataManager.m_ActiveHappyGroupListClass.HappyGroupWeeklyReportListClass.Where(e => e.ListEntityId == id).Select(e => e.HappyGroupWeeklyReportList).FirstOrDefault();
+
+                return DataSourceLoader.Load(tasks, loadOptions);
             }
             else
             {
