@@ -21,8 +21,8 @@ namespace ChurchReport.Models
         DownloadHappyGroup m_DownloadHappyGroup = new DownloadHappyGroup();
 
 
+        // 一個人有多個幸福小組
         public HappyGroupListClass m_ActiveHappyGroupListClass = new HappyGroupListClass();
-
 
         // 進行中的幸福小組
         //public DataGridEmployees m_ActiveDataGridEmployees = new DataGridEmployees();
@@ -35,10 +35,11 @@ namespace ChurchReport.Models
         #region 初始化幸福小組
         public void SetupHappyGroupData(String Account, String Password)
         {
-            m_ActiveHappyGroupWeeklyReportList = m_DownloadHappyGroup.GetHappyGroupWeeklyReportList(Account, Password);
+            //m_ActiveHappyGroupWeeklyReportList = m_DownloadHappyGroup.GetHappyGroupWeeklyReportList(Account, Password);
+            m_ActiveHappyGroupListClass = m_DownloadHappyGroup.GetHappyGroupList(Account, Password);
 
-            m_ActiveHappyGroupListClass.HappyGroupWeeklyReportListClass = new List<HappyGroupWeeklyReportListClass>();
-            m_ActiveHappyGroupListClass.HappyGroupWeeklyReportListClass.Add(m_ActiveHappyGroupWeeklyReportList);
+            //m_ActiveHappyGroupListClass.HappyGroupWeeklyReportListClass = new List<HappyGroupWeeklyReportListClass>();
+            //m_ActiveHappyGroupListClass.HappyGroupWeeklyReportListClass.Add(m_ActiveHappyGroupWeeklyReportList);
         }
         #endregion
         #region 新增

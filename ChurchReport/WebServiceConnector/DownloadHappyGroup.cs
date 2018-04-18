@@ -63,6 +63,9 @@ namespace ChurchReport.WebServiceConnector
 
         HappyGroupWeeklyReportListClass m_HappyGroupWeeklyReportList = new HappyGroupWeeklyReportListClass();
 
+        // 一個人有多個幸福小組
+        public HappyGroupListClass m_ActiveHappyGroupListClass = new HappyGroupListClass();
+
         DateTime m_Sunday;
         Entity m_ContactEntity; //登入者在系統裡的實體
         Guid m_ContactId; //登入者在系統裡的ID
@@ -81,6 +84,49 @@ namespace ChurchReport.WebServiceConnector
         #endregion
         #region 下載及上傳資料區
         #region 主程式區
+        public HappyGroupListClass GetHappyGroupList(String Account, String Password)
+        {
+            m_ActiveHappyGroupListClass.HappyGroupWeeklyReportListClass = new List<HappyGroupWeeklyReportListClass>();
+
+            #region 找登入使用者及其ID
+            FindLoginUser(Account, Password);
+            if (m_ContactId == Guid.Empty) //是否有找到登入使用者及其ID
+            {
+                // 沒找到就回傳 null
+                return null;
+            }
+            else
+            {
+                m_ActiveHappyGroupListClass.LoginUserId = m_ContactId.ToString();
+            }
+            #endregion
+
+            #region 先尋找帶領族系名單，若找到表示就是族系族長，若沒有則在繼續尋找帶領小組名單
+
+            // 取得並過濾需要回報的幸福小組名單
+            // 幸福小組要回報的名單，但是現階段網頁回報端並沒有看2個以上的幸福小組
+            // 所以先過濾只有幸福小組長跟登入同一人才回傳
+            FindListCollection();
+
+            if (m_Lists.Entities.Count != 0)
+            {
+                // 有找到要點名的名單，所以是小組長以上回報
+                #region 處理每個要點名的名單
+                //m_SetIdentityFlag = false; // 因為新朋友、未入組會變更委身類型，旗標防止設定太多次，false表示尚未設定
+
+                // 取得週報
+                ProcessWeeklyReportOfListEntity();
+                #endregion
+
+                return m_ActiveHappyGroupListClass;
+            }
+            else
+            {
+                // 沒找到任何要點名的名單，所以是個人回報
+                return null;
+            }
+            #endregion
+        }
         public HappyGroupWeeklyReportListClass GetHappyGroupWeeklyReportList(String Account, String Password)
         {
             m_HappyGroupWeeklyReportList.HappyGroupWeeklyReportList = new List<HappyGroupWeeklyReport>();
@@ -286,18 +332,27 @@ namespace ChurchReport.WebServiceConnector
                 {
                     DateTime aHappyStartDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ListEntity, "new_happy_start_date");
                     DateTime aHappyEndDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ListEntity, "new_happy_end_date");
+
                     if (aHappyStartDate.Year != 1 && aHappyEndDate.Year != 1 && aHappyStartDate <= DateTime.Now && aHappyEndDate >= DateTime.Now)
                     {
                         // 幸福小組要回報的名單，但是現階段網頁回報端並沒有看2個以上的幸福小組
                         // 所以先過濾只有幸福小組長跟登入同一人才回傳
                         Guid SmallGroupLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ListEntity, "new_contact_family_leader_list");
 
-                        if (this.m_ContactId == SmallGroupLeaderId)
-                        {
-                            this.m_Lists.Entities.Add(ListEntity);
 
-                            this.m_HappyGroupWeeklyReportList.HappyGroupName = this.m_ToolUtilityClass.GetEntityStringAttribute(ListEntity, "listname");
-                        }
+                        this.m_Lists.Entities.Add(ListEntity);
+
+                        HappyGroupWeeklyReportListClass aHappyGroupWeeklyReportList = new HappyGroupWeeklyReportListClass();
+                        aHappyGroupWeeklyReportList.HappyGroupName = this.m_ToolUtilityClass.GetEntityStringAttribute(ListEntity, "listname");
+
+                        m_ActiveHappyGroupListClass.HappyGroupWeeklyReportListClass.Add(aHappyGroupWeeklyReportList);
+
+                        //if (this.m_ContactId == SmallGroupLeaderId)
+                        //{
+                        //    this.m_Lists.Entities.Add(ListEntity);
+
+                        //    this.m_HappyGroupWeeklyReportList.HappyGroupName = this.m_ToolUtilityClass.GetEntityStringAttribute(ListEntity, "listname");
+                        //}
                     }
                 }
                 return;
@@ -317,16 +372,18 @@ namespace ChurchReport.WebServiceConnector
             try
             {
                 // 處理每個點名名單
-                foreach (Entity ListEntity in this.m_Lists.Entities)
+                int Counter = 0;
+                foreach ( Entity ListEntity in this.m_Lists.Entities )
                 {
                     // 取得每個需要點名的名單裡的每個週報
 
                     // 幸福小組名單的 ID ，按照程式來看是會指定到幸福小組名單的最後一個名單，
                     // 因為我們DevExtreme的MasterDetail元件新增也只能新增到最後一個名單
-                    m_HappyGroupWeeklyReportList.ListEntityId = ListEntity.Id.ToString();
+                    this.m_ActiveHappyGroupListClass.HappyGroupWeeklyReportListClass[Counter].ListEntityId = ListEntity.Id.ToString();
 
-                    GetEachWeeklyReport(ListEntity);
+                    GetEachWeeklyReport(this.m_ActiveHappyGroupListClass.HappyGroupWeeklyReportListClass[Counter], ListEntity);
 
+                    Counter++;
                 }
                 return;
             }
@@ -338,7 +395,7 @@ namespace ChurchReport.WebServiceConnector
             }
         }
 
-        private void GetEachWeeklyReport(Entity ListEntity)
+        private void GetEachWeeklyReport(HappyGroupWeeklyReportListClass aHappyGroupWeeklyReportListClass, Entity ListEntity)
         {
             try
             {
@@ -347,6 +404,8 @@ namespace ChurchReport.WebServiceConnector
 
                 // 取得幸福小組的週報
                 EntityCollection GroupWeeklyReportEntityCollection = m_ToolUtilityClass.RetrieveManyToOneRelationship("list", "listid", ListEntity.Id.ToString(), "new_list_group_present_weekly_report", "new_group_present_weekly_report");
+
+                aHappyGroupWeeklyReportListClass.HappyGroupWeeklyReportList = new List<HappyGroupWeeklyReport>();
 
                 // 處理每個幸福小組週報
                 //foreach (Entity WeeklyReportEntity in GroupWeeklyReportEntityCollection.Entities )
@@ -368,9 +427,9 @@ namespace ChurchReport.WebServiceConnector
 
                     };
 
-                    m_HappyGroupWeeklyReportList.HappyGroupWeeklyReportList.Add(aHappyGroupWeeklyReport);
+                    aHappyGroupWeeklyReportListClass.HappyGroupWeeklyReportList.Add(aHappyGroupWeeklyReport);
 
-                    GetEachHappyPresent(i, WeeklyReportEntity);
+                    GetEachHappyPresent( aHappyGroupWeeklyReportListClass, i, WeeklyReportEntity);
 
                 }
                 return;
@@ -485,14 +544,14 @@ namespace ChurchReport.WebServiceConnector
             }
         }
 
-        private void GetEachHappyPresent(int WeeklyReportIndex, Entity WeeklyReportEntity)
+        private void GetEachHappyPresent(HappyGroupWeeklyReportListClass aHappyGroupWeeklyReportList , int WeeklyReportIndex, Entity WeeklyReportEntity)
         {
             try
             {
                 // 取得幸福小組出席紀錄單
                 EntityCollection HappyPresentEntityCollection = m_ToolUtilityClass.RetrieveManyToOneRelationship("new_group_present_weekly_report", "new_group_present_weekly_reportid", WeeklyReportEntity.Id.ToString(), "new_group_present_weekly_report_prese", "new_present_record");
 
-                m_HappyGroupWeeklyReportList.HappyGroupWeeklyReportList[WeeklyReportIndex].BestRecordList = new List<BestRecord>();
+                aHappyGroupWeeklyReportList.HappyGroupWeeklyReportList[WeeklyReportIndex].BestRecordList = new List<BestRecord>();
 
                 // 處理每個幸福小組出席紀錄單 
                 for (int i = 0; i < HappyPresentEntityCollection.Entities.Count; i++)
@@ -513,15 +572,15 @@ namespace ChurchReport.WebServiceConnector
                     SpiritLeaderName = this.m_ToolUtilityClass.GetEntityLookupDisplayName(aContactEntity, "new_contact_contact_spiritleader");
 
                     // 因為不是BEST的開組人員，仍然要能夠顯示它們屬靈認養者，所以才放進來
-                    if (m_HappyGroupWeeklyReportList.SpiritLeaderList == null)
+                    if (aHappyGroupWeeklyReportList.SpiritLeaderList == null)
                     {
-                        m_HappyGroupWeeklyReportList.SpiritLeaderList += SpiritLeaderName + ",";
+                        aHappyGroupWeeklyReportList.SpiritLeaderList += SpiritLeaderName + ",";
                     }
                     else
                     {
-                        if (m_HappyGroupWeeklyReportList.SpiritLeaderList.Contains(SpiritLeaderName) != true)
+                        if (aHappyGroupWeeklyReportList.SpiritLeaderList.Contains(SpiritLeaderName) != true)
                         {
-                            m_HappyGroupWeeklyReportList.SpiritLeaderList += SpiritLeaderName + ",";
+                            aHappyGroupWeeklyReportList.SpiritLeaderList += SpiritLeaderName + ",";
                         }
                     }
 
@@ -539,7 +598,7 @@ namespace ChurchReport.WebServiceConnector
                         BestRelationship = this.m_ToolUtilityClass.GetEntityStringAttribute(aContactEntity, "new_best_relationship")
                     };
 
-                    m_HappyGroupWeeklyReportList.HappyGroupWeeklyReportList[WeeklyReportIndex].BestRecordList.Add(aBestRecord);
+                    aHappyGroupWeeklyReportList.HappyGroupWeeklyReportList[WeeklyReportIndex].BestRecordList.Add(aBestRecord);
 
                 }
                 return;
