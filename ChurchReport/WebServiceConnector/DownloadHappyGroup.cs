@@ -1089,6 +1089,147 @@ namespace ChurchReport.WebServiceConnector
                 throw Exception;
             }
         }
+        public void CreateBest(ref HappyGroupWeeklyReportListClass aHappyGroupWeeklyReportListClassToBeAdded, String WeeklyReportId , ref BestRecord aBestRecord)
+        {
+            try
+            {
+                if (aBestRecord.FullName != "")
+                {
+                    #region 取得要加入BEST的幸福小組週報
+                    Guid aWeeklyReportId = new Guid(WeeklyReportId);
+                    Entity aWeeklyReportEntity = this.m_ToolUtilityClass.RetrieveEntity("new_group_present_weekly_report", aWeeklyReportId);
+
+                    //HappyGroupWeeklyReport aHappyGroupWeeklyReportToBeAdded = aHappyGroupWeeklyReportListClassToBeAdded.HappyGroupWeeklyReportList[WeeklyReportListCount - 1];
+                    HappyGroupWeeklyReport aHappyGroupWeeklyReportToBeAdded = GetHappyGroupWeeklyReportToBeAdded(ref aHappyGroupWeeklyReportListClassToBeAdded, WeeklyReportId);
+                    #endregion
+
+                    #region 建立新的 BEST
+                    Entity aBestContactEntity = CreateContactFromBest(ref aHappyGroupWeeklyReportListClassToBeAdded, ref aHappyGroupWeeklyReportToBeAdded, ref aBestRecord);
+                    #endregion
+
+                    #region 取得幸福小組名單
+                    Entity HappyGroupListEntity = this.m_ToolUtilityClass.RetrieveEntity("list", new Guid(aHappyGroupWeeklyReportListClassToBeAdded.ListEntityId));
+                    #endregion
+
+                    #region 新的 BEST 加入至幸福小組名單
+                    AddNewBestInMemberList(aBestContactEntity, HappyGroupListEntity);
+                    #endregion
+
+                    #region 從幸福小組"名單"取得BEST出席單所要填入的欄位值
+                    // 小組聚會地點
+                    if (aHappyGroupWeeklyReportToBeAdded.Location != null)
+                    {
+                        if (aHappyGroupWeeklyReportToBeAdded.Location != "")
+                        {
+                            m_SmallGroupPlace = aHappyGroupWeeklyReportToBeAdded.Location;
+                        }
+                        else
+                        {
+                            m_SmallGroupPlace = this.m_ToolUtilityClass.GetEntityStringAttribute(ref HappyGroupListEntity, "new_group_place");
+                        }
+                    }
+                    else
+                    {
+                        m_SmallGroupPlace = this.m_ToolUtilityClass.GetEntityStringAttribute(ref HappyGroupListEntity, "new_group_place");
+                        aHappyGroupWeeklyReportToBeAdded.Location = m_SmallGroupPlace;
+                    }
+                    // 小組聚會時間
+                    String HappyGroupStartTime = "";
+                    if (aHappyGroupWeeklyReportToBeAdded.StartTime != null)
+                    {
+                        if (aHappyGroupWeeklyReportToBeAdded.StartTime != "")
+                        {
+                            HappyGroupStartTime = this.m_SmallGroupTime = aHappyGroupWeeklyReportToBeAdded.StartTime;
+                        }
+                        else
+                        {
+                            HappyGroupStartTime = this.m_SmallGroupTime = this.m_ToolUtilityClass.GetEntityStringAttribute(ref HappyGroupListEntity, "new_group_start_time");
+                        }
+                    }
+                    else
+                    {
+                        HappyGroupStartTime = this.m_SmallGroupTime = this.m_ToolUtilityClass.GetEntityStringAttribute(ref HappyGroupListEntity, "new_group_start_time");
+                        aHappyGroupWeeklyReportToBeAdded.StartTime = HappyGroupStartTime;
+                    }
+                    String HappyGroupEndTime = "";
+                    if (aHappyGroupWeeklyReportToBeAdded.EndTime != null)
+                    {
+                        if (aHappyGroupWeeklyReportToBeAdded.EndTime != "")
+                        {
+                            HappyGroupEndTime = aHappyGroupWeeklyReportToBeAdded.EndTime;
+                        }
+                        else
+                        {
+                            HappyGroupEndTime = this.m_ToolUtilityClass.GetEntityStringAttribute(ref HappyGroupListEntity, "new_group_end_time");
+                        }
+                    }
+                    else
+                    {
+                        HappyGroupEndTime = this.m_ToolUtilityClass.GetEntityStringAttribute(ref HappyGroupListEntity, "new_group_end_time");
+
+                        aHappyGroupWeeklyReportToBeAdded.EndTime = HappyGroupEndTime;
+                    }
+
+                    // 小家長 ID
+                    Guid FamilyLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref HappyGroupListEntity, "new_familyhead_list");
+
+                    // 小組長 ID
+                    Guid GroupLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref HappyGroupListEntity, "new_contact_family_leader_list");
+
+                    // 區長 ID
+                    Guid RaceLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref HappyGroupListEntity, "new_contact_race_leager_list");
+
+                    // 區牧長 ID
+                    Guid ShepherdLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref HappyGroupListEntity, "new_contact_list_arealeader");
+
+                    // 區名
+                    String AreaName = "";
+                    //String AreaName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aListEntity, "new_area_name");
+                    #endregion
+
+                    #region 建立幸福小組 BEST 的出席紀錄單
+                    CreateTheBestPresentRecord(aBestContactEntity, ref aWeeklyReportEntity, FamilyLeaderId, GroupLeaderId, RaceLeaderId, ShepherdLeaderId, HappyGroupListEntity, aHappyGroupWeeklyReportToBeAdded.MeetingDate, HappyGroupStartTime, HappyGroupEndTime, m_SmallGroupPlace, m_SmallGroupTime, ref aHappyGroupWeeklyReportListClassToBeAdded, ref aHappyGroupWeeklyReportToBeAdded, ref aBestRecord);
+                    #endregion
+
+                    #region 取得要加入BEST的幸福小組週報之後要更新有關幸福小組資訊的欄位:Best 名單、出席人數、出席名單、決志人數、決志名單
+                    UpdateWeeklyReportAfterAddNewBest(aBestContactEntity, ref aWeeklyReportEntity, ref aBestRecord);
+                    #endregion
+                }
+                return;
+            }
+            catch (System.Exception Exception)
+            {
+                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
+                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                throw Exception;
+            }
+        }
+
+
+        public HappyGroupWeeklyReport GetHappyGroupWeeklyReportToBeAdded(ref HappyGroupWeeklyReportListClass aHappyGroupWeeklyReportListClassToBeAdded, String WeeklyReportId )
+        {
+            try
+            {
+                foreach(HappyGroupWeeklyReport aHappyGroupWeeklyReport in aHappyGroupWeeklyReportListClassToBeAdded.HappyGroupWeeklyReportList)
+                {
+                    if(aHappyGroupWeeklyReport.HappyGroupWeeklyReportId == WeeklyReportId )
+                    {
+                        return aHappyGroupWeeklyReport;
+                    }
+                }
+
+                return null;
+
+            }
+            catch (System.Exception Exception)
+            {
+                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
+                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                throw Exception;
+            }
+        }
 
         private void UpdateWeeklyReportAfterAddNewBest(Entity aBestContactEntity, ref Entity aWeeklyReportEntity, ref BestRecord aBestRecord)
         {

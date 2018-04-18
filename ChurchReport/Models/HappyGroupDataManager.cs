@@ -4,6 +4,7 @@ using ToolUtilityNameSpace;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using ChurchReport.WebServiceConnector;
+using Newtonsoft.Json.Linq;
 
 namespace ChurchReport.Models
 {
@@ -37,13 +38,18 @@ namespace ChurchReport.Models
         public void AddActiveHappyGroup(string values)
         {
             #region 先判斷是新增週報還是BEST
-            String AddType = WeeklyReportOrBest(values);
+            //String AddType = WeeklyReportOrBest(values);
+            //JObject o = JObject.Parse(values);
+            //String InsertType = (String)o["InsertType"];
+            String InsertType = (String)JObject.Parse(values).GetValue("InsertType");
 
-            if (AddType == "WeeklyReport")
+            if (InsertType == "WeeklyReport")
             {
                 #region 新增週報
                 // 轉換(反序列)從網頁有改變的欄位成為C# Weekly Report的結構
-                HappyGroupWeeklyReport aToAddHappyGroupWeeklyReport = JsonConvert.DeserializeObject<HappyGroupWeeklyReport>(values);
+                //HappyGroupWeeklyReport aToAddHappyGroupWeeklyReport = JsonConvert.DeserializeObject<HappyGroupWeeklyReport>(values);
+                HappyGroupWeeklyReport aToAddHappyGroupWeeklyReport = new HappyGroupWeeklyReport();
+                JsonConvert.PopulateObject(values, aToAddHappyGroupWeeklyReport);
 
                 // 不知為何反序列會差一天
                 //aToAddHappyGroupWeeklyReport.MeetingDate = aToAddHappyGroupWeeklyReport.MeetingDate.AddDays(1);
@@ -61,12 +67,16 @@ namespace ChurchReport.Models
                 #region 新增BEST
 
                 // 轉換(反序列)從網頁有改變的欄位成為C# Best 的結構
-                BestRecord aBestRecord = JsonConvert.DeserializeObject<BestRecord>(values);
+                //BestRecord aBestRecord = JsonConvert.DeserializeObject<BestRecord>(values);
+                var aNewBestRecord = new BestRecord();
+                JsonConvert.PopulateObject(values, aNewBestRecord );
 
-                if (aBestRecord.FullName != null && aBestRecord.FullName != "")
+                String WeeklyReportId = (String)JObject.Parse(values).GetValue("MasterParentID");
+
+                if (aNewBestRecord.FullName != null && aNewBestRecord.FullName != "")
                 {
                     // 新增BEST的名字不可以是空白
-                    AddBest(aBestRecord);
+                    AddBest( WeeklyReportId ,aNewBestRecord );
                 }
                 #endregion
             }
@@ -82,15 +92,17 @@ namespace ChurchReport.Models
             m_ActiveHappyGroupWeeklyReportList.HappyGroupWeeklyReportList.Add(aToAddHappyGroupWeeklyReport);
 
         }
-        public void AddBest(BestRecord aBestRecord)
+        public void AddBest(String WeeklyReportId, BestRecord aBestRecord)
         {
             // 新增幸福小組BEST
-            m_DownloadHappyGroup.CreateBest(ref m_ActiveHappyGroupWeeklyReportList, ref aBestRecord);
+            //m_DownloadHappyGroup.CreateBest(ref m_ActiveHappyGroupWeeklyReportList, ref aBestRecord);
+            m_DownloadHappyGroup.CreateBest(ref m_ActiveHappyGroupWeeklyReportList, WeeklyReportId, ref aBestRecord);
 
             #region 前台網頁要呈現的Best資料
-            int WeeklyReportListCount = m_ActiveHappyGroupWeeklyReportList.HappyGroupWeeklyReportList.Count;
-            Guid aWeeklyReportId = new Guid(m_ActiveHappyGroupWeeklyReportList.HappyGroupWeeklyReportList[WeeklyReportListCount - 1].HappyGroupWeeklyReportId);
-            HappyGroupWeeklyReport aHappyGroupWeeklyReportToBeAdded = m_ActiveHappyGroupWeeklyReportList.HappyGroupWeeklyReportList[WeeklyReportListCount - 1];
+            //int WeeklyReportListCount = m_ActiveHappyGroupWeeklyReportList.HappyGroupWeeklyReportList.Count;
+            //Guid aWeeklyReportId = new Guid(m_ActiveHappyGroupWeeklyReportList.HappyGroupWeeklyReportList[WeeklyReportListCount - 1].HappyGroupWeeklyReportId);
+            //HappyGroupWeeklyReport aHappyGroupWeeklyReportToBeAdded = m_ActiveHappyGroupWeeklyReportList.HappyGroupWeeklyReportList[WeeklyReportListCount - 1];
+            HappyGroupWeeklyReport aHappyGroupWeeklyReportToBeAdded = m_DownloadHappyGroup.GetHappyGroupWeeklyReportToBeAdded ( ref m_ActiveHappyGroupWeeklyReportList, WeeklyReportId);
             aHappyGroupWeeklyReportToBeAdded.BestRecordList.Add(aBestRecord);
             #endregion
         }

@@ -208,19 +208,29 @@ e.component.collapseAll(-1);
 e.component.expandRow(e.currentSelectedRowKeys[0]);
 }
 </text>)
-.OnRowInserted(
+
+.OnInitNewRow(string.Format("function(e) {{ onInitNewRow(e); }}"))
+
+@*.OnRowInserted(
+@< text >
+function(e) {
+        //debugger;
+        e.component.collapseAll(-1);
+        if (e.key != "")
+        {
+            e.component.expandRow(e.key);
+        }
+        else
+        {
+            e.component.expandRow(e.data);
+        }
+    }
+</ text >)*@
+.OnRowInserting(
 @<text>
 function(e) {
-//debugger;
-e.component.collapseAll(-1);
-if( e.key != "")
-{
-e.component.expandRow(e.key);
-}
-else
-{
-e.component.expandRow(e.data);
-}
+   alert( "測試中...");
+   e.data.idCustomer = "測試中...";
 }
 </text>)
 .OnRowUpdated(
@@ -410,7 +420,13 @@ $links.filter(".dx-link-edit").addClass("dx-icon-edit");
 $links.filter(".dx-link-delete").addClass("dx-icon-trash");
 }
 }
-}
+    }
+
+    function onInitNewRow(e) {
+        //alert(parentID);
+        e.data.InsertType = "WeeklyReport";
+    }
+
 </script>
 
 <link href="~/css/MasterDetail.css" rel="stylesheet" />

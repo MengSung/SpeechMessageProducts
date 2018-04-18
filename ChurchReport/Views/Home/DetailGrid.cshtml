@@ -10,18 +10,26 @@
                                 .ShowRowLines(true)
                                 .Editing(editing =>
                                 {
-                        //editing.Mode(GridEditMode.Row);
-                        editing.Mode(GridEditMode.Cell);
-                        //editing.Mode(GridEditMode.Batch);
-                        //editing.Mode(GridEditMode.Form);
-                        //editing.Mode(GridEditMode.Popup);
-                        editing.AllowUpdating(true);
-                        //editing.AllowDeleting(true);
-                        editing.AllowAdding(true);
+                                    //editing.Mode(GridEditMode.Row);
+                                    editing.Mode(GridEditMode.Cell);
+                                    //editing.Mode(GridEditMode.Batch);
+                                    //editing.Mode(GridEditMode.Form);
+                                    //editing.Mode(GridEditMode.Popup);
+                                    editing.AllowUpdating(true);
+                                    //editing.AllowDeleting(true);
+                                    editing.AllowAdding(true);
                                     editing.Texts(a => a.SaveAllChanges("上傳檔案").AddRow("新增").CancelAllChanges("取消變更").SaveRowChanges("確定").CancelRowChanges("取消").EditRow("編輯").DeleteRow("刪除").ConfirmDeleteTitle("確定要刪除嗎?").ConfirmDeleteMessage("刪除幸福小組組員"));
-                        //editing.AllowDeleting(true);
-                    })
+                                    //editing.AllowDeleting(true);
+                                })
 
+                                //.OnRowInserting("function(e) {  e.data.ParentID = \"測試中...\"; }")
+                                .OnRowInserting(@<text>
+                                function (e) {
+                                    debubber;
+                                    alert( "測試中...");
+                                    e.data.idCustomer = "測試中...";
+                                }
+                                </text>)
                                 .OnContentReady(@<text>
                                 function(e)
                                 {
@@ -88,6 +96,8 @@
 
                                                         })
                                                         .OnRowInserting("function(e) {  e.data.BestRecordParentId = e.data.key ; }")
+                                                        .OnInitNewRow(string.Format("function(e) {{ onInitNewRow(e, {0}); }}", new JS("data.HappyGroupWeeklyReportId")))
+
                                                         .DataSource(d => d.WebApi()
                                                             .Controller("Home")
                                                             .LoadAction("LoadBest")
@@ -104,7 +114,6 @@
                                                             @*.Key(new string[] {"BestRecordId", "BestRecordParentId"})*@
                                                             /**/
                                                             .LoadParams(new { id = new JS("data.HappyGroupWeeklyReportId") })
-
                                                         )
 
     )
@@ -135,4 +144,11 @@
             }
         }
     }
+
+    function onInitNewRow(e, ParentID) {
+        //alert(parentID);
+        e.data.InsertType = "Best";
+        e.data.MasterParentID = ParentID;
+    }
+
 </script>
