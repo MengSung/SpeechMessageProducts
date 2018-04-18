@@ -384,18 +384,24 @@ columns.Add()
 
 .MasterDetail(md =>
 {
-md.Enabled(true);
-md.Template(new TemplateName("DetailBestList"));
+    //md.Enabled(true);
+    //md.Template(new TemplateName("DetailBestList"));
+
+
+    md.Enabled(true);
+    md.Template(@<text>
+    @(Html.Partial("DetailGrid"))
+    </text>);
 
 })
     )
 </div>
 
-@using (Html.DevExtreme().NamedTemplate("DetailBestList"))
+@*@using (Html.DevExtreme().NamedTemplate("DetailBestList"))
 {
 @(Html.Partial("DetailGrid"))
 
-}
+}*@
 
 <script>
 function moveEditColumnToLeft(dataGrid) {

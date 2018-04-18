@@ -17,88 +17,11 @@ String ReUpload = "您有一些操作沒有完成，請檢查一下剛剛輸入�
 
 </head>
 
-<h3>@ViewBag.HappyGroupName</h3>
+@*<h3>@ViewBag.HappyGroupName</h3>*@
 
 <br />
 
 <div class="dx-field">
-<div id="buttonContainer" class="dx-button-icon" style="float: left; width:30%; text-align: left; background-color:white;">
-@(Html.DevExtreme().Button()
-.Text("上傳")
-.Type(ButtonType.Success)
-.ID("save-button")
-//.UseSubmitBehavior(true)
-
-.OnClick
-(@<text>
-function(arg)
-{
-//debugger;
-
-var dataGrid = $("#gridContainer").dxDataGrid("instance");
-
-// 取得上傳的按鈕
-var ButtonContainer= $("#save-button").dxButton("instance");
-
-var Flag = dataGrid.hasEditData();//是否還殘留尚未回傳的編輯資料
-
-if(Flag == false)
-{
-// 顯示旋轉鈕
-$("#loadPanel").dxLoadPanel("instance").show();
-
-// 上傳按鈕反白
-ButtonContainer.option("disabled", true);
-
-// AJAX 區塊
-$.ajax
-(
-{
-url: '@Url.Action("SaveHappyGroup", "Home")',
-data: { aResult: "上傳" }, // 整理回傳給 Server 的點名資料
-type: 'POST', //POST if you want to save, GET if you want to fetch data from server
-
-success: function (arg)
-{
-// 隱藏旋轉鈕
-$("#loadPanel").dxLoadPanel("instance").hide();
-
-// 上傳按鈕恢復可運作
-ButtonContainer.option("disabled", false);
-
-//debugger;
-//dataGrid.saveEditData();
-//dataGrid.refresh();
-
-// 顯示上傳成功
-$("#toast").dxToast("instance").show();
-},
-
-error: function (obj)
-{
-//alert('Something happened');
-}
-
-}
-);
-// AJAX 區塊
-}
-else
-{
-// 顯示再上傳一次
-//$("#ToastReUpload").dxToast("instance").show();
-
-//debugger;
-//dataGrid.saveEditData();
-//dataGrid.refresh();
-
-// 顯示上傳成功
-$("#toast").dxToast("instance").show();
-}
-}
-</text>)
-)
-</div>
 <div id="ToastContainer">
 @(Html.DevExtreme().Toast()
 .ID("toast")
@@ -155,7 +78,7 @@ $("#toast").dxToast("instance").show();
 </div>
 
 <div id="data-grid">
-<p style="font-family:標楷體;font-size: 160%; color: darkred; text-align:right;background-color:powderblue;font-weight: bold">請按+號新增幸福小組週報</p>
+@*<p style="font-family:標楷體;font-size: 160%; color: darkred; text-align:right;background-color:powderblue;font-weight: bold">請按+號新增幸福小組週報</p>*@
 
 @(Html.DevExtreme().DataGrid()
 .ID("HappyGroupGridContainer")
@@ -168,25 +91,25 @@ $("#toast").dxToast("instance").show();
 .DataSource(d => d
 .WebApi()
 .Controller("Home")
-.LoadAction("LoadHappyWeeklyReport")
-.InsertAction("PostBest")
-.DeleteAction("DeleteBest")
-.UpdateAction("PutBest")
+.LoadAction("LoadHappyGroupList")
+//.InsertAction("PostBest")
+//.DeleteAction("DeleteBest")
+//.UpdateAction("PutBest")
 .Key("ListEntityId")
 )
 
 .Editing(editing =>
 {
-//editing.Mode(GridEditMode.Row);
-editing.Mode(GridEditMode.Cell);
-//editing.Mode(GridEditMode.Batch);
-//editing.Mode(GridEditMode.Form);
-//editing.Mode(GridEditMode.Popup);
-editing.AllowUpdating(true);
-//editing.AllowDeleting(true);
-editing.AllowAdding(true);
-editing.Texts(a => a.SaveAllChanges("上傳檔案").AddRow("新增").CancelAllChanges("取消變更").SaveRowChanges("確定").CancelRowChanges("取消").EditRow("編輯").DeleteRow("刪除").ConfirmDeleteTitle("確定要刪除嗎?").ConfirmDeleteMessage("刪除幸福小組週報"));
-//editing.AllowDeleting(true);
+    //editing.Mode(GridEditMode.Row);
+    editing.Mode(GridEditMode.Cell);
+    //editing.Mode(GridEditMode.Batch);
+    //editing.Mode(GridEditMode.Form);
+    //editing.Mode(GridEditMode.Popup);
+    editing.AllowUpdating(true);
+    //editing.AllowDeleting(true);
+    //editing.AllowAdding(true);
+    editing.Texts(a => a.SaveAllChanges("上傳檔案").AddRow("新增").CancelAllChanges("取消變更").SaveRowChanges("確定").CancelRowChanges("取消").EditRow("編輯").DeleteRow("刪除").ConfirmDeleteTitle("確定要刪除嗎?").ConfirmDeleteMessage("刪除幸福小組週報"));
+    //editing.AllowDeleting(true);
 })
 
 
