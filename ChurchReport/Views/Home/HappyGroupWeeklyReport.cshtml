@@ -20,83 +20,83 @@ String ReUpload = "您有一些操作沒有完成，請檢查一下剛剛輸入�
 <br />
 
 <div class="dx-field">
-<div id="buttonContainer" class="dx-button-icon" style="float: left; width:30%; text-align: left; background-color:white;">
-@(Html.DevExtreme().Button()
-.Text("上傳")
-.Type(ButtonType.Success)
-.ID("save-button")
-//.UseSubmitBehavior(true)
+    <div id="buttonContainer" class="dx-button-icon" style="float: left; width:30%; text-align: left; background-color:white;">
+        @(Html.DevExtreme().Button()
+        .Text("上傳")
+        .Type(ButtonType.Success)
+        .ID("save-button")
+        //.UseSubmitBehavior(true)
 
-.OnClick
-(@<text>
-function(arg)
-{
-//debugger;
+        .OnClick
+        (@<text>
+        function(arg)
+        {
+        //debugger;
 
-var dataGrid = $("#gridContainer").dxDataGrid("instance");
+        var dataGrid = $("#WeeklyGridContainer").dxDataGrid("instance");
 
-// 取得上傳的按鈕
-var ButtonContainer= $("#save-button").dxButton("instance");
+        // 取得上傳的按鈕
+        var ButtonContainer= $("#save-button").dxButton("instance");
 
-var Flag = dataGrid.hasEditData();//是否還殘留尚未回傳的編輯資料
+        var Flag = dataGrid.hasEditData();//是否還殘留尚未回傳的編輯資料
 
-if(Flag == false)
-{
-// 顯示旋轉鈕
-$("#loadPanel").dxLoadPanel("instance").show();
+        if(Flag == false)
+        {
+        // 顯示旋轉鈕
+        $("#loadPanel").dxLoadPanel("instance").show();
 
-// 上傳按鈕反白
-ButtonContainer.option("disabled", true);
+        // 上傳按鈕反白
+        ButtonContainer.option("disabled", true);
 
-// AJAX 區塊
-$.ajax
-(
-{
-url: '@Url.Action("SaveHappyGroup", "Home")',
-data: { aResult: "上傳" }, // 整理回傳給 Server 的點名資料
-type: 'POST', //POST if you want to save, GET if you want to fetch data from server
+        // AJAX 區塊
+        $.ajax
+        (
+        {
+        url: '@Url.Action("SaveHappyGroup", "Home")',
+        data: { aResult: "上傳" }, // 整理回傳給 Server 的點名資料
+        type: 'POST', //POST if you want to save, GET if you want to fetch data from server
 
-success: function (arg)
-{
-// 隱藏旋轉鈕
-$("#loadPanel").dxLoadPanel("instance").hide();
+        success: function (arg)
+        {
+        // 隱藏旋轉鈕
+        $("#loadPanel").dxLoadPanel("instance").hide();
 
-// 上傳按鈕恢復可運作
-ButtonContainer.option("disabled", false);
+        // 上傳按鈕恢復可運作
+        ButtonContainer.option("disabled", false);
 
-//debugger;
-//dataGrid.saveEditData();
-//dataGrid.refresh();
+        //debugger;
+        //dataGrid.saveEditData();
+        //dataGrid.refresh();
 
-// 顯示上傳成功
-$("#toast").dxToast("instance").show();
-},
+        // 顯示上傳成功
+        $("#toast").dxToast("instance").show();
+        },
 
-error: function (obj)
-{
-//alert('Something happened');
-}
+        error: function (obj)
+        {
+        //alert('Something happened');
+        }
 
-}
-);
-// AJAX 區塊
-}
-else
-{
-// 顯示再上傳一次
-//$("#ToastReUpload").dxToast("instance").show();
+        }
+        );
+        // AJAX 區塊
+        }
+        else
+        {
+        // 顯示再上傳一次
+        //$("#ToastReUpload").dxToast("instance").show();
 
-//debugger;
-//dataGrid.saveEditData();
-//dataGrid.refresh();
+        //debugger;
+        //dataGrid.saveEditData();
+        //dataGrid.refresh();
 
-// 顯示上傳成功
-$("#toast").dxToast("instance").show();
-}
-}
-</text>)
-)
-</div>
+        // 顯示上傳成功
+        $("#toast").dxToast("instance").show();
+        }
+        }
+        </text>)
+        )
+    </div>
 <div id="ToastContainer">
 @(Html.DevExtreme().Toast()
 .ID("toast")
@@ -209,7 +209,7 @@ $("#toast").dxToast("instance").show();
         </text>)
 
 
-.OnInitNewRow(string.Format("function(e) {{ onInitNewRow(e, {0}); }}", new JS("data.ListEntityId")))
+.OnInitNewRow(string.Format("function(e) {{ OnInitNewWeeklyReportRow(e, {0}); }}", new JS("data.ListEntityId")))
 @*.OnRowInserted(
             @< text >
             function(e) {
@@ -428,7 +428,7 @@ $links.filter(".dx-link-delete").addClass("dx-icon-trash");
 }
     }
 
-    function onInitNewRow(e, ParentID) {
+    function OnInitNewWeeklyReportRow(e, ParentID) {
         //alert(parentID);
         e.data.InsertType = "WeeklyReport";
         e.data.MasterParentID = ParentID;

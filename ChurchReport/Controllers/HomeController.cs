@@ -474,7 +474,7 @@ namespace ChurchReport.Controllers
             // 修改週報或是BEST
             //Dictionary < string, string> aDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(key);
             //m_HappyGroupDataManager.UpdateActiveHappyGroup(aDictionary["BestRecordId"], values);
-            m_InMemoryDataContextSmallGroup.HappyGroupDataManager.UpdateActiveHappyGroup( key, values );
+            m_InMemoryDataContextSmallGroup.HappyGroupDataManager.UpdateUpdatedMasterOrDetail( key, values );
 
             return Ok();
         }

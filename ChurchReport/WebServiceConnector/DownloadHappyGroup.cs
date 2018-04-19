@@ -2405,6 +2405,26 @@ namespace ChurchReport.WebServiceConnector
 
 
         #region 上傳幸福小組週報
+        public void UpdateHappyGroupListClass(HappyGroupListClass aActiveHappyGroupListClass)
+        {
+            try
+            {
+                foreach (HappyGroupWeeklyReportListClass aHappyGroupWeeklyReportListClass in aActiveHappyGroupListClass.HappyGroupWeeklyReportListClass)
+                {
+                    if( aHappyGroupWeeklyReportListClass.DirtyFlag == true )
+                    {
+                        UpdateHappyGroupWeeklyReportList(aHappyGroupWeeklyReportListClass);
+                    }
+                }
+            }
+            catch (System.Exception Exception)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
+
+                throw Exception;
+            }
+        }
+
         public void UpdateHappyGroupWeeklyReportList(HappyGroupWeeklyReportListClass ActiveHappyGroupWeeklyReportList)
         {
             try

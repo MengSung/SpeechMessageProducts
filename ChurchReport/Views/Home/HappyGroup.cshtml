@@ -132,8 +132,6 @@ e.component.expandRow(e.currentSelectedRowKeys[0]);
 }
 </text>)
 
-.OnInitNewRow(string.Format("function(e) {{ onInitNewRow(e); }}"))
-
 @*.OnRowInserted(
 @< text >
 function(e) {
@@ -229,11 +227,6 @@ $links.filter(".dx-link-delete").addClass("dx-icon-trash");
 }
     }
 
-    function onInitNewRow(e, ParentID) {
-        //alert(parentID);
-        e.data.InsertType = "WeeklyReport";
-        e.data.MasterParentID = ParentID;
-    }
 
 </script>
 

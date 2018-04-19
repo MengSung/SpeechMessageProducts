@@ -15,6 +15,8 @@ namespace ChurchReport.Models
 
         public string SpiritLeaderList { set; get; }
 
+        public bool DirtyFlag { set; get; } = false;
+
         public List<HappyGroupWeeklyReport> HappyGroupWeeklyReportList { set; get; } // 週報清單
     }
 }

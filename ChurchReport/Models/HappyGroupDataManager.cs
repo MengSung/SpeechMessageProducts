@@ -163,129 +163,142 @@ namespace ChurchReport.Models
         }
         #endregion
         #region 修改
-        public void UpdateActiveHappyGroup(string key, string values)
+        public void UpdateUpdatedMasterOrDetail(string Key, string values)
         {
-
-            int MasterIndex = -1;
-            int DetailIndex = -1;
-            GetMasterDetailIndex(ref m_ActiveHappyGroupWeeklyReportList, key, ref MasterIndex, ref DetailIndex);
-
-            if (MasterIndex >= 0 && DetailIndex < 0)
+            foreach ( HappyGroupWeeklyReportListClass aHappyGroupWeeklyReportListClass in this.m_ActiveHappyGroupListClass.HappyGroupWeeklyReportListClass)
             {
-                // 修改幸福小組週報
-                HappyGroupWeeklyReport aUpdatedHappyGroupWeeklyReport = JsonConvert.DeserializeObject<HappyGroupWeeklyReport>(values);
+                foreach (HappyGroupWeeklyReport aToBeUpdatedHappyGroupWeeklyReport in aHappyGroupWeeklyReportListClass.HappyGroupWeeklyReportList)
+                {
+                    if (aToBeUpdatedHappyGroupWeeklyReport.HappyGroupWeeklyReportId == Key)
+                    {
+                        HappyGroupWeeklyReport aUpdatedHappyGroupWeeklyReport = JsonConvert.DeserializeObject<HappyGroupWeeklyReport>(values);
 
-                // 設定前端傳來週報有被修改過的旗標
-                aUpdatedHappyGroupWeeklyReport.ModifiedFlag = true;
+                        // 設定前端傳來幸福小組有被修改過的旗標
+                        aHappyGroupWeeklyReportListClass.DirtyFlag = true;
 
-                // 修改系統的幸福小組週報
-                //m_DownloadHappyGroup.UpdateHappyGroupWeeklyReport(key, ref aUpdatedHappyGroupWeeklyReport);
+                        // 設定前端傳來週報有被修改過的旗標
+                        aToBeUpdatedHappyGroupWeeklyReport.ModifiedFlag = true;
 
-                // 從前端傳來有更改過的週報去更新網頁端的幸福小組週報內容
-                bool WeekCounterFlag = values.Contains("WeekCounter") ? true : false;
-                this.UpdateMasterActiveHappyGroup(ref m_ActiveHappyGroupWeeklyReportList, MasterIndex, aUpdatedHappyGroupWeeklyReport, WeekCounterFlag);
+                        // 從前端傳來有更改過的週報去更新網頁端的幸福小組週報內容
+                        bool WeekCounterFlag = values.Contains("WeekCounter") ? true : false;
+                        this.UpdateMasterActiveHappyGroup(aToBeUpdatedHappyGroupWeeklyReport, aUpdatedHappyGroupWeeklyReport, WeekCounterFlag);
+
+
+                        return;
+                    }
+                    foreach (BestRecord aToBeUpdatedBestRest in aToBeUpdatedHappyGroupWeeklyReport.BestRecordList)
+                    {
+                        if (aToBeUpdatedBestRest.BestRecordId == Key)
+                        {
+                            BestRecord aBestRecord = JsonConvert.DeserializeObject<BestRecord>(values);
+                            bool PresentFlag = values.Contains("Present") ? true : false;
+                            bool DecisionFlag = values.Contains("Decision") ? true : false;
+
+                            // 設定前端傳來幸福小組有被修改過的旗標
+                            aHappyGroupWeeklyReportListClass.DirtyFlag = true;
+
+                            // 設定前端傳來週報有被修改過的旗標
+                            aToBeUpdatedHappyGroupWeeklyReport.ModifiedFlag = true;
+
+                            // 設定幸福小組個人出席紀錄有被修改過的旗標
+                            aBestRecord.ModifiedFlag = true;
+
+                            // 修改系統的幸福小組個人出席紀錄
+                            //m_DownloadHappyGroup.UpdateBestRecord(key, ref aBestRecord, PresentFlag, DecisionFlag);
+
+                            // 更新網頁端的幸福小組個人出席紀錄內容
+                            UpdateDetailActiveHappyGroup(aToBeUpdatedHappyGroupWeeklyReport, aToBeUpdatedBestRest, aBestRecord, PresentFlag, DecisionFlag);
+
+                            return;
+                        }
+                    }
+
+                }
             }
-            else
-            {
-                // 修改幸福小組個人出席紀錄
 
-                // 取得使用者改過的BEST資料
-                BestRecord aBestRecord = JsonConvert.DeserializeObject<BestRecord>(values);
-                bool PresentFlag = values.Contains("Present") ? true : false;
-                bool DecisionFlag = values.Contains("Decision") ? true : false;
-
-                // 設定幸福小組個人出席紀錄有被修改過的旗標
-                aBestRecord.ModifiedFlag = true;
-
-                // 修改系統的幸福小組個人出席紀錄
-                //m_DownloadHappyGroup.UpdateBestRecord(key, ref aBestRecord, PresentFlag, DecisionFlag);
-
-                // 更新網頁端的幸福小組個人出席紀錄內容
-                UpdateDetailActiveHappyGroup(ref m_ActiveHappyGroupWeeklyReportList, MasterIndex, DetailIndex, aBestRecord, PresentFlag, DecisionFlag);
-            }
         }
-        private void UpdateMasterActiveHappyGroup(ref HappyGroupWeeklyReportListClass aHappyGroupWeeklyReportListClass, int MasterIndex, HappyGroupWeeklyReport aUpdatedHappyGroupWeeklyReport, bool WeekCounterFlag)
+        private void UpdateMasterActiveHappyGroup( HappyGroupWeeklyReport aToBeUpdatedHappyGroupWeeklyReport,  HappyGroupWeeklyReport aUpdatedHappyGroupWeeklyReport, bool WeekCounterFlag)
         {
-            aHappyGroupWeeklyReportListClass.HappyGroupWeeklyReportList[MasterIndex].WeeklyReportModifiedFlag = true;
+            aToBeUpdatedHappyGroupWeeklyReport.WeeklyReportModifiedFlag = true;
 
             if (WeekCounterFlag == true)
             {
-                aHappyGroupWeeklyReportListClass.HappyGroupWeeklyReportList[MasterIndex].WeekCounter = aUpdatedHappyGroupWeeklyReport.WeekCounter;
+                aToBeUpdatedHappyGroupWeeklyReport.WeekCounter = aUpdatedHappyGroupWeeklyReport.WeekCounter;
             }
             if (aUpdatedHappyGroupWeeklyReport.Topic != null)
             {
-                aHappyGroupWeeklyReportListClass.HappyGroupWeeklyReportList[MasterIndex].Topic = aUpdatedHappyGroupWeeklyReport.Topic;
+                aToBeUpdatedHappyGroupWeeklyReport.Topic = aUpdatedHappyGroupWeeklyReport.Topic;
             }
             if (aUpdatedHappyGroupWeeklyReport.MeetingDate.Year > 1)
             {
-                aHappyGroupWeeklyReportListClass.HappyGroupWeeklyReportList[MasterIndex].MeetingDate = aUpdatedHappyGroupWeeklyReport.MeetingDate;
+                aToBeUpdatedHappyGroupWeeklyReport.MeetingDate = aUpdatedHappyGroupWeeklyReport.MeetingDate;
             }
             if (aUpdatedHappyGroupWeeklyReport.Location != null)
             {
-                aHappyGroupWeeklyReportListClass.HappyGroupWeeklyReportList[MasterIndex].Location = aUpdatedHappyGroupWeeklyReport.Location;
+                aToBeUpdatedHappyGroupWeeklyReport.Location = aUpdatedHappyGroupWeeklyReport.Location;
             }
             if (aUpdatedHappyGroupWeeklyReport.StartTime != null)
             {
-                aHappyGroupWeeklyReportListClass.HappyGroupWeeklyReportList[MasterIndex].StartTime = aUpdatedHappyGroupWeeklyReport.StartTime;
+                aToBeUpdatedHappyGroupWeeklyReport.StartTime = aUpdatedHappyGroupWeeklyReport.StartTime;
             }
             if (aUpdatedHappyGroupWeeklyReport.EndTime != null)
             {
-                aHappyGroupWeeklyReportListClass.HappyGroupWeeklyReportList[MasterIndex].EndTime = aUpdatedHappyGroupWeeklyReport.EndTime;
+                aToBeUpdatedHappyGroupWeeklyReport.EndTime = aUpdatedHappyGroupWeeklyReport.EndTime;
             }
             if (aUpdatedHappyGroupWeeklyReport.ModifiedFlag != null)
             {
-                aHappyGroupWeeklyReportListClass.HappyGroupWeeklyReportList[MasterIndex].ModifiedFlag = aUpdatedHappyGroupWeeklyReport.ModifiedFlag;
+                aToBeUpdatedHappyGroupWeeklyReport.ModifiedFlag = aUpdatedHappyGroupWeeklyReport.ModifiedFlag;
             }
 
             if (aUpdatedHappyGroupWeeklyReport.HappyWeeklyReport != null)
             {
-                aHappyGroupWeeklyReportListClass.HappyGroupWeeklyReportList[MasterIndex].HappyWeeklyReport = aUpdatedHappyGroupWeeklyReport.HappyWeeklyReport;
+                aToBeUpdatedHappyGroupWeeklyReport.HappyWeeklyReport = aUpdatedHappyGroupWeeklyReport.HappyWeeklyReport;
             }
 
         }
-        private void UpdateDetailActiveHappyGroup(ref HappyGroupWeeklyReportListClass aHappyGroupWeeklyReportListClass, int MasterIndex, int DetailIndex, BestRecord aBestRecord, bool PresentFlag, bool DecisionFlag)
+        private void UpdateDetailActiveHappyGroup(HappyGroupWeeklyReport aToBeUpdatedHappyGroupWeeklyReport, BestRecord aToBeUpdatedBestRest, BestRecord aBestRecord, bool PresentFlag, bool DecisionFlag)
         {
             // 告知週報其中某個幸福小組個人出席紀錄欄位有被修改過
-            aHappyGroupWeeklyReportListClass.HappyGroupWeeklyReportList[MasterIndex].BestRecordModifiedFlag = true;
+            aToBeUpdatedHappyGroupWeeklyReport.BestRecordModifiedFlag = true;
 
             // 幸福小組個人出席紀錄欄位有被修改過
-            aHappyGroupWeeklyReportListClass.HappyGroupWeeklyReportList[MasterIndex].BestRecordList[DetailIndex].BestModifiedFlag = true;
+            aToBeUpdatedBestRest.BestModifiedFlag = true;
 
             if (aBestRecord.FullName != null)
             {
-                aHappyGroupWeeklyReportListClass.HappyGroupWeeklyReportList[MasterIndex].BestRecordList[DetailIndex].FullName = aBestRecord.FullName;
+                aToBeUpdatedBestRest.FullName = aBestRecord.FullName;
             }
             if (aBestRecord.MobilePhone != null)
             {
-                aHappyGroupWeeklyReportListClass.HappyGroupWeeklyReportList[MasterIndex].BestRecordList[DetailIndex].MobilePhone = aBestRecord.MobilePhone;
+                aToBeUpdatedBestRest.MobilePhone = aBestRecord.MobilePhone;
             }
             if (PresentFlag == true)
             {
-                aHappyGroupWeeklyReportListClass.HappyGroupWeeklyReportList[MasterIndex].BestRecordList[DetailIndex].Present = aBestRecord.Present;
+                aToBeUpdatedBestRest.Present = aBestRecord.Present;
             }
             if (DecisionFlag == true)
             {
-                aHappyGroupWeeklyReportListClass.HappyGroupWeeklyReportList[MasterIndex].BestRecordList[DetailIndex].Decision = aBestRecord.Decision;
+                aToBeUpdatedBestRest.Decision = aBestRecord.Decision;
             }
             if (aBestRecord.Note != null)
             {
-                aHappyGroupWeeklyReportListClass.HappyGroupWeeklyReportList[MasterIndex].BestRecordList[DetailIndex].Note = aBestRecord.Note;
+                aToBeUpdatedBestRest.Note = aBestRecord.Note;
             }
             if (aBestRecord.ModifiedFlag != null)
             {
-                aHappyGroupWeeklyReportListClass.HappyGroupWeeklyReportList[MasterIndex].BestRecordList[DetailIndex].ModifiedFlag = aBestRecord.ModifiedFlag;
+                aToBeUpdatedBestRest.ModifiedFlag = aBestRecord.ModifiedFlag;
             }
             if (aBestRecord.BestLeader != null)
             {
-                aHappyGroupWeeklyReportListClass.HappyGroupWeeklyReportList[MasterIndex].BestRecordList[DetailIndex].BestLeader = aBestRecord.BestLeader;
+                aToBeUpdatedBestRest.BestLeader = aBestRecord.BestLeader;
             }
             if (aBestRecord.BestIntroducer != null)
             {
-                aHappyGroupWeeklyReportListClass.HappyGroupWeeklyReportList[MasterIndex].BestRecordList[DetailIndex].BestIntroducer = aBestRecord.BestIntroducer;
+                aToBeUpdatedBestRest.BestIntroducer = aBestRecord.BestIntroducer;
             }
             if (aBestRecord.BestRelationship != null)
             {
-                aHappyGroupWeeklyReportListClass.HappyGroupWeeklyReportList[MasterIndex].BestRecordList[DetailIndex].BestRelationship = aBestRecord.BestRelationship;
+                aToBeUpdatedBestRest.BestRelationship = aBestRecord.BestRelationship;
             }
         }
         #endregion
@@ -325,7 +338,8 @@ namespace ChurchReport.Models
         public void SaveActiveHappyGroup()
         {
             #region 上傳幸福小組週報
-            m_DownloadHappyGroup.UpdateHappyGroupWeeklyReportList(m_ActiveHappyGroupWeeklyReportList);
+            //m_DownloadHappyGroup.UpdateHappyGroupWeeklyReportList(m_ActiveHappyGroupWeeklyReportList);
+            m_DownloadHappyGroup.UpdateHappyGroupListClass(m_ActiveHappyGroupListClass);
             #endregion
         }
         #endregion
@@ -375,6 +389,7 @@ namespace ChurchReport.Models
         //        DetailIndex = -1;
         //    }
         //}
+
         #endregion
 
     }
