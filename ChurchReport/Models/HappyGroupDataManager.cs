@@ -59,6 +59,8 @@ namespace ChurchReport.Models
                 HappyGroupWeeklyReport aToAddHappyGroupWeeklyReport = new HappyGroupWeeklyReport();
                 JsonConvert.PopulateObject(values, aToAddHappyGroupWeeklyReport);
 
+                String ParentListId = (String)JObject.Parse(values).GetValue("MasterParentID");
+
                 // 不知為何反序列會差一天
                 //aToAddHappyGroupWeeklyReport.MeetingDate = aToAddHappyGroupWeeklyReport.MeetingDate.AddDays(1);
                 aToAddHappyGroupWeeklyReport.MeetingDate = aToAddHappyGroupWeeklyReport.MeetingDate.ToLocalTime();
@@ -67,7 +69,7 @@ namespace ChurchReport.Models
                 bool WeekCounterFlag = values.Contains("WeekCounter") ? true : false;
 
                 // 新增週報
-                AddWeeklyReport(aToAddHappyGroupWeeklyReport);
+                AddWeeklyReport( ParentListId, aToAddHappyGroupWeeklyReport);
                 #endregion
             }
             else
@@ -91,28 +93,62 @@ namespace ChurchReport.Models
             #endregion
 
         }
-        public void AddWeeklyReport(HappyGroupWeeklyReport aToAddHappyGroupWeeklyReport)
+        public void AddWeeklyReport(String ParentListId, HappyGroupWeeklyReport aToAddHappyGroupWeeklyReport)
         {
-            // 新增幸福小組週報，同時以名單成員作為初始成員
-            m_DownloadHappyGroup.AddHappyGroupWeeklyReport(ref m_ActiveHappyGroupWeeklyReportList, ref aToAddHappyGroupWeeklyReport);
+            HappyGroupWeeklyReportListClass aHappyGroupWeeklyReportListClass = GetHappyGroupWeeklyReportListClass(ParentListId);
 
+            // 新增幸福小組週報，同時以名單成員作為初始成員
+            m_DownloadHappyGroup.AddHappyGroupWeeklyReport(ref aHappyGroupWeeklyReportListClass, ref aToAddHappyGroupWeeklyReport);
+
+            #region 前台網頁要呈現的週報資料
             // 前台網頁要呈現的週報資料，因為已經到後台把幸福小組周報相關資料(聚會時間、地點、組員名單等等)抓回來了，
-            m_ActiveHappyGroupWeeklyReportList.HappyGroupWeeklyReportList.Add(aToAddHappyGroupWeeklyReport);
+            aHappyGroupWeeklyReportListClass.HappyGroupWeeklyReportList.Add(aToAddHappyGroupWeeklyReport);
+            #endregion
 
         }
         public void AddBest(String WeeklyReportId, BestRecord aBestRecord)
         {
+            HappyGroupWeeklyReportListClass aHappyGroupWeeklyReportListClass  = GetHappyGroupWeeklyReportListClassByWeeklyReportId(WeeklyReportId); 
+
             // 新增幸福小組BEST
             //m_DownloadHappyGroup.CreateBest(ref m_ActiveHappyGroupWeeklyReportList, ref aBestRecord);
-            m_DownloadHappyGroup.CreateBest(ref m_ActiveHappyGroupWeeklyReportList, WeeklyReportId, ref aBestRecord);
+            m_DownloadHappyGroup.CreateBest(ref aHappyGroupWeeklyReportListClass, WeeklyReportId, ref aBestRecord);
 
             #region 前台網頁要呈現的Best資料
             //int WeeklyReportListCount = m_ActiveHappyGroupWeeklyReportList.HappyGroupWeeklyReportList.Count;
             //Guid aWeeklyReportId = new Guid(m_ActiveHappyGroupWeeklyReportList.HappyGroupWeeklyReportList[WeeklyReportListCount - 1].HappyGroupWeeklyReportId);
             //HappyGroupWeeklyReport aHappyGroupWeeklyReportToBeAdded = m_ActiveHappyGroupWeeklyReportList.HappyGroupWeeklyReportList[WeeklyReportListCount - 1];
-            HappyGroupWeeklyReport aHappyGroupWeeklyReportToBeAdded = m_DownloadHappyGroup.GetHappyGroupWeeklyReportToBeAdded ( ref m_ActiveHappyGroupWeeklyReportList, WeeklyReportId);
+            HappyGroupWeeklyReport aHappyGroupWeeklyReportToBeAdded = m_DownloadHappyGroup.GetHappyGroupWeeklyReportToBeAdded ( ref aHappyGroupWeeklyReportListClass, WeeklyReportId);
             aHappyGroupWeeklyReportToBeAdded.BestRecordList.Add(aBestRecord);
             #endregion
+        }
+        public HappyGroupWeeklyReportListClass GetHappyGroupWeeklyReportListClass(String ParentListId)
+        {
+            foreach (HappyGroupWeeklyReportListClass aHappyGroupWeeklyReportListClass in this.m_ActiveHappyGroupListClass.HappyGroupWeeklyReportListClass)
+            {
+                if (aHappyGroupWeeklyReportListClass.ListEntityId == ParentListId)
+                {
+                    return aHappyGroupWeeklyReportListClass;
+                }
+            }
+
+            return null;
+        }
+        public HappyGroupWeeklyReportListClass GetHappyGroupWeeklyReportListClassByWeeklyReportId(String WeeklyReportId)
+        {
+            foreach (HappyGroupWeeklyReportListClass aHappyGroupWeeklyReportListClass in this.m_ActiveHappyGroupListClass.HappyGroupWeeklyReportListClass)
+            {
+                foreach(HappyGroupWeeklyReport aHappyGroupWeeklyReport in aHappyGroupWeeklyReportListClass.HappyGroupWeeklyReportList)
+                {
+                    if(aHappyGroupWeeklyReport.HappyGroupWeeklyReportId == WeeklyReportId )
+                    {
+                        return aHappyGroupWeeklyReportListClass;
+                    }
+
+                }
+            }
+
+            return null;
         }
         private String WeeklyReportOrBest(String values)
         {

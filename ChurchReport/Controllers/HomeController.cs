@@ -416,7 +416,7 @@ namespace ChurchReport.Controllers
         [HttpGet]
         public object LoadHappyGroupList( DataSourceLoadOptions loadOptions )
         {
-            if (m_InMemoryDataContextSmallGroup.HappyGroupDataManager.m_ActiveHappyGroupWeeklyReportList != null)
+            if (m_InMemoryDataContextSmallGroup.HappyGroupDataManager.m_ActiveHappyGroupListClass != null)
             {
 
                 return DataSourceLoader.Load(m_InMemoryDataContextSmallGroup.HappyGroupDataManager.m_ActiveHappyGroupListClass.HappyGroupWeeklyReportListClass, loadOptions);
@@ -428,8 +428,7 @@ namespace ChurchReport.Controllers
         [HttpGet]
         public object LoadHappyWeeklyReport(string id, DataSourceLoadOptions loadOptions)
         {
-
-            if (m_InMemoryDataContextSmallGroup.HappyGroupDataManager.m_ActiveHappyGroupWeeklyReportList != null)
+            if (m_InMemoryDataContextSmallGroup.HappyGroupDataManager.m_ActiveHappyGroupListClass != null)
             {
                 var tasks = m_InMemoryDataContextSmallGroup.HappyGroupDataManager.m_ActiveHappyGroupListClass.HappyGroupWeeklyReportListClass.Where(e => e.ListEntityId == id).Select(e => e.HappyGroupWeeklyReportList).FirstOrDefault();
 
@@ -444,10 +443,12 @@ namespace ChurchReport.Controllers
         [HttpGet]
         public object LoadBest(string id, DataSourceLoadOptions loadOptions)
         {
-            if (m_InMemoryDataContextSmallGroup.HappyGroupDataManager.m_ActiveHappyGroupWeeklyReportList != null)
+            HappyGroupWeeklyReportListClass aHappyGroupWeeklyReportListClass = m_InMemoryDataContextSmallGroup.HappyGroupDataManager.GetHappyGroupWeeklyReportListClassByWeeklyReportId(id);
+
+            if ( aHappyGroupWeeklyReportListClass != null)
             {
                 //var tasks = SampleData_001.DataGridEmployees.Where(e => e.ID == id).Select(e => e.Tasks).FirstOrDefault();
-                var tasks = m_InMemoryDataContextSmallGroup.HappyGroupDataManager.m_ActiveHappyGroupWeeklyReportList.HappyGroupWeeklyReportList.Where(e => e.HappyGroupWeeklyReportId == id).Select(e => e.BestRecordList).FirstOrDefault();
+                var tasks = aHappyGroupWeeklyReportListClass.HappyGroupWeeklyReportList.Where(e => e.HappyGroupWeeklyReportId == id).Select(e => e.BestRecordList).FirstOrDefault();
 
                 return DataSourceLoader.Load(tasks, loadOptions);
             }

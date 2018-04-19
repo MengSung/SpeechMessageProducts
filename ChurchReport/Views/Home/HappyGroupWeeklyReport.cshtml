@@ -208,9 +208,9 @@ $("#toast").dxToast("instance").show();
         }
         </text>)
 
-.OnInitNewRow(string.Format("function(e) {{ onInitNewRow(e); }}"))
 
-        @*.OnRowInserted(
+.OnInitNewRow(string.Format("function(e) {{ onInitNewRow(e, {0}); }}", new JS("data.ListEntityId")))
+@*.OnRowInserted(
             @< text >
             function(e) {
                     //debugger;
@@ -428,9 +428,10 @@ $links.filter(".dx-link-delete").addClass("dx-icon-trash");
 }
     }
 
-    function onInitNewRow(e) {
+    function onInitNewRow(e, ParentID) {
         //alert(parentID);
         e.data.InsertType = "WeeklyReport";
+        e.data.MasterParentID = ParentID;
     }
 
 </script>
