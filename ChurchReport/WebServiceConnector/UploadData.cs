@@ -2787,7 +2787,6 @@ namespace ChurchReport.WebServiceConnector
                 String PresentRecordName = aMemberInfomation.Name + String.Format("-{0:00}/{1:00}/{2:00} 出席紀錄", this.m_Sunday.Year, this.m_Sunday.Month, this.m_Sunday.Day);
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_name", PresentRecordName);
                 #endregion
-
                 #region 指派主日小組靈修出席單的負責人
                 //Guid ListOwnerId = aListEntity.GetAttributeValue<EntityReference>("ownerid").Id;
                 //this.m_ToolUtilityClass.AssignOwner("new_present_record", aPresentRecord, ListOwnerId);
