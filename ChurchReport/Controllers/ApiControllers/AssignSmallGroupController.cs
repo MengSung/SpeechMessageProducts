@@ -19,15 +19,15 @@ namespace ChurchReport.Controllers
         public AssignSmallGroupController()
         { }
 
-        [HttpGet]
-        public object Get(DataSourceLoadOptions loadOptions)
-        {
-            return DataSourceLoader.Load(AssignSmallGroupList.AssignSmallGroupListData, loadOptions);
-        }
-        [HttpGet]
-        public ActionResult GetType(DataSourceLoadOptions loadOptions)
-        {
-            return Content(JsonConvert.SerializeObject(DataSourceLoader.Load(AssignSmallGroupList.AssignSmallGroupListData, loadOptions)), "application/json");
-        }
+        //[HttpGet]
+        //public object Get(DataSourceLoadOptions loadOptions)
+        //{
+        //    //return DataSourceLoader.Load(AssignSmallGroupList.AssignSmallGroupListData, loadOptions);
+        //}
+        //[HttpGet]
+        //public ActionResult GetType(DataSourceLoadOptions loadOptions)
+        //{
+        //    //return Content(JsonConvert.SerializeObject(DataSourceLoader.Load(AssignSmallGroupList.AssignSmallGroupListData, loadOptions)), "application/json");
+        //}
     }
 }

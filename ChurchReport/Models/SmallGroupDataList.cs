@@ -43,6 +43,8 @@ namespace ChurchReport.Models
 
         public MemberInfomationPackage m_MemberInfomationPackage;
 
+        public AssignSmallGroupList m_AssignSmallGroupList = new AssignSmallGroupList();
+
         public void SetupContactIdString(String ContactIdString)
         {
             m_SmallGroupData.SmallGroupLeaderContactId = ContactIdString;
@@ -190,7 +192,7 @@ namespace ChurchReport.Models
             }
 
             IdIndex = 0;
-            AssignSmallGroupList.AssignSmallGroupListData.Clear();
+            m_AssignSmallGroupList.AssignSmallGroupListData.Clear();
             foreach (GroupWeeklyReportGuid aGroupWeeklyReportGuid in m_MemberInfomationPackage.GroupWeeklyReportGuidList)
             {
                 String TrimedGroup = this.m_ToolUtilityClass.TrimPresentRate(aGroupWeeklyReportGuid.GroupName);
@@ -200,7 +202,7 @@ namespace ChurchReport.Models
                     ID = IdIndex,
                     Name = TrimedGroup
                 };
-                AssignSmallGroupList.AssignSmallGroupListData.Add(aAssignSmallGroup);
+                m_AssignSmallGroupList.AssignSmallGroupListData.Add(aAssignSmallGroup);
                 IdIndex++;
 
             }

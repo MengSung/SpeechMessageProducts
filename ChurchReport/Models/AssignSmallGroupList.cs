@@ -7,7 +7,7 @@ namespace ChurchReport.Models
 {
     public class AssignSmallGroupList
     {
-        public static List<AssignSmallGroup> AssignSmallGroupListData = new List<AssignSmallGroup> {
+        public List<AssignSmallGroup> AssignSmallGroupListData = new List<AssignSmallGroup> {
             new AssignSmallGroup {
                 ID = 1,
                 Name = "橄欖2"

@@ -554,16 +554,16 @@ namespace ChurchReport.Controllers
             }
 
             // 上傳至系統
-            String Result = m_InMemoryDataContextSmallGroup.m_NewPersonModel.UploadNewPerson(m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_Account, m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_Password, aPersonFormViewModel);
+            String Result = m_InMemoryDataContextSmallGroup.m_NewPersonModel.UploadNewPerson( m_InMemoryDataContextSmallGroup.SmallGroupDataList, aPersonFormViewModel );
 
             if (aPersonFormViewModel.Position == "0" || aPersonFormViewModel.Position == "1" || aPersonFormViewModel.Position == "2" || aPersonFormViewModel.Position == "3" || aPersonFormViewModel.Position == "4" || aPersonFormViewModel.Position == "5")
             {
                 int GroupIndex = Convert.ToInt32(aPersonFormViewModel.Position);
 
                 // 幸福小組長上傳新人有可能沒有所屬小組可選
-                if (AssignSmallGroupList.AssignSmallGroupListData.Count > 0)
+                if (m_InMemoryDataContextSmallGroup.m_SmallGroupDataList.m_AssignSmallGroupList.AssignSmallGroupListData.Count > 0)
                 {
-                    aPersonFormViewModel.Position = AssignSmallGroupList.AssignSmallGroupListData[Convert.ToInt32(aPersonFormViewModel.Position)].Name;
+                    aPersonFormViewModel.Position = m_InMemoryDataContextSmallGroup.m_SmallGroupDataList.m_AssignSmallGroupList.AssignSmallGroupListData[Convert.ToInt32(aPersonFormViewModel.Position)].Name;
                 }
             }
 
@@ -579,6 +579,18 @@ namespace ChurchReport.Controllers
                 return Json(new { status = "2", message = Result });
             }
         }
+
+        [HttpGet]
+        public object AssignSmallGroupGet(DataSourceLoadOptions loadOptions)
+        {
+            return DataSourceLoader.Load(m_InMemoryDataContextSmallGroup.m_SmallGroupDataList.m_AssignSmallGroupList.AssignSmallGroupListData, loadOptions);
+        }
+        [HttpGet]
+        public ActionResult AssignSmallGroupGetType(DataSourceLoadOptions loadOptions)
+        {
+            return Content(JsonConvert.SerializeObject(DataSourceLoader.Load(m_InMemoryDataContextSmallGroup.m_SmallGroupDataList.m_AssignSmallGroupList.AssignSmallGroupListData, loadOptions)), "application/json");
+        }
+
         #endregion
         #region Line綁定
         [Route("/Home/LineBindingView/{LineBindingParameter}")]

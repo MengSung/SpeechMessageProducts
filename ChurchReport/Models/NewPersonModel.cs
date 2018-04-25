@@ -42,19 +42,19 @@ namespace ChurchReport.Models
             CopyPersonFormViewModel(aPersonFormViewModel);
         }
 
-        public String UploadNewPerson( String Account, String Password, PersonFormViewModel aPersonFormViewModel)
+        public String UploadNewPerson(SmallGroupDataList SmallGroupDataList, PersonFormViewModel aPersonFormViewModel)
         {
             CopyPersonFormViewModel(aPersonFormViewModel);
 
             AccountPasswordData aAccountPasswordData = new AccountPasswordData
             {
-                Account = Account,
-                Password = Password
+                Account = SmallGroupDataList.m_Account,
+                Password = SmallGroupDataList.m_Password
             };
 
             NewPerson aNewPersonManager = new NewPerson();
 
-            MappingPersonFormViewModelToNewContact(aPersonFormViewModel);
+            MappingPersonFormViewModelToNewContact(SmallGroupDataList, aPersonFormViewModel);
 
             return aNewPersonManager.CreateNewContact( aAccountPasswordData, m_NewContact );
         }
@@ -79,7 +79,7 @@ namespace ChurchReport.Models
             m_PersonFormViewModel.IntroducerGroup = aPersonFormViewModel.IntroducerGroup;
 
         }
-        public void MappingPersonFormViewModelToNewContact(PersonFormViewModel aPersonFormViewModel)
+        public void MappingPersonFormViewModelToNewContact( SmallGroupDataList SmallGroupDataList , PersonFormViewModel aPersonFormViewModel)
         {
             //m_NewContact.Name             = aPersonFormViewModel.FirstName;
             m_NewContact.Name               = aPersonFormViewModel.LastName;
@@ -113,10 +113,10 @@ namespace ChurchReport.Models
                 int GroupIndex = Convert.ToInt32(aPersonFormViewModel.Position);
 
                 // 幸福小組長上傳新人有可能沒有所屬小組可選
-                if (AssignSmallGroupList.AssignSmallGroupListData.Count > 0)
+                if (SmallGroupDataList.m_AssignSmallGroupList.AssignSmallGroupListData.Count > 0)
                 {
                     // 如果有所屬小組
-                    m_NewContact.GroupName = AssignSmallGroupList.AssignSmallGroupListData[Convert.ToInt32(aPersonFormViewModel.Position)].Name;
+                    m_NewContact.GroupName = SmallGroupDataList.m_AssignSmallGroupList.AssignSmallGroupListData[Convert.ToInt32(aPersonFormViewModel.Position)].Name;
                 }
                 else
                 {
