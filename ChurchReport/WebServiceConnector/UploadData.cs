@@ -2843,7 +2843,10 @@ namespace ChurchReport.WebServiceConnector
                 #endregion
                 #region 設定主日及小組聚會日期
                 this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aPresentRecord, "new_sunday_date", this.m_Sunday);
-                this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aPresentRecord, "new_group_date", aGroupWeeklyReportGuid.SmallGroupDate);
+                if (aGroupWeeklyReportGuid.SmallGroupDate.Year > 1)
+                {
+                    this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aPresentRecord, "new_group_date", aGroupWeeklyReportGuid.SmallGroupDate);
+                }
                 #endregion
                 #region 設定小組聚會地點和時間
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_group_place", m_SmallGroupPlace);

@@ -556,7 +556,7 @@ namespace ChurchReport.Controllers
             // 上傳至系統
             String Result = m_InMemoryDataContextSmallGroup.m_NewPersonModel.UploadNewPerson( m_InMemoryDataContextSmallGroup.SmallGroupDataList, aPersonFormViewModel );
 
-            if (aPersonFormViewModel.Position == "0" || aPersonFormViewModel.Position == "1" || aPersonFormViewModel.Position == "2" || aPersonFormViewModel.Position == "3" || aPersonFormViewModel.Position == "4" || aPersonFormViewModel.Position == "5")
+            if (aPersonFormViewModel.Position == "0" || aPersonFormViewModel.Position == "1" || aPersonFormViewModel.Position == "2" || aPersonFormViewModel.Position == "3" || aPersonFormViewModel.Position == "4" || aPersonFormViewModel.Position == "5" || aPersonFormViewModel.Position == "6" || aPersonFormViewModel.Position == "7" || aPersonFormViewModel.Position == "8" || aPersonFormViewModel.Position == "9" || aPersonFormViewModel.Position == "10" )
             {
                 int GroupIndex = Convert.ToInt32(aPersonFormViewModel.Position);
 
