@@ -401,12 +401,12 @@ namespace ChurchReport.WebServiceConnector
                 }
 
                 // 找到小家長小組名單集合 ，內壢得勝靈糧堂才有，因為是三層，楊梅靈糧堂並沒有
-                aListEntityCollection = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_familyhead_list", "list");
-                if (aListEntityCollection.Entities.Count > 0)
-                {
-                    FilterAppNamedListEntity("小家長", aListEntityCollection);
-                    return;
-                }
+                //aListEntityCollection = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_familyhead_list", "list");
+                //if (aListEntityCollection.Entities.Count > 0)
+                //{
+                //    FilterAppNamedListEntity("小家長", aListEntityCollection);
+                //    return;
+                //}
 
                 return;
             }
