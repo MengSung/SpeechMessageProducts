@@ -668,31 +668,35 @@ namespace ChurchReport.Controllers
             {
                 Entity aContact = this.m_ToolUtilityClass.RetrieveContactCollectionByLineId(UserId);
 
-                //await SendMessage(UserId, "001: " + UserId);
+                //LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                //aLineMessagingProcessorClass.SendMessage(UserId, "001: " + UserId);
 
                 if (aContact != null)
                 {
                     //await SendMessage(UserId, "002");
+                    //aLineMessagingProcessorClass.SendMessage(UserId, "002: " + UserId);
+
                     Entity aEntity = new Entity("letter");
                     m_ToolUtilityClass.SetEntityStringAttribute(ref aEntity, "subject", Message);
                     m_ToolUtilityClass.SetEntityLookUpAttribute(ref aEntity, "regardingobjectid", "contact", aContact.Id);
                     m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aEntity, "scheduledend", DateTime.Now);
                     m_ToolUtilityClass.SetEntityBoolAttribute(ref aEntity, "directioncode", false);
 
-                    //await SendMessage(UserId, "003");
+                    //aLineMessagingProcessorClass.SendMessage(UserId, "003: " + UserId);
                     //設定訊息種類為文字 
                     m_ToolUtilityClass.SetOptionSetAttribute(ref aEntity, "new_message_category", OptionSetValueOfMessageType);
 
-                    //await SendMessage(UserId, "004");
+                    //aLineMessagingProcessorClass.SendMessage(UserId, "004: " + UserId);
                     Entity Fromparty = new Entity("activityparty");
 
-                    //await SendMessage(UserId, "005");
+                    //aLineMessagingProcessorClass.SendMessage(UserId, "005: " + UserId);
                     Fromparty["partyid"] = new EntityReference("contact", aContact.Id);
 
-                    //await SendMessage(UserId, "006");
+                    //aLineMessagingProcessorClass.SendMessage(UserId, "006: " + UserId);
                     aEntity["from"] = new Entity[] { Fromparty };
 
-                    //await SendMessage(UserId, "007");
+                    //aLineMessagingProcessorClass.SendMessage(UserId, "007: " + UserId);
                     return m_ToolUtilityClass.CreateEntity(aEntity);
                     //return m_ToolUtilityClass.CreateEntity( ref m_ToolUtilityClass.m_OrganizationService, aEntity);
                 }
@@ -704,9 +708,12 @@ namespace ChurchReport.Controllers
             }
             catch (System.Exception e)
             {
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
                 String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
 
-                //Monitor.Exit(this);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " +  ErrorString);
+
                 throw e;
             }
         }

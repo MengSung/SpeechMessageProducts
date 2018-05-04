@@ -40,7 +40,10 @@ namespace LineMessagingProcessor
         //String m_ChannelAccessToken = "Bearer " + "s+583b2Rgbv4APgXhkNVpmx+wlaU04wWh82c/6i5Tyjsqh6SBQdBUjLc3b9C9tk4XK+1/TOeetLqFR+KdNromuUaS1Ih/T7gfXS3U/IRY0XqiQCYhrOC0TYKjeFuiDhAHpGidPcimIb6oVkqo5jBDQdB04t89/1O/w1cDnyilFU=";
 
         // 台北基督之家(進階版)
-        String m_ChannelAccessToken = "Bearer " + "a5bB4sunKwoZGjbf0HvFnenCpiABmzIT6rGU4rQ25QAqDhxj8Wa+RwXKQN2CZVC3lSk2sZ2n5bqzCcvaa8J/DIOzUdLUUgq1wF6SIvcd0sL0uFWn0+XyaQXdii1QHvA4Lm+NU5wehU4zIhdxZaMMsAdB04t89/1O/w1cDnyilFU=";
+        //String m_ChannelAccessToken = "Bearer " + "a5bB4sunKwoZGjbf0HvFnenCpiABmzIT6rGU4rQ25QAqDhxj8Wa+RwXKQN2CZVC3lSk2sZ2n5bqzCcvaa8J/DIOzUdLUUgq1wF6SIvcd0sL0uFWn0+XyaQXdii1QHvA4Lm+NU5wehU4zIhdxZaMMsAdB04t89/1O/w1cDnyilFU=";
+
+        // 思恩堂豐富教會
+        String m_ChannelAccessToken = "Bearer " + "PhC1ibjhqnR1CiDPyRsO6yvTmB1pWRiZAEQEsdTc0ibRd9hn3j1u3yOZf6IFneDsy3x1TBJgL1ODRxhpm9nTjELXi6uK3NFBapHXlogGsZryEIq6rZAVQ37cwquPr6sruwmkvRjQrxIvubS50aXBEwdB04t89/1O/w1cDnyilFU=";
 
         #endregion
 
