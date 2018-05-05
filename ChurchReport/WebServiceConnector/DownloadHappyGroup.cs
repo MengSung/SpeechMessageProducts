@@ -1798,7 +1798,7 @@ namespace ChurchReport.WebServiceConnector
                 #endregion
                 #endregion
                 #region 設定主日及小組聚會日期
-                int DayOfWeek = (int)aHappyGroupWeeklyReportToBeAdded.MeetingDate.DayOfWeek + 1;
+                int DayOfWeek = (int)aHappyGroupWeeklyReportToBeAdded.MeetingDate.DayOfWeek;
                 this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aPresentRecord, "new_sunday_date", aHappyGroupWeeklyReportToBeAdded.MeetingDate.AddDays(-DayOfWeek));
                 this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aPresentRecord, "new_group_date", aHappyGroupWeeklyReportToBeAdded.MeetingDate);
                 #endregion
@@ -2348,8 +2348,8 @@ namespace ChurchReport.WebServiceConnector
             try
             {
                 #region 設定幸福小組出席
-                if (PresentFlag == true)
-                {
+                //if (PresentFlag == true)
+                //{
                     if (aBestRecord.Present == true)
                     {
                         this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecordEntity, "new_happy_present", 1);
@@ -2358,11 +2358,11 @@ namespace ChurchReport.WebServiceConnector
                     {
                         this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecordEntity, "new_happy_present", 0);
                     }
-                }
+                //}
                 #endregion
                 #region 設定幸福小組決志
-                if (DecisionFlag == true)
-                {
+                //if (DecisionFlag == true)
+                //{
                     if (aBestRecord.Decision == true)
                     {
                         this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecordEntity, "new_happy_decision", 1);
@@ -2371,7 +2371,7 @@ namespace ChurchReport.WebServiceConnector
                     {
                         this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecordEntity, "new_happy_decision", 0);
                     }
-                }
+                //}
                 #endregion
                 #region 設定附註或是代禱事項
 
@@ -2402,8 +2402,6 @@ namespace ChurchReport.WebServiceConnector
             }
         }
         #endregion
-
-
         #region 上傳幸福小組週報
         public void UpdateHappyGroupListClass(HappyGroupListClass aActiveHappyGroupListClass)
         {
