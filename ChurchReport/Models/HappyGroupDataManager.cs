@@ -16,6 +16,8 @@ namespace ChurchReport.Models
         public String m_Password = "";
         public DateTime m_SundayDate;
 
+        public String HappyType = "";
+
         private ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
         //private ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("CRM2011");
         DownloadHappyGroup m_DownloadHappyGroup = new DownloadHappyGroup();
@@ -38,6 +40,14 @@ namespace ChurchReport.Models
             //m_ActiveHappyGroupWeeklyReportList = m_DownloadHappyGroup.GetHappyGroupWeeklyReportList(Account, Password);
             m_ActiveHappyGroupListClass = m_DownloadHappyGroup.GetHappyGroupList(Account, Password);
 
+            if( m_ActiveHappyGroupListClass != null && m_ActiveHappyGroupListClass.HappyGroupWeeklyReportListClass != null && m_ActiveHappyGroupListClass.HappyGroupWeeklyReportListClass.Count > 0 )
+            {
+                HappyType = "有幸福小組名單";
+            }
+            else
+            {
+                HappyType = "沒幸福小組名單";
+            }
             //m_ActiveHappyGroupListClass.HappyGroupWeeklyReportListClass = new List<HappyGroupWeeklyReportListClass>();
             //m_ActiveHappyGroupListClass.HappyGroupWeeklyReportListClass.Add(m_ActiveHappyGroupWeeklyReportList);
         }
