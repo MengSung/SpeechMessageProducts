@@ -684,7 +684,6 @@ namespace ChurchReport.WebServiceConnector
         }
 
         #endregion
-
         #region 副程式呼叫
         private void RemoveNumericAndBlank()
         {
@@ -723,8 +722,10 @@ namespace ChurchReport.WebServiceConnector
 
                     // 合併小組名單至族系名單，單扣除掉重複的
                     // 然後放在小組名單裡面
-                    EntityCollection aMergeCollection = MergeCollection(ref aListEntityCollection, ref aFamilyLeaderListEntityCollection);
+                    //EntityCollection aMergeCollection = MergeCollection(ref aListEntityCollection, ref aFamilyLeaderListEntityCollection);
+                    EntityCollection aMergeCollection = MergeCollectionSmallGroupAhead(ref aListEntityCollection, ref aFamilyLeaderListEntityCollection);
 
+                    
                     // 過濾掉需要點名的名單才進來
                     FilterAppNamedListEntity("族長", aMergeCollection);
 
@@ -772,7 +773,8 @@ namespace ChurchReport.WebServiceConnector
 
                     // 合併小組名單至族系名單，單扣除掉重複的
                     // 然後放在小組名單裡面
-                    EntityCollection aMergeCollection = MergeCollection(ref aListEntityCollection, ref aFamilyLeaderListEntityCollection);
+                    //EntityCollection aMergeCollection = MergeCollection(ref aListEntityCollection, ref aFamilyLeaderListEntityCollection);
+                    EntityCollection aMergeCollection = MergeCollectionSmallGroupAhead(ref aListEntityCollection, ref aFamilyLeaderListEntityCollection);
 
 
                     // 過濾掉需要點名的名單才進來，而且不是幸福小組(因為有時幸福小組也會在APP點名的框框打勾)
@@ -842,6 +844,41 @@ namespace ChurchReport.WebServiceConnector
                 }
 
                 return aFamilyLeaderListEntityCollection;
+            }
+            catch (System.Exception Exception)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
+
+                throw Exception;
+            }
+        }
+        private EntityCollection MergeCollectionSmallGroupAhead(ref EntityCollection aListEntityCollection, ref EntityCollection aFamilyLeaderListEntityCollection)
+        {
+            try
+            {
+                EntityCollection aMergedEntityCollection = new EntityCollection();
+
+                // 族系族長或是區長的名單若是與小組長名單重疊，則要過濾出僅有族長/區長的名單
+                // 合併小組名單至族系名單，單扣除掉重複的
+                // 然後放在小組名單裡面
+                foreach (Entity FamilyLeaderListEntity in aFamilyLeaderListEntityCollection.Entities)
+                {
+                    aMergedEntityCollection.Entities.Add(FamilyLeaderListEntity);
+                }
+                // 一個一個處理族系名單
+                foreach (Entity RaceListEntity in aListEntityCollection.Entities)
+                {
+                    foreach (Entity FamilyLeaderListEntity in aFamilyLeaderListEntityCollection.Entities)
+                    {
+                        if (RaceListEntity.Id != FamilyLeaderListEntity.Id)
+                        {
+                            aMergedEntityCollection.Entities.Add(RaceListEntity);
+                            break;
+                        }
+                    }
+                }
+
+                return aMergedEntityCollection;
             }
             catch (System.Exception Exception)
             {

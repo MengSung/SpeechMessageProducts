@@ -214,6 +214,7 @@ else
         @(Html.DevExtreme().DataGrid<Member>()
                                 .ID("gridContainer")
                                 .ShowBorders(true)
+                                //.Sorting(sorting => sorting.Mode(GridSortingMode.None))
                                 .ColumnAutoWidth(true)
                                 .Paging(p => p.PageSize(10))
                                 .Paging(paging => paging.Enabled(false))
@@ -273,36 +274,36 @@ else
 
                                 .Editing(editing =>
                                 {
-                        //editing.Mode(GridEditMode.Batch);
-                        //editing.Mode(GridEditMode.Row);
-                        editing.Mode(GridEditMode.Cell);
-                        //editing.Mode(GridEditMode.Batch);
-                        //editing.Mode(GridEditMode.Form);
-                        //editing.Mode(GridEditMode.Popup);
-                        editing.AllowUpdating(true);
+                                    //editing.Mode(GridEditMode.Batch);
+                                    //editing.Mode(GridEditMode.Row);
+                                    editing.Mode(GridEditMode.Cell);
+                                    //editing.Mode(GridEditMode.Batch);
+                                    //editing.Mode(GridEditMode.Form);
+                                    //editing.Mode(GridEditMode.Popup);
+                                    editing.AllowUpdating(true);
                                     editing.AllowDeleting(false);
-                        //editing.AllowAdding(false);
-                        editing.Texts(a => a.SaveAllChanges("上傳檔案").AddRow("新增").CancelAllChanges("取消變更").SaveRowChanges("儲存").CancelRowChanges("取消").EditRow("編輯").DeleteRow("刪除"));
-                        //editing.AllowDeleting(true);
-                    })
+                                    //editing.AllowAdding(false);
+                                    editing.Texts(a => a.SaveAllChanges("上傳檔案").AddRow("新增").CancelAllChanges("取消變更").SaveRowChanges("儲存").CancelRowChanges("取消").EditRow("編輯").DeleteRow("刪除"));
+                                    //editing.AllowDeleting(true);
+                                })
 
-                        .Columns(columns =>
-                        {
-                //columns.Add().DataField("FullName").Caption("姓名").Fixed(true).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Left);
-                //columns.Add().DataField("Status").Caption("委身類型").Fixed(false).Width(100).MinWidth(20).Alignment(HorizontalAlignment.Center);
-                //columns.Add().DataField("Sunday").Caption("主日").DataType(GridColumnDataType.Boolean).Width(45).MinWidth(45);
-                //columns.Add().DataField("SmallGroup").Caption("小組").DataType(GridColumnDataType.Boolean).Width(45).MinWidth(45);
-                //columns.Add().DataField("PrayItem").Caption("代禱事項").Fixed(false).MinWidth(90);
-                //columns.Add().DataField("SmallGroupName").Caption("小組").GroupIndex(0).MinWidth(10);
+                                .Columns(columns =>
+                                {
+                                    //columns.Add().DataField("FullName").Caption("姓名").Fixed(true).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Left);
+                                    //columns.Add().DataField("Status").Caption("委身類型").Fixed(false).Width(100).MinWidth(20).Alignment(HorizontalAlignment.Center);
+                                    //columns.Add().DataField("Sunday").Caption("主日").DataType(GridColumnDataType.Boolean).Width(45).MinWidth(45);
+                                    //columns.Add().DataField("SmallGroup").Caption("小組").DataType(GridColumnDataType.Boolean).Width(45).MinWidth(45);
+                                    //columns.Add().DataField("PrayItem").Caption("代禱事項").Fixed(false).MinWidth(90);
+                                    //columns.Add().DataField("SmallGroupName").Caption("小組").GroupIndex(0).MinWidth(10);
 
-                columns.AddFor(m => m.FullName).Caption("姓名").Fixed(true).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Left);
-                            columns.AddFor(m => m.Status).Caption("委身類型").Fixed(false).Width(100).MinWidth(20).Alignment(HorizontalAlignment.Center);
-                            columns.AddFor(m => m.Sunday).Caption("主日").Width(45).MinWidth(45);
-                            columns.AddFor(m => m.SmallGroup).Caption("小組").Width(45).MinWidth(45);
-                            columns.AddFor(m => m.PrayItem).Caption("代禱事項").MinWidth(90);
-                            columns.AddFor(m => m.SmallGroupName).Caption("小組").GroupIndex(0).MinWidth(10);
+                                    columns.AddFor(m => m.FullName).Caption("姓名").Fixed(true).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Left);
+                                    columns.AddFor(m => m.Status).Caption("委身類型").Fixed(false).Width(100).MinWidth(20).Alignment(HorizontalAlignment.Center);
+                                    columns.AddFor(m => m.Sunday).Caption("主日").Width(45).MinWidth(45);
+                                    columns.AddFor(m => m.SmallGroup).Caption("小組").Width(45).MinWidth(45);
+                                    columns.AddFor(m => m.PrayItem).Caption("代禱事項").MinWidth(90);
+                                    columns.AddFor(m => m.SmallGroupName).Caption("小組").SortOrder(SortOrder.Desc).GroupIndex(0).MinWidth(10);
 
-                        })
+                                })
                                     .DataSource(Model.Members)
         )
     </div>
@@ -431,7 +432,7 @@ else
                                                                     columns.AddFor(m => m.Sunday).Caption("主日").Width(45).MinWidth(45);
                                                                     columns.AddFor(m => m.SmallGroup).Caption("小組").Width(45).MinWidth(45);
                                                                     columns.AddFor(m => m.PrayItem).Caption("代禱事項").MinWidth(90);
-                                                                    columns.AddFor(m => m.SmallGroupName).Caption("小組").GroupIndex(0).MinWidth(10);
+                                                                    columns.AddFor(m => m.SmallGroupName).Caption("小組").SortOrder(SortOrder.Desc).GroupIndex(0).MinWidth(10);
 
                                                         //columns.Add()
                                                         //    .DataField("StateID1")
