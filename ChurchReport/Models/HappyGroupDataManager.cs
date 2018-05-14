@@ -75,11 +75,18 @@ namespace ChurchReport.Models
                 //aToAddHappyGroupWeeklyReport.MeetingDate = aToAddHappyGroupWeeklyReport.MeetingDate.AddDays(1);
                 aToAddHappyGroupWeeklyReport.MeetingDate = aToAddHappyGroupWeeklyReport.MeetingDate.ToLocalTime();
 
-                // 是否有修改 WeekCounter， 因為如果沒有改變整數，但是反序列之後仍然會有值，而不會是 null，所以要靠旗標來幫忙
+                // 是否有輸入週次 WeekCounter， 因為如果沒有改變整數，但是反序列之後仍然會有值，而不會是 null，所以要靠旗標來幫忙
                 bool WeekCounterFlag = values.Contains("WeekCounter") ? true : false;
 
+                // 是否有輸入主題
+                bool TopicFlag = values.Contains("Topic") ? true : false;
+
                 // 新增週報
-                AddWeeklyReport( ParentListId, aToAddHappyGroupWeeklyReport);
+                if (WeekCounterFlag == true && TopicFlag == true)
+                {
+                    // 同時輸入週次及主題才能新增幸福小組週報
+                    AddWeeklyReport(ParentListId, aToAddHappyGroupWeeklyReport);
+                }
                 #endregion
             }
             else

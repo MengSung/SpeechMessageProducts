@@ -773,11 +773,12 @@ namespace ChurchReport.WebServiceConnector
 
                     // 合併小組名單至族系名單，單扣除掉重複的
                     // 然後放在小組名單裡面
-                    //EntityCollection aMergeCollection = MergeCollection(ref aListEntityCollection, ref aFamilyLeaderListEntityCollection);
+                    EntityCollection aMergeCollection = MergeCollection(ref aListEntityCollection, ref aFamilyLeaderListEntityCollection);
                     EntityCollection aMergeCollection = MergeCollectionSmallGroupAhead(ref aListEntityCollection, ref aFamilyLeaderListEntityCollection);
 
 
                     // 過濾掉需要點名的名單才進來，而且不是幸福小組(因為有時幸福小組也會在APP點名的框框打勾)
+                    // 但是過濾的結果會放在 => this.m_Lists
                     FilterAppNamedListEntity(aMergeCollection);
 
                     // 帶領族系裡有名單，所以是族系組長，就不用在往下找看是不是小組長了 
@@ -868,14 +869,25 @@ namespace ChurchReport.WebServiceConnector
                 // 一個一個處理族系名單
                 foreach (Entity RaceListEntity in aListEntityCollection.Entities)
                 {
+                    // 處理一個族系族長的名單
+                    bool SearchedFlag = false;
                     foreach (Entity FamilyLeaderListEntity in aFamilyLeaderListEntityCollection.Entities)
                     {
-                        if (RaceListEntity.Id != FamilyLeaderListEntity.Id)
+                        // 比對每一個小組名單
+                        if (RaceListEntity.Id == FamilyLeaderListEntity.Id)
                         {
-                            aMergedEntityCollection.Entities.Add(RaceListEntity);
+                            // 族系族長的名單與小組長的名單有相同的了
+                            SearchedFlag = true;
                             break;
                         }
                     }
+
+                    if (SearchedFlag == false)
+                    {
+                        // 族系族長的名單沒有與小組長名單相同的
+                        aMergedEntityCollection.Entities.Add(RaceListEntity);
+                    }
+
                 }
 
                 return aMergedEntityCollection;
