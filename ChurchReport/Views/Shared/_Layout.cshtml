@@ -87,23 +87,24 @@
                     @if (@ViewBag.LoginType == "小組長" && @ViewBag.HappyType == "有幸福小組名單")
                     {
                         <li><a href="/Home/SmallGroupReportView/AccountPassword">小組牧養</a></li>
-                        <li><a href="/Home/NewPersonFollowUpView">跟進關懷</a></li>
+                        <li><a href="/Home/NewPerson">新增新人</a></li>
+                        <li><a href="/Home/NewPersonFollowUpView">關懷新人</a></li>
                         <li><a href="/Home/HappyGroup">幸福小組回報</a></li>
                         <li><a href="/Home/WeeklyReport">小組日誌</a></li>
                         <li><a href="/Home/MaintainPersonInfomationView">維護基本資料</a></li>
-                        <li><a href="/Home/NewPerson">新增新人</a></li>
+
                     }
                     else if (@ViewBag.LoginType == "小組長" && @ViewBag.HappyType == "沒幸福小組名單")
                     {
                         <li><a href="/Home/SmallGroupReportView/AccountPassword">小組牧養</a></li>
-                        <li><a href="/Home/NewPersonFollowUpView">跟進關懷</a></li>
+                        <li><a href="/Home/NewPerson">新增新人</a></li>
+                        <li><a href="/Home/NewPersonFollowUpView">關懷新人</a></li>
                         <li><a href="/Home/WeeklyReport">小組日誌</a></li>
                         <li><a href="/Home/MaintainPersonInfomationView">維護基本資料</a></li>
-                        <li><a href="/Home/NewPerson">新增新人</a></li>
                     }
                     else if (@ViewBag.LoginType != "小組長" && @ViewBag.HappyType == "有幸福小組名單")
                     {
-                        <li><a href="/Home/HappyGroup"> 幸福小組回報 </a ></li>
+                        <li><a href="/Home/HappyGroup"> 幸福小組回報 </a></li>
                         <li><a href="/Home/SmallGroupReportView/AccountPassword">個人回報</a></li>
                         <li><a href="/Home/MaintainPersonInfomationView">維護個人基本資料</a></li>
                         <li><a href="/Home/NewPerson">新增新人</a></li>
