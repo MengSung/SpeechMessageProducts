@@ -297,12 +297,13 @@ else
                                     //columns.Add().DataField("PrayItem").Caption("代禱事項").Fixed(false).MinWidth(90);
                                     //columns.Add().DataField("SmallGroupName").Caption("小組").GroupIndex(0).MinWidth(10);
 
-                                    columns.AddFor(m => m.FullName).Caption("姓名").Fixed(true).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Left);
-                                    columns.AddFor(m => m.Status).Caption("委身類型").Fixed(false).Width(100).MinWidth(20).Alignment(HorizontalAlignment.Center);
-                                    columns.AddFor(m => m.Sunday).Caption("主日").Width(45).MinWidth(45);
-                                    columns.AddFor(m => m.SmallGroup).Caption("小組").Width(45).MinWidth(45);
-                                    columns.AddFor(m => m.PrayItem).Caption("代禱事項").MinWidth(90);
-                                    columns.AddFor(m => m.SmallGroupName).Caption("小組").SortOrder(SortOrder.Desc).GroupIndex(0).MinWidth(10);
+                                    columns.AddFor(m => m.FullName).Caption("姓名").Fixed(true).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Left).AllowSorting(false);
+                                    columns.AddFor(m => m.Status).Caption("委身類型").Fixed(false).Width(100).MinWidth(20).Alignment(HorizontalAlignment.Center).AllowSorting(false);
+                                    columns.AddFor(m => m.Sunday).Caption("主日").Width(45).MinWidth(45).AllowSorting(false);
+                                    columns.AddFor(m => m.SmallGroup).Caption("小組").Width(45).MinWidth(45).AllowSorting(false);
+                                    columns.AddFor(m => m.PrayItem).Caption("代禱事項").MinWidth(90).AllowSorting(false);
+                                    //columns.AddFor(m => m.SmallGroupName).Caption("小組").SortOrder(SortOrder.Desc).GroupIndex(0).MinWidth(10).AllowSorting(false);
+                                    columns.AddFor(m => m.SmallGroupName).Caption("小組").GroupIndex(0).MinWidth(10).AllowSorting(false);
 
                                 })
                                     .DataSource(Model.Members)
@@ -317,6 +318,7 @@ else
                                 .ShowBorders(true)
                                 .ColumnAutoWidth(true)
                                 .Paging(p => p.PageSize(10))
+                                .Sorting(sorting => sorting.Mode(GridSortingMode.None))
                                 .Paging(paging => paging.Enabled(false))
                                 .AllowColumnResizing(true)
                                 .ColumnResizingMode(ColumnResizingMode.Widget)
@@ -433,17 +435,18 @@ else
                                                                     columns.AddFor(m => m.Sunday).Caption("主日").Width(45).MinWidth(45).AllowSorting(false);
                                                                     columns.AddFor(m => m.SmallGroup).Caption("小組").Width(45).MinWidth(45).AllowSorting(false);
                                                                     columns.AddFor(m => m.PrayItem).Caption("代禱事項").MinWidth(90).AllowSorting(false);
-                                                                    columns.AddFor(m => m.SmallGroupName).Caption("小組").SortOrder(SortOrder.Desc).GroupIndex(0).MinWidth(10).AllowSorting(false);
+                                                                    //columns.AddFor(m => m.SmallGroupName).Caption("小組").SortOrder(SortOrder.Desc).GroupIndex(0).MinWidth(10).AllowSorting(false);
+                                                                    columns.AddFor(m => m.SmallGroupName).Caption("小組").GroupIndex(0).MinWidth(10).AllowSorting(false);
 
-                                                        //columns.Add()
-                                                        //    .DataField("StateID1")
-                                                        //    .Caption("牧養活動")
-                                                        //    .Width(80).MinWidth(30)
-                                                        //    .Lookup(lookup => lookup
-                                                        //    .DataSource(d => d.WebApi().Controller("ShepherdMethodLookup").LoadAction("Get").Key("ID"))
-                                                        //    .DisplayExpr("Name")
-                                                        //    .ValueExpr("ID")
-                                                        //);
+                                                                    //columns.Add()
+                                                                    //    .DataField("StateID1")
+                                                                    //    .Caption("牧養活動")
+                                                                    //    .Width(80).MinWidth(30)
+                                                                    //    .Lookup(lookup => lookup
+                                                                    //    .DataSource(d => d.WebApi().Controller("ShepherdMethodLookup").LoadAction("Get").Key("ID"))
+                                                                    //    .DisplayExpr("Name")
+                                                                    //    .ValueExpr("ID")
+                                                                    //);
 
                                                                     //columns.Add()
                                                                     //    .Caption("牧養次數")
