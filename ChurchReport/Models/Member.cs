@@ -100,6 +100,12 @@ namespace ChurchReport.Models {
         }
         #endregion
 
+        #region ÆF­×¡B±á¡B±ßÃ«
+        public int SpiritualWork { get; set; } // ÆF­×¦¸¼Æ
+        public int MorningPray { get; set; }   // ±áÃ«(®a®x²½¾Â)
+        public int GeneralCare { get; set; }   // ±ßÃ«(Ã«§i·|¦¸¼Æ)
+        #endregion
+
         public string Picture { get; set; }
         public string Shepherd { get; set; }
     }

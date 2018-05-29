@@ -523,7 +523,13 @@ namespace ChurchReport.WebServiceConnector
                     FollowUpNextStep = ".",
                     FollowUp = "",
                     FollowUpNote = "",
-                    NewComerNote = aNewComerNote
+                    NewComerNote = aNewComerNote,
+                    #region 靈修、晨、晚禱
+                    SpiritualWork = 0,
+                    MorningPray = 0,
+                    GeneralCare = 0,
+                    #endregion
+
                 };
 
                 Double DUM_DOUBLE = 0;
@@ -548,7 +554,6 @@ namespace ChurchReport.WebServiceConnector
 
         #endregion
         #endregion
-
 
         #region 所需要的工具
         private void FindListCollection()

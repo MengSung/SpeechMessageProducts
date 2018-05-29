@@ -226,11 +226,11 @@ else
                                 .SearchPanel(s => s.Visible(true).Placeholder("搜尋.."))
 
 
-                                .StateStoring(s => s
-                                .Enabled(true)
-                                .Type(StateStoringType.LocalStorage)
-                                .StorageKey("FullName")
-                                )
+                                //.StateStoring(s => s
+                                //.Enabled(true)
+                                //.Type(StateStoringType.LocalStorage)
+                                //.StorageKey("FullName")
+                                //)
                                 //.StateStoring(s => s
                                 //    .Enabled(true)
                                 //    .Type(StateStoringType.LocalStorage)
@@ -301,9 +301,32 @@ else
                                     columns.AddFor(m => m.Status).Caption("委身類型").Fixed(false).Width(100).MinWidth(20).Alignment(HorizontalAlignment.Center).AllowSorting(false);
                                     columns.AddFor(m => m.Sunday).Caption("主日").Width(45).MinWidth(45).AllowSorting(false);
                                     columns.AddFor(m => m.SmallGroup).Caption("小組").Width(45).MinWidth(45).AllowSorting(false);
-                                    columns.AddFor(m => m.PrayItem).Caption("代禱事項").MinWidth(90).AllowSorting(false);
-                                    //columns.AddFor(m => m.SmallGroupName).Caption("小組").SortOrder(SortOrder.Desc).GroupIndex(0).MinWidth(10).AllowSorting(false);
-                                    columns.AddFor(m => m.SmallGroupName).Caption("小組").GroupIndex(0).MinWidth(10).AllowSorting(false);
+                                    columns.AddFor(m => m.SpiritualWork)
+                                        .Caption("靈修次數").Alignment(HorizontalAlignment.Center)
+                                        .Width(75).MinWidth(30).DataType(GridColumnDataType.Number)
+                                        .Lookup(lookup => lookup
+                                        .DataSource(new string[] { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", })
+                                        //.DisplayExpr("Name")
+                                        //.ValueExpr("ID")
+                                        );
+                                    columns.AddFor(m => m.MorningPray)
+                                        .Caption("晨禱次數").Alignment(HorizontalAlignment.Center)
+                                        .Width(75).MinWidth(30).DataType(GridColumnDataType.Number)
+                                        .Lookup(lookup => lookup
+                                        .DataSource(new string[] { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", })
+                                        //.DisplayExpr("Name")
+                                        //.ValueExpr("ID")
+                                        );
+
+                                    columns.AddFor(m => m.GeneralCare)
+                                        .Caption("禱告次數").Alignment(HorizontalAlignment.Center)
+                                        .Width(75).MinWidth(30).DataType(GridColumnDataType.Number)
+                                        .Lookup(lookup => lookup
+                                        .DataSource(new string[] { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", })
+                                        );
+                                    columns.AddFor(m => m.PrayItem).Caption("代禱事項").MinWidth(90);
+                                    columns.AddFor(m => m.SmallGroupName).Caption("小組").GroupIndex(0).MinWidth(10);
+
 
                                 })
                                     .DataSource(Model.Members)
@@ -434,9 +457,31 @@ else
                                                                     columns.AddFor(m => m.Status).Caption("委身類型").Fixed(false).Width(100).MinWidth(20).Alignment(HorizontalAlignment.Center).AllowSorting(false);
                                                                     columns.AddFor(m => m.Sunday).Caption("主日").Width(45).MinWidth(45).AllowSorting(false);
                                                                     columns.AddFor(m => m.SmallGroup).Caption("小組").Width(45).MinWidth(45).AllowSorting(false);
-                                                                    columns.AddFor(m => m.PrayItem).Caption("代禱事項").MinWidth(90).AllowSorting(false);
-                                                                    //columns.AddFor(m => m.SmallGroupName).Caption("小組").SortOrder(SortOrder.Desc).GroupIndex(0).MinWidth(10).AllowSorting(false);
-                                                                    columns.AddFor(m => m.SmallGroupName).Caption("小組").GroupIndex(0).MinWidth(10).AllowSorting(false);
+                                                                    columns.AddFor(m => m.SpiritualWork)
+                                                                        .Caption("靈修次數").Alignment(HorizontalAlignment.Center)
+                                                                        .Width(75).MinWidth(30).DataType(GridColumnDataType.Number)
+                                                                        .Lookup(lookup => lookup
+                                                                        .DataSource(new string[] { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", })
+                                                                        //.DisplayExpr("Name")
+                                                                        //.ValueExpr("ID")
+                                                                        );
+                                                                    columns.AddFor(m => m.MorningPray)
+                                                                        .Caption("晨禱次數").Alignment(HorizontalAlignment.Center)
+                                                                        .Width(75).MinWidth(30).DataType(GridColumnDataType.Number)
+                                                                        .Lookup(lookup => lookup
+                                                                        .DataSource(new string[] { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", })
+                                                                        //.DisplayExpr("Name")
+                                                                        //.ValueExpr("ID")
+                                                                        );
+
+                                                                    columns.AddFor(m => m.GeneralCare)
+                                                                        .Caption("禱告次數").Alignment(HorizontalAlignment.Center)
+                                                                        .Width(75).MinWidth(30).DataType(GridColumnDataType.Number)
+                                                                        .Lookup(lookup => lookup
+                                                                        .DataSource(new string[] { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", })
+                                                                        );
+                                                                    columns.AddFor(m => m.PrayItem).Caption("代禱事項").MinWidth(90);
+                                                                    columns.AddFor(m => m.SmallGroupName).Caption("小組").GroupIndex(0).MinWidth(10);
 
                                                                     //columns.Add()
                                                                     //    .DataField("StateID1")

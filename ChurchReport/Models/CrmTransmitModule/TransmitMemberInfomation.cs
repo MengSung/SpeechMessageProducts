@@ -294,6 +294,32 @@ namespace ChurchReport.Models.CrmTransmitModule
             set { m_NewComerNote = value; }
         }
         #endregion
+
+        #region 靈修、晨、晚禱
+
+        // 靈修次數
+        int m_SpiritualWork = 0;
+        public int SpiritualWork
+        {
+            get { return m_SpiritualWork; }
+            set { m_SpiritualWork = value; }
+        }
+        //  晨禱(家庭祭壇)
+        int m_MorningPray = 0;
+        public int MorningPray
+        {
+            get { return m_MorningPray; }
+            set { m_MorningPray = value; }
+        }
+        // 晚禱(禱告會次數)
+        int m_GeneralCare = 0;
+        public int GeneralCare
+        {
+            get { return m_GeneralCare; }
+            set { m_GeneralCare = value; }
+        }
+        #endregion
+
     }
 
     public class MemberInfomationPackage

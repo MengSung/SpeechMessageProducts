@@ -1379,7 +1379,13 @@ namespace ChurchReport.WebServiceConnector
                             FollowUpOption = "",
                             FollowUp = "",
                             FollowUpNote = "",
-                            NewComerNote = aNewComerNote
+                            NewComerNote = aNewComerNote,
+                            #region 靈修、晨、晚禱
+                            SpiritualWork = 0,
+                            MorningPray = 0,
+                            GeneralCare = 0,
+                            #endregion
+
                         };
 
                         if (aIdentity != "10.未入組結案")
@@ -1477,6 +1483,13 @@ namespace ChurchReport.WebServiceConnector
                 aToMemberInfomation.FollowUp = aFromMemberInfomation.FollowUp;
                 aToMemberInfomation.FollowUpNote = aFromMemberInfomation.FollowUpNote;
                 aToMemberInfomation.NewComerNote = aFromMemberInfomation.NewComerNote;
+
+                #region 靈修、晨、晚禱
+                aToMemberInfomation.SpiritualWork = aFromMemberInfomation.SpiritualWork;
+                aToMemberInfomation.MorningPray = aFromMemberInfomation.MorningPray;
+                aToMemberInfomation.GeneralCare = aFromMemberInfomation.GeneralCare;
+                #endregion
+
             }
             catch (System.Exception Exception)
             {
@@ -1780,6 +1793,12 @@ namespace ChurchReport.WebServiceConnector
                                         FollowUp = aPersonalMemberInfomation.FollowUp,
                                         FollowUpNote = aPersonalMemberInfomation.FollowUpNote,
                                         NewComerNote = aPersonalMemberInfomation.NewComerNote,
+
+                                        #region 靈修、晨、晚禱
+                                        SpiritualWork = aPersonalMemberInfomation.SpiritualWork,
+                                        MorningPray = aPersonalMemberInfomation.MorningPray,
+                                        GeneralCare = aPersonalMemberInfomation.GeneralCare,
+                                        #endregion
                                     };
 
                                     if (aIdentity != "10.未入組結案")
@@ -1823,7 +1842,12 @@ namespace ChurchReport.WebServiceConnector
                                     FollowUpOption = "",
                                     FollowUp = "",
                                     FollowUpNote = "",
-                                    NewComerNote = aNewComerNote
+                                    NewComerNote = aNewComerNote,
+                                    #region 靈修、晨、晚禱
+                                    SpiritualWork = 0,
+                                    MorningPray = 0,
+                                    GeneralCare = 0,
+                                    #endregion
                                 };
 
                                 if (aIdentity != "10.未入組結案")
@@ -2759,7 +2783,13 @@ namespace ChurchReport.WebServiceConnector
                             FollowUpOption = "",
                             FollowUp = "",
                             FollowUpNote = "",
-                            NewComerNote = aNewComerNote
+                            NewComerNote = aNewComerNote,
+                            #region 靈修、晨、晚禱
+                            SpiritualWork = 0,
+                            MorningPray = 0,
+                            GeneralCare = 0,
+                            #endregion
+
                         };
 
                         if (aIdentity != "10.未入組結案")
@@ -2948,6 +2978,17 @@ namespace ChurchReport.WebServiceConnector
 
                 AddToDictionaryFollowByIdentity(ref ClearIdentity, ref aContactEntity, aMemberInfomation);
 
+                #endregion
+                #region// 靈修次數
+
+                this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_spiritual_work", aMemberInfomation.SpiritualWork);
+                this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_morning_pray", aMemberInfomation.MorningPray);
+                this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_general_care", aMemberInfomation.GeneralCare);
+
+                //this.m_ToolUtilityClass.SetEntityIntAttribute(ref aMachedPresentRecordEntity, "new_general_care", aMemberInfomation.PrayNumber);
+                //this.m_ToolUtilityClass.SetEntityIntAttribute(ref aMachedPresentRecordEntity, "new_spiritual_work", aMemberInfomation.SpiritNumber);
+                //this.m_ToolUtilityClass.SetEntityIntAttribute(ref aMachedPresentRecordEntity, "new_morning_pray", aMemberInfomation.FamilyNumber);
+                //this.m_ToolUtilityClass.SetEntityIntAttribute(ref aMachedPresentRecordEntity, "new_evening_pray", aMemberInfomation.WorkAndCampusNumber);
                 #endregion
                 #region 設定行動電話
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_cell_hpone", aMemberInfomation.Phone);
@@ -3626,6 +3667,18 @@ namespace ChurchReport.WebServiceConnector
                         #endregion
 
                         #endregion
+                        #region// 靈修次數
+
+                        this.m_ToolUtilityClass.SetEntityIntAttribute(ref aMachedPresentRecordEntity, "new_spiritual_work", aMemberInfomation.SpiritualWork);
+                        this.m_ToolUtilityClass.SetEntityIntAttribute(ref aMachedPresentRecordEntity, "new_morning_pray", aMemberInfomation.MorningPray);
+                        this.m_ToolUtilityClass.SetEntityIntAttribute(ref aMachedPresentRecordEntity, "new_general_care", aMemberInfomation.GeneralCare);
+
+                        //this.m_ToolUtilityClass.SetEntityIntAttribute(ref aMachedPresentRecordEntity, "new_general_care", aMemberInfomation.PrayNumber);
+                        //this.m_ToolUtilityClass.SetEntityIntAttribute(ref aMachedPresentRecordEntity, "new_spiritual_work", aMemberInfomation.SpiritNumber);
+                        //this.m_ToolUtilityClass.SetEntityIntAttribute(ref aMachedPresentRecordEntity, "new_morning_pray", aMemberInfomation.FamilyNumber);
+                        //this.m_ToolUtilityClass.SetEntityIntAttribute(ref aMachedPresentRecordEntity, "new_evening_pray", aMemberInfomation.WorkAndCampusNumber);
+                        #endregion
+
                         #region 更新個人聚會與靈修記錄
                         this.m_ToolUtilityClass.UpdateEntity(ref aMachedPresentRecordEntity);
                         #endregion

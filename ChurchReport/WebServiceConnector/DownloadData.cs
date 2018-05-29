@@ -465,6 +465,28 @@ namespace ChurchReport.WebServiceConnector
                             #endregion
                             #endregion
 
+                            #region 靈修、晨、晚禱
+                            // 靈修次數
+                            int aSpiritualWork = 0;
+                            if (PresentRecordEntity.Attributes.Contains("new_spiritual_work"))
+                            {
+                                aSpiritualWork = (int)PresentRecordEntity.Attributes["new_spiritual_work"];
+                            }
+                            // 晨禱
+                            int aMorningPray = 0;
+                            if (PresentRecordEntity.Attributes.Contains("new_morning_pray"))
+                            {
+                                aMorningPray = (int)PresentRecordEntity.Attributes["new_morning_pray"];
+                            }
+                            // 晚禱次數
+                            int aGeneralCare = 0;
+                            if (PresentRecordEntity.Attributes.Contains("new_general_care"))
+                            {
+                                aGeneralCare = (int)PresentRecordEntity.Attributes["new_general_care"];
+                            }
+
+                            #endregion
+
                             #region 傳回給手機的資料
                             MemberInfomation aMemberInfomation = new MemberInfomation()
                             {
@@ -494,7 +516,13 @@ namespace ChurchReport.WebServiceConnector
                                 FollowUpOption = aFollowUpOption,// 跟進方式選項
                                 FollowUp = aFollowUp,// 跟進方式
                                 FollowUpNote = aFollowUpNote,// 備註
-                                NewComerNote = aNewComerNote // 取得新人跟進週次，及跟進歷程記錄
+                                NewComerNote = aNewComerNote, // 取得新人跟進週次，及跟進歷程記錄
+
+                                #region 靈修、晨、晚禱
+                                SpiritualWork = aSpiritualWork,
+                                MorningPray = aMorningPray,
+                                GeneralCare = aGeneralCare,
+                                #endregion
                             };
                             #endregion
 
@@ -658,7 +686,13 @@ namespace ChurchReport.WebServiceConnector
                                 FollowUpOption = "",
                                 FollowUp = "",
                                 FollowUpNote = "",
-                                NewComerNote = aNewComerNote
+                                NewComerNote = aNewComerNote,
+
+                                #region 靈修、晨、晚禱
+                                SpiritualWork = 0,
+                                MorningPray = 0,
+                                GeneralCare = 0,
+                                #endregion
                             };
 
                             // 委身類型客製，每間教會不同
@@ -1354,6 +1388,28 @@ namespace ChurchReport.WebServiceConnector
                         String aNewComerNote = GetNewComerFollowupInfo(aFullNameEntityReference.Id, ref aFollowUpWeek);
 
                         #endregion
+
+                        #region 靈修、晨、晚禱
+                        // 靈修次數
+                        int aSpiritualWork = 0;
+                        if (PresentRecordEntity.Attributes.Contains("new_spiritual_work"))
+                        {
+                            aSpiritualWork = (int)PresentRecordEntity.Attributes["new_spiritual_work"];
+                        }
+                        // 晨禱
+                        int aMorningPray = 0;
+                        if (PresentRecordEntity.Attributes.Contains("new_morning_pray"))
+                        {
+                            aMorningPray = (int)PresentRecordEntity.Attributes["new_morning_pray"];
+                        }
+                        // 晚禱次數
+                        int aGeneralCare = 0;
+                        if (PresentRecordEntity.Attributes.Contains("new_general_care"))
+                        {
+                            aGeneralCare = (int)PresentRecordEntity.Attributes["new_general_care"];
+                        }
+
+                        #endregion
                         #endregion
 
                         #region 傳回給手機的資料
@@ -1385,7 +1441,14 @@ namespace ChurchReport.WebServiceConnector
                             FollowUpOption = aFollowUpOption,// 跟進方式選項
                             FollowUp = aFollowUp,// 跟進方式
                             FollowUpNote = aFollowUpNote,// 備註
-                            NewComerNote = aNewComerNote // 取得新人跟進週次，及跟進歷程記錄
+                            NewComerNote = aNewComerNote, // 取得新人跟進週次，及跟進歷程記錄
+
+                            #region 靈修、晨、晚禱
+                            SpiritualWork = aSpiritualWork,
+                            MorningPray = aMorningPray,
+                            GeneralCare = aGeneralCare,
+                            #endregion
+
                         };
                         #endregion
 
@@ -2346,7 +2409,14 @@ namespace ChurchReport.WebServiceConnector
                             FollowUpOption = "",
                             FollowUp = "",
                             FollowUpNote = "",
-                            NewComerNote = aNewComerNote
+                            NewComerNote = aNewComerNote,
+
+                            #region 靈修、晨、晚禱
+                            SpiritualWork = 0,
+                            MorningPray = 0,
+                            GeneralCare = 0,
+                            #endregion
+
                         };
 
                         // 委身類型客製化

@@ -149,6 +149,13 @@ namespace ChurchReport.Models
                     FollowUpNote = aMemberInfomation.FollowUpNote,
                     NewComerNote = aMemberInfomation.NewComerNote,
                     #endregion
+
+                    #region 靈修、晨、晚禱
+                    SpiritualWork = aMemberInfomation.SpiritualWork, // 靈修次數
+                    MorningPray = aMemberInfomation.MorningPray, // 晨禱(家庭祭壇)
+                    GeneralCare = aMemberInfomation.GeneralCare, // 晚禱(禱告會次數)
+                    #endregion
+
                     StateID1 = 2,
                     Number1 = 4,
                     StateID2 = 1,
@@ -322,6 +329,13 @@ namespace ChurchReport.Models
                     aMemberInfomation.FollowUpResult = aMember.FollowUpResult;
                     aMemberInfomation.FollowUpNextStep = aMember.FollowUpNextStep;
                     aMemberInfomation.FollowUpNote = aMember.FollowUpNote;
+
+                    #region 靈修、晨、晚禱
+                    aMemberInfomation.SpiritualWork = aMember.SpiritualWork; // 靈修次數
+                    aMemberInfomation.MorningPray = aMember.MorningPray;     // 晨禱(家庭祭壇)
+                    aMemberInfomation.GeneralCare = aMember.GeneralCare;     // 晚禱(禱告會次數)
+                    #endregion
+
                     break;
                 }
             }
