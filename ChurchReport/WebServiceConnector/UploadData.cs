@@ -1178,6 +1178,11 @@ namespace ChurchReport.WebServiceConnector
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aWeeklyReportEntity, "new_group_place", SmallGroupPlace);
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aWeeklyReportEntity, "new_group_time", SmallGroupTime);
                 #endregion
+                #region 設定小組人數
+
+                this.m_ToolUtilityClass.SetEntityIntAttribute(ref aWeeklyReportEntity, "new_small_group_member_number", this.m_GroupNamedListMemberInfomation.Count);
+
+                #endregion
                 #region 設定週報狀態，設定為均未點名，因為後面程式還會再設定一次
                 this.m_ToolUtilityClass.SetOptionSetAttribute(ref aWeeklyReportEntity, "new_weekly_report_status", 100000000);
                 #endregion
