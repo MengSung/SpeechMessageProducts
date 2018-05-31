@@ -1180,7 +1180,7 @@ namespace ChurchReport.WebServiceConnector
                 #endregion
                 #region 設定小組人數
 
-                this.m_ToolUtilityClass.SetEntityIntAttribute(ref aWeeklyReportEntity, "new_small_group_member_number", this.m_GroupNamedListMemberInfomation.Count);
+                this.m_ToolUtilityClass.SetEntityIntAttribute(ref aWeeklyReportEntity, "new_small_group_member_number", GetSmallGroupMemberNumber(ListEntity.Id));
 
                 #endregion
                 #region 設定週報狀態，設定為均未點名，因為後面程式還會再設定一次
@@ -1194,6 +1194,48 @@ namespace ChurchReport.WebServiceConnector
 
                 throw Exception;
             }
+        }
+        private int GetSmallGroupMemberNumber(Guid ListEntityId)
+        {
+            #region // 初始化每個小組名單，建立原始的 Member Data
+
+            #region 取得小組名單，一個一個的連絡人實體
+            //搜尋名單的組員
+            //EntityCollection Contacts = m_ToolUtilityClass.RetrieveManyToOneRelationship("list", "listid", ListEntityId.ToString(), "new_cell_list_contact", "contact");
+
+            Entity ListEntity = this.m_ToolUtilityClass.RetrieveEntity("list", ListEntityId);
+
+            bool ListType = this.m_ToolUtilityClass.GetEntityBoolAttribute(ListEntity, "type");
+            EntityCollection MemberCollection;
+            if (ListType == false)
+            {
+                // 靜態名單
+                if (CRM_TYPE == "DYNAMICS365")
+                {
+                    MemberCollection = this.m_ToolUtilityClass.RetrieveMemberListCollectionByListIdDynamics365(ref this.m_ToolUtilityClass.m_OrganizationService, ListEntityId);
+                }
+                else
+                {
+                    MemberCollection = this.m_ToolUtilityClass.RetrieveMemberListCollectionByListIdCrm2011(ref this.m_ToolUtilityClass.m_Crm2011OrganizationService, ListEntityId);
+                }
+            }
+            else
+            {
+                // 動態名單
+                if (CRM_TYPE == "DYNAMICS365")
+                {
+                    MemberCollection = this.m_ToolUtilityClass.RetrieveDynamicMemberListDynamics365(ref this.m_ToolUtilityClass.m_OrganizationService, ListEntityId);
+                }
+                else
+                {
+                    MemberCollection = this.m_ToolUtilityClass.RetrieveDynamicMemberListCrm2011(ref this.m_ToolUtilityClass.m_Crm2011OrganizationService, ListEntityId);
+                }
+            }
+            #endregion
+
+            return MemberCollection.Entities.Count;
+
+            #endregion
         }
 
 
