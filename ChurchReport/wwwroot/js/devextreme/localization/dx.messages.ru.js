@@ -1,7 +1,7 @@
 /*!
 * DevExtreme (dx.messages.ru.js)
-* Version: 17.2.5
-* Build date: Tue Jan 23 2018
+* Version: 18.1.3
+* Build date: Tue May 15 2018
 *
 * Copyright (c) 2012 - 2018 Developer Express Inc. ALL RIGHTS RESERVED
 * Read about DevExtreme licensing here: https://js.devexpress.com/Licensing/
@@ -153,6 +153,10 @@
             "dxDataGrid-ariaSearchInGrid": "Искать в таблице данных",
             "dxDataGrid-ariaSelectAll": "Выбрать всё",
             "dxDataGrid-ariaSelectRow": "Выбрать строку",
+            "dxDataGrid-filterBuilderPopupTitle": "Конструктор фильтра",
+            "dxDataGrid-filterPanelCreateFilter": "Создать фильтр",
+            "dxDataGrid-filterPanelClearFilter": "Очистить",
+            "dxDataGrid-filterPanelFilterEnabledHint": "Активировать фильтр",
             "dxTreeList-ariaTreeList": "Иерархическая таблица данных",
             "dxTreeList-editingAddRowToNode": "Добавить",
             "dxPager-infoText": "Страница {0} из {1} (Всего элементов: {2})",
@@ -246,7 +250,10 @@
             "dxFilterBuilder-filterOperationNotContains": "Не содержит",
             "dxFilterBuilder-filterOperationEndsWith": "Заканчивается на",
             "dxFilterBuilder-filterOperationIsBlank": "Пусто",
-            "dxFilterBuilder-filterOperationIsNotBlank": "Не пусто"
+            "dxFilterBuilder-filterOperationIsNotBlank": "Не пусто",
+            "dxFilterBuilder-filterOperationBetween": "В диапазоне",
+            "dxFilterBuilder-filterOperationAnyOf": "Любой из",
+            "dxFilterBuilder-filterOperationNoneOf": "Ни один из"
         }
     })
 });
