@@ -20,7 +20,6 @@ namespace ChurchReport.Models
                 var session = httpContextAccessor.HttpContext.Session;
                 var Key = session.Id ;
 
-
                 if (StaticContextDictionary.ContainsKey(Key))
                 {
                     // 關鍵( Key ) 已經在字典裡了
@@ -31,8 +30,18 @@ namespace ChurchReport.Models
                     // 關鍵( Key )還沒有在字典裡
                     InMemoryDataContextSmallGroup aInMemoryDataContextSmallGroup = new InMemoryDataContextSmallGroup(httpContextAccessor, memoryCache);
 
-                    aInMemoryDataContextSmallGroup.HappyGroupDataManager.m_ActiveHappyGroupWeeklyReportList.SpiritLeaderList = "";
-                    //aInMemoryDataContextSmallGroup.HappyGroupDataManager.m_ActiveHappyGroupWeeklyReportList.HappyGroupName = "";
+                    // 一個人會開多個幸福小組
+                    //foreach (HappyGroupWeeklyReportListClass aHappyGroupWeeklyReportListClass in aInMemoryDataContextSmallGroup.HappyGroupDataManager.m_ActiveHappyGroupListClass.HappyGroupWeeklyReportListClass)
+                    //{
+                    //    // aHappyGroupWeeklyReportListClass = 幸福小組名單
+                    //    aHappyGroupWeeklyReportListClass.SpiritLeaderList = "";
+                    //    //aInMemoryDataContextSmallGroup.HappyGroupDataManager.m_ActiveHappyGroupWeeklyReportList.SpiritLeaderList = "";
+                    //}
+
+                    //for (int i = 0 ; i < aInMemoryDataContextSmallGroup.HappyGroupDataManager.m_ActiveHappyGroupListClass.HappyGroupWeeklyReportListClass.Count; i ++ )
+                    //{
+                    //    aInMemoryDataContextSmallGroup.HappyGroupDataManager.m_ActiveHappyGroupListClass.HappyGroupWeeklyReportListClass[i].SpiritLeaderList = "";
+                    //}
 
                     StaticContextDictionary.Add( Key, aInMemoryDataContextSmallGroup );
 

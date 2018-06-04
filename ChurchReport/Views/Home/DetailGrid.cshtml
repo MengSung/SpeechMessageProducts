@@ -74,7 +74,7 @@
                                                                  .DataSource(d => d.WebApi()
                                                                      .Controller("SpiritLeaderLookup")
                                                                      .LoadAction("Get")
-                                                                     .LoadParams(new { ShepherdLeader = @ViewBag.SpiritLeaderList })
+                                                                     .LoadParams(new { id = new JS("data.HappyGroupListEntityId") })
                                                                      .Key("ID"))
                                                                      .DisplayExpr("Name")
                                                                      .ValueExpr("Name")

@@ -493,6 +493,53 @@ namespace ChurchReport.WebServiceConnector
                 throw Exception;
             }
         }
+        public String GetSpiritLeaderListString( String aListEntityIdString )
+        {
+            try
+            {
+                Entity aListEntity = this.m_ToolUtilityClass.RetrieveEntity("list", new Guid(aListEntityIdString));
+                bool ListType = false;
+                EntityCollection MemberCollection = GetPersonalSmallGroupLeaderMemberData(aListEntity.Id, ref ListType);
+
+                String SpiritLeaderList = "";
+                foreach (Entity MemberEntity in MemberCollection.Entities)
+                {
+                    // 每個組員
+                    Entity aContactEntity;
+
+                    if (ListType == false)
+                    {
+                        // 靜態名單
+                        aContactEntity = m_ToolUtilityClass.RetrieveEntity("contact", ((EntityReference)MemberEntity.Attributes["entityid"]).Id);
+                    }
+                    else
+                    {
+                        // 動態名單
+                        aContactEntity = m_ToolUtilityClass.RetrieveEntity("contact", (Guid)MemberEntity.Attributes["contactid"]);
+                    }
+
+                    if (IsAQulifiedSpiritLeaderMember(ref aContactEntity) == true)
+                    {
+                        String SpiritLeaderName = this.m_ToolUtilityClass.GetEntityStringAttribute(aContactEntity, "fullname");
+
+                        if( SpiritLeaderList.Contains(SpiritLeaderName) != true )
+                        {
+                            SpiritLeaderList += SpiritLeaderName + ",";
+                        }
+                    }
+                }
+
+                return SpiritLeaderList;
+
+            }
+            catch (System.Exception Exception)
+            {
+                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
+                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                throw Exception;
+            }
+        }
         private bool IsAQulifiedSpiritLeaderMember(ref Entity aContactEntity)
         {
             try

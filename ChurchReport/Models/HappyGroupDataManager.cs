@@ -182,7 +182,6 @@ namespace ChurchReport.Models
         #region 修改
         public void UpdateActiveHappyGroup(string key, string values)
         {
-
             int ListIndex = -1;     // 哪個幸福小組?
             int MasterIndex = -1;   // 哪一週?
             int DetailIndex = -1;   // 哪個Best?
