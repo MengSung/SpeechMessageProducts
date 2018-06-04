@@ -183,9 +183,11 @@ namespace ChurchReport.Models
         public void UpdateActiveHappyGroup(string key, string values)
         {
 
-            int MasterIndex = -1;
-            int DetailIndex = -1;
-            GetMasterDetailIndex(ref m_ActiveHappyGroupWeeklyReportList, key, ref MasterIndex, ref DetailIndex);
+            int ListIndex = -1;     // 哪個幸福小組?
+            int MasterIndex = -1;   // 哪一週?
+            int DetailIndex = -1;   // 哪個Best?
+            //GetMasterDetailIndex(ref m_ActiveHappyGroupWeeklyReportList, key, ref MasterIndex, ref DetailIndex);
+            GetMasterDetailIndex(ref m_ActiveHappyGroupListClass, key, ref ListIndex, ref MasterIndex, ref DetailIndex);
 
             if (MasterIndex >= 0 && DetailIndex < 0)
             {
@@ -200,7 +202,7 @@ namespace ChurchReport.Models
 
                 // 從前端傳來有更改過的週報去更新網頁端的幸福小組週報內容
                 bool WeekCounterFlag = values.Contains("WeekCounter") ? true : false;
-                this.UpdateMasterActiveHappyGroup(ref m_ActiveHappyGroupWeeklyReportList, MasterIndex, aUpdatedHappyGroupWeeklyReport, WeekCounterFlag);
+                this.UpdateMasterActiveHappyGroup(ref m_ActiveHappyGroupListClass, ListIndex, MasterIndex, aUpdatedHappyGroupWeeklyReport, WeekCounterFlag);
             }
             else
             {
@@ -218,94 +220,92 @@ namespace ChurchReport.Models
                 //m_DownloadHappyGroup.UpdateBestRecord(key, ref aBestRecord, PresentFlag, DecisionFlag);
 
                 // 更新網頁端的幸福小組個人出席紀錄內容
-                UpdateDetailActiveHappyGroup(ref m_ActiveHappyGroupWeeklyReportList, MasterIndex, DetailIndex, aBestRecord, PresentFlag, DecisionFlag);
+                UpdateDetailActiveHappyGroup(ref m_ActiveHappyGroupListClass, ListIndex, MasterIndex, DetailIndex, aBestRecord, PresentFlag, DecisionFlag);
             }
         }
-        private void UpdateMasterActiveHappyGroup(ref HappyGroupWeeklyReportListClass aHappyGroupWeeklyReportListClass, int MasterIndex, HappyGroupWeeklyReport aUpdatedHappyGroupWeeklyReport, bool WeekCounterFlag)
+        private void UpdateMasterActiveHappyGroup(ref HappyGroupListClass aActiveHappyGroupListClass, int ListIndex, int MasterIndex, HappyGroupWeeklyReport aUpdatedHappyGroupWeeklyReport, bool WeekCounterFlag)
         {
-            aHappyGroupWeeklyReportListClass.HappyGroupWeeklyReportList[MasterIndex].WeeklyReportModifiedFlag = true;
+            aActiveHappyGroupListClass.HappyGroupWeeklyReportListClass[ListIndex].HappyGroupWeeklyReportList[MasterIndex].WeeklyReportModifiedFlag = true;
 
             if (WeekCounterFlag == true)
             {
-                aHappyGroupWeeklyReportListClass.HappyGroupWeeklyReportList[MasterIndex].WeekCounter = aUpdatedHappyGroupWeeklyReport.WeekCounter;
+                aActiveHappyGroupListClass.HappyGroupWeeklyReportListClass[ListIndex].HappyGroupWeeklyReportList[MasterIndex].WeekCounter = aUpdatedHappyGroupWeeklyReport.WeekCounter;
             }
             if (aUpdatedHappyGroupWeeklyReport.Topic != null)
             {
-                aHappyGroupWeeklyReportListClass.HappyGroupWeeklyReportList[MasterIndex].Topic = aUpdatedHappyGroupWeeklyReport.Topic;
+                aActiveHappyGroupListClass.HappyGroupWeeklyReportListClass[ListIndex].HappyGroupWeeklyReportList[MasterIndex].Topic = aUpdatedHappyGroupWeeklyReport.Topic;
             }
             if (aUpdatedHappyGroupWeeklyReport.MeetingDate.Year > 1)
             {
-                aHappyGroupWeeklyReportListClass.HappyGroupWeeklyReportList[MasterIndex].MeetingDate = aUpdatedHappyGroupWeeklyReport.MeetingDate;
+                aActiveHappyGroupListClass.HappyGroupWeeklyReportListClass[ListIndex].HappyGroupWeeklyReportList[MasterIndex].MeetingDate = aUpdatedHappyGroupWeeklyReport.MeetingDate;
             }
             if (aUpdatedHappyGroupWeeklyReport.Location != null)
             {
-                aHappyGroupWeeklyReportListClass.HappyGroupWeeklyReportList[MasterIndex].Location = aUpdatedHappyGroupWeeklyReport.Location;
+                aActiveHappyGroupListClass.HappyGroupWeeklyReportListClass[ListIndex].HappyGroupWeeklyReportList[MasterIndex].Location = aUpdatedHappyGroupWeeklyReport.Location;
             }
             if (aUpdatedHappyGroupWeeklyReport.StartTime != null)
             {
-                aHappyGroupWeeklyReportListClass.HappyGroupWeeklyReportList[MasterIndex].StartTime = aUpdatedHappyGroupWeeklyReport.StartTime;
+                aActiveHappyGroupListClass.HappyGroupWeeklyReportListClass[ListIndex].HappyGroupWeeklyReportList[MasterIndex].StartTime = aUpdatedHappyGroupWeeklyReport.StartTime;
             }
             if (aUpdatedHappyGroupWeeklyReport.EndTime != null)
             {
-                aHappyGroupWeeklyReportListClass.HappyGroupWeeklyReportList[MasterIndex].EndTime = aUpdatedHappyGroupWeeklyReport.EndTime;
+                aActiveHappyGroupListClass.HappyGroupWeeklyReportListClass[ListIndex].HappyGroupWeeklyReportList[MasterIndex].EndTime = aUpdatedHappyGroupWeeklyReport.EndTime;
             }
             if (aUpdatedHappyGroupWeeklyReport.ModifiedFlag != null)
             {
-                aHappyGroupWeeklyReportListClass.HappyGroupWeeklyReportList[MasterIndex].ModifiedFlag = aUpdatedHappyGroupWeeklyReport.ModifiedFlag;
+                aActiveHappyGroupListClass.HappyGroupWeeklyReportListClass[ListIndex].HappyGroupWeeklyReportList[MasterIndex].ModifiedFlag = aUpdatedHappyGroupWeeklyReport.ModifiedFlag;
             }
-
             if (aUpdatedHappyGroupWeeklyReport.HappyWeeklyReport != null)
             {
-                aHappyGroupWeeklyReportListClass.HappyGroupWeeklyReportList[MasterIndex].HappyWeeklyReport = aUpdatedHappyGroupWeeklyReport.HappyWeeklyReport;
+                aActiveHappyGroupListClass.HappyGroupWeeklyReportListClass[ListIndex].HappyGroupWeeklyReportList[MasterIndex].HappyWeeklyReport = aUpdatedHappyGroupWeeklyReport.HappyWeeklyReport;
             }
 
         }
-        private void UpdateDetailActiveHappyGroup(ref HappyGroupWeeklyReportListClass aHappyGroupWeeklyReportListClass, int MasterIndex, int DetailIndex, BestRecord aBestRecord, bool PresentFlag, bool DecisionFlag)
+        private void UpdateDetailActiveHappyGroup(ref HappyGroupListClass aActiveHappyGroupListClass, int ListIndex, int MasterIndex, int DetailIndex, BestRecord aBestRecord, bool PresentFlag, bool DecisionFlag)
         {
             // 告知週報其中某個幸福小組個人出席紀錄欄位有被修改過
-            aHappyGroupWeeklyReportListClass.HappyGroupWeeklyReportList[MasterIndex].BestRecordModifiedFlag = true;
+            aActiveHappyGroupListClass.HappyGroupWeeklyReportListClass[ListIndex].HappyGroupWeeklyReportList[MasterIndex].BestRecordModifiedFlag = true;
 
             // 幸福小組個人出席紀錄欄位有被修改過
-            aHappyGroupWeeklyReportListClass.HappyGroupWeeklyReportList[MasterIndex].BestRecordList[DetailIndex].BestModifiedFlag = true;
+            aActiveHappyGroupListClass.HappyGroupWeeklyReportListClass[ListIndex].HappyGroupWeeklyReportList[MasterIndex].BestRecordList[DetailIndex].BestModifiedFlag = true;
 
             if (aBestRecord.FullName != null)
             {
-                aHappyGroupWeeklyReportListClass.HappyGroupWeeklyReportList[MasterIndex].BestRecordList[DetailIndex].FullName = aBestRecord.FullName;
+                aActiveHappyGroupListClass.HappyGroupWeeklyReportListClass[ListIndex].HappyGroupWeeklyReportList[MasterIndex].BestRecordList[DetailIndex].FullName = aBestRecord.FullName;
             }
             if (aBestRecord.MobilePhone != null)
             {
-                aHappyGroupWeeklyReportListClass.HappyGroupWeeklyReportList[MasterIndex].BestRecordList[DetailIndex].MobilePhone = aBestRecord.MobilePhone;
+                aActiveHappyGroupListClass.HappyGroupWeeklyReportListClass[ListIndex].HappyGroupWeeklyReportList[MasterIndex].BestRecordList[DetailIndex].MobilePhone = aBestRecord.MobilePhone;
             }
             if (PresentFlag == true)
             {
-                aHappyGroupWeeklyReportListClass.HappyGroupWeeklyReportList[MasterIndex].BestRecordList[DetailIndex].Present = aBestRecord.Present;
+                aActiveHappyGroupListClass.HappyGroupWeeklyReportListClass[ListIndex].HappyGroupWeeklyReportList[MasterIndex].BestRecordList[DetailIndex].Present = aBestRecord.Present;
             }
             if (DecisionFlag == true)
             {
-                aHappyGroupWeeklyReportListClass.HappyGroupWeeklyReportList[MasterIndex].BestRecordList[DetailIndex].Decision = aBestRecord.Decision;
+                aActiveHappyGroupListClass.HappyGroupWeeklyReportListClass[ListIndex].HappyGroupWeeklyReportList[MasterIndex].BestRecordList[DetailIndex].Decision = aBestRecord.Decision;
             }
             if (aBestRecord.Note != null)
             {
-                aHappyGroupWeeklyReportListClass.HappyGroupWeeklyReportList[MasterIndex].BestRecordList[DetailIndex].Note = aBestRecord.Note;
+                aActiveHappyGroupListClass.HappyGroupWeeklyReportListClass[ListIndex].HappyGroupWeeklyReportList[MasterIndex].BestRecordList[DetailIndex].Note = aBestRecord.Note;
             }
             if (aBestRecord.ModifiedFlag != null)
             {
-                aHappyGroupWeeklyReportListClass.HappyGroupWeeklyReportList[MasterIndex].BestRecordList[DetailIndex].ModifiedFlag = aBestRecord.ModifiedFlag;
+                aActiveHappyGroupListClass.HappyGroupWeeklyReportListClass[ListIndex].HappyGroupWeeklyReportList[MasterIndex].BestRecordList[DetailIndex].ModifiedFlag = aBestRecord.ModifiedFlag;
             }
             if (aBestRecord.BestLeader != null)
             {
-                aHappyGroupWeeklyReportListClass.HappyGroupWeeklyReportList[MasterIndex].BestRecordList[DetailIndex].BestLeader = aBestRecord.BestLeader;
+                aActiveHappyGroupListClass.HappyGroupWeeklyReportListClass[ListIndex].HappyGroupWeeklyReportList[MasterIndex].BestRecordList[DetailIndex].BestLeader = aBestRecord.BestLeader;
             }
             if (aBestRecord.BestIntroducer != null)
             {
-                aHappyGroupWeeklyReportListClass.HappyGroupWeeklyReportList[MasterIndex].BestRecordList[DetailIndex].BestIntroducer = aBestRecord.BestIntroducer;
+                aActiveHappyGroupListClass.HappyGroupWeeklyReportListClass[ListIndex].HappyGroupWeeklyReportList[MasterIndex].BestRecordList[DetailIndex].BestIntroducer = aBestRecord.BestIntroducer;
             }
             if (aBestRecord.BestRelationship != null)
             {
-                aHappyGroupWeeklyReportListClass.HappyGroupWeeklyReportList[MasterIndex].BestRecordList[DetailIndex].BestRelationship = aBestRecord.BestRelationship;
+                aActiveHappyGroupListClass.HappyGroupWeeklyReportListClass[ListIndex].HappyGroupWeeklyReportList[MasterIndex].BestRecordList[DetailIndex].BestRelationship = aBestRecord.BestRelationship;
             }
         }
-
         public void UpdateUpdatedMasterOrDetail(string Key, string values)
         {
             foreach ( HappyGroupWeeklyReportListClass aHappyGroupWeeklyReportListClass in this.m_ActiveHappyGroupListClass.HappyGroupWeeklyReportListClass)
@@ -506,6 +506,35 @@ namespace ChurchReport.Models
                         MasterIndex = i;
                         DetailIndex = j;
                         return;
+                    }
+                }
+            }
+
+        }
+        private void GetMasterDetailIndex(ref HappyGroupListClass aActiveHappyGroupListClass, string Key, ref int ListIndex, ref int MasterIndex, ref int DetailIndex)
+        {
+            ListIndex = MasterIndex = DetailIndex = -1;
+
+            for (int counter = 0; counter < aActiveHappyGroupListClass.HappyGroupWeeklyReportListClass.Count; counter++)
+            {
+                for (int i = 0; i < aActiveHappyGroupListClass.HappyGroupWeeklyReportListClass[counter].HappyGroupWeeklyReportList.Count; i++)
+                {
+                    if (Key == aActiveHappyGroupListClass.HappyGroupWeeklyReportListClass[counter].HappyGroupWeeklyReportList[i].HappyGroupWeeklyReportId)
+                    {
+                        ListIndex = counter;
+                        MasterIndex = i;
+                        DetailIndex = -1; // 修改的是週報
+                        return;
+                    }
+                    for (int j = 0; j < aActiveHappyGroupListClass.HappyGroupWeeklyReportListClass[counter].HappyGroupWeeklyReportList[i].BestRecordList.Count; j++)
+                    {
+                        if (Key == aActiveHappyGroupListClass.HappyGroupWeeklyReportListClass[counter].HappyGroupWeeklyReportList[i].BestRecordList[j].BestRecordId)
+                        {
+                            ListIndex = counter;
+                            MasterIndex = i;
+                            DetailIndex = j; // 修改的是 Best
+                            return;
+                        }
                     }
                 }
             }
