@@ -508,23 +508,25 @@ namespace ChurchReport.Controllers
         #region 行事曆
         public ActionResult Scheduler()
         {
-            String SmallGroupDataList = (String)TempData.Peek("SmallGroupDataList");
+            //String SmallGroupDataList = (String)TempData.Peek("SmallGroupDataList");
 
-            SmallGroupDataList m_SmallGroupDataList;
-            if (SmallGroupDataList != null)
-            {
-                TempData.Keep("SmallGroupDataList");
-                m_SmallGroupDataList = JsonConvert.DeserializeObject<SmallGroupDataList>(SmallGroupDataList);
-            }
-            else
-            {
-                return RedirectToAction("Login");
-            }
+            //SmallGroupDataList m_SmallGroupDataList;
+            //if (SmallGroupDataList != null)
+            //{
+            //    TempData.Keep("SmallGroupDataList");
+            //    m_SmallGroupDataList = JsonConvert.DeserializeObject<SmallGroupDataList>(SmallGroupDataList);
+            //}
+            //else
+            //{
+            //    return RedirectToAction("Login");
+            //}
+
+            ViewBag.HappyType = "有幸福小組名單";
 
             AppointmentsList aAppointmentsList = new AppointmentsList();
 
-            ViewBag.LoginType = m_SmallGroupDataList.m_MemberInfomationPackage.m_LoginType;// 看是小組長還是個人回報
-            ViewBag.LoginFullName = m_SmallGroupDataList.m_FullName;
+            ViewBag.LoginType = m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_MemberInfomationPackage.m_LoginType;
+            ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_FullName;
 
             return View(aAppointmentsList);
         }

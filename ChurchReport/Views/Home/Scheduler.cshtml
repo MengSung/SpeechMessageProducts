@@ -1,46 +1,46 @@
 ﻿@model ChurchReport.Models.AppointmentsList
 
 @(Html.DevExtreme().Scheduler()
-    .ID("scheduler")
-    //.DataSource(d => d.WebApi().Controller("Temp").LoadAction("Get"))
-    //.DataSource(d => d.WebApi().Controller("SchedulerData").Key("AppointmentId"))
-    //.DataSource(d => d.WebApi().Controller("AssignSmallGroup").LoadAction("GetType").Key("ID"))
-    .DataSource(Model.Appointments)
+        .ID("scheduler")
+        //.DataSource(d => d.WebApi().Controller("Temp").LoadAction("Get"))
+        //.DataSource(d => d.WebApi().Controller("SchedulerData").Key("AppointmentId"))
+        //.DataSource(d => d.WebApi().Controller("AssignSmallGroup").LoadAction("GetType").Key("ID"))
+        .DataSource(Model.Appointments)
 
-    .Views(new SchedulerViewType[] {
-        SchedulerViewType.Agenda,
-        SchedulerViewType.Month,
-        SchedulerViewType.Week,
-        SchedulerViewType.WorkWeek,
-        SchedulerViewType.Day
-    })
-    .CurrentView(SchedulerViewType.WorkWeek)
-    .CurrentDate(new DateTime(2015, 5, 25))
-    .UseDropDownViewSwitcher(false)
-    .FirstDayOfWeek(FirstDayOfWeek.Monday)
-    .StartDayHour(8)
-    .EndDayHour(19)
-    .Width("100%")
-    .Height(600)
-    .TextExpr("Text")
-    .StartDateExpr("StartDate")
-    .EndDateExpr("EndDate")
-    .AllDayExpr("AllDay")
-    .RecurrenceRuleExpr("RecurrenceRule")
-    .DescriptionExpr("Description")
-    .Resources(res =>
-    {
-        res.Add()
-            .FieldExpr("OwnerId")
-            .AllowMultiple(true)
-            .Label("Owner")
-            .DataSource(new object[] {
-                new { id = 1, text = "Samantha Bright", color = "#cb6bb2" },
-                new { id = 2, text = "John Heart", color = "#56ca85" },
-                new { id = 3, text = "Todd Hoffman", color = "#1e90ff" },
-                new { id = 4, text = "Sandra Johnson", color = "#ff9747" }
-            });
-    })
+        .Views(new SchedulerViewType[] {
+SchedulerViewType.Agenda,
+SchedulerViewType.Month,
+SchedulerViewType.Week,
+SchedulerViewType.WorkWeek,
+SchedulerViewType.Day
+        })
+        .CurrentView(SchedulerViewType.WorkWeek)
+        .CurrentDate(new DateTime(2015, 5, 25))
+        .UseDropDownViewSwitcher(false)
+        .FirstDayOfWeek(FirstDayOfWeek.Monday)
+        .StartDayHour(8)
+        .EndDayHour(19)
+        .Width("100%")
+        .Height(600)
+        .TextExpr("Text")
+        .StartDateExpr("StartDate")
+        .EndDateExpr("EndDate")
+        .AllDayExpr("AllDay")
+        .RecurrenceRuleExpr("RecurrenceRule")
+        .DescriptionExpr("Description")
+        .Resources(res =>
+        {
+            res.Add()
+                .FieldExpr("OwnerId")
+                .AllowMultiple(true)
+                .Label("Owner")
+                .DataSource(new object[] {
+        new { id = 1, text = "Samantha Bright", color = "#cb6bb2" },
+        new { id = 2, text = "John Heart", color = "#56ca85" },
+        new { id = 3, text = "Todd Hoffman", color = "#1e90ff" },
+        new { id = 4, text = "Sandra Johnson", color = "#ff9747" }
+                });
+        })
 
 )
 <div class="options">
@@ -48,82 +48,116 @@
     <div class="option switcher-mode">
         <span>View Switcher Mode</span>
         @(Html.DevExtreme().SelectBox()
-            .DataSource(new string[] { "Tabs", "Drop-Down Menu" })
-            .Width(200)
-            .Value("Tabs")
-            .OnValueChanged(@<text>
-            function(data) {
-            getSchedulerInstance().option("useDropDownViewSwitcher", data.value === "Drop-Down Menu");
-            }
-            </text>)
+                    .DataSource(new string[] { "Tabs", "Drop-Down Menu" })
+                    .Width(200)
+                    .Value("Tabs")
+                    .OnValueChanged(@<text>
+                        function(data) {
+                        getSchedulerInstance().option("useDropDownViewSwitcher", data.value === "Drop-Down Menu");
+                        }
+                    </text>)
         )
     </div>
     <div class="option">
         @(Html.DevExtreme().CheckBox()
-            .Text("Allow adding")
-            .Value(true)
-            .OnValueChanged(@<text>
-            function(data) {
-            getSchedulerInstance().option("editing.allowAdding", data.value);
-            }
-            </text>)
+                    .Text("Allow adding")
+                    .Value(true)
+                    .OnValueChanged(@<text>
+                        function(data) {
+                        getSchedulerInstance().option("editing.allowAdding", data.value);
+                        }
+                    </text>)
         )
     </div>
     <div class="option">
         @(Html.DevExtreme().CheckBox()
-            .Text("Allow updating")
-            .Value(true)
-            .OnValueChanged(@<text>
-            function(data) {
-            var value = data.value;
-            getSchedulerInstance().option("editing.allowUpdating", value);
-            $("#allow-resizing").dxCheckBox("instance").option("disabled", !value);
-            $("#allow-dragging").dxCheckBox("instance").option("disabled", !value);
-            }
-            </text>)
+                    .Text("Allow updating")
+                    .Value(true)
+                    .OnValueChanged(@<text>
+                        function(data) {
+                        var value = data.value;
+                        getSchedulerInstance().option("editing.allowUpdating", value);
+                        $("#allow-resizing").dxCheckBox("instance").option("disabled", !value);
+                        $("#allow-dragging").dxCheckBox("instance").option("disabled", !value);
+                        }
+                    </text>)
         )
     </div>
     <div class="option">
         @(Html.DevExtreme().CheckBox()
-            .Text("Allow deleting")
-            .Value(true)
-            .OnValueChanged(@<text>
-            function(data) {
-            getSchedulerInstance().option("editing.allowDeleting", data.value);
-            }
-            </text>)
+                    .Text("Allow deleting")
+                    .Value(true)
+                    .OnValueChanged(@<text>
+                        function(data) {
+                        getSchedulerInstance().option("editing.allowDeleting", data.value);
+                        }
+                    </text>)
         )
     </div>
     <div class="option">
         @(Html.DevExtreme().CheckBox()
-            .ID("allow-resizing")
-            .Text("Allow resizing")
-            .Value(true)
-            .OnValueChanged(@<text>
-            function(data) {
-            getSchedulerInstance().option("editing.allowResizing", data.value);
-            }
-            </text>)
+                    .ID("allow-resizing")
+                    .Text("Allow resizing")
+                    .Value(true)
+                    .OnValueChanged(@<text>
+                        function(data) {
+                        getSchedulerInstance().option("editing.allowResizing", data.value);
+                        }
+                    </text>)
         )
     </div>
     <div class="option">
         @(Html.DevExtreme().CheckBox()
-            .ID("allow-dragging")
-            .Text("Allow dragging")
-            .Value(true)
-            .OnValueChanged(@<text>
-            function(data) {
-            getSchedulerInstance().option("editing.allowDragging", data.value);
-            }
-            </text>)
+                    .ID("allow-dragging")
+                    .Text("Allow dragging")
+                    .Value(true)
+                    .OnValueChanged(@<text>
+                        function(data) {
+                        getSchedulerInstance().option("editing.allowDragging", data.value);
+                        }
+                    </text>)
         )
     </div>
 </div>
 
 <script>
-    function getSchedulerInstance() {
-        return $("#scheduler").dxScheduler("instance");
-    }
+        function getSchedulerInstance() {
+            return $("#scheduler").dxScheduler("instance");
+            }
+</script>
+
+<script>
+                        var dictionary = {
+                            "tw": {
+                                "Month": "月",
+                                "Subject": "主題",
+                                "Company": "Company",
+                                "Amount": "Amount",
+                                "PaymentDate": "Payment Date"
+                            },
+                        };
+                        DevExpress.localization.loadMessages(dictionary);
+                        var formatMessage = DevExpress.localization.formatMessage;
+
+                        var locale = getLocale();
+                        //DevExpress.localization.locale(navigator.language || navigator.browserLanguage);
+                        DevExpress.localization.locale(locale);
+
+                        function changeLocale(data) {
+                            setLocale(data.value);
+                            document.location.reload();
+                        }
+
+                        function getLocale() {
+                            //debugger;
+                            //sessionStorage.setItem("locale", 'zh');
+                            sessionStorage.setItem("locale", 'zh-tw');
+                            var locale = sessionStorage.getItem("locale");
+                            return locale != null ? locale : "tw";
+                        }
 </script>
 
 <link href="~/css/Scheduler.css" rel="stylesheet" />
+
+<script src="~/js/devextreme/devextreme-intl.min.js"></script>
+<script src="~/js/devextreme/localization/dx.messages.zh-tw.js"></script>
