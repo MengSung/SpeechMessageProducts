@@ -21,6 +21,7 @@ namespace ChurchReport.Models
 {
     public class FeeList
     {
+        #region 成員資料
 
         public List<Fee> FeeDataList { get; set; }
 
@@ -34,6 +35,28 @@ namespace ChurchReport.Models
 
         private ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
 
+        FeeDownUpLoader m_FeeDownUpLoader = new FeeDownUpLoader();
+
+        #endregion
+
+        #region 初始化繳費與點名
+        public void SetupFeeDataList(String Account, String Password)
+        {
+            //m_ActiveHappyGroupWeeklyReportList = m_DownloadHappyGroup.GetHappyGroupWeeklyReportList(Account, Password);
+            FeeDataList = m_FeeDownUpLoader.GetHappyGroupList(Account, Password);
+
+            if (m_ActiveHappyGroupListClass != null && m_ActiveHappyGroupListClass.HappyGroupWeeklyReportListClass != null && m_ActiveHappyGroupListClass.HappyGroupWeeklyReportListClass.Count > 0)
+            {
+                HappyType = "有幸福小組名單";
+            }
+            else
+            {
+                HappyType = "沒幸福小組名單";
+            }
+            //m_ActiveHappyGroupListClass.HappyGroupWeeklyReportListClass = new List<HappyGroupWeeklyReportListClass>();
+            //m_ActiveHappyGroupListClass.HappyGroupWeeklyReportListClass.Add(m_ActiveHappyGroupWeeklyReportList);
+        }
+        #endregion
 
 
     }
