@@ -44,11 +44,11 @@ SchedulerViewType.Day
 
 )
 <div class="options">
-    <div class="caption">Options</div>
+    <div class="caption">選項</div>
     <div class="option switcher-mode">
-        <span>View Switcher Mode</span>
+        <span>檢視</span>
         @(Html.DevExtreme().SelectBox()
-                    .DataSource(new string[] { "Tabs", "Drop-Down Menu" })
+                    .DataSource(new string[] { "區塊", "下拉選項" })
                     .Width(200)
                     .Value("Tabs")
                     .OnValueChanged(@<text>
@@ -60,7 +60,7 @@ SchedulerViewType.Day
     </div>
     <div class="option">
         @(Html.DevExtreme().CheckBox()
-                    .Text("Allow adding")
+                    .Text("允許新增")
                     .Value(true)
                     .OnValueChanged(@<text>
                         function(data) {
@@ -71,7 +71,7 @@ SchedulerViewType.Day
     </div>
     <div class="option">
         @(Html.DevExtreme().CheckBox()
-                    .Text("Allow updating")
+                    .Text("允許更新")
                     .Value(true)
                     .OnValueChanged(@<text>
                         function(data) {
@@ -85,7 +85,7 @@ SchedulerViewType.Day
     </div>
     <div class="option">
         @(Html.DevExtreme().CheckBox()
-                    .Text("Allow deleting")
+                    .Text("允許刪除")
                     .Value(true)
                     .OnValueChanged(@<text>
                         function(data) {
@@ -97,7 +97,7 @@ SchedulerViewType.Day
     <div class="option">
         @(Html.DevExtreme().CheckBox()
                     .ID("allow-resizing")
-                    .Text("Allow resizing")
+                    .Text("允許設定")
                     .Value(true)
                     .OnValueChanged(@<text>
                         function(data) {
@@ -109,7 +109,7 @@ SchedulerViewType.Day
     <div class="option">
         @(Html.DevExtreme().CheckBox()
                     .ID("allow-dragging")
-                    .Text("Allow dragging")
+                    .Text("允許拖曳")
                     .Value(true)
                     .OnValueChanged(@<text>
                         function(data) {
