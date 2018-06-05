@@ -13,11 +13,11 @@ namespace ChurchReport.Models
         IMemoryCache _memoryCache;
 
         private ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
-
         public SmallGroupDataList m_SmallGroupDataList = new SmallGroupDataList();
         public WeeklyReportData m_WeeklyReportData = new WeeklyReportData();
         public NewPersonModel m_NewPersonModel = new NewPersonModel();
         public HappyGroupDataManager m_HappyGroupDataManager = new HappyGroupDataManager();
+        public FeeList m_FeeList = new FeeList();
 
         #endregion
         #region 初始化
@@ -189,6 +189,78 @@ namespace ChurchReport.Models
         }
 
         #endregion
+        #region 繳費與報名處理區
+
+        public void SetupFeeList(String FullName, String Account, String Password, DateTime aSelectDate, bool DisplayDateFlag)
+        {
+            try
+            {
+                String ContactIdString = m_ToolUtilityClass.RetrieveContactByAccountNumber(Account, Password);
+
+                m_SmallGroupDataList.SetupContactIdString(ContactIdString);
+
+                m_SmallGroupDataList.SetupSmallGroupData(FullName, Account, Password, DateTime.Now, true);
+
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                throw e;
+            }
+
+        }
+
+        public void SetFeeManagerCacheData()
+        {
+            var session = _contextAccessor.HttpContext.Session;
+            var key = session.Id + "_FeeList";
+
+            if (_memoryCache.Get(key) == null)
+            {
+                _memoryCache.Set<FeeList>(key, m_FeeList, new MemoryCacheEntryOptions
+                {
+                    SlidingExpiration = TimeSpan.FromMinutes(10)
+                });
+                session.SetInt32("dirty", 1);
+            }
+        }
+
+        public FeeList GetFeeManagerCacheData()
+        {
+            var session = _contextAccessor.HttpContext.Session;
+            var key = session.Id + "_FeeList";
+
+            FeeList aFeeList = new FeeList();
+            if (!_memoryCache.TryGetValue(key, out aFeeList))
+            {
+                //Time = "Cache is expired or not available";
+            }
+
+            return aFeeList;
+        }
+
+        public FeeList FeeList
+        {
+            get
+            {
+                var session = _contextAccessor.HttpContext.Session;
+                var key = session.Id + "_FeeList";
+
+                if (_memoryCache.Get(key) == null)
+                {
+                    _memoryCache.Set<FeeList>(key, m_FeeList, new MemoryCacheEntryOptions
+                    {
+                        SlidingExpiration = TimeSpan.FromMinutes(10)
+                    });
+                    session.SetInt32("dirty", 1);
+                }
+
+                return _memoryCache.Get<FeeList>(key);
+            }
+        }
+        #endregion
+
         #region 工具區
         public void SaveChanges()
         {

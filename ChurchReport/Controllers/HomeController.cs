@@ -505,6 +505,41 @@ namespace ChurchReport.Controllers
         }
 
         #endregion
+
+        #region 小組長點名及個人回報
+        public ActionResult FeeManagerView()
+        //public ActionResult SmallGroupReportView()
+        {
+            #region 用小組長回報網頁登入
+            ViewBag.LoginType = m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_MemberInfomationPackage.m_LoginType;// 看是小組長還是個人回報
+            ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_FullName;
+
+            if (m_InMemoryDataContextSmallGroup.HappyGroupDataManager.HappyType == "有幸福小組名單")
+            {
+                ViewBag.HappyType = "有幸福小組名單";
+            }
+            else
+            {
+                ViewBag.HappyType = "沒幸福小組名單";
+            }
+
+            return View(m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_SmallGroupData);
+            #endregion
+
+        }
+        [HttpPost]
+        public IActionResult SaveFeeManager(String aResult)
+        {
+            m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_SmallGroupData.Members.Clear();
+            m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_SmallGroupData.Members = JsonConvert.DeserializeObject<List<Member>>(aResult);
+
+            m_InMemoryDataContextSmallGroup.SmallGroupDataList.TransferToMemberInfomationPackage(m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_SmallGroupData);
+            m_InMemoryDataContextSmallGroup.SmallGroupDataList.UploadMemberInfomationPackage();
+
+            return Json(new { status = "1", message = "成功上傳了...." });
+        }
+        #endregion
+
         #region 行事曆
         public ActionResult Scheduler()
         {

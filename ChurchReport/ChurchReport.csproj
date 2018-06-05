@@ -11,6 +11,7 @@
     <Content Include="wwwroot\**\*;Views\**\*;Areas\**\Views;appsettings.json;web.config">
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
+    <None Remove="Views\Home\FeeManagerView.cshtml" />
     <None Remove="Views\Home\HappyGroupWeeklyReport.cshtml" />
     <None Remove="wwwroot\js\devextreme\devextreme-intl.min.js" />
     <None Remove="wwwroot\js\devextreme\localization\dx.messages.zh-tw.js" />
