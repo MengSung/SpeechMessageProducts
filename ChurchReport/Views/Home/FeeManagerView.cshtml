@@ -131,191 +131,190 @@
 <hr />
 <div id="data-grid">
     @(Html.DevExtreme().DataGrid<Fee>()
-                                                                                            .ID("gridContainer")
-                                                                                            .ShowBorders(true)
-                                                                                            //.ColumnAutoWidth(true)
-                                                                                            .Paging(p => p.PageSize(10))
-                                                                                            .Sorting(sorting => sorting.Mode(GridSortingMode.None))
-                                                                                            .Paging(paging => paging.Enabled(false))
-                                                                                            //.AllowColumnResizing(true)
-                                                                                            //.ColumnResizingMode(ColumnResizingMode.Widget)
-                                                                                            .ColumnFixing(c => c.Enabled(true))
-                                                                                            .LoadPanel(l => l.Text("更新資料中..."))
-                                                                                            .SearchPanel(s => s.Visible(true).Placeholder("搜尋.."))
+         .ID("gridContainer")
+         //.ColumnAutoWidth(true)
+         //.Paging(p => p.PageSize(10))
+         //.Sorting(sorting => sorting.Mode(GridSortingMode.None))
+         //.Paging(paging => paging.Enabled(false))
+         //.AllowColumnResizing(true)
+         //.ColumnResizingMode(ColumnResizingMode.Widget)
+         //.ColumnFixing(c => c.Enabled(true))
+         .LoadPanel(l => l.Text("更新資料中..."))
+         .SearchPanel(s => s.Visible(true).Placeholder("搜尋.."))
 
 
-                                                                                            .ShowColumnLines(true)
-                                                                                            .ShowRowLines(true)
-                                                                                            //.RowAlternationEnabled(true)
-                                                                                            .ShowBorders(true)
+         .ShowColumnLines(true)
+         .ShowRowLines(true)
+         //.RowAlternationEnabled(true)
+         .ShowBorders(true)
 
-                                                                                            .TwoWayBindingEnabled(true)
+         //.TwoWayBindingEnabled(true)
 
-                                                                                            //.Grouping
-                                                                                            //(g => g
-                                                                                            //.ContextMenuEnabled(true)
-                                                                                            //.ExpandMode(GridGroupingExpandMode.RowClick)
-                                                                                            //)
-
-
-                                                                                            .Editing(editing =>
-                                                                                            {
-                                                //editing.Mode(GridEditMode.Batch);
-                                                //editing.Mode(GridEditMode.Row);
-                                                //editing.Mode(GridEditMode.Cell);
-                                                //editing.Mode(GridEditMode.Batch);
-                                                //editing.Mode(GridEditMode.Form);
-                                                editing.Mode(GridEditMode.Popup);
-                                                                                                editing.AllowUpdating(true);
-                                                                                                editing.AllowDeleting(false);
-                                                //editing.AllowAdding(false);
-                                                editing.Texts(a => a.SaveAllChanges("上傳檔案").AddRow("新增").CancelAllChanges("取消變更").SaveRowChanges("儲存").CancelRowChanges("取消").EditRow("編輯").DeleteRow("刪除"));
-                                                //editing.AllowDeleting(true);
-                                            })
-
-                                             .Columns(columns =>
-                                             {
-                                                 columns.AddFor(m => m.DiscipleLessonsName).Caption("課程名稱").Fixed(true).GroupIndex(0).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Left).AllowSorting(false);
-                                                 columns.AddFor(m => m.FullName).Caption("姓名").Fixed(true).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Left).AllowSorting(false);
-                                                 columns.AddFor(m => m.MobilePhone).Caption("行動電話").Fixed(false).Width(100).MinWidth(20).Alignment(HorizontalAlignment.Center).AllowSorting(false);
-                                                 columns.AddFor(m => m.PayDate).Caption("繳費日期").DataType(GridColumnDataType.Date).Format("yyyy/M/d").Width(80).MinWidth(45).AllowSorting(false);
-                                                 columns.AddFor(m => m.Amount).Caption("繳費金額").DataType(GridColumnDataType.Number).Width(80).MinWidth(45).AllowSorting(false);
-                                                 columns.AddFor(m => m.Lesson1).Caption("第一課").DataType(GridColumnDataType.Boolean).Width(60).MinWidth(45).AllowSorting(false);
-                                                 columns.AddFor(m => m.Lesson2).Caption("第二課").DataType(GridColumnDataType.Boolean).Width(60).MinWidth(45).AllowSorting(false);
-                                                 columns.AddFor(m => m.Lesson3).Caption("第三課").DataType(GridColumnDataType.Boolean).Width(60).MinWidth(45).AllowSorting(false);
-                                                 columns.AddFor(m => m.Lesson4).Caption("第四課").DataType(GridColumnDataType.Boolean).Width(60).MinWidth(45).AllowSorting(false);
-                                                 columns.AddFor(m => m.Lesson5).Caption("第五課").DataType(GridColumnDataType.Boolean).Width(60).MinWidth(45).AllowSorting(false);
-                                                 columns.AddFor(m => m.Lesson6).Caption("第六課").DataType(GridColumnDataType.Boolean).Width(60).MinWidth(45).AllowSorting(false);
-                                                 columns.AddFor(m => m.Lesson7).Caption("第七課").DataType(GridColumnDataType.Boolean).Width(60).MinWidth(45).AllowSorting(false);
-                                                 columns.AddFor(m => m.Lesson8).Caption("第八課").DataType(GridColumnDataType.Boolean).Width(60).MinWidth(45).AllowSorting(false);
-                                                 columns.AddFor(m => m.Lesson9).Caption("第九課").DataType(GridColumnDataType.Boolean).Width(60).MinWidth(45).AllowSorting(false);
-                                                 columns.AddFor(m => m.Lesson10).Caption("第十課").DataType(GridColumnDataType.Boolean).Width(60).MinWidth(45).AllowSorting(false);
-                                                 columns.AddFor(m => m.Lesson11).Caption("第十一課").DataType(GridColumnDataType.Boolean).Width(75).MinWidth(45).AllowSorting(false);
-                                                 columns.AddFor(m => m.Lesson12).Caption("第十二課").DataType(GridColumnDataType.Boolean).Width(75).MinWidth(45).AllowSorting(false);
-                                                 columns.AddFor(m => m.Lesson13).Caption("第十三課").DataType(GridColumnDataType.Boolean).Width(75).MinWidth(45).AllowSorting(false);
-                                                 columns.AddFor(m => m.Lesson14).Caption("第十四課").DataType(GridColumnDataType.Boolean).Width(75).MinWidth(45).AllowSorting(false);
-                                                 columns.AddFor(m => m.Lesson15).Caption("第十五課").DataType(GridColumnDataType.Boolean).Width(75).MinWidth(45).AllowSorting(false);
-                                                 columns.AddFor(m => m.Lesson15).Caption("第十五課").DataType(GridColumnDataType.Boolean).Width(75).MinWidth(45).AllowSorting(false);
-
-                                                 columns.AddFor(m => m.HomeWorkA).Caption("作業A").DataType(GridColumnDataType.Date).Format("yyyy/M/d").Width(80).MinWidth(45)
-                                                    .CalculateCellValue(@<text>
-                                                        function(row)
-                                                        {
-                                                            if( row.HomeWorkA != null )
-                                                            {
-                                                            //debugger;
-
-                                                            var HomeWorkA = getODataLocalDateFilter( row.HomeWorkA );
-                                                            if( HomeWorkA.getFullYear() == 1901 )
-                                                            {
-                                                            return null;
-                                                            }
-                                                            else
-                                                            {
-                                                            return HomeWorkA;
-                                                            }
-                                                            }
-                                                            else
-                                                            {return null;}
-                                                        }
-                                                    </text> );
+         //.Grouping
+         //(g => g
+         //.ContextMenuEnabled(true)
+         //.ExpandMode(GridGroupingExpandMode.RowClick)
+         //)
 
 
-                                                columns.AddFor(m => m.HomeWorkB).Caption("作業B").DataType(GridColumnDataType.Date).Format("yyyy/M/d").Width(80).MinWidth(45)//.ValidationRules(rule => rule.AddRequired())
-                                                    .CalculateCellValue(@<text>
-                                                        function(row)
-                                                        {
-                                                            if( row.HomeWorkB != null )
-                                                            {
-                                                            //debugger;
+         .Editing(editing =>
+         {
+               //editing.Mode(GridEditMode.Batch);
+               //editing.Mode(GridEditMode.Row);
+               editing.Mode(GridEditMode.Cell);
+               //editing.Mode(GridEditMode.Batch);
+               //editing.Mode(GridEditMode.Form);
+               //editing.Mode(GridEditMode.Popup);
+               editing.AllowUpdating(true);
+               editing.AllowDeleting(false);
+               //editing.AllowAdding(false);
+               editing.Texts(a => a.SaveAllChanges("上傳檔案").AddRow("新增").CancelAllChanges("取消變更").SaveRowChanges("儲存").CancelRowChanges("取消").EditRow("編輯").DeleteRow("刪除"));
+               //editing.AllowDeleting(true);
+           })
 
-                                                            var HomeWorkB = getODataLocalDateFilter( row.HomeWorkB );
-                                                            if( HomeWorkB.getFullYear() == 1901 )
-                                                            {
-                                                            return null;
-                                                            }
-                                                            else
-                                                            {
-                                                            return HomeWorkB;
-                                                            }
-                                                            }
-                                                            else
-                                                            {return null;}
-                                                        }
-                                                    </text> );
+            .Columns(columns =>
+            {
+                columns.AddFor(m => m.DiscipleLessonsName).Caption("課程名稱").Fixed(true).GroupIndex(0).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Left).AllowSorting(false);
+                columns.AddFor(m => m.FullName).Caption("姓名").Fixed(true).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Left).AllowSorting(false);
+                columns.AddFor(m => m.MobilePhone).Caption("行動電話").Fixed(false).Width(100).MinWidth(20).Alignment(HorizontalAlignment.Center).AllowSorting(false);
+                columns.AddFor(m => m.PayDate).Caption("繳費日期").DataType(GridColumnDataType.Date).Format("yyyy/M/d").Width(80).MinWidth(45).AllowSorting(false);
+                columns.AddFor(m => m.Amount).Caption("繳費金額").DataType(GridColumnDataType.Number).Width(80).MinWidth(45).AllowSorting(false);
+                columns.AddFor(m => m.Lesson1).Caption("第一課").DataType(GridColumnDataType.Boolean).Width(60).MinWidth(45).AllowSorting(false);
+                columns.AddFor(m => m.Lesson2).Caption("第二課").DataType(GridColumnDataType.Boolean).Width(60).MinWidth(45).AllowSorting(false);
+                columns.AddFor(m => m.Lesson3).Caption("第三課").DataType(GridColumnDataType.Boolean).Width(60).MinWidth(45).AllowSorting(false);
+                columns.AddFor(m => m.Lesson4).Caption("第四課").DataType(GridColumnDataType.Boolean).Width(60).MinWidth(45).AllowSorting(false);
+                columns.AddFor(m => m.Lesson5).Caption("第五課").DataType(GridColumnDataType.Boolean).Width(60).MinWidth(45).AllowSorting(false);
+                columns.AddFor(m => m.Lesson6).Caption("第六課").DataType(GridColumnDataType.Boolean).Width(60).MinWidth(45).AllowSorting(false);
+                columns.AddFor(m => m.Lesson7).Caption("第七課").DataType(GridColumnDataType.Boolean).Width(60).MinWidth(45).AllowSorting(false);
+                columns.AddFor(m => m.Lesson8).Caption("第八課").DataType(GridColumnDataType.Boolean).Width(60).MinWidth(45).AllowSorting(false);
+                columns.AddFor(m => m.Lesson9).Caption("第九課").DataType(GridColumnDataType.Boolean).Width(60).MinWidth(45).AllowSorting(false);
+                columns.AddFor(m => m.Lesson10).Caption("第十課").DataType(GridColumnDataType.Boolean).Width(60).MinWidth(45).AllowSorting(false);
+                columns.AddFor(m => m.Lesson11).Caption("第十一課").DataType(GridColumnDataType.Boolean).Width(75).MinWidth(45).AllowSorting(false);
+                columns.AddFor(m => m.Lesson12).Caption("第十二課").DataType(GridColumnDataType.Boolean).Width(75).MinWidth(45).AllowSorting(false);
+                columns.AddFor(m => m.Lesson13).Caption("第十三課").DataType(GridColumnDataType.Boolean).Width(75).MinWidth(45).AllowSorting(false);
+                columns.AddFor(m => m.Lesson14).Caption("第十四課").DataType(GridColumnDataType.Boolean).Width(75).MinWidth(45).AllowSorting(false);
+                columns.AddFor(m => m.Lesson15).Caption("第十五課").DataType(GridColumnDataType.Boolean).Width(75).MinWidth(45).AllowSorting(false);
+                columns.AddFor(m => m.Lesson15).Caption("第十五課").DataType(GridColumnDataType.Boolean).Width(75).MinWidth(45).AllowSorting(false);
+
+                columns.AddFor(m => m.HomeWorkA).Caption("作業A").DataType(GridColumnDataType.Date).Format("yyyy/M/d").Width(80).MinWidth(45)
+                   .CalculateCellValue(@<text>
+                       function(row)
+                       {
+                           if( row.HomeWorkA != null )
+                           {
+                           //debugger;
+
+                           var HomeWorkA = getODataLocalDateFilter( row.HomeWorkA );
+                           if( HomeWorkA.getFullYear() == 1901 )
+                           {
+                           return null;
+                           }
+                           else
+                           {
+                           return HomeWorkA;
+                           }
+                           }
+                           else
+                           {return null;}
+                       }
+                   </text> );
 
 
-                                                columns.AddFor(m => m.HomeWorkC).Caption("作業C").DataType(GridColumnDataType.Date).Format("yyyy/M/d").Width(80).MinWidth(45)
-                                                    .CalculateCellValue(@<text>
-                                                        function(row)
-                                                        {
-                                                            if( row.HomeWorkC != null )
-                                                            {
-                                                            //debugger;
+               columns.AddFor(m => m.HomeWorkB).Caption("作業B").DataType(GridColumnDataType.Date).Format("yyyy/M/d").Width(80).MinWidth(45)//.ValidationRules(rule => rule.AddRequired())
+                   .CalculateCellValue(@<text>
+                       function(row)
+                       {
+                           if( row.HomeWorkB != null )
+                           {
+                           //debugger;
 
-                                                            var HomeWorkC = getODataLocalDateFilter( row.HomeWorkC );
-                                                            if( HomeWorkC.getFullYear() == 1901 )
-                                                            {
-                                                            return null;
-                                                            }
-                                                            else
-                                                            {
-                                                            return HomeWorkC;
-                                                            }
-                                                            }
-                                                            else
-                                                            {return null;}
-                                                        }
-                                                    </text> );
+                           var HomeWorkB = getODataLocalDateFilter( row.HomeWorkB );
+                           if( HomeWorkB.getFullYear() == 1901 )
+                           {
+                           return null;
+                           }
+                           else
+                           {
+                           return HomeWorkB;
+                           }
+                           }
+                           else
+                           {return null;}
+                       }
+                   </text> );
 
 
-                                                columns.AddFor(m => m.HomeWorkD).Caption("作業D").DataType(GridColumnDataType.Date).Format("yyyy/M/d").Width(80).MinWidth(45).AllowSorting(false)
-                                                    .CalculateCellValue(@<text>
-                                                        function(row)
-                                                        {
-                                                            if( row.HomeWorkD != null )
-                                                            {
-                                                            //debugger;
+               columns.AddFor(m => m.HomeWorkC).Caption("作業C").DataType(GridColumnDataType.Date).Format("yyyy/M/d").Width(80).MinWidth(45)
+                   .CalculateCellValue(@<text>
+                       function(row)
+                       {
+                           if( row.HomeWorkC != null )
+                           {
+                           //debugger;
 
-                                                            var HomeWorkD = getODataLocalDateFilter( row.HomeWorkD );
-                                                            if( HomeWorkD.getFullYear() == 1901 )
-                                                            {
-                                                            return null;
-                                                            }
-                                                            else
-                                                            {
-                                                            return HomeWorkD;
-                                                            }
-                                                            }
-                                                            else
-                                                            {return null;}
-                                                        }
-                                                    </text> );
+                           var HomeWorkC = getODataLocalDateFilter( row.HomeWorkC );
+                           if( HomeWorkC.getFullYear() == 1901 )
+                           {
+                           return null;
+                           }
+                           else
+                           {
+                           return HomeWorkC;
+                           }
+                           }
+                           else
+                           {return null;}
+                       }
+                   </text> );
 
-                                                columns.AddFor(m => m.HomeWorkE).Caption("作業E").DataType(GridColumnDataType.Date).Format("yyyy/M/d").Width(80).MinWidth(45).AllowSorting(false)
-                                                .CalculateCellValue(@<text>
-                                                        function(row)
-                                                        {
-                                                            if( row.HomeWorkE != null )
-                                                            {
-                                                            //debugger;
 
-                                                            var HomeWorkE = getODataLocalDateFilter( row.HomeWorkE );
-                                                            if( HomeWorkE.getFullYear() == 1901 )
-                                                            {
-                                                            return null;
-                                                            }
-                                                            else
-                                                            {
-                                                            return HomeWorkE;
-                                                            }
-                                                            }
-                                                            else
-                                                            {return null;}
-                                                        }
-                                                    </text> );
+               columns.AddFor(m => m.HomeWorkD).Caption("作業D").DataType(GridColumnDataType.Date).Format("yyyy/M/d").Width(80).MinWidth(45).AllowSorting(false)
+                   .CalculateCellValue(@<text>
+                       function(row)
+                       {
+                           if( row.HomeWorkD != null )
+                           {
+                           //debugger;
 
-                                            })
+                           var HomeWorkD = getODataLocalDateFilter( row.HomeWorkD );
+                           if( HomeWorkD.getFullYear() == 1901 )
+                           {
+                           return null;
+                           }
+                           else
+                           {
+                           return HomeWorkD;
+                           }
+                           }
+                           else
+                           {return null;}
+                       }
+                   </text> );
+
+               columns.AddFor(m => m.HomeWorkE).Caption("作業E").DataType(GridColumnDataType.Date).Format("yyyy/M/d").Width(80).MinWidth(45).AllowSorting(false)
+               .CalculateCellValue(@<text>
+                       function(row)
+                       {
+                           if( row.HomeWorkE != null )
+                           {
+                           //debugger;
+
+                           var HomeWorkE = getODataLocalDateFilter( row.HomeWorkE );
+                           if( HomeWorkE.getFullYear() == 1901 )
+                           {
+                           return null;
+                           }
+                           else
+                           {
+                           return HomeWorkE;
+                           }
+                           }
+                           else
+                           {return null;}
+                       }
+                   </text> );
+
+           })
                                                 .DataSource(Model.FeeDataList)
     )
 </div>
