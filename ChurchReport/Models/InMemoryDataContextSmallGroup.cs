@@ -195,11 +195,11 @@ namespace ChurchReport.Models
         {
             try
             {
-                String ContactIdString = m_ToolUtilityClass.RetrieveContactByAccountNumber(Account, Password);
+                // 儲存登入者資訊
+                m_FeeList.SetupLoginUserInfo(FullName, Account, Password);
 
-                m_SmallGroupDataList.SetupContactIdString(ContactIdString);
-
-                m_SmallGroupDataList.SetupSmallGroupData(FullName, Account, Password, DateTime.Now, true);
+                // 取得繳費及點名的資料
+                m_FeeList.SetupFeeDataList( Account, Password);
 
             }
             catch (System.Exception e)

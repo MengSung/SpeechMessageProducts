@@ -28,10 +28,8 @@ namespace ChurchReport.Models
         public String m_FullName = "";
         public String m_Account  = "";
         public String m_Password = "";
-        //public DateTime m_SelectDate = new DateTime(2000, 1, 1);// 初始值 2000 表示還沒選
-        public DateTime m_SelectDate = DateTime.Now;// 初始值 2000 表示還沒選
-        public DateTime m_SundayDate;
-        private bool m_FirstLoginFlag;
+
+        public String SmallGroupLeaderContactId { get; set; }
 
         private ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
 
@@ -40,19 +38,26 @@ namespace ChurchReport.Models
         #endregion
 
         #region 初始化繳費與點名
+        public void SetupLoginUserInfo( String FullName , String Account, String Password)
+        {
+             m_FullName = FullName;
+             m_Account = Account;
+             m_Password = Password;
+        }
+
         public void SetupFeeDataList(String Account, String Password)
         {
             //m_ActiveHappyGroupWeeklyReportList = m_DownloadHappyGroup.GetHappyGroupWeeklyReportList(Account, Password);
-            FeeDataList = m_FeeDownUpLoader.GetHappyGroupList(Account, Password);
+            FeeDataList = m_FeeDownUpLoader.GetFeeList(Account, Password);
 
-            if (m_ActiveHappyGroupListClass != null && m_ActiveHappyGroupListClass.HappyGroupWeeklyReportListClass != null && m_ActiveHappyGroupListClass.HappyGroupWeeklyReportListClass.Count > 0)
-            {
-                HappyType = "有幸福小組名單";
-            }
-            else
-            {
-                HappyType = "沒幸福小組名單";
-            }
+            //if (m_ActiveHappyGroupListClass != null && m_ActiveHappyGroupListClass.HappyGroupWeeklyReportListClass != null && m_ActiveHappyGroupListClass.HappyGroupWeeklyReportListClass.Count > 0)
+            //{
+            //    HappyType = "有幸福小組名單";
+            //}
+            //else
+            //{
+            //    HappyType = "沒幸福小組名單";
+            //}
             //m_ActiveHappyGroupListClass.HappyGroupWeeklyReportListClass = new List<HappyGroupWeeklyReportListClass>();
             //m_ActiveHappyGroupListClass.HappyGroupWeeklyReportListClass.Add(m_ActiveHappyGroupWeeklyReportList);
         }

@@ -80,6 +80,9 @@ namespace ChurchReport.Controllers
                 // 設定幸福小組資料
                 m_InMemoryDataContextSmallGroup.SetupHappyGroupData(aGalleryViewModel.Account, aGalleryViewModel.Password);
 
+                // 設定繳費與報名資料
+                m_InMemoryDataContextSmallGroup.SetupFeeList(FullName, aGalleryViewModel.Account, aGalleryViewModel.Password, DateTime.Now, true);
+
                 if (m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_MemberInfomationPackage.m_LoginType == "小組長" && m_InMemoryDataContextSmallGroup.HappyGroupDataManager.HappyType == "有幸福小組名單" )
                 {
                     // 小組長回報，而且有幸福小組
@@ -505,8 +508,7 @@ namespace ChurchReport.Controllers
         }
 
         #endregion
-
-        #region 小組長點名及個人回報
+        #region 課程繳費與點名
         public ActionResult FeeManagerView()
         //public ActionResult SmallGroupReportView()
         {
@@ -523,7 +525,8 @@ namespace ChurchReport.Controllers
                 ViewBag.HappyType = "沒幸福小組名單";
             }
 
-            return View(m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_SmallGroupData);
+            return View(m_InMemoryDataContextSmallGroup.FeeList);
+
             #endregion
 
         }

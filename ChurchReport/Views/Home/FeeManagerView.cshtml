@@ -1,22 +1,6 @@
-﻿@{
-    String DataStatus = "上傳成功了!";
-    String ReUpload = "請再按一次上傳鈕!";
-    @*String DateVaule = "";
-        @if (@Model.SundayPrayers.Year != 9999)
-        {
-            DateVaule = @Model.SundayPrayers.ToShortDateString();
+﻿@using ChurchReport.Models
 
-        }
-        else
-        {
-            DateVaule = "";
-
-        }*@
-}
-
-@using ChurchReport.Models
-
-@model ChurchReport.Models.SmallGroupData
+@model ChurchReport.Models.FeeList
 
 <head>
     <!-- Site made with Mobirise Website Builder v4.0.16, https://mobirise.com -->
@@ -30,501 +14,311 @@
 
 </head>
 
-@if (Model.SundayPrayers.Year != 2000)
-{
-    <h3>@(Model.SmallGroupLeaderFullName + "回報")</h3>
-}
-else
-{
-    <h3>@(Model.SmallGroupLeaderFullName + "尚未回報")</h3>
-}
-
-
+<br />
 <div class="dx-field">
-    <div id="the whole thing" style="height:100%; width:100%; overflow: hidden;">
-        <div id="SundayLabel" class="dx-field-label" style="float: left; width:15%; background-color:white;">小組日期</div>
-        <div id="dateBoxContainer" class="dx-field-value" style="float: left; width:55%; background-color:white;">
+    <div id="buttonContainer" class="dx-button-icon" style="float: left; width:30%; text-align: left; background-color:white;">
+        @(Html.DevExtreme().Button()
+                                .Text("上傳")
+                                .Type(ButtonType.Success)
+                                .ID("save-button")
+                                //.UseSubmitBehavior(true)
 
-            @(Html.DevExtreme()
-                                //.DateBox()
-                                .DateBoxFor(m => m.SundayPrayers)
-                                .Type(DateBoxType.Date)
-                                .Value(Model.SundayPrayers)
-                                .Width(50)
-                                .DisplayFormat("yyyy/M/d")
-                                //.DisplayFormat("yyyy/MM/dd")
-                                //.OnValueChanged("OnValueChanged")
+                                .OnClick
+                                (@<text>
+                                    function(arg)
+                                    {
 
+                                    var dataGrid = $("#gridContainer").dxDataGrid("instance");
+                                    // 取得上傳的按鈕
+                                    var ButtonContainer= $("#save-button").dxButton("instance");
 
-                                .OnValueChanged(@<text>
-                                function(arg) {
+                                    //debugger;
+                                    var Flag = dataGrid.hasEditData();//是否還殘留尚未回傳的編輯資料
 
-                                $("#loadPanel").dxLoadPanel("instance").show();
+                                    if(Flag == false)
+                                    {
+                                    // 顯示旋轉鈕
+                                    $("#loadPanel").dxLoadPanel("instance").show();
 
-                                $.ajax({
-                                url: '@Url.Action("UpdateDate", "Home")',
-                                data: { SelectedDate: getODataLocalDateFilter(arg.value) },
-                                type: 'GET', //POST if you want to save, GET if you want to fetch data from server
+                                    // 上傳按鈕反白
+                                    ButtonContainer.option("disabled", true);
 
-                                success: function (arg)
-                                {
-                                //alert("001");
-                                $("#loadPanel").dxLoadPanel("instance").hide();
+                                    // AJAX 區塊
+                                    $.ajax
+                                    (
+                                    {
+                                    url: '@Url.Action("SaveFeeManager", "Home")',
+                                    data: { aResult: GetResult() }, // 整理回傳給 Server 的點名資料
+                                    type: 'POST', //POST if you want to save, GET if you want to fetch data from server
 
-                                //var dataGridInstance = $("#gridContainer").dxDataGrid("instance");
-                                //dataGridInstance.refresh();
-                                //alert("002");
+                                    success: function (arg)
+                                    {
+                                    // 隱藏旋轉鈕
+                                    $("#loadPanel").dxLoadPanel("instance").hide();
 
-                                window.location.href = "/Home/SmallGroupReportView/AccountPassword"
-                                //alert("003");
+                                    // 上傳按鈕恢復可運作
+                                    ButtonContainer.option("disabled", false);
 
-                                },
+                                    // 顯示上傳成功
+                                    $("#toast").dxToast("instance").show();
+                                    },
 
-                                error: function (obj) {
-                                //alert('Something happened');
-                                }
+                                    error: function (obj)
+                                    {
+                                    //alert('Something happened');
+                                    }
 
-                                });
-                                }
-                                </text>
-                                                                           )
+                                    }
+                                    );
+                                    // AJAX 區塊
+                                    }
+                                    else
+                                    {
 
-            )
-        </div>
-        <div id="buttonContainer" class="dx-button-icon" style="float: left; width:30%; text-align: left; background-color:white;">
-            @(Html.DevExtreme().Button()
-                            .Text("上傳")
-                            .Type(ButtonType.Success)
-                            .ID("save-button")
-                            //.UseSubmitBehavior(true)
+                                    // 隱藏旋轉鈕
+                                    $("#loadPanel").dxLoadPanel("instance").hide();
+                                    // 顯示再上傳一次
+                                    $("#ToastReUpload").dxToast("instance").show();
 
-                            .OnClick
-                            (@<text>
-                            function(arg)
-                            {
-
-                            var dataGrid = $("#gridContainer").dxDataGrid("instance");
-                            // 取得上傳的按鈕
-                            var ButtonContainer= $("#save-button").dxButton("instance");
-
-                            //debugger;
-                            var Flag = dataGrid.hasEditData();//是否還殘留尚未回傳的編輯資料
-
-                            if(Flag == false)
-                            {
-                            // 顯示旋轉鈕
-                            $("#loadPanel").dxLoadPanel("instance").show();
-
-                            // 上傳按鈕反白
-                            ButtonContainer.option("disabled", true);
-
-                            // AJAX 區塊
-                            $.ajax
-                            (
-                            {
-                            url: '@Url.Action("SaveSmallGroup", "Home")',
-                            data: { aResult: GetResult() }, // 整理回傳給 Server 的點名資料
-                            type: 'POST', //POST if you want to save, GET if you want to fetch data from server
-
-                            success: function (arg)
-                            {
-                            // 隱藏旋轉鈕
-                            $("#loadPanel").dxLoadPanel("instance").hide();
-
-                            // 上傳按鈕恢復可運作
-                            ButtonContainer.option("disabled", false);
-
-                            // 顯示上傳成功
-                            $("#toast").dxToast("instance").show();
-                            },
-
-                            error: function (obj)
-                            {
-                            //alert('Something happened');
-                            }
-
-                            }
-                            );
-                            // AJAX 區塊
-                            }
-                            else
-                            {
-
-                            // 隱藏旋轉鈕
-                            $("#loadPanel").dxLoadPanel("instance").hide();
-                            // 顯示再上傳一次
-                            $("#ToastReUpload").dxToast("instance").show();
-
-                            }
-                            }
-                            </text>)
-            )
-        </div>
-        <div id="ToastContainer">
-            @(Html.DevExtreme().Toast()
-                            .ID("toast")
-                            .Position(p => p
-                            .At(HorizontalAlignment.Center, VerticalAlignment.Center)
-                            .Offset(0, 50))
-                            .Message(DataStatus)
-                            .DisplayTime(2000)
-                            .MaxWidth(200)
-            )
-
-        </div>
-        <div id="LoadPanel">
-            @(Html.DevExtreme().LoadPanel()
-                            .ID("loadPanel")
-                            .ShadingColor("rgba(0,0,0,0.4)")
-                            //.Position(p => p.Of("#data-grid").Of("#buttonContainer"))
-                            .Position(p => p.Of("#data-grid"))
-                            .Visible(false)
-                            .ShowIndicator(true)
-                            .ShowPane(true)
-                            .Shading(true)
-                            .CloseOnOutsideClick(false)
-                            .Message("更新資料中...")
-                            .Animation(l => l.Show(k => k.Easing(AnimationEasing.Swing)))
-                    //.OnShown("loadPanel_shown")
-                    //.OnHidden("loadPanel_hidden")
-            )
-        </div>
-        <div id="ToastContainer">
-            @(Html.DevExtreme().Toast()
-                                .ID("ToastReUpload")
+                                    }
+                                    }
+                                </text>)
+        )
+    </div>
+    <div id="ToastContainer">
+        @(Html.DevExtreme().Toast()
+                                .ID("toast")
                                 .Position(p => p
                                 .At(HorizontalAlignment.Center, VerticalAlignment.Center)
                                 .Offset(0, 50))
-                                .Message(ReUpload)
-                                .DisplayTime(5000)
-                                .Type(ToastType.Error)
-                                .MaxWidth(500)
-            )
+                                .Message("測試")
+                                .DisplayTime(2000)
+                                .MaxWidth(200)
+        )
 
-        </div>
+    </div>
+    <div id="LoadPanel">
+        @(Html.DevExtreme().LoadPanel()
+                                .ID("loadPanel")
+                                .ShadingColor("rgba(0,0,0,0.4)")
+                                //.Position(p => p.Of("#data-grid").Of("#buttonContainer"))
+                                .Position(p => p.Of("#data-grid"))
+                                .Visible(false)
+                                .ShowIndicator(true)
+                                .ShowPane(true)
+                                .Shading(true)
+                                .CloseOnOutsideClick(false)
+                                .Message("更新資料中...")
+                                .Animation(l => l.Show(k => k.Easing(AnimationEasing.Swing)))
+                //.OnShown("loadPanel_shown")
+                //.OnHidden("loadPanel_hidden")
+        )
+    </div>
+    <div id="ToastContainer">
+        @(Html.DevExtreme().Toast()
+                                    .ID("ToastReUpload")
+                                    .Position(p => p
+                                    .At(HorizontalAlignment.Center, VerticalAlignment.Center)
+                                    .Offset(0, 50))
+                                    .Message("測試")
+                                    .DisplayTime(5000)
+                                    .Type(ToastType.Error)
+                                    .MaxWidth(500)
+        )
+
     </div>
 </div>
-
 <hr />
-<h3>牧養</h3>
-
-@if (Model.LoginType == "小組長")
-{
-    <div id="data-grid">
-        @(Html.DevExtreme().DataGrid<Member>()
-                                .ID("gridContainer")
-                                .ShowBorders(true)
-                                .ColumnAutoWidth(true)
-                                .Paging(p => p.PageSize(10))
-                                .Sorting(sorting => sorting.Mode(GridSortingMode.None))
-                                .Paging(paging => paging.Enabled(false))
-                                .AllowColumnResizing(true)
-                                .ColumnResizingMode(ColumnResizingMode.Widget)
-                                .ColumnFixing(c => c.Enabled(true))
-                                .LoadPanel(l => l.Text("更新資料中..."))
-                                .SearchPanel(s => s.Visible(true).Placeholder("搜尋.."))
+<div id="data-grid">
+    @(Html.DevExtreme().DataGrid<Fee>()
+                                                                                            .ID("gridContainer")
+                                                                                            .ShowBorders(true)
+                                                                                            //.ColumnAutoWidth(true)
+                                                                                            .Paging(p => p.PageSize(10))
+                                                                                            .Sorting(sorting => sorting.Mode(GridSortingMode.None))
+                                                                                            .Paging(paging => paging.Enabled(false))
+                                                                                            //.AllowColumnResizing(true)
+                                                                                            //.ColumnResizingMode(ColumnResizingMode.Widget)
+                                                                                            .ColumnFixing(c => c.Enabled(true))
+                                                                                            .LoadPanel(l => l.Text("更新資料中..."))
+                                                                                            .SearchPanel(s => s.Visible(true).Placeholder("搜尋.."))
 
 
-                                //.StateStoring(s => s
-                                //.Enabled(true)
-                                //.Type(StateStoringType.LocalStorage)
-                                //.StorageKey("FullName")
-                                //)
-                                //.StateStoring(s => s
-                                //    .Enabled(true)
-                                //    .Type(StateStoringType.LocalStorage)
-                                //    .StorageKey("Id")
-                                //)
+                                                                                            .ShowColumnLines(true)
+                                                                                            .ShowRowLines(true)
+                                                                                            //.RowAlternationEnabled(true)
+                                                                                            .ShowBorders(true)
 
-                                //.OnRowUpdated("function () { alert('OnRowUpdated'); }")
-                                //.OnRowClick("function () { alert('OnRowClick'); }")
-                                //.OnSelectionChanged("function () { alert('OnSelectionChanged'); }" )
-                                //.OnCellClick("function () { alert('OnCellClick'); }")
-                                //.OnEditingStart("function () { alert('OnEditingStart'); }")
-                                //.OnEditorPrepared("function () { alert('OnEditorPrepared'); }")
+                                                                                            .TwoWayBindingEnabled(true)
+
+                                                                                            //.Grouping
+                                                                                            //(g => g
+                                                                                            //.ContextMenuEnabled(true)
+                                                                                            //.ExpandMode(GridGroupingExpandMode.RowClick)
+                                                                                            //)
 
 
+                                                                                            .Editing(editing =>
+                                                                                            {
+                                                //editing.Mode(GridEditMode.Batch);
+                                                //editing.Mode(GridEditMode.Row);
+                                                //editing.Mode(GridEditMode.Cell);
+                                                //editing.Mode(GridEditMode.Batch);
+                                                //editing.Mode(GridEditMode.Form);
+                                                editing.Mode(GridEditMode.Popup);
+                                                                                                editing.AllowUpdating(true);
+                                                                                                editing.AllowDeleting(false);
+                                                //editing.AllowAdding(false);
+                                                editing.Texts(a => a.SaveAllChanges("上傳檔案").AddRow("新增").CancelAllChanges("取消變更").SaveRowChanges("儲存").CancelRowChanges("取消").EditRow("編輯").DeleteRow("刪除"));
+                                                //editing.AllowDeleting(true);
+                                            })
+
+                                             .Columns(columns =>
+                                             {
+                                                 columns.AddFor(m => m.DiscipleLessonsName).Caption("課程名稱").Fixed(true).GroupIndex(0).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Left).AllowSorting(false);
+                                                 columns.AddFor(m => m.FullName).Caption("姓名").Fixed(true).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Left).AllowSorting(false);
+                                                 columns.AddFor(m => m.MobilePhone).Caption("行動電話").Fixed(false).Width(100).MinWidth(20).Alignment(HorizontalAlignment.Center).AllowSorting(false);
+                                                 columns.AddFor(m => m.PayDate).Caption("繳費日期").DataType(GridColumnDataType.Date).Format("yyyy/M/d").Width(80).MinWidth(45).AllowSorting(false);
+                                                 columns.AddFor(m => m.Amount).Caption("繳費金額").DataType(GridColumnDataType.Number).Width(80).MinWidth(45).AllowSorting(false);
+                                                 columns.AddFor(m => m.Lesson1).Caption("第一課").DataType(GridColumnDataType.Boolean).Width(60).MinWidth(45).AllowSorting(false);
+                                                 columns.AddFor(m => m.Lesson2).Caption("第二課").DataType(GridColumnDataType.Boolean).Width(60).MinWidth(45).AllowSorting(false);
+                                                 columns.AddFor(m => m.Lesson3).Caption("第三課").DataType(GridColumnDataType.Boolean).Width(60).MinWidth(45).AllowSorting(false);
+                                                 columns.AddFor(m => m.Lesson4).Caption("第四課").DataType(GridColumnDataType.Boolean).Width(60).MinWidth(45).AllowSorting(false);
+                                                 columns.AddFor(m => m.Lesson5).Caption("第五課").DataType(GridColumnDataType.Boolean).Width(60).MinWidth(45).AllowSorting(false);
+                                                 columns.AddFor(m => m.Lesson6).Caption("第六課").DataType(GridColumnDataType.Boolean).Width(60).MinWidth(45).AllowSorting(false);
+                                                 columns.AddFor(m => m.Lesson7).Caption("第七課").DataType(GridColumnDataType.Boolean).Width(60).MinWidth(45).AllowSorting(false);
+                                                 columns.AddFor(m => m.Lesson8).Caption("第八課").DataType(GridColumnDataType.Boolean).Width(60).MinWidth(45).AllowSorting(false);
+                                                 columns.AddFor(m => m.Lesson9).Caption("第九課").DataType(GridColumnDataType.Boolean).Width(60).MinWidth(45).AllowSorting(false);
+                                                 columns.AddFor(m => m.Lesson10).Caption("第十課").DataType(GridColumnDataType.Boolean).Width(60).MinWidth(45).AllowSorting(false);
+                                                 columns.AddFor(m => m.Lesson11).Caption("第十一課").DataType(GridColumnDataType.Boolean).Width(75).MinWidth(45).AllowSorting(false);
+                                                 columns.AddFor(m => m.Lesson12).Caption("第十二課").DataType(GridColumnDataType.Boolean).Width(75).MinWidth(45).AllowSorting(false);
+                                                 columns.AddFor(m => m.Lesson13).Caption("第十三課").DataType(GridColumnDataType.Boolean).Width(75).MinWidth(45).AllowSorting(false);
+                                                 columns.AddFor(m => m.Lesson14).Caption("第十四課").DataType(GridColumnDataType.Boolean).Width(75).MinWidth(45).AllowSorting(false);
+                                                 columns.AddFor(m => m.Lesson15).Caption("第十五課").DataType(GridColumnDataType.Boolean).Width(75).MinWidth(45).AllowSorting(false);
+                                                 columns.AddFor(m => m.Lesson15).Caption("第十五課").DataType(GridColumnDataType.Boolean).Width(75).MinWidth(45).AllowSorting(false);
+
+                                                 columns.AddFor(m => m.HomeWorkA).Caption("作業A").DataType(GridColumnDataType.Date).Format("yyyy/M/d").Width(80).MinWidth(45)
+                                                    .CalculateCellValue(@<text>
+                                                        function(row)
+                                                        {
+                                                            if( row.HomeWorkA != null )
+                                                            {
+                                                            //debugger;
+
+                                                            var HomeWorkA = getODataLocalDateFilter( row.HomeWorkA );
+                                                            if( HomeWorkA.getFullYear() == 1901 )
+                                                            {
+                                                            return null;
+                                                            }
+                                                            else
+                                                            {
+                                                            return HomeWorkA;
+                                                            }
+                                                            }
+                                                            else
+                                                            {return null;}
+                                                        }
+                                                    </text> );
 
 
-                                .ShowColumnLines(true)
-                                .ShowRowLines(true)
-                                .RowAlternationEnabled(true)
-                                .ShowBorders(true)
+                                                columns.AddFor(m => m.HomeWorkB).Caption("作業B").DataType(GridColumnDataType.Date).Format("yyyy/M/d").Width(80).MinWidth(45)//.ValidationRules(rule => rule.AddRequired())
+                                                    .CalculateCellValue(@<text>
+                                                        function(row)
+                                                        {
+                                                            if( row.HomeWorkB != null )
+                                                            {
+                                                            //debugger;
 
-                                .TwoWayBindingEnabled(true)
-
-                                .Grouping
-                                (g => g
-                                .ContextMenuEnabled(true)
-                                .ExpandMode(GridGroupingExpandMode.RowClick)
-                                )
-
-                                .GroupPanel
-                                (p => p
-                                .EmptyPanelText("請把小組名稱拉到這裡")
-                                .Visible(false) // 讓使用者不能自己決定誰被Grouping起來
-                                .AllowColumnDragging(true)
-                                )
-
-                                //.GroupPanel(p => p.Visible(true))
-                                //.GroupPanel(p => p.AllowColumnDragging(false))
-                                //.GroupPanel(p => p.(false))
-                                //.Grouping(g => g.AutoExpandAll(true))
+                                                            var HomeWorkB = getODataLocalDateFilter( row.HomeWorkB );
+                                                            if( HomeWorkB.getFullYear() == 1901 )
+                                                            {
+                                                            return null;
+                                                            }
+                                                            else
+                                                            {
+                                                            return HomeWorkB;
+                                                            }
+                                                            }
+                                                            else
+                                                            {return null;}
+                                                        }
+                                                    </text> );
 
 
-                                .Editing(editing =>
-                                {
-                                    //editing.Mode(GridEditMode.Batch);
-                                    //editing.Mode(GridEditMode.Row);
-                                    editing.Mode(GridEditMode.Cell);
-                                    //editing.Mode(GridEditMode.Batch);
-                                    //editing.Mode(GridEditMode.Form);
-                                    //editing.Mode(GridEditMode.Popup);
-                                    editing.AllowUpdating(true);
-                                    editing.AllowDeleting(false);
-                                    //editing.AllowAdding(false);
-                                    editing.Texts(a => a.SaveAllChanges("上傳檔案").AddRow("新增").CancelAllChanges("取消變更").SaveRowChanges("儲存").CancelRowChanges("取消").EditRow("編輯").DeleteRow("刪除"));
-                                    //editing.AllowDeleting(true);
-                                })
+                                                columns.AddFor(m => m.HomeWorkC).Caption("作業C").DataType(GridColumnDataType.Date).Format("yyyy/M/d").Width(80).MinWidth(45)
+                                                    .CalculateCellValue(@<text>
+                                                        function(row)
+                                                        {
+                                                            if( row.HomeWorkC != null )
+                                                            {
+                                                            //debugger;
 
-                                .Columns(columns =>
-                                {
-                                    //columns.Add().DataField("FullName").Caption("姓名").Fixed(true).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Left);
-                                    //columns.Add().DataField("Status").Caption("委身類型").Fixed(false).Width(100).MinWidth(20).Alignment(HorizontalAlignment.Center);
-                                    //columns.Add().DataField("Sunday").Caption("主日").DataType(GridColumnDataType.Boolean).Width(45).MinWidth(45);
-                                    //columns.Add().DataField("SmallGroup").Caption("小組").DataType(GridColumnDataType.Boolean).Width(45).MinWidth(45);
-                                    //columns.Add().DataField("PrayItem").Caption("代禱事項").Fixed(false).MinWidth(90);
-                                    //columns.Add().DataField("SmallGroupName").Caption("小組").GroupIndex(0).MinWidth(10);
-
-                                    columns.AddFor(m => m.FullName).Caption("姓名").Fixed(true).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Left).AllowSorting(false);
-                                    columns.AddFor(m => m.Status).Caption("委身類型").Fixed(false).Width(100).MinWidth(20).Alignment(HorizontalAlignment.Center).AllowSorting(false);
-                                    columns.AddFor(m => m.Sunday).Caption("主日").Width(45).MinWidth(45).AllowSorting(false);
-                                    columns.AddFor(m => m.SmallGroup).Caption("小組").Width(45).MinWidth(45).AllowSorting(false);
-                                    //columns.AddFor(m => m.SpiritualWork)
-                                    //    .Caption("靈修次數").Alignment(HorizontalAlignment.Center)
-                                    //    .Width(75).MinWidth(30).DataType(GridColumnDataType.Number)
-                                    //    .Lookup(lookup => lookup
-                                    //    .DataSource(new string[] { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", })
-                                    //    //.DisplayExpr("Name")
-                                    //    //.ValueExpr("ID")
-                                    //    );
-                                    //columns.AddFor(m => m.MorningPray)
-                                    //    .Caption("晨禱次數").Alignment(HorizontalAlignment.Center)
-                                    //    .Width(75).MinWidth(30).DataType(GridColumnDataType.Number)
-                                    //    .Lookup(lookup => lookup
-                                    //    .DataSource(new string[] { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", })
-                                    //    //.DisplayExpr("Name")
-                                    //    //.ValueExpr("ID")
-                                    //    );
-
-                                    //columns.AddFor(m => m.GeneralCare)
-                                    //    .Caption("禱告次數").Alignment(HorizontalAlignment.Center)
-                                    //    .Width(75).MinWidth(30).DataType(GridColumnDataType.Number)
-                                    //    .Lookup(lookup => lookup
-                                    //    .DataSource(new string[] { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", })
-                                    //    );
-                                    columns.AddFor(m => m.PrayItem).Caption("代禱事項").MinWidth(90);
-                                    columns.AddFor(m => m.SmallGroupName).SortOrder(SortOrder.Desc).Caption("小組").GroupIndex(0).MinWidth(10);
+                                                            var HomeWorkC = getODataLocalDateFilter( row.HomeWorkC );
+                                                            if( HomeWorkC.getFullYear() == 1901 )
+                                                            {
+                                                            return null;
+                                                            }
+                                                            else
+                                                            {
+                                                            return HomeWorkC;
+                                                            }
+                                                            }
+                                                            else
+                                                            {return null;}
+                                                        }
+                                                    </text> );
 
 
-                                })
-                                    .DataSource(Model.Members)
-        )
-    </div>
-}
-else
-{
-    <div id="data-grid">
-        @(Html.DevExtreme().DataGrid<Member>()
-                                .ID("gridContainer")
-                                .ShowBorders(true)
-                                .ColumnAutoWidth(true)
-                                .Paging(p => p.PageSize(10))
-                                .Sorting(sorting => sorting.Mode(GridSortingMode.None))
-                                .Paging(paging => paging.Enabled(false))
-                                .AllowColumnResizing(true)
-                                .ColumnResizingMode(ColumnResizingMode.Widget)
-                                .ColumnFixing(c => c.Enabled(true))
-                                .LoadPanel(l => l.Text("更新資料中..."))
-                                .SearchPanel(s => s.Visible(true).Placeholder("搜尋.."))
+                                                columns.AddFor(m => m.HomeWorkD).Caption("作業D").DataType(GridColumnDataType.Date).Format("yyyy/M/d").Width(80).MinWidth(45).AllowSorting(false)
+                                                    .CalculateCellValue(@<text>
+                                                        function(row)
+                                                        {
+                                                            if( row.HomeWorkD != null )
+                                                            {
+                                                            //debugger;
 
+                                                            var HomeWorkD = getODataLocalDateFilter( row.HomeWorkD );
+                                                            if( HomeWorkD.getFullYear() == 1901 )
+                                                            {
+                                                            return null;
+                                                            }
+                                                            else
+                                                            {
+                                                            return HomeWorkD;
+                                                            }
+                                                            }
+                                                            else
+                                                            {return null;}
+                                                        }
+                                                    </text> );
 
-                                //.StateStoring(s => s
-                                //.Enabled(true)
-                                //.Type(StateStoringType.LocalStorage)
-                                //.StorageKey("FullName")
-                                //)
-                                //.StateStoring(s => s
-                                //    .Enabled(true)
-                                //    .Type(StateStoringType.LocalStorage)
-                                //    .StorageKey("Id")
-                                //)
+                                                columns.AddFor(m => m.HomeWorkE).Caption("作業E").DataType(GridColumnDataType.Date).Format("yyyy/M/d").Width(80).MinWidth(45).AllowSorting(false)
+                                                .CalculateCellValue(@<text>
+                                                        function(row)
+                                                        {
+                                                            if( row.HomeWorkE != null )
+                                                            {
+                                                            //debugger;
 
-                                //.OnRowUpdated("function () { alert('OnRowUpdated'); }")
-                                //.OnRowClick("function () { alert('OnRowClick'); }")
-                                //.OnSelectionChanged("function () { alert('OnSelectionChanged'); }" )
-                                //.OnCellClick("function () { alert('OnCellClick'); }")
-                                //.OnEditingStart("function () { alert('OnEditingStart'); }")
-                                //.OnEditorPrepared("function () { alert('OnEditorPrepared'); }")
+                                                            var HomeWorkE = getODataLocalDateFilter( row.HomeWorkE );
+                                                            if( HomeWorkE.getFullYear() == 1901 )
+                                                            {
+                                                            return null;
+                                                            }
+                                                            else
+                                                            {
+                                                            return HomeWorkE;
+                                                            }
+                                                            }
+                                                            else
+                                                            {return null;}
+                                                        }
+                                                    </text> );
 
-                                .OnContentReady(@<text>
-                                function(e) {
-                                moveEditColumnToLeft(e.component);
-                                }
-                                </text> )
-
-                                                                        .OnCellPrepared("cell_prepared")
-
-
-
-                                                                        .ShowColumnLines(true)
-                                                                        .ShowRowLines(true)
-                                                                        .RowAlternationEnabled(true)
-                                                                        .ShowBorders(true)
-
-                                                                        .TwoWayBindingEnabled(true)
-
-                                                                        //.Grouping
-                                                                        //(g => g
-                                                                        //.ContextMenuEnabled(true)
-                                                                        //.ExpandMode(GridGroupingExpandMode.RowClick)
-                                                                        //)
-
-                                                                        //.GroupPanel
-                                                                        //(p => p
-                                                                        //.EmptyPanelText("請把小組名稱拉到這裡")
-                                                                        //.Visible(false) // 讓使用者不能自己決定誰被Grouping起來
-                                                                        //.AllowColumnDragging(true)
-                                                                        //)
-
-                                                                        //.GroupPanel(p => p.Visible(true))
-                                                                        //.GroupPanel(p => p.AllowColumnDragging(false))
-                                                                        //.GroupPanel(p => p.(false))
-                                                                        //.Grouping(g => g.AutoExpandAll(true))
-
-
-                                                                        .Editing(editing =>
-                                                                        {
-                                                                            //editing.Mode(GridEditMode.Batch);
-                                                                            //editing.Mode(GridEditMode.Row);
-                                                                            //editing.Mode(GridEditMode.Cell);
-                                                                            //editing.Mode(GridEditMode.Batch);
-                                                                            //editing.Mode(GridEditMode.Form);
-                                                                            editing.Mode(GridEditMode.Popup);
-                                                                            editing.AllowUpdating(true);
-                                                                            editing.AllowDeleting(false);
-                                                                            //editing.AllowAdding(false);
-                                                                            editing.Texts(a => a.SaveAllChanges("上傳檔案").AddRow("新增").CancelAllChanges("取消變更").SaveRowChanges("儲存").CancelRowChanges("取消").EditRow("編輯").DeleteRow("刪除"));
-                                                                            //editing.AllowDeleting(true);
-                                                                        })
-
-                                                                .Columns(columns =>
-                                                                {
-                                                                /**/
-                                                                /**/
-                                                        @*columns.Add()
-                                                            .DataField("Picture")
-                                                            .Caption("照片")
-                                                            .Width(60)
-                                                            .AllowFiltering(false)
-                                                            .AllowSorting(false)
-                                                            .CellTemplate(@<text>
-                                                            <div class="img-container">
-                                                                <img src="<%= value %>" alt="" />
-                                                            </div>
-                                                            </text>        );*@
-                                                                    /**/
-                                                                    /**/
-
-
-                                                                    //columns.Add()
-                                                                    //    .Caption("測試")
-                                                                    //    //.DataField("Shepherd")
-                                                                    //    .Width(250)
-                                                                    //
-                                                                    //    .CellTemplate(@<text> @(Html.Partial("DropDownBox") )
-                                                                    //    </text>);
-
-                                                                    //columns.Add().DataField("FullName").Caption("姓名").Fixed(true).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Left);
-                                                                    //columns.Add().DataField("Status").Caption("委身類型").Fixed(false).Width(100).MinWidth(20).Alignment(HorizontalAlignment.Center);
-                                                                    //columns.Add().DataField("Sunday").Caption("主日").DataType(GridColumnDataType.Boolean).Width(45).MinWidth(45);
-                                                                    //columns.Add().DataField("SmallGroup").Caption("小組").DataType(GridColumnDataType.Boolean).Width(45).MinWidth(45);
-                                                                    //columns.Add().DataField("PrayItem").Caption("代禱事項").Fixed(false).MinWidth(90);
-                                                                    //columns.Add().DataField("SmallGroupName").Caption("小組").GroupIndex(0).MinWidth(10);
-
-                                                                    columns.AddFor(m => m.FullName).Caption("姓名").Fixed(true).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Left).AllowSorting(false);
-                                                                    columns.AddFor(m => m.Status).Caption("委身類型").Fixed(false).Width(100).MinWidth(20).Alignment(HorizontalAlignment.Center).AllowSorting(false);
-                                                                    columns.AddFor(m => m.Sunday).Caption("主日").Width(45).MinWidth(45).AllowSorting(false);
-                                                                    columns.AddFor(m => m.SmallGroup).Caption("小組").Width(45).MinWidth(45).AllowSorting(false);
-                                                                    columns.AddFor(m => m.SpiritualWork)
-                                                                        .Caption("靈修次數").Alignment(HorizontalAlignment.Center)
-                                                                        .Width(75).MinWidth(30).DataType(GridColumnDataType.Number)
-                                                                        .Lookup(lookup => lookup
-                                                                        .DataSource(new string[] { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", })
-                                                                        //.DisplayExpr("Name")
-                                                                        //.ValueExpr("ID")
-                                                                        );
-                                                                    columns.AddFor(m => m.MorningPray)
-                                                                        .Caption("晨禱次數").Alignment(HorizontalAlignment.Center)
-                                                                        .Width(75).MinWidth(30).DataType(GridColumnDataType.Number)
-                                                                        .Lookup(lookup => lookup
-                                                                        .DataSource(new string[] { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", })
-                                                                        //.DisplayExpr("Name")
-                                                                        //.ValueExpr("ID")
-                                                                        );
-
-                                                                    columns.AddFor(m => m.GeneralCare)
-                                                                        .Caption("禱告次數").Alignment(HorizontalAlignment.Center)
-                                                                        .Width(75).MinWidth(30).DataType(GridColumnDataType.Number)
-                                                                        .Lookup(lookup => lookup
-                                                                        .DataSource(new string[] { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", })
-                                                                        );
-                                                                    columns.AddFor(m => m.PrayItem).Caption("代禱事項").MinWidth(90);
-                                                                    columns.AddFor(m => m.SmallGroupName).Caption("小組").GroupIndex(0).MinWidth(10);
-
-                                                                    //columns.Add()
-                                                                    //    .DataField("StateID1")
-                                                                    //    .Caption("牧養活動")
-                                                                    //    .Width(80).MinWidth(30)
-                                                                    //    .Lookup(lookup => lookup
-                                                                    //    .DataSource(d => d.WebApi().Controller("ShepherdMethodLookup").LoadAction("Get").Key("ID"))
-                                                                    //    .DisplayExpr("Name")
-                                                                    //    .ValueExpr("ID")
-                                                                    //);
-
-                                                                    //columns.Add()
-                                                                    //    .Caption("牧養次數")
-                                                                    //    //.DataField("Shepherd")
-                                                                    //    .Width(80)
-                                                                    //    .CellTemplate(@<text> @(Html.DevExtreme().NumberBox()
-                                                                    //    .Value(0)
-                                                                    //    .Min(0)
-                                                                    //    .Max(20)
-                                                                    //    .ShowSpinButtons(true) )
-                                                                    //    </text>        );
-
-                                                                    //columns.Add().DataField("Number1").Caption("次數").DataType(GridColumnDataType.Number).Width(50).MinWidth(10);
-                                                                    //
-                                                                    //columns.Add()
-                                                                    //    .DataField("StateID2")
-                                                                    //    .Caption("牧養活動")
-                                                                    //    .Width(80).MinWidth(30)
-                                                                    //    .Lookup(lookup => lookup
-                                                                    //    .DataSource(d => d.WebApi().Controller("ShepherdMethodLookup").LoadAction("Get").Key("ID"))
-                                                                    //    .DisplayExpr("Name")
-                                                                    //    .ValueExpr("ID")
-                                                                    //);
-                                                                    //
-                                                                    //columns.Add().DataField("Number2").Caption("次數").DataType(GridColumnDataType.Number).Width(50).MinWidth(10);
-
-
-                                                                })
-                                                                            //.DataSource(d => d.WebApi().Controller("SmallGroupReport").Key("Id"))
-                                                                            .DataSource(Model.Members)
-        //.DataSourceOptions(d => d.Filter("['Id', '<=' , 6]"))
-        )
-    </div>
-}
+                                            })
+                                                .DataSource(Model.FeeDataList)
+    )
+</div>
 <script>var DataUploadStatus = "尚未上傳喔!";</script>
 <script src="~/js/DataGridAjax.js"></script>
 <script src="~/js/SelectDate.js"></script>
@@ -538,7 +332,6 @@ else
             width: 50
         });
     }
-
     function cell_prepared(e) {
         if (e.rowType === "data" && e.column.command === "edit") {
             var isEditing = e.row.isEditing,
@@ -555,6 +348,94 @@ else
             }
         }
     }
+</script>
+
+<script>
+    function ParsingDate(input) {
+        //debugger;
+        ////alert("ParseDate 001 : " + input);
+        var parts = input.split('-');
+
+        var DaySplitedArray = parts[2].split('T');
+        var ParsedDate = new Date(parts[0], parts[1] - 1, DaySplitedArray[0]);
+        //var ParsedDate = new Date(parts[0], parts[1], DaySplitedArray[0]);
+
+        return ParsedDate;
+        //// new Date(year, month [, day [, hours[, minutes[, seconds[, ms]]]]])
+        ////return new Date(parts[0], parts[1] - 1, DaySplitedArray[0]); // Note: months are 0-based
+
+        ////return ParsedDate.getFullYear() + "/" + ParsedDate.getMonth() + "/" + ParsedDate.getDate();
+
+        //return parts[0] + "/" + parts[1] + "/" + DaySplitedArray[0];
+
+        //var Month = input.getMonth() + 1;
+        //return new Date(input.getFullYear() + "/" + Month + "/" + input.getDate());
+    }
+
+    function getODataLocalDateFilter(date) {
+
+        //debugger;
+
+        //alert("getODataLocalDateFilter !" + date);
+        //alert("HELLO 我愛嘟嘟妞妞 006!" + date);
+
+        //-- Description: For converting the date object to local time format
+        //-- You can also convert this to UTC Date format
+        //-- UTC Usage: getUTCMonth(), getUTCFullYear(), getUTCHours() ...
+
+        var monthString;
+        var rawMonth = (date.getMonth() + 1).toString();
+        if (rawMonth.length == 1) {
+            monthString = "0" + rawMonth;
+        }
+        else { monthString = rawMonth; }
+
+        var dateString;
+        //var rawDate = date.getUTCDate().toString();
+        var rawDate = date.getDate().toString();
+        if (rawDate.length == 1) {
+            dateString = "0" + rawDate;
+        }
+        else { dateString = rawDate; }
+
+
+        var DateFilter = "";
+        //DateFilter += date.getFullYear() + "-";
+        //DateFilter += monthString + "-";
+        //DateFilter += dateString;
+        //DateFilter += " T" + date.getHours() + ":";
+        //DateFilter += date.getMinutes() + ":";
+        //DateFilter += date.getSeconds() + ":";
+        //DateFilter += date.getMilliseconds();
+
+        //return DateFilter;
+
+        //return date.getFullYear() + "/" + rawMonth + "/" + rawDate;
+
+        return new Date(date.getFullYear(), rawMonth, rawDate );
+    }
+
+    function CalculateDate(row)
+    {
+        if( row.HomeWorkA != null )
+        {
+        //debugger;
+
+        var HomeWorkA = getODataLocalDateFilter( row.HomeWorkA );
+        if( HomeWorkA.getFullYear() == 1901 )
+        {
+        return null;
+        }
+        else
+        {
+        return HomeWorkA;
+        }
+        }
+        else
+        {return null;}
+    }
+   
+
 </script>
 <link href="~/css/SmallGroupReportController.css" rel="stylesheet" />
 

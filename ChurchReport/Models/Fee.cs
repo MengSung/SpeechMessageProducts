@@ -10,103 +10,37 @@ namespace ChurchReport.Models {
         public Fee()
         { }
 
-        public int Id { get; set; }
-        public string Group { get; set; }
-        public string FullName { get; set; }
-        public string Status { get; set; } // 委身類型
-        #region 個人基本資料
-        public string Phone
-        {
-            get;
-            set;
-        }
+        public int DiscipleLessonsId { get; set; }          //教會課程 Id
+        public int StorLessonsId { get; set; }              //學員上課記錄 Id
+        public string DiscipleLessonsName { get; set; }     // 課程名稱
+        public string FullName { get; set; }                // 姓名
+        public string MobilePhone { get; set; }             // 行動電話
+        public DateTime PayDate { get; set; }               // 繳費日期
+        public int Amount { get; set; }                     // 繳費金額
 
-        public string HomePhone
-        {
-            get;
-            set;
-        }
-
-        public string Address
-        {
-            get;
-            set;
-        }
-        public string Industry
-        {
-            get;
-            set;
-        }
+        #region 課程點名
+        public bool Lesson1 { get; set; }       // 第一課點名
+        public bool Lesson2 { get; set; }       // 第二課點名
+        public bool Lesson3 { get; set; }       // 第三課點名
+        public bool Lesson4 { get; set; }       // 第四課點名
+        public bool Lesson5 { get; set; }       // 第五課點名
+        public bool Lesson6 { get; set; }       // 第六課點名
+        public bool Lesson7 { get; set; }       // 第七課點名
+        public bool Lesson8 { get; set; }       // 第八課點名
+        public bool Lesson9 { get; set; }       // 第九課點名
+        public bool Lesson10 { get; set; }       // 第十課點名
+        public bool Lesson11 { get; set; }       // 第十一課點名
+        public bool Lesson12 { get; set; }       // 第十二課點名
+        public bool Lesson13 { get; set; }       // 第十三課點名
+        public bool Lesson14 { get; set; }       // 第十四課點名
+        public bool Lesson15 { get; set; }       // 第十五課點名
         #endregion
-
-        public string SmallGroupName { get; set; }
-        public string SectionName { get; set; }
-        public string PrayItem { get; set; }
-        public bool Sunday { get; set; }
-        public bool SmallGroup { get; set; }
-        public int StateID1 { get; set; }
-        public int Number1 { get; set; }
-        public int StateID2 { get; set; }
-        public int Number2 { get; set; }
-
-        #region 新人跟進關懷
-        // 跟進週次
-        public string FollowUpWeek
-        {
-            get;
-            set;
-        }
-
-        // 跟進方式選項
-        public string FollowUpOption
-        {
-            get;
-            set;
-        }
-
-        // 跟進方式
-        public string FollowUp
-        {
-            get;
-            set;
-        }
-
-        // 跟進結果
-        public string FollowUpResult
-        {
-            get;
-            set;
-        }
-
-        // 跟進下一步驟
-        public string FollowUpNextStep
-        {
-            get;
-            set;
-        }
-
-        // 跟進附註
-        public string FollowUpNote
-        {
-            get;
-            set;
-        }
-
-        // 新人跟進歷程
-        public string NewComerNote
-        {
-            get;
-            set;
-        }
+        #region 作業繳交
+        public DateTime HomeWorkA { get; set; }       // A 作業繳交
+        public DateTime HomeWorkB { get; set; }       // B 作業繳交
+        public DateTime HomeWorkC { get; set; }       // C 作業繳交
+        public DateTime HomeWorkD { get; set; }       // D 作業繳交
+        public DateTime HomeWorkE { get; set; }       // E 作業繳交
         #endregion
-
-        #region 靈修、晨、晚禱
-        public int SpiritualWork { get; set; } // 靈修次數
-        public int MorningPray { get; set; }   // 晨禱(家庭祭壇)
-        public int GeneralCare { get; set; }   // 晚禱(禱告會次數)
-        #endregion
-
-        public string Picture { get; set; }
-        public string Shepherd { get; set; }
     }
 }
