@@ -172,7 +172,7 @@ moveEditColumnToLeft(e.component);
 {
     //editing.Mode(GridEditMode.Batch);
     //editing.Mode(GridEditMode.Row);
-    editing.Mode(GridEditMode.Cell).Form(f=>f.CustomizeItem("customizeItem"));
+    editing.Mode(GridEditMode.Cell).Form(f=>f.ShowRequiredMark(false).CustomizeItem("customizeItem"));
     //editing.Mode(GridEditMode.Batch);
     //editing.Mode(GridEditMode.Form).Form(f => f.CustomizeItem("customizeItem"));
     //editing.Mode(GridEditMode.Popup);
@@ -221,7 +221,6 @@ if( HomeWorkA.getFullYear() == 1901 )
     return null;
 //row.HomeWorkA = null;
 //return this.defaultCalculateCellValue(row);
-//return null;
 }
 else
 {
@@ -233,7 +232,7 @@ else
 {
 //row.HomeWorkA = null;
 //return this.defaultCalculateCellValue(row);
-//return null;
+return null;
 }
 }
 </text> );
@@ -259,7 +258,7 @@ return HomeWorkB;
 }
 else
 {
-    //return null;
+    return null;
 }
 }
 </text> );
@@ -275,7 +274,8 @@ if( row.HomeWorkC != null )
 var HomeWorkC = ParsingDate( row.HomeWorkC );
 if( HomeWorkC.getFullYear() == 1901 )
 {
-return this.defaultCalculateCellValue(row);
+    return null;
+    //return this.defaultCalculateCellValue(row);
 }
 else
 {
@@ -283,7 +283,7 @@ return HomeWorkC;
 }
 }
 else
-{}
+{return null;}
 }
 </text> );
 
@@ -299,7 +299,8 @@ if( row.HomeWorkD != null )
 var HomeWorkD = ParsingDate( row.HomeWorkD );
 if( HomeWorkD.getFullYear() == 1901 )
 {
-return this.defaultCalculateCellValue(row);
+    return null;
+    //return this.defaultCalculateCellValue(row);
 }
 else
 {
@@ -307,7 +308,7 @@ return HomeWorkD;
 }
 }
 else
-{}
+{return null;}
 }
 </text> );
 
@@ -322,7 +323,8 @@ if( row.HomeWorkE != null )
 var HomeWorkE = ParsingDate( row.HomeWorkE );
 if( HomeWorkE.getFullYear() == 1901 )
 {
-return this.defaultCalculateCellValue(row);
+    return null;
+    return this.defaultCalculateCellValue(row);
 }
 else
 {
@@ -330,7 +332,7 @@ return HomeWorkE;
 }
 }
 else
-{}
+{return null;}
 }
 </text> );
 
