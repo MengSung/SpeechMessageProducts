@@ -439,7 +439,7 @@ namespace ChurchReport.WebServiceConnector
                 DiscipleLessonsName = "201803 - 04再生產的生活(16屆) (V1)",
                 FullName = "吳連碧",
                 MobilePhone = "0921834289",
-                PayDate = DateTime.Now.AddDays(-3),
+                PayDate = new DateTime(1,1,1),
                 Amount = 600,
                 Lesson5 = true,
                 Lesson6 = true,

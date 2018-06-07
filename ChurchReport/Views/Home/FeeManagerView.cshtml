@@ -172,7 +172,8 @@ moveEditColumnToLeft(e.component);
 {
     //editing.Mode(GridEditMode.Batch);
     //editing.Mode(GridEditMode.Row);
-    editing.Mode(GridEditMode.Cell).Form(f=>f.ShowRequiredMark(false).CustomizeItem("customizeItem"));
+    //editing.Mode(GridEditMode.Cell).Form(f => f.ShowRequiredMark(false).CustomizeItem("customizeItem"));
+    editing.Mode(GridEditMode.Cell);
     //editing.Mode(GridEditMode.Batch);
     //editing.Mode(GridEditMode.Form).Form(f => f.CustomizeItem("customizeItem"));
     //editing.Mode(GridEditMode.Popup);
@@ -188,7 +189,29 @@ moveEditColumnToLeft(e.component);
 columns.AddFor(m => m.DiscipleLessonsName).Caption("課程名稱").Fixed(true).GroupIndex(0).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Left).AllowSorting(false);
 columns.AddFor(m => m.FullName).Caption("姓名").Fixed(true).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Left).AllowSorting(false);
 columns.AddFor(m => m.MobilePhone).Caption("行動電話").Fixed(false).Width(100).MinWidth(20).Alignment(HorizontalAlignment.Center).AllowSorting(false);
-columns.AddFor(m => m.PayDate).Caption("繳費日期").DataType(GridColumnDataType.Date).Format("yyyy/M/d").Width(80).MinWidth(45).AllowSorting(false);
+columns.AddFor(m => m.PayDate).Caption("繳費日期").DataType(GridColumnDataType.Date).Format("yyyy/M/d").Width(80).MinWidth(45).AllowSorting(false)
+    .CalculateCellValue(@<text>
+    function(row)
+    {
+    if( row.PayDate != null )
+    {
+    //debugger;
+
+    var PayDate = ParsingDate( row.PayDate );
+    if( PayDate.getFullYear() == 1901 )
+    {
+        return null;
+    }
+    else
+    {
+        return PayDate;
+    }
+    }
+    else
+    {return null;}
+    }
+    </text> );
+
 columns.AddFor(m => m.Amount).Caption("繳費金額").DataType(GridColumnDataType.Number).Width(80).MinWidth(45).AllowSorting(false);
 columns.AddFor(m => m.Lesson1).Caption("第一課").DataType(GridColumnDataType.Boolean).Width(60).MinWidth(45).AllowSorting(false);
 columns.AddFor(m => m.Lesson2).Caption("第二課").DataType(GridColumnDataType.Boolean).Width(60).MinWidth(45).AllowSorting(false);
@@ -213,25 +236,19 @@ function(row)
 {
 if( row.HomeWorkA != null )
 {
-//debugger;
 
 var HomeWorkA = ParsingDate( row.HomeWorkA );
 if( HomeWorkA.getFullYear() == 1901 )
 {
     return null;
-//row.HomeWorkA = null;
-//return this.defaultCalculateCellValue(row);
 }
 else
 {
-//return this.defaultCalculateCellValue(row);
 return HomeWorkA;
 }
 }
 else
 {
-//row.HomeWorkA = null;
-//return this.defaultCalculateCellValue(row);
 return null;
 }
 }
@@ -275,7 +292,6 @@ var HomeWorkC = ParsingDate( row.HomeWorkC );
 if( HomeWorkC.getFullYear() == 1901 )
 {
     return null;
-    //return this.defaultCalculateCellValue(row);
 }
 else
 {
@@ -300,7 +316,6 @@ var HomeWorkD = ParsingDate( row.HomeWorkD );
 if( HomeWorkD.getFullYear() == 1901 )
 {
     return null;
-    //return this.defaultCalculateCellValue(row);
 }
 else
 {
@@ -324,7 +339,6 @@ var HomeWorkE = ParsingDate( row.HomeWorkE );
 if( HomeWorkE.getFullYear() == 1901 )
 {
     return null;
-    return this.defaultCalculateCellValue(row);
 }
 else
 {
