@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -36,10 +37,15 @@ namespace ChurchReport.Models {
         public bool Lesson15 { get; set; }       // 第十五課點名
         #endregion
         #region 作業繳交
+        //[Required(AllowEmptyStrings = true)]
         public DateTime HomeWorkA { get; set; }       // A 作業繳交
+        //[Required(AllowEmptyStrings = true)]
         public DateTime HomeWorkB { get; set; }       // B 作業繳交
+        //[Required(AllowEmptyStrings = true)]
         public DateTime HomeWorkC { get; set; }       // C 作業繳交
+        //[Required(AllowEmptyStrings = true)]
         public DateTime HomeWorkD { get; set; }       // D 作業繳交
+        //[Required(AllowEmptyStrings = true)]
         public DateTime HomeWorkE { get; set; }       // E 作業繳交
         #endregion
     }

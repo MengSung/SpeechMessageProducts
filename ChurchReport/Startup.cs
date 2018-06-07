@@ -73,6 +73,8 @@ namespace ChurchReport
             app.UseStaticFiles();
             app.UseSession();
 
+            DevExtreme.AspNet.Mvc.Compatibility.Validation.IgnoreRequiredForBoolean = true;
+
             app.UseMvc(routes =>
             {
                 routes.MapRoute(
