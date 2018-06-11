@@ -53,96 +53,111 @@
 
     <div class="widget-container" style="padding: 10px;">
         @(Html.DevExtreme().Gallery()
-        .ID("gallery")
-        .DataSource(Model.Images)
-        //.Height(250)
-        .Height("250px")
-        //.Height("100%")
-        //.Width(600)
-        //.InitialItemWidth(250)
-        .StretchImages(true)
-        .Loop(true)
-        .SlideshowDelay(1500)
-        .ShowNavButtons(true)
-        .ShowIndicator(true)
+                .ID("gallery")
+                .DataSource(Model.Images)
+                //.Height(250)
+                .Height("250px")
+                //.Height("100%")
+                //.Width(600)
+                //.InitialItemWidth(250)
+                .StretchImages(true)
+                .Loop(true)
+                .SlideshowDelay(1500)
+                .ShowNavButtons(true)
+                .ShowIndicator(true)
         )
     </div>
 
     <div class="long-title"><h3>登入系統</h3></div>
+
+            <div id="ToastContainer">
+            @(Html.DevExtreme().Toast()
+                            .ID("Toast")
+                            .Position(p => p
+                            .At(HorizontalAlignment.Center, VerticalAlignment.Center)
+                            .Offset(0, 50))
+                            //.Shading(true)
+                            //.ShadingColor("red")
+                            .CloseOnOutsideClick(true)
+                            .DisplayTime(2000)
+                            .MaxWidth(200)
+            )
+
+        </div>
 
     <form data-ajax="true" data-ajax-begin="onBegin" data-ajax-success="onSuccess" asp-action="ProcessLogin" asp-controller="Home" method="post" style="text-align: center;">
 
         <div class="dx-field" style="text-align: center;">
             <div class="form-container-class" id="form-container" style="text-align: center;">
                 @(Html.DevExtreme().Form()
-                .ID("form")
-                .Items(items =>
-                {
+                        .ID("form")
+                        .Items(items =>
+                        {
 
-                    items.AddSimple()
-                        .DataField("Account")
-                        .Label(l => l.Text("帳號"))
-                        .Editor(e => e
-                            .TextBox()
-                            .Disabled(false)
-                            .Placeholder("輸入帳號")
-                            .ShowClearButton(true)
-                       //.Width(200)
-                       );
+                            items.AddSimple()
+                                .DataField("Account")
+                                .Label(l => l.Text("帳號"))
+                                .Editor(e => e
+                                    .TextBox()
+                                    .Disabled(false)
+                                    .Placeholder("輸入帳號")
+                                    .ShowClearButton(true)
+                               //.Width(200)
+                               );
 
-                    items.AddSimple()
-                        .DataField("Password")
-                        .Label(l => l.Text("密碼"))
-                        .Editor(e => e
-                            .TextBox()
-                            .Mode(TextBoxMode.Password)
-                            .Disabled(false)
-                            .Placeholder("輸入密碼")
-                            .ShowClearButton(true)
-                       //.Width(200)
-                       );
+                            items.AddSimple()
+                                .DataField("Password")
+                                .Label(l => l.Text("密碼"))
+                                .Editor(e => e
+                                    .TextBox()
+                                    .Mode(TextBoxMode.Password)
+                                    .Disabled(false)
+                                    .Placeholder("輸入密碼")
+                                    .ShowClearButton(true)
+                               //.Width(200)
+                               );
 
-                })
+                        })
                 )
             </div>
         </div>
         <div class="dx-field" style="text-align: center;">
             <div id="buttonContainer" class="dx-button-icon">
                 @(Html.DevExtreme().Button()
-            .Text("登入")
-            //.Type(ButtonType.Success)
-            //.Type(ButtonType.Normal)
-            .Type(ButtonType.Default)
-            .ID("save-button")
-            .UseSubmitBehavior(true)
-            .OnClick("Login")
-            .Width(100)
-                )
-                @(Html.DevExtreme().Button()
-                    .Text("註冊")
+                    .Text("登入")
                     //.Type(ButtonType.Success)
                     //.Type(ButtonType.Normal)
                     .Type(ButtonType.Default)
-                    .ID("register-button")
-                    .UseSubmitBehavior(false)
-                    .OnClick("Register")
+                    .ID("save-button")
+                    .UseSubmitBehavior(true)
+                    .OnClick("Login")
                     .Width(100)
+                )
+                @(Html.DevExtreme().Button()
+                            .Text("註冊")
+                            //.Type(ButtonType.Success)
+                            //.Type(ButtonType.Normal)
+                            .Type(ButtonType.Default)
+                            .ID("register-button")
+                            .UseSubmitBehavior(false)
+                            .OnClick("Register")
+                            .Width(100)
                 )
             </div>
             <div id="LoadPanel">
                 @(Html.DevExtreme().LoadPanel()
-                    .ID("loadPanel")
-                    .ShadingColor("rgba(0,0,0,0.4)")
-                    .Position(p => p.Of("#form-container"))
-                    .Visible(false)
-                    .ShowIndicator(true)
-                    .ShowPane(true)
-                    .Shading(true)
-                    .CloseOnOutsideClick(false)
-                    .Message("登入中...")
-                    .Animation(l => l.Show(k => k.Easing(AnimationEasing.Swing)))
-            //.OnShown("loadPanel_shown")
-            //.OnHidden("loadPanel_hidden")
+                            .ID("loadPanel")
+                            .ShadingColor("rgba(0,0,0,0.4)")
+                            .Position(p => p.Of("#form-container"))
+                            .Visible(false)
+                            .ShowIndicator(true)
+                            .ShowPane(true)
+                            .Shading(true)
+                            .CloseOnOutsideClick(false)
+                            .Message("登入中...")
+                            .Animation(l => l.Show(k => k.Easing(AnimationEasing.Swing)))
+                    //.OnShown("loadPanel_shown")
+                    //.OnHidden("loadPanel_hidden")
                 )
             </div>
         </div>
@@ -184,22 +199,30 @@
 
         function onSuccess(data) {
 
+            //debugger;
+
             getLoadPanelInstance().hide();
 
             if (data.status == 1) {
                 // 小組長或是個人回報
-                DevExpress.ui.notify(data.message, "success", 2000);
+                ShowToast(data.message, "success", 2000);
+
+                //DevExpress.ui.notify(data.message, "success", 2000);
 
                 window.location.href = "/Home/SmallGroupReportView/AccountPassword";
             }
             else if (data.status == 2) {
                 // 單純幸福小組長回報
-                DevExpress.ui.notify(data.message, "success", 2000);
+                ShowToast(data.message, "success", 2000);
+
+                //DevExpress.ui.notify(data.message, "success", 2000);
 
                 window.location.href = "/Home/HappyGroup";
             }
             else {
-                DevExpress.ui.notify(data.message, "error", 3000);
+                ShowToast(data.message, "error", 5000);
+
+                //DevExpress.ui.notify(data.message, "error", 3000);
             }
         }
 
@@ -209,6 +232,21 @@
             else {
             }
         }
+    </script>
+
+    <script>
+
+        function ShowToast(LocalToastMessage, Type, DisplayTime) {
+            //debugger;
+            var ToastInstance = $("#Toast").dxToast("instance");
+            ToastInstance.option('message', LocalToastMessage);
+            ToastInstance.option('type', Type);
+            ToastInstance.option('displayTime', DisplayTime);
+            ToastInstance.option('white-space', 'pre-line');
+            ToastInstance.option('closeOnClick', true);
+            ToastInstance.show();
+        }
+
     </script>
 
     <script src="~/lib/jquery-ajax-unobtrusive/jquery.unobtrusive-ajax.js"></script>
