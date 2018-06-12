@@ -11,6 +11,7 @@
     <Content Include="wwwroot\**\*;Views\**\*;Areas\**\Views;appsettings.json;web.config">
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
+    <None Remove="Views\Home\FeeManagerView - 複製 (2).cshtml" />
     <None Remove="Views\Home\FeeManagerView - 複製.cshtml" />
     <None Remove="Views\Home\FeeManagerView.cshtml" />
     <None Remove="Views\Home\HappyGroupWeeklyReport.cshtml" />

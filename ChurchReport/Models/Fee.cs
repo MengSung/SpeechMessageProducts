@@ -11,8 +11,8 @@ namespace ChurchReport.Models {
         public Fee()
         { }
 
-        public int DiscipleLessonsId { get; set; }          //教會課程 Id
-        public int StorLessonsId { get; set; }              //學員上課記錄 Id
+        public string DiscipleLessonsId { get; set; }          //教會課程 Id
+        public string StorLessonsId { get; set; }              //學員上課記錄 Id
         public string DiscipleLessonsName { get; set; }     // 課程名稱
         public string FullName { get; set; }                // 姓名
         public string MobilePhone { get; set; }             // 行動電話
@@ -37,6 +37,7 @@ namespace ChurchReport.Models {
         public bool Lesson15 { get; set; }       // 第十五課點名
         #endregion
         #region 作業繳交
+        [Required()]
         //[Required(AllowEmptyStrings = true)]
         public DateTime HomeWorkA { get; set; }       // A 作業繳交
         //[Required(AllowEmptyStrings = true)]

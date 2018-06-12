@@ -423,6 +423,8 @@ namespace ChurchReport.WebServiceConnector
 
             aFee = new Fee()
             {
+                DiscipleLessonsId = "001", 
+                StorLessonsId= "001-001",
                 DiscipleLessonsName = "201803 - 04再生產的生活(16屆) (V1)",
                 FullName = "胡夢嵩",
                 MobilePhone = "0910391931",
@@ -436,6 +438,8 @@ namespace ChurchReport.WebServiceConnector
 
             aFee = new Fee()
             {
+                DiscipleLessonsId = "001",
+                StorLessonsId = "001-002",
                 DiscipleLessonsName = "201803 - 04再生產的生活(16屆) (V1)",
                 FullName = "吳連碧",
                 MobilePhone = "0921834289",
@@ -449,6 +453,8 @@ namespace ChurchReport.WebServiceConnector
 
             aFee = new Fee()
             {
+                DiscipleLessonsId = "002",
+                StorLessonsId = "021-001",
                 DiscipleLessonsName = "201803 - 01成長的喜悅(23屆)-A2 (V2)",
                 FullName = "張全興",
                 MobilePhone = "0921965325",
@@ -461,6 +467,8 @@ namespace ChurchReport.WebServiceConnector
             m_FeeDataList.Add(aFee);
             aFee = new Fee()
             {
+                DiscipleLessonsId = "002",
+                StorLessonsId = "002-002",
                 DiscipleLessonsName = "201803 - 01成長的喜悅(23屆)-A2 (V2)",
                 FullName = "白碧娥",
                 MobilePhone = "0921834289",

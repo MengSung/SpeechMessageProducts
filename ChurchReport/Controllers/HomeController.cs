@@ -541,8 +541,37 @@ namespace ChurchReport.Controllers
 
             return Json(new { status = "1", message = "成功上傳了...." });
         }
-        #endregion
 
+        [HttpGet]
+        public object LoadFeeDataList(DataSourceLoadOptions loadOptions)
+        {
+            // 上課紀錄單過濾掉上完十課的
+            // 下載對課單紀錄，含對課中及完整清單
+            //m_InMemoryDataContext.ClassSheetManager.LoadReportDiscipleLessonsList();
+
+            //loadOptions.Filter = new List<object>(new object[] { "DiscipleLessonsStatusCode", "<>", "對完十課" });
+
+            return DataSourceLoader.Load(m_InMemoryDataContextSmallGroup.FeeList.FeeDataList, loadOptions);
+        }
+
+        [HttpPut]
+        public IActionResult UpdateFeeDataList(string key, string values)
+        {
+            Fee aFee = m_InMemoryDataContextSmallGroup.FeeList.FeeDataList.First(a => a.StorLessonsId == key);
+
+            //DiscipleLesson.DiscipleLessonsModifiedFlag = true;
+
+            //.ClassSheetManager.PopulateObject(values, aWeekdayOption);
+
+            m_InMemoryDataContextSmallGroup.FeeList.PopulateObject(values, aFee);
+
+            //UploadReportDiscipleLessonsList("工人回報");
+            //UploadReportDiscipleLessonsList("工人回報", DiscipleLesson);
+
+            return Ok();
+        }
+
+        #endregion
         #region 行事曆
         public ActionResult Scheduler()
         {

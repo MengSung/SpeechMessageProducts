@@ -16,6 +16,7 @@ using Microsoft.Xrm.Sdk.Messages;
 using ChurchReport.WebServiceConnector;
 using ChurchReport.Models.CrmTransmitModule;
 using ChurchReport.ViewModels;
+using Newtonsoft.Json;
 
 namespace ChurchReport.Models
 {
@@ -63,6 +64,22 @@ namespace ChurchReport.Models
         }
         #endregion
 
+        public void PopulateObject(string Values, Fee aFee)
+        {
+            var settings = new JsonSerializerSettings
+            {
+                // 轉換成當地時間
+                DateTimeZoneHandling = DateTimeZoneHandling.Local,
+
+                NullValueHandling = NullValueHandling.Ignore,
+                MissingMemberHandling = MissingMemberHandling.Ignore
+            };
+
+            //DiscipleLessons aBestRecord = JsonConvert.DeserializeObject<DiscipleLessons>(ProcessNullValue(Values), settings);
+
+            JsonConvert.PopulateObject(Values, aFee, settings);
+
+        }
 
     }
 }
