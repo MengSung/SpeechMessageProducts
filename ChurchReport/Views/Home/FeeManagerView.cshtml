@@ -129,10 +129,11 @@
     @(Html.DevExtreme().DataGrid()
         .ID("gridContainer")
         //.ColumnAutoWidth(true)
-        //.Paging(p => p.PageSize(10))
+        .Paging(p => p.PageSize(500))
         //.Sorting(sorting => sorting.Mode(GridSortingMode.None))
-        //.Paging(paging => paging.Enabled(false))
-        //.AllowColumnResizing(true)
+        .Paging(paging => paging.Enabled(false))
+        .Scrolling(scrolling => scrolling.Mode(GridScrollingMode.Infinite))
+        .AllowColumnResizing(true)
         //.ColumnResizingMode(ColumnResizingMode.Widget)
         //.ColumnFixing(c => c.Enabled(true))
         .LoadPanel(l => l.Text("更新資料中..."))
@@ -184,8 +185,8 @@
         {
             columns.Add().DataField("DiscipleLessonsName").Caption("課程名稱").Fixed(true).GroupIndex(0).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Left).AllowSorting(false);
             columns.Add().DataField("FullName").Caption("姓名").Fixed(true).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Left).AllowSorting(false);
-            columns.Add().DataField("MobilePhone").Caption("行動電話").Fixed(false).Width(100).MinWidth(20).Alignment(HorizontalAlignment.Center).AllowSorting(false);
-            columns.Add().DataField("PayDate").Caption("繳費日期").DataType(GridColumnDataType.Date).Format("yyyy/M/d").Width(80).MinWidth(45).AllowSorting(false)
+            columns.Add().DataField("MobilePhone").Caption("行動電話").Fixed(false).Width(120).MinWidth(20).Alignment(HorizontalAlignment.Center).AllowSorting(false);
+            columns.Add().DataField("PayDate").Caption("繳費日期").DataType(GridColumnDataType.Date).Format("yyyy/M/d").Width(100).MinWidth(45).AllowSorting(false)
             .CalculateCellValue(@<text>
                     function(row)
                     {
@@ -208,7 +209,7 @@
                     }
             </text> );
 
-                columns.Add().DataField("Amount").Caption("繳費金額").DataType(GridColumnDataType.Number).Width(80).MinWidth(45).AllowSorting(false);
+                columns.Add().DataField("Amount").Caption("繳費金額").DataType(GridColumnDataType.Number).Width(100).MinWidth(45).AllowSorting(false);
                 columns.Add().DataField("Lesson1").Caption("第一課").DataType(GridColumnDataType.Boolean).Width(60).MinWidth(45).AllowSorting(false);
                 columns.Add().DataField("Lesson2").Caption("第二課").DataType(GridColumnDataType.Boolean).Width(60).MinWidth(45).AllowSorting(false);
                 columns.Add().DataField("Lesson3").Caption("第三課").DataType(GridColumnDataType.Boolean).Width(60).MinWidth(45).AllowSorting(false);

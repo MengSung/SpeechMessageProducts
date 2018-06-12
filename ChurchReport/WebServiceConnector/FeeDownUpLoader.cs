@@ -63,17 +63,10 @@ namespace ChurchReport.WebServiceConnector
 
         List<Fee> m_FeeDataList = new List<Fee>(); // 需要點名的上課紀錄單名單
 
-        DateTime m_Sunday;
         Entity m_ContactEntity; //登入者在系統裡的實體
         Guid m_ContactId; //登入者在系統裡的ID
         EntityCollection m_Lists = new EntityCollection(); // 需要點名的名單
         EntityCollection m_PresentLists = new EntityCollection(); // 需要回報給族系族長/區長的名單
-
-        Guid m_DecipleGroupListId;
-        //Guid m_GroupLeaderId; // 小組長
-        Guid m_RaceLeaderId; // 族系族長
-        String m_SmallGroupPlace;
-        String m_SmallGroupTime;
 
         private const bool RACE_LEADER_CAN_CREATE_WEEKLYREPORT = true; // 族系組長能否幫小組長建立週報， true是可以
         //private const bool RACE_LEADER_CAN_CREATE_WEEKLYREPORT = false; // 族系組長能否幫小組長建立週報，false 不可以
@@ -86,8 +79,13 @@ namespace ChurchReport.WebServiceConnector
         #region 主程式區
         public List<Fee> GetFeeList(String Account, String Password)
         {
+            // 取得登入者
+            m_ContactEntity = m_ToolUtilityClass.RetrieveContactEntityByAccountNumber(Account, Password);
+
+            if (m_ContactEntity == null) return null; // 沒找到就直接離開
+
             //實際要回傳，不是模擬
-            SetSimulationFeeDataList();
+            SetFeeDataList();
 
             return m_FeeDataList;
         }
@@ -416,6 +414,101 @@ namespace ChurchReport.WebServiceConnector
         #endregion
         #endregion
         #region 模擬回覆下載資料
+        public void SetFeeDataList()
+        {
+            // 初始化收費與點名紀錄
+            m_FeeDataList = new List<Fee>();
+
+            // 取得與登入者需要收費的課程
+            EntityCollection aDiscipleLessonsEntityCollection = m_ToolUtilityClass.QueryEntityList("contact", "contactid", this.m_ContactEntity.Id.ToString(), "new_contact_new_disciple_lessons_fee", "new_disciple_lessons");
+
+            //處理一個一個的課程
+            ProcesseDiscipleLessons(ref aDiscipleLessonsEntityCollection);
+
+        }
+        public void ProcesseDiscipleLessons(ref EntityCollection aDiscipleLessonsEntityCollection)
+        {
+            foreach (Entity aDiscipleLessons in aDiscipleLessonsEntityCollection.Entities)
+            {
+                // 處理一個一個的課程
+                // 取得與課程相關的上課紀錄
+                EntityCollection aStorLessonsEntityCollection = m_ToolUtilityClass.QueryEntityList("new_disciple_lessons", "new_disciple_lessonsid", aDiscipleLessons.Id.ToString(), "new_new_disciple_lessons_new_stor_les", "new_stor_lessons");
+
+                // 處理一個一個的上課紀錄
+                ProcesseStorLessons( aDiscipleLessons, ref aStorLessonsEntityCollection);
+            }
+        }
+        public void ProcesseStorLessons(Entity aDiscipleLessons, ref EntityCollection aStorLessonsEntityCollection)
+        {
+            foreach (Entity aStorLessons in aStorLessonsEntityCollection.Entities)
+            {
+                Fee aFee = new Fee
+                {
+                    DiscipleLessonsId = aDiscipleLessons.Id.ToString(),
+                    DiscipleLessonsName = this.m_ToolUtilityClass.GetEntityStringAttribute( ref aDiscipleLessons, "new_name"),
+                };
+
+                // 處理一個一個的的上課紀錄
+                ProcesseStorLessonsParameter(aStorLessons, ref aFee);
+
+                // 取得與上課紀錄相關的收費單
+                EntityCollection aFeeEntityCollection = m_ToolUtilityClass.QueryEntityList("new_stor_lessons", "new_stor_lessonsid", aStorLessons.Id.ToString(), "new_stor_lessons_new_fee", "new_fee");
+
+                // 處理一個一個的收費單
+                ProcesseFee(aStorLessons, ref aFee, ref aFeeEntityCollection);
+            }
+
+            // 取得與登入者需要收費的課程
+        }
+        public void ProcesseStorLessonsParameter(Entity aStorLessons, ref Fee aFee )
+        {
+            aFee.FullName = this.m_ToolUtilityClass.GetEntityLookupDisplayName(ref aStorLessons, "new_contact_new_stor_lessons");
+
+            Entity aContact = this.m_ToolUtilityClass.RetrieveEntity( "contact", this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aStorLessons, "new_contact_new_stor_lessons") );
+            aFee.MobilePhone = this.m_ToolUtilityClass.GetEntityStringAttribute( ref aContact, "mobilephone");
+
+            aFee.StorLessonsId = aStorLessons.Id.ToString();
+
+            aFee.Lesson1 = this.m_ToolUtilityClass.GetEntityBoolAttribute(ref aStorLessons, "new_1_present");
+            aFee.Lesson2 = this.m_ToolUtilityClass.GetEntityBoolAttribute(ref aStorLessons, "new_2_present");
+            aFee.Lesson3 = this.m_ToolUtilityClass.GetEntityBoolAttribute(ref aStorLessons, "new_3_present");
+            aFee.Lesson4 = this.m_ToolUtilityClass.GetEntityBoolAttribute(ref aStorLessons, "new_4_present");
+            aFee.Lesson5 = this.m_ToolUtilityClass.GetEntityBoolAttribute(ref aStorLessons, "new_5_present");
+            aFee.Lesson6 = this.m_ToolUtilityClass.GetEntityBoolAttribute(ref aStorLessons, "new_6_present");
+            aFee.Lesson7 = this.m_ToolUtilityClass.GetEntityBoolAttribute(ref aStorLessons, "new_7_present");
+            aFee.Lesson8 = this.m_ToolUtilityClass.GetEntityBoolAttribute(ref aStorLessons, "new_8_present");
+            aFee.Lesson9 = this.m_ToolUtilityClass.GetEntityBoolAttribute(ref aStorLessons, "new_9_present");
+            aFee.Lesson10 = this.m_ToolUtilityClass.GetEntityBoolAttribute(ref aStorLessons, "new_10_present");
+            aFee.Lesson11 = this.m_ToolUtilityClass.GetEntityBoolAttribute(ref aStorLessons, "new_11_present");
+            aFee.Lesson12 = this.m_ToolUtilityClass.GetEntityBoolAttribute(ref aStorLessons, "new_12_present");
+            aFee.Lesson13 = this.m_ToolUtilityClass.GetEntityBoolAttribute(ref aStorLessons, "new_13_present");
+            aFee.Lesson14 = this.m_ToolUtilityClass.GetEntityBoolAttribute(ref aStorLessons, "new_14_present");
+            aFee.Lesson15 = this.m_ToolUtilityClass.GetEntityBoolAttribute(ref aStorLessons, "new_15_present");
+
+            aFee.HomeWorkA = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aStorLessons, "new_finishhomework_date1");
+            aFee.HomeWorkB = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aStorLessons, "new_finishhomework_date2");
+            aFee.HomeWorkC = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aStorLessons, "new_finishhomework_date3");
+            aFee.HomeWorkD = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aStorLessons, "new_finishhomework_date4");
+            aFee.HomeWorkE = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aStorLessons, "new_finishhomework_date5");
+
+        }
+        public void ProcesseFee(Entity aStorLessons, ref Fee aFee, ref EntityCollection aFeeEntityCollection)
+        {
+            Money aTotalAmountPaid = new Money(0) ;
+            foreach (Entity aFeeEntity in aFeeEntityCollection.Entities)
+            {
+                aFee.PayDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(aFeeEntity, "new_pay_date" );
+                // 處理一個一個的收費單
+                Money aMoney = this.m_ToolUtilityClass.GetEntityMoneyAttribute(aFeeEntity, "new_fee_really_paid");
+
+                aTotalAmountPaid.Value = aTotalAmountPaid.Value + aMoney.Value ;
+            }
+
+            aFee.Amount = (int) aTotalAmountPaid.Value;
+
+            m_FeeDataList.Add(aFee);
+
+        }
         public void SetSimulationFeeDataList()
         {
             m_FeeDataList = new List<Fee>();
@@ -423,8 +516,8 @@ namespace ChurchReport.WebServiceConnector
 
             aFee = new Fee()
             {
-                DiscipleLessonsId = "001", 
-                StorLessonsId= "001-001",
+                DiscipleLessonsId = "001",
+                StorLessonsId = "001-001",
                 DiscipleLessonsName = "201803 - 04再生產的生活(16屆) (V1)",
                 FullName = "胡夢嵩",
                 MobilePhone = "0910391931",
@@ -443,7 +536,7 @@ namespace ChurchReport.WebServiceConnector
                 DiscipleLessonsName = "201803 - 04再生產的生活(16屆) (V1)",
                 FullName = "吳連碧",
                 MobilePhone = "0921834289",
-                PayDate = new DateTime(1,1,1),
+                PayDate = new DateTime(1, 1, 1),
                 Amount = 600,
                 Lesson5 = true,
                 Lesson6 = true,

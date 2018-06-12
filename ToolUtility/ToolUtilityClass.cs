@@ -2572,6 +2572,108 @@ namespace ToolUtilityNameSpace
             }
         }
 
+        public EntityCollection QueryEntityList(String ParentEntityName, String ParentEntityIdName, String ParentEntityId, String AssociationName, String ChildEntityName)
+        {
+            try
+            {
+                //lock (m_QueryManyToOneLocker)
+                {
+                    #region // Create the ConditionExpression.
+                    #region ParentEntityIdName Condition
+                    ConditionExpression condition = new ConditionExpression();
+                    // Set the condition to be when the account owner's last name is not Cannon. new_new_receive_drugs_prescribed_new_
+                    condition.AttributeName = ParentEntityIdName;
+                    condition.Operator = ConditionOperator.Equal;
+                    condition.Values.Add(ParentEntityId);
+                    #endregion
+                    #region StateCondidtion Condition
+                    ConditionExpression StateCondidtion = new ConditionExpression();
+                    // Set the condition to be when the account owner's last name is not Cannon. new_new_receive_drugs_prescribed_new_
+                    //StateCondidtion.AttributeName = "statuscode";
+                    StateCondidtion.AttributeName = "statecode";
+                    StateCondidtion.Operator = ConditionOperator.Equal;
+                    //StateCondidtion.Values.Add("Inactive");
+                    //StateCondidtion.Values.Add("Active");
+                    StateCondidtion.Values.Add(0);
+                    //StateCondidtion.Values.Add("使用中");
+                    #endregion
+
+                    // Build the filter that is based on the condition.
+                    FilterExpression filter = new FilterExpression();
+                    filter.FilterOperator = LogicalOperator.And;
+                    filter.Conditions.Add(condition);
+                    filter.Conditions.Add(StateCondidtion);
+                    #endregion
+
+                    #region // Create a LinkEntity to link the owner's information to the account.
+                    LinkEntity link = new LinkEntity()
+                    {
+                        // Set the LinkEntity properties.
+                        LinkCriteria = filter,
+
+                        // Set the linking entity to account.
+                        LinkFromEntityName = ChildEntityName,
+
+                        // Set the linking attribute to owninguser.
+                        LinkFromAttributeName = AssociationName,
+
+                        // The attribute being linked to is systemuserid.
+                        LinkToAttributeName = ParentEntityIdName,
+
+                        // The entity being linked to is systemuser.
+                        LinkToEntityName = ParentEntityName
+                    };
+                    #endregion
+
+                    #region// Create an instance of the query expression class.
+                    QueryExpression query = new QueryExpression();
+
+                    // Set the query properties.
+                    query.EntityName = ChildEntityName;
+                    query.ColumnSet.AllColumns = true;
+                    query.LinkEntities.Add(link);
+                    #endregion
+
+                    #region// 根據數字排序後傳回來
+                    //OrderExpression OrderBySerial = new OrderExpression();
+                    //OrderBySerial.AttributeName = "listname";
+                    //OrderBySerial.OrderType = OrderType.Ascending;
+                    //query.Orders.Add(OrderBySerial);
+                    #endregion
+
+                    #region // 執行 Query 的Request
+                    // Create the request.
+                    RetrieveMultipleRequest retrieve = new RetrieveMultipleRequest();
+
+                    // Set the request properties.
+                    retrieve.Query = query;
+                    //retrieve.ReturnDynamicEntities = true;
+
+                    // Execute the request
+                    RetrieveMultipleResponse request;
+                    if (CRM_TYPE == "DYNAMICS365")
+                    {
+                        request = (RetrieveMultipleResponse)this.m_OrganizationService.Execute(retrieve);
+                    }
+                    else
+                    {
+                        request = (RetrieveMultipleResponse)this.m_Crm2011OrganizationService.Execute(retrieve);
+                    }
+                    #endregion
+
+                    return request.EntityCollection;
+                }
+
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                //Monitor.Exit(this);
+                throw e;
+            }
+        }
+
         #endregion
         #region 實體操作區
         #region 新增、修改、刪除實體
@@ -3224,6 +3326,129 @@ namespace ToolUtilityNameSpace
                         aEntity.Attributes.Add(PropertyName, null);
                     }
                 //}
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                throw e;
+            }
+        }
+        #endregion
+        #region 金額屬性
+        //private readonly object m_MoneyAttributeLocker = new object();
+
+        public Money GetEntityMoneyAttribute(ref Entity aEntity, string PropertyName)
+        {
+            try
+            {
+                //lock (m_MoneyAttributeLocker)
+                {
+                    if (aEntity.Attributes.Contains(PropertyName))
+                    {
+                        return (Money)aEntity.Attributes[PropertyName];
+                    }
+                    else
+                    {
+                        return new Money(-9999);
+                    }
+                }
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                throw e;
+            }
+        }
+        public Money GetEntityMoneyAttribute(Entity aEntity, string PropertyName)
+        {
+            try
+            {
+                //lock (m_MoneyAttributeLocker)
+                {
+                    if (aEntity.Attributes.Contains(PropertyName))
+                    {
+                        return (Money)aEntity.Attributes[PropertyName];
+                    }
+                    else
+                    {
+                        return new Money(-9999);
+                    }
+                }
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                throw e;
+            }
+        }
+        public void SetEntityMoneyAttribute(ref Entity aEntity, string PropertyName, Money PropertyValue)
+        {
+            try
+            {
+                //lock (m_MoneyAttributeLocker)
+                {
+                    if (PropertyValue.Value != -9999)
+                    {
+                        if (aEntity.Attributes.Contains(PropertyName))
+                        {
+                            aEntity.Attributes[PropertyName] = PropertyValue;
+                        }
+                        else
+                        {
+                            aEntity.Attributes.Add(PropertyName, PropertyValue);
+                        }
+                    }
+                }
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                throw e;
+            }
+        }
+        public void SetEntityMoneyAttribute(Entity aEntity, string PropertyName, Money PropertyValue)
+        {
+            try
+            {
+                //lock (m_MoneyAttributeLocker)
+                {
+                    if (aEntity.Attributes.Contains(PropertyName))
+                    {
+                        aEntity.Attributes[PropertyName] = PropertyValue;
+                    }
+                    else
+                    {
+                        aEntity.Attributes.Add(PropertyName, PropertyValue);
+                    }
+                }
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                throw e;
+            }
+        }
+        public void SetEntityMoneyAttributeToNull(Entity aEntity, string PropertyName)
+        {
+            try
+            {
+                //lock (m_MoneyAttributeLocker)
+                {
+
+                    if (aEntity.Attributes.Contains(PropertyName))
+                    {
+                        aEntity.Attributes[PropertyName] = null;
+                    }
+                    else
+                    {
+                        aEntity.Attributes.Add(PropertyName, null);
+                    }
+                }
             }
             catch (System.Exception e)
             {
