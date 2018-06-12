@@ -64,7 +64,7 @@ namespace ChurchReport.Models
         }
         #endregion
 
-        public void PopulateObject(string Values, Fee aFee)
+        public void PopulateObjectAndUpdateEntity(string Values, Fee aFee)
         {
             var settings = new JsonSerializerSettings
             {
@@ -78,6 +78,15 @@ namespace ChurchReport.Models
             //DiscipleLessons aBestRecord = JsonConvert.DeserializeObject<DiscipleLessons>(ProcessNullValue(Values), settings);
 
             JsonConvert.PopulateObject(Values, aFee, settings);
+
+            Dictionary<string, string> aDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(Values);
+
+            List<string> KeyList = new List<string>(aDictionary.Keys);
+
+            if( KeyList.Count > 0 )
+            {
+                String KKK = KeyList[0];
+            }
 
         }
 

@@ -559,14 +559,11 @@ namespace ChurchReport.Controllers
         {
             Fee aFee = m_InMemoryDataContextSmallGroup.FeeList.FeeDataList.First(a => a.StorLessonsId == key);
 
-            //DiscipleLesson.DiscipleLessonsModifiedFlag = true;
+            // 更新後台資料庫
+            //m_InMemoryDataContextSmallGroup.FeeList.UpdateEntity(key, values, aFee);
 
-            //.ClassSheetManager.PopulateObject(values, aWeekdayOption);
-
-            m_InMemoryDataContextSmallGroup.FeeList.PopulateObject(values, aFee);
-
-            //UploadReportDiscipleLessonsList("工人回報");
-            //UploadReportDiscipleLessonsList("工人回報", DiscipleLesson);
+            // 更新前台顯示的網頁及更新後台資料庫
+            m_InMemoryDataContextSmallGroup.FeeList.PopulateObjectAndUpdateEntity(values, aFee);
 
             return Ok();
         }
