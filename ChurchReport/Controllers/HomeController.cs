@@ -29,6 +29,8 @@ using DevExtreme.AspNet.Mvc;
 using DevExtreme.AspNet.Data;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
+using Newtonsoft.Json.Converters;
+using System.IO;
 
 namespace ChurchReport.Controllers
 {
@@ -536,20 +538,36 @@ namespace ChurchReport.Controllers
             var settings = new JsonSerializerSettings
             {
                 // 轉換成當地時間
-                DateTimeZoneHandling = DateTimeZoneHandling.Local,
-                 //DateFormatString= ""
+                //DateTimeZoneHandling = DateTimeZoneHandling.Local,
+                DateTimeZoneHandling = DateTimeZoneHandling.Utc,
+                //DateFormatString= ""
                 NullValueHandling = NullValueHandling.Ignore,
                 MissingMemberHandling = MissingMemberHandling.Ignore
             };
 
+            var format = "dd/MM/yyyy"; // your datetime format
+            var dateTimeConverter = new IsoDateTimeConverter { DateTimeFormat = format };
+
+            var serializer = new JsonSerializer
+            {
+                DateFormatString = "dd/MM/yyyy",
+            };
+
             m_InMemoryDataContextSmallGroup.FeeList.FeeDataList.Clear();
-            m_InMemoryDataContextSmallGroup.FeeList.FeeDataList = JsonConvert.DeserializeObject<List<Fee>>(aResult, settings);
+            //m_InMemoryDataContextSmallGroup.FeeList.FeeDataList = JsonConvert.DeserializeObject<List<Fee>>(aResult, settings);
+            m_InMemoryDataContextSmallGroup.FeeList.FeeDataList = JsonConvert.DeserializeObject<List<Fee>>(aResult, dateTimeConverter);
 
             m_InMemoryDataContextSmallGroup.SmallGroupDataList.TransferToMemberInfomationPackage(m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_SmallGroupData);
             m_InMemoryDataContextSmallGroup.SmallGroupDataList.UploadMemberInfomationPackage();
 
             return Json(new { status = "1", message = "成功上傳了...." });
         }
+
+        //public static T FromJSON<T>(this string str)
+        //{
+        //    var serializer = new JsonSerializer { DateFormatString = "dd-MM-yyyy" };
+        //    return serializer.Deserialize<T>(new JsonTextReader(new StringReader(str)));
+        //}
 
         [HttpGet]
         public object LoadFeeDataList(DataSourceLoadOptions loadOptions)
