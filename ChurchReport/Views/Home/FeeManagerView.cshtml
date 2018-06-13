@@ -46,7 +46,7 @@ $.ajax
 (
 {
 url: '@Url.Action("SaveFeeManager", "Home")',
-data: { aResult: GetResult() }, // 整理回傳給 Server 的點名資料
+data: { aResult: GetFeeResult() }, // 整理回傳給 Server 的點名資料
 type: 'POST', //POST if you want to save, GET if you want to fetch data from server
 
 success: function (arg)
@@ -351,18 +351,18 @@ else
 
 })
 
-.DataSource(d => d
-.WebApi()
-//.Mvc()
-.Controller("Home")
-.LoadAction("LoadFeeDataList")
-//.InsertAction("AddClassSheet")
-.UpdateAction("UpdateFeeDataList")
-.Key("StorLessonsId")
-.LoadParams(new { ActiveType = "Active!" })
-)
+//.DataSource(d => d
+//.WebApi()
+////.Mvc()
+//.Controller("Home")
+//.LoadAction("LoadFeeDataList")
+////.InsertAction("AddClassSheet")
+//.UpdateAction("UpdateFeeDataList")
+//.Key("StorLessonsId")
+//.LoadParams(new { ActiveType = "Active!" })
+//)
 
-//.DataSource(Model.FeeDataList)
+.DataSource(Model.FeeDataList)
 )
 </div>
 <script>var DataUploadStatus = "尚未上傳喔!";</script>

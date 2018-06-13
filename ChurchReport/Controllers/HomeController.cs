@@ -533,8 +533,17 @@ namespace ChurchReport.Controllers
         [HttpPost]
         public IActionResult SaveFeeManager(String aResult)
         {
-            m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_SmallGroupData.Members.Clear();
-            m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_SmallGroupData.Members = JsonConvert.DeserializeObject<List<Member>>(aResult);
+            var settings = new JsonSerializerSettings
+            {
+                // 轉換成當地時間
+                DateTimeZoneHandling = DateTimeZoneHandling.Local,
+                 //DateFormatString= ""
+                NullValueHandling = NullValueHandling.Ignore,
+                MissingMemberHandling = MissingMemberHandling.Ignore
+            };
+
+            m_InMemoryDataContextSmallGroup.FeeList.FeeDataList.Clear();
+            m_InMemoryDataContextSmallGroup.FeeList.FeeDataList = JsonConvert.DeserializeObject<List<Fee>>(aResult, settings);
 
             m_InMemoryDataContextSmallGroup.SmallGroupDataList.TransferToMemberInfomationPackage(m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_SmallGroupData);
             m_InMemoryDataContextSmallGroup.SmallGroupDataList.UploadMemberInfomationPackage();
