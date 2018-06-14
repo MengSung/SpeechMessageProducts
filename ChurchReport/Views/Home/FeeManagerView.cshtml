@@ -221,7 +221,24 @@
         }
     </text> );
 
-    columns.Add().DataField("Amount").Caption("繳費金額").DataType(GridColumnDataType.Number).Width(100).MinWidth(45).AllowSorting(false);
+    columns.Add().DataField("Amount").Caption("繳費金額").DataType(GridColumnDataType.Number).Width(100).MinWidth(45).AllowSorting(false)
+    .CalculateCellValue
+    (
+            @<text>
+                function(row)
+                {
+                if( row.Amount <= 0 )
+                {
+                return "";
+                }
+                else
+                {
+                return row.Amount;
+                }
+                }
+            </text>
+    );
+
     columns.Add().DataField("Lesson1").Caption("第一課").DataType(GridColumnDataType.Boolean).Width(60).MinWidth(45).AllowSorting(false);
     columns.Add().DataField("Lesson2").Caption("第二課").DataType(GridColumnDataType.Boolean).Width(60).MinWidth(45).AllowSorting(false);
     columns.Add().DataField("Lesson3").Caption("第三課").DataType(GridColumnDataType.Boolean).Width(60).MinWidth(45).AllowSorting(false);
