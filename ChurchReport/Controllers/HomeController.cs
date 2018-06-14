@@ -83,7 +83,7 @@ namespace ChurchReport.Controllers
                 m_InMemoryDataContextSmallGroup.SetupHappyGroupData(aGalleryViewModel.Account, aGalleryViewModel.Password);
 
                 // 設定繳費與報名資料
-                m_InMemoryDataContextSmallGroup.SetupFeeList(FullName, aGalleryViewModel.Account, aGalleryViewModel.Password, DateTime.Now, true);
+                m_InMemoryDataContextSmallGroup.SetupFeeListAccountAndPassword(FullName, aGalleryViewModel.Account, aGalleryViewModel.Password);
 
                 if (m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_MemberInfomationPackage.m_LoginType == "小組長" && m_InMemoryDataContextSmallGroup.HappyGroupDataManager.HappyType == "有幸福小組名單" )
                 {
@@ -527,6 +527,9 @@ namespace ChurchReport.Controllers
                 ViewBag.HappyType = "沒幸福小組名單";
             }
 
+            // 設定繳費與報名資料
+            m_InMemoryDataContextSmallGroup.SetupFeeList();
+
             return View(m_InMemoryDataContextSmallGroup.FeeList);
 
             #endregion
@@ -535,27 +538,39 @@ namespace ChurchReport.Controllers
         [HttpPost]
         public IActionResult SaveFeeManager(String aResult)
         {
+            #region 不正確的日期格式
+            //var Format = "ddd MMM dd yyyy HH:mm:ss GMT+0800 (台北標準時間)"; // DataGrid如果沒有設PAGE，則正確的日期格式
+            ////var Format = "ddd MMM dd yyyy HH:mm:ss GMT+0800"; // DataGrid如果沒有設PAGE，則正確的日期格式
+            //var aSerializer = new JsonSerializer { DateFormatString = Format };
+            //var dateTimeConverter = new IsoDateTimeConverter { DateTimeFormat = Format };
+            //var serializer = new JsonSerializer
+            //{
+            //    // Tue Jan 01 1901 00:00:00 GMT+0800 (台北標準時間)
+            //    //en-US     ddd, dd MMM yyyy HH':'mm':'ss 'GMT'
+            //    //ja-JP     ddd, dd MMM yyyy HH':'mm':'ss 'GMT'
+            //    //fr-FR     ddd, dd MMM yyyy HH':'mm':'ss 'GMT'
+            //    DateFormatString = "ddd MMM dd yyyy HH:mm:ss GMT+0800 (台北標準時間)",
+            //};
+            //m_InMemoryDataContextSmallGroup.FeeList.FeeDataList.Clear();
+            //m_InMemoryDataContextSmallGroup.FeeList.FeeDataList = JsonConvert.DeserializeObject<List<Fee>>(aResult, dateTimeConverter);
+            #endregion
+
+            #region 正確的日期格式
+            var Format = "ddd MMM dd yyyy HH:mm:ss GMT+0800 (台北標準時間)"; // DataGrid如果沒有設PAGE，則正確的日期格式
+            //var Format = "ddd MMM dd yyyy HH:mm:ss GMT+0800"; // DataGrid如果沒有設PAGE，則正確的日期格式
             var settings = new JsonSerializerSettings
             {
                 // 轉換成當地時間
-                //DateTimeZoneHandling = DateTimeZoneHandling.Local,
-                DateTimeZoneHandling = DateTimeZoneHandling.Utc,
-                //DateFormatString= ""
+                DateTimeZoneHandling = DateTimeZoneHandling.Local,
+                //DateTimeZoneHandling = DateTimeZoneHandling.Utc,
+                DateFormatString = Format,
                 NullValueHandling = NullValueHandling.Ignore,
                 MissingMemberHandling = MissingMemberHandling.Ignore
             };
 
-            var format = "dd/MM/yyyy"; // your datetime format
-            var dateTimeConverter = new IsoDateTimeConverter { DateTimeFormat = format };
-
-            var serializer = new JsonSerializer
-            {
-                DateFormatString = "dd/MM/yyyy",
-            };
-
             m_InMemoryDataContextSmallGroup.FeeList.FeeDataList.Clear();
-            //m_InMemoryDataContextSmallGroup.FeeList.FeeDataList = JsonConvert.DeserializeObject<List<Fee>>(aResult, settings);
-            m_InMemoryDataContextSmallGroup.FeeList.FeeDataList = JsonConvert.DeserializeObject<List<Fee>>(aResult, dateTimeConverter);
+            m_InMemoryDataContextSmallGroup.FeeList.FeeDataList = JsonConvert.DeserializeObject<List<Fee>>(aResult, settings);
+            #endregion
 
             m_InMemoryDataContextSmallGroup.SmallGroupDataList.TransferToMemberInfomationPackage(m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_SmallGroupData);
             m_InMemoryDataContextSmallGroup.SmallGroupDataList.UploadMemberInfomationPackage();

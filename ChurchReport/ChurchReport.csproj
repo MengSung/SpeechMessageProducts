@@ -15,6 +15,7 @@
     <None Remove="Views\Home\HappyGroupWeeklyReport.cshtml" />
     <None Remove="wwwroot\js\devextreme\devextreme-intl.min.js" />
     <None Remove="wwwroot\js\devextreme\localization\dx.messages.zh-tw.js" />
+    <None Remove="wwwroot\js\FeeDataGridAjax.js" />
     <Content Include="bower.json" />
     <Content Include="Properties\launchSettings.json" />
   </ItemGroup>

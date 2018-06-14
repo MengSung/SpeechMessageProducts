@@ -191,7 +191,7 @@ namespace ChurchReport.Models
         #endregion
         #region 繳費與報名處理區
 
-        public void SetupFeeList(String FullName, String Account, String Password, DateTime aSelectDate, bool DisplayDateFlag)
+        public void SetupFeeListAccountAndPassword(String FullName, String Account, String Password)
         {
             try
             {
@@ -199,8 +199,23 @@ namespace ChurchReport.Models
                 m_FeeList.SetupLoginUserInfo(FullName, Account, Password);
 
                 // 取得繳費及點名的資料
-                m_FeeList.SetupFeeDataList( Account, Password);
+                //m_FeeList.SetupFeeDataList(Account, Password);
 
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                throw e;
+            }
+
+        }
+        public void SetupFeeList()
+        {
+            try
+            {
+                // 取得繳費及點名的資料
+                m_FeeList.SetupFeeDataList();
             }
             catch (System.Exception e)
             {

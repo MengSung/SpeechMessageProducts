@@ -62,6 +62,22 @@ namespace ChurchReport.Models
             //m_ActiveHappyGroupListClass.HappyGroupWeeklyReportListClass = new List<HappyGroupWeeklyReportListClass>();
             //m_ActiveHappyGroupListClass.HappyGroupWeeklyReportListClass.Add(m_ActiveHappyGroupWeeklyReportList);
         }
+        public void SetupFeeDataList()
+        {
+            //m_ActiveHappyGroupWeeklyReportList = m_DownloadHappyGroup.GetHappyGroupWeeklyReportList(Account, Password);
+            FeeDataList = m_FeeDownUpLoader.GetFeeList( m_Account, m_Password);
+
+            //if (m_ActiveHappyGroupListClass != null && m_ActiveHappyGroupListClass.HappyGroupWeeklyReportListClass != null && m_ActiveHappyGroupListClass.HappyGroupWeeklyReportListClass.Count > 0)
+            //{
+            //    HappyType = "有幸福小組名單";
+            //}
+            //else
+            //{
+            //    HappyType = "沒幸福小組名單";
+            //}
+            //m_ActiveHappyGroupListClass.HappyGroupWeeklyReportListClass = new List<HappyGroupWeeklyReportListClass>();
+            //m_ActiveHappyGroupListClass.HappyGroupWeeklyReportListClass.Add(m_ActiveHappyGroupWeeklyReportList);
+        }
         #endregion
 
         public void PopulateObjectAndUpdateEntity(string Values, Fee aFee)
