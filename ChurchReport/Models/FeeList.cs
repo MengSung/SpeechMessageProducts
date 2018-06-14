@@ -26,6 +26,8 @@ namespace ChurchReport.Models
 
         public List<Fee> FeeDataList { get; set; }
 
+        public String FeeType { get; set; }
+
         public String m_FullName = "";
         public String m_Account  = "";
         public String m_Password = "";
@@ -48,35 +50,31 @@ namespace ChurchReport.Models
 
         public void SetupFeeDataList(String Account, String Password)
         {
-            //m_ActiveHappyGroupWeeklyReportList = m_DownloadHappyGroup.GetHappyGroupWeeklyReportList(Account, Password);
-            FeeDataList = m_FeeDownUpLoader.GetFeeList(Account, Password);
+            m_Account = Account;
+            m_Password = Password;
 
-            //if (m_ActiveHappyGroupListClass != null && m_ActiveHappyGroupListClass.HappyGroupWeeklyReportListClass != null && m_ActiveHappyGroupListClass.HappyGroupWeeklyReportListClass.Count > 0)
-            //{
-            //    HappyType = "有幸福小組名單";
-            //}
-            //else
-            //{
-            //    HappyType = "沒幸福小組名單";
-            //}
-            //m_ActiveHappyGroupListClass.HappyGroupWeeklyReportListClass = new List<HappyGroupWeeklyReportListClass>();
-            //m_ActiveHappyGroupListClass.HappyGroupWeeklyReportListClass.Add(m_ActiveHappyGroupWeeklyReportList);
+            FeeDataList = m_FeeDownUpLoader.GetFeeList(Account, Password);
+            if(FeeDataList.Count > 0 )
+            {
+                FeeType = "有繳費點名";
+            }
+            else
+            {
+                FeeType = "無繳費點名";
+            }
         }
         public void SetupFeeDataList()
         {
             //m_ActiveHappyGroupWeeklyReportList = m_DownloadHappyGroup.GetHappyGroupWeeklyReportList(Account, Password);
             FeeDataList = m_FeeDownUpLoader.GetFeeList( m_Account, m_Password);
-
-            //if (m_ActiveHappyGroupListClass != null && m_ActiveHappyGroupListClass.HappyGroupWeeklyReportListClass != null && m_ActiveHappyGroupListClass.HappyGroupWeeklyReportListClass.Count > 0)
-            //{
-            //    HappyType = "有幸福小組名單";
-            //}
-            //else
-            //{
-            //    HappyType = "沒幸福小組名單";
-            //}
-            //m_ActiveHappyGroupListClass.HappyGroupWeeklyReportListClass = new List<HappyGroupWeeklyReportListClass>();
-            //m_ActiveHappyGroupListClass.HappyGroupWeeklyReportListClass.Add(m_ActiveHappyGroupWeeklyReportList);
+            if (FeeDataList.Count > 0)
+            {
+                FeeType = "有繳費點名";
+            }
+            else
+            {
+                FeeType = "無繳費點名";
+            }
         }
         #endregion
 

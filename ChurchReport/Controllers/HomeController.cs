@@ -83,15 +83,16 @@ namespace ChurchReport.Controllers
                 m_InMemoryDataContextSmallGroup.SetupHappyGroupData(aGalleryViewModel.Account, aGalleryViewModel.Password);
 
                 // 設定繳費與報名資料
-                m_InMemoryDataContextSmallGroup.SetupFeeListAccountAndPassword(FullName, aGalleryViewModel.Account, aGalleryViewModel.Password);
+                m_InMemoryDataContextSmallGroup.FeeList.SetupFeeDataList(aGalleryViewModel.Account, aGalleryViewModel.Password);
 
                 if (m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_MemberInfomationPackage.m_LoginType == "小組長" && m_InMemoryDataContextSmallGroup.HappyGroupDataManager.HappyType == "有幸福小組名單" )
                 {
                     // 小組長回報，而且有幸福小組
                     ViewBag.LoginType = m_InMemoryDataContextSmallGroup.m_SmallGroupDataList.m_MemberInfomationPackage.m_LoginType;
                     ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.m_SmallGroupDataList.m_FullName;
-
                     ViewBag.HappyType = "有幸福小組名單";
+                    ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType;
+
                     return Json(new { status = "1", message = "歡迎" + FullName + "登入成功!", fullname = FullName, account = aGalleryViewModel.Account, password = aGalleryViewModel.Password });
                 }
                 else if (m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_MemberInfomationPackage.m_LoginType == "小組長" && m_InMemoryDataContextSmallGroup.HappyGroupDataManager.HappyType == "沒幸福小組名單" )
@@ -99,8 +100,9 @@ namespace ChurchReport.Controllers
                     // 小組長回報，沒有幸福小組
                     ViewBag.LoginType = m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_MemberInfomationPackage.m_LoginType;
                     ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_FullName;
-
                     ViewBag.HappyType = "沒幸福小組名單";
+                    ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType;
+
                     return Json(new { status = "1", message = "歡迎" + FullName + "登入成功!", fullname = FullName, account = aGalleryViewModel.Account, password = aGalleryViewModel.Password });
                 }
                 else if (m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_MemberInfomationPackage.m_LoginType != "小組長" && m_InMemoryDataContextSmallGroup.HappyGroupDataManager.HappyType == "沒幸福小組名單" )
@@ -108,8 +110,9 @@ namespace ChurchReport.Controllers
                     // 個人回報，不是小組長，沒有幸福小組
                     ViewBag.LoginType = m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_MemberInfomationPackage.m_LoginType;
                     ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_FullName;
-
                     ViewBag.HappyType = "沒幸福小組名單";
+                    ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType;
+
                     return Json(new { status = "1", message = "歡迎" + FullName + "登入成功!", fullname = FullName, account = aGalleryViewModel.Account, password = aGalleryViewModel.Password });
                 }
                 else if (m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_MemberInfomationPackage.m_LoginType != "小組長" && m_InMemoryDataContextSmallGroup.HappyGroupDataManager.HappyType == "有幸福小組名單" )
@@ -117,8 +120,9 @@ namespace ChurchReport.Controllers
                     // 單純幸福小組長回報
                     ViewBag.LoginType = m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_MemberInfomationPackage.m_LoginType;
                     ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_FullName;
-
                     ViewBag.HappyType = "有幸福小組名單";
+                    ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType;
+
                     return Json(new { status = "2", message = "歡迎" + FullName + "登入成功!", fullname = FullName, account = aGalleryViewModel.Account, password = aGalleryViewModel.Password });
                 }
                 else
@@ -126,6 +130,7 @@ namespace ChurchReport.Controllers
                     ViewBag.LoginType = m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_MemberInfomationPackage.m_LoginType;
                     ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_FullName;
                     ViewBag.HappyType = "沒幸福小組名單";
+                    ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType;
 
                     return Json(new { status = "2", message = "歡迎" + FullName + "登入成功!", fullname = FullName, account = aGalleryViewModel.Account, password = aGalleryViewModel.Password });
                 }
@@ -181,7 +186,7 @@ namespace ChurchReport.Controllers
                 #region 用小組長回報網頁登入
                     ViewBag.LoginType = m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_MemberInfomationPackage.m_LoginType;// 看是小組長還是個人回報
                     ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_FullName;
-
+                    ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType;
                     if (m_InMemoryDataContextSmallGroup.HappyGroupDataManager.HappyType == "有幸福小組名單" )
                     {
                         ViewBag.HappyType = "有幸福小組名單";
@@ -219,6 +224,7 @@ namespace ChurchReport.Controllers
 
                     ViewBag.LoginType = m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_MemberInfomationPackage.m_LoginType;// 看是小組長還是個人回報
                     ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_FullName;
+                    ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType;
 
                     if (m_InMemoryDataContextSmallGroup.HappyGroupDataManager.HappyType == "有幸福小組名單")
                     {
@@ -256,6 +262,7 @@ namespace ChurchReport.Controllers
         {
                 ViewBag.LoginType = m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_MemberInfomationPackage.m_LoginType;// 看是小組長還是個人回報
                 ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_FullName;
+                ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType;
 
                 if (m_InMemoryDataContextSmallGroup.HappyGroupDataManager.HappyType == "有幸福小組名單")
                 {
@@ -284,6 +291,7 @@ namespace ChurchReport.Controllers
         {
                 ViewBag.LoginType = m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_MemberInfomationPackage.m_LoginType;// 看是小組長還是個人回報
                 ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_FullName;
+                ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType;
 
                 if (m_InMemoryDataContextSmallGroup.HappyGroupDataManager.HappyType == "有幸福小組名單")
                 {
@@ -337,6 +345,7 @@ namespace ChurchReport.Controllers
 
                     ViewBag.LoginType = m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_MemberInfomationPackage.m_LoginType;// 看是小組長還是個人回報
                     ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_FullName;
+                    ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType;
 
                     if (m_InMemoryDataContextSmallGroup.HappyGroupDataManager.HappyType == "有幸福小組名單")
                     {
@@ -402,6 +411,7 @@ namespace ChurchReport.Controllers
         {
             ViewBag.LoginType = m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_MemberInfomationPackage.m_LoginType;
             ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_FullName;
+            ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType;
 
             if (m_InMemoryDataContextSmallGroup.HappyGroupDataManager.HappyType == "有幸福小組名單")
             {
@@ -512,11 +522,11 @@ namespace ChurchReport.Controllers
         #endregion
         #region 課程繳費與點名
         public ActionResult FeeManagerView()
-        //public ActionResult SmallGroupReportView()
         {
             #region 用小組長回報網頁登入
             ViewBag.LoginType = m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_MemberInfomationPackage.m_LoginType;// 看是小組長還是個人回報
             ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_FullName;
+            ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType;
 
             if (m_InMemoryDataContextSmallGroup.HappyGroupDataManager.HappyType == "有幸福小組名單")
             {
@@ -528,7 +538,7 @@ namespace ChurchReport.Controllers
             }
 
             // 設定繳費與報名資料
-            m_InMemoryDataContextSmallGroup.SetupFeeList();
+            //m_InMemoryDataContextSmallGroup.SetupFeeList();
 
             return View(m_InMemoryDataContextSmallGroup.FeeList);
 
@@ -614,20 +624,10 @@ namespace ChurchReport.Controllers
         #region 行事曆
         public ActionResult Scheduler()
         {
-            //String SmallGroupDataList = (String)TempData.Peek("SmallGroupDataList");
-
-            //SmallGroupDataList m_SmallGroupDataList;
-            //if (SmallGroupDataList != null)
-            //{
-            //    TempData.Keep("SmallGroupDataList");
-            //    m_SmallGroupDataList = JsonConvert.DeserializeObject<SmallGroupDataList>(SmallGroupDataList);
-            //}
-            //else
-            //{
-            //    return RedirectToAction("Login");
-            //}
-
-            ViewBag.HappyType = "有幸福小組名單";
+            ViewBag.LoginType = m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_MemberInfomationPackage.m_LoginType;// 看是小組長還是個人回報
+            ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_FullName;
+            ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType;
+            ViewBag.HappyType = m_InMemoryDataContextSmallGroup.HappyGroupDataManager.HappyType;
 
             AppointmentsList aAppointmentsList = new AppointmentsList();
 
@@ -640,19 +640,12 @@ namespace ChurchReport.Controllers
         #region 新增新人
         public IActionResult NewPerson()
         {
-                ViewBag.LoginType = m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_MemberInfomationPackage.m_LoginType;// 看是小組長還是個人回報
-                ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_FullName;
+            ViewBag.LoginType = m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_MemberInfomationPackage.m_LoginType;// 看是小組長還是個人回報
+            ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_FullName;
+            ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType;
+            ViewBag.HappyType = m_InMemoryDataContextSmallGroup.HappyGroupDataManager.HappyType;
 
-                if (m_InMemoryDataContextSmallGroup.HappyGroupDataManager.HappyType == "有幸福小組名單")
-                {
-                    ViewBag.HappyType = "有幸福小組名單";
-                }
-                else
-                {
-                    ViewBag.HappyType = "沒幸福小組名單";
-                }
-
-                return View(m_InMemoryDataContextSmallGroup.NewPersonModel.m_PersonFormViewModel);
+            return View(m_InMemoryDataContextSmallGroup.NewPersonModel.m_PersonFormViewModel);
         }
 
         [HttpPost]

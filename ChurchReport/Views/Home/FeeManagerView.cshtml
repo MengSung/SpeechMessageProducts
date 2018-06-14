@@ -131,9 +131,8 @@
     @(Html.DevExtreme().DataGrid<Fee>()
                 .ID("FeeGridContainer")
 
-                .Paging(p => p.PageSize(10))
                 .Sorting(sorting => sorting.Mode(GridSortingMode.None))
-                .Paging(paging => paging.Enabled(true))
+                .Paging(paging => paging.Enabled(true).PageSize(15))
                 .AllowColumnResizing(true)
                 .ColumnResizingMode(ColumnResizingMode.Widget)
                 .ColumnFixing(c => c.Enabled(true))
