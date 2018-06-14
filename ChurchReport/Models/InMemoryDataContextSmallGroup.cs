@@ -210,25 +210,6 @@ namespace ChurchReport.Models
             }
 
         }
-        public void SetupFeeList(String FullName, String Account, String Password)
-        {
-            try
-            {
-                // 儲存登入者資訊
-                m_FeeList.SetupLoginUserInfo(FullName, Account, Password);
-
-                // 取得繳費及點名的資料
-                m_FeeList.SetupFeeDataList(Account, Password);
-
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-
-                throw e;
-            }
-
-        }
         public void SetupFeeList()
         {
             try
