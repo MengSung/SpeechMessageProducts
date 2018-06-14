@@ -83,7 +83,8 @@ namespace ChurchReport.Controllers
                 m_InMemoryDataContextSmallGroup.SetupHappyGroupData(aGalleryViewModel.Account, aGalleryViewModel.Password);
 
                 // 設定繳費與報名資料
-                m_InMemoryDataContextSmallGroup.SetupFeeListAccountAndPassword(FullName, aGalleryViewModel.Account, aGalleryViewModel.Password);
+                //m_InMemoryDataContextSmallGroup.SetupFeeListAccountAndPassword(FullName, aGalleryViewModel.Account, aGalleryViewModel.Password);
+                m_InMemoryDataContextSmallGroup.SetupFeeList(FullName, aGalleryViewModel.Account, aGalleryViewModel.Password );
 
                 if (m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_MemberInfomationPackage.m_LoginType == "小組長" && m_InMemoryDataContextSmallGroup.HappyGroupDataManager.HappyType == "有幸福小組名單" )
                 {
@@ -528,7 +529,7 @@ namespace ChurchReport.Controllers
             }
 
             // 設定繳費與報名資料
-            m_InMemoryDataContextSmallGroup.SetupFeeList();
+            //m_InMemoryDataContextSmallGroup.SetupFeeList();
 
             return View(m_InMemoryDataContextSmallGroup.FeeList);
 
@@ -556,20 +557,20 @@ namespace ChurchReport.Controllers
             #endregion
 
             #region 正確的日期格式
-            var Format = "ddd MMM dd yyyy HH:mm:ss GMT+0800 (台北標準時間)"; // DataGrid如果沒有設PAGE，則正確的日期格式
-            //var Format = "ddd MMM dd yyyy HH:mm:ss GMT+0800"; // DataGrid如果沒有設PAGE，則正確的日期格式
-            var settings = new JsonSerializerSettings
-            {
-                // 轉換成當地時間
-                DateTimeZoneHandling = DateTimeZoneHandling.Local,
-                //DateTimeZoneHandling = DateTimeZoneHandling.Utc,
-                DateFormatString = Format,
-                NullValueHandling = NullValueHandling.Ignore,
-                MissingMemberHandling = MissingMemberHandling.Ignore
-            };
+            //var Format = "ddd MMM dd yyyy HH:mm:ss GMT+0800 (台北標準時間)"; // DataGrid如果沒有設PAGE，則正確的日期格式
+            ////var Format = "ddd MMM dd yyyy HH:mm:ss GMT+0800"; // DataGrid如果沒有設PAGE，則正確的日期格式
+            //var settings = new JsonSerializerSettings
+            //{
+            //    // 轉換成當地時間
+            //    DateTimeZoneHandling = DateTimeZoneHandling.Local,
+            //    //DateTimeZoneHandling = DateTimeZoneHandling.Utc,
+            //    DateFormatString = Format,
+            //    NullValueHandling = NullValueHandling.Ignore,
+            //    MissingMemberHandling = MissingMemberHandling.Ignore
+            //};
 
-            m_InMemoryDataContextSmallGroup.FeeList.FeeDataList.Clear();
-            m_InMemoryDataContextSmallGroup.FeeList.FeeDataList = JsonConvert.DeserializeObject<List<Fee>>(aResult, settings);
+            //m_InMemoryDataContextSmallGroup.FeeList.FeeDataList.Clear();
+            //m_InMemoryDataContextSmallGroup.FeeList.FeeDataList = JsonConvert.DeserializeObject<List<Fee>>(aResult, settings);
             #endregion
 
             m_InMemoryDataContextSmallGroup.SmallGroupDataList.TransferToMemberInfomationPackage(m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_SmallGroupData);
