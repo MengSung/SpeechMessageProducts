@@ -130,14 +130,13 @@
 <div id="data-grid">
     @(Html.DevExtreme().DataGrid<Fee>()
         .ID("FeeGridContainer")
-        //.ColumnAutoWidth(true)
-        //.Paging(p => p.PageSize(500))
-        //.Sorting(sorting => sorting.Mode(GridSortingMode.None))
+
+        .Paging(p => p.PageSize(10))
+        .Sorting(sorting => sorting.Mode(GridSortingMode.None))
         .Paging(paging => paging.Enabled(false))
-        //.Scrolling(scrolling => scrolling.Mode(GridScrollingMode.Infinite))
         .AllowColumnResizing(true)
-        //.ColumnResizingMode(ColumnResizingMode.Widget)
-        //.ColumnFixing(c => c.Enabled(true))
+        .ColumnResizingMode(ColumnResizingMode.Widget)
+        .ColumnFixing(c => c.Enabled(true))
         .LoadPanel(l => l.Text("更新資料中..."))
         .SearchPanel(s => s.Visible(true).Placeholder("搜尋.."))
 
