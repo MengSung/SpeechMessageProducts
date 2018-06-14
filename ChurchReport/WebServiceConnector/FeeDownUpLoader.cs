@@ -430,7 +430,7 @@ namespace ChurchReport.WebServiceConnector
             m_FeeDataList = new List<Fee>();
 
             // 取得與登入者需要收費的課程
-            EntityCollection aDiscipleLessonsEntityCollection = m_ToolUtilityClass.QueryEntityList("contact", "contactid", this.m_ContactEntity.Id.ToString(), "new_contact_new_disciple_lessons_fee", "new_disciple_lessons");
+            EntityCollection aDiscipleLessonsEntityCollection = m_ToolUtilityClass.QueryEntityListByDate("contact", "contactid", this.m_ContactEntity.Id.ToString(), "new_contact_new_disciple_lessons_fee", "new_disciple_lessons");
 
             //處理一個一個的課程
             ProcesseDiscipleLessons(ref aDiscipleLessonsEntityCollection, ref Result);
