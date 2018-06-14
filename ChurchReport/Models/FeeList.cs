@@ -119,8 +119,11 @@ namespace ChurchReport.Models
                 if (Key == "Amount" && CreateFlag == true)
                 {
                     String PayDateValue = "{\"PayDate\":\"" + DateTime.Now.ToUniversalTime().ToString("u") + "\"}";
-
                     JsonConvert.PopulateObject(PayDateValue, aFee, settings);
+
+                    String PayWayValue = "{\"PayWay\":\"未知\"}";
+                    JsonConvert.PopulateObject(PayWayValue, aFee, settings);
+
                 }
             }
 

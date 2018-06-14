@@ -503,11 +503,11 @@ namespace ChurchReport.WebServiceConnector
             aFee.Lesson14 = this.m_ToolUtilityClass.GetEntityBoolAttribute(ref aStorLessons, "new_14_present");
             aFee.Lesson15 = this.m_ToolUtilityClass.GetEntityBoolAttribute(ref aStorLessons, "new_15_present");
 
-            aFee.HomeWorkA = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aStorLessons, "new_finishhomework_date1");
-            aFee.HomeWorkB = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aStorLessons, "new_finishhomework_date2");
-            aFee.HomeWorkC = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aStorLessons, "new_finishhomework_date3");
-            aFee.HomeWorkD = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aStorLessons, "new_finishhomework_date4");
-            aFee.HomeWorkE = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aStorLessons, "new_finishhomework_date5");
+            aFee.HomeWorkA = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aStorLessons, "new_finishhomework_date1").ToLocalTime();
+            aFee.HomeWorkB = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aStorLessons, "new_finishhomework_date2").ToLocalTime();
+            aFee.HomeWorkC = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aStorLessons, "new_finishhomework_date3").ToLocalTime();
+            aFee.HomeWorkD = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aStorLessons, "new_finishhomework_date4").ToLocalTime();
+            aFee.HomeWorkE = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aStorLessons, "new_finishhomework_date5").ToLocalTime();
 
         }
         public int ProcesseFee(Entity aStorLessons, ref Fee aFee, ref EntityCollection aFeeEntityCollection)
@@ -515,12 +515,15 @@ namespace ChurchReport.WebServiceConnector
             Money aTotalAmountPaid = new Money(0) ;
             foreach (Entity aFeeEntity in aFeeEntityCollection.Entities)
             {
-                aFee.PayDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(aFeeEntity, "new_pay_date" );
                 // 處理一個一個的收費單
+
+                // 繳費日期
+                aFee.PayDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(aFeeEntity, "new_pay_date" ).ToLocalTime();
+                
+                // 繳費金額
                 Money aMoney = this.m_ToolUtilityClass.GetEntityMoneyAttribute(aFeeEntity, "new_fee_really_paid");
 
                 aTotalAmountPaid.Value = aTotalAmountPaid.Value + aMoney.Value ;
-
 
                 switch (this.m_ToolUtilityClass.GetOptionSetAttribute(aFeeEntity, "new_pay_way"))
                 {
@@ -769,6 +772,8 @@ namespace ChurchReport.WebServiceConnector
             if ( Type == "Amount")
             {
                 this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aFee, "new_pay_date", DateTime.Now);
+                this.m_ToolUtilityClass.SetOptionSetAttribute(ref aFee, "new_pay_way", 100000004);
+                this.m_ToolUtilityClass.SetOptionSetAttribute(ref aFee, "new_pay_way", 100000004);
             }
             return this.m_ToolUtilityClass.RetrieveEntity("new_fee", this.m_ToolUtilityClass.CreateEntity(aFee));
 
