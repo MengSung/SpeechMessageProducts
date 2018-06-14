@@ -537,6 +537,8 @@ namespace ChurchReport.Controllers
                 ViewBag.HappyType = "沒幸福小組名單";
             }
 
+            ViewBag.FeeResult = m_InMemoryDataContextSmallGroup.FeeList.Result;
+
             // 設定繳費與報名資料
             //m_InMemoryDataContextSmallGroup.SetupFeeList();
 
@@ -566,24 +568,24 @@ namespace ChurchReport.Controllers
             #endregion
 
             #region 正確的日期格式
-            var Format = "ddd MMM dd yyyy HH:mm:ss GMT+0800 (台北標準時間)"; // DataGrid如果沒有設PAGE，則正確的日期格式
-            //var Format = "ddd MMM dd yyyy HH:mm:ss GMT+0800"; // DataGrid如果沒有設PAGE，則正確的日期格式
-            var settings = new JsonSerializerSettings
-            {
-                // 轉換成當地時間
-                DateTimeZoneHandling = DateTimeZoneHandling.Local,
-                //DateTimeZoneHandling = DateTimeZoneHandling.Utc,
-                DateFormatString = Format,
-                NullValueHandling = NullValueHandling.Ignore,
-                MissingMemberHandling = MissingMemberHandling.Ignore
-            };
+            //var Format = "ddd MMM dd yyyy HH:mm:ss GMT+0800 (台北標準時間)"; // DataGrid如果沒有設PAGE，則正確的日期格式
+            ////var Format = "ddd MMM dd yyyy HH:mm:ss GMT+0800"; // DataGrid如果沒有設PAGE，則正確的日期格式
+            //var settings = new JsonSerializerSettings
+            //{
+            //    // 轉換成當地時間
+            //    DateTimeZoneHandling = DateTimeZoneHandling.Local,
+            //    //DateTimeZoneHandling = DateTimeZoneHandling.Utc,
+            //    DateFormatString = Format,
+            //    NullValueHandling = NullValueHandling.Ignore,
+            //    MissingMemberHandling = MissingMemberHandling.Ignore
+            //};
 
-            m_InMemoryDataContextSmallGroup.FeeList.FeeDataList.Clear();
-            m_InMemoryDataContextSmallGroup.FeeList.FeeDataList = JsonConvert.DeserializeObject<List<Fee>>(aResult, settings);
+            //m_InMemoryDataContextSmallGroup.FeeList.FeeDataList.Clear();
+            //m_InMemoryDataContextSmallGroup.FeeList.FeeDataList = JsonConvert.DeserializeObject<List<Fee>>(aResult, settings);
             #endregion
 
-            m_InMemoryDataContextSmallGroup.SmallGroupDataList.TransferToMemberInfomationPackage(m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_SmallGroupData);
-            m_InMemoryDataContextSmallGroup.SmallGroupDataList.UploadMemberInfomationPackage();
+            //m_InMemoryDataContextSmallGroup.SmallGroupDataList.TransferToMemberInfomationPackage(m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_SmallGroupData);
+            //m_InMemoryDataContextSmallGroup.SmallGroupDataList.UploadMemberInfomationPackage();
 
             return Json(new { status = "1", message = "成功上傳了...." });
         }

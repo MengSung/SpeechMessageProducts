@@ -27,6 +27,7 @@ namespace ChurchReport.Models
         public List<Fee> FeeDataList { get; set; }
 
         public String FeeType { get; set; }
+        public String Result { get; set; }
 
         public String m_FullName = "";
         public String m_Account  = "";
@@ -53,7 +54,9 @@ namespace ChurchReport.Models
             m_Account = Account;
             m_Password = Password;
 
-            FeeDataList = m_FeeDownUpLoader.GetFeeList(Account, Password);
+            String LocalResult = "";
+
+            FeeDataList = m_FeeDownUpLoader.GetFeeList(Account, Password, ref LocalResult);
             if(FeeDataList.Count > 0 )
             {
                 FeeType = "有繳費點名";
@@ -62,11 +65,13 @@ namespace ChurchReport.Models
             {
                 FeeType = "無繳費點名";
             }
+            Result = LocalResult;
         }
         public void SetupFeeDataList()
         {
-            //m_ActiveHappyGroupWeeklyReportList = m_DownloadHappyGroup.GetHappyGroupWeeklyReportList(Account, Password);
-            FeeDataList = m_FeeDownUpLoader.GetFeeList( m_Account, m_Password);
+            String LocalResult = "";
+
+            FeeDataList = m_FeeDownUpLoader.GetFeeList( m_Account, m_Password, ref LocalResult);
             if (FeeDataList.Count > 0)
             {
                 FeeType = "有繳費點名";
@@ -75,7 +80,11 @@ namespace ChurchReport.Models
             {
                 FeeType = "無繳費點名";
             }
+
+            Result = LocalResult;
+
         }
+
         #endregion
 
         public void PopulateObjectAndUpdateEntity(string Values, Fee aFee)
@@ -96,10 +105,23 @@ namespace ChurchReport.Models
             Dictionary<string, string> aDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(Values);
 
             List<string> KeyList = new List<string>(aDictionary.Keys);
+            List<string> ValueList = new List<string>(aDictionary.Values);
 
-            if( KeyList.Count > 0 )
+            if ( KeyList.Count > 0 )
             {
-                String KKK = KeyList[0];
+                String Key = KeyList[0];
+
+                bool CreateFlag = false; 
+                m_FeeDownUpLoader.UpdateFeeDataList(KeyList[0], ValueList[0], aFee.StorLessonsId, ref CreateFlag);
+
+                //String DATE = DateTime.Now.ToLocalTime().ToLongTimeString();
+
+                if (Key == "Amount" && CreateFlag == true)
+                {
+                    String PayDateValue = "{\"PayDate\":\"" + DateTime.Now.ToUniversalTime().ToString("u") + "\"}";
+
+                    JsonConvert.PopulateObject(PayDateValue, aFee, settings);
+                }
             }
 
         }

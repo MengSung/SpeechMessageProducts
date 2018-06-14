@@ -74,20 +74,30 @@ namespace ChurchReport.WebServiceConnector
         //List<Place2> m_GroupNamePlaces = new List<Place2>(); // 依據群組名稱過濾出來的會眾集合
         List<MemberInfomation> m_GroupNamedListMemberInfomation = new List<MemberInfomation>(); // 依據群組名稱過濾出來的會眾集合
         #endregion
-        #region 下載資料區
         #region 真實運作區塊，並非模擬區塊
         #region 主程式區
-        public List<Fee> GetFeeList(String Account, String Password)
+        public List<Fee> GetFeeList(String Account, String Password, ref String Result)
         {
             // 取得登入者
             m_ContactEntity = m_ToolUtilityClass.RetrieveContactEntityByAccountNumber(Account, Password);
 
-            if (m_ContactEntity == null) return null; // 沒找到就直接離開
+            if (m_ContactEntity == null) return m_FeeDataList = new List<Fee>(); // 沒找到就直接離開
 
             //實際要回傳，不是模擬
-            SetFeeDataList();
+            SetFeeDataList(ref Result);
+
+            SetGroupContent( Result );
 
             return m_FeeDataList;
+        }
+        public void SetGroupContent( String Result)
+        {
+            // 取得登入者
+            foreach( Fee aFee in m_FeeDataList)
+            {
+                aFee.DiscipleLessonsName += ":" + Result;
+
+            }
         }
 
         #endregion
@@ -413,8 +423,8 @@ namespace ChurchReport.WebServiceConnector
         }
         #endregion
         #endregion
-        #region 模擬回覆下載資料
-        public void SetFeeDataList()
+        #region 下載資料
+        public void SetFeeDataList( ref String Result  )
         {
             // 初始化收費與點名紀錄
             m_FeeDataList = new List<Fee>();
@@ -423,29 +433,34 @@ namespace ChurchReport.WebServiceConnector
             EntityCollection aDiscipleLessonsEntityCollection = m_ToolUtilityClass.QueryEntityList("contact", "contactid", this.m_ContactEntity.Id.ToString(), "new_contact_new_disciple_lessons_fee", "new_disciple_lessons");
 
             //處理一個一個的課程
-            ProcesseDiscipleLessons(ref aDiscipleLessonsEntityCollection);
+            ProcesseDiscipleLessons(ref aDiscipleLessonsEntityCollection, ref Result);
 
         }
-        public void ProcesseDiscipleLessons(ref EntityCollection aDiscipleLessonsEntityCollection)
+        public void ProcesseDiscipleLessons(ref EntityCollection aDiscipleLessonsEntityCollection, ref String Result)
         {
             foreach (Entity aDiscipleLessons in aDiscipleLessonsEntityCollection.Entities)
             {
                 // 處理一個一個的課程
+                //Result += "課程名稱" + this.m_ToolUtilityClass.GetEntityStringAttribute( aDiscipleLessons, "new_name");
+                
                 // 取得與課程相關的上課紀錄
                 EntityCollection aStorLessonsEntityCollection = m_ToolUtilityClass.QueryEntityList("new_disciple_lessons", "new_disciple_lessonsid", aDiscipleLessons.Id.ToString(), "new_new_disciple_lessons_new_stor_les", "new_stor_lessons");
 
                 // 處理一個一個的上課紀錄
-                ProcesseStorLessons( aDiscipleLessons, ref aStorLessonsEntityCollection);
+                ProcesseStorLessons(aDiscipleLessons, ref aStorLessonsEntityCollection, ref Result);
+
+                //Result += Environment.NewLine;
             }
         }
-        public void ProcesseStorLessons(Entity aDiscipleLessons, ref EntityCollection aStorLessonsEntityCollection)
+        public void ProcesseStorLessons(Entity aDiscipleLessons, ref EntityCollection aStorLessonsEntityCollection, ref String Result)
         {
+            int TotalFeeAmount = 0;
             foreach (Entity aStorLessons in aStorLessonsEntityCollection.Entities)
             {
                 Fee aFee = new Fee
                 {
                     DiscipleLessonsId = aDiscipleLessons.Id.ToString(),
-                    DiscipleLessonsName = this.m_ToolUtilityClass.GetEntityStringAttribute( ref aDiscipleLessons, "new_name"),
+                    DiscipleLessonsName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDiscipleLessons, "new_name"),
                 };
 
                 // 處理一個一個的的上課紀錄
@@ -455,10 +470,13 @@ namespace ChurchReport.WebServiceConnector
                 EntityCollection aFeeEntityCollection = m_ToolUtilityClass.QueryEntityList("new_stor_lessons", "new_stor_lessonsid", aStorLessons.Id.ToString(), "new_stor_lessons_new_fee", "new_fee");
 
                 // 處理一個一個的收費單
-                ProcesseFee(aStorLessons, ref aFee, ref aFeeEntityCollection);
+                TotalFeeAmount += ProcesseFee(aStorLessons, ref aFee, ref aFeeEntityCollection);
             }
 
             // 取得與登入者需要收費的課程
+            Result += "報名人數: " + aStorLessonsEntityCollection.Entities.Count.ToString() + " 人，";
+            Result += "已繳費金額: " + TotalFeeAmount.ToString() + " 元";
+
         }
         public void ProcesseStorLessonsParameter(Entity aStorLessons, ref Fee aFee )
         {
@@ -492,7 +510,7 @@ namespace ChurchReport.WebServiceConnector
             aFee.HomeWorkE = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aStorLessons, "new_finishhomework_date5");
 
         }
-        public void ProcesseFee(Entity aStorLessons, ref Fee aFee, ref EntityCollection aFeeEntityCollection)
+        public int ProcesseFee(Entity aStorLessons, ref Fee aFee, ref EntityCollection aFeeEntityCollection)
         {
             Money aTotalAmountPaid = new Money(0) ;
             foreach (Entity aFeeEntity in aFeeEntityCollection.Entities)
@@ -508,6 +526,7 @@ namespace ChurchReport.WebServiceConnector
 
             m_FeeDataList.Add(aFee);
 
+            return aFee.Amount;
         }
         public void SetSimulationFeeDataList()
         {
@@ -574,6 +593,158 @@ namespace ChurchReport.WebServiceConnector
             m_FeeDataList.Add(aFee);
         }
         #endregion
-        #endregion
+        #region 上傳資料
+        public void UpdateFeeDataList(String Key, String Value, String StorLessonsId, ref bool CreateFlag )
+        {
+            Entity aStorLessonEntity = this.m_ToolUtilityClass.RetrieveEntity("new_stor_lessons", new Guid(StorLessonsId));
+
+            // 取得比較易懂的委身類型
+            Entity Fee;
+            switch (Key)
+            {
+                case "PayDate":
+                    Fee = GetFeeOfStorLesson(StorLessonsId, Key, ref CreateFlag );
+                    this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref Fee, "new_pay_date", DateTime.Parse(Value));
+                    this.m_ToolUtilityClass.UpdateEntity(ref Fee);
+                    break;
+                case "Amount":
+                    Fee = GetFeeOfStorLesson(StorLessonsId, Key, ref CreateFlag);
+                    this.m_ToolUtilityClass.SetEntityMoneyAttribute(ref Fee, "new_fee_really_paid", new Money(Convert.ToDecimal(Value)));
+                    this.m_ToolUtilityClass.UpdateEntity(ref Fee);
+                    break;
+                case "Lesson1":
+                    this.m_ToolUtilityClass.SetEntityBoolAttribute(ref aStorLessonEntity, "new_1_present", Convert.ToBoolean(Value));
+                    this.m_ToolUtilityClass.UpdateEntity(ref aStorLessonEntity);
+                    break;
+                case "Lesson2":
+                    this.m_ToolUtilityClass.SetEntityBoolAttribute(ref aStorLessonEntity, "new_2_present", Convert.ToBoolean(Value));
+                    this.m_ToolUtilityClass.UpdateEntity(ref aStorLessonEntity);
+                    break;
+                case "Lesson3":
+                    this.m_ToolUtilityClass.SetEntityBoolAttribute(ref aStorLessonEntity, "new_3_present", Convert.ToBoolean(Value));
+                    this.m_ToolUtilityClass.UpdateEntity(ref aStorLessonEntity);
+                    break;
+                case "Lesson4":
+                    this.m_ToolUtilityClass.SetEntityBoolAttribute(ref aStorLessonEntity, "new_4_present", Convert.ToBoolean(Value));
+                    this.m_ToolUtilityClass.UpdateEntity(ref aStorLessonEntity);
+                    break;
+                case "Lesson5":
+                    this.m_ToolUtilityClass.SetEntityBoolAttribute(ref aStorLessonEntity, "new_5_present", Convert.ToBoolean(Value));
+                    this.m_ToolUtilityClass.UpdateEntity(ref aStorLessonEntity);
+                    break;
+                case "Lesson6":
+                    this.m_ToolUtilityClass.SetEntityBoolAttribute(ref aStorLessonEntity, "new_6_present", Convert.ToBoolean(Value));
+                    this.m_ToolUtilityClass.UpdateEntity(ref aStorLessonEntity);
+                    break;
+                case "Lesson7":
+                    this.m_ToolUtilityClass.SetEntityBoolAttribute(ref aStorLessonEntity, "new_7_present", Convert.ToBoolean(Value));
+                    this.m_ToolUtilityClass.UpdateEntity(ref aStorLessonEntity);
+                    break;
+                case "Lesson8":
+                    this.m_ToolUtilityClass.SetEntityBoolAttribute(ref aStorLessonEntity, "new_8_present", Convert.ToBoolean(Value));
+                    this.m_ToolUtilityClass.UpdateEntity(ref aStorLessonEntity);
+                    break;
+                case "Lesson9":
+                    this.m_ToolUtilityClass.SetEntityBoolAttribute(ref aStorLessonEntity, "new_9_present", Convert.ToBoolean(Value));
+                    this.m_ToolUtilityClass.UpdateEntity(ref aStorLessonEntity);
+                    break;
+                case "Lesson10":
+                    this.m_ToolUtilityClass.SetEntityBoolAttribute(ref aStorLessonEntity, "new_10_present", Convert.ToBoolean(Value));
+                    this.m_ToolUtilityClass.UpdateEntity(ref aStorLessonEntity);
+                    break;
+                case "Lesson11":
+                    this.m_ToolUtilityClass.SetEntityBoolAttribute(ref aStorLessonEntity, "new_11_present", Convert.ToBoolean(Value));
+                    this.m_ToolUtilityClass.UpdateEntity(ref aStorLessonEntity);
+                    break;
+                case "Lesson12":
+                    this.m_ToolUtilityClass.SetEntityBoolAttribute(ref aStorLessonEntity, "new_12_present", Convert.ToBoolean(Value));
+                    this.m_ToolUtilityClass.UpdateEntity(ref aStorLessonEntity);
+                    break;
+                case "Lesson13":
+                    this.m_ToolUtilityClass.SetEntityBoolAttribute(ref aStorLessonEntity, "new_13_present", Convert.ToBoolean(Value));
+                    this.m_ToolUtilityClass.UpdateEntity(ref aStorLessonEntity);
+                    break;
+                case "Lesson14":
+                    this.m_ToolUtilityClass.SetEntityBoolAttribute(ref aStorLessonEntity, "new_14_present", Convert.ToBoolean(Value));
+                    this.m_ToolUtilityClass.UpdateEntity(ref aStorLessonEntity);
+                    break;
+                case "Lesson15":
+                    this.m_ToolUtilityClass.SetEntityBoolAttribute(ref aStorLessonEntity, "new_15_present", Convert.ToBoolean(Value));
+                    this.m_ToolUtilityClass.UpdateEntity(ref aStorLessonEntity);
+                    break;
+                case "HomeWorkA":
+                    this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aStorLessonEntity, "new_finishhomework_date1", DateTime.Parse(Value));
+                    this.m_ToolUtilityClass.UpdateEntity(ref aStorLessonEntity);
+                    break;
+                case "HomeWorkB":
+                    this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aStorLessonEntity, "new_finishhomework_date2", DateTime.Parse(Value));
+                    this.m_ToolUtilityClass.UpdateEntity(ref aStorLessonEntity);
+                    break;
+                case "HomeWorkC":
+                    this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aStorLessonEntity, "new_finishhomework_date3", DateTime.Parse(Value));
+                    this.m_ToolUtilityClass.UpdateEntity(ref aStorLessonEntity);
+                    break;
+                case "HomeWorkD":
+                    this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aStorLessonEntity, "new_finishhomework_date4", DateTime.Parse(Value));
+                    this.m_ToolUtilityClass.UpdateEntity(ref aStorLessonEntity);
+                    break;
+                case "HomeWorkE":
+                    this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aStorLessonEntity, "new_finishhomework_date5", DateTime.Parse(Value));
+                    this.m_ToolUtilityClass.UpdateEntity(ref aStorLessonEntity);
+                    break;
+                default:
+                    return;
+            }
+
+        }
+        public Entity GetFeeOfStorLesson(String StorLessonsId, String Type, ref bool CreateFlag  )
+        {
+            // 取得與上課紀錄相關的收費單
+            EntityCollection aFeeEntityCollection = m_ToolUtilityClass.QueryEntityList("new_stor_lessons", "new_stor_lessonsid", StorLessonsId, "new_stor_lessons_new_fee", "new_fee");
+
+            if (aFeeEntityCollection.Entities.Count > 0)
+            {
+                CreateFlag = false;
+                return aFeeEntityCollection.Entities[0];
+            }
+            else
+            {
+                CreateFlag = true;
+                return CreateFee(StorLessonsId, Type );
+            }
+        }
+        public Entity CreateFee(String StorLessonsId, String Type)
+        {
+            // 取得與上課紀錄相關的收費單
+            Entity aStorLessonEntity = this.m_ToolUtilityClass.RetrieveEntity("new_stor_lessons", new Guid(StorLessonsId));
+
+            Entity aFee = new Entity("new_fee");
+
+
+            this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aFee, "new_contact_new_fee", "new_fee", this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aStorLessonEntity, "new_contact_new_stor_lessons"));
+
+            Guid DiscipleLessonsEntityId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aStorLessonEntity, "new_new_disciple_lessons_new_stor_les");
+            this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aFee, "new_disciple_lessons_new_fee", "new_fee", DiscipleLessonsEntityId );
+
+            this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aFee, "new_stor_lessons_new_fee", "new_fee", aStorLessonEntity.Id );
+
+            Entity aDiscipleLessonsEntity = this.m_ToolUtilityClass.RetrieveEntity("new_disciple_lessons", DiscipleLessonsEntityId);
+
+            Money MoneyShouldPay = this.m_ToolUtilityClass.GetEntityMoneyAttribute(ref aDiscipleLessonsEntity, "new_lessons_fee");
+
+            if (MoneyShouldPay.Value >= 0)
+            {
+                this.m_ToolUtilityClass.SetEntityMoneyAttribute(ref aFee, "new_fee_shoud_pay", MoneyShouldPay);
+            }
+
+            if ( Type == "Amount")
+            {
+                this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aFee, "new_pay_date", DateTime.Now);
+            }
+            return this.m_ToolUtilityClass.RetrieveEntity("new_fee", this.m_ToolUtilityClass.CreateEntity(aFee));
+
+        }
     }
+
+    #endregion
 }
