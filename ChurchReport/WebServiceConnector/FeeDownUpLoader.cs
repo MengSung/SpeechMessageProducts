@@ -520,6 +520,30 @@ namespace ChurchReport.WebServiceConnector
                 Money aMoney = this.m_ToolUtilityClass.GetEntityMoneyAttribute(aFeeEntity, "new_fee_really_paid");
 
                 aTotalAmountPaid.Value = aTotalAmountPaid.Value + aMoney.Value ;
+
+
+                switch (this.m_ToolUtilityClass.GetOptionSetAttribute(aFeeEntity, "new_pay_way"))
+                {
+                    case 100000004:
+                        aFee.PayWay = "未知";
+                        break;
+                    case 100000000:
+                        aFee.PayWay = "現金";
+                        break;
+                    case 100000001:
+                        aFee.PayWay = "信用卡";
+                        break;
+                    case 100000002:
+                        aFee.PayWay = "ATM轉帳";
+                        break;
+                    case 100000003:
+                        aFee.PayWay = "超商付款";
+                        break;
+                    default:
+                        aFee.PayWay = "未知";
+                        break;
+                }
+
             }
 
             aFee.Amount = (int) aTotalAmountPaid.Value;
@@ -610,6 +634,11 @@ namespace ChurchReport.WebServiceConnector
                 case "Amount":
                     Fee = GetFeeOfStorLesson(StorLessonsId, Key, ref CreateFlag);
                     this.m_ToolUtilityClass.SetEntityMoneyAttribute(ref Fee, "new_fee_really_paid", new Money(Convert.ToDecimal(Value)));
+                    this.m_ToolUtilityClass.UpdateEntity(ref Fee);
+                    break;
+                case "PayWay":
+                    Fee = GetFeeOfStorLesson(StorLessonsId, Key, ref CreateFlag);
+                    SetFeePayWay(Value, ref Fee);
                     this.m_ToolUtilityClass.UpdateEntity(ref Fee);
                     break;
                 case "Lesson1":
@@ -744,6 +773,34 @@ namespace ChurchReport.WebServiceConnector
             return this.m_ToolUtilityClass.RetrieveEntity("new_fee", this.m_ToolUtilityClass.CreateEntity(aFee));
 
         }
+
+        public void SetFeePayWay(String Value, ref Entity aFeeEntity)
+        {
+
+            switch (Value)
+            {
+                case "未知":
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_pay_way", 100000004);
+                    break;
+                case "現金":
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_pay_way", 100000000);
+                    break;
+                case "信用卡":
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_pay_way", 100000001);
+                    break;
+                case "ATM轉帳":
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_pay_way", 100000002);
+                    break;
+                case "超商付款":
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_pay_way", 100000003);
+                    break;
+                default:
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_pay_way", 100000004);
+                    break;
+
+            }
+        }
+
     }
 
     #endregion

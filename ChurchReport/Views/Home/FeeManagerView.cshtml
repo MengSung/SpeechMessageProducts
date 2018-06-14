@@ -242,6 +242,22 @@ return row.Amount;
 </text>
 );
 
+columns.Add().DataField("Amount")
+.Caption("付款方式").Alignment(HorizontalAlignment.Center)
+.Width(100).MinWidth(30)
+.Lookup(lookup => lookup
+.DataSource(new string[] {
+"未知",
+"現金",
+"信用卡",
+"ATM轉帳",
+"超商付款",
+})
+//.DisplayExpr("Name")
+//.ValueExpr("ID")
+);
+
+
 columns.Add().DataField("Lesson1").Caption("第一課").DataType(GridColumnDataType.Boolean).Width(60).MinWidth(45).AllowSorting(false);
 columns.Add().DataField("Lesson2").Caption("第二課").DataType(GridColumnDataType.Boolean).Width(60).MinWidth(45).AllowSorting(false);
 columns.Add().DataField("Lesson3").Caption("第三課").DataType(GridColumnDataType.Boolean).Width(60).MinWidth(45).AllowSorting(false);

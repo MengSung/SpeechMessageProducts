@@ -18,6 +18,7 @@ namespace ChurchReport.Models {
         public string MobilePhone { get; set; }             // 行動電話
         public DateTime PayDate { get; set; }               // 繳費日期
         public int Amount { get; set; }                     // 繳費金額
+        public String PayWay { get; set; }                     // 付款方式
 
         #region 課程點名
         public bool Lesson1 { get; set; }       // 第一課點名
