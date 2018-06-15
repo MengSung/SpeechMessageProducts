@@ -86,17 +86,17 @@ namespace ChurchReport.WebServiceConnector
             //實際要回傳，不是模擬
             SetFeeDataList(ref Result);
 
-            SetGroupContent( Result );
-
             return m_FeeDataList;
         }
-        public void SetGroupContent( String Result)
+        public void SetGroupContent( String DiscipleLessonsName, String Result)
         {
             // 取得登入者
             foreach( Fee aFee in m_FeeDataList)
             {
-                aFee.DiscipleLessonsName += ":" + Result;
-
+                if (aFee.DiscipleLessonsName == DiscipleLessonsName)
+                {
+                    aFee.DiscipleLessonsName += ":" + Result;
+                }
             }
         }
 
@@ -440,15 +440,19 @@ namespace ChurchReport.WebServiceConnector
         {
             foreach (Entity aDiscipleLessons in aDiscipleLessonsEntityCollection.Entities)
             {
+                Result = ""; // 上課人數及繳費結果歸零
+
                 // 處理一個一個的課程
                 //Result += "課程名稱" + this.m_ToolUtilityClass.GetEntityStringAttribute( aDiscipleLessons, "new_name");
-                
+
                 // 取得與課程相關的上課紀錄
                 EntityCollection aStorLessonsEntityCollection = m_ToolUtilityClass.QueryEntityList("new_disciple_lessons", "new_disciple_lessonsid", aDiscipleLessons.Id.ToString(), "new_new_disciple_lessons_new_stor_les", "new_stor_lessons");
 
                 // 處理一個一個的上課紀錄
                 ProcesseStorLessons(aDiscipleLessons, ref aStorLessonsEntityCollection, ref Result);
 
+                String DiscipleLessonsName = this.m_ToolUtilityClass.GetEntityStringAttribute( aDiscipleLessons, "new_name" );
+                SetGroupContent( DiscipleLessonsName, Result);
                 //Result += Environment.NewLine;
             }
         }
@@ -482,33 +486,37 @@ namespace ChurchReport.WebServiceConnector
         {
             aFee.FullName = this.m_ToolUtilityClass.GetEntityLookupDisplayName(ref aStorLessons, "new_contact_new_stor_lessons");
 
-            Entity aContact = this.m_ToolUtilityClass.RetrieveEntity( "contact", this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aStorLessons, "new_contact_new_stor_lessons") );
-            aFee.MobilePhone = this.m_ToolUtilityClass.GetEntityStringAttribute( ref aContact, "mobilephone");
+            Guid aContactId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aStorLessons, "new_contact_new_stor_lessons");
+            
+            if (aContactId != Guid.Empty)
+            {
+                Entity aContact = this.m_ToolUtilityClass.RetrieveEntity("contact", aContactId);
+                aFee.MobilePhone = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContact, "mobilephone");
 
-            aFee.StorLessonsId = aStorLessons.Id.ToString();
+                aFee.StorLessonsId = aStorLessons.Id.ToString();
 
-            aFee.Lesson1 = this.m_ToolUtilityClass.GetEntityBoolAttribute(ref aStorLessons, "new_1_present");
-            aFee.Lesson2 = this.m_ToolUtilityClass.GetEntityBoolAttribute(ref aStorLessons, "new_2_present");
-            aFee.Lesson3 = this.m_ToolUtilityClass.GetEntityBoolAttribute(ref aStorLessons, "new_3_present");
-            aFee.Lesson4 = this.m_ToolUtilityClass.GetEntityBoolAttribute(ref aStorLessons, "new_4_present");
-            aFee.Lesson5 = this.m_ToolUtilityClass.GetEntityBoolAttribute(ref aStorLessons, "new_5_present");
-            aFee.Lesson6 = this.m_ToolUtilityClass.GetEntityBoolAttribute(ref aStorLessons, "new_6_present");
-            aFee.Lesson7 = this.m_ToolUtilityClass.GetEntityBoolAttribute(ref aStorLessons, "new_7_present");
-            aFee.Lesson8 = this.m_ToolUtilityClass.GetEntityBoolAttribute(ref aStorLessons, "new_8_present");
-            aFee.Lesson9 = this.m_ToolUtilityClass.GetEntityBoolAttribute(ref aStorLessons, "new_9_present");
-            aFee.Lesson10 = this.m_ToolUtilityClass.GetEntityBoolAttribute(ref aStorLessons, "new_10_present");
-            aFee.Lesson11 = this.m_ToolUtilityClass.GetEntityBoolAttribute(ref aStorLessons, "new_11_present");
-            aFee.Lesson12 = this.m_ToolUtilityClass.GetEntityBoolAttribute(ref aStorLessons, "new_12_present");
-            aFee.Lesson13 = this.m_ToolUtilityClass.GetEntityBoolAttribute(ref aStorLessons, "new_13_present");
-            aFee.Lesson14 = this.m_ToolUtilityClass.GetEntityBoolAttribute(ref aStorLessons, "new_14_present");
-            aFee.Lesson15 = this.m_ToolUtilityClass.GetEntityBoolAttribute(ref aStorLessons, "new_15_present");
+                aFee.Lesson1 = this.m_ToolUtilityClass.GetEntityBoolAttribute(ref aStorLessons, "new_1_present");
+                aFee.Lesson2 = this.m_ToolUtilityClass.GetEntityBoolAttribute(ref aStorLessons, "new_2_present");
+                aFee.Lesson3 = this.m_ToolUtilityClass.GetEntityBoolAttribute(ref aStorLessons, "new_3_present");
+                aFee.Lesson4 = this.m_ToolUtilityClass.GetEntityBoolAttribute(ref aStorLessons, "new_4_present");
+                aFee.Lesson5 = this.m_ToolUtilityClass.GetEntityBoolAttribute(ref aStorLessons, "new_5_present");
+                aFee.Lesson6 = this.m_ToolUtilityClass.GetEntityBoolAttribute(ref aStorLessons, "new_6_present");
+                aFee.Lesson7 = this.m_ToolUtilityClass.GetEntityBoolAttribute(ref aStorLessons, "new_7_present");
+                aFee.Lesson8 = this.m_ToolUtilityClass.GetEntityBoolAttribute(ref aStorLessons, "new_8_present");
+                aFee.Lesson9 = this.m_ToolUtilityClass.GetEntityBoolAttribute(ref aStorLessons, "new_9_present");
+                aFee.Lesson10 = this.m_ToolUtilityClass.GetEntityBoolAttribute(ref aStorLessons, "new_10_present");
+                aFee.Lesson11 = this.m_ToolUtilityClass.GetEntityBoolAttribute(ref aStorLessons, "new_11_present");
+                aFee.Lesson12 = this.m_ToolUtilityClass.GetEntityBoolAttribute(ref aStorLessons, "new_12_present");
+                aFee.Lesson13 = this.m_ToolUtilityClass.GetEntityBoolAttribute(ref aStorLessons, "new_13_present");
+                aFee.Lesson14 = this.m_ToolUtilityClass.GetEntityBoolAttribute(ref aStorLessons, "new_14_present");
+                aFee.Lesson15 = this.m_ToolUtilityClass.GetEntityBoolAttribute(ref aStorLessons, "new_15_present");
 
-            aFee.HomeWorkA = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aStorLessons, "new_finishhomework_date1").ToLocalTime();
-            aFee.HomeWorkB = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aStorLessons, "new_finishhomework_date2").ToLocalTime();
-            aFee.HomeWorkC = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aStorLessons, "new_finishhomework_date3").ToLocalTime();
-            aFee.HomeWorkD = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aStorLessons, "new_finishhomework_date4").ToLocalTime();
-            aFee.HomeWorkE = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aStorLessons, "new_finishhomework_date5").ToLocalTime();
-
+                aFee.HomeWorkA = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aStorLessons, "new_finishhomework_date1").ToLocalTime();
+                aFee.HomeWorkB = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aStorLessons, "new_finishhomework_date2").ToLocalTime();
+                aFee.HomeWorkC = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aStorLessons, "new_finishhomework_date3").ToLocalTime();
+                aFee.HomeWorkD = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aStorLessons, "new_finishhomework_date4").ToLocalTime();
+                aFee.HomeWorkE = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aStorLessons, "new_finishhomework_date5").ToLocalTime();
+            }
         }
         public int ProcesseFee(Entity aStorLessons, ref Fee aFee, ref EntityCollection aFeeEntityCollection)
         {
@@ -522,6 +530,7 @@ namespace ChurchReport.WebServiceConnector
                 
                 // 繳費金額
                 Money aMoney = this.m_ToolUtilityClass.GetEntityMoneyAttribute(aFeeEntity, "new_fee_really_paid");
+                aMoney.Value = aMoney.Value > 0 ? aMoney.Value : 0; // 傳回負值就歸零
 
                 aTotalAmountPaid.Value = aTotalAmountPaid.Value + aMoney.Value ;
 
