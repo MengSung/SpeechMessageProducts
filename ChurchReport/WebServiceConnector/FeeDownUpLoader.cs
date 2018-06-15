@@ -772,8 +772,8 @@ namespace ChurchReport.WebServiceConnector
             if ( Type == "Amount")
             {
                 this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aFee, "new_pay_date", DateTime.Now);
-                this.m_ToolUtilityClass.SetOptionSetAttribute(ref aFee, "new_pay_way", 100000004);
-                this.m_ToolUtilityClass.SetOptionSetAttribute(ref aFee, "new_pay_way", 100000004);
+                //this.m_ToolUtilityClass.SetOptionSetAttribute(ref aFee, "new_pay_way", 100000004); // 預設繳費是未知
+                this.m_ToolUtilityClass.SetOptionSetAttribute(ref aFee, "new_pay_way", 100000000); // 預設繳費是現金
             }
             return this.m_ToolUtilityClass.RetrieveEntity("new_fee", this.m_ToolUtilityClass.CreateEntity(aFee));
 

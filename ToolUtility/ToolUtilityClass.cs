@@ -2689,8 +2689,10 @@ namespace ToolUtilityNameSpace
                     #endregion
 
                     // Create a ConditionExpression.
-                    ConditionExpression StartDateCondidtion = new ConditionExpression("new_join_start_date", ConditionOperator.LessEqual, DateTime.UtcNow);
-                    ConditionExpression EndDateCondidtion = new ConditionExpression("new_join_end_date", ConditionOperator.GreaterEqual, DateTime.UtcNow);
+                    //ConditionExpression StartDateCondidtion = new ConditionExpression("new_join_start_date", ConditionOperator.LessEqual, DateTime.UtcNow);
+                    //ConditionExpression EndDateCondidtion = new ConditionExpression("new_join_end_date", ConditionOperator.GreaterEqual, DateTime.UtcNow);
+                    //ConditionExpression StartDateCondidtion = new ConditionExpression("new_class_start_date", ConditionOperator.LessEqual, DateTime.UtcNow);
+                    ConditionExpression EndDateCondidtion = new ConditionExpression("new_class_end_date", ConditionOperator.GreaterEqual, DateTime.UtcNow.AddDays(-7));//課程報名後7天仍然可以繳費
 
 
                     // Build the filter that is based on the condition.
@@ -2698,7 +2700,7 @@ namespace ToolUtilityNameSpace
                     filter.FilterOperator = LogicalOperator.And;
                     filter.Conditions.Add(condition);
                     filter.Conditions.Add(StateCondidtion);
-                    filter.Conditions.Add(StartDateCondidtion);
+                    //filter.Conditions.Add(StartDateCondidtion);
                     filter.Conditions.Add(EndDateCondidtion);
                     #endregion
 

@@ -121,7 +121,7 @@ namespace ChurchReport.Models
                     String PayDateValue = "{\"PayDate\":\"" + DateTime.Now.ToUniversalTime().ToString("u") + "\"}";
                     JsonConvert.PopulateObject(PayDateValue, aFee, settings);
 
-                    String PayWayValue = "{\"PayWay\":\"未知\"}";
+                    String PayWayValue = "{\"PayWay\":\"現金\"}";
                     JsonConvert.PopulateObject(PayWayValue, aFee, settings);
 
                 }
