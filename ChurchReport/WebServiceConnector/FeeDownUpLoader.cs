@@ -462,21 +462,172 @@ namespace ChurchReport.WebServiceConnector
         public void ProcesseClassName(Entity aDiscipleLessons, ref ClassName aClassName)
         {
             // 設定每節課的名稱及作業名稱
-            aClassName.Lesson1 = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDiscipleLessons, "new_l1_name");
-            aClassName.Lesson2 = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDiscipleLessons, "new_l2_name");
-            aClassName.Lesson3 = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDiscipleLessons, "new_l3_name");
-            aClassName.Lesson4 = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDiscipleLessons, "new_l4_name");
-            aClassName.Lesson5 = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDiscipleLessons, "new_l5_name");
-            aClassName.Lesson6 = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDiscipleLessons, "new_l6_name");
-            aClassName.Lesson7 = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDiscipleLessons, "new_l7_name");
-            aClassName.Lesson8 = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDiscipleLessons, "new_l8_name");
-            aClassName.Lesson9 = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDiscipleLessons, "new_l9_name");
-            aClassName.Lesson10 = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDiscipleLessons, "new_l10_name");
-            aClassName.Lesson11 = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDiscipleLessons, "new_l11_name");
-            aClassName.Lesson12 = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDiscipleLessons, "new_l12_name");
-            aClassName.Lesson13 = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDiscipleLessons, "new_l13_name");
-            aClassName.Lesson14 = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDiscipleLessons, "new_l14_name");
-            aClassName.Lesson15 = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDiscipleLessons, "new_l15_name");
+            DateTime LessonDate;
+
+            //aClassName.Lesson1 = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDiscipleLessons, "new_l1_name");
+            LessonDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aDiscipleLessons, "new_l1_date");
+            if(LessonDate.Year > 1 )
+            {
+                aClassName.Lesson1 = "第一課:" + LessonDate.ToLocalTime().ToShortDateString();
+            }
+            else
+            {
+                aClassName.Lesson3 = "第一課";
+            }
+
+            //aClassName.Lesson2 = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDiscipleLessons, "new_l2_name");
+            LessonDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aDiscipleLessons, "new_l2_date");
+            if (LessonDate.Year > 1)
+            {
+                aClassName.Lesson2 = "第二課:" + LessonDate.ToLocalTime().ToShortDateString();
+            }
+            else
+            {
+                aClassName.Lesson3 = "第二課";
+            }
+
+            //aClassName.Lesson3 = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDiscipleLessons, "new_l3_name");
+            LessonDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aDiscipleLessons, "new_l3_date");
+            if (LessonDate.Year > 1)
+            {
+                aClassName.Lesson3 = "第三課:" + LessonDate.ToLocalTime().ToShortDateString();
+            }
+            else
+            {
+                aClassName.Lesson3 = "第三課";
+            }
+
+            //aClassName.Lesson4 = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDiscipleLessons, "new_l4_name");
+            LessonDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aDiscipleLessons, "new_l4_date");
+            if (LessonDate.Year > 1)
+            {
+                aClassName.Lesson4 = "第四課:" + LessonDate.ToLocalTime().ToShortDateString();
+            }
+            else
+            {
+                aClassName.Lesson4 = "第四課";
+            }
+
+            //aClassName.Lesson5 = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDiscipleLessons, "new_l5_name");
+            LessonDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aDiscipleLessons, "new_l5_date");
+            if (LessonDate.Year > 1)
+            {
+                aClassName.Lesson5 = "第五課:" + LessonDate.ToLocalTime().ToShortDateString();
+            }
+            else
+            {
+                aClassName.Lesson5 = "第五課";
+            }
+
+            //aClassName.Lesson6 = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDiscipleLessons, "new_l6_name");
+            LessonDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aDiscipleLessons, "new_l6_date");
+            if (LessonDate.Year > 1)
+            {
+                aClassName.Lesson6 = "第六課:" + LessonDate.ToLocalTime().ToShortDateString();
+            }
+            else
+            {
+                aClassName.Lesson6 = "第六課";
+            }
+
+            //aClassName.Lesson7 = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDiscipleLessons, "new_l7_name");
+            LessonDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aDiscipleLessons, "new_l7_date");
+            if (LessonDate.Year > 1)
+            {
+                aClassName.Lesson7 = "第七課:" + LessonDate.ToLocalTime().ToShortDateString();
+            }
+            else
+            {
+                aClassName.Lesson7 = "第七課";
+            }
+
+            //aClassName.Lesson8 = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDiscipleLessons, "new_l8_name");
+            LessonDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aDiscipleLessons, "new_l8_date");
+            if (LessonDate.Year > 1)
+            {
+                aClassName.Lesson8 = "第八課:" + LessonDate.ToLocalTime().ToShortDateString();
+            }
+            else
+            {
+                aClassName.Lesson8 = "第八課";
+            }
+
+            //aClassName.Lesson9 = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDiscipleLessons, "new_l9_name");
+            LessonDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aDiscipleLessons, "new_l9_date");
+            if (LessonDate.Year > 1)
+            {
+                aClassName.Lesson9 = "第九課:" + LessonDate.ToLocalTime().ToShortDateString();
+            }
+            else
+            {
+                aClassName.Lesson9 = "第九課";
+            }
+
+            //aClassName.Lesson10 = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDiscipleLessons, "new_l10_name");
+            LessonDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aDiscipleLessons, "new_l10_date");
+            if (LessonDate.Year > 1)
+            {
+                aClassName.Lesson10 = "第十課:" + LessonDate.ToLocalTime().ToShortDateString();
+            }
+            else
+            {
+                aClassName.Lesson10 = "第十課";
+            }
+
+            //aClassName.Lesson11 = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDiscipleLessons, "new_l11_name");
+            LessonDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aDiscipleLessons, "new_l11_date");
+            if (LessonDate.Year > 1)
+            {
+                aClassName.Lesson11 = "第十一課:" + LessonDate.ToLocalTime().ToShortDateString();
+            }
+            else
+            {
+                aClassName.Lesson11 = "第十一課";
+            }
+
+            //aClassName.Lesson12 = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDiscipleLessons, "new_l12_name");
+            LessonDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aDiscipleLessons, "new_l12_date");
+            if (LessonDate.Year > 1)
+            {
+                aClassName.Lesson12 = "第十二課:" + LessonDate.ToLocalTime().ToShortDateString();
+            }
+            else
+            {
+                aClassName.Lesson12 = "第十二課";
+            }
+
+            //aClassName.Lesson13 = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDiscipleLessons, "new_l13_name");
+            LessonDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aDiscipleLessons, "new_l13_date");
+            if (LessonDate.Year > 1)
+            {
+                aClassName.Lesson13 = "第十三課:" + LessonDate.ToLocalTime().ToShortDateString();
+            }
+            else
+            {
+                aClassName.Lesson13 = "第十三課";
+            }
+
+            //aClassName.Lesson14 = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDiscipleLessons, "new_l14_name");
+            LessonDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aDiscipleLessons, "new_l14_date");
+            if (LessonDate.Year > 1)
+            {
+                aClassName.Lesson14 = "第十四課:" + LessonDate.ToLocalTime().ToShortDateString();
+            }
+            else
+            {
+                aClassName.Lesson14 = "第十四課";
+            }
+
+            //aClassName.Lesson15 = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDiscipleLessons, "new_l15_name");
+            LessonDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aDiscipleLessons, "new_l15_date");
+            if (LessonDate.Year > 1)
+            {
+                aClassName.Lesson15 = "第十五課:" + LessonDate.ToLocalTime().ToShortDateString();
+            }
+            else
+            {
+                aClassName.Lesson15 = "第十五課";
+            }
             aClassName.HomeWorkA = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDiscipleLessons, "new_homework1");
             aClassName.HomeWorkB = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDiscipleLessons, "new_homework2");
             aClassName.HomeWorkC = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDiscipleLessons, "new_homework3");
