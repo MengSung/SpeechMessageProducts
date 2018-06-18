@@ -542,11 +542,51 @@ namespace ChurchReport.Controllers
             // 設定繳費與報名資料
             //m_InMemoryDataContextSmallGroup.SetupFeeList();
 
+            SetFeeManagerViewBag();
+
             return View(m_InMemoryDataContextSmallGroup.FeeList);
 
             #endregion
 
         }
+
+        public void SetFeeManagerViewBag()
+        {
+            try
+            {
+                ViewBag.Colume6 = "第一課333";
+                ViewBag.Colume7 = "第二課444";
+                ViewBag.Colume8 = "第三課555";
+                ViewBag.Colume9 = "第四課";
+                ViewBag.Colume10 = "第五課";
+                ViewBag.Colume11 = "第六課";
+                ViewBag.Colume12 = "第七課";
+                ViewBag.Colume13 = "第八課";
+                ViewBag.Colume14 = "第九課";
+                ViewBag.Colume15 = "第十課";
+                ViewBag.Colume16 = "第十一課";
+                ViewBag.Colume17 = "第十二課";
+                ViewBag.Colume18 = "第十三課";
+                ViewBag.Colume19 = "第十四課";
+                ViewBag.Colume20 = "第十五課";
+                ViewBag.Colume21 = "作業A";
+                ViewBag.Colume22 = "作業B";
+                ViewBag.Colume23 = "作業C";
+                ViewBag.Colume24 = "作業D";
+                ViewBag.Colume25 = "作業E";
+            }
+            catch (System.Exception e)
+            {
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
+
+                throw e;
+            }
+        }
+
         [HttpPost]
         public IActionResult SaveFeeManager(String aResult)
         {
