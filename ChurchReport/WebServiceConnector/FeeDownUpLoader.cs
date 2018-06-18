@@ -76,7 +76,7 @@ namespace ChurchReport.WebServiceConnector
         #endregion
         #region 真實運作區塊，並非模擬區塊
         #region 主程式區
-        public List<Fee> GetFeeList(String Account, String Password, ref String Result)
+        public List<Fee> GetFeeList(String Account, String Password, ref String Result, ref ClassName aClassName )
         {
             // 取得登入者
             m_ContactEntity = m_ToolUtilityClass.RetrieveContactEntityByAccountNumber(Account, Password);
@@ -84,7 +84,7 @@ namespace ChurchReport.WebServiceConnector
             if (m_ContactEntity == null) return m_FeeDataList = new List<Fee>(); // 沒找到就直接離開
 
             //實際要回傳，不是模擬
-            SetFeeDataList(ref Result);
+            SetFeeDataList(ref Result, ref aClassName);
 
             return m_FeeDataList;
         }
@@ -424,7 +424,7 @@ namespace ChurchReport.WebServiceConnector
         #endregion
         #endregion
         #region 下載資料
-        public void SetFeeDataList( ref String Result  )
+        public void SetFeeDataList( ref String Result, ref ClassName aClassName)
         {
             // 初始化收費與點名紀錄
             m_FeeDataList = new List<Fee>();
@@ -433,10 +433,10 @@ namespace ChurchReport.WebServiceConnector
             EntityCollection aDiscipleLessonsEntityCollection = m_ToolUtilityClass.QueryEntityListByDate("contact", "contactid", this.m_ContactEntity.Id.ToString(), "new_contact_new_disciple_lessons_fee", "new_disciple_lessons");
 
             //處理一個一個的課程
-            ProcesseDiscipleLessons(ref aDiscipleLessonsEntityCollection, ref Result);
+            ProcesseDiscipleLessons(ref aDiscipleLessonsEntityCollection, ref Result, ref aClassName);
 
         }
-        public void ProcesseDiscipleLessons(ref EntityCollection aDiscipleLessonsEntityCollection, ref String Result)
+        public void ProcesseDiscipleLessons(ref EntityCollection aDiscipleLessonsEntityCollection, ref String Result, ref ClassName aClassName)
         {
             foreach (Entity aDiscipleLessons in aDiscipleLessonsEntityCollection.Entities)
             {
@@ -444,6 +444,9 @@ namespace ChurchReport.WebServiceConnector
 
                 // 處理一個一個的課程
                 //Result += "課程名稱" + this.m_ToolUtilityClass.GetEntityStringAttribute( aDiscipleLessons, "new_name");
+
+                // 設定每節課的名稱及作業名稱
+                ProcesseClassName( aDiscipleLessons, ref aClassName);
 
                 // 取得與課程相關的上課紀錄
                 EntityCollection aStorLessonsEntityCollection = m_ToolUtilityClass.QueryEntityList("new_disciple_lessons", "new_disciple_lessonsid", aDiscipleLessons.Id.ToString(), "new_new_disciple_lessons_new_stor_les", "new_stor_lessons");
@@ -456,6 +459,32 @@ namespace ChurchReport.WebServiceConnector
                 //Result += Environment.NewLine;
             }
         }
+        public void ProcesseClassName(Entity aDiscipleLessons, ref ClassName aClassName)
+        {
+            // 設定每節課的名稱及作業名稱
+            aClassName.Lesson1 = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDiscipleLessons, "new_l1_name");
+            aClassName.Lesson2 = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDiscipleLessons, "new_l2_name");
+            aClassName.Lesson3 = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDiscipleLessons, "new_l3_name");
+            aClassName.Lesson4 = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDiscipleLessons, "new_l4_name");
+            aClassName.Lesson5 = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDiscipleLessons, "new_l5_name");
+            aClassName.Lesson6 = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDiscipleLessons, "new_l6_name");
+            aClassName.Lesson7 = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDiscipleLessons, "new_l7_name");
+            aClassName.Lesson8 = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDiscipleLessons, "new_l8_name");
+            aClassName.Lesson9 = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDiscipleLessons, "new_l9_name");
+            aClassName.Lesson10 = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDiscipleLessons, "new_l10_name");
+            aClassName.Lesson11 = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDiscipleLessons, "new_l11_name");
+            aClassName.Lesson12 = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDiscipleLessons, "new_l12_name");
+            aClassName.Lesson13 = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDiscipleLessons, "new_l13_name");
+            aClassName.Lesson14 = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDiscipleLessons, "new_l14_name");
+            aClassName.Lesson15 = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDiscipleLessons, "new_l15_name");
+            aClassName.HomeWorkA = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDiscipleLessons, "new_homework1");
+            aClassName.HomeWorkB = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDiscipleLessons, "new_homework2");
+            aClassName.HomeWorkC = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDiscipleLessons, "new_homework3");
+            aClassName.HomeWorkD = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDiscipleLessons, "new_homework4");
+            aClassName.HomeWorkE = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDiscipleLessons, "new_homework5");
+
+        }
+
         public void ProcesseStorLessons(Entity aDiscipleLessons, ref EntityCollection aStorLessonsEntityCollection, ref String Result)
         {
             int TotalFeeAmount = 0;

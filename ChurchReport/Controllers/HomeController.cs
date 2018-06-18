@@ -554,26 +554,26 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                ViewBag.Colume6 = "第一課333";
-                ViewBag.Colume7 = "第二課444";
-                ViewBag.Colume8 = "第三課555";
-                ViewBag.Colume9 = "第四課";
-                ViewBag.Colume10 = "第五課";
-                ViewBag.Colume11 = "第六課";
-                ViewBag.Colume12 = "第七課";
-                ViewBag.Colume13 = "第八課";
-                ViewBag.Colume14 = "第九課";
-                ViewBag.Colume15 = "第十課";
-                ViewBag.Colume16 = "第十一課";
-                ViewBag.Colume17 = "第十二課";
-                ViewBag.Colume18 = "第十三課";
-                ViewBag.Colume19 = "第十四課";
-                ViewBag.Colume20 = "第十五課";
-                ViewBag.Colume21 = "作業A";
-                ViewBag.Colume22 = "作業B";
-                ViewBag.Colume23 = "作業C";
-                ViewBag.Colume24 = "作業D";
-                ViewBag.Colume25 = "作業E";
+                ViewBag.Colume6 = m_InMemoryDataContextSmallGroup.FeeList.m_ClassName.Lesson1;
+                ViewBag.Colume7 = m_InMemoryDataContextSmallGroup.FeeList.m_ClassName.Lesson2;
+                ViewBag.Colume8 = m_InMemoryDataContextSmallGroup.FeeList.m_ClassName.Lesson3;
+                ViewBag.Colume9 = m_InMemoryDataContextSmallGroup.FeeList.m_ClassName.Lesson4;
+                ViewBag.Colume10 =m_InMemoryDataContextSmallGroup.FeeList.m_ClassName.Lesson5;
+                ViewBag.Colume11 =m_InMemoryDataContextSmallGroup.FeeList.m_ClassName.Lesson6;
+                ViewBag.Colume12 =m_InMemoryDataContextSmallGroup.FeeList.m_ClassName.Lesson7;
+                ViewBag.Colume13 =m_InMemoryDataContextSmallGroup.FeeList.m_ClassName.Lesson8;
+                ViewBag.Colume14 =m_InMemoryDataContextSmallGroup.FeeList.m_ClassName.Lesson9;
+                ViewBag.Colume15 =m_InMemoryDataContextSmallGroup.FeeList.m_ClassName.Lesson10;
+                ViewBag.Colume16 =m_InMemoryDataContextSmallGroup.FeeList.m_ClassName.Lesson11;
+                ViewBag.Colume17 =m_InMemoryDataContextSmallGroup.FeeList.m_ClassName.Lesson12;
+                ViewBag.Colume18 =m_InMemoryDataContextSmallGroup.FeeList.m_ClassName.Lesson13;
+                ViewBag.Colume19 =m_InMemoryDataContextSmallGroup.FeeList.m_ClassName.Lesson14;
+                ViewBag.Colume20 =m_InMemoryDataContextSmallGroup.FeeList.m_ClassName.Lesson15;
+                ViewBag.Colume21 =m_InMemoryDataContextSmallGroup.FeeList.m_ClassName.HomeWorkA;
+                ViewBag.Colume22 =m_InMemoryDataContextSmallGroup.FeeList.m_ClassName.HomeWorkB;
+                ViewBag.Colume23 =m_InMemoryDataContextSmallGroup.FeeList.m_ClassName.HomeWorkC;
+                ViewBag.Colume24 =m_InMemoryDataContextSmallGroup.FeeList.m_ClassName.HomeWorkD;
+                ViewBag.Colume25 =m_InMemoryDataContextSmallGroup.FeeList.m_ClassName.HomeWorkE;
             }
             catch (System.Exception e)
             {

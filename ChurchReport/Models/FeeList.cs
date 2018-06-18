@@ -39,6 +39,8 @@ namespace ChurchReport.Models
 
         FeeDownUpLoader m_FeeDownUpLoader = new FeeDownUpLoader();
 
+        public ClassName m_ClassName = new ClassName();
+
         #endregion
 
         #region 初始化繳費與點名
@@ -51,12 +53,13 @@ namespace ChurchReport.Models
 
         public void SetupFeeDataList(String Account, String Password)
         {
+
             m_Account = Account;
             m_Password = Password;
 
             String LocalResult = "";
 
-            FeeDataList = m_FeeDownUpLoader.GetFeeList(Account, Password, ref LocalResult);
+            FeeDataList = m_FeeDownUpLoader.GetFeeList(Account, Password, ref LocalResult, ref m_ClassName );
             if(FeeDataList.Count > 0 )
             {
                 FeeType = "有繳費點名";
@@ -71,7 +74,8 @@ namespace ChurchReport.Models
         {
             String LocalResult = "";
 
-            FeeDataList = m_FeeDownUpLoader.GetFeeList( m_Account, m_Password, ref LocalResult);
+
+            FeeDataList = m_FeeDownUpLoader.GetFeeList( m_Account, m_Password, ref LocalResult, ref m_ClassName );
             if (FeeDataList.Count > 0)
             {
                 FeeType = "有繳費點名";
