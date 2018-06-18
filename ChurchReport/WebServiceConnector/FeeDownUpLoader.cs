@@ -445,7 +445,8 @@ namespace ChurchReport.WebServiceConnector
                 // 處理一個一個的課程
                 //Result += "課程名稱" + this.m_ToolUtilityClass.GetEntityStringAttribute( aDiscipleLessons, "new_name");
 
-                // 設定每節課的名稱及作業名稱
+                // 設定每節課的名稱及作業名稱，因為如果一個人點名一門課程以上就會無法正確顯示表頭的課程名稱，
+                // 為避免造成混淆，乾脆直接恢復到預設值，等將來MASTER-DETAIL版本時再來改
                 if (aDiscipleLessonsEntityCollection.Entities.Count == 1)
                 { ProcesseClassName(aDiscipleLessons, ref aClassName); }
 
