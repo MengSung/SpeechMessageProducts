@@ -1991,16 +1991,214 @@ namespace ToolUtilityNameSpace
         {
             try
             {
+
+                #region // Create the ConditionExpression.
+                #region ParentEntityIdName Condition
+                ConditionExpression condition = new ConditionExpression();
+                // Set the condition to be when the account owner's last name is not Cannon. new_new_receive_drugs_prescribed_new_
+                condition.AttributeName = AssociationName;
+                condition.Operator = ConditionOperator.Equal;
+                condition.Values.Add(ParentEntityId);
+                #endregion
+                #region StateCondidtion Condition
+                ConditionExpression StateCondidtion = new ConditionExpression();
+                // Set the condition to be when the account owner's last name is not Cannon. new_new_receive_drugs_prescribed_new_
+                //StateCondidtion.AttributeName = "statuscode";
+                StateCondidtion.AttributeName = "statecode";
+                StateCondidtion.Operator = ConditionOperator.Equal;
+                //StateCondidtion.Values.Add("Inactive");
+                //StateCondidtion.Values.Add("Active");
+                StateCondidtion.Values.Add(0);
+                //StateCondidtion.Values.Add("使用中");
+                #endregion
+
+                // Create a ConditionExpression.
+                //ConditionExpression StartDateCondidtion = new ConditionExpression("new_join_start_date", ConditionOperator.LessEqual, DateTime.UtcNow);
+                //ConditionExpression EndDateCondidtion = new ConditionExpression("new_join_end_date", ConditionOperator.GreaterEqual, DateTime.UtcNow);
+                //ConditionExpression StartDateCondidtion = new ConditionExpression("new_class_start_date", ConditionOperator.LessEqual, DateTime.UtcNow);
+                ConditionExpression EndDateCondidtion = new ConditionExpression("new_sunday_date", ConditionOperator.GreaterEqual, DateTime.UtcNow.AddDays(-32));
+
+
+                // Build the filter that is based on the condition.
+                FilterExpression filter = new FilterExpression();
+                filter.FilterOperator = LogicalOperator.And;
+                filter.Conditions.Add(condition);
+                filter.Conditions.Add(StateCondidtion);
+                //filter.Conditions.Add(StartDateCondidtion);
+                filter.Conditions.Add(EndDateCondidtion);
+                #endregion
+
+
+                #region// Create an instance of the query expression class.
+                QueryExpression query = new QueryExpression();
+
+                // Set the query properties.
+                query.EntityName = ChildEntityName;
+                query.ColumnSet.AllColumns = true;
+
+                query.Criteria = filter;
+                #endregion
+
+                #region// 根據數字排序後傳回來
+                OrderExpression OrderBySunday = new OrderExpression();
+                OrderBySunday.AttributeName = "new_sunday_date";
+                OrderBySunday.OrderType = OrderType.Ascending;
+                ////OrderBySerial.OrderType = OrderType.Descending;
+                query.Orders.Add(OrderBySunday);
+                #endregion
+
+                #region // 執行 Query 的Request
+                // Create the request.
+                RetrieveMultipleRequest retrieve = new RetrieveMultipleRequest();
+
+                // Set the request properties.
+                retrieve.Query = query;
+                //retrieve.ReturnDynamicEntities = true;
+
+                // Execute the request.
+                RetrieveMultipleResponse request;
+                if (CRM_TYPE == "DYNAMICS365")
+                {
+                    request = (RetrieveMultipleResponse)this.m_OrganizationService.Execute(retrieve);
+                }
+                else
+                {
+                    request = (RetrieveMultipleResponse)this.m_Crm2011OrganizationService.Execute(retrieve);
+                }
+
+                #endregion
+
+                return request.EntityCollection;
+                //}
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                //Monitor.Exit(this);
+                throw e;
+            }
+        }
+        public EntityCollection QueryPresentRecordSortBySunday_BACKUP(String ParentEntityName, String ParentEntityIdName, String ParentEntityId, String AssociationName, String ChildEntityName)
+        {
+            try
+            {
                 //lock (m_QueryManyToOneLocker)
                 //{
-                    #region // Create the ConditionExpression.
-                    ConditionExpression condition = new ConditionExpression();
+                #region // Create the ConditionExpression.
+                ConditionExpression condition = new ConditionExpression();
 
+                // Set the condition to be when the account owner's last name is not Cannon. new_new_receive_drugs_prescribed_new_
+                condition.AttributeName = ParentEntityIdName;
+                condition.Operator = ConditionOperator.Equal;
+                condition.Values.Add(ParentEntityId);
+
+                ConditionExpression StateCondidtion = new ConditionExpression();
+                // Set the condition to be when the account owner's last name is not Cannon. new_new_receive_drugs_prescribed_new_
+                //StateCondidtion.AttributeName = "statuscode";
+                StateCondidtion.AttributeName = "statecode";
+                StateCondidtion.Operator = ConditionOperator.Equal;
+                //StateCondidtion.Values.Add("Inactive");
+                //StateCondidtion.Values.Add("Active");
+                StateCondidtion.Values.Add(0);
+                //StateCondidtion.Values.Add("使用中");
+
+                // Build the filter that is based on the condition.
+                FilterExpression filter = new FilterExpression();
+                filter.FilterOperator = LogicalOperator.And;
+                filter.Conditions.Add(condition);
+                filter.Conditions.Add(StateCondidtion);
+                #endregion
+
+                #region // Create a LinkEntity to link the owner's information to the account.
+                LinkEntity link = new LinkEntity()
+                {
+                    // Set the LinkEntity properties.
+                    LinkCriteria = filter,
+
+                    // Set the linking entity to account.
+                    LinkFromEntityName = ChildEntityName,
+
+                    // Set the linking attribute to owninguser.
+                    LinkFromAttributeName = AssociationName,
+
+                    // The attribute being linked to is systemuserid.
+                    LinkToAttributeName = ParentEntityIdName,
+
+                    // The entity being linked to is systemuser.
+                    LinkToEntityName = ParentEntityName
+                };
+                #endregion
+
+                #region// Create an instance of the query expression class.
+                QueryExpression query = new QueryExpression();
+
+                // Set the query properties.
+                query.EntityName = ChildEntityName;
+                query.ColumnSet.AllColumns = true;
+                query.LinkEntities.Add(link);
+                #endregion
+
+                #region// 根據數字排序後傳回來
+                OrderExpression OrderBySunday = new OrderExpression();
+                OrderBySunday.AttributeName = "new_sunday_date";
+                OrderBySunday.OrderType = OrderType.Ascending;
+                ////OrderBySerial.OrderType = OrderType.Descending;
+                query.Orders.Add(OrderBySunday);
+                #endregion
+
+                #region // 執行 Query 的Request
+                // Create the request.
+                RetrieveMultipleRequest retrieve = new RetrieveMultipleRequest();
+
+                // Set the request properties.
+                retrieve.Query = query;
+                //retrieve.ReturnDynamicEntities = true;
+
+                // Execute the request.
+                RetrieveMultipleResponse request;
+                if (CRM_TYPE == "DYNAMICS365")
+                {
+                    request = (RetrieveMultipleResponse)this.m_OrganizationService.Execute(retrieve);
+                }
+                else
+                {
+                    request = (RetrieveMultipleResponse)this.m_Crm2011OrganizationService.Execute(retrieve);
+                }
+
+                #endregion
+
+                return request.EntityCollection;
+                //}
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                //Monitor.Exit(this);
+                throw e;
+            }
+        }
+
+
+
+
+
+        public EntityCollection QueryEntityListByDate(String ParentEntityName, String ParentEntityIdName, String ParentEntityId, String AssociationName, String ChildEntityName)
+        {
+            try
+            {
+                //lock (m_QueryManyToOneLocker)
+                {
+                    #region // Create the ConditionExpression.
+                    #region ParentEntityIdName Condition
+                    ConditionExpression condition = new ConditionExpression();
                     // Set the condition to be when the account owner's last name is not Cannon. new_new_receive_drugs_prescribed_new_
-                    condition.AttributeName = ParentEntityIdName;
+                    condition.AttributeName = AssociationName;
                     condition.Operator = ConditionOperator.Equal;
                     condition.Values.Add(ParentEntityId);
-
+                    #endregion
+                    #region StateCondidtion Condition
                     ConditionExpression StateCondidtion = new ConditionExpression();
                     // Set the condition to be when the account owner's last name is not Cannon. new_new_receive_drugs_prescribed_new_
                     //StateCondidtion.AttributeName = "statuscode";
@@ -2010,32 +2208,22 @@ namespace ToolUtilityNameSpace
                     //StateCondidtion.Values.Add("Active");
                     StateCondidtion.Values.Add(0);
                     //StateCondidtion.Values.Add("使用中");
+                    #endregion
+
+                    // Create a ConditionExpression.
+                    //ConditionExpression StartDateCondidtion = new ConditionExpression("new_join_start_date", ConditionOperator.LessEqual, DateTime.UtcNow);
+                    //ConditionExpression EndDateCondidtion = new ConditionExpression("new_join_end_date", ConditionOperator.GreaterEqual, DateTime.UtcNow);
+                    //ConditionExpression StartDateCondidtion = new ConditionExpression("new_class_start_date", ConditionOperator.LessEqual, DateTime.UtcNow);
+                    ConditionExpression EndDateCondidtion = new ConditionExpression("new_class_end_date", ConditionOperator.GreaterEqual, DateTime.UtcNow.AddDays(-7));//課程報名後7天仍然可以繳費
+
 
                     // Build the filter that is based on the condition.
                     FilterExpression filter = new FilterExpression();
                     filter.FilterOperator = LogicalOperator.And;
                     filter.Conditions.Add(condition);
                     filter.Conditions.Add(StateCondidtion);
-                    #endregion
-
-                    #region // Create a LinkEntity to link the owner's information to the account.
-                    LinkEntity link = new LinkEntity()
-                    {
-                        // Set the LinkEntity properties.
-                        LinkCriteria = filter,
-
-                        // Set the linking entity to account.
-                        LinkFromEntityName = ChildEntityName,
-
-                        // Set the linking attribute to owninguser.
-                        LinkFromAttributeName = AssociationName,
-
-                        // The attribute being linked to is systemuserid.
-                        LinkToAttributeName = ParentEntityIdName,
-
-                        // The entity being linked to is systemuser.
-                        LinkToEntityName = ParentEntityName
-                    };
+                    //filter.Conditions.Add(StartDateCondidtion);
+                    filter.Conditions.Add(EndDateCondidtion);
                     #endregion
 
                     #region// Create an instance of the query expression class.
@@ -2044,15 +2232,14 @@ namespace ToolUtilityNameSpace
                     // Set the query properties.
                     query.EntityName = ChildEntityName;
                     query.ColumnSet.AllColumns = true;
-                    query.LinkEntities.Add(link);
+                    query.Criteria = filter;
                     #endregion
 
                     #region// 根據數字排序後傳回來
-                    OrderExpression OrderBySunday = new OrderExpression();
-                    OrderBySunday.AttributeName = "new_sunday_date";
-                    OrderBySunday.OrderType = OrderType.Ascending;
-                    ////OrderBySerial.OrderType = OrderType.Descending;
-                    query.Orders.Add(OrderBySunday);
+                    //OrderExpression OrderBySerial = new OrderExpression();
+                    //OrderBySerial.AttributeName = "listname";
+                    //OrderBySerial.OrderType = OrderType.Ascending;
+                    //query.Orders.Add(OrderBySerial);
                     #endregion
 
                     #region // 執行 Query 的Request
@@ -2063,7 +2250,7 @@ namespace ToolUtilityNameSpace
                     retrieve.Query = query;
                     //retrieve.ReturnDynamicEntities = true;
 
-                    // Execute the request.
+                    // Execute the request
                     RetrieveMultipleResponse request;
                     if (CRM_TYPE == "DYNAMICS365")
                     {
@@ -2073,11 +2260,11 @@ namespace ToolUtilityNameSpace
                     {
                         request = (RetrieveMultipleResponse)this.m_Crm2011OrganizationService.Execute(retrieve);
                     }
-
                     #endregion
 
                     return request.EntityCollection;
-                //}
+                }
+
             }
             catch (System.Exception e)
             {
@@ -2612,96 +2799,6 @@ namespace ToolUtilityNameSpace
                     filter.Conditions.Add(StateCondidtion);
                     //filter.Conditions.Add(StartDateCondidtion);
                     //filter.Conditions.Add(EndDateCondidtion);
-                    #endregion
-
-                    #region// Create an instance of the query expression class.
-                    QueryExpression query = new QueryExpression();
-
-                    // Set the query properties.
-                    query.EntityName = ChildEntityName;
-                    query.ColumnSet.AllColumns = true;
-                    query.Criteria = filter;
-                    #endregion
-
-                    #region// 根據數字排序後傳回來
-                    //OrderExpression OrderBySerial = new OrderExpression();
-                    //OrderBySerial.AttributeName = "listname";
-                    //OrderBySerial.OrderType = OrderType.Ascending;
-                    //query.Orders.Add(OrderBySerial);
-                    #endregion
-
-                    #region // 執行 Query 的Request
-                    // Create the request.
-                    RetrieveMultipleRequest retrieve = new RetrieveMultipleRequest();
-
-                    // Set the request properties.
-                    retrieve.Query = query;
-                    //retrieve.ReturnDynamicEntities = true;
-
-                    // Execute the request
-                    RetrieveMultipleResponse request;
-                    if (CRM_TYPE == "DYNAMICS365")
-                    {
-                        request = (RetrieveMultipleResponse)this.m_OrganizationService.Execute(retrieve);
-                    }
-                    else
-                    {
-                        request = (RetrieveMultipleResponse)this.m_Crm2011OrganizationService.Execute(retrieve);
-                    }
-                    #endregion
-
-                    return request.EntityCollection;
-                }
-
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-
-                //Monitor.Exit(this);
-                throw e;
-            }
-        }
-        public EntityCollection QueryEntityListByDate(String ParentEntityName, String ParentEntityIdName, String ParentEntityId, String AssociationName, String ChildEntityName)
-        {
-            try
-            {
-                //lock (m_QueryManyToOneLocker)
-                {
-                    #region // Create the ConditionExpression.
-                    #region ParentEntityIdName Condition
-                    ConditionExpression condition = new ConditionExpression();
-                    // Set the condition to be when the account owner's last name is not Cannon. new_new_receive_drugs_prescribed_new_
-                    condition.AttributeName = AssociationName;
-                    condition.Operator = ConditionOperator.Equal;
-                    condition.Values.Add(ParentEntityId);
-                    #endregion
-                    #region StateCondidtion Condition
-                    ConditionExpression StateCondidtion = new ConditionExpression();
-                    // Set the condition to be when the account owner's last name is not Cannon. new_new_receive_drugs_prescribed_new_
-                    //StateCondidtion.AttributeName = "statuscode";
-                    StateCondidtion.AttributeName = "statecode";
-                    StateCondidtion.Operator = ConditionOperator.Equal;
-                    //StateCondidtion.Values.Add("Inactive");
-                    //StateCondidtion.Values.Add("Active");
-                    StateCondidtion.Values.Add(0);
-                    //StateCondidtion.Values.Add("使用中");
-                    #endregion
-
-                    // Create a ConditionExpression.
-                    //ConditionExpression StartDateCondidtion = new ConditionExpression("new_join_start_date", ConditionOperator.LessEqual, DateTime.UtcNow);
-                    //ConditionExpression EndDateCondidtion = new ConditionExpression("new_join_end_date", ConditionOperator.GreaterEqual, DateTime.UtcNow);
-                    //ConditionExpression StartDateCondidtion = new ConditionExpression("new_class_start_date", ConditionOperator.LessEqual, DateTime.UtcNow);
-                    ConditionExpression EndDateCondidtion = new ConditionExpression("new_class_end_date", ConditionOperator.GreaterEqual, DateTime.UtcNow.AddDays(-7));//課程報名後7天仍然可以繳費
-
-
-                    // Build the filter that is based on the condition.
-                    FilterExpression filter = new FilterExpression();
-                    filter.FilterOperator = LogicalOperator.And;
-                    filter.Conditions.Add(condition);
-                    filter.Conditions.Add(StateCondidtion);
-                    //filter.Conditions.Add(StartDateCondidtion);
-                    filter.Conditions.Add(EndDateCondidtion);
                     #endregion
 
                     #region// Create an instance of the query expression class.

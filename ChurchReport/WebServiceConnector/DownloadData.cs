@@ -33,11 +33,12 @@ namespace ChurchReport.WebServiceConnector
 
         bool m_SetIdentityFlag = false;
         #endregion
-
         #region 常數參數
 
         //private const String CRM_TYPE = "CRM2011";
         private const String CRM_TYPE = "DYNAMICS365";
+
+        private const bool TRANSFER_IDENTITY_FLAG = false;
 
         //private const int MONTH_PERIOD = 2;      //幾個月內出席超過這次數就會改變委身類型=>小組組員
         private const int WEEK_PERIOD = 8;      //過去幾　WEEK_PERIOD　周內出席超過這次數就會改變委身類型=>小組組員
@@ -2022,15 +2023,18 @@ namespace ChurchReport.WebServiceConnector
                     // 只要設定一次就好
                     m_SetIdentityFlag = true;
 
-                    // 新朋友變為未入組
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(ref aContact, "customertypecode", 100000004);
-                    if (CRM_TYPE == "DYNAMICS365")
+                    if (TRANSFER_IDENTITY_FLAG == true)
                     {
-                        this.m_ToolUtilityClass.UpdateEntityDynamics365(ref this.m_ToolUtilityClass.m_OrganizationService, ref aContact);
-                    }
-                    else
-                    {
-                        this.m_ToolUtilityClass.UpdateEntityCrm2011(ref this.m_ToolUtilityClass.m_Crm2011OrganizationService, ref aContact);
+                        // 新朋友變為未入組
+                        this.m_ToolUtilityClass.SetOptionSetAttribute(ref aContact, "customertypecode", 100000004);
+                        if (CRM_TYPE == "DYNAMICS365")
+                        {
+                            this.m_ToolUtilityClass.UpdateEntityDynamics365(ref this.m_ToolUtilityClass.m_OrganizationService, ref aContact);
+                        }
+                        else
+                        {
+                            this.m_ToolUtilityClass.UpdateEntityCrm2011(ref this.m_ToolUtilityClass.m_Crm2011OrganizationService, ref aContact);
+                        }
                     }
                 }
                 else { }
@@ -2043,16 +2047,19 @@ namespace ChurchReport.WebServiceConnector
                     // 只要設定一次就好
                     m_SetIdentityFlag = true;
 
-                    // 未入組變為未入組結案(超過或是等於)
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(ref aContact, "customertypecode", 100000008);
+                    if ( TRANSFER_IDENTITY_FLAG == true )
+                    {
+                        // 未入組變為未入組結案(超過或是等於)
+                        this.m_ToolUtilityClass.SetOptionSetAttribute(ref aContact, "customertypecode", 100000001);
 
-                    if (CRM_TYPE == "DYNAMICS365")
-                    {
-                        this.m_ToolUtilityClass.UpdateEntityDynamics365(ref this.m_ToolUtilityClass.m_OrganizationService, ref aContact );
-                    }
-                    else
-                    {
-                        this.m_ToolUtilityClass.UpdateEntityCrm2011(ref this.m_ToolUtilityClass.m_Crm2011OrganizationService, ref aContact );
+                        if (CRM_TYPE == "DYNAMICS365")
+                        {
+                            this.m_ToolUtilityClass.UpdateEntityDynamics365(ref this.m_ToolUtilityClass.m_OrganizationService, ref aContact);
+                        }
+                        else
+                        {
+                            this.m_ToolUtilityClass.UpdateEntityCrm2011(ref this.m_ToolUtilityClass.m_Crm2011OrganizationService, ref aContact);
+                        }
                     }
 
                 }

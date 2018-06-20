@@ -39,6 +39,8 @@ namespace ChurchReport.WebServiceConnector
         //private const String CRM_TYPE = "CRM2011";
         private const String CRM_TYPE = "DYNAMICS365";
 
+        private const bool TRANSFER_IDENTITY_FLAG = false;
+
         //private const int MONTH_PERIOD = 2;      //幾個月內出席超過這次數就會改變委身類型=>小組組員
         private const int WEEK_PERIOD = 8;      //過去幾　WEEK_PERIOD　周內出席超過這次數就會改變委身類型=>小組組員
         private const int MINIMUM_THRESHOLD = 4;      //2個月內出席超過這次數就會改變委身類型=>小組組員
@@ -2443,15 +2445,18 @@ namespace ChurchReport.WebServiceConnector
                     // 只要設定一次就好
                     m_SetIdentityFlag = true;
 
-                    // 新朋友變為未入組
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(ref aContact, "customertypecode", 100000004);
-                    if (CRM_TYPE == "DYNAMICS365")
+                    if (TRANSFER_IDENTITY_FLAG == true)
                     {
-                        this.m_ToolUtilityClass.UpdateEntityDynamics365(ref this.m_ToolUtilityClass.m_OrganizationService, ref aContact);
-                    }
-                    else
-                    {
-                        this.m_ToolUtilityClass.UpdateEntityCrm2011(ref this.m_ToolUtilityClass.m_Crm2011OrganizationService, ref aContact);
+                        // 新朋友變為未入組
+                        this.m_ToolUtilityClass.SetOptionSetAttribute(ref aContact, "customertypecode", 100000004);
+                        if (CRM_TYPE == "DYNAMICS365")
+                        {
+                            this.m_ToolUtilityClass.UpdateEntityDynamics365(ref this.m_ToolUtilityClass.m_OrganizationService, ref aContact);
+                        }
+                        else
+                        {
+                            this.m_ToolUtilityClass.UpdateEntityCrm2011(ref this.m_ToolUtilityClass.m_Crm2011OrganizationService, ref aContact);
+                        }
                     }
                 }
                 else { }
@@ -2464,16 +2469,19 @@ namespace ChurchReport.WebServiceConnector
                     // 只要設定一次就好
                     m_SetIdentityFlag = true;
 
-                    // 未入組變為未入組結案(超過或是等於)
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(ref aContact, "customertypecode", 100000008);
+                    if (TRANSFER_IDENTITY_FLAG == true)
+                    {
+                        // 未入組變為未入組結案(超過或是等於)
+                        this.m_ToolUtilityClass.SetOptionSetAttribute(ref aContact, "customertypecode", 100000001);
 
-                    if (CRM_TYPE == "DYNAMICS365")
-                    {
-                        this.m_ToolUtilityClass.UpdateEntityDynamics365(ref this.m_ToolUtilityClass.m_OrganizationService, ref aContact);
-                    }
-                    else
-                    {
-                        this.m_ToolUtilityClass.UpdateEntityCrm2011(ref this.m_ToolUtilityClass.m_Crm2011OrganizationService, ref aContact);
+                        if (CRM_TYPE == "DYNAMICS365")
+                        {
+                            this.m_ToolUtilityClass.UpdateEntityDynamics365(ref this.m_ToolUtilityClass.m_OrganizationService, ref aContact);
+                        }
+                        else
+                        {
+                            this.m_ToolUtilityClass.UpdateEntityCrm2011(ref this.m_ToolUtilityClass.m_Crm2011OrganizationService, ref aContact);
+                        }
                     }
 
                 }
@@ -4190,30 +4198,24 @@ namespace ChurchReport.WebServiceConnector
             {
                 case 100000006:
                     return "01. 牧師師母";
-                case 100000009:
-                    return "02. 區牧";
                 case 100000003:
-                    return "03. 區長";
+                    return "02. 區長";
                 case 100000008:
-                    return "04. 小組長";
-                case 100000002:
-                    return "05. 實習小組長";
-                case 100000010:
-                    return "06. 門徒";
+                    return "03. 小組長";
+                case 100000012:
+                    return "04. 副組長";
                 case 1:
-                    return "07. 小組組員";
+                    return "05. 小組組員";
                 case 100000005:
-                    return "08. 幸福BEST";
+                    return "06. 幸福BEST";
                 case 100000004:
-                    return "09. 未入組";
+                    return "07. 未入組";
                 case 100000000:
-                    return "10. 新朋友";
+                    return "08. 新朋友";
                 case 100000007:
-                    return "11. 外教會.訪客";
+                    return "09. 外教會.訪客";
                 case 100000001:
-                    return "12. 結案";
-                case 100000011:
-                    return "13. 未進小組直系親屬";
+                    return "10. 結案";
                 default:
                     return ".";
             }

@@ -42,6 +42,8 @@ namespace ChurchReport.WebServiceConnector
         //private const String CRM_TYPE = "CRM2011";
         private const String CRM_TYPE = "DYNAMICS365";
 
+        private const bool TRANSFER_IDENTITY_FLAG = false;
+
         //private const int MONTH_PERIOD = 2;      //幾個月內出席超過這次數就會改變委身類型=>小組組員
         private const int WEEK_PERIOD = 8;      //過去幾　WEEK_PERIOD　周內出席超過這次數就會改變委身類型=>小組組員
         private const int MINIMUM_THRESHOLD = 4;      //2個月內出席超過這次數就會改變委身類型=>小組組員
@@ -1671,33 +1673,38 @@ namespace ChurchReport.WebServiceConnector
             {
 
                 //m_SetIdentityFlag = false; // 因為新朋友、未入組會變更委身類型，旗標防止設定太多次，false表示尚未設定
-
-                // 新朋友
-                if (Counter >= NewComeMaxiNumber && m_SetIdentityFlag == false)
+                if (TRANSFER_IDENTITY_FLAG == true)
                 {
-                    // 只要設定一次就好
-                    m_SetIdentityFlag = true;
+                    // 新朋友
+                    if (Counter >= NewComeMaxiNumber && m_SetIdentityFlag == false)
+                    {
+                        // 只要設定一次就好
+                        m_SetIdentityFlag = true;
 
-                    // 新朋友變為未入組
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(ref aContact, "customertypecode", 100000004);
-                    this.m_ToolUtilityClass.UpdateEntity( ref aContact);
+                        // 新朋友變為未入組
+                        this.m_ToolUtilityClass.SetOptionSetAttribute(ref aContact, "customertypecode", 100000004);
+                        this.m_ToolUtilityClass.UpdateEntity(ref aContact);
+                    }
+                    else { }
                 }
-                else { }
             }
             else if (aIdentityNumber == 100000004)
             {
-                //未入組
-                if (Counter >= UnGroupMaxiNumber && m_SetIdentityFlag == false)
+                if (TRANSFER_IDENTITY_FLAG == true)
                 {
-                    // 只要設定一次就好
-                    m_SetIdentityFlag = true;
+                    //未入組
+                    if (Counter >= UnGroupMaxiNumber && m_SetIdentityFlag == false)
+                    {
+                        // 只要設定一次就好
+                        m_SetIdentityFlag = true;
 
-                    // 未入組變為未入組結案(超過或是等於)
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(ref aContact, "customertypecode", 100000008);
+                        // 未入組變為未入組結案(超過或是等於)
+                        this.m_ToolUtilityClass.SetOptionSetAttribute(ref aContact, "customertypecode", 100000008);
 
-                    this.m_ToolUtilityClass.UpdateEntity(ref aContact);
+                        this.m_ToolUtilityClass.UpdateEntity(ref aContact);
+                    }
+                    else { }
                 }
-                else { }
             }
             else
             {
