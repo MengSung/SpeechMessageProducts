@@ -23,9 +23,13 @@ namespace ChurchReport.ViewModel
     {
         public IEnumerable<string> Images { get; set; }
         public string DisplayName { get; set; }
+        public string DisplayId { get; set; }
+        public string GroupId { get; set; }
+        public string RoomId { get; set; }
         public string LineUserId { get; set; }
+        public string ViewType { get; set; }
         public string FullName { get; set; }
         public string Mobile { get; set; }
-        public string EncodeUrl { get; set; }        
+        public string EncodeUrl { get; set; }
     }
 }

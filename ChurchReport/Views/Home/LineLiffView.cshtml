@@ -1,0 +1,331 @@
+﻿<!DOCTYPE html>
+
+@{
+    Layout = null;
+}
+<html>
+
+@model ChurchReport.ViewModel.LineBindingViewModel
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>台中思恩堂豐富教會</title>
+    <link href="~/favicon.ico" rel="shortcut icon" type="image/x-icon" />
+
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.css" />
+    <link rel="stylesheet" href="~/css/site.css" />
+    <link href="~/css/devextreme/dx.common.css" rel="stylesheet" />
+    <link href="~/css/devextreme/dx.light.css" rel="stylesheet" />
+
+    <script src="~/lib/jquery/dist/jquery.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.js"></script>
+
+    <script src="~/js/devextreme/cldr.js"></script>
+    <script src="~/js/devextreme/cldr/event.js"></script>
+    <script src="~/js/devextreme/cldr/supplemental.js"></script>
+    <script src="~/js/devextreme/cldr/unresolved.js"></script>
+
+    <script src="~/js/devextreme/globalize.js"></script>
+    <script src="~/js/devextreme/globalize/message.js"></script>
+    <script src="~/js/devextreme/globalize/number.js"></script>
+    <script src="~/js/devextreme/globalize/currency.js"></script>
+    <script src="~/js/devextreme/globalize/date.js"></script>
+
+    @* JSZip for client side export *@
+    @*<script src="~/js/devextreme/jszip.js"></script>*@
+
+    <script src="~/js/devextreme/dx.all.js"></script>
+    <script src="~/js/devextreme/vectormap-data/world.js"></script>
+    <script src="~/lib/devextreme-aspnet-data/js/dx.aspnet.data.js"></script>
+    <script src="~/js/devextreme/aspnet/dx.aspnet.mvc.js"></script>
+
+</head>
+
+<body>
+
+    <div class="widget-container" style="padding: 10px;">
+        @(Html.DevExtreme().Gallery()
+                        .ID("gallery")
+                        .DataSource(Model.Images)
+                        .Height(100)
+                        //.Width(600)
+                        //.InitialItemWidth(250)
+                        .StretchImages(true)
+                        .Loop(true)
+                        .SlideshowDelay(1500)
+        )
+    </div>
+
+    @*<div class="long-title"><h3 id="displaynamefield"></h3></div>*@
+    @*<p id="demo2">測試</p>*@
+    @*<p id="displaynamefield"></p>*@
+
+    <div class="long-title"><h3 id="displaynamefield"></h3></div>
+
+    <form data-ajax="true" data-ajax-begin="onBegin" data-ajax-success="onSuccess" asp-action="ProcessLineBinding" asp-controller="Home" method="post" style="text-align: center;">
+
+        <div class="dx-field" style="text-align: center;">
+            <div class="form-container-class" id="form-container" style="text-align: center;">
+                @(Html.DevExtreme().Form()
+                               .ID("form")
+                               .Items(items =>
+                               {
+
+                                   items.AddSimple()
+                                       .DataField("FullName")
+                                       .Label(l => l.Text("姓名"))
+                                       .Editor(e => e
+                                           .TextBox()
+                                           .Mode(TextBoxMode.Text)
+                                           .Disabled(false)
+                                           .Placeholder("輸入姓名")
+                                           .ShowClearButton(true)
+                                      //.Width(200)
+                                      );
+                                   items.AddSimple()
+                                       .DataField("Mobile")
+                                       .Label(l => l.Text("行動電話"))
+                                       .Editor(e => e
+                                           .TextBox()
+                                           .Mode(TextBoxMode.Text)
+                                           .Disabled(false)
+                                           .Placeholder("輸入行動電話")
+                                           .ShowClearButton(true)
+                                      //.Width(200)
+                                      );
+
+                                   items.AddSimple()
+                                       .DataField("LineUserId")
+                                       .Label(l => l.Text("Line Id").Visible(false))
+                                       .Editor(e => e
+                                           .TextBox()
+                                           .Mode(TextBoxMode.Text)
+                                           .Disabled(false)
+                                           .Placeholder("輸入行動電話")
+                                           .ShowClearButton(true)
+                                           .Value(Model.LineUserId)
+                                           .Visible(false)
+                                      //.Width(200)
+                                      );
+
+                               })
+                )
+            </div>
+        </div>
+        <div class="dx-field" style="text-align: center;">
+            <div id="buttonContainer" class="dx-button-icon">
+                @(Html.DevExtreme().Button()
+                                .Text("綁定")
+                                //.Type(ButtonType.Success)
+                                //.Type(ButtonType.Normal)
+                                .Type(ButtonType.Default)
+                                .ID("register-button")
+                                .UseSubmitBehavior(true)
+                                .OnClick("Register")
+                                .Width(100)
+                )
+            </div>
+            <div id="LoadPanel">
+                @(Html.DevExtreme().LoadPanel()
+                                .ID("loadPanel")
+                                .ShadingColor("rgba(0,0,0,0.4)")
+                                .Position(p => p.Of("#form-container"))
+                                .Visible(false)
+                                .ShowIndicator(true)
+                                .ShowPane(true)
+                                .Shading(true)
+                                .CloseOnOutsideClick(false)
+                                .Message("綁定中...")
+                                .Delay(5000)
+                                .Animation(l => l.Show(k => k.Easing(AnimationEasing.Swing)))
+                )
+            </div>
+        </div>
+
+    </form>
+
+    <div id="ToastContainer">
+        @(Html.DevExtreme().Toast()
+                        .ID("toast")
+                        .Position(p => p
+                        .At(HorizontalAlignment.Center, VerticalAlignment.Center)
+                        .Offset(0, 50))
+                        .Message("以利亞")
+                        .DisplayTime(2000)
+                        .MaxWidth(200)
+        )
+
+    </div>
+
+    <script src="https://d.line-scdn.net/liff/1.0/sdk.js"></script>
+    <script src="~/js/liff-starter.js"></script>
+
+    <script>
+        function getLoadPanelInstance() {
+            return $("#loadPanel").dxLoadPanel("instance");
+        }
+
+        function button_click() {
+            getLoadPanelInstance().show();
+        }
+
+        function loadPanel_shown(e) {
+            //    setTimeout(function () {
+            //        e.component.hide();
+            //    }, 3000);
+        }
+
+        function loadPanel_hidden() {
+        }
+
+        function Register(arg) {
+
+            getLoadPanelInstance().show();
+        }
+
+    </script>
+
+    <script type="text/javascript">
+        function onBegin() {
+        }
+
+        function onSuccess(data) {
+
+            getLoadPanelInstance().hide();
+
+            if (data.status == 1) {
+
+                //DevExpress.ui.notify( data.message, "success", 15000 );
+
+                DevExpress.ui.notify({
+                    displayTime: 15000,
+                    closeOnClick: true,
+                    message: data.message,
+                    type: 'success',
+                });
+
+                //$("#toast").dxToast("show");
+
+                //window.location.href = "/Home/LineBindingView/" + '@Model.EncodeUrl';
+                window.location.href = "/Home/LineLiffView/";
+            }
+            else {
+                DevExpress.ui.notify(data.message, "error", 5000);
+                window.location.href = "/Home/LineBindingView/" + '@Model.EncodeUrl';
+                window.location.href = "/Home/LineLiffView/";
+       }
+        }
+
+        function onComplete(data) {
+            if (data.status == 1) {
+            }
+            else {
+            }
+        }
+    </script>
+
+    <script src="~/lib/jquery-ajax-unobtrusive/jquery.unobtrusive-ajax.js"></script>
+    <link href="~/css/Gallery.css" rel="stylesheet" />
+    <link href="~/css/WeeklyReport.css" rel="stylesheet" />
+
+    <script>
+
+        window.onload = function (e) {
+            liff.init(function (data) {
+                debugger;
+                //alert("測試001!");
+                initializeApp(data);
+            });
+        };
+
+        //function GetDisplayName() {
+
+        //    debugger;
+
+        //    alert("測試002!");
+
+        //    UserProfile = liff.getProfile();
+        //    alert("測試003!" + UserProfile);
+        //    alert("測試004!" + UserProfile.displayName);
+
+        //    return UserProfile.displayName;
+        //}
+
+        //document.getElementById("displaynamefield").innerHTML = GetDisplayName();
+
+
+        var UserId = "";
+        var GroupId = "";
+        var RoomId = "";
+        var DisplayName = "";
+        var ViewType = "";
+
+
+        function initializeApp(data) {
+            UserId = data.context.userId;
+            GroupId = data.context.groupId;
+            RoomId = data.context.roomId;
+            ViewType = data.context.viewType;
+            //document.getElementById('languagefield').textContent = data.language;
+            //document.getElementById('viewtypefield').textContent = data.context.viewType;
+            //document.getElementById('useridfield').textContent = data.context.userId;
+            //document.getElementById('utouidfield').textContent = data.context.utouId;
+            //document.getElementById('roomidfield').textContent = data.context.roomId;
+            //document.getElementById('groupidfield').textContent = data.context.groupId;
+
+            //alert("測試002!" + data.context.userId);
+
+            UpdateLineUserId(data.context.userId, data.context.groupId, data.context.roomId, data.context.viewType);
+
+            liff.getProfile().then(function (profile) {
+                //document.getElementById('useridprofilefield').textContent = profile.userId;
+                //document.getElementById('displaynamefield').textContent = profile.displayName;
+
+                document.getElementById('displaynamefield').innerHTML = profile.displayName + "綁定";
+
+                DisplayName = profile.displayName;
+                //alert("測試003!" + profile.displayName);
+            });
+
+            //UserProfile = liff.getProfile();
+
+            //alert("測試003!" + UserProfile.displayName);
+
+            //liff.getProfile().then(function (profile) {
+            //    document.getElementById('useridprofilefield').textContent = profile.userId;
+            //    //document.getElementById('displaynamefield').textContent = profile.displayName;
+            //    document.getElementById('displaynamefield').innerHTML = "不斷喜樂";
+            //}
+        }
+
+
+        function UpdateLineUserId(aUserLineId, aGroupId, aRoomId, aViewType ) {
+                    // AJAX 區塊
+                    $.ajax
+                    (
+                        {
+                            url: '@Url.Action("SaveUserId", "Home")',
+                            data: { UserLineId: aUserLineId, GroupId: aGroupId, RoomId: aRoomId, ViewType: aViewType}, // 整理回傳給 Server 的點名資料
+                            type: 'POST', //POST if you want to save, GET if you want to fetch data from server
+
+                            success: function (arg)
+                            {
+                            },
+
+                            error: function (obj)
+                            {
+                            }
+
+                        }
+                    );
+                    // AJAX 區塊
+        }
+    </script>
+</body>
+
+</html>

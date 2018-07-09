@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using ChurchReport.ViewModel;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
 using System;
 using System.Collections.Generic;
@@ -18,6 +19,7 @@ namespace ChurchReport.Models
         public NewPersonModel m_NewPersonModel = new NewPersonModel();
         public HappyGroupDataManager m_HappyGroupDataManager = new HappyGroupDataManager();
         public FeeList m_FeeList = new FeeList();
+        public LineBindingViewModel m_LineBindingViewModel = new LineBindingViewModel();
 
         #endregion
         #region 初始化
@@ -275,7 +277,28 @@ namespace ChurchReport.Models
             }
         }
         #endregion
+        #region Line 綁定處理區
+        public LineBindingViewModel LineBindingViewModel
+        {
+            get
+            {
+                var session = _contextAccessor.HttpContext.Session;
+                var key = session.Id + "_LineBindingViewModel";
 
+                if (_memoryCache.Get(key) == null)
+                {
+                    _memoryCache.Set<LineBindingViewModel>(key, m_LineBindingViewModel, new MemoryCacheEntryOptions
+                    {
+                        SlidingExpiration = TimeSpan.FromMinutes(10)
+                    });
+                    session.SetInt32("dirty", 1);
+                }
+
+                return _memoryCache.Get<LineBindingViewModel>(key);
+            }
+        }
+
+        #endregion
         #region 工具區
         public void SaveChanges()
         {

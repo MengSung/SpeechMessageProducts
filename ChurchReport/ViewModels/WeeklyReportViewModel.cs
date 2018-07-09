@@ -12,6 +12,7 @@ namespace ChurchReport.ViewModels
     {
         public String WeeklyReportData { get; set; }
         public String WeeklyReportAnalysis { get; set; }
+        public bool DisplayFlag { get; set; }
 
         //static public WeeklyReportData m_WeeklyReportData = new WeeklyReportData();
     }

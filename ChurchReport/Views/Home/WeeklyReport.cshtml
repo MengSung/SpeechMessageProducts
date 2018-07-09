@@ -78,7 +78,26 @@
         {
             items.AddSimple()
                 .ColSpan(2)
-                .Label(l => l.Text("小組日誌").Visible(true))
+                .Label(l => l.Text("小組日誌001").Visible(true))
+                .DataField("WeeklyReportData")
+                .Editor(e => e
+                    .TextArea()
+                    .Placeholder("請輸入小組日誌，離開或是切換網頁前記得按上傳鈕")
+                    .Height(250)
+                );
+            items.AddSimple()
+                .ColSpan(2)
+                .Label(l => l.Text("小組日誌002").Visible(true))
+                .DataField("WeeklyReportData")
+                .Visible(Model.DisplayFlag)
+                .Editor(e => e
+                    .TextArea()
+                    .Placeholder("請輸入小組日誌，離開或是切換網頁前記得按上傳鈕")
+                    .Height(250)
+                );
+            items.AddSimple()
+                .ColSpan(2)
+                .Label(l => l.Text("小組日誌003").Visible(true))
                 .DataField("WeeklyReportData")
                 .Editor(e => e
                     .TextArea()

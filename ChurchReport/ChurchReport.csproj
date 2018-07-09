@@ -13,6 +13,7 @@
     </Content>
     <None Remove="Views\Home\FeeManagerView.cshtml" />
     <None Remove="Views\Home\HappyGroupWeeklyReport.cshtml" />
+    <None Remove="Views\Home\LineLiffView.cshtml" />
     <None Remove="wwwroot\js\devextreme\devextreme-intl.min.js" />
     <None Remove="wwwroot\js\devextreme\localization\dx.messages.zh-tw.js" />
     <None Remove="wwwroot\js\FeeDataGridAjax.js" />

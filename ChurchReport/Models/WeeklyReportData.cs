@@ -35,6 +35,7 @@ namespace ChurchReport.Models
 
             m_WeeklyReportViewModel.WeeklyReportData = m_WeeklyReport.WeeklyReportContent;
             m_WeeklyReportViewModel.WeeklyReportAnalysis = m_WeeklyReport.PresentContent;
+            m_WeeklyReportViewModel.DisplayFlag = false;
 
         }
 

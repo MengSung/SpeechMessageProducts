@@ -755,18 +755,18 @@ namespace ChurchReport.Controllers
             //images.Add(Url.Content("~/assets/images/photo-6.jpg"));
             //images.Add(Url.Content("~/assets/images/photo-9.jpg"));
 
-            String EncodeName = System.Net.WebUtility.UrlEncode(LineBindingParameterArray[0]) + "," + System.Net.WebUtility.UrlEncode(LineBindingParameterArray[1]);
+            String EncodeName = System.Net.WebUtility.UrlEncode(LineBindingParameterArray[0]) + "," + System.Net.WebUtility.UrlEncode(LineBindingParameterArray[1]) + "," + System.Net.WebUtility.UrlEncode(LineBindingParameterArray[2]);
+
+            m_InMemoryDataContextSmallGroup.LineBindingViewModel.DisplayName = LineBindingParameterArray[0];
+            m_InMemoryDataContextSmallGroup.LineBindingViewModel.LineUserId = LineBindingParameterArray[1];
+            m_InMemoryDataContextSmallGroup.LineBindingViewModel.DisplayId = LineBindingParameterArray[2];
+            m_InMemoryDataContextSmallGroup.LineBindingViewModel.FullName = LineBindingParameterArray[0];
+            m_InMemoryDataContextSmallGroup.LineBindingViewModel.EncodeUrl = System.Net.WebUtility.UrlEncode(LineBindingParameterArray[0]) + "," + System.Net.WebUtility.UrlEncode(LineBindingParameterArray[1]) + "," + System.Net.WebUtility.UrlEncode(LineBindingParameterArray[2]);
+            m_InMemoryDataContextSmallGroup.LineBindingViewModel.Images = images;
 
             if (LineBindingParameterArray.Length >= 2)
             {
-                return View(new LineBindingViewModel
-                {
-                    DisplayName = LineBindingParameterArray[0],
-                    LineUserId = LineBindingParameterArray[1],
-                    FullName = LineBindingParameterArray[0],
-                    EncodeUrl = System.Net.WebUtility.UrlEncode(LineBindingParameterArray[0]) + "," + System.Net.WebUtility.UrlEncode(LineBindingParameterArray[1]),
-                    Images = images
-                });
+                return View(m_InMemoryDataContextSmallGroup.LineBindingViewModel);
             }
             else
             {
@@ -794,11 +794,12 @@ namespace ChurchReport.Controllers
 
             String BindingString = "//" + aLineBindingViewModel.FullName + "," + aLineBindingViewModel.Mobile;
 
-            Guid aLineEntityId = CreateLineMessage(aLineBindingViewModel.LineUserId, BindingString, 100000000);
+            Guid aLineEntityId = CreateLineMessage(m_InMemoryDataContextSmallGroup.LineBindingViewModel.DisplayId, m_InMemoryDataContextSmallGroup.LineBindingViewModel.LineUserId, BindingString, 100000000);
+            //Guid aLineEntityId = CreateLineMessage(aLineBindingViewModel.DisplayId, BindingString, 100000000);
 
             if (aLineEntityId != null && aLineEntityId != Guid.Empty)
             {
-                return Json(new { status = "1", message = "歡迎 " + aLineBindingViewModel.FullName + " 開始綁定程序，請至台中思恩堂豐富教會接收綁定結果訊息，謝謝您!", encoded = aLineBindingViewModel.DisplayName + "," + aLineBindingViewModel.LineUserId } );
+                return Json(new { status = "1", message = "歡迎 " + aLineBindingViewModel.FullName + " 開始綁定程序，請至豐富教會接收綁定結果訊息，謝謝您!", encoded = aLineBindingViewModel.DisplayName + "," + aLineBindingViewModel.LineUserId });
             }
             else
             {
@@ -807,41 +808,38 @@ namespace ChurchReport.Controllers
         }
 
 
-        public Guid CreateLineMessage(string UserId, string Message, int OptionSetValueOfMessageType)
+        public Guid CreateLineMessage(string DisplayId, string UserId, string Message, int OptionSetValueOfMessageType)
         {
             try
             {
                 Entity aContact = this.m_ToolUtilityClass.RetrieveContactCollectionByLineId(UserId);
 
-                //LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
-
-                //aLineMessagingProcessorClass.SendMessage(UserId, "001: " + UserId);
+                //await SendMessage(UserId, "001: " + UserId);
 
                 if (aContact != null)
                 {
                     //await SendMessage(UserId, "002");
-                    //aLineMessagingProcessorClass.SendMessage(UserId, "002: " + UserId);
-
                     Entity aEntity = new Entity("letter");
                     m_ToolUtilityClass.SetEntityStringAttribute(ref aEntity, "subject", Message);
+                    m_ToolUtilityClass.SetEntityStringAttribute(ref aEntity, "new_displayed_lineid", DisplayId);
                     m_ToolUtilityClass.SetEntityLookUpAttribute(ref aEntity, "regardingobjectid", "contact", aContact.Id);
                     m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aEntity, "scheduledend", DateTime.Now);
                     m_ToolUtilityClass.SetEntityBoolAttribute(ref aEntity, "directioncode", false);
 
-                    //aLineMessagingProcessorClass.SendMessage(UserId, "003: " + UserId);
+                    //await SendMessage(UserId, "003");
                     //設定訊息種類為文字 
                     m_ToolUtilityClass.SetOptionSetAttribute(ref aEntity, "new_message_category", OptionSetValueOfMessageType);
 
-                    //aLineMessagingProcessorClass.SendMessage(UserId, "004: " + UserId);
+                    //await SendMessage(UserId, "004");
                     Entity Fromparty = new Entity("activityparty");
 
-                    //aLineMessagingProcessorClass.SendMessage(UserId, "005: " + UserId);
+                    //await SendMessage(UserId, "005");
                     Fromparty["partyid"] = new EntityReference("contact", aContact.Id);
 
-                    //aLineMessagingProcessorClass.SendMessage(UserId, "006: " + UserId);
+                    //await SendMessage(UserId, "006");
                     aEntity["from"] = new Entity[] { Fromparty };
 
-                    //aLineMessagingProcessorClass.SendMessage(UserId, "007: " + UserId);
+                    //await SendMessage(UserId, "007");
                     return m_ToolUtilityClass.CreateEntity(aEntity);
                     //return m_ToolUtilityClass.CreateEntity( ref m_ToolUtilityClass.m_OrganizationService, aEntity);
                 }
@@ -853,14 +851,51 @@ namespace ChurchReport.Controllers
             }
             catch (System.Exception e)
             {
-                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
-
                 String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " +  ErrorString);
-
+                //Monitor.Exit(this);
                 throw e;
             }
+        }
+
+        #endregion
+        #region Line LIFF
+        public IActionResult LineLiffView()
+        {
+            var images = new List<string>();
+            images.Add(Url.Content("~/assets/images/tpehoc-005.jpg"));
+            images.Add(Url.Content("~/assets/images/tpehoc-006.jpg"));
+            images.Add(Url.Content("~/assets/images/tpehoc-007.jpg"));
+            images.Add(Url.Content("~/assets/images/tpehoc-008.jpg"));
+            images.Add(Url.Content("~/assets/images/tpehoc-009.jpg"));
+
+            m_InMemoryDataContextSmallGroup.LineBindingViewModel.Images = images;
+
+            return View(m_InMemoryDataContextSmallGroup.LineBindingViewModel);
+        }
+
+        [HttpPost]
+        public IActionResult SaveUserId(String UserLineId, String GroupId, String RoomId, String ViewType)
+        {
+            m_InMemoryDataContextSmallGroup.LineBindingViewModel.LineUserId = UserLineId;
+            m_InMemoryDataContextSmallGroup.LineBindingViewModel.RoomId = RoomId;
+            m_InMemoryDataContextSmallGroup.LineBindingViewModel.GroupId = GroupId;
+            m_InMemoryDataContextSmallGroup.LineBindingViewModel.ViewType = ViewType;
+
+            if (GroupId != null && GroupId != "")
+            {
+                m_InMemoryDataContextSmallGroup.LineBindingViewModel.DisplayId = GroupId;
+            }
+            else if (RoomId != null && RoomId != "")
+            {
+                m_InMemoryDataContextSmallGroup.LineBindingViewModel.DisplayId = RoomId;
+            }
+            else
+            {
+                m_InMemoryDataContextSmallGroup.LineBindingViewModel.DisplayId = UserLineId;
+            }
+
+            return Json(new { status = "1", message = "成功上傳了...." });
         }
 
         #endregion
