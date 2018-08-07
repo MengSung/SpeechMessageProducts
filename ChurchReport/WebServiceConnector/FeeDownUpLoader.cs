@@ -429,7 +429,7 @@ namespace ChurchReport.WebServiceConnector
             // 初始化收費與點名紀錄
             m_FeeDataList = new List<Fee>();
 
-            // 取得與登入者需要收費的課程
+            // 取得與登入者需要收費的課程，課程結束後7日還會出現讚點名繳費網站
             EntityCollection aDiscipleLessonsEntityCollection = m_ToolUtilityClass.QueryEntityListByDate("contact", "contactid", this.m_ContactEntity.Id.ToString(), "new_contact_new_disciple_lessons_fee", "new_disciple_lessons");
 
             //處理一個一個的課程
@@ -821,11 +821,38 @@ namespace ChurchReport.WebServiceConnector
             switch (Key)
             {
                 case "PayDate":
+
+                    // 上課紀錄單也要記錄繳費日期，目前就只填入最後一次繳費為主，因為操作簡單，先假設不讓他多次繳費，或是分期
+                    // 但是 LINE 那邊顯示的繳費情況是以此欄位為準的
+                    if (Value != null)
+                    {
+                        this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aStorLessonEntity, "new_pay_date", DateTime.Parse(Value));
+                    }
+                    else
+                    {
+                        this.m_ToolUtilityClass.SetEntityDateTimeAttributeToNull(ref aStorLessonEntity, "new_pay_date" );
+                    }
+                    this.m_ToolUtilityClass.UpdateEntity(ref aStorLessonEntity);
+
                     Fee = GetFeeOfStorLesson(StorLessonsId, Key, ref CreateFlag );
-                    this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref Fee, "new_pay_date", DateTime.Parse(Value));
+                    if (Value != null)
+                    {
+                        this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref Fee, "new_pay_date", DateTime.Parse(Value));
+                    }
+                    else
+                    {
+                        this.m_ToolUtilityClass.SetEntityDateTimeAttributeToNull(ref Fee, "new_pay_date");
+                    }
+
                     this.m_ToolUtilityClass.UpdateEntity(ref Fee);
                     break;
                 case "Amount":
+
+                    // 上課紀錄單也要記錄繳費金額，目前就只填入最後一次繳費為主，因為操作簡單，先假設不讓他多次繳費，或是分期
+                    // 但是 LINE 那邊顯示的繳費情況是以此欄位為準的
+                    this.m_ToolUtilityClass.SetEntityMoneyAttribute(ref aStorLessonEntity, "new_paid_amount", new Money(Convert.ToDecimal(Value)));
+                    this.m_ToolUtilityClass.UpdateEntity(ref aStorLessonEntity);
+
                     Fee = GetFeeOfStorLesson(StorLessonsId, Key, ref CreateFlag);
                     this.m_ToolUtilityClass.SetEntityMoneyAttribute(ref Fee, "new_fee_really_paid", new Money(Convert.ToDecimal(Value)));
                     this.m_ToolUtilityClass.UpdateEntity(ref Fee);

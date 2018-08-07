@@ -106,7 +106,7 @@ namespace ChurchReport.Models
 
             JsonConvert.PopulateObject(Values, aFee, settings);
 
-            Dictionary<string, string> aDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(Values);
+                Dictionary<string, string> aDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(Values);
 
             List<string> KeyList = new List<string>(aDictionary.Keys);
             List<string> ValueList = new List<string>(aDictionary.Values);
@@ -127,8 +127,19 @@ namespace ChurchReport.Models
 
                     String PayWayValue = "{\"PayWay\":\"現金\"}";
                     JsonConvert.PopulateObject(PayWayValue, aFee, settings);
-
                 }
+
+                if (Key == "Amount" && ValueList[0] == null)
+                {
+                    String AmountValue = "{\"Amount\":\"" + "0" + "\"}";
+                    JsonConvert.PopulateObject(AmountValue, aFee, settings);
+                }
+                if (Key == "PayDate" && ValueList[0] == null)
+                {
+                    String PayDateValue = "{\"PayDate\":\"" + DateTime.MinValue.ToUniversalTime().ToString("u") + "\"}";
+                    JsonConvert.PopulateObject(PayDateValue, aFee, settings);
+                }
+
             }
 
         }
