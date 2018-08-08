@@ -11,10 +11,14 @@ namespace ChurchReport.Models {
         public Fee()
         { }
 
-        public string DiscipleLessonsId { get; set; }          //教會課程 Id
-        public string StorLessonsId { get; set; }              //學員上課記錄 Id
-        public string DiscipleLessonsName { get; set; }     // 課程名稱
-        public string FullName { get; set; }                // 姓名
+        public string DiscipleLessonsId { get; set; }          // 教會課程 Id
+        public string StorLessonsId { get; set; }              // 學員上課記錄 Id
+        public string DiscipleLessonsName { get; set; }        // 課程名稱
+        public string FullName { get; set; }                   // 姓名
+        public DateTime Birthday { get; set; }                 // 生日
+        public String Gender { get; set; }                     // 性別
+        public String SmallGroupName { get; set; }             // 小組名稱
+
         public string MobilePhone { get; set; }             // 行動電話
         public DateTime PayDate { get; set; }               // 繳費日期
         public int Amount { get; set; }                     // 繳費金額

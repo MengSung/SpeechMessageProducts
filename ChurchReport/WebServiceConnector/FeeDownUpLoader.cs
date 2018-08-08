@@ -643,6 +643,7 @@ namespace ChurchReport.WebServiceConnector
             int TotalFeeAmount = 0;
             foreach (Entity aStorLessons in aStorLessonsEntityCollection.Entities)
             {
+
                 Fee aFee = new Fee
                 {
                     DiscipleLessonsId = aDiscipleLessons.Id.ToString(),
@@ -672,8 +673,20 @@ namespace ChurchReport.WebServiceConnector
             
             if (aContactId != Guid.Empty)
             {
+                // 取得上課紀錄單的學員連絡人紀錄
                 Entity aContact = this.m_ToolUtilityClass.RetrieveEntity("contact", aContactId);
+
                 aFee.MobilePhone = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContact, "mobilephone");
+                if (this.m_ToolUtilityClass.GetOptionSetAttribute(ref aContact, "gendercode") == 200000)
+                {
+                    aFee.Gender = "男性";
+                }
+                else
+                {
+                    aFee.Gender = "女性";
+                }
+                aFee.Birthday = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aContact, "birthdate");
+                aFee.SmallGroupName = this.m_ToolUtilityClass.GetEntityLookupDisplayName(ref aContact, "new_cell_list_contact");
 
                 aFee.StorLessonsId = aStorLessons.Id.ToString();
 
