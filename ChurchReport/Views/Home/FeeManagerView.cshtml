@@ -228,7 +228,7 @@ editing.Texts(a => a.SaveAllChanges("上傳檔案").AddRow("新增").CancelAllCh
                     {return null;}
                     }
             </text> );
-            columns.Add().DataField("SmallGroupName").Caption("小組名稱").Fixed(true).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Left).AllowSorting(true);
+            columns.Add().DataField("SmallGroupName").Caption("小組名稱").Width(80).MinWidth(20).Alignment(HorizontalAlignment.Left).AllowSorting(true);
             columns.Add().DataField("MobilePhone").Caption("行動電話").Fixed(false).Width(120).MinWidth(20).Alignment(HorizontalAlignment.Center).AllowSorting(true);
             columns.Add().DataField("PayDate").Caption("繳費日期").Alignment(HorizontalAlignment.Center).DataType(GridColumnDataType.Date).Format("yyyy/M/d").Width(100).MinWidth(45).AllowSorting(true)
             .CalculateCellValue(@<text>
@@ -574,30 +574,33 @@ return locale != null ? locale : "tw";
     var Bag = "耶穌愛我";
     var Colume0 = "課程名稱";
     var Colume1 = "姓名";
-    var Colume2 = "行動電話";
-    var Colume3 = "繳費日期";
-    var Colume4 = "繳費金額";
-    var Colume5 = "付款方式";
-    var Colume6 = "第一課";
-    var Colume7 = "第二課";
-    var Colume8 = "第三課";
-    var Colume9 = "第四課";
-    var Colume10 = "第五課";
-    var Colume11 = "第六課";
-    var Colume12 = "第七課";
-    var Colume13 = "第八課";
-    var Colume14 = "第九課";
-    var Colume15 = "第十課";
-    var Colume16 = "第十一課";
-    var Colume17 = "第十二課";
-    var Colume18 = "第十三課";
-    var Colume19 = "第十四課";
-    var Colume20 = "第十五課";
-    var Colume21 = "作業A";
-    var Colume22 = "作業B";
-    var Colume23 = "作業C";
-    var Colume24 = "作業D";
-    var Colume25 = "作業E";
+    var Colume2 = "性別";
+    var Colume3 = "生日";
+    var Colume4 = "小組名稱";
+    var Colume5 = "行動電話";
+    var Colume6 = "繳費日期";
+    var Colume7 = "繳費金額";
+    var Colume8 = "付款方式";
+    var Colume9 = "第一課";
+    var Colume10 = "第二課";
+    var Colume11 = "第三課";
+    var Colume12= "第四課";
+    var Colume13 = "第五課";
+    var Colume14 = "第六課";
+    var Colume15 = "第七課";
+    var Colume16 = "第八課";
+    var Colume17 = "第九課";
+    var Colume18 = "第十課";
+    var Colume19 = "第十一課";
+    var Colume20 = "第十二課";
+    var Colume21 = "第十三課";
+    var Colume22 = "第十四課";
+    var Colume23 = "第十五課";
+    var Colume24 = "作業A";
+    var Colume25 = "作業B";
+    var Colume26 = "作業C";
+    var Colume27 = "作業D";
+    var Colume28 = "作業E";
 
 function ProcessColumeHeader(columns) {
     for (var i = 0; i < columns.length; i++)
@@ -609,18 +612,6 @@ function ProcessColumeHeader(columns) {
         //Colume4 = "繳費金額";
         //Colume5 = "付款方式";
 
-        ViewBag6 = @Html.Raw(JsonConvert.SerializeObject(ViewBag.Colume6) as String );
-        if ( ViewBag6 != "" ) {
-            Colume6 =  ViewBag6;
-        }
-        ViewBag7 = @Html.Raw(JsonConvert.SerializeObject(ViewBag.Colume7) as String);
-        if ( ViewBag7 != "" ) {
-            Colume7 =  ViewBag7;
-        }
-        ViewBag8 = @Html.Raw(JsonConvert.SerializeObject(ViewBag.Colume8) as String);
-        if ( ViewBag8 != "" ) {
-            Colume8 =  ViewBag8;
-        }
         ViewBag9 = @Html.Raw(JsonConvert.SerializeObject(ViewBag.Colume9) as String);
         if (ViewBag9 != "") {
 
@@ -701,6 +692,21 @@ function ProcessColumeHeader(columns) {
 
             Colume25 =  ViewBag25;
         }
+        ViewBag26 = @Html.Raw(JsonConvert.SerializeObject(ViewBag.Colume26) as String);
+        if (ViewBag26 != "") {
+
+            Colume26 =  ViewBag26;
+        }
+        ViewBag27 = @Html.Raw(JsonConvert.SerializeObject(ViewBag.Colume27) as String);
+        if (ViewBag27 != "") {
+
+            Colume27 =  ViewBag27;
+        }
+        ViewBag28 = @Html.Raw(JsonConvert.SerializeObject(ViewBag.Colume28) as String);
+        if (ViewBag28 != "") {
+
+            Colume28 =  ViewBag28;
+        }
     }
 }
 
@@ -716,41 +722,46 @@ function onCustomizeColumns(columns)
     //    columns[i].caption = columns[i].caption + i.toString();
     //}
 
+    // 課程名稱
     columns[0].caption = Colume0;
     columns[0].width = Colume0.length * 25;
 
+    // 姓名
     columns[1].caption = Colume1;
     columns[1].width = Colume1.length * 30;
 
+    // 性別
     columns[2].caption = Colume2;
-    columns[2].width = Colume2.length * 35;
+    columns[2].width = Colume2.length * 30;
 
+    // 生日
     columns[3].caption = Colume3;
-    columns[3].width = Colume3.length * 25;
+    columns[3].width = Colume3.length * 50;
 
+    // 小組名稱
     columns[4].caption = Colume4;
-    columns[4].width = Colume4.length * 25;
+    columns[4].width = Colume4.length * 45;
 
+    // 行動電話
     columns[5].caption = Colume5;
     columns[5].width = Colume5.length * 25;
 
+    // 繳費日期
     columns[6].caption = Colume6;
-    if( Colume6.length > 6 )
-    {columns[6].width = Colume6.length * 10;}
-    else
-    {columns[6].width = Colume6.length * 20;}
+    columns[6].width = Colume6.length * 25;
 
+    // 繳費金額
     columns[7].caption = Colume7;
-    if( Colume7.length > 6 )
-    {columns[7].width = Colume7.length * 10;}
-    else
-    {columns[7].width = Colume7.length * 20;}
+    columns[7].width = Colume7.length * 25;
 
+    // 付款方式
     columns[8].caption = Colume8;
-    if( Colume8.length > 6 )
-    {columns[8].width = Colume8.length * 10;}
-    else
-    {columns[8].width = Colume8.length * 20;}
+    columns[8].width = Colume8.length * 25;
+
+
+
+
+
 
     columns[9].caption = Colume9;
     if( Colume9.length > 6 )
@@ -825,19 +836,42 @@ function onCustomizeColumns(columns)
     {columns[20].width = Colume20.length * 20;}
 
     columns[21].caption = Colume21;
-    columns[21].width = Colume21.length * 25;
+    if (Colume21.length > 6)
+    { columns[21].width = Colume21.length * 10; }
+    else
+    { columns[21].width = Colume21.length * 20; }
 
     columns[22].caption = Colume22;
-    columns[22].width = Colume22.length * 25;
+    if (Colume22.length > 6)
+    { columns[22].width = Colume22.length * 10; }
+    else
+    { columns[22].width = Colume22.length * 20; }
 
     columns[23].caption = Colume23;
-    columns[23].width = Colume23.length * 25;
+    if (Colume23.length > 6)
+    { columns[23].width = Colume23.length * 10; }
+    else
+    { columns[23].width = Colume23.length * 20; }
+
+
+
+
+
 
     columns[24].caption = Colume24;
     columns[24].width = Colume24.length * 25;
 
     columns[25].caption = Colume25;
     columns[25].width = Colume25.length * 25;
+
+    columns[26].caption = Colume25;
+    columns[26].width = Colume25.length * 25;
+
+    columns[27].caption = Colume25;
+    columns[27].width = Colume25.length * 25;
+
+    columns[28].caption = Colume25;
+    columns[28].width = Colume25.length * 25;
 }
 
 </script>
