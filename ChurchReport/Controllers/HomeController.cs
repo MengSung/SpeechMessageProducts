@@ -712,11 +712,11 @@ namespace ChurchReport.Controllers
                 }
             }
 
-            m_InMemoryDataContextSmallGroup.SmallGroupDataList.AddNewPersonToSmallGroup(aPersonFormViewModel);
-
 
             if (Result.Contains("жие\"))
             {
+                m_InMemoryDataContextSmallGroup.SmallGroupDataList.AddNewPersonToSmallGroup(aPersonFormViewModel);
+
                 return Json(new { status = "1", message = Result });
             }
             else
