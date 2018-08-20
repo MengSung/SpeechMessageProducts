@@ -2543,8 +2543,8 @@ namespace ChurchReport.WebServiceConnector
             try
             {
                 #region 設定幸福小組出席
-                if (PresentFlag == true)
-                {
+                //if (PresentFlag == true)
+                //{
                     if (aBestRecord.Present == true)
                     {
                         this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecordEntity, "new_happy_present", 1);
@@ -2553,11 +2553,11 @@ namespace ChurchReport.WebServiceConnector
                     {
                         this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecordEntity, "new_happy_present", 0);
                     }
-                }
+                //}
                 #endregion
                 #region 設定幸福小組決志
-                if (DecisionFlag == true)
-                {
+                //if (DecisionFlag == true)
+                //{
                     if (aBestRecord.Decision == true)
                     {
                         this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecordEntity, "new_happy_decision", 1);
@@ -2566,7 +2566,7 @@ namespace ChurchReport.WebServiceConnector
                     {
                         this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecordEntity, "new_happy_decision", 0);
                     }
-                }
+                //}
                 #endregion
                 #region 設定附註或是代禱事項
 

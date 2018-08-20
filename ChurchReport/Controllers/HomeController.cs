@@ -420,6 +420,8 @@ namespace ChurchReport.Controllers
 
                 ViewBag.HappyGroupName = m_InMemoryDataContextSmallGroup.HappyGroupDataManager.m_ActiveHappyGroupWeeklyReportList.HappyGroupName;
 
+                m_InMemoryDataContextSmallGroup.HappyGroupDataManager.InitialHappyGroupData( ref m_InMemoryDataContextSmallGroup.HappyGroupDataManager.m_ActiveHappyGroupListClass );
+
                 ViewBag.HappyType = "有幸福小組名單";
             }
             else
@@ -436,6 +438,7 @@ namespace ChurchReport.Controllers
         {
             if (m_InMemoryDataContextSmallGroup.HappyGroupDataManager.m_ActiveHappyGroupListClass != null)
             {
+                //m_InMemoryDataContextSmallGroup.HappyGroupDataManager.InitialHappyGroupData(ref m_InMemoryDataContextSmallGroup.HappyGroupDataManager.m_ActiveHappyGroupListClass);
 
                 return DataSourceLoader.Load(m_InMemoryDataContextSmallGroup.HappyGroupDataManager.m_ActiveHappyGroupListClass.HappyGroupWeeklyReportListClass, loadOptions);
 
@@ -448,6 +451,8 @@ namespace ChurchReport.Controllers
         {
             if (m_InMemoryDataContextSmallGroup.HappyGroupDataManager.m_ActiveHappyGroupListClass != null)
             {
+                //m_InMemoryDataContextSmallGroup.HappyGroupDataManager.InitialHappyGroupData(ref m_InMemoryDataContextSmallGroup.HappyGroupDataManager.m_ActiveHappyGroupListClass);
+
                 var tasks = m_InMemoryDataContextSmallGroup.HappyGroupDataManager.m_ActiveHappyGroupListClass.HappyGroupWeeklyReportListClass.Where(e => e.ListEntityId == id).Select(e => e.HappyGroupWeeklyReportList).FirstOrDefault();
 
                 return DataSourceLoader.Load(tasks, loadOptions);
@@ -465,6 +470,8 @@ namespace ChurchReport.Controllers
 
             if ( aHappyGroupWeeklyReportListClass != null)
             {
+                //m_InMemoryDataContextSmallGroup.HappyGroupDataManager.InitialHappyGroupData(ref m_InMemoryDataContextSmallGroup.HappyGroupDataManager.m_ActiveHappyGroupListClass);
+
                 //var tasks = SampleData_001.DataGridEmployees.Where(e => e.ID == id).Select(e => e.Tasks).FirstOrDefault();
                 var tasks = aHappyGroupWeeklyReportListClass.HappyGroupWeeklyReportList.Where(e => e.HappyGroupWeeklyReportId == id).Select(e => e.BestRecordList).FirstOrDefault();
 
@@ -515,6 +522,9 @@ namespace ChurchReport.Controllers
             String SerializedHappyGroupDataManager = (String)TempData.Peek("HappyGroupDataManager");
 
             m_InMemoryDataContextSmallGroup.HappyGroupDataManager.SaveActiveHappyGroup();
+
+            // 初始化成為尚未修改的旗標
+            m_InMemoryDataContextSmallGroup.HappyGroupDataManager.InitialHappyGroupData(ref m_InMemoryDataContextSmallGroup.HappyGroupDataManager.m_ActiveHappyGroupListClass);
 
             return Json(new { status = "1", message = "成功上傳了...." });
         }

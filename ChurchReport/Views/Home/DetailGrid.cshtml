@@ -4,7 +4,7 @@
                                 .ElementAttr("class", "internal-grid")
                                 //.AllowColumnResizing(true)
                                 //.AllowColumnReordering(true)
-                                //.ColumnAutoWidth(true)
+                                .ColumnAutoWidth(true)
                                 .NoDataText("沒有資料")
                                 .ShowBorders(true)
                                 .ShowRowLines(true)
@@ -24,21 +24,21 @@
                                 })
 
                                 //.OnRowInserting("function(e) {  e.data.ParentID = \"測試中...\"; }")
-                                .OnRowInserting(@<text>
-                                function (e) {
-                                    @*debugger;
-                                    alert( "加入幸福BEST中...");
-                                    e.data.idCustomer = "加入幸福BEST中...";*@
-                                }
-                                </text>)
-                                .OnContentReady(@<text>
-                                function(e)
-                                {
-                                moveEditColumnToLeft(e.component);
-                                }
-                                </text> )
+                                //.OnRowInserting(@<text>
+                                //function (e) {
+                                //    @*debugger;
+                                //    alert( "加入幸福BEST中...");
+                                //    e.data.idCustomer = "加入幸福BEST中...";*@
+                                //}
+                                //</text>)
+                                //.OnContentReady(@<text>
+                                //function(e)
+                                //{
+                                //moveEditColumnToLeft(e.component);
+                                //}
+                                //</text> )
 
-                                                        .OnCellPrepared("cell_prepared")
+                                                        //.OnCellPrepared("cell_prepared")
 
 
                                                         .Columns(columns =>

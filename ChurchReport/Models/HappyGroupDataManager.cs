@@ -40,7 +40,7 @@ namespace ChurchReport.Models
             //m_ActiveHappyGroupWeeklyReportList = m_DownloadHappyGroup.GetHappyGroupWeeklyReportList(Account, Password);
             m_ActiveHappyGroupListClass = m_DownloadHappyGroup.GetHappyGroupList(Account, Password);
 
-            if( m_ActiveHappyGroupListClass != null && m_ActiveHappyGroupListClass.HappyGroupWeeklyReportListClass != null && m_ActiveHappyGroupListClass.HappyGroupWeeklyReportListClass.Count > 0 )
+            if (m_ActiveHappyGroupListClass != null && m_ActiveHappyGroupListClass.HappyGroupWeeklyReportListClass != null && m_ActiveHappyGroupListClass.HappyGroupWeeklyReportListClass.Count > 0)
             {
                 HappyType = "有幸福小組名單";
             }
@@ -50,6 +50,24 @@ namespace ChurchReport.Models
             }
             //m_ActiveHappyGroupListClass.HappyGroupWeeklyReportListClass = new List<HappyGroupWeeklyReportListClass>();
             //m_ActiveHappyGroupListClass.HappyGroupWeeklyReportListClass.Add(m_ActiveHappyGroupWeeklyReportList);
+        }
+        public void InitialHappyGroupData(ref HappyGroupListClass aActiveHappyGroupListClass)
+        {
+            for (int counter = 0; counter < aActiveHappyGroupListClass.HappyGroupWeeklyReportListClass.Count; counter++)
+            {
+                for (int i = 0; i < aActiveHappyGroupListClass.HappyGroupWeeklyReportListClass[counter].HappyGroupWeeklyReportList.Count; i++)
+                {
+                    aActiveHappyGroupListClass.HappyGroupWeeklyReportListClass[counter].HappyGroupWeeklyReportList[i].WeeklyReportModifiedFlag = false;
+                    aActiveHappyGroupListClass.HappyGroupWeeklyReportListClass[counter].HappyGroupWeeklyReportList[i].ModifiedFlag = false;
+
+                    for (int j = 0; j < aActiveHappyGroupListClass.HappyGroupWeeklyReportListClass[counter].HappyGroupWeeklyReportList[i].BestRecordList.Count; j++)
+                    {
+                        aActiveHappyGroupListClass.HappyGroupWeeklyReportListClass[counter].HappyGroupWeeklyReportList[i].BestRecordList[j].BestModifiedFlag = false;
+                        aActiveHappyGroupListClass.HappyGroupWeeklyReportListClass[counter].HappyGroupWeeklyReportList[i].BestRecordList[j].ModifiedFlag = false;
+                    }
+                }
+            }
+
         }
         #endregion
         #region 新增
