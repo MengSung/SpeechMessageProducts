@@ -639,7 +639,8 @@ namespace ChurchReport.WebServiceConnector
                         MobilePhone = this.m_ToolUtilityClass.GetEntityStringAttribute(aContactEntity, "mobilephone"),
                         Present = this.m_ToolUtilityClass.GetEntityIntAttribute(HappyPresentEntity, "new_happy_present") == 1 ? true : false,
                         Decision = this.m_ToolUtilityClass.GetEntityIntAttribute(HappyPresentEntity, "new_happy_decision") == 1 ? true : false,
-                        Note = this.m_ToolUtilityClass.GetEntityStringAttribute(HappyPresentEntity, "new_name"),
+                        //Note = this.m_ToolUtilityClass.GetEntityStringAttribute(HappyPresentEntity, "new_name"),
+                        Note = this.m_ToolUtilityClass.GetEntityStringAttribute(HappyPresentEntity, "new_explanation"),
                         BestLeader = SpiritLeaderName,// 屬靈認領者
                         BestIntroducer = this.m_ToolUtilityClass.GetEntityStringAttribute(aContactEntity, "new_best_introducer"),
                         BestRelationship = this.m_ToolUtilityClass.GetEntityStringAttribute(aContactEntity, "new_best_relationship")
@@ -1906,8 +1907,10 @@ namespace ChurchReport.WebServiceConnector
 
                 // 轉換版本
                 // 楊梅靈糧堂
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_name", Note);
-                //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_explanation", aMemberInfomation.Note);
+
+
+                //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_name", Note);
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_explanation", Note);
 
                 // 內壢得勝靈糧堂
                 //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_memo", aMemberInfomation.Note);
@@ -2053,8 +2056,8 @@ namespace ChurchReport.WebServiceConnector
 
                 // 轉換版本
                 // 楊梅靈糧堂
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_name", aBestRecord.Note);
-                //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_explanation", aMemberInfomation.Note);
+                //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_name", aBestRecord.Note);
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_explanation", Note);
 
                 // 內壢得勝靈糧堂
                 //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_memo", aMemberInfomation.Note);
@@ -2426,9 +2429,9 @@ namespace ChurchReport.WebServiceConnector
                 // 楊梅靈糧堂
                 if (aBestRecord.Note != null)
                 {
-                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecordEntity, "new_name", aBestRecord.Note);
+                    //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecordEntity, "new_name", aBestRecord.Note);
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecordEntity, "new_explanation", aBestRecord.Note);
                 }
-                //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_explanation", aMemberInfomation.Note);
 
                 // 內壢得勝靈糧堂
                 //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_memo", aMemberInfomation.Note);
@@ -2574,9 +2577,9 @@ namespace ChurchReport.WebServiceConnector
                 // 楊梅靈糧堂
                 if (aBestRecord.Note != null)
                 {
-                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecordEntity, "new_name", aBestRecord.Note);
+                    //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecordEntity, "new_name", aBestRecord.Note);
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecordEntity, "new_explanation", aBestRecord.Note);
                 }
-                //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_explanation", aMemberInfomation.Note);
 
                 // 內壢得勝靈糧堂
                 //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_memo", aMemberInfomation.Note);
