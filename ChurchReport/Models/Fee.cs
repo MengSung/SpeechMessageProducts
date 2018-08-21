@@ -24,6 +24,8 @@ namespace ChurchReport.Models {
         public int Amount { get; set; }                     // 繳費金額
         public String PayWay { get; set; }                     // 付款方式
 
+        public String SubClass { get; set; }                     // 班別
+
         #region 課程點名
         public bool Lesson1 { get; set; }       // 第一課點名
         public bool Lesson2 { get; set; }       // 第二課點名

@@ -2870,8 +2870,8 @@ namespace ChurchReport.WebServiceConnector
             {
                 #region 設定名稱
                 String PresentRecordName = aMemberInfomation.Name + String.Format("-{0:00}/{1:00}/{2:00} 出席紀錄", this.m_Sunday.Year, this.m_Sunday.Month, this.m_Sunday.Day);
-                //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_name", PresentRecordName);
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_explanation", PresentRecordName);
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_name", PresentRecordName);
+                //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_explanation", PresentRecordName);
                 #endregion
                 #region 指派主日小組靈修出席單的負責人
                 //Guid ListOwnerId = aListEntity.GetAttributeValue<EntityReference>("ownerid").Id;

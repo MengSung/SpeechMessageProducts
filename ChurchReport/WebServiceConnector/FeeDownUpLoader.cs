@@ -690,6 +690,9 @@ namespace ChurchReport.WebServiceConnector
 
                 aFee.StorLessonsId = aStorLessons.Id.ToString();
 
+                // 取得班別
+                aFee.SubClass = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aStorLessons, "new_sub_class");
+
                 aFee.Lesson1 = this.m_ToolUtilityClass.GetEntityBoolAttribute(ref aStorLessons, "new_1_present");
                 aFee.Lesson2 = this.m_ToolUtilityClass.GetEntityBoolAttribute(ref aStorLessons, "new_2_present");
                 aFee.Lesson3 = this.m_ToolUtilityClass.GetEntityBoolAttribute(ref aStorLessons, "new_3_present");
@@ -874,6 +877,10 @@ namespace ChurchReport.WebServiceConnector
                     Fee = GetFeeOfStorLesson(StorLessonsId, Key, ref CreateFlag);
                     SetFeePayWay(Value, ref Fee);
                     this.m_ToolUtilityClass.UpdateEntity(ref Fee);
+                    break;
+                case "SubClass":
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aStorLessonEntity, "new_sub_class", Value);
+                    this.m_ToolUtilityClass.UpdateEntity(ref aStorLessonEntity);
                     break;
                 case "Lesson1":
                     this.m_ToolUtilityClass.SetEntityBoolAttribute(ref aStorLessonEntity, "new_1_present", Convert.ToBoolean(Value));

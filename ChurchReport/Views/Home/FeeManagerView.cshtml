@@ -135,7 +135,8 @@
         .ID("FeeGridContainer")
 
         .Sorting(sorting => sorting.Mode(GridSortingMode.None))
-        .Paging(paging => paging.Enabled(true).PageSize(21))
+        //.Paging(paging => paging.Enabled(true).PageSize(21))
+        .Paging(paging => paging.Enabled(false).PageSize(21))
         .Sorting(sorting => sorting.Mode(GridSortingMode.Multiple))
         .AllowColumnResizing(true)
         .ColumnResizingMode(ColumnResizingMode.Widget)
@@ -204,7 +205,7 @@ editing.Texts(a => a.SaveAllChanges("上傳檔案").AddRow("新增").CancelAllCh
         .Columns(columns =>
         {
             columns.Add().DataField("DiscipleLessonsName").Caption("課程名稱").Fixed(true).GroupIndex(0).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Left).AllowSorting(false);
-            columns.Add().DataField("FullName").Caption("姓名").Width(80).MinWidth(20).Alignment(HorizontalAlignment.Left).AllowSorting(true);
+            columns.Add().DataField("FullName").Caption("姓名").Fixed(true).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Left).AllowSorting(true);
             columns.Add().DataField("Gender").Caption("性別").Width(80).MinWidth(20).Alignment(HorizontalAlignment.Left).AllowSorting(true);
             columns.Add().DataField("Birthday").Caption("生日").Alignment(HorizontalAlignment.Center).DataType(GridColumnDataType.Date).Format("yyyy/M/d").Width(100).MinWidth(45).AllowSorting(true)
             .CalculateCellValue(@<text>
@@ -423,21 +424,37 @@ editing.Texts(a => a.SaveAllChanges("上傳檔案").AddRow("新增").CancelAllCh
             }
     </text> );
 
-            })
+            columns.Add().DataField("SubClass")
+            .Caption("班別").Alignment(HorizontalAlignment.Center)
+            .Width(100).MinWidth(30)
+            .Lookup(lookup => lookup
+            .DataSource(new string[] {
+            "A",
+            "B",
+            "C",
+            "D",
+            "E",
+                                })
+            //.DisplayExpr("Name")
+            //.ValueExpr("ID")
+            );
 
-            .DataSource(d => d
-            .WebApi()
-            //.Mvc()
-            .Controller("Home")
-            .LoadAction("LoadFeeDataList")
-            //.InsertAction("AddClassSheet")
-            .UpdateAction("UpdateFeeDataList")
-            .Key("StorLessonsId")
-            .LoadParams(new { ActiveType = "Active!" })
-            )
 
-            //.DataSource(Model.FeeDataList)
+        })
+
+    .DataSource(d => d
+    .WebApi()
+    //.Mvc()
+    .Controller("Home")
+    .LoadAction("LoadFeeDataList")
+    //.InsertAction("AddClassSheet")
+    .UpdateAction("UpdateFeeDataList")
+    .Key("StorLessonsId")
+    .LoadParams(new { ActiveType = "Active!" })
     )
+
+//.DataSource(Model.FeeDataList)
+)
 </div>
 <script>var DataUploadStatus = "尚未上傳喔!";</script>
 <script src="~/js/FeeDataGridAjax.js"></script>
