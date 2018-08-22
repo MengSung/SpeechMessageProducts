@@ -157,13 +157,17 @@ String ReUpload = "您有一些操作沒有完成，請檢查一下剛剛輸入�
 
     @(Html.DevExtreme().DataGrid()
             .ID("WeeklyGridContainer")
-            .AllowColumnResizing(true)
-            .AllowColumnReordering(true)
+            //.AllowColumnResizing(true)
+            //.AllowColumnReordering(true)
             //.ColumnAutoWidth(true)
+            .ColumnAutoWidth(true)
+            .ColumnFixing(c => c.Enabled(true))
             .NoDataText("沒有資料")
             .ShowBorders(true)
             .ShowRowLines(true)
-            .Grouping( d=>d.AutoExpandAll(true))
+            .ShowColumnLines(true)
+            //.ColumnMinWidth(80)
+            //.Grouping( d=>d.AutoExpandAll(true))
             .DataSource(d => d
             .WebApi()
             .Controller("Home")
@@ -198,16 +202,16 @@ String ReUpload = "您有一些操作沒有完成，請檢查一下剛剛輸入�
         }
         </text> )
 
-.OnCellPrepared("cell_prepared")
-.OnSelectionChanged(
-        @<text>
-        function(e) {
-        //debugger;
-        alert("SELECT");
-        e.component.collapseAll(-1);
-        e.component.expandRow(e.currentSelectedRowKeys[0]);
-        }
-        </text>)
+//.OnCellPrepared("cell_prepared")
+//.OnSelectionChanged(
+//        @<text>
+//        function(e) {
+//        //debugger;
+//        alert("SELECT");
+//        e.component.collapseAll(-1);
+//        e.component.expandRow(e.currentSelectedRowKeys[0]);
+//        }
+//        </text>)
 
 
 .OnInitNewRow(string.Format("function(e) {{ OnInitNewWeeklyReportRow(e, {0}); }}", new JS("data.ListEntityId")))

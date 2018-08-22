@@ -82,12 +82,15 @@ String ReUpload = "您有一些操作沒有完成，請檢查一下剛剛輸入�
 
 @(Html.DevExtreme().DataGrid()
 .ID("HappyGroupGridContainer")
-.AllowColumnResizing(true)
-.AllowColumnReordering(true)
-//.ColumnAutoWidth(true)
+.AllowColumnResizing(false)
+//.AllowColumnReordering(true)
+.ColumnAutoWidth(false)
+.ColumnMinWidth(80)
+//.ColumnFixing(c => c.Enabled(true))
 .NoDataText("沒有資料")
 .ShowBorders(true)
 .ShowRowLines(true)
+.ShowColumnLines(true)
 .DataSource(d => d
 .WebApi()
 .Controller("Home")
@@ -121,16 +124,16 @@ moveEditColumnToLeft(e.component);
 }
 </text> )
 
-.OnCellPrepared("cell_prepared")
-.OnSelectionChanged(
-@<text>
-function(e) {
-//debugger;
-alert("SELECT");
-e.component.collapseAll(-1);
-e.component.expandRow(e.currentSelectedRowKeys[0]);
-}
-</text>)
+//.OnCellPrepared("cell_prepared")
+//.OnSelectionChanged(
+//@<text>
+//function(e) {
+////debugger;
+//alert("SELECT");
+//e.component.collapseAll(-1);
+//e.component.expandRow(e.currentSelectedRowKeys[0]);
+//}
+//</text>)
 
 @*.OnRowInserted(
 @< text >
@@ -147,22 +150,22 @@ function(e) {
         }
     }
 </ text >)*@
-.OnRowInserting(
-@<text>
-function(e) {
-   @*alert( "加入週報中...");
-   e.data.idCustomer = "加入週報中...";*@
-}
-</text>)
-.OnRowUpdated(
-@<text>
-function(e) {
-//debugger;
-e.component.collapseAll(-1);
-
-e.component.expandRow(e.key);
-}
-</text>)
+//.OnRowInserting(
+//@<text>
+//function(e) {
+//   @*alert( "加入週報中...");
+//   e.data.idCustomer = "加入週報中...";*@
+//}
+//</text>)
+//.OnRowUpdated(
+//@<text>
+//function(e) {
+////debugger;
+//e.component.collapseAll(-1);
+//
+//e.component.expandRow(e.key);
+//}
+//</text>)
 /**/
 /**/
 /**/

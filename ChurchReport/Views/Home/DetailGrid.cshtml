@@ -2,13 +2,17 @@
     <p style="font-family:標楷體;font-size: 120%;color: red; text-align:right;font-weight: bold">新增BEST請按下面+號</p>
     @(Html.DevExtreme().DataGrid()
                                 .ElementAttr("class", "internal-grid")
-                                //.AllowColumnResizing(true)
+                                .AllowColumnResizing(false)
                                 //.AllowColumnReordering(true)
                                 .ColumnAutoWidth(true)
+                                //.ColumnResizingMode( ColumnResizingMode.NextColumn)
+                                //.ColumnFixing(c => c.Enabled(true))
+                                //.ColumnMinWidth(80)
                                 .NoDataText("沒有資料")
                                 .ShowBorders(true)
                                 .ShowRowLines(true)
-                                .Grouping(d => d.AutoExpandAll(true))
+                                .ShowColumnLines(true)
+                                //.Grouping(d => d.AutoExpandAll(true))
                                 .Editing(editing =>
                                 {
                                     //editing.Mode(GridEditMode.Row);
@@ -23,20 +27,20 @@
                                     //editing.AllowDeleting(true);
                                 })
 
-                                //.OnRowInserting("function(e) {  e.data.ParentID = \"測試中...\"; }")
-                                //.OnRowInserting(@<text>
-                                //function (e) {
-                                //    @*debugger;
-                                //    alert( "加入幸福BEST中...");
-                                //    e.data.idCustomer = "加入幸福BEST中...";*@
-                                //}
-                                //</text>)
-                                //.OnContentReady(@<text>
-                                //function(e)
-                                //{
-                                //moveEditColumnToLeft(e.component);
-                                //}
-                                //</text> )
+                                                        //.OnRowInserting("function(e) {  e.data.ParentID = \"測試中...\"; }")
+                                                        //.OnRowInserting(@<text>
+                                                        //function (e) {
+                                                        //    @*debugger;
+                                                        //    alert( "加入幸福BEST中...");
+                                                        //    e.data.idCustomer = "加入幸福BEST中...";*@
+                                                        //}
+                                                        //</text>)
+                                                        //.OnContentReady(@<text>
+                                                        //function(e)
+                                                        //{
+                                                        //moveEditColumnToLeft(e.component);
+                                                        //}
+                                                        //</text> )
 
                                                         //.OnCellPrepared("cell_prepared")
 
@@ -49,10 +53,10 @@
                                                                 .Fixed(true)
                                                                 .Caption("姓名");
 
-                                                            columns.Add()
-                                                                .DataField("MobilePhone")
-                                                                .Width(110)
-                                                                .Caption("行動電話");
+                                                            //columns.Add()
+                                                            //    .DataField("MobilePhone")
+                                                            //    .Width(110)
+                                                            //    .Caption("行動電話");
 
                                                             columns.Add()
                                                                 .DataField("Present")
@@ -153,3 +157,4 @@
     }
 
 </script>
+<link href="~/css/MasterDetail.css" rel="stylesheet" />
