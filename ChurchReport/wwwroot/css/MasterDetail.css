@@ -1,5 +1,6 @@
 ﻿.internal-grid {
     padding-left: 0px;
+    padding-right: 0px;
 }
 
 .dx-datagrid-content .dx-datagrid-table .dx-row .dx-command-expand { /*for width*/
