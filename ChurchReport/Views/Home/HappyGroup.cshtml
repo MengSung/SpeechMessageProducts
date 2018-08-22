@@ -82,6 +82,7 @@ String ReUpload = "您有一些操作沒有完成，請檢查一下剛剛輸入�
 
 @(Html.DevExtreme().DataGrid()
 .ID("HappyGroupGridContainer")
+.Grouping(g=>g.AutoExpandAll(true))
 .AllowColumnResizing(false)
 //.AllowColumnReordering(true)
 .ColumnAutoWidth(false)

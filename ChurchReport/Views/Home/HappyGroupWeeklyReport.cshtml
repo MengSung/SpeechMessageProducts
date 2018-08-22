@@ -167,7 +167,7 @@ String ReUpload = "您有一些操作沒有完成，請檢查一下剛剛輸入�
             .ShowRowLines(true)
             .ShowColumnLines(true)
             //.ColumnMinWidth(80)
-            //.Grouping( d=>d.AutoExpandAll(true))
+            .Grouping( d=>d.AutoExpandAll(true))
             .DataSource(d => d
             .WebApi()
             .Controller("Home")
