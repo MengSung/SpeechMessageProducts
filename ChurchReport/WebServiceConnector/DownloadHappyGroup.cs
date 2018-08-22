@@ -333,7 +333,9 @@ namespace ChurchReport.WebServiceConnector
                     DateTime aHappyStartDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ListEntity, "new_happy_start_date");
                     DateTime aHappyEndDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ListEntity, "new_happy_end_date");
 
-                    if (aHappyStartDate.Year != 1 && aHappyEndDate.Year != 1 && aHappyStartDate <= DateTime.Now && aHappyEndDate >= DateTime.Now)
+                    int StatusCode = this.m_ToolUtilityClass.GetOptionSetAttribute(ListEntity, "statuscode");// 狀態必須是使用中的
+
+                    if (aHappyStartDate.Year != 1 && aHappyEndDate.Year != 1 && aHappyStartDate <= DateTime.Now && aHappyEndDate >= DateTime.Now && StatusCode == 0 )
                     {
                         // 幸福小組要回報的名單，但是現階段網頁回報端並沒有看2個以上的幸福小組
                         // 所以先過濾只有幸福小組長跟登入同一人才回傳

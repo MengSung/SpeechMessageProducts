@@ -3,7 +3,7 @@
     @(Html.DevExtreme().DataGrid()
                                 .ElementAttr("class", "internal-grid")
                                 .AllowColumnResizing(false)
-                                .Width(500)
+                                //.Width(1500)
                                 .Grouping(d => d.AutoExpandAll(true))
                                 //.AllowColumnReordering(true)
                                 .ColumnAutoWidth(true)
@@ -97,9 +97,20 @@
                                                                  .Width(110);
 
                                                             columns.Add()
+                                                                .DataField("MobilePhone")
+                                                                .Width(100)
+                                                                .Caption("行動電話");
+
+                                                            columns.Add()
                                                                 .DataField("Note")
                                                                 .Width(400)
                                                                 .Caption("關懷記事");
+
+                                                            //columns.Add()
+                                                            //    .DataField("MobilePhone")
+                                                            //    .Width(110)
+                                                            //    .Caption("行動電話");
+
 
                                                         })
                                                         //.OnRowInserting("function(e) {  e.data.BestRecordParentId = e.data.key ; }")
