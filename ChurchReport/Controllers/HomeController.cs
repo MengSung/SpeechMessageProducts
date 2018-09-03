@@ -247,8 +247,21 @@ namespace ChurchReport.Controllers
             //    { 'Id':1,'FullName':'吳連碧','Status':'小組長','SmallGroupName':'0201 連碧小組 - 主日出席率:50 % 小組出席率:0 %','SectionName':'0201 連碧小組 - 主日出席率:50 % 小組出席率:0 %','PrayItem':'未填','Sunday':'false','SmallGroup':'true','StateID1':'2','Number1':'4','StateID2':'1','Number2':'2','Picture':'../../ images / employees / 01.png','Shepherd':'null',},
             //    ]";
 
+            var Format = "ddd MMM dd yyyy HH:mm:ss GMT+0800 (台北標準時間)"; // DataGrid如果沒有設PAGE，則正確的日期格式
+            var settings = new JsonSerializerSettings
+            {
+                // 轉換成當地時間
+                DateTimeZoneHandling = DateTimeZoneHandling.Local,
+                //DateTimeZoneHandling = DateTimeZoneHandling.Utc,
+                DateFormatString = Format,
+                NullValueHandling = NullValueHandling.Ignore,
+                MissingMemberHandling = MissingMemberHandling.Ignore
+            };
+
+            //DiscipleLessons aBestRecord = JsonConvert.DeserializeObject<DiscipleLessons>(ProcessNullValue(Values), settings);
+
             m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_SmallGroupData.Members.Clear();
-            m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_SmallGroupData.Members = JsonConvert.DeserializeObject<List<Member>>(aResult);
+            m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_SmallGroupData.Members = JsonConvert.DeserializeObject<List<Member>>(aResult, settings);
 
             m_InMemoryDataContextSmallGroup.SmallGroupDataList.TransferToMemberInfomationPackage(m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_SmallGroupData);
             m_InMemoryDataContextSmallGroup.SmallGroupDataList.UploadMemberInfomationPackage();
@@ -277,8 +290,21 @@ namespace ChurchReport.Controllers
         [HttpPost]
         public IActionResult SaveNewPersonFollowUp(String aResult)
         {
+            var Format = "ddd MMM dd yyyy HH:mm:ss GMT+0800 (台北標準時間)"; // DataGrid如果沒有設PAGE，則正確的日期格式
+            var settings = new JsonSerializerSettings
+            {
+                // 轉換成當地時間
+                DateTimeZoneHandling = DateTimeZoneHandling.Local,
+                //DateTimeZoneHandling = DateTimeZoneHandling.Utc,
+                DateFormatString = Format,
+                NullValueHandling = NullValueHandling.Ignore,
+                MissingMemberHandling = MissingMemberHandling.Ignore
+            };
+
+            //DiscipleLessons aBestRecord = JsonConvert.DeserializeObject<DiscipleLessons>(ProcessNullValue(Values), settings);
+
             m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_NewPersonFollowUpData.Members.Clear();
-            m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_NewPersonFollowUpData.Members = JsonConvert.DeserializeObject<List<Member>>(aResult);
+            m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_NewPersonFollowUpData.Members = JsonConvert.DeserializeObject<List<Member>>(aResult, settings);
 
             m_InMemoryDataContextSmallGroup.SmallGroupDataList.TransferToMemberInfomationPackage(m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_NewPersonFollowUpData);
             m_InMemoryDataContextSmallGroup.SmallGroupDataList.UploadMemberInfomationPackage();
