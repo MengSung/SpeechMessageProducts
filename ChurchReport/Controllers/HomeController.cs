@@ -931,5 +931,65 @@ namespace ChurchReport.Controllers
         }
 
         #endregion
+        #region Line 上課資格
+        public IActionResult QualificationView()
+        {
+            var images = new List<string>();
+            images.Add(Url.Content("~/assets/images/tpehoc-005.jpg"));
+            images.Add(Url.Content("~/assets/images/tpehoc-006.jpg"));
+            images.Add(Url.Content("~/assets/images/tpehoc-007.jpg"));
+            images.Add(Url.Content("~/assets/images/tpehoc-008.jpg"));
+            images.Add(Url.Content("~/assets/images/tpehoc-009.jpg"));
+
+            m_InMemoryDataContextSmallGroup.LineBindingViewModel.Images = images;
+
+            return View(m_InMemoryDataContextSmallGroup.LineBindingViewModel);
+        }
+
+        [HttpPost]
+        public IActionResult GetQualificationData(String UserLineId, String GroupId, String RoomId, String ViewType)
+        {
+            m_InMemoryDataContextSmallGroup.LineBindingViewModel.LineUserId = UserLineId;
+            m_InMemoryDataContextSmallGroup.LineBindingViewModel.RoomId = RoomId;
+            m_InMemoryDataContextSmallGroup.LineBindingViewModel.GroupId = GroupId;
+            m_InMemoryDataContextSmallGroup.LineBindingViewModel.ViewType = ViewType;
+
+            if (GroupId != null && GroupId != "")
+            {
+                m_InMemoryDataContextSmallGroup.LineBindingViewModel.DisplayId = GroupId;
+            }
+            else if (RoomId != null && RoomId != "")
+            {
+                m_InMemoryDataContextSmallGroup.LineBindingViewModel.DisplayId = RoomId;
+            }
+            else
+            {
+                m_InMemoryDataContextSmallGroup.LineBindingViewModel.DisplayId = UserLineId;
+            }
+
+            String FaithStatus = "基督徒";
+            String GenderCode = "男性";
+            //DateTime BirthDate = DateTime.Now;
+            DateTime BirthDate = DateTime.MinValue;
+            //DateTime BirthDate = null;
+
+            m_InMemoryDataContextSmallGroup.LineBindingViewModel.GetContactInfomation(UserLineId, ref FaithStatus, ref GenderCode, ref BirthDate);
+
+            return Json(new { faithStatus = FaithStatus, genderCode = GenderCode, birthDate = BirthDate, message = "成功上傳了...." });
+        }
+
+
+        [HttpPost]
+        public IActionResult SaveQualificationData(LineBindingViewModel aLineBindingViewModel)
+        {
+
+            m_InMemoryDataContextSmallGroup.LineBindingViewModel.UpdateContactInfomation(aLineBindingViewModel.FaithStatus, aLineBindingViewModel.GenderCode, aLineBindingViewModel.BirthDate);
+
+            return Json(new { status = "1", message = "謝謝 " + aLineBindingViewModel.FullName + " 填寫基本資料!", encoded = aLineBindingViewModel.DisplayName + "," + aLineBindingViewModel.LineUserId });
+
+        }
+
+        #endregion
+
     }
 }

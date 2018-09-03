@@ -14,6 +14,7 @@
     <None Remove="Views\Home\FeeManagerView.cshtml" />
     <None Remove="Views\Home\HappyGroupWeeklyReport.cshtml" />
     <None Remove="Views\Home\LineLiffView.cshtml" />
+    <None Remove="Views\Home\QualificationView.cshtml" />
     <None Remove="wwwroot\css\MasterDetail.css" />
     <None Remove="wwwroot\js\devextreme\devextreme-intl.min.js" />
     <None Remove="wwwroot\js\devextreme\localization\dx.messages.zh-tw.js" />
