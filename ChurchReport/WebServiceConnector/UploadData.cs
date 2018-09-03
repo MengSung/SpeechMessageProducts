@@ -1379,6 +1379,10 @@ namespace ChurchReport.WebServiceConnector
                         {
                             aAddress = (string)ContactEntity.Attributes["address2_line1"];
                         }
+
+                        // 組員的生日
+                        DateTime aBirthDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref ContactEntity, "birthdate").ToLocalTime();
+
                         // 組員的職業及專長
                         String aIndustry = "";
                         if (ContactEntity.Attributes.Contains("new_industry"))
@@ -1511,6 +1515,7 @@ namespace ChurchReport.WebServiceConnector
                 aToMemberInfomation.Phone = aFromMemberInfomation.Phone;
                 aToMemberInfomation.HomePhone = aFromMemberInfomation.HomePhone;
                 aToMemberInfomation.Address = aFromMemberInfomation.Address;
+                aToMemberInfomation.BirthDate = aFromMemberInfomation.BirthDate;
                 aToMemberInfomation.Industry = aFromMemberInfomation.Industry;
                 aToMemberInfomation.Note = aFromMemberInfomation.Note;
                 aToMemberInfomation.Date = aFromMemberInfomation.Date;
@@ -1785,6 +1790,10 @@ namespace ChurchReport.WebServiceConnector
                             {
                                 aAddress = (string)ContactEntity.Attributes["address2_line1"];
                             }
+
+                            // 組員的生日
+                            DateTime aBirthDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref ContactEntity, "birthdate").ToLocalTime();
+
                             // 組員的職業及專長
                             String aIndustry = "";
                             if (ContactEntity.Attributes.Contains("new_industry"))
@@ -1820,6 +1829,7 @@ namespace ChurchReport.WebServiceConnector
                                         Phone = aPersonalMemberInfomation.Phone,
                                         HomePhone = aPersonalMemberInfomation.HomePhone,
                                         Address = aPersonalMemberInfomation.Address,
+                                        BirthDate = aBirthDate,
                                         Industry = aPersonalMemberInfomation.Industry,
                                         Note = aPersonalMemberInfomation.Note,
                                         Date = aPersonalMemberInfomation.Date,
@@ -1870,6 +1880,7 @@ namespace ChurchReport.WebServiceConnector
                                     Phone = DigitsOnly.Replace(aMobilePhone, ""),
                                     HomePhone = DigitsOnly.Replace(aHomePhone, ""),
                                     Address = aAddress,
+                                    BirthDate = aBirthDate,
                                     Industry = aIndustry,
                                     Note = "",
                                     Date = "2015/10/6",
@@ -2788,6 +2799,10 @@ namespace ChurchReport.WebServiceConnector
                         {
                             aAddress = (string)ContactEntity.Attributes["address2_line1"];
                         }
+
+                        // 組員的生日
+                        DateTime aBirthDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref ContactEntity, "birthdate").ToLocalTime();
+
                         // 組員的職業及專長
                         String aIndustry = "";
                         if (ContactEntity.Attributes.Contains("new_industry"))
@@ -2817,6 +2832,7 @@ namespace ChurchReport.WebServiceConnector
                             Phone = DigitsOnly.Replace(aMobilePhone, ""),
                             HomePhone = DigitsOnly.Replace(aHomePhone, ""),
                             Address = aAddress,
+                            BirthDate =aBirthDate,
                             Industry = aIndustry,
                             Note = "",
                             Date = "2015/10/6",
@@ -3275,6 +3291,27 @@ namespace ChurchReport.WebServiceConnector
                     ModifyFlag = true;
                 }
             }
+
+            // 組員的生日
+            if (aContactEntity.Attributes.Contains("birthdate"))
+            {
+                DateTime aBirthDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aContactEntity, "birthdate").ToLocalTime().ToLocalTime();
+                if (aMemberInfomation.BirthDate != aBirthDate)
+                {
+                    // 系統裡的聯絡人職業及專長跟APP上傳的不一致
+                    this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aContactEntity, "birthdate", aMemberInfomation.BirthDate);
+                    ModifyFlag = true;
+                }
+            }
+            else
+            {
+                if (aMemberInfomation.BirthDate > DateTime.MinValue)
+                {
+                    this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aContactEntity, "birthdate", aMemberInfomation.BirthDate);
+                    ModifyFlag = true;
+                }
+            }
+
             // 組員的職業及專長(台北基督之家)
             String aIndustry = "";
             if (aContactEntity.Attributes.Contains("new_industry"))
@@ -3283,7 +3320,7 @@ namespace ChurchReport.WebServiceConnector
                 if (aMemberInfomation.Industry != aIndustry)
                 {
                     // 系統裡的聯絡人職業及專長跟APP上傳的不一致
-                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactEntity, "new_industry", aMemberInfomation.Address);
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactEntity, "new_industry", aMemberInfomation.Industry);
                     ModifyFlag = true;
                 }
             }
@@ -3375,6 +3412,27 @@ namespace ChurchReport.WebServiceConnector
                 }
             }
 
+            // 組員的生日
+            if (aContactEntity.Attributes.Contains("birthdate"))
+            {
+                DateTime aBirthDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aContactEntity, "birthdate").ToLocalTime();
+                if (aMemberInfomation.BirthDate != aBirthDate)
+                {
+                    // 系統裡的聯絡人職業及專長跟APP上傳的不一致
+                    this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aContactEntity, "birthdate", aMemberInfomation.BirthDate);
+                    ModifyFlag = true;
+                }
+            }
+            else
+            {
+                if (aMemberInfomation.BirthDate > DateTime.MinValue)
+                {
+                    this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aContactEntity, "birthdate", aMemberInfomation.BirthDate);
+                    ModifyFlag = true;
+                }
+            }
+
+
             // 組員的職業及專長(台北基督之家)
             String aIndustry = "";
             if (aContactEntity.Attributes.Contains("new_industry"))
@@ -3383,7 +3441,7 @@ namespace ChurchReport.WebServiceConnector
                 if (aMemberInfomation.Industry != aIndustry)
                 {
                     // 系統裡的聯絡人職業及專長跟APP上傳的不一致
-                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactEntity, "new_industry", aMemberInfomation.Address);
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactEntity, "new_industry", aMemberInfomation.Industry);
                     ModifyFlag = true;
                 }
             }

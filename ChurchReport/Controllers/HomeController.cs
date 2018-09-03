@@ -307,8 +307,37 @@ namespace ChurchReport.Controllers
         [HttpPost]
         public IActionResult SavePersonInfomation(String aResult)
         {
-            m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_AllMemeberData.Members.Clear();
-            m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_AllMemeberData.Members = JsonConvert.DeserializeObject<List<Member>>(aResult);
+            //m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_AllMemeberData.Members.Clear();
+
+            //var settings = new JsonSerializerSettings
+            //{
+            //    // 轉換成當地時間
+            //    DateTimeZoneHandling = DateTimeZoneHandling.Local,
+
+            //    NullValueHandling = NullValueHandling.Ignore,
+            //    MissingMemberHandling = MissingMemberHandling.Ignore
+            //};
+
+            //var format = "dd/MM/yyyy"; // your datetime format
+            //var dateTimeConverter = new IsoDateTimeConverter { DateTimeFormat = format };
+
+
+            var Format = "ddd MMM dd yyyy HH:mm:ss GMT+0800 (台北標準時間)"; // DataGrid如果沒有設PAGE，則正確的日期格式
+            var settings = new JsonSerializerSettings
+            {
+                // 轉換成當地時間
+                DateTimeZoneHandling = DateTimeZoneHandling.Local,
+                //DateTimeZoneHandling = DateTimeZoneHandling.Utc,
+                DateFormatString = Format,
+                NullValueHandling = NullValueHandling.Ignore,
+                MissingMemberHandling = MissingMemberHandling.Ignore
+            };
+
+
+            //DiscipleLessons aBestRecord = JsonConvert.DeserializeObject<DiscipleLessons>(ProcessNullValue(Values), settings);
+
+            m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_AllMemeberData.Members = JsonConvert.DeserializeObject<List<Member>>(aResult, settings);
+
 
             m_InMemoryDataContextSmallGroup.SmallGroupDataList.TransferToMemberInfomationPackage(m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_AllMemeberData);
             m_InMemoryDataContextSmallGroup.SmallGroupDataList.UploadMemberInfomationPackage();

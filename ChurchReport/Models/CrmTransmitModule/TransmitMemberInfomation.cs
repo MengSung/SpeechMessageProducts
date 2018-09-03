@@ -122,6 +122,14 @@ namespace ChurchReport.Models.CrmTransmitModule
             set { m_Address = value; }
         }
 
+        // 生日
+        DateTime m_BirthDate;
+        public DateTime BirthDate
+        {
+            get { return m_BirthDate; }
+            set { m_BirthDate = value; }
+        }
+
         // 職業或專長
         string m_Industry = "";
         public string Industry

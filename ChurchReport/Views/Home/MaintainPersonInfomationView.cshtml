@@ -231,6 +231,30 @@
 
                 columns.Add().DataField("Phone").Caption("行動電話").Fixed(false).Width(120).MinWidth(90).Alignment(HorizontalAlignment.Left);
                 columns.Add().DataField("HomePhone").Caption("家裡電話").Fixed(false).Width(120).MinWidth(90).Alignment(HorizontalAlignment.Left);
+                        columns.Add().DataField("BirthDate").Caption("生日").DataType(GridColumnDataType.Date)
+                        .CalculateCellValue(@<text>
+                                function(row)
+                                {
+                                    if( row.BirthDate != null )
+                                    {
+                                        //debugger;
+
+                                        var ParsedDate = ParsingDate( row.BirthDate );
+                                        if( ParsedDate.getFullYear() == 1901 )
+                                        {
+                                            return null;
+                                        }
+                                        else
+                                        {
+                                            return ParsedDate;
+                                        }
+                                    }
+                                    else
+                                    {return null;}
+                                }
+                            </text> )
+                    .Format("yyyy/M/d").Alignment(HorizontalAlignment.Center).Fixed(false).Width(100).MinWidth(80);
+
                 columns.Add().DataField("Industry").Caption("職業及專長").Fixed(false).Width(100).MinWidth(90).Alignment(HorizontalAlignment.Left);
                 columns.Add().DataField("Address").Caption("地址").Fixed(false).Width(200).MinWidth(90).Alignment(HorizontalAlignment.Left);
                 })
@@ -252,11 +276,77 @@
         ToastInstance.option('closeOnClick', true);
         ToastInstance.show();
     }
+    function ParsingDate(input) {
+
+        //debugger;
+        if (typeof (input) === 'string') {
+            //alert("ParseDate 001 : " + input);
+            var parts = input.split('-');
+
+            var DaySplitedArray = parts[2].split('T');
+            //var ParsedDate = new Date(parts[0], parts[1] - 1, DaySplitedArray[0]);
+            var ParsedDate = new Date(parts[0], parts[1], DaySplitedArray[0]);
+            //var ParsedDate = new Date(parts[0], parts[1], parts[2]);
+            //var ParsedDate = new Date(parts[0], parts[1], DaySplitedArray[0]);
+
+            //alert("ParseDate 002 : " + ParsedDate);
+
+            return ParsedDate;
+        }
+        else {
+            return getLocalDateFilter(input);
+        }
+    }
+    function getLocalDateFilter(date) {
+
+        //debugger;
+
+        //alert("getODataLocalDateFilter !" + date);
+        //alert("HELLO 我愛嘟嘟妞妞 006!" + date);
+
+        //-- Description: For converting the date object to local time format
+        //-- You can also convert this to UTC Date format
+        //-- UTC Usage: getUTCMonth(), getUTCFullYear(), getUTCHours() ...
+
+        var monthString;
+
+        // 有的要加1 ，有的不加1，目前還沒時間去仔細探究原因
+        //var rawMonth = (date.getMonth() + 1).toString();
+        var rawMonth = (date.getMonth()).toString();
+        if (rawMonth.length == 1) {
+            monthString = "0" + rawMonth;
+        }
+        else { monthString = rawMonth; }
+
+        var dateString;
+        //var rawDate = date.getUTCDate().toString();
+        var rawDate = date.getDate().toString();
+        if (rawDate.length == 1) {
+            dateString = "0" + rawDate;
+        }
+        else { dateString = rawDate; }
+
+
+        var DateFilter = "";
+        //DateFilter += date.getFullYear() + "-";
+        //DateFilter += monthString + "-";
+        //DateFilter += dateString;
+        //DateFilter += " T" + date.getHours() + ":";
+        //DateFilter += date.getMinutes() + ":";
+        //DateFilter += date.getSeconds() + ":";
+        //DateFilter += date.getMilliseconds();
+
+        //return DateFilter;
+
+        //return date.getFullYear() + "/" + rawMonth + "/" + rawDate;
+
+        return new Date(date.getFullYear(), rawMonth, rawDate);
+    }
 
 </script>
 
 <script src="~/js/DataGridAjax.js"></script>
-<script src="~/js/SelectDate.js"></script>
+@*<script src="~/js/SelectDate.js"></script>*@
 <script src="~/js/DropDownBox.js"></script>
 <script src="~/js/DataGridAjax.js"></script>
 <script src="~/js/LoadPanel.js"></script>
