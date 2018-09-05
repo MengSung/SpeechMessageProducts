@@ -280,7 +280,7 @@ namespace ChurchReport.WebServiceConnector
                 this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aNewContactEntity, "birthdate", aNewContact.BirthDate);
             }
             // 進教會日期
-            if (aNewContact.BirthDate.Year > 1900)
+            if (aNewContact.FirstChurchDate.Year > 1900)
             {
                 this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aNewContactEntity, "new_enter_church_date", aNewContact.FirstChurchDate);
             }

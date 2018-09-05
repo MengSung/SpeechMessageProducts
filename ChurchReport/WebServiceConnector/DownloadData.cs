@@ -302,7 +302,7 @@ namespace ChurchReport.WebServiceConnector
                             }
 
                             // 組員的生日
-                            DateTime aBirthDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aContactEntity, "birthdate").ToLocalTime();
+                            //DateTime aBirthDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aContactEntity, "birthdate").ToLocalTime();
 
                             // 組員的職業及專長
                             String aIndustry = "";
@@ -501,7 +501,7 @@ namespace ChurchReport.WebServiceConnector
                                 Phone = DigitsOnly.Replace(aMobilePhone, ""),
                                 HomePhone = DigitsOnly.Replace(aHomePhone, ""),
                                 Address = aAddress,
-                                BirthDate = aBirthDate,
+                                //BirthDate = aBirthDate,
                                 Industry = aIndustry,
                                 Note = aNote,
                                 Date = "2015/10/6", //隨意設定的日期，只是預備將來要用的
@@ -644,7 +644,7 @@ namespace ChurchReport.WebServiceConnector
                             }
 
                             // 組員的生日
-                            DateTime aBirthDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref ContactEntity, "birthdate").ToLocalTime();
+                            //DateTime aBirthDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref ContactEntity, "birthdate").ToLocalTime();
 
                             // 組員的職業及專長
                             String aIndustry = "";
@@ -675,7 +675,7 @@ namespace ChurchReport.WebServiceConnector
                                 Phone = DigitsOnly.Replace(aMobilePhone, ""),
                                 HomePhone = DigitsOnly.Replace(aHomePhone, ""),
                                 Address = aAddress,
-                                BirthDate = aBirthDate,
+                                //BirthDate = aBirthDate,
                                 Industry = aIndustry,
                                 Note = "",
                                 Date = "2015/10/6",
@@ -1237,7 +1237,7 @@ namespace ChurchReport.WebServiceConnector
                         }
 
                         // 組員的生日
-                        DateTime aBirthDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aContactEntity, "birthdate").ToLocalTime();
+                        //DateTime aBirthDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aContactEntity, "birthdate").ToLocalTime();
 
                         // 組員的職業及專長
                         String aIndustry = "";
@@ -1436,7 +1436,7 @@ namespace ChurchReport.WebServiceConnector
                             Phone = DigitsOnly.Replace(aMobilePhone, ""),
                             HomePhone = DigitsOnly.Replace(aHomePhone, ""),
                             Address = aAddress,
-                            BirthDate = aBirthDate,
+                            //BirthDate = aBirthDate,
                             Industry = aIndustry,
                             Note = aNote,
                             Date = "2015/10/6", //隨意設定的日期，只是預備將來要用的
@@ -2383,7 +2383,7 @@ namespace ChurchReport.WebServiceConnector
                         }
 
                         // 組員的生日
-                        DateTime aBirthDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref ContactEntity, "birthdate").ToLocalTime();
+                        //DateTime aBirthDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref ContactEntity, "birthdate").ToLocalTime();
 
                         // 組員的職業及專長
                         String aIndustry = "";
@@ -2414,7 +2414,7 @@ namespace ChurchReport.WebServiceConnector
                             Phone = DigitsOnly.Replace(aMobilePhone, ""),
                             HomePhone = DigitsOnly.Replace(aHomePhone, ""),
                             Address = aAddress,
-                            BirthDate = aBirthDate,
+                            //BirthDate = aBirthDate,
                             Industry= aIndustry,
                             Note = "",
                             Date = "2015/10/6",

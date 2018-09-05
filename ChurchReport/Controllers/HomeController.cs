@@ -247,7 +247,15 @@ namespace ChurchReport.Controllers
             //    { 'Id':1,'FullName':'吳連碧','Status':'小組長','SmallGroupName':'0201 連碧小組 - 主日出席率:50 % 小組出席率:0 %','SectionName':'0201 連碧小組 - 主日出席率:50 % 小組出席率:0 %','PrayItem':'未填','Sunday':'false','SmallGroup':'true','StateID1':'2','Number1':'4','StateID2':'1','Number2':'2','Picture':'../../ images / employees / 01.png','Shepherd':'null',},
             //    ]";
 
-            var Format = "ddd MMM dd yyyy HH:mm:ss GMT+0800 (台北標準時間)"; // DataGrid如果沒有設PAGE，則正確的日期格式
+            String Format = "";
+            if (aResult.Contains("台北標準時間"))
+            {
+                Format = "ddd MMM dd yyyy HH:mm:ss GMT+0800 (台北標準時間)"; // DataGrid如果沒有設PAGE，則正確的日期格式
+            }
+            else
+            {
+                Format = "ddd MMM dd yyyy HH:mm:ss GMT+0800"; // DataGrid如果沒有設PAGE，則正確的日期格式
+            }
             var settings = new JsonSerializerSettings
             {
                 // 轉換成當地時間
@@ -290,7 +298,15 @@ namespace ChurchReport.Controllers
         [HttpPost]
         public IActionResult SaveNewPersonFollowUp(String aResult)
         {
-            var Format = "ddd MMM dd yyyy HH:mm:ss GMT+0800 (台北標準時間)"; // DataGrid如果沒有設PAGE，則正確的日期格式
+            String Format = "";
+            if (aResult.Contains("台北標準時間"))
+            {
+                Format = "ddd MMM dd yyyy HH:mm:ss GMT+0800 (台北標準時間)"; // DataGrid如果沒有設PAGE，則正確的日期格式
+            }
+            else
+            {
+                Format = "ddd MMM dd yyyy HH:mm:ss GMT+0800"; // DataGrid如果沒有設PAGE，則正確的日期格式
+            }
             var settings = new JsonSerializerSettings
             {
                 // 轉換成當地時間
@@ -348,7 +364,15 @@ namespace ChurchReport.Controllers
             //var dateTimeConverter = new IsoDateTimeConverter { DateTimeFormat = format };
 
 
-            var Format = "ddd MMM dd yyyy HH:mm:ss GMT+0800 (台北標準時間)"; // DataGrid如果沒有設PAGE，則正確的日期格式
+            String Format = "";
+            if (aResult.Contains("台北標準時間"))
+            {
+                Format = "ddd MMM dd yyyy HH:mm:ss GMT+0800 (台北標準時間)"; // DataGrid如果沒有設PAGE，則正確的日期格式
+            }
+            else
+            {
+                Format = "ddd MMM dd yyyy HH:mm:ss GMT+0800"; // DataGrid如果沒有設PAGE，則正確的日期格式
+            }
             var settings = new JsonSerializerSettings
             {
                 // 轉換成當地時間

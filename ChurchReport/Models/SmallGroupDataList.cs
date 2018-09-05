@@ -131,7 +131,7 @@ namespace ChurchReport.Models
                     Phone = aMemberInfomation.Phone,
                     HomePhone = aMemberInfomation.HomePhone,
                     Address = aMemberInfomation.Address,
-                    BirthDate = aMemberInfomation.BirthDate,
+                    //BirthDate = aMemberInfomation.BirthDate,
                     Industry = aMemberInfomation.Industry,
 
                     #endregion
@@ -320,7 +320,7 @@ namespace ChurchReport.Models
                     aMemberInfomation.Phone = aMember.Phone;
                     aMemberInfomation.HomePhone = aMember.HomePhone;
                     aMemberInfomation.Address = aMember.Address;
-                    aMemberInfomation.BirthDate = aMember.BirthDate;
+                    //aMemberInfomation.BirthDate = aMember.BirthDate;
                     aMemberInfomation.Industry = aMember.Industry;
 
                     aMemberInfomation.SundayPresent = aMember.Sunday;
