@@ -12,7 +12,12 @@ namespace ChurchReport
         public static void Main(string[] args)
         {
             var host = new WebHostBuilder()
-                .UseKestrel()
+               .UseKestrel(o =>
+                   {
+                       o.ShutdownTimeout = TimeSpan.FromMinutes(30);
+                       o.MaxRequestBufferSize = null;
+                   }
+                )
                 .UseContentRoot(Directory.GetCurrentDirectory())
                 .UseIISIntegration()
                 .UseStartup<Startup>()
