@@ -993,9 +993,9 @@ namespace ChurchReport.WebServiceConnector
                     {
                         bool AppNamed = (bool)ListEntity.Attributes["new_app_named"];
 
-                        String ListName = this.m_ToolUtilityClass.GetEntityStringAttribute(ListEntity, "listname");
+                        //String ListName = this.m_ToolUtilityClass.GetEntityStringAttribute(ListEntity, "listname");
 
-                        if (ListName.Contains("幸福") == false)
+                        //if (ListName.Contains("幸福") == false)
                         {
                             // 名單裡沒有幸福二字的才要進來
                             DateTime aHappyStartDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ListEntity, "new_happy_start_date");
