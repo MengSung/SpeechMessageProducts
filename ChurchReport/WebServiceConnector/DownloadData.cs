@@ -808,8 +808,40 @@ namespace ChurchReport.WebServiceConnector
         {
             try
             {
+                // 先尋找族系族長 new_contact_list_arealeader
+                EntityCollection aListEntityCollection = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_contact_list_arealeader", "list");  // 上代組長
+                //EntityCollection aListEntityCollection = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_contact_list_arealeader", "list"); // 族系族長
+                if (aListEntityCollection.Entities.Count > 0)
+                {
+                    // 上代組長小組名單集合
+                    EntityCollection aFamilyLeaderListEntityCollection = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_contact_race_leager_list", "list");
+
+                    // 合併小組名單至族系名單，單扣除掉重複的
+                    // 然後放在小組名單裡面
+                    //EntityCollection aMergeCollection = MergeCollection(ref aListEntityCollection, ref aFamilyLeaderListEntityCollection);
+                    EntityCollection aMergeCollection = MergeCollectionSmallGroupAhead(ref aListEntityCollection, ref aFamilyLeaderListEntityCollection);
+
+
+                   // 小組長小組名單集合
+                   aFamilyLeaderListEntityCollection = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_contact_family_leader_list", "list");
+
+                   // 合併小組名單至族系名單，單扣除掉重複的
+                   // 然後放在小組名單裡面
+                   //EntityCollection aMergeCollection = MergeCollection(ref aListEntityCollection, ref aFamilyLeaderListEntityCollection);
+                    aMergeCollection = MergeCollectionSmallGroupAhead(ref aMergeCollection, ref aFamilyLeaderListEntityCollection);
+
+
+                   // 過濾掉需要點名的名單才進來，而且不是幸福小組(因為有時幸福小組也會在APP點名的框框打勾)
+                   // 但是過濾的結果會放在 => this.m_Lists
+                   FilterAppNamedListEntity(aMergeCollection);
+
+                   // 帶領族系裡有名單，所以是族系組長，就不用在往下找看是不是小組長了 
+                   return;
+
+                }
+
                 // 先尋找上代組長 new_contact_list_arealeader
-                EntityCollection aListEntityCollection = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_contact_race_leager_list", "list");  // 上代組長
+                aListEntityCollection = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_contact_race_leager_list", "list");  // 上代組長
                 //EntityCollection aListEntityCollection = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_contact_list_arealeader", "list"); // 族系族長
                 if (aListEntityCollection.Entities.Count > 0)
                 {
@@ -961,13 +993,19 @@ namespace ChurchReport.WebServiceConnector
                     {
                         bool AppNamed = (bool)ListEntity.Attributes["new_app_named"];
 
-                        DateTime aHappyStartDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ListEntity, "new_happy_start_date");
-                        DateTime aHappyEndDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ListEntity, "new_happy_end_date");
+                        String ListName = this.m_ToolUtilityClass.GetEntityStringAttribute(ListEntity, "listname");
 
-                        if (AppNamed == true && aHappyStartDate.Year == 1 && aHappyEndDate.Year == 1)
+                        if (ListName.Contains("幸福") == false)
                         {
-                            // 需要點名的名單才進來，而且幸福小組的開始結束時間都沒填才是一般小組的名單
-                            this.m_Lists.Entities.Add(ListEntity);
+                            // 名單裡沒有幸福二字的才要進來
+                            DateTime aHappyStartDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ListEntity, "new_happy_start_date");
+                            DateTime aHappyEndDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ListEntity, "new_happy_end_date");
+
+                            if (AppNamed == true && aHappyStartDate.Year == 1 && aHappyEndDate.Year == 1)
+                            {
+                                // 需要點名的名單才進來，而且幸福小組的開始結束時間都沒填才是一般小組的名單
+                                this.m_Lists.Entities.Add(ListEntity);
+                            }
                         }
                     }
                 }

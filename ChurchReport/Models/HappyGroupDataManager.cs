@@ -242,6 +242,9 @@ namespace ChurchReport.Models
         }
         private void UpdateMasterActiveHappyGroup(ref HappyGroupListClass aActiveHappyGroupListClass, int ListIndex, int MasterIndex, HappyGroupWeeklyReport aUpdatedHappyGroupWeeklyReport, bool WeekCounterFlag)
         {
+            // 告知週報其中某個幸福小組個人出席紀錄欄位有被修改過
+            aActiveHappyGroupListClass.HappyGroupWeeklyReportListClass[ListIndex].DirtyFlag = true;
+
             aActiveHappyGroupListClass.HappyGroupWeeklyReportListClass[ListIndex].HappyGroupWeeklyReportList[MasterIndex].WeeklyReportModifiedFlag = true;
 
             if (WeekCounterFlag == true)
@@ -281,6 +284,8 @@ namespace ChurchReport.Models
         private void UpdateDetailActiveHappyGroup(ref HappyGroupListClass aActiveHappyGroupListClass, int ListIndex, int MasterIndex, int DetailIndex, BestRecord aBestRecord, bool PresentFlag, bool DecisionFlag)
         {
             // 告知週報其中某個幸福小組個人出席紀錄欄位有被修改過
+            aActiveHappyGroupListClass.HappyGroupWeeklyReportListClass[ListIndex].DirtyFlag = true;
+
             aActiveHappyGroupListClass.HappyGroupWeeklyReportListClass[ListIndex].HappyGroupWeeklyReportList[MasterIndex].BestRecordModifiedFlag = true;
 
             // 幸福小組個人出席紀錄欄位有被修改過
