@@ -10,6 +10,8 @@ using System.IO;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
+using TraceNameSpace;
+
 // These namespaces are found in the Microsoft.Xrm.Sdk.dll assembly
 // located in the SDK\bin folder of the SDK download.
 using Microsoft.Xrm.Sdk;
@@ -232,17 +234,37 @@ namespace ToolUtilityNameSpace
         private const int LEVEL_3 = 3;
         private const int LEVEL_4 = 4;
         private const int LEVEL_5 = 5; // 比較不會被看到的，可能是比較細節的部分
-        // 如果 TRACE_LEVEL >= TRACE_LEVEL_GROUND 就會進行追蹤
-        // 如果 TRACE_LEVEL < TRACE_LEVEL_GROUND 就不會進行追蹤
-        //int TRACE_LEVEL = 5;
-        //int TRACE_LEVEL_GROUND = 3;
+                                       // 如果 TRACE_LEVEL >= TRACE_LEVEL_GROUND 就會進行追蹤
+                                       // 如果 TRACE_LEVEL < TRACE_LEVEL_GROUND 就不會進行追蹤
+                                       //int TRACE_LEVEL = 5;
+                                       //int TRACE_LEVEL_GROUND = 3;
         #endregion
 
         #endregion
+        #region 追蹤專用變數
+        private String m_TraceLogFile = "";
+        private BugslayerTextWriterTraceListener m_Listener = new BugslayerTextWriterTraceListener();
+        private FileStream m_XmlFileStream;
+        private StreamWriter m_XmlFileStreamWriter;
+        private const String TRACE_DIRECTOR = @"D:\除錯追蹤\" + "CHURCH_REPORT_TRACE.TXT";
+        //private const String TRACE_DIRECTOR = @"C:\除錯追蹤\" + "TRACE.TXT";
+        #endregion
+
+
         #endregion
         #region 建構式
         public ToolUtilityClass()
         {
+            #region 追蹤專用變數
+            m_TraceLogFile = TRACE_DIRECTOR;
+            m_XmlFileStream = new FileStream(m_TraceLogFile, FileMode.Append, FileAccess.Write, FileShare.ReadWrite);
+            m_XmlFileStreamWriter = new StreamWriter(m_XmlFileStream, Encoding.GetEncoding("big5"));
+            m_Listener = new BugslayerTextWriterTraceListener(m_XmlFileStreamWriter);
+
+            Debug.AutoFlush = true;
+            Debug.Listeners.Add(m_Listener);
+            #endregion
+
             //SetOrganizationService();
 
             //SetClaimsBasedAuthenticationOrganizationService();
@@ -251,6 +273,16 @@ namespace ToolUtilityNameSpace
         }
         public ToolUtilityClass(String DiscoveryServiceType)
         {
+            #region 追蹤專用變數
+            m_TraceLogFile = TRACE_DIRECTOR;
+            m_XmlFileStream = new FileStream(m_TraceLogFile, FileMode.Append, FileAccess.Write, FileShare.ReadWrite);
+            m_XmlFileStreamWriter = new StreamWriter(m_XmlFileStream, Encoding.GetEncoding("big5"));
+            m_Listener = new BugslayerTextWriterTraceListener(m_XmlFileStreamWriter);
+
+            Debug.AutoFlush = true;
+            Debug.Listeners.Add(m_Listener);
+            #endregion
+
             //SetOrganizationService();
 
             //SetClaimsBasedAuthenticationOrganizationService();
@@ -271,6 +303,16 @@ namespace ToolUtilityNameSpace
         }
         public ToolUtilityClass(ref bool ValidFlag)
         {
+            #region 追蹤專用變數
+            m_TraceLogFile = TRACE_DIRECTOR;
+            m_XmlFileStream = new FileStream(m_TraceLogFile, FileMode.Append, FileAccess.Write, FileShare.ReadWrite);
+            m_XmlFileStreamWriter = new StreamWriter(m_XmlFileStream, Encoding.GetEncoding("big5"));
+            m_Listener = new BugslayerTextWriterTraceListener(m_XmlFileStreamWriter);
+
+            Debug.AutoFlush = true;
+            Debug.Listeners.Add(m_Listener);
+            #endregion
+
             if (ExpireDate >= DateTime.Today)
             {
                 ValidFlag = false;

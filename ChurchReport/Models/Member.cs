@@ -32,11 +32,11 @@ namespace ChurchReport.Models {
             get;
             set;
         }
-        public DateTime BirthDate
-        {
-            get;
-            set;
-        }
+        //public DateTime BirthDate
+        //{
+        //    get;
+        //    set;
+        //}
         public string Industry
         {
             get;
