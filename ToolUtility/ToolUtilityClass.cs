@@ -256,13 +256,13 @@ namespace ToolUtilityNameSpace
         public ToolUtilityClass()
         {
             #region 追蹤專用變數
-            m_TraceLogFile = TRACE_DIRECTOR;
-            m_XmlFileStream = new FileStream(m_TraceLogFile, FileMode.Append, FileAccess.Write, FileShare.ReadWrite);
-            m_XmlFileStreamWriter = new StreamWriter(m_XmlFileStream, Encoding.GetEncoding("big5"));
-            m_Listener = new BugslayerTextWriterTraceListener(m_XmlFileStreamWriter);
+            //m_TraceLogFile = TRACE_DIRECTOR;
+            //m_XmlFileStream = new FileStream(m_TraceLogFile, FileMode.Append, FileAccess.Write, FileShare.ReadWrite);
+            //m_XmlFileStreamWriter = new StreamWriter(m_XmlFileStream, Encoding.GetEncoding("big5"));
+            //m_Listener = new BugslayerTextWriterTraceListener(m_XmlFileStreamWriter);
 
-            Debug.AutoFlush = true;
-            Debug.Listeners.Add(m_Listener);
+            //Debug.AutoFlush = true;
+            //Debug.Listeners.Add(m_Listener);
             #endregion
 
             //SetOrganizationService();
@@ -274,13 +274,13 @@ namespace ToolUtilityNameSpace
         public ToolUtilityClass(String DiscoveryServiceType)
         {
             #region 追蹤專用變數
-            m_TraceLogFile = TRACE_DIRECTOR;
-            m_XmlFileStream = new FileStream(m_TraceLogFile, FileMode.Append, FileAccess.Write, FileShare.ReadWrite);
-            m_XmlFileStreamWriter = new StreamWriter(m_XmlFileStream, Encoding.GetEncoding("big5"));
-            m_Listener = new BugslayerTextWriterTraceListener(m_XmlFileStreamWriter);
+            //m_TraceLogFile = TRACE_DIRECTOR;
+            //m_XmlFileStream = new FileStream(m_TraceLogFile, FileMode.Append, FileAccess.Write, FileShare.ReadWrite);
+            //m_XmlFileStreamWriter = new StreamWriter(m_XmlFileStream, Encoding.GetEncoding("big5"));
+            //m_Listener = new BugslayerTextWriterTraceListener(m_XmlFileStreamWriter);
 
-            Debug.AutoFlush = true;
-            Debug.Listeners.Add(m_Listener);
+            //Debug.AutoFlush = true;
+            //Debug.Listeners.Add(m_Listener);
             #endregion
 
             //SetOrganizationService();
@@ -304,13 +304,13 @@ namespace ToolUtilityNameSpace
         public ToolUtilityClass(ref bool ValidFlag)
         {
             #region 追蹤專用變數
-            m_TraceLogFile = TRACE_DIRECTOR;
-            m_XmlFileStream = new FileStream(m_TraceLogFile, FileMode.Append, FileAccess.Write, FileShare.ReadWrite);
-            m_XmlFileStreamWriter = new StreamWriter(m_XmlFileStream, Encoding.GetEncoding("big5"));
-            m_Listener = new BugslayerTextWriterTraceListener(m_XmlFileStreamWriter);
+            //m_TraceLogFile = TRACE_DIRECTOR;
+            //m_XmlFileStream = new FileStream(m_TraceLogFile, FileMode.Append, FileAccess.Write, FileShare.ReadWrite);
+            //m_XmlFileStreamWriter = new StreamWriter(m_XmlFileStream, Encoding.GetEncoding("big5"));
+            //m_Listener = new BugslayerTextWriterTraceListener(m_XmlFileStreamWriter);
 
-            Debug.AutoFlush = true;
-            Debug.Listeners.Add(m_Listener);
+            //Debug.AutoFlush = true;
+            //Debug.Listeners.Add(m_Listener);
             #endregion
 
             if (ExpireDate >= DateTime.Today)
