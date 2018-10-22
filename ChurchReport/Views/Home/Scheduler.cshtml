@@ -11,9 +11,9 @@
                                 .DeleteAction("DeleteAppointments")
                                 )
                             .Views(new SchedulerViewType[] {
-                                SchedulerViewType.Week,
+                                //SchedulerViewType.Week,
                                 SchedulerViewType.Month,
-                                SchedulerViewType.Day
+                                //SchedulerViewType.Day
                             })
                             .Editing( E=>E.AllowAdding(true).AllowDeleting(true).AllowDragging(true).AllowResizing(true).AllowUpdating(true))
                             .FirstDayOfWeek(FirstDayOfWeek.Monday)
@@ -51,7 +51,8 @@
                                 }
                             </text>)
 
-                            .Height(200)
+                            .Height(600)
+                            .Width(200)
                             .Resources(res =>
                             {
                                 res.Add()
@@ -155,7 +156,7 @@
     })
     )*@
 
-<div class="options">
+@*<div class="options">
     <div class="caption">Options</div>
     <div class="option switcher-mode">
         <span>View Switcher Mode</span>
@@ -230,7 +231,7 @@
                                     </text>)
         )
     </div>
-</div>
+</div>*@
 
 <script>
 function getSchedulerInstance() {
