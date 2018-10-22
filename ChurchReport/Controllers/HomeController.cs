@@ -1170,6 +1170,43 @@ namespace ChurchReport.Controllers
                 throw e;
             }
         }
+        [HttpGet]
+        public object LoadAppointments(DataSourceLoadOptions loadOptions)
+        {
+            AppointmentsList aAppointmentsList = new AppointmentsList();
+
+            return DataSourceLoader.Load(aAppointmentsList.Appointments, loadOptions);
+        }
+
+        [HttpPost]
+        public IActionResult PostAppointments(string values)
+        {
+            var newAppointment = new Appointment();
+            JsonConvert.PopulateObject(values, newAppointment);
+
+
+            return Ok();
+        }
+
+        [HttpPut]
+        public IActionResult PutAppointments(int key, string values)
+        {
+            AppointmentsList aAppointmentsList = new AppointmentsList();
+            var appointment = aAppointmentsList.Appointments.First(a => a.AppointmentId == key);
+            JsonConvert.PopulateObject(values, appointment);
+
+            return Ok();
+        }
+
+        [HttpDelete]
+        public void DeleteAppointments(int key)
+        {
+            AppointmentsList aAppointmentsList = new AppointmentsList();
+
+            var appointment = aAppointmentsList.Appointments.First(a => a.AppointmentId == key);
+            aAppointmentsList.Appointments.Remove(appointment);
+            //_data.SaveChanges();
+        }
         #endregion
         #region 新增新人
         public IActionResult NewPerson()
