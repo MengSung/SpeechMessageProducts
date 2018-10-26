@@ -27,3 +27,15 @@
     display: inline-block;
     vertical-align: middle;
 }
+
+#scheduler .dx-scheduler-cell-sizes-horizontal {
+    width: 60px;
+}
+
+.dx-scheduler-cell-sizes-vertical {
+    height: 30px;
+}
+
+#scheduler .dx-scheduler-work-space-day .dx-scheduler-date-table-cell {
+    width: 50px; /*Specify any value */
+}
