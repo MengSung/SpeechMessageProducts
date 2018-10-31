@@ -396,8 +396,32 @@ namespace ChurchReport.WebServiceConnector
                 {
                     // 沒找到任何要點名的名單，所以是個人回報
                     #region 取得個人回報的名單
-                    this.m_Lists = this.m_ToolUtilityClass.QueryListOfContactManyToMany(this.m_ContactEntity.Id);
+                    EntityCollection aListEntityCollection = this.m_ToolUtilityClass.QueryListOfContactManyToMany(this.m_ContactEntity.Id);
+
+                    foreach (Entity ListEntity in aListEntityCollection.Entities)
+                    {
+                        // 除錯
+                        if (ListEntity.Attributes.Contains("new_app_named") && this.m_ToolUtilityClass.GetEntityStringAttribute(ListEntity, "listname").Contains("幸福") != true)
+                        {
+                            bool AppNamed = (bool)ListEntity.Attributes["new_app_named"];
+
+                            if (AppNamed == true)
+                            {
+                                this.m_Lists.Entities.Add(ListEntity);
+                            }
+                        }
+                    }
+
+                    if (this.m_Lists.Entities.Count > 0)
+                    {
+                        Guid GroupLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(this.m_Lists.Entities[0], "new_contact_family_leader_list");
+                        if (GroupLeaderId != Guid.Empty)
+                        {
+                            this.m_ContactEntity = this.m_ToolUtilityClass.RetrieveEntity("contact", GroupLeaderId);
+                        }
+                    }
                     #endregion
+
                 }
 
                 // 搜尋小組長的門徒小組名單Lookup Id
@@ -525,7 +549,8 @@ namespace ChurchReport.WebServiceConnector
 
                 foreach (Entity ListEntity in aListEntityCollection.Entities)
                 {
-                    if (ListEntity.Attributes.Contains("new_app_named"))
+                    // 除錯
+                    if (ListEntity.Attributes.Contains("new_app_named") && this.m_ToolUtilityClass.GetEntityStringAttribute(ListEntity, "listname").Contains("幸福") != true)
                     {
                         bool AppNamed = (bool)ListEntity.Attributes["new_app_named"];
 

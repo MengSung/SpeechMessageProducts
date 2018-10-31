@@ -641,9 +641,13 @@ namespace ChurchReport.WebServiceConnector
                     }
                     else
                     {
-                        if (aHappyGroupWeeklyReportList.SpiritLeaderList.Contains(SpiritLeaderName) != true)
+                        // 會當掉之處，除錯
+                        if (SpiritLeaderName != null)
                         {
-                            aHappyGroupWeeklyReportList.SpiritLeaderList += SpiritLeaderName + ",";
+                            if (m_HappyGroupWeeklyReportList.SpiritLeaderList.Contains(SpiritLeaderName) != true)
+                            {
+                                m_HappyGroupWeeklyReportList.SpiritLeaderList += SpiritLeaderName + ",";
+                            }
                         }
                     }
 
