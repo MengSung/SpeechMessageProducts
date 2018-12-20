@@ -18,6 +18,8 @@ namespace ChurchReport.Models
 
         public String DataStatus { get; set; }
 
+        public String SundayPeriod { get; set; } // 提醒小組長回報的期間
+
         public List<Member> Members { get ; set ; }
     }
 }

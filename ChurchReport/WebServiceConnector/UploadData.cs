@@ -193,7 +193,10 @@ namespace ChurchReport.WebServiceConnector
                             else
                             {
                                 #region// 更新週報
-                                aGraceLeaderWeeklyReportEntity = UpdateWeeklyReportProcess(aGroupWeeklyReportGuid, ref aListEntity, ref aWeeklyReportId);
+                                if (this.UpdateWeeklyReportOrNot(ref aListEntity, aSunday)) // 判斷是否真要建立週報
+                                {
+                                    aGraceLeaderWeeklyReportEntity = UpdateWeeklyReportProcess(aGroupWeeklyReportGuid, ref aListEntity, ref aWeeklyReportId);
+                                }
                                 #endregion
                             }
                             #region 如果登入者是族系族長，則他的週報要留下來，以便寫入他底下的小組長，所有的主日、小組出席紀錄
@@ -299,61 +302,64 @@ namespace ChurchReport.WebServiceConnector
                 // 主日點名，小組未點名     = 100,000,003
                 // 小組點名，主日未點名     = 100,000,004
 
-                int Status = this.m_ToolUtilityClass.GetOptionSetAttribute(ref aWeeklyReportEntity, "new_weekly_report_status");
-                if (Status == 100000000)
-                {
-                    #region 均未點名
-                    if (UploadCategory == "主日點名")
-                    {
-                        // 設定主日點名，小組未點名
-                        this.m_ToolUtilityClass.SetOptionSetAttribute(ref aWeeklyReportEntity, "new_weekly_report_status", 100000003);
-                    }
-                    else if (UploadCategory == "小組點名")
-                    {
-                        // 小組點名，主日未點名
-                        this.m_ToolUtilityClass.SetOptionSetAttribute(ref aWeeklyReportEntity, "new_weekly_report_status", 100000004);
-                    }
-                    else { }
-                    #endregion
-                }
-                else if (Status == 100000003)
-                {
-                    #region 主日點名，小組未點名
-                    if (UploadCategory == "小組點名")
-                    {
-                        // 均已點名
-                        this.m_ToolUtilityClass.SetOptionSetAttribute(ref aWeeklyReportEntity, "new_weekly_report_status", 100000001);
-                    }
-                    else { }
-                    #endregion
-                }
-                else if (Status == 100000004)
-                {
-                    #region 小組點名，主日未點名
-                    if (UploadCategory == "主日點名")
-                    {
-                        // 均已點名
-                        this.m_ToolUtilityClass.SetOptionSetAttribute(ref aWeeklyReportEntity, "new_weekly_report_status", 100000001);
-                    }
-                    else { }
-                    #endregion
-                }
-                else
-                {
-                    #region 均未點名
-                    if (UploadCategory == "主日點名")
-                    {
-                        // 設定主日點名，小組未點名
-                        this.m_ToolUtilityClass.SetOptionSetAttribute(ref aWeeklyReportEntity, "new_weekly_report_status", 100000003);
-                    }
-                    else if (UploadCategory == "小組點名")
-                    {
-                        // 小組點名，主日未點名
-                        this.m_ToolUtilityClass.SetOptionSetAttribute(ref aWeeklyReportEntity, "new_weekly_report_status", 100000004);
-                    }
-                    else { }
-                    #endregion
-                }
+                // 目前先設定均已點名
+                this.m_ToolUtilityClass.SetOptionSetAttribute(ref aWeeklyReportEntity, "new_weekly_report_status", 100000001);
+
+                //int Status = this.m_ToolUtilityClass.GetOptionSetAttribute(ref aWeeklyReportEntity, "new_weekly_report_status");
+                //if (Status == 100000000)
+                //{
+                //    #region 均未點名
+                //    if (UploadCategory == "主日點名")
+                //    {
+                //        // 設定主日點名，小組未點名
+                //        this.m_ToolUtilityClass.SetOptionSetAttribute(ref aWeeklyReportEntity, "new_weekly_report_status", 100000003);
+                //    }
+                //    else if (UploadCategory == "小組點名")
+                //    {
+                //        // 小組點名，主日未點名
+                //        this.m_ToolUtilityClass.SetOptionSetAttribute(ref aWeeklyReportEntity, "new_weekly_report_status", 100000004);
+                //    }
+                //    else { }
+                //    #endregion
+                //}
+                //else if (Status == 100000003)
+                //{
+                //    #region 主日點名，小組未點名
+                //    if (UploadCategory == "小組點名")
+                //    {
+                //        // 均已點名
+                //        this.m_ToolUtilityClass.SetOptionSetAttribute(ref aWeeklyReportEntity, "new_weekly_report_status", 100000001);
+                //    }
+                //    else { }
+                //    #endregion
+                //}
+                //else if (Status == 100000004)
+                //{
+                //    #region 小組點名，主日未點名
+                //    if (UploadCategory == "主日點名")
+                //    {
+                //        // 均已點名
+                //        this.m_ToolUtilityClass.SetOptionSetAttribute(ref aWeeklyReportEntity, "new_weekly_report_status", 100000001);
+                //    }
+                //    else { }
+                //    #endregion
+                //}
+                //else
+                //{
+                //    #region 均未點名
+                //    if (UploadCategory == "主日點名")
+                //    {
+                //        // 設定主日點名，小組未點名
+                //        this.m_ToolUtilityClass.SetOptionSetAttribute(ref aWeeklyReportEntity, "new_weekly_report_status", 100000003);
+                //    }
+                //    else if (UploadCategory == "小組點名")
+                //    {
+                //        // 小組點名，主日未點名
+                //        this.m_ToolUtilityClass.SetOptionSetAttribute(ref aWeeklyReportEntity, "new_weekly_report_status", 100000004);
+                //    }
+                //    else { }
+                //    #endregion
+                //}
 
             }
             catch (System.Exception Exception)
@@ -669,7 +675,122 @@ namespace ChurchReport.WebServiceConnector
                         return false;
                     }
                 }
-                return true; // 永遠都是通過，可以建立周報、靈修紀錄單
+                //return true; // 永遠都是通過，可以建立周報、靈修紀錄單
+                #region
+                if (aListEntity != null)
+                {
+                    #region// 有找到吻合的名單
+                    // 名單裡的小組長 ID
+                    Guid aSmallGroupLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_family_leader_list");
+
+                    if (this.m_ContactId == aSmallGroupLeaderId)
+                    {
+                        // 登入者與名單的小組長是同一個人
+                        return true;
+                    }
+                    else
+                    {
+                        // 登入者與名單的小組長不是同一個人
+                        return false;
+                    }
+                    #endregion
+                }
+                else
+                {
+                    #region// 沒找到吻合的名單
+                    return false;
+                    #endregion
+                }
+                #endregion
+                #region
+                //if (aListEntity != null)
+                //{
+                //    #region// 有找到吻合的名單
+                //    // 比對名單中的小組長跟族系組長是否是同一人
+                //    // 名單裡的小組長 ID
+                //    Guid aSmallGroupLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_family_leader_list");
+                //    // 名單裡的族系族長 ID
+                //    Guid aRaceGroupLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_race_leager_list");
+
+                //    if (this.m_RaceLeaderId == Guid.Empty) // m_RaceLeaderId 是指小組長的族系組長ID
+                //    {
+                //        #region// 是族系組長
+                //        if (aSmallGroupLeaderId == aRaceGroupLeaderId)
+                //        {
+                //            // 名單裡的小組長和族系組長是同一個
+                //            // 族長自己的小組我已要新建週報
+                //            return true;
+                //        }
+                //        else
+                //        {
+                //            if (RACE_LEADER_CAN_CREATE_WEEKLYREPORT == true)
+                //            {
+                //                // 族系組長能否幫小組長建立週報
+                //                return true;
+                //            }
+                //            else
+                //            {
+                //                // 名單裡的小組長和族系組長不是同一個
+                //                // 就不要建立週報，因為不希望族長幫小組長建立週報
+                //                return false;
+                //            }
+                //        }
+                //        #endregion
+                //    }
+                //    else
+                //    {
+                //        #region// 是小組長
+                //        return true;
+                //        #endregion
+                //    }
+                //    #endregion
+                //}
+                //else
+                //{
+                //    #region// 沒找到吻合的名單
+                //    return false;
+                //    #endregion
+                //}
+                #endregion
+            }
+            catch (System.Exception Exception)
+            {
+                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
+                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                throw Exception;
+            }
+        }
+        private bool UpdateWeeklyReportOrNot(ref Entity aListEntity, DateTime aSunday)
+        {
+            try
+            {
+                #region
+                if (aListEntity != null)
+                {
+                    #region// 有找到吻合的名單
+                    // 名單裡的小組長 ID
+                    Guid aSmallGroupLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_family_leader_list");
+
+                    if (this.m_ContactId == aSmallGroupLeaderId)
+                    {
+                        // 登入者與名單的小組長是同一個人
+                        return true;
+                    }
+                    else
+                    {
+                        // 登入者與名單的小組長不是同一個人
+                        return false;
+                    }
+                    #endregion
+                }
+                else
+                {
+                    #region// 沒找到吻合的名單
+                    return false;
+                    #endregion
+                }
+                #endregion
                 #region
                 //if (aListEntity != null)
                 //{
@@ -1211,7 +1332,9 @@ namespace ChurchReport.WebServiceConnector
 
                 #endregion
                 #region 設定週報狀態，設定為均未點名，因為後面程式還會再設定一次
-                this.m_ToolUtilityClass.SetOptionSetAttribute(ref aWeeklyReportEntity, "new_weekly_report_status", 100000000);
+                // 均未點名 = 100000000
+                // 均已點名 = 100000001
+                this.m_ToolUtilityClass.SetOptionSetAttribute(ref aWeeklyReportEntity, "new_weekly_report_status", 100000001);
                 #endregion
             }
             catch (System.Exception Exception)

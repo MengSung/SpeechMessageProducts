@@ -76,6 +76,9 @@ namespace ChurchReport.Models
             m_SmallGroupData.SundayPrayers = aSelectDate;
             //m_SmallGroupData.SundayPrayers = m_SundayDate;
 
+            // 提醒小組長回報的期間
+            m_SmallGroupData.SundayPeriod = FullName + "選擇的小組日期對應到主日期間是: " + m_SundayDate.ToLocalTime().ToShortDateString() + " ~ " + m_SundayDate.AddDays(6).ToLocalTime().ToShortDateString();
+
             SetSundayPrayersByWeeklyReport(FullName);
 
             #region  小組長回報
