@@ -1698,7 +1698,6 @@ namespace ToolUtilityNameSpace
         #endregion
         #region 搜尋 N:1 的集合
         //private readonly object m_QueryManyToOneLocker = new object();
-
         public EntityCollection RetrieveManyToOneCollection()
         {
             try
@@ -1742,7 +1741,6 @@ namespace ToolUtilityNameSpace
                 throw e;
             }
         }
-
         public Entity QueryBloodReportByContactId(Guid ContactId)
         {
             try
@@ -1831,7 +1829,6 @@ namespace ToolUtilityNameSpace
                 throw e;
             }
         }
-
         // 搜尋主日日期是最近2個月的靈修單
         public EntityCollection QueryPresentRecordByContactIdAndSunday(Guid aListEntityId, Guid ContactId, int MonthPeriod)
         {
@@ -1928,7 +1925,6 @@ namespace ToolUtilityNameSpace
                 throw e;
             }
         }
-
         public EntityCollection RetrieveManyToOneRelationship(String ParentEntityName, String ParentEntityIdName, String ParentEntityId, String AssociationName, String ChildEntityName)
         {
             try
@@ -2221,11 +2217,6 @@ namespace ToolUtilityNameSpace
                 throw e;
             }
         }
-
-
-
-
-
         public EntityCollection QueryEntityListByDate(String ParentEntityName, String ParentEntityIdName, String ParentEntityId, String AssociationName, String ChildEntityName)
         {
             try
@@ -2316,7 +2307,6 @@ namespace ToolUtilityNameSpace
                 throw e;
             }
         }
-
         public EntityCollection RetrieveManyToOneRelationship()
         {
             try
@@ -2393,7 +2383,6 @@ namespace ToolUtilityNameSpace
                 throw e;
             }
         }
-
         public EntityCollection QueryWeeklyReportBySunday(DateTime aSunday, String ParentEntityName, String ParentEntityIdName, String ParentEntityId, String AssociationName, String ChildEntityName)
         {
             try
@@ -2419,14 +2408,12 @@ namespace ToolUtilityNameSpace
                     //StateCondidtion.Values.Add("使用中");
 
 
-                    //ConditionExpression DateTimeConditionPrincipal = new ConditionExpression();
-                    //
-                    //// Set the ConditionExpressions properties so that the condition is true when the 
-                    //// ownerid of the account equals the principalId.
-                    //ConditionExpression DateTimeConditionPrincipal = new ConditionExpression();
-                    //DateTimeConditionPrincipal.AttributeName = @"new_sunday_date";
-                    //DateTimeConditionPrincipal.Operator = ConditionOperator.Equal;
-                    //DateTimeConditionPrincipal.Values.Add(aSunday.ToString());
+                    // Set the ConditionExpressions properties so that the condition is true when the 
+                    // ownerid of the account equals the principalId.
+                    ConditionExpression DateTimeConditionPrincipal = new ConditionExpression();
+                    DateTimeConditionPrincipal.AttributeName = @"new_sunday_date";
+                    DateTimeConditionPrincipal.Operator = ConditionOperator.Equal;
+                    DateTimeConditionPrincipal.Values.Add(aSunday.ToString());
 
 
                     // Build the filter that is based on the condition.
@@ -2434,7 +2421,7 @@ namespace ToolUtilityNameSpace
                     filter.FilterOperator = LogicalOperator.And;
                     filter.Conditions.Add(condition);
                     filter.Conditions.Add(StateCondidtion);
-                    //filter.Conditions.Add(DateTimeConditionPrincipal);
+                    filter.Conditions.Add(DateTimeConditionPrincipal);
                     #endregion
 
                     #region // Create a LinkEntity to link the owner's information to the account.
@@ -2512,7 +2499,6 @@ namespace ToolUtilityNameSpace
                 throw e;
             }
         }
-
         public EntityCollection QueryListsAndOrderedByListName(String ParentEntityName, String ParentEntityIdName, String ParentEntityId, String AssociationName, String ChildEntityName)
         {
             try
@@ -2604,6 +2590,86 @@ namespace ToolUtilityNameSpace
                     #endregion
 
                     return request.EntityCollection;
+                //}
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                //Monitor.Exit(this);
+                throw e;
+            }
+        }
+        public EntityCollection QueryWeeklyReportBySunday(DateTime aSunday, Guid aListEntityId )
+        {
+            try
+            {
+                //lock (m_QueryManyToOneLocker)
+                //{
+                #region // Create the ConditionExpression.
+                ConditionExpression condition = new ConditionExpression();
+
+                // Set the condition to be when the account owner's last name is not Cannon. new_new_receive_drugs_prescribed_new_
+                condition.AttributeName = "new_list_group_present_weekly_report";
+                condition.Operator = ConditionOperator.Equal;
+                condition.Values.Add(aListEntityId);
+
+                ConditionExpression StateCondidtion = new ConditionExpression();
+                // Set the condition to be when the account owner's last name is not Cannon. new_new_receive_drugs_prescribed_new_
+                //StateCondidtion.AttributeName = "statuscode";
+                StateCondidtion.AttributeName = "statecode";
+                StateCondidtion.Operator = ConditionOperator.Equal;
+                //StateCondidtion.Values.Add("Inactive");
+                //StateCondidtion.Values.Add("Active");
+                StateCondidtion.Values.Add(0);
+                //StateCondidtion.Values.Add("使用中");
+
+                ConditionExpression DateTimeConditionPrincipal = new ConditionExpression("new_sunday_date", ConditionOperator.Equal, aSunday);
+                // Build the filter that is based on the condition.
+                FilterExpression filter = new FilterExpression();
+                filter.FilterOperator = LogicalOperator.And;
+                filter.Conditions.Add(condition);
+                filter.Conditions.Add(StateCondidtion);
+                filter.Conditions.Add(DateTimeConditionPrincipal);
+                #endregion
+
+                #region// Create an instance of the query expression class.
+                OrderExpression OrderByDate = new OrderExpression();
+                OrderByDate.AttributeName = "new_sunday_date";
+                OrderByDate.OrderType = OrderType.Descending;
+
+                QueryExpression query = new QueryExpression();
+
+                // Set the query properties.
+                query.EntityName = "new_group_present_weekly_report";
+                query.ColumnSet.AllColumns = true;
+                query.Criteria = filter;
+                query.Orders.Add(OrderByDate);
+                #endregion
+
+
+                #region // 執行 Query 的Request
+                // Create the request.
+                RetrieveMultipleRequest retrieve = new RetrieveMultipleRequest();
+
+                // Set the request properties.
+                retrieve.Query = query;
+                //retrieve.ReturnDynamicEntities = true;
+
+                // Execute the request.
+                RetrieveMultipleResponse request;
+                if (CRM_TYPE == "DYNAMICS365")
+                {
+                    request = (RetrieveMultipleResponse)this.m_OrganizationService.Execute(retrieve);
+                }
+                else
+                {
+                    request = (RetrieveMultipleResponse)this.m_Crm2011OrganizationService.Execute(retrieve);
+                }
+
+                #endregion
+
+                return request.EntityCollection;
                 //}
             }
             catch (System.Exception e)

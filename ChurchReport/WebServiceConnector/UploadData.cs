@@ -33,7 +33,6 @@ namespace ChurchReport.WebServiceConnector
 
         bool m_SetIdentityFlag = false;
         #endregion
-
         #region 常數參數
 
         //private const String CRM_TYPE = "CRM2011";
@@ -177,7 +176,7 @@ namespace ChurchReport.WebServiceConnector
                                 #endregion
                                 #region// 要建立週報
                                 this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "要建立週報");
-                                if (this.CreateWeeklyReportOrNot(ref aListEntity, aSunday)) // 判斷是否真要建立週報
+                                if (this.CreateWeeklyReportOrNot(ref aListEntity, m_Sunday)) // 判斷是否真要建立週報
                                 {
                                     // 建立週報
                                     Double aWeeklySundayRate = 0.0;
@@ -193,7 +192,7 @@ namespace ChurchReport.WebServiceConnector
                             else
                             {
                                 #region// 更新週報
-                                if (this.UpdateWeeklyReportOrNot(ref aListEntity, aSunday)) // 判斷是否真要建立週報
+                                if (this.UpdateWeeklyReportOrNot(ref aListEntity, m_Sunday)) // 判斷是否真要建立週報
                                 {
                                     aGraceLeaderWeeklyReportEntity = UpdateWeeklyReportProcess(aGroupWeeklyReportGuid, ref aListEntity, ref aWeeklyReportId);
                                 }
@@ -660,10 +659,10 @@ namespace ChurchReport.WebServiceConnector
             try
             {
                 // 待完成事項，若是名單的相關週報已經有該週主日的週報則不建立
-
                 //public EntityCollection QueryContactWeeklyReportBySunday(DateTime aSunday, String ParentEntityName, String ParentEntityIdName, String ParentEntityId, String AssociationName, String ChildEntityName)
+                //EntityCollection aWeeklyReportCollection = this.m_ToolUtilityClass.QueryWeeklyReportBySunday(aSunday, "list", "listid", aListEntity.Id.ToString(), "new_list_group_present_weekly_report", "new_group_present_weekly_report");
 
-                EntityCollection aWeeklyReportCollection = this.m_ToolUtilityClass.QueryWeeklyReportBySunday(aSunday, "list", "listid", aListEntity.Id.ToString(), "new_list_group_present_weekly_report", "new_group_present_weekly_report");
+                EntityCollection aWeeklyReportCollection = this.m_ToolUtilityClass.QueryWeeklyReportBySunday(aSunday, aListEntity.Id);
 
                 foreach (Entity aWeeklyReport in aWeeklyReportCollection.Entities)
                 {
@@ -690,8 +689,17 @@ namespace ChurchReport.WebServiceConnector
                     }
                     else
                     {
-                        // 登入者與名單的小組長不是同一個人
-                        return false;
+                        if (m_MemberInfomationPackage.m_LoginType == "小組長")
+                        {
+                            // 登入者與名單的小組長不是同一個人
+                            return false;
+                        }
+                        else
+                        {
+                            // 個人回報
+                            return true;
+                        }
+
                     }
                     #endregion
                 }
@@ -765,6 +773,7 @@ namespace ChurchReport.WebServiceConnector
         {
             try
             {
+                EntityCollection aWeeklyReportCollection = this.m_ToolUtilityClass.QueryWeeklyReportBySunday(aSunday, aListEntity.Id);
                 #region
                 if (aListEntity != null)
                 {
