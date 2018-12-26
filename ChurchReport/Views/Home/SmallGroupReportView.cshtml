@@ -46,169 +46,181 @@ else
         <div id="dateBoxContainer" class="dx-field-value" style="float: left; width:55%; background-color:white;">
 
             @(Html.DevExtreme()
-                                                //.DateBox()
-                                                .DateBoxFor(m => m.SundayPrayers)
-                                                .Type(DateBoxType.Date)
-                                                .Value(Model.SundayPrayers)
-                                                .Width(50)
-                                                .DisplayFormat("yyyy/M/d")
-                                                .OnChange("OnDateboxChange")
-                                                //.DisplayFormat("yyyy/MM/dd")
-                                                //.OnValueChanged("OnValueChanged")
+                                                        //.DateBox()
+                                                        .DateBoxFor(m => m.SundayPrayers)
+                                                        .Type(DateBoxType.Date)
+                                                        .Value(Model.SundayPrayers)
+                                                        .Width(50)
+                                                        .DisplayFormat("yyyy/M/d")
+                                                        .OnChange("OnDateboxChange")
+                                                        //.DisplayFormat("yyyy/MM/dd")
+                                                        //.OnValueChanged("OnValueChanged")
 
 
-                                                .OnValueChanged(@<text>
-                                                    function(arg) {
+                                                        .OnValueChanged(@<text>
+                                                            function(arg) {
 
-                                                    $("#loadPanel").dxLoadPanel("instance").show();
+                                                            $("#loadPanel").dxLoadPanel("instance").show();
 
-                                                    $.ajax({
-                                                    url: '@Url.Action("UpdateDate", "Home")',
-                                                    data: { SelectedDate: getODataLocalDateFilter(arg.value) },
-                                                    type: 'GET', //POST if you want to save, GET if you want to fetch data from server
+                                                            $.ajax({
+                                                            url: '@Url.Action("UpdateDate", "Home")',
+                                                            data: { SelectedDate: getODataLocalDateFilter(arg.value) },
+                                                            type: 'GET', //POST if you want to save, GET if you want to fetch data from server
 
-                                                    success: function (arg)
-                                                    {
-                                                    //alert("001");
-                                                    $("#loadPanel").dxLoadPanel("instance").hide();
+                                                            success: function (arg)
+                                                            {
+                                                            //alert("001");
+                                                            $("#loadPanel").dxLoadPanel("instance").hide();
 
-                                                    //var dataGridInstance = $("#gridContainer").dxDataGrid("instance");
-                                                    //dataGridInstance.refresh();
-                                                    //alert("002");
+                                                            //var dataGridInstance = $("#gridContainer").dxDataGrid("instance");
+                                                            //dataGridInstance.refresh();
+                                                            //alert("002");
 
-                                                    window.location.href = "/Home/SmallGroupReportView/AccountPassword"
-                                                    //alert("003");
+                                                            window.location.href = "/Home/SmallGroupReportView/AccountPassword"
+                                                            //alert("003");
 
-                                                    },
+                                                            },
 
-                                                    error: function (obj) {
-                                                    //alert('Something happened');
-                                                    }
+                                                            error: function (obj) {
+                                                            //alert('Something happened');
+                                                            }
 
-                                                    });
-                                                    }
-                                                </text>
-                                                                                                                                                                   )
+                                                            });
+                                                            }
+                                                        </text>
+                                                                                                                                                                                                                           )
 
             )
         </div>
         <div id="buttonContainer" class="dx-button-icon" style="float: left; width:30%; text-align: left; background-color:white;">
             @(Html.DevExtreme().Button()
-                                            .Text("上傳")
-                                            .Type(ButtonType.Success)
-                                            .ID("save-button")
-                                            //.UseSubmitBehavior(true)
+                                                    .Text("上傳")
+                                                    .Type(ButtonType.Success)
+                                                    .ID("save-button")
+                                                    //.UseSubmitBehavior(true)
 
-                                            .OnClick
-                                            (@<text>
-                                                function(arg)
-                                                {
-                                                    if ( UploadDateFormat  === "格式錯誤" )
-                                                    {
-                                                    // 顯示日期格式錯誤
-                                                    $("#SelectDateToast").dxToast("instance").show();
-                                                    return ;
-                                                    }
+                                                    .OnClick
+                                                    (@<text>
+                                                        function(arg)
+                                                        {
+                                                        if ( UploadDateFormat  === "格式錯誤" )
+                                                        {
+                                                        // 顯示日期格式錯誤
+                                                        $("#SelectDateToast").dxToast("instance").show();
+                                                        return ;
+                                                        }
 
-                                                var dataGrid = $("#gridContainer").dxDataGrid("instance");
-                                                // 取得上傳的按鈕
-                                                var ButtonContainer= $("#save-button").dxButton("instance");
+                                                        var dataGrid = $("#gridContainer").dxDataGrid("instance");
+                                                        // 取得上傳的按鈕
+                                                        var ButtonContainer= $("#save-button").dxButton("instance");
 
-                                                //debugger;
-                                                var Flag = dataGrid.hasEditData();//是否還殘留尚未回傳的編輯資料
+                                                        //debugger;
+                                                        var Flag = dataGrid.hasEditData();//是否還殘留尚未回傳的編輯資料
 
-                                                if(Flag == false)
-                                                {
-                                                // 顯示旋轉鈕
-                                                $("#loadPanel").dxLoadPanel("instance").show();
+                                                        if(Flag == false)
+                                                        {
+                                                        // 顯示旋轉鈕
+                                                        $("#loadPanel").dxLoadPanel("instance").show();
 
-                                                // 上傳按鈕反白
-                                                ButtonContainer.option("disabled", true);
+                                                        // 上傳按鈕反白
+                                                        ButtonContainer.option("disabled", true);
 
-                                                // AJAX 區塊
-                                                $.ajax
-                                                (
-                                                {
-                                                url: '@Url.Action("SaveSmallGroup", "Home")',
-                                                data: { aResult: GetResult() }, // 整理回傳給 Server 的點名資料
-                                                type: 'POST', //POST if you want to save, GET if you want to fetch data from server
+                                                        // AJAX 區塊
+                                                        $.ajax
+                                                        (
+                                                        {
+                                                        url: '@Url.Action("SaveSmallGroup", "Home")',
+                                                        data: { aResult: GetResult() }, // 整理回傳給 Server 的點名資料
+                                                        type: 'POST', //POST if you want to save, GET if you want to fetch data from server
 
-                                                success: function (arg)
-                                                {
-                                                // 隱藏旋轉鈕
-                                                $("#loadPanel").dxLoadPanel("instance").hide();
+                                                        success: function (arg)
+                                                        {
+                                                        // 隱藏旋轉鈕
+                                                        $("#loadPanel").dxLoadPanel("instance").hide();
 
-                                                // 上傳按鈕恢復可運作
-                                                ButtonContainer.option("disabled", false);
+                                                        // 上傳按鈕恢復可運作
+                                                        ButtonContainer.option("disabled", false);
 
-                                                // 顯示上傳成功
-                                                $("#toast").dxToast("instance").show();
-                                                },
+                                                        // 顯示上傳成功
+                                                        $("#toast").dxToast("instance").show();
+                                                        },
 
-                                                error: function (obj)
-                                                {
-                                                //alert('Something happened');
-                                                }
+                                                        error: function (obj)
+                                                        {
+                                                        //alert('Something happened');
+                                                        }
 
-                                                }
-                                                );
-                                                // AJAX 區塊
-                                                }
-                                                else
-                                                {
+                                                        }
+                                                        );
+                                                        // AJAX 區塊
+                                                        }
+                                                        else
+                                                        {
 
-                                                // 隱藏旋轉鈕
-                                                $("#loadPanel").dxLoadPanel("instance").hide();
-                                                // 顯示再上傳一次
-                                                $("#ToastReUpload").dxToast("instance").show();
+                                                        // 隱藏旋轉鈕
+                                                        $("#loadPanel").dxLoadPanel("instance").hide();
+                                                        // 顯示再上傳一次
+                                                        $("#ToastReUpload").dxToast("instance").show();
 
-                                                }
-                                                }
-                                            </text>)
+                                                        }
+                                                        }
+                                                    </text>)
             )
         </div>
         <div id="ToastContainer">
             @(Html.DevExtreme().Toast()
-                                            .ID("toast")
-                                            .Position(p => p
-                                            .At(HorizontalAlignment.Center, VerticalAlignment.Center)
-                                            .Offset(0, 50))
-                                            .Message(DataStatus)
-                                            .DisplayTime(2000)
-                                            .MaxWidth(200)
+                                                    .ID("toast")
+                                                    .Position(p => p
+                                                    .At(HorizontalAlignment.Center, VerticalAlignment.Center)
+                                                    .Offset(0, 50))
+                                                    .Message(DataStatus)
+                                                    .DisplayTime(2000)
+                                                    .MaxWidth(200)
             )
 
         </div>
         <div id="LoadPanel">
             @(Html.DevExtreme().LoadPanel()
-                                            .ID("loadPanel")
-                                            .ShadingColor("rgba(0,0,0,0.4)")
-                                            //.Position(p => p.Of("#data-grid").Of("#buttonContainer"))
-                                            .Position(p => p.Of("#data-grid"))
-                                            .Visible(false)
-                                            .ShowIndicator(true)
-                                            .ShowPane(true)
-                                            .Shading(true)
-                                            .CloseOnOutsideClick(false)
-                                            .Message("更新資料中...")
-                                            .Animation(l => l.Show(k => k.Easing(AnimationEasing.Swing)))
+                                                    .ID("loadPanel")
+                                                    .ShadingColor("rgba(0,0,0,0.4)")
+                                                    //.Position(p => p.Of("#data-grid").Of("#buttonContainer"))
+                                                    .Position(p => p.Of("#data-grid"))
+                                                    .Visible(false)
+                                                    .ShowIndicator(true)
+                                                    .ShowPane(true)
+                                                    .Shading(true)
+                                                    .CloseOnOutsideClick(false)
+                                                    .Message("更新資料中...")
+                                                    .Animation(l => l.Show(k => k.Easing(AnimationEasing.Swing)))
                     //.OnShown("loadPanel_shown")
                     //.OnHidden("loadPanel_hidden")
             )
         </div>
         <div id="ToastContainer">
             @(Html.DevExtreme().Toast()
-                                                .ID("ToastReUpload")
-                                                .Position(p => p
-                                                .At(HorizontalAlignment.Center, VerticalAlignment.Center)
-                                                .Offset(0, 50))
-                                                .Message(ReUpload)
-                                                .DisplayTime(5000)
-                                                .Type(ToastType.Error)
-                                                .MaxWidth(500)
+                                                        .ID("ToastReUpload")
+                                                        .Position(p => p
+                                                        .At(HorizontalAlignment.Center, VerticalAlignment.Center)
+                                                        .Offset(0, 50))
+                                                        .Message(ReUpload)
+                                                        .DisplayTime(5000)
+                                                        .Type(ToastType.Error)
+                                                        .MaxWidth(500)
             )
-
         </div>
+        <div id="SelectDateToastContainer">
+            @(Html.DevExtreme().Toast()
+                                        .ID("SelectDateToast")
+                                        .Position(p => p
+                                        .At(HorizontalAlignment.Center, VerticalAlignment.Center)
+                                        .Offset(0, 50))
+                                        .Message("日期格式錯誤，格式範例: 2018/6/5")
+                                        .DisplayTime(5000)
+                                        .Type(ToastType.Error)
+                                        .MaxWidth(300)
+            )
+        </div>
+
     </div>
 </div>
 
