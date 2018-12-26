@@ -989,7 +989,7 @@ namespace ChurchReport.WebServiceConnector
 
                 foreach (Entity ListEntity in aListEntityCollection.Entities)
                 {
-                    if (ListEntity.Attributes.Contains("new_app_named"))
+                    if (ListEntity.Attributes.Contains("new_app_named") && m_ToolUtilityClass.GetOptionSetAttribute(ListEntity, "statecode") == 0)
                     {
                         bool AppNamed = (bool)ListEntity.Attributes["new_app_named"];
 
@@ -1030,7 +1030,7 @@ namespace ChurchReport.WebServiceConnector
 
                 foreach (Entity ListEntity in aListEntityCollection.Entities)
                 {
-                    if (ListEntity.Attributes.Contains("new_app_named"))
+                    if (ListEntity.Attributes.Contains("new_app_named") && m_ToolUtilityClass.GetOptionSetAttribute( ListEntity, "statecode" ) == 0 )
                     {
                         bool AppNamed = (bool)ListEntity.Attributes["new_app_named"];
 

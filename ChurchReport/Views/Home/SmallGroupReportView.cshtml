@@ -539,6 +539,7 @@ else
     </div>
 }
 <script>var DataUploadStatus = "尚未上傳喔!";</script>
+<script>var UploadDateFormat = "格式正確!";</script>
 <script src="~/js/DataGridAjax.js"></script>
 <script src="~/js/SelectDate.js"></script>
 <script src="~/js/DropDownBox.js"></script>
@@ -571,10 +572,14 @@ else
     function OnDateboxChange(e) {
         debugger;
 
-        if ($("#SmallGroupDate").dxDateBox("instance")._$validationMessage == null) {
+        //var X = e.component._$validationMessage;
+        //if( $("#SmallGroupDate").dxDateBox("instance")._$validationMessage == null )
+        if (e.component._$validationMessage == null )
+        {
             UploadDateFormat = "格式正確";
         }
-        else {
+        else
+        {
             UploadDateFormat = "格式錯誤";
             // 顯示日期格式錯誤
             $("#SelectDateToast").dxToast("instance").show();
