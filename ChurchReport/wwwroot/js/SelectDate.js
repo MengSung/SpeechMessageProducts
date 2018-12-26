@@ -31,6 +31,11 @@
         function getODataLocalDateFilter(date) {
 
             //debugger;
+            if (date == null) {
+                //date = Date.now();
+                date = new Date();
+                //return ;
+            }
 
             //alert("getODataLocalDateFilter !" + date);
             //alert("HELLO 我愛嘟嘟妞妞 006!" + date);

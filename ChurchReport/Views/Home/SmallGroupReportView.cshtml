@@ -52,6 +52,7 @@ else
                                                 .Value(Model.SundayPrayers)
                                                 .Width(50)
                                                 .DisplayFormat("yyyy/M/d")
+                                                .OnChange("OnDateboxChange")
                                                 //.DisplayFormat("yyyy/MM/dd")
                                                 //.OnValueChanged("OnValueChanged")
 
@@ -102,6 +103,12 @@ else
                                             (@<text>
                                                 function(arg)
                                                 {
+                                                    if ( UploadDateFormat  === "格式錯誤" )
+                                                    {
+                                                    // 顯示日期格式錯誤
+                                                    $("#SelectDateToast").dxToast("instance").show();
+                                                    return ;
+                                                    }
 
                                                 var dataGrid = $("#gridContainer").dxDataGrid("instance");
                                                 // 取得上傳的按鈕
@@ -207,8 +214,8 @@ else
 
 <div style="font-family:標楷體;font-size: 100%; color:crimson; text-align:left;background-color:powderblue;font-weight: bold">@Model.SundayPeriod</div>
 
-<hr />
-<h3>牧養</h3>
+@*<hr />
+<h3>牧養</h3>*@
 
 @if (Model.LoginType == "小組長")
 {
@@ -561,6 +568,26 @@ else
             }
         }
     }
+    function OnDateboxChange(e) {
+        debugger;
+
+        if ($("#SmallGroupDate").dxDateBox("instance")._$validationMessage == null) {
+            UploadDateFormat = "格式正確";
+        }
+        else {
+            UploadDateFormat = "格式錯誤";
+            // 顯示日期格式錯誤
+            $("#SelectDateToast").dxToast("instance").show();
+            return;
+        }
+        //var result = $("#SmallGroupDate").dxDateBox("instance").validate();
+        //var result = e.validationGroup.validate();
+
+        //alert("日期改變001");
+    }
+
 </script>
+
+
 <link href="~/css/SmallGroupReportController.css" rel="stylesheet" />
 
