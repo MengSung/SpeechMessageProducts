@@ -689,9 +689,10 @@ namespace ChurchReport.WebServiceConnector
                     }
                     else
                     {
+                        // 登入者與名單的小組長不是同一個人
                         if (m_MemberInfomationPackage.m_LoginType == "小組長")
                         {
-                            // 登入者與名單的小組長不是同一個人
+                            // 小組長回報
                             return false;
                         }
                         else
@@ -789,7 +790,16 @@ namespace ChurchReport.WebServiceConnector
                     else
                     {
                         // 登入者與名單的小組長不是同一個人
-                        return false;
+                        if (m_MemberInfomationPackage.m_LoginType == "小組長")
+                        {
+                            // 小組長回報
+                            return false;
+                        }
+                        else
+                        {
+                            // 個人回報
+                            return true;
+                        }
                     }
                     #endregion
                 }
