@@ -9,7 +9,7 @@ using Microsoft.Extensions.Caching.Memory;
 
 namespace ChurchReport.Models
 {
-    public static class ContextDictionary
+    public static class ContextDictionary 
     {
         public static Dictionary<String, InMemoryDataContextSmallGroup> StaticContextDictionary = new Dictionary<String, InMemoryDataContextSmallGroup>();
 

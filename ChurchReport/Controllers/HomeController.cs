@@ -31,16 +31,19 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
 using Newtonsoft.Json.Converters;
 using System.IO;
+using Microsoft.AspNetCore.Server.Kestrel.Internal;
 
 namespace ChurchReport.Controllers
 {
-    public class HomeController : Controller
+    public class HomeController : Controller, IDisposable
     {
         #region 資料區
         private ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
         //ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("CRM2011");
 
         private InMemoryDataContextSmallGroup m_InMemoryDataContextSmallGroup;
+
+        readonly Disposable _disposable;
 
         #region 除錯用參數
         private const int TOTAL_LEVEL = 1;//改變這個值，就會改追蹤的階層，值越小越不會追蹤，若是 TOTAL_LEVEL = 3 ，則大於 3 的 LEVEL，例如 : LEVEL_4、LEVEL_5 就不會被追蹤

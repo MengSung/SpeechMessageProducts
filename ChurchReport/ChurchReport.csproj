@@ -1,4 +1,4 @@
-<Project ToolsVersion="15.0" Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project ToolsVersion="15.0" Sdk="Microsoft.NET.Sdk.Web">
   <PropertyGroup>
     <TargetFramework>net46</TargetFramework>
     <EnableDefaultContentItems>false</EnableDefaultContentItems>
@@ -6,6 +6,8 @@
     <AssemblyName>ChurchReport</AssemblyName>
     <OutputType>Exe</OutputType>
     <RuntimeIdentifier>win7-x86</RuntimeIdentifier>
+    <ServerGarbageCollection>true</ServerGarbageCollection>
+    <ConcurrentGarbageCollection>true</ConcurrentGarbageCollection>
   </PropertyGroup>
   <ItemGroup>
     <Content Include="wwwroot\**\*;Views\**\*;Areas\**\Views;appsettings.json;web.config">
