@@ -1,15 +1,15 @@
 /**
- * CLDR JavaScript Library v0.5.0
+ * CLDR JavaScript Library v0.5.1
  * http://jquery.com/
  *
  * Copyright 2013 Rafael Xavier de Souza
  * Released under the MIT license
  * http://jquery.org/license
  *
- * Date: 2017-08-11T11:52Z
+ * Date: 2019-01-21T13:43Z
  */
 /*!
- * CLDR JavaScript Library v0.5.0 2017-08-11T11:52Z MIT license © Rafael Xavier
+ * CLDR JavaScript Library v0.5.1 2019-01-21T13:43Z MIT license © Rafael Xavier
  * http://git.io/h4lmVg
  */
 (function( root, factory ) {
@@ -177,7 +177,7 @@
 	 * 3. Then for trial in {language, language _ region, language _ script}. If
 	 * AddLikelySubtags(trial) = max, then return trial + variants.
 	 * 4. If you do not get a match, return max + variants.
-	 *
+	 * 
 	 * @maxLanguageId [Array] maxLanguageId tuple (see init.js).
 	 */
 	var coreRemoveLikelySubtags = function( Cldr, cldr, maxLanguageId ) {
@@ -238,8 +238,8 @@
 		unicodeLanguageId = locale.split( "-t-" )[ 0 ];
 
 		// unicode_language_id = "root"
-		//   | unicode_language_subtag
-		//     (sep unicode_script_subtag)?
+		//   | unicode_language_subtag         
+		//     (sep unicode_script_subtag)? 
 		//     (sep unicode_region_subtag)?
 		//     (sep unicode_variant_subtag)* ;
 		//
@@ -299,7 +299,7 @@
 				maxBundle = coreLikelySubtags( Cldr, cldr, subtags );
 				minBundle = coreRemoveLikelySubtags( Cldr, cldr, maxBundle );
 				minBundle = minBundle.join( Cldr.localeSep );
-				existing = availableBundleMapQueue[ minBundle ];
+				existing = availableBundleMap[ minBundle ];
 				if ( existing && existing.length < bundle.length ) {
 					return;
 				}
@@ -468,7 +468,7 @@
 	// -> { a: { b: 3, c: 2, d: 4 } }
 	//
 	// @arguments JSON's
-	//
+	// 
 	var merge = function() {
 		var destination = {},
 			sources = [].slice.call( arguments, 0 );
