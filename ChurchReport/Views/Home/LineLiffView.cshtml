@@ -212,13 +212,13 @@
                 //$("#toast").dxToast("show");
 
                 //window.location.href = "/Home/LineBindingView/" + '@Model.EncodeUrl';
-                window.location.href = "/Home/LineLiffView/";
+                window.location.href = "/Home/BindingResultView/" + data.message ;
             }
             else {
                 DevExpress.ui.notify(data.message, "error", 5000);
-                window.location.href = "/Home/LineBindingView/" + '@Model.EncodeUrl';
-                window.location.href = "/Home/LineLiffView/";
-       }
+                //window.location.href = "/Home/LineBindingView/" + '@Model.EncodeUrl';
+                window.location.href = "/Home/BindingResultView/" + data.message ;
+            }
         }
 
         function onComplete(data) {

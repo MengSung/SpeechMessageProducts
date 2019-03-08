@@ -13,6 +13,7 @@
     <Content Include="wwwroot\**\*;Views\**\*;Areas\**\Views;appsettings.json;web.config">
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
+    <None Remove="Views\Home\BindingResultView.cshtml" />
     <None Remove="Views\Home\FeeManagerView.cshtml" />
     <None Remove="Views\Home\HappyGroupWeeklyReport.cshtml" />
     <None Remove="Views\Home\LineLiffView.cshtml" />

@@ -1,0 +1,76 @@
+﻿<!DOCTYPE html>
+
+@{
+    Layout = null;
+}
+<html>
+
+@model ChurchReport.ViewModel.LineBindingViewModel
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>台中思恩堂豐富教會</title>
+    <link href="~/favicon.ico" rel="shortcut icon" type="image/x-icon" />
+
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.css" />
+    <link rel="stylesheet" href="~/css/site.css" />
+    <link href="~/css/devextreme/dx.common.css" rel="stylesheet" />
+    <link href="~/css/devextreme/dx.light.css" rel="stylesheet" />
+
+    <script src="~/lib/jquery/dist/jquery.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.js"></script>
+
+    <script src="~/js/devextreme/cldr.js"></script>
+    <script src="~/js/devextreme/cldr/event.js"></script>
+    <script src="~/js/devextreme/cldr/supplemental.js"></script>
+    <script src="~/js/devextreme/cldr/unresolved.js"></script>
+
+    <script src="~/js/devextreme/globalize.js"></script>
+    <script src="~/js/devextreme/globalize/message.js"></script>
+    <script src="~/js/devextreme/globalize/number.js"></script>
+    <script src="~/js/devextreme/globalize/currency.js"></script>
+    <script src="~/js/devextreme/globalize/date.js"></script>
+
+    @* JSZip for client side export *@
+    @*<script src="~/js/devextreme/jszip.js"></script>*@
+
+    <script src="~/js/devextreme/dx.all.js"></script>
+    <script src="~/js/devextreme/vectormap-data/world.js"></script>
+    <script src="~/lib/devextreme-aspnet-data/js/dx.aspnet.data.js"></script>
+    <script src="~/js/devextreme/aspnet/dx.aspnet.mvc.js"></script>
+
+</head>
+
+<body>
+
+    <div class="widget-container" style="padding: 10px;">
+        @(Html.DevExtreme().Gallery()
+                        .ID("gallery")
+                        .DataSource(Model.Images)
+                        .Height(100)
+                        //.Width(600)
+                        //.InitialItemWidth(250)
+                        .StretchImages(true)
+                        .Loop(true)
+                        .SlideshowDelay(1500)
+        )
+    </div>
+
+    @*<div class="long-title"><h3 id="displaynamefield"></h3></div>*@
+    @*<p id="demo2">測試</p>*@
+    @*<p id="displaynamefield"></p>*@
+
+    @*<div style="font-family:標楷體;font-size: 150%; color:crimson; text-align:center;background-color:powderblue;font-weight: bold">綁定成功，請關閉此網頁</div>*@
+    <div style="font-family:標楷體;font-size: 150%; color:crimson; text-align:center;background-color:powderblue;font-weight: bold">@Model.BindingResult</div>
+
+    @*<div class="long-title">綁定成功，請關閉此網頁</h3></div>*@
+
+
+</body>
+
+</html>

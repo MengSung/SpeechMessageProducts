@@ -1511,6 +1511,23 @@ namespace ChurchReport.Controllers
             }
         }
 
+        [Route("/Home/BindingResultView/{LineBindingResult}")]
+        public IActionResult BindingResultView(String LineBindingResult)
+        {
+            var images = new List<string>();
+            images.Add(Url.Content("~/assets/images/tpehoc-005.jpg"));
+            images.Add(Url.Content("~/assets/images/tpehoc-006.jpg"));
+            images.Add(Url.Content("~/assets/images/tpehoc-007.jpg"));
+            images.Add(Url.Content("~/assets/images/tpehoc-008.jpg"));
+            images.Add(Url.Content("~/assets/images/tpehoc-009.jpg"));
+
+            m_InMemoryDataContextSmallGroup.LineBindingViewModel.Images = images;
+
+            m_InMemoryDataContextSmallGroup.LineBindingViewModel.BindingResult = LineBindingResult;
+
+            return View(m_InMemoryDataContextSmallGroup.LineBindingViewModel);
+        }
+
         [HttpPost]
         public IActionResult SaveUserId(String UserLineId, String GroupId, String RoomId, String ViewType)
         {

@@ -39,7 +39,7 @@ namespace ChurchReport.ViewModel
         public string FullName { get; set; }
         public string Mobile { get; set; }
         public string EncodeUrl { get; set; }
-
+        public string BindingResult { get; set; }
 
         public string FaithStatus { get; set; } //信仰狀態
         public String GenderCode { get; set; }  // 性別
