@@ -192,7 +192,7 @@ namespace ChurchReport.WebServiceConnector
                             else
                             {
                                 #region// 更新週報
-                                if (this.UpdateWeeklyReportOrNot(ref aListEntity, m_Sunday)) // 判斷是否真要建立週報
+                                if (this.UpdateWeeklyReportOrNot( ref aListEntity )) // 判斷是否真要建立週報
                                 {
                                     aGraceLeaderWeeklyReportEntity = UpdateWeeklyReportProcess(aGroupWeeklyReportGuid, ref aListEntity, ref aWeeklyReportId);
                                 }
@@ -675,7 +675,7 @@ namespace ChurchReport.WebServiceConnector
                     }
                 }
                 //return true; // 永遠都是通過，可以建立周報、靈修紀錄單
-                #region
+                #region 沒有找到已經建立的週報，但是區長不能替小組長建立週報
                 if (aListEntity != null)
                 {
                     #region// 有找到吻合的名單
@@ -770,11 +770,11 @@ namespace ChurchReport.WebServiceConnector
                 throw Exception;
             }
         }
-        private bool UpdateWeeklyReportOrNot(ref Entity aListEntity, DateTime aSunday)
+        private bool UpdateWeeklyReportOrNot(ref Entity aListEntity)
         {
             try
             {
-                EntityCollection aWeeklyReportCollection = this.m_ToolUtilityClass.QueryWeeklyReportBySunday(aSunday, aListEntity.Id);
+                //EntityCollection aWeeklyReportCollection = this.m_ToolUtilityClass.QueryWeeklyReportBySunday(aSunday, aListEntity.Id);
                 #region
                 if (aListEntity != null)
                 {
@@ -798,6 +798,7 @@ namespace ChurchReport.WebServiceConnector
                         else
                         {
                             // 個人回報
+                            // 登入者與名單的小組長不是同一個人，但是是個人回報
                             return true;
                         }
                     }
@@ -4308,7 +4309,7 @@ namespace ChurchReport.WebServiceConnector
 
                 String aIdentityType = ConvertIndexToIdentity(aIdentity);
 
-                if (aIdentityType == "7. 未入組" || aIdentityType == "8. 新朋友")
+                if (aIdentityType == "07. 未入組" || aIdentityType == "08. 新朋友")
                 {
                     // 如果委身型態是"未入組"或是"新朋友"
                     // 先搜尋過去2個月的靈修出席紀錄
@@ -4334,7 +4335,15 @@ namespace ChurchReport.WebServiceConnector
                     {
                         this.m_ToolUtilityClass.SetOptionSetAttribute(ref aContact, "customertypecode", 100000004);
                         // 更新連絡人
-                        //this.m_ToolUtilityClass.UpdateEntity(ref this.m_ToolUtilityClass.m_OrganizationService, ref aContact);
+                        if (CRM_TYPE == "DYNAMICS365")
+                        {
+                            // 被MARK掉了，就表示不會降階
+                            //this.m_ToolUtilityClass.UpdateEntityDynamics365(ref this.m_ToolUtilityClass.m_OrganizationService, ref aContact);
+                        }
+                        else
+                        {
+                            this.m_ToolUtilityClass.UpdateEntityCrm2011(ref this.m_ToolUtilityClass.m_Crm2011OrganizationService, ref aContact);
+                        }
                     }
                 }
                 else { }
