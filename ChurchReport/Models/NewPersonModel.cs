@@ -77,7 +77,7 @@ namespace ChurchReport.Models
             m_PersonFormViewModel.IntroducerPhone = aPersonFormViewModel.IntroducerPhone;
             m_PersonFormViewModel.IntroducerRelation = aPersonFormViewModel.IntroducerRelation;
             m_PersonFormViewModel.IntroducerGroup = aPersonFormViewModel.IntroducerGroup;
-
+            m_PersonFormViewModel.MerrageState = aPersonFormViewModel.MerrageState;
         }
         public void MappingPersonFormViewModelToNewContact( SmallGroupDataList SmallGroupDataList , PersonFormViewModel aPersonFormViewModel)
         {
