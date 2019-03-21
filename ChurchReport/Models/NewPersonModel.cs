@@ -78,6 +78,7 @@ namespace ChurchReport.Models
             m_PersonFormViewModel.IntroducerRelation = aPersonFormViewModel.IntroducerRelation;
             m_PersonFormViewModel.IntroducerGroup = aPersonFormViewModel.IntroducerGroup;
             m_PersonFormViewModel.MerrageState = aPersonFormViewModel.MerrageState;
+            m_PersonFormViewModel.Industry = aPersonFormViewModel.Industry;
         }
         public void MappingPersonFormViewModelToNewContact( SmallGroupDataList SmallGroupDataList , PersonFormViewModel aPersonFormViewModel)
         {
@@ -94,6 +95,8 @@ namespace ChurchReport.Models
             m_NewContact.IntroducerPhone    = aPersonFormViewModel.IntroducerPhone;
             m_NewContact.IntroducerRelation = aPersonFormViewModel.IntroducerRelation;
             m_NewContact.IntroducerGroup    = aPersonFormViewModel.IntroducerGroup;
+            m_NewContact.MerrageState       = aPersonFormViewModel.MerrageState;
+            m_NewContact.Industry           = aPersonFormViewModel.Industry;
 
             // 性別
             if (aPersonFormViewModel.Gender == "男性")

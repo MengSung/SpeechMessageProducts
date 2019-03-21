@@ -243,7 +243,12 @@
 
 
             items.AddSimple()
-                .ColSpan(3)
+                 .DataField("Industry")
+                 .Label(l => l.Text("職業及專長"))
+                 ;
+
+            items.AddSimple()
+                .ColSpan(2)
                 .Label(l => l.Text("附註"))
                 .DataField("Notes")
                 .Editor(e => e

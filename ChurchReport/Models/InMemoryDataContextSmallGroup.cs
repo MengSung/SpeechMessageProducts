@@ -61,7 +61,8 @@ namespace ChurchReport.Models
             {
                 _memoryCache.Set<SmallGroupDataList>( key, m_SmallGroupDataList, new MemoryCacheEntryOptions
                 {
-                    SlidingExpiration = TimeSpan.FromMinutes(10)
+                    AbsoluteExpiration = DateTime.Now.AddMinutes(3),
+                    SlidingExpiration = TimeSpan.FromMinutes(3)
                 });
                 session.SetInt32("dirty", 1);
             }
@@ -92,7 +93,8 @@ namespace ChurchReport.Models
                 {
                     _memoryCache.Set<SmallGroupDataList>(key, m_SmallGroupDataList, new MemoryCacheEntryOptions
                     {
-                        SlidingExpiration = TimeSpan.FromMinutes(10)
+                        AbsoluteExpiration = DateTime.Now.AddMinutes(3),
+                        SlidingExpiration = TimeSpan.FromMinutes(3)
                     });
                     session.SetInt32("dirty", 1);
                 }
@@ -120,7 +122,8 @@ namespace ChurchReport.Models
                 {
                     _memoryCache.Set<WeeklyReportData>(key, m_WeeklyReportData, new MemoryCacheEntryOptions
                     {
-                        SlidingExpiration = TimeSpan.FromMinutes(10)
+                        AbsoluteExpiration = DateTime.Now.AddMinutes(3),
+                        SlidingExpiration = TimeSpan.FromMinutes(3)
                     });
                     session.SetInt32("dirty", 1);
                 }
@@ -143,7 +146,8 @@ namespace ChurchReport.Models
                 {
                     _memoryCache.Set<NewPersonModel>(key, m_NewPersonModel, new MemoryCacheEntryOptions
                     {
-                        SlidingExpiration = TimeSpan.FromMinutes(10)
+                        AbsoluteExpiration = DateTime.Now.AddMinutes(3),
+                        SlidingExpiration = TimeSpan.FromMinutes(3)
                     });
                     session.SetInt32("dirty", 1);
                 }
@@ -181,7 +185,8 @@ namespace ChurchReport.Models
                 {
                     _memoryCache.Set<HappyGroupDataManager>(key, m_HappyGroupDataManager, new MemoryCacheEntryOptions
                     {
-                        SlidingExpiration = TimeSpan.FromMinutes(10)
+                        AbsoluteExpiration = DateTime.Now.AddMinutes(3),
+                        SlidingExpiration = TimeSpan.FromMinutes(3)
                     });
                     session.SetInt32("dirty", 1);
                 }
@@ -237,7 +242,8 @@ namespace ChurchReport.Models
             {
                 _memoryCache.Set<FeeList>(key, m_FeeList, new MemoryCacheEntryOptions
                 {
-                    SlidingExpiration = TimeSpan.FromMinutes(10)
+                    AbsoluteExpiration = DateTime.Now.AddMinutes(3),
+                    SlidingExpiration = TimeSpan.FromMinutes(3)
                 });
                 session.SetInt32("dirty", 1);
             }
@@ -268,7 +274,8 @@ namespace ChurchReport.Models
                 {
                     _memoryCache.Set<FeeList>(key, m_FeeList, new MemoryCacheEntryOptions
                     {
-                        SlidingExpiration = TimeSpan.FromMinutes(10)
+                        AbsoluteExpiration = DateTime.Now.AddMinutes(3),
+                        SlidingExpiration = TimeSpan.FromMinutes(3)
                     });
                     session.SetInt32("dirty", 1);
                 }
@@ -289,7 +296,8 @@ namespace ChurchReport.Models
                 {
                     _memoryCache.Set<LineBindingViewModel>(key, m_LineBindingViewModel, new MemoryCacheEntryOptions
                     {
-                        SlidingExpiration = TimeSpan.FromMinutes(10)
+                        AbsoluteExpiration = DateTime.Now.AddMinutes(3),
+                        SlidingExpiration = TimeSpan.FromMinutes(3)
                     });
                     session.SetInt32("dirty", 1);
                 }

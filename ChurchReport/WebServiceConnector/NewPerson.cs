@@ -258,7 +258,6 @@ namespace ChurchReport.WebServiceConnector
             }
             #endregion
             #endregion
-
             #region 基本資料
 
             this.m_ToolUtilityClass.SetEntityStringAttribute(ref aNewContactEntity, "lastname", aNewContact.Name);
@@ -341,6 +340,9 @@ namespace ChurchReport.WebServiceConnector
             {
                 this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aNewContactEntity, "new_enter_church_date", aNewContact.FirstChurchDate);
             }
+
+            // 職業及專長
+            this.m_ToolUtilityClass.SetEntityStringAttribute(ref aNewContactEntity, "new_industry", aNewContact.Industry);
 
             // 設定描述是由APP建立的
             String aFullName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref m_ContactEntity, "fullname");
@@ -2135,9 +2137,5 @@ namespace ChurchReport.WebServiceConnector
         }
 
         #endregion
-
-
-
-
     }
 }

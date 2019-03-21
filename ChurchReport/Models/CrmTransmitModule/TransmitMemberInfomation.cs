@@ -571,6 +571,14 @@ namespace ChurchReport.Models.CrmTransmitModule
             get { return m_Note; }
             set { m_Note = value; }
         }
+
+        string m_Industry = "";
+        public string Industry
+        {
+            get { return m_Industry; }
+            set { m_Industry = value; }
+        }
+
     }
 
 

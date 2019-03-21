@@ -31,6 +31,7 @@ namespace ChurchReport.ViewModels
         public String IntroducerRelation { get; set; } // 邀請人關係
         public String IntroducerGroup { get; set; } // 邀請人小組
 
+        public String Industry { get; set; } // 職業及專長
 
         public object FormData { get; set; }
     }
