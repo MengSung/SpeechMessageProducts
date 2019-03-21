@@ -26,6 +26,8 @@ namespace ChurchReport.WebServiceConnector
         ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
         //ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("CRM2011");
 
+        private LineNotifyUtility m_LineNotifyUtility = new LineNotifyUtility();
+
         private static Regex DigitsOnly = new Regex(@"[^\d]");
 
         private Dictionary<String, String> m_FeedBackReport = new Dictionary<string, string>();
@@ -323,18 +325,11 @@ namespace ChurchReport.WebServiceConnector
                     if (GroupWeeklyReportEntity != null)
                     {
                         //      有找到週報: 建立GroupName及WeeklyReportId
-                        #region 內壢得勝靈糧堂
-                        //this.m_ToolUtilityClass.SetEntityIntAttribute(ref GroupWeeklyReportEntity, "new_number_of_seekers", aWeeklyReport.ReligiousInvestigator);
-                        //this.m_ToolUtilityClass.SetEntityIntAttribute(ref GroupWeeklyReportEntity, "new_predict_to_be_baptized", aWeeklyReport.Baptized);
-                        //this.m_ToolUtilityClass.SetEntityIntAttribute(ref GroupWeeklyReportEntity, "new_times_of_followup", aWeeklyReport.FollowNumber);
-                        //
-                        //this.m_ToolUtilityClass.SetEntityStringAttribute(ref GroupWeeklyReportEntity, "new_push_mode", aWeeklyReport.PushMethod);
-                        //this.m_ToolUtilityClass.SetEntityStringAttribute(ref GroupWeeklyReportEntity, "new_methods_and_number", aWeeklyReport.ProgressMethod);
-                        //this.m_ToolUtilityClass.SetEntityStringAttribute(ref GroupWeeklyReportEntity, "new_onebynoe_and_number", aWeeklyReport.OneOnOne);
-                        #endregion
-
                         // 回報情況
                         this.m_ToolUtilityClass.SetEntityStringAttribute(ref GroupWeeklyReportEntity, "new_memo", aWeeklyReport.WeeklyReportContent);
+
+                        // 小組日誌傳 LINE 給區長、區牧
+                        m_LineNotifyUtility.SendWeeklyReportLine(aWeeklyReport.WeeklyReportContent, ListEntity);
 
                         this.m_ToolUtilityClass.UpdateEntity(ref GroupWeeklyReportEntity);
                     }

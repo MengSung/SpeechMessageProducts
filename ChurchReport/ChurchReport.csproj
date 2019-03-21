@@ -1,6 +1,6 @@
 <Project ToolsVersion="15.0" Sdk="Microsoft.NET.Sdk.Web">
   <PropertyGroup>
-    <TargetFramework>net461</TargetFramework>
+    <TargetFramework>net462</TargetFramework>
     <EnableDefaultContentItems>false</EnableDefaultContentItems>
     <PreserveCompilationContext>true</PreserveCompilationContext>
     <AssemblyName>ChurchReport</AssemblyName>
@@ -57,6 +57,7 @@
     </DotNetCliToolReference>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Line.Messaging\Line.Messaging.csproj" />
     <ProjectReference Include="..\LineMessagingProcessor\LineMessagingProcessor.csproj" />
     <ProjectReference Include="..\ToolUtility\ToolUtility.csproj" />
   </ItemGroup>

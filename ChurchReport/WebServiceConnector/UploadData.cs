@@ -27,6 +27,8 @@ namespace ChurchReport.WebServiceConnector
         private ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
         //ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("CRM2011");
 
+        private LineNotifyUtility m_LineNotifyUtility = new LineNotifyUtility();
+
         private static Regex DigitsOnly = new Regex(@"[^\d]");
 
         private Dictionary<String, String> m_FeedBackReport = new Dictionary<string, string>();
@@ -920,180 +922,11 @@ namespace ChurchReport.WebServiceConnector
         }
         #endregion
         #region 建立的週報
-        //private void UpdateWeeklyReport(GroupWeeklyReportGuid aGroupWeeklyReportGuid, Guid aWeeklyReportId, ref Double ValidNumber, ref Entity aListEntity, String UploadCategory, ref Double aWeeklySundayRate, ref Double aWeeklySmallGroupRate, ref int aWeeklySundayNumber, ref int aWeeklySmallGroupNumber, bool CalculateFlag)
-        //{
-        //    try
-        //    {
-        //        #region // 依據之前點名的靈修紀錄的有效組員當作週報出席率的分母
-
-
-        //        #region// 更新個人資料:手機、家裡電話、地址、設定委身類型
-        //        // 更新個人聚會與靈修記錄
-        //        UpdatePresentRecord(this.m_GroupNamedListMemberInfomation, aPresentRecordCollection, ref aListEntity, ref aWeeklyReportId, ValidNumber, ref aWeeklySundayRate, ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber);
-        //        #endregion
-
-        //        #region// 更新週報
-
-        //        return SetWeeklyReportRelatedInfo(ValidSundayMemberNumber, ValidSmallGroupMemberNumber, ValidNumber, aGroupWeeklyReportGuid, aWeeklyReportId, UploadCategory, ref aWeeklySundayRate, ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber);
-
-        //        #endregion
-
-        //        // 傳回建立的週報
-
-        //    }
-        //    catch (System.Exception Exception)
-        //    {
-        //        String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
-        //        this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
-
-        //        throw Exception;
-        //    }
-        //}
-        private Entity ToUpdatePresentRecord(GroupWeeklyReportGuid aGroupWeeklyReportGuid, Guid aWeeklyReportId, ref Entity aListEntity, String UploadCategory, ref Double aWeeklySundayRate, ref Double aWeeklySmallGroupRate, ref int aWeeklySundayNumber, ref int aWeeklySmallGroupNumber, bool CalculateFlag)
+        private String SetupWeeklyReportResult(ref Entity aWeeklyReportEntity)
         {
             try
             {
-                #region // 依據之前點名的靈修紀錄的有效組員當作週報出席率的分母
-                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "依據之前點名的靈修紀錄的有效組員當作週報出席率的分母");
-
-
-                // 已經有週報所以從靈修出席紀錄單計算出席率的分母
-                #region 取得跟週報相關的靈修紀錄單
-                EntityCollection aPresentRecordCollection = m_ToolUtilityClass.RetrieveManyToOneRelationship("new_group_present_weekly_report", "new_group_present_weekly_reportid", aWeeklyReportId.ToString(), "new_group_present_weekly_report_prese", "new_present_record");
-                #endregion
-
-                Double ValidNumber = GetValidMemberNumber(aPresentRecordCollection);
-                #endregion
-
-                #region// 更新個人資料:手機、家裡電話、地址、設定委身類型
-                // 更新個人聚會與靈修記錄
-                int ValidSundayMemberNumber = 0;
-                int ValidSmallGroupMemberNumber = 0;
-                UpdatePresentRecord(this.m_GroupNamedListMemberInfomation, aPresentRecordCollection, ref aListEntity, ref aWeeklyReportId, ValidNumber, ref aWeeklySundayRate, ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber, ref aGroupWeeklyReportGuid);
-                #endregion
-
-                #region// 更新週報
-
-                return SetWeeklyReportRelatedInfo(ValidSundayMemberNumber, ValidSmallGroupMemberNumber, ValidNumber, aGroupWeeklyReportGuid, aWeeklyReportId, UploadCategory, ref aWeeklySundayRate, ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber);
-
-                #endregion
-
-                // 傳回建立的週報
-
-            }
-            catch (System.Exception Exception)
-            {
-                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
-                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
-
-                throw Exception;
-            }
-        }
-        //private Entity UpdateWeeklyReport(GroupWeeklyReportGuid aGroupWeeklyReportGuid, Guid aWeeklyReportId, ref Entity aListEntity, String UploadCategory, ref Double aWeeklySundayRate, ref Double aWeeklySmallGroupRate, ref int aWeeklySundayNumber, ref int aWeeklySmallGroupNumber, bool CalculateFlag)
-        //{
-        //    try
-        //    {
-
-        //        #region// 更新週報
-
-        //        // 取得週報
-        //        Entity aWeeklyReportEntity = this.m_ToolUtilityClass.RetrieveEntity("new_group_present_weekly_report", aWeeklyReportId);
-
-        //        return SetWeeklyReportRelatedInfo(ValidSundayMemberNumber, ValidSmallGroupMemberNumber, ValidNumber, aGroupWeeklyReportGuid, aWeeklyReportId, UploadCategory, ref aWeeklySundayRate, ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber);
-
-        //        #endregion
-
-        //        // 傳回建立的週報
-
-        //    }
-        //    catch (System.Exception Exception)
-        //    {
-        //        String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
-        //        this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
-
-        //        throw Exception;
-        //    }
-        //}
-        private void ToUpdatePersonalWeeklyReport(GroupWeeklyReportGuid aGroupWeeklyReportGuid, Guid aWeeklyReportId, ref Entity aListEntity, String UploadCategory, ref Double aWeeklySundayRate, ref Double aWeeklySmallGroupRate, ref int aWeeklySundayNumber, ref int aWeeklySmallGroupNumber, bool CalculateFlag)
-        {
-            try
-            {
-                #region// 更新週報
-
-                // 更新個人資料:手機、家裡電話、地址、設定委身類型
-                // 更新個人聚會與靈修記錄
-                int ValidSundayMemberNumber = 0;
-                int ValidSmallGroupMemberNumber = 0;
-                //UpdatePresentRecord(this.m_GroupNamedListMemberInfomation, ref aListEntity, ref aWeeklyReportId, 0, ref aWeeklySundayRate, ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber, ref ValidSundayMemberNumber, ref ValidSmallGroupMemberNumber);
-                #endregion
-            }
-            catch (System.Exception Exception)
-            {
-                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
-                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
-
-                throw Exception;
-            }
-        }
-        private Entity SetWeeklyReportRelatedInfo(int ValidSundayMemberNumber, int ValidSmallGroupMemberNumber, Double ValidNumber, GroupWeeklyReportGuid aGroupWeeklyReportGuid, Guid aWeeklyReportId, String UploadCategory, ref Double aWeeklySundayRate, ref Double aWeeklySmallGroupRate, ref int aWeeklySundayNumber, ref int aWeeklySmallGroupNumber)
-        {
-            try
-            {
-                #region 設定週報狀態，設定為已點名、週報主日出席率、小組出席率
-
-                Entity aWeeklyReportEntity = this.m_ToolUtilityClass.RetrieveEntity("new_group_present_weekly_report", aWeeklyReportId);
-
-                // 設定新人跟進報告
-
-                // 設定週報點名狀態
-                this.SetupWeeklyReportStatus(UploadCategory, ref aWeeklyReportEntity);
-
-                #region 設定出席率、人數
-                //this.m_ToolUtilityClass.SetOptionSetAttribute(ref aWeeklyReportEntity, "new_weekly_report_status", 100000001);
-                this.m_ToolUtilityClass.SetEntityDoubleAttribute(ref aWeeklyReportEntity, "new_sunday_present_rate", aWeeklySundayRate);
-                this.m_ToolUtilityClass.SetEntityDoubleAttribute(ref aWeeklyReportEntity, "new_small_group_rate", aWeeklySmallGroupRate);
-                this.m_ToolUtilityClass.SetEntityIntAttribute(ref aWeeklyReportEntity, "new_sunday_present_number", aWeeklySundayNumber);
-                this.m_ToolUtilityClass.SetEntityIntAttribute(ref aWeeklyReportEntity, "new_small_group_number", aWeeklySmallGroupNumber);
-
-                // 更新週報
-                //this.m_ToolUtilityClass.UpdateEntity(ref this.m_ToolUtilityClass.m_OrganizationService, ref aWeeklyReportEntity);
-
-                // 加入百分比 
-                AddToDictionary(ref this.m_FeedBackReport, "主日出席統計表頭", ValidSundayMemberNumber.ToString() + "/" + ValidNumber.ToString() + "，" + String.Format("{0:0%}", aWeeklySundayRate) + Environment.NewLine);
-                AddToDictionary(ref this.m_FeedBackReport, "小組出席統計表頭", ValidSmallGroupMemberNumber.ToString() + "/" + ValidNumber.ToString() + "，" + String.Format("{0:0%}", aWeeklySmallGroupRate) + Environment.NewLine);
-                #endregion
-
-                // 建立週報主日出席、小組出席、新人跟進字串內容
-                this.SetupWeeklyReportResult(ref aWeeklyReportEntity);
-
-                // 更新週報
-                this.m_ToolUtilityClass.UpdateEntity(ref aWeeklyReportEntity);
-
-                #endregion
-
-                #region 回傳至 APP
-                aGroupWeeklyReportGuid.WeeklyReportGuid = aWeeklyReportId;         // 回傳至 APP 的週報 Id
-                aGroupWeeklyReportGuid.SundayPresentRate = aWeeklySundayRate;       // 回傳至 APP 的主日出席率
-                aGroupWeeklyReportGuid.SmallGroupRate = aWeeklySmallGroupRate;   // 回傳至 APP 的小組出席率
-                #endregion
-
-                // 傳回建立的週報
-                return aWeeklyReportEntity;
-
-            }
-            catch (System.Exception Exception)
-            {
-                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
-                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
-
-                throw Exception;
-            }
-        }
-        private void SetupWeeklyReportResult(ref Entity aWeeklyReportEntity)
-        {
-            try
-            {
-                SetupSundayPresentResult(ref aWeeklyReportEntity);
+                return SetupSundayPresentResult(ref aWeeklyReportEntity);
                 //SetupSmallGroupPresentResult(ref aWeeklyReportEntity );
                 //SetupFollowupResult(ref aWeeklyReportEntity );
             }
@@ -1105,7 +938,7 @@ namespace ChurchReport.WebServiceConnector
                 throw Exception;
             }
         }
-        private void SetupSundayPresentResult(ref Entity aWeeklyReportEntity)
+        private String SetupSundayPresentResult(ref Entity aWeeklyReportEntity)
         {
             try
             {
@@ -1136,7 +969,8 @@ namespace ChurchReport.WebServiceConnector
                 //    "\t\t" + "未出席：" + this.GetDictionaryValue(ref this.m_FeedBackReport, "小組統計新人未出席字串") + Environment.NewLine
                 //    ;
                 //SundayResult += "---------------------------------" + Environment.NewLine;
-                SundayResult += Environment.NewLine + Environment.NewLine;
+                //SundayResult += Environment.NewLine + Environment.NewLine;
+                SundayResult += Environment.NewLine;
 
                 String SmallGroupResult = this.GetDictionaryValue(ref this.m_FeedBackReport, "小組出席統計表頭") +
                     "\t" + "A.小組組員" + Environment.NewLine +
@@ -1162,7 +996,8 @@ namespace ChurchReport.WebServiceConnector
                 //    "\t\t" + "未出席：" + this.GetDictionaryValue(ref this.m_FeedBackReport, "小組統計新人未出席字串") + Environment.NewLine
                 //    ;
                 //SmallGroupResult += "---------------------------------" + Environment.NewLine;
-                SmallGroupResult += Environment.NewLine + Environment.NewLine;
+                //SundayResult += Environment.NewLine + Environment.NewLine;
+                SundayResult += Environment.NewLine;
 
                 String FollowUpResult = this.GetDictionaryValue(ref this.m_FeedBackReport, "跟進統計表頭") +
                     "\t" + "A.未入組跟進統計內容" + Environment.NewLine +
@@ -1177,6 +1012,9 @@ namespace ChurchReport.WebServiceConnector
 
                 // 加總族系族長的主日出席
                 //AddToDictionary(ref this.m_FeedBackReport, "主日統計", SundayResult);
+
+                //return SundayResult + SmallGroupResult + FollowUpResult;
+                return SundayResult + SmallGroupResult;
             }
             catch (System.Exception Exception)
             {
@@ -3745,7 +3583,10 @@ namespace ChurchReport.WebServiceConnector
                 #endregion
 
                 // 建立週報主日出席、小組出席、新人跟進字串內容
-                this.SetupWeeklyReportResult(ref aWeeklyReportEntity);
+                String SmallGroupResult = this.SetupWeeklyReportResult(ref aWeeklyReportEntity);
+
+                // 透過 LINE 回報權柄
+                this.m_LineNotifyUtility.SendSmallGroupResultLine(this.m_ContactEntity, SmallGroupResult, aGroupWeeklyReportGuid, aWeeklyReportId, ref aListEntity, ref m_MemberInfomationPackage);
 
                 // 更新週報
                 this.m_ToolUtilityClass.UpdateEntity(ref aWeeklyReportEntity);

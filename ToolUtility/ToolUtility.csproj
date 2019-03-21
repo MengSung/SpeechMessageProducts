@@ -9,8 +9,9 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>ToolUtility</RootNamespace>
     <AssemblyName>ToolUtility</AssemblyName>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -59,12 +60,17 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="PushUtility.cs" />
     <Compile Include="ToolUtilityClass.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Line.Messaging\Line.Messaging.csproj">
+      <Project>{a6a57804-c01f-42bc-94ba-91636af260e7}</Project>
+      <Name>Line.Messaging</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Trace\Trace.csproj">
       <Project>{dc1614b1-9b67-4ac8-b7a8-66f5bee26d5e}</Project>
       <Name>Trace</Name>
