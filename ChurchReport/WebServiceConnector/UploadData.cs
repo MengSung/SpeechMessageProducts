@@ -1013,8 +1013,8 @@ namespace ChurchReport.WebServiceConnector
                 // 加總族系族長的主日出席
                 //AddToDictionary(ref this.m_FeedBackReport, "主日統計", SundayResult);
 
-                //return SundayResult + SmallGroupResult + FollowUpResult;
-                return SundayResult + SmallGroupResult;
+                return SundayResult + SmallGroupResult + FollowUpResult;
+                //return SundayResult + SmallGroupResult;
             }
             catch (System.Exception Exception)
             {
