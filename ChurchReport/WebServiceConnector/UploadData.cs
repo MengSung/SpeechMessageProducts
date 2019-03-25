@@ -194,7 +194,7 @@ namespace ChurchReport.WebServiceConnector
                             else
                             {
                                 #region// 更新週報
-                                if (this.UpdateWeeklyReportOrNot( ref aListEntity )) // 判斷是否真要建立週報
+                                if (this.UpdateWeeklyReportOrNot( ref aListEntity )) // 判斷是否真要更新週報，只有事這組的小組長才能點名回報
                                 {
                                     aGraceLeaderWeeklyReportEntity = UpdateWeeklyReportProcess(aGroupWeeklyReportGuid, ref aListEntity, ref aWeeklyReportId);
                                 }
