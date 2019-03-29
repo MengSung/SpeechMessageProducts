@@ -557,9 +557,10 @@ namespace ChurchReport.WebServiceConnector
                 foreach (Entity ListEntity in aListEntityCollection.Entities)
                 {
                     // 除錯
-                    if (ListEntity.Attributes.Contains("new_app_named") && this.m_ToolUtilityClass.GetEntityStringAttribute(ListEntity, "listname").Contains("幸福") != true)
+                    //if (ListEntity.Attributes.Contains("new_app_named") && this.m_ToolUtilityClass.GetEntityStringAttribute(ListEntity, "listname").Contains("幸福") != true)
+                    if (ListEntity.Attributes.Contains("new_app_named") )
                     {
-                        bool AppNamed = (bool)ListEntity.Attributes["new_app_named"];
+                            bool AppNamed = (bool)ListEntity.Attributes["new_app_named"];
 
                         if (AppNamed == true)
                         {
