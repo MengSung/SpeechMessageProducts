@@ -37,12 +37,7 @@ namespace ChurchReport.Models
         {
             try
             {
-                String ContactIdString = m_ToolUtilityClass.RetrieveContactByAccountNumber(Account, Password);
-
-                m_SmallGroupDataList.SetupContactIdString(ContactIdString);
-
-                m_SmallGroupDataList.SetupSmallGroupData(FullName, Account, Password, DateTime.Now, true);
-
+                m_ListManager.SetupListManager();
             }
             catch (System.Exception e)
             {

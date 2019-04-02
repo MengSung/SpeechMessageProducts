@@ -274,24 +274,24 @@
                     </text>);*@
 
                 @*columns.Add().DataField("SectionName").Caption("族系").GroupIndex(-1).MinWidth(10);*@
-                columns.Add().DataField("SmallGroupName").Caption("小組").GroupIndex(0).MinWidth(10);
+        columns.Add().DataField("SmallGroupName").Caption("小組").GroupIndex(0).MinWidth(10);
 
-                columns.Add().DataField("FullName").Caption("姓名").Fixed(true).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Left);
-                columns.Add().DataField("Status").Caption("委身類型").Fixed(false).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Center);
-                columns.Add().DataField("Sunday").Caption("主日").DataType(GridColumnDataType.Boolean).Width(45).MinWidth(45);
-                columns.Add().DataField("SmallGroup").Caption("小組").DataType(GridColumnDataType.Boolean).Width(45).MinWidth(45);
-
-
-
-                //columns.Add().DataField("FollowUp").Caption("跟進方式").Fixed(false).Width(120).MinWidth(90);
+        columns.Add().DataField("FullName").Caption("姓名").Fixed(true).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Left);
+        columns.Add().DataField("Status").Caption("委身類型").Fixed(false).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Center);
+        columns.Add().DataField("Sunday").Caption("主日").DataType(GridColumnDataType.Boolean).Width(45).MinWidth(45);
+        columns.Add().DataField("SmallGroup").Caption("小組").DataType(GridColumnDataType.Boolean).Width(45).MinWidth(45);
 
 
-                columns.Add()
-                    .DataField("FollowUpWeek")
-                    .Caption("跟進週次")
-                    .Width(80).MinWidth(30)
-                    .Lookup(lookup => lookup
-                    .DataSource(new string[] {
+
+        //columns.Add().DataField("FollowUp").Caption("跟進方式").Fixed(false).Width(120).MinWidth(90);
+
+
+        columns.Add()
+            .DataField("FollowUpWeek")
+            .Caption("跟進週次")
+            .Width(80).MinWidth(30)
+            .Lookup(lookup => lookup
+            .DataSource(new string[] {
                                       "一",
                                       "二",
                                       "三",
@@ -314,16 +314,16 @@
                                       "二十",
                                       "未選擇"
 
-                    })
-                    //.DisplayExpr("Name")
-                    //.ValueExpr("ID")
-                );
-                columns.Add()
-                    .DataField("FollowUpOption")
-                    .Caption("跟進方式")
-                    .Width(120).MinWidth(30)
-                    .Lookup(lookup => lookup
-                    .DataSource(new string[] {
+            })
+        //.DisplayExpr("Name")
+        //.ValueExpr("ID")
+        );
+        columns.Add()
+            .DataField("FollowUpOption")
+            .Caption("跟進方式")
+            .Width(120).MinWidth(30)
+            .Lookup(lookup => lookup
+            .DataSource(new string[] {
                                       "電話",
                                       "探訪",
                                       "Line/FB",
@@ -332,17 +332,17 @@
                                       "約談",
                                       "沒跟進",
                                       "其他"
-                    })
-                    //.DisplayExpr("Name")
-                    //.ValueExpr("ID")
-                );
+            })
+        //.DisplayExpr("Name")
+        //.ValueExpr("ID")
+        );
 
-                columns.Add()
-                    .DataField("FollowUpResult")
-                    .Caption("跟進結果")
-                    .Width(120).MinWidth(30)
-                    .Lookup(lookup => lookup
-                    .DataSource(new string[] {
+        columns.Add()
+            .DataField("FollowUpResult")
+            .Caption("跟進結果")
+            .Width(120).MinWidth(30)
+            .Lookup(lookup => lookup
+            .DataSource(new string[] {
                                       "未選擇",
                                       "熱情回應",
                                       "渴慕認識信仰",
@@ -353,60 +353,68 @@
                                       "來主日",
                                       "轉介",
                                       "其他",
-                    })
-                    //.DisplayExpr("Name")
-                    //.ValueExpr("ID")
-                );
-                columns.Add()
-                    .DataField("FollowUpNextStep")
-                    .Caption("下一步驟")
-                    .Width(120).MinWidth(30)
-                    .Lookup(lookup => lookup
-                    .DataSource(new string[] {
+            })
+        //.DisplayExpr("Name")
+        //.ValueExpr("ID")
+        );
+        columns.Add()
+            .DataField("FollowUpNextStep")
+            .Caption("下一步驟")
+            .Width(120).MinWidth(30)
+            .Lookup(lookup => lookup
+            .DataSource(new string[] {
                                       "未選擇",
                                       "繼續跟進",
                                       "轉介",
-                    })
-                    //.DisplayExpr("Name")
-                    //.ValueExpr("ID")
-                );
+            })
+        //.DisplayExpr("Name")
+        //.ValueExpr("ID")
+        );
 
-                columns.Add().DataField("PrayItem").Caption("跟進關懷說明").Fixed(false).MinWidth(90);
-                columns.Add().DataField("NewComerNote").Caption("跟進關懷歷程").Fixed(false).MinWidth(90);
-
-
-
-                //columns.Add()
-                //    .Caption("牧養次數")
-                //    //.DataField("Shepherd")
-                //    .Width(80)
-                //    .CellTemplate(@<text> @(Html.DevExtreme().NumberBox()
-                //    .Value(0)
-                //    .Min(0)
-                //    .Max(20)
-                //    .ShowSpinButtons(true) )
-                //    </text>        );
-
-                //columns.Add().DataField("Number1").Caption("次數").DataType(GridColumnDataType.Number).Width(50).MinWidth(10);
-                //
-                //columns.Add()
-                //    .DataField("StateID2")
-                //    .Caption("牧養活動")
-                //    .Width(80).MinWidth(30)
-                //    .Lookup(lookup => lookup
-                //    .DataSource(d => d.WebApi().Controller("ShepherdMethodLookup").LoadAction("Get").Key("ID"))
-                //    .DisplayExpr("Name")
-                //    .ValueExpr("ID")
-                //);
-                //
-                //columns.Add().DataField("Number2").Caption("次數").DataType(GridColumnDataType.Number).Width(50).MinWidth(10);
+        columns.Add().DataField("PrayItem").Caption("跟進關懷說明").Fixed(false).MinWidth(90);
+        columns.Add().DataField("NewComerNote").Caption("跟進關懷歷程").Fixed(false).MinWidth(90);
 
 
-                })
+
+        //columns.Add()
+        //    .Caption("牧養次數")
+        //    //.DataField("Shepherd")
+        //    .Width(80)
+        //    .CellTemplate(@<text> @(Html.DevExtreme().NumberBox()
+        //    .Value(0)
+        //    .Min(0)
+        //    .Max(20)
+        //    .ShowSpinButtons(true) )
+        //    </text>        );
+
+        //columns.Add().DataField("Number1").Caption("次數").DataType(GridColumnDataType.Number).Width(50).MinWidth(10);
+        //
+        //columns.Add()
+        //    .DataField("StateID2")
+        //    .Caption("牧養活動")
+        //    .Width(80).MinWidth(30)
+        //    .Lookup(lookup => lookup
+        //    .DataSource(d => d.WebApi().Controller("ShepherdMethodLookup").LoadAction("Get").Key("ID"))
+        //    .DisplayExpr("Name")
+        //    .ValueExpr("ID")
+        //);
+        //
+        //columns.Add().DataField("Number2").Caption("次數").DataType(GridColumnDataType.Number).Width(50).MinWidth(10);
+
+
+    })
                 //.DataSource(d => d.WebApi().Controller("SmallGroupReport").Key("Id"))
-                .DataSource(Model.Members)
-                //.DataSourceOptions(d => d.Filter("['Id', '<=' , 6]"))
-    )
+                .DataSource(d => d
+                     .WebApi()
+                     .Controller("Home")
+                     .LoadAction("LoadNewPersonFollowUp")
+                     //.InsertAction("PostBest")
+                     //.DeleteAction("DeleteBest")
+                     //.UpdateAction("PutBest")
+                     .Key("PresentRecordId")
+                     .LoadParams(new { id = "002" }))
+                 //.DataSourceOptions(d => d.Filter("['Id', '<=' , 6]"))
+                 )
 </div>
 
 

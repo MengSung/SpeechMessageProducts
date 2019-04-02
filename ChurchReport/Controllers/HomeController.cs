@@ -93,6 +93,9 @@ namespace ChurchReport.Controllers
 
                     String FullName = this.m_ToolUtilityClass.RetrieveEntityDynamics365("contact", aContactGuid).Attributes["fullname"].ToString();
 
+                    // 多個組長處理區
+                    m_InMemoryDataContextSmallGroup.SetupListManager(FullName, aGalleryViewModel.Account, aGalleryViewModel.Password, DateTime.Now, true);
+
                     // 設定一般小組資料
                     m_InMemoryDataContextSmallGroup.SetupSmallGroupData(FullName, aGalleryViewModel.Account, aGalleryViewModel.Password, DateTime.Now, true);
 
@@ -320,16 +323,11 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                if (m_InMemoryDataContextSmallGroup.HappyGroupDataManager.m_ActiveHappyGroupListClass != null)
-                {
-                    var tasks = m_InMemoryDataContextSmallGroup.m_SmallGroupDataList.m_SmallGroupData.Members.Where(e => e.ListEntityId == id).Select(e => e.HappyGroupWeeklyReportList).FirstOrDefault();
+                var tasks = m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.Where(e => e.ListEntityId == id).Select(e => e.m_SmallGroupDataList.m_SmallGroupData.Members).FirstOrDefault();
 
-                    return DataSourceLoader.Load(tasks, loadOptions);
-                }
-                else
-                {
-                    return null;
-                }
+                //return DataSourceLoader.Load<Member>(tasks, loadOptions);
+                return DataSourceLoader.Load(tasks, loadOptions);
+
             }
             catch (System.Exception e)
             {
@@ -437,6 +435,31 @@ namespace ChurchReport.Controllers
                 throw e;
             }
         }
+
+        [HttpGet]
+        public object LoadNewPersonFollowUp(string id, DataSourceLoadOptions loadOptions)
+        {
+            try
+            {
+                var tasks = m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.Where(e => e.ListEntityId == id).Select(e => e.m_SmallGroupDataList.m_NewPersonFollowUpData.Members).FirstOrDefault();
+
+                //return DataSourceLoader.Load<Member>(tasks, loadOptions);
+                return DataSourceLoader.Load(tasks, loadOptions);
+
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
+
+                throw e;
+            }
+        }
+
         [HttpPost]
         public IActionResult SaveNewPersonFollowUp(String aResult)
         {

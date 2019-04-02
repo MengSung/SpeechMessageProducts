@@ -10,6 +10,7 @@ namespace ChurchReport.Models {
         public Member()
         { }
 
+        public String PresentRecordId { get; set; }
         public int Id { get; set; }
         public string Group { get; set; }
         public string FullName { get; set; }
