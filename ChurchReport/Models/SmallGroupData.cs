@@ -1,3 +1,4 @@
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,5 +22,23 @@ namespace ChurchReport.Models
         public String SundayPeriod { get; set; } // 提醒小組長回報的期間
 
         public List<Member> Members { get ; set ; }
+
+        public void UpdateMember(string key, string values)
+        {
+
+            // 修改幸福小組週報
+            Member aUpdatedMember = JsonConvert.DeserializeObject<Member>(values);
+
+            JsonConvert.PopulateObject(values, Members[0]);
+
+            // 設定前端傳來週報有被修改過的旗標
+            //aUpdatedHappyGroupWeeklyReport.ModifiedFlag = true;
+
+            // 修改系統的幸福小組週報
+            //m_DownloadHappyGroup.UpdateHappyGroupWeeklyReport(key, ref aUpdatedHappyGroupWeeklyReport);
+
+            // 從前端傳來有更改過的週報去更新網頁端的幸福小組週報內容
+        }
+
     }
 }

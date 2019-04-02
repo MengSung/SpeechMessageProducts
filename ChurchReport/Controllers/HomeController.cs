@@ -342,6 +342,34 @@ namespace ChurchReport.Controllers
             }
         }
 
+        [HttpPut]
+        public IActionResult UpdatePresentRecord(string key, string values)
+        {
+            try
+            {
+                // 修改週報或是BEST
+                //m_InMemoryDataContextSmallGroup.HappyGroupDataManager.UpdateUpdatedMasterOrDetail(key, values);
+                SmallGroupData aSmallGroupData = m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.Where(e => e.ListEntityId == "001").Select(e => e.m_SmallGroupDataList.m_SmallGroupData).FirstOrDefault();
+                //ListSmallGroupWeeklyReport bSmallGroupData = m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.Where(e => e.ListEntityId == "001").ToList()[0];
+                //SmallGroupData cSmallGroupData = m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.Where(e => e.ListEntityId == "001").ToList()[0].m_SmallGroupDataList.m_SmallGroupData;
+
+                aSmallGroupData.UpdateMember(key, values);
+
+                return Ok();
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
+
+                throw e;
+            }
+        }
+
         [HttpPost]
         public IActionResult SaveSmallGroup(String aResult)
         {

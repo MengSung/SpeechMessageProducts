@@ -138,7 +138,8 @@ namespace ChurchReport.Models
                             {
                                 new Member
                                 {
-                                     Id = 1,
+                                     PresentRecordId = "AAA",
+                                     //Id = 1,
                                      FullName = "胡夢嵩",
                                      Phone = "0910391931",
                                      Address = "桃園市楊梅區三民路",
@@ -147,6 +148,7 @@ namespace ChurchReport.Models
                                 },
                                 new Member
                                 {
+                                     PresentRecordId = "BBB",
                                      FullName = "吳連碧",
                                      Phone = "0921834289",
                                      Address = "台北市大安區敦化北路",
@@ -161,6 +163,7 @@ namespace ChurchReport.Models
                             {
                                 new Member
                                 {
+                                     PresentRecordId = "CCC",
                                      FullName = "張大通",
                                      Phone = "0965526987",
                                      Address = "桃園市八德區中正路",
@@ -169,6 +172,7 @@ namespace ChurchReport.Models
                                 },
                                 new Member
                                 {
+                                     PresentRecordId = "DDD",
                                      FullName = "李曉春",
                                      Phone = "0956874563",
                                      Address = "台北市中正區中華路",
@@ -191,6 +195,7 @@ namespace ChurchReport.Models
                             {
                                 new Member
                                 {
+                                     PresentRecordId = "EEE",
                                      FullName = "約書亞",
                                      Status= "小組長",
                                      Phone = "0910391931",
@@ -200,6 +205,7 @@ namespace ChurchReport.Models
                                 },
                                 new Member
                                 {
+                                     PresentRecordId = "FFF",
                                      FullName = "跟隨者",
                                      Status= "小組長",
                                      Phone = "0921834289",
@@ -215,6 +221,7 @@ namespace ChurchReport.Models
                             {
                                 new Member
                                 {
+                                     PresentRecordId = "HHH",
                                      FullName = "火熱者",
                                      Phone = "0965526987",
                                      Address = "桃園市八德區中正路",
@@ -223,6 +230,7 @@ namespace ChurchReport.Models
                                 },
                                 new Member
                                 {
+                                     PresentRecordId = "III",
                                      FullName = "以利亞",
                                      Phone = "0956874563",
                                      Address = "台北市中正區中華路",
