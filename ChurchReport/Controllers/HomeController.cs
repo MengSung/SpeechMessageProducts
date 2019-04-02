@@ -349,11 +349,16 @@ namespace ChurchReport.Controllers
             {
                 // 修改週報或是BEST
                 //m_InMemoryDataContextSmallGroup.HappyGroupDataManager.UpdateUpdatedMasterOrDetail(key, values);
-                SmallGroupData aSmallGroupData = m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.Where(e => e.ListEntityId == "001").Select(e => e.m_SmallGroupDataList.m_SmallGroupData).FirstOrDefault();
+
                 //ListSmallGroupWeeklyReport bSmallGroupData = m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.Where(e => e.ListEntityId == "001").ToList()[0];
                 //SmallGroupData cSmallGroupData = m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.Where(e => e.ListEntityId == "001").ToList()[0].m_SmallGroupDataList.m_SmallGroupData;
 
-                aSmallGroupData.UpdateMember(key, values);
+                //SmallGroupData aSmallGroupData = m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.Where(e => e.ListEntityId == "001").Select(e => e.m_SmallGroupDataList.m_SmallGroupData).FirstOrDefault();
+                //aSmallGroupData.UpdateMember(key, values);
+
+                SmallGroupData bSmallGroupData = m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.First(o => o.ListEntityId == "001").m_SmallGroupDataList.m_SmallGroupData;
+
+                bSmallGroupData.UpdateMember(key, values);
 
                 return Ok();
             }
