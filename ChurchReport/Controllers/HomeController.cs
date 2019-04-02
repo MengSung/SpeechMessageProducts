@@ -1,38 +1,23 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using ChurchReport.ViewModel;
-
-using ToolUtilityNameSpace;
 using ChurchReport.Models;
-
-using ChurchReport.WebServiceConnector;
-using ChurchReport.Models.CrmTransmitModule;
-
+using ChurchReport.ViewModel;
+using ChurchReport.ViewModels;
+using DevExtreme.AspNet.Data;
+using DevExtreme.AspNet.Mvc;
+using LineMessagingProcessor;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Routing;
+using Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Infrastructure;
+using Microsoft.Extensions.Caching.Memory;
 // These namespaces are found in the Microsoft.Xrm.Sdk.dll assembly
 // located in the SDK\bin folder of the SDK download.
 using Microsoft.Xrm.Sdk;
-using Microsoft.Xrm.Sdk.Query;
-using Microsoft.Xrm.Sdk.Client;
-using Microsoft.Xrm.Sdk.Discovery;
-using Microsoft.Crm.Sdk.Messages;
-using Microsoft.Xrm.Sdk.Messages;
-using ChurchReport.ViewModels;
-using Microsoft.AspNetCore.Routing;
 using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
-
-using LineMessagingProcessor;
-using DevExtreme.AspNet.Mvc;
-using DevExtreme.AspNet.Data;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Caching.Memory;
-using Newtonsoft.Json.Converters;
-using System.IO;
-using Microsoft.AspNetCore.Server.Kestrel.Internal;
-using Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Infrastructure;
+using ToolUtilityNameSpace;
 
 namespace ChurchReport.Controllers
 {
@@ -329,6 +314,36 @@ namespace ChurchReport.Controllers
                 throw e;
             }
         }
+
+        [HttpGet]
+        public object LoadSmallGroup(string id, DataSourceLoadOptions loadOptions)
+        {
+            try
+            {
+                if (m_InMemoryDataContextSmallGroup.HappyGroupDataManager.m_ActiveHappyGroupListClass != null)
+                {
+                    var tasks = m_InMemoryDataContextSmallGroup.m_SmallGroupDataList.m_SmallGroupData.Members.Where(e => e.ListEntityId == id).Select(e => e.HappyGroupWeeklyReportList).FirstOrDefault();
+
+                    return DataSourceLoader.Load(tasks, loadOptions);
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "¿ù»~°T®§ : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¥x¤¤«ä®¦°óÂ×´I±Ð·| : ¸j©w¿ù»~ => " + ErrorString);
+
+                throw e;
+            }
+        }
+
         [HttpPost]
         public IActionResult SaveSmallGroup(String aResult)
         {

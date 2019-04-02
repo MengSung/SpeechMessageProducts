@@ -14,6 +14,7 @@ namespace ChurchReport.Models
         IMemoryCache _memoryCache;
 
         private ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
+        public ListManager m_ListManager = new ListManager();
         public SmallGroupDataList m_SmallGroupDataList = new SmallGroupDataList();
         public WeeklyReportData m_WeeklyReportData = new WeeklyReportData();
         public NewPersonModel m_NewPersonModel = new NewPersonModel();
@@ -28,6 +29,49 @@ namespace ChurchReport.Models
         {
             _contextAccessor = contextAccessor;
             _memoryCache = memoryCache;
+        }
+        #endregion
+        #region 多個組長處理區
+
+        public void SetupListManager(String FullName, String Account, String Password, DateTime aSelectDate, bool DisplayDateFlag)
+        {
+            try
+            {
+                String ContactIdString = m_ToolUtilityClass.RetrieveContactByAccountNumber(Account, Password);
+
+                m_SmallGroupDataList.SetupContactIdString(ContactIdString);
+
+                m_SmallGroupDataList.SetupSmallGroupData(FullName, Account, Password, DateTime.Now, true);
+
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                throw e;
+            }
+
+        }
+
+        public ListManager ListManager
+        {
+            get
+            {
+                var session = _contextAccessor.HttpContext.Session;
+                var key = session.Id + "_ListManager";
+
+                if (_memoryCache.Get(key) == null)
+                {
+                    _memoryCache.Set<ListManager>(key, m_ListManager, new MemoryCacheEntryOptions
+                    {
+                        AbsoluteExpiration = DateTime.Now.AddMinutes(3),
+                        SlidingExpiration = TimeSpan.FromMinutes(3)
+                    });
+                    session.SetInt32("dirty", 1);
+                }
+
+                return _memoryCache.Get<ListManager>(key);
+            }
         }
         #endregion
         #region 小組長處理區
@@ -59,7 +103,7 @@ namespace ChurchReport.Models
 
             if (_memoryCache.Get(key) == null)
             {
-                _memoryCache.Set<SmallGroupDataList>( key, m_SmallGroupDataList, new MemoryCacheEntryOptions
+                _memoryCache.Set<SmallGroupDataList>(key, m_SmallGroupDataList, new MemoryCacheEntryOptions
                 {
                     AbsoluteExpiration = DateTime.Now.AddMinutes(3),
                     SlidingExpiration = TimeSpan.FromMinutes(3)
@@ -99,7 +143,7 @@ namespace ChurchReport.Models
                     session.SetInt32("dirty", 1);
                 }
 
-                return _memoryCache.Get< SmallGroupDataList > (key);
+                return _memoryCache.Get<SmallGroupDataList>(key);
             }
         }
         #endregion
