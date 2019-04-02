@@ -29,7 +29,17 @@ namespace ChurchReport.Models
             // 修改幸福小組週報
             Member aUpdatedMember = JsonConvert.DeserializeObject<Member>(values);
 
-            JsonConvert.PopulateObject(values, Members[0]);
+            //IEnumerable<Member> filteringQuery =
+            //    from aMember in Members
+            //    where PresentRecordId ==key
+            //    select aMember;
+
+            var aMember = Members.First(o => o.PresentRecordId == key);
+            JsonConvert.PopulateObject(values, aMember);
+
+            //IEnumerable<Member> aMember = Members.Where(c => c.PresentRecordId == key );
+
+            //JsonConvert.PopulateObject( values, aMember );
 
             // 設定前端傳來週報有被修改過的旗標
             //aUpdatedHappyGroupWeeklyReport.ModifiedFlag = true;
