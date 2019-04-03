@@ -33,10 +33,12 @@ namespace ChurchReport.Models
         #endregion
         #region 多個組長處理區
 
-        public void SetupListManager(String FullName, String Account, String Password, DateTime aSelectDate, bool DisplayDateFlag)
+        public void SetupListManager(String ActiveListId, String FullName, String Account, String Password, DateTime aSelectDate, bool DisplayDateFlag)
         {
             try
             {
+                m_ListManager.ActiveListId = ActiveListId;
+
                 m_ListManager.SetupListManager();
             }
             catch (System.Exception e)

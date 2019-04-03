@@ -7,6 +7,7 @@ namespace ChurchReport.Models
 {
     public class ListManager
     {
+        public String ActiveListId { get; set; }
         public List<ListSmallGroupWeeklyReport> m_ListSmallGroupWeeklyReport { get; set; }
 
         public void SetupListManager(String FullName, String Account, String Password, DateTime aSelectDate, bool DisplayDateFlag)

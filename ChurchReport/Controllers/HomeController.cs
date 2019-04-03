@@ -94,7 +94,7 @@ namespace ChurchReport.Controllers
                     String FullName = this.m_ToolUtilityClass.RetrieveEntityDynamics365("contact", aContactGuid).Attributes["fullname"].ToString();
 
                     // 多個組長處理區
-                    m_InMemoryDataContextSmallGroup.SetupListManager(FullName, aGalleryViewModel.Account, aGalleryViewModel.Password, DateTime.Now, true);
+                    m_InMemoryDataContextSmallGroup.SetupListManager("002", FullName, aGalleryViewModel.Account, aGalleryViewModel.Password, DateTime.Now, true);
 
                     // 設定一般小組資料
                     m_InMemoryDataContextSmallGroup.SetupSmallGroupData(FullName, aGalleryViewModel.Account, aGalleryViewModel.Password, DateTime.Now, true);
@@ -246,7 +246,7 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                ViewBag.ListId = "002";
+                ViewBag.ListId = m_InMemoryDataContextSmallGroup.ListManager.ActiveListId;
 
                 if (LoginParameter == "AccountPassword")
                 {
@@ -349,7 +349,7 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                SmallGroupData bSmallGroupData = m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.First(o => o.ListEntityId == "001").m_SmallGroupDataList.m_SmallGroupData;
+                SmallGroupData bSmallGroupData = m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.First(o => o.ListEntityId == m_InMemoryDataContextSmallGroup.ListManager.ActiveListId).m_SmallGroupDataList.m_SmallGroupData;
 
                 bSmallGroupData.InsertMember(values);
 
@@ -368,7 +368,7 @@ namespace ChurchReport.Controllers
             }
         }
         [HttpPut]
-        public IActionResult UpdatePresentRecord(string key, string values)
+        public IActionResult UpdatePresentRecord(string key, string values )
         {
             try
             {
@@ -381,7 +381,7 @@ namespace ChurchReport.Controllers
                 //SmallGroupData aSmallGroupData = m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.Where(e => e.ListEntityId == "001").Select(e => e.m_SmallGroupDataList.m_SmallGroupData).FirstOrDefault();
                 //aSmallGroupData.UpdateMember(key, values);
 
-                SmallGroupData bSmallGroupData = m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.First(o => o.ListEntityId == "001").m_SmallGroupDataList.m_SmallGroupData;
+                SmallGroupData bSmallGroupData = m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.First(o => o.ListEntityId == m_InMemoryDataContextSmallGroup.ListManager.ActiveListId).m_SmallGroupDataList.m_SmallGroupData;
 
                 bSmallGroupData.UpdateMember(key, values);
 
@@ -399,13 +399,12 @@ namespace ChurchReport.Controllers
                 throw e;
             }
         }
-
         [HttpDelete]
         public IActionResult DeletePresentRecord(string key)
         {
             try
             {
-                SmallGroupData bSmallGroupData = m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.First(o => o.ListEntityId == "001").m_SmallGroupDataList.m_SmallGroupData;
+                SmallGroupData bSmallGroupData = m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.First(o => o.ListEntityId == m_InMemoryDataContextSmallGroup.ListManager.ActiveListId).m_SmallGroupDataList.m_SmallGroupData;
 
                 bSmallGroupData.DeleteMember(key);
 
@@ -495,6 +494,8 @@ namespace ChurchReport.Controllers
                 ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_FullName;
                 ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType;
 
+                ViewBag.ListId = m_InMemoryDataContextSmallGroup.ListManager.ActiveListId;
+
                 if (m_InMemoryDataContextSmallGroup.HappyGroupDataManager.HappyType == "有幸福小組名單")
                 {
                     ViewBag.HappyType = "有幸福小組名單";
@@ -528,6 +529,85 @@ namespace ChurchReport.Controllers
                 //return DataSourceLoader.Load<Member>(tasks, loadOptions);
                 return DataSourceLoader.Load(tasks, loadOptions);
 
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
+
+                throw e;
+            }
+        }
+
+        [HttpPost]
+        public IActionResult InsertNewPresentRecord(string values)
+        {
+            try
+            {
+                SmallGroupData bSmallGroupData = m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.First(o => o.ListEntityId == m_InMemoryDataContextSmallGroup.ListManager.ActiveListId).m_SmallGroupDataList.m_NewPersonFollowUpData;
+
+                bSmallGroupData.InsertMember(values);
+
+                return Ok();
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
+
+                throw e;
+            }
+        }
+        [HttpPut]
+        public IActionResult UpdateNewPresentRecord(string key, string values)
+        {
+            try
+            {
+                // 修改週報或是BEST
+                //m_InMemoryDataContextSmallGroup.HappyGroupDataManager.UpdateUpdatedMasterOrDetail(key, values);
+
+                //ListSmallGroupWeeklyReport bSmallGroupData = m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.Where(e => e.ListEntityId == "001").ToList()[0];
+                //SmallGroupData cSmallGroupData = m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.Where(e => e.ListEntityId == "001").ToList()[0].m_SmallGroupDataList.m_SmallGroupData;
+
+                //SmallGroupData aSmallGroupData = m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.Where(e => e.ListEntityId == "001").Select(e => e.m_SmallGroupDataList.m_SmallGroupData).FirstOrDefault();
+                //aSmallGroupData.UpdateMember(key, values);
+
+                SmallGroupData bSmallGroupData = m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.First(o => o.ListEntityId == m_InMemoryDataContextSmallGroup.ListManager.ActiveListId).m_SmallGroupDataList.m_NewPersonFollowUpData;
+
+                bSmallGroupData.UpdateMember(key, values);
+
+                return Ok();
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
+
+                throw e;
+            }
+        }
+        [HttpDelete]
+        public IActionResult DeleteNewPresentRecord(string key)
+        {
+            try
+            {
+                SmallGroupData bSmallGroupData = m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.First(o => o.ListEntityId == m_InMemoryDataContextSmallGroup.ListManager.ActiveListId).m_SmallGroupDataList.m_NewPersonFollowUpData;
+
+                bSmallGroupData.DeleteMember(key);
+
+                return Ok();
             }
             catch (System.Exception e)
             {
