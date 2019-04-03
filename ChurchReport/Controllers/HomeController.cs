@@ -246,6 +246,8 @@ namespace ChurchReport.Controllers
         {
             try
             {
+                ViewBag.ListId = "002";
+
                 if (LoginParameter == "AccountPassword")
                 {
                     #region 用小組長回報網頁登入
@@ -342,6 +344,29 @@ namespace ChurchReport.Controllers
             }
         }
 
+        [HttpPost]
+        public IActionResult InsertPresentRecord( string values )
+        {
+            try
+            {
+                SmallGroupData bSmallGroupData = m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.First(o => o.ListEntityId == "001").m_SmallGroupDataList.m_SmallGroupData;
+
+                bSmallGroupData.InsertMember(values);
+
+                return Ok();
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
+
+                throw e;
+            }
+        }
         [HttpPut]
         public IActionResult UpdatePresentRecord(string key, string values)
         {
@@ -359,6 +384,30 @@ namespace ChurchReport.Controllers
                 SmallGroupData bSmallGroupData = m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.First(o => o.ListEntityId == "001").m_SmallGroupDataList.m_SmallGroupData;
 
                 bSmallGroupData.UpdateMember(key, values);
+
+                return Ok();
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
+
+                throw e;
+            }
+        }
+
+        [HttpDelete]
+        public IActionResult DeletePresentRecord(string key)
+        {
+            try
+            {
+                SmallGroupData bSmallGroupData = m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.First(o => o.ListEntityId == "001").m_SmallGroupDataList.m_SmallGroupData;
+
+                bSmallGroupData.DeleteMember(key);
 
                 return Ok();
             }

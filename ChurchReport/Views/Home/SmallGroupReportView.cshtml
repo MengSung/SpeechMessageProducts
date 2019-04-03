@@ -353,11 +353,11 @@ else
                                         .WebApi()
                                         .Controller("Home")
                                         .LoadAction("LoadSmallGroup")
-                                        //.InsertAction("PostBest")
-                                        //.DeleteAction("DeleteBest")
+                                        .InsertAction("InsertPresentRecord")
+                                        .DeleteAction("DeletePresentRecord")
                                         .UpdateAction("UpdatePresentRecord")
                                         .Key("PresentRecordId")
-                                        .LoadParams(new { id = "001" }))
+                                        .LoadParams(new { id = @ViewBag.ListId }))
                                     )
     </div>
 }

@@ -23,19 +23,26 @@ namespace ChurchReport.Models
 
         public List<Member> Members { get ; set ; }
 
+        public void InsertMember( string values)
+        { 
+            var aNewMember = new Member();
+            JsonConvert.PopulateObject(values, aNewMember);
+
+            Members.Add(aNewMember);
+        }
         public void UpdateMember(string key, string values)
         {
 
             // 修改幸福小組週報
-            Member aUpdatedMember = JsonConvert.DeserializeObject<Member>(values);
+            //Member aUpdatedMember = JsonConvert.DeserializeObject<Member>(values);
 
             //IEnumerable<Member> filteringQuery =
             //    from aMember in Members
             //    where PresentRecordId ==key
             //    select aMember;
 
-            var aMember = Members.First(o => o.PresentRecordId == key);
-            JsonConvert.PopulateObject(values, aMember);
+            var aUpdatedMember = Members.First(o => o.PresentRecordId == key);
+            JsonConvert.PopulateObject(values, aUpdatedMember);
 
             //IEnumerable<Member> aMember = Members.Where(c => c.PresentRecordId == key );
 
@@ -48,6 +55,12 @@ namespace ChurchReport.Models
             //m_DownloadHappyGroup.UpdateHappyGroupWeeklyReport(key, ref aUpdatedHappyGroupWeeklyReport);
 
             // 從前端傳來有更改過的週報去更新網頁端的幸福小組週報內容
+        }
+        public void DeleteMember(string key)
+        {
+            var aDeleteMember = Members.First(o => o.PresentRecordId == key);
+
+            Members.Remove(aDeleteMember);
         }
 
     }
