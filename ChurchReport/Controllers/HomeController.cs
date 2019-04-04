@@ -860,25 +860,25 @@ namespace ChurchReport.Controllers
             }
         }
         [HttpPost]
-        public IActionResult SaveWeeklyReport(WeeklyReportViewModel aWeeklyReportViewModel)
+        public IActionResult SaveWeeklyReport(SmallGroupData aSmallGroupData)
         {
             try
             {
-                if (m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_Account != "")
-                {
-                    // 先上傳小組點名資料，萬一沒有先上傳小組點名，則仍然可以上傳小組日誌，因為在後台會建立新增周報
-                    m_InMemoryDataContextSmallGroup.SmallGroupDataList.UploadMemberInfomationPackage();
+                //if (m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_Account != "")
+                //{
+                //    // 先上傳小組點名資料，萬一沒有先上傳小組點名，則仍然可以上傳小組日誌，因為在後台會建立新增周報
+                //    m_InMemoryDataContextSmallGroup.SmallGroupDataList.UploadMemberInfomationPackage();
 
-                    // 給上傳用的
-                    m_InMemoryDataContextSmallGroup.WeeklyReportData.m_WeeklyReport.WeeklyReportContent = aWeeklyReportViewModel.WeeklyReportData;
-                    m_InMemoryDataContextSmallGroup.WeeklyReportData.m_WeeklyReport.PresentContent = aWeeklyReportViewModel.WeeklyReportAnalysis;
+                //    // 給上傳用的
+                //    m_InMemoryDataContextSmallGroup.WeeklyReportData.m_WeeklyReport.WeeklyReportContent = aWeeklyReportViewModel.WeeklyReportData;
+                //    m_InMemoryDataContextSmallGroup.WeeklyReportData.m_WeeklyReport.PresentContent = aWeeklyReportViewModel.WeeklyReportAnalysis;
 
-                    // 給網頁顯示用的
-                    m_InMemoryDataContextSmallGroup.WeeklyReportData.m_WeeklyReportViewModel.WeeklyReportData = aWeeklyReportViewModel.WeeklyReportData;
-                    m_InMemoryDataContextSmallGroup.WeeklyReportData.m_WeeklyReportViewModel.WeeklyReportAnalysis = aWeeklyReportViewModel.WeeklyReportAnalysis;
+                //    // 給網頁顯示用的
+                //    m_InMemoryDataContextSmallGroup.WeeklyReportData.m_WeeklyReportViewModel.WeeklyReportData = aWeeklyReportViewModel.WeeklyReportData;
+                //    m_InMemoryDataContextSmallGroup.WeeklyReportData.m_WeeklyReportViewModel.WeeklyReportAnalysis = aWeeklyReportViewModel.WeeklyReportAnalysis;
 
-                    m_InMemoryDataContextSmallGroup.WeeklyReportData.UploadWeeklyReport(m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_Account, m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_Password, m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_SundayDate, m_InMemoryDataContextSmallGroup.WeeklyReportData.m_WeeklyReport);
-                }
+                //    m_InMemoryDataContextSmallGroup.WeeklyReportData.UploadWeeklyReport(m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_Account, m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_Password, m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_SundayDate, m_InMemoryDataContextSmallGroup.WeeklyReportData.m_WeeklyReport);
+                //}
 
                 return Json(new { status = "1", message = "成功上傳了...." });
                 //return Json(new { status = "2", message = "密碼錯誤...." });
