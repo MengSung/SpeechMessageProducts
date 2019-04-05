@@ -23,6 +23,14 @@ namespace ChurchReport.Models
 
         public List<Member> Members { get ; set ; }
 
+        //public String m_WeeklyReportData { get; set; }
+        //public String m_WeeklyReportAnalysis { get; set; }
+        //public bool m_DisplayFlag { get; set; }
+
+        public String WeeklyReportData { get; set; }
+        public String WeeklyReportAnalysis { get; set; }
+        public bool DisplayFlag { get; set; }
+
         public void InsertMember( string values)
         { 
             var aNewMember = new Member();

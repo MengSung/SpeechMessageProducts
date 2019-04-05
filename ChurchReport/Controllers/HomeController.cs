@@ -263,6 +263,9 @@ namespace ChurchReport.Controllers
                         ViewBag.HappyType = "沒幸福小組名單";
                     }
 
+                    m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_SmallGroupData.WeeklyReportData = "嘟嘟妞妞";
+                    m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_SmallGroupData.WeeklyReportAnalysis = "非常可愛";
+
                     return View(m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_SmallGroupData);
                     #endregion
                 }

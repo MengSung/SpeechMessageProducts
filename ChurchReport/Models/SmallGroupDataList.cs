@@ -45,6 +45,12 @@ namespace ChurchReport.Models
 
         public AssignSmallGroupList m_AssignSmallGroupList = new AssignSmallGroupList();
 
+
+        //public String m_WeeklyReportData { get; set; }
+        //public String m_WeeklyReportAnalysis { get; set; }
+        //public bool m_DisplayFlag { get; set; }
+
+
         public void SetupContactIdString(String ContactIdString)
         {
             m_SmallGroupData.SmallGroupLeaderContactId = ContactIdString;

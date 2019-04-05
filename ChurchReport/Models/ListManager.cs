@@ -40,7 +40,9 @@ namespace ChurchReport.Models
                                      Sunday = true,
                                      SmallGroup = true,
                                 },
-                            }
+                            },
+                            WeeklyReportData = "0000",
+                            WeeklyReportAnalysis = "1111",
                         },
                         m_NewPersonFollowUpData = new SmallGroupData
                         {
@@ -63,6 +65,14 @@ namespace ChurchReport.Models
                                      SmallGroup = true,
                                 },
                             }
+                        }
+                    },
+                    m_WeeklyReportData =new WeeklyReportData
+                    {
+                        m_WeeklyReportViewModel = new ViewModels.WeeklyReportViewModel
+                        {
+                            WeeklyReportData = "AAA",
+                            WeeklyReportAnalysis = "BBB"
                         }
                     }
                 },
@@ -94,7 +104,9 @@ namespace ChurchReport.Models
                                      Sunday = true,
                                      SmallGroup = true,
                                 },
-                            }
+                            },
+                            WeeklyReportData = "2222",
+                            WeeklyReportAnalysis = "3333",
                         },
                         m_NewPersonFollowUpData = new SmallGroupData
                         {
@@ -117,6 +129,14 @@ namespace ChurchReport.Models
                                      SmallGroup = true,
                                 },
                             }
+                        },
+                    },
+                    m_WeeklyReportData =new WeeklyReportData
+                    {
+                        m_WeeklyReportViewModel = new ViewModels.WeeklyReportViewModel
+                        {
+                            WeeklyReportData = "CCC",
+                            WeeklyReportAnalysis = "DDD"
                         }
                     }
                 }
