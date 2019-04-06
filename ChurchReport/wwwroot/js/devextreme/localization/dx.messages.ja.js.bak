@@ -1,7 +1,7 @@
 /*!
 * DevExtreme (dx.messages.ja.js)
-* Version: 17.2.5
-* Build date: Tue Jan 23 2018
+* Version: 18.1.3
+* Build date: Tue May 15 2018
 *
 * Copyright (c) 2012 - 2018 Developer Express Inc. ALL RIGHTS RESERVED
 * Read about DevExtreme licensing here: https://js.devexpress.com/Licensing/
@@ -153,6 +153,10 @@
             "dxDataGrid-ariaSearchInGrid": "データ グリッド内で検索",
             "dxDataGrid-ariaSelectAll": "すべてを選択",
             "dxDataGrid-ariaSelectRow": "行の選択",
+            "dxDataGrid-filterBuilderPopupTitle": "フィルター ビルダー",
+            "dxDataGrid-filterPanelCreateFilter": "フィルターの作成",
+            "dxDataGrid-filterPanelClearFilter": "クリア",
+            "dxDataGrid-filterPanelFilterEnabledHint": "フィルターの有効化",
             "dxTreeList-ariaTreeList": "ツリー リスト",
             "dxTreeList-editingAddRowToNode": "追加",
             "dxPager-infoText": "ページ {0} / {1} ({2} アイテム)",
@@ -246,7 +250,10 @@
             "dxFilterBuilder-filterOperationNotContains": "指定の値を含まない",
             "dxFilterBuilder-filterOperationEndsWith": "指定の値で終わる",
             "dxFilterBuilder-filterOperationIsBlank": "空白である",
-            "dxFilterBuilder-filterOperationIsNotBlank": "空白ではない"
+            "dxFilterBuilder-filterOperationIsNotBlank": "空白ではない",
+            "dxFilterBuilder-filterOperationBetween": "～から～の間",
+            "dxFilterBuilder-filterOperationAnyOf": "どちらかを含む",
+            "dxFilterBuilder-filterOperationNoneOf": "すべて含まない"
         }
     })
 });

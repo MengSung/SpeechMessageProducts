@@ -1,33 +1,27 @@
 /*!
 * DevExtreme (dx.aspnet.mvc.js)
-* Version: 18.1.3
-* Build date: Tue May 15 2018
+* Version: 18.2.7
+* Build date: Sat Mar 09 2019
 *
-* Copyright (c) 2012 - 2018 Developer Express Inc. ALL RIGHTS RESERVED
+* Copyright (c) 2012 - 2019 Developer Express Inc. ALL RIGHTS RESERVED
 * Read about DevExtreme licensing here: https://js.devexpress.com/Licensing/
 */
-"use strict";
 ! function(factory) {
     if ("function" === typeof define && define.amd) {
         define(function(require, exports, module) {
-            module.exports = factory(require("jquery"), require("./ui/set_template_engine"), require("./ui/widget/ui.template_base").renderedCallbacks, require("./core/guid"), require("./ui/validation_engine"), require("./core/utils/iterator"))
+            module.exports = factory(require("jquery"), require("./ui/set_template_engine"), require("./ui/widget/ui.template_base").renderedCallbacks, require("./core/guid"), require("./ui/validation_engine"), require("./core/utils/iterator"), require("./core/utils/dom").extractTemplateMarkup, require("./core/utils/string").encodeHtml)
         })
     } else {
         var ui = DevExpress.ui;
-        DevExpress.aspnet = factory(window.jQuery, ui && ui.setTemplateEngine, ui && ui.templateRendered, DevExpress.data.Guid, DevExpress.validationEngine, DevExpress.utils.iterator)
+        DevExpress.aspnet = factory(window.jQuery, ui && ui.setTemplateEngine, ui && ui.templateRendered, DevExpress.data.Guid, DevExpress.validationEngine, DevExpress.utils.iterator, DevExpress.utils.dom.extractTemplateMarkup, DevExpress.utils.string.encodeHtml)
     }
-}(function($, setTemplateEngine, templateRendered, Guid, validationEngine, iteratorUtils) {
+}(function($, setTemplateEngine, templateRendered, Guid, validationEngine, iteratorUtils, extractTemplateMarkup, encodeHtml) {
     var templateCompiler = createTemplateCompiler();
 
     function createTemplateCompiler() {
-        var OPEN_TAG = "<%",
-            CLOSE_TAG = "%>",
+        var OPEN_TAG = "<%",CLOSE_TAG="%>",
             ENCODE_QUALIFIER = "-",
             INTERPOLATE_QUALIFIER = "=";
-
-        function encodeHtml(value) {
-            return String(value).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;")
-        }
 
         function acceptText(bag, text) {
             if (text) {
@@ -41,7 +35,7 @@
                 interpolate = code.charAt(0) === INTERPOLATE_QUALIFIER;
             if (encode || interpolate) {
                 bag.push("_.push(");
-                bag.push(encode ? encodeHtml(value) : value);
+                bag.push(encode ? "arguments[1](" + value + ")" : value);
                 bag.push(");")
             } else {
                 bag.push(code + "\n")
@@ -65,22 +59,12 @@
     }
 
     function createTemplateEngine() {
-        function outerHtml(element) {
-            element = $(element);
-            var templateTag = element.length && element[0].nodeName.toLowerCase();
-            if ("script" === templateTag) {
-                return element.html()
-            } else {
-                element = $("<div>").append(element);
-                return element.html()
-            }
-        }
         return {
             compile: function(element) {
-                return templateCompiler(outerHtml(element))
+                return templateCompiler(extractTemplateMarkup(element))
             },
             render: function(template, data) {
-                return template(data)
+                return template(data, encodeHtml)
             }
         }
     }
