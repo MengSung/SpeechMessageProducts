@@ -240,9 +240,8 @@ namespace ChurchReport.Controllers
         }
         #endregion
         #region 小組長點名及個人回報
-        [Route("/Home/SmallGroupReportView/{LoginParameter}")]
-        public ActionResult SmallGroupReportView(String LoginParameter)
-        //public ActionResult SmallGroupReportView()
+        [Route("/Home/IntegrateView/{LoginParameter}")]
+        public ActionResult IntegrateView(String LoginParameter)
         {
             try
             {
@@ -327,9 +326,8 @@ namespace ChurchReport.Controllers
                 throw e;
             }
         }
-
         [HttpGet]
-        public object LoadSmallGroup(string id, DataSourceLoadOptions loadOptions)
+        public object LoadIntegrate(string id, DataSourceLoadOptions loadOptions)
         {
             try
             {
@@ -351,9 +349,8 @@ namespace ChurchReport.Controllers
                 throw e;
             }
         }
-
         [HttpPost]
-        public IActionResult InsertPresentRecord( string values )
+        public IActionResult InsertPresentRecord(string values)
         {
             try
             {
@@ -376,7 +373,7 @@ namespace ChurchReport.Controllers
             }
         }
         [HttpPut]
-        public IActionResult UpdatePresentRecord(string key, string values )
+        public IActionResult UpdatePresentRecord(string key, string values)
         {
             try
             {
@@ -430,7 +427,6 @@ namespace ChurchReport.Controllers
                 throw e;
             }
         }
-
         [HttpPost]
         public IActionResult SaveSmallGroup(String aResult)
         {
@@ -491,6 +487,119 @@ namespace ChurchReport.Controllers
                 throw e;
             }
         }
+        #endregion
+
+        #region 小組長點名及個人回報
+        [Route("/Home/SmallGroupReportView/{LoginParameter}")]
+        public ActionResult SmallGroupReportView(String LoginParameter)
+        {
+            try
+            {
+                ViewBag.ListId = m_InMemoryDataContextSmallGroup.ListManager.ActiveListId;
+
+                if (LoginParameter == "AccountPassword")
+                {
+                    #region 用小組長回報網頁登入
+                    ViewBag.LoginType = m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_MemberInfomationPackage.m_LoginType;// 看是小組長還是個人回報
+                    ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_FullName;
+                    ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType;
+                    if (m_InMemoryDataContextSmallGroup.HappyGroupDataManager.HappyType == "有幸福小組名單")
+                    {
+                        ViewBag.HappyType = "有幸福小組名單";
+                    }
+                    else
+                    {
+                        ViewBag.HappyType = "沒幸福小組名單";
+                    }
+
+                    m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_SmallGroupData.WeeklyReportData = "嘟嘟妞妞";
+                    m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_SmallGroupData.WeeklyReportAnalysis = "非常可愛";
+
+
+                    //ListSmallGroupWeeklyReport bSmallGroupData = m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.Where(e => e.ListEntityId == "001").ToList()[0];
+
+                    //return View(m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.Where(e => e.ListEntityId == m_InMemoryDataContextSmallGroup.m_ListManager.ActiveListId).Select());
+                    return View(m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.Where(e => e.ListEntityId == m_InMemoryDataContextSmallGroup.m_ListManager.ActiveListId).FirstOrDefault());
+                    //return View(m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.Select(ListEntityId=> m_InMemoryDataContextSmallGroup.m_ListManager.ActiveListId));
+                    #endregion
+                }
+                else if (LoginParameter == "jquery.js")
+                {
+                    ViewBag.LoginType = "個人登入";
+                    return Ok();
+                }
+                else
+                {
+                    #region 小組長 Line 登入
+                    String FullName = m_ToolUtilityClass.RetrieveContactEntityByLineUserId(LoginParameter).Attributes["fullname"].ToString();
+
+                    LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                    // 寫入LINE的個人基本資料
+                    if (FullName.EndsWith("(Line)"))
+                    {
+                        aLineMessagingProcessorClass.NotifyLineBinding(LoginParameter);
+
+                        return RedirectToAction("Login");
+                    }
+                    else
+                    {
+                        m_InMemoryDataContextSmallGroup.SetupSmallGroupData(FullName, "LineIdLogin", LoginParameter, DateTime.Now, true);
+
+                        ViewBag.LoginType = m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_MemberInfomationPackage.m_LoginType;// 看是小組長還是個人回報
+                        ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_FullName;
+                        ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType;
+
+                        if (m_InMemoryDataContextSmallGroup.HappyGroupDataManager.HappyType == "有幸福小組名單")
+                        {
+                            ViewBag.HappyType = "有幸福小組名單";
+                        }
+                        else
+                        {
+                            ViewBag.HappyType = "沒幸福小組名單";
+                        }
+
+                        return View(m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport);
+                    }
+                    #endregion
+                }
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
+
+                throw e;
+            }
+        }
+        [HttpGet]
+        public object LoadSmallGroup(string id, DataSourceLoadOptions loadOptions)
+        {
+            try
+            {
+                var tasks = m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.Where(e => e.ListEntityId == id).Select(e => e.m_SmallGroupDataList.m_SmallGroupData.Members).FirstOrDefault();
+
+                //return DataSourceLoader.Load<Member>(tasks, loadOptions);
+                return DataSourceLoader.Load(tasks, loadOptions);
+
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
+
+                throw e;
+            }
+        }
+        [HttpPost]
         #endregion
         #region 新人跟進關懷
         [HttpGet]

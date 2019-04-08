@@ -17,9 +17,9 @@
     <None Remove="Views\Home\BindingResultView.cshtml" />
     <None Remove="Views\Home\FeeManagerView.cshtml" />
     <None Remove="Views\Home\HappyGroupWeeklyReport.cshtml" />
+    <None Remove="Views\Home\IntegrateView.cshtml" />
     <None Remove="Views\Home\LineLiffView.cshtml" />
     <None Remove="Views\Home\QualificationView.cshtml" />
-    <None Remove="Views\Home\SmallGroupReportView - 複製.cshtml" />
     <None Remove="wwwroot\css\MasterDetail.css" />
     <None Remove="wwwroot\css\Site - 複製.css" />
     <None Remove="wwwroot\js\devextreme\devextreme-intl.min.js" />
