@@ -16,7 +16,7 @@
 
 @using ChurchReport.Models
 
-@model ChurchReport.Models.SmallGroupData
+@model ChurchReport.Models.ListSmallGroupWeeklyReport
 @*@model ChurchReport.ViewModels.WeeklyReportViewModel*@
 
 <head>
@@ -439,15 +439,18 @@ else
 
             })
             //.DataSource(d => d.WebApi().Controller("SmallGroupReport").Key("Id"))
-            .DataSource(d => d
-            .WebApi()
-            .Controller("Home")
-            .LoadAction("LoadNewPersonFollowUp")
-            .InsertAction("InsertNewPresentRecord")
-            .DeleteAction("DeleteNewPresentRecord")
-            .UpdateAction("UpdateNewPresentRecord")
-            .Key("PresentRecordId")
-            .LoadParams(new { id = @ViewBag.ListId }))
+            .DataSource
+            (
+                d => d
+                .WebApi()
+                .Controller("Home")
+                .LoadAction("LoadNewPersonFollowUp")
+                .InsertAction("InsertNewPresentRecord")
+                .DeleteAction("DeleteNewPresentRecord")
+                .UpdateAction("UpdateNewPresentRecord")
+                .Key("PresentRecordId")
+                .LoadParams(new { id = @ViewBag.ListId })
+            )
             //.DataSourceOptions(d => d.Filter("['Id', '<=' , 6]"))
             )
         </div>
@@ -455,87 +458,98 @@ else
     else
     {
         <div id="individual-data-grid">
-            @(Html.DevExtreme().DataGrid<Member>()
-            .ID("gridContainer")
-            .ShowBorders(true)
-            .ColumnAutoWidth(true)
-            .Paging(p => p.PageSize(10))
-            .Sorting(sorting => sorting.Mode(GridSortingMode.None))
-            .Paging(paging => paging.Enabled(false))
-            .AllowColumnResizing(true)
-            .ColumnResizingMode(ColumnResizingMode.Widget)
-            .ColumnFixing(c => c.Enabled(true))
-            .LoadPanel(l => l.Text("更新資料中..."))
-            .SearchPanel(s => s.Visible(true).Placeholder("搜尋.."))
-            .OnContentReady(@<text>
-                        function(e) {
-                        moveEditColumnToLeft(e.component);
-                        }
-            </text> )
+            @(
+                Html.DevExtreme()
+                .DataGrid<Member>()
+                .ID("gridContainer")
+                .ShowBorders(true)
+                .ColumnAutoWidth(true)
+                .Paging(p => p.PageSize(10))
+                .Sorting(sorting => sorting.Mode(GridSortingMode.None))
+                .Paging(paging => paging.Enabled(false))
+                .AllowColumnResizing(true)
+                .ColumnResizingMode(ColumnResizingMode.Widget)
+                .ColumnFixing(c => c.Enabled(true))
+                .LoadPanel(l => l.Text("更新資料中..."))
+                .SearchPanel(s => s.Visible(true).Placeholder("搜尋.."))
+                .OnContentReady(@<text>
+                            function(e) {
+                            moveEditColumnToLeft(e.component);
+                            }
+                </text> )
 
-.OnCellPrepared("cell_prepared")
-
-
-
-.ShowColumnLines(true)
-.ShowRowLines(true)
-.RowAlternationEnabled(true)
-.ShowBorders(true)
-
-.TwoWayBindingEnabled(true)
+                .OnCellPrepared("cell_prepared")
 
 
-.Editing(editing =>
-{
-//editing.Mode(GridEditMode.Batch);
-//editing.Mode(GridEditMode.Row);
-//editing.Mode(GridEditMode.Cell);
-//editing.Mode(GridEditMode.Batch);
-//editing.Mode(GridEditMode.Form);
-editing.Mode(GridEditMode.Popup);
-editing.AllowUpdating(true);
-editing.AllowDeleting(false);
-//editing.AllowAdding(false);
-editing.Texts(a => a.SaveAllChanges("上傳檔案").AddRow("新增").CancelAllChanges("取消變更").SaveRowChanges("儲存").CancelRowChanges("取消").EditRow("編輯").DeleteRow("刪除"));
-//editing.AllowDeleting(true);
-})
+                .ShowColumnLines(true)
+                .ShowRowLines(true)
+                .RowAlternationEnabled(true)
+                .ShowBorders(true)
 
-.Columns(columns =>
-{
-columns.AddFor(m => m.FullName).Caption("姓名").Fixed(false).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Left).AllowSorting(false);
-columns.AddFor(m => m.Status).Caption("委身類型").Fixed(false).Width(100).MinWidth(20).Alignment(HorizontalAlignment.Center).AllowSorting(false);
-columns.AddFor(m => m.Sunday).Caption("主日").Width(45).MinWidth(45).AllowSorting(false);
-columns.AddFor(m => m.SmallGroup).Caption("小組").Width(45).MinWidth(45).AllowSorting(false);
-columns.AddFor(m => m.SpiritualWork)
-.Caption("靈修次數").Alignment(HorizontalAlignment.Center)
-.Width(75).MinWidth(30).DataType(GridColumnDataType.Number)
-.Lookup(lookup => lookup
-.DataSource(new string[] { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", })
-//.DisplayExpr("Name")
-//.ValueExpr("ID")
-);
-columns.AddFor(m => m.MorningPray)
-.Caption("晨禱次數").Alignment(HorizontalAlignment.Center)
-.Width(75).MinWidth(30).DataType(GridColumnDataType.Number)
-.Lookup(lookup => lookup
-.DataSource(new string[] { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", })
-//.DisplayExpr("Name")
-//.ValueExpr("ID")
-);
+                .TwoWayBindingEnabled(true)
 
-columns.AddFor(m => m.GeneralCare)
-.Caption("禱告次數").Alignment(HorizontalAlignment.Center)
-.Width(75).MinWidth(30).DataType(GridColumnDataType.Number)
-.Lookup(lookup => lookup
-.DataSource(new string[] { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", })
-);
-columns.AddFor(m => m.PrayItem).Caption("代禱事項").MinWidth(90);
-columns.AddFor(m => m.SmallGroupName).Caption("小組").GroupIndex(0).MinWidth(10);
+                .Editing(editing =>
+                {
+                    //editing.Mode(GridEditMode.Batch);
+                    //editing.Mode(GridEditMode.Row);
+                    //editing.Mode(GridEditMode.Cell);
+                    //editing.Mode(GridEditMode.Batch);
+                    //editing.Mode(GridEditMode.Form);
+                    editing.Mode(GridEditMode.Popup);
+                    editing.AllowUpdating(true);
+                    editing.AllowDeleting(false);
+                    //editing.AllowAdding(false);
+                    editing.Texts(a => a.SaveAllChanges("上傳檔案").AddRow("新增").CancelAllChanges("取消變更").SaveRowChanges("儲存").CancelRowChanges("取消").EditRow("編輯").DeleteRow("刪除"));
+                    //editing.AllowDeleting(true);
+                })
 
-})
-//.DataSource(d => d.WebApi().Controller("SmallGroupReport").Key("Id"))
-.DataSource(Model.Members)
-//.DataSourceOptions(d => d.Filter("['Id', '<=' , 6]"))
+                .Columns(columns =>
+                {
+                columns.AddFor(m => m.FullName).Caption("姓名").Fixed(false).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Left).AllowSorting(false);
+                columns.AddFor(m => m.Status).Caption("委身類型").Fixed(false).Width(100).MinWidth(20).Alignment(HorizontalAlignment.Center).AllowSorting(false);
+                columns.AddFor(m => m.Sunday).Caption("主日").Width(45).MinWidth(45).AllowSorting(false);
+                columns.AddFor(m => m.SmallGroup).Caption("小組").Width(45).MinWidth(45).AllowSorting(false);
+                columns.AddFor(m => m.SpiritualWork)
+                .Caption("靈修次數").Alignment(HorizontalAlignment.Center)
+                .Width(75).MinWidth(30).DataType(GridColumnDataType.Number)
+                .Lookup(lookup => lookup
+                .DataSource(new string[] { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", })
+                //.DisplayExpr("Name")
+                //.ValueExpr("ID")
+                );
+                columns.AddFor(m => m.MorningPray)
+                .Caption("晨禱次數").Alignment(HorizontalAlignment.Center)
+                .Width(75).MinWidth(30).DataType(GridColumnDataType.Number)
+                .Lookup(lookup => lookup
+                .DataSource(new string[] { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", })
+                //.DisplayExpr("Name")
+                //.ValueExpr("ID")
+                );
+
+                columns.AddFor(m => m.GeneralCare)
+                .Caption("禱告次數").Alignment(HorizontalAlignment.Center)
+                .Width(75).MinWidth(30).DataType(GridColumnDataType.Number)
+                .Lookup(lookup => lookup
+                .DataSource(new string[] { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", })
+                );
+                columns.AddFor(m => m.PrayItem).Caption("代禱事項").MinWidth(90);
+                columns.AddFor(m => m.SmallGroupName).Caption("小組").GroupIndex(0).MinWidth(10);
+
+            })
+                //.DataSource(d => d.WebApi().Controller("SmallGroupReport").Key("Id"))
+                .DataSource
+                (
+                    d => d
+                    .WebApi()
+                    .Controller("Home")
+                    .LoadAction("LoadNewPersonFollowUp")
+                    .InsertAction("InsertNewPresentRecord")
+                    .DeleteAction("DeleteNewPresentRecord")
+                    .UpdateAction("UpdateNewPresentRecord")
+                    .Key("PresentRecordId")
+                    .LoadParams(new { id = @ViewBag.ListId })
+                )
+                //.DataSourceOptions(d => d.Filter("['Id', '<=' , 6]"))
             )
         </div>
     }
@@ -585,39 +599,39 @@ columns.AddFor(m => m.SmallGroupName).Caption("小組").GroupIndex(0).MinWidth(1
     </div>
     <div id="form-container">
         @(Html.DevExtreme().Form()
-        .ID("form")
-        .LabelLocation(FormLabelLocation.Top)
-        .ColCount(1)
-        .Items(items =>
-        {
-        items.AddSimple()
-        .ColSpan(2)
-        //.Label(l => l.Text("小組日誌001").Visible(true))
-        .Label(l => l.Text("小組日誌").Visible(true))
-        .DataField("WeeklyReportData")
-        .Editor(e => e
-        .TextArea()
-        .Placeholder("請輸入小組日誌，離開或是切換網頁前記得按上傳鈕")
-        .Height(250)
-        );
-        items.AddSimple()
-        .ColSpan(2)
-        .Label(l => l.Text("小組出席紀錄").Visible(true))
-        .DataField("WeeklyReportAnalysis")
-        .Editor(e => e
-        .TextArea()
-        .ReadOnly(true)
-        .Disabled(false)
-        .Height(350)
-        );
+            .ID("form")
+            .LabelLocation(FormLabelLocation.Top)
+            .ColCount(1)
+            .Items(items =>
+            {
+                items.AddSimple()
+                .ColSpan(2)
+                //.Label(l => l.Text("小組日誌001").Visible(true))
+                .Label(l => l.Text("小組日誌").Visible(true))
+                .DataField("WeeklyReportData")
+                .Editor(e => e
+                .TextArea()
+                .Placeholder("請輸入小組日誌，離開或是切換網頁前記得按上傳鈕")
+                .Height(250)
+                );
+                items.AddSimple()
+                .ColSpan(2)
+                .Label(l => l.Text("小組出席紀錄").Visible(true))
+                .DataField("WeeklyReportAnalysis")
+                .Editor(e => e
+                .TextArea()
+                .ReadOnly(true)
+                .Disabled(false)
+                .Height(350)
+                );
 
-        })
-        .OnContentReady(@<text>
-                    function(e) {
-                    e.component.validate();
-                    }
-        </text>)
-.FormData(Model)
+            })
+            .OnContentReady(@<text>
+                        function(e) {
+                        e.component.validate();
+                        }
+            </text>)
+            .FormData(Model)
         )
     </div>
 </form>

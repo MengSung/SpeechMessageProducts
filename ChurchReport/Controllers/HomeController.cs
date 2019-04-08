@@ -266,7 +266,12 @@ namespace ChurchReport.Controllers
                     m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_SmallGroupData.WeeklyReportData = "嘟嘟妞妞";
                     m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_SmallGroupData.WeeklyReportAnalysis = "非常可愛";
 
-                    return View(m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_SmallGroupData);
+
+                    //ListSmallGroupWeeklyReport bSmallGroupData = m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.Where(e => e.ListEntityId == "001").ToList()[0];
+
+                    //return View(m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.Where(e => e.ListEntityId == m_InMemoryDataContextSmallGroup.m_ListManager.ActiveListId).Select());
+                    return View(m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.Where(e => e.ListEntityId == m_InMemoryDataContextSmallGroup.m_ListManager.ActiveListId).FirstOrDefault());
+                    //return View(m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.Select(ListEntityId=> m_InMemoryDataContextSmallGroup.m_ListManager.ActiveListId));
                     #endregion
                 }
                 else if (LoginParameter == "jquery.js")
@@ -305,7 +310,7 @@ namespace ChurchReport.Controllers
                             ViewBag.HappyType = "沒幸福小組名單";
                         }
 
-                        return View(m_InMemoryDataContextSmallGroup.SmallGroupDataList);
+                        return View(m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport);
                     }
                     #endregion
                 }
@@ -384,9 +389,9 @@ namespace ChurchReport.Controllers
                 //SmallGroupData aSmallGroupData = m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.Where(e => e.ListEntityId == "001").Select(e => e.m_SmallGroupDataList.m_SmallGroupData).FirstOrDefault();
                 //aSmallGroupData.UpdateMember(key, values);
 
-                SmallGroupData bSmallGroupData = m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.First(o => o.ListEntityId == m_InMemoryDataContextSmallGroup.ListManager.ActiveListId).m_SmallGroupDataList.m_SmallGroupData;
+                SmallGroupData aSmallGroupData = m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.First(o => o.ListEntityId == m_InMemoryDataContextSmallGroup.ListManager.ActiveListId).m_SmallGroupDataList.m_SmallGroupData;
 
-                bSmallGroupData.UpdateMember(key, values);
+                aSmallGroupData.UpdateMember(key, values);
 
                 return Ok();
             }
@@ -1870,6 +1875,5 @@ namespace ChurchReport.Controllers
         }
 
         #endregion
-
     }
 }

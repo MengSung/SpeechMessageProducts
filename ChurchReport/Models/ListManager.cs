@@ -18,6 +18,10 @@ namespace ChurchReport.Models
                 {
                     ListEntityId = "001",
                     ListEntityName = "夢嵩連碧小組",
+                    LoginType = "小組長",
+                    SmallGroupLeaderFullName = "以利亞",
+                    SundayPrayers = DateTime.Now,
+                    SundayPeriod = "不斷地來愛主耶穌", 
                     m_SmallGroupDataList = new SmallGroupDataList
                     {
                         m_SmallGroupData = new SmallGroupData
@@ -80,6 +84,10 @@ namespace ChurchReport.Models
                 {
                     ListEntityId = "002",
                     ListEntityName = "逸凡小組",
+                    LoginType = "小組長",
+                    SmallGroupLeaderFullName = "胡逸凡",
+                    SundayPrayers = DateTime.Now,
+                    SundayPeriod = "主耶穌永遠與我們同在",
                     m_SmallGroupDataList = new SmallGroupDataList
                     {
                         m_SmallGroupData = new SmallGroupData
@@ -151,6 +159,10 @@ namespace ChurchReport.Models
                 {
                     ListEntityId = "001",
                     ListEntityName = "夢嵩連碧小組",
+                    LoginType = "小組長",
+                    SmallGroupLeaderFullName = "以利亞",
+                    SundayPrayers = DateTime.Now,
+                    SundayPeriod = "不斷地來愛主耶穌",
                     m_SmallGroupDataList = new SmallGroupDataList
                     {
                         m_SmallGroupData = new SmallGroupData
@@ -216,6 +228,10 @@ namespace ChurchReport.Models
                 {
                     ListEntityId = "002",
                     ListEntityName = "逸凡小組",
+                    LoginType = "小組長",
+                    SmallGroupLeaderFullName = "胡逸凡",
+                    SundayPrayers = DateTime.Now,
+                    SundayPeriod = "主耶穌永遠與我們同在",
                     m_SmallGroupDataList = new SmallGroupDataList
                     {
                         m_SmallGroupData = new SmallGroupData
