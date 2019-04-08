@@ -1637,7 +1637,7 @@ namespace ChurchReport.Controllers
             try
             {
                 //// 待修正
-                return DataSourceLoader.Load(m_InMemoryDataContextSmallGroup.m_SmallGroupDataList.m_AssignSmallGroupList.AssignSmallGroupListData, loadOptions);
+                return DataSourceLoader.Load(m_InMemoryDataContextSmallGroup.ListManager.m_AssignSmallGroupList.AssignSmallGroupListData, loadOptions);
             }
             catch (System.Exception e)
             {
@@ -1652,26 +1652,6 @@ namespace ChurchReport.Controllers
             }
 
         }
-        [HttpGet]
-        public ActionResult AssignSmallGroupGetType(DataSourceLoadOptions loadOptions)
-        {
-            try
-            {
-                return Content(JsonConvert.SerializeObject(DataSourceLoader.Load(m_InMemoryDataContextSmallGroup.m_SmallGroupDataList.m_AssignSmallGroupList.AssignSmallGroupListData, loadOptions)), "application/json");
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
-
-                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
-
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
-
-                throw e;
-            }
-        }
-
         #endregion
         #region Line綁定
         [Route("/Home/LineBindingView/{LineBindingParameter}")]

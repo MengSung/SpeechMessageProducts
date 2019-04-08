@@ -10,6 +10,10 @@ namespace ChurchReport.Models
         public String LoginType { get; set; }
         public String LoginFullName { get; set; }
         public String ActiveListId { get; set; }
+
+        // 新增新人時，選擇進入哪一個小組的清單
+        public AssignSmallGroupList m_AssignSmallGroupList = new AssignSmallGroupList();
+
         public List<ListSmallGroupWeeklyReport> m_ListSmallGroupWeeklyReport { get; set; }
 
         public void SetupListManager(String FullName, String Account, String Password, DateTime aSelectDate, bool DisplayDateFlag)

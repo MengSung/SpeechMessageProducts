@@ -20,6 +20,5 @@ namespace ChurchReport.Models
         public String WeeklyReportData { get; set; }
         public String WeeklyReportAnalysis { get; set; }
 
-        //public WeeklyReportData m_WeeklyReportData = new WeeklyReportData();
     }
 }
