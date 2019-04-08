@@ -7,11 +7,16 @@ namespace ChurchReport.Models
 {
     public class ListManager
     {
+        public String LoginType { get; set; }
+        public String LoginFullName { get; set; }
         public String ActiveListId { get; set; }
         public List<ListSmallGroupWeeklyReport> m_ListSmallGroupWeeklyReport { get; set; }
 
         public void SetupListManager(String FullName, String Account, String Password, DateTime aSelectDate, bool DisplayDateFlag)
         {
+            LoginType = "小組長";
+            LoginFullName = "跟隨者";
+
             m_ListSmallGroupWeeklyReport = new List<ListSmallGroupWeeklyReport>
             {
                 new ListSmallGroupWeeklyReport
@@ -153,6 +158,8 @@ namespace ChurchReport.Models
         }
         public void SetupListManager()
         {
+            LoginType = "小組長";
+            LoginFullName = "跟隨者";
             m_ListSmallGroupWeeklyReport = new List<ListSmallGroupWeeklyReport>
             {
                 new ListSmallGroupWeeklyReport
