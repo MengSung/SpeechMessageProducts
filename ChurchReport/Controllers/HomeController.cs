@@ -488,6 +488,31 @@ namespace ChurchReport.Controllers
                 throw e;
             }
         }
+
+        public IActionResult SaveIntegrate(ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
+        {
+            try
+            {
+                ListSmallGroupWeeklyReport aActiveListSmallGroupWeeklyReport = m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.Where(e => e.ListEntityId == m_InMemoryDataContextSmallGroup.m_ListManager.ActiveListId).FirstOrDefault();
+
+                aActiveListSmallGroupWeeklyReport.WeeklyReportData = aListSmallGroupWeeklyReport.WeeklyReportData;
+
+                return Json(new { status = "1", message = "成功上傳了...." });
+                //return Json(new { status = "2", message = "密碼錯誤...." });
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
+
+                throw e;
+            }
+        }
+
         #endregion
 
         #region 小組長點名及個人回報

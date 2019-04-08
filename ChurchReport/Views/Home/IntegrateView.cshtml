@@ -40,7 +40,7 @@ else
     <h3>@(Model.SmallGroupLeaderFullName + "尚未回報")</h3>
 }
 
-<form data-ajax="true" data-ajax-begin="onBegin" data-ajax-success="onSuccess" asp-action="SaveWeeklyReport" asp-controller="Home" method="post">
+<form data-ajax="true" data-ajax-begin="onBegin" data-ajax-success="onSuccess" asp-action="SaveIntegrate" asp-controller="Home" method="post">
 
     <div class="dx-field">
         <div id="the whole thing" style="height:100%; width:100%; overflow: hidden;">
@@ -166,8 +166,6 @@ else
     </div>
 
     <div style="font-family:標楷體;font-size: 100%; color:crimson; text-align:left;background-color:powderblue;font-weight: bold">@Model.SundayPeriod</div>
-
-
     @if (Model.LoginType == "小組長")
     {
         <div id="smallgroup-grid">
@@ -539,17 +537,17 @@ else
 
             })
                 //.DataSource(d => d.WebApi().Controller("SmallGroupReport").Key("Id"))
-                .DataSource
-                    (d => d
-                        .WebApi()
-                        .Controller("Home")
-                        .LoadAction("LoadIntegrate")
-                        .InsertAction("InsertPresentRecord")
-                        .DeleteAction("DeletePresentRecord")
-                        .UpdateAction("UpdatePresentRecord")
-                        .Key("PresentRecordId")
-                        .LoadParams(new { id = @ViewBag.ListId })
-                    )
+            .DataSource
+                (d => d
+                    .WebApi()
+                    .Controller("Home")
+                    .LoadAction("LoadIntegrate")
+                    .InsertAction("InsertPresentRecord")
+                    .DeleteAction("DeletePresentRecord")
+                    .UpdateAction("UpdatePresentRecord")
+                    .Key("PresentRecordId")
+                    .LoadParams(new { id = @ViewBag.ListId })
+                )
                 //.DataSourceOptions(d => d.Filter("['Id', '<=' , 6]"))
             )
         </div>
@@ -564,7 +562,7 @@ else
             //.ValidationGroup()
             //.Width(60)
 
-            .OnClick("SaveWeeklyReport")
+            //.OnClick("SaveWeeklyReport")
 
             )
         </div>

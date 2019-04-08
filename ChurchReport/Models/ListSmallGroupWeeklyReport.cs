@@ -16,6 +16,10 @@ namespace ChurchReport.Models
         public String SundayPeriod { get; set; }   // 提醒小組長回報的期間
 
         public SmallGroupDataList m_SmallGroupDataList = new SmallGroupDataList();
-        public WeeklyReportData m_WeeklyReportData = new WeeklyReportData();
+
+        public String WeeklyReportData { get; set; }
+        public String WeeklyReportAnalysis { get; set; }
+
+        //public WeeklyReportData m_WeeklyReportData = new WeeklyReportData();
     }
 }

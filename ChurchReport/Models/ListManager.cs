@@ -76,14 +76,14 @@ namespace ChurchReport.Models
                             }
                         }
                     },
-                    m_WeeklyReportData =new WeeklyReportData
-                    {
-                        m_WeeklyReportViewModel = new ViewModels.WeeklyReportViewModel
-                        {
-                            WeeklyReportData = "AAA",
-                            WeeklyReportAnalysis = "BBB"
-                        }
-                    }
+                    //m_WeeklyReportData =new WeeklyReportData
+                    //{
+                    //    m_WeeklyReportViewModel = new ViewModels.WeeklyReportViewModel
+                    //    {
+                    //        WeeklyReportData = "AAA",
+                    //        WeeklyReportAnalysis = "BBB"
+                    //    }
+                    //}
                 },
                 new ListSmallGroupWeeklyReport
                 {
@@ -144,14 +144,14 @@ namespace ChurchReport.Models
                             }
                         },
                     },
-                    m_WeeklyReportData =new WeeklyReportData
-                    {
-                        m_WeeklyReportViewModel = new ViewModels.WeeklyReportViewModel
-                        {
-                            WeeklyReportData = "CCC",
-                            WeeklyReportAnalysis = "DDD"
-                        }
-                    }
+                    //m_WeeklyReportData =new WeeklyReportData
+                    //{
+                    //    m_WeeklyReportViewModel = new ViewModels.WeeklyReportViewModel
+                    //    {
+                    //        WeeklyReportData = "CCC",
+                    //        WeeklyReportAnalysis = "DDD"
+                    //    }
+                    //}
                 }
             };
 
@@ -222,14 +222,18 @@ namespace ChurchReport.Models
                             }
                         }
                     },
-                    m_WeeklyReportData = new WeeklyReportData
-                    {
-                        m_WeeklyReportViewModel = new ViewModels.WeeklyReportViewModel
-                        {
-                            WeeklyReportData = "AAA",
-                            WeeklyReportAnalysis = "BBB"
-                        }
-                    }
+
+                    WeeklyReportData = "AAA",
+                    WeeklyReportAnalysis = "BBB"
+
+                    //m_WeeklyReportData = new WeeklyReportData
+                    //{
+                    //    m_WeeklyReportViewModel = new ViewModels.WeeklyReportViewModel
+                    //    {
+                    //        WeeklyReportData = "AAA",
+                    //        WeeklyReportAnalysis = "BBB"
+                    //    }
+                    //}
                 },
                 new ListSmallGroupWeeklyReport
                 {
@@ -292,14 +296,17 @@ namespace ChurchReport.Models
                             }
                         }
                     },
-                    m_WeeklyReportData = new WeeklyReportData
-                    {
-                        m_WeeklyReportViewModel = new ViewModels.WeeklyReportViewModel
-                        {
-                            WeeklyReportData = "CCC",
-                            WeeklyReportAnalysis = "DDD"
-                        }
-                    }
+                    WeeklyReportData = "CCC",
+                    WeeklyReportAnalysis = "DDD"
+
+                    //m_WeeklyReportData = new WeeklyReportData
+                    //{
+                    //    m_WeeklyReportViewModel = new ViewModels.WeeklyReportViewModel
+                    //    {
+                    //        WeeklyReportData = "CCC",
+                    //        WeeklyReportAnalysis = "DDD"
+                    //    }
+                    //}
                 }
             };
 
