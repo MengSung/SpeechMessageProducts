@@ -239,7 +239,7 @@ namespace ChurchReport.Controllers
             }
         }
         #endregion
-        #region 小組長點名及個人回報
+        #region 整合式小組長點名及個人回報
         [Route("/Home/IntegrateView/{LoginParameter}")]
         public ActionResult IntegrateView(String LoginParameter)
         {
@@ -514,7 +514,6 @@ namespace ChurchReport.Controllers
         }
 
         #endregion
-
         #region 小組長點名及個人回報
         [Route("/Home/SmallGroupReportView/{LoginParameter}")]
         public ActionResult SmallGroupReportView(String LoginParameter)

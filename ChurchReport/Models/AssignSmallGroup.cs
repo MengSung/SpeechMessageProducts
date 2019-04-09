@@ -9,5 +9,11 @@ namespace ChurchReport.Models
     {
         public int ID { get; set; }
         public string Name { get; set; }
+        public string TotalNumber { get; set; }
+        public string SundayNumber { get; set; }
+        public string SmallGroupNumber { get; set; }
+        public string SundayRate { get; set; }
+        public string SmallGroupRate { get; set; }
+        public string ReportContent { get; set; }
     }
 }

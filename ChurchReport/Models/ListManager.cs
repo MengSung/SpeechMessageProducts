@@ -229,15 +229,6 @@ namespace ChurchReport.Models
 
                     WeeklyReportData = "AAA",
                     WeeklyReportAnalysis = "BBB"
-
-                    //m_WeeklyReportData = new WeeklyReportData
-                    //{
-                    //    m_WeeklyReportViewModel = new ViewModels.WeeklyReportViewModel
-                    //    {
-                    //        WeeklyReportData = "AAA",
-                    //        WeeklyReportAnalysis = "BBB"
-                    //    }
-                    //}
                 },
                 new ListSmallGroupWeeklyReport
                 {
