@@ -7,6 +7,7 @@ namespace ChurchReport.Models
 {
     public class ListManager
     {
+        public DateTime SundayPrayers { get; set; } // 小組日期
         public String LoginType { get; set; }
         public String LoginFullName { get; set; }
         public String ActiveListId { get; set; }

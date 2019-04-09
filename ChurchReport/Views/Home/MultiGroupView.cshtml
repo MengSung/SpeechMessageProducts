@@ -5,7 +5,7 @@
 
 @using ChurchReport.Models
 
-@model ChurchReport.Models.ListSmallGroupWeeklyReport
+@model ChurchReport.Models.ListManager
 
 <head>
     <!-- Site made with Mobirise Website Builder v4.0.16, https://mobirise.com -->
@@ -19,8 +19,7 @@
 
 </head>
 
-    <div class="dx-field">
-        <div id="the whole thing" style="height:100%; width:100%; overflow: hidden;">
+    <div id="the whole thing" style="height:100%; width:100%; overflow: hidden;">
             <div id="SundayLabel" class="dx-field-label" style="float: left; width:15%; background-color:white;">小組日期</div>
             <div id="dateBoxContainer" class="dx-field-value" style="float: left; width:55%; background-color:white;">
 
@@ -68,20 +67,6 @@
                         }
                 </text>
 )
-
-                )
-            </div>
-            <div id="buttonContainer" class="dx-button-icon" style="float: left; width:30%; text-align: left; background-color:white;">
-                @(Html.DevExtreme().Button()
-                .Text("上傳")
-                .Type(ButtonType.Success)
-                .ID("save-button")
-                //.UseSubmitBehavior(true)
-                .UseSubmitBehavior(true)
-                //.ValidationGroup()
-                //.Width(60)
-
-                .OnClick("SaveWeeklyReport")
 
                 )
             </div>
@@ -138,8 +123,6 @@
                 .MaxWidth(300)
                 )
             </div>
-
-        </div>
     </div>
     <div id="smallgroup-grid">
         @(Html.DevExtreme().DataGrid<Member>()
@@ -176,12 +159,6 @@
         .AllowColumnDragging(true)
         )
 
-        //.GroupPanel(p => p.Visible(true))
-        //.GroupPanel(p => p.AllowColumnDragging(false))
-        //.GroupPanel(p => p.(false))
-        //.Grouping(g => g.AutoExpandAll(true))
-
-
         .Editing(editing =>
         {
         //editing.Mode(GridEditMode.Batch);
@@ -199,44 +176,12 @@
 
         .Columns(columns =>
         {
-        //columns.Add().DataField("FullName").Caption("姓名").Fixed(true).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Left);
-        //columns.Add().DataField("Status").Caption("委身類型").Fixed(false).Width(100).MinWidth(20).Alignment(HorizontalAlignment.Center);
-        //columns.Add().DataField("Sunday").Caption("主日").DataType(GridColumnDataType.Boolean).Width(45).MinWidth(45);
-        //columns.Add().DataField("SmallGroup").Caption("小組").DataType(GridColumnDataType.Boolean).Width(45).MinWidth(45);
-        //columns.Add().DataField("PrayItem").Caption("代禱事項").Fixed(false).MinWidth(90);
-        //columns.Add().DataField("SmallGroupName").Caption("小組").GroupIndex(0).MinWidth(10);
-
-        columns.AddFor(m => m.FullName).Caption("姓名").Fixed(true).Width(60).MinWidth(20).Alignment(HorizontalAlignment.Left).AllowSorting(false);
-        columns.AddFor(m => m.Status).Caption("委身類型").Fixed(false).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Center).AllowSorting(false);
-        columns.AddFor(m => m.Sunday).Caption("主日").Width(45).MinWidth(45).AllowSorting(false);
-        columns.AddFor(m => m.SmallGroup).Caption("小組").Width(45).MinWidth(45).AllowSorting(false);
-        //columns.AddFor(m => m.SpiritualWork)
-        // .Caption("靈修次數").Alignment(HorizontalAlignment.Center)
-        // .Width(75).MinWidth(30).DataType(GridColumnDataType.Number)
-        // .Lookup(lookup => lookup
-        // .DataSource(new string[] { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", })
-        // //.DisplayExpr("Name")
-        // //.ValueExpr("ID")
-        // );
-        //columns.AddFor(m => m.MorningPray)
-        // .Caption("晨禱次數").Alignment(HorizontalAlignment.Center)
-        // .Width(75).MinWidth(30).DataType(GridColumnDataType.Number)
-        // .Lookup(lookup => lookup
-        // .DataSource(new string[] { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", })
-        // //.DisplayExpr("Name")
-        // //.ValueExpr("ID")
-        // );
-
-        //columns.AddFor(m => m.GeneralCare)
-        // .Caption("禱告次數").Alignment(HorizontalAlignment.Center)
-        // .Width(75).MinWidth(30).DataType(GridColumnDataType.Number)
-        // .Lookup(lookup => lookup
-        // .DataSource(new string[] { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", })
-        // );
-        columns.AddFor(m => m.PrayItem).Caption("代禱事項").MinWidth(90);
-        columns.AddFor(m => m.SmallGroupName).SortOrder(SortOrder.Desc).Caption("小組").GroupIndex(0).MinWidth(10);
-
-
+            columns.AddFor(m => m.FullName).Caption("姓名").Fixed(true).Width(60).MinWidth(20).Alignment(HorizontalAlignment.Left).AllowSorting(false);
+            columns.AddFor(m => m.Status).Caption("委身類型").Fixed(false).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Center).AllowSorting(false);
+            columns.AddFor(m => m.Sunday).Caption("主日").Width(45).MinWidth(45).AllowSorting(false);
+            columns.AddFor(m => m.SmallGroup).Caption("小組").Width(45).MinWidth(45).AllowSorting(false);
+            columns.AddFor(m => m.PrayItem).Caption("代禱事項").MinWidth(90);
+            columns.AddFor(m => m.SmallGroupName).SortOrder(SortOrder.Desc).Caption("小組").GroupIndex(0).MinWidth(10);
         })
         .DataSource(d => d
         .WebApi()
@@ -250,87 +195,6 @@
         )
 
 
-    </div>
-    <div class="dx-field">
-        <div id="buttonContainer" class="dx-button-icon">
-            @(Html.DevExtreme().Button()
-            .Text("上傳")
-            .Type(ButtonType.Success)
-            .ID("save-button")
-            .UseSubmitBehavior(true)
-            //.ValidationGroup()
-            //.Width(60)
-
-            .OnClick("SaveWeeklyReport")
-
-            )
-        </div>
-        <div id="ToastContainer">
-            @(Html.DevExtreme().Toast()
-            .ID("toast")
-            .Position(p => p
-            .At(HorizontalAlignment.Center, VerticalAlignment.Center)
-            .Offset(0, 50))
-            .Message("上傳成功了!")
-            .DisplayTime(20000)
-            .MaxWidth(200)
-            )
-
-        </div>
-        <div id="LoadPanel">
-            @(Html.DevExtreme().LoadPanel()
-            .ID("loadPanel")
-            .ShadingColor("rgba(0,0,0,0.4)")
-            .Position(p => p.Of("#form-container"))
-            .Visible(false)
-            .ShowIndicator(true)
-            .ShowPane(true)
-            .Shading(true)
-            .CloseOnOutsideClick(false)
-            .Message("上傳資料中...")
-            .Animation(l => l.Show(k => k.Easing(AnimationEasing.Swing)))
-            //.OnShown("loadPanel_shown")
-            //.OnHidden("loadPanel_hidden")
-            )
-
-        </div>
-    </div>
-    <div id="form-container">
-        @(Html.DevExtreme().Form()
-            .ID("form")
-            .LabelLocation(FormLabelLocation.Top)
-            .ColCount(1)
-            .Items(items =>
-            {
-                items.AddSimple()
-                .ColSpan(2)
-                //.Label(l => l.Text("小組日誌001").Visible(true))
-                .Label(l => l.Text("小組日誌").Visible(true))
-                .DataField("WeeklyReportData")
-                .Editor(e => e
-                .TextArea()
-                .Placeholder("請輸入小組日誌，離開或是切換網頁前記得按上傳鈕")
-                .Height(250)
-                );
-                items.AddSimple()
-                .ColSpan(2)
-                .Label(l => l.Text("小組出席紀錄").Visible(true))
-                .DataField("WeeklyReportAnalysis")
-                .Editor(e => e
-                .TextArea()
-                .ReadOnly(true)
-                .Disabled(false)
-                .Height(350)
-                );
-
-            })
-            .OnContentReady(@<text>
-                function(e) {
-                e.component.validate();
-                }
-            </text>)
-     .FormData(Model)
-        )
     </div>
 
 <script>
