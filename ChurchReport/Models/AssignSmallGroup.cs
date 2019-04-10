@@ -7,7 +7,7 @@ namespace ChurchReport.Models
 {
     public class AssignSmallGroup
     {
-        public int ID { get; set; }
+        public String ListEntityId { get; set; }
         public string Name { get; set; }
         public string TotalNumber { get; set; }
         public string SundayNumber { get; set; }

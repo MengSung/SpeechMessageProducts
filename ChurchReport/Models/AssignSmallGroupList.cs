@@ -9,7 +9,7 @@ namespace ChurchReport.Models
     {
         public List<AssignSmallGroup> AssignSmallGroupListData = new List<AssignSmallGroup> {
             new AssignSmallGroup {
-                ID = 1,
+                ListEntityId = "001",
                 Name = "橄欖2",
                 TotalNumber ="9",
                 SundayNumber = "6",
@@ -19,7 +19,7 @@ namespace ChurchReport.Models
                 ReportContent = "很火熱"
             },
             new AssignSmallGroup {
-                ID = 2,
+                ListEntityId = "002",
                 Name = "保羅",
                 TotalNumber ="9",
                 SundayNumber = "6",
@@ -29,7 +29,7 @@ namespace ChurchReport.Models
                 ReportContent = "很火熱"
             },
             new AssignSmallGroup {
-                ID = 3,
+                ListEntityId = "3",
                 Name = "生命樹",
                 TotalNumber ="9",
                 SundayNumber = "6",
@@ -39,7 +39,7 @@ namespace ChurchReport.Models
                 ReportContent = "很火熱"
             },
             new AssignSmallGroup {
-                ID = 4,
+                ListEntityId = "4",
                 Name = "得勝",
                 TotalNumber ="9",
                 SundayNumber = "6",
@@ -49,7 +49,7 @@ namespace ChurchReport.Models
                 ReportContent = "很火熱"
             },
             new AssignSmallGroup {
-                ID = 5,
+                ListEntityId = "5",
                 Name = "盼望",
                 TotalNumber ="9",
                 SundayNumber = "6",

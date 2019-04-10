@@ -137,7 +137,7 @@
                 .Label(l => l.Text("所屬小組"))
                 .Editor(e => e
                     .SelectBox()
-                    .DataSource(d => d.WebApi().Controller("Home").LoadAction("AssignSmallGroupGet").Key("ID"))
+                    .DataSource(d => d.WebApi().Controller("Home").LoadAction("AssignSmallGroupGet").Key("ListEntityId"))
                     //.DataSource(d => d.Mvc().Controller("AssignSmallGroup").LoadAction("GetType").Key("ID"))
                     .DisplayExpr("Name")
                     .Value(0)

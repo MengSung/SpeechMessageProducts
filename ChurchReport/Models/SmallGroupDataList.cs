@@ -211,7 +211,7 @@ namespace ChurchReport.Models
 
                 AssignSmallGroup aAssignSmallGroup = new AssignSmallGroup
                 {
-                    ID = IdIndex,
+                    ListEntityId = IdIndex.ToString(),
                     Name = TrimedGroup
                 };
                 m_AssignSmallGroupList.AssignSmallGroupListData.Add(aAssignSmallGroup);

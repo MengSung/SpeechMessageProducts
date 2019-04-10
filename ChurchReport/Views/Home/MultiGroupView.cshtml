@@ -125,7 +125,7 @@
             </div>
     </div>
     <div id="smallgroup-grid">
-        @(Html.DevExtreme().DataGrid<Member>()
+        @(Html.DevExtreme().DataGrid<AssignSmallGroup>()
         .ID("SmallGroupgridContainer")
         .ShowBorders(true)
         .ColumnAutoWidth(true)
@@ -138,7 +138,7 @@
         .ColumnResizingMode(ColumnResizingMode.Widget)
         .ColumnFixing(c => c.Enabled(true))
         .LoadPanel(l => l.Text("更新資料中..."))
-        .SearchPanel(s => s.Visible(true).Placeholder("搜尋.."))
+        .SearchPanel(s => s.Visible(false).Placeholder("搜尋.."))
         .ShowColumnLines(true)
         .ShowRowLines(true)
         .RowAlternationEnabled(true)
@@ -161,36 +161,38 @@
 
         .Editing(editing =>
         {
-        //editing.Mode(GridEditMode.Batch);
-        //editing.Mode(GridEditMode.Row);
-        editing.Mode(GridEditMode.Cell);
-        //editing.Mode(GridEditMode.Batch);
-        //editing.Mode(GridEditMode.Form);
-        //editing.Mode(GridEditMode.Popup);
-        editing.AllowUpdating(true);
-        editing.AllowDeleting(false);
-        //editing.AllowAdding(false);
-        editing.Texts(a => a.SaveAllChanges("上傳檔案").AddRow("新增").CancelAllChanges("取消變更").SaveRowChanges("儲存").CancelRowChanges("取消").EditRow("編輯").DeleteRow("刪除"));
-        //editing.AllowDeleting(true);
+            //editing.Mode(GridEditMode.Batch);
+            //editing.Mode(GridEditMode.Row);
+            editing.Mode(GridEditMode.Cell);
+            //editing.Mode(GridEditMode.Batch);
+            //editing.Mode(GridEditMode.Form);
+            //editing.Mode(GridEditMode.Popup);
+            editing.AllowUpdating(true);
+            editing.AllowDeleting(false);
+            //editing.AllowAdding(false);
+            editing.Texts(a => a.SaveAllChanges("上傳檔案").AddRow("新增").CancelAllChanges("取消變更").SaveRowChanges("儲存").CancelRowChanges("取消").EditRow("編輯").DeleteRow("刪除"));
+            //editing.AllowDeleting(true);
         })
 
         .Columns(columns =>
         {
-            columns.AddFor(m => m.FullName).Caption("姓名").Fixed(true).Width(60).MinWidth(20).Alignment(HorizontalAlignment.Left).AllowSorting(false);
-            columns.AddFor(m => m.Status).Caption("委身類型").Fixed(false).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Center).AllowSorting(false);
-            columns.AddFor(m => m.Sunday).Caption("主日").Width(45).MinWidth(45).AllowSorting(false);
-            columns.AddFor(m => m.SmallGroup).Caption("小組").Width(45).MinWidth(45).AllowSorting(false);
-            columns.AddFor(m => m.PrayItem).Caption("代禱事項").MinWidth(90);
-            columns.AddFor(m => m.SmallGroupName).SortOrder(SortOrder.Desc).Caption("小組").GroupIndex(0).MinWidth(10);
+            columns.AddFor(m => m.ListEntityId).Caption("名稱").Fixed(true).Width(60).MinWidth(20).CellTemplate(new JS("cellTemplate"));
+            //columns.AddFor(m => m.Name).Caption("名稱").Fixed(true).Width(60).MinWidth(20).Alignment(HorizontalAlignment.Left).AllowSorting(false);
+            columns.AddFor(m => m.TotalNumber).Caption("總人數").Fixed(false).Width(60).MinWidth(20).Alignment(HorizontalAlignment.Center).AllowSorting(false);
+            columns.AddFor(m => m.SundayNumber).Caption("主日人數").Width(60).MinWidth(45).Alignment(HorizontalAlignment.Center).AllowSorting(false);
+            columns.AddFor(m => m.SmallGroupNumber).Caption("小組人數").Width(60).MinWidth(45).Alignment(HorizontalAlignment.Center).AllowSorting(false);
+            columns.AddFor(m => m.SundayRate).Caption("主日出席率").Width(80).MinWidth(80).Alignment(HorizontalAlignment.Center);
+            columns.AddFor(m => m.SmallGroupRate).Caption("小組出席率").Width(80).MinWidth(80).Alignment(HorizontalAlignment.Center);
+            columns.AddFor(m => m.ReportContent).Caption("日誌內容").Width(200).MinWidth(200).Alignment(HorizontalAlignment.Left);
         })
         .DataSource(d => d
         .WebApi()
         .Controller("Home")
-        .LoadAction("LoadSmallGroup")
-        .InsertAction("InsertPresentRecord")
-        .DeleteAction("DeletePresentRecord")
-        .UpdateAction("UpdatePresentRecord")
-        .Key("PresentRecordId")
+        .LoadAction("AssignSmallGroupGet")
+        //.InsertAction("InsertPresentRecord")
+        //.DeleteAction("DeletePresentRecord")
+        //.UpdateAction("UpdatePresentRecord")
+        .Key("ListEntityId")
         .LoadParams(new { id = @ViewBag.ListId }))
         )
 
@@ -272,6 +274,13 @@
 
         //alert( getODataLocalDateFilter(arg.value) );
     }
+
+    function cellTemplate(cellElement, cellInfo) {
+    $('<a/>')
+        .attr({ href: '@Url.RouteUrl("default", new { action = "IntegrateView", controller = "Home" })/' + `${cellInfo.data.ListEntityId}` })
+        .text(`${cellInfo.data.Name}`)
+        .appendTo(cellElement);
+}
 
 </script>
 <script>var DataUploadStatus = "尚未上傳喔!";</script>

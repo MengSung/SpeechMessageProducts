@@ -165,6 +165,8 @@ namespace ChurchReport.Models
         {
             LoginType = "小組長";
             LoginFullName = "跟隨者";
+            SundayPrayers = DateTime.Now;
+
             m_ListSmallGroupWeeklyReport = new List<ListSmallGroupWeeklyReport>
             {
                 new ListSmallGroupWeeklyReport

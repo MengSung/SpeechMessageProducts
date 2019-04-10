@@ -239,15 +239,102 @@ namespace ChurchReport.Controllers
             }
         }
         #endregion
-        #region 整合式小組長點名及個人回報
-        [Route("/Home/IntegrateView/{LoginParameter}")]
-        public ActionResult IntegrateView(String LoginParameter)
+        #region 多小組回報
+        [Route("/Home/MultiGroupView/{LoginParameter}")]
+        public ActionResult MultiGroupView(String LoginParameter)
         {
             try
             {
                 ViewBag.ListId = m_InMemoryDataContextSmallGroup.ListManager.ActiveListId;
 
                 if (LoginParameter == "AccountPassword")
+                {
+                    #region 用小組長回報網頁登入
+                    ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType; // 看是小組長還是個人回報
+                    ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.ListManager.LoginFullName;
+
+                    ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType;
+                    if (m_InMemoryDataContextSmallGroup.HappyGroupDataManager.HappyType == "有幸福小組名單")
+                    {
+                        ViewBag.HappyType = "有幸福小組名單";
+                    }
+                    else
+                    {
+                        ViewBag.HappyType = "沒幸福小組名單";
+                    }
+
+
+                    //ListSmallGroupWeeklyReport bSmallGroupData = m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.Where(e => e.ListEntityId == "001").ToList()[0];
+
+                    //return View(m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.Where(e => e.ListEntityId == m_InMemoryDataContextSmallGroup.m_ListManager.ActiveListId).Select());
+                    return View(m_InMemoryDataContextSmallGroup.ListManager);
+                    //return View(m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.Select(ListEntityId=> m_InMemoryDataContextSmallGroup.m_ListManager.ActiveListId));
+                    #endregion
+                }
+                else if (LoginParameter == "jquery.js")
+                {
+                    ViewBag.LoginType = "個人登入";
+                    return Ok();
+                }
+                else
+                {
+                    #region 小組長 Line 登入
+                    String FullName = m_ToolUtilityClass.RetrieveContactEntityByLineUserId(LoginParameter).Attributes["fullname"].ToString();
+
+                    LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                    // 寫入LINE的個人基本資料
+                    if (FullName.EndsWith("(Line)"))
+                    {
+                        aLineMessagingProcessorClass.NotifyLineBinding(LoginParameter);
+
+                        return RedirectToAction("Login");
+                    }
+                    else
+                    {
+                        m_InMemoryDataContextSmallGroup.SetupSmallGroupData(FullName, "LineIdLogin", LoginParameter, DateTime.Now, true);
+
+                        ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType; // 看是小組長還是個人回報
+                        ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.ListManager.LoginFullName;
+                        ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType;
+
+                        if (m_InMemoryDataContextSmallGroup.HappyGroupDataManager.HappyType == "有幸福小組名單")
+                        {
+                            ViewBag.HappyType = "有幸福小組名單";
+                        }
+                        else
+                        {
+                            ViewBag.HappyType = "沒幸福小組名單";
+                        }
+
+                        return View(m_InMemoryDataContextSmallGroup.ListManager);
+                    }
+                    #endregion
+                }
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
+
+                throw e;
+            }
+        }
+
+        #endregion
+        #region 整合式小組長點名及個人回報
+        [Route("/Home/IntegrateView/{LoginParameter}")]
+        public ActionResult IntegrateView(String LoginParameter)
+        {
+            try
+            {
+                ViewBag.ListId = m_InMemoryDataContextSmallGroup.ListManager.ActiveListId = LoginParameter;
+
+                if (LoginParameter != "AccountPassword")
                 {
                     #region 用小組長回報網頁登入
                     ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType; // 看是小組長還是個人回報
@@ -499,93 +586,6 @@ namespace ChurchReport.Controllers
 
                 return Json(new { status = "1", message = "成功上傳了...." });
                 //return Json(new { status = "2", message = "密碼錯誤...." });
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
-
-                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
-
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
-
-                throw e;
-            }
-        }
-
-        #endregion
-        #region 多小組回報
-        [Route("/Home/MultiGroupView/{LoginParameter}")]
-        public ActionResult MultiGroupView(String LoginParameter)
-        {
-            try
-            {
-                ViewBag.ListId = m_InMemoryDataContextSmallGroup.ListManager.ActiveListId;
-
-                if (LoginParameter == "AccountPassword")
-                {
-                    #region 用小組長回報網頁登入
-                    ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType; // 看是小組長還是個人回報
-                    ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.ListManager.LoginFullName;
-
-                    ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType;
-                    if (m_InMemoryDataContextSmallGroup.HappyGroupDataManager.HappyType == "有幸福小組名單")
-                    {
-                        ViewBag.HappyType = "有幸福小組名單";
-                    }
-                    else
-                    {
-                        ViewBag.HappyType = "沒幸福小組名單";
-                    }
-
-
-                    //ListSmallGroupWeeklyReport bSmallGroupData = m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.Where(e => e.ListEntityId == "001").ToList()[0];
-
-                    //return View(m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.Where(e => e.ListEntityId == m_InMemoryDataContextSmallGroup.m_ListManager.ActiveListId).Select());
-                    return View(m_InMemoryDataContextSmallGroup.ListManager);
-                    //return View(m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.Select(ListEntityId=> m_InMemoryDataContextSmallGroup.m_ListManager.ActiveListId));
-                    #endregion
-                }
-                else if (LoginParameter == "jquery.js")
-                {
-                    ViewBag.LoginType = "個人登入";
-                    return Ok();
-                }
-                else
-                {
-                    #region 小組長 Line 登入
-                    String FullName = m_ToolUtilityClass.RetrieveContactEntityByLineUserId(LoginParameter).Attributes["fullname"].ToString();
-
-                    LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
-
-                    // 寫入LINE的個人基本資料
-                    if (FullName.EndsWith("(Line)"))
-                    {
-                        aLineMessagingProcessorClass.NotifyLineBinding(LoginParameter);
-
-                        return RedirectToAction("Login");
-                    }
-                    else
-                    {
-                        m_InMemoryDataContextSmallGroup.SetupSmallGroupData(FullName, "LineIdLogin", LoginParameter, DateTime.Now, true);
-
-                        ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType; // 看是小組長還是個人回報
-                        ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.ListManager.LoginFullName;
-                        ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType;
-
-                        if (m_InMemoryDataContextSmallGroup.HappyGroupDataManager.HappyType == "有幸福小組名單")
-                        {
-                            ViewBag.HappyType = "有幸福小組名單";
-                        }
-                        else
-                        {
-                            ViewBag.HappyType = "沒幸福小組名單";
-                        }
-
-                        return View(m_InMemoryDataContextSmallGroup.ListManager);
-                    }
-                    #endregion
-                }
             }
             catch (System.Exception e)
             {
