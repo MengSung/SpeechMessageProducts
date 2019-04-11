@@ -178,6 +178,9 @@ else
                 s => s
                 .ArgumentField("SundayDate")
                 .Type(SeriesType.Bar)
+                //.Type(SeriesType.Spline)
+                //.Type(SeriesType.Area)
+                //.Type(SeriesType.Scatter)
                 .HoverMode(ChartSeriesHoverMode.AllArgumentPoints)
                 .SelectionMode(ChartSeriesSelectionMode.AllArgumentPoints)
                 .Label(l => l
@@ -192,6 +195,7 @@ else
             .Series(s =>
             {
                 s.Add().ValueField("SundayNumber").Name("主日人數").Color("#e7d19a");
+                //s.Add().ValueField("SmallNumber").Name("小組人數").Color("#ffd700");
                 s.Add().ValueField("SmallNumber").Name("小組人數");
             }
             )
@@ -204,27 +208,28 @@ else
 
             .Tooltip(t => t.Enabled(true))
 
-            //.Title
-            //(
-            //    t=>t
-            //    .Text("聚會人數")
-            //    .Font
-            //    (
-            //        f=> f
-            //            .Size(20)
-            //            //.Color("red")
-            //            .Color("darkblue")
-            //    )
-            //    .Margin
-            //    (
-            //        m => m
-            //            .Top(5)
-            //            .Bottom(5)
-            //    )
-
-            //    //.PlaceholderSize(50)
-            //)
-            .Title("聚會人數")
+            .Title
+            (
+                t => t
+                .Text("聚會人數")
+                .Font
+                (
+                    f => f
+                        .Size(25)
+                        .Weight(300)
+                        //.Color("red")
+                        .Color("darkblue")
+                )
+                .Margin
+                (
+                    m => m
+                        .Top(5)
+                        .Bottom(5)
+                )
+                //.Subtitle("統計")
+                //.PlaceholderSize(0)
+            )
+            //.Title("聚會人數")
             .Legend(l => l
                 .VerticalAlignment(VerticalEdge.Bottom)
                 .HorizontalAlignment(HorizontalAlignment.Center)
