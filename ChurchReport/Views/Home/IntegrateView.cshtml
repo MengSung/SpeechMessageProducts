@@ -191,7 +191,7 @@ else
             )
             .Series(s =>
             {
-                s.Add().ValueField("SundayNumber").Name("主日人數");
+                s.Add().ValueField("SundayNumber").Name("主日人數").Color("#e7d19a");
                 s.Add().ValueField("SmallNumber").Name("小組人數");
             }
             )
@@ -204,33 +204,35 @@ else
 
             .Tooltip(t => t.Enabled(true))
 
-            .Title
-            (
-                t=>t
-                .Text("聚會人數")
-                .Font
-                (
-                    f=> f
-                        .Size(20)
-                        //.Color("red")
-                        .Color("darkblue")
-                )
-                .Margin
-                (
-                    m => m
-                        .Top(5)
-                        .Bottom(5)
-                )
-                //.PlaceholderSize(50)
-            )
+            //.Title
+            //(
+            //    t=>t
+            //    .Text("聚會人數")
+            //    .Font
+            //    (
+            //        f=> f
+            //            .Size(20)
+            //            //.Color("red")
+            //            .Color("darkblue")
+            //    )
+            //    .Margin
+            //    (
+            //        m => m
+            //            .Top(5)
+            //            .Bottom(5)
+            //    )
+
+            //    //.PlaceholderSize(50)
+            //)
+            .Title("聚會人數")
             .Legend(l => l
                 .VerticalAlignment(VerticalEdge.Bottom)
                 .HorizontalAlignment(HorizontalAlignment.Center)
 
-                //.VerticalAlignment(VerticalEdge.Top)
-                //.HorizontalAlignment(HorizontalAlignment.Right)
-                //.Position(RelativePosition.Inside)
-                //.Border(b => b.Visible(true))
+            //.VerticalAlignment(VerticalEdge.Top)
+            //.HorizontalAlignment(HorizontalAlignment.Right)
+            //.Position(RelativePosition.Inside)
+            //.Border(b => b.Visible(true))
             )
             .Export(e => e.Enabled(true))
 
@@ -240,15 +242,17 @@ else
                         }
             </text>)
 
-             .DataSource(d => d
-             .WebApi()
-             .Controller("Home")
-             .LoadAction("GetChartDataList")
-             //.InsertAction("InsertPresentRecord")
-             //.DeleteAction("DeletePresentRecord")
-             //.UpdateAction("UpdatePresentRecord")
-             .Key("WeeklyReportEntityId")
-             .LoadParams(new { WeeklyReportId = @ViewBag.ListId })
+             .DataSource
+             (d => d
+                 .WebApi()
+                 .Controller("Home")
+                 .LoadAction("GetChartDataList")
+                 //.InsertAction("InsertPresentRecord")
+                 //.DeleteAction("DeletePresentRecord")
+                 //.UpdateAction("UpdatePresentRecord")
+                 .Key("WeeklyReportEntityId")
+                 .LoadParams(new { WeeklyReportId = @ViewBag.ListId }
+             )
         )
 
         )
