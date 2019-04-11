@@ -20,5 +20,8 @@ namespace ChurchReport.Models
         public String WeeklyReportData { get; set; }
         public String WeeklyReportAnalysis { get; set; }
 
+        // 圖表資料
+        public ChartDataList m_WeeklyReportChart { get; set; }
+
     }
 }

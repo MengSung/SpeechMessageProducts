@@ -1739,6 +1739,32 @@ namespace ChurchReport.Controllers
 
         }
         #endregion
+        #region 圖形區塊
+        [HttpGet]
+        public object GetChartDataList( DataSourceLoadOptions loadOptions )
+        {
+            try
+            {
+                //// 待修正
+                //m_InMemoryDataContextSmallGroup.m_ListManager.ActiveListId = id;
+                return m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.Where(e => e.ListEntityId == m_InMemoryDataContextSmallGroup.m_ListManager.ActiveListId).FirstOrDefault().m_WeeklyReportChart.m_ChartDataList;
+
+                //return DataSourceLoader.Load(m_InMemoryDataContextSmallGroup.ListManager.m_ChartDataList.m_ChartDataList, loadOptions);
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
+
+                throw e;
+            }
+
+        }
+#endregion
         #region Line綁定
         [Route("/Home/LineBindingView/{LineBindingParameter}")]
         //[HttpGet("{LineBindingParameter}")]

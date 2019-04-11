@@ -17,6 +17,7 @@ namespace ChurchReport.Models
 
         public List<ListSmallGroupWeeklyReport> m_ListSmallGroupWeeklyReport { get; set; }
 
+
         public void SetupListManager(String FullName, String Account, String Password, DateTime aSelectDate, bool DisplayDateFlag)
         {
             LoginType = "小組長";
@@ -81,14 +82,43 @@ namespace ChurchReport.Models
                             }
                         }
                     },
-                    //m_WeeklyReportData =new WeeklyReportData
-                    //{
-                    //    m_WeeklyReportViewModel = new ViewModels.WeeklyReportViewModel
-                    //    {
-                    //        WeeklyReportData = "AAA",
-                    //        WeeklyReportAnalysis = "BBB"
-                    //    }
-                    //}
+                    m_WeeklyReportChart = new ChartDataList
+                    {
+                        m_ChartDataList = new List<ChartData>
+                        {
+                                new ChartData {
+                                    WeeklyReportEntityId = "001",
+                                    SundayDate = DateTime.Now.AddDays(-7).ToShortDateString(),
+                                    SundayNumber = 8,
+                                    SmallNumber =6
+                                },
+                                new ChartData {
+                                    WeeklyReportEntityId = "002",
+                                    SundayDate = DateTime.Now.AddDays(-14).ToShortDateString(),
+                                    SundayNumber = 9,
+                                    SmallNumber =5
+                                },
+                                new ChartData {
+                                    WeeklyReportEntityId = "003",
+                                    SundayDate = DateTime.Now.AddDays(-21).ToShortDateString(),
+                                    SundayNumber = 7,
+                                    SmallNumber =9
+                                },
+                                new ChartData {
+                                    WeeklyReportEntityId = "004",
+                                    SundayDate = DateTime.Now.AddDays(-28).ToShortDateString(),
+                                    SundayNumber = 10,
+                                    SmallNumber =7
+                                },
+                                new ChartData {
+                                    WeeklyReportEntityId = "005",
+                                    SundayDate = DateTime.Now.AddDays(-35).ToShortDateString(),
+                                    SundayNumber = 11,
+                                    SmallNumber =12
+                                },
+
+                        }
+                    }
                 },
                 new ListSmallGroupWeeklyReport
                 {
@@ -149,14 +179,43 @@ namespace ChurchReport.Models
                             }
                         },
                     },
-                    //m_WeeklyReportData =new WeeklyReportData
-                    //{
-                    //    m_WeeklyReportViewModel = new ViewModels.WeeklyReportViewModel
-                    //    {
-                    //        WeeklyReportData = "CCC",
-                    //        WeeklyReportAnalysis = "DDD"
-                    //    }
-                    //}
+                    m_WeeklyReportChart = new ChartDataList
+                    {
+                        m_ChartDataList = new List<ChartData>
+                        {
+                                new ChartData {
+                                    WeeklyReportEntityId = "001",
+                                    SundayDate = DateTime.Now.AddDays(-7).ToShortDateString(),
+                                    SundayNumber = 14,
+                                    SmallNumber =16
+                                },
+                                new ChartData {
+                                    WeeklyReportEntityId = "002",
+                                    SundayDate = DateTime.Now.AddDays(-14).ToShortDateString(),
+                                    SundayNumber = 19,
+                                    SmallNumber =15
+                                },
+                                new ChartData {
+                                    WeeklyReportEntityId = "003",
+                                    SundayDate = DateTime.Now.AddDays(-21).ToShortDateString(),
+                                    SundayNumber = 17,
+                                    SmallNumber =19
+                                },
+                                new ChartData {
+                                    WeeklyReportEntityId = "004",
+                                    SundayDate = DateTime.Now.AddDays(-28).ToShortDateString(),
+                                    SundayNumber = 10,
+                                    SmallNumber =17
+                                },
+                                new ChartData {
+                                    WeeklyReportEntityId = "005",
+                                    SundayDate = DateTime.Now.AddDays(-35).ToShortDateString(),
+                                    SundayNumber = 11,
+                                    SmallNumber =12
+                                },
+
+                        }
+                    }
                 }
             };
 
@@ -231,7 +290,44 @@ namespace ChurchReport.Models
                     },
 
                     WeeklyReportData = "AAA",
-                    WeeklyReportAnalysis = "BBB"
+                    WeeklyReportAnalysis = "BBB",
+                    m_WeeklyReportChart = new ChartDataList
+                    {
+                        m_ChartDataList = new List<ChartData>
+                        {
+                                new ChartData {
+                                    WeeklyReportEntityId = "001",
+                                    SundayDate = DateTime.Now.AddDays(-7).ToShortDateString(),
+                                    SundayNumber = 8,
+                                    SmallNumber =6
+                                },
+                                new ChartData {
+                                    WeeklyReportEntityId = "002",
+                                    SundayDate = DateTime.Now.AddDays(-14).ToShortDateString(),
+                                    SundayNumber = 9,
+                                    SmallNumber =5
+                                },
+                                new ChartData {
+                                    WeeklyReportEntityId = "003",
+                                    SundayDate = DateTime.Now.AddDays(-21).ToShortDateString(),
+                                    SundayNumber = 7,
+                                    SmallNumber =9
+                                },
+                                new ChartData {
+                                    WeeklyReportEntityId = "004",
+                                    SundayDate = DateTime.Now.AddDays(-28).ToShortDateString(),
+                                    SundayNumber = 10,
+                                    SmallNumber =7
+                                },
+                                new ChartData {
+                                    WeeklyReportEntityId = "005",
+                                    SundayDate = DateTime.Now.AddDays(-35).ToShortDateString(),
+                                    SundayNumber = 11,
+                                    SmallNumber =12
+                                },
+
+                        }
+                    }
                 },
                 new ListSmallGroupWeeklyReport
                 {
@@ -295,16 +391,45 @@ namespace ChurchReport.Models
                         }
                     },
                     WeeklyReportData = "CCC",
-                    WeeklyReportAnalysis = "DDD"
+                    WeeklyReportAnalysis = "DDD",
 
-                    //m_WeeklyReportData = new WeeklyReportData
-                    //{
-                    //    m_WeeklyReportViewModel = new ViewModels.WeeklyReportViewModel
-                    //    {
-                    //        WeeklyReportData = "CCC",
-                    //        WeeklyReportAnalysis = "DDD"
-                    //    }
-                    //}
+                    m_WeeklyReportChart = new ChartDataList
+                    {
+                        m_ChartDataList = new List<ChartData>
+                        {
+                                new ChartData {
+                                    WeeklyReportEntityId = "001",
+                                    SundayDate = DateTime.Now.AddDays(-7).ToShortDateString(),
+                                    SundayNumber = 14,
+                                    SmallNumber =16
+                                },
+                                new ChartData {
+                                    WeeklyReportEntityId = "002",
+                                    SundayDate = DateTime.Now.AddDays(-14).ToShortDateString(),
+                                    SundayNumber = 19,
+                                    SmallNumber =15
+                                },
+                                new ChartData {
+                                    WeeklyReportEntityId = "003",
+                                    SundayDate = DateTime.Now.AddDays(-21).ToShortDateString(),
+                                    SundayNumber = 17,
+                                    SmallNumber =19
+                                },
+                                new ChartData {
+                                    WeeklyReportEntityId = "004",
+                                    SundayDate = DateTime.Now.AddDays(-28).ToShortDateString(),
+                                    SundayNumber = 10,
+                                    SmallNumber =17
+                                },
+                                new ChartData {
+                                    WeeklyReportEntityId = "005",
+                                    SundayDate = DateTime.Now.AddDays(-35).ToShortDateString(),
+                                    SundayNumber = 11,
+                                    SmallNumber =12
+                                },
+
+                        }
+                    }
                 }
             };
 
