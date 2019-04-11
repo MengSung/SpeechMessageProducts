@@ -1741,15 +1741,13 @@ namespace ChurchReport.Controllers
         #endregion
         #region 圖形區塊
         [HttpGet]
-        public object GetChartDataList( DataSourceLoadOptions loadOptions )
+        public object GetChartDataList( string WeeklyReportId, DataSourceLoadOptions loadOptions )
         {
             try
             {
                 //// 待修正
                 //m_InMemoryDataContextSmallGroup.m_ListManager.ActiveListId = id;
                 return m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.Where(e => e.ListEntityId == m_InMemoryDataContextSmallGroup.m_ListManager.ActiveListId).FirstOrDefault().m_WeeklyReportChart.m_ChartDataList;
-
-                //return DataSourceLoader.Load(m_InMemoryDataContextSmallGroup.ListManager.m_ChartDataList.m_ChartDataList, loadOptions);
             }
             catch (System.Exception e)
             {

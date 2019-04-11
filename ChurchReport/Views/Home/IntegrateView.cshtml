@@ -169,9 +169,10 @@ else
         @Model.SundayPeriod
     </div>
 
-    <div id="chart">
+    <div id="smallgroupchart">
         @( Html.DevExtreme().Chart()
             .ID("chart")
+            //.Animation()
             .CommonSeriesSettings
             (
                 s => s
@@ -189,16 +190,47 @@ else
                 )
             )
             .Series(s =>
-                    {
-                        s.Add().ValueField("SundayNumber").Name("主日人數");
-                        s.Add().ValueField("SmallNumber").Name("小組人數");
-                    }
+            {
+                s.Add().ValueField("SundayNumber").Name("主日人數");
+                s.Add().ValueField("SmallNumber").Name("小組人數");
+            }
             )
 
-            .Title("聚會人數")
+            .ValueAxis(a => a
+                .Add()
+                .Title(t => t.Text("人數"))
+                .Position(Position.Left)
+            )
+
+            .Tooltip(t => t.Enabled(true))
+
+            .Title
+            (
+                t=>t
+                .Text("聚會人數")
+                .Font
+                (
+                    f=> f
+                        .Size(20)
+                        //.Color("red")
+                        .Color("darkblue")
+                )
+                .Margin
+                (
+                    m => m
+                        .Top(5)
+                        .Bottom(5)
+                )
+                //.PlaceholderSize(50)
+            )
             .Legend(l => l
                 .VerticalAlignment(VerticalEdge.Bottom)
                 .HorizontalAlignment(HorizontalAlignment.Center)
+
+                //.VerticalAlignment(VerticalEdge.Top)
+                //.HorizontalAlignment(HorizontalAlignment.Right)
+                //.Position(RelativePosition.Inside)
+                //.Border(b => b.Visible(true))
             )
             .Export(e => e.Enabled(true))
 
@@ -216,7 +248,7 @@ else
              //.DeleteAction("DeletePresentRecord")
              //.UpdateAction("UpdatePresentRecord")
              .Key("WeeklyReportEntityId")
-             //.LoadParams(new { id = @ViewBag.ListId })
+             .LoadParams(new { WeeklyReportId = @ViewBag.ListId })
         )
 
         )
