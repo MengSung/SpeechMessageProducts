@@ -225,6 +225,7 @@ namespace ChurchReport.Models
             LoginType = "小組長";
             LoginFullName = "跟隨者";
             SundayPrayers = DateTime.Now;
+            ActiveListId = "001";
 
             m_ListSmallGroupWeeklyReport = new List<ListSmallGroupWeeklyReport>
             {
@@ -434,5 +435,125 @@ namespace ChurchReport.Models
             };
 
         }
+        public void SetupOnlyOneListManager()
+        {
+            LoginType = "小組長";
+            LoginFullName = "跟隨者";
+            SundayPrayers = DateTime.Now;
+            ActiveListId = "001";
+
+            m_ListSmallGroupWeeklyReport = new List<ListSmallGroupWeeklyReport>
+            {
+                new ListSmallGroupWeeklyReport
+                {
+                    ListEntityId = "001",
+                    ListEntityName = "夢嵩連碧小組",
+                    LoginType = "小組長",
+                    SmallGroupLeaderFullName = "以利亞",
+                    SundayPrayers = DateTime.Now,
+                    SundayPeriod = "不斷地來愛主耶穌",
+                    m_SmallGroupDataList = new SmallGroupDataList
+                    {
+                        m_SmallGroupData = new SmallGroupData
+                        {
+                            Members = new List<Member>
+                            {
+                                new Member
+                                {
+                                     PresentRecordId = "AAA",
+                                     //Id = 1,
+                                     FullName = "胡夢嵩",
+                                     Phone = "0910391931",
+                                     Address = "桃園市楊梅區三民路",
+                                     Sunday = true,
+                                     SmallGroup = true,
+                                },
+                                new Member
+                                {
+                                     PresentRecordId = "BBB",
+                                     FullName = "吳連碧",
+                                     Phone = "0921834289",
+                                     Address = "台北市大安區敦化北路",
+                                     Sunday = true,
+                                     SmallGroup = true,
+                                },
+                            }
+                        },
+                        m_NewPersonFollowUpData = new SmallGroupData
+                        {
+                            Members = new List<Member>
+                            {
+                                new Member
+                                {
+                                     PresentRecordId = "CCC",
+                                     FullName = "張大通",
+                                     Phone = "0965526987",
+                                     Address = "桃園市八德區中正路",
+                                     Sunday = true,
+                                     SmallGroup = true,
+                                },
+                                new Member
+                                {
+                                     PresentRecordId = "DDD",
+                                     FullName = "李曉春",
+                                     Phone = "0956874563",
+                                     Address = "台北市中正區中華路",
+                                     Sunday = true,
+                                     SmallGroup = true,
+                                },
+                            }
+                        }
+                    },
+
+                    WeeklyReportData = "AAA",
+                    WeeklyReportAnalysis = "BBB",
+                    m_WeeklyReportChart = new ChartDataList
+                    {
+                        m_ChartDataList = new List<ChartData>
+                        {
+                                new ChartData {
+                                    WeeklyReportEntityId = "001",
+                                    SundayDate = DateTime.Now.AddDays(-7).ToShortDateString(),
+                                    SundayNumber = 8,
+                                    SmallNumber =6
+                                },
+                                new ChartData {
+                                    WeeklyReportEntityId = "002",
+                                    SundayDate = DateTime.Now.AddDays(-14).ToShortDateString(),
+                                    SundayNumber = 9,
+                                    SmallNumber =5
+                                },
+                                new ChartData {
+                                    WeeklyReportEntityId = "003",
+                                    SundayDate = DateTime.Now.AddDays(-21).ToShortDateString(),
+                                    SundayNumber = 7,
+                                    SmallNumber =9
+                                },
+                                new ChartData {
+                                    WeeklyReportEntityId = "004",
+                                    SundayDate = DateTime.Now.AddDays(-28).ToShortDateString(),
+                                    SundayNumber = 10,
+                                    SmallNumber =7
+                                },
+                                new ChartData {
+                                    WeeklyReportEntityId = "005",
+                                    SundayDate = DateTime.Now.AddDays(-35).ToShortDateString(),
+                                    SundayNumber = 11,
+                                    SmallNumber =12
+                                },
+
+                        }
+                    }
+                },
+            };
+
+        }
+
+
+        public String GetDisplayViewType()
+        {
+            return m_ListSmallGroupWeeklyReport.Count > 1 ? "MultiGroupView" : "IntegrateView";
+        }
+
     }
 }

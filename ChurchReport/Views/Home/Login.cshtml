@@ -203,16 +203,24 @@
 
             getLoadPanelInstance().hide();
 
-            if (data.status == 1) {
+            if ( data.DisplayViewType == "MultiGroupView" ) {
                 // 小組長或是個人回報
                 ShowToast(data.message, "success", 2000);
 
                 //DevExpress.ui.notify(data.message, "success", 2000);
 
                 //window.location.href = "/Home/IntegrateView/AccountPassword";
-                window.location.href = "/Home/MultiGroupView/AccountPassword";
+                window.location.href = "/Home/MultiGroupView/" + data.ActiveListId;
             }
-            else if (data.status == 2) {
+            else if ( data.DisplayViewType == "IntegrateView" ) {
+                // 小組長或是個人回報
+                ShowToast(data.message, "success", 2000);
+
+                //DevExpress.ui.notify(data.message, "success", 2000);
+
+                window.location.href = "/Home/IntegrateView/" + data.ActiveListId;
+            }
+            else if ( data.DisplayViewType == "HappyGroupView" ) {
                 // 單純幸福小組長回報
                 ShowToast(data.message, "success", 2000);
 

@@ -49,6 +49,22 @@ namespace ChurchReport.Models
             }
 
         }
+        public void SetupListManager( String FullName, String Account, String Password, DateTime aSelectDate, bool DisplayDateFlag)
+        {
+            try
+            {
+                //m_ListManager.SetupListManager();
+
+                m_ListManager.SetupOnlyOneListManager();
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                throw e;
+            }
+
+        }
 
         public ListManager ListManager
         {
