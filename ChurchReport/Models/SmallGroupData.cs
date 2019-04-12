@@ -11,6 +11,9 @@ namespace ChurchReport.Models
     {
         public SmallGroupData()
         { }
+
+        ListSmallGroupWeeklyReport ParentListSmallGroupWeeklyReport { get; set; }
+
         public String LoginType { get; set; }
         public String SmallGroupLeaderContactId { get; set; }
         public String SmallGroupLeaderFullName { get; set; }
@@ -18,6 +21,8 @@ namespace ChurchReport.Models
         public String SundayPrayersString { get; set; }
 
         public String DataStatus { get; set; }
+
+        public bool ModifyFlag { get; set; }
 
         public String SundayPeriod { get; set; } // 提醒小組長回報的期間
 
@@ -49,7 +54,16 @@ namespace ChurchReport.Models
             //    where PresentRecordId ==key
             //    select aMember;
 
-            var aUpdatedMember = Members.First(o => o.PresentRecordId == key);
+            //var aUpdatedMember = Members.First(o => o.PresentRecordId == key);
+            Member aUpdatedMember = Members.First(o => o.PresentRecordId == key);
+
+            if(ParentListSmallGroupWeeklyReport != null)
+            {
+                ParentListSmallGroupWeeklyReport.ModifyFlag = true;
+            }
+            this.ModifyFlag = true;
+            aUpdatedMember.ModifyFlag = true;
+
             JsonConvert.PopulateObject(values, aUpdatedMember);
 
             //IEnumerable<Member> aMember = Members.Where(c => c.PresentRecordId == key );

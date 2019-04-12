@@ -10,6 +10,8 @@ namespace ChurchReport.Models {
         public Member()
         { }
 
+        ListSmallGroupWeeklyReport ParentListSmallGroupWeeklyReport { get; set; }
+
         public String PresentRecordId { get; set; }
         public int Id { get; set; }
         public string Group { get; set; }
@@ -114,5 +116,8 @@ namespace ChurchReport.Models {
 
         public string Picture { get; set; }
         public string Shepherd { get; set; }
+
+        public bool ModifyFlag { get; set; }
+
     }
 }

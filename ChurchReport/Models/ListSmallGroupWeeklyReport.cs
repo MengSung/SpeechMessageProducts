@@ -26,5 +26,7 @@ namespace ChurchReport.Models
         // 圖表資料
         public ChartDataList m_WeeklyReportChart { get; set; }
 
+        public bool ModifyFlag { get; set; }
+
     }
 }
