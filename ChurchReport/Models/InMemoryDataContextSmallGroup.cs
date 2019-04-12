@@ -53,9 +53,9 @@ namespace ChurchReport.Models
         {
             try
             {
-                //m_ListManager.SetupListManager();
+                m_ListManager.SetupListManager();
 
-                m_ListManager.SetupOnlyOneListManager();
+                //m_ListManager.SetupOnlyOneListManager();
             }
             catch (System.Exception e)
             {

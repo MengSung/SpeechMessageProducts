@@ -237,6 +237,8 @@ namespace ChurchReport.Models
                     SmallGroupLeaderFullName = "以利亞",
                     SundayPrayers = DateTime.Now,
                     SundayPeriod = "不斷地來愛主耶穌",
+                    SmallGroupDisplayFlag = true,
+                    NewPersonFollowUpDisplayFlag = false,
                     m_SmallGroupDataList = new SmallGroupDataList
                     {
                         m_SmallGroupData = new SmallGroupData
@@ -338,6 +340,8 @@ namespace ChurchReport.Models
                     SmallGroupLeaderFullName = "胡逸凡",
                     SundayPrayers = DateTime.Now,
                     SundayPeriod = "主耶穌永遠與我們同在",
+                    SmallGroupDisplayFlag = false,
+                    NewPersonFollowUpDisplayFlag = true,
                     m_SmallGroupDataList = new SmallGroupDataList
                     {
                         m_SmallGroupData = new SmallGroupData

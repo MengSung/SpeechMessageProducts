@@ -271,8 +271,7 @@ else
         .ID("SmallGroupgridContainer")
         .ShowBorders(true)
         .ColumnAutoWidth(true)
-        //.Visible(Model.DisplayFlag)
-        .Visible(true)
+        .Visible(Model.SmallGroupDisplayFlag)
         .Paging(p => p.PageSize(10))
         .Sorting(sorting => sorting.Mode(GridSortingMode.None))
         .Paging(paging => paging.Enabled(false))
@@ -379,12 +378,13 @@ else
 
         </div >
         <div id = "newpersonal-data-grid" >
-        @(Html.DevExtreme().DataGrid()
+        @(Html.DevExtreme().DataGrid<Member>()
         .ID("gridContainer")
         .ShowBorders(true)
         //.ColumnAutoWidth(true)
         //.Paging(p => p.PageSize(10))
         //.Paging(paging => paging.Enabled(false))
+        .Visible(Model.NewPersonFollowUpDisplayFlag)
         .AllowColumnResizing(true)
         .ColumnResizingMode(ColumnResizingMode.Widget)
         .ColumnFixing(c => c.Enabled(true))
@@ -419,39 +419,46 @@ else
 
         .Editing(editing =>
         {
-        //editing.Mode(GridEditMode.Batch);
-        //editing.Mode(GridEditMode.Row);
-        editing.Mode(GridEditMode.Cell);
-        //editing.Mode(GridEditMode.Batch);
-        //editing.Mode(GridEditMode.Form);
-        //editing.Mode(GridEditMode.Popup);
-        editing.AllowUpdating(true);
-        //editing.AllowAdding(true);
-        //editing.
-        editing.Texts(a => a.SaveAllChanges("上傳檔案").AddRow("新增").CancelAllChanges("取消變更"));
-        //editing.AllowDeleting(true);
+            //editing.Mode(GridEditMode.Batch);
+            //editing.Mode(GridEditMode.Row);
+            editing.Mode(GridEditMode.Cell);
+            //editing.Mode(GridEditMode.Batch);
+            //editing.Mode(GridEditMode.Form);
+            //editing.Mode(GridEditMode.Popup);
+            editing.AllowUpdating(true);
+            //editing.AllowAdding(true);
+            //editing.
+            editing.Texts(a => a.SaveAllChanges("上傳檔案").AddRow("新增").CancelAllChanges("取消變更"));
+            //editing.AllowDeleting(true);
         })
 
         .Columns(columns =>
         {
-        columns.Add().DataField("SmallGroupName").Caption("小組").GroupIndex(0).MinWidth(10);
-
-        columns.Add().DataField("FullName").Caption("姓名").Fixed(true).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Left);
-        columns.Add().DataField("Status").Caption("委身類型").Fixed(false).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Center);
-        columns.Add().DataField("Sunday").Caption("主日").DataType(GridColumnDataType.Boolean).Width(45).MinWidth(45);
-        columns.Add().DataField("SmallGroup").Caption("小組").DataType(GridColumnDataType.Boolean).Width(45).MinWidth(45);
+            columns.AddFor(m => m.SmallGroupName).Caption("小組").GroupIndex(0).MinWidth(10);
 
 
+            columns.AddFor(m => m.FullName).Caption("姓名").Fixed(true).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Left);
+            columns.AddFor(m => m.Status).Caption("委身類型").Fixed(false).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Center);
+            columns.AddFor(m => m.Sunday).Caption("主日").DataType(GridColumnDataType.Boolean).Width(45).MinWidth(45);
+            columns.AddFor(m => m.SmallGroup).Caption("小組").DataType(GridColumnDataType.Boolean).Width(45).MinWidth(45);
 
-        //columns.Add().DataField("FollowUp").Caption("跟進方式").Fixed(false).Width(120).MinWidth(90);
+
+            //columns.Add().DataField("FullName").Caption("姓名").Fixed(true).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Left);
+            //columns.Add().DataField("Status").Caption("委身類型").Fixed(false).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Center);
+            //columns.Add().DataField("Sunday").Caption("主日").DataType(GridColumnDataType.Boolean).Width(45).MinWidth(45);
+            //columns.Add().DataField("SmallGroup").Caption("小組").DataType(GridColumnDataType.Boolean).Width(45).MinWidth(45);
 
 
-        columns.Add()
-        .DataField("FollowUpWeek")
-        .Caption("跟進週次")
-        .Width(80).MinWidth(30)
-        .Lookup(lookup => lookup
-        .DataSource(new string[] {
+
+            //columns.Add().DataField("FollowUp").Caption("跟進方式").Fixed(false).Width(120).MinWidth(90);
+
+
+            columns
+            .AddFor(m => m.FollowUpWeek)
+            .Caption("跟進週次")
+            .Width(80).MinWidth(30)
+            .Lookup(lookup => lookup
+            .DataSource(new string[] {
         "一",
         "二",
         "三",
@@ -474,16 +481,15 @@ else
         "二十",
         "未選擇"
 
-        })
-        //.DisplayExpr("Name")
-        //.ValueExpr("ID")
-        );
-        columns.Add()
-        .DataField("FollowUpOption")
-        .Caption("跟進方式")
-        .Width(120).MinWidth(30)
-        .Lookup(lookup => lookup
-        .DataSource(new string[] {
+            })
+            //.DisplayExpr("Name")
+            //.ValueExpr("ID")
+            );
+            columns.AddFor(m => m.FollowUpOption)
+            .Caption("跟進方式")
+            .Width(120).MinWidth(30)
+            .Lookup(lookup => lookup
+            .DataSource(new string[] {
         "電話",
         "探訪",
         "Line/FB",
@@ -492,17 +498,17 @@ else
         "約談",
         "沒跟進",
         "其他"
-        })
-        //.DisplayExpr("Name")
-        //.ValueExpr("ID")
-        );
+            })
+            //.DisplayExpr("Name")
+            //.ValueExpr("ID")
+            );
 
-        columns.Add()
-        .DataField("FollowUpResult")
-        .Caption("跟進結果")
-        .Width(120).MinWidth(30)
-        .Lookup(lookup => lookup
-        .DataSource(new string[] {
+            columns.Add()
+            .DataField("FollowUpResult")
+            .Caption("跟進結果")
+            .Width(120).MinWidth(30)
+            .Lookup(lookup => lookup
+            .DataSource(new string[] {
         "未選擇",
         "熱情回應",
         "渴慕認識信仰",
@@ -513,26 +519,26 @@ else
         "來主日",
         "轉介",
         "其他",
-        })
-        //.DisplayExpr("Name")
-        //.ValueExpr("ID")
-        );
-        columns.Add()
-        .DataField("FollowUpNextStep")
-        .Caption("下一步驟")
-        .Width(120).MinWidth(30)
-        .Lookup(lookup => lookup
-        .DataSource(new string[] {
+            })
+            //.DisplayExpr("Name")
+            //.ValueExpr("ID")
+            );
+            columns.Add()
+            .DataField("FollowUpNextStep")
+            .Caption("下一步驟")
+            .Width(120).MinWidth(30)
+            .Lookup(lookup => lookup
+            .DataSource(new string[] {
         "未選擇",
         "繼續跟進",
         "轉介",
-        })
-        //.DisplayExpr("Name")
-        //.ValueExpr("ID")
-        );
+            })
+            //.DisplayExpr("Name")
+            //.ValueExpr("ID")
+            );
 
-        columns.Add().DataField("PrayItem").Caption("跟進關懷說明").Fixed(false).MinWidth(90);
-        columns.Add().DataField("NewComerNote").Caption("跟進關懷歷程").Fixed(false).MinWidth(90);
+            columns.AddFor(m => m.PrayItem).Caption("跟進關懷說明").Fixed(false).MinWidth(90);
+            columns.AddFor(m => m.NewComerNote).Caption("跟進關懷歷程").Fixed(false).MinWidth(90);
 
 
         })

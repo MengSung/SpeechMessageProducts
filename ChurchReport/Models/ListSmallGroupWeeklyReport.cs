@@ -15,6 +15,9 @@ namespace ChurchReport.Models
         public DateTime SundayPrayers { get; set; } // 小組日期
         public String SundayPeriod { get; set; }   // 提醒小組長回報的期間
 
+        public bool SmallGroupDisplayFlag { get; set; } // 小組牧養的表格是否顯示的旗標
+        public bool NewPersonFollowUpDisplayFlag { get; set; } // 新人跟進關懷的表格是否顯示的旗標
+
         public SmallGroupDataList m_SmallGroupDataList = new SmallGroupDataList();
 
         public String WeeklyReportData { get; set; }
