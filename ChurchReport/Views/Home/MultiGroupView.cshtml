@@ -131,6 +131,8 @@
         .Palette(VizPalette.HarmonyLight)
         .Margin(m=>m.Left(0).Top(0))
         .AdaptiveLayout( a=>a.Height(200))
+        .Diameter(0.6)
+        .Size(s=>s.Height(400).Width(400))
         //.Animation()
         .CommonSeriesSettings
         (
@@ -201,7 +203,7 @@
  .Legend(l => l
      .VerticalAlignment(VerticalEdge.Bottom)
      .HorizontalAlignment(HorizontalAlignment.Center)
-
+     .ItemTextPosition(Position.Top)
  //.VerticalAlignment(VerticalEdge.Top)
  //.HorizontalAlignment(HorizontalAlignment.Right)
  //.Position(RelativePosition.Inside)
