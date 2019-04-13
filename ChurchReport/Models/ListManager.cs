@@ -17,11 +17,37 @@ namespace ChurchReport.Models
 
         public List<ListSmallGroupWeeklyReport> m_ListSmallGroupWeeklyReport { get; set; }
 
+        public MultiGroupChartDataList m_MultiGroupChartDataList;
 
         public void SetupListManager(String FullName, String Account, String Password, DateTime aSelectDate, bool DisplayDateFlag)
         {
             LoginType = "小組長";
             LoginFullName = "跟隨者";
+
+            m_MultiGroupChartDataList = new MultiGroupChartDataList
+            {
+                m_MultiGroupChartDataList = new List<MultiGroupChartData>
+                {
+                    new MultiGroupChartData
+                    {
+                        ID = "001",
+                        Name= "總人數",
+                        Number = 45
+                    },
+                    new MultiGroupChartData
+                    {
+                        ID = "002",
+                        Name= "主日人數",
+                        Number = 30
+                    },
+                    new MultiGroupChartData
+                    {
+                        ID = "003",
+                        Name= "小組人數",
+                        Number = 25
+                    }
+                }
+            };
 
             m_ListSmallGroupWeeklyReport = new List<ListSmallGroupWeeklyReport>
             {
@@ -226,6 +252,31 @@ namespace ChurchReport.Models
             LoginFullName = "跟隨者";
             SundayPrayers = DateTime.Now;
             ActiveListId = "001";
+
+            m_MultiGroupChartDataList = new MultiGroupChartDataList
+            {
+                m_MultiGroupChartDataList = new List<MultiGroupChartData>
+                {
+                    new MultiGroupChartData
+                    {
+                        ID = "001",
+                        Name= "總人數",
+                        Number = 45
+                    },
+                    new MultiGroupChartData
+                    {
+                        ID = "002",
+                        Name= "主日人數",
+                        Number = 30
+                    },
+                    new MultiGroupChartData
+                    {
+                        ID = "003",
+                        Name= "小組人數",
+                        Number = 25
+                    }
+                }
+            };
 
             m_ListSmallGroupWeeklyReport = new List<ListSmallGroupWeeklyReport>
             {
