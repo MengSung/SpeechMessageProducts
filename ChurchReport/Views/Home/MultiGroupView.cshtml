@@ -218,14 +218,6 @@
                             //.ValueFormat(Format.Currency)
                             //.SummaryType(SummaryType.Sum)
                             .SummaryType(SummaryType.Custom);
-
-                        //items.Add()
-                        //    .Name("SmallGroupNumber")
-                        //    .ShowInColumn("SmallGroupNumber")
-                        //    .DisplayFormat("小組人數: {0}")
-                        //    //.ValueFormat(Format.Currency)
-                        //    //.SummaryType(SummaryType.Sum)
-                        //    .SummaryType(SummaryType.Custom);
                     }
 
                     )
@@ -234,43 +226,33 @@
                                                 @<text>
                                                     function (options)
                                                     {
-                                                    if (options.name === "TotalNumber")
-                                                    {
-                                                    if (options.summaryProcess === "start") {
-                                                    options.totalValue = 0;
-                                                    }
-                                                    if (options.summaryProcess === "calculate") {
-                                                    options.totalValue = options.totalValue + Number(options.value.TotalNumber);
-                                                    }
-                                                    if (options.summaryProcess === "finalize") {
-                                                    //
-                                                    }
-                                                    }
+                                                        if (options.name === "TotalNumber")
+                                                        {
+                                                            if (options.summaryProcess === "start") {
+                                                            options.totalValue = 0;
+                                                            }
+                                                            if (options.summaryProcess === "calculate") {
+                                                            options.totalValue = options.totalValue + Number(options.value.TotalNumber);
+                                                            }
+                                                            if (options.summaryProcess === "finalize") {
+                                                            //
+                                                            }
+                                                        }
 
 
-                                                    if (options.name === "SundayNumber"){}
-                                                    if (options.summaryProcess === "start") {
-                                                    options.totalValue = 0;
+                                                        else if (options.name === "SundayNumber")
+                                                        {
+                                                            if (options.summaryProcess === "start") {
+                                                            options.totalValue = 0;
+                                                            }
+                                                            if (options.summaryProcess === "calculate") {
+                                                            options.totalValue = options.totalValue + Number(options.value.SundayNumber);
+                                                            }
+                                                            if (options.summaryProcess === "finalize") {
+                                                            //
+                                                            }
+                                                        }
                                                     }
-                                                    if (options.summaryProcess === "calculate") {
-                                                    options.totalValue = options.totalValue + Number(options.value.SundayNumber);
-                                                    }
-                                                    if (options.summaryProcess === "finalize") {
-                                                    //
-                                                    }
-
-                                                    //if (options.name === "SmallGroupNumber"){}
-                                                    //if (options.summaryProcess === "start") {
-                                                    //options.totalValue = 0;
-                                                    //}
-                                                    //if (options.summaryProcess === "calculate") {
-                                                    //options.totalValue = options.totalValue + Number(options.value.SmallGroupNumber);
-                                                    //}
-                                                    //if (options.summaryProcess === "finalize") {
-                                                    ////
-                                                    //}
-                                                    //}
-
                                                 </text>
      )
  )
