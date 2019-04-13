@@ -24,18 +24,18 @@
             <div id="dateBoxContainer" class="dx-field-value" style="float: left; width:55%; background-color:white;">
 
                 @(Html.DevExtreme()
-                //.DateBox()
-                .DateBoxFor(m => m.SundayPrayers)
-                .Type(DateBoxType.Date)
-                .Value(Model.SundayPrayers)
-                .Width(50)
-                .DisplayFormat("yyyy/M/d")
-                .OnChange("OnDateboxChange")
-                //.DisplayFormat("yyyy/MM/dd")
-                //.OnValueChanged("OnValueChanged")
+            //.DateBox()
+            .DateBoxFor(m => m.SundayPrayers)
+            .Type(DateBoxType.Date)
+            .Value(Model.SundayPrayers)
+            .Width(50)
+            .DisplayFormat("yyyy/M/d")
+            .OnChange("OnDateboxChange")
+            //.DisplayFormat("yyyy/MM/dd")
+            //.OnValueChanged("OnValueChanged")
 
 
-                .OnValueChanged(@<text>
+            .OnValueChanged(@<text>
                         function(arg) {
 
                         $("#loadPanel").dxLoadPanel("instance").show();
@@ -72,169 +72,194 @@
             </div>
             <div id="ToastContainer">
                 @(Html.DevExtreme().Toast()
-                .ID("toast")
-                .Position(p => p
-                .At(HorizontalAlignment.Center, VerticalAlignment.Center)
-                .Offset(0, 50))
-                .Message(DataStatus)
-                .DisplayTime(2000)
-                .MaxWidth(200)
+            .ID("toast")
+            .Position(p => p
+            .At(HorizontalAlignment.Center, VerticalAlignment.Center)
+            .Offset(0, 50))
+            .Message(DataStatus)
+            .DisplayTime(2000)
+            .MaxWidth(200)
                 )
 
             </div>
             <div id="LoadPanel">
                 @(Html.DevExtreme().LoadPanel()
-                .ID("loadPanel")
-                .ShadingColor("rgba(0,0,0,0.4)")
-                //.Position(p => p.Of("#data-grid").Of("#buttonContainer"))
-                .Position(p => p.Of("#data-grid"))
-                .Visible(false)
-                .ShowIndicator(true)
-                .ShowPane(true)
-                .Shading(true)
-                .CloseOnOutsideClick(false)
-                .Message("更新資料中...")
-                .Animation(l => l.Show(k => k.Easing(AnimationEasing.Swing)))
+            .ID("loadPanel")
+            .ShadingColor("rgba(0,0,0,0.4)")
+            //.Position(p => p.Of("#data-grid").Of("#buttonContainer"))
+            .Position(p => p.Of("#data-grid"))
+            .Visible(false)
+            .ShowIndicator(true)
+            .ShowPane(true)
+            .Shading(true)
+            .CloseOnOutsideClick(false)
+            .Message("更新資料中...")
+            .Animation(l => l.Show(k => k.Easing(AnimationEasing.Swing)))
                 //.OnShown("loadPanel_shown")
                 //.OnHidden("loadPanel_hidden")
                 )
             </div>
             <div id="ToastContainer">
                 @(Html.DevExtreme().Toast()
-                .ID("ToastReUpload")
-                .Position(p => p
-                .At(HorizontalAlignment.Center, VerticalAlignment.Center)
-                .Offset(0, 50))
-                .Message(ReUpload)
-                .DisplayTime(5000)
-                .Type(ToastType.Error)
-                .MaxWidth(500)
+            .ID("ToastReUpload")
+            .Position(p => p
+            .At(HorizontalAlignment.Center, VerticalAlignment.Center)
+            .Offset(0, 50))
+            .Message(ReUpload)
+            .DisplayTime(5000)
+            .Type(ToastType.Error)
+            .MaxWidth(500)
                 )
             </div>
             <div id="SelectDateToastContainer">
                 @(Html.DevExtreme().Toast()
-                .ID("SelectDateToast")
-                .Position(p => p
-                .At(HorizontalAlignment.Center, VerticalAlignment.Center)
-                .Offset(0, 50))
-                .Message("日期格式錯誤，格式範例: 2018/6/5")
-                .DisplayTime(5000)
-                .Type(ToastType.Error)
-                .MaxWidth(300)
+            .ID("SelectDateToast")
+            .Position(p => p
+            .At(HorizontalAlignment.Center, VerticalAlignment.Center)
+            .Offset(0, 50))
+            .Message("日期格式錯誤，格式範例: 2018/6/5")
+            .DisplayTime(5000)
+            .Type(ToastType.Error)
+            .MaxWidth(300)
                 )
             </div>
             </div>
     <div id="smallgroup-grid">
         @(
-            Html.DevExtreme().DataGrid<AssignSmallGroup>()
-                .ID("SmallGroupgridContainer")
-                .ShowBorders(true)
-                .ColumnAutoWidth(true)
-                //.Visible(Model.DisplayFlag)
-                .Visible(true)
-                .Paging(p => p.PageSize(10))
-                .Sorting(sorting => sorting.Mode(GridSortingMode.None))
-                .Paging(paging => paging.Enabled(false))
-                .AllowColumnResizing(true)
-                .ColumnResizingMode(ColumnResizingMode.Widget)
-                .ColumnFixing(c => c.Enabled(true))
-                .LoadPanel(l => l.Text("更新資料中..."))
-                .SearchPanel(s => s.Visible(false).Placeholder("搜尋.."))
-                .ShowColumnLines(true)
-                .ShowRowLines(true)
-                .RowAlternationEnabled(true)
-                .ShowBorders(true)
+                    Html.DevExtreme().DataGrid<AssignSmallGroup>()
+                        .ID("SmallGroupgridContainer")
+                        .ShowBorders(true)
+                        .ColumnAutoWidth(true)
+                        //.Visible(Model.DisplayFlag)
+                        .Visible(true)
+                        .Paging(p => p.PageSize(10))
+                        .Sorting(sorting => sorting.Mode(GridSortingMode.None))
+                        .Paging(paging => paging.Enabled(false))
+                        .AllowColumnResizing(true)
+                        .ColumnResizingMode(ColumnResizingMode.Widget)
+                        .ColumnFixing(c => c.Enabled(true))
+                        .LoadPanel(l => l.Text("更新資料中..."))
+                        .SearchPanel(s => s.Visible(false).Placeholder("搜尋.."))
+                        .ShowColumnLines(true)
+                        .ShowRowLines(true)
+                        .RowAlternationEnabled(true)
+                        .ShowBorders(true)
 
-                .TwoWayBindingEnabled(true)
+                        .TwoWayBindingEnabled(true)
 
-                .Grouping
-                (g => g
-                .ContextMenuEnabled(true)
-                .ExpandMode(GridGroupingExpandMode.RowClick)
-                )
+                        .Grouping
+                        (g => g
+                        .ContextMenuEnabled(true)
+                        .ExpandMode(GridGroupingExpandMode.RowClick)
+                        )
 
-                .GroupPanel
-                (p => p
-                .EmptyPanelText("請把小組名稱拉到這裡")
-                .Visible(false) // 讓使用者不能自己決定誰被Grouping起來
-                .AllowColumnDragging(true)
-                )
+                        .GroupPanel
+                        (p => p
+                        .EmptyPanelText("請把小組名稱拉到這裡")
+                        .Visible(false) // 讓使用者不能自己決定誰被Grouping起來
+                        .AllowColumnDragging(true)
+                        )
 
-                .Editing(editing =>
-                {
-                    //editing.Mode(GridEditMode.Batch);
-                    //editing.Mode(GridEditMode.Row);
-                    editing.Mode(GridEditMode.Cell);
-                    //editing.Mode(GridEditMode.Batch);
-                    //editing.Mode(GridEditMode.Form);
-                    //editing.Mode(GridEditMode.Popup);
-                    editing.AllowUpdating(true);
-                    editing.AllowDeleting(false);
-                    //editing.AllowAdding(false);
-                    editing.Texts(a => a.SaveAllChanges("上傳檔案").AddRow("新增").CancelAllChanges("取消變更").SaveRowChanges("儲存").CancelRowChanges("取消").EditRow("編輯").DeleteRow("刪除"));
-                    //editing.AllowDeleting(true);
-                })
+                        .Editing(editing =>
+                        {
+                            //editing.Mode(GridEditMode.Batch);
+                            //editing.Mode(GridEditMode.Row);
+                            editing.Mode(GridEditMode.Cell);
+                            //editing.Mode(GridEditMode.Batch);
+                            //editing.Mode(GridEditMode.Form);
+                            //editing.Mode(GridEditMode.Popup);
+                            editing.AllowUpdating(true);
+                            editing.AllowDeleting(false);
+                            //editing.AllowAdding(false);
+                            editing.Texts(a => a.SaveAllChanges("上傳檔案").AddRow("新增").CancelAllChanges("取消變更").SaveRowChanges("儲存").CancelRowChanges("取消").EditRow("編輯").DeleteRow("刪除"));
+                            //editing.AllowDeleting(true);
+                        })
 
-                .Columns(columns =>
-                {
-                    columns.AddFor(m => m.ListEntityId).Caption("名稱").Fixed(true).Width(60).MinWidth(20).CellTemplate(new JS("cellTemplate"));
-                    //columns.AddFor(m => m.Name).Caption("名稱").Fixed(true).Width(60).MinWidth(20).Alignment(HorizontalAlignment.Left).AllowSorting(false);
-                    columns.AddFor(m => m.TotalNumber).Caption("總人數").Fixed(false).Width(60).MinWidth(20).Alignment(HorizontalAlignment.Center).AllowSorting(false);
-                    columns.AddFor(m => m.SundayNumber).Caption("主日人數").Width(60).MinWidth(45).Alignment(HorizontalAlignment.Center).AllowSorting(false);
-                    columns.AddFor(m => m.SmallGroupNumber).Caption("小組人數").Width(60).MinWidth(45).Alignment(HorizontalAlignment.Center).AllowSorting(false);
-                    columns.AddFor(m => m.SundayRate).Caption("主日出席率").Width(80).MinWidth(80).Alignment(HorizontalAlignment.Center);
-                    columns.AddFor(m => m.SmallGroupRate).Caption("小組出席率").Width(80).MinWidth(80).Alignment(HorizontalAlignment.Center);
-                    columns.AddFor(m => m.ReportContent).Caption("日誌內容").Width(200).MinWidth(200).Alignment(HorizontalAlignment.Left);
-                })
-                .DataSource(d => d
-                .WebApi()
-                .Controller("Home")
-                .LoadAction("AssignSmallGroupGet")
-                //.InsertAction("InsertPresentRecord")
-                //.DeleteAction("DeletePresentRecord")
-                //.UpdateAction("UpdatePresentRecord")
-                .Key("ListEntityId")
-                .LoadParams(new { id = @ViewBag.ListId }))
+                        .Columns(columns =>
+                        {
+                            columns.AddFor(m => m.ListEntityId).Caption("名稱").Fixed(true).Width(60).MinWidth(20).CellTemplate(new JS("cellTemplate"));
+                            //columns.AddFor(m => m.Name).Caption("名稱").Fixed(true).Width(60).MinWidth(20).Alignment(HorizontalAlignment.Left).AllowSorting(false);
+                            columns.AddFor(m => m.TotalNumber).Caption("總人數").Fixed(false).Width(60).MinWidth(20).Alignment(HorizontalAlignment.Center).AllowSorting(false);
+                            columns.AddFor(m => m.SundayNumber).Caption("主日人數").Width(60).MinWidth(45).Alignment(HorizontalAlignment.Center).AllowSorting(false);
+                            columns.AddFor(m => m.SmallGroupNumber).Caption("小組人數").Width(60).MinWidth(45).Alignment(HorizontalAlignment.Center).AllowSorting(false);
+                            columns.AddFor(m => m.SundayRate).Caption("主日出席率").Width(80).MinWidth(80).Alignment(HorizontalAlignment.Center);
+                            columns.AddFor(m => m.SmallGroupRate).Caption("小組出席率").Width(80).MinWidth(80).Alignment(HorizontalAlignment.Center);
+                            columns.AddFor(m => m.ReportContent).Caption("日誌內容").Width(200).MinWidth(200).Alignment(HorizontalAlignment.Left);
+                        })
+                        .DataSource(d => d
+                        .WebApi()
+                        .Controller("Home")
+                        .LoadAction("AssignSmallGroupGet")
+                        //.InsertAction("InsertPresentRecord")
+                        //.DeleteAction("DeletePresentRecord")
+                        //.UpdateAction("UpdatePresentRecord")
+                        .Key("ListEntityId")
+                        .LoadParams(new { id = @ViewBag.ListId }))
 
-                .Summary
-                (
-                    s => s.TotalItems
-                    ( items =>
-                        //items.AddFor(m => m.TotalNumber)
-                        //.Name("TotalNumber")
-                        items.Add()
-                            .Name("TotalNumber")
-                            .ShowInColumn("TotalNumber")
-                            .DisplayFormat("總人數: {0}")
-                            //.ValueFormat(Format.Currency)
-                            //.SummaryType(SummaryType.Sum)
-                            .SummaryType(SummaryType.Custom)
-                            
-                    )
-                    .CalculateCustomSummary
-                    (
-                        @<text>
+                        .Summary
+                        (
+                            s => s.TotalItems
+                            (items => {
+                                //items.AddFor(m => m.TotalNumber)
+                                //.Name("TotalNumber")
+                                items.Add()
+                                        .Name("TotalNumber")
+                                        .ShowInColumn("TotalNumber")
+                                        .DisplayFormat("總人數: {0}")
+                                        //.ValueFormat(Format.Currency)
+                                        //.SummaryType(SummaryType.Sum)
+                                        .SummaryType(SummaryType.Custom)
+                                        
+                                        ;
+
+
+                                items.Add()
+                                        .Name("SundayNumber")
+                                        .ShowInColumn("SundayNumber")
+                                        .DisplayFormat("主日人數: {0}")
+                                        //.ValueFormat(Format.Currency)
+                                        //.SummaryType(SummaryType.Sum)
+                                        .SummaryType(SummaryType.Custom)
+                                        
+                                        ;
+
+
+
+                            })
+                            .CalculateCustomSummary(
+                            @<text>
                             function (options) {
-                            if (options.name === "TotalNumber")
-                            {
-                            if (options.summaryProcess === "start") {
-                            options.totalValue = 0;
-                            }
-                            if (options.summaryProcess === "calculate") {
-                            //options.totalValue = options.totalValue + 5;
-                            options.totalValue = options.totalValue + Number(options.value.TotalNumber);
-                            //if (options.component.isRowSelected(options.value.ID)) {
-                            //    options.totalValue = options.totalValue + options.value.SaleAmount;
-                            //}
-                            }
-                            if (options.summaryProcess === "finalize") {
-                            //
-                            }
-                            }
-                            }
+                                    if (options.name === "TotalNumber")
+                                    {
+                                        if (options.summaryProcess === "start") {
+                                        options.totalValue = 0;
+                                        }
+                                        if (options.summaryProcess === "calculate") {
+                                        
+                                        options.totalValue = options.totalValue + Number(options.value.TotalNumber);
+                                        }
+                                        if (options.summaryProcess === "finalize") {
+                                        //
+                                        }
+                                    }
+                                    if(  options.name === "SundayNumber")
+                                    {
+                                        if (options.summaryProcess === "start"){
+                                            options.totalValue = 0;
+                                        }
+                                        if (options.summaryProcess === "calculate") {
+                                            options.totalValue = options.totalValue + Number(options.value.SundayNumber);
+                            	        }
+                                        if (options.summaryProcess === "finalize") {
+                                        //
+                                        }
+                                    }
+                                    else{}
 
-                        </text>
-                    )
+                        </text>)
+
+
+
                 )
         )
     </div>
