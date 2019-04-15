@@ -131,8 +131,8 @@
         .Palette(VizPalette.HarmonyLight)
         .Margin(m=>m.Left(0).Top(0))
         .AdaptiveLayout( a=>a.Height(200))
-        .Diameter(0.6)
-        .Size(s=>s.Height(400).Width(400))
+        .Diameter(0.5)
+        .Size(s=>s.Height(500).Width(500))
         //.Animation()
         .CommonSeriesSettings
         (
@@ -156,19 +156,20 @@
         {
             //s.Add().ValueField("Name").Name("主日人數").Color("#e7d19a");
             //s.Add().ValueField("SmallNumber").Name("小組人數").Color("#ffd700");
-            s.
-            Add().ValueField("Number").Name("人數")
+            s.Add().ValueField("Number").Name("人數")
                     .Label(l => l
-            .Visible(true)
-            .Font(f => f.Size(16))
-            .Connector(c => c
-                .Visible(true)
-                .Width(0.5)
+                    .Visible(true)
+                    .Font(f => f.Size(18))
+                    .Connector(c => c
+                    .Visible(true)
+                    .Width(0.8)
+                    //Option(
             )
             .Position(PieChartLabelPosition.Columns)
             .CustomizeText(@<text>
                         function(arg) {
-                        return arg.valueText ;
+                            //debugger;
+                            return arg.argument + "=" +arg.valueText ;
                         }
             </text>)
              );
