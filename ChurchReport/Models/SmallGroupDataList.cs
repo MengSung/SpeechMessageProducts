@@ -204,7 +204,7 @@ namespace ChurchReport.Models
             }
 
             IdIndex = 0;
-            m_AssignSmallGroupList.AssignSmallGroupListData.Clear();
+            m_AssignSmallGroupList.m_AssignSmallGroupListData.Clear();
             foreach (GroupWeeklyReportGuid aGroupWeeklyReportGuid in m_MemberInfomationPackage.GroupWeeklyReportGuidList)
             {
                 String TrimedGroup = this.m_ToolUtilityClass.TrimPresentRate(aGroupWeeklyReportGuid.GroupName);
@@ -214,7 +214,7 @@ namespace ChurchReport.Models
                     ListEntityId = IdIndex.ToString(),
                     Name = TrimedGroup
                 };
-                m_AssignSmallGroupList.AssignSmallGroupListData.Add(aAssignSmallGroup);
+                m_AssignSmallGroupList.m_AssignSmallGroupListData.Add(aAssignSmallGroup);
                 IdIndex++;
 
             }

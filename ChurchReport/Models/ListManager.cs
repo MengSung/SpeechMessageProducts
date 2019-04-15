@@ -13,7 +13,7 @@ namespace ChurchReport.Models
         public String ActiveListId { get; set; }
 
         // 新增新人時，選擇進入哪一個小組的清單
-        public AssignSmallGroupList m_AssignSmallGroupList = new AssignSmallGroupList();
+        public AssignSmallGroupList m_AssignSmallGroupList;
 
         public List<ListSmallGroupWeeklyReport> m_ListSmallGroupWeeklyReport { get; set; }
 
@@ -486,6 +486,63 @@ namespace ChurchReport.Models
 
                         }
                     }
+                }
+            };
+
+            m_AssignSmallGroupList = new AssignSmallGroupList
+            {
+                m_AssignSmallGroupListData = new List<AssignSmallGroup>
+                {
+                    new AssignSmallGroup {
+                        ListEntityId = "001",
+                        Name = "夢嵩連碧小組",
+                        TotalNumber ="8",
+                        SundayNumber = "5",
+                        SmallGroupNumber = "4",
+                        SundayRate = "0.52",
+                        SmallGroupRate = "0.98",
+                        ReportContent = "很火熱"
+                    },
+                    new AssignSmallGroup {
+                        ListEntityId = "002",
+                        Name = "永初雅慧小組",
+                        TotalNumber ="12",
+                        SundayNumber = "9",
+                        SmallGroupNumber = "7",
+                        SundayRate = "0.85",
+                        SmallGroupRate = "0.74",
+                        ReportContent = "很火熱"
+                    },
+                    new AssignSmallGroup {
+                        ListEntityId = "001",
+                        Name = "萬全敏惠小組",
+                        TotalNumber ="10",
+                        SundayNumber = "8",
+                        SmallGroupNumber = "9",
+                        SundayRate = "0.63",
+                        SmallGroupRate = "0.84",
+                        ReportContent = "很火熱"
+                    },
+                    new AssignSmallGroup {
+                        ListEntityId = "002",
+                        Name = "寶珠小組",
+                        TotalNumber ="9",
+                        SundayNumber = "5",
+                        SmallGroupNumber = "7",
+                        SundayRate = "0.95",
+                        SmallGroupRate = "0.83",
+                        ReportContent = "很火熱"
+                    },
+                    new AssignSmallGroup {
+                        ListEntityId = "001",
+                        Name = "秋萍小組",
+                        TotalNumber ="16",
+                        SundayNumber = "12",
+                        SmallGroupNumber = "13",
+                        SundayRate = "0.87",
+                        SmallGroupRate = "0.96",
+                        ReportContent = "很火熱"
+                    },
                 }
             };
 

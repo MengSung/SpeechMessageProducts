@@ -332,7 +332,7 @@
                     items.Add()
                         .Name("SmallGroupNumber")
                         .ShowInColumn("SmallGroupNumber")
-                        .DisplayFormat("主日人數: {0}")
+                        .DisplayFormat("小組人數: {0}")
                         //.ValueFormat(Format.Currency)
                         //.SummaryType(SummaryType.Sum)
                         .SummaryType(SummaryType.Custom);
@@ -341,7 +341,8 @@
                         .Name("SundayRate")
                         .ShowInColumn("SundayRate")
                         .DisplayFormat("主日出席率: {0}%")
-                        //.ValueFormat(Format.Currency)
+                        .ValueFormat(Format.FixedPoint)
+                        
                         //.SummaryType(SummaryType.Sum)
                         .SummaryType(SummaryType.Custom);
 
@@ -349,7 +350,7 @@
                         .Name("SmallGroupRate")
                         .ShowInColumn("SmallGroupRate")
                         .DisplayFormat("小組出席率: {0}%")
-                        //.ValueFormat(Format.Currency)
+                        .ValueFormat(Format.FixedPoint)
                         //.SummaryType(SummaryType.Sum)
                         .SummaryType(SummaryType.Custom);
 

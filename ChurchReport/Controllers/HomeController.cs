@@ -1689,10 +1689,10 @@ namespace ChurchReport.Controllers
 
                     // 幸福小組長上傳新人有可能沒有所屬小組可選
                     //// 待修正
-                    if (m_InMemoryDataContextSmallGroup.m_SmallGroupDataList.m_AssignSmallGroupList.AssignSmallGroupListData.Count > 0)
+                    if (m_InMemoryDataContextSmallGroup.m_SmallGroupDataList.m_AssignSmallGroupList.m_AssignSmallGroupListData.Count > 0)
                     {
                         //// 待修正
-                        aPersonFormViewModel.Position = m_InMemoryDataContextSmallGroup.m_SmallGroupDataList.m_AssignSmallGroupList.AssignSmallGroupListData[Convert.ToInt32(aPersonFormViewModel.Position)].Name;
+                        aPersonFormViewModel.Position = m_InMemoryDataContextSmallGroup.m_SmallGroupDataList.m_AssignSmallGroupList.m_AssignSmallGroupListData[Convert.ToInt32(aPersonFormViewModel.Position)].Name;
                     }
                 }
 
@@ -1727,7 +1727,7 @@ namespace ChurchReport.Controllers
             try
             {
                 //// 待修正
-                return DataSourceLoader.Load(m_InMemoryDataContextSmallGroup.ListManager.m_AssignSmallGroupList.AssignSmallGroupListData, loadOptions);
+                return DataSourceLoader.Load(m_InMemoryDataContextSmallGroup.ListManager.m_AssignSmallGroupList.m_AssignSmallGroupListData, loadOptions);
             }
             catch (System.Exception e)
             {
