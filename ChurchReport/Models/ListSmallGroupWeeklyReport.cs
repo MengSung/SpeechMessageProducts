@@ -7,6 +7,8 @@ namespace ChurchReport.Models
 {
     public class ListSmallGroupWeeklyReport
     {
+        public bool LoadFlag { get; set; }
+
         public String ListEntityId { get; set; }
         public String ListEntityName { get; set; }
         public String LoginType { get; set; }

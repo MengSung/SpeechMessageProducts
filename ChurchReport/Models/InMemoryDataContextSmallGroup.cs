@@ -53,6 +53,7 @@ namespace ChurchReport.Models
         {
             try
             {
+                // 設定多個組長處理資料
                 m_ListManager.SetupListManager();
 
                 //m_ListManager.SetupOnlyOneListManager();
