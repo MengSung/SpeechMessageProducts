@@ -292,8 +292,8 @@
                 columns.AddFor(m => m.TotalNumber).Caption("總人數").Fixed(false).Width(100).MinWidth(20).Alignment(HorizontalAlignment.Center).AllowSorting(false);
                 columns.AddFor(m => m.SundayNumber).Caption("主日人數").Width(100).MinWidth(45).Alignment(HorizontalAlignment.Center).AllowSorting(false);
                 columns.AddFor(m => m.SmallGroupNumber).Caption("小組人數").Width(100).MinWidth(45).Alignment(HorizontalAlignment.Center).AllowSorting(false);
-                columns.AddFor(m => m.SundayRate).Caption("主日出席率").Width(80).MinWidth(80).Alignment(HorizontalAlignment.Center);
-                columns.AddFor(m => m.SmallGroupRate).Caption("小組出席率").Width(80).MinWidth(80).Alignment(HorizontalAlignment.Center);
+                columns.AddFor(m => m.SundayRate).Caption("主日出席率").Width(120).MinWidth(80).Alignment(HorizontalAlignment.Center);
+                columns.AddFor(m => m.SmallGroupRate).Caption("小組出席率").Width(120).MinWidth(80).Alignment(HorizontalAlignment.Center);
                 columns.AddFor(m => m.ReportContent).Caption("日誌內容").Width(250).MinWidth(200).Alignment(HorizontalAlignment.Left);
             })
             .DataSource(d => d
@@ -337,56 +337,115 @@
                         //.SummaryType(SummaryType.Sum)
                         .SummaryType(SummaryType.Custom);
 
+                    items.Add()
+                        .Name("SundayRate")
+                        .ShowInColumn("SundayRate")
+                        .DisplayFormat("主日出席率: {0}%")
+                        //.ValueFormat(Format.Currency)
+                        //.SummaryType(SummaryType.Sum)
+                        .SummaryType(SummaryType.Custom);
+
+                    items.Add()
+                        .Name("SmallGroupRate")
+                        .ShowInColumn("SmallGroupRate")
+                        .DisplayFormat("小組出席率: {0}%")
+                        //.ValueFormat(Format.Currency)
+                        //.SummaryType(SummaryType.Sum)
+                        .SummaryType(SummaryType.Custom);
+
                 }
                 )
                 .CalculateCustomSummary
                 (
-                            @<text>
-                                function (options)
-                                {
-                                if (options.name === "TotalNumber")
-                                {
-                                if (options.summaryProcess === "start") {
-                                options.totalValue = 0;
-                                }
-                                if (options.summaryProcess === "calculate") {
-                                options.totalValue = options.totalValue + Number(options.value.TotalNumber);
-                                }
-                                if (options.summaryProcess === "finalize") {
-                                //
-                                }
-                                }
+                    @<text>
+                        function (options)
+                        {
+                        if (options.name === "TotalNumber")
+                        {
+                        if (options.summaryProcess === "start") {
+                        options.totalValue = 0;
+                        }
+                        if (options.summaryProcess === "calculate") {
+                        options.totalValue = options.totalValue + Number(options.value.TotalNumber);
+                        }
+                        if (options.summaryProcess === "finalize") {
+                        //
+                        }
+                        }
 
 
-                                else if (options.name === "SundayNumber")
-                                {
-                                if (options.summaryProcess === "start") {
-                                options.totalValue = 0;
-                                }
-                                if (options.summaryProcess === "calculate") {
-                                options.totalValue = options.totalValue + Number(options.value.SundayNumber);
-                                }
-                                if (options.summaryProcess === "finalize") {
-                                //
-                                }
-                                }
+                        else if (options.name === "SundayNumber")
+                        {
+                        if (options.summaryProcess === "start") {
+                        options.totalValue = 0;
+                        }
+                        if (options.summaryProcess === "calculate") {
+                        options.totalValue = options.totalValue + Number(options.value.SundayNumber);
+                        }
+                        if (options.summaryProcess === "finalize") {
+                        //
+                        }
+                        }
 
-                                else if (options.name === "SmallGroupNumber")
-                                {
-                                if (options.summaryProcess === "start") {
-                                options.totalValue = 0;
-                                }
-                                if (options.summaryProcess === "calculate") {
-                                options.totalValue = options.totalValue + Number(options.value.SmallGroupNumber);
-                                }
-                                if (options.summaryProcess === "finalize") {
-                                //
-                                }
-                                }
-                                }
-                            </text>
-               )
+                        else if (options.name === "SmallGroupNumber")
+                        {
+                        if (options.summaryProcess === "start") {
+                        options.totalValue = 0;
+                        }
+                        if (options.summaryProcess === "calculate") {
+                        options.totalValue = options.totalValue + Number(options.value.SmallGroupNumber);
+                        }
+                        if (options.summaryProcess === "finalize") {
+                        //
+                        }
+                        }
+
+                        else if (options.name === "SundayRate")
+                        {
+                        if (options.summaryProcess === "start")
+                        {
+                        options.totalValue = 0;
+                        options.n = 0;
+                        }
+                        if (options.summaryProcess === "calculate")
+                        {
+                        options.totalValue = options.totalValue + Number(options.value.SundayRate);
+                        options.n++;
+                        }
+                        if (options.summaryProcess === "finalize")
+                        {
+                        options.totalValue = options.totalValue/options.n * 100;
+
+                        //options.totalValue = options.n;
+                        //
+                        }
+                        }
+
+                         else if (options.name === "SmallGroupRate")
+                        {
+                        if (options.summaryProcess === "start")
+                        {
+                        options.totalValue = 0;
+                        options.n = 0;
+                        }
+                        if (options.summaryProcess === "calculate")
+                        {
+                        options.totalValue = options.totalValue + Number(options.value.SmallGroupRate);
+                        options.n++;
+                        }
+                        if (options.summaryProcess === "finalize")
+                        {
+                        options.totalValue = options.totalValue/options.n * 100;
+
+                        //options.totalValue = options.n;
+                        //
+                        }
+                        }
+
+                       }
+                    </text>
         )
+ )
     )
 </div>
 
