@@ -131,8 +131,8 @@
         .Palette(VizPalette.HarmonyLight)
         .Margin(m=>m.Left(0).Top(0))
         .AdaptiveLayout( a=>a.Height(200))
-        .Diameter(0.5)
-        .Size(s=>s.Height(500).Width(500))
+        .Diameter(0.4)
+        .Size(s=>s.Height(400).Width(400))
         //.Animation()
         .CommonSeriesSettings
         (
@@ -159,7 +159,7 @@
             s.Add().ValueField("Number").Name("人數")
                     .Label(l => l
                     .Visible(true)
-                    .Font(f => f.Size(18))
+                    .Font(f => f.Size(12))
                     .Connector(c => c
                     .Visible(true)
                     .Width(0.8)
@@ -186,7 +186,7 @@
      .Font
      (
          f => f
-             .Size(25)
+             .Size(20)
              .Weight(300)
              //.Color("red")
              .Color("darkblue")
