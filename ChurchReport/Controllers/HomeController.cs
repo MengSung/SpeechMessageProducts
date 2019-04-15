@@ -257,6 +257,7 @@ namespace ChurchReport.Controllers
                     #region 用小組長回報網頁登入
                     if (m_InMemoryDataContextSmallGroup.ListManager.m_SmallGroupWeeklyReport != null)
                     {
+                        // 登入到多小組回報，整合是頁面要先歸零
                         m_InMemoryDataContextSmallGroup.ListManager.m_SmallGroupWeeklyReport.LoadFlag = false;
                     }
 
