@@ -147,12 +147,29 @@ namespace ChurchReport.Models
             LoginFullName = "跟隨者";
             SundayPrayers = DateTime.Now;
             ActiveListId = "001";
+            m_AssignSmallGroupList = new AssignSmallGroupList
+            {
+                m_AssignSmallGroupListData = new List<AssignSmallGroup>
+                {
+                    new AssignSmallGroup {
+                        ListEntityId = "001",
+                        Name = "夢嵩連碧小組",
+                        TotalNumber ="8",
+                        SundayNumber = "5",
+                        SmallGroupNumber = "4",
+                        SundayRate = "0.52",
+                        SmallGroupRate = "0.98",
+                        ReportContent = "很火熱"
+                    },
+                }
+            };
         }
 
 
         public String GetDisplayViewType()
         {
-            return m_MultiGroupChartDataList.m_MultiGroupChartDataList.Count > 1 ? "MultiGroupView" : "IntegrateView";
+            //return m_MultiGroupChartDataList.m_MultiGroupChartDataList.Count > 1 ? "MultiGroupView" : "IntegrateView";
+            return m_AssignSmallGroupList.m_AssignSmallGroupListData.Count > 1 ? "MultiGroupView" : "IntegrateView";
         }
 
 
