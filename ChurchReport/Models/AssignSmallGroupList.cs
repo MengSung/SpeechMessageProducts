@@ -29,7 +29,7 @@ namespace ChurchReport.Models
                 ReportContent = "很火熱"
             },
             new AssignSmallGroup {
-                ListEntityId = "3",
+                ListEntityId = "001",
                 Name = "生命樹",
                 TotalNumber ="9",
                 SundayNumber = "6",
@@ -39,7 +39,7 @@ namespace ChurchReport.Models
                 ReportContent = "很火熱"
             },
             new AssignSmallGroup {
-                ListEntityId = "4",
+                ListEntityId = "002",
                 Name = "得勝",
                 TotalNumber ="9",
                 SundayNumber = "6",
@@ -49,7 +49,7 @@ namespace ChurchReport.Models
                 ReportContent = "很火熱"
             },
             new AssignSmallGroup {
-                ListEntityId = "5",
+                ListEntityId = "001",
                 Name = "盼望",
                 TotalNumber ="9",
                 SundayNumber = "6",
