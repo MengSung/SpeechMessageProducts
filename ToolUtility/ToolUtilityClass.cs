@@ -1659,7 +1659,7 @@ namespace ToolUtilityNameSpace
             return dynamicmemberec;
         }
         #endregion
-        #region 取得組織
+        #region 取得客戶(Account)組織
 
         public Guid RetrieveAccountCollectionByName(String AccountName)
         {
@@ -2624,7 +2624,15 @@ namespace ToolUtilityNameSpace
                 StateCondidtion.Values.Add(0);
                 //StateCondidtion.Values.Add("使用中");
 
-                ConditionExpression DateTimeConditionPrincipal = new ConditionExpression("new_sunday_date", ConditionOperator.Equal, aSunday);
+                //ConditionExpression DateTimeConditionPrincipal = new ConditionExpression("new_sunday_date", ConditionOperator.Equal, aSunday);
+                //ConditionExpression DateTimeConditionPrincipal = new ConditionExpression("new_sunday_date", ConditionOperator.Equal, aSunday.ToShortDateString());
+                ConditionExpression DateTimeConditionPrincipal = new ConditionExpression();
+                DateTimeConditionPrincipal.AttributeName = "new_sunday_date";
+                DateTimeConditionPrincipal.Operator = ConditionOperator.On;
+                DateTimeConditionPrincipal.Values.Add(aSunday);
+
+
+
                 // Build the filter that is based on the condition.
                 FilterExpression filter = new FilterExpression();
                 filter.FilterOperator = LogicalOperator.And;
@@ -2646,7 +2654,6 @@ namespace ToolUtilityNameSpace
                 query.Criteria = filter;
                 query.Orders.Add(OrderByDate);
                 #endregion
-
 
                 #region // 執行 Query 的Request
                 // Create the request.

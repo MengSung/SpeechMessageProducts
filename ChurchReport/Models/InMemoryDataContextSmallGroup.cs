@@ -49,12 +49,14 @@ namespace ChurchReport.Models
             }
 
         }
-        public void SetupListManager( String FullName, String Account, String Password, DateTime aSelectDate, bool DisplayDateFlag)
+        public void SetupListManager( String Account, String Password, DateTime aSelectDate, bool DisplayDateFlag)
         {
             try
             {
                 // 設定多個組長處理資料
-                m_ListManager.SetupListManager();
+                m_ListManager.SetupListManager( Account,  Password,  aSelectDate);
+
+                //m_ListManager.SetupListManager();
 
                 //m_ListManager.SetupOnlyOneListManager();
             }

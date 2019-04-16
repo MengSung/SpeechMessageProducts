@@ -94,10 +94,9 @@ namespace ChurchReport.Controllers
                     String FullName = this.m_ToolUtilityClass.RetrieveEntityDynamics365("contact", aContactGuid).Attributes["fullname"].ToString();
 
                     // 設定多個組長處理需要的資料
-                    m_InMemoryDataContextSmallGroup.SetupListManager( FullName, aGalleryViewModel.Account, aGalleryViewModel.Password, DateTime.Now, true);
+                    m_InMemoryDataContextSmallGroup.SetupListManager( aGalleryViewModel.Account, aGalleryViewModel.Password, DateTime.Now, true);
 
                     String DisplayViewType = m_InMemoryDataContextSmallGroup.ListManager.GetDisplayViewType();
-
 
                     // 設定一般小組資料
                     //m_InMemoryDataContextSmallGroup.SetupSmallGroupData(FullName, aGalleryViewModel.Account, aGalleryViewModel.Password, DateTime.Now, true);

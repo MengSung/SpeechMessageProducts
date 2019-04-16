@@ -458,7 +458,6 @@
             width: 50
         });
     }
-
     function cell_prepared(e) {
         if (e.rowType === "data" && e.column.command === "edit") {
             var isEditing = e.row.isEditing,
@@ -494,24 +493,20 @@
 
         //alert("日期改變001");
     }
-
     function getLoadPanelInstance() {
         return $("#loadPanel").dxLoadPanel("instance");
     }
-
     function button_click() {
         getLoadPanelInstance().show();
     }
-
     function loadPanel_shown(e) {
         // setTimeout(function () {
         // e.component.hide();
         // }, 3000);
     }
-
-    function loadPanel_hidden() {
+    function loadPanel_hidden()
+    {
     }
-
     function SaveWeeklyReport(arg) {
 
         //debugger;
@@ -526,13 +521,34 @@
 
         //alert( getODataLocalDateFilter(arg.value) );
     }
-
     function cellTemplate(cellElement, cellInfo) {
     $('<a/>')
         .attr({ href: '@Url.RouteUrl("default", new { action = "IntegrateView", controller = "Home" })/' + `${cellInfo.data.ListEntityId}` })
         .text(`${cellInfo.data.Name}`)
         .appendTo(cellElement);
-}
+    }
+
+    MyApp = new DevExpress.framework.html.HtmlApplication
+        ({ 
+            defaultLayout: "myLayout"
+        //... 
+    });
+    MyApp.app.on("viewDisposing", function (args) {
+
+        debugger;
+        var viewModel = args.viewInfo.model;
+
+        alert("closing");
+    //...
+    });
+    MyApp.app.on("viewHidden", function (args) {
+                debugger;
+
+        var viewModel = args.viewInfo.model;
+
+        alert("hidding");
+    //...
+    });
 
 </script>
 <script>var DataUploadStatus = "尚未上傳喔!";</script>

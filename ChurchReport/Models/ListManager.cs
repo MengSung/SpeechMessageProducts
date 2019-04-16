@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ChurchReport.WebServiceConnector;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -8,20 +9,22 @@ namespace ChurchReport.Models
     public class ListManager
     {
         public DateTime SundayPrayers { get; set; } // 小組日期
-        public String LoginType { get; set; }
-        public String LoginFullName { get; set; }
-        public String ActiveListId { get; set; }
+        public String LoginType; //{ get; set; }
+        public String LoginFullName; //{ get; set; }
+        public String ActiveListId; //{ get; set; }
 
         // 新增新人時，選擇進入哪一個小組的清單
-        public AssignSmallGroupList m_AssignSmallGroupList;
+        public AssignSmallGroupList m_AssignSmallGroupList = new AssignSmallGroupList();
         public ListSmallGroupWeeklyReport m_SmallGroupWeeklyReport { get; set; }
 
-        public MultiGroupChartDataList m_MultiGroupChartDataList;
+        public MultiGroupChartDataList m_MultiGroupChartDataList = new MultiGroupChartDataList();
 
-        public void SetupListManager(String FullName, String Account, String Password, DateTime aSelectDate, bool DisplayDateFlag)
+
+        DownloadListManager m_DownloadListManager = new DownloadListManager();
+
+        public void SetupListManager(String Account, String Password, DateTime aSelectDate )
         {
-            LoginType = "小組長";
-            LoginFullName = "跟隨者";
+            m_DownloadListManager.GetListManager(Account, Password, aSelectDate, ref m_AssignSmallGroupList, ref m_MultiGroupChartDataList, ref LoginType, ref LoginFullName, ref ActiveListId);
 
             m_MultiGroupChartDataList = new MultiGroupChartDataList
             {
