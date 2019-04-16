@@ -54,9 +54,9 @@ namespace ChurchReport.Models
             try
             {
                 // 設定多個組長處理資料
-                m_ListManager.SetupListManager( Account,  Password,  aSelectDate);
+                //m_ListManager.SetupListManager( Account,  Password,  aSelectDate);
 
-                //m_ListManager.SetupListManager();
+                m_ListManager.SetupListManager();
 
                 //m_ListManager.SetupOnlyOneListManager();
             }
