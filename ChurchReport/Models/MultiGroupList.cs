@@ -5,8 +5,8 @@ using System.Threading.Tasks;
 
 namespace ChurchReport.Models
 {
-    public class AssignSmallGroupList
+    public class MultiGroupList
     {
-        public List<AssignSmallGroup> m_AssignSmallGroupListData { get; set; }
+        public List<WeeklyReportRecord> m_WeeklyReportRecordListData { get; set; }
     }
 }

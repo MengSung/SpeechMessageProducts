@@ -14,7 +14,7 @@ namespace ChurchReport.Models
         public String ActiveListId; //{ get; set; }
 
         // 新增新人時，選擇進入哪一個小組的清單
-        public AssignSmallGroupList m_AssignSmallGroupList = new AssignSmallGroupList();
+        public MultiGroupList m_MultiGroupList = new MultiGroupList();
         public ListSmallGroupWeeklyReport m_SmallGroupWeeklyReport { get; set; }
 
         public MultiGroupChartDataList m_MultiGroupChartDataList = new MultiGroupChartDataList();
@@ -24,7 +24,7 @@ namespace ChurchReport.Models
 
         public void SetupListManager(String Account, String Password, DateTime aSelectDate )
         {
-            m_DownloadListManager.GetListManager(Account, Password, aSelectDate, ref m_AssignSmallGroupList, ref m_MultiGroupChartDataList, ref LoginType, ref LoginFullName, ref ActiveListId);
+            m_DownloadListManager.GetListManager(Account, Password, aSelectDate, ref m_MultiGroupList, ref m_MultiGroupChartDataList, ref LoginType, ref LoginFullName, ref ActiveListId);
 
             m_MultiGroupChartDataList = new MultiGroupChartDataList
             {
@@ -86,11 +86,11 @@ namespace ChurchReport.Models
             };
 
             // 表格需要的資料
-            m_AssignSmallGroupList = new AssignSmallGroupList
+            m_MultiGroupList = new MultiGroupList
             {
-                m_AssignSmallGroupListData = new List<AssignSmallGroup>
+                m_WeeklyReportRecordListData = new List<WeeklyReportRecord>
                 {
-                    new AssignSmallGroup {
+                    new WeeklyReportRecord {
                         ListEntityId = "001",
                         Name = "夢嵩連碧小組",
                         TotalNumber ="8",
@@ -100,7 +100,7 @@ namespace ChurchReport.Models
                         SmallGroupRate = "0.98",
                         ReportContent = "很火熱"
                     },
-                    new AssignSmallGroup {
+                    new WeeklyReportRecord {
                         ListEntityId = "002",
                         Name = "永初雅慧小組",
                         TotalNumber ="12",
@@ -110,7 +110,7 @@ namespace ChurchReport.Models
                         SmallGroupRate = "0.74",
                         ReportContent = "很火熱"
                     },
-                    new AssignSmallGroup {
+                    new WeeklyReportRecord {
                         ListEntityId = "001",
                         Name = "萬全敏惠小組",
                         TotalNumber ="10",
@@ -120,7 +120,7 @@ namespace ChurchReport.Models
                         SmallGroupRate = "0.84",
                         ReportContent = "很火熱"
                     },
-                    new AssignSmallGroup {
+                    new WeeklyReportRecord {
                         ListEntityId = "002",
                         Name = "寶珠小組",
                         TotalNumber ="9",
@@ -130,7 +130,7 @@ namespace ChurchReport.Models
                         SmallGroupRate = "0.83",
                         ReportContent = "很火熱"
                     },
-                    new AssignSmallGroup {
+                    new WeeklyReportRecord {
                         ListEntityId = "001",
                         Name = "秋萍小組",
                         TotalNumber ="16",
@@ -150,11 +150,11 @@ namespace ChurchReport.Models
             LoginFullName = "跟隨者";
             SundayPrayers = DateTime.Now;
             ActiveListId = "001";
-            m_AssignSmallGroupList = new AssignSmallGroupList
+            m_MultiGroupList = new MultiGroupList
             {
-                m_AssignSmallGroupListData = new List<AssignSmallGroup>
+                m_WeeklyReportRecordListData = new List<WeeklyReportRecord>
                 {
-                    new AssignSmallGroup {
+                    new WeeklyReportRecord {
                         ListEntityId = "001",
                         Name = "夢嵩連碧小組",
                         TotalNumber ="8",
@@ -172,7 +172,7 @@ namespace ChurchReport.Models
         public String GetDisplayViewType()
         {
             //return m_MultiGroupChartDataList.m_MultiGroupChartDataList.Count > 1 ? "MultiGroupView" : "IntegrateView";
-            return m_AssignSmallGroupList.m_AssignSmallGroupListData.Count > 1 ? "MultiGroupView" : "IntegrateView";
+            return m_MultiGroupList.m_WeeklyReportRecordListData.Count > 1 ? "MultiGroupView" : "IntegrateView";
         }
 
 

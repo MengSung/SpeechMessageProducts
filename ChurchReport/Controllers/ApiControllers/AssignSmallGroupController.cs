@@ -14,20 +14,10 @@ using Microsoft.Extensions.Caching.Memory;
 namespace ChurchReport.Controllers
 {
     //[Route("apicontroller/[controller]")]
-    public class AssignSmallGroupController : Controller
+    public class MultiGroupController : Controller
     {
-        public AssignSmallGroupController()
+        public MultiGroupController()
         { }
 
-        //[HttpGet]
-        //public object Get(DataSourceLoadOptions loadOptions)
-        //{
-        //    //return DataSourceLoader.Load(AssignSmallGroupList.AssignSmallGroupListData, loadOptions);
-        //}
-        //[HttpGet]
-        //public ActionResult GetType(DataSourceLoadOptions loadOptions)
-        //{
-        //    //return Content(JsonConvert.SerializeObject(DataSourceLoader.Load(AssignSmallGroupList.AssignSmallGroupListData, loadOptions)), "application/json");
-        //}
     }
 }

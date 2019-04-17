@@ -116,10 +116,10 @@ namespace ChurchReport.Models
                 int GroupIndex = Convert.ToInt32(aPersonFormViewModel.Position);
 
                 // 幸福小組長上傳新人有可能沒有所屬小組可選
-                if (SmallGroupDataList.m_AssignSmallGroupList.m_AssignSmallGroupListData.Count > 0)
+                if (SmallGroupDataList.m_MultiGroupList.m_WeeklyReportRecordListData.Count > 0)
                 {
                     // 如果有所屬小組
-                    m_NewContact.GroupName = SmallGroupDataList.m_AssignSmallGroupList.m_AssignSmallGroupListData[Convert.ToInt32(aPersonFormViewModel.Position)].Name;
+                    m_NewContact.GroupName = SmallGroupDataList.m_MultiGroupList.m_WeeklyReportRecordListData[Convert.ToInt32(aPersonFormViewModel.Position)].Name;
                 }
                 else
                 {

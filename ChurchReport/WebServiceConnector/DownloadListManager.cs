@@ -76,13 +76,24 @@ namespace ChurchReport.WebServiceConnector
         String m_SmallGroupPlace;
         String m_SmallGroupTime;
 
+        public MultiGroupList m_MultiGroupList = new MultiGroupList();
+
+        public MultiGroupChartDataList m_MultiGroupChartDataList = new MultiGroupChartDataList();
+
         private const bool RACE_LEADER_CAN_CREATE_WEEKLYREPORT = true; // 族系組長能否幫小組長建立週報， true是可以
         #endregion
         #region 下載資料區
-        #region 真實運作區塊，並非模擬區塊
         #region 主程式區
-        public void GetListManager( String Account, String Password, DateTime aDownloadDate, ref AssignSmallGroupList aAssignSmallGroupList, ref MultiGroupChartDataList aMultiGroupChartDataList, ref String LoginType, ref String LoginFullName, ref String ActiveListId )
+        public void GetListManager( String Account, String Password, DateTime aDownloadDate, ref MultiGroupList aMultiGroupList, ref MultiGroupChartDataList aMultiGroupChartDataList, ref String LoginType, ref String LoginFullName, ref String ActiveListId )
         {
+            #region 多小組需要的資料結構，在此配置記憶體，並回傳給上層呼叫者
+            m_MultiGroupList.m_WeeklyReportRecordListData = new List<WeeklyReportRecord>();
+
+            aMultiGroupList = m_MultiGroupList;
+
+            aMultiGroupChartDataList = m_MultiGroupChartDataList;
+            #endregion
+
             #region 先根據日期尋找當週主日日期
             // 其值的範圍從 0 (表示 DayOfWeek.Sunday) 為 6 (表示 DayOfWeek.Saturday)。
             int DayOfWeek = (int)aDownloadDate.DayOfWeek;
@@ -135,6 +146,8 @@ namespace ChurchReport.WebServiceConnector
             }
             #endregion
         }
+
+
         #endregion
         #region 處理小組名單
         private void ProcessListEntity()
@@ -158,8 +171,8 @@ namespace ChurchReport.WebServiceConnector
                     //    沒有: 建立GroupName及WeeklyReportId = Guid.Empty();
                     String GroupName = this.m_ToolUtilityClass.GetEntityStringAttribute(ListEntity, "listname");
 
+                    SetupWeeklyReportRecord(this.m_MultiGroupList.m_WeeklyReportRecordListData, ListEntity, GroupWeeklyReportEntity);
 
-                    //SetupMemberInfomationPackage(GroupName, ref GroupWeeklyReportEntity, ListEntity);
                 }
                 return;
             }
@@ -169,6 +182,96 @@ namespace ChurchReport.WebServiceConnector
 
                 throw Exception;
             }
+        }
+
+        public void SetupWeeklyReportRecord(List<WeeklyReportRecord> aWeeklyReportRecordListData, Entity ListEntity, Entity GroupWeeklyReportEntity)
+        {
+            try
+            {
+                if (GroupWeeklyReportEntity != null)
+                {
+                    aWeeklyReportRecordListData.Add
+                    (
+                         new WeeklyReportRecord
+                         {
+                             ListEntityId = ListEntity.Id.ToString(),
+                             Name = this.m_ToolUtilityClass.GetEntityStringAttribute(ListEntity, "name"),
+                             TotalNumber = m_ToolUtilityClass.GetEntityStringAttribute(GroupWeeklyReportEntity, "new_small_group_member_number"),
+                             SundayNumber = m_ToolUtilityClass.GetEntityIntAttribute(GroupWeeklyReportEntity, "new_sunday_present_number").ToString(),
+                             SundayRate = m_ToolUtilityClass.GetEntityDoubleAttribute(GroupWeeklyReportEntity, "new_sunday_present_rate").ToString(),
+                             SmallGroupNumber = m_ToolUtilityClass.GetEntityIntAttribute(GroupWeeklyReportEntity, "new_sunday_present_number").ToString(),
+                             SmallGroupRate = m_ToolUtilityClass.GetEntityDoubleAttribute(GroupWeeklyReportEntity, "new_small_group_rate").ToString(),
+                         }
+                    );
+                }
+                else
+                {
+                    aWeeklyReportRecordListData.Add
+                    (
+                         new WeeklyReportRecord
+                         {
+                             ListEntityId = ListEntity.Id.ToString(),
+                             Name = this.m_ToolUtilityClass.GetEntityStringAttribute(ListEntity, "name"),
+                             TotalNumber = GetSmallGroupMemberNumber(ListEntity.Id).ToString(),
+                             SundayNumber = "0",
+                             SundayRate = "0",
+                             SmallGroupNumber = "0",
+                             SmallGroupRate = "0",
+                         }
+                    );
+
+                }
+
+                return;
+            }
+            catch (System.Exception Exception)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
+
+                throw Exception;
+            }
+        }
+        private int GetSmallGroupMemberNumber(Guid ListEntityId)
+        {
+            #region // 初始化每個小組名單，建立原始的 Member Data
+
+            #region 取得小組名單，一個一個的連絡人實體
+            //搜尋名單的組員
+            //EntityCollection Contacts = m_ToolUtilityClass.RetrieveManyToOneRelationship("list", "listid", ListEntityId.ToString(), "new_cell_list_contact", "contact");
+
+            Entity ListEntity = this.m_ToolUtilityClass.RetrieveEntity("list", ListEntityId);
+
+            bool ListType = this.m_ToolUtilityClass.GetEntityBoolAttribute(ListEntity, "type");
+            EntityCollection MemberCollection;
+            if (ListType == false)
+            {
+                // 靜態名單
+                if (CRM_TYPE == "DYNAMICS365")
+                {
+                    MemberCollection = this.m_ToolUtilityClass.RetrieveMemberListCollectionByListIdDynamics365(ref this.m_ToolUtilityClass.m_OrganizationService, ListEntityId);
+                }
+                else
+                {
+                    MemberCollection = this.m_ToolUtilityClass.RetrieveMemberListCollectionByListIdCrm2011(ref this.m_ToolUtilityClass.m_Crm2011OrganizationService, ListEntityId);
+                }
+            }
+            else
+            {
+                // 動態名單
+                if (CRM_TYPE == "DYNAMICS365")
+                {
+                    MemberCollection = this.m_ToolUtilityClass.RetrieveDynamicMemberListDynamics365(ref this.m_ToolUtilityClass.m_OrganizationService, ListEntityId);
+                }
+                else
+                {
+                    MemberCollection = this.m_ToolUtilityClass.RetrieveDynamicMemberListCrm2011(ref this.m_ToolUtilityClass.m_Crm2011OrganizationService, ListEntityId);
+                }
+            }
+            #endregion
+
+            return MemberCollection.Entities.Count;
+
+            #endregion
         }
 
         #endregion
@@ -563,7 +666,6 @@ namespace ChurchReport.WebServiceConnector
                 throw Exception;
             }
         }
-        #endregion
         #endregion
         #endregion
     }
