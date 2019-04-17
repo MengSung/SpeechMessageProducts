@@ -27,32 +27,6 @@ namespace ChurchReport.Models
             SundayPrayers = aSelectDate;
 
             m_DownloadListManager.GetListManager(Account, Password, aSelectDate, ref m_MultiGroupList, ref m_MultiGroupChartDataList, ref LoginType, ref LoginFullName, ref ActiveListId);
-
-            m_MultiGroupChartDataList = new MultiGroupChartDataList
-            {
-                m_MultiGroupChartDataList = new List<MultiGroupChartData>
-                {
-                    new MultiGroupChartData
-                    {
-                        ID = "001",
-                        Name= "總人數",
-                        Number = 45
-                    },
-                    new MultiGroupChartData
-                    {
-                        ID = "002",
-                        Name= "主日人數",
-                        Number = 30
-                    },
-                    new MultiGroupChartData
-                    {
-                        ID = "003",
-                        Name= "小組人數",
-                        Number = 25
-                    }
-                }
-            };
-
         }
         public void SetupListManager()
         {

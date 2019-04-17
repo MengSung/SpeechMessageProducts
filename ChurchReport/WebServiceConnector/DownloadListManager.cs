@@ -91,6 +91,33 @@ namespace ChurchReport.WebServiceConnector
 
             aMultiGroupList = m_MultiGroupList;
 
+            //m_MultiGroupChartDataList.m_MultiGroupChartDataList = new List<MultiGroupChartData>();
+
+            m_MultiGroupChartDataList = new MultiGroupChartDataList
+            {
+                m_MultiGroupChartDataList = new List<MultiGroupChartData>
+                {
+                    new MultiGroupChartData
+                    {
+                        ID = "001",
+                        Name= "總人數",
+                        Number = 0
+                    },
+                    new MultiGroupChartData
+                    {
+                        ID = "002",
+                        Name= "主日人數",
+                        Number = 0
+                    },
+                    new MultiGroupChartData
+                    {
+                        ID = "003",
+                        Name= "小組人數",
+                        Number = 0
+                    }
+                }
+            };
+
             aMultiGroupChartDataList = m_MultiGroupChartDataList;
             #endregion
 
@@ -205,6 +232,11 @@ namespace ChurchReport.WebServiceConnector
                              SmallGroupRate = m_ToolUtilityClass.GetEntityDoubleAttribute(GroupWeeklyReportEntity, "new_small_group_rate").ToString(),
                          }
                     );
+
+                    int aTotalMemberNumber = TotalMemberNumber != "" ? Convert.ToInt32(TotalMemberNumber) : GetSmallGroupMemberNumber(ListEntity.Id);
+                    this.m_MultiGroupChartDataList.m_MultiGroupChartDataList.Where(e => e.ID == "001").First().Number = this.m_MultiGroupChartDataList.m_MultiGroupChartDataList.Where(e => e.ID == "001").First().Number + aTotalMemberNumber;
+                    this.m_MultiGroupChartDataList.m_MultiGroupChartDataList.Where(e => e.ID == "002").First().Number = this.m_MultiGroupChartDataList.m_MultiGroupChartDataList.Where(e => e.ID == "002").First().Number + m_ToolUtilityClass.GetEntityIntAttribute(GroupWeeklyReportEntity, "new_sunday_present_number");
+                    this.m_MultiGroupChartDataList.m_MultiGroupChartDataList.Where(e => e.ID == "003").First().Number = this.m_MultiGroupChartDataList.m_MultiGroupChartDataList.Where(e => e.ID == "003").First().Number + m_ToolUtilityClass.GetEntityIntAttribute(GroupWeeklyReportEntity, "new_sunday_present_number");
                 }
                 else
                 {
@@ -221,6 +253,9 @@ namespace ChurchReport.WebServiceConnector
                              SmallGroupRate = "0",
                          }
                     );
+
+                    int aTotalMemberNumber = GetSmallGroupMemberNumber(ListEntity.Id);
+                    this.m_MultiGroupChartDataList.m_MultiGroupChartDataList.Where(e => e.ID == "001").First().Number = this.m_MultiGroupChartDataList.m_MultiGroupChartDataList.Where(e => e.ID == "001").First().Number + aTotalMemberNumber;
 
                 }
 
