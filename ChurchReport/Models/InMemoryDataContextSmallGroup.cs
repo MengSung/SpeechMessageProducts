@@ -32,23 +32,6 @@ namespace ChurchReport.Models
         }
         #endregion
         #region 多個組長處理區
-
-        public void SetupListManager(String ActiveListId, String FullName, String Account, String Password, DateTime aSelectDate, bool DisplayDateFlag)
-        {
-            try
-            {
-                m_ListManager.ActiveListId = ActiveListId;
-
-                m_ListManager.SetupListManager();
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-
-                throw e;
-            }
-
-        }
         public void SetupListManager( String Account, String Password, DateTime aSelectDate, bool DisplayDateFlag)
         {
             try
