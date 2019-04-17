@@ -288,7 +288,7 @@
 
             .Columns(columns =>
             {
-                columns.AddFor(m => m.ListEntityId).Caption("名稱").Fixed(true).Width(100).MinWidth(20).CellTemplate(new JS("cellTemplate"));
+                columns.AddFor(m => m.ListEntityId).Caption("名稱").Fixed(true).Width(150).MinWidth(20).CellTemplate(new JS("cellTemplate"));
                 //columns.AddFor(m => m.Name).Caption("名稱").Fixed(true).Width(60).MinWidth(20).Alignment(HorizontalAlignment.Left).AllowSorting(false);
                 columns.AddFor(m => m.TotalNumber).Caption("總人數").Fixed(false).Width(100).MinWidth(20).Alignment(HorizontalAlignment.Center).AllowSorting(false);
                 columns.AddFor(m => m.SundayNumber).Caption("主日人數").Width(100).MinWidth(45).Alignment(HorizontalAlignment.Center).AllowSorting(false);

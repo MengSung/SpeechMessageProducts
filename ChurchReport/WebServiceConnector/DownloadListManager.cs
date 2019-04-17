@@ -120,6 +120,7 @@ namespace ChurchReport.WebServiceConnector
             {
                 #region// 有找到要點名的名單，所以是小組長以上回報
                 LoginType = "小組長";
+                ActiveListId = this.m_Lists.Entities[0].Id.ToString();
                 #region 處理每個要點名的名單
                 ProcessListEntity();
                 #endregion
@@ -190,13 +191,14 @@ namespace ChurchReport.WebServiceConnector
             {
                 if (GroupWeeklyReportEntity != null)
                 {
+                    String TotalMemberNumber = m_ToolUtilityClass.GetEntityStringAttribute(GroupWeeklyReportEntity, "new_small_group_member_number");
                     aWeeklyReportRecordListData.Add
                     (
                          new WeeklyReportRecord
                          {
                              ListEntityId = ListEntity.Id.ToString(),
-                             Name = this.m_ToolUtilityClass.GetEntityStringAttribute(ListEntity, "name"),
-                             TotalNumber = m_ToolUtilityClass.GetEntityStringAttribute(GroupWeeklyReportEntity, "new_small_group_member_number"),
+                             Name = this.m_ToolUtilityClass.GetEntityStringAttribute(ListEntity, "listname"),
+                             TotalNumber = TotalMemberNumber != ""? TotalMemberNumber : GetSmallGroupMemberNumber(ListEntity.Id).ToString(),
                              SundayNumber = m_ToolUtilityClass.GetEntityIntAttribute(GroupWeeklyReportEntity, "new_sunday_present_number").ToString(),
                              SundayRate = m_ToolUtilityClass.GetEntityDoubleAttribute(GroupWeeklyReportEntity, "new_sunday_present_rate").ToString(),
                              SmallGroupNumber = m_ToolUtilityClass.GetEntityIntAttribute(GroupWeeklyReportEntity, "new_sunday_present_number").ToString(),
@@ -211,7 +213,7 @@ namespace ChurchReport.WebServiceConnector
                          new WeeklyReportRecord
                          {
                              ListEntityId = ListEntity.Id.ToString(),
-                             Name = this.m_ToolUtilityClass.GetEntityStringAttribute(ListEntity, "name"),
+                             Name = this.m_ToolUtilityClass.GetEntityStringAttribute(ListEntity, "listname"),
                              TotalNumber = GetSmallGroupMemberNumber(ListEntity.Id).ToString(),
                              SundayNumber = "0",
                              SundayRate = "0",
