@@ -253,33 +253,41 @@ namespace ChurchReport.Controllers
 
                 if (LoginParameter != "AccountPassword")
                 {
-                    #region 用小組長回報網頁登入
-                    if (m_InMemoryDataContextSmallGroup.ListManager.m_SmallGroupWeeklyReport != null)
+                    String DisplayViewType = m_InMemoryDataContextSmallGroup.ListManager.GetDisplayViewType();
+                    if (DisplayViewType == "MultiGroupView")
                     {
-                        // 登入到多小組回報，整合是頁面要先歸零
-                        m_InMemoryDataContextSmallGroup.ListManager.m_SmallGroupWeeklyReport.LoadFlag = false;
-                    }
+                        #region 用小組長回報網頁登入
+                        if (m_InMemoryDataContextSmallGroup.ListManager.m_SmallGroupWeeklyReport != null)
+                        {
+                            // 登入到多小組回報，整合是頁面要先歸零
+                            m_InMemoryDataContextSmallGroup.ListManager.m_SmallGroupWeeklyReport.LoadFlag = false;
+                        }
 
-                    ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType; // 看是小組長還是個人回報
-                    ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.ListManager.LoginFullName;
+                        ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType; // 看是小組長還是個人回報
+                        ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.ListManager.LoginFullName;
 
-                    ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType;
-                    if (m_InMemoryDataContextSmallGroup.HappyGroupDataManager.HappyType == "有幸福小組名單")
-                    {
-                        ViewBag.HappyType = "有幸福小組名單";
+                        ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType;
+                        if (m_InMemoryDataContextSmallGroup.HappyGroupDataManager.HappyType == "有幸福小組名單")
+                        {
+                            ViewBag.HappyType = "有幸福小組名單";
+                        }
+                        else
+                        {
+                            ViewBag.HappyType = "沒幸福小組名單";
+                        }
+
+
+                        //ListSmallGroupWeeklyReport bSmallGroupData = m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.Where(e => e.ListEntityId == "001").ToList()[0];
+
+                        //return View(m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.Where(e => e.ListEntityId == m_InMemoryDataContextSmallGroup.m_ListManager.ActiveListId).Select());
+                        return View(m_InMemoryDataContextSmallGroup.ListManager);
+                        //return View(m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.Select(ListEntityId=> m_InMemoryDataContextSmallGroup.m_ListManager.ActiveListId));
+                        #endregion
                     }
                     else
                     {
-                        ViewBag.HappyType = "沒幸福小組名單";
+                        return RedirectToAction("IntegrateView");
                     }
-
-
-                    //ListSmallGroupWeeklyReport bSmallGroupData = m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.Where(e => e.ListEntityId == "001").ToList()[0];
-
-                    //return View(m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.Where(e => e.ListEntityId == m_InMemoryDataContextSmallGroup.m_ListManager.ActiveListId).Select());
-                    return View(m_InMemoryDataContextSmallGroup.ListManager);
-                    //return View(m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.Select(ListEntityId=> m_InMemoryDataContextSmallGroup.m_ListManager.ActiveListId));
-                    #endregion
                 }
                 else if (LoginParameter == "jquery.js")
                 {
@@ -342,10 +350,19 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                ViewBag.ListId = m_InMemoryDataContextSmallGroup.ListManager.ActiveListId = LoginParameter;
+                //ViewBag.ListId = m_InMemoryDataContextSmallGroup.ListManager.ActiveListId = LoginParameter;
 
                 if (LoginParameter != "AccountPassword")
                 {
+                    if (m_InMemoryDataContextSmallGroup.ListManager.GetDisplayViewType() == "IntegrateView")
+                    {
+                        ViewBag.ListId = m_InMemoryDataContextSmallGroup.ListManager.ActiveListId;
+                    }
+                    else
+                    {
+                        ViewBag.ListId = m_InMemoryDataContextSmallGroup.ListManager.ActiveListId = LoginParameter;
+                    }
+
                     #region 用小組長回報網頁登入
                     ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType; // 看是小組長還是個人回報
                     ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.ListManager.LoginFullName;
