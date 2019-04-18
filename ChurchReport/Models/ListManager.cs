@@ -152,7 +152,7 @@ namespace ChurchReport.Models
         }
 
 
-        public void SetupListSmallGroupWeeklyReport( String ListEntityId)
+        public void SetupIntegrateData( String ListEntityId)
         {
             switch (ListEntityId)
             {
@@ -174,27 +174,27 @@ namespace ChurchReport.Models
                                 m_SmallGroupData = new SmallGroupData
                                 {
                                     Members = new List<Member>
-                            {
-                                new Member
-                                {
-                                     PresentRecordId = "AAA",
-                                     //Id = 1,
-                                     FullName = "胡夢嵩",
-                                     Phone = "0910391931",
-                                     Address = "桃園市楊梅區三民路",
-                                     Sunday = true,
-                                     SmallGroup = true,
-                                },
-                                new Member
-                                {
-                                     PresentRecordId = "BBB",
-                                     FullName = "吳連碧",
-                                     Phone = "0921834289",
-                                     Address = "台北市大安區敦化北路",
-                                     Sunday = true,
-                                     SmallGroup = true,
-                                },
-                            }
+                                    {
+                                        new Member
+                                        {
+                                             PresentRecordId = "AAA",
+                                             //Id = 1,
+                                             FullName = "胡夢嵩",
+                                             Phone = "0910391931",
+                                             Address = "桃園市楊梅區三民路",
+                                             Sunday = true,
+                                             SmallGroup = true,
+                                        },
+                                        new Member
+                                        {
+                                             PresentRecordId = "BBB",
+                                             FullName = "吳連碧",
+                                             Phone = "0921834289",
+                                             Address = "台北市大安區敦化北路",
+                                             Sunday = true,
+                                             SmallGroup = true,
+                                        },
+                                    }
                                 },
                                 m_NewPersonFollowUpData = new SmallGroupData
                                 {

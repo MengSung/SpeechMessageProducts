@@ -96,32 +96,26 @@ namespace ChurchReport.Controllers
                     // 設定多個組長處理需要的資料
                     m_InMemoryDataContextSmallGroup.SetupListManager( aGalleryViewModel.Account, aGalleryViewModel.Password, DateTime.Now, true);
 
-                    // 透過取得多小組網頁需要的資料之後，得知這是單一小組長的回報
+                    // 透過取得多小組網頁需要的資料之後，判斷這是多小組還是單一小組長的回報
                     String DisplayViewType = m_InMemoryDataContextSmallGroup.ListManager.GetDisplayViewType();
-
-                    if (DisplayViewType == "IntegrateView")
+                    if ( DisplayViewType == "IntegrateView")
                     {
                         // 得知這是單一小組長的回報，所以就直接下載整合式網頁所需的資料
-                        m_InMemoryDataContextSmallGroup.ListManager.SetupListSmallGroupWeeklyReport(m_InMemoryDataContextSmallGroup.ListManager.ActiveListId);
-                        //if (m_InMemoryDataContextSmallGroup.ListManager.m_SmallGroupWeeklyReport == null)
-                        //{
-                        //    m_InMemoryDataContextSmallGroup.ListManager.SetupListSmallGroupWeeklyReport(m_InMemoryDataContextSmallGroup.ListManager.ActiveListId);
-                        //}
-                        //else if (m_InMemoryDataContextSmallGroup.ListManager.m_SmallGroupWeeklyReport.LoadFlag == false)
-                        //{
-                        //    m_InMemoryDataContextSmallGroup.ListManager.SetupListSmallGroupWeeklyReport(m_InMemoryDataContextSmallGroup.ListManager.ActiveListId);
-                        //}
-                        //else { }
+                        m_InMemoryDataContextSmallGroup.ListManager.SetupIntegrateData(m_InMemoryDataContextSmallGroup.ListManager.ActiveListId);
+                    }
+                    else
+                    {
+                        // 得知這是多小組的回報，就不需要下載整合式網頁所需的資料
                     }
 
-                        // 設定一般小組資料
-                        //m_InMemoryDataContextSmallGroup.SetupSmallGroupData(FullName, aGalleryViewModel.Account, aGalleryViewModel.Password, DateTime.Now, true);
+                    // 設定一般小組資料
+                    //m_InMemoryDataContextSmallGroup.SetupSmallGroupData(FullName, aGalleryViewModel.Account, aGalleryViewModel.Password, DateTime.Now, true);
 
-                        // 設定週報資料
-                        //m_InMemoryDataContextSmallGroup.SetupWeeklyReport(aGalleryViewModel.Account, aGalleryViewModel.Password, m_InMemoryDataContextSmallGroup.m_SmallGroupDataList.m_SundayDate);
+                    // 設定週報資料
+                    //m_InMemoryDataContextSmallGroup.SetupWeeklyReport(aGalleryViewModel.Account, aGalleryViewModel.Password, m_InMemoryDataContextSmallGroup.m_SmallGroupDataList.m_SundayDate);
 
-                        // 設定幸福小組資料
-                        m_InMemoryDataContextSmallGroup.SetupHappyGroupData(aGalleryViewModel.Account, aGalleryViewModel.Password);
+                    // 設定幸福小組資料
+                    m_InMemoryDataContextSmallGroup.SetupHappyGroupData(aGalleryViewModel.Account, aGalleryViewModel.Password);
 
                     // 設定繳費與報名資料
                     m_InMemoryDataContextSmallGroup.FeeList.SetupFeeDataList(aGalleryViewModel.Account, aGalleryViewModel.Password);
@@ -134,6 +128,8 @@ namespace ChurchReport.Controllers
                         ViewBag.HappyType = "有幸福小組名單";
                         ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType;
 
+                        SetMultiGroupLayoutParameter();
+
                         return Json(new { DisplayViewType = DisplayViewType, ActiveListId = m_InMemoryDataContextSmallGroup.ListManager.ActiveListId, message = "歡迎" + FullName + "登入成功!", fullname = FullName, account = aGalleryViewModel.Account, password = aGalleryViewModel.Password });
                     }
                     else if (m_InMemoryDataContextSmallGroup.ListManager.LoginType == "小組長" && m_InMemoryDataContextSmallGroup.HappyGroupDataManager.HappyType == "沒幸福小組名單")
@@ -143,6 +139,7 @@ namespace ChurchReport.Controllers
                         ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.ListManager.LoginFullName;
                         ViewBag.HappyType = "沒幸福小組名單";
                         ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType;
+                        SetMultiGroupLayoutParameter();
 
                         return Json(new { DisplayViewType = DisplayViewType, ActiveListId = m_InMemoryDataContextSmallGroup.ListManager.ActiveListId, message = "歡迎" + FullName + "登入成功!", fullname = FullName, account = aGalleryViewModel.Account, password = aGalleryViewModel.Password });
                     }
@@ -153,6 +150,7 @@ namespace ChurchReport.Controllers
                         ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.ListManager.LoginFullName;
                         ViewBag.HappyType = "沒幸福小組名單";
                         ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType;
+                        SetMultiGroupLayoutParameter();
 
                         return Json(new { DisplayViewType = DisplayViewType, ActiveListId = m_InMemoryDataContextSmallGroup.ListManager.ActiveListId, message = "歡迎" + FullName + "登入成功!", fullname = FullName, account = aGalleryViewModel.Account, password = aGalleryViewModel.Password });
                     }
@@ -163,6 +161,7 @@ namespace ChurchReport.Controllers
                         ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.ListManager.LoginFullName;
                         ViewBag.HappyType = "有幸福小組名單";
                         ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType;
+                        SetMultiGroupLayoutParameter();
 
                         DisplayViewType = "HappyGroupView";
                         return Json(new { DisplayViewType = DisplayViewType, ActiveListId = m_InMemoryDataContextSmallGroup.ListManager.ActiveListId, message = "歡迎" + FullName + "登入成功!", fullname = FullName, account = aGalleryViewModel.Account, password = aGalleryViewModel.Password });
@@ -173,6 +172,7 @@ namespace ChurchReport.Controllers
                         ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.ListManager.LoginFullName;
                         ViewBag.HappyType = "沒幸福小組名單";
                         ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType;
+                        SetMultiGroupLayoutParameter();
 
                         DisplayViewType = "HappyGroupView";
                         return Json(new { DisplayViewType = DisplayViewType, ActiveListId = m_InMemoryDataContextSmallGroup.ListManager.ActiveListId, message = "歡迎" + FullName + "登入成功!", fullname = FullName, account = aGalleryViewModel.Account, password = aGalleryViewModel.Password });
@@ -459,7 +459,7 @@ namespace ChurchReport.Controllers
                             ViewBag.HappyType = "沒幸福小組名單";
                         }
 
-                        m_InMemoryDataContextSmallGroup.ListManager.SetupListSmallGroupWeeklyReport(LoginParameter);
+                        m_InMemoryDataContextSmallGroup.ListManager.SetupIntegrateData(LoginParameter);
                         return View(m_InMemoryDataContextSmallGroup.ListManager.m_SmallGroupWeeklyReport);
                     }
                     #endregion
@@ -486,11 +486,11 @@ namespace ChurchReport.Controllers
 
                 if (m_InMemoryDataContextSmallGroup.ListManager.m_SmallGroupWeeklyReport == null)
                 {
-                    m_InMemoryDataContextSmallGroup.ListManager.SetupListSmallGroupWeeklyReport(id);
+                    m_InMemoryDataContextSmallGroup.ListManager.SetupIntegrateData(id);
                 }
                 else if (m_InMemoryDataContextSmallGroup.ListManager.m_SmallGroupWeeklyReport.LoadFlag == false)
                 {
-                    m_InMemoryDataContextSmallGroup.ListManager.SetupListSmallGroupWeeklyReport(id);
+                    m_InMemoryDataContextSmallGroup.ListManager.SetupIntegrateData(id);
                 }
                 else { }
 
@@ -708,7 +708,7 @@ namespace ChurchReport.Controllers
                     //ListSmallGroupWeeklyReport bSmallGroupData = m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.Where(e => e.ListEntityId == "001").ToList()[0];
 
                     //return View(m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.Where(e => e.ListEntityId == m_InMemoryDataContextSmallGroup.m_ListManager.ActiveListId).Select());
-                    m_InMemoryDataContextSmallGroup.ListManager.SetupListSmallGroupWeeklyReport(LoginParameter);
+                    m_InMemoryDataContextSmallGroup.ListManager.SetupIntegrateData(LoginParameter);
                     return View(m_InMemoryDataContextSmallGroup.ListManager.m_SmallGroupWeeklyReport);
 
                     //return View(m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.Where(e => e.ListEntityId == m_InMemoryDataContextSmallGroup.m_ListManager.ActiveListId).FirstOrDefault());
@@ -754,11 +754,11 @@ namespace ChurchReport.Controllers
                         //m_InMemoryDataContextSmallGroup.ListManager.SetupListSmallGroupWeeklyReport(LoginParameter);
                         if (m_InMemoryDataContextSmallGroup.ListManager.m_SmallGroupWeeklyReport == null)
                         {
-                            m_InMemoryDataContextSmallGroup.ListManager.SetupListSmallGroupWeeklyReport(LoginParameter);
+                            m_InMemoryDataContextSmallGroup.ListManager.SetupIntegrateData(LoginParameter);
                         }
                         else if (m_InMemoryDataContextSmallGroup.ListManager.m_SmallGroupWeeklyReport.LoadFlag == false)
                         {
-                            m_InMemoryDataContextSmallGroup.ListManager.SetupListSmallGroupWeeklyReport(LoginParameter);
+                            m_InMemoryDataContextSmallGroup.ListManager.SetupIntegrateData(LoginParameter);
                         }
                         else { }
 
@@ -789,11 +789,11 @@ namespace ChurchReport.Controllers
                 //m_InMemoryDataContextSmallGroup.ListManager.SetupListSmallGroupWeeklyReport(id);
                 if (m_InMemoryDataContextSmallGroup.ListManager.m_SmallGroupWeeklyReport == null)
                 {
-                    m_InMemoryDataContextSmallGroup.ListManager.SetupListSmallGroupWeeklyReport(id);
+                    m_InMemoryDataContextSmallGroup.ListManager.SetupIntegrateData(id);
                 }
                 else if (m_InMemoryDataContextSmallGroup.ListManager.m_SmallGroupWeeklyReport.LoadFlag == false)
                 {
-                    m_InMemoryDataContextSmallGroup.ListManager.SetupListSmallGroupWeeklyReport(id);
+                    m_InMemoryDataContextSmallGroup.ListManager.SetupIntegrateData(id);
                 }
                 else { }
 
@@ -863,11 +863,11 @@ namespace ChurchReport.Controllers
 
                 if (m_InMemoryDataContextSmallGroup.ListManager.m_SmallGroupWeeklyReport == null)
                 {
-                    m_InMemoryDataContextSmallGroup.ListManager.SetupListSmallGroupWeeklyReport(id);
+                    m_InMemoryDataContextSmallGroup.ListManager.SetupIntegrateData(id);
                 }
                 else if (m_InMemoryDataContextSmallGroup.ListManager.m_SmallGroupWeeklyReport.LoadFlag == false)
                 {
-                    m_InMemoryDataContextSmallGroup.ListManager.SetupListSmallGroupWeeklyReport(id);
+                    m_InMemoryDataContextSmallGroup.ListManager.SetupIntegrateData(id);
                 }
                 else { }
 
@@ -2239,6 +2239,44 @@ namespace ChurchReport.Controllers
                 aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
 
                 throw e;
+            }
+
+        }
+
+        #endregion
+
+        #region Layout 工具區
+        private void SetMultiGroupLayoutParameter()
+        {
+            String DisplayViewType = m_InMemoryDataContextSmallGroup.ListManager.GetDisplayViewType();
+
+            bool IntegrateFlag = false;
+            if 
+            (
+                m_InMemoryDataContextSmallGroup.ListManager.m_SmallGroupWeeklyReport != null && 
+                m_InMemoryDataContextSmallGroup.ListManager.m_SmallGroupWeeklyReport.LoadFlag == true
+            )
+            { IntegrateFlag = true; }
+
+            //if (m_InMemoryDataContextSmallGroup.ListManager.m_SmallGroupWeeklyReport == null) { IntegrateFlag = false; }
+            //else if (m_InMemoryDataContextSmallGroup.ListManager.m_SmallGroupWeeklyReport.LoadFlag == false) { IntegrateFlag = false; }
+            //else { IntegrateFlag = true; }
+
+            if (DisplayViewType == "MultiGroupView" && IntegrateFlag == false)
+            {
+                ViewBag.MultiGroupIndex = "SingleMultiGroupView";
+            }
+            else if (DisplayViewType == "IntegrateView" && IntegrateFlag == true)
+            {
+                ViewBag.MultiGroupIndex = "IntegrateView";
+            }
+            else if (DisplayViewType == "MultiGroupView" && IntegrateFlag == true)
+            {
+                ViewBag.MultiGroupIndex = "HybridView";
+            }
+            else  
+            {
+                ViewBag.MultiGroupIndex = "IntegrateView";
             }
 
         }
