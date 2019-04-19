@@ -276,12 +276,15 @@ namespace ChurchReport.Controllers
                         {
                             // 登入到多小組回報，整合是頁面要先歸零
                             m_InMemoryDataContextSmallGroup.ListManager.m_SmallGroupWeeklyReport.LoadFlag = false;
+
+                            m_InMemoryDataContextSmallGroup.ListManager.m_SmallGroupWeeklyReport = null;
                         }
 
+                        #region 選單控制區塊
                         ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType; // 看是小組長還是個人回報
                         ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.ListManager.LoginFullName;
 
-                        ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType;
+                        ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType; // 繳費點名
                         if (m_InMemoryDataContextSmallGroup.HappyGroupDataManager.HappyType == "有幸福小組名單")
                         {
                             ViewBag.HappyType = "有幸福小組名單";
@@ -291,7 +294,7 @@ namespace ChurchReport.Controllers
                             ViewBag.HappyType = "沒幸福小組名單";
                         }
                         SetMultiGroupLayoutParameter();
-
+                        #endregion
 
                         //ListSmallGroupWeeklyReport bSmallGroupData = m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.Where(e => e.ListEntityId == "001").ToList()[0];
 
