@@ -28,8 +28,7 @@ namespace ChurchReport.Controllers
         //ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("CRM2011");
 
         private InMemoryDataContextSmallGroup m_InMemoryDataContextSmallGroup;
-
-        readonly Disposable _disposable;
+        private readonly Disposable _disposable;
 
         #region 除錯用參數
         private const int TOTAL_LEVEL = 1;//改變這個值，就會改追蹤的階層，值越小越不會追蹤，若是 TOTAL_LEVEL = 3 ，則大於 3 的 LEVEL，例如 : LEVEL_4、LEVEL_5 就不會被追蹤
@@ -53,7 +52,7 @@ namespace ChurchReport.Controllers
         }
         #endregion
         #region 登入帳號
-        public IActionResult Login()
+        public async System.Threading.Tasks.Task<IActionResult> Login()
         {
             try
             {
@@ -70,35 +69,35 @@ namespace ChurchReport.Controllers
             }
             catch (System.Exception e)
             {
-                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
+                await aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
 
                 throw e;
             }
         }
-        [HttpPost] 
+        [HttpPost]
         public IActionResult ProcessLogin(GalleryViewModel aGalleryViewModel)
         {
             try
             {
-                String ContactIdString = m_ToolUtilityClass.RetrieveContactByAccountNumber(aGalleryViewModel.Account, aGalleryViewModel.Password);
+                string ContactIdString = m_ToolUtilityClass.RetrieveContactByAccountNumber(aGalleryViewModel.Account, aGalleryViewModel.Password);
 
                 if (ContactIdString != "密碼錯誤" && ContactIdString != "系統沒有設定密碼" && ContactIdString != "帳號錯誤")
                 {
                     Guid aContactGuid = new Guid(ContactIdString);
 
-                    String FullName = this.m_ToolUtilityClass.RetrieveEntityDynamics365("contact", aContactGuid).Attributes["fullname"].ToString();
+                    string FullName = m_ToolUtilityClass.RetrieveEntityDynamics365("contact", aContactGuid).Attributes["fullname"].ToString();
 
                     // 設定多個組長處理需要的資料
-                    m_InMemoryDataContextSmallGroup.SetupListManager( aGalleryViewModel.Account, aGalleryViewModel.Password, DateTime.Now, true);
+                    m_InMemoryDataContextSmallGroup.SetupListManager(aGalleryViewModel.Account, aGalleryViewModel.Password, DateTime.Now, true);
 
                     // 透過取得多小組網頁需要的資料之後，判斷這是多小組還是單一小組長的回報
-                    String DisplayViewType = m_InMemoryDataContextSmallGroup.ListManager.GetDisplayViewType();
-                    if ( DisplayViewType == "IntegrateView")
+                    string DisplayViewType = m_InMemoryDataContextSmallGroup.ListManager.GetDisplayViewType();
+                    if (DisplayViewType == "IntegrateView")
                     {
                         // 得知這是單一小組長的回報，所以就直接下載整合式網頁所需的資料
                         m_InMemoryDataContextSmallGroup.ListManager.SetupIntegrateData(m_InMemoryDataContextSmallGroup.ListManager.ActiveListId);
@@ -120,7 +119,7 @@ namespace ChurchReport.Controllers
                     // 設定繳費與報名資料
                     m_InMemoryDataContextSmallGroup.FeeList.SetupFeeDataList(aGalleryViewModel.Account, aGalleryViewModel.Password);
 
-                    if ( m_InMemoryDataContextSmallGroup.ListManager.LoginType == "小組長" && m_InMemoryDataContextSmallGroup.HappyGroupDataManager.HappyType == "有幸福小組名單")
+                    if (m_InMemoryDataContextSmallGroup.ListManager.LoginType == "小組長" && m_InMemoryDataContextSmallGroup.HappyGroupDataManager.HappyType == "有幸福小組名單")
                     {
                         // 小組長回報，而且有幸福小組
                         ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType;
@@ -185,8 +184,8 @@ namespace ChurchReport.Controllers
             }
             catch (System.Exception e)
             {
-                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
@@ -218,8 +217,8 @@ namespace ChurchReport.Controllers
             }
             catch (System.Exception e)
             {
-                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
@@ -235,7 +234,7 @@ namespace ChurchReport.Controllers
             {
                 RegisterManager aRegisterManager = new RegisterManager();
 
-                String RegisterResult = aRegisterManager.Register(aRegisterViewModel.FullName, aRegisterViewModel.Mobile, aRegisterViewModel.Account, aRegisterViewModel.Password, aRegisterViewModel.ConfirmPassword);
+                string RegisterResult = aRegisterManager.Register(aRegisterViewModel.FullName, aRegisterViewModel.Mobile, aRegisterViewModel.Account, aRegisterViewModel.Password, aRegisterViewModel.ConfirmPassword);
 
                 if (RegisterResult.StartsWith("註冊成功"))
                 {
@@ -248,8 +247,8 @@ namespace ChurchReport.Controllers
             }
             catch (System.Exception e)
             {
-                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
@@ -261,7 +260,7 @@ namespace ChurchReport.Controllers
         #endregion
         #region 多小組回報
         [Route("/Home/MultiGroupView/{LoginParameter}")]
-        public ActionResult MultiGroupView(String LoginParameter)
+        public ActionResult MultiGroupView(string LoginParameter)
         {
             try
             {
@@ -269,7 +268,7 @@ namespace ChurchReport.Controllers
 
                 if (LoginParameter != "AccountPassword")
                 {
-                    String DisplayViewType = m_InMemoryDataContextSmallGroup.ListManager.GetDisplayViewType();
+                    string DisplayViewType = m_InMemoryDataContextSmallGroup.ListManager.GetDisplayViewType();
                     if (DisplayViewType == "MultiGroupView")
                     {
                         #region 用小組長回報網頁登入
@@ -291,6 +290,7 @@ namespace ChurchReport.Controllers
                         {
                             ViewBag.HappyType = "沒幸福小組名單";
                         }
+                        SetMultiGroupLayoutParameter();
 
 
                         //ListSmallGroupWeeklyReport bSmallGroupData = m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.Where(e => e.ListEntityId == "001").ToList()[0];
@@ -322,7 +322,7 @@ namespace ChurchReport.Controllers
                 else
                 {
                     #region 小組長 Line 登入
-                    String FullName = m_ToolUtilityClass.RetrieveContactEntityByLineUserId(LoginParameter).Attributes["fullname"].ToString();
+                    string FullName = m_ToolUtilityClass.RetrieveContactEntityByLineUserId(LoginParameter).Attributes["fullname"].ToString();
 
                     LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
@@ -349,6 +349,7 @@ namespace ChurchReport.Controllers
                         {
                             ViewBag.HappyType = "沒幸福小組名單";
                         }
+                        SetMultiGroupLayoutParameter();
 
                         return View(m_InMemoryDataContextSmallGroup.ListManager);
                     }
@@ -357,8 +358,8 @@ namespace ChurchReport.Controllers
             }
             catch (System.Exception e)
             {
-                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
@@ -371,7 +372,7 @@ namespace ChurchReport.Controllers
         #endregion
         #region 整合式小組長點名及個人回報
         [Route("/Home/IntegrateView/{LoginParameter}")]
-        public ActionResult IntegrateView(String LoginParameter)
+        public ActionResult IntegrateView(string LoginParameter)
         {
             try
             {
@@ -379,6 +380,27 @@ namespace ChurchReport.Controllers
 
                 if (LoginParameter != "AccountPassword")
                 {
+                    #region 看看這是不是多小組回報統計點過來的
+                    if (m_InMemoryDataContextSmallGroup.ListManager.GetDisplayViewType() == "MultiGroupView")
+                    {
+                        // 這是多小組回報統計點過來的
+                        if (m_InMemoryDataContextSmallGroup.ListManager.m_SmallGroupWeeklyReport == null)
+                        {
+                            m_InMemoryDataContextSmallGroup.ListManager.SetupIntegrateData(LoginParameter);
+                        }
+                        else if (m_InMemoryDataContextSmallGroup.ListManager.m_SmallGroupWeeklyReport.LoadFlag == false)
+                        {
+                            m_InMemoryDataContextSmallGroup.ListManager.SetupIntegrateData(LoginParameter);
+                        }
+                        else { }
+                    }
+                    else
+                    { 
+                        // 這是單一小組，選單裡其他選項(新增新人、維護基本資料)點過來的，所以不要在載入資料
+                    }
+                    #endregion
+
+
                     if (m_InMemoryDataContextSmallGroup.ListManager.GetDisplayViewType() == "IntegrateView")
                     {
                         ViewBag.ListId = m_InMemoryDataContextSmallGroup.ListManager.ActiveListId;
@@ -401,6 +423,10 @@ namespace ChurchReport.Controllers
                     {
                         ViewBag.HappyType = "沒幸福小組名單";
                     }
+                    SetMultiGroupLayoutParameter();
+
+
+
 
                     m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_SmallGroupData.WeeklyReportData = "嘟嘟妞妞";
                     m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_SmallGroupData.WeeklyReportAnalysis = "非常可愛";
@@ -431,7 +457,7 @@ namespace ChurchReport.Controllers
                 else
                 {
                     #region 小組長 Line 登入
-                    String FullName = m_ToolUtilityClass.RetrieveContactEntityByLineUserId(LoginParameter).Attributes["fullname"].ToString();
+                    string FullName = m_ToolUtilityClass.RetrieveContactEntityByLineUserId(LoginParameter).Attributes["fullname"].ToString();
 
                     LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
@@ -458,6 +484,7 @@ namespace ChurchReport.Controllers
                         {
                             ViewBag.HappyType = "沒幸福小組名單";
                         }
+                        SetMultiGroupLayoutParameter();
 
                         m_InMemoryDataContextSmallGroup.ListManager.SetupIntegrateData(LoginParameter);
                         return View(m_InMemoryDataContextSmallGroup.ListManager.m_SmallGroupWeeklyReport);
@@ -467,8 +494,8 @@ namespace ChurchReport.Controllers
             }
             catch (System.Exception e)
             {
-                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
@@ -504,8 +531,8 @@ namespace ChurchReport.Controllers
             }
             catch (System.Exception e)
             {
-                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
@@ -527,8 +554,8 @@ namespace ChurchReport.Controllers
             }
             catch (System.Exception e)
             {
-                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
@@ -559,8 +586,8 @@ namespace ChurchReport.Controllers
             }
             catch (System.Exception e)
             {
-                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
@@ -582,8 +609,8 @@ namespace ChurchReport.Controllers
             }
             catch (System.Exception e)
             {
-                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
@@ -593,7 +620,7 @@ namespace ChurchReport.Controllers
             }
         }
         [HttpPost]
-        public IActionResult SaveSmallGroup(String aResult)
+        public IActionResult SaveSmallGroup(string aResult)
         {
             try
             {
@@ -601,8 +628,8 @@ namespace ChurchReport.Controllers
                 //    { 'Id':1,'FullName':'吳連碧','Status':'小組長','SmallGroupName':'0201 連碧小組 - 主日出席率:50 % 小組出席率:0 %','SectionName':'0201 連碧小組 - 主日出席率:50 % 小組出席率:0 %','PrayItem':'未填','Sunday':'false','SmallGroup':'true','StateID1':'2','Number1':'4','StateID2':'1','Number2':'2','Picture':'../../ images / employees / 01.png','Shepherd':'null',},
                 //    ]";
 
-                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "小組長回報點名 001");
-                String Format = "";
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "小組長回報點名 001");
+                string Format = "";
                 if (aResult.Contains("台北標準時間"))
                 {
                     Format = "ddd MMM dd yyyy HH:mm:ss GMT+0800 (台北標準時間)"; // DataGrid如果沒有設PAGE，則正確的日期格式
@@ -625,25 +652,25 @@ namespace ChurchReport.Controllers
                     MissingMemberHandling = MissingMemberHandling.Ignore
                 };
 
-                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "小組長回報點名 002 : " + aResult);
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "小組長回報點名 002 : " + aResult);
                 //DiscipleLessons aBestRecord = JsonConvert.DeserializeObject<DiscipleLessons>(ProcessNullValue(Values), settings);
 
                 m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_SmallGroupData.Members.Clear();
                 m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_SmallGroupData.Members = JsonConvert.DeserializeObject<List<Member>>(aResult, settings);
 
-                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "小組長回報點名 003");
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "小組長回報點名 003");
 
                 m_InMemoryDataContextSmallGroup.SmallGroupDataList.TransferToMemberInfomationPackage(m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_SmallGroupData);
                 m_InMemoryDataContextSmallGroup.SmallGroupDataList.UploadMemberInfomationPackage();
 
-                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "小組長回報點名 004");
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "小組長回報點名 004");
 
                 return Json(new { status = "1", message = "成功上傳了...." });
             }
             catch (System.Exception e)
             {
-                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
@@ -666,8 +693,8 @@ namespace ChurchReport.Controllers
             }
             catch (System.Exception e)
             {
-                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
@@ -680,7 +707,7 @@ namespace ChurchReport.Controllers
         #endregion
         #region 小組長點名及個人回報
         [Route("/Home/SmallGroupReportView/{LoginParameter}")]
-        public ActionResult SmallGroupReportView(String LoginParameter)
+        public ActionResult SmallGroupReportView(string LoginParameter)
         {
             try
             {
@@ -700,6 +727,7 @@ namespace ChurchReport.Controllers
                     {
                         ViewBag.HappyType = "沒幸福小組名單";
                     }
+                    SetMultiGroupLayoutParameter();
 
                     m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_SmallGroupData.WeeklyReportData = "嘟嘟妞妞";
                     m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_SmallGroupData.WeeklyReportAnalysis = "非常可愛";
@@ -723,7 +751,7 @@ namespace ChurchReport.Controllers
                 else
                 {
                     #region 小組長 Line 登入
-                    String FullName = m_ToolUtilityClass.RetrieveContactEntityByLineUserId(LoginParameter).Attributes["fullname"].ToString();
+                    string FullName = m_ToolUtilityClass.RetrieveContactEntityByLineUserId(LoginParameter).Attributes["fullname"].ToString();
 
                     LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
@@ -750,6 +778,7 @@ namespace ChurchReport.Controllers
                         {
                             ViewBag.HappyType = "沒幸福小組名單";
                         }
+                        SetMultiGroupLayoutParameter();
 
                         //m_InMemoryDataContextSmallGroup.ListManager.SetupListSmallGroupWeeklyReport(LoginParameter);
                         if (m_InMemoryDataContextSmallGroup.ListManager.m_SmallGroupWeeklyReport == null)
@@ -771,8 +800,8 @@ namespace ChurchReport.Controllers
             }
             catch (System.Exception e)
             {
-                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
@@ -807,8 +836,8 @@ namespace ChurchReport.Controllers
             }
             catch (System.Exception e)
             {
-                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
@@ -839,12 +868,15 @@ namespace ChurchReport.Controllers
                 {
                     ViewBag.HappyType = "沒幸福小組名單";
                 }
+
+                SetMultiGroupLayoutParameter();
+
                 return View(m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_NewPersonFollowUpData);
             }
             catch (System.Exception e)
             {
-                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
@@ -882,8 +914,8 @@ namespace ChurchReport.Controllers
             }
             catch (System.Exception e)
             {
-                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
@@ -904,8 +936,8 @@ namespace ChurchReport.Controllers
             }
             catch (System.Exception e)
             {
-                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
@@ -936,8 +968,8 @@ namespace ChurchReport.Controllers
             }
             catch (System.Exception e)
             {
-                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
@@ -959,8 +991,8 @@ namespace ChurchReport.Controllers
             }
             catch (System.Exception e)
             {
-                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
@@ -971,16 +1003,16 @@ namespace ChurchReport.Controllers
         }
 
         [HttpPost]
-        public IActionResult SaveNewPersonFollowUp(String aResult)
+        public IActionResult SaveNewPersonFollowUp(string aResult)
         {
             try
             {
-                String Format = "";
+                string Format = "";
                 if (aResult.Contains("台北標準時間"))
                 {
                     Format = "ddd MMM dd yyyy HH:mm:ss GMT+0800 (台北標準時間)"; // DataGrid如果沒有設PAGE，則正確的日期格式
                 }
-                else if( aResult.Contains("CST") )
+                else if (aResult.Contains("CST"))
                 {
                     Format = "ddd MMM dd yyyy HH:mm:ss GMT+0800 (CST)"; // DataGrid如果沒有設PAGE，則正確的日期格式
                 }
@@ -1009,8 +1041,8 @@ namespace ChurchReport.Controllers
             }
             catch (System.Exception e)
             {
-                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
@@ -1038,13 +1070,14 @@ namespace ChurchReport.Controllers
                 {
                     ViewBag.HappyType = "沒幸福小組名單";
                 }
+                SetMultiGroupLayoutParameter();
 
                 return View(m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_AllMemeberData);
             }
             catch (System.Exception e)
             {
-                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
@@ -1054,7 +1087,7 @@ namespace ChurchReport.Controllers
             }
         }
         [HttpPost]
-        public IActionResult SavePersonInfomation(String aResult)
+        public IActionResult SavePersonInfomation(string aResult)
         {
             try
             {
@@ -1073,7 +1106,7 @@ namespace ChurchReport.Controllers
                 //var dateTimeConverter = new IsoDateTimeConverter { DateTimeFormat = format };
 
 
-                String Format = "";
+                string Format = "";
                 if (aResult.Contains("台北標準時間"))
                 {
                     Format = "ddd MMM dd yyyy HH:mm:ss GMT+0800 (台北標準時間)"; // DataGrid如果沒有設PAGE，則正確的日期格式
@@ -1109,8 +1142,8 @@ namespace ChurchReport.Controllers
             }
             catch (System.Exception e)
             {
-                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
@@ -1141,8 +1174,8 @@ namespace ChurchReport.Controllers
             }
             catch (System.Exception e)
             {
-                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
@@ -1174,6 +1207,7 @@ namespace ChurchReport.Controllers
                     {
                         ViewBag.HappyType = "沒幸福小組名單";
                     }
+                    SetMultiGroupLayoutParameter();
 
                     return View(m_InMemoryDataContextSmallGroup.WeeklyReportData.m_WeeklyReportViewModel);
                 }
@@ -1191,14 +1225,15 @@ namespace ChurchReport.Controllers
                     {
                         ViewBag.HappyType = "沒幸福小組名單";
                     }
+                    SetMultiGroupLayoutParameter();
 
                     return View(m_InMemoryDataContextSmallGroup.WeeklyReportData.m_WeeklyReportViewModel);
                 }
             }
             catch (System.Exception e)
             {
-                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
@@ -1233,8 +1268,8 @@ namespace ChurchReport.Controllers
             }
             catch (System.Exception e)
             {
-                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
@@ -1245,7 +1280,7 @@ namespace ChurchReport.Controllers
         }
 
         [Route("/Home/InputReport/{FullName}")]
-        public IActionResult InputReport(String FullName)
+        public IActionResult InputReport(string FullName)
         {
             try
             {
@@ -1253,8 +1288,8 @@ namespace ChurchReport.Controllers
             }
             catch (System.Exception e)
             {
-                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
@@ -1289,13 +1324,14 @@ namespace ChurchReport.Controllers
                 {
                     ViewBag.HappyType = "沒幸福小組名單";
                 }
-                //
+                SetMultiGroupLayoutParameter();
+
                 return View();
             }
             catch (System.Exception e)
             {
-                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
@@ -1307,7 +1343,7 @@ namespace ChurchReport.Controllers
 
 
         [HttpGet]
-        public object LoadHappyGroupList( DataSourceLoadOptions loadOptions )
+        public object LoadHappyGroupList(DataSourceLoadOptions loadOptions)
         {
             try
             {
@@ -1319,8 +1355,8 @@ namespace ChurchReport.Controllers
             }
             catch (System.Exception e)
             {
-                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
@@ -1348,8 +1384,8 @@ namespace ChurchReport.Controllers
             }
             catch (System.Exception e)
             {
-                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
@@ -1377,8 +1413,8 @@ namespace ChurchReport.Controllers
             }
             catch (System.Exception e)
             {
-                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
@@ -1402,8 +1438,8 @@ namespace ChurchReport.Controllers
             }
             catch (System.Exception e)
             {
-                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
@@ -1428,8 +1464,8 @@ namespace ChurchReport.Controllers
             }
             catch (System.Exception e)
             {
-                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
@@ -1453,8 +1489,8 @@ namespace ChurchReport.Controllers
             }
             catch (System.Exception e)
             {
-                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
@@ -1471,7 +1507,7 @@ namespace ChurchReport.Controllers
             try
             {
                 // 上傳至雲端系統資料庫
-                String SerializedHappyGroupDataManager = (String)TempData.Peek("HappyGroupDataManager");
+                string SerializedHappyGroupDataManager = (string)TempData.Peek("HappyGroupDataManager");
 
                 m_InMemoryDataContextSmallGroup.HappyGroupDataManager.SaveActiveHappyGroup();
 
@@ -1482,8 +1518,8 @@ namespace ChurchReport.Controllers
             }
             catch (System.Exception e)
             {
-                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
@@ -1519,6 +1555,7 @@ namespace ChurchReport.Controllers
                 //m_InMemoryDataContextSmallGroup.SetupFeeList();
 
                 SetFeeManagerViewBag();
+                SetMultiGroupLayoutParameter();
 
                 return View(m_InMemoryDataContextSmallGroup.FeeList);
 
@@ -1526,8 +1563,8 @@ namespace ChurchReport.Controllers
             }
             catch (System.Exception e)
             {
-                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
@@ -1545,27 +1582,27 @@ namespace ChurchReport.Controllers
                 ViewBag.Colume10 = m_InMemoryDataContextSmallGroup.FeeList.m_ClassName.Lesson2;
                 ViewBag.Colume11 = m_InMemoryDataContextSmallGroup.FeeList.m_ClassName.Lesson3;
                 ViewBag.Colume12 = m_InMemoryDataContextSmallGroup.FeeList.m_ClassName.Lesson4;
-                ViewBag.Colume13 =m_InMemoryDataContextSmallGroup.FeeList.m_ClassName.Lesson5;
-                ViewBag.Colume14 =m_InMemoryDataContextSmallGroup.FeeList.m_ClassName.Lesson6;
-                ViewBag.Colume15 =m_InMemoryDataContextSmallGroup.FeeList.m_ClassName.Lesson7;
-                ViewBag.Colume16 =m_InMemoryDataContextSmallGroup.FeeList.m_ClassName.Lesson8;
-                ViewBag.Colume17 =m_InMemoryDataContextSmallGroup.FeeList.m_ClassName.Lesson9;
-                ViewBag.Colume18 =m_InMemoryDataContextSmallGroup.FeeList.m_ClassName.Lesson10;
-                ViewBag.Colume19 =m_InMemoryDataContextSmallGroup.FeeList.m_ClassName.Lesson11;
-                ViewBag.Colume20 =m_InMemoryDataContextSmallGroup.FeeList.m_ClassName.Lesson12;
-                ViewBag.Colume21 =m_InMemoryDataContextSmallGroup.FeeList.m_ClassName.Lesson13;
-                ViewBag.Colume22 =m_InMemoryDataContextSmallGroup.FeeList.m_ClassName.Lesson14;
-                ViewBag.Colume23 =m_InMemoryDataContextSmallGroup.FeeList.m_ClassName.Lesson15;
-                ViewBag.Colume24 =m_InMemoryDataContextSmallGroup.FeeList.m_ClassName.HomeWorkA;
-                ViewBag.Colume25 =m_InMemoryDataContextSmallGroup.FeeList.m_ClassName.HomeWorkB;
-                ViewBag.Colume26 =m_InMemoryDataContextSmallGroup.FeeList.m_ClassName.HomeWorkC;
-                ViewBag.Colume27 =m_InMemoryDataContextSmallGroup.FeeList.m_ClassName.HomeWorkD;
-                ViewBag.Colume28 =m_InMemoryDataContextSmallGroup.FeeList.m_ClassName.HomeWorkE;
+                ViewBag.Colume13 = m_InMemoryDataContextSmallGroup.FeeList.m_ClassName.Lesson5;
+                ViewBag.Colume14 = m_InMemoryDataContextSmallGroup.FeeList.m_ClassName.Lesson6;
+                ViewBag.Colume15 = m_InMemoryDataContextSmallGroup.FeeList.m_ClassName.Lesson7;
+                ViewBag.Colume16 = m_InMemoryDataContextSmallGroup.FeeList.m_ClassName.Lesson8;
+                ViewBag.Colume17 = m_InMemoryDataContextSmallGroup.FeeList.m_ClassName.Lesson9;
+                ViewBag.Colume18 = m_InMemoryDataContextSmallGroup.FeeList.m_ClassName.Lesson10;
+                ViewBag.Colume19 = m_InMemoryDataContextSmallGroup.FeeList.m_ClassName.Lesson11;
+                ViewBag.Colume20 = m_InMemoryDataContextSmallGroup.FeeList.m_ClassName.Lesson12;
+                ViewBag.Colume21 = m_InMemoryDataContextSmallGroup.FeeList.m_ClassName.Lesson13;
+                ViewBag.Colume22 = m_InMemoryDataContextSmallGroup.FeeList.m_ClassName.Lesson14;
+                ViewBag.Colume23 = m_InMemoryDataContextSmallGroup.FeeList.m_ClassName.Lesson15;
+                ViewBag.Colume24 = m_InMemoryDataContextSmallGroup.FeeList.m_ClassName.HomeWorkA;
+                ViewBag.Colume25 = m_InMemoryDataContextSmallGroup.FeeList.m_ClassName.HomeWorkB;
+                ViewBag.Colume26 = m_InMemoryDataContextSmallGroup.FeeList.m_ClassName.HomeWorkC;
+                ViewBag.Colume27 = m_InMemoryDataContextSmallGroup.FeeList.m_ClassName.HomeWorkD;
+                ViewBag.Colume28 = m_InMemoryDataContextSmallGroup.FeeList.m_ClassName.HomeWorkE;
             }
             catch (System.Exception e)
             {
-                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
@@ -1576,7 +1613,7 @@ namespace ChurchReport.Controllers
         }
 
         [HttpPost]
-        public IActionResult SaveFeeManager(String aResult)
+        public IActionResult SaveFeeManager(string aResult)
         {
             try
             {
@@ -1621,8 +1658,8 @@ namespace ChurchReport.Controllers
             }
             catch (System.Exception e)
             {
-                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
@@ -1653,8 +1690,8 @@ namespace ChurchReport.Controllers
             }
             catch (System.Exception e)
             {
-                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
@@ -1681,8 +1718,8 @@ namespace ChurchReport.Controllers
             }
             catch (System.Exception e)
             {
-                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
@@ -1712,8 +1749,8 @@ namespace ChurchReport.Controllers
             }
             catch (System.Exception e)
             {
-                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
@@ -1770,12 +1807,14 @@ namespace ChurchReport.Controllers
                 ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType;
                 ViewBag.HappyType = m_InMemoryDataContextSmallGroup.HappyGroupDataManager.HappyType;
 
+                SetMultiGroupLayoutParameter();
+
                 return View(m_InMemoryDataContextSmallGroup.NewPersonModel.m_PersonFormViewModel);
             }
             catch (System.Exception e)
             {
-                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
@@ -1796,7 +1835,7 @@ namespace ChurchReport.Controllers
                 }
 
                 // 上傳至系統
-                String Result = m_InMemoryDataContextSmallGroup.m_NewPersonModel.UploadNewPerson(m_InMemoryDataContextSmallGroup.SmallGroupDataList, aPersonFormViewModel);
+                string Result = m_InMemoryDataContextSmallGroup.m_NewPersonModel.UploadNewPerson(m_InMemoryDataContextSmallGroup.SmallGroupDataList, aPersonFormViewModel);
 
                 if (aPersonFormViewModel.Position == "0" || aPersonFormViewModel.Position == "1" || aPersonFormViewModel.Position == "2" || aPersonFormViewModel.Position == "3" || aPersonFormViewModel.Position == "4" || aPersonFormViewModel.Position == "5" || aPersonFormViewModel.Position == "6" || aPersonFormViewModel.Position == "7" || aPersonFormViewModel.Position == "8" || aPersonFormViewModel.Position == "9" || aPersonFormViewModel.Position == "10")
                 {
@@ -1825,8 +1864,8 @@ namespace ChurchReport.Controllers
             }
             catch (System.Exception e)
             {
-                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
@@ -1846,8 +1885,8 @@ namespace ChurchReport.Controllers
             }
             catch (System.Exception e)
             {
-                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
@@ -1871,8 +1910,8 @@ namespace ChurchReport.Controllers
             }
             catch (System.Exception e)
             {
-                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
@@ -1892,8 +1931,8 @@ namespace ChurchReport.Controllers
             }
             catch (System.Exception e)
             {
-                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
@@ -1907,11 +1946,11 @@ namespace ChurchReport.Controllers
         #region Line綁定
         [Route("/Home/LineBindingView/{LineBindingParameter}")]
         //[HttpGet("{LineBindingParameter}")]
-        public IActionResult LineBindingView(String LineBindingParameter)
+        public IActionResult LineBindingView(string LineBindingParameter)
         {
             try
             {
-                String[] LineBindingParameterArray = LineBindingParameter.Split(',');
+                string[] LineBindingParameterArray = LineBindingParameter.Split(',');
 
                 var images = new List<string>();
                 images.Add(Url.Content("~/assets/images/tpehoc-005.jpg"));
@@ -1924,7 +1963,7 @@ namespace ChurchReport.Controllers
                 //images.Add(Url.Content("~/assets/images/photo-6.jpg"));
                 //images.Add(Url.Content("~/assets/images/photo-9.jpg"));
 
-                String EncodeName = System.Net.WebUtility.UrlEncode(LineBindingParameterArray[0]) + "," + System.Net.WebUtility.UrlEncode(LineBindingParameterArray[1]) + "," + System.Net.WebUtility.UrlEncode(LineBindingParameterArray[2]);
+                string EncodeName = System.Net.WebUtility.UrlEncode(LineBindingParameterArray[0]) + "," + System.Net.WebUtility.UrlEncode(LineBindingParameterArray[1]) + "," + System.Net.WebUtility.UrlEncode(LineBindingParameterArray[2]);
 
                 m_InMemoryDataContextSmallGroup.LineBindingViewModel.DisplayName = LineBindingParameterArray[0];
                 m_InMemoryDataContextSmallGroup.LineBindingViewModel.LineUserId = LineBindingParameterArray[1];
@@ -1944,8 +1983,8 @@ namespace ChurchReport.Controllers
             }
             catch (System.Exception e)
             {
-                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
@@ -1973,9 +2012,9 @@ namespace ChurchReport.Controllers
                 }
 
                 Regex DigitsOnly = new Regex(@"[^\d]");
-                String Mobile = DigitsOnly.Replace(aLineBindingViewModel.Mobile, "");
+                string Mobile = DigitsOnly.Replace(aLineBindingViewModel.Mobile, "");
 
-                String BindingString = "//" + aLineBindingViewModel.FullName + "," + aLineBindingViewModel.Mobile;
+                string BindingString = "//" + aLineBindingViewModel.FullName + "," + aLineBindingViewModel.Mobile;
 
                 Guid aLineEntityId = CreateLineMessage(m_InMemoryDataContextSmallGroup.LineBindingViewModel.DisplayId, m_InMemoryDataContextSmallGroup.LineBindingViewModel.LineUserId, BindingString, 100000000);
                 //Guid aLineEntityId = CreateLineMessage(aLineBindingViewModel.DisplayId, BindingString, 100000000);
@@ -1991,8 +2030,8 @@ namespace ChurchReport.Controllers
             }
             catch (System.Exception e)
             {
-                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
@@ -2008,7 +2047,7 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                Entity aContact = this.m_ToolUtilityClass.RetrieveContactCollectionByLineId(UserId);
+                Entity aContact = m_ToolUtilityClass.RetrieveContactCollectionByLineId(UserId);
 
                 //await SendMessage(UserId, "001: " + UserId);
 
@@ -2047,8 +2086,8 @@ namespace ChurchReport.Controllers
             }
             catch (System.Exception e)
             {
-                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
@@ -2077,8 +2116,8 @@ namespace ChurchReport.Controllers
             }
             catch (System.Exception e)
             {
-                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
@@ -2089,7 +2128,7 @@ namespace ChurchReport.Controllers
         }
 
         [Route("/Home/BindingResultView/{LineBindingResult}")]
-        public IActionResult BindingResultView(String LineBindingResult)
+        public IActionResult BindingResultView(string LineBindingResult)
         {
             var images = new List<string>();
             images.Add(Url.Content("~/assets/images/tpehoc-005.jpg"));
@@ -2106,7 +2145,7 @@ namespace ChurchReport.Controllers
         }
 
         [HttpPost]
-        public IActionResult SaveUserId(String UserLineId, String GroupId, String RoomId, String ViewType)
+        public IActionResult SaveUserId(string UserLineId, string GroupId, string RoomId, string ViewType)
         {
             try
             {
@@ -2132,8 +2171,8 @@ namespace ChurchReport.Controllers
             }
             catch (System.Exception e)
             {
-                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
@@ -2162,8 +2201,8 @@ namespace ChurchReport.Controllers
             }
             catch (System.Exception e)
             {
-                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
@@ -2174,7 +2213,7 @@ namespace ChurchReport.Controllers
         }
 
         [HttpPost]
-        public IActionResult GetQualificationData(String UserLineId, String GroupId, String RoomId, String ViewType)
+        public IActionResult GetQualificationData(string UserLineId, string GroupId, string RoomId, string ViewType)
         {
             try
             {
@@ -2196,8 +2235,8 @@ namespace ChurchReport.Controllers
                     m_InMemoryDataContextSmallGroup.LineBindingViewModel.DisplayId = UserLineId;
                 }
 
-                String FaithStatus = "基督徒";
-                String GenderCode = "男性";
+                string FaithStatus = "基督徒";
+                string GenderCode = "男性";
                 //DateTime BirthDate = DateTime.Now;
                 DateTime BirthDate = DateTime.MinValue;
                 //DateTime BirthDate = null;
@@ -2208,8 +2247,8 @@ namespace ChurchReport.Controllers
             }
             catch (System.Exception e)
             {
-                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
@@ -2231,8 +2270,8 @@ namespace ChurchReport.Controllers
             }
             catch (System.Exception e)
             {
-                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
@@ -2244,16 +2283,15 @@ namespace ChurchReport.Controllers
         }
 
         #endregion
-
         #region Layout 工具區
         private void SetMultiGroupLayoutParameter()
         {
-            String DisplayViewType = m_InMemoryDataContextSmallGroup.ListManager.GetDisplayViewType();
+            string DisplayViewType = m_InMemoryDataContextSmallGroup.ListManager.GetDisplayViewType();
 
             bool IntegrateFlag = false;
-            if 
+            if
             (
-                m_InMemoryDataContextSmallGroup.ListManager.m_SmallGroupWeeklyReport != null && 
+                m_InMemoryDataContextSmallGroup.ListManager.m_SmallGroupWeeklyReport != null &&
                 m_InMemoryDataContextSmallGroup.ListManager.m_SmallGroupWeeklyReport.LoadFlag == true
             )
             { IntegrateFlag = true; }
@@ -2274,7 +2312,7 @@ namespace ChurchReport.Controllers
             {
                 ViewBag.MultiGroupIndex = "HybridView";
             }
-            else  
+            else
             {
                 ViewBag.MultiGroupIndex = "IntegrateView";
             }

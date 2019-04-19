@@ -52,7 +52,7 @@
     <script src="~/lib/devextreme-aspnet-data/js/dx.aspnet.data.js"></script>
     <script src="~/js/devextreme/aspnet/dx.aspnet.mvc.js"></script>
 
-    <meta charset="utf-8"
+    <meta charset="utf-8" />
     <meta name="robots" content="noindex">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="~/lib/devextreme/css/dx.common.css" />
@@ -169,7 +169,6 @@
         DevExpress.devices.current("@device");
     </script>*@
 
-    </script>
 </head>
 
 <body>
@@ -188,134 +187,148 @@
             </div>
             <div id="navbar" class="collapse navbar-collapse">
                 <ul class="nav navbar-nav">
-                    @if (@ViewBag.LoginType == "小組長")
+                    @if (@ViewBag.MultiGroupIndex == "SingleMultiGroupView")
                     {
-                        @if (@ViewBag.HappyType == "有幸福小組名單")
-                        {
-
-                            @if (@ViewBag.FeeType == "有繳費點名")
-                            {
-                                // 小組長，有幸福小組名單，有繳費點名
-                                <li>@*<a href="/Home/SmallGroupReportView/AccountPassword">小組牧養</a>*@</li>
-                                @*<li><a href="/Home/IntegrateView/AccountPassword">牧養回報</a></li>*@
-                                <li><a href="/Home/MultiGroupView/MultiGroup">牧養回報</a></li>
-                                <li><a href="/Home/NewPerson">新增新人</a></li>
-                                @*<li><a href="/Home/NewPersonFollowUpView">關懷新人</a></li>*@
-                                <li><a href="/Home/HappyGroup">幸福小組回報</a></li>
-                                @*<li><a href="/Home/WeeklyReport">小組日誌</a></li>*@
-                                <li><a href="/Home/MaintainPersonInfomationView">維護基本資料</a></li>
-                                @*<li><a href="/Home/Scheduler">行事曆</a></li>*@
-                                @*<li><a href="/Home/FeeManagerView">繳費與點名</a></li>*@
-
-                            }
-                            else
-                            {
-                                // 小組長，有幸福小組名單，無繳費點名
-                                <li>@*<a href="/Home/SmallGroupReportView/AccountPassword">小組牧養</a>*@</li>
-                                @*<li><a href="/Home/IntegrateView/AccountPassword">牧養回報</a></li>*@
-                                <li><a href="/Home/MultiGroupView/MultiGroup">牧養回報</a></li>
-                                <li><a href="/Home/NewPerson">新增新人</a></li>
-                                @*<li><a href="/Home/NewPersonFollowUpView">關懷新人</a></li>*@
-                                <li><a href="/Home/HappyGroup">幸福小組回報</a></li>
-                                <li><a href="/Home/WeeklyReport">小組日誌</a></li>
-                                <li><a href="/Home/MaintainPersonInfomationView">維護基本資料</a></li>
-                                @*<li><a href="/Home/Scheduler">行事曆</a></li>*@
-                                @*<li><a href="/Home/FeeManagerView">繳費與點名</a></li>*@
-
-                            }
-
-                        }
-                        else
-                        {
-                            @if (@ViewBag.FeeType == "有繳費點名")
-                            {
-                                // 小組長，無幸福小組名單，有繳費點名
-                                <li>@*<a href="/Home/SmallGroupReportView/AccountPassword">小組牧養</a>*@</li>
-                                @*<li><a href="/Home/IntegrateView/AccountPassword">牧養回報</a></li>*@
-                                <li><a href="/Home/MultiGroupView/MultiGroup">牧養回報</a></li>
-                                <li><a href="/Home/NewPerson">新增新人</a></li>
-                                @*<li><a href="/Home/NewPersonFollowUpView">關懷新人</a></li>*@
-                                @*<li><a href="/Home/HappyGroup">幸福小組回報</a></li>*@
-                                @*<li><a href="/Home/WeeklyReport">小組日誌</a></li>*@
-                                <li><a href="/Home/MaintainPersonInfomationView">維護基本資料</a></li>
-                                @*<li><a href="/Home/Scheduler">行事曆</a></li>*@
-                                @*<li><a href="/Home/FeeManagerView">繳費與點名</a></li>*@
-
-                            }
-                            else
-                            {
-                                // 小組長，無幸福小組名單，無繳費點名
-                                <li>@*<a href="/Home/SmallGroupReportView/AccountPassword">小組牧養</a>*@</li>
-                                @*<li><a href="/Home/IntegrateView/AccountPassword">牧養回報</a></li>*@
-                                <li><a href="/Home/MultiGroupView/MultiGroup">牧養回報</a></li>
-                                <li><a href="/Home/NewPerson">新增新人</a></li>
-                                @*<li><a href="/Home/NewPersonFollowUpView">關懷新人</a></li>*@
-                                @*<li><a href="/Home/HappyGroup">幸福小組回報</a></li>*@
-                                @*<li><a href="/Home/WeeklyReport">小組日誌</a></li>*@
-                                @*<li><a href="/Home/MaintainPersonInfomationView">維護基本資料</a></li>*@
-                                @*<li><a href="/Home/Scheduler">行事曆</a></li>*@
-                                @*<li><a href="/Home/FeeManagerView">繳費與點名</a></li>*@
-                            }
-
-                        }
-
+                        <li><a href="/Home/MultiGroupView/MultiGroup">回報統計</a></li>
                     }
                     else
                     {
-
-                        @if (@ViewBag.HappyType == "有幸福小組名單")
+                        if (@ViewBag.MultiGroupIndex == "IntegrateView")
                         {
-
-                            @if (@ViewBag.FeeType == "有繳費點名")
+                            <li><a href="/Home/IntegrateView/IntegrateView">小組回報</a></li>
+                        }
+                        if (@ViewBag.MultiGroupIndex == "HybridView")
+                        {
+                            <li><a href="/Home/MultiGroupView/MultiGroup">回報統計</a></li>
+                            <li><a href="/Home/IntegrateView/IntegrateView">小組回報</a></li>
+                        }
+                        @if (@ViewBag.LoginType == "小組長")
+                        {
+                            @if (@ViewBag.HappyType == "有幸福小組名單")
                             {
-                                // 不是小組長，有幸福小組名單，有繳費點名
-                                <li><a href="/Home/IntegrateView/Personal">個人回報</a></li>
-                                <li><a href="/Home/MaintainPersonInfomationView">維護個人基本資料</a></li>
-                                <li><a href="/Home/NewPerson">新增新人</a></li>
-                                <li><a href="/Home/HappyGroup">幸福小組回報</a></li>
-                                @*<li><a href="/Home/Scheduler">行事曆</a></li>*@
-                                @*<li><a href="/Home/FeeManagerView">繳費與點名</a></li>*@
+
+                                @if (@ViewBag.FeeType == "有繳費點名")
+                                {
+                                    // 小組長，有幸福小組名單，有繳費點名
+                                    <li>@*<a href="/Home/SmallGroupReportView/AccountPassword">小組牧養</a>*@</li>
+                                    @*<li><a href="/Home/IntegrateView/AccountPassword">牧養回報</a></li>*@
+                                    @*<li><a href="/Home/MultiGroupView/MultiGroup">牧養回報</a></li>*@
+                                    <li><a href="/Home/NewPerson">新增新人</a></li>
+                                    @*<li><a href="/Home/NewPersonFollowUpView">關懷新人</a></li>*@
+                                    <li><a href="/Home/HappyGroup">幸福小組回報</a></li>
+                                    @*<li><a href="/Home/WeeklyReport">小組日誌</a></li>*@
+                                    <li><a href="/Home/MaintainPersonInfomationView">維護基本資料</a></li>
+                                    @*<li><a href="/Home/Scheduler">行事曆</a></li>*@
+                                    @*<li><a href="/Home/FeeManagerView">繳費與點名</a></li>*@
+
+                                }
+                                else
+                                {
+                                    // 小組長，有幸福小組名單，無繳費點名
+                                    <li>@*<a href="/Home/SmallGroupReportView/AccountPassword">小組牧養</a>*@</li>
+                                    @*<li><a href="/Home/IntegrateView/AccountPassword">牧養回報</a></li>*@
+                                    @*<li><a href="/Home/MultiGroupView/MultiGroup">牧養回報</a></li>*@
+                                    <li><a href="/Home/NewPerson">新增新人</a></li>
+                                    @*<li><a href="/Home/NewPersonFollowUpView">關懷新人</a></li>*@
+                                    <li><a href="/Home/HappyGroup">幸福小組回報</a></li>
+                                    <li><a href="/Home/WeeklyReport">小組日誌</a></li>
+                                    <li><a href="/Home/MaintainPersonInfomationView">維護基本資料</a></li>
+                                    @*<li><a href="/Home/Scheduler">行事曆</a></li>*@
+                                    @*<li><a href="/Home/FeeManagerView">繳費與點名</a></li>*@
+
+                                }
 
                             }
                             else
                             {
-                                // 不是小組長，有幸福小組名單，無繳費點名
-                                <li><a href="/Home/IntegrateView/Personal">個人回報</a></li>
-                                <li><a href="/Home/MaintainPersonInfomationView">維護個人基本資料</a></li>
-                                <li><a href="/Home/NewPerson">新增新人</a></li>
-                                <li><a href="/Home/HappyGroup">幸福小組回報</a></li>
-                                @*<li><a href="/Home/Scheduler">行事曆</a></li>*@
-                                @*<li><a href="/Home/FeeManagerView">繳費與點名</a></li>*@
+                                @if (@ViewBag.FeeType == "有繳費點名")
+                                {
+                                    // 小組長，無幸福小組名單，有繳費點名
+                                    <li>@*<a href="/Home/SmallGroupReportView/AccountPassword">小組牧養</a>*@</li>
+                                    @*<li><a href="/Home/IntegrateView/AccountPassword">牧養回報</a></li>*@
+                                    @*<li><a href="/Home/MultiGroupView/MultiGroup">牧養回報</a></li>*@
+                                    <li><a href="/Home/NewPerson">新增新人</a></li>
+                                    @*<li><a href="/Home/NewPersonFollowUpView">關懷新人</a></li>*@
+                                    @*<li><a href="/Home/HappyGroup">幸福小組回報</a></li>*@
+                                    @*<li><a href="/Home/WeeklyReport">小組日誌</a></li>*@
+                                    <li><a href="/Home/MaintainPersonInfomationView">維護基本資料</a></li>
+                                    @*<li><a href="/Home/Scheduler">行事曆</a></li>*@
+                                    @*<li><a href="/Home/FeeManagerView">繳費與點名</a></li>*@
+
+                                }
+                                else
+                                {
+                                    // 小組長，無幸福小組名單，無繳費點名
+                                    <li>@*<a href="/Home/SmallGroupReportView/AccountPassword">小組牧養</a>*@</li>
+                                    @*<li><a href="/Home/IntegrateView/AccountPassword">牧養回報</a></li>*@
+                                    @*<li><a href="/Home/MultiGroupView/MultiGroup">牧養回報</a></li>*@
+                                    <li><a href="/Home/NewPerson">新增新人</a></li>
+                                    @*<li><a href="/Home/NewPersonFollowUpView">關懷新人</a></li>*@
+                                    @*<li><a href="/Home/HappyGroup">幸福小組回報</a></li>*@
+                                    @*<li><a href="/Home/WeeklyReport">小組日誌</a></li>*@
+                                    <li><a href="/Home/MaintainPersonInfomationView">維護基本資料</a></li>
+                                    @*<li><a href="/Home/Scheduler">行事曆</a></li>*@
+                                    @*<li><a href="/Home/FeeManagerView">繳費與點名</a></li>*@
+                                }
+
                             }
 
                         }
                         else
                         {
-                            @if (@ViewBag.FeeType == "有繳費點名")
+
+                            @if (@ViewBag.HappyType == "有幸福小組名單")
                             {
-                                // 不是小組長，無幸福小組名單，有繳費點名
-                                <li><a href="/Home/IntegrateView/Personal">個人回報</a></li>
-                                <li><a href="/Home/MaintainPersonInfomationView">維護個人基本資料</a></li>
-                                <li><a href="/Home/NewPerson">新增新人</a></li>
-                                @*<li><a href="/Home/HappyGroup">幸福小組回報</a></li>*@
-                                @*<li><a href="/Home/Scheduler">行事曆</a></li>*@
-                                @*<li><a href="/Home/FeeManagerView">繳費與點名</a></li>*@
+
+                                @if (@ViewBag.FeeType == "有繳費點名")
+                                {
+                                    // 不是小組長，有幸福小組名單，有繳費點名
+                                    <li><a href="/Home/IntegrateView/Personal">個人回報</a></li>
+                                    <li><a href="/Home/MaintainPersonInfomationView">維護個人基本資料</a></li>
+                                    <li><a href="/Home/NewPerson">新增新人</a></li>
+                                    <li><a href="/Home/HappyGroup">幸福小組回報</a></li>
+                                    @*<li><a href="/Home/Scheduler">行事曆</a></li>*@
+                                    @*<li><a href="/Home/FeeManagerView">繳費與點名</a></li>*@
+
+                                }
+                                else
+                                {
+                                    // 不是小組長，有幸福小組名單，無繳費點名
+                                    <li><a href="/Home/IntegrateView/Personal">個人回報</a></li>
+                                    <li><a href="/Home/MaintainPersonInfomationView">維護個人基本資料</a></li>
+                                    <li><a href="/Home/NewPerson">新增新人</a></li>
+                                    <li><a href="/Home/HappyGroup">幸福小組回報</a></li>
+                                    @*<li><a href="/Home/Scheduler">行事曆</a></li>*@
+                                    @*<li><a href="/Home/FeeManagerView">繳費與點名</a></li>*@
+                                }
+
                             }
                             else
                             {
-                                // 不是小組長，無幸福小組名單，無繳費點名
-                                <li><a href="/Home/IntegrateView/Personal">個人回報</a></li>
-                                <li><a href="/Home/MaintainPersonInfomationView">維護個人基本資料</a></li>
-                                <li><a href="/Home/NewPerson">新增新人</a></li>
-                                @*<li><a href="/Home/HappyGroup">幸福小組回報</a></li>*@
-                                @*<li><a href="/Home/Scheduler">行事曆</a></li>*@
-                                @*<li><a href="/Home/FeeManagerView">繳費與點名</a></li>*@
-                            }
+                                @if (@ViewBag.FeeType == "有繳費點名")
+                                {
+                                    // 不是小組長，無幸福小組名單，有繳費點名
+                                    <li><a href="/Home/IntegrateView/Personal">個人回報</a></li>
+                                    <li><a href="/Home/MaintainPersonInfomationView">維護個人基本資料</a></li>
+                                    <li><a href="/Home/NewPerson">新增新人</a></li>
+                                    @*<li><a href="/Home/HappyGroup">幸福小組回報</a></li>*@
+                                    @*<li><a href="/Home/Scheduler">行事曆</a></li>*@
+                                    @*<li><a href="/Home/FeeManagerView">繳費與點名</a></li>*@
+                                }
+                                else
+                                {
+                                    // 不是小組長，無幸福小組名單，無繳費點名
+                                    <li><a href="/Home/IntegrateView/Personal">個人回報</a></li>
+                                    <li><a href="/Home/MaintainPersonInfomationView">維護個人基本資料</a></li>
+                                    <li><a href="/Home/NewPerson">新增新人</a></li>
+                                    @*<li><a href="/Home/HappyGroup">幸福小組回報</a></li>*@
+                                    @*<li><a href="/Home/Scheduler">行事曆</a></li>*@
+                                    @*<li><a href="/Home/FeeManagerView">繳費與點名</a></li>*@
+                                }
 
+                            }
                         }
                     }
-
-                    <li><a href="/Home/MaintainPersonInfomationView">維護基本資料</a></li>
                 </ul>
             </div>
         </div>
