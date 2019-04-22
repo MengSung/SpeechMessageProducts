@@ -7,7 +7,7 @@ namespace ChurchReport.Models
 {
     public class MapData
     {
-        public String PresentRecordEntityId { get; set; }
+        //public String PresentRecordEntityId { get; set; }
         public String location { get; set; }
         public tooltip tooltip { get; set; }
     }

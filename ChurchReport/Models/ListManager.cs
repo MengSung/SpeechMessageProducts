@@ -1,4 +1,6 @@
 ﻿using ChurchReport.WebServiceConnector;
+using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -480,9 +482,10 @@ namespace ChurchReport.Models
 
         }
 
-        public MapDataList GetMarkers()
+        public String GetMarkers()
         {
-            return new MapDataList
+
+            MapDataList aMapDataList = new MapDataList
             {
                 m_MapDataList = new List<MapData>
                 {
@@ -507,6 +510,35 @@ namespace ChurchReport.Models
 
                 }
             };
+
+            //return aMapDataList;
+            return JsonConvert.SerializeObject(aMapDataList);
+
+            //return JsonConvert.SerializeObject(new MapDataList
+            //{
+            //    m_MapDataList = new List<MapData>
+            //    {
+            //        new MapData
+            //        {
+            //            location = "桃園市楊梅區三民路",
+            //            tooltip = new tooltip
+            //             {
+            //                 text = "胡夢嵩",
+            //                 isShown = true
+            //             }
+            //        },
+            //        new MapData
+            //        {
+            //            location = "桃園市楊梅區新農路",
+            //            tooltip = new tooltip
+            //             {
+            //                 text = "吳連碧",
+            //                 isShown = true
+            //             }
+            //        },
+
+            //    }
+            //}) ;
         }
 
     }
