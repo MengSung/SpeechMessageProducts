@@ -128,23 +128,23 @@
 <hr />
 <h3>維護基本資料</h3>
 
-@*<div id="multigroupchart" >*@
-    <div id="multigroupchart" style="width:800px;height:450px;overflow:auto;">
+<div id="multigroupchart" >
+    @*<div id="multigroupchart" style="width:800px;height:450px;overflow:auto;">*@
     @(Html.DevExtreme().Map()
         .ID("map")
         .Provider(GeoMapProvider.Google)
         .Center("桃園市楊梅區")
         .Zoom(11)
-        .Width(50)
+        .Width(750)
         .Height(440)
-        .Width("100%")
+        //.Width("100%")
         .Controls(true)
         .Type(GeoMapType.Roadmap)
         // NOTE: Specify your map API keys for every used provider
         .Key(k => k
             //.Bing("YOUR_BING_MAPS_API_KEY")
             .Google("AIzaSyBNogx0Ziqd3OIEW5b6b9BTJHXHW_YKDlM")
-        //.GoogleStatic("YOUR_GOOGLE_STATIC_MAPS_API_KEY")
+            //.GoogleStatic("YOUR_GOOGLE_STATIC_MAPS_API_KEY")
         )
         .MarkerIconSrc(new JS("markerUrl"))
         .OnReady("onReady")
@@ -289,7 +289,10 @@
 
 <script>
     var markerUrl = "https://js.devexpress.com/Demos/RealtorApp/images/map-marker.png";
+    //var markerUrl = "~/assets/images/map-marker.png";
+    //var markerUrl = "~/wwwroot/assets/images/map-marker.png";
     var DataUploadStatus = "尚未上傳喔!";
+
 
     function ShowToast(LocalToastMessage, Type, DisplayTime) {
         var ToastInstance = $("#ToastReUpload").dxToast("instance");
