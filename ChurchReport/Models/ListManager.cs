@@ -482,37 +482,66 @@ namespace ChurchReport.Models
 
         }
 
-        public String GetMarkers()
+        public List<MapData> GetMarkers()
+        //public string[] GetMarkers()
         {
 
-            MapDataList aMapDataList = new MapDataList
-            {
-                m_MapDataList = new List<MapData>
-                {
-                    new MapData
-                    {
-                        location = "桃園市楊梅區三民路",
-                        tooltip = new tooltip
-                         {
-                             text = "胡夢嵩",
-                             isShown = true
-                         }
-                    },
-                    new MapData
-                    {
-                        location = "桃園市楊梅區新農路",
-                        tooltip = new tooltip
-                         {
-                             text = "吳連碧",
-                             isShown = true
-                         }
-                    },
+            //MapDataList aMapDataList = new MapDataList
+            //{
+            //    m_MapDataList = new List<MapData>
+            //    {
+            //        new MapData
+            //        {
+            //            location = "桃園市楊梅區三民路",
+            //            tooltip = new tooltip
+            //             {
+            //                 text = "胡夢嵩",
+            //                 isShown = true
+            //             }
+            //        },
+            //        new MapData
+            //        {
+            //            location = "桃園市楊梅區新農路",
+            //            tooltip = new tooltip
+            //             {
+            //                 text = "吳連碧",
+            //                 isShown = true
+            //             }
+            //        },
 
-                }
-            };
+            //    }
+            //};
+
+
+
+            var markers = new List<MapData> {
+                //new { location = new double[] { 40.755833, -73.986389 }, tooltip = new { text = "Times Square" } },
+                //new { location = new double[] { 40.7825, -73.966111 }, tooltip = new { text = "Central Park" } }
+                new MapData{ location= "桃園市楊梅區三民路" , tooltip = new tooltip{ text = "胡夢嵩" , isShown = true} },
+                new MapData{ location= "桃園市楊梅區新農路" , tooltip = new tooltip{ text = "吳連碧" , isShown = true} },
+                new MapData{ location= "桃園市楊梅區中正路" , tooltip = new tooltip{ text = "胡逸凡" , isShown = true} },
+                new MapData{ location= "桃園市楊梅區永美路" , tooltip = new tooltip{ text = "胡逸祥" , isShown = true} },
+                };
 
             //return aMapDataList;
-            return JsonConvert.SerializeObject(aMapDataList);
+            ////return JsonConvert.SerializeObject(aMapDataList);
+            //return JsonConvert.SerializeObject(markers);
+            return markers;
+
+
+
+
+
+            //var markers = new[] {
+            //    //new { location = new double[] { 40.755833, -73.986389 }, tooltip = new { text = "Times Square" } },
+            //    //new { location = new double[] { 40.7825, -73.966111 }, tooltip = new { text = "Central Park" } }
+            //    new { location= "桃園市楊梅區三民路" , tooltip = new { text = "胡夢嵩" , isShown = true} },
+            //    new { location= "桃園市楊梅區新農路" , tooltip = new { text = "吳連碧" , isShown = true} },
+            //    new { location= "桃園市楊梅區中正路" , tooltip = new { text = "胡逸凡" , isShown = true} },
+            //    new { location= "桃園市楊梅區永美路" , tooltip = new { text = "胡逸祥" , isShown = true} },
+            //    };
+            //return markers;
+
 
             //return JsonConvert.SerializeObject(new MapDataList
             //{
