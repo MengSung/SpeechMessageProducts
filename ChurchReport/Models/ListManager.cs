@@ -19,7 +19,6 @@ namespace ChurchReport.Models
 
         public MultiGroupChartDataList m_MultiGroupChartDataList = new MultiGroupChartDataList();
 
-
         DownloadListManager m_DownloadListManager = new DownloadListManager();
 
         public void SetupListManager(String Account, String Password, DateTime aSelectDate )
@@ -143,15 +142,11 @@ namespace ChurchReport.Models
                 }
             };
         }
-
-
         public String GetDisplayViewType()
         {
             //return m_MultiGroupChartDataList.m_MultiGroupChartDataList.Count > 1 ? "MultiGroupView" : "IntegrateView";
             return m_MultiGroupList.m_WeeklyReportRecordListData.Count > 1 ? "MultiGroupView" : "IntegrateView";
         }
-
-
         public void SetupIntegrateData( String ListEntityId)
         {
             switch (ListEntityId)
@@ -483,6 +478,35 @@ namespace ChurchReport.Models
                     return;
             }
 
+        }
+
+        public MapDataList GetMarkers()
+        {
+            return new MapDataList
+            {
+                m_MapDataList = new List<MapData>
+                {
+                    new MapData
+                    {
+                        location = "桃園市楊梅區三民路",
+                        tooltip = new tooltip
+                         {
+                             text = "胡夢嵩",
+                             isShown = true
+                         }
+                    },
+                    new MapData
+                    {
+                        location = "桃園市楊梅區新農路",
+                        tooltip = new tooltip
+                         {
+                             text = "吳連碧",
+                             isShown = true
+                         }
+                    },
+
+                }
+            };
         }
 
     }
