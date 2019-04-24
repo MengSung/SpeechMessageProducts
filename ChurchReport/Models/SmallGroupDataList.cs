@@ -56,7 +56,7 @@ namespace ChurchReport.Models
             m_Password = Password;
             // 是否是首次登入，是的話小組日期就是從後台小組日期決定，否則就是登入想要改小組日期
             m_FirstLoginFlag = DisplayDateFlag; 
-            DownloadData aDownloader = new DownloadData();
+            DownloadIntegrateData aDownloadIntegrateData = new DownloadIntegrateData();
             AccountPasswordData aAccountPasswordData = new AccountPasswordData
             {
                 Account = Account,
@@ -66,7 +66,7 @@ namespace ChurchReport.Models
             // 從雲端後台下載下來小組點名資料
             m_SundayDate = aSelectDate.AddDays(-(int)aSelectDate.DayOfWeek);
             // 取得所有需要的資料
-            m_MemberInfomationPackage = aDownloader.GetMemberDataPackage(m_SundayDate, aAccountPasswordData);
+            m_MemberInfomationPackage = aDownloadIntegrateData.GetMemberDataPackage(m_SundayDate, aAccountPasswordData);
 
 
             m_SmallGroupData.LoginType = m_MemberInfomationPackage.m_LoginType;

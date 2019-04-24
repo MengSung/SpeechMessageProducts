@@ -100,7 +100,7 @@ namespace ChurchReport.Controllers
                     if (DisplayViewType == "IntegrateView")
                     {
                         // 得知這是單一小組長的回報，所以就直接下載整合式網頁所需的資料
-                        m_InMemoryDataContextSmallGroup.ListManager.SetupIntegrateData(m_InMemoryDataContextSmallGroup.ListManager.ActiveListId);
+                        m_InMemoryDataContextSmallGroup.ListManager.SetupIntegrateData( m_InMemoryDataContextSmallGroup.ListManager.ActiveListId );
                     }
                     else
                     {
@@ -272,12 +272,12 @@ namespace ChurchReport.Controllers
                     if (DisplayViewType == "MultiGroupView")
                     {
                         #region 用小組長回報網頁登入
-                        if (m_InMemoryDataContextSmallGroup.ListManager.m_SmallGroupWeeklyReport != null)
+                        if (m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport != null)
                         {
                             // 登入到多小組回報，整合是頁面要先歸零
-                            m_InMemoryDataContextSmallGroup.ListManager.m_SmallGroupWeeklyReport.LoadFlag = false;
+                            m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.LoadFlag = false;
 
-                            m_InMemoryDataContextSmallGroup.ListManager.m_SmallGroupWeeklyReport = null;
+                            m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport = null;
                         }
 
                         #region 選單控制區塊
@@ -387,11 +387,11 @@ namespace ChurchReport.Controllers
                     if (m_InMemoryDataContextSmallGroup.ListManager.GetDisplayViewType() == "MultiGroupView")
                     {
                         // 這是多小組回報統計點過來的
-                        if (m_InMemoryDataContextSmallGroup.ListManager.m_SmallGroupWeeklyReport == null)
+                        if (m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport == null)
                         {
                             m_InMemoryDataContextSmallGroup.ListManager.SetupIntegrateData(LoginParameter);
                         }
-                        else if (m_InMemoryDataContextSmallGroup.ListManager.m_SmallGroupWeeklyReport.LoadFlag == false)
+                        else if (m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.LoadFlag == false)
                         {
                             m_InMemoryDataContextSmallGroup.ListManager.SetupIntegrateData(LoginParameter);
                         }
@@ -402,7 +402,6 @@ namespace ChurchReport.Controllers
                         // 這是單一小組，選單裡其他選項(新增新人、維護基本資料)點過來的，所以不要在載入資料
                     }
                     #endregion
-
 
                     if (m_InMemoryDataContextSmallGroup.ListManager.GetDisplayViewType() == "IntegrateView")
                     {
@@ -428,9 +427,6 @@ namespace ChurchReport.Controllers
                     }
                     SetMultiGroupLayoutParameter();
 
-
-
-
                     m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_SmallGroupData.WeeklyReportData = "嘟嘟妞妞";
                     m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_SmallGroupData.WeeklyReportAnalysis = "非常可愛";
 
@@ -448,7 +444,7 @@ namespace ChurchReport.Controllers
 
                     //return View(m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.Where(e => e.ListEntityId == m_InMemoryDataContextSmallGroup.m_ListManager.ActiveListId).Select());
                     //m_InMemoryDataContextSmallGroup.ListManager.SetupListSmallGroupWeeklyReport(LoginParameter);
-                    return View(m_InMemoryDataContextSmallGroup.ListManager.m_SmallGroupWeeklyReport);
+                    return View(m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport);
                     //return View(m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.Select(ListEntityId=> m_InMemoryDataContextSmallGroup.m_ListManager.ActiveListId));
                     #endregion
                 }
@@ -490,7 +486,7 @@ namespace ChurchReport.Controllers
                         SetMultiGroupLayoutParameter();
 
                         m_InMemoryDataContextSmallGroup.ListManager.SetupIntegrateData(LoginParameter);
-                        return View(m_InMemoryDataContextSmallGroup.ListManager.m_SmallGroupWeeklyReport);
+                        return View(m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport);
                     }
                     #endregion
                 }
@@ -514,17 +510,17 @@ namespace ChurchReport.Controllers
             {
                 //m_InMemoryDataContextSmallGroup.ListManager.SetupListSmallGroupWeeklyReport(id);
 
-                if (m_InMemoryDataContextSmallGroup.ListManager.m_SmallGroupWeeklyReport == null)
+                if (m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport == null)
                 {
                     m_InMemoryDataContextSmallGroup.ListManager.SetupIntegrateData(id);
                 }
-                else if (m_InMemoryDataContextSmallGroup.ListManager.m_SmallGroupWeeklyReport.LoadFlag == false)
+                else if (m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.LoadFlag == false)
                 {
                     m_InMemoryDataContextSmallGroup.ListManager.SetupIntegrateData(id);
                 }
                 else { }
 
-                var tasks = m_InMemoryDataContextSmallGroup.ListManager.m_SmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.Members;
+                var tasks = m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.Members;
 
                 //var tasks = m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.Where(e => e.ListEntityId == id).Select(e => e.m_SmallGroupDataList.m_SmallGroupData.Members).FirstOrDefault();
 
@@ -551,7 +547,7 @@ namespace ChurchReport.Controllers
             {
                 //SmallGroupData bSmallGroupData = m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.First(o => o.ListEntityId == m_InMemoryDataContextSmallGroup.ListManager.ActiveListId).m_SmallGroupDataList.m_SmallGroupData;
 
-                m_InMemoryDataContextSmallGroup.ListManager.m_SmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.InsertMember(values);
+                m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.InsertMember(values);
 
                 return Ok();
             }
@@ -583,7 +579,7 @@ namespace ChurchReport.Controllers
 
                 //SmallGroupData aSmallGroupData = m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.First(o => o.ListEntityId == m_InMemoryDataContextSmallGroup.ListManager.ActiveListId).m_SmallGroupDataList.m_SmallGroupData;
 
-                m_InMemoryDataContextSmallGroup.ListManager.m_SmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.UpdateMember(key, values);
+                m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.UpdateMember(key, values);
 
                 return Ok();
             }
@@ -606,7 +602,7 @@ namespace ChurchReport.Controllers
             {
                 //SmallGroupData bSmallGroupData = m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.First(o => o.ListEntityId == m_InMemoryDataContextSmallGroup.ListManager.ActiveListId).m_SmallGroupDataList.m_SmallGroupData;
 
-                m_InMemoryDataContextSmallGroup.ListManager.m_SmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.DeleteMember(key);
+                m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.DeleteMember(key);
 
                 return Ok();
             }
@@ -740,7 +736,7 @@ namespace ChurchReport.Controllers
 
                     //return View(m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.Where(e => e.ListEntityId == m_InMemoryDataContextSmallGroup.m_ListManager.ActiveListId).Select());
                     m_InMemoryDataContextSmallGroup.ListManager.SetupIntegrateData(LoginParameter);
-                    return View(m_InMemoryDataContextSmallGroup.ListManager.m_SmallGroupWeeklyReport);
+                    return View(m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport);
 
                     //return View(m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.Where(e => e.ListEntityId == m_InMemoryDataContextSmallGroup.m_ListManager.ActiveListId).FirstOrDefault());
                     //return View(m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.Select(ListEntityId=> m_InMemoryDataContextSmallGroup.m_ListManager.ActiveListId));
@@ -784,17 +780,17 @@ namespace ChurchReport.Controllers
                         SetMultiGroupLayoutParameter();
 
                         //m_InMemoryDataContextSmallGroup.ListManager.SetupListSmallGroupWeeklyReport(LoginParameter);
-                        if (m_InMemoryDataContextSmallGroup.ListManager.m_SmallGroupWeeklyReport == null)
+                        if (m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport == null)
                         {
                             m_InMemoryDataContextSmallGroup.ListManager.SetupIntegrateData(LoginParameter);
                         }
-                        else if (m_InMemoryDataContextSmallGroup.ListManager.m_SmallGroupWeeklyReport.LoadFlag == false)
+                        else if (m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.LoadFlag == false)
                         {
                             m_InMemoryDataContextSmallGroup.ListManager.SetupIntegrateData(LoginParameter);
                         }
                         else { }
 
-                        return View(m_InMemoryDataContextSmallGroup.ListManager.m_SmallGroupWeeklyReport);
+                        return View(m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport);
 
                         //return View(m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport);
                     }
@@ -819,17 +815,17 @@ namespace ChurchReport.Controllers
             try
             {
                 //m_InMemoryDataContextSmallGroup.ListManager.SetupListSmallGroupWeeklyReport(id);
-                if (m_InMemoryDataContextSmallGroup.ListManager.m_SmallGroupWeeklyReport == null)
+                if (m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport == null)
                 {
                     m_InMemoryDataContextSmallGroup.ListManager.SetupIntegrateData(id);
                 }
-                else if (m_InMemoryDataContextSmallGroup.ListManager.m_SmallGroupWeeklyReport.LoadFlag == false)
+                else if (m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.LoadFlag == false)
                 {
                     m_InMemoryDataContextSmallGroup.ListManager.SetupIntegrateData(id);
                 }
                 else { }
 
-                var tasks = m_InMemoryDataContextSmallGroup.ListManager.m_SmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.Members;
+                var tasks = m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.Members;
 
                 //var tasks = m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.Where(e => e.ListEntityId == id).Select(e => e.m_SmallGroupDataList.m_SmallGroupData.Members).FirstOrDefault();
 
@@ -896,18 +892,18 @@ namespace ChurchReport.Controllers
             {
                 //m_InMemoryDataContextSmallGroup.ListManager.SetupListSmallGroupWeeklyReport(id);
 
-                if (m_InMemoryDataContextSmallGroup.ListManager.m_SmallGroupWeeklyReport == null)
+                if (m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport == null)
                 {
                     m_InMemoryDataContextSmallGroup.ListManager.SetupIntegrateData(id);
                 }
-                else if (m_InMemoryDataContextSmallGroup.ListManager.m_SmallGroupWeeklyReport.LoadFlag == false)
+                else if (m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.LoadFlag == false)
                 {
                     m_InMemoryDataContextSmallGroup.ListManager.SetupIntegrateData(id);
                 }
                 else { }
 
 
-                var tasks = m_InMemoryDataContextSmallGroup.ListManager.m_SmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData.Members;
+                var tasks = m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData.Members;
 
                 //var tasks = m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.Where(e => e.ListEntityId == id).Select(e => e.m_SmallGroupDataList.m_NewPersonFollowUpData.Members).FirstOrDefault();
 
@@ -933,7 +929,7 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                m_InMemoryDataContextSmallGroup.ListManager.m_SmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData.InsertMember(values);
+                m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData.InsertMember(values);
 
                 return Ok();
             }
@@ -965,7 +961,7 @@ namespace ChurchReport.Controllers
 
                 //SmallGroupData aSmallGroupData = m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.First(o => o.ListEntityId == m_InMemoryDataContextSmallGroup.ListManager.ActiveListId).m_SmallGroupDataList.m_NewPersonFollowUpData;
 
-                m_InMemoryDataContextSmallGroup.ListManager.m_SmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData.UpdateMember(key, values);
+                m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData.UpdateMember(key, values);
 
                 return Ok();
             }
@@ -988,7 +984,7 @@ namespace ChurchReport.Controllers
             {
                 //SmallGroupData aSmallGroupData = m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.First(o => o.ListEntityId == m_InMemoryDataContextSmallGroup.ListManager.ActiveListId).m_SmallGroupDataList.m_NewPersonFollowUpData;
 
-                m_InMemoryDataContextSmallGroup.ListManager.m_SmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData.DeleteMember(key);
+                m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData.DeleteMember(key);
 
                 return Ok();
             }
@@ -1912,7 +1908,7 @@ namespace ChurchReport.Controllers
             {
                 //// 待修正
                 //m_InMemoryDataContextSmallGroup.m_ListManager.ActiveListId = id;
-                return m_InMemoryDataContextSmallGroup.ListManager.m_SmallGroupWeeklyReport.m_WeeklyReportChart.m_ChartDataList;
+                return m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_WeeklyReportChart.m_ChartDataList;
                 //return m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.Where(e => e.ListEntityId == m_InMemoryDataContextSmallGroup.m_ListManager.ActiveListId).FirstOrDefault().m_WeeklyReportChart.m_ChartDataList;
             }
             catch (System.Exception e)
@@ -2298,8 +2294,8 @@ namespace ChurchReport.Controllers
             bool IntegrateFlag = false;
             if
             (
-                m_InMemoryDataContextSmallGroup.ListManager.m_SmallGroupWeeklyReport != null &&
-                m_InMemoryDataContextSmallGroup.ListManager.m_SmallGroupWeeklyReport.LoadFlag == true
+                m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport != null &&
+                m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.LoadFlag == true
             )
             { IntegrateFlag = true; }
 

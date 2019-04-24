@@ -10,22 +10,33 @@ namespace ChurchReport.Models
 {
     public class ListManager
     {
-        public DateTime SundayPrayers { get; set; } // 小組日期
+        public DateTime m_SelectDate { get; set; } // 小組日期
         public String LoginType; //{ get; set; }
         public String LoginFullName; //{ get; set; }
         public String ActiveListId; //{ get; set; }
 
+        public String m_Account;
+        public String m_Password;
+
+
         // 新增新人時，選擇進入哪一個小組的清單
         public MultiGroupList m_MultiGroupList = new MultiGroupList();
-        public ListSmallGroupWeeklyReport m_SmallGroupWeeklyReport { get; set; }
+
+        public ListSmallGroupWeeklyReport m_ListSmallGroupWeeklyReport = new ListSmallGroupWeeklyReport();// { get; set; }
 
         public MultiGroupChartDataList m_MultiGroupChartDataList = new MultiGroupChartDataList();
 
         DownloadListManager m_DownloadListManager = new DownloadListManager();
 
+        DownloadIntegrateData m_DownloadIntegrateData = new DownloadIntegrateData();
+
         public void SetupListManager(String Account, String Password, DateTime aSelectDate )
         {
-            SundayPrayers = aSelectDate;
+            // 先把登入的帳號密碼存下來
+            m_Account = Account;
+            m_Password = Password;
+
+            m_SelectDate = aSelectDate;
 
             m_DownloadListManager.GetListManager(Account, Password, aSelectDate, ref m_MultiGroupList, ref m_MultiGroupChartDataList, ref LoginType, ref LoginFullName, ref ActiveListId);
         }
@@ -33,7 +44,7 @@ namespace ChurchReport.Models
         {
             LoginType = "小組長";
             LoginFullName = "跟隨者";
-            SundayPrayers = DateTime.Now;
+            m_SelectDate = DateTime.Now;
             ActiveListId = "001";
 
             // 圖表需要的資料
@@ -125,7 +136,7 @@ namespace ChurchReport.Models
         {
             LoginType = "小組長";
             LoginFullName = "跟隨者";
-            SundayPrayers = DateTime.Now;
+            m_SelectDate = DateTime.Now;
             ActiveListId = "001";
             m_MultiGroupList = new MultiGroupList
             {
@@ -149,13 +160,29 @@ namespace ChurchReport.Models
             //return m_MultiGroupChartDataList.m_MultiGroupChartDataList.Count > 1 ? "MultiGroupView" : "IntegrateView";
             return m_MultiGroupList.m_WeeklyReportRecordListData.Count > 1 ? "MultiGroupView" : "IntegrateView";
         }
-        public void SetupIntegrateData( String ListEntityId)
+        public void SetupIntegrateData( String ListEntityId )
+        {
+            //WeeklyReportRecord aWeeklyReportRecord = m_MultiGroupList.m_WeeklyReportRecordListData.Where(e => e.ListEntityId == ListEntityId).FirstOrDefault();
+            WeeklyReportRecord aWeeklyReportRecord = m_MultiGroupList.m_WeeklyReportRecordListData.FirstOrDefault(e => e.ListEntityId == ListEntityId);
+
+            if ( aWeeklyReportRecord != null )
+            {
+                if (m_ListSmallGroupWeeklyReport == null)
+                {
+                    m_ListSmallGroupWeeklyReport = new ListSmallGroupWeeklyReport();
+                    m_ListSmallGroupWeeklyReport.LoadFlag = true;
+                }
+
+                m_DownloadIntegrateData.SetupIntegrateData( m_Account, m_Password, this.m_SelectDate, ListEntityId, aWeeklyReportRecord.WeeklyReportEntityId, ref m_ListSmallGroupWeeklyReport);
+            }
+        }
+        public void SetupIntegrateDataDemo(String ListEntityId)
         {
             switch (ListEntityId)
             {
                 case "001":
                     {
-                        m_SmallGroupWeeklyReport = new ListSmallGroupWeeklyReport
+                        m_ListSmallGroupWeeklyReport = new ListSmallGroupWeeklyReport
                         {
                             LoadFlag = true,
                             ListEntityId = "001",
@@ -196,26 +223,26 @@ namespace ChurchReport.Models
                                 m_NewPersonFollowUpData = new SmallGroupData
                                 {
                                     Members = new List<Member>
-                            {
-                                new Member
-                                {
-                                     PresentRecordId = "CCC",
-                                     FullName = "張大通",
-                                     Phone = "0965526987",
-                                     Address = "桃園市八德區中正路",
-                                     Sunday = true,
-                                     SmallGroup = true,
-                                },
-                                new Member
-                                {
-                                     PresentRecordId = "DDD",
-                                     FullName = "李曉春",
-                                     Phone = "0956874563",
-                                     Address = "台北市中正區中華路",
-                                     Sunday = true,
-                                     SmallGroup = true,
-                                },
-                            }
+                                    {
+                                        new Member
+                                        {
+                                             PresentRecordId = "CCC",
+                                             FullName = "張大通",
+                                             Phone = "0965526987",
+                                             Address = "桃園市八德區中正路",
+                                             Sunday = true,
+                                             SmallGroup = true,
+                                        },
+                                        new Member
+                                        {
+                                             PresentRecordId = "DDD",
+                                             FullName = "李曉春",
+                                             Phone = "0956874563",
+                                             Address = "台北市中正區中華路",
+                                             Sunday = true,
+                                             SmallGroup = true,
+                                        },
+                                    }
                                 }
                             },
 
@@ -263,7 +290,7 @@ namespace ChurchReport.Models
                     return;
                 case "002":
                     {
-                        m_SmallGroupWeeklyReport = new ListSmallGroupWeeklyReport
+                        m_ListSmallGroupWeeklyReport = new ListSmallGroupWeeklyReport
                         {
                             LoadFlag = true,
                             ListEntityId = "002",
@@ -372,7 +399,7 @@ namespace ChurchReport.Models
                     return;
                 default:
                     {
-                        m_SmallGroupWeeklyReport = new ListSmallGroupWeeklyReport
+                        m_ListSmallGroupWeeklyReport = new ListSmallGroupWeeklyReport
                         {
                             LoadFlag = true,
                             ListEntityId = "001",

@@ -27,9 +27,9 @@
 
             @(Html.DevExtreme()
             //.DateBox()
-            .DateBoxFor(m => m.SundayPrayers)
+            .DateBoxFor(m => m.m_SelectDate)
             .Type(DateBoxType.Date)
-            .Value(Model.SundayPrayers)
+            .Value(Model.m_SelectDate)
             .Width(50)
             .DisplayFormat("yyyy/M/d")
             .OnChange("OnDateboxChange")
@@ -456,7 +456,6 @@ m => m
         </div>
 
     </div>
-
 <script>
     function moveEditColumnToLeft(dataGrid) {
         dataGrid.columnOption("command:edit", {

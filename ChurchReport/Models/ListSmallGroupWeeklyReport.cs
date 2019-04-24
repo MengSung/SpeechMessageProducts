@@ -8,8 +8,9 @@ namespace ChurchReport.Models
     public class ListSmallGroupWeeklyReport
     {
         public bool LoadFlag { get; set; }
-
         public String ListEntityId { get; set; }
+        public String WeeklyReportEntityId { get; set; }
+
         public String ListEntityName { get; set; }
         public String LoginType { get; set; }
         public String SmallGroupLeaderContactId { get; set; }
@@ -20,7 +21,7 @@ namespace ChurchReport.Models
         public bool SmallGroupDisplayFlag { get; set; } // 小組牧養的表格是否顯示的旗標
         public bool NewPersonFollowUpDisplayFlag { get; set; } // 新人跟進關懷的表格是否顯示的旗標
 
-        public SmallGroupDataList m_SmallGroupDataList = new SmallGroupDataList();
+        public SmallGroupDataList m_SmallGroupDataList = new SmallGroupDataList();// 包含 3 個SmallGroupData ( 小組牧養、新人跟進關懷、基本資料維護)，而每個又包含一個Members陣列
 
         public String WeeklyReportData { get; set; }
         public String WeeklyReportAnalysis { get; set; }
