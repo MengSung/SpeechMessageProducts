@@ -1166,7 +1166,6 @@ namespace ChurchReport.Controllers
                 //SmallGroupDataList m_SmallGroupDataList = new SmallGroupDataList();
                 //DateTime aSelectDate = DateTime.Parse(SelectedDate);
                 DateTime aSelectDate = DateTime.Parse(SelectedDate).ToLocalTime();
-                m_InMemoryDataContextSmallGroup.SmallGroupDataList.SetupSmallGroupData(m_InMemoryDataContextSmallGroup.ListManager.LoginFullName, m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_Account, m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_Password, aSelectDate, false);
                 #endregion
 
                 #region ¤p²Õ¤é»x

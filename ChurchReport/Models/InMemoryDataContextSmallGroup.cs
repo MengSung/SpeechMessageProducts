@@ -83,8 +83,6 @@ namespace ChurchReport.Models
 
                 m_SmallGroupDataList.SetupContactIdString(ContactIdString);
 
-                m_SmallGroupDataList.SetupSmallGroupData(FullName, Account, Password, DateTime.Now, true);
-
             }
             catch (System.Exception e)
             {
