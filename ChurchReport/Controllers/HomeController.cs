@@ -1070,6 +1070,28 @@ namespace ChurchReport.Controllers
                 throw e;
             }
         }
+        [HttpGet]
+        public object LoadMaintainPersonInfomation(string id, DataSourceLoadOptions loadOptions)
+        {
+            try
+            {
+                var tasks = m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members;
+
+                return DataSourceLoader.Load(tasks, loadOptions);
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "¿ù»~°T®§ : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¥x¤¤«ä®¦°óÂ×´I±Ð·| : ¸j©w¿ù»~ => " + ErrorString);
+
+                throw e;
+            }
+        }
+
         [HttpPost]
         public IActionResult SavePersonInfomation(string aResult)
         {

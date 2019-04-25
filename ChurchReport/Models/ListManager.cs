@@ -18,7 +18,7 @@ namespace ChurchReport.Models
         public String m_Account;
         public String m_Password;
 
-
+        public List<MapData> m_Markers;
         // 新增新人時，選擇進入哪一個小組的清單
         public MultiGroupList m_MultiGroupList = new MultiGroupList();
 
@@ -505,16 +505,27 @@ namespace ChurchReport.Models
 
         public List<MapData> GetMarkers()
         {
-            List<MapData> markers = new List<MapData>
+            if( m_Markers == null )
             {
-                new MapData{ location= "桃園市楊梅區三民路" , tooltip = new tooltip{ text = "胡夢嵩" , isShown = true} },
-                new MapData{ location= "桃園市楊梅區新農路" , tooltip = new tooltip{ text = "吳連碧" , isShown = true} },
-                new MapData{ location= "桃園市楊梅區中正路" , tooltip = new tooltip{ text = "胡逸凡" , isShown = true} },
-                new MapData{ location= "桃園市楊梅區永美路" , tooltip = new tooltip{ text = "胡逸祥" , isShown = true} },
-                new MapData{ location= "桃園市楊梅區中山路" , tooltip = new tooltip{ text = "以利亞" , isShown = true} },
-            };
+                m_Markers = new List<MapData>();
+            }
+            else
+            {
+                m_Markers.Clear();
+            }
+            foreach( Member aMember in this.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members )
+            {
+                if (aMember.Address != null && aMember.Address != "" && aMember.Address != "null")
+                {
+                    //new MapData { location = aMember.Address, tooltip = new tooltip { text = aMember.FullName + ":" + aMember.Address, isShown = true } };
+                    m_Markers.Add
+                    (
+                        new MapData { location = aMember.Address, tooltip = new tooltip { text = aMember.FullName + "，" + aMember.Address, isShown = true } }
+                    );
+                }
+            }
 
-            return markers;
+            return m_Markers;
 
         }
 

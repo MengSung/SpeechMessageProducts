@@ -281,7 +281,19 @@
                 columns.Add().DataField("Address").Caption("地址").Fixed(false).Width(200).MinWidth(90).Alignment(HorizontalAlignment.Left);
                 })
                 //.DataSource(d => d.WebApi().Controller("SmallGroupReport").Key("Id"))
-                .DataSource(Model.Members)
+                //.DataSource(Model.Members)
+                .DataSource
+                (d => d
+                    .WebApi()
+                    .Controller("Home")
+                    .LoadAction("LoadMaintainPersonInfomation")
+                    .InsertAction("InsertPresentRecord")
+                    .DeleteAction("DeletePresentRecord")
+                    .UpdateAction("UpdatePresentRecord")
+                    .Key("PresentRecordId")
+                    .LoadParams(new { id = @ViewBag.ListId })
+                )
+
                 //.DataSourceOptions(d => d.Filter("['Id', '<=' , 6]"))
     )
 </div>
