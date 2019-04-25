@@ -95,26 +95,7 @@ namespace ChurchReport.WebServiceConnector
 
             this.SetupHeaderData( Account, Password, aDownloadDate, ListEntityId, WeeklyReportEntityId, ref aListSmallGroupWeeklyReport);
 
-            // 包含 3 個SmallGroupData ( 小組牧養、新人跟進關懷、基本資料維護)
-            // 而每個又包含一個Members陣列
-            aListSmallGroupWeeklyReport.m_SmallGroupDataList = new SmallGroupDataList();
-
-            this.GetAllMemeberDataList( ListEntityId, WeeklyReportEntityId, ref aListSmallGroupWeeklyReport);
-
-            this.SetSmallGroupData(ref aListSmallGroupWeeklyReport);
-
-            this.SetNewPersonFollowUpData(ref aListSmallGroupWeeklyReport);
-
-            #region 排序委身類型、並且去除掉數字、空白、逗號
-            // 排序委身類型
-            aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members = aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members.OrderBy(o => o.Status).ToList();
-            aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.Members = aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.Members.OrderBy(o => o.Status).ToList();
-            aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData.Members = aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData.Members.OrderBy(o => o.Status).ToList();
-            // 去除掉數字、空白、逗號
-            RemoveNumericAndBlank(aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members);
-            RemoveNumericAndBlank(aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.Members);
-            RemoveNumericAndBlank(aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData.Members);
-            #endregion
+            this.SetupShepherdData(ListEntityId, WeeklyReportEntityId, ref aListSmallGroupWeeklyReport);
 
             return;
         }
@@ -143,6 +124,30 @@ namespace ChurchReport.WebServiceConnector
             aListSmallGroupWeeklyReport.SmallGroupLeaderFullName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref this.m_ContactEntity, "fullname");
 
             return;
+        }
+        public void SetupShepherdData( String ListEntityId, String WeeklyReportEntityId, ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
+        {
+            // 包含 3 個SmallGroupData ( 小組牧養、新人跟進關懷、基本資料維護)
+            // 而每個又包含一個Members陣列
+            aListSmallGroupWeeklyReport.m_SmallGroupDataList = new SmallGroupDataList();
+
+            this.GetAllMemeberDataList(ListEntityId, WeeklyReportEntityId, ref aListSmallGroupWeeklyReport);
+
+            this.SetSmallGroupData(ref aListSmallGroupWeeklyReport);
+
+            this.SetNewPersonFollowUpData(ref aListSmallGroupWeeklyReport);
+
+            #region 排序委身類型、並且去除掉數字、空白、逗號
+            // 排序委身類型
+            aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members = aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members.OrderBy(o => o.Status).ToList();
+            aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.Members = aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.Members.OrderBy(o => o.Status).ToList();
+            aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData.Members = aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData.Members.OrderBy(o => o.Status).ToList();
+            // 去除掉數字、空白、逗號
+            RemoveNumericAndBlank(aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members);
+            RemoveNumericAndBlank(aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.Members);
+            RemoveNumericAndBlank(aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData.Members);
+            #endregion
+
         }
         public void GetAllMemeberDataList(String ListEntityId, String WeeklyReportEntityId, ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
         {
@@ -174,7 +179,6 @@ namespace ChurchReport.WebServiceConnector
             //實際要回傳，不是模擬
             return DownloadMemberPackageDataByDate(aDownloadDate, aAccountPasswordData);
         }
-
         private MemberInfomationPackage DownloadMemberPackageDataByDateDemo(DateTime aDownloadDate, AccountPasswordData aAccountPasswordData)
         {
             #region 回傳網頁所需要的資料結構
@@ -910,7 +914,6 @@ namespace ChurchReport.WebServiceConnector
                 aMember.Status = aMember.Status.Replace(".", ""); // //過濾掉逗號
             }
         }
-
         private void GetAllMemberDataFromPresentRecord(String GroupName, Guid WeeklyReportId, ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
         {
             // 搜尋這個週報裡的所有個人聚會與靈修記錄集合
@@ -1392,7 +1395,6 @@ namespace ChurchReport.WebServiceConnector
             // 控制牧養點名回報是否顯示
             aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.DisplayFlag = aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.Members.Count > 0 ? true:false;
         }
-
         private void SetNewPersonFollowUpData( ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
         {
             aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData = new SmallGroupData();
