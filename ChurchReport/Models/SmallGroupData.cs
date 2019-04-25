@@ -120,6 +120,7 @@ namespace ChurchReport.Models
                 // 轉換成當地時間
                 //DateTimeZoneHandling = DateTimeZoneHandling.Local,
                 DateTimeZoneHandling = DateTimeZoneHandling.Utc,
+                //DateTimeZoneHandling = DateTimeZoneHandling.RoundtripKind,
                 DateFormatString = Format,
                 NullValueHandling = NullValueHandling.Ignore,
                 MissingMemberHandling = MissingMemberHandling.Ignore
@@ -153,9 +154,11 @@ namespace ChurchReport.Models
                 }
                 else if(Key == "BirthDate" && ValueList[0] != null)
                 {
-                    DateTime aBirthDate = DateTime.Parse(ValueList[0]);
+                    //DateTime aBirthDate = DateTime.Parse(ValueList[0]);
                     //String BirthDateValue = "{\"BirthDate\":\"" + DateTime.Parse(ValueList[0]).ToUniversalTime().ToString("u") + "\"}";
-                    String BirthDateValue = "{\"BirthDate\":\"" + DateTime.Parse(ValueList[0]).ToLocalTime().ToString("u") + "\"}";
+                    //String BirthDateValue = "{\"BirthDate\":\"" + (DateTime.Parse(ValueList[0])).AddMonths(-1).ToLocalTime().ToString("u") + "\"}";
+                    //String BirthDateValue = "{\"BirthDate\":\"" + (DateTime.Parse(ValueList[0])).AddMonths(-5).ToUniversalTime().ToString("u") + "\"}";
+                    String BirthDateValue = "{\"BirthDate\":\"" + (DateTime.Parse(ValueList[0])).ToUniversalTime().ToString("u") + "\"}";
                     //String BirthDateValue = "{\"BirthDate\":\"" + DateTime.Parse(ValueList[0]).ToLocalTime().ToString() + "\"}";
                     JsonConvert.PopulateObject(BirthDateValue, aUpdatedMember, settings);
                 }
