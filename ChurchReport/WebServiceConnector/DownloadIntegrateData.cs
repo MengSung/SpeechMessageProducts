@@ -105,7 +105,6 @@ namespace ChurchReport.WebServiceConnector
 
             this.SetNewPersonFollowUpData(ref aListSmallGroupWeeklyReport);
 
-
             #region 排序委身類型、並且去除掉數字、空白、逗號
             // 排序委身類型
             aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members = aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members.OrderBy(o => o.Status).ToList();
@@ -1389,6 +1388,9 @@ namespace ChurchReport.WebServiceConnector
                     aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.Members.Add(aMember);
                 }
             }
+
+            // 控制牧養點名回報是否顯示
+            aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.DisplayFlag = aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.Members.Count > 0 ? true:false;
         }
 
         private void SetNewPersonFollowUpData( ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
@@ -1403,6 +1405,8 @@ namespace ChurchReport.WebServiceConnector
                     aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData.Members.Add(aMember);
                 }
             }
+            // 控制新人跟進關懷點名回報是否顯示
+            aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData.DisplayFlag = aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData.Members.Count > 0 ? true : false;
         }
 
 
