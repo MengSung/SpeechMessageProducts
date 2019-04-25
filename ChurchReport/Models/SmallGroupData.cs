@@ -100,40 +100,78 @@ namespace ChurchReport.Models
                 aUpdatedMember.ModifyFlag = true;
 
 
-                string Format = "";
-                if (values.Contains("台北標準時間"))
+            string Format = "";
+            if (values.Contains("台北標準時間"))
+            {
+                Format = "ddd MMM dd yyyy HH:mm:ss GMT+0800 (台北標準時間)"; // DataGrid如果沒有設PAGE，則正確的日期格式
+            }
+            else if (values.Contains("CST"))
+            {
+                Format = "ddd MMM dd yyyy HH:mm:ss GMT+0800 (CST)"; // DataGrid如果沒有設PAGE，則正確的日期格式
+            }
+            else
+            {
+                //yyyy-MM-dd HH:mm:ss
+                //Format = "ddd MMM dd yyyy HH:mm:ss GMT+0800"; // DataGrid如果沒有設PAGE，則正確的日期格式
+                Format = "yyyy-MM-ddTHH:mm:ssZ"; // DataGrid如果沒有設PAGE，則正確的日期格式
+            }
+            var settings = new JsonSerializerSettings
+            {
+                // 轉換成當地時間
+                //DateTimeZoneHandling = DateTimeZoneHandling.Local,
+                DateTimeZoneHandling = DateTimeZoneHandling.Utc,
+                DateFormatString = Format,
+                NullValueHandling = NullValueHandling.Ignore,
+                MissingMemberHandling = MissingMemberHandling.Ignore
+            };
+
+            //var settings = new JsonSerializerSettings
+            //{
+            //    // 轉換成當地時間
+            //    //DateTimeZoneHandling = DateTimeZoneHandling.Local,
+            //    DateTimeZoneHandling = DateTimeZoneHandling.Utc,
+
+            //    NullValueHandling = NullValueHandling.Ignore,
+            //    MissingMemberHandling = MissingMemberHandling.Ignore
+            //};
+
+
+
+            Dictionary<string, string> aDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(values);
+
+            List<string> KeyList = new List<string>(aDictionary.Keys);
+            List<string> ValueList = new List<string>(aDictionary.Values);
+
+            if (KeyList.Count > 0)
+            {
+                String Key = KeyList[0];
+
+                if (Key == "BirthDate" && ValueList[0] == null)
                 {
-                    Format = "ddd MMM dd yyyy HH:mm:ss GMT+0800 (台北標準時間)"; // DataGrid如果沒有設PAGE，則正確的日期格式
+                    String BirthDateValue = "{\"BirthDate\":\"" + DateTime.MinValue.ToUniversalTime().ToString("u") + "\"}";
+                    JsonConvert.PopulateObject(BirthDateValue, aUpdatedMember, settings);
                 }
-                else if (values.Contains("CST"))
+                else if(Key == "BirthDate" && ValueList[0] != null)
                 {
-                    Format = "ddd MMM dd yyyy HH:mm:ss GMT+0800 (CST)"; // DataGrid如果沒有設PAGE，則正確的日期格式
+                    DateTime aBirthDate = DateTime.Parse(ValueList[0]);
+                    //String BirthDateValue = "{\"BirthDate\":\"" + DateTime.Parse(ValueList[0]).ToUniversalTime().ToString("u") + "\"}";
+                    String BirthDateValue = "{\"BirthDate\":\"" + DateTime.Parse(ValueList[0]).ToLocalTime().ToString("u") + "\"}";
+                    //String BirthDateValue = "{\"BirthDate\":\"" + DateTime.Parse(ValueList[0]).ToLocalTime().ToString() + "\"}";
+                    JsonConvert.PopulateObject(BirthDateValue, aUpdatedMember, settings);
                 }
                 else
                 {
-                    Format = "ddd MMM dd yyyy HH:mm:ss GMT+0800"; // DataGrid如果沒有設PAGE，則正確的日期格式
+                    JsonConvert.PopulateObject(values, aUpdatedMember, settings);
                 }
-                var settings = new JsonSerializerSettings
-                {
-                    // 轉換成當地時間
-                    DateTimeZoneHandling = DateTimeZoneHandling.Local,
-                    //DateTimeZoneHandling = DateTimeZoneHandling.Utc,
-                    DateFormatString = Format,
-                    NullValueHandling = NullValueHandling.Ignore,
-                    MissingMemberHandling = MissingMemberHandling.Ignore
-                };
-
-                //var settings = new JsonSerializerSettings
-                //{
-                //    // 轉換成當地時間
-                //    DateTimeZoneHandling = DateTimeZoneHandling.Local,
-
-                //    NullValueHandling = NullValueHandling.Ignore,
-                //    MissingMemberHandling = MissingMemberHandling.Ignore
-                //};
+            }
 
 
-                JsonConvert.PopulateObject(values, aUpdatedMember, settings);
+
+
+            JsonConvert.PopulateObject(values, aUpdatedMember, settings);
+            //JsonConvert.PopulateObject(values, aUpdatedMember);
+
+
             //}
             //IEnumerable<Member> aMember = Members.Where(c => c.PresentRecordId == key );
 
@@ -164,7 +202,8 @@ namespace ChurchReport.Models
             var settings = new JsonSerializerSettings
             {
                 // 轉換成當地時間
-                DateTimeZoneHandling = DateTimeZoneHandling.Local,
+                //DateTimeZoneHandling = DateTimeZoneHandling.Local,
+                DateTimeZoneHandling = DateTimeZoneHandling.Utc,
 
                 NullValueHandling = NullValueHandling.Ignore,
                 MissingMemberHandling = MissingMemberHandling.Ignore
