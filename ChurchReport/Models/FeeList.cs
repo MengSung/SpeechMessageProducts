@@ -106,7 +106,7 @@ namespace ChurchReport.Models
 
             JsonConvert.PopulateObject(Values, aFee, settings);
 
-                Dictionary<string, string> aDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(Values);
+            Dictionary<string, string> aDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(Values);
 
             List<string> KeyList = new List<string>(aDictionary.Keys);
             List<string> ValueList = new List<string>(aDictionary.Values);

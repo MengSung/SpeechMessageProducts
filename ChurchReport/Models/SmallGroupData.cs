@@ -43,6 +43,7 @@ namespace ChurchReport.Models
 
             Members.Add(aNewMember);
         }
+        //private readonly object m_QueryManyToOneLocker = new object();
         public void UpdateMember(string key, string values)
         {
 
@@ -55,17 +56,85 @@ namespace ChurchReport.Models
             //    select aMember;
 
             //var aUpdatedMember = Members.First(o => o.PresentRecordId == key);
-            Member aUpdatedMember = Members.First(o => o.PresentRecordId == key);
+            //lock (m_QueryManyToOneLocker)
+            //{
 
-            if(ParentListSmallGroupWeeklyReport != null)
-            {
-                ParentListSmallGroupWeeklyReport.ModifyFlag = true;
-            }
-            this.ModifyFlag = true;
-            aUpdatedMember.ModifyFlag = true;
 
-            JsonConvert.PopulateObject(values, aUpdatedMember);
+            //var firstObj = result.FirstOrDefault(m => m.Name == "Ada No");
+            //if (firstObj != null)
+            //{
+            //    myobject.Ada = firstObj.Value;
+            //}
 
+            //if (result != null && result.Any(m => m.Name == "Ada No"))
+            //{
+            //    myobject.Ada = result.FirstOrDefault(m => m.Name == "Ada No").Value;
+            //}
+            //Member aUpdatedMember = Members.SingleOrDefault(o => o.PresentRecordId == key);
+            Member aUpdatedMember = Members.DefaultIfEmpty(null).FirstOrDefault(o => o.PresentRecordId == key);
+            //var aUpdatedMember = Members.FirstOrDefault(o => o.PresentRecordId == key);
+
+            //if(aUpdatedMember == null)
+            //{
+            //    return;
+            //}
+
+            //Member aUpdatedMember;
+            //if (Members != null && Members.Any(m => m.PresentRecordId == key))
+            //{
+            //    //aUpdatedMember = Members.FirstOrDefault(m => m.PresentRecordId == key);
+            //}
+            //else
+            //{
+            //    return;
+            //}
+
+
+            //Member aUpdatedMember = Members.Where( o=>o.PresentRecordId == key).FirstOrDefault();
+
+            if (ParentListSmallGroupWeeklyReport != null)
+                {
+                    ParentListSmallGroupWeeklyReport.ModifyFlag = true;
+                }
+                this.ModifyFlag = true;
+                aUpdatedMember.ModifyFlag = true;
+
+
+                string Format = "";
+                if (values.Contains("台北標準時間"))
+                {
+                    Format = "ddd MMM dd yyyy HH:mm:ss GMT+0800 (台北標準時間)"; // DataGrid如果沒有設PAGE，則正確的日期格式
+                }
+                else if (values.Contains("CST"))
+                {
+                    Format = "ddd MMM dd yyyy HH:mm:ss GMT+0800 (CST)"; // DataGrid如果沒有設PAGE，則正確的日期格式
+                }
+                else
+                {
+                    Format = "ddd MMM dd yyyy HH:mm:ss GMT+0800"; // DataGrid如果沒有設PAGE，則正確的日期格式
+                }
+                var settings = new JsonSerializerSettings
+                {
+                    // 轉換成當地時間
+                    DateTimeZoneHandling = DateTimeZoneHandling.Local,
+                    //DateTimeZoneHandling = DateTimeZoneHandling.Utc,
+                    DateFormatString = Format,
+                    NullValueHandling = NullValueHandling.Ignore,
+                    MissingMemberHandling = MissingMemberHandling.Ignore
+                };
+
+                //var settings = new JsonSerializerSettings
+                //{
+                //    // 轉換成當地時間
+                //    DateTimeZoneHandling = DateTimeZoneHandling.Local,
+
+                //    NullValueHandling = NullValueHandling.Ignore,
+                //    MissingMemberHandling = MissingMemberHandling.Ignore
+                //};
+
+
+                JsonConvert.PopulateObject(values, aUpdatedMember, settings);
+            //}
             //IEnumerable<Member> aMember = Members.Where(c => c.PresentRecordId == key );
 
             //JsonConvert.PopulateObject( values, aMember );
@@ -78,6 +147,51 @@ namespace ChurchReport.Models
 
             // 從前端傳來有更改過的週報去更新網頁端的幸福小組週報內容
         }
+
+
+        public void PopulateObjectAndUpdateEntity(string key, string values)
+        {
+            Member aUpdatedMember = Members.First(o => o.PresentRecordId == key);
+
+            if (ParentListSmallGroupWeeklyReport != null)
+            {
+                ParentListSmallGroupWeeklyReport.ModifyFlag = true;
+            }
+            this.ModifyFlag = true;
+            aUpdatedMember.ModifyFlag = true;
+
+
+            var settings = new JsonSerializerSettings
+            {
+                // 轉換成當地時間
+                DateTimeZoneHandling = DateTimeZoneHandling.Local,
+
+                NullValueHandling = NullValueHandling.Ignore,
+                MissingMemberHandling = MissingMemberHandling.Ignore
+            };
+
+            //DiscipleLessons aBestRecord = JsonConvert.DeserializeObject<DiscipleLessons>(ProcessNullValue(Values), settings);
+
+            JsonConvert.PopulateObject(values, aUpdatedMember, settings);
+
+            Dictionary<string, string> aDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(values);
+
+            List<string> KeyList = new List<string>(aDictionary.Keys);
+            List<string> ValueList = new List<string>(aDictionary.Values);
+
+            if (KeyList.Count > 0)
+            {
+                String Key = KeyList[0];
+
+                if (Key == "BirthDate" && ValueList[0] == null)
+                {
+                    String BirthDateValue = "{\"BirthDate\":\"" + DateTime.MinValue.ToUniversalTime().ToString("u") + "\"}";
+                    JsonConvert.PopulateObject(BirthDateValue, aUpdatedMember, settings);
+                }
+            }
+
+        }
+
         public void DeleteMember(string key)
         {
             var aDeleteMember = Members.First(o => o.PresentRecordId == key);
