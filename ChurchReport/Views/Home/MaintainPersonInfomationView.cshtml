@@ -163,7 +163,7 @@
             .LoadPanel(l => l.Text("更新資料中..."))
             .SearchPanel(s => s.Visible(true).Placeholder("搜尋.."))
 
-
+            .Export(e=>e.Enabled(true).AllowExportSelectedData(true))
             //.StateStoring(s => s
             //    .Enabled(true)
             //    .Type(StateStoringType.LocalStorage)
@@ -254,7 +254,7 @@
                 columns.Add().DataField("Phone").Caption("行動電話").Fixed(false).Width(120).MinWidth(90).Alignment(HorizontalAlignment.Left);
                 columns.Add().DataField("HomePhone").Caption("家裡電話").Fixed(false).Width(120).MinWidth(90).Alignment(HorizontalAlignment.Left);
 
-                columns.Add().DataField("BirthDate").Caption("生日").DataType(GridColumnDataType.Date).Format("yyyy/M/d").Alignment(HorizontalAlignment.Center).Fixed(false).Width(100).MinWidth(80);
+                //columns.Add().DataField("BirthDate").Caption("生日").DataType(GridColumnDataType.Date).Format("yyyy/M/d").Alignment(HorizontalAlignment.Center).Fixed(false).Width(100).MinWidth(80);
                     
 
 
