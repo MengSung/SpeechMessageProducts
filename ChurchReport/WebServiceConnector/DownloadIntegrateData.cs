@@ -240,7 +240,8 @@ namespace ChurchReport.WebServiceConnector
 
             GroupWeeklyReportGuid aGroupWeeklyReportGuid = new GroupWeeklyReportGuid();
 
-            if (WeeklyReportEntityId != Guid.Empty.ToString())
+            //if (WeeklyReportEntityId != Guid.Empty.ToString())
+            if (WeeklyReportEntityId != "")
             {
                 #region 這個點名名單有找到主日周報，去找個人聚會與靈修記錄集合
                 // 在 APP 中會呈現的小組名稱
@@ -1239,7 +1240,7 @@ namespace ChurchReport.WebServiceConnector
                         }
 
                         // 組員的生日
-                        //DateTime aBirthDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref ContactEntity, "birthdate").ToLocalTime();
+                        DateTime aBirthDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref ContactEntity, "birthdate").ToLocalTime();
 
                         // 組員的職業及專長
                         String aIndustry = "";
@@ -1280,7 +1281,7 @@ namespace ChurchReport.WebServiceConnector
                                     Phone = DigitsOnly.Replace(aMobilePhone, ""),
                                     HomePhone = DigitsOnly.Replace(aHomePhone, ""),
                                     Address = aAddress,
-                                    //BirthDate = aMemberInfomation.BirthDate,
+                                    BirthDate = aBirthDate,
                                     Industry = aIndustry,
 
                                     #endregion
