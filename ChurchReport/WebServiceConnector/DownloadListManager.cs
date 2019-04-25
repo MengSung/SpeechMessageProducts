@@ -190,8 +190,10 @@ namespace ChurchReport.WebServiceConnector
 
                     //EntityCollection GroupWeeklyReportEntityCollection = m_ToolUtilityClass.QueryWeeklyReportBySunday( this.m_Sunday, "list", "listid", ListEntity.Id.ToString(), "new_list_group_present_weekly_report", "new_group_present_weekly_report");
 
+                    // 尋找此小組的某一個主日的週報集合
                     EntityCollection GroupWeeklyReportEntityCollection = m_ToolUtilityClass.QueryWeeklyReportBySunday(this.m_Sunday, ListEntity.Id);
 
+                    // 此小組的某一個主日的週報集合，應該僅有一個，也就是第0個的週報
                     Entity GroupWeeklyReportEntity = GroupWeeklyReportEntityCollection.Entities.Count == 1 ? GroupWeeklyReportEntityCollection.Entities[0] : null;
 
                     //依據找到的週報有還是沒有來決定下一步:  
@@ -326,10 +328,10 @@ namespace ChurchReport.WebServiceConnector
                 // 處理每個點名名單
                 foreach (Entity ListEntity in this.m_Lists.Entities)
                 {
-                    // 取得每個需要點名的名單裡的每個週報
+                    // 尋找此小組的某一個主日的週報集合
                     EntityCollection GroupWeeklyReportEntityCollection = m_ToolUtilityClass.QueryWeeklyReportBySunday(this.m_Sunday, ListEntity.Id);
 
-                    // 根據日期看有沒有那個週報
+                    // 此小組的某一個主日的週報集合，應該僅有一個，也就是第0個的週報
                     Entity GroupWeeklyReportEntity = GroupWeeklyReportEntityCollection.Entities.Count == 1 ? GroupWeeklyReportEntityCollection.Entities[0] : null;
 
                     //依據找到的週報有還是沒有來決定下一步:  
