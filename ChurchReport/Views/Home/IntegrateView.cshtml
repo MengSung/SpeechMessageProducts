@@ -179,6 +179,7 @@ else
     <div id="smallgroupchart">
         @( Html.DevExtreme().Chart()
             .ID("chart")
+            .Export(e=>e.Enabled(true))
             //.Animation()
             .CommonSeriesSettings
             (
@@ -246,7 +247,7 @@ else
             //.Position(RelativePosition.Inside)
             //.Border(b => b.Visible(true))
             )
-            .Export(e => e.Enabled(true))
+            //.Export(e => e.Enabled(true))
 
             .OnPointClick(@<text>
                         function(e) {
@@ -291,7 +292,7 @@ else
             .ShowRowLines(true)
             .RowAlternationEnabled(true)
             .ShowBorders(true)
-
+            .Export(e=>e.Enabled(true).AllowExportSelectedData(true))
             .TwoWayBindingEnabled(true)
 
             .Grouping
@@ -401,6 +402,7 @@ else
             .ShowRowLines(true)
             .RowAlternationEnabled(true)
             .ShowBorders(true)
+            .Export(e=>e.Enabled(true).AllowExportSelectedData(true))
 
             .TwoWayBindingEnabled(true)
 
