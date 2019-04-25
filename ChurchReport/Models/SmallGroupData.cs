@@ -126,19 +126,19 @@ namespace ChurchReport.Models
             //    MissingMemberHandling = MissingMemberHandling.Ignore
             //};
 
-            //var settings = new JsonSerializerSettings
-            //{
-            //    // 轉換成當地時間
-            //    //DateTimeZoneHandling = DateTimeZoneHandling.Local,
-            //    DateTimeZoneHandling = DateTimeZoneHandling.Utc,
+            var settings = new JsonSerializerSettings
+            {
+                // 轉換成當地時間
+                DateTimeZoneHandling = DateTimeZoneHandling.Local,
+                //DateTimeZoneHandling = DateTimeZoneHandling.Utc,
 
-            //    NullValueHandling = NullValueHandling.Ignore,
-            //    MissingMemberHandling = MissingMemberHandling.Ignore
-            //};
+                NullValueHandling = NullValueHandling.Ignore,
+                MissingMemberHandling = MissingMemberHandling.Ignore
+            };
 
 
-            //JsonConvert.PopulateObject(values, aUpdatedMember, settings);
-            JsonConvert.PopulateObject(values, aUpdatedMember);
+            JsonConvert.PopulateObject(values, aUpdatedMember, settings);
+            //JsonConvert.PopulateObject(values, aUpdatedMember);
 
 
             //Dictionary<string, string> aDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(values);

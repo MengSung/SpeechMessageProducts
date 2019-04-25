@@ -259,7 +259,7 @@
 
 
 
-                @*columns.Add().DataField("BirthDate").Caption("生日").DataType(GridColumnDataType.Date)
+                columns.Add().DataField("BirthDate").Caption("生日").DataType(GridColumnDataType.Date)
                         .CalculateCellValue(@<text>
                                 function(row)
                                 {
@@ -281,7 +281,7 @@
                                     {return null;}
                                 }
                             </text> )
-                    .Format("yyyy/M/d").Alignment(HorizontalAlignment.Center).Fixed(false).Width(100).MinWidth(80);*@
+                    .Format("yyyy/M/d").Alignment(HorizontalAlignment.Center).Fixed(false).Width(100).MinWidth(80);
 
                 columns.Add().DataField("Industry").Caption("職業及專長").Fixed(false).Width(100).MinWidth(90).Alignment(HorizontalAlignment.Left);
                 columns.Add().DataField("Address").Caption("地址").Fixed(false).Width(200).MinWidth(90).Alignment(HorizontalAlignment.Left);
@@ -326,11 +326,14 @@
         //debugger;
         if (typeof (input) === 'string') {
             //alert("ParseDate 001 : " + input);
+
+            //debugger;
+
             var parts = input.split('-');
 
             var DaySplitedArray = parts[2].split('T');
-            //var ParsedDate = new Date(parts[0], parts[1] - 1, DaySplitedArray[0]);
-            var ParsedDate = new Date(parts[0], parts[1], DaySplitedArray[0]);
+            var ParsedDate = new Date(parts[0], parts[1] - 1, DaySplitedArray[0]);
+            //var ParsedDate = new Date(parts[0], parts[1], DaySplitedArray[0]);
             //var ParsedDate = new Date(parts[0], parts[1], parts[2]);
             //var ParsedDate = new Date(parts[0], parts[1], DaySplitedArray[0]);
 
