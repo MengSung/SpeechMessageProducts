@@ -101,6 +101,8 @@ namespace ChurchReport.WebServiceConnector
 
             this.SetupWeeklyReportData(WeeklyReportEntityId, ref aListSmallGroupWeeklyReport);
 
+            this.SetupWeeklyReportChartData(WeeklyReportEntityId, ref aListSmallGroupWeeklyReport);
+
             return;
         }
         public void SetupHeaderData(String Account, String Password, DateTime aDownloadDate, String ListEntityId, String WeeklyReportEntityId, ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
@@ -159,7 +161,7 @@ namespace ChurchReport.WebServiceConnector
             #endregion
 
         }
-        public void SetupWeeklyReportData( String WeeklyReportEntityId, ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
+        public void SetupWeeklyReportData(String WeeklyReportEntityId, ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
         {
             if (WeeklyReportEntityId != "" && WeeklyReportEntityId != null)
             {
@@ -171,6 +173,49 @@ namespace ChurchReport.WebServiceConnector
                 aListSmallGroupWeeklyReport.WeeklyReportData = "";
                 aListSmallGroupWeeklyReport.WeeklyReportAnalysis = "";
             }
+        }
+        public void SetupWeeklyReportChartData(String WeeklyReportEntityId, ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
+        {
+            //aListSmallGroupWeeklyReport.m_WeeklyReportChart = new ChartDataList();
+
+            aListSmallGroupWeeklyReport.m_WeeklyReportChart = new ChartDataList
+            {
+                m_ChartDataList = new List<ChartData>
+                                {
+                                        new ChartData {
+                                            WeeklyReportEntityId = "001",
+                                            SundayDate = DateTime.Now.AddDays(-7).ToShortDateString(),
+                                            SundayNumber = 8,
+                                            SmallNumber =6
+                                        },
+                                        new ChartData {
+                                            WeeklyReportEntityId = "002",
+                                            SundayDate = DateTime.Now.AddDays(-14).ToShortDateString(),
+                                            SundayNumber = 9,
+                                            SmallNumber =5
+                                        },
+                                        new ChartData {
+                                            WeeklyReportEntityId = "003",
+                                            SundayDate = DateTime.Now.AddDays(-21).ToShortDateString(),
+                                            SundayNumber = 7,
+                                            SmallNumber =9
+                                        },
+                                        new ChartData {
+                                            WeeklyReportEntityId = "004",
+                                            SundayDate = DateTime.Now.AddDays(-28).ToShortDateString(),
+                                            SundayNumber = 10,
+                                            SmallNumber =7
+                                        },
+                                        new ChartData {
+                                            WeeklyReportEntityId = "005",
+                                            SundayDate = DateTime.Now.AddDays(-35).ToShortDateString(),
+                                            SundayNumber = 11,
+                                            SmallNumber =12
+                                        },
+
+                                }
+            };
+
         }
         public void GetAllMemeberDataList(String ListEntityId, String WeeklyReportEntityId, ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
         {
@@ -1273,7 +1318,8 @@ namespace ChurchReport.WebServiceConnector
             }
 
             // 控制牧養點名回報是否顯示
-            aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.DisplayFlag = aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.Members.Count > 0 ? true:false;
+            aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.DisplayFlag = aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.Members.Count > 0 ? true : false;
+            aListSmallGroupWeeklyReport.SmallGroupDisplayFlag = aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.Members.Count > 0 ? true : false;
         }
         private void SetNewPersonFollowUpData( ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
         {
@@ -1289,6 +1335,7 @@ namespace ChurchReport.WebServiceConnector
             }
             // 控制新人跟進關懷點名回報是否顯示
             aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData.DisplayFlag = aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData.Members.Count > 0 ? true : false;
+            aListSmallGroupWeeklyReport.NewPersonFollowUpDisplayFlag = aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.Members.Count > 0 ? true : false;
         }
         private Entity FilterWeeklyReportByDate(ref EntityCollection GroupWeeklyReportEntityCollection)
         {
