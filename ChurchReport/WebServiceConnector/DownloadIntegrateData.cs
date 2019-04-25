@@ -909,7 +909,7 @@ namespace ChurchReport.WebServiceConnector
                         }
 
                         // 組員的生日
-                        //DateTime aBirthDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aContactEntity, "birthdate").ToLocalTime();
+                        DateTime aBirthDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aContactEntity, "birthdate").ToLocalTime();
 
                         // 組員的職業及專長
                         String aIndustry = "";
@@ -1114,7 +1114,7 @@ namespace ChurchReport.WebServiceConnector
                                     Phone = DigitsOnly.Replace(aMobilePhone, ""),
                                     HomePhone = DigitsOnly.Replace(aHomePhone, ""),
                                     Address = aAddress,
-                                    //BirthDate = aMemberInfomation.BirthDate,
+                                    BirthDate = aBirthDate,
                                     Industry = aIndustry,
                                     #endregion
                                     Status = aIdentity, // 委身類型
