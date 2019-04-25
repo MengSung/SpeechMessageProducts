@@ -665,7 +665,6 @@ namespace ChurchReport.Controllers
                 throw e;
             }
         }
-
         public IActionResult SaveIntegrate(ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
         {
             try
@@ -689,7 +688,6 @@ namespace ChurchReport.Controllers
                 throw e;
             }
         }
-
         #endregion
         #region 小組長點名及個人回報
         [Route("/Home/SmallGroupReportView/{LoginParameter}")]
@@ -1058,7 +1056,7 @@ namespace ChurchReport.Controllers
                 }
                 SetMultiGroupLayoutParameter();
 
-                return View(m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_AllMemeberData);
+                return View(m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData);
             }
             catch (System.Exception e)
             {
