@@ -143,10 +143,12 @@
                     .DisplayExpr("Name")
                     .Value(Model.Position)
                     )
-                    .ValidationRules(r => r
-                        .AddRequired()
-                        .Message("Position is required")
-                    );
+                    //.ValidationRules
+                    //(   r => r
+                    //    .AddRequired()
+                    //    .Message("Position is required")
+                    //)
+                    ;
 
             items.AddSimple()
                 .DataField("BirthDate")

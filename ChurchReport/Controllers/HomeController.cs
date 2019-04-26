@@ -399,7 +399,7 @@ namespace ChurchReport.Controllers
                     }
                     else
                     { 
-                        // 這是單一小組，選單裡其他選項(新增新人、維護基本資料)點過來的，所以不要在載入資料
+                        // 這是單一小組，選單裡其他選項(新增新人、維護基本資料)點過來的，所以不要再載入資料
                     }
                     #endregion
 
@@ -1973,11 +1973,18 @@ namespace ChurchReport.Controllers
                 {
                     m_InMemoryDataContextSmallGroup.NewPersonModel.m_PersonFormViewModel.Position = m_InMemoryDataContextSmallGroup.ListManager.m_MultiGroupList.m_WeeklyReportRecordListData.First().ListEntityId;
                 }
-                else if(m_InMemoryDataContextSmallGroup.ListManager.m_MultiGroupList.m_WeeklyReportRecordListData.Count > 1)
+                else if (ViewBag.MultiGroupIndex == "HybridView")
                 {
                     m_InMemoryDataContextSmallGroup.NewPersonModel.m_PersonFormViewModel.Position = m_InMemoryDataContextSmallGroup.ListManager.ActiveListId;
                 }
-                else { }
+                else if (ViewBag.MultiGroupIndex == "SingleMultiGroupView")
+                {
+                    m_InMemoryDataContextSmallGroup.NewPersonModel.m_PersonFormViewModel.Position = "";
+                }
+                else
+                {
+                    m_InMemoryDataContextSmallGroup.NewPersonModel.m_PersonFormViewModel.Position = "";
+                }
 
                 return View(m_InMemoryDataContextSmallGroup.NewPersonModel.m_PersonFormViewModel);
             }
