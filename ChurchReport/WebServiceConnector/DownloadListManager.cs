@@ -220,7 +220,7 @@ namespace ChurchReport.WebServiceConnector
             {
                 if (GroupWeeklyReportEntity != null)
                 {
-                    String TotalMemberNumber = m_ToolUtilityClass.GetEntityStringAttribute(GroupWeeklyReportEntity, "new_small_group_member_number");
+                    String TotalMemberNumber = m_ToolUtilityClass.GetEntityIntAttribute(GroupWeeklyReportEntity, "new_small_group_member_number").ToString();
                     aWeeklyReportRecordListData.Add
                     (
                          new WeeklyReportRecord
@@ -228,7 +228,7 @@ namespace ChurchReport.WebServiceConnector
                              ListEntityId = ListEntity.Id.ToString(),
                              WeeklyReportEntityId = GroupWeeklyReportEntity.Id.ToString(),
                              Name = this.m_ToolUtilityClass.GetEntityStringAttribute(ListEntity, "listname"),
-                             TotalNumber = TotalMemberNumber != ""? TotalMemberNumber : GetSmallGroupMemberNumber(ListEntity.Id).ToString(),
+                             TotalNumber = TotalMemberNumber != "-9999"? TotalMemberNumber : GetSmallGroupMemberNumber(ListEntity.Id).ToString(),
                              SundayNumber = m_ToolUtilityClass.GetEntityIntAttribute(GroupWeeklyReportEntity, "new_sunday_present_number").ToString(),
                              SundayRate = m_ToolUtilityClass.GetEntityDoubleAttribute(GroupWeeklyReportEntity, "new_sunday_present_rate").ToString(),
                              SmallGroupNumber = m_ToolUtilityClass.GetEntityIntAttribute(GroupWeeklyReportEntity, "new_small_group_number").ToString(),
@@ -237,7 +237,7 @@ namespace ChurchReport.WebServiceConnector
                     );
 
                     // 成員人數
-                    int aTotalMemberNumber = TotalMemberNumber != "" ? Convert.ToInt32(TotalMemberNumber) : GetSmallGroupMemberNumber(ListEntity.Id);
+                    int aTotalMemberNumber = TotalMemberNumber != "-9999" ? Convert.ToInt32(TotalMemberNumber) : GetSmallGroupMemberNumber(ListEntity.Id);
                     this.m_MultiGroupChartDataList.m_MultiGroupChartDataList.Where(e => e.ID == "001").First().Number += aTotalMemberNumber;
                     this.m_MultiGroupChartDataList.m_MultiGroupChartDataList.Where(e => e.ID == "002").First().Number += m_ToolUtilityClass.GetEntityIntAttribute(GroupWeeklyReportEntity, "new_sunday_present_number");
                     this.m_MultiGroupChartDataList.m_MultiGroupChartDataList.Where(e => e.ID == "003").First().Number += m_ToolUtilityClass.GetEntityIntAttribute(GroupWeeklyReportEntity, "new_small_group_number");

@@ -40,6 +40,11 @@ namespace ChurchReport.Models
 
             m_DownloadListManager.GetListManager(Account, Password, aSelectDate, ref m_MultiGroupList, ref m_MultiGroupChartDataList, ref LoginType, ref LoginFullName, ref ActiveListId);
         }
+        public void SetSelectDate( DateTime aSelectDate)
+        {
+            m_SelectDate = aSelectDate;
+        }
+
         public void SetupListManager()
         {
             LoginType = "小組長";

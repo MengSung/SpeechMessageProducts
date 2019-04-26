@@ -47,7 +47,7 @@
                     $("#loadPanel").dxLoadPanel("instance").show();
 
                     $.ajax({
-                    url: '@Url.Action("UpdateDate", "Home")',
+                    url: '@Url.Action("UpdateMultiGroupDate", "Home")',
                     data: { SelectedDate: getODataLocalDateFilter(arg.value) },
                     type: 'GET', //POST if you want to save, GET if you want to fetch data from server
 

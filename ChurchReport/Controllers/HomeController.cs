@@ -1218,7 +1218,7 @@ namespace ChurchReport.Controllers
 
                 #region 下載資料
                 // 設定多個組長處理需要的資料
-                m_InMemoryDataContextSmallGroup.SetupListManager(m_InMemoryDataContextSmallGroup.ListManager.m_Account, m_InMemoryDataContextSmallGroup.ListManager.m_Password, aSelectDate , true);
+                m_InMemoryDataContextSmallGroup.SetupListManager(m_InMemoryDataContextSmallGroup.ListManager.m_Account, m_InMemoryDataContextSmallGroup.ListManager.m_Password, aSelectDate, true);
 
                 // 透過取得多小組網頁需要的資料之後，判斷這是多小組還是單一小組長的回報
                 string DisplayViewType = m_InMemoryDataContextSmallGroup.ListManager.GetDisplayViewType();
@@ -1230,7 +1230,104 @@ namespace ChurchReport.Controllers
                 else
                 {
                     // 得知這是多小組的回報，就不需要下載整合式網頁所需的資料
+                    m_InMemoryDataContextSmallGroup.ListManager.SetupIntegrateData(m_InMemoryDataContextSmallGroup.ListManager.ActiveListId);
                 }
+                #endregion
+
+                return Ok();
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
+
+                throw e;
+            }
+        }
+        public IActionResult UpdateMultiGroupDate(string SelectedDate)
+        {
+            try
+            {
+                #region 小組 主日 點名
+                //SmallGroupDataList m_SmallGroupDataList = new SmallGroupDataList();
+                //DateTime aSelectDate = DateTime.Parse(SelectedDate);
+                DateTime aSelectDate = DateTime.Parse(SelectedDate).ToLocalTime();
+                #endregion
+
+
+
+
+                #region 下載資料
+                // 設定多個組長處理需要的資料
+                m_InMemoryDataContextSmallGroup.SetupListManager(m_InMemoryDataContextSmallGroup.ListManager.m_Account, m_InMemoryDataContextSmallGroup.ListManager.m_Password, aSelectDate, true);
+                #endregion
+
+                return Ok();
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
+
+                throw e;
+            }
+        }
+        public IActionResult UpdateIntegrateDate(string SelectedDate)
+        {
+            try
+            {
+                #region 小組 主日 點名
+                //SmallGroupDataList m_SmallGroupDataList = new SmallGroupDataList();
+                //DateTime aSelectDate = DateTime.Parse(SelectedDate);
+                DateTime aSelectDate = DateTime.Parse(SelectedDate).ToLocalTime();
+                #endregion
+
+
+
+                #region 下載資料
+                // 設定多個組長處理需要的資料
+
+                String ActiveListId = m_InMemoryDataContextSmallGroup.ListManager.ActiveListId;
+
+                m_InMemoryDataContextSmallGroup.SetupListManager(m_InMemoryDataContextSmallGroup.ListManager.m_Account, m_InMemoryDataContextSmallGroup.ListManager.m_Password, aSelectDate, true);
+
+                m_InMemoryDataContextSmallGroup.ListManager.SetupIntegrateData(ActiveListId);
+
+                //if (m_InMemoryDataContextSmallGroup.ListManager.ActiveListId != null && m_InMemoryDataContextSmallGroup.ListManager.ActiveListId != "")
+                //{
+                //    m_InMemoryDataContextSmallGroup.ListManager.SetupIntegrateData(m_InMemoryDataContextSmallGroup.ListManager.ActiveListId);
+                //}
+
+                //if (DisplayViewType == "IntegrateView")
+                //{
+                //    // 得知這是單一小組長的回報，所以就直接下載整合式網頁所需的資料
+                //    m_InMemoryDataContextSmallGroup.ListManager.SetupIntegrateData(m_InMemoryDataContextSmallGroup.ListManager.ActiveListId);
+                //}
+                //else
+                //{
+                //    // 得知這是多小組的回報，就不需要下載整合式網頁所需的資料
+                //    m_InMemoryDataContextSmallGroup.ListManager.SetupIntegrateData(m_InMemoryDataContextSmallGroup.ListManager.ActiveListId);
+                //}
+                #endregion
+
+
+
+
+                #region 下載資料
+                //m_InMemoryDataContextSmallGroup.SetSelectDate(aSelectDate);
+
+                //if (m_InMemoryDataContextSmallGroup.ListManager.ActiveListId != null && m_InMemoryDataContextSmallGroup.ListManager.ActiveListId != "")
+                //{
+                //    m_InMemoryDataContextSmallGroup.ListManager.SetupIntegrateData(m_InMemoryDataContextSmallGroup.ListManager.ActiveListId);
+                //}
                 #endregion
 
                 return Ok();

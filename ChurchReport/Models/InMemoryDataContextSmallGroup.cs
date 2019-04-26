@@ -32,12 +32,31 @@ namespace ChurchReport.Models
         }
         #endregion
         #region 多個組長處理區
-        public void SetupListManager( String Account, String Password, DateTime aSelectDate, bool DisplayDateFlag)
+        public void SetupListManager(String Account, String Password, DateTime aSelectDate, bool DisplayDateFlag)
         {
             try
             {
                 // 設定多個組長處理資料
-                m_ListManager.SetupListManager( Account,  Password,  aSelectDate);
+                m_ListManager.SetupListManager(Account, Password, aSelectDate);
+
+                //m_ListManager.SetupListManager();
+
+                //m_ListManager.SetupOnlyOneListManager();
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                throw e;
+            }
+
+        }
+        public void SetSelectDate( DateTime aSelectDate)
+        {
+            try
+            {
+                // 設定多個組長處理資料
+                m_ListManager.SetSelectDate(aSelectDate);
 
                 //m_ListManager.SetupListManager();
 
