@@ -37,6 +37,8 @@ namespace ChurchReport.Models
 
         public NewContact m_NewContact = new NewContact();
 
+        public InMemoryDataContextSmallGroup m_InMemoryDataContextSmallGroup;
+
         public void SetupNewPersonModel(PersonFormViewModel aPersonFormViewModel)
         {
             CopyPersonFormViewModel(aPersonFormViewModel);
@@ -54,9 +56,43 @@ namespace ChurchReport.Models
 
             NewPerson aNewPersonManager = new NewPerson();
 
-            MappingPersonFormViewModelToNewContact(SmallGroupDataList, aPersonFormViewModel);
+            MappingPersonFormViewModelToNewContact(aPersonFormViewModel);
 
-            return aNewPersonManager.CreateNewContact( aAccountPasswordData, m_NewContact );
+            return aNewPersonManager.CreateNewContact(aAccountPasswordData, m_NewContact);
+        }
+        public String UploadNewPerson(String Account, String Password, PersonFormViewModel aPersonFormViewModel)
+        {
+            CopyPersonFormViewModel(aPersonFormViewModel);
+
+            AccountPasswordData aAccountPasswordData = new AccountPasswordData
+            {
+                Account = Account,
+                Password = Password
+            };
+
+            NewPerson aNewPersonManager = new NewPerson();
+
+            MappingPersonFormViewModelToNewContact(aPersonFormViewModel);
+
+            return aNewPersonManager.CreateNewContact(aAccountPasswordData, m_NewContact);
+        }
+        public String UploadNewPerson( ref InMemoryDataContextSmallGroup aInMemoryDataContextSmallGroup, PersonFormViewModel aPersonFormViewModel)
+        {
+            this.m_InMemoryDataContextSmallGroup = aInMemoryDataContextSmallGroup;
+
+            CopyPersonFormViewModel(aPersonFormViewModel);
+
+            AccountPasswordData aAccountPasswordData = new AccountPasswordData
+            {
+                Account = m_InMemoryDataContextSmallGroup.ListManager.m_Account,
+                Password = m_InMemoryDataContextSmallGroup.ListManager.m_Password
+            };
+
+            NewPerson aNewPersonManager = new NewPerson();
+
+            MappingPersonFormViewModelToNewContact( aPersonFormViewModel );
+
+            return aNewPersonManager.CreateNewContact(aAccountPasswordData, m_NewContact);
         }
 
         public void CopyPersonFormViewModel(PersonFormViewModel aPersonFormViewModel)
@@ -80,7 +116,7 @@ namespace ChurchReport.Models
             m_PersonFormViewModel.MerrageState = aPersonFormViewModel.MerrageState;
             m_PersonFormViewModel.Industry = aPersonFormViewModel.Industry;
         }
-        public void MappingPersonFormViewModelToNewContact( SmallGroupDataList SmallGroupDataList , PersonFormViewModel aPersonFormViewModel)
+        public void MappingPersonFormViewModelToNewContact( PersonFormViewModel aPersonFormViewModel)
         {
             //m_NewContact.Name             = aPersonFormViewModel.FirstName;
             m_NewContact.Name               = aPersonFormViewModel.LastName;
@@ -116,10 +152,11 @@ namespace ChurchReport.Models
                 int GroupIndex = Convert.ToInt32(aPersonFormViewModel.Position);
 
                 // 幸福小組長上傳新人有可能沒有所屬小組可選
-                if (SmallGroupDataList.m_MultiGroupList.m_WeeklyReportRecordListData.Count > 0)
+                if (m_InMemoryDataContextSmallGroup.ListManager.m_MultiGroupList.m_WeeklyReportRecordListData.Count > 0)
                 {
                     // 如果有所屬小組
-                    m_NewContact.GroupName = SmallGroupDataList.m_MultiGroupList.m_WeeklyReportRecordListData[Convert.ToInt32(aPersonFormViewModel.Position)].Name;
+                    m_NewContact.GroupName = m_InMemoryDataContextSmallGroup.ListManager.m_MultiGroupList.m_WeeklyReportRecordListData[Convert.ToInt32(aPersonFormViewModel.Position)].Name;
+                    //m_NewContact.GroupName = SmallGroupDataList.m_MultiGroupList.m_WeeklyReportRecordListData[Convert.ToInt32(aPersonFormViewModel.Position)].Name;
                 }
                 else
                 {

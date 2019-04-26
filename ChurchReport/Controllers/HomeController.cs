@@ -1995,25 +1995,29 @@ namespace ChurchReport.Controllers
                 }
 
                 // 上傳至系統
-                string Result = m_InMemoryDataContextSmallGroup.m_NewPersonModel.UploadNewPerson(m_InMemoryDataContextSmallGroup.SmallGroupDataList, aPersonFormViewModel);
+                //string Result = m_InMemoryDataContextSmallGroup.m_NewPersonModel.UploadNewPerson(m_InMemoryDataContextSmallGroup.ListManager.m_Account, m_InMemoryDataContextSmallGroup.ListManager.m_Password, aPersonFormViewModel);
+                string Result = m_InMemoryDataContextSmallGroup.m_NewPersonModel.UploadNewPerson( ref m_InMemoryDataContextSmallGroup, aPersonFormViewModel);
 
-                if (aPersonFormViewModel.Position == "0" || aPersonFormViewModel.Position == "1" || aPersonFormViewModel.Position == "2" || aPersonFormViewModel.Position == "3" || aPersonFormViewModel.Position == "4" || aPersonFormViewModel.Position == "5" || aPersonFormViewModel.Position == "6" || aPersonFormViewModel.Position == "7" || aPersonFormViewModel.Position == "8" || aPersonFormViewModel.Position == "9" || aPersonFormViewModel.Position == "10")
-                {
-                    int GroupIndex = Convert.ToInt32(aPersonFormViewModel.Position);
+                //if (aPersonFormViewModel.Position == "0" || aPersonFormViewModel.Position == "1" || aPersonFormViewModel.Position == "2" || aPersonFormViewModel.Position == "3" || aPersonFormViewModel.Position == "4" || aPersonFormViewModel.Position == "5" || aPersonFormViewModel.Position == "6" || aPersonFormViewModel.Position == "7" || aPersonFormViewModel.Position == "8" || aPersonFormViewModel.Position == "9" || aPersonFormViewModel.Position == "10")
+                //{
+                //    int GroupIndex = Convert.ToInt32(aPersonFormViewModel.Position);
 
-                    // 幸福小組長上傳新人有可能沒有所屬小組可選
-                    //// 待修正
-                    if (m_InMemoryDataContextSmallGroup.m_SmallGroupDataList.m_MultiGroupList.m_WeeklyReportRecordListData.Count > 0)
-                    {
-                        //// 待修正
-                        aPersonFormViewModel.Position = m_InMemoryDataContextSmallGroup.m_SmallGroupDataList.m_MultiGroupList.m_WeeklyReportRecordListData[Convert.ToInt32(aPersonFormViewModel.Position)].Name;
-                    }
-                }
+                //    // 幸福小組長上傳新人有可能沒有所屬小組可選
+                //    //// 待修正
+                //    if (m_InMemoryDataContextSmallGroup.m_SmallGroupDataList.m_MultiGroupList.m_WeeklyReportRecordListData.Count > 0)
+                //    {
+                //        //// 待修正
+                //        aPersonFormViewModel.Position = m_InMemoryDataContextSmallGroup.m_SmallGroupDataList.m_MultiGroupList.m_WeeklyReportRecordListData[Convert.ToInt32(aPersonFormViewModel.Position)].Name;
+                //    }
+                //}
 
 
                 if (Result.Contains("成功"))
                 {
-                    m_InMemoryDataContextSmallGroup.SmallGroupDataList.AddNewPersonToSmallGroup(aPersonFormViewModel);
+                    if (m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport != null )
+                    {
+                        m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.AddNewPersonToMember(aPersonFormViewModel);
+                    }
 
                     return Json(new { status = "1", message = Result });
                 }
