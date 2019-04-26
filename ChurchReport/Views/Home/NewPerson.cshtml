@@ -139,8 +139,9 @@
                     .SelectBox()
                     .DataSource(d => d.WebApi().Controller("Home").LoadAction("AssignSmallGroupGet").Key("ListEntityId"))
                     //.DataSource(d => d.Mvc().Controller("AssignSmallGroup").LoadAction("GetType").Key("ID"))
+                    //.ValueExpr("Name")
                     .DisplayExpr("Name")
-                    .Value(0)
+                    .Value(Model.Position)
                     )
                     .ValidationRules(r => r
                         .AddRequired()

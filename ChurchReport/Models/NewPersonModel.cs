@@ -149,20 +149,23 @@ namespace ChurchReport.Models
 
             if (aPersonFormViewModel.Position == "0" || aPersonFormViewModel.Position == "1" || aPersonFormViewModel.Position == "2" || aPersonFormViewModel.Position == "3" || aPersonFormViewModel.Position == "4" || aPersonFormViewModel.Position == "5")
             {
-                int GroupIndex = Convert.ToInt32(aPersonFormViewModel.Position);
+                // 沒有所屬小組，有可能是個人或是幸福小組回報
+                m_NewContact.GroupName = "";
 
-                // 幸福小組長上傳新人有可能沒有所屬小組可選
-                if (m_InMemoryDataContextSmallGroup.ListManager.m_MultiGroupList.m_WeeklyReportRecordListData.Count > 0)
-                {
-                    // 如果有所屬小組
-                    m_NewContact.GroupName = m_InMemoryDataContextSmallGroup.ListManager.m_MultiGroupList.m_WeeklyReportRecordListData[Convert.ToInt32(aPersonFormViewModel.Position)].Name;
-                    //m_NewContact.GroupName = SmallGroupDataList.m_MultiGroupList.m_WeeklyReportRecordListData[Convert.ToInt32(aPersonFormViewModel.Position)].Name;
-                }
-                else
-                {
-                    // 沒有所屬小組，有可能是個人或是幸福小組回報
-                    m_NewContact.GroupName = "";
-                }
+                //int GroupIndex = Convert.ToInt32(aPersonFormViewModel.Position);
+
+                //// 幸福小組長上傳新人有可能沒有所屬小組可選
+                //if (m_InMemoryDataContextSmallGroup.ListManager.m_MultiGroupList.m_WeeklyReportRecordListData.Count > 0)
+                //{
+                //    // 如果有所屬小組
+                //    m_NewContact.GroupName = m_InMemoryDataContextSmallGroup.ListManager.m_MultiGroupList.m_WeeklyReportRecordListData[Convert.ToInt32(aPersonFormViewModel.Position)].Name;
+                //    //m_NewContact.GroupName = SmallGroupDataList.m_MultiGroupList.m_WeeklyReportRecordListData[Convert.ToInt32(aPersonFormViewModel.Position)].Name;
+                //}
+                //else
+                //{
+                //    // 沒有所屬小組，有可能是個人或是幸福小組回報
+                //    m_NewContact.GroupName = "";
+                //}
             }
             else
             {
