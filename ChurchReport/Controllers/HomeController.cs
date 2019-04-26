@@ -1214,8 +1214,23 @@ namespace ChurchReport.Controllers
                 DateTime aSelectDate = DateTime.Parse(SelectedDate).ToLocalTime();
                 #endregion
 
-                #region 小組日誌
-                m_InMemoryDataContextSmallGroup.WeeklyReportData.SetupWeeklyReport(m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_Account, m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_Password, m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_SundayDate);
+
+
+                #region 下載資料
+                // 設定多個組長處理需要的資料
+                m_InMemoryDataContextSmallGroup.SetupListManager(m_InMemoryDataContextSmallGroup.ListManager.m_Account, m_InMemoryDataContextSmallGroup.ListManager.m_Password, aSelectDate , true);
+
+                // 透過取得多小組網頁需要的資料之後，判斷這是多小組還是單一小組長的回報
+                string DisplayViewType = m_InMemoryDataContextSmallGroup.ListManager.GetDisplayViewType();
+                if (DisplayViewType == "IntegrateView")
+                {
+                    // 得知這是單一小組長的回報，所以就直接下載整合式網頁所需的資料
+                    m_InMemoryDataContextSmallGroup.ListManager.SetupIntegrateData(m_InMemoryDataContextSmallGroup.ListManager.ActiveListId);
+                }
+                else
+                {
+                    // 得知這是多小組的回報，就不需要下載整合式網頁所需的資料
+                }
                 #endregion
 
                 return Ok();

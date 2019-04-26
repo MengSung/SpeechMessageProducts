@@ -60,7 +60,7 @@
                     //dataGridInstance.refresh();
                     //alert("002");
 
-                    window.location.href = "/Home/SmallGroupReportView/AccountPassword"
+                    window.location.href = "/Home/MultiGroupView/MultiGroup"
                     //alert("003");
 
                     },
@@ -422,7 +422,7 @@ m => m
             .ID("loadPanel")
             .ShadingColor("rgba(0,0,0,0.4)")
             //.Position(p => p.Of("#data-grid").Of("#buttonContainer"))
-            .Position(p => p.Of("#data-grid"))
+            .Position(p => p.Of("#smallgroup-grid").Of("multigroupchart"))
             .Visible(false)
             .ShowIndicator(true)
             .ShowPane(true)

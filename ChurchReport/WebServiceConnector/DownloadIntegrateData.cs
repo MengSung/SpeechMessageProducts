@@ -176,8 +176,25 @@ namespace ChurchReport.WebServiceConnector
         }
         public void SetupWeeklyReportChartData( ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport )
         {
-            aListSmallGroupWeeklyReport.m_WeeklyReportChart = new ChartDataList();
-            aListSmallGroupWeeklyReport.m_WeeklyReportChart.m_ChartDataList = new List<ChartData>();
+            if (aListSmallGroupWeeklyReport.m_WeeklyReportChart == null)
+            {
+                aListSmallGroupWeeklyReport.m_WeeklyReportChart = new ChartDataList();
+                if (aListSmallGroupWeeklyReport.m_WeeklyReportChart.m_ChartDataList == null)
+                {
+                    aListSmallGroupWeeklyReport.m_WeeklyReportChart.m_ChartDataList = new List<ChartData>();
+                }
+            }
+            else
+            {
+                if(aListSmallGroupWeeklyReport.m_WeeklyReportChart.m_ChartDataList != null)
+                {
+                    aListSmallGroupWeeklyReport.m_WeeklyReportChart.m_ChartDataList.Clear();
+                }
+                else
+                {
+                    aListSmallGroupWeeklyReport.m_WeeklyReportChart.m_ChartDataList = new List<ChartData>();
+                }
+            }
 
             EntityCollection GroupWeeklyReportEntityCollection = this.m_ToolUtilityClass.QueryWeeklyReportBeforeTowMonthOfSunday(this.m_Sunday, this.m_ListEntity.Id);
 
