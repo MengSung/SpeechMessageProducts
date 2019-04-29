@@ -23,7 +23,9 @@
     <h4>@(Model.LoginFullName)</h4>
 </div>
 
-@*<div class="dx-field">*@
+<div id="the_wholething" style="width:600px;height:800px;overflow:auto;">
+    @*<div id="the_wholething" style="width:1200px;height:800px;overflow:auto;">*@
+
     <div id="SundayLabel" class="dx-field-label" style="float: left; width:15%; background-color:white;">小組日期</div>
     <div id="dateBoxContainer" class="dx-field-value" style="float: left; width:55%; background-color:white;">
 
@@ -45,7 +47,7 @@
                     $("#loadPanel").dxLoadPanel("instance").show();
 
                     $.ajax({
-                    url: '@Url.Action("UpdateMultiGroupDate", "Home")',
+                    url: '@Url.Action("UpdateDate", "Home")',
                     data: { SelectedDate: getODataLocalDateFilter(arg.value) },
                     type: 'GET', //POST if you want to save, GET if you want to fetch data from server
 
@@ -58,7 +60,7 @@
                     //dataGridInstance.refresh();
                     //alert("002");
 
-                    window.location.href = "/Home/MultiGroupView/MultiGroup"
+                    window.location.href = "/Home/SmallGroupReportView/AccountPassword"
                     //alert("003");
 
                     },
@@ -74,68 +76,14 @@
 
         )
     </div>
-    <div id="ToastContainer">
-        @(Html.DevExtreme().Toast()
-        .ID("toast")
-        .Position(p => p
-        .At(HorizontalAlignment.Center, VerticalAlignment.Center)
-        .Offset(0, 50))
-        .Message(DataStatus)
-        .DisplayTime(2000)
-        .MaxWidth(200)
-        )
 
-    </div>
-    <div id="LoadPanel">
-        @(Html.DevExtreme().LoadPanel()
-        .ID("loadPanel")
-        .ShadingColor("rgba(0,0,0,0.4)")
-        //.Position(p => p.Of("#data-grid").Of("#buttonContainer"))
-        .Position(p => p.Of("#smallgroupchart").Of("#smallgroup-grid").Of("#newpersonal-data-grid").Of("#form-container").Of("#smallgroup-grid"))
-        .Visible(false)
-        .ShowIndicator(true)
-        .ShowPane(true)
-        .Shading(true)
-        .CloseOnOutsideClick(false)
-        .Message("更新資料中...")
-        .Animation(l => l.Show(k => k.Easing(AnimationEasing.Swing)))
-        //.OnShown("loadPanel_shown")
-        //.OnHidden("loadPanel_hidden")
-        )
-    </div>
-    <div id="ToastContainer">
-        @(Html.DevExtreme().Toast()
-        .ID("ToastReUpload")
-        .Position(p => p
-        .At(HorizontalAlignment.Center, VerticalAlignment.Center)
-        .Offset(0, 50))
-        .Message(ReUpload)
-        .DisplayTime(5000)
-        .Type(ToastType.Error)
-        .MaxWidth(500)
-        )
-    </div>
-    <div id="SelectDateToastContainer">
-        @(Html.DevExtreme().Toast()
-        .ID("SelectDateToast")
-        .Position(p => p
-        .At(HorizontalAlignment.Center, VerticalAlignment.Center)
-        .Offset(0, 50))
-        .Message("日期格式錯誤，格式範例: 2018/6/5")
-        .DisplayTime(5000)
-        .Type(ToastType.Error)
-        .MaxWidth(300)
-        )
-    </div>
-
-    <div id="multigroupchart" overflow-y:scroll>
+    <div id="multigroupchart">
         @( Html.DevExtreme().PieChart()
             .ID("multigroupchart")
             .Palette(VizPalette.HarmonyLight)
             .Margin(m => m.Left(0).Top(0))
             .AdaptiveLayout(a => a.Height(200))
             .Diameter(0.4)
-            .Export(e => e.Enabled(true))
             .Size(s => s.Height(400).Width(400))
             //.Animation()
             .CommonSeriesSettings
@@ -239,7 +187,7 @@ m => m
 
     </div>
 
-    <div id="smallgroup-grid" overflow-y:scroll>
+    <div id="smallgroup-grid">
         @(
             Html.DevExtreme().DataGrid<WeeklyReportRecord>()
                 .ID("SmallGroupgridContainer")
@@ -259,7 +207,7 @@ m => m
                 .ShowRowLines(true)
                 .RowAlternationEnabled(true)
                 .ShowBorders(true)
-                .Export(e => e.Enabled(true).AllowExportSelectedData(true))
+
                 .TwoWayBindingEnabled(true)
 
                 .Grouping
@@ -363,99 +311,155 @@ m => m
                     )
                     .CalculateCustomSummary
                     (
-                                                                                                                                                        @<text>
-                                                                                                                                                            function (options)
-                                                                                                                                                            {
-                                                                                                                                                            if (options.name === "TotalNumber")
-                                                                                                                                                            {
-                                                                                                                                                            if (options.summaryProcess === "start") {
-                                                                                                                                                            options.totalValue = 0;
-                                                                                                                                                            }
-                                                                                                                                                            if (options.summaryProcess === "calculate") {
-                                                                                                                                                            options.totalValue = options.totalValue + Number(options.value.TotalNumber);
-                                                                                                                                                            }
-                                                                                                                                                            if (options.summaryProcess === "finalize") {
-                                                                                                                                                            //
-                                                                                                                                                            }
-                                                                                                                                                            }
+                                                                                                @<text>
+                                                                                                    function (options)
+                                                                                                    {
+                                                                                                    if (options.name === "TotalNumber")
+                                                                                                    {
+                                                                                                    if (options.summaryProcess === "start") {
+                                                                                                    options.totalValue = 0;
+                                                                                                    }
+                                                                                                    if (options.summaryProcess === "calculate") {
+                                                                                                    options.totalValue = options.totalValue + Number(options.value.TotalNumber);
+                                                                                                    }
+                                                                                                    if (options.summaryProcess === "finalize") {
+                                                                                                    //
+                                                                                                    }
+                                                                                                    }
 
 
-                                                                                                                                                            else if (options.name === "SundayNumber")
-                                                                                                                                                            {
-                                                                                                                                                            if (options.summaryProcess === "start") {
-                                                                                                                                                            options.totalValue = 0;
-                                                                                                                                                            }
-                                                                                                                                                            if (options.summaryProcess === "calculate") {
-                                                                                                                                                            options.totalValue = options.totalValue + Number(options.value.SundayNumber);
-                                                                                                                                                            }
-                                                                                                                                                            if (options.summaryProcess === "finalize") {
-                                                                                                                                                            //
-                                                                                                                                                            }
-                                                                                                                                                            }
+                                                                                                    else if (options.name === "SundayNumber")
+                                                                                                    {
+                                                                                                    if (options.summaryProcess === "start") {
+                                                                                                    options.totalValue = 0;
+                                                                                                    }
+                                                                                                    if (options.summaryProcess === "calculate") {
+                                                                                                    options.totalValue = options.totalValue + Number(options.value.SundayNumber);
+                                                                                                    }
+                                                                                                    if (options.summaryProcess === "finalize") {
+                                                                                                    //
+                                                                                                    }
+                                                                                                    }
 
-                                                                                                                                                            else if (options.name === "SmallGroupNumber")
-                                                                                                                                                            {
-                                                                                                                                                            if (options.summaryProcess === "start") {
-                                                                                                                                                            options.totalValue = 0;
-                                                                                                                                                            }
-                                                                                                                                                            if (options.summaryProcess === "calculate") {
-                                                                                                                                                            options.totalValue = options.totalValue + Number(options.value.SmallGroupNumber);
-                                                                                                                                                            }
-                                                                                                                                                            if (options.summaryProcess === "finalize") {
-                                                                                                                                                            //
-                                                                                                                                                            }
-                                                                                                                                                            }
+                                                                                                    else if (options.name === "SmallGroupNumber")
+                                                                                                    {
+                                                                                                    if (options.summaryProcess === "start") {
+                                                                                                    options.totalValue = 0;
+                                                                                                    }
+                                                                                                    if (options.summaryProcess === "calculate") {
+                                                                                                    options.totalValue = options.totalValue + Number(options.value.SmallGroupNumber);
+                                                                                                    }
+                                                                                                    if (options.summaryProcess === "finalize") {
+                                                                                                    //
+                                                                                                    }
+                                                                                                    }
 
-                                                                                                                                                            else if (options.name === "SundayRate")
-                                                                                                                                                            {
-                                                                                                                                                            if (options.summaryProcess === "start")
-                                                                                                                                                            {
-                                                                                                                                                            options.totalValue = 0;
-                                                                                                                                                            options.n = 0;
-                                                                                                                                                            }
-                                                                                                                                                            if (options.summaryProcess === "calculate")
-                                                                                                                                                            {
-                                                                                                                                                            options.totalValue = options.totalValue + Number(options.value.SundayRate);
-                                                                                                                                                            options.n++;
-                                                                                                                                                            }
-                                                                                                                                                            if (options.summaryProcess === "finalize")
-                                                                                                                                                            {
-                                                                                                                                                            options.totalValue = options.totalValue/options.n * 100;
+                                                                                                    else if (options.name === "SundayRate")
+                                                                                                    {
+                                                                                                    if (options.summaryProcess === "start")
+                                                                                                    {
+                                                                                                    options.totalValue = 0;
+                                                                                                    options.n = 0;
+                                                                                                    }
+                                                                                                    if (options.summaryProcess === "calculate")
+                                                                                                    {
+                                                                                                    options.totalValue = options.totalValue + Number(options.value.SundayRate);
+                                                                                                    options.n++;
+                                                                                                    }
+                                                                                                    if (options.summaryProcess === "finalize")
+                                                                                                    {
+                                                                                                    options.totalValue = options.totalValue/options.n * 100;
 
-                                                                                                                                                            //options.totalValue = options.n;
-                                                                                                                                                            //
-                                                                                                                                                            }
-                                                                                                                                                            }
+                                                                                                    //options.totalValue = options.n;
+                                                                                                    //
+                                                                                                    }
+                                                                                                    }
 
-                                                                                                                                                            else if (options.name === "SmallGroupRate")
-                                                                                                                                                            {
-                                                                                                                                                            if (options.summaryProcess === "start")
-                                                                                                                                                            {
-                                                                                                                                                            options.totalValue = 0;
-                                                                                                                                                            options.n = 0;
-                                                                                                                                                            }
-                                                                                                                                                            if (options.summaryProcess === "calculate")
-                                                                                                                                                            {
-                                                                                                                                                            options.totalValue = options.totalValue + Number(options.value.SmallGroupRate);
-                                                                                                                                                            options.n++;
-                                                                                                                                                            }
-                                                                                                                                                            if (options.summaryProcess === "finalize")
-                                                                                                                                                            {
-                                                                                                                                                            options.totalValue = options.totalValue/options.n * 100;
+                                                                                                    else if (options.name === "SmallGroupRate")
+                                                                                                    {
+                                                                                                    if (options.summaryProcess === "start")
+                                                                                                    {
+                                                                                                    options.totalValue = 0;
+                                                                                                    options.n = 0;
+                                                                                                    }
+                                                                                                    if (options.summaryProcess === "calculate")
+                                                                                                    {
+                                                                                                    options.totalValue = options.totalValue + Number(options.value.SmallGroupRate);
+                                                                                                    options.n++;
+                                                                                                    }
+                                                                                                    if (options.summaryProcess === "finalize")
+                                                                                                    {
+                                                                                                    options.totalValue = options.totalValue/options.n * 100;
 
-                                                                                                                                                            //options.totalValue = options.n;
-                                                                                                                                                            //
-                                                                                                                                                            }
-                                                                                                                                                            }
+                                                                                                    //options.totalValue = options.n;
+                                                                                                    //
+                                                                                                    }
+                                                                                                    }
 
-                                                                                                                                                            }
-                                                                                                                                                        </text>
-      )
+                                                                                                    }
+                                                                                                </text>
      )
+ )
         )
+    </div>
+
+    <div id="Tool" style="height:100%; width:100%; overflow: hidden;">
+        <div id="ToastContainer">
+            @(Html.DevExtreme().Toast()
+            .ID("toast")
+            .Position(p => p
+            .At(HorizontalAlignment.Center, VerticalAlignment.Center)
+            .Offset(0, 50))
+            .Message(DataStatus)
+            .DisplayTime(2000)
+            .MaxWidth(200)
+            )
+
+        </div>
+        <div id="LoadPanel">
+            @(Html.DevExtreme().LoadPanel()
+            .ID("loadPanel")
+            .ShadingColor("rgba(0,0,0,0.4)")
+            //.Position(p => p.Of("#data-grid").Of("#buttonContainer"))
+            .Position(p => p.Of("#data-grid"))
+            .Visible(false)
+            .ShowIndicator(true)
+            .ShowPane(true)
+            .Shading(true)
+            .CloseOnOutsideClick(false)
+            .Message("更新資料中...")
+            .Animation(l => l.Show(k => k.Easing(AnimationEasing.Swing)))
+            //.OnShown("loadPanel_shown")
+            //.OnHidden("loadPanel_hidden")
+            )
+        </div>
+        <div id="ToastContainer">
+            @(Html.DevExtreme().Toast()
+            .ID("ToastReUpload")
+            .Position(p => p
+            .At(HorizontalAlignment.Center, VerticalAlignment.Center)
+            .Offset(0, 50))
+            .Message(ReUpload)
+            .DisplayTime(5000)
+            .Type(ToastType.Error)
+            .MaxWidth(500)
+            )
+        </div>
+        <div id="SelectDateToastContainer">
+            @(Html.DevExtreme().Toast()
+            .ID("SelectDateToast")
+            .Position(p => p
+            .At(HorizontalAlignment.Center, VerticalAlignment.Center)
+            .Offset(0, 50))
+            .Message("日期格式錯誤，格式範例: 2018/6/5")
+            .DisplayTime(5000)
+            .Type(ToastType.Error)
+            .MaxWidth(300)
+            )
+        </div>
+    </div>
 
 </div>
-
 <script>
     function moveEditColumnToLeft(dataGrid) {
         dataGrid.columnOption("command:edit", {
@@ -541,6 +545,6 @@ m => m
 <script src="~/js/DropDownBox.js"></script>
 <script src="~/js/DataGridAjax.js"></script>
 <script src="~/js/LoadPanel.js"></script>
-@*<script src="~/lib/jquery-ajax-unobtrusive/jquery.unobtrusive-ajax.js"></script>*@
+<script src="~/lib/jquery-ajax-unobtrusive/jquery.unobtrusive-ajax.js"></script>
 <link href="~/css/SmallGroupReportController.css" rel="stylesheet" />
-@*<link href="~/css/WeeklyReport.css" rel="stylesheet" />*@
+<link href="~/css/WeeklyReport.css" rel="stylesheet" />
