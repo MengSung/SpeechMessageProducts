@@ -24,7 +24,6 @@
 </div>
 
 <div class="dx-field">
-    <div id="the whole thing" style="height:100%; width:100%; overflow: hidden;">
         <div id="SundayLabel" class="dx-field-label" style="float: left; width:15%; background-color:white;">小組日期</div>
         <div id="dateBoxContainer" class="dx-field-value" style="float: left; width:55%; background-color:white;">
 
@@ -72,20 +71,6 @@
                         }
             </text>
 )
-
-            )
-        </div>
-        <div id="buttonContainer" class="dx-button-icon" style="float: left; width:30%; text-align: left; background-color:white;">
-            @(Html.DevExtreme().Button()
-            .Text("上傳")
-            .Type(ButtonType.Success)
-            .ID("save-button")
-            //.UseSubmitBehavior(true)
-            .UseSubmitBehavior(true)
-            //.ValidationGroup()
-            //.Width(60)
-
-            .OnClick("SaveWeeklyReport")
 
             )
         </div>
@@ -142,8 +127,6 @@
             .MaxWidth(300)
             )
         </div>
-
-    </div>
 </div>
 
 <div id="multigroupchart" overflow-y:scroll>
@@ -474,28 +457,6 @@ m => m
 </div>
 
 <script>
-    function moveEditColumnToLeft(dataGrid) {
-        dataGrid.columnOption("command:edit", {
-            visibleIndex: -1,
-            width: 50
-        });
-    }
-    function cell_prepared(e) {
-        if (e.rowType === "data" && e.column.command === "edit") {
-            var isEditing = e.row.isEditing,
-                $links = e.cellElement.find(".dx-link");
-
-            $links.text("");
-
-            if (isEditing) {
-                $links.filter(".dx-link-save").addClass("dx-icon-save");
-                $links.filter(".dx-link-cancel").addClass("dx-icon-revert");
-            } else {
-                $links.filter(".dx-link-edit").addClass("dx-icon-edit");
-                $links.filter(".dx-link-delete").addClass("dx-icon-trash");
-            }
-        }
-    }
     function OnDateboxChange(e) {
         debugger;
 
@@ -528,20 +489,6 @@ m => m
     }
     function loadPanel_hidden()
     {
-    }
-    function SaveWeeklyReport(arg) {
-
-        //debugger;
-
-        getLoadPanelInstance().show();
-        //$("#toast").dxToast("instance").show();
-        //alert("SaveNewPerson!!!");
-        //alert("OnValueChanged : " + arg.value);
-
-        //alert("OnValueChanged : " + arg.attribute('text'));
-        //alert("OnValueChanged : " + text: arg.attribute("text"));
-
-        //alert( getODataLocalDateFilter(arg.value) );
     }
     function cellTemplate(cellElement, cellInfo) {
     $('<a/>')
