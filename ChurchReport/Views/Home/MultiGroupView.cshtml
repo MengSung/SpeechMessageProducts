@@ -185,6 +185,117 @@
     @*<div id="the_wholething" style="height:100%; width:100%; overflow: hidden;">*@
     @*<div id="the_wholething" style="width:1200px;height:800px;overflow:auto;">*@
 
+    <div id="multigroupchart" overflow-y:scroll>
+        @( Html.DevExtreme().PieChart()
+            .ID("multigroupchart")
+            .Palette(VizPalette.HarmonyLight)
+            .Margin(m => m.Left(0).Top(0))
+            .AdaptiveLayout(a => a.Height(200))
+            .Diameter(0.4)
+            .Export(e => e.Enabled(true))
+            .Size(s => s.Height(400).Width(400))
+            //.Animation()
+            .CommonSeriesSettings
+            (
+                s => s
+                .ArgumentField("Name")
+                //.Type(SeriesType.Spline)
+                //.Type(SeriesType.Area)
+                //.Type(SeriesType.Scatter)
+                //.HoverMode(ChartSeriesHoverMode.AllArgumentPoints)
+                //.SelectionMode(ChartSeriesSelectionMode.AllArgumentPoints)
+                .Label(l => l
+                    .Visible(true)
+                    .Format
+                    (f => f
+                        .Type(Format.FixedPoint)
+                        .Precision(0)
+                    )
+                )
+            )
+            .Series(s =>
+            {
+                //s.Add().ValueField("Name").Name("主日人數").Color("#e7d19a");
+                //s.Add().ValueField("SmallNumber").Name("小組人數").Color("#ffd700");
+                s.Add().ValueField("Number").Name("人數")
+                        .Label(l => l
+                        .Visible(true)
+                        .Font(f => f.Size(12))
+                        .Connector(c => c
+                        .Visible(true)
+                        .Width(0.8)
+                        //Option(
+                )
+                .Position(PieChartLabelPosition.Columns)
+                .CustomizeText(@<text>
+                            function(arg) {
+                            //debugger;
+                            return arg.argument + "=" +arg.valueText ;
+                            }
+                </text>)
+);
+}
+)
+
+
+.Tooltip(t => t.Enabled(true))
+
+.Title
+(
+t => t
+.Text("人數")
+.Font
+(
+f => f
+.Size(20)
+.Weight(300)
+//.Color("red")
+.Color("darkblue")
+)
+.Margin
+(
+m => m
+.Top(5)
+.Bottom(5)
+)
+//.Subtitle("統計")
+//.PlaceholderSize(0)
+)
+//.Title("聚會人數")
+.Legend(l => l
+.VerticalAlignment(VerticalEdge.Bottom)
+.HorizontalAlignment(HorizontalAlignment.Center)
+.ItemTextPosition(Position.Top)
+//.VerticalAlignment(VerticalEdge.Top)
+//.HorizontalAlignment(HorizontalAlignment.Right)
+//.Position(RelativePosition.Inside)
+//.Border(b => b.Visible(true))
+)
+.Export(e => e.Enabled(true))
+
+.OnPointClick(@<text>
+                    function(e) {
+                    e.target.select();
+                    }
+</text>)
+
+.DataSource
+(d => d
+.WebApi()
+.Controller("Home")
+.LoadAction("GetMultiGroupChartDataList")
+//.InsertAction("InsertPresentRecord")
+//.DeleteAction("DeletePresentRecord")
+//.UpdateAction("UpdatePresentRecord")
+.Key("ID")
+.LoadParams(new { WeeklyReportId = @ViewBag.ListId }
+)
+)
+
+        )
+
+    </div>
+
     <div id="smallgroup-grid">
         @(
             Html.DevExtreme().DataGrid<WeeklyReportRecord>()
@@ -309,93 +420,93 @@
                     )
                     .CalculateCustomSummary
                     (
-                                                    @<text>
-                                                        function (options)
-                                                        {
-                                                        if (options.name === "TotalNumber")
-                                                        {
-                                                        if (options.summaryProcess === "start") {
-                                                        options.totalValue = 0;
-                                                        }
-                                                        if (options.summaryProcess === "calculate") {
-                                                        options.totalValue = options.totalValue + Number(options.value.TotalNumber);
-                                                        }
-                                                        if (options.summaryProcess === "finalize") {
-                                                        //
-                                                        }
-                                                        }
+                                                            @<text>
+                                                                function (options)
+                                                                {
+                                                                if (options.name === "TotalNumber")
+                                                                {
+                                                                if (options.summaryProcess === "start") {
+                                                                options.totalValue = 0;
+                                                                }
+                                                                if (options.summaryProcess === "calculate") {
+                                                                options.totalValue = options.totalValue + Number(options.value.TotalNumber);
+                                                                }
+                                                                if (options.summaryProcess === "finalize") {
+                                                                //
+                                                                }
+                                                                }
 
 
-                                                        else if (options.name === "SundayNumber")
-                                                        {
-                                                        if (options.summaryProcess === "start") {
-                                                        options.totalValue = 0;
-                                                        }
-                                                        if (options.summaryProcess === "calculate") {
-                                                        options.totalValue = options.totalValue + Number(options.value.SundayNumber);
-                                                        }
-                                                        if (options.summaryProcess === "finalize") {
-                                                        //
-                                                        }
-                                                        }
+                                                                else if (options.name === "SundayNumber")
+                                                                {
+                                                                if (options.summaryProcess === "start") {
+                                                                options.totalValue = 0;
+                                                                }
+                                                                if (options.summaryProcess === "calculate") {
+                                                                options.totalValue = options.totalValue + Number(options.value.SundayNumber);
+                                                                }
+                                                                if (options.summaryProcess === "finalize") {
+                                                                //
+                                                                }
+                                                                }
 
-                                                        else if (options.name === "SmallGroupNumber")
-                                                        {
-                                                        if (options.summaryProcess === "start") {
-                                                        options.totalValue = 0;
-                                                        }
-                                                        if (options.summaryProcess === "calculate") {
-                                                        options.totalValue = options.totalValue + Number(options.value.SmallGroupNumber);
-                                                        }
-                                                        if (options.summaryProcess === "finalize") {
-                                                        //
-                                                        }
-                                                        }
+                                                                else if (options.name === "SmallGroupNumber")
+                                                                {
+                                                                if (options.summaryProcess === "start") {
+                                                                options.totalValue = 0;
+                                                                }
+                                                                if (options.summaryProcess === "calculate") {
+                                                                options.totalValue = options.totalValue + Number(options.value.SmallGroupNumber);
+                                                                }
+                                                                if (options.summaryProcess === "finalize") {
+                                                                //
+                                                                }
+                                                                }
 
-                                                        else if (options.name === "SundayRate")
-                                                        {
-                                                        if (options.summaryProcess === "start")
-                                                        {
-                                                        options.totalValue = 0;
-                                                        options.n = 0;
-                                                        }
-                                                        if (options.summaryProcess === "calculate")
-                                                        {
-                                                        options.totalValue = options.totalValue + Number(options.value.SundayRate);
-                                                        options.n++;
-                                                        }
-                                                        if (options.summaryProcess === "finalize")
-                                                        {
-                                                        options.totalValue = options.totalValue/options.n * 100;
+                                                                else if (options.name === "SundayRate")
+                                                                {
+                                                                if (options.summaryProcess === "start")
+                                                                {
+                                                                options.totalValue = 0;
+                                                                options.n = 0;
+                                                                }
+                                                                if (options.summaryProcess === "calculate")
+                                                                {
+                                                                options.totalValue = options.totalValue + Number(options.value.SundayRate);
+                                                                options.n++;
+                                                                }
+                                                                if (options.summaryProcess === "finalize")
+                                                                {
+                                                                options.totalValue = options.totalValue/options.n * 100;
 
-                                                        //options.totalValue = options.n;
-                                                        //
-                                                        }
-                                                        }
+                                                                //options.totalValue = options.n;
+                                                                //
+                                                                }
+                                                                }
 
-                                                        else if (options.name === "SmallGroupRate")
-                                                        {
-                                                        if (options.summaryProcess === "start")
-                                                        {
-                                                        options.totalValue = 0;
-                                                        options.n = 0;
-                                                        }
-                                                        if (options.summaryProcess === "calculate")
-                                                        {
-                                                        options.totalValue = options.totalValue + Number(options.value.SmallGroupRate);
-                                                        options.n++;
-                                                        }
-                                                        if (options.summaryProcess === "finalize")
-                                                        {
-                                                        options.totalValue = options.totalValue/options.n * 100;
+                                                                else if (options.name === "SmallGroupRate")
+                                                                {
+                                                                if (options.summaryProcess === "start")
+                                                                {
+                                                                options.totalValue = 0;
+                                                                options.n = 0;
+                                                                }
+                                                                if (options.summaryProcess === "calculate")
+                                                                {
+                                                                options.totalValue = options.totalValue + Number(options.value.SmallGroupRate);
+                                                                options.n++;
+                                                                }
+                                                                if (options.summaryProcess === "finalize")
+                                                                {
+                                                                options.totalValue = options.totalValue/options.n * 100;
 
-                                                        //options.totalValue = options.n;
-                                                        //
-                                                        }
-                                                        }
+                                                                //options.totalValue = options.n;
+                                                                //
+                                                                }
+                                                                }
 
-                                                        }
-                                                    </text>
+                                                                }
+                                                            </text>
  )
  )
         )
