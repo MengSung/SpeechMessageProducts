@@ -1,7 +1,7 @@
 /*!
  * DevExtreme (dx.all.debug.js)
- * Version: 18.2.7
- * Build date: Sat Mar 09 2019
+ * Version: 18.2.8
+ * Build date: Tue Apr 23 2019
  *
  * Copyright (c) 2012 - 2019 Developer Express Inc. ALL RIGHTS RESERVED
  * Read about DevExtreme licensing here: https://js.devexpress.com/Licensing/
@@ -270,58 +270,66 @@
         } : function(obj) {
             return obj && "function" === typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj
         };
-        var config = __webpack_require__( /*! ../config */ 25),
-            deferredUtils = __webpack_require__( /*! ../utils/deferred */ 7),
-            when = deferredUtils.when,
-            Deferred = deferredUtils.Deferred,
-            each = __webpack_require__( /*! ./iterator */ 3).each,
-            toComparable = __webpack_require__( /*! ./data */ 22).toComparable,
-            typeUtils = __webpack_require__( /*! ./type */ 1);
+        var _config = __webpack_require__( /*! ../config */ 25);
+        var _config2 = _interopRequireDefault(_config);
+        var _guid = __webpack_require__( /*! ../guid */ 44);
+        var _guid2 = _interopRequireDefault(_guid);
+        var _deferred = __webpack_require__( /*! ../utils/deferred */ 7);
+        var _iterator = __webpack_require__( /*! ./iterator */ 3);
+        var _data = __webpack_require__( /*! ./data */ 22);
+        var _type = __webpack_require__( /*! ./type */ 1);
+
+        function _interopRequireDefault(obj) {
+            return obj && obj.__esModule ? obj : {
+                "default": obj
+            }
+        }
         var ensureDefined = function(value, defaultValue) {
-            return typeUtils.isDefined(value) ? value : defaultValue
+            return (0, _type.isDefined)(value) ? value : defaultValue
         };
         var executeAsync = function(action, context) {
-            var timerId, deferred = new Deferred,
-                normalizedContext = context || this,
-                task = {
-                    promise: deferred.promise(),
-                    abort: function() {
-                        clearTimeout(timerId);
-                        deferred.rejectWith(normalizedContext)
-                    }
-                },
-                callback = function() {
-                    var result = action.call(normalizedContext);
-                    if (result && result.done && typeUtils.isFunction(result.done)) {
-                        result.done(function() {
-                            deferred.resolveWith(normalizedContext)
-                        })
-                    } else {
+            var deferred = new _deferred.Deferred;
+            var normalizedContext = context || this;
+            var timerId = void 0;
+            var task = {
+                promise: deferred.promise(),
+                abort: function() {
+                    clearTimeout(timerId);
+                    deferred.rejectWith(normalizedContext)
+                }
+            };
+            var callback = function() {
+                var result = action.call(normalizedContext);
+                if (result && result.done && (0, _type.isFunction)(result.done)) {
+                    result.done(function() {
                         deferred.resolveWith(normalizedContext)
-                    }
-                };
+                    })
+                } else {
+                    deferred.resolveWith(normalizedContext)
+                }
+            };
             timerId = (arguments[2] || setTimeout)(callback, "number" === typeof context ? context : 0);
             return task
         };
         var delayedFuncs = [];
         var delayedNames = [];
         var delayedDeferreds = [];
-        var executingName;
+        var executingName = void 0;
         var deferExecute = function(name, func, deferred) {
             if (executingName && executingName !== name) {
                 delayedFuncs.push(func);
                 delayedNames.push(name);
-                deferred = deferred || new Deferred;
+                deferred = deferred || new _deferred.Deferred;
                 delayedDeferreds.push(deferred);
                 return deferred
             } else {
-                var oldExecutingName = executingName,
-                    currentDelayedCount = delayedDeferreds.length;
+                var oldExecutingName = executingName;
+                var currentDelayedCount = delayedDeferreds.length;
                 executingName = name;
                 var result = func();
                 if (!result) {
                     if (delayedDeferreds.length > currentDelayedCount) {
-                        result = when.apply(this, delayedDeferreds.slice(currentDelayedCount))
+                        result = _deferred.when.apply(this, delayedDeferreds.slice(currentDelayedCount))
                     } else {
                         if (deferred) {
                             deferred.resolve()
@@ -335,7 +343,7 @@
                 if (!executingName && delayedFuncs.length) {
                     ("render" === delayedNames.shift() ? deferRender : deferUpdate)(delayedFuncs.shift(), delayedDeferreds.shift())
                 }
-                return result || when()
+                return result || (0, _deferred.when)()
             }
         };
         var deferRender = function(func, deferred) {
@@ -361,12 +369,12 @@
             }
         };
         var findBestMatches = function(targetFilter, items, mapFn) {
-            var bestMatches = [],
-                maxMatchCount = 0;
-            each(items, function(index, itemSrc) {
-                var matchCount = 0,
-                    item = mapFn ? mapFn(itemSrc) : itemSrc;
-                each(targetFilter, function(paramName, targetValue) {
+            var bestMatches = [];
+            var maxMatchCount = 0;
+            (0, _iterator.each)(items, function(index, itemSrc) {
+                var matchCount = 0;
+                var item = mapFn ? mapFn(itemSrc) : itemSrc;
+                (0, _iterator.each)(targetFilter, function(paramName, targetValue) {
                     var value = item[paramName];
                     if (void 0 === value) {
                         return
@@ -392,7 +400,7 @@
         var match = function(value, targetValue) {
             if (Array.isArray(value) && Array.isArray(targetValue)) {
                 var mismatch = false;
-                each(value, function(index, valueItem) {
+                (0, _iterator.each)(value, function(index, valueItem) {
                     if (valueItem !== targetValue[index]) {
                         mismatch = true;
                         return false
@@ -421,9 +429,9 @@
             }
         };
         var normalizeKey = function(id) {
-            var key = typeUtils.isString(id) ? id : id.toString(),
-                arr = key.match(/[^a-zA-Z0-9_]/g);
-            arr && each(arr, function(_, sign) {
+            var key = (0, _type.isString)(id) ? id : id.toString();
+            var arr = key.match(/[^a-zA-Z0-9_]/g);
+            arr && (0, _iterator.each)(arr, function(_, sign) {
                 key = key.replace(sign, "__" + sign.charCodeAt() + "__")
             });
             return key
@@ -453,17 +461,17 @@
                     return false
                 }
             }
-            for (propertyName in object2) {
-                if (!(propertyName in object1)) {
+            for (var _propertyName in object2) {
+                if (!(_propertyName in object1)) {
                     return false
                 }
             }
             return true
         };
         var pairToObject = function(raw) {
-            var pair = splitPair(raw),
-                h = parseInt(pair && pair[0], 10),
-                v = parseInt(pair && pair[1], 10);
+            var pair = splitPair(raw);
+            var h = parseInt(pair && pair[0], 10);
+            var v = parseInt(pair && pair[1], 10);
             if (!isFinite(h)) {
                 h = 0
             }
@@ -478,12 +486,12 @@
         var maxEqualityDeep = 3;
         var equalByValue = function(object1, object2, deep) {
             deep = deep || 0;
-            object1 = toComparable(object1, true);
-            object2 = toComparable(object2, true);
+            object1 = (0, _data.toComparable)(object1, true);
+            object2 = (0, _data.toComparable)(object2, true);
             if (object1 === object2 || deep >= maxEqualityDeep) {
                 return true
             }
-            if (typeUtils.isObject(object1) && typeUtils.isObject(object2)) {
+            if ((0, _type.isObject)(object1) && (0, _type.isObject)(object2)) {
                 return isObjectsEqualByValue(object1, object2, deep)
             } else {
                 if (Array.isArray(object1) && Array.isArray(object2)) {
@@ -493,12 +501,16 @@
             return false
         };
         var getKeyHash = function(key) {
-            if (typeUtils.isObject(key) || Array.isArray(key)) {
-                try {
-                    var keyHash = JSON.stringify(key);
-                    return "{}" === keyHash ? key : keyHash
-                } catch (e) {
-                    return key
+            if (key instanceof _guid2.default) {
+                return key.toString()
+            } else {
+                if ((0, _type.isObject)(key) || Array.isArray(key)) {
+                    try {
+                        var keyHash = JSON.stringify(key);
+                        return "{}" === keyHash ? key : keyHash
+                    } catch (e) {
+                        return key
+                    }
                 }
             }
             return key
@@ -507,19 +519,20 @@
             return string.replace(/[[\]{}\-()*+?.\\^$|\s]/g, "\\$&")
         };
         var applyServerDecimalSeparator = function(value) {
-            var separator = config().serverDecimalSeparator;
-            if (typeUtils.isDefined(value)) {
+            var separator = (0, _config2.default)().serverDecimalSeparator;
+            if ((0, _type.isDefined)(value)) {
                 value = value.toString().replace(".", separator)
             }
             return value
         };
         var noop = function() {};
         var asyncNoop = function() {
-            return (new Deferred).resolve().promise()
+            return (new _deferred.Deferred).resolve().promise()
         };
         var grep = function(elements, checkFunction, invert) {
-            var check, result = [],
-                expectedCheck = !invert;
+            var result = [];
+            var check = void 0;
+            var expectedCheck = !invert;
             for (var i = 0; i < elements.length; i++) {
                 check = !!checkFunction(elements[i], i);
                 if (check === expectedCheck) {
@@ -584,10 +597,7 @@
             focusout: "blur"
         };
         var NO_BUBBLE_EVENTS = ["blur", "focusout", "focus", "focusin", "load"];
-        var passiveListenerEvents = {
-            eventName: "dxpointermove",
-            nativeEventName: "touchmove"
-        };
+        var forcePassiveFalseEventNames = ["touchmove", "wheel", "mousewheel"];
         var matchesSafe = function(target, selector) {
             return !isWindow(target) && "#document" !== target.nodeName && domAdapter.elementMatches(target, selector)
         };
@@ -709,7 +719,7 @@
                     }
                     if (shouldAddNativeListener) {
                         eventData.nativeHandler = getNativeHandler(eventName);
-                        if (eventName === passiveListenerEvents.nativeEventName) {
+                        if (forcePassiveFalseEventNames.indexOf(eventName) > -1) {
                             nativeListenerOptions = {
                                 passive: false
                             }
@@ -1058,7 +1068,7 @@
                 })
             }))
         };
-        eventsEngine.passiveListenerEvents = passiveListenerEvents;
+        eventsEngine.forcePassiveFalseEventNames = forcePassiveFalseEventNames;
         eventsEngine.elementDataMap = elementDataMap;
         module.exports = eventsEngine
     },
@@ -1471,13 +1481,16 @@
             return 0
         };
         var needSkipEvent = function(e) {
-            var $target = (0, _renderer2.default)(e.target);
+            var target = e.target;
+            var $target = (0, _renderer2.default)(target);
             var touchInInput = $target.is("input, textarea, select");
             if ($target.is(".dx-skip-gesture-event *, .dx-skip-gesture-event")) {
                 return true
             }
             if ("dxmousewheel" === e.type) {
-                return $target.is("input[type='number'], textarea, select") && $target.is(":focus")
+                var isContentEditableFocused = target.isContentEditable && $target.closest("div[contenteditable='true']").is(":focus");
+                var isInputFocused = $target.is("input[type='number'], textarea, select") && $target.is(":focus");
+                return isInputFocused || isContentEditableFocused
             }
             if (isMouseEvent(e)) {
                 return touchInInput || e.which > 1
@@ -1797,11 +1810,11 @@
     /*! all exports used */
     function(module, exports, __webpack_require__) {
         var elementStrategy, $ = __webpack_require__( /*! ../../core/renderer */ 2),
+            config = __webpack_require__( /*! ../../core/config */ 25),
             domAdapter = __webpack_require__( /*! ../../core/dom_adapter */ 13),
             windowUtils = __webpack_require__( /*! ./window */ 6),
             window = windowUtils.getWindow(),
             eventsEngine = __webpack_require__( /*! ../../events/core/events_engine */ 5),
-            errors = __webpack_require__( /*! ../errors */ 19),
             inArray = __webpack_require__( /*! ./array */ 11).inArray,
             typeUtils = __webpack_require__( /*! ./type */ 1),
             isDefined = typeUtils.isDefined,
@@ -1864,16 +1877,8 @@
         }();
         var dataOptionsAttributeName = "data-options";
         var getElementOptions = function(element) {
-            var result, optionsString = $(element).attr(dataOptionsAttributeName) || "";
-            if ("{" !== optionsString.trim().charAt(0)) {
-                optionsString = "{" + optionsString + "}"
-            }
-            try {
-                result = new Function("return " + optionsString)()
-            } catch (ex) {
-                throw errors.Error("E3018", ex, optionsString)
-            }
-            return result
+            var optionsString = $(element).attr(dataOptionsAttributeName) || "";
+            return config().optionsParser(optionsString)
         };
         var createComponents = function(elements, componentTypes) {
             var result = [],
@@ -2042,6 +2047,9 @@
                     }
                 }
             },
+            getAttribute: function(element, name) {
+                return element.getAttribute(name)
+            },
             setAttribute: function(element, name, value) {
                 element.setAttribute(name, value)
             },
@@ -2065,14 +2073,24 @@
                             element.classList.remove(className)
                         }
                     } else {
-                        var classNames = element.className.split(" ");
+                        var classNameSupported = "string" === typeof element.className;
+                        var elementClass = classNameSupported ? element.className : this.getAttribute(element, "class") || "";
+                        var classNames = elementClass.split(" ");
                         var classIndex = classNames.indexOf(className);
+                        var resultClassName;
                         if (isAdd && classIndex < 0) {
-                            element.className = element.className ? element.className + " " + className : className
+                            resultClassName = elementClass ? elementClass + " " + className : className
                         }
                         if (!isAdd && classIndex >= 0) {
                             classNames.splice(classIndex, 1);
-                            element.className = classNames.join(" ")
+                            resultClassName = classNames.join(" ")
+                        }
+                        if (void 0 !== resultClassName) {
+                            if (classNameSupported) {
+                                element.className = resultClassName
+                            } else {
+                                this.setAttribute(element, "class", resultClassName)
+                            }
                         }
                     }
                 }
@@ -2133,7 +2151,7 @@
             dependencyInjector = __webpack_require__( /*! ../core/utils/dependency_injector */ 56),
             extend = __webpack_require__( /*! ../core/utils/extend */ 0).extend,
             each = __webpack_require__( /*! ../core/utils/iterator */ 3).each,
-            stringFormat = __webpack_require__( /*! ../core/utils/string */ 44).format,
+            stringFormat = __webpack_require__( /*! ../core/utils/string */ 45).format,
             humanize = __webpack_require__( /*! ../core/utils/inflector */ 32).humanize,
             coreLocalization = __webpack_require__( /*! ./core */ 86);
         __webpack_require__( /*! ./core */ 86);
@@ -2256,7 +2274,7 @@
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
             each = __webpack_require__( /*! ../../core/utils/iterator */ 3).each,
             adjust = __webpack_require__( /*! ../../core/utils/math */ 30).adjust,
-            dateToMilliseconds = __webpack_require__( /*! ../../core/utils/date */ 23).dateToMilliseconds,
+            dateToMilliseconds = __webpack_require__( /*! ../../core/utils/date */ 24).dateToMilliseconds,
             isDefined = typeUtils.isDefined,
             isNumber = typeUtils.isNumeric,
             isExponential = typeUtils.isExponential,
@@ -3039,7 +3057,7 @@
             domUtils = __webpack_require__( /*! ../core/utils/dom */ 12),
             animationFrame = __webpack_require__( /*! ../animation/frame */ 114),
             eventUtils = __webpack_require__( /*! ./utils */ 9),
-            pointerEvents = __webpack_require__( /*! ./pointer */ 27),
+            pointerEvents = __webpack_require__( /*! ./pointer */ 26),
             Emitter = __webpack_require__( /*! ./core/emitter */ 120),
             registerEmitter = __webpack_require__( /*! ./core/emitter_registrator */ 92),
             compareVersions = __webpack_require__( /*! ../core/utils/version */ 61).compare;
@@ -3907,6 +3925,137 @@
         exports.compileSetter = compileSetter;
         exports.toComparable = toComparable
     },
+    /*!******************************************************!*\
+      !*** ./artifacts/transpiled/animation/translator.js ***!
+      \******************************************************/
+    /*! dynamic exports provided */
+    /*! all exports used */
+    function(module, exports, __webpack_require__) {
+        var dataUtils = __webpack_require__( /*! ../core/element_data */ 38),
+            type = __webpack_require__( /*! ../core/utils/type */ 1).type;
+        var TRANSLATOR_DATA_KEY = "dxTranslator",
+            TRANSFORM_MATRIX_REGEX = /matrix(3d)?\((.+?)\)/,
+            TRANSLATE_REGEX = /translate(?:3d)?\((.+?)\)/;
+        var locate = function($element) {
+            var translate = getTranslate($element);
+            return {
+                left: translate.x,
+                top: translate.y
+            }
+        };
+        var move = function($element, position) {
+            var translate, left = position.left,
+                top = position.top;
+            if (void 0 === left) {
+                translate = getTranslate($element);
+                translate.y = top || 0
+            } else {
+                if (void 0 === top) {
+                    translate = getTranslate($element);
+                    translate.x = left || 0
+                } else {
+                    translate = {
+                        x: left || 0,
+                        y: top || 0,
+                        z: 0
+                    };
+                    cacheTranslate($element, translate)
+                }
+            }
+            $element.css({
+                transform: getTranslateCss(translate)
+            });
+            if (isPercentValue(left) || isPercentValue(top)) {
+                clearCache($element)
+            }
+        };
+        var isPercentValue = function(value) {
+            return "string" === type(value) && "%" === value[value.length - 1]
+        };
+        var getTranslate = function($element) {
+            var result = $element.length ? dataUtils.data($element.get(0), TRANSLATOR_DATA_KEY) : null;
+            if (!result) {
+                var transformValue = $element.css("transform") || getTranslateCss({
+                        x: 0,
+                        y: 0
+                    }),
+                    matrix = transformValue.match(TRANSFORM_MATRIX_REGEX),
+                    is3D = matrix && matrix[1];
+                if (matrix) {
+                    matrix = matrix[2].split(",");
+                    if ("3d" === is3D) {
+                        matrix = matrix.slice(12, 15)
+                    } else {
+                        matrix.push(0);
+                        matrix = matrix.slice(4, 7)
+                    }
+                } else {
+                    matrix = [0, 0, 0]
+                }
+                result = {
+                    x: parseFloat(matrix[0]),
+                    y: parseFloat(matrix[1]),
+                    z: parseFloat(matrix[2])
+                };
+                cacheTranslate($element, result)
+            }
+            return result
+        };
+        var cacheTranslate = function($element, translate) {
+            if ($element.length) {
+                dataUtils.data($element.get(0), TRANSLATOR_DATA_KEY, translate)
+            }
+        };
+        var clearCache = function($element) {
+            if ($element.length) {
+                dataUtils.removeData($element.get(0), TRANSLATOR_DATA_KEY)
+            }
+        };
+        var resetPosition = function($element, finishTransition) {
+            var originalTransition, stylesConfig = {
+                left: 0,
+                top: 0,
+                transform: "none"
+            };
+            if (finishTransition) {
+                originalTransition = $element.css("transition");
+                stylesConfig.transition = "none"
+            }
+            $element.css(stylesConfig);
+            clearCache($element);
+            if (finishTransition) {
+                $element.get(0).offsetHeight;
+                $element.css("transition", originalTransition)
+            }
+        };
+        var parseTranslate = function(translateString) {
+            var result = translateString.match(TRANSLATE_REGEX);
+            if (!result || !result[1]) {
+                return
+            }
+            result = result[1].split(",");
+            result = {
+                x: parseFloat(result[0]),
+                y: parseFloat(result[1]),
+                z: parseFloat(result[2])
+            };
+            return result
+        };
+        var getTranslateCss = function(translate) {
+            translate.x = translate.x || 0;
+            translate.y = translate.y || 0;
+            var xValueString = isPercentValue(translate.x) ? translate.x : translate.x + "px";
+            var yValueString = isPercentValue(translate.y) ? translate.y : translate.y + "px";
+            return "translate(" + xValueString + ", " + yValueString + ")"
+        };
+        exports.move = move;
+        exports.locate = locate;
+        exports.clearCache = clearCache;
+        exports.parseTranslate = parseTranslate;
+        exports.getTranslate = getTranslate;
+        exports.getTranslateCss = getTranslateCss;
+        exports.resetPosition = resetPosition
+    },
     /*!*************************************************!*\
       !*** ./artifacts/transpiled/core/utils/date.js ***!
       \*************************************************/
@@ -4083,6 +4232,11 @@
         };
         var trimTime = function(date) {
             return dateUtils.correctDateWithUnitBeginning(date, "day")
+        };
+        var setToDayEnd = function(date) {
+            var result = dateUtils.trimTime(date);
+            result.setDate(result.getDate() + 1);
+            return new Date(result.getTime() - 1)
         };
         var getDatesDifferences = function(date1, date2) {
             var differences, counter = 0;
@@ -4378,6 +4532,14 @@
                 minutes: minutes
             }
         };
+        var roundDateByStartDayHour = function(date, startDayHour) {
+            var startTime = this.dateTimeFromDecimal(startDayHour),
+                result = new Date(date);
+            if (date.getHours() === startTime.hours && date.getMinutes() < startTime.minutes || date.getHours() < startTime.hours) {
+                result.setHours(startTime.hours, startTime.minutes, 0, 0)
+            }
+            return result
+        };
         var normalizeDate = function(date, min, max) {
             var normalizedDate = date;
             if (!isDefined(date)) {
@@ -4436,7 +4598,9 @@
             getDatesDifferences: getDatesDifferences,
             correctDateWithUnitBeginning: correctDateWithUnitBeginning,
             trimTime: trimTime,
+            setToDayEnd: setToDayEnd,
             dateTimeFromDecimal: dateTimeFromDecimal,
+            roundDateByStartDayHour: roundDateByStartDayHour,
             addDateInterval: addDateInterval,
             addInterval: addInterval,
             getSequenceByInterval: getSequenceByInterval,
@@ -4477,144 +4641,22 @@
         };
         module.exports = dateUtils
     },
-    /*!******************************************************!*\
-      !*** ./artifacts/transpiled/animation/translator.js ***!
-      \******************************************************/
-    /*! dynamic exports provided */
-    /*! all exports used */
-    function(module, exports, __webpack_require__) {
-        var dataUtils = __webpack_require__( /*! ../core/element_data */ 38),
-            type = __webpack_require__( /*! ../core/utils/type */ 1).type;
-        var TRANSLATOR_DATA_KEY = "dxTranslator",
-            TRANSFORM_MATRIX_REGEX = /matrix(3d)?\((.+?)\)/,
-            TRANSLATE_REGEX = /translate(?:3d)?\((.+?)\)/;
-        var locate = function($element) {
-            var translate = getTranslate($element);
-            return {
-                left: translate.x,
-                top: translate.y
-            }
-        };
-        var move = function($element, position) {
-            var translate, left = position.left,
-                top = position.top;
-            if (void 0 === left) {
-                translate = getTranslate($element);
-                translate.y = top || 0
-            } else {
-                if (void 0 === top) {
-                    translate = getTranslate($element);
-                    translate.x = left || 0
-                } else {
-                    translate = {
-                        x: left || 0,
-                        y: top || 0,
-                        z: 0
-                    };
-                    cacheTranslate($element, translate)
-                }
-            }
-            $element.css({
-                transform: getTranslateCss(translate)
-            });
-            if (isPercentValue(left) || isPercentValue(top)) {
-                clearCache($element)
-            }
-        };
-        var isPercentValue = function(value) {
-            return "string" === type(value) && "%" === value[value.length - 1]
-        };
-        var getTranslate = function($element) {
-            var result = $element.length ? dataUtils.data($element.get(0), TRANSLATOR_DATA_KEY) : null;
-            if (!result) {
-                var transformValue = $element.css("transform") || getTranslateCss({
-                        x: 0,
-                        y: 0
-                    }),
-                    matrix = transformValue.match(TRANSFORM_MATRIX_REGEX),
-                    is3D = matrix && matrix[1];
-                if (matrix) {
-                    matrix = matrix[2].split(",");
-                    if ("3d" === is3D) {
-                        matrix = matrix.slice(12, 15)
-                    } else {
-                        matrix.push(0);
-                        matrix = matrix.slice(4, 7)
-                    }
-                } else {
-                    matrix = [0, 0, 0]
-                }
-                result = {
-                    x: parseFloat(matrix[0]),
-                    y: parseFloat(matrix[1]),
-                    z: parseFloat(matrix[2])
-                };
-                cacheTranslate($element, result)
-            }
-            return result
-        };
-        var cacheTranslate = function($element, translate) {
-            if ($element.length) {
-                dataUtils.data($element.get(0), TRANSLATOR_DATA_KEY, translate)
-            }
-        };
-        var clearCache = function($element) {
-            if ($element.length) {
-                dataUtils.removeData($element.get(0), TRANSLATOR_DATA_KEY)
-            }
-        };
-        var resetPosition = function($element, finishTransition) {
-            var originalTransition, stylesConfig = {
-                left: 0,
-                top: 0,
-                transform: "none"
-            };
-            if (finishTransition) {
-                originalTransition = $element.css("transition");
-                stylesConfig.transition = "none"
-            }
-            $element.css(stylesConfig);
-            clearCache($element);
-            if (finishTransition) {
-                $element.get(0).offsetHeight;
-                $element.css("transition", originalTransition)
-            }
-        };
-        var parseTranslate = function(translateString) {
-            var result = translateString.match(TRANSLATE_REGEX);
-            if (!result || !result[1]) {
-                return
-            }
-            result = result[1].split(",");
-            result = {
-                x: parseFloat(result[0]),
-                y: parseFloat(result[1]),
-                z: parseFloat(result[2])
-            };
-            return result
-        };
-        var getTranslateCss = function(translate) {
-            translate.x = translate.x || 0;
-            translate.y = translate.y || 0;
-            var xValueString = isPercentValue(translate.x) ? translate.x : translate.x + "px";
-            var yValueString = isPercentValue(translate.y) ? translate.y : translate.y + "px";
-            return "translate(" + xValueString + ", " + yValueString + ")"
-        };
-        exports.move = move;
-        exports.locate = locate;
-        exports.clearCache = clearCache;
-        exports.parseTranslate = parseTranslate;
-        exports.getTranslate = getTranslate;
-        exports.getTranslateCss = getTranslateCss;
-        exports.resetPosition = resetPosition
-    },
     /*!*********************************************!*\
       !*** ./artifacts/transpiled/core/config.js ***!
       \*********************************************/
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var extendUtils = __webpack_require__( /*! ./utils/extend */ 0);
+        var _extend = __webpack_require__( /*! ./utils/extend */ 0);
+        var _extend2 = _interopRequireDefault(_extend);
+        var _errors = __webpack_require__( /*! ./errors */ 19);
+        var _errors2 = _interopRequireDefault(_errors);
+
+        function _interopRequireDefault(obj) {
+            return obj && obj.__esModule ? obj : {
+                "default": obj
+            }
+        }
         var config = {
             rtlEnabled: false,
             defaultCurrency: "USD",
@@ -4628,38 +4670,28 @@
             useLegacyStoreResult: false,
             useJQuery: void 0,
             editorStylingMode: void 0,
-            useLegacyVisibleIndex: false
+            useLegacyVisibleIndex: false,
+            optionsParser: function(optionsString) {
+                if ("{" !== optionsString.trim().charAt(0)) {
+                    optionsString = "{" + optionsString + "}"
+                }
+                try {
+                    return new Function("return " + optionsString)()
+                } catch (ex) {
+                    throw _errors2.default.Error("E3018", ex, optionsString)
+                }
+            }
         };
         var configMethod = function() {
             if (!arguments.length) {
                 return config
             }
-            extendUtils.extend(config, arguments[0])
+            _extend2.default.extend(config, arguments.length <= 0 ? void 0 : arguments[0])
         };
         if ("undefined" !== typeof DevExpress && DevExpress.config) {
             configMethod(DevExpress.config)
         }
         module.exports = configMethod
-    },
-    /*!****************************************************************!*\
-      !*** ./artifacts/transpiled/ui/data_grid/ui.data_grid.core.js ***!
-      \****************************************************************/
-    /*! dynamic exports provided */
-    /*! all exports used */
-    function(module, exports, __webpack_require__) {
-        var _extend = __webpack_require__( /*! ../../core/utils/extend */ 0);
-        var _uiGrid_core = __webpack_require__( /*! ../grid_core/ui.grid_core.utils */ 40);
-        var _uiGrid_core2 = _interopRequireDefault(_uiGrid_core);
-        var _uiGrid_core3 = __webpack_require__( /*! ../grid_core/ui.grid_core.modules */ 41);
-        var _uiGrid_core4 = _interopRequireDefault(_uiGrid_core3);
-
-        function _interopRequireDefault(obj) {
-            return obj && obj.__esModule ? obj : {
-                "default": obj
-            }
-        }(0, _extend.extend)(exports, _uiGrid_core4.default, _uiGrid_core2.default, {
-            modules: []
-        })
     },
     /*!************************************************!*\
       !*** ./artifacts/transpiled/events/pointer.js ***!
@@ -4670,7 +4702,7 @@
         var _support = __webpack_require__( /*! ../core/utils/support */ 43);
         var _support2 = _interopRequireDefault(_support);
         var _iterator = __webpack_require__( /*! ../core/utils/iterator */ 3);
-        var _browser = __webpack_require__( /*! ../core/utils/browser */ 35);
+        var _browser = __webpack_require__( /*! ../core/utils/browser */ 34);
         var _browser2 = _interopRequireDefault(_browser);
         var _devices = __webpack_require__( /*! ../core/devices */ 16);
         var _devices2 = _interopRequireDefault(_devices);
@@ -4720,6 +4752,26 @@
         };
         pointer.getStrategy = getStrategy;
         module.exports = pointer
+    },
+    /*!****************************************************************!*\
+      !*** ./artifacts/transpiled/ui/data_grid/ui.data_grid.core.js ***!
+      \****************************************************************/
+    /*! dynamic exports provided */
+    /*! all exports used */
+    function(module, exports, __webpack_require__) {
+        var _extend = __webpack_require__( /*! ../../core/utils/extend */ 0);
+        var _uiGrid_core = __webpack_require__( /*! ../grid_core/ui.grid_core.utils */ 40);
+        var _uiGrid_core2 = _interopRequireDefault(_uiGrid_core);
+        var _uiGrid_core3 = __webpack_require__( /*! ../grid_core/ui.grid_core.modules */ 41);
+        var _uiGrid_core4 = _interopRequireDefault(_uiGrid_core3);
+
+        function _interopRequireDefault(obj) {
+            return obj && obj.__esModule ? obj : {
+                "default": obj
+            }
+        }(0, _extend.extend)(exports, _uiGrid_core4.default, _uiGrid_core2.default, {
+            modules: []
+        })
     },
     /*!*****************************************************!*\
       !*** ./artifacts/transpiled/ui/widget/ui.widget.js ***!
@@ -4776,7 +4828,11 @@
                     widgetName = inflector.camelize("dx-" + widgetName);
                     errors.log("W0001", "dxToolbar - 'widget' item field", deprecatedName, "16.1", "Use: '" + widgetName + "' instead")
                 }
-                widgetElement[widgetName](widgetOptions);
+                if (options.parent) {
+                    options.parent._createComponent(widgetElement, widgetName, widgetOptions)
+                } else {
+                    widgetElement[widgetName](widgetOptions)
+                }
                 return widgetElement
             }
             return $()
@@ -4850,8 +4906,7 @@
                 }.bind(this))
             },
             _extractTemplates: function() {
-                var templates = this.option("integrationOptions.templates"),
-                    templateElements = this.$element().contents().filter(TEMPLATE_SELECTOR);
+                var templateElements = this.$element().contents().filter(TEMPLATE_SELECTOR);
                 var templatesMap = {};
                 templateElements.each(function(_, template) {
                     var templateOptions = domUtils.getElementOptions(template).dxTemplate;
@@ -4868,9 +4923,13 @@
                 each(templatesMap, function(templateName, value) {
                     var deviceTemplate = this._findTemplateByDevice(value);
                     if (deviceTemplate) {
-                        templates[templateName] = this._createTemplate(deviceTemplate)
+                        this._saveTemplate(templateName, deviceTemplate)
                     }
                 }.bind(this))
+            },
+            _saveTemplate: function(name, template) {
+                var templates = this.option("integrationOptions.templates");
+                templates[name] = this._createTemplate(template)
             },
             _findTemplateByDevice: function(templates) {
                 var suitableTemplate = commonUtils.findBestMatches(devices.current(), templates, function(template) {
@@ -5038,8 +5097,14 @@
             _renderContent: function() {
                 var _this = this;
                 commonUtils.deferRender(function() {
+                    if (_this._disposed) {
+                        return
+                    }
                     return _this._renderContentImpl()
                 }).done(function() {
+                    if (_this._disposed) {
+                        return
+                    }
                     _this._fireContentReadyAction()
                 })
             },
@@ -5545,7 +5610,7 @@
             extend = __webpack_require__( /*! ../core/utils/extend */ 0).extend,
             typeUtils = __webpack_require__( /*! ../core/utils/type */ 1),
             iteratorUtils = __webpack_require__( /*! ../core/utils/iterator */ 3),
-            translator = __webpack_require__( /*! ./translator */ 24),
+            translator = __webpack_require__( /*! ./translator */ 23),
             easing = __webpack_require__( /*! ./easing */ 246),
             animationFrame = __webpack_require__( /*! ./frame */ 114),
             support = __webpack_require__( /*! ../core/utils/support */ 43),
@@ -6327,6 +6392,46 @@
             }
         })
     },
+    /*!****************************************************!*\
+      !*** ./artifacts/transpiled/core/utils/browser.js ***!
+      \****************************************************/
+    /*! dynamic exports provided */
+    /*! all exports used */
+    function(module, exports, __webpack_require__) {
+        var extend = __webpack_require__( /*! ./extend */ 0).extend,
+            windowUtils = __webpack_require__( /*! ./window */ 6),
+            navigator = windowUtils.getNavigator();
+        var webkitRegExp = /(webkit)[ \/]([\w.]+)/,
+            ieRegExp = /(msie) (\d{1,2}\.\d)/,
+            ie11RegExp = /(trident).*rv:(\d{1,2}\.\d)/,
+            msEdge = /(edge)\/((\d+)?[\w.]+)/,
+            safari = /(safari)/i,
+            mozillaRegExp = /(mozilla)(?:.*? rv:([\w.]+))/;
+        var browserFromUA = function(ua) {
+            ua = ua.toLowerCase();
+            var result = {},
+                matches = ieRegExp.exec(ua) || ie11RegExp.exec(ua) || msEdge.exec(ua) || ua.indexOf("compatible") < 0 && mozillaRegExp.exec(ua) || webkitRegExp.exec(ua) || [],
+                browserName = matches[1],
+                browserVersion = matches[2];
+            if ("webkit" === browserName && ua.indexOf("chrome") < 0 && safari.exec(ua)) {
+                browserName = "safari";
+                result.webkit = true;
+                browserVersion = /Version\/([0-9.]+)/i.exec(ua);
+                browserVersion = browserVersion && browserVersion[1]
+            }
+            if ("trident" === browserName || "edge" === browserName) {
+                browserName = "msie"
+            }
+            if (browserName) {
+                result[browserName] = true;
+                result.version = browserVersion
+            }
+            return result
+        };
+        module.exports = extend({
+            _fromUA: browserFromUA
+        }, browserFromUA(navigator.userAgent))
+    },
     /*!***************************************************!*\
       !*** ./artifacts/transpiled/localization/date.js ***!
       \***************************************************/
@@ -6491,46 +6596,6 @@
             }
         });
         module.exports = dateLocalization
-    },
-    /*!****************************************************!*\
-      !*** ./artifacts/transpiled/core/utils/browser.js ***!
-      \****************************************************/
-    /*! dynamic exports provided */
-    /*! all exports used */
-    function(module, exports, __webpack_require__) {
-        var extend = __webpack_require__( /*! ./extend */ 0).extend,
-            windowUtils = __webpack_require__( /*! ./window */ 6),
-            navigator = windowUtils.getNavigator();
-        var webkitRegExp = /(webkit)[ \/]([\w.]+)/,
-            ieRegExp = /(msie) (\d{1,2}\.\d)/,
-            ie11RegExp = /(trident).*rv:(\d{1,2}\.\d)/,
-            msEdge = /(edge)\/((\d+)?[\w.]+)/,
-            safari = /(safari)/i,
-            mozillaRegExp = /(mozilla)(?:.*? rv:([\w.]+))/;
-        var browserFromUA = function(ua) {
-            ua = ua.toLowerCase();
-            var result = {},
-                matches = ieRegExp.exec(ua) || ie11RegExp.exec(ua) || msEdge.exec(ua) || ua.indexOf("compatible") < 0 && mozillaRegExp.exec(ua) || webkitRegExp.exec(ua) || [],
-                browserName = matches[1],
-                browserVersion = matches[2];
-            if ("webkit" === browserName && ua.indexOf("chrome") < 0 && safari.exec(ua)) {
-                browserName = "safari";
-                result.webkit = true;
-                browserVersion = /Version\/([0-9.]+)/i.exec(ua);
-                browserVersion = browserVersion && browserVersion[1]
-            }
-            if ("trident" === browserName || "edge" === browserName) {
-                browserName = "msie"
-            }
-            if (browserName) {
-                result[browserName] = true;
-                result.version = browserVersion
-            }
-            return result
-        };
-        module.exports = extend({
-            _fromUA: browserFromUA
-        }, browserFromUA(navigator.userAgent))
     },
     /*!*********************************************!*\
       !*** ./artifacts/transpiled/data/errors.js ***!
@@ -7278,7 +7343,7 @@
         var _common = __webpack_require__( /*! ../../core/utils/common */ 4);
         var _type = __webpack_require__( /*! ../../core/utils/type */ 1);
         var _filtering = __webpack_require__( /*! ../shared/filtering */ 197);
-        var _string = __webpack_require__( /*! ../../core/utils/string */ 44);
+        var _string = __webpack_require__( /*! ../../core/utils/string */ 45);
         var _iterator = __webpack_require__( /*! ../../core/utils/iterator */ 3);
         var _extend = __webpack_require__( /*! ../../core/utils/extend */ 0);
         var _data = __webpack_require__( /*! ../../core/utils/data */ 22);
@@ -7678,13 +7743,17 @@
                         }
                     } catch (e) {}
                 },
-                getLastResizableColumnIndex: function(columns) {
-                    var lastColumnIndex = columns.length - 1;
+                getLastResizableColumnIndex: function(columns, resultWidths) {
                     var hasResizableColumns = columns.some(function(column) {
                         return column && !column.command && !column.fixed && false !== column.allowResizing
                     });
-                    while (lastColumnIndex >= 0 && columns[lastColumnIndex] && (columns[lastColumnIndex].command || "adaptiveHidden" === columns[lastColumnIndex] || columns[lastColumnIndex].fixed || hasResizableColumns && false === columns[lastColumnIndex].allowResizing)) {
-                        lastColumnIndex--
+                    for (var lastColumnIndex = columns.length - 1; columns[lastColumnIndex]; lastColumnIndex--) {
+                        var column = columns[lastColumnIndex],
+                            width = resultWidths && resultWidths[lastColumnIndex],
+                            allowResizing = !hasResizableColumns || false !== column.allowResizing;
+                        if (!column.command && !column.fixed && "adaptiveHidden" !== width && allowResizing) {
+                            break
+                        }
                     }
                     return lastColumnIndex
                 }
@@ -8152,6 +8221,46 @@
         exports.stylePropPrefix = styleUtils.stylePropPrefix;
         exports.supportProp = supportProp;
         exports.inputType = inputType
+    },
+    /*!*******************************************!*\
+      !*** ./artifacts/transpiled/core/guid.js ***!
+      \*******************************************/
+    /*! dynamic exports provided */
+    /*! all exports used */
+    function(module, exports, __webpack_require__) {
+        var Class = __webpack_require__( /*! ./class */ 10);
+        var Guid = Class.inherit({
+            ctor: function(value) {
+                if (value) {
+                    value = String(value)
+                }
+                this._value = this._normalize(value || this._generate())
+            },
+            _normalize: function(value) {
+                value = value.replace(/[^a-f0-9]/gi, "").toLowerCase();
+                while (value.length < 32) {
+                    value += "0"
+                }
+                return [value.substr(0, 8), value.substr(8, 4), value.substr(12, 4), value.substr(16, 4), value.substr(20, 12)].join("-")
+            },
+            _generate: function() {
+                var value = "";
+                for (var i = 0; i < 32; i++) {
+                    value += Math.round(15 * Math.random()).toString(16)
+                }
+                return value
+            },
+            toString: function() {
+                return this._value
+            },
+            valueOf: function() {
+                return this._value
+            },
+            toJSON: function() {
+                return this._value
+            }
+        });
+        module.exports = Guid
     },
     /*!***************************************************!*\
       !*** ./artifacts/transpiled/core/utils/string.js ***!
@@ -9202,46 +9311,6 @@
             }
         });
         module.exports = CollectionWidget
-    },
-    /*!*******************************************!*\
-      !*** ./artifacts/transpiled/core/guid.js ***!
-      \*******************************************/
-    /*! dynamic exports provided */
-    /*! all exports used */
-    function(module, exports, __webpack_require__) {
-        var Class = __webpack_require__( /*! ./class */ 10);
-        var Guid = Class.inherit({
-            ctor: function(value) {
-                if (value) {
-                    value = String(value)
-                }
-                this._value = this._normalize(value || this._generate())
-            },
-            _normalize: function(value) {
-                value = value.replace(/[^a-f0-9]/gi, "").toLowerCase();
-                while (value.length < 32) {
-                    value += "0"
-                }
-                return [value.substr(0, 8), value.substr(8, 4), value.substr(12, 4), value.substr(16, 4), value.substr(20, 12)].join("-")
-            },
-            _generate: function() {
-                var value = "";
-                for (var i = 0; i < 32; i++) {
-                    value += Math.round(15 * Math.random()).toString(16)
-                }
-                return value
-            },
-            toString: function() {
-                return this._value
-            },
-            valueOf: function() {
-                return this._value
-            },
-            toJSON: function() {
-                return this._value
-            }
-        });
-        module.exports = Guid
     },
     /*!*****************************************************!*\
       !*** ./artifacts/transpiled/localization/number.js ***!
@@ -10563,7 +10632,7 @@
     function(module, exports, __webpack_require__) {
         var $ = __webpack_require__( /*! ../core/renderer */ 2),
             window = __webpack_require__( /*! ../core/utils/window */ 6).getWindow(),
-            translator = __webpack_require__( /*! ../animation/translator */ 24),
+            translator = __webpack_require__( /*! ../animation/translator */ 23),
             camelize = __webpack_require__( /*! ../core/utils/inflector */ 32).camelize,
             noop = __webpack_require__( /*! ../core/utils/common */ 4).noop,
             getPublicElement = __webpack_require__( /*! ../core/utils/dom */ 12).getPublicElement,
@@ -10571,6 +10640,7 @@
             isDefined = __webpack_require__( /*! ../core/utils/type */ 1).isDefined,
             inArray = __webpack_require__( /*! ../core/utils/array */ 11).inArray,
             extend = __webpack_require__( /*! ../core/utils/extend */ 0).extend,
+            browser = __webpack_require__( /*! ../core/utils/browser */ 34),
             messageLocalization = __webpack_require__( /*! ../localization/message */ 14),
             devices = __webpack_require__( /*! ../core/devices */ 16),
             registerComponent = __webpack_require__( /*! ../core/component_registrator */ 8),
@@ -10598,6 +10668,7 @@
             BUTTON_NORMAL_TYPE = "normal",
             BUTTON_TEXT_MODE = "text",
             BUTTON_CONTAINED_MODE = "contained";
+        var isIE11 = browser.msie && 11 === parseInt(browser.version);
         var getButtonPlace = function(name) {
             var device = devices.current(),
                 platform = device.platform,
@@ -11019,17 +11090,20 @@
                 var popupHeightParts = this._splitPopupHeight(),
                     toolbarsAndVerticalOffsetsHeight = popupHeightParts.header + popupHeightParts.footer + popupHeightParts.contentVerticalOffsets + popupHeightParts.popupVerticalOffsets,
                     overlayContent = this.overlayContent().get(0),
-                    cssStyles = {};
-                if (this.option("autoResizeEnabled") && this._isAutoHeight()) {
-                    var container = $(this._getContainer()).get(0),
-                        contentMaxHeight = this._getOptionValue("maxHeight", overlayContent),
-                        contentMinHeight = this._getOptionValue("minHeight", overlayContent),
-                        maxHeightValue = sizeUtils.addOffsetToMaxHeight(contentMaxHeight, -toolbarsAndVerticalOffsetsHeight, container),
-                        minHeightValue = sizeUtils.addOffsetToMinHeight(contentMinHeight, -toolbarsAndVerticalOffsetsHeight, container);
-                    cssStyles = extend(cssStyles, {
-                        minHeight: minHeightValue,
-                        maxHeight: maxHeightValue
-                    })
+                    cssStyles = {},
+                    contentMaxHeight = this._getOptionValue("maxHeight", overlayContent),
+                    contentMinHeight = this._getOptionValue("minHeight", overlayContent),
+                    isAutoResizable = !isIE11 || !contentMaxHeight && !contentMinHeight;
+                if (this.option("autoResizeEnabled") && this._isAutoHeight() && isAutoResizable) {
+                    if (!isIE11) {
+                        var container = $(this._getContainer()).get(0),
+                            maxHeightValue = sizeUtils.addOffsetToMaxHeight(contentMaxHeight, -toolbarsAndVerticalOffsetsHeight, container),
+                            minHeightValue = sizeUtils.addOffsetToMinHeight(contentMinHeight, -toolbarsAndVerticalOffsetsHeight, container);
+                        cssStyles = extend(cssStyles, {
+                            minHeight: minHeightValue,
+                            maxHeight: maxHeightValue
+                        })
+                    }
                 } else {
                     var contentHeight = overlayContent.getBoundingClientRect().height - toolbarsAndVerticalOffsetsHeight;
                     cssStyles = {
@@ -12587,9 +12661,9 @@
     /*! all exports used */
     function(module, exports, __webpack_require__) {
         var typeUtils = __webpack_require__( /*! ./core/utils/type */ 1),
-            dateUtils = __webpack_require__( /*! ./core/utils/date */ 23),
+            dateUtils = __webpack_require__( /*! ./core/utils/date */ 24),
             numberLocalization = __webpack_require__( /*! ./localization/number */ 49),
-            dateLocalization = __webpack_require__( /*! ./localization/date */ 34),
+            dateLocalization = __webpack_require__( /*! ./localization/date */ 35),
             dependencyInjector = __webpack_require__( /*! ./core/utils/dependency_injector */ 56);
         __webpack_require__( /*! ./localization/currency */ 147);
         module.exports = dependencyInjector({
@@ -13125,7 +13199,7 @@
             domAdapter = __webpack_require__( /*! ../core/dom_adapter */ 13),
             isWindow = __webpack_require__( /*! ../core/utils/type */ 1).isWindow,
             extend = __webpack_require__( /*! ../core/utils/extend */ 0).extend,
-            translator = __webpack_require__( /*! ./translator */ 24),
+            translator = __webpack_require__( /*! ./translator */ 23),
             support = __webpack_require__( /*! ../core/utils/support */ 43);
         var horzRe = /left|right/,
             vertRe = /top|bottom/,
@@ -14833,7 +14907,7 @@
             iteratorUtils = __webpack_require__( /*! ../../core/utils/iterator */ 3),
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
             isDefined = __webpack_require__( /*! ../../core/utils/type */ 1).isDefined,
-            dateLocalization = __webpack_require__( /*! ../../localization/date */ 34),
+            dateLocalization = __webpack_require__( /*! ../../localization/date */ 35),
             formatHelper = __webpack_require__( /*! ../../format_helper */ 75),
             DataSourceModule = __webpack_require__( /*! ../../data/data_source/data_source */ 50),
             ArrayStore = __webpack_require__( /*! ../../data/array_store */ 80),
@@ -15625,7 +15699,7 @@
             each = __webpack_require__( /*! ../../core/utils/iterator */ 3).each,
             registerEvent = __webpack_require__( /*! ./event_registrator */ 67),
             eventUtils = __webpack_require__( /*! ../utils */ 9),
-            pointerEvents = __webpack_require__( /*! ../pointer */ 27),
+            pointerEvents = __webpack_require__( /*! ../pointer */ 26),
             wheelEvent = __webpack_require__( /*! ./wheel */ 117);
         var MANAGER_EVENT = "dxEventManager",
             EMITTER_DATA = "dxEmitter";
@@ -16277,7 +16351,7 @@
         var $ = __webpack_require__( /*! ../../core/renderer */ 2),
             eventsEngine = __webpack_require__( /*! ../../events/core/events_engine */ 5),
             support = __webpack_require__( /*! ../../core/utils/support */ 43),
-            browser = __webpack_require__( /*! ../../core/utils/browser */ 35),
+            browser = __webpack_require__( /*! ../../core/utils/browser */ 34),
             commonUtils = __webpack_require__( /*! ../../core/utils/common */ 4),
             typeUtils = __webpack_require__( /*! ../../core/utils/type */ 1),
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
@@ -16934,7 +17008,7 @@
             contains = __webpack_require__( /*! ../../core/utils/dom */ 12).contains,
             devices = __webpack_require__( /*! ../../core/devices */ 16),
             eventUtils = __webpack_require__( /*! ../utils */ 9),
-            pointerEvents = __webpack_require__( /*! ../pointer */ 27),
+            pointerEvents = __webpack_require__( /*! ../pointer */ 26),
             Emitter = __webpack_require__( /*! ./emitter */ 120),
             registerEmitter = __webpack_require__( /*! ./emitter_registrator */ 92);
         var ACTIVE_EVENT_NAME = "dxactive",
@@ -17110,7 +17184,7 @@
             iteratorUtils = __webpack_require__( /*! ../../core/utils/iterator */ 3),
             each = __webpack_require__( /*! ../../core/utils/iterator */ 3).each,
             ajax = __webpack_require__( /*! ../../core/utils/ajax */ 76),
-            _Guid = __webpack_require__( /*! ../../core/guid */ 48),
+            _Guid = __webpack_require__( /*! ../../core/guid */ 44),
             isDefined = typeUtils.isDefined,
             isPlainObject = typeUtils.isPlainObject,
             grep = __webpack_require__( /*! ../../core/utils/common */ 4).grep,
@@ -17376,7 +17450,7 @@
                     httpStatus = customCode
                 }
             }
-            if (httpStatus >= 400) {
+            if (httpStatus >= 400 || 0 === httpStatus) {
                 errorData.httpStatus = httpStatus;
                 return extend(Error(message), errorData)
             }
@@ -18182,7 +18256,8 @@
                 }
                 if (this._wasSearch() && isVisible) {
                     this._wasSearch(false);
-                    if (this.option("showDataBeforeSearch") || 0 === this.option("minSearchLength")) {
+                    var showDataImmediately = this.option("showDataBeforeSearch") || 0 === this.option("minSearchLength");
+                    if (showDataImmediately && this._dataSource) {
                         if (this._searchTimer) {
                             return
                         }
@@ -18485,7 +18560,7 @@
     function(module, exports, __webpack_require__) {
         var extend = __webpack_require__( /*! ./extend */ 0).extend,
             consoleUtils = __webpack_require__( /*! ./console */ 84),
-            stringUtils = __webpack_require__( /*! ./string */ 44),
+            stringUtils = __webpack_require__( /*! ./string */ 45),
             version = __webpack_require__( /*! ../version */ 134);
         var ERROR_URL = "http://js.devexpress.com/error/" + version.split(".").slice(0, 2).join("_") + "/";
         module.exports = function(baseErrors, errors) {
@@ -18552,7 +18627,7 @@
             dateSerialization = __webpack_require__( /*! ../../core/utils/date_serialization */ 62),
             isDate = __webpack_require__( /*! ../../core/utils/type */ 1).isDate,
             each = __webpack_require__( /*! ../../core/utils/iterator */ 3).each,
-            dateLocalization = __webpack_require__( /*! ../../localization/date */ 34);
+            dateLocalization = __webpack_require__( /*! ../../localization/date */ 35);
         var dateComponents = function() {
             return ["year", "day", "month", "day"]
         };
@@ -18796,7 +18871,7 @@
         var _themes2 = _interopRequireDefault(_themes);
         var _hover = __webpack_require__( /*! ../../events/hover */ 172);
         var _hover2 = _interopRequireDefault(_hover);
-        var _pointer = __webpack_require__( /*! ../../events/pointer */ 27);
+        var _pointer = __webpack_require__( /*! ../../events/pointer */ 26);
         var _pointer2 = _interopRequireDefault(_pointer);
 
         function _interopRequireDefault(obj) {
@@ -19508,7 +19583,7 @@
             each = __webpack_require__( /*! ../../core/utils/iterator */ 3).each,
             version = __webpack_require__( /*! ../../core/version */ 134),
             _windowResizeCallbacks = __webpack_require__( /*! ../../core/utils/resize_callbacks */ 135),
-            _stringFormat = __webpack_require__( /*! ../../core/utils/string */ 44).format,
+            _stringFormat = __webpack_require__( /*! ../../core/utils/string */ 45).format,
             _isObject = __webpack_require__( /*! ../../core/utils/type */ 1).isObject,
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
             _floor = Math.floor,
@@ -19915,7 +19990,7 @@
                 if (arg.fullName) {
                     partialChange = arg.fullName.slice(arg.fullName.indexOf(".") + 1, arg.fullName.length)
                 }
-                var change = that._optionChangesMap[partialChange] || that._optionChangesMap[arg.name];
+                var change = that._partialOptionChangesMap[partialChange] || that._optionChangesMap[arg.name];
                 if (that._eventTrigger.change(arg.name)) {
                     that._change(["EVENTS"])
                 } else {
@@ -19937,6 +20012,7 @@
                 elementAttr: "ELEMENT_ATTR",
                 disabled: "DISABLED"
             },
+            _partialOptionChangesMap: {},
             _visibilityChanged: function() {
                 this.render()
             },
@@ -20538,7 +20614,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        __webpack_require__( /*! ../integration/jquery */ 46);
+        __webpack_require__( /*! ../integration/jquery */ 47);
         var $ = __webpack_require__( /*! jquery */ 29),
             Class = __webpack_require__( /*! ../core/class */ 10),
             Callbacks = __webpack_require__( /*! ../core/utils/callbacks */ 21),
@@ -21223,7 +21299,7 @@
             devices = __webpack_require__( /*! ../core/devices */ 16),
             extend = __webpack_require__( /*! ../core/utils/extend */ 0).extend,
             inkRipple = __webpack_require__( /*! ./widget/utils.ink_ripple */ 72),
-            Editor = __webpack_require__( /*! ./editor/editor */ 45),
+            Editor = __webpack_require__( /*! ./editor/editor */ 46),
             registerComponent = __webpack_require__( /*! ../core/component_registrator */ 8),
             eventUtils = __webpack_require__( /*! ../events/utils */ 9),
             themes = __webpack_require__( /*! ./themes */ 20),
@@ -22154,12 +22230,9 @@
                     return
                 }
                 if (Array.isArray(sort)) {
-                    var cat = this.categories.map(function(item) {
-                        return item && item.valueOf()
-                    });
-                    this.categories = sort.filter(function(item) {
-                        return cat.indexOf(item && item.valueOf()) !== -1
-                    })
+                    this.categories = sort.slice(0).concat(this.categories.filter(function(item) {
+                        return item && sort.indexOf(item.valueOf()) === -1
+                    }))
                 } else {
                     var notAFunction = !_isFunction(sort);
                     if (notAFunction && "string" !== this.dataType) {
@@ -23099,13 +23172,13 @@
         DevExpress.createQueue = __webpack_require__( /*! ../../core/utils/queue */ 182).create;
         DevExpress.utils.dom = __webpack_require__( /*! ../../core/utils/dom */ 12);
         DevExpress.utils.common = __webpack_require__( /*! ../../core/utils/common */ 4);
-        DevExpress.utils.date = __webpack_require__( /*! ../../core/utils/date */ 23);
-        DevExpress.utils.browser = __webpack_require__( /*! ../../core/utils/browser */ 35);
+        DevExpress.utils.date = __webpack_require__( /*! ../../core/utils/date */ 24);
+        DevExpress.utils.browser = __webpack_require__( /*! ../../core/utils/browser */ 34);
         DevExpress.utils.inflector = __webpack_require__( /*! ../../core/utils/inflector */ 32);
         DevExpress.utils.iterator = __webpack_require__( /*! ../../core/utils/iterator */ 3);
         DevExpress.utils.resizeCallbacks = __webpack_require__( /*! ../../core/utils/resize_callbacks */ 135);
         DevExpress.utils.console = __webpack_require__( /*! ../../core/utils/console */ 84);
-        DevExpress.utils.string = __webpack_require__( /*! ../../core/utils/string */ 44);
+        DevExpress.utils.string = __webpack_require__( /*! ../../core/utils/string */ 45);
         DevExpress.utils.support = __webpack_require__( /*! ../../core/utils/support */ 43);
         DevExpress.processHardwareBackButton = __webpack_require__( /*! ../../mobile/process_hardware_back_button */ 245);
         DevExpress.viewPort = __webpack_require__( /*! ../../core/utils/view_port */ 66).value;
@@ -23129,7 +23202,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        module.exports = "18.2.7"
+        module.exports = "18.2.8"
     },
     /*!*************************************************************!*\
       !*** ./artifacts/transpiled/core/utils/resize_callbacks.js ***!
@@ -23216,7 +23289,7 @@
             registerComponent = __webpack_require__( /*! ../core/component_registrator */ 8),
             commonUtils = __webpack_require__( /*! ../core/utils/common */ 4),
             extend = __webpack_require__( /*! ../core/utils/extend */ 0).extend,
-            translator = __webpack_require__( /*! ../animation/translator */ 24),
+            translator = __webpack_require__( /*! ../animation/translator */ 23),
             positionUtils = __webpack_require__( /*! ../animation/position */ 78),
             typeUtils = __webpack_require__( /*! ../core/utils/type */ 1),
             mathUtils = __webpack_require__( /*! ../core/utils/math */ 30),
@@ -23696,7 +23769,7 @@
         var _type = __webpack_require__( /*! ../core/utils/type */ 1);
         var _config = __webpack_require__( /*! ../core/config */ 25);
         var _config2 = _interopRequireDefault(_config);
-        var _guid = __webpack_require__( /*! ../core/guid */ 48);
+        var _guid = __webpack_require__( /*! ../core/guid */ 44);
         var _guid2 = _interopRequireDefault(_guid);
         var _extend = __webpack_require__( /*! ../core/utils/extend */ 0);
         var _errors = __webpack_require__( /*! ./errors */ 36);
@@ -26085,7 +26158,7 @@
     /*! all exports used */
     function(module, exports, __webpack_require__) {
         var eventsEngine = __webpack_require__( /*! ../../events/core/events_engine */ 5),
-            browser = __webpack_require__( /*! ../../core/utils/browser */ 35),
+            browser = __webpack_require__( /*! ../../core/utils/browser */ 34),
             domAdapter = __webpack_require__( /*! ../../core/dom_adapter */ 13),
             Class = __webpack_require__( /*! ../../core/class */ 10),
             eventUtils = __webpack_require__( /*! ../utils */ 9);
@@ -26415,7 +26488,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        __webpack_require__( /*! ../integration/jquery */ 46);
+        __webpack_require__( /*! ../integration/jquery */ 47);
         var $ = __webpack_require__( /*! jquery */ 29),
             noop = __webpack_require__( /*! ../core/utils/common */ 4).noop,
             window = __webpack_require__( /*! ../core/utils/window */ 6).getWindow(),
@@ -28032,7 +28105,7 @@
         var $ = __webpack_require__( /*! ../../core/renderer */ 2),
             AsyncTemplateMixin = __webpack_require__( /*! ../shared/async_template_mixin */ 274),
             eventsEngine = __webpack_require__( /*! ../../events/core/events_engine */ 5),
-            Guid = __webpack_require__( /*! ../../core/guid */ 48),
+            Guid = __webpack_require__( /*! ../../core/guid */ 44),
             registerComponent = __webpack_require__( /*! ../../core/component_registrator */ 8),
             commonUtils = __webpack_require__( /*! ../../core/utils/common */ 4),
             domUtils = __webpack_require__( /*! ../../core/utils/dom */ 12),
@@ -28687,7 +28760,7 @@
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
             each = __webpack_require__( /*! ../../core/utils/iterator */ 3).each,
             inArray = __webpack_require__( /*! ../../core/utils/array */ 11).inArray,
-            dateUtils = __webpack_require__( /*! ../../core/utils/date */ 23);
+            dateUtils = __webpack_require__( /*! ../../core/utils/date */ 24);
         var toMs = dateUtils.dateToMilliseconds;
         var leastDaysInWeek = 4;
         var intervalMap = {
@@ -28943,7 +29016,7 @@
         };
         var checkDate = function(currentDate, i, config, verifiedField) {
             if (!dateIsRecurrenceException(currentDate, config.exception)) {
-                var duration = dateUtils.sameDate(currentDate, config.recurrenceEndDate) ? config.recurrenceEndDate.getTime() - currentDate.getTime() : config.duration;
+                var duration = dateUtils.sameDate(currentDate, config.recurrenceEndDate) && config.recurrenceEndDate.getTime() > currentDate.getTime() ? config.recurrenceEndDate.getTime() - currentDate.getTime() : config.duration;
                 if (currentDate.getTime() >= config.recurrenceStartDate.getTime() && currentDate.getTime() + duration > config.min.getTime()) {
                     return verifiedField || checkDateByRule(currentDate, [config.dateRules[i]], config.rule.wkst)
                 }
@@ -29466,6 +29539,7 @@
                     initialChanges = proto._initialChanges,
                     themeDependentChanges = proto._themeDependentChanges,
                     optionChangesMap = proto._optionChangesMap,
+                    partialOptionChangesMap = proto._partialOptionChangesMap,
                     optionChangesOrder = proto._optionChangesOrder,
                     layoutChangesOrder = proto._layoutChangesOrder,
                     customChangesOrder = proto._customChangesOrder,
@@ -29476,6 +29550,7 @@
                 proto._initialChanges = combineLists(initialChanges, proto._initialChanges);
                 proto._themeDependentChanges = combineLists(themeDependentChanges, proto._themeDependentChanges);
                 proto._optionChangesMap = combineMaps(optionChangesMap, proto._optionChangesMap);
+                proto._partialOptionChangesMap = combineMaps(partialOptionChangesMap, proto._partialOptionChangesMap);
                 proto._optionChangesOrder = combineLists(optionChangesOrder, proto._optionChangesOrder);
                 proto._layoutChangesOrder = combineLists(layoutChangesOrder, proto._layoutChangesOrder);
                 proto._customChangesOrder = combineLists(customChangesOrder, proto._customChangesOrder);
@@ -30658,7 +30733,7 @@
             devices = __webpack_require__( /*! ../core/devices */ 16),
             registerEvent = __webpack_require__( /*! ./core/event_registrator */ 67),
             eventUtils = __webpack_require__( /*! ./utils */ 9),
-            pointerEvents = __webpack_require__( /*! ./pointer */ 27);
+            pointerEvents = __webpack_require__( /*! ./pointer */ 26);
         var HOVERSTART_NAMESPACE = "dxHoverStart",
             HOVERSTART = "dxhoverstart",
             POINTERENTER_NAMESPACED_EVENT_NAME = eventUtils.addNamespace(pointerEvents.enter, HOVERSTART_NAMESPACE),
@@ -30840,7 +30915,13 @@
             if (store.__rawData) {
                 continuation(store.__rawData)
             } else {
-                invokeUserLoad(store, userFuncOptions).done(function(rawData) {
+                var loadPromise = store.__rawDataPromise || invokeUserLoad(store, userFuncOptions);
+                if (store._cacheRawData) {
+                    store.__rawDataPromise = loadPromise
+                }
+                loadPromise.always(function() {
+                    delete store.__rawDataPromise
+                }).done(function(rawData) {
                     if (store._cacheRawData) {
                         store.__rawData = rawData
                     }
@@ -32061,10 +32142,10 @@
             isDefined = __webpack_require__( /*! ../core/utils/type */ 1).isDefined,
             styleUtils = __webpack_require__( /*! ../core/utils/style */ 85),
             each = __webpack_require__( /*! ../core/utils/iterator */ 3).each,
-            browser = __webpack_require__( /*! ../core/utils/browser */ 35),
+            browser = __webpack_require__( /*! ../core/utils/browser */ 34),
             CollectionWidgetItem = __webpack_require__( /*! ./collection/item */ 131),
             devices = __webpack_require__( /*! ../core/devices */ 16),
-            CollectionWidget = __webpack_require__( /*! ./collection/ui.collection_widget.edit */ 47);
+            CollectionWidget = __webpack_require__( /*! ./collection/ui.collection_widget.edit */ 48);
         var BOX_CLASS = "dx-box",
             BOX_SELECTOR = ".dx-box",
             BOX_ITEM_CLASS = "dx-box-item",
@@ -32581,7 +32662,7 @@
             eventsEngine = __webpack_require__( /*! ../../events/core/events_engine */ 5),
             noop = __webpack_require__( /*! ../../core/utils/common */ 4).noop,
             Class = __webpack_require__( /*! ../../core/class */ 10),
-            dateLocalization = __webpack_require__( /*! ../../localization/date */ 34);
+            dateLocalization = __webpack_require__( /*! ../../localization/date */ 35);
         var abstract = Class.abstract;
         var DateBoxStrategy = Class.inherit({
             ctor: function(dateBox) {
@@ -32819,16 +32900,51 @@
             }, {
                 key: "renderPosition",
                 value: function(offset, animate) {
-                    var _this = this;
+                    var drawer = this.getDrawerInstance();
+                    var revealMode = drawer.option("revealMode");
+                    this.prepareAnimationDeferreds(animate);
+                    var config = this.getPositionRenderingConfig(offset);
+                    if (this.useDefaultAnimation()) {
+                        this.defaultPositionRendering(config, offset, animate)
+                    } else {
+                        if ("slide" === revealMode) {
+                            this.slidePositionRendering(config, offset, animate)
+                        }
+                        if ("expand" === revealMode) {
+                            this.expandPositionRendering(config, offset, animate)
+                        }
+                    }
+                }
+            }, {
+                key: "prepareAnimationDeferreds",
+                value: function(animate) {
+                    var drawer = this.getDrawerInstance();
                     this._contentAnimation = new _deferred.Deferred;
                     this._panelAnimation = new _deferred.Deferred;
                     this._shaderAnimation = new _deferred.Deferred;
-                    this._drawer._animations.push(this._contentAnimation, this._panelAnimation, this._shaderAnimation);
+                    drawer._animations.push(this._contentAnimation, this._panelAnimation, this._shaderAnimation);
                     if (animate) {
-                        _deferred.when.apply(_renderer2.default, this._drawer._animations).done(function() {
-                            _this._drawer._animationCompleteHandler()
+                        _deferred.when.apply(_renderer2.default, drawer._animations).done(function() {
+                            drawer._animationCompleteHandler()
                         })
                     }
+                }
+            }, {
+                key: "getPositionRenderingConfig",
+                value: function(offset) {
+                    var drawer = this.getDrawerInstance();
+                    return {
+                        direction: drawer.getDrawerPosition(),
+                        $panel: (0, _renderer2.default)(drawer.content()),
+                        $content: (0, _renderer2.default)(drawer.viewContent()),
+                        defaultAnimationConfig: this._defaultAnimationConfig(),
+                        size: this._getPanelSize(offset)
+                    }
+                }
+            }, {
+                key: "useDefaultAnimation",
+                value: function() {
+                    return false
                 }
             }, {
                 key: "_elementsAnimationCompleteHandler",
@@ -32839,10 +32955,10 @@
             }, {
                 key: "_defaultAnimationConfig",
                 value: function() {
-                    var _this2 = this;
+                    var _this = this;
                     return {
                         complete: function() {
-                            _this2._elementsAnimationCompleteHandler()
+                            _this._elementsAnimationCompleteHandler()
                         }
                     }
                 }
@@ -32865,13 +32981,13 @@
             }, {
                 key: "renderShaderVisibility",
                 value: function(offset, animate, duration) {
-                    var _this3 = this;
+                    var _this2 = this;
                     var fadeConfig = this._getFadeConfig(offset);
                     var drawer = this.getDrawerInstance();
                     if (animate) {
                         animation.fade((0, _renderer2.default)(drawer._$shader), fadeConfig, duration, function() {
-                            _this3._drawer._toggleShaderVisibility(offset);
-                            _this3._shaderAnimation.resolve()
+                            _this2._drawer._toggleShaderVisibility(offset);
+                            _this2._shaderAnimation.resolve()
                         })
                     } else {
                         drawer._toggleShaderVisibility(offset);
@@ -33118,7 +33234,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        __webpack_require__( /*! ../integration/jquery */ 46);
+        __webpack_require__( /*! ../integration/jquery */ 47);
         var $ = __webpack_require__( /*! jquery */ 29),
             errors = __webpack_require__( /*! ./errors */ 68),
             extend = __webpack_require__( /*! ../core/utils/extend */ 0).extend,
@@ -33249,7 +33365,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        __webpack_require__( /*! ../../integration/jquery */ 46);
+        __webpack_require__( /*! ../../integration/jquery */ 47);
         var $ = __webpack_require__( /*! jquery */ 29),
             MarkupComponent = __webpack_require__( /*! ./markup_component */ 186).MarkupComponent,
             isPlainObject = __webpack_require__( /*! ../../core/utils/type */ 1).isPlainObject,
@@ -33283,7 +33399,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        __webpack_require__( /*! ../../integration/jquery */ 46);
+        __webpack_require__( /*! ../../integration/jquery */ 47);
         var $ = __webpack_require__( /*! jquery */ 29),
             Class = __webpack_require__( /*! ../../core/class */ 10),
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
@@ -33680,7 +33796,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        __webpack_require__( /*! ../../integration/jquery */ 46);
+        __webpack_require__( /*! ../../integration/jquery */ 47);
         var $ = __webpack_require__( /*! jquery */ 29),
             domAdapter = __webpack_require__( /*! ../../core/dom_adapter */ 13),
             eventsEngine = __webpack_require__( /*! ../../events/core/events_engine */ 5),
@@ -34629,7 +34745,7 @@
         });
         var _renderer = __webpack_require__( /*! ../../core/renderer */ 2);
         var _renderer2 = _interopRequireDefault(_renderer);
-        var _uiCollection_widget = __webpack_require__( /*! ./ui.collection_widget.edit */ 47);
+        var _uiCollection_widget = __webpack_require__( /*! ./ui.collection_widget.edit */ 48);
         var _uiCollection_widget2 = _interopRequireDefault(_uiCollection_widget);
         var _extend = __webpack_require__( /*! ../../core/utils/extend */ 0);
         var _type = __webpack_require__( /*! ../../core/utils/type */ 1);
@@ -34655,6 +34771,10 @@
                 var _this = this;
                 this.callBase.apply(this, arguments);
                 this._customizeStoreLoadOptions = function(e) {
+                    var dataSource = _this._dataSource;
+                    if (dataSource && !dataSource.isLoaded()) {
+                        _this._correctionIndex = 0
+                    }
                     if (_this._correctionIndex && e.storeLoadOptions) {
                         e.storeLoadOptions.skip += _this._correctionIndex
                     }
@@ -34992,7 +35112,8 @@
             eventUtils = __webpack_require__( /*! ../events/utils */ 9),
             extend = __webpack_require__( /*! ../core/utils/extend */ 0).extend,
             isPlainObject = __webpack_require__( /*! ../core/utils/type */ 1).isPlainObject,
-            pointerEvents = __webpack_require__( /*! ../events/pointer */ 27),
+            pointerEvents = __webpack_require__( /*! ../events/pointer */ 26),
+            iteratorUtils = __webpack_require__( /*! ../core/utils/iterator */ 3),
             TabsItem = __webpack_require__( /*! ./tabs/item */ 313),
             themes = __webpack_require__( /*! ./themes */ 20),
             holdEvent = __webpack_require__( /*! ../events/hold */ 95),
@@ -35003,6 +35124,7 @@
         var TABS_CLASS = "dx-tabs",
             TABS_WRAPPER_CLASS = "dx-tabs-wrapper",
             TABS_EXPANDED_CLASS = "dx-tabs-expanded",
+            TABS_STRETCHED_CLASS = "dx-tabs-stretched",
             TABS_SCROLLABLE_CLASS = "dx-tabs-scrollable",
             TABS_NAV_BUTTONS_CLASS = "dx-tabs-nav-buttons",
             OVERFLOW_HIDDEN_CLASS = "dx-overflow-hidden",
@@ -35119,9 +35241,9 @@
                 this._renderScrolling()
             },
             _renderScrolling: function() {
-                this.$element().removeClass(TABS_EXPANDED_CLASS);
-                this.$element().removeClass(OVERFLOW_HIDDEN_CLASS);
-                if (this._allowScrolling()) {
+                var removeClasses = [TABS_STRETCHED_CLASS, TABS_EXPANDED_CLASS, OVERFLOW_HIDDEN_CLASS];
+                this.$element().removeClass(removeClasses.join(" "));
+                if (this.option("scrollingEnabled") && this._isItemsWidthExceeded()) {
                     if (!this._scrollable) {
                         this._renderScrollable();
                         this._renderNavButtons()
@@ -35135,10 +35257,27 @@
                     }
                     this._scrollToItem(this.option("selectedItem"))
                 }
-                if (!this._allowScrolling()) {
+                if (!(this.option("scrollingEnabled") && this._isItemsWidthExceeded())) {
                     this._cleanScrolling();
+                    if (this._needStretchItems() && !this._isItemsWidthExceeded()) {
+                        this.$element().addClass(TABS_STRETCHED_CLASS)
+                    }
                     this.$element().removeClass(TABS_NAV_BUTTONS_CLASS).addClass(TABS_EXPANDED_CLASS)
                 }
+            },
+            _isItemsWidthExceeded: function() {
+                var tabItemsWidth = this._getSummaryItemsWidth(this._getVisibleItems(), true);
+                return tabItemsWidth - 1 > this.$element().width()
+            },
+            _needStretchItems: function() {
+                var $visibleItems = this._getVisibleItems(),
+                    elementWidth = this.$element().width(),
+                    itemsWidth = [];
+                iteratorUtils.each($visibleItems, function(_, item) {
+                    itemsWidth.push($(item).outerWidth(true))
+                });
+                var maxTabWidth = Math.max.apply(null, itemsWidth);
+                return maxTabWidth > elementWidth / $visibleItems.length
             },
             _cleanNavButtons: function() {
                 if (!this._leftButton || !this._rightButton) {
@@ -35206,13 +35345,6 @@
                 }
                 var $item = this._editStrategy.getItemElement(itemData);
                 this._scrollable.scrollToElement($item)
-            },
-            _allowScrolling: function() {
-                if (!this.option("scrollingEnabled")) {
-                    return false
-                }
-                var tabItemsWidth = this._getSummaryItemsWidth(this._getVisibleItems(), true);
-                return tabItemsWidth - 1 > this.$element().width()
             },
             _renderNavButtons: function() {
                 this.$element().toggleClass(TABS_NAV_BUTTONS_CLASS, this.option("showNavButtons"));
@@ -35288,9 +35420,7 @@
                 }
             },
             _dimensionChanged: function() {
-                if (this.option("scrollingEnabled")) {
-                    this._renderScrolling()
-                }
+                this._renderScrolling()
             },
             _itemSelectHandler: function(e) {
                 if ("single" === this.option("selectionMode") && this.isItemSelected(e.currentTarget)) {
@@ -35311,6 +35441,10 @@
                         break;
                     case "scrollByContent":
                         this._scrollable && this._scrollable.option(args.name, args.value);
+                        break;
+                    case "width":
+                        this.callBase(args);
+                        this._dimensionChanged();
                         break;
                     case "selectionMode":
                         this._renderMultiple();
@@ -35527,7 +35661,7 @@
         var _element_data2 = _interopRequireDefault(_element_data);
         var _click = __webpack_require__( /*! ../../events/click */ 17);
         var _click2 = _interopRequireDefault(_click);
-        var _browser = __webpack_require__( /*! ../../core/utils/browser */ 35);
+        var _browser = __webpack_require__( /*! ../../core/utils/browser */ 34);
         var _browser2 = _interopRequireDefault(_browser);
         var _common = __webpack_require__( /*! ../../core/utils/common */ 4);
         var _style = __webpack_require__( /*! ../../core/utils/style */ 85);
@@ -37470,7 +37604,7 @@
             each = __webpack_require__( /*! ../core/utils/iterator */ 3).each,
             typeUtils = __webpack_require__( /*! ../core/utils/type */ 1),
             windowUtils = __webpack_require__( /*! ../core/utils/window */ 6),
-            translator = __webpack_require__( /*! ../animation/translator */ 24),
+            translator = __webpack_require__( /*! ../animation/translator */ 23),
             fitIntoRange = __webpack_require__( /*! ../core/utils/math */ 30).fitIntoRange,
             DOMComponent = __webpack_require__( /*! ../core/dom_component */ 59),
             eventUtils = __webpack_require__( /*! ../events/utils */ 9),
@@ -37811,7 +37945,7 @@
             callOnce = __webpack_require__( /*! ../../../core/utils/call_once */ 73),
             window = windowUtils.getWindow(),
             eventsEngine = __webpack_require__( /*! ../../../events/core/events_engine */ 5),
-            browser = __webpack_require__( /*! ../../../core/utils/browser */ 35),
+            browser = __webpack_require__( /*! ../../../core/utils/browser */ 34),
             getSvgMarkup = __webpack_require__( /*! ../../../core/utils/svg */ 208).getSvgMarkup,
             animation = __webpack_require__( /*! ./animation */ 711),
             math = Math,
@@ -39707,7 +39841,7 @@
             registerComponent = __webpack_require__( /*! ../core/component_registrator */ 8),
             extend = __webpack_require__( /*! ../core/utils/extend */ 0).extend,
             Button = __webpack_require__( /*! ./button */ 37),
-            CollectionWidget = __webpack_require__( /*! ./collection/ui.collection_widget.edit */ 47),
+            CollectionWidget = __webpack_require__( /*! ./collection/ui.collection_widget.edit */ 48),
             Popup = __webpack_require__( /*! ./popup */ 55),
             Popover = __webpack_require__( /*! ./popover */ 136),
             BindableTemplate = __webpack_require__( /*! ./widget/bindable_template */ 60),
@@ -39987,7 +40121,7 @@
         var $ = __webpack_require__( /*! ../../core/renderer */ 2),
             window = __webpack_require__( /*! ../../core/utils/window */ 6).getWindow(),
             eventsEngine = __webpack_require__( /*! ../../events/core/events_engine */ 5),
-            Guid = __webpack_require__( /*! ../../core/guid */ 48),
+            Guid = __webpack_require__( /*! ../../core/guid */ 44),
             registerComponent = __webpack_require__( /*! ../../core/component_registrator */ 8),
             commonUtils = __webpack_require__( /*! ../../core/utils/common */ 4),
             typeUtils = __webpack_require__( /*! ../../core/utils/type */ 1),
@@ -40338,7 +40472,7 @@
                     noDataText: this.option("noDataText"),
                     grouped: this.option("grouped"),
                     onContentReady: this._listContentReadyHandler.bind(this),
-                    itemTemplate: this._getTemplateByOption("itemTemplate"),
+                    itemTemplate: this.option("itemTemplate"),
                     indicateLoading: false,
                     keyExpr: this._getCollectionKeyExpr(),
                     displayExpr: this._displayGetterExpr(),
@@ -40743,7 +40877,7 @@
             _initDynamicTemplates: commonUtils.noop,
             _setCollectionWidgetItemTemplate: function() {
                 this._initDynamicTemplates();
-                this._setCollectionWidgetOption("itemTemplate", this._getTemplateByOption("itemTemplate"))
+                this._setCollectionWidgetOption("itemTemplate", this.option("itemTemplate"))
             },
             _getCollectionKeyExpr: function() {
                 var valueExpr = this.option("valueExpr");
@@ -40767,7 +40901,8 @@
                         break;
                     case "displayExpr":
                         this._compileDisplayGetter();
-                        this._setCollectionWidgetItemTemplate()
+                        this._initDynamicTemplates();
+                        this._setCollectionWidgetOption("displayExpr")
                 }
             }
         });
@@ -40780,7 +40915,7 @@
     /*! all exports used */
     function(module, exports, __webpack_require__) {
         var $ = __webpack_require__( /*! ../core/renderer */ 2),
-            Editor = __webpack_require__( /*! ./editor/editor */ 45),
+            Editor = __webpack_require__( /*! ./editor/editor */ 46),
             registerComponent = __webpack_require__( /*! ../core/component_registrator */ 8),
             extend = __webpack_require__( /*! ../core/utils/extend */ 0).extend,
             windowUtils = __webpack_require__( /*! ../core/utils/window */ 6),
@@ -40904,7 +41039,7 @@
             iteratorUtils = __webpack_require__( /*! ../core/utils/iterator */ 3),
             ValidationMixin = __webpack_require__( /*! ./validation/validation_mixin */ 169),
             ValidationEngine = __webpack_require__( /*! ./validation_engine */ 94),
-            CollectionWidget = __webpack_require__( /*! ./collection/ui.collection_widget.edit */ 47);
+            CollectionWidget = __webpack_require__( /*! ./collection/ui.collection_widget.edit */ 48);
         var VALIDATION_SUMMARY_CLASS = "dx-validationsummary",
             ITEM_CLASS = VALIDATION_SUMMARY_CLASS + "-item",
             ITEM_DATA_KEY = VALIDATION_SUMMARY_CLASS + "-item-data";
@@ -42993,7 +43128,7 @@
         var $ = __webpack_require__( /*! ../../../core/renderer */ 2),
             SchedulerWorkSpace = __webpack_require__( /*! ./ui.scheduler.work_space */ 435),
             registerComponent = __webpack_require__( /*! ../../../core/component_registrator */ 8),
-            dateUtils = __webpack_require__( /*! ../../../core/utils/date */ 23),
+            dateUtils = __webpack_require__( /*! ../../../core/utils/date */ 24),
             extend = __webpack_require__( /*! ../../../core/utils/extend */ 0).extend,
             windowUtils = __webpack_require__( /*! ../../../core/utils/window */ 6),
             toMs = dateUtils.dateToMilliseconds;
@@ -45565,7 +45700,8 @@
                         return true
                     }
                 } else {
-                    if (this[0].className.split(" ").indexOf(classNames[i]) >= 0) {
+                    var _className = typeUtils.isString(this[0].className) ? this[0].className : domAdapter.getAttribute(this[0], "class");
+                    if (_className.split(" ").indexOf(classNames[i]) >= 0) {
                         return true
                     }
                 }
@@ -46287,9 +46423,9 @@
     /*! all exports used */
     function(module, exports, __webpack_require__) {
         var typeUtils = __webpack_require__( /*! ../core/utils/type */ 1),
-            stringUtils = __webpack_require__( /*! ../core/utils/string */ 44),
+            stringUtils = __webpack_require__( /*! ../core/utils/string */ 45),
             numberFormatter = __webpack_require__( /*! ../localization/number */ 49),
-            dateLocalization = __webpack_require__( /*! ../localization/date */ 34),
+            dateLocalization = __webpack_require__( /*! ../localization/date */ 35),
             getDateLDMLFormat = __webpack_require__( /*! ../localization/ldml/date.format */ 201).getFormat,
             getLanguageID = __webpack_require__( /*! ../localization/language_codes */ 275).getLanguageId,
             UNSUPPORTED_FORMAT_MAPPING = {
@@ -47953,7 +48089,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        __webpack_require__( /*! ../../integration/jquery */ 46);
+        __webpack_require__( /*! ../../integration/jquery */ 47);
         var $ = __webpack_require__( /*! jquery */ 29),
             commonUtils = __webpack_require__( /*! ../../core/utils/common */ 4),
             window = __webpack_require__( /*! ../../core/utils/window */ 6).getWindow(),
@@ -48336,7 +48472,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        __webpack_require__( /*! ../integration/jquery */ 46);
+        __webpack_require__( /*! ../integration/jquery */ 47);
         var BACK_COMMAND_TITLE, $ = __webpack_require__( /*! jquery */ 29),
             Class = __webpack_require__( /*! ../core/class */ 10),
             window = __webpack_require__( /*! ../core/utils/window */ 6).getWindow(),
@@ -48799,7 +48935,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        __webpack_require__( /*! ../integration/jquery */ 46);
+        __webpack_require__( /*! ../integration/jquery */ 47);
         var $ = __webpack_require__( /*! jquery */ 29),
             location = __webpack_require__( /*! ../core/dom_adapter */ 13).getLocation(),
             dataCoreUtils = __webpack_require__( /*! ../core/utils/data */ 22),
@@ -48900,7 +49036,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        __webpack_require__( /*! ../integration/jquery */ 46);
+        __webpack_require__( /*! ../integration/jquery */ 47);
         var $ = __webpack_require__( /*! jquery */ 29),
             Class = __webpack_require__( /*! ../core/class */ 10),
             Callbacks = __webpack_require__( /*! ../core/utils/callbacks */ 21),
@@ -49070,7 +49206,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        __webpack_require__( /*! ../../integration/jquery */ 46);
+        __webpack_require__( /*! ../../integration/jquery */ 47);
         var $ = __webpack_require__( /*! jquery */ 29),
             Class = __webpack_require__( /*! ../../core/class */ 10),
             noop = __webpack_require__( /*! ../../core/utils/common */ 4).noop,
@@ -49594,7 +49730,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        __webpack_require__( /*! ../../integration/jquery */ 46);
+        __webpack_require__( /*! ../../integration/jquery */ 47);
         var $ = __webpack_require__( /*! jquery */ 29),
             version = __webpack_require__( /*! ../../core/version */ 134),
             window = __webpack_require__( /*! ../../core/utils/window */ 6).getWindow(),
@@ -50103,7 +50239,7 @@
         DevExpress.data.CustomStore = __webpack_require__( /*! ../../data/custom_store */ 173);
         DevExpress.data.LocalStore = __webpack_require__( /*! ../../data/local_store */ 382);
         DevExpress.data.base64_encode = __webpack_require__( /*! ../../data/utils */ 39).base64_encode;
-        DevExpress.data.Guid = __webpack_require__( /*! ../../core/guid */ 48);
+        DevExpress.data.Guid = __webpack_require__( /*! ../../core/guid */ 44);
         DevExpress.data.utils = {};
         DevExpress.data.utils.compileGetter = __webpack_require__( /*! ../../core/utils/data */ 22).compileGetter;
         DevExpress.data.utils.compileSetter = __webpack_require__( /*! ../../core/utils/data */ 22).compileSetter;
@@ -50364,7 +50500,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var stringUtils = __webpack_require__( /*! ../../core/utils/string */ 44),
+        var stringUtils = __webpack_require__( /*! ../../core/utils/string */ 45),
             iteratorUtils = __webpack_require__( /*! ../../core/utils/iterator */ 3),
             odataUtils = __webpack_require__( /*! ./utils */ 103);
         __webpack_require__( /*! ./query_adapter */ 155);
@@ -50881,7 +51017,7 @@
     function(module, exports, __webpack_require__) {
         var DevExpress = __webpack_require__( /*! ../../../bundles/modules/core */ 133);
         DevExpress.framework = __webpack_require__( /*! ../../../bundles/modules/framework */ 344);
-        __webpack_require__( /*! ../../../integration/jquery */ 46);
+        __webpack_require__( /*! ../../../integration/jquery */ 47);
         __webpack_require__( /*! ../../../integration/angular */ 367);
         __webpack_require__( /*! ../../../integration/knockout */ 121);
         __webpack_require__( /*! ../../../localization/globalize/core */ 124);
@@ -50895,7 +51031,7 @@
         __webpack_require__( /*! ../../../events/drag */ 65);
         __webpack_require__( /*! ../../../events/hold */ 95);
         __webpack_require__( /*! ../../../events/hover */ 172);
-        __webpack_require__( /*! ../../../events/pointer */ 27);
+        __webpack_require__( /*! ../../../events/pointer */ 26);
         __webpack_require__( /*! ../../../events/swipe */ 125);
         __webpack_require__( /*! ../../../events/transform */ 277);
         module.exports = DevExpress
@@ -53298,7 +53434,7 @@
             extend = __webpack_require__( /*! ../../../core/utils/extend */ 0).extend,
             registerComponent = __webpack_require__( /*! ../../../core/component_registrator */ 8),
             SchedulerWorkSpace = __webpack_require__( /*! ./ui.scheduler.work_space.indicator */ 224),
-            dateUtils = __webpack_require__( /*! ../../../core/utils/date */ 23),
+            dateUtils = __webpack_require__( /*! ../../../core/utils/date */ 24),
             tableCreator = __webpack_require__( /*! ../ui.scheduler.table_creator */ 281),
             HorizontalShader = __webpack_require__( /*! ../shaders/ui.scheduler.current_time_shader.horizontal */ 691);
         var TIMELINE_CLASS = "dx-scheduler-timeline",
@@ -53759,7 +53895,7 @@
             Class = __webpack_require__( /*! ../../../core/class */ 10),
             extend = __webpack_require__( /*! ../../../core/utils/extend */ 0).extend,
             errors = __webpack_require__( /*! ../../widget/ui.errors */ 18),
-            dateUtils = __webpack_require__( /*! ../../../core/utils/date */ 23),
+            dateUtils = __webpack_require__( /*! ../../../core/utils/date */ 24),
             isNumeric = __webpack_require__( /*! ../../../core/utils/type */ 1).isNumeric,
             typeUtils = __webpack_require__( /*! ../../../core/utils/type */ 1),
             themes = __webpack_require__( /*! ../../themes */ 20);
@@ -53994,18 +54130,23 @@
             },
             _sortCondition: abstract,
             _rowCondition: function(a, b) {
-                var columnCondition = this._normalizeCondition(a.left, b.left),
-                    rowCondition = this._normalizeCondition(a.top, b.top);
+                var isSomeEdge = this._isSomeEdge(a, b);
+                var columnCondition = this._normalizeCondition(a.left, b.left, isSomeEdge),
+                    rowCondition = this._normalizeCondition(a.top, b.top, isSomeEdge);
                 return columnCondition ? columnCondition : rowCondition ? rowCondition : a.isStart - b.isStart
             },
             _columnCondition: function(a, b) {
-                var columnCondition = this._normalizeCondition(a.left, b.left),
-                    rowCondition = this._normalizeCondition(a.top, b.top);
+                var isSomeEdge = this._isSomeEdge(a, b);
+                var columnCondition = this._normalizeCondition(a.left, b.left, isSomeEdge),
+                    rowCondition = this._normalizeCondition(a.top, b.top, isSomeEdge);
                 return rowCondition ? rowCondition : columnCondition ? columnCondition : a.isStart - b.isStart
             },
-            _normalizeCondition: function(first, second) {
+            _isSomeEdge: function(a, b) {
+                return a.i === b.i && a.j === b.j
+            },
+            _normalizeCondition: function(first, second, isSomeEdge) {
                 var result = first - second;
-                return Math.abs(result) > .1 ? result : 0
+                return isSomeEdge || Math.abs(result) > .1 ? result : 0
             },
             _getResultPositions: function(sortedArray) {
                 var position, stack = [],
@@ -54127,7 +54268,6 @@
                 var endDate = this.instance._getEndDate(appointment),
                     realStartDate = this.startDate(appointment, true),
                     viewStartDate = this.startDate(appointment, false, position);
-                endDate = this._checkWrongEndDate(appointment, realStartDate, endDate);
                 if (viewStartDate.getTime() > endDate.getTime() || isRecurring) {
                     var recurrencePartStartDate = position ? position.startDate : realStartDate,
                         fullDuration = endDate.getTime() - realStartDate.getTime();
@@ -54156,13 +54296,6 @@
             },
             _calculateDurationByDaylightDiff: function(duration, diff) {
                 return duration + diff * toMs("minute")
-            },
-            _checkWrongEndDate: function(appointment, startDate, endDate) {
-                if (!endDate || startDate.getTime() >= endDate.getTime()) {
-                    endDate = new Date(startDate.getTime() + 6e4 * this.instance.getAppointmentDurationInMinutes());
-                    this.instance.fire("setField", "endDate", appointment, endDate)
-                }
-                return endDate
             },
             _getAppointmentDurationInMs: function(startDate, endDate, allDay) {
                 var result;
@@ -55939,7 +56072,7 @@
                     }
                     bBox = getSizeItem(options, markerSize, labelBBox);
                     maxBBoxHeight = _max(maxBBoxHeight, bBox.height);
-                    that._createHint(dataItem, label);
+                    that._createHint(dataItem, label, marker);
                     return {
                         label: label,
                         labelBBox: labelBBox,
@@ -56019,11 +56152,12 @@
                     align: align
                 }).append(group)
             },
-            _createHint: function(data, label) {
+            _createHint: function(data, label, marker) {
                 var labelFormatObject = this._getCustomizeObject(data),
                     text = this._options.customizeHint.call(labelFormatObject, labelFormatObject);
                 if (_isDefined(text) && "" !== text) {
-                    label.setTitle(text)
+                    label.setTitle(text);
+                    marker.setTitle(text)
                 }
             },
             _createBackground: function() {
@@ -56510,12 +56644,11 @@
         }
 
         function parseAxisCategories(groupsData, parsers) {
-            var argumentCategories = groupsData.argumentOptions && groupsData.argumentOptions.categories,
-                valueParser = parsers[1];
-            groupsData.groups.forEach(function(valueGroup) {
+            var argumentCategories = groupsData.argumentOptions && groupsData.argumentOptions.categories;
+            groupsData.groups.forEach(function(valueGroup, i) {
                 var categories = valueGroup.valueOptions && valueGroup.valueOptions.categories;
                 if (categories) {
-                    valueGroup.valueOptions.categories = parseCategories(categories, valueParser)
+                    valueGroup.valueOptions.categories = parseCategories(categories, parsers[i + 1])
                 }
             });
             if (argumentCategories) {
@@ -56590,14 +56723,14 @@
                 categoryParsers = [argumentParser],
                 cache = {},
                 list = [];
-            groupsData.groups.forEach(function(group) {
+            groupsData.groups.forEach(function(group, groupIndex) {
                 group.series.forEach(function(series) {
                     ignoreEmptyPoints = series.getOptions().ignoreEmptyPoints;
                     valueParser = createParserUnit(group.valueType, group.valueAxisType, ignoreEmptyPoints, incidentOccurred);
                     sizeParser = createParserUnit(NUMERIC, CONTINUOUS, ignoreEmptyPoints, incidentOccurred);
                     cache[series.getArgumentField()] = argumentParser;
                     series.getValueFields().forEach(function(field) {
-                        !categoryParsers[1] && (categoryParsers[1] = valueParser);
+                        categoryParsers[groupIndex + 1] = valueParser;
                         cache[field] = valueParser
                     });
                     if (series.getSizeField()) {
@@ -58033,29 +58166,63 @@
             });
             return [_floor(closestCoord[0]), _floor(closestCoord[1])]
         }
+
+        function getCrossCoord(rect, coord, indexOffset) {
+            return (coord - rect[0 + indexOffset]) / (rect[2 + indexOffset] - rect[0 + indexOffset]) * (rect[3 - indexOffset] - rect[1 - indexOffset]) + rect[1 - indexOffset]
+        }
         var barPointStrategy = {
             isLabelInside: function(labelPoint, figure) {
                 var xc = labelPoint.x + labelPoint.width / 2,
                     yc = labelPoint.y + labelPoint.height / 2;
                 return figure.x <= xc && xc <= figure.x + figure.width && figure.y <= yc && yc <= figure.y + figure.height
             },
-            prepareLabelPoints: function(bBox, rotatedBBox, isHorizontal, angle) {
-                var x1 = rotatedBBox.x,
+            prepareLabelPoints: function(bBox, rotatedBBox, isHorizontal, angle, figureCenter) {
+                var labelPoints, x1 = rotatedBBox.x,
                     xc = x1 + rotatedBBox.width / 2,
                     x2 = x1 + rotatedBBox.width - 1,
                     y1 = rotatedBBox.y,
                     yc = y1 + rotatedBBox.height / 2,
-                    y2 = y1 + rotatedBBox.height - 1;
-                return _abs(angle) % 90 === 0 ? [
-                    [x1, y1],
-                    [isHorizontal ? x1 : xc, isHorizontal ? yc : y1],
-                    [x2, y1],
-                    [x1, y2],
-                    [isHorizontal ? x2 : xc, isHorizontal ? yc : y2],
-                    [x2, y2]
-                ] : [
-                    [xc, yc]
-                ]
+                    y2 = y1 + rotatedBBox.height - 1,
+                    isRectangular = _abs(angle) % 90 === 0;
+                if (figureCenter[0] > x1 && figureCenter[0] < x2) {
+                    if (isRectangular) {
+                        labelPoints = [
+                            [figureCenter[0], _abs(figureCenter[1] - y1) < _abs(figureCenter[1] - y2) ? y1 : y2]
+                        ]
+                    } else {
+                        labelPoints = [
+                            [figureCenter[0], getCrossCoord([x1, y1, x2, y2], figureCenter[0], 0)]
+                        ]
+                    }
+                } else {
+                    if (figureCenter[1] > y1 && figureCenter[1] < y2) {
+                        if (isRectangular) {
+                            labelPoints = [
+                                [_abs(figureCenter[0] - x1) < _abs(figureCenter[0] - x2) ? x1 : x2, figureCenter[1]]
+                            ]
+                        } else {
+                            labelPoints = [
+                                [getCrossCoord([x1, y1, x2, y2], figureCenter[1], 1), figureCenter[1]]
+                            ]
+                        }
+                    } else {
+                        if (isRectangular) {
+                            labelPoints = [
+                                [x1, y1],
+                                [isHorizontal ? x1 : xc, isHorizontal ? yc : y1],
+                                [x2, y1],
+                                [x1, y2],
+                                [isHorizontal ? x2 : xc, isHorizontal ? yc : y2],
+                                [x2, y2]
+                            ]
+                        } else {
+                            labelPoints = [
+                                [xc, yc]
+                            ]
+                        }
+                    }
+                }
+                return labelPoints
             },
             isHorizontal: function(bBox, figure) {
                 return bBox.x > figure.x + figure.width || bBox.x + bBox.width < figure.x
@@ -58377,8 +58544,9 @@
                     points = [];
                 if (!strategy.isLabelInside(bBox, figure, "inside" !== options.position)) {
                     isHorizontal = strategy.isHorizontal(bBox, figure);
-                    points = strategy.prepareLabelPoints(bBox, rotatedBBox, isHorizontal, -options.rotationAngle || 0);
-                    labelPoint = getClosestCoord(strategy.getFigureCenter(figure), points);
+                    var figureCenter = strategy.getFigureCenter(figure);
+                    points = strategy.prepareLabelPoints(bBox, rotatedBBox, isHorizontal, -options.rotationAngle || 0, figureCenter);
+                    labelPoint = getClosestCoord(figureCenter, points);
                     points = strategy.findFigurePoint(figure, labelPoint, isHorizontal);
                     points = points.concat(labelPoint)
                 }
@@ -58471,7 +58639,7 @@
         var _range = __webpack_require__( /*! ../translators/range */ 128);
         var _tick = __webpack_require__( /*! ./tick */ 452);
         var _math2 = __webpack_require__( /*! ../../core/utils/math */ 30);
-        var _date = __webpack_require__( /*! ../../core/utils/date */ 23);
+        var _date = __webpack_require__( /*! ../../core/utils/date */ 24);
         var _common = __webpack_require__( /*! ../../core/utils/common */ 4);
         var _xy_axes = __webpack_require__( /*! ./xy_axes */ 453);
         var _xy_axes2 = _interopRequireDefault(_xy_axes);
@@ -59460,7 +59628,7 @@
                 }
                 return center
             },
-            setBusinessRange: function(range, categoriesOrder, oppositeVisualRangeUpdateMode, axisReinitialized) {
+            setBusinessRange: function(range, axisReinitialized, oppositeVisualRangeUpdateMode) {
                 var that = this;
                 var options = that._options;
                 var isDiscrete = options.type === _axes_constants2.default.discrete;
@@ -59493,14 +59661,10 @@
                 }
                 that._seriesData.minVisible = void 0 === that._seriesData.minVisible ? that._seriesData.min : that._seriesData.minVisible;
                 that._seriesData.maxVisible = void 0 === that._seriesData.maxVisible ? that._seriesData.max : that._seriesData.maxVisible;
-                if (that.isArgumentAxis) {
-                    that._seriesData.sortCategories(categoriesOrder)
-                } else {
-                    if (options.showZero) {
-                        that._seriesData.correctValueZeroLevel()
-                    }
-                    that._seriesData.sortCategories(that.getCategoriesSorter())
+                if (!that.isArgumentAxis && options.showZero) {
+                    that._seriesData.correctValueZeroLevel()
                 }
+                that._seriesData.sortCategories(that.getCategoriesSorter());
                 that._breaks = that._getScaleBreaks(options, that._seriesData, that._series, that.isArgumentAxis);
                 that._translator.updateBusinessRange(that.adjustViewport(that._seriesData))
             },
@@ -59747,7 +59911,7 @@
                             maxVisible = ticks[length - 1].value
                         }
                     }
-                    interval = that._calculateRangeInterval(that.calculateInterval(maxVisible, minVisible), interval);
+                    interval = that._calculateRangeInterval(interval);
                     range.addRange({
                         minVisible: minVisible,
                         maxVisible: maxVisible,
@@ -59771,7 +59935,7 @@
                 var bound = isEnd ? wholeRange.endValue : wholeRange.startValue;
                 return !this.isArgumentAxis || !(0, _type.isDefined)(bound) && this.isExtremePosition(isEnd)
             },
-            _calculateRangeInterval: function(dataLength, interval) {
+            _calculateRangeInterval: function(interval) {
                 var isDateTime = "datetime" === this._options.dataType,
                     minArgs = [],
                     addToArgs = function(value) {
@@ -59835,10 +59999,8 @@
                     }
                     if (!(0, _type.isDefined)(minValueMargin) || !(0, _type.isDefined)(maxValueMargin)) {
                         if (isArgumentAxis && margins.checkInterval) {
-                            if (0 === maxMinDistance) {
-                                interval = 0
-                            } else {
-                                interval = that._calculateRangeInterval(maxMinDistance, range.interval);
+                            if (0 !== maxMinDistance) {
+                                interval = that._calculateRangeInterval(range.interval);
                                 marginValue = interval / 2
                             }
                         }
@@ -60564,7 +60726,7 @@
             adjust = __webpack_require__( /*! ../../core/utils/math */ 30).adjust,
             _abs = Math.abs,
             CANVAS_PROP = ["width", "height", "left", "top", "bottom", "right"],
-            addInterval = __webpack_require__( /*! ../../core/utils/date */ 23).addInterval;
+            addInterval = __webpack_require__( /*! ../../core/utils/date */ 24).addInterval;
         var dummyTranslator = {
             to: function(value) {
                 var coord = this._canvasOptions.startPoint + (this._options.conversionValue ? value : Math.round(value));
@@ -60915,7 +61077,7 @@
             getInterval: function() {
                 var canvasOptions = this._canvasOptions;
                 var interval = this._businessRange.interval;
-                if (interval) {
+                if (isFinite(interval)) {
                     return Math.round(canvasOptions.ratioOfCanvasRange * interval)
                 }
                 return Math.round(canvasOptions.endPoint - canvasOptions.startPoint)
@@ -61559,8 +61721,8 @@
         var _eventData = __webpack_require__( /*! ../../events/utils */ 9).eventData,
             domAdapter = __webpack_require__( /*! ../../core/dom_adapter */ 13),
             clickEventName = __webpack_require__( /*! ../../events/click */ 17).name,
-            downPointerEventName = __webpack_require__( /*! ../../events/pointer */ 27).down,
-            movePointerEventName = __webpack_require__( /*! ../../events/pointer */ 27).move,
+            downPointerEventName = __webpack_require__( /*! ../../events/pointer */ 26).down,
+            movePointerEventName = __webpack_require__( /*! ../../events/pointer */ 26).move,
             eventsEngine = __webpack_require__( /*! ../../events/core/events_engine */ 5);
 
         function Tracker(parameters) {
@@ -61713,7 +61875,8 @@
                     }
                     this._getTemplate("dx-polymorph-widget").render({
                         container: $container,
-                        model: rawModel
+                        model: rawModel,
+                        parent: this
                     })
                 }.bind(this), ["text", "html", "widget", "options"], this.option("integrationOptions.watchMethod"));
                 this._defaultTemplates.item = template;
@@ -61981,7 +62144,7 @@
             typeUtils = __webpack_require__( /*! ../core/utils/type */ 1),
             extend = __webpack_require__( /*! ../core/utils/extend */ 0).extend,
             inArray = __webpack_require__( /*! ../core/utils/array */ 11).inArray,
-            pointerEvents = __webpack_require__( /*! ../events/pointer */ 27),
+            pointerEvents = __webpack_require__( /*! ../events/pointer */ 26),
             registerComponent = __webpack_require__( /*! ../core/component_registrator */ 8),
             Overlay = __webpack_require__( /*! ./overlay */ 64),
             themes = __webpack_require__( /*! ./themes */ 20);
@@ -62266,7 +62429,7 @@
     function(module, exports, __webpack_require__) {
         var $ = __webpack_require__( /*! ../../core/renderer */ 2),
             isDefined = __webpack_require__( /*! ../../core/utils/type */ 1).isDefined,
-            browser = __webpack_require__( /*! ../../core/utils/browser */ 35),
+            browser = __webpack_require__( /*! ../../core/utils/browser */ 34),
             domAdapter = __webpack_require__( /*! ../../core/dom_adapter */ 13);
         var isFocusingOnCaretChange = browser.msie || browser.safari;
         var getCaret = function(input) {
@@ -62336,7 +62499,7 @@
             EditDecorator = __webpack_require__( /*! ./ui.list.edit.decorator */ 132),
             abstract = EditDecorator.abstract,
             eventUtils = __webpack_require__( /*! ../../events/utils */ 9),
-            pointerEvents = __webpack_require__( /*! ../../events/pointer */ 27),
+            pointerEvents = __webpack_require__( /*! ../../events/pointer */ 26),
             feedbackEvents = __webpack_require__( /*! ../../events/core/emitter.feedback */ 101);
         var LIST_EDIT_DECORATOR = "dxListEditDecorator",
             POINTER_DOWN_EVENT_NAME = eventUtils.addNamespace(pointerEvents.down, LIST_EDIT_DECORATOR),
@@ -62511,13 +62674,13 @@
             domAdapter = __webpack_require__( /*! ../../core/dom_adapter */ 13),
             eventsEngine = __webpack_require__( /*! ../../events/core/events_engine */ 5),
             ready = __webpack_require__( /*! ../../core/utils/ready_callbacks */ 53).add,
-            translator = __webpack_require__( /*! ../../animation/translator */ 24),
+            translator = __webpack_require__( /*! ../../animation/translator */ 23),
             Widget = __webpack_require__( /*! ../widget/ui.widget */ 28),
             eventUtils = __webpack_require__( /*! ../../events/utils */ 9),
             commonUtils = __webpack_require__( /*! ../../core/utils/common */ 4),
             isPlainObject = __webpack_require__( /*! ../../core/utils/type */ 1).isPlainObject,
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
-            pointerEvents = __webpack_require__( /*! ../../events/pointer */ 27);
+            pointerEvents = __webpack_require__( /*! ../../events/pointer */ 26);
         var SCROLLBAR = "dxScrollbar",
             SCROLLABLE_SCROLLBAR_CLASS = "dx-scrollable-scrollbar",
             SCROLLABLE_SCROLLBAR_ACTIVE_CLASS = SCROLLABLE_SCROLLBAR_CLASS + "-active",
@@ -62722,7 +62885,7 @@
             windowUtils = __webpack_require__( /*! ../../core/utils/window */ 6),
             iteratorUtils = __webpack_require__( /*! ../../core/utils/iterator */ 3),
             isDefined = __webpack_require__( /*! ../../core/utils/type */ 1).isDefined,
-            translator = __webpack_require__( /*! ../../animation/translator */ 24),
+            translator = __webpack_require__( /*! ../../animation/translator */ 23),
             Class = __webpack_require__( /*! ../../core/class */ 10),
             Animator = __webpack_require__( /*! ./animator */ 305),
             devices = __webpack_require__( /*! ../../core/devices */ 16),
@@ -63646,13 +63809,13 @@
     function(module, exports, __webpack_require__) {
         var $ = __webpack_require__( /*! ../../core/renderer */ 2),
             eventsEngine = __webpack_require__( /*! ../../events/core/events_engine */ 5),
-            translator = __webpack_require__( /*! ../../animation/translator */ 24),
+            translator = __webpack_require__( /*! ../../animation/translator */ 23),
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
             Color = __webpack_require__( /*! ../../color */ 91),
             messageLocalization = __webpack_require__( /*! ../../localization/message */ 14),
             devices = __webpack_require__( /*! ../../core/devices */ 16),
             registerComponent = __webpack_require__( /*! ../../core/component_registrator */ 8),
-            Editor = __webpack_require__( /*! ../editor/editor */ 45),
+            Editor = __webpack_require__( /*! ../editor/editor */ 46),
             NumberBox = __webpack_require__( /*! ../number_box */ 118),
             TextBox = __webpack_require__( /*! ../text_box */ 99),
             Draggable = __webpack_require__( /*! ../draggable */ 322),
@@ -64335,7 +64498,7 @@
     function(module, exports, __webpack_require__) {
         var Calendar = __webpack_require__( /*! ../calendar */ 231),
             DateBoxStrategy = __webpack_require__( /*! ./ui.date_box.strategy */ 177),
-            dateUtils = __webpack_require__( /*! ../../core/utils/date */ 23),
+            dateUtils = __webpack_require__( /*! ../../core/utils/date */ 24),
             commonUtils = __webpack_require__( /*! ../../core/utils/common */ 4),
             isFunction = __webpack_require__( /*! ../../core/utils/type */ 1).isFunction,
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
@@ -64665,7 +64828,7 @@
                 return Constructor
             }
         }();
-        var _guid = __webpack_require__( /*! ../../core/guid */ 48);
+        var _guid = __webpack_require__( /*! ../../core/guid */ 44);
         var _guid2 = _interopRequireDefault(_guid);
         var _iterator = __webpack_require__( /*! ../../core/utils/iterator */ 3);
 
@@ -64788,7 +64951,7 @@
             extend = __webpack_require__( /*! ../core/utils/extend */ 0).extend,
             registerComponent = __webpack_require__( /*! ../core/component_registrator */ 8),
             Box = __webpack_require__( /*! ./box */ 176),
-            CollectionWidget = __webpack_require__( /*! ./collection/ui.collection_widget.edit */ 47);
+            CollectionWidget = __webpack_require__( /*! ./collection/ui.collection_widget.edit */ 48);
         var RESPONSIVE_BOX_CLASS = "dx-responsivebox",
             SCREEN_SIZE_CLASS_PREFIX = RESPONSIVE_BOX_CLASS + "-screen-",
             BOX_ITEM_CLASS = "dx-box-item",
@@ -65492,6 +65655,10 @@
                     this._updateLayout()
                 }
             },
+            repaint: function() {
+                this.callBase();
+                this._tabs.repaint()
+            },
             _optionChanged: function(args) {
                 var name = args.name,
                     value = args.value,
@@ -65508,6 +65675,10 @@
                         }
                         this.callBase(args);
                         break;
+                    case "width":
+                        this.callBase(args);
+                        this._tabs.repaint();
+                        break;
                     case "selectedIndex":
                     case "selectedItem":
                     case "itemHoldTimeout":
@@ -65520,11 +65691,6 @@
                     case "scrollByContent":
                     case "showNavButtons":
                         this._setTabsOption(fullName, value);
-                        break;
-                    case "width":
-                        this._setTabsOption(fullName, value);
-                        this._tabs._dimensionChanged();
-                        this.callBase(args);
                         break;
                     case "focusedElement":
                         var id = value ? $(value).index() : value;
@@ -65574,7 +65740,7 @@
     function(module, exports, __webpack_require__) {
         var $ = __webpack_require__( /*! ../core/renderer */ 2),
             fx = __webpack_require__( /*! ../animation/fx */ 31),
-            translator = __webpack_require__( /*! ../animation/translator */ 24),
+            translator = __webpack_require__( /*! ../animation/translator */ 23),
             mathUtils = __webpack_require__( /*! ../core/utils/math */ 30),
             extend = __webpack_require__( /*! ../core/utils/extend */ 0).extend,
             noop = __webpack_require__( /*! ../core/utils/common */ 4).noop,
@@ -65705,6 +65871,22 @@
             _initMarkup: function() {
                 this._deferredItems = [];
                 this.callBase()
+            },
+            _afterItemElementDeleted: function($item, deletedActionArgs) {
+                this.callBase($item, deletedActionArgs);
+                if (this._deferredItems) {
+                    this._deferredItems.splice(deletedActionArgs.itemIndex, 1);
+                    if (this.option("items")) {
+                        for (var i = deletedActionArgs.itemIndex; i < this.option("items").length; i++) {
+                            var currentItem = this.option("items")[i];
+                            var $currentItem = this._findItemElementByItem(currentItem);
+                            if (!$currentItem.length) {
+                                break
+                            }
+                            this._refreshItem($currentItem, currentItem)
+                        }
+                    }
+                }
             },
             _renderItemContent: function(args) {
                 var renderContentDeferred = new Deferred;
@@ -65970,7 +66152,7 @@
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
             Deferred = __webpack_require__( /*! ../../core/utils/deferred */ 7).Deferred,
             ToolbarStrategy = __webpack_require__( /*! ./ui.toolbar.strategy */ 219),
-            translator = __webpack_require__( /*! ../../animation/translator */ 24),
+            translator = __webpack_require__( /*! ../../animation/translator */ 23),
             hideTopOverlayCallback = __webpack_require__( /*! ../../mobile/hide_top_overlay */ 139).hideCallback,
             fx = __webpack_require__( /*! ../../animation/fx */ 31),
             Overlay = __webpack_require__( /*! ../overlay */ 64),
@@ -66439,7 +66621,7 @@
         var $ = __webpack_require__( /*! ../../core/renderer */ 2),
             Widget = __webpack_require__( /*! ../widget/ui.widget */ 28),
             Tooltip = __webpack_require__( /*! ../tooltip */ 205),
-            translator = __webpack_require__( /*! ../../animation/translator */ 24),
+            translator = __webpack_require__( /*! ../../animation/translator */ 23),
             positionUtils = __webpack_require__( /*! ../../animation/position */ 78),
             mathUtils = __webpack_require__( /*! ../../core/utils/math */ 30),
             typeUtils = __webpack_require__( /*! ../../core/utils/type */ 1),
@@ -66701,7 +66883,7 @@
     /*! all exports used */
     function(module, exports, __webpack_require__) {
         var $ = __webpack_require__( /*! ../../core/renderer */ 2),
-            Guid = __webpack_require__( /*! ../../core/guid */ 48),
+            Guid = __webpack_require__( /*! ../../core/guid */ 44),
             registerComponent = __webpack_require__( /*! ../../core/component_registrator */ 8),
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
             Popover = __webpack_require__( /*! ../popover */ 136),
@@ -66840,14 +67022,14 @@
         var $ = __webpack_require__( /*! ../core/renderer */ 2),
             window = __webpack_require__( /*! ../core/utils/window */ 6).getWindow(),
             eventsEngine = __webpack_require__( /*! ../events/core/events_engine */ 5),
-            stringUtils = __webpack_require__( /*! ../core/utils/string */ 44),
+            stringUtils = __webpack_require__( /*! ../core/utils/string */ 45),
             registerComponent = __webpack_require__( /*! ../core/component_registrator */ 8),
-            translator = __webpack_require__( /*! ../animation/translator */ 24),
+            translator = __webpack_require__( /*! ../animation/translator */ 23),
             dasherize = __webpack_require__( /*! ../core/utils/inflector */ 32).dasherize,
             extend = __webpack_require__( /*! ../core/utils/extend */ 0).extend,
             DOMComponent = __webpack_require__( /*! ../core/dom_component */ 59),
             eventUtils = __webpack_require__( /*! ../events/utils */ 9),
-            pointerEvents = __webpack_require__( /*! ../events/pointer */ 27),
+            pointerEvents = __webpack_require__( /*! ../events/pointer */ 26),
             dragEvents = __webpack_require__( /*! ../events/drag */ 65),
             positionUtils = __webpack_require__( /*! ../animation/position */ 78),
             isFunction = __webpack_require__( /*! ../core/utils/type */ 1).isFunction,
@@ -67044,7 +67226,7 @@
             extend = __webpack_require__( /*! ../core/utils/extend */ 0).extend,
             inkRipple = __webpack_require__( /*! ./widget/utils.ink_ripple */ 72),
             registerComponent = __webpack_require__( /*! ../core/component_registrator */ 8),
-            Editor = __webpack_require__( /*! ./editor/editor */ 45),
+            Editor = __webpack_require__( /*! ./editor/editor */ 46),
             eventUtils = __webpack_require__( /*! ../events/utils */ 9),
             feedbackEvents = __webpack_require__( /*! ../events/core/emitter.feedback */ 101),
             themes = __webpack_require__( /*! ./themes */ 20),
@@ -67409,7 +67591,7 @@
             dataUtils = __webpack_require__( /*! ../core/element_data */ 38),
             eventsEngine = __webpack_require__( /*! ../events/core/events_engine */ 5),
             registerComponent = __webpack_require__( /*! ../core/component_registrator */ 8),
-            browser = __webpack_require__( /*! ../core/utils/browser */ 35),
+            browser = __webpack_require__( /*! ../core/utils/browser */ 34),
             commonUtils = __webpack_require__( /*! ../core/utils/common */ 4),
             noop = commonUtils.noop,
             FilterCreator = __webpack_require__( /*! ../core/utils/selection_filter */ 273).SelectionFilterCreator,
@@ -68390,7 +68572,7 @@
             registerComponent = __webpack_require__( /*! ../core/component_registrator */ 8),
             extend = __webpack_require__( /*! ../core/utils/extend */ 0).extend,
             eventUtils = __webpack_require__( /*! ../events/utils */ 9),
-            pointerEvents = __webpack_require__( /*! ../events/pointer */ 27),
+            pointerEvents = __webpack_require__( /*! ../events/pointer */ 26),
             TextBox = __webpack_require__( /*! ./text_box */ 99);
         var TEXTAREA_CLASS = "dx-textarea",
             TEXTEDITOR_INPUT_CLASS = "dx-texteditor-input";
@@ -68549,7 +68731,7 @@
             typeUtils = __webpack_require__( /*! ../core/utils/type */ 1),
             extend = __webpack_require__( /*! ../core/utils/extend */ 0).extend,
             errors = __webpack_require__( /*! ../ui/widget/ui.errors */ 18),
-            stringUtils = __webpack_require__( /*! ../core/utils/string */ 44),
+            stringUtils = __webpack_require__( /*! ../core/utils/string */ 45),
             JSZip = __webpack_require__( /*! jszip */ 328),
             fileSaver = __webpack_require__( /*! ./file_saver */ 233),
             excelFormatConverter = __webpack_require__( /*! ./excel_format_converter */ 237),
@@ -70121,7 +70303,7 @@
         var core = __webpack_require__( /*! ./localization/core */ 86);
         var message = __webpack_require__( /*! ./localization/message */ 14);
         var number = __webpack_require__( /*! ./localization/number */ 49);
-        var date = __webpack_require__( /*! ./localization/date */ 34);
+        var date = __webpack_require__( /*! ./localization/date */ 35);
         __webpack_require__( /*! ./localization/currency */ 147);
         exports.locale = core.locale.bind(core);
         exports.loadMessages = message.load.bind(message);
@@ -70408,7 +70590,6 @@
             "en-AI": "en-001",
             "en-AU": "en-001",
             "en-BB": "en-001",
-            "en-BE": "en-001",
             "en-BM": "en-001",
             "en-BS": "en-001",
             "en-BW": "en-001",
@@ -70490,6 +70671,7 @@
             "en-ZM": "en-001",
             "en-ZW": "en-001",
             "en-AT": "en-150",
+            "en-BE": "en-150",
             "en-CH": "en-150",
             "en-DE": "en-150",
             "en-DK": "en-150",
@@ -70522,6 +70704,7 @@
             "pt-AO": "pt-PT",
             "pt-CH": "pt-PT",
             "pt-CV": "pt-PT",
+            "pt-FR": "pt-PT",
             "pt-GQ": "pt-PT",
             "pt-GW": "pt-PT",
             "pt-LU": "pt-PT",
@@ -70531,23 +70714,43 @@
             "pt-TL": "pt-PT",
             "az-Arab": "root",
             "az-Cyrl": "root",
+            "blt-Latn": "root",
             "bm-Nkoo": "root",
             "bs-Cyrl": "root",
+            "byn-Latn": "root",
+            "cu-Glag": "root",
+            "dje-Arab": "root",
+            "dyo-Arab": "root",
             "en-Dsrt": "root",
             "en-Shaw": "root",
+            "ff-Adlm": "root",
+            "ff-Arab": "root",
             "ha-Arab": "root",
             "iu-Latn": "root",
+            "kk-Arab": "root",
+            "ku-Arab": "root",
+            "ky-Arab": "root",
+            "ky-Latn": "root",
+            "ml-Arab": "root",
             "mn-Mong": "root",
             "ms-Arab": "root",
             "pa-Arab": "root",
+            "sd-Deva": "root",
+            "sd-Khoj": "root",
+            "sd-Sind": "root",
             "shi-Latn": "root",
+            "so-Arab": "root",
             "sr-Latn": "root",
+            "sw-Arab": "root",
+            "tg-Arab": "root",
+            "ug-Cyrl": "root",
             "uz-Arab": "root",
             "uz-Cyrl": "root",
             "vai-Latn": "root",
-            "zh-Hant": "root",
+            "wo-Arab": "root",
+            "yo-Arab": "root",
             "yue-Hans": "root",
-            "ff-Adlm": "root",
+            "zh-Hant": "root",
             "zh-Hant-MO": "zh-Hant-HK"
         }
     },
@@ -70630,7 +70833,7 @@
             registerComponentCallbacks = __webpack_require__( /*! ../../core/component_registrator_callbacks */ 148),
             Widget = __webpack_require__( /*! ../../ui/widget/ui.widget */ 28),
             KoTemplate = __webpack_require__( /*! ./template */ 250),
-            Editor = __webpack_require__( /*! ../../ui/editor/editor */ 45),
+            Editor = __webpack_require__( /*! ../../ui/editor/editor */ 46),
             Locker = __webpack_require__( /*! ../../core/utils/locker */ 251),
             config = __webpack_require__( /*! ../../core/config */ 25);
         var LOCKS_DATA_KEY = "dxKoLocks",
@@ -70951,7 +71154,7 @@
             navigator = windowUtils.getNavigator(),
             eventsEngine = __webpack_require__( /*! ../../events/core/events_engine */ 5),
             fx = __webpack_require__( /*! ../../animation/fx */ 31),
-            translator = __webpack_require__( /*! ../../animation/translator */ 24),
+            translator = __webpack_require__( /*! ../../animation/translator */ 23),
             compareVersions = __webpack_require__( /*! ../../core/utils/version */ 61).compare,
             viewPortUtils = __webpack_require__( /*! ../../core/utils/view_port */ 66),
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
@@ -70966,14 +71169,14 @@
             typeUtils = __webpack_require__( /*! ../../core/utils/type */ 1),
             each = __webpack_require__( /*! ../../core/utils/iterator */ 3).each,
             devices = __webpack_require__( /*! ../../core/devices */ 16),
-            browser = __webpack_require__( /*! ../../core/utils/browser */ 35),
+            browser = __webpack_require__( /*! ../../core/utils/browser */ 34),
             registerComponent = __webpack_require__( /*! ../../core/component_registrator */ 8),
             Widget = __webpack_require__( /*! ../widget/ui.widget */ 28),
             KeyboardProcessor = __webpack_require__( /*! ../widget/ui.keyboard_processor */ 168),
             selectors = __webpack_require__( /*! ../widget/selectors */ 63),
             dragEvents = __webpack_require__( /*! ../../events/drag */ 65),
             eventUtils = __webpack_require__( /*! ../../events/utils */ 9),
-            pointerEvents = __webpack_require__( /*! ../../events/pointer */ 27),
+            pointerEvents = __webpack_require__( /*! ../../events/pointer */ 26),
             Resizable = __webpack_require__( /*! ../resizable */ 210),
             EmptyTemplate = __webpack_require__( /*! ../widget/empty_template */ 93),
             Deferred = __webpack_require__( /*! ../../core/utils/deferred */ 7).Deferred,
@@ -72584,14 +72787,15 @@
             registerEventCallbacks.add(function(name, eventObject) {
                 jQuery.event.special[name] = eventObject
             });
-            var passiveListenerEventName = eventsEngine.passiveListenerEvents.nativeEventName;
-            jQuery.event.special[passiveListenerEventName] = {
-                setup: function(data, namespaces, handler) {
-                    domAdapter.listen(this, passiveListenerEventName, handler, {
-                        passive: false
-                    })
+            eventsEngine.forcePassiveFalseEventNames.forEach(function(eventName) {
+                jQuery.event.special[eventName] = {
+                    setup: function(data, namespaces, handler) {
+                        domAdapter.listen(this, eventName, handler, {
+                            passive: false
+                        })
+                    }
                 }
-            };
+            });
             eventsEngine.set({
                 on: function(element) {
                     jQuery(element).on.apply(jQuery(element), Array.prototype.slice.call(arguments, 1))
@@ -72724,7 +72928,7 @@
     function(module, exports, __webpack_require__) {
         var angular = __webpack_require__( /*! angular */ 260);
         if (angular) {
-            __webpack_require__( /*! ./jquery */ 46);
+            __webpack_require__( /*! ./jquery */ 47);
             __webpack_require__( /*! ./angular/component_registrator */ 368);
             __webpack_require__( /*! ./angular/event_registrator */ 375);
             __webpack_require__( /*! ./angular/components */ 376);
@@ -72764,13 +72968,13 @@
         var _locker2 = _interopRequireDefault(_locker);
         var _ui = __webpack_require__( /*! ../../ui/widget/ui.widget */ 28);
         var _ui2 = _interopRequireDefault(_ui);
-        var _editor = __webpack_require__( /*! ../../ui/editor/editor */ 45);
+        var _editor = __webpack_require__( /*! ../../ui/editor/editor */ 46);
         var _editor2 = _interopRequireDefault(_editor);
         var _template = __webpack_require__( /*! ./template */ 369);
         var _template2 = _interopRequireDefault(_template);
         var _module = __webpack_require__( /*! ./module */ 189);
         var _module2 = _interopRequireDefault(_module);
-        var _uiCollection_widget = __webpack_require__( /*! ../../ui/collection/ui.collection_widget.edit */ 47);
+        var _uiCollection_widget = __webpack_require__( /*! ../../ui/collection/ui.collection_widget.edit */ 48);
         var _uiCollection_widget2 = _interopRequireDefault(_uiCollection_widget);
         var _data = __webpack_require__( /*! ../../core/utils/data */ 22);
         var _data2 = _interopRequireDefault(_data);
@@ -73320,12 +73524,12 @@
             iteratorUtils = __webpack_require__( /*! ../../core/utils/iterator */ 3),
             isFunction = __webpack_require__( /*! ../../core/utils/type */ 1).isFunction,
             Action = __webpack_require__( /*! ../../core/action */ 81),
-            Guid = __webpack_require__( /*! ../../core/guid */ 48),
+            Guid = __webpack_require__( /*! ../../core/guid */ 44),
             domUtils = __webpack_require__( /*! ../../core/utils/dom */ 12),
             dataUtils = __webpack_require__( /*! ../../core/utils/data */ 22),
             Widget = __webpack_require__( /*! ../widget/ui.widget */ 28),
             eventUtils = __webpack_require__( /*! ../../events/utils */ 9),
-            pointerEvents = __webpack_require__( /*! ../../events/pointer */ 27),
+            pointerEvents = __webpack_require__( /*! ../../events/pointer */ 26),
             DataHelperMixin = __webpack_require__( /*! ../../data_helper */ 115),
             CollectionWidgetItem = __webpack_require__( /*! ./item */ 131),
             selectors = __webpack_require__( /*! ../widget/selectors */ 63),
@@ -73364,9 +73568,10 @@
                         if (!$itemElement.length) {
                             return
                         }
-                        e.target = $itemElement;
-                        e.currentTarget = $itemElement;
-                        this._itemClickHandler(e)
+                        this._itemClickHandler(extend({}, e, {
+                            target: $itemElement,
+                            currentTarget: $itemElement
+                        }))
                     },
                     space = function(e) {
                         e.preventDefault();
@@ -73487,8 +73692,8 @@
             },
             _prepareItemTemplate: function($item) {
                 var templateId = ITEM_TEMPLATE_ID_PREFIX + new Guid;
-                var templateOptions = 'dxTemplate: { name: "' + templateId + '" }';
-                $item.detach().clone().attr("data-options", templateOptions).data("options", templateOptions).appendTo(this.$element());
+                var $template = $item.detach().clone().removeAttr("data-options").addClass(TEMPLATE_WRAPPER_CLASS);
+                this._saveTemplate(templateId, $template);
                 return templateId
             },
             _dataSourceOptions: function() {
@@ -75563,7 +75768,7 @@
         };
         var ACCEPTABLE_JSON_FORMAT_PROPERTIES = ["skeleton", "date", "time", "datetime", "raw"];
         var Globalize = __webpack_require__( /*! globalize */ 70),
-            dateLocalization = __webpack_require__( /*! ../date */ 34),
+            dateLocalization = __webpack_require__( /*! ../date */ 35),
             isObject = __webpack_require__( /*! ../../core/utils/type */ 1).isObject,
             inArray = __webpack_require__( /*! ../../core/utils/array */ 11).inArray,
             iteratorUtils = __webpack_require__( /*! ../../core/utils/iterator */ 3);
@@ -76675,7 +76880,7 @@
             devices = __webpack_require__( /*! ../../core/devices */ 16),
             iconUtils = __webpack_require__( /*! ../../core/utils/icon */ 87),
             HierarchicalDataAdapter = __webpack_require__( /*! ./ui.data_adapter */ 580),
-            CollectionWidget = __webpack_require__( /*! ../collection/ui.collection_widget.edit */ 47),
+            CollectionWidget = __webpack_require__( /*! ../collection/ui.collection_widget.edit */ 48),
             BindableTemplate = __webpack_require__( /*! ../widget/bindable_template */ 60),
             isFunction = __webpack_require__( /*! ../../core/utils/type */ 1).isFunction,
             noop = __webpack_require__( /*! ../../core/utils/common */ 4).noop;
@@ -77326,7 +77531,7 @@
                 var rowOptions, $cell, i, that = this,
                     columns = that.getColumns(),
                     $cells = that.getColumnElements();
-                if (!$cells || !$cells.length) {
+                if (!$cells || columns.length !== $cells.length) {
                     return
                 }
                 for (i = 0; i < columns.length; i++) {
@@ -77384,7 +77589,7 @@
         var _date_serialization2 = _interopRequireDefault(_date_serialization);
         var _number = __webpack_require__( /*! ../../localization/number */ 49);
         var _number2 = _interopRequireDefault(_number);
-        var _date = __webpack_require__( /*! ../../localization/date */ 34);
+        var _date = __webpack_require__( /*! ../../localization/date */ 35);
         var _date2 = _interopRequireDefault(_date);
         var _message = __webpack_require__( /*! ../../localization/message */ 14);
         var _message2 = _interopRequireDefault(_message);
@@ -78048,8 +78253,9 @@
                         return rowCount
                     };
                     var getFixedPosition = function(that, column) {
+                        var rtlEnabled = that.option("rtlEnabled");
                         if (column.command && !isCustomCommandColumn(that, column) || !column.fixedPosition) {
-                            return "left"
+                            return rtlEnabled ? "right" : "left"
                         }
                         return column.fixedPosition
                     };
@@ -78454,7 +78660,7 @@
                                                     transparentColumnIndex = j
                                                 }
                                             } else {
-                                                lastFixedPosition = column.fixedPosition;
+                                                lastFixedPosition = column.fixedPosition
                                             }
                                         }
                                     }
@@ -79204,6 +79410,7 @@
                         },
                         setUserState: function(state) {
                             var commonColumnSettings, that = this,
+                                dataSource = that._dataSource,
                                 ignoreColumnOptionNames = that.option("stateStoring.ignoreColumnOptionNames");
                             if (!ignoreColumnOptionNames) {
                                 ignoreColumnOptionNames = [];
@@ -79233,6 +79440,10 @@
                             that._columnsUserState = state;
                             that._ignoreColumnOptionNames = ignoreColumnOptionNames;
                             that._hasUserState = !!state;
+                            if (dataSource) {
+                                dataSource.sort(null);
+                                dataSource.group(null)
+                            }
                             updateColumnChanges(that, "filtering");
                             that.init()
                         },
@@ -79460,7 +79671,7 @@
     function(module, exports, __webpack_require__) {
         var _callbacks = __webpack_require__( /*! ../../core/utils/callbacks */ 21);
         var _callbacks2 = _interopRequireDefault(_callbacks);
-        var _uiData_grid = __webpack_require__( /*! ../data_grid/ui.data_grid.core */ 26);
+        var _uiData_grid = __webpack_require__( /*! ../data_grid/ui.data_grid.core */ 27);
         var _uiData_grid2 = _interopRequireDefault(_uiData_grid);
         var _common = __webpack_require__( /*! ../../core/utils/common */ 4);
         var _type = __webpack_require__( /*! ../../core/utils/type */ 1);
@@ -79729,9 +79940,12 @@
                         options.lastLoadOptions = loadOptions;
                         options.operationTypes = operationTypes;
                         that._isRefreshing = true;
-                        (0, _deferred.when)(isRefreshing || that.refresh(options, isReload, operationTypes)).done(function() {
+                        (0, _deferred.when)(isRefreshing || that._isRefreshed || that.refresh(options, isReload, operationTypes)).done(function() {
                             if (that._lastOperationId === options.operationId) {
-                                that.load()
+                                that._isRefreshed = true;
+                                that.load().always(function() {
+                                    that._isRefreshed = false
+                                })
                             }
                         }).fail(function() {
                             dataSource.cancel(options.operationId)
@@ -80146,7 +80360,7 @@
                                 case "paging":
                                     dataSource = that.dataSource();
                                     if (dataSource && that._setPagingOptions(dataSource)) {
-                                        dataSource.load()
+                                        dataSource.load().done(that.pageChanged.fire.bind(that.pageChanged))
                                     }
                                     handled();
                                     break;
@@ -80715,7 +80929,7 @@
                                 } else {
                                     if (isDataChanged) {
                                         var operationTypes = that.dataSource().operationTypes();
-                                        change.repaintChangesOnly = operationTypes && !operationTypes.grouping && that.option("repaintChangesOnly");
+                                        change.repaintChangesOnly = operationTypes && !operationTypes.grouping && !operationTypes.filtering && that.option("repaintChangesOnly");
                                         change.isDataChanged = true;
                                         if (operationTypes && (operationTypes.reload || operationTypes.paging || operationTypes.groupExpanding)) {
                                             change.needUpdateDimensions = true
@@ -81325,7 +81539,7 @@
         var _type = __webpack_require__( /*! ../../core/utils/type */ 1);
         var _iterator = __webpack_require__( /*! ../../core/utils/iterator */ 3);
         var _extend = __webpack_require__( /*! ../../core/utils/extend */ 0);
-        var _string = __webpack_require__( /*! ../../core/utils/string */ 44);
+        var _string = __webpack_require__( /*! ../../core/utils/string */ 45);
         var _position = __webpack_require__( /*! ../../core/utils/position */ 105);
         var _data = __webpack_require__( /*! ../../core/utils/data */ 22);
         var _uiGrid_core = __webpack_require__( /*! ./ui.grid_core.utils */ 40);
@@ -81337,7 +81551,7 @@
         var _remove_event2 = _interopRequireDefault(_remove_event);
         var _message = __webpack_require__( /*! ../../localization/message */ 14);
         var _message2 = _interopRequireDefault(_message);
-        var _browser = __webpack_require__( /*! ../../core/utils/browser */ 35);
+        var _browser = __webpack_require__( /*! ../../core/utils/browser */ 34);
         var _browser2 = _interopRequireDefault(_browser);
 
         function _interopRequireDefault(obj) {
@@ -81641,18 +81855,20 @@
                                     that._renderContent(contentElement, newTableElement)
                             }
                         },
-                        _createEmptyRow: function(className, isFixed) {
-                            var i, that = this,
+                        _createEmptyRow: function(className, isFixed, height) {
+                            var i, $cell, that = this,
                                 $row = that._createRow(),
                                 columns = isFixed ? this.getFixedColumns() : this.getColumns();
                             $row.addClass(className).toggleClass(COLUMN_LINES_CLASS, that.option("showColumnLines"));
                             for (i = 0; i < columns.length; i++) {
-                                $row.append(that._createCell({
+                                $cell = that._createCell({
                                     column: columns[i],
                                     rowType: "freeSpace",
                                     columnIndex: i,
                                     columns: columns
-                                }))
+                                });
+                                (0, _type.isNumeric)(height) && $cell.css("height", height);
+                                $row.append($cell)
                             }
                             that.setAria("role", "presentation", $row);
                             return $row
@@ -82541,7 +82757,7 @@
         var _deferred = __webpack_require__( /*! ../../core/utils/deferred */ 7);
         var _dom_adapter = __webpack_require__( /*! ../../core/dom_adapter */ 13);
         var _dom_adapter2 = _interopRequireDefault(_dom_adapter);
-        var _browser = __webpack_require__( /*! ../../core/utils/browser */ 35);
+        var _browser = __webpack_require__( /*! ../../core/utils/browser */ 34);
         var _browser2 = _interopRequireDefault(_browser);
 
         function _interopRequireDefault(obj) {
@@ -82663,7 +82879,7 @@
                 columnsController.endUpdate()
             },
             _toggleBestFitModeForView: function(view, className, isBestFit) {
-                if (!view) {
+                if (!view || !view.isVisible()) {
                     return
                 }
                 var $tableBody, $rowsTable = this._rowsView._getTableElement(),
@@ -82705,7 +82921,7 @@
                 }
             },
             _synchronizeColumns: function() {
-                var resetBestFitMode, focusedElement, selectionRange, that = this,
+                var resetBestFitMode, focusedElement, isFocusOutsideWindow, selectionRange, that = this,
                     columnsController = that._columnsController,
                     visibleColumns = columnsController.getVisibleColumns(),
                     columnAutoWidth = that.option("columnAutoWidth"),
@@ -82773,12 +82989,15 @@
                         that._toggleBestFitMode(false);
                         resetBestFitMode = false;
                         if (focusedElement && focusedElement !== _dom_adapter2.default.getActiveElement()) {
-                            if (_browser2.default.msie) {
-                                setTimeout(function() {
+                            isFocusOutsideWindow = focusedElement.getBoundingClientRect().bottom < 0;
+                            if (!isFocusOutsideWindow) {
+                                if (_browser2.default.msie) {
+                                    setTimeout(function() {
+                                        restoreFocus(focusedElement, selectionRange)
+                                    })
+                                } else {
                                     restoreFocus(focusedElement, selectionRange)
-                                })
-                            } else {
-                                restoreFocus(focusedElement, selectionRange)
+                                }
                             }
                         }
                     }
@@ -82837,7 +83056,7 @@
                             }
                         }
                     }
-                    if (width < minWidth && !isHiddenColumn) {
+                    if (minWidth && that._getRealColumnWidth(width) < minWidth && !isHiddenColumn) {
                         resultWidths[index] = minWidth;
                         isColumnWidthsCorrected = true;
                         i = -1
@@ -82858,7 +83077,7 @@
                         scrollbarWidth = that._rowsView.getScrollbarWidth(),
                         totalWidth = that._getTotalWidth(resultWidths, contentWidth);
                     if (totalWidth < contentWidth) {
-                        lastColumnIndex = _uiGrid_core4.default.getLastResizableColumnIndex(visibleColumns);
+                        lastColumnIndex = _uiGrid_core4.default.getLastResizableColumnIndex(visibleColumns, resultWidths);
                         if (lastColumnIndex >= 0) {
                             resultWidths[lastColumnIndex] = "auto";
                             isColumnWidthsCorrected = true;
@@ -82906,12 +83125,19 @@
                     }
                 }
             },
+            _getRealColumnWidth: function(width, groupWidth) {
+                if (!isPercentWidth(width)) {
+                    return parseFloat(width)
+                }
+                groupWidth = groupWidth || this._rowsView.contentWidth();
+                return parseFloat(width) * groupWidth / 100
+            },
             _getTotalWidth: function(widths, groupWidth) {
                 var width, i, result = 0;
                 for (i = 0; i < widths.length; i++) {
                     width = widths[i];
                     if (width && width !== HIDDEN_COLUMNS_WIDTH) {
-                        result += isPercentWidth(width) ? parseFloat(width) * groupWidth / 100 : parseFloat(width)
+                        result += this._getRealColumnWidth(width, groupWidth)
                     }
                 }
                 return Math.round(result)
@@ -82971,12 +83197,33 @@
                 }
                 return true
             },
+            _setScrollerSpacingCore: function(hasHeight) {
+                var that = this,
+                    vScrollbarWidth = hasHeight ? that._rowsView.getScrollbarWidth() : 0,
+                    hScrollbarWidth = that._rowsView.getScrollbarWidth(true);
+                _common2.default.deferRender(function() {
+                    that._columnHeadersView && that._columnHeadersView.setScrollerSpacing(vScrollbarWidth);
+                    that._footerView && that._footerView.setScrollerSpacing(vScrollbarWidth);
+                    that._rowsView.setScrollerSpacing(vScrollbarWidth, hScrollbarWidth)
+                })
+            },
+            _setScrollerSpacing: function(hasHeight) {
+                var that = this,
+                    scrollable = that._rowsView.getScrollable();
+                if (!scrollable && hasHeight) {
+                    _common2.default.deferRender(function() {
+                        _common2.default.deferUpdate(function() {
+                            that._setScrollerSpacingCore(hasHeight)
+                        })
+                    })
+                } else {
+                    that._setScrollerSpacingCore(hasHeight)
+                }
+            },
             _updateDimensionsCore: function() {
                 var hasHeight, $testDiv, that = this,
                     dataController = that._dataController,
                     rowsView = that._rowsView,
-                    columnHeadersView = that._columnHeadersView,
-                    footerView = that._footerView,
                     $rootElement = that.component.$element(),
                     groupElement = $rootElement.children().get(0),
                     rootElementHeight = $rootElement && ($rootElement.get(0).clientHeight || $rootElement.height()),
@@ -82998,18 +83245,12 @@
                         (0, _renderer2.default)(groupElement).css("height", maxHeight)
                     }
                     if (!dataController.isLoaded()) {
-                        rowsView.setLoading(true);
+                        rowsView.setLoading(dataController.isLoading());
                         return
                     }
                     _common2.default.deferUpdate(function() {
                         that._updateLastSizes($rootElement);
-                        var vScrollbarWidth = hasHeight ? rowsView.getScrollbarWidth() : 0;
-                        var hScrollbarWidth = rowsView.getScrollbarWidth(true);
-                        _common2.default.deferRender(function() {
-                            columnHeadersView && columnHeadersView.setScrollerSpacing(vScrollbarWidth);
-                            footerView && footerView.setScrollerSpacing(vScrollbarWidth);
-                            rowsView.setScrollerSpacing(vScrollbarWidth, hScrollbarWidth)
-                        });
+                        that._setScrollerSpacing(hasHeight);
                         (0, _iterator.each)(VIEW_NAMES, function(index, viewName) {
                             var view = that.getView(viewName);
                             if (view) {
@@ -83521,7 +83762,7 @@
         var _uiGrid_core2 = _interopRequireDefault(_uiGrid_core);
         var _ui = __webpack_require__( /*! ../widget/ui.errors */ 18);
         var _ui2 = _interopRequireDefault(_ui);
-        var _browser = __webpack_require__( /*! ../../core/utils/browser */ 35);
+        var _browser = __webpack_require__( /*! ../../core/utils/browser */ 34);
         var _browser2 = _interopRequireDefault(_browser);
         var _storage = __webpack_require__( /*! ../../core/utils/storage */ 158);
         var _extend = __webpack_require__( /*! ../../core/utils/extend */ 0);
@@ -83672,7 +83913,7 @@
         var _renderer2 = _interopRequireDefault(_renderer);
         var _events_engine = __webpack_require__( /*! ../../events/core/events_engine */ 5);
         var _events_engine2 = _interopRequireDefault(_events_engine);
-        var _uiData_grid = __webpack_require__( /*! ../data_grid/ui.data_grid.core */ 26);
+        var _uiData_grid = __webpack_require__( /*! ../data_grid/ui.data_grid.core */ 27);
         var _uiData_grid2 = _interopRequireDefault(_uiData_grid);
         var _uiGrid_core = __webpack_require__( /*! ./ui.grid_core.utils */ 40);
         var _type = __webpack_require__( /*! ../../core/utils/type */ 1);
@@ -83792,7 +84033,7 @@
                             return dataController.dataSource() && dataController.dataSource().load(options) || (new _deferred.Deferred).resolve([])
                         },
                         plainItems: function() {
-                            return dataController.items()
+                            return dataController.items(true)
                         },
                         isItemSelected: function(item) {
                             return item.selected
@@ -84023,7 +84264,7 @@
                     if (this.isSelectionWithCheckboxes()) {
                         keys.control = true
                     }
-                    return this._selection.changeItemSelection(itemIndex, keys)
+                    return this._selection.changeItemSelection(this._dataController.getRowIndexDelta() + itemIndex, keys)
                 },
                 focusedItemIndex: function(itemIndex) {
                     var that = this;
@@ -84476,14 +84717,24 @@
             _isWinDevice: function() {
                 return !!_devices2.default.real().win
             },
-            _updateList: function(allowUpdate) {
+            _updateList: function(change) {
                 var items, $popupContent = this._popupContainer.$content(),
                     isSelectMode = "select" === this.option("columnChooser.mode"),
+                    columnChooserList = this._columnChooserList,
                     chooserColumns = this._columnsController.getChooserColumns(isSelectMode);
-                if (!isSelectMode || !this._columnChooserList || allowUpdate) {
-                    this._popupContainer._wrapper().toggleClass(this.addWidgetPrefix(COLUMN_CHOOSER_DRAG_CLASS), !isSelectMode).toggleClass(this.addWidgetPrefix(COLUMN_CHOOSER_SELECT_CLASS), isSelectMode);
+                if (isSelectMode && columnChooserList && change && "selection" === change.changeType) {
                     items = processItems(this, chooserColumns);
-                    this._renderTreeView($popupContent, items)
+                    for (var i = 0; i < items.length; i++) {
+                        if (items[i].id === change.columnIndex) {
+                            columnChooserList.option("items[" + i + "].selected", items[i].selected)
+                        }
+                    }
+                } else {
+                    if (!isSelectMode || !columnChooserList || "full" === change) {
+                        this._popupContainer._wrapper().toggleClass(this.addWidgetPrefix(COLUMN_CHOOSER_DRAG_CLASS), !isSelectMode).toggleClass(this.addWidgetPrefix(COLUMN_CHOOSER_SELECT_CLASS), isSelectMode);
+                        items = processItems(this, chooserColumns);
+                        this._renderTreeView($popupContent, items)
+                    }
                 }
             },
             _initializePopupContainer: function() {
@@ -84536,9 +84787,9 @@
                     this._popupContainer.option(dxPopupOptions)
                 }
             },
-            _renderCore: function(allowUpdate) {
+            _renderCore: function(change) {
                 if (this._popupContainer) {
-                    this._updateList(allowUpdate)
+                    this._updateList(change)
                 }
             },
             _renderTreeView: function($container, items) {
@@ -84625,8 +84876,15 @@
                     isSelectMode = "select" === this.option("columnChooser.mode");
                 this.callBase(e);
                 if (isSelectMode) {
-                    if (optionNames.showInColumnChooser || optionNames.visible || changeTypes.columns && optionNames.all) {
-                        this.render(null, true)
+                    if (optionNames.visible && 1 === optionNames.length && void 0 !== e.columnIndex) {
+                        this.render(null, {
+                            changeType: "selection",
+                            columnIndex: e.columnIndex
+                        })
+                    } else {
+                        if (optionNames.showInColumnChooser || optionNames.visible || changeTypes.columns && optionNames.all) {
+                            this.render(null, "full")
+                        }
                     }
                 }
             },
@@ -84634,7 +84892,7 @@
                 switch (args.name) {
                     case "columnChooser":
                         this._initializePopupContainer();
-                        this.render(null, true);
+                        this.render(null, "full");
                         break;
                     default:
                         this.callBase(args)
@@ -84802,7 +85060,7 @@
         var _renderer2 = _interopRequireDefault(_renderer);
         var _class = __webpack_require__( /*! ../../core/class */ 10);
         var _class2 = _interopRequireDefault(_class);
-        var _uiData_grid = __webpack_require__( /*! ./ui.data_grid.core */ 26);
+        var _uiData_grid = __webpack_require__( /*! ./ui.data_grid.core */ 27);
         var _uiData_grid2 = _interopRequireDefault(_uiData_grid);
         var _utils = __webpack_require__( /*! ../../data/utils */ 39);
         var _deferred = __webpack_require__( /*! ../../core/utils/deferred */ 7);
@@ -85332,12 +85590,12 @@
         var _uiGrid_core2 = _interopRequireDefault(_uiGrid_core);
         var _click = __webpack_require__( /*! ../../events/click */ 17);
         var _click2 = _interopRequireDefault(_click);
-        var _pointer = __webpack_require__( /*! ../../events/pointer */ 27);
+        var _pointer = __webpack_require__( /*! ../../events/pointer */ 26);
         var _pointer2 = _interopRequireDefault(_pointer);
         var _position = __webpack_require__( /*! ../../animation/position */ 78);
         var _position2 = _interopRequireDefault(_position);
         var _utils = __webpack_require__( /*! ../../events/utils */ 9);
-        var _browser = __webpack_require__( /*! ../../core/utils/browser */ 35);
+        var _browser = __webpack_require__( /*! ../../core/utils/browser */ 34);
         var _browser2 = _interopRequireDefault(_browser);
         var _extend = __webpack_require__( /*! ../../core/utils/extend */ 0);
         var _ui = __webpack_require__( /*! ../shared/ui.editor_factory_mixin */ 407);
@@ -85552,7 +85810,7 @@
             typeUtils = __webpack_require__( /*! ../../core/utils/type */ 1),
             isWrapped = __webpack_require__( /*! ../../core/utils/variable_wrapper */ 74).isWrapped,
             compileGetter = __webpack_require__( /*! ../../core/utils/data */ 22).compileGetter,
-            browser = __webpack_require__( /*! ../../core/utils/browser */ 35),
+            browser = __webpack_require__( /*! ../../core/utils/browser */ 34),
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
             devices = __webpack_require__( /*! ../../core/devices */ 16),
             getPublicElement = __webpack_require__( /*! ../../core/utils/dom */ 12).getPublicElement,
@@ -85797,7 +86055,7 @@
         var _window = __webpack_require__( /*! ../../core/utils/window */ 6);
         var _events_engine = __webpack_require__( /*! ../../events/core/events_engine */ 5);
         var _events_engine2 = _interopRequireDefault(_events_engine);
-        var _guid = __webpack_require__( /*! ../../core/guid */ 48);
+        var _guid = __webpack_require__( /*! ../../core/guid */ 44);
         var _guid2 = _interopRequireDefault(_guid);
         var _type = __webpack_require__( /*! ../../core/utils/type */ 1);
         var _type2 = _interopRequireDefault(_type);
@@ -85807,6 +86065,8 @@
         var _uiGrid_core2 = _interopRequireDefault(_uiGrid_core);
         var _click = __webpack_require__( /*! ../../events/click */ 17);
         var _click2 = _interopRequireDefault(_click);
+        var _pointer = __webpack_require__( /*! ../../events/pointer */ 26);
+        var _pointer2 = _interopRequireDefault(_pointer);
         var _uiGrid_core3 = __webpack_require__( /*! ./ui.grid_core.utils */ 40);
         var _utils = __webpack_require__( /*! ../../events/utils */ 9);
         var _dialog = __webpack_require__( /*! ../dialog */ 266);
@@ -86016,7 +86276,7 @@
                                 }
                             }
                         });
-                        _events_engine2.default.on(_dom_adapter2.default.getDocument(), _click2.default.name, that._saveEditorHandler)
+                        _events_engine2.default.on(_dom_adapter2.default.getDocument(), _pointer2.default.down, that._saveEditorHandler)
                     }
                     that._updateEditColumn();
                     that._updateEditButtons()
@@ -86247,7 +86507,7 @@
                 dispose: function() {
                     this.callBase();
                     clearTimeout(this._inputFocusTimeoutID);
-                    _events_engine2.default.off(_dom_adapter2.default.getDocument(), _click2.default.name, this._saveEditorHandler)
+                    _events_engine2.default.off(_dom_adapter2.default.getDocument(), _pointer2.default.down, this._saveEditorHandler)
                 },
                 optionChanged: function(args) {
                     if ("editing" === args.name) {
@@ -86298,7 +86558,8 @@
                     return editMode === EDIT_MODE_FORM || editMode === EDIT_MODE_POPUP ? this._getVisibleEditRowIndex() : -1
                 },
                 isEditCell: function(rowIndex, columnIndex) {
-                    return this._getVisibleEditRowIndex() === rowIndex && this._editColumnIndex === columnIndex
+                    var hasEditData = !!(Array.isArray(this._editData) && this._editData.length);
+                    return hasEditData && this._getVisibleEditRowIndex() === rowIndex && this._editColumnIndex === columnIndex
                 },
                 getPopupContent: function() {
                     var editMode = _getEditMode(this),
@@ -86344,9 +86605,9 @@
                     return item
                 },
                 processItems: function(items, changeType) {
-                    var i, key, item, that = this,
-                        editData = that._editData;
+                    var i, key, item, editData, that = this;
                     that.update(changeType);
+                    editData = that._editData;
                     for (i = 0; i < editData.length; i++) {
                         key = editData[i].key;
                         item = that._generateNewItem(key);
@@ -86395,12 +86656,13 @@
                 },
                 _initNewRow: function(options, insertKey) {
                     this.executeAction("onInitNewRow", options);
-                    var rows = this._dataController.items(),
+                    var dataController = this._dataController,
+                        rows = dataController.items(),
                         row = rows[insertKey.rowIndex];
                     if (row && (!row.isEditing && "detail" === row.rowType || "detailAdaptive" === row.rowType)) {
                         insertKey.rowIndex++
                     }
-                    insertKey.dataRowIndex = rows.filter(function(row, index) {
+                    insertKey.dataRowIndex = dataController.getRowIndexDelta() + rows.filter(function(row, index) {
                         return index < insertKey.rowIndex && ("data" === row.rowType || "group" === row.rowType)
                     }).length
                 },
@@ -86856,6 +87118,9 @@
                                         if (_type2.default.isDefined(key)) {
                                             editData.key = key
                                         }
+                                        if (data && _type2.default.isObject(data) && data !== params.data) {
+                                            editData.data = data
+                                        }
                                         changes.push({
                                             type: "insert",
                                             data: data,
@@ -86873,6 +87138,9 @@
                                 };
                                 deferred = executeEditingAction("onRowUpdating", params, function() {
                                     return store.update(editData.key, params.newData).done(function(data, key) {
+                                        if (data && _type2.default.isObject(data) && data !== params.newData) {
+                                            editData.data = data
+                                        }
                                         changes.push({
                                             type: "update",
                                             key: key,
@@ -87878,7 +88146,7 @@
         var _message2 = _interopRequireDefault(_message);
         var _button = __webpack_require__( /*! ../button */ 37);
         var _button2 = _interopRequireDefault(_button);
-        var _pointer = __webpack_require__( /*! ../../events/pointer */ 27);
+        var _pointer = __webpack_require__( /*! ../../events/pointer */ 26);
         var _pointer2 = _interopRequireDefault(_pointer);
         var _validation_engine = __webpack_require__( /*! ../validation_engine */ 94);
         var _validation_engine2 = _interopRequireDefault(_validation_engine);
@@ -88424,7 +88692,8 @@
                                 var $highlightContainer = $cell.find("." + CELL_HIGHLIGHT_OUTLINE),
                                     isMaterial = _themes2.default.isMaterial(),
                                     overlayTarget = $highlightContainer.length && !isMaterial ? $highlightContainer : $cell,
-                                    isOverlayVisible = $cell.find(".dx-dropdowneditor-overlay").is(":visible"),
+                                    editorPopup = $cell.find(".dx-dropdowneditor-overlay").data("dxPopup"),
+                                    isOverlayVisible = editorPopup && editorPopup.option("visible"),
                                     myPosition = isOverlayVisible ? "top right" : "top " + alignment,
                                     atPosition = isOverlayVisible ? "top left" : "bottom " + alignment;
                                 var $overlayElement = (0, _renderer2.default)("<div>").addClass(INVALID_MESSAGE_CLASS).addClass(INVALID_MESSAGE_ALWAYS_CLASS).addClass(this.addWidgetPrefix(WIDGET_INVALID_MESSAGE_CLASS)).text(message).appendTo($cell);
@@ -88573,8 +88842,11 @@
                             }
                         },
                         _formItemPrepared: function(cellOptions, $container) {
+                            var _this3 = this;
                             this.callBase.apply(this, arguments);
-                            this.getController("validating").createValidator(cellOptions, $container.find(".dx-widget").first())
+                            (0, _common.deferUpdate)(function() {
+                                _this3.getController("validating").createValidator(cellOptions, $container.find(".dx-widget").first())
+                            })
                         },
                         _cellPrepared: function($cell, parameters) {
                             if (!this.getController("editing").isFormEditMode()) {
@@ -88603,7 +88875,7 @@
         var _uiGrid_core4 = _interopRequireDefault(_uiGrid_core3);
         var _iterator = __webpack_require__( /*! ../../core/utils/iterator */ 3);
         var _deferred = __webpack_require__( /*! ../../core/utils/deferred */ 7);
-        var _translator = __webpack_require__( /*! ../../animation/translator */ 24);
+        var _translator = __webpack_require__( /*! ../../animation/translator */ 23);
         var _translator2 = _interopRequireDefault(_translator);
         var _load_indicator = __webpack_require__( /*! ../load_indicator */ 89);
         var _load_indicator2 = _interopRequireDefault(_load_indicator);
@@ -88972,7 +89244,7 @@
                     if (!position) {
                         return
                     }
-                    var $virtualRow = this._createEmptyRow(VIRTUAL_ROW_CLASS, isFixed).css("height", position);
+                    var $virtualRow = this._createEmptyRow(VIRTUAL_ROW_CLASS, isFixed, position);
                     $virtualRow = this._wrapRowIfNeed($table, $virtualRow);
                     this._appendEmptyRow($table, $virtualRow, location)
                 },
@@ -89254,7 +89526,7 @@
                                 that._rowPageIndex = Math.ceil(that.pageIndex() * that.pageSize() / that.getRowPageSize());
                                 that._visibleItems = [];
                                 var isItemCountable = function(item) {
-                                    return "data" === item.rowType || "group" === item.rowType
+                                    return "data" === item.rowType || "group" === item.rowType && that._dataSource.isGroupItemCountable(item.data)
                                 };
                                 that._rowsScrollController = new _uiGrid_core2.default.VirtualScrollController(that.component, {
                                     pageSize: function() {
@@ -89414,8 +89686,8 @@
                                         that.callBase(change)
                                 }
                             },
-                            items: function() {
-                                return this._visibleItems || this._items
+                            items: function(allItems) {
+                                return allItems ? this._items : this._visibleItems || this._items
                             },
                             getRowIndexDelta: function() {
                                 var visibleItems = this._visibleItems,
@@ -89557,7 +89829,7 @@
         var _window = __webpack_require__( /*! ../../core/utils/window */ 6);
         var _events_engine = __webpack_require__( /*! ../../events/core/events_engine */ 5);
         var _events_engine2 = _interopRequireDefault(_events_engine);
-        var _browser = __webpack_require__( /*! ../../core/utils/browser */ 35);
+        var _browser = __webpack_require__( /*! ../../core/utils/browser */ 34);
         var _browser2 = _interopRequireDefault(_browser);
         var _type = __webpack_require__( /*! ../../core/utils/type */ 1);
         var _position = __webpack_require__( /*! ../../animation/position */ 78);
@@ -90043,10 +90315,10 @@
                                     } else {
                                         result.resolve()
                                     }
-                                }).fail(result.reject)
+                                }).fail(result.reject);
+                                dataSource.updateLoading()
                             }
                         }
-                        dataSource.updateLoading()
                     } else {
                         result = dataSource.load()
                     }
@@ -90122,7 +90394,8 @@
                                 changeType = "append";
                                 that._cache.push(cacheItem)
                             }
-                            processChanged(that, callBase, that._cache.length > 1 ? changeType : void 0, 0 === lastCacheLength, removeCacheItem);
+                            var isDelayChanged = isVirtualMode(that) && 0 === lastCacheLength;
+                            processChanged(that, callBase, that._cache.length > 1 ? changeType : void 0, isDelayChanged, removeCacheItem);
                             that._delayDeferred = that.load().done(function() {
                                 if (processDelayChanged(that, callBase)) {
                                     that.load()
@@ -90188,7 +90461,7 @@
         var _uiGrid_core4 = _interopRequireDefault(_uiGrid_core3);
         var _message = __webpack_require__( /*! ../../localization/message */ 14);
         var _message2 = _interopRequireDefault(_message);
-        var _editor = __webpack_require__( /*! ../editor/editor */ 45);
+        var _editor = __webpack_require__( /*! ../editor/editor */ 46);
         var _editor2 = _interopRequireDefault(_editor);
         var _overlay = __webpack_require__( /*! ../overlay */ 64);
         var _overlay2 = _interopRequireDefault(_overlay);
@@ -90925,7 +91198,7 @@
         var _position = __webpack_require__( /*! ../../core/utils/position */ 105);
         var _extend = __webpack_require__( /*! ../../core/utils/extend */ 0);
         var _data_source = __webpack_require__( /*! ../../data/data_source/data_source */ 50);
-        var _date = __webpack_require__( /*! ../../localization/date */ 34);
+        var _date = __webpack_require__( /*! ../../localization/date */ 35);
         var _date2 = _interopRequireDefault(_date);
         var _variable_wrapper = __webpack_require__( /*! ../../core/utils/variable_wrapper */ 74);
         var _deferred = __webpack_require__( /*! ../../core/utils/deferred */ 7);
@@ -93508,6 +93781,7 @@
                         if (pager) {
                             pager.option({
                                 pageCount: dataController.pageCount(),
+                                totalCount: dataController.totalCount(),
                                 hasKnownLastPage: dataController.hasKnownLastPage()
                             })
                         } else {
@@ -93663,7 +93937,7 @@
         var _iterator = __webpack_require__( /*! ../../core/utils/iterator */ 3);
         var _extend = __webpack_require__( /*! ../../core/utils/extend */ 0);
         var _utils = __webpack_require__( /*! ../../events/utils */ 9);
-        var _pointer = __webpack_require__( /*! ../../events/pointer */ 27);
+        var _pointer = __webpack_require__( /*! ../../events/pointer */ 26);
         var _pointer2 = _interopRequireDefault(_pointer);
         var _drag = __webpack_require__( /*! ../../events/drag */ 65);
         var _drag2 = _interopRequireDefault(_drag);
@@ -93860,6 +94134,7 @@
                 if ($element && (this._isShown || force)) {
                     if (this._isTransparent) {
                         $element.addClass(columnsSeparatorTransparent);
+                        $element.css("left", "");
                         $element.show()
                     } else {
                         if ($element.hasClass(columnsSeparatorTransparent)) {
@@ -94771,7 +95046,7 @@
         var _ui2 = _interopRequireDefault(_ui);
         var _utils = __webpack_require__( /*! ../../events/utils */ 9);
         var _utils2 = _interopRequireDefault(_utils);
-        var _pointer = __webpack_require__( /*! ../../events/pointer */ 27);
+        var _pointer = __webpack_require__( /*! ../../events/pointer */ 26);
         var _pointer2 = _interopRequireDefault(_pointer);
 
         function _interopRequireDefault(obj) {
@@ -95110,7 +95385,7 @@
                         if (column.command) {
                             return !isEditing && "expand" === column.command
                         }
-                        if (isCellEditing && "data" !== row.rowType) {
+                        if (isCellEditing && row && "data" !== row.rowType) {
                             return false
                         }
                         return !isEditing || column.allowEditing
@@ -95314,6 +95589,7 @@
                 if (!isUpArrow || !args.cancel) {
                     that.setFocusedCellPosition(rowIndex, columnIndex)
                 }
+                isUpArrow && that._updateFocus()
             },
             _pageUpDownKeyHandler: function(eventArgs) {
                 var pageIndex = this._dataController.pageIndex(),
@@ -95981,21 +96257,21 @@
                 views: {
                     rowsView: {
                         renderFocusState: function() {
-                            var cellElements, that = this,
-                                rowIndex = that.option("focusedRowIndex"),
-                                $element = that.element();
+                            var cellElements, dataController = this._dataController,
+                                rowIndex = this.option("focusedRowIndex") || 0,
+                                $element = this.element();
                             if ($element && !(0, _selectors.focused)($element)) {
                                 $element.attr("tabIndex", null)
                             }
-                            if (!rowIndex || rowIndex < 0) {
+                            if (rowIndex < 0 || rowIndex >= dataController.getVisibleRows().length) {
                                 rowIndex = 0
                             }
-                            cellElements = that.getCellElements(rowIndex);
-                            if (that.option("useKeyboard") && cellElements) {
-                                that._updateFocusElementTabIndex(cellElements)
+                            cellElements = this.getCellElements(rowIndex);
+                            if (this.option("useKeyboard") && cellElements) {
+                                this.updateFocusElementTabIndex(cellElements)
                             }
                         },
-                        _updateFocusElementTabIndex: function(cellElements) {
+                        updateFocusElementTabIndex: function(cellElements) {
                             var that = this,
                                 $row = cellElements.eq(0).parent(),
                                 columnIndex = that.option("focusedColumnIndex"),
@@ -96126,8 +96402,10 @@
         var _type = __webpack_require__( /*! ../../core/utils/type */ 1);
         var _extend = __webpack_require__( /*! ../../core/utils/extend */ 0);
         var _iterator = __webpack_require__( /*! ../../core/utils/iterator */ 3);
-        var _browser = __webpack_require__( /*! ../../core/utils/browser */ 35);
+        var _browser = __webpack_require__( /*! ../../core/utils/browser */ 34);
         var _browser2 = _interopRequireDefault(_browser);
+        var _translator = __webpack_require__( /*! ../../animation/translator */ 23);
+        var _translator2 = _interopRequireDefault(_translator);
 
         function _interopRequireDefault(obj) {
             return obj && obj.__esModule ? obj : {
@@ -96299,7 +96577,7 @@
                         }
                     }
                     if (isEmptyCell) {
-                        if (that.option("legacyRendering") || column.command || "group" === options.rowType) {
+                        if (that.option("legacyRendering") || column.command && "buttons" !== column.type || "group" === options.rowType) {
                             $cell.html("&nbsp;").addClass(column.cssClass);
                             return
                         } else {
@@ -96778,8 +97056,38 @@
                     (useNativeScrolling ? $fixedContent : that._fixedTableElement).css(styles)
                 }
             },
+            _getElasticScrollTop: function(e) {
+                var maxScrollTop = void 0,
+                    scrollableContent = void 0,
+                    scrollableContainer = void 0,
+                    elasticScrollTop = 0;
+                if (e.scrollOffset.top < 0) {
+                    elasticScrollTop = -e.scrollOffset.top
+                } else {
+                    if (e.reachedBottom) {
+                        scrollableContent = e.component.$content();
+                        scrollableContainer = e.component._container();
+                        maxScrollTop = scrollableContent.height() - scrollableContainer.height();
+                        elasticScrollTop = maxScrollTop - e.scrollOffset.top
+                    }
+                }
+                return elasticScrollTop
+            },
+            _applyElasticScrolling: function(e) {
+                if (this._fixedTableElement) {
+                    var elasticScrollTop = this._getElasticScrollTop(e);
+                    if (0 !== Math.ceil(elasticScrollTop)) {
+                        _translator2.default.move(this._fixedTableElement, {
+                            top: elasticScrollTop
+                        })
+                    } else {
+                        this._fixedTableElement.css("transform", "")
+                    }
+                }
+            },
             _handleScroll: function(e) {
                 this._updateFixedTablePosition(e.scrollOffset.top, true);
+                this._applyElasticScrolling(e);
                 this.callBase(e)
             },
             _updateContentPosition: function(isRender) {
@@ -96930,9 +97238,9 @@
         var _click2 = _interopRequireDefault(_click);
         var _type = __webpack_require__( /*! ../../core/utils/type */ 1);
         var _type2 = _interopRequireDefault(_type);
-        var _browser = __webpack_require__( /*! ../../core/utils/browser */ 35);
+        var _browser = __webpack_require__( /*! ../../core/utils/browser */ 34);
         var _browser2 = _interopRequireDefault(_browser);
-        var _guid = __webpack_require__( /*! ../../core/guid */ 48);
+        var _guid = __webpack_require__( /*! ../../core/guid */ 44);
         var _guid2 = _interopRequireDefault(_guid);
         var _uiGrid_core = __webpack_require__( /*! ./ui.grid_core.modules */ 41);
         var _uiGrid_core2 = _interopRequireDefault(_uiGrid_core);
@@ -98319,7 +98627,6 @@
                     }
                 },
                 _focusRowByIndex: function(index) {
-                    var dataController, isVirtualScrolling, focusedRowKey, isLocalIndex, pageIndex, that = this;
                     if (!this.option("focusedRowEnabled")) {
                         return
                     }
@@ -98327,18 +98634,30 @@
                     if (index < 0) {
                         this._resetFocusedRow()
                     } else {
-                        dataController = this.getController("data");
-                        isVirtualScrolling = this.getController("keyboardNavigation")._isVirtualScrolling();
-                        pageIndex = Math.floor(index / dataController.pageSize());
-                        isLocalIndex = !isVirtualScrolling || dataController.pageIndex() === pageIndex;
-                        (!isLocalIndex ? dataController.pageIndex(pageIndex) : (new _deferred.Deferred).resolve()).done(function(_) {
-                            if (that._isValidFocusedRowIndex(index)) {
-                                focusedRowKey = dataController.getKeyByRowIndex(index - dataController.getRowIndexOffset());
-                                if (void 0 !== focusedRowKey && !that.isRowFocused(focusedRowKey)) {
-                                    that.option("focusedRowKey", focusedRowKey)
+                        this._focusRowByIndexCore(index)
+                    }
+                },
+                _focusRowByIndexCore: function(index) {
+                    var _this = this;
+                    var dataController = this.getController("data"),
+                        isVirtualScrolling = this.getController("keyboardNavigation")._isVirtualScrolling(),
+                        pageIndex = Math.floor(index / dataController.pageSize()),
+                        visibleRowsCount = dataController.getVisibleRows().length + dataController.getRowIndexOffset(),
+                        visiblePagesCount = Math.ceil(visibleRowsCount / dataController.pageSize()),
+                        isLocalIndex = !isVirtualScrolling || visiblePagesCount > pageIndex,
+                        setKeyByIndex = function() {
+                            if (_this._isValidFocusedRowIndex(index)) {
+                                var rowIndex = Math.min(index - dataController.getRowIndexOffset(), dataController.items().length - 1),
+                                    focusedRowKey = dataController.getKeyByRowIndex(rowIndex);
+                                if (void 0 !== focusedRowKey && !_this.isRowFocused(focusedRowKey)) {
+                                    _this.option("focusedRowKey", focusedRowKey)
                                 }
                             }
-                        })
+                        };
+                    if (!isLocalIndex) {
+                        dataController.pageIndex(pageIndex).done(setKeyByIndex)
+                    } else {
+                        setKeyByIndex()
                     }
                 },
                 _focusRowByKey: function(key) {
@@ -98414,7 +98733,7 @@
                     }
                 },
                 _focusRowByKeyOrIndex: function() {
-                    var _this = this;
+                    var _this2 = this;
                     var focusedRowKey = this.option("focusedRowKey"),
                         currentFocusedRowIndex = this.option("focusedRowIndex"),
                         keyboardController = this.getController("keyboardNavigation"),
@@ -98430,7 +98749,7 @@
                         } else {
                             this.navigateToRow(focusedRowKey).done(function(pageIndex) {
                                 if (currentFocusedRowIndex >= 0 && pageIndex < 0) {
-                                    _this._focusRowByIndex()
+                                    _this2._focusRowByIndex()
                                 }
                             })
                         }
@@ -98448,12 +98767,15 @@
                     var $focusedRow, $tableElement, that = this,
                         focusedRowIndex = that._dataController.getRowIndexByKey(change.focusedRowKey),
                         rowsView = that.getView("rowsView");
-                    (0, _iterator.each)(rowsView.getTableElements(), function(_, element) {
+                    (0, _iterator.each)(rowsView.getTableElements(), function(index, element) {
                         $tableElement = (0, _renderer2.default)(element);
                         that._clearPreviousFocusedRow($tableElement, focusedRowIndex);
                         if (focusedRowIndex >= 0) {
+                            var isMainTable = 0 === index;
                             $focusedRow = that._prepareFocusedRow(change.items[focusedRowIndex], $tableElement, focusedRowIndex);
-                            that.getController("keyboardNavigation")._fireFocusedRowChanged($focusedRow)
+                            if (isMainTable) {
+                                that.getController("keyboardNavigation")._fireFocusedRowChanged($focusedRow)
+                            }
                         }
                     })
                 },
@@ -98546,7 +98868,10 @@
                         },
                         setFocusedRowIndex: function(rowIndex) {
                             this.callBase(rowIndex);
-                            this.option("focusedRowIndex", rowIndex)
+                            var visibleRow = this.getController("data").getVisibleRows()[rowIndex];
+                            if (!visibleRow || !visibleRow.inserted) {
+                                this.option("focusedRowIndex", rowIndex)
+                            }
                         },
                         setFocusedColumnIndex: function(columnIndex) {
                             this.callBase(columnIndex);
@@ -98569,14 +98894,6 @@
                             this._fireFocusedCellChanged($cell, prevColumnIndex, prevRowIndex)
                         }
                     },
-                    selection: {
-                        changeItemSelection: function(itemIndex, keys) {
-                            if (!this.option("focusedRowEnabled") || this.isSelectionWithCheckboxes()) {
-                                this.callBase(itemIndex, keys)
-                            }
-                            return null
-                        }
-                    },
                     editorFactory: {
                         renderFocusOverlay: function($element, hideBorder) {
                             var $cell, keyboardController = this.getController("keyboardNavigation"),
@@ -98597,7 +98914,7 @@
                     },
                     columns: {
                         getSortDataSourceParameters: function() {
-                            var _this2 = this;
+                            var _this3 = this;
                             var result = this.callBase.apply(this, arguments),
                                 dataController = this.getController("data"),
                                 dataSource = dataController._dataSource,
@@ -98610,7 +98927,7 @@
                             if (this.option("focusedRowEnabled") && key) {
                                 key = Array.isArray(key) ? key : [key];
                                 var notSortedKeys = key.filter(function(key) {
-                                    return !_this2.columnOption(key, "sortOrder")
+                                    return !_this3.columnOption(key, "sortOrder")
                                 });
                                 if (notSortedKeys.length) {
                                     result = result || [];
@@ -98640,34 +98957,45 @@
                             return this.callBase.apply(this, arguments)
                         },
                         _fireChanged: function(e) {
-                            var operationTypes, focusController, dataSource = this._dataSource;
-                            if (this.option("focusedRowEnabled") && dataSource) {
-                                operationTypes = dataSource.operationTypes();
-                                focusController = this.getController("focus");
-                                if ("refresh" === e.changeType) {
-                                    var prevPageIndex = this._prevPageIndex,
-                                        reload = operationTypes && operationTypes.reload,
-                                        isVirtualScrolling = this.getController("keyboardNavigation")._isVirtualScrolling(),
-                                        paging = void 0 !== prevPageIndex && prevPageIndex !== this.pageIndex();
-                                    this._prevPageIndex = this.pageIndex();
-                                    if (reload && void 0 !== this.option("focusedRowKey")) {
-                                        focusController.navigateToRow(this.option("focusedRowKey")).done(function(pageIndex) {
-                                            if (pageIndex < 0) {
-                                                focusController._focusRowByIndex()
-                                            }
-                                        })
-                                    } else {
-                                        if (paging) {
-                                            if (!isVirtualScrolling) {
-                                                focusController._focusRowByIndex()
-                                            }
-                                        } else {
-                                            focusController._focusRowByKeyOrIndex()
-                                        }
-                                    }
+                            var isPartialUpdateWithDeleting;
+                            if (this.option("focusedRowEnabled") && this._dataSource) {
+                                var isPartialUpdate = "update" === e.changeType && e.repaintChangesOnly;
+                                isPartialUpdateWithDeleting = isPartialUpdate && e.changeTypes && e.changeTypes.indexOf("remove") >= 0;
+                                if (isPartialUpdateWithDeleting) {
+                                    this.callBase(e)
+                                }
+                                if ("refresh" === e.changeType || isPartialUpdateWithDeleting) {
+                                    this.processUpdateFocusedRow()
                                 }
                             }
-                            this.callBase(e)
+                            if (!isPartialUpdateWithDeleting) {
+                                this.callBase(e)
+                            }
+                        },
+                        processUpdateFocusedRow: function() {
+                            var prevPageIndex = this._prevPageIndex,
+                                operationTypes = this._dataSource.operationTypes(),
+                                focusController = this.getController("focus"),
+                                reload = operationTypes && operationTypes.reload,
+                                isVirtualScrolling = this.getController("keyboardNavigation")._isVirtualScrolling(),
+                                focusedRowKey = this.option("focusedRowKey"),
+                                paging = void 0 !== prevPageIndex && prevPageIndex !== this.pageIndex();
+                            this._prevPageIndex = this.pageIndex();
+                            if (reload && void 0 !== focusedRowKey) {
+                                focusController.navigateToRow(focusedRowKey).done(function(pageIndex) {
+                                    if (pageIndex < 0) {
+                                        focusController._focusRowByIndex()
+                                    }
+                                })
+                            } else {
+                                if (paging) {
+                                    if (!isVirtualScrolling) {
+                                        focusController._focusRowByIndex()
+                                    }
+                                } else {
+                                    focusController._focusRowByKeyOrIndex()
+                                }
+                            }
                         },
                         getPageIndexByKey: function(key) {
                             var that = this,
@@ -98795,7 +99123,7 @@
                                 this.callBase(change)
                             }
                         },
-                        _updateFocusElementTabIndex: function($cellElements) {
+                        updateFocusElementTabIndex: function($cellElements) {
                             if (this.option("focusedRowEnabled")) {
                                 this._setFocusedRowElementTabIndex()
                             } else {
@@ -99067,9 +99395,8 @@
                     return parentIdsToLoad
                 },
                 _handleDataLoading: function(options) {
-                    var combinedParentIdFilter, parentIdsToLoad, rootValue = this.option("rootValue"),
+                    var expandedRowKeys, combinedParentIdFilter, parentIdsToLoad, rootValue = this.option("rootValue"),
                         parentIdExpr = this.option("parentIdExpr"),
-                        expandedRowKeys = this.option("expandedRowKeys"),
                         filterMode = this.option("filterMode"),
                         parentIds = options.storeLoadOptions.parentIds;
                     if (parentIds) {
@@ -99078,6 +99405,7 @@
                     this.callBase.apply(this, arguments);
                     if (options.remoteOperations.filtering && !options.isCustomLoading) {
                         if ("standard" === filterMode || !options.storeLoadOptions.filter) {
+                            expandedRowKeys = options.collapseVisibleNodes ? [] : this.option("expandedRowKeys");
                             parentIds = [rootValue].concat(expandedRowKeys).concat(parentIds || []);
                             parentIdsToLoad = options.data ? this._getParentIdsToLoad(parentIds) : parentIds;
                             if (parentIdsToLoad.length) {
@@ -99318,9 +99646,11 @@
                         data = options.data,
                         callBase = that.callBase,
                         filter = options.storeLoadOptions.filter || options.loadOptions.filter,
-                        filterMode = that.option("filterMode");
+                        filterMode = that.option("filterMode"),
+                        parentIds = options.storeLoadOptions.parentIds,
+                        needLoadParents = filter && (!parentIds || !parentIds.length) && "standard" !== filterMode;
                     if (!options.isCustomLoading) {
-                        if (filter && !options.storeLoadOptions.parentIds && "standard" !== filterMode) {
+                        if (needLoadParents) {
                             var d = options.data = new _deferred.Deferred;
                             if ("smart" === filterMode) {
                                 visibleItems = data
@@ -99491,7 +99821,7 @@
         var $ = __webpack_require__( /*! ../../../core/renderer */ 2),
             window = __webpack_require__( /*! ../../../core/utils/window */ 6).getWindow(),
             Class = __webpack_require__( /*! ../../../core/class */ 10),
-            stringFormat = __webpack_require__( /*! ../../../core/utils/string */ 44).format,
+            stringFormat = __webpack_require__( /*! ../../../core/utils/string */ 45).format,
             errors = __webpack_require__( /*! ../../../data/errors */ 36).errors,
             noop = __webpack_require__( /*! ../../../core/utils/common */ 4).noop,
             typeUtils = __webpack_require__( /*! ../../../core/utils/type */ 1),
@@ -100897,14 +101227,14 @@
             domAdapter = __webpack_require__( /*! ../../../core/dom_adapter */ 13),
             eventsEngine = __webpack_require__( /*! ../../../events/core/events_engine */ 5),
             dataUtils = __webpack_require__( /*! ../../../core/element_data */ 38),
-            dateUtils = __webpack_require__( /*! ../../../core/utils/date */ 23),
+            dateUtils = __webpack_require__( /*! ../../../core/utils/date */ 24),
             typeUtils = __webpack_require__( /*! ../../../core/utils/type */ 1),
             windowUtils = __webpack_require__( /*! ../../../core/utils/window */ 6),
             getPublicElement = __webpack_require__( /*! ../../../core/utils/dom */ 12).getPublicElement,
             extend = __webpack_require__( /*! ../../../core/utils/extend */ 0).extend,
             each = __webpack_require__( /*! ../../../core/utils/iterator */ 3).each,
             messageLocalization = __webpack_require__( /*! ../../../localization/message */ 14),
-            dateLocalization = __webpack_require__( /*! ../../../localization/date */ 34),
+            dateLocalization = __webpack_require__( /*! ../../../localization/date */ 35),
             toMs = dateUtils.dateToMilliseconds,
             Widget = __webpack_require__( /*! ../../widget/ui.widget */ 28),
             abstract = Widget.abstract,
@@ -100912,7 +101242,7 @@
             isDefined = __webpack_require__( /*! ../../../core/utils/type */ 1).isDefined,
             publisherMixin = __webpack_require__( /*! ../ui.scheduler.publisher_mixin */ 162),
             eventUtils = __webpack_require__( /*! ../../../events/utils */ 9),
-            pointerEvents = __webpack_require__( /*! ../../../events/pointer */ 27),
+            pointerEvents = __webpack_require__( /*! ../../../events/pointer */ 26),
             errors = __webpack_require__( /*! ../../widget/ui.errors */ 18),
             clickEvent = __webpack_require__( /*! ../../../events/click */ 17),
             contextMenuEvent = __webpack_require__( /*! ../../../events/contextmenu */ 209),
@@ -102683,9 +103013,15 @@
             },
             getEndViewDate: function() {
                 var dateOfLastViewCell = this.getDateOfLastViewCell(),
-                    endDateOfLastViewCell = new Date(dateOfLastViewCell.getTime() + this.getCellDuration());
-                var daylightDiff = this.invoke("getDaylightOffset", dateOfLastViewCell, endDateOfLastViewCell) * toMs("minute") || 0;
-                endDateOfLastViewCell = new Date(endDateOfLastViewCell.getTime() - daylightDiff);
+                    endDateOfLastViewCell = this.calculateEndViewDate(dateOfLastViewCell);
+                return this._adjustEndViewDateByDaylightDiff(dateOfLastViewCell, endDateOfLastViewCell)
+            },
+            calculateEndViewDate: function(dateOfLastViewCell) {
+                return new Date(dateOfLastViewCell.getTime() + this.getCellDuration())
+            },
+            _adjustEndViewDateByDaylightDiff: function(startDate, endDate) {
+                var daylightDiff = this.invoke("getDaylightOffset", startDate, endDate) * toMs("minute") || 0;
+                var endDateOfLastViewCell = new Date(endDate.getTime() - daylightDiff);
                 return new Date(endDateOfLastViewCell.getTime() - toMs("minute"))
             },
             getDateOfLastViewCell: function() {
@@ -102927,8 +103263,8 @@
     function(module, exports, __webpack_require__) {
         var $ = __webpack_require__( /*! ../../../core/renderer */ 2),
             registerComponent = __webpack_require__( /*! ../../../core/component_registrator */ 8),
-            dateUtils = __webpack_require__( /*! ../../../core/utils/date */ 23),
-            dateLocalization = __webpack_require__( /*! ../../../localization/date */ 34),
+            dateUtils = __webpack_require__( /*! ../../../core/utils/date */ 24),
+            dateLocalization = __webpack_require__( /*! ../../../localization/date */ 35),
             each = __webpack_require__( /*! ../../../core/utils/iterator */ 3).each,
             SchedulerWorkSpace = __webpack_require__( /*! ./ui.scheduler.work_space.indicator */ 224);
         var WEEK_CLASS = "dx-scheduler-work-space-week";
@@ -103088,7 +103424,7 @@
     /*! all exports used */
     function(module, exports, __webpack_require__) {
         var BaseAppointmentsStrategy = __webpack_require__( /*! ./ui.scheduler.appointments.strategy.base */ 283),
-            dateUtils = __webpack_require__( /*! ../../../core/utils/date */ 23);
+            dateUtils = __webpack_require__( /*! ../../../core/utils/date */ 24);
         var MAX_APPOINTMENT_HEIGHT = 100,
             DEFAULT_APPOINTMENT_HEIGHT = 60,
             DROP_DOWN_BUTTON_OFFSET = 2,
@@ -103209,7 +103545,7 @@
     /*! all exports used */
     function(module, exports, __webpack_require__) {
         var HorizontalAppointmentsStrategy = __webpack_require__( /*! ./ui.scheduler.appointments.strategy.horizontal */ 440),
-            dateUtils = __webpack_require__( /*! ../../../core/utils/date */ 23),
+            dateUtils = __webpack_require__( /*! ../../../core/utils/date */ 24),
             query = __webpack_require__( /*! ../../../data/query */ 42);
         var HOURS_IN_DAY = 24,
             MINUTES_IN_HOUR = 60,
@@ -105686,12 +106022,12 @@
                     });
                     if (!updatedAxis || updatedAxis && groupSeries.length && valueAxis === updatedAxis) {
                         valueAxis.setGroupSeries(groupSeries);
-                        valueAxis.setBusinessRange(groupRange, void 0, that._argumentAxes[0]._lastVisualRangeUpdateMode, that._axesReinitialized)
+                        valueAxis.setBusinessRange(groupRange, that._axesReinitialized, that._argumentAxes[0]._lastVisualRangeUpdateMode)
                     }
                 });
                 if (!updatedAxis || updatedAxis && series.length) {
                     that._argumentAxes.forEach(function(a) {
-                        return a.setBusinessRange(argRange, that._groupsData.categories, void 0, that._axesReinitialized)
+                        return a.setBusinessRange(argRange, that._axesReinitialized)
                     })
                 }
                 that._axesReinitialized = false;
@@ -105824,7 +106160,7 @@
         var _format_helper = __webpack_require__( /*! ../../format_helper */ 75);
         var _format_helper2 = _interopRequireDefault(_format_helper);
         var _type = __webpack_require__( /*! ../../core/utils/type */ 1);
-        var _date = __webpack_require__( /*! ../../core/utils/date */ 23);
+        var _date = __webpack_require__( /*! ../../core/utils/date */ 24);
         var _date2 = _interopRequireDefault(_date);
         var _math = __webpack_require__( /*! ../../core/utils/math */ 30);
         var _utils = __webpack_require__( /*! ../core/utils */ 15);
@@ -106160,7 +106496,7 @@
     /*! all exports used */
     function(module, exports, __webpack_require__) {
         var _utils = __webpack_require__( /*! ../core/utils */ 15);
-        var _date = __webpack_require__( /*! ../../core/utils/date */ 23);
+        var _date = __webpack_require__( /*! ../../core/utils/date */ 24);
         var _date2 = _interopRequireDefault(_date);
         var _type = __webpack_require__( /*! ../../core/utils/type */ 1);
         var _math = __webpack_require__( /*! ../../core/utils/math */ 30);
@@ -107097,7 +107433,7 @@
         var _range = __webpack_require__( /*! ../translators/range */ 128);
         var _range2 = _interopRequireDefault(_range);
         var _format_helper = __webpack_require__( /*! ../../format_helper */ 75);
-        var _date = __webpack_require__( /*! ../../core/utils/date */ 23);
+        var _date = __webpack_require__( /*! ../../core/utils/date */ 24);
         var _date2 = _interopRequireDefault(_date);
         var _extend = __webpack_require__( /*! ../../core/utils/extend */ 0);
         var _datetime_breaks = __webpack_require__( /*! ./datetime_breaks */ 742);
@@ -108387,8 +108723,8 @@
             return positiveStackValue + negativeStackValue
         }
 
-        function getSeriesStackIndexCallback(rotated) {
-            if (!rotated) {
+        function getSeriesStackIndexCallback(inverted) {
+            if (!inverted) {
                 return function(index) {
                     return index
                 }
@@ -108399,8 +108735,13 @@
             }
         }
 
+        function isInverted(series) {
+            return series[0] && series[0].getArgumentAxis().getTranslator().isInverted()
+        }
+
         function adjustBarSeriesDimensions() {
-            adjustBarSeriesDimensionsCore(getVisibleSeries(this), this._options, getSeriesStackIndexCallback(this.rotated))
+            var series = getVisibleSeries(this);
+            adjustBarSeriesDimensionsCore(series, this._options, getSeriesStackIndexCallback(isInverted(series)))
         }
 
         function adjustStackedSeriesValues() {
@@ -108548,11 +108889,12 @@
         }
 
         function adjustCandlestickSeriesDimensions() {
-            adjustBarSeriesDimensionsCore(getVisibleSeries(this), {
+            var series = getVisibleSeries(this);
+            adjustBarSeriesDimensionsCore(series, {
                 barWidth: null,
                 equalBarWidth: true,
                 barGroupPadding: .3
-            }, getSeriesStackIndexCallback(this.rotated))
+            }, getSeriesStackIndexCallback(isInverted(series)))
         }
 
         function adjustBubbleSeriesDimensions() {
@@ -108599,7 +108941,6 @@
             var that = this;
             that.type = _normalizeEnum(options.type);
             that.pane = options.pane;
-            that.rotated = options.rotated;
             that.series = [];
             that.updateOptions(options);
             switch (that.type) {
@@ -111642,7 +111983,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var _uiCollection_widget = __webpack_require__( /*! ./ui.collection_widget.edit */ 47);
+        var _uiCollection_widget = __webpack_require__( /*! ./ui.collection_widget.edit */ 48);
         var _uiCollection_widget2 = _interopRequireDefault(_uiCollection_widget);
         var _deferred = __webpack_require__( /*! ../../core/utils/deferred */ 7);
         var _common = __webpack_require__( /*! ../../core/utils/common */ 4);
@@ -112061,7 +112402,7 @@
             isDefined = __webpack_require__( /*! ../../core/utils/type */ 1).isDefined,
             messageLocalization = __webpack_require__( /*! ../../localization/message */ 14),
             noop = __webpack_require__( /*! ../../core/utils/common */ 4).noop,
-            stringUtils = __webpack_require__( /*! ../../core/utils/string */ 44),
+            stringUtils = __webpack_require__( /*! ../../core/utils/string */ 45),
             wheelEvent = __webpack_require__( /*! ../../events/core/wheel */ 117),
             MaskRules = __webpack_require__( /*! ./ui.text_editor.mask.rule */ 481),
             TextEditorBase = __webpack_require__( /*! ./ui.text_editor.base */ 482);
@@ -112930,11 +113271,12 @@
             inArray = __webpack_require__( /*! ../../core/utils/array */ 11).inArray,
             each = __webpack_require__( /*! ../../core/utils/iterator */ 3).each,
             themes = __webpack_require__( /*! ../themes */ 20),
-            Editor = __webpack_require__( /*! ../editor/editor */ 45),
+            Editor = __webpack_require__( /*! ../editor/editor */ 46),
             eventUtils = __webpack_require__( /*! ../../events/utils */ 9),
-            pointerEvents = __webpack_require__( /*! ../../events/pointer */ 27),
+            pointerEvents = __webpack_require__( /*! ../../events/pointer */ 26),
             clickEvent = __webpack_require__( /*! ../../events/click */ 17),
-            config = __webpack_require__( /*! ../../core/config */ 25);
+            config = __webpack_require__( /*! ../../core/config */ 25),
+            Deferred = __webpack_require__( /*! ../../core/utils/deferred */ 7).Deferred;
         var TEXTEDITOR_CLASS = "dx-texteditor",
             TEXTEDITOR_INPUT_CLASS = "dx-texteditor-input",
             TEXTEDITOR_INPUT_SELECTOR = "." + TEXTEDITOR_INPUT_CLASS,
@@ -113064,8 +113406,8 @@
                 $input.attr("autocomplete", "off").attr(customAttributes).addClass(TEXTEDITOR_INPUT_CLASS).css("minHeight", this.option("height") ? "0" : "")
             },
             _renderValue: function() {
-                this._renderInputValue();
-                this._renderInputAddons()
+                var renderInputPromise = this._renderInputValue();
+                renderInputPromise.always(this._renderInputAddons.bind(this))
             },
             _renderInputValue: function(value) {
                 value = value || this.option("value");
@@ -113085,6 +113427,7 @@
                 } else {
                     this._toggleEmptinessEventHandler()
                 }
+                return (new Deferred).resolve()
             },
             _renderDisplayText: function(text) {
                 this._input().val(text);
@@ -114303,7 +114646,7 @@
             noop = __webpack_require__( /*! ../../core/utils/common */ 4).noop,
             clickEvent = __webpack_require__( /*! ../../events/click */ 17),
             messageLocalization = __webpack_require__( /*! ../../localization/message */ 14),
-            translator = __webpack_require__( /*! ../../animation/translator */ 24),
+            translator = __webpack_require__( /*! ../../animation/translator */ 23),
             eventUtils = __webpack_require__( /*! ../../events/utils */ 9),
             feedbackEvents = __webpack_require__( /*! ../../events/core/emitter.feedback */ 101),
             EditDecoratorMenuHelperMixin = __webpack_require__( /*! ./ui.list.edit.decorator_menu_helper */ 302),
@@ -114528,7 +114871,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var translator = __webpack_require__( /*! ../../animation/translator */ 24),
+        var translator = __webpack_require__( /*! ../../animation/translator */ 23),
             fx = __webpack_require__( /*! ../../animation/fx */ 31),
             registerDecorator = __webpack_require__( /*! ./ui.list.edit.decorator_registry */ 97).register,
             EditDecorator = __webpack_require__( /*! ./ui.list.edit.decorator */ 132),
@@ -115008,7 +115351,7 @@
     function(module, exports, __webpack_require__) {
         var $ = __webpack_require__( /*! ../../core/renderer */ 2),
             Callbacks = __webpack_require__( /*! ../../core/utils/callbacks */ 21),
-            translator = __webpack_require__( /*! ../../animation/translator */ 24),
+            translator = __webpack_require__( /*! ../../animation/translator */ 23),
             NativeStrategy = __webpack_require__( /*! ./ui.scrollable.native */ 175),
             LoadIndicator = __webpack_require__( /*! ../load_indicator */ 89),
             each = __webpack_require__( /*! ../../core/utils/iterator */ 3).each,
@@ -115225,7 +115568,7 @@
     function(module, exports, __webpack_require__) {
         var $ = __webpack_require__( /*! ../../core/renderer */ 2),
             Callbacks = __webpack_require__( /*! ../../core/utils/callbacks */ 21),
-            translator = __webpack_require__( /*! ../../animation/translator */ 24),
+            translator = __webpack_require__( /*! ../../animation/translator */ 23),
             eventUtils = __webpack_require__( /*! ../../events/utils */ 9),
             NativeStrategy = __webpack_require__( /*! ./ui.scrollable.native */ 175),
             LoadIndicator = __webpack_require__( /*! ../load_indicator */ 89),
@@ -116223,7 +116566,7 @@
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
             inkRipple = __webpack_require__( /*! ../widget/utils.ink_ripple */ 72),
             registerComponent = __webpack_require__( /*! ../../core/component_registrator */ 8),
-            Editor = __webpack_require__( /*! ../editor/editor */ 45),
+            Editor = __webpack_require__( /*! ../editor/editor */ 46),
             eventUtils = __webpack_require__( /*! ../../events/utils */ 9),
             themes = __webpack_require__( /*! ../themes */ 20),
             clickEvent = __webpack_require__( /*! ../../events/click */ 17);
@@ -116370,7 +116713,7 @@
         var $ = __webpack_require__( /*! ../../core/renderer */ 2),
             each = __webpack_require__( /*! ../../core/utils/iterator */ 3).each,
             eventsEngine = __webpack_require__( /*! ../../events/core/events_engine */ 5),
-            translator = __webpack_require__( /*! ../../animation/translator */ 24),
+            translator = __webpack_require__( /*! ../../animation/translator */ 23),
             fx = __webpack_require__( /*! ../../animation/fx */ 31),
             dragEvents = __webpack_require__( /*! ../../events/drag */ 65),
             mathUtils = __webpack_require__( /*! ../../core/utils/math */ 30),
@@ -116674,7 +117017,7 @@
         var _ui2 = _interopRequireDefault(_ui);
         var _button = __webpack_require__( /*! ./button */ 37);
         var _button2 = _interopRequireDefault(_button);
-        var _uiCollection_widget = __webpack_require__( /*! ./collection/ui.collection_widget.edit */ 47);
+        var _uiCollection_widget = __webpack_require__( /*! ./collection/ui.collection_widget.edit */ 48);
         var _uiCollection_widget2 = _interopRequireDefault(_uiCollection_widget);
         var _component_registrator = __webpack_require__( /*! ../core/component_registrator */ 8);
         var _component_registrator2 = _interopRequireDefault(_component_registrator);
@@ -116847,20 +117190,20 @@
     /*! all exports used */
     function(module, exports, __webpack_require__) {
         var $ = __webpack_require__( /*! ../../core/renderer */ 2),
-            Guid = __webpack_require__( /*! ../../core/guid */ 48),
+            Guid = __webpack_require__( /*! ../../core/guid */ 44),
             registerComponent = __webpack_require__( /*! ../../core/component_registrator */ 8),
             noop = __webpack_require__( /*! ../../core/utils/common */ 4).noop,
             typeUtils = __webpack_require__( /*! ../../core/utils/type */ 1),
             inRange = __webpack_require__( /*! ../../core/utils/math */ 30).inRange,
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
             Button = __webpack_require__( /*! ../button */ 37),
-            Editor = __webpack_require__( /*! ../editor/editor */ 45),
+            Editor = __webpack_require__( /*! ../editor/editor */ 46),
             Swipeable = __webpack_require__( /*! ../../events/gesture/swipeable */ 116),
             Navigator = __webpack_require__( /*! ./ui.calendar.navigator */ 504),
             Views = __webpack_require__( /*! ./ui.calendar.views */ 505),
-            translator = __webpack_require__( /*! ../../animation/translator */ 24),
-            browser = __webpack_require__( /*! ../../core/utils/browser */ 35),
-            dateUtils = __webpack_require__( /*! ../../core/utils/date */ 23),
+            translator = __webpack_require__( /*! ../../animation/translator */ 23),
+            browser = __webpack_require__( /*! ../../core/utils/browser */ 34),
+            dateUtils = __webpack_require__( /*! ../../core/utils/date */ 24),
             dateSerialization = __webpack_require__( /*! ../../core/utils/date_serialization */ 62),
             devices = __webpack_require__( /*! ../../core/devices */ 16),
             config = __webpack_require__( /*! ../../core/config */ 25),
@@ -117874,9 +118217,9 @@
         var $ = __webpack_require__( /*! ../../core/renderer */ 2),
             noop = __webpack_require__( /*! ../../core/utils/common */ 4).noop,
             BaseView = __webpack_require__( /*! ./ui.calendar.base_view */ 506),
-            dateUtils = __webpack_require__( /*! ../../core/utils/date */ 23),
+            dateUtils = __webpack_require__( /*! ../../core/utils/date */ 24),
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
-            dateLocalization = __webpack_require__( /*! ../../localization/date */ 34),
+            dateLocalization = __webpack_require__( /*! ../../localization/date */ 35),
             dateSerialization = __webpack_require__( /*! ../../core/utils/date_serialization */ 62),
             typeUtils = __webpack_require__( /*! ../../core/utils/type */ 1);
         var CALENDAR_OTHER_MONTH_CLASS = "dx-calendar-other-month",
@@ -118139,7 +118482,7 @@
             dataUtils = __webpack_require__( /*! ../../core/element_data */ 38),
             domUtils = __webpack_require__( /*! ../../core/utils/dom */ 12),
             Widget = __webpack_require__( /*! ../widget/ui.widget */ 28),
-            dateUtils = __webpack_require__( /*! ../../core/utils/date */ 23),
+            dateUtils = __webpack_require__( /*! ../../core/utils/date */ 24),
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
             noop = __webpack_require__( /*! ../../core/utils/common */ 4).noop,
             dateSerialization = __webpack_require__( /*! ../../core/utils/date_serialization */ 62),
@@ -118690,7 +119033,7 @@
         var eventsEngine = __webpack_require__( /*! ../../events/core/events_engine */ 5),
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
             isNumeric = __webpack_require__( /*! ../../core/utils/type */ 1).isNumeric,
-            browser = __webpack_require__( /*! ../../core/utils/browser */ 35),
+            browser = __webpack_require__( /*! ../../core/utils/browser */ 34),
             devices = __webpack_require__( /*! ../../core/devices */ 16),
             fitIntoRange = __webpack_require__( /*! ../../core/utils/math */ 30).fitIntoRange,
             inRange = __webpack_require__( /*! ../../core/utils/math */ 30).inRange,
@@ -118740,14 +119083,13 @@
             },
             _focusInHandler: function(e) {
                 this.callBase(e);
-                var caret = this._caret();
-                if (caret.start !== caret.end) {
-                    return
-                }
                 this.clearCaretTimeout();
                 this._caretTimeout = setTimeout(function() {
                     this._caretTimeout = null;
-                    this._moveCaretToBoundaryEventHandler(MOVE_BACKWARD, e)
+                    var caret = this._caret();
+                    if (caret.start === caret.end) {
+                        this._moveCaretToBoundaryEventHandler(MOVE_BACKWARD, e)
+                    }
                 }.bind(this), CARET_TIMEOUT_DURATION)
             },
             _focusOutHandler: function(e) {
@@ -118804,7 +119146,7 @@
                 var decimalSeparator = number.getDecimalSeparator(),
                     isDecimalSeparatorNext = text.charAt(caret.end) === decimalSeparator,
                     isZeroNext = "0" === text.charAt(caret.end),
-                    moveToFloat = this._lastKey === decimalSeparator && isDecimalSeparatorNext,
+                    moveToFloat = (this._lastKey === decimalSeparator || "." === this._lastKey) && isDecimalSeparatorNext,
                     zeroToZeroReplace = "0" === this._lastKey && isZeroNext;
                 return moveToFloat || zeroToZeroReplace
             },
@@ -119382,7 +119724,7 @@
             devices = __webpack_require__( /*! ../../core/devices */ 16),
             TextEditor = __webpack_require__( /*! ../text_box/ui.text_editor */ 299),
             eventUtils = __webpack_require__( /*! ../../events/utils */ 9),
-            pointerEvents = __webpack_require__( /*! ../../events/pointer */ 27),
+            pointerEvents = __webpack_require__( /*! ../../events/pointer */ 26),
             SpinButton = __webpack_require__( /*! ./number_box.spin */ 513),
             messageLocalization = __webpack_require__( /*! ../../localization/message */ 14);
         var math = Math;
@@ -119767,7 +120109,7 @@
             Widget = __webpack_require__( /*! ../widget/ui.widget */ 28),
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
             eventUtils = __webpack_require__( /*! ../../events/utils */ 9),
-            pointerEvents = __webpack_require__( /*! ../../events/pointer */ 27),
+            pointerEvents = __webpack_require__( /*! ../../events/pointer */ 26),
             feedbackEvents = __webpack_require__( /*! ../../events/core/emitter.feedback */ 101),
             holdEvent = __webpack_require__( /*! ../../events/hold */ 95),
             Deferred = __webpack_require__( /*! ../../core/utils/deferred */ 7).Deferred;
@@ -119875,7 +120217,7 @@
         var _events_engine = __webpack_require__( /*! ../../events/core/events_engine */ 5);
         var _events_engine2 = _interopRequireDefault(_events_engine);
         var _uiDate_boxMask = __webpack_require__( /*! ./ui.date_box.mask.parts */ 516);
-        var _date = __webpack_require__( /*! ../../localization/date */ 34);
+        var _date = __webpack_require__( /*! ../../localization/date */ 35);
         var _date2 = _interopRequireDefault(_date);
         var _date3 = __webpack_require__( /*! ../../localization/ldml/date.parser */ 207);
         var _date4 = __webpack_require__( /*! ../../localization/ldml/date.format */ 201);
@@ -120448,11 +120790,11 @@
             support = __webpack_require__( /*! ../../core/utils/support */ 43),
             devices = __webpack_require__( /*! ../../core/devices */ 16),
             config = __webpack_require__( /*! ../../core/config */ 25),
-            dateUtils = __webpack_require__( /*! ../../core/utils/date */ 23),
+            dateUtils = __webpack_require__( /*! ../../core/utils/date */ 24),
             uiDateUtils = __webpack_require__( /*! ./ui.date_utils */ 109),
             dateSerialization = __webpack_require__( /*! ../../core/utils/date_serialization */ 62),
             DropDownEditor = __webpack_require__( /*! ../drop_down_editor/ui.drop_down_editor */ 157),
-            dateLocalization = __webpack_require__( /*! ../../localization/date */ 34),
+            dateLocalization = __webpack_require__( /*! ../../localization/date */ 35),
             messageLocalization = __webpack_require__( /*! ../../localization/message */ 14),
             DATEBOX_CLASS = "dx-datebox",
             DX_AUTO_WIDTH_CLASS = "dx-auto-width",
@@ -120968,7 +121310,6 @@
                         this._invalidate();
                         break;
                     case "dateSerializationFormat":
-                    case "readOnly":
                     case "interval":
                     case "disabledDates":
                     case "calendarOptions":
@@ -121203,14 +121544,14 @@
     /*! all exports used */
     function(module, exports, __webpack_require__) {
         var $ = __webpack_require__( /*! ../../core/renderer */ 2),
-            Editor = __webpack_require__( /*! ../editor/editor */ 45),
+            Editor = __webpack_require__( /*! ../editor/editor */ 46),
             DateViewRoller = __webpack_require__( /*! ./ui.date_view_roller */ 520),
-            dateUtils = __webpack_require__( /*! ../../core/utils/date */ 23),
+            dateUtils = __webpack_require__( /*! ../../core/utils/date */ 24),
             each = __webpack_require__( /*! ../../core/utils/iterator */ 3).each,
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
             uiDateUtils = __webpack_require__( /*! ./ui.date_utils */ 109),
             registerComponent = __webpack_require__( /*! ../../core/component_registrator */ 8),
-            dateLocalization = __webpack_require__( /*! ../../localization/date */ 34);
+            dateLocalization = __webpack_require__( /*! ../../localization/date */ 35);
         var DATEVIEW_CLASS = "dx-dateview",
             DATEVIEW_COMPACT_CLASS = "dx-dateview-compact",
             DATEVIEW_WRAPPER_CLASS = "dx-dateview-wrapper",
@@ -121524,7 +121865,7 @@
             clickEvent = __webpack_require__( /*! ../../events/click */ 17),
             Scrollable = __webpack_require__( /*! ../scroll_view/ui.scrollable */ 96),
             fx = __webpack_require__( /*! ../../animation/fx */ 31),
-            translator = __webpack_require__( /*! ../../animation/translator */ 24);
+            translator = __webpack_require__( /*! ../../animation/translator */ 23);
         var DATEVIEW_ROLLER_CLASS = "dx-dateviewroller",
             DATEVIEW_ROLLER_ACTIVE_CLASS = "dx-state-active",
             DATEVIEW_ROLLER_CURRENT_CLASS = "dx-dateviewroller-current",
@@ -121829,7 +122170,7 @@
             window = __webpack_require__( /*! ../../core/utils/window */ 6).getWindow(),
             CalendarStrategy = __webpack_require__( /*! ./ui.date_box.strategy.calendar */ 307),
             TimeView = __webpack_require__( /*! ./ui.time_view */ 523),
-            dateLocalization = __webpack_require__( /*! ../../localization/date */ 34),
+            dateLocalization = __webpack_require__( /*! ../../localization/date */ 35),
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
             Box = __webpack_require__( /*! ../box */ 176),
             uiDateUtils = __webpack_require__( /*! ./ui.date_utils */ 109);
@@ -121995,13 +122336,13 @@
     /*! all exports used */
     function(module, exports, __webpack_require__) {
         var $ = __webpack_require__( /*! ../../core/renderer */ 2),
-            Editor = __webpack_require__( /*! ../editor/editor */ 45),
+            Editor = __webpack_require__( /*! ../editor/editor */ 46),
             NumberBox = __webpack_require__( /*! ../number_box */ 118),
             SelectBox = __webpack_require__( /*! ../select_box */ 107),
             Box = __webpack_require__( /*! ../box */ 176),
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
             registerComponent = __webpack_require__( /*! ../../core/component_registrator */ 8),
-            dateLocalization = __webpack_require__( /*! ../../localization/date */ 34),
+            dateLocalization = __webpack_require__( /*! ../../localization/date */ 35),
             uiDateUtils = __webpack_require__( /*! ./ui.date_utils */ 109);
         var TIMEVIEW_CLASS = "dx-timeview",
             TIMEVIEW_CLOCK_CLASS = "dx-timeview-clock",
@@ -122291,7 +122632,7 @@
             isDate = __webpack_require__( /*! ../../core/utils/type */ 1).isDate,
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
             dateUtils = __webpack_require__( /*! ./ui.date_utils */ 109),
-            dateLocalization = __webpack_require__( /*! ../../localization/date */ 34);
+            dateLocalization = __webpack_require__( /*! ../../localization/date */ 35);
         var BOUNDARY_VALUES = {
             min: new Date(0, 0, 0, 0, 0),
             max: new Date(0, 0, 0, 23, 59)
@@ -122969,8 +123310,9 @@
         var _uiDrawerRendering2 = _interopRequireDefault(_uiDrawerRendering);
         var _renderer = __webpack_require__( /*! ../../core/renderer */ 2);
         var _renderer2 = _interopRequireDefault(_renderer);
-        var _translator = __webpack_require__( /*! ../../animation/translator */ 24);
+        var _translator = __webpack_require__( /*! ../../animation/translator */ 23);
         var _translator2 = _interopRequireDefault(_translator);
+        var _extend = __webpack_require__( /*! ../../core/utils/extend */ 0);
 
         function _interopRequireDefault(obj) {
             return obj && obj.__esModule ? obj : {
@@ -123015,19 +123357,20 @@
                 return _possibleConstructorReturn(this, (PushStrategy.__proto__ || Object.getPrototypeOf(PushStrategy)).apply(this, arguments))
             }
             _createClass(PushStrategy, [{
-                key: "renderPosition",
-                value: function(offset, animate) {
+                key: "useDefaultAnimation",
+                value: function() {
+                    return true
+                }
+            }, {
+                key: "defaultPositionRendering",
+                value: function(config, offset, animate) {
                     var _this2 = this;
-                    _get(PushStrategy.prototype.__proto__ || Object.getPrototypeOf(PushStrategy.prototype), "renderPosition", this).call(this, offset, animate);
                     var drawer = this.getDrawerInstance();
-                    var $content = (0, _renderer2.default)(drawer.viewContent());
-                    var maxSize = this._getPanelSize(true);
-                    (0, _renderer2.default)(drawer.content()).css(drawer.isHorizontalDirection() ? "width" : "height", maxSize);
-                    var contentPosition = this._getPanelSize(offset) * drawer._getPositionCorrection();
+                    (0, _renderer2.default)(drawer.content()).css(drawer.isHorizontalDirection() ? "width" : "height", config.maxSize);
                     if (animate) {
                         var animationConfig = {
-                            $element: $content,
-                            position: contentPosition,
+                            $element: config.$content,
+                            position: config.contentPosition,
                             direction: drawer.getDrawerPosition(),
                             duration: drawer.option("animationDuration"),
                             complete: function() {
@@ -123037,15 +123380,23 @@
                         _uiDrawerRendering.animation.moveTo(animationConfig)
                     } else {
                         if (drawer.isHorizontalDirection()) {
-                            _translator2.default.move($content, {
-                                left: contentPosition
+                            _translator2.default.move(config.$content, {
+                                left: config.contentPosition
                             })
                         } else {
-                            _translator2.default.move($content, {
-                                top: contentPosition
+                            _translator2.default.move(config.$content, {
+                                top: config.contentPosition
                             })
                         }
                     }
+                }
+            }, {
+                key: "getPositionRenderingConfig",
+                value: function(offset) {
+                    return (0, _extend.extend)(_get(PushStrategy.prototype.__proto__ || Object.getPrototypeOf(PushStrategy.prototype), "getPositionRenderingConfig", this).call(this, offset), {
+                        contentPosition: this._getPanelSize(offset) * this.getDrawerInstance()._getPositionCorrection(),
+                        maxSize: this._getPanelSize(true)
+                    })
                 }
             }]);
             return PushStrategy
@@ -123154,45 +123505,46 @@
                 return _possibleConstructorReturn(this, (ShrinkStrategy.__proto__ || Object.getPrototypeOf(ShrinkStrategy)).apply(this, arguments))
             }
             _createClass(ShrinkStrategy, [{
-                key: "renderPosition",
-                value: function(offset, animate) {
-                    _get(ShrinkStrategy.prototype.__proto__ || Object.getPrototypeOf(ShrinkStrategy.prototype), "renderPosition", this).call(this, offset, animate);
-                    var drawer = this.getDrawerInstance();
-                    var direction = drawer.getDrawerPosition();
-                    var $panel = (0, _renderer2.default)(drawer.content());
-                    var defaultAnimationConfig = this._defaultAnimationConfig();
-                    if ("slide" === drawer.option("revealMode")) {
-                        var panelOffset = this._getPanelOffset(offset);
-                        if (animate) {
-                            var animationConfig = (0, _extend.extend)(defaultAnimationConfig, {
-                                $element: $panel,
-                                margin: panelOffset,
-                                duration: drawer.option("animationDuration"),
-                                direction: direction
-                            });
-                            _uiDrawerRendering.animation.margin(animationConfig)
-                        } else {
-                            $panel.css("margin" + (0, _inflector.camelize)(direction, true), panelOffset)
-                        }
-                    }
-                    if ("expand" === drawer.option("revealMode")) {
-                        var size = this._getPanelSize(offset);
-                        var _animationConfig = (0, _extend.extend)(defaultAnimationConfig, {
-                            $element: $panel,
-                            size: size,
-                            duration: drawer.option("animationDuration"),
-                            direction: direction
+                key: "slidePositionRendering",
+                value: function(config, offset, animate) {
+                    if (animate) {
+                        var animationConfig = (0, _extend.extend)(config.defaultAnimationConfig, {
+                            $element: config.$panel,
+                            margin: config.panelOffset,
+                            duration: this.getDrawerInstance().option("animationDuration"),
+                            direction: config.direction
                         });
-                        if (animate) {
-                            _uiDrawerRendering.animation.size(_animationConfig)
+                        _uiDrawerRendering.animation.margin(animationConfig)
+                    } else {
+                        config.$panel.css("margin" + (0, _inflector.camelize)(config.direction, true), config.panelOffset)
+                    }
+                }
+            }, {
+                key: "expandPositionRendering",
+                value: function(config, offset, animate) {
+                    var drawer = this.getDrawerInstance();
+                    if (animate) {
+                        var animationConfig = (0, _extend.extend)(config.defaultAnimationConfig, {
+                            $element: config.$panel,
+                            size: config.size,
+                            duration: drawer.option("animationDuration"),
+                            direction: config.direction
+                        });
+                        _uiDrawerRendering.animation.size(animationConfig)
+                    } else {
+                        if (drawer.isHorizontalDirection()) {
+                            (0, _renderer2.default)(config.$panel).css("width", config.size)
                         } else {
-                            if (drawer.isHorizontalDirection()) {
-                                (0, _renderer2.default)($panel).css("width", size)
-                            } else {
-                                (0, _renderer2.default)($panel).css("height", size)
-                            }
+                            (0, _renderer2.default)(config.$panel).css("height", config.size)
                         }
                     }
+                }
+            }, {
+                key: "getPositionRenderingConfig",
+                value: function(offset) {
+                    return (0, _extend.extend)(_get(ShrinkStrategy.prototype.__proto__ || Object.getPrototypeOf(ShrinkStrategy.prototype), "getPositionRenderingConfig", this).call(this, offset), {
+                        panelOffset: this._getPanelOffset(offset)
+                    })
                 }
             }, {
                 key: "needOrderContent",
@@ -123260,7 +123612,7 @@
         var _uiDrawerRendering2 = _interopRequireDefault(_uiDrawerRendering);
         var _renderer = __webpack_require__( /*! ../../core/renderer */ 2);
         var _renderer2 = _interopRequireDefault(_renderer);
-        var _translator = __webpack_require__( /*! ../../animation/translator */ 24);
+        var _translator = __webpack_require__( /*! ../../animation/translator */ 23);
         var _translator2 = _interopRequireDefault(_translator);
         var _overlay = __webpack_require__( /*! ../overlay */ 64);
         var _overlay2 = _interopRequireDefault(_overlay);
@@ -123403,66 +123755,79 @@
                     }
                 }
             }, {
-                key: "renderPosition",
-                value: function(offset, animate) {
-                    _get(OverlapStrategy.prototype.__proto__ || Object.getPrototypeOf(OverlapStrategy.prototype), "renderPosition", this).call(this, offset, animate);
+                key: "setupContent",
+                value: function($content, position) {
+                    var drawer = this.getDrawerInstance();
+                    $content.css("padding" + (0, _inflector.camelize)(position, true), drawer.option("minSize"));
+                    $content.css("transform", "inherit")
+                }
+            }, {
+                key: "slidePositionRendering",
+                value: function(config, offset, animate) {
                     var drawer = this.getDrawerInstance();
                     this._initialPosition = drawer.getOverlay().$content().position();
-                    var $content = (0, _renderer2.default)(drawer.viewContent());
                     var position = drawer.getDrawerPosition();
-                    var defaultAnimationConfig = this._defaultAnimationConfig();
-                    $content.css("padding" + (0, _inflector.camelize)(position, true), drawer.option("minSize"));
-                    $content.css("transform", "inherit");
-                    if ("slide" === drawer.option("revealMode")) {
-                        var $panel = (0, _renderer2.default)(drawer.content());
-                        var panelOffset = this._getPanelOffset(offset) * drawer._getPositionCorrection();
-                        if (animate) {
-                            var animationConfig = (0, _extend.extend)(defaultAnimationConfig, {
-                                $element: $panel,
-                                position: panelOffset,
-                                duration: drawer.option("animationDuration"),
-                                direction: position
-                            });
-                            _uiDrawerRendering.animation.moveTo(animationConfig)
-                        } else {
-                            if (drawer.isHorizontalDirection()) {
-                                _translator2.default.move($panel, {
-                                    left: panelOffset
-                                })
-                            } else {
-                                _translator2.default.move($panel, {
-                                    top: panelOffset
-                                })
-                            }
-                        }
-                    }
-                    if ("expand" === drawer.option("revealMode")) {
-                        var $panelOverlayContent = drawer.getOverlay().$content();
-                        var size = this._getPanelSize(offset);
-                        var marginTop = drawer.getRealPanelHeight() - size;
-                        _translator2.default.move($panelOverlayContent, {
-                            left: 0
-                        });
-                        var _animationConfig = (0, _extend.extend)(defaultAnimationConfig, {
-                            $element: $panelOverlayContent,
-                            size: size,
+                    this.setupContent(config.$content, position, config.drawer);
+                    if (animate) {
+                        var animationConfig = (0, _extend.extend)(config.defaultAnimationConfig, {
+                            $element: config.$panel,
+                            position: config.panelOffset,
                             duration: drawer.option("animationDuration"),
-                            direction: position,
-                            marginTop: marginTop
+                            direction: position
                         });
-                        if (animate) {
-                            _uiDrawerRendering.animation.size(_animationConfig)
+                        _uiDrawerRendering.animation.moveTo(animationConfig)
+                    } else {
+                        if (drawer.isHorizontalDirection()) {
+                            _translator2.default.move(config.$panel, {
+                                left: config.panelOffset
+                            })
                         } else {
-                            if (drawer.isHorizontalDirection()) {
-                                (0, _renderer2.default)($panelOverlayContent).css("width", size)
-                            } else {
-                                (0, _renderer2.default)($panelOverlayContent).css("height", size);
-                                if ("bottom" === position) {
-                                    (0, _renderer2.default)($panelOverlayContent).css("marginTop", marginTop)
-                                }
+                            _translator2.default.move(config.$panel, {
+                                top: config.panelOffset
+                            })
+                        }
+                    }
+                }
+            }, {
+                key: "expandPositionRendering",
+                value: function(config, offset, animate) {
+                    var drawer = this.getDrawerInstance();
+                    this._initialPosition = drawer.getOverlay().$content().position();
+                    var position = drawer.getDrawerPosition();
+                    this.setupContent(config.$content, position);
+                    _translator2.default.move(config.$panelOverlayContent, {
+                        left: 0
+                    });
+                    var animationConfig = (0, _extend.extend)(config.defaultAnimationConfig, {
+                        $element: config.$panelOverlayContent,
+                        size: config.size,
+                        duration: drawer.option("animationDuration"),
+                        direction: position,
+                        marginTop: config.marginTop
+                    });
+                    if (animate) {
+                        _uiDrawerRendering.animation.size(animationConfig)
+                    } else {
+                        if (drawer.isHorizontalDirection()) {
+                            (0, _renderer2.default)(config.$panelOverlayContent).css("width", config.size)
+                        } else {
+                            (0, _renderer2.default)(config.$panelOverlayContent).css("height", config.size);
+                            if ("bottom" === position) {
+                                (0, _renderer2.default)(config.$panelOverlayContent).css("marginTop", config.marginTop)
                             }
                         }
                     }
+                }
+            }, {
+                key: "getPositionRenderingConfig",
+                value: function(offset) {
+                    var drawer = this.getDrawerInstance();
+                    var config = _get(OverlapStrategy.prototype.__proto__ || Object.getPrototypeOf(OverlapStrategy.prototype), "getPositionRenderingConfig", this).call(this, offset);
+                    return (0, _extend.extend)(config, {
+                        panelOffset: this._getPanelOffset(offset) * this.getDrawerInstance()._getPositionCorrection(),
+                        $panelOverlayContent: drawer.getOverlay().$content(),
+                        marginTop: drawer.getRealPanelHeight() - config.size
+                    })
                 }
             }, {
                 key: "getPanelContent",
@@ -123816,7 +124181,7 @@
                     values = [];
                 if (!this._dataSource) {
                     callBase(values);
-                    return
+                    return (new _deferred.Deferred).resolve()
                 }
                 var currentValue = this._getCurrentValue(),
                     keys = _common2.default.ensureDefined(currentValue, []);
@@ -123827,11 +124192,10 @@
                         values.push(_common2.default.ensureDefined(displayValue, key))
                     }.bind(this))
                 }.bind(this));
-                _deferred.when.apply(this, itemLoadDeferreds).always(function() {
+                return _deferred.when.apply(this, itemLoadDeferreds).always(function() {
                     this.option("displayValue", values);
                     callBase(values.length && values)
-                }.bind(this)).fail(callBase);
-                return itemLoadDeferreds
+                }.bind(this)).fail(callBase)
             },
             _loadItem: function(value) {
                 var deferred = new _deferred.Deferred,
@@ -123936,7 +124300,7 @@
     function(module, exports, __webpack_require__) {
         var $ = __webpack_require__( /*! ../core/renderer */ 2),
             Class = __webpack_require__( /*! ../core/class */ 10),
-            Guid = __webpack_require__( /*! ../core/guid */ 48),
+            Guid = __webpack_require__( /*! ../core/guid */ 44),
             window = __webpack_require__( /*! ../core/utils/window */ 6).getWindow(),
             eventsEngine = __webpack_require__( /*! ../events/core/events_engine */ 5),
             registerComponent = __webpack_require__( /*! ../core/component_registrator */ 8),
@@ -123946,10 +124310,10 @@
             extend = __webpack_require__( /*! ../core/utils/extend */ 0).extend,
             inArray = __webpack_require__( /*! ../core/utils/array */ 11).inArray,
             ajax = __webpack_require__( /*! ../core/utils/ajax */ 76),
-            Editor = __webpack_require__( /*! ./editor/editor */ 45),
+            Editor = __webpack_require__( /*! ./editor/editor */ 46),
             Button = __webpack_require__( /*! ./button */ 37),
             ProgressBar = __webpack_require__( /*! ./progress_bar */ 308),
-            browser = __webpack_require__( /*! ../core/utils/browser */ 35),
+            browser = __webpack_require__( /*! ../core/utils/browser */ 34),
             devices = __webpack_require__( /*! ../core/devices */ 16),
             eventUtils = __webpack_require__( /*! ../events/utils */ 9),
             clickEvent = __webpack_require__( /*! ../events/click */ 17),
@@ -125072,16 +125436,16 @@
         var $ = __webpack_require__( /*! ../../core/renderer */ 2),
             eventsEngine = __webpack_require__( /*! ../../events/core/events_engine */ 5),
             registerComponent = __webpack_require__( /*! ../../core/component_registrator */ 8),
-            Guid = __webpack_require__( /*! ../../core/guid */ 48),
+            Guid = __webpack_require__( /*! ../../core/guid */ 44),
             utils = __webpack_require__( /*! ../../core/utils/common */ 4),
             typeUtils = __webpack_require__( /*! ../../core/utils/type */ 1),
             dataUtils = __webpack_require__( /*! ../../core/element_data */ 38),
             each = __webpack_require__( /*! ../../core/utils/iterator */ 3).each,
             inArray = __webpack_require__( /*! ../../core/utils/array */ 11).inArray,
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
-            stringUtils = __webpack_require__( /*! ../../core/utils/string */ 44),
+            stringUtils = __webpack_require__( /*! ../../core/utils/string */ 45),
             errors = __webpack_require__( /*! ../widget/ui.errors */ 18),
-            browser = __webpack_require__( /*! ../../core/utils/browser */ 35),
+            browser = __webpack_require__( /*! ../../core/utils/browser */ 34),
             domUtils = __webpack_require__( /*! ../../core/utils/dom */ 12),
             messageLocalization = __webpack_require__( /*! ../../localization/message */ 14),
             Widget = __webpack_require__( /*! ../widget/ui.widget */ 28),
@@ -126027,7 +126391,7 @@
         };
         var $ = __webpack_require__( /*! ../../core/renderer */ 2),
             eventsEngine = __webpack_require__( /*! ../../events/core/events_engine */ 5),
-            Guid = __webpack_require__( /*! ../../core/guid */ 48),
+            Guid = __webpack_require__( /*! ../../core/guid */ 44),
             FormItemsRunTimeInfo = __webpack_require__( /*! ./ui.form.items_runtime_info */ 309).default,
             registerComponent = __webpack_require__( /*! ../../core/component_registrator */ 8),
             typeUtils = __webpack_require__( /*! ../../core/utils/type */ 1),
@@ -126036,7 +126400,7 @@
             isWritableWrapped = __webpack_require__( /*! ../../core/utils/variable_wrapper */ 74).isWritableWrapped,
             unwrap = __webpack_require__( /*! ../../core/utils/variable_wrapper */ 74).unwrap,
             windowUtils = __webpack_require__( /*! ../../core/utils/window */ 6),
-            stringUtils = __webpack_require__( /*! ../../core/utils/string */ 44),
+            stringUtils = __webpack_require__( /*! ../../core/utils/string */ 45),
             each = __webpack_require__( /*! ../../core/utils/iterator */ 3).each,
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
             inArray = __webpack_require__( /*! ../../core/utils/array */ 11).inArray,
@@ -127212,11 +127576,11 @@
             getPublicElement = __webpack_require__( /*! ../core/utils/dom */ 12).getPublicElement,
             fx = __webpack_require__( /*! ../animation/fx */ 31),
             clickEvent = __webpack_require__( /*! ../events/click */ 17),
-            translator = __webpack_require__( /*! ../animation/translator */ 24),
+            translator = __webpack_require__( /*! ../animation/translator */ 23),
             devices = __webpack_require__( /*! ../core/devices */ 16),
             Widget = __webpack_require__( /*! ./widget/ui.widget */ 28),
             eventUtils = __webpack_require__( /*! ../events/utils */ 9),
-            CollectionWidget = __webpack_require__( /*! ./collection/ui.collection_widget.edit */ 47),
+            CollectionWidget = __webpack_require__( /*! ./collection/ui.collection_widget.edit */ 48),
             Swipeable = __webpack_require__( /*! ../events/gesture/swipeable */ 116),
             BindableTemplate = __webpack_require__( /*! ./widget/bindable_template */ 60),
             Deferred = __webpack_require__( /*! ../core/utils/deferred */ 7).Deferred;
@@ -128078,7 +128442,7 @@
         var _component_registrator2 = _interopRequireDefault(_component_registrator);
         var _empty_template = __webpack_require__( /*! ../widget/empty_template */ 93);
         var _empty_template2 = _interopRequireDefault(_empty_template);
-        var _editor = __webpack_require__( /*! ../editor/editor */ 45);
+        var _editor = __webpack_require__( /*! ../editor/editor */ 46);
         var _editor2 = _interopRequireDefault(_editor);
         var _ui = __webpack_require__( /*! ../widget/ui.errors */ 18);
         var _ui2 = _interopRequireDefault(_ui);
@@ -128691,6 +129055,16 @@
                 return _possibleConstructorReturn(this, (ExtImage.__proto__ || Object.getPrototypeOf(ExtImage)).apply(this, arguments))
             }
             _createClass(ExtImage, [{
+                key: "formats",
+                value: function formats() {
+                    var formats = _get(ExtImage.prototype.__proto__ || Object.getPrototypeOf(ExtImage.prototype), "formats", this).call(this);
+                    var floatValue = this.domNode.style.float;
+                    if (floatValue) {
+                        formats.float = floatValue
+                    }
+                    return formats
+                }
+            }, {
                 key: "format",
                 value: function(name, value) {
                     if ("float" === name) {
@@ -128718,13 +129092,7 @@
                 key: "formats",
                 value: function formats(domNode) {
                     var formats = _get(ExtImage.__proto__ || Object.getPrototypeOf(ExtImage), "formats", this).call(this, domNode);
-                    var src = domNode.getAttribute("src");
-                    if (src) {
-                        formats.src = src
-                    }
-                    if (domNode.style.float) {
-                        formats.float = domNode.style.float
-                    }
+                    formats.imageSrc = domNode.getAttribute("src");
                     return formats
                 }
             }, {
@@ -129165,7 +129533,7 @@
                         _this5._editorInstance.formDialogOption("title", (0, _message.format)(DIALOG_LINK_CAPTION));
                         var promise = _this5._editorInstance.showFormDialog({
                             formData: formData,
-                            items: _this5._getLinkFormItems()
+                            items: _this5._linkFormItems
                         });
                         promise.done(function(formData) {
                             if (selection && !formats.link) {
@@ -129175,7 +129543,7 @@
                                 formData.text = "";
                                 length && _this5.quill.deleteText(index, length, SILENT_ACTION);
                                 _this5.quill.insertText(index, text, "link", formData, USER_ACTION);
-                                _this5.quill.setSelection(index + text.length, 0)
+                                _this5.quill.setSelection(index + text.length, 0, USER_ACTION)
                             } else {
                                 _this5.quill.format("link", formData, USER_ACTION)
                             }
@@ -129186,76 +129554,36 @@
                     }
                 }
             }, {
-                key: "_getLinkFormItems",
-                value: function() {
-                    return [{
-                        dataField: "href",
-                        label: {
-                            text: (0, _message.format)(DIALOG_LINK_FIELD_URL)
-                        }
-                    }, {
-                        dataField: "text",
-                        label: {
-                            text: (0, _message.format)(DIALOG_LINK_FIELD_TEXT)
-                        }
-                    }, {
-                        dataField: "target",
-                        editorType: "dxCheckBox",
-                        editorOptions: {
-                            text: (0, _message.format)(DIALOG_LINK_FIELD_TARGET)
-                        },
-                        cssClass: DIALOG_LINK_FIELD_TARGET_CLASS,
-                        label: {
-                            visible: false
-                        }
-                    }]
-                }
-            }, {
                 key: "_prepareImageHandler",
                 value: function() {
                     var _this6 = this;
                     return function() {
                         var formData = _this6.quill.getFormat();
-                        var isUpdateDialog = formData.hasOwnProperty("src");
-                        var selection = _this6.quill.getSelection();
-                        var pasteIndex = selection && selection.index || _this6.quill.getLength();
+                        var isUpdateDialog = formData.hasOwnProperty("imageSrc");
+                        var defaultIndex = _this6._defaultPasteIndex;
+                        if (isUpdateDialog) {
+                            var _quill$getFormat = _this6.quill.getFormat(defaultIndex - 1, 1),
+                                imageSrc = _quill$getFormat.imageSrc;
+                            formData.src = formData.imageSrc;
+                            delete formData.imageSrc;
+                            if (!imageSrc || 0 === defaultIndex) {
+                                _this6.quill.setSelection(defaultIndex + 1, 0, SILENT_ACTION)
+                            }
+                        }
+                        var formatIndex = _this6._embedFormatIndex;
                         _this6._editorInstance.formDialogOption("title", (0, _message.format)(DIALOG_IMAGE_CAPTION));
-                        var formItems = [{
-                            dataField: "src",
-                            label: {
-                                text: (0, _message.format)(DIALOG_IMAGE_FIELD_URL)
-                            }
-                        }, {
-                            dataField: "width",
-                            label: {
-                                text: (0, _message.format)(DIALOG_IMAGE_FIELD_WIDTH)
-                            }
-                        }, {
-                            dataField: "height",
-                            label: {
-                                text: (0, _message.format)(DIALOG_IMAGE_FIELD_HEIGHT)
-                            }
-                        }, {
-                            dataField: "alt",
-                            label: {
-                                text: (0, _message.format)(DIALOG_IMAGE_FIELD_ALT)
-                            }
-                        }];
                         var promise = _this6._editorInstance.showFormDialog({
                             formData: formData,
-                            items: formItems
+                            items: _this6._imageFormItems
                         });
                         promise.done(function(formData) {
+                            var index = defaultIndex;
                             if (isUpdateDialog) {
-                                var formatIndex = selection && !selection.length && selection.index - 1 || pasteIndex;
-                                _this6.quill.formatText(formatIndex, 1, {
-                                    width: formData.width,
-                                    height: formData.height,
-                                    alt: formData.alt
-                                }, USER_ACTION)
-                            } else {
-                                _this6.quill.insertEmbed(pasteIndex, "extendedImage", formData, USER_ACTION)
+                                index = formatIndex;
+                                _this6.quill.deleteText(index, 1, SILENT_ACTION)
                             }
+                            _this6.quill.insertEmbed(index, "extendedImage", formData, USER_ACTION);
+                            _this6.quill.setSelection(index + 1, 0, USER_ACTION)
                         }).always(function() {
                             _this6.quill.focus()
                         })
@@ -129559,6 +129887,9 @@
                         case "script":
                             widgetName = formats[formatName] + formatName;
                             break;
+                        case "imageSrc":
+                            widgetName = "image";
+                            break;
                         default:
                             widgetName = formatName
                     }
@@ -129601,6 +129932,76 @@
                     if (formatWidget && "dxButton" === formatWidget.NAME) {
                         formatWidget.option("onClick", handler)
                     }
+                }
+            }, {
+                key: "_linkFormItems",
+                get: function() {
+                    return [{
+                        dataField: "href",
+                        label: {
+                            text: (0, _message.format)(DIALOG_LINK_FIELD_URL)
+                        }
+                    }, {
+                        dataField: "text",
+                        label: {
+                            text: (0, _message.format)(DIALOG_LINK_FIELD_TEXT)
+                        }
+                    }, {
+                        dataField: "target",
+                        editorType: "dxCheckBox",
+                        editorOptions: {
+                            text: (0, _message.format)(DIALOG_LINK_FIELD_TARGET)
+                        },
+                        cssClass: DIALOG_LINK_FIELD_TARGET_CLASS,
+                        label: {
+                            visible: false
+                        }
+                    }]
+                }
+            }, {
+                key: "_embedFormatIndex",
+                get: function() {
+                    var selection = this.quill.getSelection();
+                    if (selection) {
+                        if (selection.length) {
+                            return selection.index
+                        } else {
+                            return selection.index - 1
+                        }
+                    } else {
+                        return this.quill.getLength()
+                    }
+                }
+            }, {
+                key: "_defaultPasteIndex",
+                get: function() {
+                    var selection = this.quill.getSelection();
+                    return selection && selection.index || this.quill.getLength()
+                }
+            }, {
+                key: "_imageFormItems",
+                get: function() {
+                    return [{
+                        dataField: "src",
+                        label: {
+                            text: (0, _message.format)(DIALOG_IMAGE_FIELD_URL)
+                        }
+                    }, {
+                        dataField: "width",
+                        label: {
+                            text: (0, _message.format)(DIALOG_IMAGE_FIELD_WIDTH)
+                        }
+                    }, {
+                        dataField: "height",
+                        label: {
+                            text: (0, _message.format)(DIALOG_IMAGE_FIELD_HEIGHT)
+                        }
+                    }, {
+                        dataField: "alt",
+                        label: {
+                            text: (0, _message.format)(DIALOG_IMAGE_FIELD_ALT)
+                        }
+                    }]
                 }
             }, {
                 key: "toolbarConfig",
@@ -129866,7 +130267,7 @@
         var $ = __webpack_require__( /*! ../../core/renderer */ 2),
             ListStrategy = __webpack_require__( /*! ./ui.toolbar.strategy.list_base */ 315),
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
-            translator = __webpack_require__( /*! ../../animation/translator */ 24);
+            translator = __webpack_require__( /*! ../../animation/translator */ 23);
         var ListTopStrategy = ListStrategy.inherit({
             NAME: "listTop",
             _listOverlayConfig: function() {
@@ -130026,7 +130427,7 @@
         var _events_engine2 = _interopRequireDefault(_events_engine);
         var _utils = __webpack_require__( /*! ../../../events/utils */ 9);
         var _iterator = __webpack_require__( /*! ../../../core/utils/iterator */ 3);
-        var _browser = __webpack_require__( /*! ../../../core/utils/browser */ 35);
+        var _browser = __webpack_require__( /*! ../../../core/utils/browser */ 34);
         var _browser2 = _interopRequireDefault(_browser);
         var _window = __webpack_require__( /*! ../../../core/utils/window */ 6);
 
@@ -130098,12 +130499,17 @@
                 }
             }, {
                 key: "_pasteHandler",
-                value: function(e) {
+                value: function(_ref) {
                     var _this2 = this;
-                    var data = e.originalEvent.clipboardData;
-                    var hasDataItems = data && data.items && data.items.length;
-                    if (hasDataItems) {
-                        this._getImage(data.items, function(imageData) {
+                    var originalEvent = _ref.originalEvent;
+                    var clipboardData = originalEvent.clipboardData;
+                    if (!clipboardData) {
+                        return
+                    }
+                    var hasDataItems = clipboardData.items && clipboardData.items.length;
+                    var isHtmlData = clipboardData.getData("text/html");
+                    if (!isHtmlData && hasDataItems) {
+                        this._getImage(clipboardData.items, function(imageData) {
                             if (_browser2.default.mozilla) {
                                 return
                             }
@@ -130132,8 +130538,9 @@
                             return
                         }
                         var reader = new window.FileReader;
-                        reader.onload = function(e) {
-                            callback(e.target.result)
+                        reader.onload = function(_ref2) {
+                            var target = _ref2.target;
+                            callback(target.result)
                         };
                         var readableFile = file.getAsFile ? file.getAsFile() : file;
                         if (readableFile instanceof window.Blob) {
@@ -131184,7 +131591,7 @@
             Popover = __webpack_require__( /*! ./popover */ 136),
             TextBox = __webpack_require__( /*! ./text_box */ 99),
             ChildDefaultTemplate = __webpack_require__( /*! ./widget/child_default_template */ 100),
-            translator = __webpack_require__( /*! ../animation/translator */ 24);
+            translator = __webpack_require__( /*! ../animation/translator */ 23);
         var LOOKUP_CLASS = "dx-lookup",
             LOOKUP_SEARCH_CLASS = "dx-lookup-search",
             LOOKUP_SEARCH_WRAPPER_CLASS = "dx-lookup-search-wrapper",
@@ -131196,8 +131603,6 @@
             LOOKUP_POPUP_SEARCH_CLASS = "dx-lookup-popup-search",
             LOOKUP_POPOVER_MODE = "dx-lookup-popover-mode",
             LOOKUP_EMPTY_CLASS = "dx-lookup-empty",
-            LOOKUP_POPUP_VALIDATION_MESSAGE = "dx-lookup-validation-message",
-            LOOKUP_POPUP_INVALID_CLASS = "dx-lookup-invalid",
             LOOKUP_POPOVER_FLIP_VERTICAL_CLASS = "dx-popover-flipped-vertical";
         var POPUP_OPTION_MAP = {
             popupWidth: "width",
@@ -131443,16 +131848,6 @@
                 return this.option("selectedItem")
             },
             _popupShowingHandler: function() {
-                var validationError;
-                if (this._$popupValidationMessage) {
-                    validationError = this.option("validationError");
-                    if (validationError && validationError.message) {
-                        this._$popupValidationMessage.text(validationError.message);
-                        this._popup.$content().addClass(LOOKUP_POPUP_INVALID_CLASS)
-                    } else {
-                        this._popup.$content().removeClass(LOOKUP_POPUP_INVALID_CLASS)
-                    }
-                }
                 this.callBase.apply(this, arguments);
                 if (this.option("cleanSearchOnOpening")) {
                     if (this.option("searchEnabled") && this._searchBox.option("value")) {
@@ -131640,9 +132035,6 @@
                 return this._$searchBox || this.callBase()
             },
             _renderPopupContent: function() {
-                if ("dxPopup" === this._popup.NAME) {
-                    this._$popupValidationMessage = $("<div>").addClass(LOOKUP_POPUP_VALIDATION_MESSAGE).appendTo(this._popup.$content())
-                }
                 this.callBase();
                 this._renderSearch();
                 this._attachSearchChildProcessor()
@@ -131787,7 +132179,6 @@
             },
             _renderInputValue: function() {
                 return this.callBase().always(function() {
-                    this._renderField();
                     this._refreshSelected();
                     this._setSubmitValue()
                 }.bind(this))
@@ -131907,7 +132298,7 @@
             inArray = __webpack_require__( /*! ../core/utils/array */ 11).inArray,
             isNumeric = __webpack_require__( /*! ../core/utils/type */ 1).isNumeric,
             eventUtils = __webpack_require__( /*! ../events/utils */ 9),
-            pointerEvents = __webpack_require__( /*! ../events/pointer */ 27),
+            pointerEvents = __webpack_require__( /*! ../events/pointer */ 26),
             config = __webpack_require__( /*! ../core/config */ 25),
             wrapToArray = __webpack_require__( /*! ../core/utils/array */ 11).wrapToArray;
         var PROVIDERS = {
@@ -131993,7 +132384,7 @@
                 eventsEngine.on(this.$element(), eventName, this._cancelEvent.bind(this))
             },
             _cancelEvent: function(e) {
-                var cancelByProvider = this._provider && this._provider.isEventsCanceled() && !this.option("disabled");
+                var cancelByProvider = this._provider && this._provider.isEventsCanceled(e) && !this.option("disabled");
                 if (!config.designMode && cancelByProvider) {
                     e.stopPropagation()
                 }
@@ -132360,8 +132751,9 @@
             Color = __webpack_require__( /*! ../../color */ 91),
             ajax = __webpack_require__( /*! ../../core/utils/ajax */ 76),
             isDefined = __webpack_require__( /*! ../../core/utils/type */ 1).isDefined;
-        var GOOGLE_MAP_READY = "_googleScriptReady",
-            GOOGLE_URL = "https://maps.googleapis.com/maps/api/js?callback=" + GOOGLE_MAP_READY;
+        var GOOGLE_MAP_READY = "_googleScriptReady";
+        var GOOGLE_URL = "https://maps.googleapis.com/maps/api/js?callback=" + GOOGLE_MAP_READY;
+        var INFO_WINDOW_CLASS = "gm-style-iw";
         var CustomMarker;
         var initCustomMarkerClass = function() {
             CustomMarker = function(options) {
@@ -132500,14 +132892,11 @@
             _init: function() {
                 return new Promise(function(resolve) {
                     this._resolveLocation(this._option("center")).then(function(center) {
-                        var controls = this._option("controls");
+                        var showDefaultUI = this._option("controls");
                         this._map = new google.maps.Map(this._$container[0], {
                             zoom: this._option("zoom"),
                             center: center,
-                            panControl: controls,
-                            zoomControl: controls,
-                            mapTypeControl: controls,
-                            streetViewControl: controls
+                            disableDefaultUI: !showDefaultUI
                         });
                         var listener = google.maps.event.addListener(this._map, "idle", function() {
                             resolve(listener)
@@ -132564,18 +132953,16 @@
                 return Promise.resolve()
             },
             updateControls: function() {
-                var controls = this._option("controls");
+                var showDefaultUI = this._option("controls");
                 this._map.setOptions({
-                    panControl: controls,
-                    zoomControl: controls,
-                    mapTypeControl: controls,
-                    streetViewControl: controls
+                    disableDefaultUI: !showDefaultUI
                 });
                 return Promise.resolve()
             },
-            isEventsCanceled: function() {
+            isEventsCanceled: function(e) {
                 var gestureHandling = this._map && this._map.get("gestureHandling");
-                if ("desktop" !== devices.real().deviceType && "cooperative" === gestureHandling) {
+                var isInfoWindowContent = $(e.target).closest("." + INFO_WINDOW_CLASS).length > 0;
+                if (isInfoWindowContent || "desktop" !== devices.real().deviceType && "cooperative" === gestureHandling) {
                     return false
                 }
                 return this.callBase()
@@ -133243,7 +133630,6 @@
         var _renderer = __webpack_require__( /*! ../../core/renderer */ 2);
         var _renderer2 = _interopRequireDefault(_renderer);
         var _extend = __webpack_require__( /*! ../../core/utils/extend */ 0);
-        var _type = __webpack_require__( /*! ../../core/utils/type */ 1);
         var _devices = __webpack_require__( /*! ../../core/devices */ 16);
         var _devices2 = _interopRequireDefault(_devices);
         var _utils = __webpack_require__( /*! ../widget/utils.ink_ripple */ 72);
@@ -133254,11 +133640,11 @@
         var _themes2 = _interopRequireDefault(_themes);
         var _child_default_template = __webpack_require__( /*! ../widget/child_default_template */ 100);
         var _child_default_template2 = _interopRequireDefault(_child_default_template);
-        var _uiCollection_widget = __webpack_require__( /*! ../collection/ui.collection_widget.edit */ 47);
+        var _uiCollection_widget = __webpack_require__( /*! ../collection/ui.collection_widget.edit */ 48);
         var _uiCollection_widget2 = _interopRequireDefault(_uiCollection_widget);
         var _ui = __webpack_require__( /*! ../editor/ui.data_expression */ 216);
         var _ui2 = _interopRequireDefault(_ui);
-        var _editor = __webpack_require__( /*! ../editor/editor */ 45);
+        var _editor = __webpack_require__( /*! ../editor/editor */ 46);
         var _editor2 = _interopRequireDefault(_editor);
 
         function _interopRequireDefault(obj) {
@@ -133444,7 +133830,7 @@
             }, {
                 key: "_focusTarget",
                 value: function() {
-                    return this.$element().parent()
+                    return this.$element()
                 }
             }, {
                 key: "_getAriaTarget",
@@ -133466,12 +133852,6 @@
                 key: "_getItemValue",
                 value: function(item) {
                     return this._valueGetter ? this._valueGetter(item) : item.text
-                }
-            }, {
-                key: "_getSelectedItemKeys",
-                value: function() {
-                    var value = arguments.length > 0 && void 0 !== arguments[0] ? arguments[0] : this.option("value");
-                    return (0, _type.isDefined)(value) ? [value] : []
                 }
             }, {
                 key: "_getSubmitElement",
@@ -133542,7 +133922,7 @@
                             this._setCollectionWidgetOption("keyExpr", this._getCollectionKeyExpr());
                             break;
                         case "value":
-                            this._setCollectionWidgetOption("selectedItemKeys", this._getSelectedItemKeys(value));
+                            this._setCollectionWidgetOption("selectedItemKeys", [value]);
                             this._setSubmitValue(value);
                             _get(RadioGroup.prototype.__proto__ || Object.getPrototypeOf(RadioGroup.prototype), "_optionChanged", this).call(this, args);
                             break;
@@ -133565,9 +133945,6 @@
                     _get(RadioGroup.prototype.__proto__ || Object.getPrototypeOf(RadioGroup.prototype), "_render", this).call(this);
                     this._updateItemsSize()
                 }
-            }, {
-                key: "_renderFocusState",
-                value: function() {}
             }, {
                 key: "_renderInkRipple",
                 value: function() {
@@ -133605,7 +133982,7 @@
                         scrollingEnabled: false,
                         selectionByClick: false,
                         selectionMode: "single",
-                        selectedItemKeys: this._getSelectedItemKeys(),
+                        selectedItemKeys: [this.option("value")],
                         tabIndex: this.option("tabIndex")
                     })
                 }
@@ -133962,7 +134339,7 @@
             registerComponent = __webpack_require__( /*! ../../core/component_registrator */ 8),
             TrackBar = __webpack_require__( /*! ../track_bar */ 217),
             eventUtils = __webpack_require__( /*! ../../events/utils */ 9),
-            pointerEvents = __webpack_require__( /*! ../../events/pointer */ 27),
+            pointerEvents = __webpack_require__( /*! ../../events/pointer */ 26),
             feedbackEvents = __webpack_require__( /*! ../../events/core/emitter.feedback */ 101),
             SliderHandle = __webpack_require__( /*! ./ui.slider_handle */ 319),
             inkRipple = __webpack_require__( /*! ../widget/utils.ink_ripple */ 72),
@@ -134459,7 +134836,7 @@
             windowUtils = __webpack_require__( /*! ../core/utils/window */ 6),
             getPublicElement = __webpack_require__( /*! ../core/utils/dom */ 12).getPublicElement,
             ScrollView = __webpack_require__( /*! ./scroll_view */ 193),
-            CollectionWidget = __webpack_require__( /*! ./collection/ui.collection_widget.edit */ 47);
+            CollectionWidget = __webpack_require__( /*! ./collection/ui.collection_widget.edit */ 48);
         var TILEVIEW_CLASS = "dx-tileview",
             TILEVIEW_CONTAINER_CLASS = "dx-tileview-wrapper",
             TILEVIEW_ITEM_CLASS = "dx-tile",
@@ -134998,7 +135375,7 @@
         ui.dxValidationGroup = __webpack_require__( /*! ../../../ui/validation_group */ 314);
         ui.dxValidator = __webpack_require__( /*! ../../../ui/validator */ 195);
         __webpack_require__( /*! ../../../ui/html_editor/converters/markdown */ 573);
-        ui.CollectionWidget = __webpack_require__( /*! ../../../ui/collection/ui.collection_widget.edit */ 47);
+        ui.CollectionWidget = __webpack_require__( /*! ../../../ui/collection/ui.collection_widget.edit */ 48);
         ui.dxDropDownEditor = __webpack_require__( /*! ../../../ui/drop_down_editor/ui.drop_down_editor */ 157);
         module.exports = ui
     },
@@ -135013,7 +135390,7 @@
             noop = __webpack_require__( /*! ../core/utils/common */ 4).noop,
             fx = __webpack_require__( /*! ../animation/fx */ 31),
             clickEvent = __webpack_require__( /*! ../events/click */ 17),
-            translator = __webpack_require__( /*! ../animation/translator */ 24),
+            translator = __webpack_require__( /*! ../animation/translator */ 23),
             getPublicElement = __webpack_require__( /*! ../core/utils/dom */ 12).getPublicElement,
             hideTopOverlayCallback = __webpack_require__( /*! ../mobile/hide_top_overlay */ 139).hideCallback,
             registerComponent = __webpack_require__( /*! ../core/component_registrator */ 8),
@@ -135635,7 +136012,7 @@
         var $ = __webpack_require__( /*! ../../core/renderer */ 2),
             domAdapter = __webpack_require__( /*! ../../core/dom_adapter */ 13),
             eventsEngine = __webpack_require__( /*! ../../events/core/events_engine */ 5),
-            Guid = __webpack_require__( /*! ../../core/guid */ 48),
+            Guid = __webpack_require__( /*! ../../core/guid */ 44),
             registerComponent = __webpack_require__( /*! ../../core/component_registrator */ 8),
             noop = __webpack_require__( /*! ../../core/utils/common */ 4).noop,
             typeUtils = __webpack_require__( /*! ../../core/utils/type */ 1),
@@ -137087,11 +137464,11 @@
         var _iterator = __webpack_require__( /*! ../../core/utils/iterator */ 3);
         var _extend = __webpack_require__( /*! ../../core/utils/extend */ 0);
         var _console = __webpack_require__( /*! ../../core/utils/console */ 84);
-        var _browser = __webpack_require__( /*! ../../core/utils/browser */ 35);
+        var _browser = __webpack_require__( /*! ../../core/utils/browser */ 34);
         var _browser2 = _interopRequireDefault(_browser);
         var _ui = __webpack_require__( /*! ../widget/ui.widget */ 28);
         var _ui2 = _interopRequireDefault(_ui);
-        var _uiData_grid = __webpack_require__( /*! ./ui.data_grid.core */ 26);
+        var _uiData_grid = __webpack_require__( /*! ./ui.data_grid.core */ 27);
         var _uiData_grid2 = _interopRequireDefault(_uiData_grid);
         var _themes = __webpack_require__( /*! ../themes */ 20);
         var _themes2 = _interopRequireDefault(_themes);
@@ -137260,7 +137637,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var _uiData_grid = __webpack_require__( /*! ./ui.data_grid.core */ 26);
+        var _uiData_grid = __webpack_require__( /*! ./ui.data_grid.core */ 27);
         var _uiData_grid2 = _interopRequireDefault(_uiData_grid);
         var _uiGrid_core = __webpack_require__( /*! ../grid_core/ui.grid_core.column_headers */ 388);
         var _uiGrid_core2 = _interopRequireDefault(_uiGrid_core);
@@ -137279,7 +137656,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var _uiData_grid = __webpack_require__( /*! ./ui.data_grid.core */ 26);
+        var _uiData_grid = __webpack_require__( /*! ./ui.data_grid.core */ 27);
         var _uiData_grid2 = _interopRequireDefault(_uiData_grid);
         var _uiGrid_core = __webpack_require__( /*! ../grid_core/ui.grid_core.columns_controller */ 390);
         var _uiGrid_core2 = _interopRequireDefault(_uiGrid_core);
@@ -137307,7 +137684,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var _uiData_grid = __webpack_require__( /*! ./ui.data_grid.core */ 26);
+        var _uiData_grid = __webpack_require__( /*! ./ui.data_grid.core */ 27);
         var _uiData_grid2 = _interopRequireDefault(_uiData_grid);
         var _ui = __webpack_require__( /*! ../widget/ui.errors */ 18);
         var _ui2 = _interopRequireDefault(_ui);
@@ -137348,7 +137725,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var _uiData_grid = __webpack_require__( /*! ./ui.data_grid.core */ 26);
+        var _uiData_grid = __webpack_require__( /*! ./ui.data_grid.core */ 27);
         var _uiData_grid2 = _interopRequireDefault(_uiData_grid);
         var _uiGrid_core = __webpack_require__( /*! ../grid_core/ui.grid_core.sorting */ 393);
         var _uiGrid_core2 = _interopRequireDefault(_uiGrid_core);
@@ -137366,7 +137743,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var _uiData_grid = __webpack_require__( /*! ./ui.data_grid.core */ 26);
+        var _uiData_grid = __webpack_require__( /*! ./ui.data_grid.core */ 27);
         var _uiData_grid2 = _interopRequireDefault(_uiData_grid);
         var _uiGrid_core = __webpack_require__( /*! ../grid_core/ui.grid_core.rows */ 395);
         var _uiGrid_core2 = _interopRequireDefault(_uiGrid_core);
@@ -137385,7 +137762,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var _uiData_grid = __webpack_require__( /*! ./ui.data_grid.core */ 26);
+        var _uiData_grid = __webpack_require__( /*! ./ui.data_grid.core */ 27);
         var _uiData_grid2 = _interopRequireDefault(_uiData_grid);
         var _uiGrid_core = __webpack_require__( /*! ../grid_core/ui.grid_core.context_menu */ 396);
         var _uiGrid_core2 = _interopRequireDefault(_uiGrid_core);
@@ -137403,7 +137780,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var _uiData_grid = __webpack_require__( /*! ./ui.data_grid.core */ 26);
+        var _uiData_grid = __webpack_require__( /*! ./ui.data_grid.core */ 27);
         var _uiData_grid2 = _interopRequireDefault(_uiData_grid);
         var _uiGrid_core = __webpack_require__( /*! ../grid_core/ui.grid_core.error_handling */ 397);
         var _uiGrid_core2 = _interopRequireDefault(_uiGrid_core);
@@ -137421,7 +137798,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var _uiData_grid = __webpack_require__( /*! ./ui.data_grid.core */ 26);
+        var _uiData_grid = __webpack_require__( /*! ./ui.data_grid.core */ 27);
         var _uiData_grid2 = _interopRequireDefault(_uiData_grid);
         var _uiGrid_core = __webpack_require__( /*! ../grid_core/ui.grid_core.grid_view */ 398);
         var _uiGrid_core2 = _interopRequireDefault(_uiGrid_core);
@@ -137439,7 +137816,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var _uiData_grid = __webpack_require__( /*! ./ui.data_grid.core */ 26);
+        var _uiData_grid = __webpack_require__( /*! ./ui.data_grid.core */ 27);
         var _uiData_grid2 = _interopRequireDefault(_uiData_grid);
         var _uiGrid_core = __webpack_require__( /*! ../grid_core/ui.grid_core.header_panel */ 399);
         var _uiGrid_core2 = _interopRequireDefault(_uiGrid_core);
@@ -137458,7 +137835,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var _uiData_grid = __webpack_require__( /*! ./ui.data_grid.core */ 26);
+        var _uiData_grid = __webpack_require__( /*! ./ui.data_grid.core */ 27);
         var _uiData_grid2 = _interopRequireDefault(_uiData_grid);
         var _uiGrid_core = __webpack_require__( /*! ../grid_core/ui.grid_core.state_storing */ 400);
         var _uiGrid_core2 = _interopRequireDefault(_uiGrid_core);
@@ -137476,7 +137853,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var _uiData_grid = __webpack_require__( /*! ./ui.data_grid.core */ 26);
+        var _uiData_grid = __webpack_require__( /*! ./ui.data_grid.core */ 27);
         var _uiData_grid2 = _interopRequireDefault(_uiData_grid);
         var _uiGrid_core = __webpack_require__( /*! ../grid_core/ui.grid_core.selection */ 402);
         var _uiGrid_core2 = _interopRequireDefault(_uiGrid_core);
@@ -137494,7 +137871,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var _uiData_grid = __webpack_require__( /*! ./ui.data_grid.core */ 26);
+        var _uiData_grid = __webpack_require__( /*! ./ui.data_grid.core */ 27);
         var _uiData_grid2 = _interopRequireDefault(_uiData_grid);
         var _uiGrid_core = __webpack_require__( /*! ../grid_core/ui.grid_core.column_chooser */ 403);
         var _uiGrid_core2 = _interopRequireDefault(_uiGrid_core);
@@ -137514,12 +137891,21 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var registerComponent = __webpack_require__( /*! ../../core/component_registrator */ 8),
-            searchBoxMixin = __webpack_require__( /*! ../widget/ui.search_box_mixin */ 268),
-            extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
-            TreeViewBase = __webpack_require__( /*! ./ui.tree_view.base */ 599);
+        var _component_registrator = __webpack_require__( /*! ../../core/component_registrator */ 8);
+        var _component_registrator2 = _interopRequireDefault(_component_registrator);
+        var _ui = __webpack_require__( /*! ../widget/ui.search_box_mixin */ 268);
+        var _ui2 = _interopRequireDefault(_ui);
+        var _extend = __webpack_require__( /*! ../../core/utils/extend */ 0);
+        var _uiTree_view = __webpack_require__( /*! ./ui.tree_view.base */ 599);
+        var _uiTree_view2 = _interopRequireDefault(_uiTree_view);
+
+        function _interopRequireDefault(obj) {
+            return obj && obj.__esModule ? obj : {
+                "default": obj
+            }
+        }
         var NODE_CONTAINER_CLASS = "dx-treeview-node-container";
-        var TreeViewSearch = TreeViewBase.inherit(searchBoxMixin).inherit({
+        var TreeViewSearch = _uiTree_view2.default.inherit(_ui2.default).inherit({
             _addWidgetPrefix: function(className) {
                 return "dx-treeview-" + className
             },
@@ -137551,7 +137937,7 @@
                 this._setOptionSilent("expandNodesRecursive", true)
             },
             _getDataAdapterOptions: function() {
-                return extend(this.callBase(), {
+                return (0, _extend.extend)(this.callBase(), {
                     searchValue: this.option("searchValue"),
                     searchMode: this.option("searchMode") || "contains",
                     searchExpr: this.option("searchExpr")
@@ -137564,10 +137950,10 @@
                 }
             },
             _repaintContainer: function() {
-                var rootNodes, $container = this.$element().find("." + NODE_CONTAINER_CLASS).first();
+                var $container = this.$element().find("." + NODE_CONTAINER_CLASS).first();
                 if ($container.length) {
                     $container.empty();
-                    rootNodes = this._dataAdapter.getRootNodes();
+                    var rootNodes = this._dataAdapter.getRootNodes();
                     this._renderEmptyMessage(rootNodes);
                     this._renderItems($container, rootNodes);
                     this._fireContentReadyAction()
@@ -137587,7 +137973,7 @@
                 this._removeSearchBox()
             }
         });
-        registerComponent("dxTreeView", TreeViewSearch);
+        (0, _component_registrator2.default)("dxTreeView", TreeViewSearch);
         module.exports = TreeViewSearch
     },
     /*!****************************************************************!*\
@@ -137596,80 +137982,93 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var $ = __webpack_require__( /*! ../../core/renderer */ 2),
-            domAdapter = __webpack_require__( /*! ../../core/dom_adapter */ 13),
-            eventsEngine = __webpack_require__( /*! ../../events/core/events_engine */ 5),
-            messageLocalization = __webpack_require__( /*! ../../localization/message */ 14),
-            clickEvent = __webpack_require__( /*! ../../events/click */ 17),
-            commonUtils = __webpack_require__( /*! ../../core/utils/common */ 4),
-            windowUtils = __webpack_require__( /*! ../../core/utils/window */ 6),
-            typeUtils = __webpack_require__( /*! ../../core/utils/type */ 1),
-            extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
-            each = __webpack_require__( /*! ../../core/utils/iterator */ 3).each,
-            getPublicElement = __webpack_require__( /*! ../../core/utils/dom */ 12).getPublicElement,
-            CheckBox = __webpack_require__( /*! ../check_box */ 126),
-            HierarchicalCollectionWidget = __webpack_require__( /*! ../hierarchical_collection/ui.hierarchical_collection_widget */ 387),
-            eventUtils = __webpack_require__( /*! ../../events/utils */ 9),
-            pointerEvents = __webpack_require__( /*! ../../events/pointer */ 27),
-            dblclickEvent = __webpack_require__( /*! ../../events/double_click */ 213),
-            fx = __webpack_require__( /*! ../../animation/fx */ 31),
-            Scrollable = __webpack_require__( /*! ../scroll_view/ui.scrollable */ 96),
-            LoadIndicator = __webpack_require__( /*! ../load_indicator */ 89),
-            deferredUtils = __webpack_require__( /*! ../../core/utils/deferred */ 7),
-            Deferred = deferredUtils.Deferred,
-            when = deferredUtils.when;
-        var WIDGET_CLASS = "dx-treeview",
-            NODE_CONTAINER_CLASS = "dx-treeview-node-container",
-            OPENED_NODE_CONTAINER_CLASS = "dx-treeview-node-container-opened",
-            NODE_CLASS = "dx-treeview-node",
-            ITEM_CLASS = "dx-treeview-item",
-            ITEM_WITH_CHECKBOX_CLASS = "dx-treeview-item-with-checkbox",
-            ITEM_WITHOUT_CHECKBOX_CLASS = "dx-treeview-item-without-checkbox",
-            ITEM_DATA_KEY = "dx-treeview-item-data",
-            IS_LEAF = "dx-treeview-node-is-leaf",
-            EXPAND_EVENT_NAMESPACE = "dxTreeView_expand",
-            TOGGLE_ITEM_VISIBILITY_CLASS = "dx-treeview-toggle-item-visibility",
-            LOAD_INDICATOR_CLASS = "dx-treeview-loadindicator",
-            LOAD_INDICATOR_WRAPPER_CLASS = "dx-treeview-loadindicator-wrapper",
-            NODE_LOAD_INDICATOR_CLASS = "dx-treeview-node-loadindicator",
-            TOGGLE_ITEM_VISIBILITY_OPENED_CLASS = "dx-treeview-toggle-item-visibility-opened",
-            SELECT_ALL_ITEM_CLASS = "dx-treeview-select-all-item",
-            DISABLED_STATE_CLASS = "dx-state-disabled",
-            SELECTED_ITEM_CLASS = "dx-state-selected",
-            DATA_ITEM_ID = "data-item-id";
-        var TreeViewBase = HierarchicalCollectionWidget.inherit({
+        var _renderer = __webpack_require__( /*! ../../core/renderer */ 2);
+        var _renderer2 = _interopRequireDefault(_renderer);
+        var _dom_adapter = __webpack_require__( /*! ../../core/dom_adapter */ 13);
+        var _events_engine = __webpack_require__( /*! ../../events/core/events_engine */ 5);
+        var _message = __webpack_require__( /*! ../../localization/message */ 14);
+        var _click = __webpack_require__( /*! ../../events/click */ 17);
+        var _click2 = _interopRequireDefault(_click);
+        var _common = __webpack_require__( /*! ../../core/utils/common */ 4);
+        var _window = __webpack_require__( /*! ../../core/utils/window */ 6);
+        var _type = __webpack_require__( /*! ../../core/utils/type */ 1);
+        var _extend = __webpack_require__( /*! ../../core/utils/extend */ 0);
+        var _iterator = __webpack_require__( /*! ../../core/utils/iterator */ 3);
+        var _dom = __webpack_require__( /*! ../../core/utils/dom */ 12);
+        var _check_box = __webpack_require__( /*! ../check_box */ 126);
+        var _check_box2 = _interopRequireDefault(_check_box);
+        var _ui = __webpack_require__( /*! ../hierarchical_collection/ui.hierarchical_collection_widget */ 387);
+        var _ui2 = _interopRequireDefault(_ui);
+        var _utils = __webpack_require__( /*! ../../events/utils */ 9);
+        var _pointer = __webpack_require__( /*! ../../events/pointer */ 26);
+        var _double_click = __webpack_require__( /*! ../../events/double_click */ 213);
+        var _double_click2 = _interopRequireDefault(_double_click);
+        var _fx = __webpack_require__( /*! ../../animation/fx */ 31);
+        var _fx2 = _interopRequireDefault(_fx);
+        var _ui3 = __webpack_require__( /*! ../scroll_view/ui.scrollable */ 96);
+        var _ui4 = _interopRequireDefault(_ui3);
+        var _load_indicator = __webpack_require__( /*! ../load_indicator */ 89);
+        var _load_indicator2 = _interopRequireDefault(_load_indicator);
+        var _deferred = __webpack_require__( /*! ../../core/utils/deferred */ 7);
+
+        function _interopRequireDefault(obj) {
+            return obj && obj.__esModule ? obj : {
+                "default": obj
+            }
+        }
+        var WIDGET_CLASS = "dx-treeview";
+        var NODE_CONTAINER_CLASS = "dx-treeview-node-container";
+        var OPENED_NODE_CONTAINER_CLASS = "dx-treeview-node-container-opened";
+        var NODE_CLASS = "dx-treeview-node";
+        var ITEM_CLASS = "dx-treeview-item";
+        var ITEM_WITH_CHECKBOX_CLASS = "dx-treeview-item-with-checkbox";
+        var ITEM_WITHOUT_CHECKBOX_CLASS = "dx-treeview-item-without-checkbox";
+        var ITEM_DATA_KEY = "dx-treeview-item-data";
+        var IS_LEAF = "dx-treeview-node-is-leaf";
+        var EXPAND_EVENT_NAMESPACE = "dxTreeView_expand";
+        var TOGGLE_ITEM_VISIBILITY_CLASS = "dx-treeview-toggle-item-visibility";
+        var LOAD_INDICATOR_CLASS = "dx-treeview-loadindicator";
+        var LOAD_INDICATOR_WRAPPER_CLASS = "dx-treeview-loadindicator-wrapper";
+        var NODE_LOAD_INDICATOR_CLASS = "dx-treeview-node-loadindicator";
+        var TOGGLE_ITEM_VISIBILITY_OPENED_CLASS = "dx-treeview-toggle-item-visibility-opened";
+        var SELECT_ALL_ITEM_CLASS = "dx-treeview-select-all-item";
+        var DISABLED_STATE_CLASS = "dx-state-disabled";
+        var SELECTED_ITEM_CLASS = "dx-state-selected";
+        var DATA_ITEM_ID = "data-item-id";
+        var TreeViewBase = _ui2.default.inherit({
             _supportedKeys: function(e) {
+                var _this = this;
                 var click = function(e) {
-                    var $itemElement = $(this.option("focusedElement"));
+                    var $itemElement = (0, _renderer2.default)(_this.option("focusedElement"));
                     if (!$itemElement.length) {
                         return
                     }
                     e.target = $itemElement;
                     e.currentTarget = $itemElement;
-                    this._itemClickHandler(e, $itemElement.children("." + ITEM_CLASS));
-                    var expandEventName = this._getEventNameByOption(this.option("expandEvent")),
-                        expandByClick = expandEventName === eventUtils.addNamespace(clickEvent.name, EXPAND_EVENT_NAMESPACE);
+                    _this._itemClickHandler(e, $itemElement.children("." + ITEM_CLASS));
+                    var expandEventName = _this._getEventNameByOption(_this.option("expandEvent")),
+                        expandByClick = expandEventName === (0, _utils.addNamespace)(_click2.default.name, EXPAND_EVENT_NAMESPACE);
                     if (expandByClick) {
-                        this._expandEventHandler(e)
+                        _this._expandEventHandler(e)
                     }
                 };
                 var select = function(e) {
                     e.preventDefault();
-                    this._changeCheckBoxState($(this.option("focusedElement")))
+                    _this._changeCheckBoxState((0, _renderer2.default)(_this.option("focusedElement")))
                 };
                 var toggleExpandedNestedItems = function(state, e) {
-                    if (!this.option("expandAllEnabled")) {
+                    if (!_this.option("expandAllEnabled")) {
                         return
                     }
                     e.preventDefault();
-                    var $rootElement = $(this.option("focusedElement"));
+                    var $rootElement = (0, _renderer2.default)(_this.option("focusedElement"));
                     if (!$rootElement.length) {
                         return
                     }
-                    var rootItem = this._getItemData($rootElement.find("." + ITEM_CLASS));
-                    this._toggleExpandedNestedItems([rootItem], state)
+                    var rootItem = _this._getItemData($rootElement.find("." + ITEM_CLASS));
+                    _this._toggleExpandedNestedItems([rootItem], state)
                 };
-                return extend(this.callBase(), {
+                return (0, _extend.extend)(this.callBase(), {
                     enter: this._showCheckboxes() ? select : click,
                     space: this._showCheckboxes() ? select : click,
                     asterisk: toggleExpandedNestedItems.bind(this, true),
@@ -137695,17 +138094,17 @@
                 }
             },
             _getNodeElement: function(node, cache) {
-                var normalizedKey = commonUtils.normalizeKey(node.internalFields.key);
+                var normalizedKey = (0, _common.normalizeKey)(node.internalFields.key);
                 if (cache) {
                     if (!cache.$nodeByKey) {
                         cache.$nodeByKey = {};
                         this.$element().find(".dx-treeview-node").each(function() {
-                            var $node = $(this),
+                            var $node = (0, _renderer2.default)(this),
                                 key = $node.attr(DATA_ITEM_ID);
                             cache.$nodeByKey[key] = $node
                         })
                     }
-                    return cache.$nodeByKey[normalizedKey] || $()
+                    return cache.$nodeByKey[normalizedKey] || (0, _renderer2.default)()
                 }
                 return this.$element().find("[" + DATA_ITEM_ID + "='" + normalizedKey + "']")
             },
@@ -137714,7 +138113,7 @@
                 return WIDGET_CLASS
             },
             _getDefaultOptions: function() {
-                return extend(this.callBase(), {
+                return (0, _extend.extend)(this.callBase(), {
                     animationEnabled: true,
                     dataStructure: "tree",
                     deferRendering: true,
@@ -137723,7 +138122,7 @@
                     selectNodesRecursive: true,
                     expandNodesRecursive: true,
                     showCheckBoxesMode: "none",
-                    selectAllText: messageLocalization.format("dxList-selectAll"),
+                    selectAllText: (0, _message.format)("dxList-selectAll"),
                     onItemSelectionChanged: null,
                     onItemExpanded: null,
                     onItemCollapsed: null,
@@ -137738,11 +138137,11 @@
                     onSelectAllValueChanged: null
                 })
             },
-            _initSelectedItems: commonUtils.noop,
-            _syncSelectionOptions: commonUtils.asyncNoop,
+            _initSelectedItems: _common.noop,
+            _syncSelectionOptions: _common.asyncNoop,
             _fireSelectionChanged: function() {
                 var selectionChangePromise = this._selectionChangePromise;
-                when(selectionChangePromise).done(function() {
+                (0, _deferred.when)(selectionChangePromise).done(function() {
                     this._createActionByOption("onSelectionChanged", {
                         excludeValidators: ["disabled", "readOnly"]
                     })()
@@ -137777,7 +138176,7 @@
             },
             _removeSelection: function() {
                 var that = this;
-                each(this._dataAdapter.getFullData(), function(_, node) {
+                (0, _iterator.each)(this._dataAdapter.getFullData(), function(_, node) {
                     if (!that._hasChildren(node)) {
                         return
                     }
@@ -137841,39 +138240,39 @@
                 }
             },
             _initDataSource: function() {
+                var _this2 = this;
                 if (this._useCustomChildrenLoader()) {
                     this._loadChildrenByCustomLoader(null).done(function(newItems) {
                         if (newItems && newItems.length) {
-                            this.option("items", newItems)
+                            _this2.option("items", newItems)
                         }
-                    }.bind(this))
+                    })
                 } else {
                     this.callBase();
                     this._isVirtualMode() && this._initVirtualMode()
                 }
             },
             _initVirtualMode: function() {
-                var that = this,
-                    filter = that._filter;
+                var filter = this._filter;
                 if (!filter.custom) {
-                    filter.custom = that._dataSource.filter()
+                    filter.custom = this._dataSource.filter()
                 }
                 if (!filter.internal) {
-                    filter.internal = [that.option("parentIdExpr"), that.option("rootValue")]
+                    filter.internal = [this.option("parentIdExpr"), this.option("rootValue")]
                 }
             },
             _useCustomChildrenLoader: function() {
-                return typeUtils.isFunction(this.option("createChildren")) && this._isDataStructurePlain()
+                return (0, _type.isFunction)(this.option("createChildren")) && this._isDataStructurePlain()
             },
             _loadChildrenByCustomLoader: function(parentNode) {
                 var invocationResult = this.option("createChildren").call(this, parentNode);
                 if (Array.isArray(invocationResult)) {
-                    return (new Deferred).resolve(invocationResult).promise()
+                    return (new _deferred.Deferred).resolve(invocationResult).promise()
                 }
-                if (invocationResult && typeUtils.isFunction(invocationResult.then)) {
-                    return deferredUtils.fromPromise(invocationResult)
+                if (invocationResult && (0, _type.isFunction)(invocationResult.then)) {
+                    return (0, _deferred.fromPromise)(invocationResult)
                 }
-                return (new Deferred).resolve([]).promise()
+                return (new _deferred.Deferred).resolve([]).promise()
             },
             _combineFilter: function() {
                 if (!this._filter.custom || !this._filter.custom.length) {
@@ -137903,19 +138302,19 @@
                 this._treeViewLoadIndicator = null
             },
             _createTreeViewLoadIndicator: function() {
-                this._treeViewLoadIndicator = $("<div>").addClass(LOAD_INDICATOR_CLASS);
-                this._createComponent(this._treeViewLoadIndicator, LoadIndicator, {});
+                this._treeViewLoadIndicator = (0, _renderer2.default)("<div>").addClass(LOAD_INDICATOR_CLASS);
+                this._createComponent(this._treeViewLoadIndicator, _load_indicator2.default, {});
                 return this._treeViewLoadIndicator
             },
             _dataSourceLoadingChangedHandler: function(isLoading) {
-                var resultFilter;
+                var resultFilter = void 0;
                 if (this._isVirtualMode()) {
                     resultFilter = this._combineFilter();
                     this._dataSource.filter(resultFilter)
                 }
                 if (isLoading && !this._dataSource.isLoaded()) {
                     this.option("items", []);
-                    var $wrapper = $("<div>").addClass(LOAD_INDICATOR_WRAPPER_CLASS);
+                    var $wrapper = (0, _renderer2.default)("<div>").addClass(LOAD_INDICATOR_WRAPPER_CLASS);
                     this._createTreeViewLoadIndicator().appendTo($wrapper);
                     this.itemsContainer().append($wrapper);
                     if (this._isVirtualMode() && this._dataSource.filter() !== resultFilter) {
@@ -137926,41 +138325,41 @@
                 }
             },
             _initStoreChangeHandlers: function() {
+                var _this3 = this;
                 if ("plain" !== this.option("dataStructure")) {
                     return
                 }
-                var that = this;
                 this._dataSource && this._dataSource.store().on("inserted", function(newItem) {
-                    that.option().items = that.option("items").concat(newItem);
-                    that._dataAdapter.addItem(newItem);
-                    if (!that._dataAdapter.isFiltered(newItem)) {
+                    _this3.option().items = _this3.option("items").concat(newItem);
+                    _this3._dataAdapter.addItem(newItem);
+                    if (!_this3._dataAdapter.isFiltered(newItem)) {
                         return
                     }
-                    that._updateLevel(that._parentIdGetter(newItem))
+                    _this3._updateLevel(_this3._parentIdGetter(newItem))
                 }).on("removed", function(removedKey) {
-                    var node = that._dataAdapter.getNodeByKey(removedKey);
-                    that.option("items")[that._dataAdapter.getIndexByKey(node.internalFields.key)] = 0;
-                    that._markChildrenItemsToRemove(node);
-                    that._removeItems();
-                    that._dataAdapter.removeItem(removedKey);
-                    that._updateLevel(that._parentIdGetter(node))
+                    var node = _this3._dataAdapter.getNodeByKey(removedKey);
+                    _this3.option("items")[_this3._dataAdapter.getIndexByKey(node.internalFields.key)] = 0;
+                    _this3._markChildrenItemsToRemove(node);
+                    _this3._removeItems();
+                    _this3._dataAdapter.removeItem(removedKey);
+                    _this3._updateLevel(_this3._parentIdGetter(node))
                 })
             },
             _markChildrenItemsToRemove: function(node) {
-                var that = this,
-                    keys = node.internalFields.childrenKeys;
-                each(keys, function(_, key) {
-                    that.option("items")[that._dataAdapter.getIndexByKey(key)] = 0;
-                    that._markChildrenItemsToRemove(that._dataAdapter.getNodeByKey(key))
+                var _this4 = this;
+                var keys = node.internalFields.childrenKeys;
+                (0, _iterator.each)(keys, function(_, key) {
+                    _this4.option("items")[_this4._dataAdapter.getIndexByKey(key)] = 0;
+                    _this4._markChildrenItemsToRemove(_this4._dataAdapter.getNodeByKey(key))
                 })
             },
             _removeItems: function() {
-                var that = this,
-                    counter = 0,
-                    items = extend(true, [], this.option("items"));
-                each(items, function(index, item) {
+                var _this5 = this;
+                var items = (0, _extend.extend)(true, [], this.option("items"));
+                var counter = 0;
+                (0, _iterator.each)(items, function(index, item) {
                     if (!item) {
-                        that.option("items").splice(index - counter, 1);
+                        _this5.option("items").splice(index - counter, 1);
                         counter++
                     }
                 })
@@ -137976,13 +138375,13 @@
                 if (this._scrollableContainer) {
                     return this._scrollableContainer.$content().children()
                 }
-                return $()
+                return (0, _renderer2.default)()
             },
             _getContainerByParentKey: function(parentId) {
-                var $container, node = this._dataAdapter.getNodeByKey(parentId),
-                    $itemElement = node ? this._getNodeElement(node) : [];
+                var node = this._dataAdapter.getNodeByKey(parentId);
+                var $itemElement = node ? this._getNodeElement(node) : [];
                 this._getOldContainer($itemElement).remove();
-                $container = this._renderNodeContainer($itemElement);
+                var $container = this._renderNodeContainer($itemElement);
                 if (this._isRootLevel(parentId)) {
                     if (!this._scrollableContainer) {
                         this._renderScrollableContainer()
@@ -138034,19 +138433,23 @@
                 return "plain" === this.option("dataStructure")
             },
             _fireContentReadyAction: function() {
-                this.callBase();
-                if (this._scrollableContainer && windowUtils.hasWindow()) {
+                var dataSource = this.getDataSource();
+                var skipContentReadyAction = dataSource && !dataSource.isLoaded();
+                if (!skipContentReadyAction) {
+                    this.callBase()
+                }
+                if (this._scrollableContainer && (0, _window.hasWindow)()) {
                     this._scrollableContainer.update()
                 }
             },
             _renderScrollableContainer: function() {
-                this._scrollableContainer = this._createComponent($("<div>").appendTo(this.$element()), Scrollable, {
+                this._scrollableContainer = this._createComponent((0, _renderer2.default)("<div>").appendTo(this.$element()), _ui4.default, {
                     direction: this.option("scrollDirection"),
                     useKeyboard: false
                 })
             },
             _renderNodeContainer: function($parent) {
-                var $container = $("<ul>").addClass(NODE_CONTAINER_CLASS);
+                var $container = (0, _renderer2.default)("<ul>").addClass(NODE_CONTAINER_CLASS);
                 this.setAria("role", "group", $container);
                 if ($parent && $parent.length) {
                     var itemData = this._getItemData($parent.children("." + ITEM_CLASS));
@@ -138058,7 +138461,7 @@
                 return $container
             },
             _createDOMElement: function($nodeContainer, node) {
-                var $node = $("<li>").addClass(NODE_CLASS).attr(DATA_ITEM_ID, commonUtils.normalizeKey(node.internalFields.key)).prependTo($nodeContainer);
+                var $node = (0, _renderer2.default)("<li>").addClass(NODE_CLASS).attr(DATA_ITEM_ID, (0, _common.normalizeKey)(node.internalFields.key)).prependTo($nodeContainer);
                 this.setAria({
                     role: "treeitem",
                     label: this._displayGetter(node.internalFields.item) || "",
@@ -138085,9 +138488,9 @@
                 this._renderFocusTarget()
             },
             _renderItem: function(node, $nodeContainer) {
-                var $node = this._createDOMElement($nodeContainer, node),
-                    nodeData = node.internalFields,
-                    showCheckBox = this._showCheckboxes();
+                var $node = this._createDOMElement($nodeContainer, node);
+                var nodeData = node.internalFields;
+                var showCheckBox = this._showCheckboxes();
                 $node.addClass(showCheckBox ? ITEM_WITH_CHECKBOX_CLASS : ITEM_WITHOUT_CHECKBOX_CLASS);
                 showCheckBox && this._renderCheckBox($node, node);
                 this.setAria("selected", nodeData.selected, $node);
@@ -138098,6 +138501,7 @@
                 }
             },
             _renderChildren: function($node, node) {
+                var _this6 = this;
                 if (!this._hasChildren(node)) {
                     this._addLeafClass($node);
                     return
@@ -138106,9 +138510,8 @@
                 if (this.option("deferRendering") && !node.internalFields.expanded) {
                     return
                 }
-                var that = this;
-                that._loadSublevel(node).done(function(childNodes) {
-                    that._renderSublevel($node, that._getActualNode(node), childNodes)
+                this._loadSublevel(node).done(function(childNodes) {
+                    _this6._renderSublevel($node, _this6._getActualNode(node), childNodes)
                 })
             },
             _getActualNode: function(cachedNode) {
@@ -138121,14 +138524,14 @@
                 return this.callBase(node)
             },
             _loadSublevel: function(node) {
-                var deferred = new Deferred,
-                    that = this,
-                    childrenNodes = that._getChildNodes(node);
+                var _this7 = this;
+                var deferred = new _deferred.Deferred;
+                var childrenNodes = this._getChildNodes(node);
                 if (childrenNodes.length) {
                     deferred.resolve(childrenNodes)
                 } else {
-                    that._loadNestedItems(node).done(function(items) {
-                        deferred.resolve(that._dataAdapter.getNodesByItems(items))
+                    this._loadNestedItems(node).done(function(items) {
+                        deferred.resolve(_this7._dataAdapter.getNodesByItems(items))
                     })
                 }
                 return deferred.promise()
@@ -138158,53 +138561,53 @@
                 $node.addClass(IS_LEAF)
             },
             _expandEventHandler: function(e) {
-                var $nodeElement = $(e.currentTarget.parentNode);
+                var $nodeElement = (0, _renderer2.default)(e.currentTarget.parentNode);
                 if (!$nodeElement.hasClass(IS_LEAF)) {
                     this._toggleExpandedState(e.currentTarget, void 0, e)
                 }
             },
             _initExpandEvent: function() {
-                var expandedEventName = this._getEventNameByOption(this.option("expandEvent")),
-                    $itemsContainer = this._itemContainer(),
-                    itemSelector = this._itemSelector();
-                eventsEngine.off($itemsContainer, "." + EXPAND_EVENT_NAMESPACE, itemSelector);
-                eventsEngine.on($itemsContainer, expandedEventName, itemSelector, this._expandEventHandler.bind(this))
+                var expandedEventName = this._getEventNameByOption(this.option("expandEvent"));
+                var $itemsContainer = this._itemContainer();
+                var itemSelector = this._itemSelector();
+                (0, _events_engine.off)($itemsContainer, "." + EXPAND_EVENT_NAMESPACE, itemSelector);
+                (0, _events_engine.on)($itemsContainer, expandedEventName, itemSelector, this._expandEventHandler.bind(this))
             },
             _getEventNameByOption: function(name) {
-                var event = "click" === name ? clickEvent : dblclickEvent;
-                return eventUtils.addNamespace(event.name, EXPAND_EVENT_NAMESPACE)
+                var event = "click" === name ? _click2.default : _double_click2.default;
+                return (0, _utils.addNamespace)(event.name, EXPAND_EVENT_NAMESPACE)
             },
             _getNode: function(identifier) {
-                if (!typeUtils.isDefined(identifier)) {
+                if (!(0, _type.isDefined)(identifier)) {
                     return null
                 }
                 if (identifier.internalFields) {
                     return identifier
                 }
-                if (typeUtils.isPrimitive(identifier)) {
+                if ((0, _type.isPrimitive)(identifier)) {
                     return this._dataAdapter.getNodeByKey(identifier)
                 }
-                var itemElement = $(identifier).get(0);
+                var itemElement = (0, _renderer2.default)(identifier).get(0);
                 if (!itemElement) {
                     return null
                 }
-                if (domAdapter.isElementNode(itemElement)) {
+                if ((0, _dom_adapter.isElementNode)(itemElement)) {
                     return this._getNodeByElement(itemElement)
                 }
                 return this._dataAdapter.getNodeByItem(itemElement)
             },
             _getNodeByElement: function(itemElement) {
-                var $node = $(itemElement).closest("." + NODE_CLASS),
-                    key = commonUtils.denormalizeKey($node.attr(DATA_ITEM_ID));
+                var $node = (0, _renderer2.default)(itemElement).closest("." + NODE_CLASS);
+                var key = (0, _common.denormalizeKey)($node.attr(DATA_ITEM_ID));
                 return this._dataAdapter.getNodeByKey(key)
             },
             _toggleExpandedState: function(itemElement, state, e) {
-                var node = this._getNode(itemElement),
-                    currentState = node.internalFields.expanded;
+                var node = this._getNode(itemElement);
+                var currentState = node.internalFields.expanded;
                 if (node.internalFields.disabled || currentState === state) {
                     return
                 }
-                if (!typeUtils.isDefined(state)) {
+                if (!(0, _type.isDefined)(state)) {
                     state = !currentState
                 }
                 this._dataAdapter.toggleExpansion(node.internalFields.key, state);
@@ -138216,16 +138619,16 @@
                 this._updateExpandedItemsUI(node, state, e)
             },
             _createLoadIndicator: function($node) {
-                var $icon = $node.children("." + TOGGLE_ITEM_VISIBILITY_CLASS),
-                    $nodeContainer = $node.children("." + NODE_CONTAINER_CLASS);
+                var $icon = $node.children("." + TOGGLE_ITEM_VISIBILITY_CLASS);
+                var $nodeContainer = $node.children("." + NODE_CONTAINER_CLASS);
                 if ($icon.hasClass(TOGGLE_ITEM_VISIBILITY_OPENED_CLASS) || $nodeContainer.not(":empty").length) {
                     return
                 }
-                this._createComponent($("<div>").addClass(NODE_LOAD_INDICATOR_CLASS), LoadIndicator, {}).$element().appendTo($node);
+                this._createComponent((0, _renderer2.default)("<div>").addClass(NODE_LOAD_INDICATOR_CLASS), _load_indicator2.default, {}).$element().appendTo($node);
                 $icon.hide()
             },
             _renderToggleItemVisibilityIcon: function($node, node) {
-                var $icon = $("<div>").addClass(TOGGLE_ITEM_VISIBILITY_CLASS).appendTo($node);
+                var $icon = (0, _renderer2.default)("<div>").addClass(TOGGLE_ITEM_VISIBILITY_CLASS).appendTo($node);
                 if (node.internalFields.expanded) {
                     $icon.addClass(TOGGLE_ITEM_VISIBILITY_OPENED_CLASS);
                     $node.parent().addClass(OPENED_NODE_CONTAINER_CLASS)
@@ -138236,11 +138639,11 @@
                 this._renderToggleItemVisibilityIconClick($icon, node)
             },
             _renderToggleItemVisibilityIconClick: function($icon, node) {
-                var that = this;
-                var eventName = eventUtils.addNamespace(clickEvent.name, that.NAME);
-                eventsEngine.off($icon, eventName);
-                eventsEngine.on($icon, eventName, function(e) {
-                    that._toggleExpandedState(node.internalFields.key, void 0, e)
+                var _this8 = this;
+                var eventName = (0, _utils.addNamespace)(_click2.default.name, this.NAME);
+                (0, _events_engine.off)($icon, eventName);
+                (0, _events_engine.on)($icon, eventName, function(e) {
+                    _this8._toggleExpandedState(node.internalFields.key, void 0, e)
                 })
             },
             _updateExpandedItemsUI: function(node, state, e) {
@@ -138269,42 +138672,42 @@
                 this._updateExpandedItem(node, state, e)
             },
             _loadNestedItemsWithUpdate: function(node, state, e) {
-                var that = this,
-                    $node = this._getNodeElement(node);
-                that._loadNestedItems(node).done(function(items) {
-                    var actualNodeData = that._getActualNode(node);
-                    that._renderSublevel($node, actualNodeData, that._dataAdapter.getNodesByItems(items));
+                var _this9 = this;
+                var $node = this._getNodeElement(node);
+                this._loadNestedItems(node).done(function(items) {
+                    var actualNodeData = _this9._getActualNode(node);
+                    _this9._renderSublevel($node, actualNodeData, _this9._dataAdapter.getNodesByItems(items));
                     if (!items || !items.length) {
                         return
                     }
-                    that._fireContentReadyAction();
-                    that._updateExpandedItem(actualNodeData, state, e)
+                    _this9._fireContentReadyAction();
+                    _this9._updateExpandedItem(actualNodeData, state, e)
                 })
             },
             _loadNestedItems: function(node) {
-                var that = this;
-                if (that._useCustomChildrenLoader()) {
+                var _this10 = this;
+                if (this._useCustomChildrenLoader()) {
                     var publicNode = this._dataAdapter.getPublicNode(node);
-                    return that._loadChildrenByCustomLoader(publicNode).done(function(newItems) {
-                        if (!that._areNodesExists(newItems)) {
-                            that._appendItems(newItems)
+                    return this._loadChildrenByCustomLoader(publicNode).done(function(newItems) {
+                        if (!_this10._areNodesExists(newItems)) {
+                            _this10._appendItems(newItems)
                         }
                     })
                 }
-                if (!that._isVirtualMode()) {
-                    return (new Deferred).resolve([]).promise()
+                if (!this._isVirtualMode()) {
+                    return (new _deferred.Deferred).resolve([]).promise()
                 }
-                that._filter.internal = [that.option("parentIdExpr"), node.internalFields.key];
-                that._dataSource.filter(that._combineFilter());
-                return that._dataSource.load().done(function(newItems) {
-                    if (!that._areNodesExists(newItems)) {
-                        that._appendItems(newItems)
+                this._filter.internal = [this.option("parentIdExpr"), node.internalFields.key];
+                this._dataSource.filter(this._combineFilter());
+                return this._dataSource.load().done(function(newItems) {
+                    if (!_this10._areNodesExists(newItems)) {
+                        _this10._appendItems(newItems)
                     }
                 })
             },
-            _areNodesExists: function(newItems, items) {
-                var keyOfRootItem = this.keyOf(newItems[0]),
-                    fullData = this._dataAdapter.getFullData();
+            _areNodesExists: function(newItems) {
+                var keyOfRootItem = this.keyOf(newItems[0]);
+                var fullData = this._dataAdapter.getFullData();
                 return !!this._dataAdapter.getNodeByKey(keyOfRootItem, fullData)
             },
             _appendItems: function(newItems) {
@@ -138315,12 +138718,13 @@
                 this._animateNodeContainer(node, state, e)
             },
             _animateNodeContainer: function(node, state, e) {
-                var nodeHeight, $node = this._getNodeElement(node),
-                    $nodeContainer = $node.children("." + NODE_CONTAINER_CLASS);
+                var $node = this._getNodeElement(node);
+                var $nodeContainer = $node.children("." + NODE_CONTAINER_CLASS);
+                var nodeHeight = void 0;
                 $nodeContainer.addClass(OPENED_NODE_CONTAINER_CLASS);
                 nodeHeight = $nodeContainer.height();
-                fx.stop($nodeContainer, true);
-                fx.animate($nodeContainer, {
+                _fx2.default.stop($nodeContainer, true);
+                _fx2.default.animate($nodeContainer, {
                     type: "custom",
                     duration: this.option("animationEnabled") ? 400 : 0,
                     from: {
@@ -138339,16 +138743,16 @@
                 })
             },
             _fireExpandedStateUpdatedEvent: function(isExpanded, node, e) {
-                var target, optionName = isExpanded ? "onItemExpanded" : "onItemCollapsed";
                 if (!this._hasChildren(node)) {
                     return
                 }
-                if (typeUtils.isDefined(e)) {
+                var optionName = isExpanded ? "onItemExpanded" : "onItemCollapsed";
+                if ((0, _type.isDefined)(e)) {
                     this._itemDXEventHandler(e, optionName, {
                         node: this._dataAdapter.getPublicNode(node)
                     })
                 } else {
-                    target = this._getNodeElement(node);
+                    var target = this._getNodeElement(node);
                     this._itemEventHandler(target, optionName, {
                         event: e,
                         node: this._dataAdapter.getPublicNode(node)
@@ -138356,10 +138760,10 @@
                 }
             },
             _normalizeIconState: function($node, hasNewItems) {
-                var $icon, $loadIndicator = $node.find(".dx-loadindicator");
-                $loadIndicator.length && LoadIndicator.getInstance($loadIndicator).option("visible", false);
+                var $loadIndicator = $node.find(".dx-loadindicator");
+                $loadIndicator.length && _load_indicator2.default.getInstance($loadIndicator).option("visible", false);
                 if (hasNewItems) {
-                    $icon = $node.find("." + TOGGLE_ITEM_VISIBILITY_CLASS);
+                    var $icon = $node.find("." + TOGGLE_ITEM_VISIBILITY_CLASS);
                     $icon.show();
                     return
                 }
@@ -138378,9 +138782,9 @@
             },
             _renderSelectAllItem: function($container) {
                 $container = $container || this.$element().find("." + NODE_CONTAINER_CLASS).first();
-                this._$selectAllItem = $("<div>").addClass(SELECT_ALL_ITEM_CLASS);
+                this._$selectAllItem = (0, _renderer2.default)("<div>").addClass(SELECT_ALL_ITEM_CLASS);
                 var value = this._dataAdapter.isAllSelected();
-                this._createComponent(this._$selectAllItem, CheckBox, {
+                this._createComponent(this._$selectAllItem, _check_box2.default, {
                     value: value,
                     text: this.option("selectAllText"),
                     onValueChanged: function(args) {
@@ -138397,8 +138801,8 @@
                 this._fireSelectionChanged()
             },
             _renderCheckBox: function($node, node) {
-                var $checkbox = $("<div>").appendTo($node);
-                this._createComponent($checkbox, CheckBox, {
+                var $checkbox = (0, _renderer2.default)("<div>").appendTo($node);
+                this._createComponent($checkbox, _check_box2.default, {
                     value: node.internalFields.selected,
                     onValueChanged: this._changeCheckboxValue.bind(this),
                     focusStateEnabled: false,
@@ -138409,8 +138813,8 @@
                 $node.toggleClass(SELECTED_ITEM_CLASS, !!value)
             },
             _toggleNodeDisabledState: function(node, state) {
-                var $node = this._getNodeElement(node),
-                    $item = $node.find("." + ITEM_CLASS).eq(0);
+                var $node = this._getNodeElement(node);
+                var $item = $node.find("." + ITEM_CLASS).eq(0);
                 this._dataAdapter.toggleNodeDisabledState(node.internalFields.key, state);
                 $item.toggleClass(DISABLED_STATE_CLASS, !!state);
                 if (this._showCheckboxes()) {
@@ -138420,17 +138824,16 @@
             },
             _itemOptionChanged: function(item, property, value) {
                 var node = this._dataAdapter.getNodeByItem(item);
-                switch (property) {
-                    case this.option("disabledExpr"):
-                        this._toggleNodeDisabledState(node, value)
+                if (property === this.option("disabledExpr")) {
+                    this._toggleNodeDisabledState(node, value)
                 }
             },
             _changeCheckboxValue: function(e) {
-                var $node = $(e.element).parent("." + NODE_CLASS),
-                    $item = $node.children("." + ITEM_CLASS),
-                    item = this._getItemData($item),
-                    node = this._getNodeByElement($item),
-                    value = e.value;
+                var $node = (0, _renderer2.default)(e.element).parent("." + NODE_CLASS);
+                var $item = $node.children("." + ITEM_CLASS);
+                var item = this._getItemData($item);
+                var node = this._getNodeByElement($item);
+                var value = e.value;
                 if (node && node.internalFields.selected === value) {
                     return
                 }
@@ -138448,7 +138851,7 @@
                     selectedNodesKeys.splice(keyIndex, 1)
                 }
                 if (deep) {
-                    each(publicNode.children, function(_, childNode) {
+                    (0, _iterator.each)(publicNode.children, function(_, childNode) {
                         this._isLastSelectedBranch(childNode, selectedNodesKeys, true)
                     }.bind(this))
                 }
@@ -138458,9 +138861,9 @@
                 return 0 === selectedNodesKeys.length
             },
             _isLastRequired: function(node) {
-                var selectionRequired = this.option("selectionRequired"),
-                    isSingleMode = this._isSingleSelection(),
-                    selectedNodesKeys = this.getSelectedNodesKeys();
+                var selectionRequired = this.option("selectionRequired");
+                var isSingleMode = this._isSingleSelection();
+                var selectedNodesKeys = this.getSelectedNodesKeys();
                 if (!selectionRequired) {
                     return
                 }
@@ -138471,8 +138874,9 @@
                 }
             },
             _updateItemSelection: function(value, itemElement, dxEvent) {
+                var _this11 = this;
                 var that = this,
-                    node = that._getNode(itemElement);
+                    node = this._getNode(itemElement);
                 if (!node || node.internalFields.selected === value) {
                     return
                 }
@@ -138484,38 +138888,38 @@
                     }
                     return
                 }
-                var selectedNodesKeys = that.getSelectedNodesKeys();
+                var selectedNodesKeys = this.getSelectedNodesKeys();
                 if (that._isSingleSelection() && value) {
-                    each(selectedNodesKeys, function(index, nodeKey) {
-                        that.unselectItem(nodeKey)
+                    (0, _iterator.each)(selectedNodesKeys, function(index, nodeKey) {
+                        _this11.unselectItem(nodeKey)
                     })
                 }
-                that._dataAdapter.toggleSelection(node.internalFields.key, value);
-                that._updateItemsUI();
-                var initiator = dxEvent || that._findItemElementByItem(node.internalFields.item),
-                    handler = dxEvent ? that._itemDXEventHandler : that._itemEventHandler;
-                handler.call(that, initiator, "onItemSelectionChanged", {
-                    node: that._dataAdapter.getPublicNode(node),
+                this._dataAdapter.toggleSelection(node.internalFields.key, value);
+                this._updateItemsUI();
+                var initiator = dxEvent || this._findItemElementByItem(node.internalFields.item),
+                    handler = dxEvent ? this._itemDXEventHandler : this._itemEventHandler;
+                handler.call(this, initiator, "onItemSelectionChanged", {
+                    node: this._dataAdapter.getPublicNode(node),
                     itemData: node.internalFields.item
                 });
-                that._fireSelectionChanged()
+                this._fireSelectionChanged()
             },
             _getCheckBoxInstance: function($node) {
                 return $node.children(".dx-checkbox").dxCheckBox("instance")
             },
             _updateItemsUI: function() {
-                var that = this,
-                    cache = {};
-                each(this._dataAdapter.getData(), function(_, node) {
-                    var $node = that._getNodeElement(node, cache),
-                        nodeSelection = node.internalFields.selected;
+                var _this12 = this;
+                var cache = {};
+                (0, _iterator.each)(this._dataAdapter.getData(), function(_, node) {
+                    var $node = _this12._getNodeElement(node, cache);
+                    var nodeSelection = node.internalFields.selected;
                     if (!$node.length) {
                         return
                     }
-                    that._toggleSelectedClass($node, nodeSelection);
-                    that.setAria("selected", nodeSelection, $node);
-                    if (that._showCheckboxes()) {
-                        var checkbox = that._getCheckBoxInstance($node);
+                    _this12._toggleSelectedClass($node, nodeSelection);
+                    _this12.setAria("selected", nodeSelection, $node);
+                    if (_this12._showCheckboxes()) {
+                        var checkbox = _this12._getCheckBoxInstance($node);
                         checkbox.option("value", nodeSelection)
                     }
                 });
@@ -138524,11 +138928,11 @@
                 }
             },
             _updateParentsState: function(node, $node) {
-                var parentNode = this._dataAdapter.getNodeByKey(node.internalFields.parentKey);
                 if (!$node) {
                     return
                 }
-                var $parentNode = $($node.parents("." + NODE_CLASS)[0]);
+                var parentNode = this._dataAdapter.getNodeByKey(node.internalFields.parentKey);
+                var $parentNode = (0, _renderer2.default)($node.parents("." + NODE_CLASS)[0]);
                 if (this._showCheckboxes()) {
                     var parentValue = parentNode.internalFields.selected;
                     this._getCheckBoxInstance($parentNode).option("value", parentValue);
@@ -138539,8 +138943,8 @@
                 }
             },
             _itemEventHandlerImpl: function(initiator, action, actionArgs) {
-                var $itemElement = $(initiator).closest("." + NODE_CLASS).children("." + ITEM_CLASS);
-                return action(extend(this._extendActionArgs($itemElement), actionArgs))
+                var $itemElement = (0, _renderer2.default)(initiator).closest("." + NODE_CLASS).children("." + ITEM_CLASS);
+                return action((0, _extend.extend)(this._extendActionArgs($itemElement), actionArgs))
             },
             _itemContextMenuHandler: function(e) {
                 this._createEventHandler("onItemContextMenu", e)
@@ -138561,24 +138965,25 @@
                 return ITEM_DATA_KEY
             },
             _attachClickEvent: function() {
-                var that = this;
-                var clickSelector = "." + that._itemClass();
+                var _this13 = this;
+                var clickSelector = "." + this._itemClass();
                 var pointerDownSelector = "." + NODE_CLASS + ", ." + SELECT_ALL_ITEM_CLASS;
-                var eventName = eventUtils.addNamespace(clickEvent.name, that.NAME);
-                var pointerDownEvent = eventUtils.addNamespace(pointerEvents.down, that.NAME);
-                var $itemContainer = that._itemContainer();
-                eventsEngine.off($itemContainer, eventName, clickSelector);
-                eventsEngine.off($itemContainer, pointerDownEvent, pointerDownSelector);
-                eventsEngine.on($itemContainer, eventName, clickSelector, function(e) {
-                    that._itemClickHandler(e, $(this))
+                var eventName = (0, _utils.addNamespace)(_click2.default.name, this.NAME);
+                var pointerDownEvent = (0, _utils.addNamespace)(_pointer.down, this.NAME);
+                var $itemContainer = this._itemContainer();
+                (0, _events_engine.off)($itemContainer, eventName, clickSelector);
+                (0, _events_engine.off)($itemContainer, pointerDownEvent, pointerDownSelector);
+                var that = this;
+                (0, _events_engine.on)($itemContainer, eventName, clickSelector, function(e) {
+                    that._itemClickHandler(e, (0, _renderer2.default)(this))
                 });
-                eventsEngine.on($itemContainer, pointerDownEvent, pointerDownSelector, function(e) {
-                    that._itemPointerDownHandler(e)
+                (0, _events_engine.on)($itemContainer, pointerDownEvent, pointerDownSelector, function(e) {
+                    _this13._itemPointerDownHandler(e)
                 })
             },
             _itemClickHandler: function(e, $item) {
-                var itemData = this._getItemData($item),
-                    node = this._getNodeByElement($item);
+                var itemData = this._getItemData($item);
+                var node = this._getNodeByElement($item);
                 this._itemDXEventHandler(e, "onItemClick", {
                     node: this._dataAdapter.getPublicNode(node)
                 });
@@ -138589,32 +138994,32 @@
             _updateSelectionToFirstItem: function($items, startIndex) {
                 var itemIndex = startIndex;
                 while (itemIndex >= 0) {
-                    var $item = $($items[itemIndex]);
+                    var $item = (0, _renderer2.default)($items[itemIndex]);
                     this._updateItemSelection(true, $item.find("." + ITEM_CLASS).get(0));
                     itemIndex--
                 }
             },
             _updateSelectionToLastItem: function($items, startIndex) {
-                var itemIndex = startIndex,
-                    length = $items.length;
+                var length = $items.length;
+                var itemIndex = startIndex;
                 while (itemIndex < length) {
-                    var $item = $($items[itemIndex]);
+                    var $item = (0, _renderer2.default)($items[itemIndex]);
                     this._updateItemSelection(true, $item.find("." + ITEM_CLASS).get(0));
                     itemIndex++
                 }
             },
             _focusInHandler: function(e) {
-                var that = this;
-                that._updateFocusState(e, true);
-                if (that.option("focusedElement")) {
-                    clearTimeout(that._setFocusedItemTimeout);
-                    that._setFocusedItemTimeout = setTimeout(function() {
-                        that._setFocusedItem($(that.option("focusedElement")))
+                var _this14 = this;
+                this._updateFocusState(e, true);
+                if (this.option("focusedElement")) {
+                    clearTimeout(this._setFocusedItemTimeout);
+                    this._setFocusedItemTimeout = setTimeout(function() {
+                        _this14._setFocusedItem((0, _renderer2.default)(_this14.option("focusedElement")))
                     });
                     return
                 }
-                var $activeItem = that._getActiveItem();
-                that.option("focusedElement", getPublicElement($activeItem.closest("." + NODE_CLASS)))
+                var $activeItem = this._getActiveItem();
+                this.option("focusedElement", (0, _dom.getPublicElement)($activeItem.closest("." + NODE_CLASS)))
             },
             _setFocusedItem: function($target) {
                 if (!$target || !$target.length) {
@@ -138629,27 +139034,27 @@
                 if (!this.option("focusStateEnabled")) {
                     return
                 }
-                var $target = $(e.target).closest("." + NODE_CLASS + ", ." + SELECT_ALL_ITEM_CLASS);
+                var $target = (0, _renderer2.default)(e.target).closest("." + NODE_CLASS + ", ." + SELECT_ALL_ITEM_CLASS);
                 if (!$target.length) {
                     return
                 }
                 var itemElement = $target.hasClass(DISABLED_STATE_CLASS) ? null : $target;
-                this.option("focusedElement", getPublicElement(itemElement))
+                this.option("focusedElement", (0, _dom.getPublicElement)(itemElement))
             },
             _findNonDisabledNodes: function($nodes) {
                 return $nodes.not(function() {
-                    return $(this).children("." + ITEM_CLASS).hasClass(DISABLED_STATE_CLASS)
+                    return (0, _renderer2.default)(this).children("." + ITEM_CLASS).hasClass(DISABLED_STATE_CLASS)
                 })
             },
             _moveFocus: function(location, e) {
-                var FOCUS_UP = "up",
-                    FOCUS_DOWN = "down",
-                    FOCUS_FIRST = "first",
-                    FOCUS_LAST = "last",
-                    FOCUS_LEFT = this.option("rtlEnabled") ? "right" : "left",
-                    FOCUS_RIGHT = this.option("rtlEnabled") ? "left" : "right";
+                var FOCUS_UP = "up";
+                var FOCUS_DOWN = "down";
+                var FOCUS_FIRST = "first";
+                var FOCUS_LAST = "last";
+                var FOCUS_LEFT = this.option("rtlEnabled") ? "right" : "left";
+                var FOCUS_RIGHT = this.option("rtlEnabled") ? "left" : "right";
                 this.$element().find("." + NODE_CONTAINER_CLASS).each(function() {
-                    fx.stop(this, true)
+                    _fx2.default.stop(this, true)
                 });
                 var $items = this._findNonDisabledNodes(this._nodeElements());
                 if (!$items || !$items.length) {
@@ -138658,14 +139063,14 @@
                 switch (location) {
                     case FOCUS_UP:
                         var $prevItem = this._prevItem($items);
-                        this.option("focusedElement", getPublicElement($prevItem));
+                        this.option("focusedElement", (0, _dom.getPublicElement)($prevItem));
                         if (e.shiftKey && this._showCheckboxes()) {
                             this._updateItemSelection(true, $prevItem.find("." + ITEM_CLASS).get(0))
                         }
                         break;
                     case FOCUS_DOWN:
                         var $nextItem = this._nextItem($items);
-                        this.option("focusedElement", getPublicElement($nextItem));
+                        this.option("focusedElement", (0, _dom.getPublicElement)($nextItem));
                         if (e.shiftKey && this._showCheckboxes()) {
                             this._updateItemSelection(true, $nextItem.find("." + ITEM_CLASS).get(0))
                         }
@@ -138675,14 +139080,14 @@
                         if (e.shiftKey && this._showCheckboxes()) {
                             this._updateSelectionToFirstItem($items, $items.index(this._prevItem($items)))
                         }
-                        this.option("focusedElement", getPublicElement($firstItem));
+                        this.option("focusedElement", (0, _dom.getPublicElement)($firstItem));
                         break;
                     case FOCUS_LAST:
                         var $lastItem = $items.last();
                         if (e.shiftKey && this._showCheckboxes()) {
                             this._updateSelectionToLastItem($items, $items.index(this._nextItem($items)))
                         }
-                        this.option("focusedElement", getPublicElement($lastItem));
+                        this.option("focusedElement", (0, _dom.getPublicElement)($lastItem));
                         break;
                     case FOCUS_RIGHT:
                         this._expandFocusedContainer();
@@ -138699,14 +139104,14 @@
                 return this.$element().find("." + NODE_CLASS).not(":hidden")
             },
             _expandFocusedContainer: function() {
-                var $focusedNode = $(this.option("focusedElement"));
+                var $focusedNode = (0, _renderer2.default)(this.option("focusedElement"));
                 if (!$focusedNode.length || $focusedNode.hasClass(IS_LEAF)) {
                     return
                 }
                 var $node = $focusedNode.find("." + NODE_CONTAINER_CLASS).eq(0);
                 if ($node.hasClass(OPENED_NODE_CONTAINER_CLASS)) {
                     var $nextItem = this._nextItem(this._findNonDisabledNodes(this._nodeElements()));
-                    this.option("focusedElement", getPublicElement($nextItem));
+                    this.option("focusedElement", (0, _dom.getPublicElement)($nextItem));
                     return
                 }
                 var node = this._getNodeByElement($focusedNode.children("." + ITEM_CLASS));
@@ -138719,7 +139124,7 @@
                 return $node
             },
             _collapseFocusedContainer: function() {
-                var $focusedNode = $(this.option("focusedElement"));
+                var $focusedNode = (0, _renderer2.default)(this.option("focusedElement"));
                 if (!$focusedNode.length) {
                     return
                 }
@@ -138729,18 +139134,18 @@
                     this._toggleExpandedState(node, false)
                 } else {
                     var collapsedNode = this._getClosestNonDisabledNode($focusedNode);
-                    collapsedNode.length && this.option("focusedElement", getPublicElement(collapsedNode))
+                    collapsedNode.length && this.option("focusedElement", (0, _dom.getPublicElement)(collapsedNode))
                 }
             },
             updateDimensions: function() {
-                var that = this,
-                    deferred = new Deferred;
-                if (that._scrollableContainer) {
-                    that._scrollableContainer.update().done(function() {
-                        deferred.resolveWith(that)
+                var _this15 = this;
+                var deferred = new _deferred.Deferred;
+                if (this._scrollableContainer) {
+                    this._scrollableContainer.update().done(function() {
+                        deferred.resolveWith(_this15)
                     })
                 } else {
-                    deferred.resolveWith(that)
+                    deferred.resolveWith(this)
                 }
                 return deferred.promise()
             },
@@ -138781,12 +139186,12 @@
                 }
             },
             expandAll: function() {
-                each(this._dataAdapter.getData(), function(_, node) {
+                (0, _iterator.each)(this._dataAdapter.getData(), function(_, node) {
                     this._toggleExpandedState(node.internalFields.key, true)
                 }.bind(this))
             },
             collapseAll: function() {
-                each(this._dataAdapter.getExpandedNodesKeys(), function(_, key) {
+                (0, _iterator.each)(this._dataAdapter.getExpandedNodesKeys(), function(_, key) {
                     this._toggleExpandedState(key, false)
                 }.bind(this))
             }
@@ -138801,7 +139206,7 @@
     function(module, exports, __webpack_require__) {
         var _renderer = __webpack_require__( /*! ../../core/renderer */ 2);
         var _renderer2 = _interopRequireDefault(_renderer);
-        var _uiData_grid = __webpack_require__( /*! ./ui.data_grid.core */ 26);
+        var _uiData_grid = __webpack_require__( /*! ./ui.data_grid.core */ 27);
         var _uiData_grid2 = _interopRequireDefault(_uiData_grid);
         var _uiData_gridGrouping = __webpack_require__( /*! ./ui.data_grid.grouping.expanded */ 601);
         var _uiData_gridGrouping2 = __webpack_require__( /*! ./ui.data_grid.grouping.collapsed */ 602);
@@ -139397,7 +139802,7 @@
         var _iterator = __webpack_require__( /*! ../../core/utils/iterator */ 3);
         var _extend = __webpack_require__( /*! ../../core/utils/extend */ 0);
         var _store_helper = __webpack_require__( /*! ../../data/store_helper */ 83);
-        var _uiData_grid = __webpack_require__( /*! ./ui.data_grid.core */ 26);
+        var _uiData_grid = __webpack_require__( /*! ./ui.data_grid.core */ 27);
         var _uiData_gridGrouping = __webpack_require__( /*! ./ui.data_grid.grouping.core */ 404);
         var _uiData_grid2 = __webpack_require__( /*! ./ui.data_grid.utils */ 278);
         var _query = __webpack_require__( /*! ../../data/query */ 42);
@@ -139655,6 +140060,9 @@
                         }
                         appendCollapsedPath(data[i].items, path.slice(1), groups.slice(1), collapsedGroup, offset)
                     }
+                    if (options.collapsedItemsCount && options.extra && options.extra.totalCount >= 0) {
+                        options.extra.totalCount += options.collapsedItemsCount
+                    }
                     callBase(options);
                     if (groupCount) {
                         query = (0, _query2.default)(data);
@@ -139669,10 +140077,7 @@
                         if (!options.isCustomLoading) {
                             processGroupItems(that, data, [], options.skip, options.skipFirstItem, options.take)
                         }
-                        options.data = data;
-                        if (options.collapsedItemsCount && options.extra && options.extra.totalCount >= 0) {
-                            options.extra.totalCount += options.collapsedItemsCount
-                        }
+                        options.data = data
                     }
                 },
                 isGroupItemCountable: function(item) {
@@ -139766,7 +140171,7 @@
     function(module, exports, __webpack_require__) {
         var _extend = __webpack_require__( /*! ../../core/utils/extend */ 0);
         var _iterator = __webpack_require__( /*! ../../core/utils/iterator */ 3);
-        var _uiData_grid = __webpack_require__( /*! ./ui.data_grid.core */ 26);
+        var _uiData_grid = __webpack_require__( /*! ./ui.data_grid.core */ 27);
         var _uiData_gridGrouping = __webpack_require__( /*! ./ui.data_grid.grouping.core */ 404);
         var _uiData_grid2 = __webpack_require__( /*! ./ui.data_grid.utils */ 278);
         var _ui = __webpack_require__( /*! ../widget/ui.errors */ 18);
@@ -140353,7 +140758,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var _uiData_grid = __webpack_require__( /*! ./ui.data_grid.core */ 26);
+        var _uiData_grid = __webpack_require__( /*! ./ui.data_grid.core */ 27);
         var _uiData_grid2 = _interopRequireDefault(_uiData_grid);
         var _uiGrid_core = __webpack_require__( /*! ../grid_core/ui.grid_core.master_detail */ 405);
         var _uiGrid_core2 = _interopRequireDefault(_uiGrid_core);
@@ -140372,7 +140777,7 @@
     /*! all exports used */
     function(module, exports, __webpack_require__) {
         __webpack_require__( /*! ./ui.data_grid.editor_factory */ 605);
-        var _uiData_grid = __webpack_require__( /*! ./ui.data_grid.core */ 26);
+        var _uiData_grid = __webpack_require__( /*! ./ui.data_grid.core */ 27);
         var _uiData_grid2 = _interopRequireDefault(_uiData_grid);
         var _uiGrid_core = __webpack_require__( /*! ../grid_core/ui.grid_core.editing */ 408);
         var _uiGrid_core2 = _interopRequireDefault(_uiGrid_core);
@@ -140390,7 +140795,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var _uiData_grid = __webpack_require__( /*! ./ui.data_grid.core */ 26);
+        var _uiData_grid = __webpack_require__( /*! ./ui.data_grid.core */ 27);
         var _uiData_grid2 = _interopRequireDefault(_uiData_grid);
         var _uiGrid_core = __webpack_require__( /*! ../grid_core/ui.grid_core.editor_factory */ 406);
         var _uiGrid_core2 = _interopRequireDefault(_uiGrid_core);
@@ -140408,7 +140813,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var _uiData_grid = __webpack_require__( /*! ./ui.data_grid.core */ 26);
+        var _uiData_grid = __webpack_require__( /*! ./ui.data_grid.core */ 27);
         var _uiData_grid2 = _interopRequireDefault(_uiData_grid);
         var _uiGrid_core = __webpack_require__( /*! ../grid_core/ui.grid_core.validating */ 409);
         var _uiGrid_core2 = _interopRequireDefault(_uiGrid_core);
@@ -140426,7 +140831,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var _uiData_grid = __webpack_require__( /*! ./ui.data_grid.core */ 26);
+        var _uiData_grid = __webpack_require__( /*! ./ui.data_grid.core */ 27);
         var _uiData_grid2 = _interopRequireDefault(_uiData_grid);
         var _uiData_grid3 = __webpack_require__( /*! ./ui.data_grid.data_source_adapter */ 221);
         var _uiData_grid4 = _interopRequireDefault(_uiData_grid3);
@@ -140447,7 +140852,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var _uiData_grid = __webpack_require__( /*! ./ui.data_grid.core */ 26);
+        var _uiData_grid = __webpack_require__( /*! ./ui.data_grid.core */ 27);
         var _uiData_grid2 = _interopRequireDefault(_uiData_grid);
         var _uiGrid_core = __webpack_require__( /*! ../grid_core/ui.grid_core.filter_row */ 412);
         var _uiGrid_core2 = _interopRequireDefault(_uiGrid_core);
@@ -140475,7 +140880,7 @@
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
             getElementMaxHeightByWindow = __webpack_require__( /*! ../overlay/utils */ 269).getElementMaxHeightByWindow,
             eventUtils = __webpack_require__( /*! ../../events/utils */ 9),
-            pointerEvents = __webpack_require__( /*! ../../events/pointer */ 27),
+            pointerEvents = __webpack_require__( /*! ../../events/pointer */ 26),
             hoverEvents = __webpack_require__( /*! ../../events/hover */ 172),
             MenuBase = __webpack_require__( /*! ../context_menu/ui.menu_base */ 386),
             Overlay = __webpack_require__( /*! ../overlay */ 64),
@@ -141258,7 +141663,6 @@
             },
             _getOverlayOptions: function() {
                 return extend(this.callBase(), {
-                    closeOnTargetScroll: false,
                     onPositioned: this._overlayPositionedActionHandler.bind(this)
                 })
             },
@@ -141381,7 +141785,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var _uiData_grid = __webpack_require__( /*! ./ui.data_grid.core */ 26);
+        var _uiData_grid = __webpack_require__( /*! ./ui.data_grid.core */ 27);
         var _uiData_grid2 = _interopRequireDefault(_uiData_grid);
         var _uiGrid_core = __webpack_require__( /*! ../grid_core/ui.grid_core.header_filter */ 414);
         var _uiGrid_core2 = _interopRequireDefault(_uiGrid_core);
@@ -141399,7 +141803,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var _uiData_grid = __webpack_require__( /*! ./ui.data_grid.core */ 26);
+        var _uiData_grid = __webpack_require__( /*! ./ui.data_grid.core */ 27);
         var _uiData_grid2 = _interopRequireDefault(_uiData_grid);
         var _uiGrid_core = __webpack_require__( /*! ../grid_core/ui.grid_core.filter_sync */ 416);
         var _uiGrid_core2 = _interopRequireDefault(_uiGrid_core);
@@ -141649,7 +142053,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var _uiData_grid = __webpack_require__( /*! ./ui.data_grid.core */ 26);
+        var _uiData_grid = __webpack_require__( /*! ./ui.data_grid.core */ 27);
         var _uiData_grid2 = _interopRequireDefault(_uiData_grid);
         var _uiGrid_core = __webpack_require__( /*! ../grid_core/ui.grid_core.filter_builder */ 418);
         var _uiGrid_core2 = _interopRequireDefault(_uiGrid_core);
@@ -141667,7 +142071,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var _uiData_grid = __webpack_require__( /*! ./ui.data_grid.core */ 26);
+        var _uiData_grid = __webpack_require__( /*! ./ui.data_grid.core */ 27);
         var _uiData_grid2 = _interopRequireDefault(_uiData_grid);
         var _uiGrid_core = __webpack_require__( /*! ../grid_core/ui.grid_core.filter_panel */ 420);
         var _uiGrid_core2 = _interopRequireDefault(_uiGrid_core);
@@ -141685,7 +142089,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var _uiData_grid = __webpack_require__( /*! ./ui.data_grid.core */ 26);
+        var _uiData_grid = __webpack_require__( /*! ./ui.data_grid.core */ 27);
         var _uiData_grid2 = _interopRequireDefault(_uiData_grid);
         var _uiGrid_core = __webpack_require__( /*! ../grid_core/ui.grid_core.search */ 421);
         var _uiGrid_core2 = _interopRequireDefault(_uiGrid_core);
@@ -141703,7 +142107,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var _uiData_grid = __webpack_require__( /*! ./ui.data_grid.core */ 26);
+        var _uiData_grid = __webpack_require__( /*! ./ui.data_grid.core */ 27);
         var _uiData_grid2 = _interopRequireDefault(_uiData_grid);
         var _uiGrid_core = __webpack_require__( /*! ../grid_core/ui.grid_core.pager */ 422);
         var _uiGrid_core2 = _interopRequireDefault(_uiGrid_core);
@@ -141724,14 +142128,14 @@
         var $ = __webpack_require__( /*! ../core/renderer */ 2),
             eventsEngine = __webpack_require__( /*! ../events/core/events_engine */ 5),
             Class = __webpack_require__( /*! ../core/class */ 10),
-            stringUtils = __webpack_require__( /*! ../core/utils/string */ 44),
+            stringUtils = __webpack_require__( /*! ../core/utils/string */ 45),
             registerComponent = __webpack_require__( /*! ../core/component_registrator */ 8),
             commonUtils = __webpack_require__( /*! ../core/utils/common */ 4),
             each = __webpack_require__( /*! ../core/utils/iterator */ 3).each,
             typeUtils = __webpack_require__( /*! ../core/utils/type */ 1),
             extend = __webpack_require__( /*! ../core/utils/extend */ 0).extend,
             clickEvent = __webpack_require__( /*! ../events/click */ 17),
-            pointerEvents = __webpack_require__( /*! ../events/pointer */ 27),
+            pointerEvents = __webpack_require__( /*! ../events/pointer */ 26),
             messageLocalization = __webpack_require__( /*! ../localization/message */ 14),
             Widget = __webpack_require__( /*! ./widget/ui.widget */ 28),
             SelectBox = __webpack_require__( /*! ./select_box */ 107),
@@ -142303,7 +142707,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var _uiData_grid = __webpack_require__( /*! ./ui.data_grid.core */ 26);
+        var _uiData_grid = __webpack_require__( /*! ./ui.data_grid.core */ 27);
         var _uiData_grid2 = _interopRequireDefault(_uiData_grid);
         var _uiGrid_core = __webpack_require__( /*! ../grid_core/ui.grid_core.columns_resizing_reordering */ 423);
         var _uiGrid_core2 = _interopRequireDefault(_uiGrid_core);
@@ -142327,7 +142731,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var _uiData_grid = __webpack_require__( /*! ./ui.data_grid.core */ 26);
+        var _uiData_grid = __webpack_require__( /*! ./ui.data_grid.core */ 27);
         var _uiData_grid2 = _interopRequireDefault(_uiData_grid);
         var _uiGrid_core = __webpack_require__( /*! ../grid_core/ui.grid_core.keyboard_navigation */ 424);
         var _uiGrid_core2 = _interopRequireDefault(_uiGrid_core);
@@ -142354,7 +142758,7 @@
         var _data = __webpack_require__( /*! ../../core/utils/data */ 22);
         var _ui = __webpack_require__( /*! ../widget/ui.errors */ 18);
         var _ui2 = _interopRequireDefault(_ui);
-        var _uiData_grid = __webpack_require__( /*! ./ui.data_grid.core */ 26);
+        var _uiData_grid = __webpack_require__( /*! ./ui.data_grid.core */ 27);
         var _uiData_grid2 = _interopRequireDefault(_uiData_grid);
         var _message = __webpack_require__( /*! ../../localization/message */ 14);
         var _message2 = _interopRequireDefault(_message);
@@ -143335,7 +143739,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var _uiData_grid = __webpack_require__( /*! ./ui.data_grid.core */ 26);
+        var _uiData_grid = __webpack_require__( /*! ./ui.data_grid.core */ 27);
         var _uiData_grid2 = _interopRequireDefault(_uiData_grid);
         var _uiGrid_core = __webpack_require__( /*! ../grid_core/ui.grid_core.column_fixing */ 425);
         var _uiGrid_core2 = _interopRequireDefault(_uiGrid_core);
@@ -143353,7 +143757,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var _uiData_grid = __webpack_require__( /*! ./ui.data_grid.core */ 26);
+        var _uiData_grid = __webpack_require__( /*! ./ui.data_grid.core */ 27);
         var _uiData_grid2 = _interopRequireDefault(_uiData_grid);
         var _uiGrid_core = __webpack_require__( /*! ../grid_core/ui.grid_core.adaptivity */ 426);
         var _uiGrid_core2 = _interopRequireDefault(_uiGrid_core);
@@ -143371,7 +143775,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var _uiData_grid = __webpack_require__( /*! ./ui.data_grid.core */ 26);
+        var _uiData_grid = __webpack_require__( /*! ./ui.data_grid.core */ 27);
         var _uiData_grid2 = _interopRequireDefault(_uiData_grid);
         var _uiGrid_core = __webpack_require__( /*! ../grid_core/ui.grid_core.virtual_columns */ 427);
         var _uiGrid_core2 = _interopRequireDefault(_uiGrid_core);
@@ -143398,7 +143802,7 @@
         var _position = __webpack_require__( /*! ../../core/utils/position */ 105);
         var _array = __webpack_require__( /*! ../../core/utils/array */ 11);
         var _array2 = _interopRequireDefault(_array);
-        var _uiData_grid = __webpack_require__( /*! ./ui.data_grid.core */ 26);
+        var _uiData_grid = __webpack_require__( /*! ./ui.data_grid.core */ 27);
         var _uiData_grid2 = _interopRequireDefault(_uiData_grid);
         var _uiGrid_core = __webpack_require__( /*! ../grid_core/ui.grid_core.export_mixin */ 429);
         var _uiGrid_core2 = _interopRequireDefault(_uiGrid_core);
@@ -143613,11 +144017,12 @@
                                         result.cellSourceData.totalSummaryItemName = value.name;
                                         result.value = _uiData_grid2.default.getSummaryText(value, this._options.summaryTexts)
                                     } else {
-                                        result.cellSourceData = void 0
+                                        result.cellSourceData.value = void 0
                                     }
                                 }
                                 break;
                             case "group":
+                                result.cellSourceData.groupIndex = item.groupIndex;
                                 if (cellIndex < 1) {
                                     result.cellSourceData.column = this._options.groupColumns[item.groupIndex];
                                     result.cellSourceData.value = item.key[item.groupIndex];
@@ -143633,7 +144038,7 @@
                                         }
                                         result.value = value
                                     } else {
-                                        result.cellSourceData = void 0
+                                        result.cellSourceData.value = void 0
                                     }
                                 }
                                 break;
@@ -143645,8 +144050,7 @@
                                     result.value = !isFinite(displayValue) || column.customizeText ? _uiData_grid2.default.formatValue(displayValue, column) : displayValue;
                                     result.cellSourceData.value = _value
                                 }
-                                result.cellSourceData.data = item.data;
-                                result.cellSourceData.rowType = item.rowType
+                                result.cellSourceData.data = item.data
                         }
                     }
                 }
@@ -144143,7 +144547,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var _uiData_grid = __webpack_require__( /*! ./ui.data_grid.core */ 26);
+        var _uiData_grid = __webpack_require__( /*! ./ui.data_grid.core */ 27);
         var _uiData_grid2 = _interopRequireDefault(_uiData_grid);
         var _uiGrid_core = __webpack_require__( /*! ../grid_core/ui.grid_core.focus */ 430);
         var _uiGrid_core2 = _interopRequireDefault(_uiGrid_core);
@@ -146133,11 +146537,11 @@
         var $ = __webpack_require__( /*! ../../core/renderer */ 2),
             windowUtils = __webpack_require__( /*! ../../core/utils/window */ 6),
             window = windowUtils.getWindow(),
-            browser = __webpack_require__( /*! ../../core/utils/browser */ 35),
+            browser = __webpack_require__( /*! ../../core/utils/browser */ 34),
             eventsEngine = __webpack_require__( /*! ../../events/core/events_engine */ 5),
             registerComponent = __webpack_require__( /*! ../../core/component_registrator */ 8),
             getPublicElement = __webpack_require__( /*! ../../core/utils/dom */ 12).getPublicElement,
-            stringUtils = __webpack_require__( /*! ../../core/utils/string */ 44),
+            stringUtils = __webpack_require__( /*! ../../core/utils/string */ 45),
             commonUtils = __webpack_require__( /*! ../../core/utils/common */ 4),
             each = __webpack_require__( /*! ../../core/utils/iterator */ 3).each,
             isDefined = __webpack_require__( /*! ../../core/utils/type */ 1).isDefined,
@@ -147112,6 +147516,7 @@
                     columnAreaCell = tableElement.find("." + COLUMN_AREA_CELL_CLASS),
                     descriptionCell = tableElement.find("." + DESCRIPTION_AREA_CELL_CLASS),
                     filterHeaderCell = tableElement.find(".dx-filter-header"),
+                    columnHeaderCell = tableElement.find(".dx-column-header"),
                     rowFieldsHeader = that._rowFields,
                     d = new Deferred;
                 if (!windowUtils.hasWindow()) {
@@ -147144,7 +147549,7 @@
                     columnsAreaHeight = getArraySum(columnsAreaRowHeights);
                     rowsAreaColumnWidths = rowsArea.getColumnsWidth();
                     if (that._hasHeight) {
-                        bordersWidth = getCommonBorderWidth([columnAreaCell, dataAreaCell, tableElement, tableElement.find(".dx-column-header"), filterHeaderCell], "height");
+                        bordersWidth = getCommonBorderWidth([columnAreaCell, dataAreaCell, tableElement, columnHeaderCell, filterHeaderCell], "height");
                         groupHeight = that.$element().height() - filterHeaderCell.height() - tableElement.find(".dx-data-header").height() - (Math.max(dataArea.headElement().height(), columnAreaCell.height(), descriptionCellHeight) + bordersWidth)
                     }
                     totalWidth = dataArea.tableElement().width();
@@ -147175,6 +147580,7 @@
                             columnsArea.setRowsHeight(columnsAreaRowHeights)
                         }
                         tableElement.removeClass(INCOMPRESSIBLE_FIELDS_CLASS);
+                        columnHeaderCell.children().css("maxWidth", groupWidth);
                         columnsArea.groupWidth(groupWidth);
                         columnsArea.processScrollBarSpacing(hasRowsScroll ? scrollBarWidth : 0);
                         columnsArea.setColumnsWidth(resultWidths);
@@ -147263,7 +147669,7 @@
             inArray = __webpack_require__( /*! ../../core/utils/array */ 11).inArray,
             iteratorUtils = __webpack_require__( /*! ../../core/utils/iterator */ 3),
             Class = __webpack_require__( /*! ../../core/class */ 10),
-            stringUtils = __webpack_require__( /*! ../../core/utils/string */ 44),
+            stringUtils = __webpack_require__( /*! ../../core/utils/string */ 45),
             commonUtils = __webpack_require__( /*! ../../core/utils/common */ 4),
             typeUtils = __webpack_require__( /*! ../../core/utils/type */ 1),
             virtualScrolling = __webpack_require__( /*! ../grid_core/ui.grid_core.virtual_scrolling_core */ 411),
@@ -148996,7 +149402,9 @@
             filters = filters.concat(getFiltersForDimension(options.rows)).concat(getFiltersForDimension(options.columns)).concat(getFiltersForExpandedDimension(options));
             columnTotalsOptions = getGrandTotalRequest(options, "columns", columnExpandedIndex, columnExpandedLevel, filters, firstCollapsedColumnIndex);
             if (options.rows.length && options.columns.length) {
-                data = data.concat(columnTotalsOptions);
+                if (!options.headerName) {
+                    data = data.concat(columnTotalsOptions)
+                }
                 for (var i = rowExpandedIndex; i < rowExpandedLevel + 1; i++) {
                     var rows = options.rows.slice(rowExpandedIndex, i + 1),
                         rowFilterByExpandedPaths = getExpandedPathSliceFilter(options, "rows", i, firstCollapsedRowIndex);
@@ -149345,6 +149753,9 @@
                 return this._cell
             },
             field: function field(area) {
+                if ("data" === area) {
+                    return this._descriptions.values[this._fieldIndex]
+                }
                 var path = this._getPath(area),
                     descriptions = this._getDimension(area),
                     field = descriptions[path.length - 2];
@@ -150971,13 +151382,13 @@
     function(module, exports, __webpack_require__) {
         var $ = __webpack_require__( /*! ../../core/renderer */ 2),
             Callbacks = __webpack_require__( /*! ../../core/utils/callbacks */ 21),
-            translator = __webpack_require__( /*! ../../animation/translator */ 24),
+            translator = __webpack_require__( /*! ../../animation/translator */ 23),
             errors = __webpack_require__( /*! ../widget/ui.errors */ 18),
             windowUtils = __webpack_require__( /*! ../../core/utils/window */ 6),
             dialog = __webpack_require__( /*! ../dialog */ 266),
             recurrenceUtils = __webpack_require__( /*! ./utils.recurrence */ 161),
             domUtils = __webpack_require__( /*! ../../core/utils/dom */ 12),
-            dateUtils = __webpack_require__( /*! ../../core/utils/date */ 23),
+            dateUtils = __webpack_require__( /*! ../../core/utils/date */ 24),
             objectUtils = __webpack_require__( /*! ../../core/utils/object */ 52),
             each = __webpack_require__( /*! ../../core/utils/iterator */ 3).each,
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
@@ -151609,7 +152020,7 @@
                 this._initEditing();
                 this._resourcesManager = new SchedulerResourceManager(this.option("resources"));
                 var combinedDataAccessors = this._combineDataAccessors();
-                this._appointmentModel = new SchedulerAppointmentModel(this._dataSource, combinedDataAccessors);
+                this._appointmentModel = new SchedulerAppointmentModel(this._dataSource, combinedDataAccessors, this.getAppointmentDurationInMinutes());
                 this._initActions();
                 this._dropDownAppointments = new DropDownAppointments;
                 this._subscribes = subscribes
@@ -151670,7 +152081,7 @@
             },
             _getAppointmentsToRepaint: function() {
                 var appointments = this._layoutManager.createAppointmentsMap(this._filteredItems);
-                return this._layoutManager.markRepaintedAppointments(appointments, this.getAppointmentsInstance().option("items"))
+                return this._layoutManager.getRepaintedAppointments(appointments, this.getAppointmentsInstance().option("items"))
             },
             _initExpressions: function(fields) {
                 var dataCoreUtils = __webpack_require__( /*! ../../core/utils/data */ 22),
@@ -151953,7 +152364,7 @@
                     allowMultipleCellSelection: this.option("allowMultipleCellSelection"),
                     selectedCellData: this.option("selectedCellData"),
                     onSelectionChanged: function(args) {
-                        _this5.option("selectedCellData", args.selectedCellData);
+                        _this5.option("selectedCellData", args.selectedCellData)
                     },
                     groupByDate: this._getCurrentViewOption("groupByDate")
                 }, currentViewOptions);
@@ -152663,8 +153074,11 @@
                         }
                     } else {
                         getGroups = function() {
-                            var apptPosition = $(appointmentElement).position();
-                            return workSpace.getCellDataByCoordinates(apptPosition).groups
+                            var setting = $(appointmentElement).data("dxAppointmentSettings") || {};
+                            return workSpace.getCellDataByCoordinates({
+                                left: setting.left,
+                                top: setting.top
+                            }).groups
                         };
                         setResourceCallback = function(field, value) {
                             resourcesSetter[field](targetedAppointment, value)
@@ -152773,22 +153187,38 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var $ = __webpack_require__( /*! ../../core/renderer */ 2),
-            array = __webpack_require__( /*! ../../core/utils/array */ 11),
-            recurrenceUtils = __webpack_require__( /*! ./utils.recurrence */ 161),
-            dateUtils = __webpack_require__( /*! ../../core/utils/date */ 23),
-            each = __webpack_require__( /*! ../../core/utils/iterator */ 3).each,
-            translator = __webpack_require__( /*! ../../animation/translator */ 24),
-            grep = __webpack_require__( /*! ../../core/utils/common */ 4).grep,
-            typeUtils = __webpack_require__( /*! ../../core/utils/type */ 1),
-            extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
-            inArray = __webpack_require__( /*! ../../core/utils/array */ 11).inArray,
-            dateLocalization = __webpack_require__( /*! ../../localization/date */ 34),
-            SchedulerTimezones = __webpack_require__( /*! ./timezones/ui.scheduler.timezones */ 434),
-            Deferred = __webpack_require__( /*! ../../core/utils/deferred */ 7).Deferred;
+        var _renderer = __webpack_require__( /*! ../../core/renderer */ 2);
+        var _renderer2 = _interopRequireDefault(_renderer);
+        var _array = __webpack_require__( /*! ../../core/utils/array */ 11);
+        var _array2 = _interopRequireDefault(_array);
+        var _utils = __webpack_require__( /*! ./utils.recurrence */ 161);
+        var _utils2 = _interopRequireDefault(_utils);
+        var _type = __webpack_require__( /*! ../../core/utils/type */ 1);
+        var _type2 = _interopRequireDefault(_type);
+        var _date = __webpack_require__( /*! ../../core/utils/date */ 24);
+        var _date2 = _interopRequireDefault(_date);
+        var _iterator = __webpack_require__( /*! ../../core/utils/iterator */ 3);
+        var _translator = __webpack_require__( /*! ../../animation/translator */ 23);
+        var _translator2 = _interopRequireDefault(_translator);
+        var _common = __webpack_require__( /*! ../../core/utils/common */ 4);
+        var _extend = __webpack_require__( /*! ../../core/utils/extend */ 0);
+        var _date3 = __webpack_require__( /*! ../../localization/date */ 35);
+        var _date4 = _interopRequireDefault(_date3);
+        var _uiScheduler = __webpack_require__( /*! ./timezones/ui.scheduler.timezones */ 434);
+        var _uiScheduler2 = _interopRequireDefault(_uiScheduler);
+        var _deferred = __webpack_require__( /*! ../../core/utils/deferred */ 7);
+
+        function _interopRequireDefault(obj) {
+            return obj && obj.__esModule ? obj : {
+                "default": obj
+            }
+        }
         var MINUTES_IN_HOUR = 60;
-        var toMs = dateUtils.dateToMilliseconds;
+        var toMs = _date2.default.dateToMilliseconds;
         var subscribes = {
+            isCurrentViewAgenda: function() {
+                return "agenda" === this.option("currentView")
+            },
             currentViewUpdated: function(currentView) {
                 this.option("currentView", currentView)
             },
@@ -152799,6 +153229,7 @@
                 this._workSpace.setCellDataCacheAlias(appointment, geometry)
             },
             needCoordinates: function(options) {
+                var _this = this;
                 var appointmentData = options.appointmentData,
                     startDate = options.startDate,
                     endDate = this._getEndDate(appointmentData),
@@ -152806,7 +153237,7 @@
                     recurrenceException = this._getRecurrenceException(appointmentData),
                     dateRange = this._workSpace.getDateRange(),
                     allDay = this.appointmentTakesAllDay(appointmentData),
-                    startViewDate = this.appointmentTakesAllDay(appointmentData) ? dateUtils.trimTime(new Date(dateRange[0])) : dateRange[0],
+                    startViewDate = this.appointmentTakesAllDay(appointmentData) ? _date2.default.trimTime(new Date(dateRange[0])) : dateRange[0],
                     originalStartDate = options.originalStartDate || startDate,
                     renderingStrategy = this.getLayoutManager().getRenderingStrategyInstance();
                 var recurrenceOptions = {
@@ -152817,9 +153248,13 @@
                     min: startViewDate,
                     max: dateRange[1]
                 };
-                var dates = recurrenceUtils.getDatesByRecurrence(recurrenceOptions);
+                var dates = _utils2.default.getDatesByRecurrence(recurrenceOptions);
                 if (!dates.length) {
                     dates.push(startDate)
+                } else {
+                    dates = dates.map(function(date) {
+                        return _date2.default.roundDateByStartDayHour(date, _this._getCurrentViewOption("startDayHour"))
+                    })
                 }
                 if (renderingStrategy.needSeparateAppointment(allDay)) {
                     var datesLength = dates.length,
@@ -152829,7 +153264,7 @@
                         var endDateOfPart = renderingStrategy.endDate(appointmentData, {
                             startDate: dates[i]
                         }, !!recurrenceRule);
-                        longParts = dateUtils.getDatesOfInterval(dates[i], endDateOfPart, {
+                        longParts = _date2.default.getDatesOfInterval(dates[i], endDateOfPart, {
                             milliseconds: this.getWorkSpace().getIntervalDuration(allDay)
                         });
                         resultDates = resultDates.concat(longParts)
@@ -152845,7 +153280,7 @@
             },
             showAppointmentTooltip: function(options) {
                 options.skipDateCalculation = true;
-                options.$appointment = $(options.target);
+                options.$appointment = (0, _renderer2.default)(options.target);
                 var appointmentData = options.data,
                     singleAppointmentData = this._getSingleAppointmentData(appointmentData, options);
                 this.showAppointmentTooltip(appointmentData, options.target, singleAppointmentData)
@@ -152855,17 +153290,17 @@
             },
             showAddAppointmentPopup: function(appointmentData) {
                 var processedData = {};
-                each(["startDate", "endDate", "allDay"], function(_, field) {
+                (0, _iterator.each)(["startDate", "endDate", "allDay"], function(_, field) {
                     if (void 0 !== appointmentData[field]) {
                         this.fire("setField", field, processedData, appointmentData[field]);
                         delete appointmentData[field]
                     }
                 }.bind(this));
-                this.showAppointmentPopup(extend(processedData, appointmentData), true)
+                this.showAppointmentPopup((0, _extend.extend)(processedData, appointmentData), true)
             },
             showEditAppointmentPopup: function(options) {
                 var appointmentData = options.data;
-                options.$appointment = $(options.target);
+                options.$appointment = (0, _renderer2.default)(options.target);
                 options.skipHoursProcessing = true;
                 var singleAppointmentData = this._getSingleAppointmentData(appointmentData, options),
                     startDate = this.fire("getField", "startDate", singleAppointmentData);
@@ -152875,7 +153310,7 @@
                 var targetAppointment = options.target,
                     singleAppointment = this._getSingleAppointmentData(targetAppointment, options),
                     startDate = this.fire("getField", "startDate", singleAppointment),
-                    updatedData = extend(true, {}, options.data);
+                    updatedData = (0, _extend.extend)(true, {}, options.data);
                 this._convertDatesByTimezoneBack(true, updatedData);
                 this._checkRecurringAppointment(targetAppointment, singleAppointment, startDate, function() {
                     this._updateAppointment(targetAppointment, updatedData, function() {
@@ -152890,7 +153325,7 @@
                     oldCellIndex = this._workSpace.getCellIndexByCoordinates(options.coordinates),
                     becomeAllDay = this.fire("getField", "allDay", updatedData),
                     wasAllDay = this.fire("getField", "allDay", target);
-                var appointment = extend({}, target, updatedData);
+                var appointment = (0, _extend.extend)({}, target, updatedData);
                 var movedToAllDay = this._workSpace.supportAllDayRow() && becomeAllDay,
                     cellData = this._workSpace.getCellDataByCoordinates(options.coordinates, movedToAllDay),
                     movedBetweenAllDayAndSimple = this._workSpace.supportAllDayRow() && (wasAllDay && !becomeAllDay || !wasAllDay && becomeAllDay);
@@ -152906,7 +153341,7 @@
                 }
             },
             deleteAppointment: function(options) {
-                options.$appointment = $(options.target);
+                options.$appointment = (0, _renderer2.default)(options.target);
                 var appointmentData = options.data,
                     singleAppointmentData = this._getSingleAppointmentData(appointmentData, options),
                     startDate = this.fire("getField", "startDate", singleAppointmentData);
@@ -152920,12 +153355,12 @@
             getAppointmentColor: function(options) {
                 var resourcesManager = this._resourcesManager,
                     resourceForPainting = resourcesManager.getResourceForPainting(this._getCurrentViewOption("groups")),
-                    response = (new Deferred).resolve().promise();
+                    response = (new _deferred.Deferred).resolve().promise();
                 if (resourceForPainting) {
                     var field = resourcesManager.getField(resourceForPainting),
                         groupIndex = options.groupIndex,
                         groups = this._workSpace._getCellGroups(groupIndex),
-                        resourceValues = array.wrapToArray(resourcesManager.getDataAccessors(field, "getter")(options.itemData)),
+                        resourceValues = _array2.default.wrapToArray(resourcesManager.getDataAccessors(field, "getter")(options.itemData)),
                         groupId = resourceValues.length ? resourceValues[0] : void 0;
                     for (var i = 0; i < groups.length; i++) {
                         if (groups[i].name === field) {
@@ -152958,7 +153393,8 @@
                 this._workSpace.restoreScrollTop()
             },
             getResizableAppointmentArea: function(options) {
-                var area, allDay = options.allDay,
+                var area = void 0,
+                    allDay = options.allDay,
                     groups = this._getCurrentViewOption("groups"),
                     isGrouped = groups && groups.length;
                 if (isGrouped) {
@@ -153064,18 +153500,18 @@
                 var formatTypes = {
                     DATETIME: function() {
                         var dateTimeFormat = "mediumdatemediumtime",
-                            startDateString = dateLocalization.format(startDate, dateTimeFormat) + " - ";
-                        var endDateString = startDate.getDate() === endDate.getDate() ? dateLocalization.format(endDate, "shorttime") : dateLocalization.format(endDate, dateTimeFormat);
+                            startDateString = _date4.default.format(startDate, dateTimeFormat) + " - ";
+                        var endDateString = startDate.getDate() === endDate.getDate() ? _date4.default.format(endDate, "shorttime") : _date4.default.format(endDate, dateTimeFormat);
                         return startDateString + endDateString
                     },
                     TIME: function() {
-                        return dateLocalization.format(startDate, "shorttime") + " - " + dateLocalization.format(endDate, "shorttime")
+                        return _date4.default.format(startDate, "shorttime") + " - " + _date4.default.format(endDate, "shorttime")
                     },
                     DATE: function() {
                         var dateTimeFormat = "monthAndDay",
-                            startDateString = dateLocalization.format(startDate, dateTimeFormat),
+                            startDateString = _date4.default.format(startDate, dateTimeFormat),
                             isDurationMoreThanDay = endDate.getTime() - startDate.getTime() > toMs("day");
-                        var endDateString = isDurationMoreThanDay || endDate.getDate() !== startDate.getDate() ? " - " + dateLocalization.format(endDate, dateTimeFormat) : "";
+                        var endDateString = isDurationMoreThanDay || endDate.getDate() !== startDate.getDate() ? " - " + _date4.default.format(endDate, dateTimeFormat) : "";
                         return startDateString + endDateString
                     }
                 };
@@ -153091,22 +153527,20 @@
                 options.callback(cellCountToLastViewDate * this._workSpace.getCellWidth())
             },
             updateAppointmentStartDate: function(options) {
-                var updatedStartDate, appointment = options.appointment,
+                var appointment = options.appointment,
                     firstViewDate = this._workSpace.getStartViewDate(),
                     startDate = new Date(options.startDate),
-                    startDayHour = this._getCurrentViewOption("startDayHour");
+                    startDayHour = this._getCurrentViewOption("startDayHour"),
+                    updatedStartDate = void 0;
                 if (this.appointmentTakesAllDay(appointment)) {
-                    updatedStartDate = dateUtils.normalizeDate(startDate, firstViewDate)
+                    updatedStartDate = _date2.default.normalizeDate(startDate, firstViewDate)
                 } else {
                     if (startDate < firstViewDate) {
                         startDate = firstViewDate
                     }
-                    updatedStartDate = dateUtils.normalizeDate(options.startDate, new Date(startDate))
+                    updatedStartDate = _date2.default.normalizeDate(options.startDate, new Date(startDate))
                 }
-                var startTime = dateUtils.dateTimeFromDecimal(startDayHour);
-                if (updatedStartDate.getHours() === startTime.hours && updatedStartDate.getMinutes() < startTime.minutes || updatedStartDate.getHours() < startTime.hours) {
-                    updatedStartDate.setHours(startTime.hours, startTime.minutes, 0, 0)
-                }
+                updatedStartDate = _date2.default.roundDateByStartDayHour(updatedStartDate, startDayHour);
                 options.callback(updatedStartDate)
             },
             updateAppointmentEndDate: function(options) {
@@ -153145,15 +153579,15 @@
             },
             updateResizableArea: function() {
                 var $allResizableElements = this.$element().find(".dx-scheduler-appointment.dx-resizable");
-                var horizontalResizables = grep($allResizableElements, function(el) {
-                    var $el = $(el),
+                var horizontalResizables = (0, _common.grep)($allResizableElements, function(el) {
+                    var $el = (0, _renderer2.default)(el),
                         resizableInst = $el.dxResizable("instance"),
                         area = resizableInst.option("area");
-                    return inArray(resizableInst.option("handles"), ["right left", "left right"]) > -1 && typeUtils.isPlainObject(area)
+                    return (0, _array.inArray)(resizableInst.option("handles"), ["right left", "left right"]) > -1 && _type2.default.isPlainObject(area)
                 });
-                each(horizontalResizables, function(_, el) {
-                    var $el = $(el),
-                        position = translator.locate($el),
+                (0, _iterator.each)(horizontalResizables, function(_, el) {
+                    var $el = (0, _renderer2.default)(el),
+                        position = _translator2.default.locate($el),
                         appointmentData = this._appointments._getItemData($el);
                     var area = this._appointments._calculateResizableArea({
                         left: position.left
@@ -153165,13 +153599,13 @@
                 this.recurrenceEditorVisibilityChanged(visible)
             },
             getField: function(field, obj) {
-                if (!typeUtils.isDefined(this._dataAccessors.getter[field])) {
+                if (!_type2.default.isDefined(this._dataAccessors.getter[field])) {
                     return
                 }
                 return this._dataAccessors.getter[field](obj)
             },
             setField: function(field, obj, value) {
-                if (!typeUtils.isDefined(this._dataAccessors.setter[field])) {
+                if (!_type2.default.isDefined(this._dataAccessors.setter[field])) {
                     return
                 }
                 var splitExprStr = this.option(field + "Expr").split("."),
@@ -153192,8 +153626,9 @@
                 return obj
             },
             prerenderFilter: function() {
-                var allDay, dateRange = this.getWorkSpace().getDateRange(),
-                    resources = this._resourcesManager.getResourcesData();
+                var dateRange = this.getWorkSpace().getDateRange(),
+                    resources = this._resourcesManager.getResourcesData(),
+                    allDay = void 0;
                 if (!this.option("showAllDayPanel") && this._workSpace.supportAllDayRow()) {
                     allDay = false
                 }
@@ -153228,7 +153663,7 @@
                     result = this._resourcesManager.groupAppointmentsByResources(appointments, this._loadedResources)
                 }
                 var totalResourceCount = 0;
-                each(this._loadedResources, function(i, resource) {
+                (0, _iterator.each)(this._loadedResources, function(i, resource) {
                     if (!i) {
                         totalResourceCount = resource.items.length
                     } else {
@@ -153247,7 +153682,7 @@
             getAgendaRows: function(options) {
                 var renderingStrategy = this._layoutManager.getRenderingStrategyInstance(),
                     calculateRows = renderingStrategy.calculateRows.bind(renderingStrategy),
-                    d = new Deferred;
+                    d = new _deferred.Deferred;
 
                 function rowsCalculated(appointments) {
                     var result = calculateRows(appointments, options.agendaDuration, options.currentDate);
@@ -153285,7 +153720,7 @@
                     total += count
                 };
                 for (var i = 0; i < rows.length; i++) {
-                    each(rows[i], applyOffset)
+                    (0, _iterator.each)(rows[i], applyOffset)
                 }
             },
             getTimezone: function() {
@@ -153293,7 +153728,7 @@
             },
             getClientTimezoneOffset: function(date) {
                 date = date || new Date;
-                return SchedulerTimezones.getClientTimezoneOffset(date)
+                return _uiScheduler2.default.getClientTimezoneOffset(date)
             },
             convertDateByTimezone: function(date, appointmentTimezone) {
                 date = new Date(date);
@@ -153342,19 +153777,19 @@
                 return startDate.getTimezoneOffset() - endDate.getTimezoneOffset()
             },
             getTimezonesDisplayName: function() {
-                return SchedulerTimezones.getTimezonesDisplayName()
+                return _uiScheduler2.default.getTimezonesDisplayName()
             },
             getTimezoneDisplayNameById: function(id) {
-                return SchedulerTimezones.getTimezoneDisplayNameById(id)
+                return _uiScheduler2.default.getTimezoneDisplayNameById(id)
             },
             getSimilarTimezones: function(id) {
-                return SchedulerTimezones.getSimilarTimezones(id)
+                return _uiScheduler2.default.getSimilarTimezones(id)
             },
             getTimezonesIdsByDisplayName: function(displayName) {
-                return SchedulerTimezones.getTimezonesIdsByDisplayName(displayName)
+                return _uiScheduler2.default.getTimezonesIdsByDisplayName(displayName)
             },
             getTargetedAppointmentData: function(appointmentData, appointmentElement, appointmentIndex, startDate) {
-                var $appointmentElement = $(appointmentElement),
+                var $appointmentElement = (0, _renderer2.default)(appointmentElement),
                     recurringData = this._getSingleAppointmentData(appointmentData, {
                         skipDateCalculation: true,
                         $appointment: $appointmentElement,
@@ -153362,9 +153797,9 @@
                         startDate: startDate
                     }),
                     result = {};
-                extend(true, result, appointmentData, recurringData);
+                (0, _extend.extend)(true, result, appointmentData, recurringData);
                 this._convertDatesByTimezoneBack(false, result);
-                if (!typeUtils.isDefined(appointmentIndex)) {
+                if (!_type2.default.isDefined(appointmentIndex)) {
                     appointmentIndex = $appointmentElement.data(this._appointments._itemIndexKey())
                 }
                 appointmentElement && this.setTargetedAppointmentResources(result, appointmentElement, appointmentIndex);
@@ -153382,13 +153817,14 @@
                     var ceilQuantityOfDays = Math.ceil(appointmentDuration / dayDuration);
                     result = ceilQuantityOfDays * visibleDayDuration
                 } else {
-                    var tailDuration, isDifferentDate = !dateUtils.sameDate(startDate, new Date(endDate.getTime() - 1)),
-                        floorQuantityOfDays = Math.floor(appointmentDuration / dayDuration);
+                    var isDifferentDate = !_date2.default.sameDate(startDate, new Date(endDate.getTime() - 1)),
+                        floorQuantityOfDays = Math.floor(appointmentDuration / dayDuration),
+                        tailDuration = void 0;
                     if (isDifferentDate) {
                         var hiddenDayDuration = dayDuration - visibleDayDuration;
                         tailDuration = appointmentDuration - (floorQuantityOfDays ? floorQuantityOfDays * dayDuration : hiddenDayDuration);
                         var startDayTime = this.option("startDayHour") * toMs("hour"),
-                            endPartDuration = endDate - dateUtils.trimTime(endDate);
+                            endPartDuration = endDate - _date2.default.trimTime(endDate);
                         if (endPartDuration < startDayTime) {
                             if (floorQuantityOfDays) {
                                 tailDuration -= hiddenDayDuration
@@ -153404,6 +153840,9 @@
                     result = floorQuantityOfDays * visibleDayDuration + tailDuration
                 }
                 options.callback(result)
+            },
+            fixWrongEndDate: function(appointment, startDate, endDate) {
+                return this._appointmentModel.fixWrongEndDate(appointment, startDate, endDate)
             },
             getEndDayHour: function() {
                 return this.option("endDayHour")
@@ -156860,7 +157299,7 @@
             tooltip = __webpack_require__( /*! ../tooltip/ui.tooltip */ 206),
             Button = __webpack_require__( /*! ../button */ 37),
             FunctionTemplate = __webpack_require__( /*! ../widget/function_template */ 112),
-            dateUtils = __webpack_require__( /*! ../../core/utils/date */ 23);
+            dateUtils = __webpack_require__( /*! ../../core/utils/date */ 24);
         var APPOINTMENT_TOOLTIP_WRAPPER_CLASS = "dx-scheduler-appointment-tooltip-wrapper",
             APPOINTMENT_TOOLTIP_CLASS = "dx-scheduler-appointment-tooltip",
             APPOINTMENT_TOOLTIP_TITLE_CLASS = "dx-scheduler-appointment-tooltip-title",
@@ -157240,7 +157679,7 @@
             noop = __webpack_require__( /*! ../../core/utils/common */ 4).noop,
             isNumeric = __webpack_require__( /*! ../../core/utils/type */ 1).isNumeric,
             errors = __webpack_require__( /*! ../widget/ui.errors */ 18),
-            dateUtils = __webpack_require__( /*! ../../core/utils/date */ 23),
+            dateUtils = __webpack_require__( /*! ../../core/utils/date */ 24),
             typeUtils = __webpack_require__( /*! ../../core/utils/type */ 1),
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
             registerComponent = __webpack_require__( /*! ../../core/component_registrator */ 8),
@@ -157251,7 +157690,7 @@
             Popover = __webpack_require__( /*! ../popover */ 136),
             Popup = __webpack_require__( /*! ../popup */ 55),
             publisherMixin = __webpack_require__( /*! ./ui.scheduler.publisher_mixin */ 162),
-            dateLocalization = __webpack_require__( /*! ../../localization/date */ 34),
+            dateLocalization = __webpack_require__( /*! ../../localization/date */ 35),
             isDefined = __webpack_require__( /*! ../../core/utils/type */ 1).isDefined;
         var ELEMENT_CLASS = "dx-scheduler-navigator",
             CALENDAR_CLASS = "dx-scheduler-navigator-calendar",
@@ -158107,10 +158546,10 @@
     /*! all exports used */
     function(module, exports, __webpack_require__) {
         var registerComponent = __webpack_require__( /*! ../../../core/component_registrator */ 8),
-            dateUtils = __webpack_require__( /*! ../../../core/utils/date */ 23),
+            dateUtils = __webpack_require__( /*! ../../../core/utils/date */ 24),
             toMs = dateUtils.dateToMilliseconds,
             SchedulerWorkSpaceWeek = __webpack_require__( /*! ./ui.scheduler.work_space_week */ 438),
-            dateLocalization = __webpack_require__( /*! ../../../localization/date */ 34);
+            dateLocalization = __webpack_require__( /*! ../../../localization/date */ 35);
         var WORK_WEEK_CLASS = "dx-scheduler-work-space-work-week";
         var dayIndexes = [1, 2, 3, 4, 5];
         var weekCounter = 0;
@@ -158171,8 +158610,8 @@
             noop = __webpack_require__( /*! ../../../core/utils/common */ 4).noop,
             registerComponent = __webpack_require__( /*! ../../../core/component_registrator */ 8),
             SchedulerWorkSpace = __webpack_require__( /*! ./ui.scheduler.work_space.indicator */ 224),
-            dateUtils = __webpack_require__( /*! ../../../core/utils/date */ 23),
-            dateLocalization = __webpack_require__( /*! ../../../localization/date */ 34);
+            dateUtils = __webpack_require__( /*! ../../../core/utils/date */ 24),
+            dateLocalization = __webpack_require__( /*! ../../../localization/date */ 35);
         var MONTH_CLASS = "dx-scheduler-work-space-month",
             DATE_TABLE_CURRENT_DATE_CLASS = "dx-scheduler-date-table-current-date",
             DATE_TABLE_FIRST_OF_MONTH_CLASS = "dx-scheduler-date-table-first-of-month",
@@ -158464,7 +158903,7 @@
     function(module, exports, __webpack_require__) {
         var registerComponent = __webpack_require__( /*! ../../../core/component_registrator */ 8),
             SchedulerTimelineWeek = __webpack_require__( /*! ./ui.scheduler.timeline_week */ 439),
-            dateUtils = __webpack_require__( /*! ../../../core/utils/date */ 23),
+            dateUtils = __webpack_require__( /*! ../../../core/utils/date */ 24),
             toMs = dateUtils.dateToMilliseconds;
         var TIMELINE_CLASS = "dx-scheduler-timeline-work-week",
             MONDAY_INDEX = 1;
@@ -158513,7 +158952,7 @@
     function(module, exports, __webpack_require__) {
         var registerComponent = __webpack_require__( /*! ../../../core/component_registrator */ 8),
             SchedulerTimeline = __webpack_require__( /*! ./ui.scheduler.timeline */ 282),
-            dateUtils = __webpack_require__( /*! ../../../core/utils/date */ 23);
+            dateUtils = __webpack_require__( /*! ../../../core/utils/date */ 24);
         var TIMELINE_CLASS = "dx-scheduler-timeline-month",
             DAY_IN_MILLISECONDS = 864e5;
         var toMs = dateUtils.dateToMilliseconds;
@@ -158537,9 +158976,8 @@
             getCellDuration: function() {
                 return toMs("day")
             },
-            getEndViewDate: function() {
-                var dateOfLastViewCell = this.getDateOfLastViewCell();
-                return new Date(dateOfLastViewCell.getTime() + this._calculateDayDuration() * toMs("hour") - toMs("minute"))
+            calculateEndViewDate: function(dateOfLastViewCell) {
+                return new Date(dateOfLastViewCell.getTime() + this._calculateDayDuration() * toMs("hour"))
             },
             _getCellCount: function() {
                 var currentDate = this.option("currentDate"),
@@ -158614,7 +159052,7 @@
             registerComponent = __webpack_require__( /*! ../../../core/component_registrator */ 8),
             SchedulerWorkSpace = __webpack_require__( /*! ./ui.scheduler.work_space */ 435),
             extend = __webpack_require__( /*! ../../../core/utils/extend */ 0).extend,
-            dateLocalization = __webpack_require__( /*! ../../../localization/date */ 34),
+            dateLocalization = __webpack_require__( /*! ../../../localization/date */ 35),
             tableCreator = __webpack_require__( /*! ../ui.scheduler.table_creator */ 281);
         var AGENDA_CLASS = "dx-scheduler-agenda",
             AGENDA_DATE_CLASS = "dx-scheduler-agenda-date",
@@ -159398,13 +159836,14 @@
             iteratorUtils = __webpack_require__( /*! ../../core/utils/iterator */ 3),
             dateSerialization = __webpack_require__( /*! ../../core/utils/date_serialization */ 62),
             recurrenceUtils = __webpack_require__( /*! ./utils.recurrence */ 161),
-            dateUtils = __webpack_require__( /*! ../../core/utils/date */ 23),
+            dateUtils = __webpack_require__( /*! ../../core/utils/date */ 24),
             commonUtils = __webpack_require__( /*! ../../core/utils/common */ 4),
             typeUtils = __webpack_require__( /*! ../../core/utils/type */ 1),
             inArray = __webpack_require__( /*! ../../core/utils/array */ 11).inArray,
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
             arrayUtils = __webpack_require__( /*! ../../core/utils/array */ 11),
             query = __webpack_require__( /*! ../../data/query */ 42);
+        var toMs = dateUtils.dateToMilliseconds;
         var DATE_FILTER_POSITION = 0,
             USER_FILTER_POSITION = 1;
         var FilterMaker = Class.inherit({
@@ -159456,15 +159895,15 @@
                 return this._filterRegistry.date
             }
         });
-        var compareDateWithStartDayHour = function(startDate, endDate, startDayHour, allDay) {
+        var compareDateWithStartDayHour = function(startDate, endDate, startDayHour, allDay, severalDays) {
             var startTime = dateUtils.dateTimeFromDecimal(startDayHour);
-            var result = startDate.getHours() >= startTime.hours && startDate.getMinutes() >= startTime.minutes || endDate.getHours() === startTime.hours && endDate.getMinutes() > startTime.minutes || endDate.getHours() > startTime.hours || allDay;
+            var result = startDate.getHours() >= startTime.hours && startDate.getMinutes() >= startTime.minutes || endDate.getHours() === startTime.hours && endDate.getMinutes() > startTime.minutes || endDate.getHours() > startTime.hours || severalDays || allDay;
             return result
         };
         var compareDateWithEndDayHour = function(startDate, endDate, startDayHour, endDayHour, allDay, max) {
-            var result, hiddenInterval = 36e5 * (24 - endDayHour + startDayHour),
+            var result, hiddenInterval = (24 - endDayHour + startDayHour) * toMs("hour"),
                 apptDuration = endDate.getTime() - startDate.getTime(),
-                delta = (hiddenInterval - apptDuration) / 36e5,
+                delta = (hiddenInterval - apptDuration) / toMs("hour"),
                 apptStartHour = startDate.getHours(),
                 apptStartMinutes = startDate.getMinutes();
             var endTime = dateUtils.dateTimeFromDecimal(endDayHour);
@@ -159535,7 +159974,7 @@
                 if (allDay || this._appointmentPartInInterval(appointmentStartDate, appointmentEndDate, startDayHour, endDayHour)) {
                     var trimmedDates = this._trimDates(min, max);
                     min = trimmedDates.min;
-                    max = new Date(trimmedDates.max.getTime() - 6e4)
+                    max = new Date(trimmedDates.max.getTime() - toMs("minute"))
                 }
                 if (recurrenceRule && !recurrenceUtils.getRecurrenceRule(recurrenceRule).isValid) {
                     result = appointmentEndDate > min && appointmentStartDate <= max
@@ -159571,6 +160010,7 @@
                             startDate = new Date(dataAccessors.getter.startDate(appointment)),
                             endDate = new Date(dataAccessors.getter.endDate(appointment)),
                             appointmentTakesAllDay = that.appointmentTakesAllDay(appointment, startDayHour, endDayHour),
+                            appointmentTakesSeveralDays = that.appointmentTakesSeveralDays(appointment),
                             isAllDay = dataAccessors.getter.allDay(appointment),
                             useRecurrence = typeUtils.isDefined(dataAccessors.getter.recurrenceRule);
                         if (useRecurrence) {
@@ -159596,7 +160036,7 @@
                             comparableStartDate = timeZoneProcessor(startDate, startDateTimeZone),
                             comparableEndDate = timeZoneProcessor(endDate, endDateTimeZone);
                         if (result && void 0 !== startDayHour) {
-                            result = compareDateWithStartDayHour(comparableStartDate, comparableEndDate, startDayHour, appointmentTakesAllDay)
+                            result = compareDateWithStartDayHour(comparableStartDate, comparableEndDate, startDayHour, appointmentTakesAllDay, appointmentTakesSeveralDays)
                         }
                         if (result && void 0 !== endDayHour) {
                             result = compareDateWithEndDayHour(comparableStartDate, comparableEndDate, startDayHour, endDayHour, appointmentTakesAllDay, max)
@@ -159610,11 +160050,12 @@
                     }]
                 ]
             },
-            ctor: function(dataSource, dataAccessors) {
+            ctor: function(dataSource, dataAccessors, baseAppointmentDuration) {
                 this.setDataAccessors(dataAccessors);
                 this.setDataSource(dataSource);
                 this._updatedAppointmentKeys = [];
-                this._filterMaker = new FilterMaker(dataAccessors)
+                this._filterMaker = new FilterMaker(dataAccessors);
+                this._baseAppointmentDuration = baseAppointmentDuration
             },
             setDataSource: function(dataSource) {
                 this._dataSource = dataSource;
@@ -159748,7 +160189,7 @@
                 return appointmentDurationInHours >= shortDayDurationInHours && startDate.getHours() === startDayHour && endDate.getHours() === endDayHour
             },
             _getAppointmentDurationInHours: function(startDate, endDate) {
-                return (endDate.getTime() - startDate.getTime()) / 36e5
+                return (endDate.getTime() - startDate.getTime()) / toMs("hour")
             },
             appointmentTakesSeveralDays: function(appointment) {
                 var dataAccessors = this._dataAccessors,
@@ -159761,10 +160202,11 @@
             customizeDateFilter: function(dateFilter, timeZoneProcessor) {
                 var currentFilter = extend(true, [], dateFilter);
                 return function(appointment) {
+                    var startDate = new Date(this._dataAccessors.getter.startDate(appointment)),
+                        endDate = new Date(this._dataAccessors.getter.endDate(appointment));
+                    endDate = this.fixWrongEndDate(appointment, startDate, endDate);
                     appointment = extend(true, {}, appointment);
-                    var startDate = this._dataAccessors.getter.startDate(appointment),
-                        endDate = this._dataAccessors.getter.endDate(appointment),
-                        startDateTimeZone = this._dataAccessors.getter.startDateTimeZone(appointment),
+                    var startDateTimeZone = this._dataAccessors.getter.startDateTimeZone(appointment),
                         endDateTimeZone = this._dataAccessors.getter.endDateTimeZone(appointment);
                     var comparableStartDate = timeZoneProcessor(startDate, startDateTimeZone),
                         comparableEndDate = timeZoneProcessor(endDate, endDateTimeZone);
@@ -159772,6 +160214,20 @@
                     this._dataAccessors.setter.endDate(appointment, comparableEndDate);
                     return query([appointment]).filter(currentFilter).toArray().length > 0
                 }.bind(this)
+            },
+            fixWrongEndDate: function(appointment, startDate, endDate) {
+                if (this._isEndDateWrong(appointment, startDate, endDate)) {
+                    if (this._dataAccessors.getter.allDay(appointment)) {
+                        endDate = dateUtils.setToDayEnd(new Date(startDate))
+                    } else {
+                        endDate = new Date(startDate.getTime() + this._baseAppointmentDuration * toMs("minute"))
+                    }
+                    this._dataAccessors.setter.endDate(appointment, endDate)
+                }
+                return endDate
+            },
+            _isEndDateWrong: function(appointment, startDate, endDate) {
+                return !endDate || isNaN(endDate.getTime()) || startDate.getTime() >= endDate.getTime()
             },
             add: function(data, tz) {
                 return this._dataSource.store().insert(data).done(function() {
@@ -159799,30 +160255,57 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var $ = __webpack_require__( /*! ../../core/renderer */ 2),
-            domAdapter = __webpack_require__( /*! ../../core/dom_adapter */ 13),
-            eventsEngine = __webpack_require__( /*! ../../events/core/events_engine */ 5),
-            dataUtils = __webpack_require__( /*! ../../core/element_data */ 38),
-            translator = __webpack_require__( /*! ../../animation/translator */ 24),
-            dateUtils = __webpack_require__( /*! ../../core/utils/date */ 23),
-            commonUtils = __webpack_require__( /*! ../../core/utils/common */ 4),
-            typeUtils = __webpack_require__( /*! ../../core/utils/type */ 1),
-            each = __webpack_require__( /*! ../../core/utils/iterator */ 3).each,
-            objectUtils = __webpack_require__( /*! ../../core/utils/object */ 52),
-            arrayUtils = __webpack_require__( /*! ../../core/utils/array */ 11),
-            extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
-            getPublicElement = __webpack_require__( /*! ../../core/utils/dom */ 12).getPublicElement,
-            recurrenceUtils = __webpack_require__( /*! ./utils.recurrence */ 161),
-            registerComponent = __webpack_require__( /*! ../../core/component_registrator */ 8),
-            publisherMixin = __webpack_require__( /*! ./ui.scheduler.publisher_mixin */ 162),
-            Appointment = __webpack_require__( /*! ./ui.scheduler.appointment */ 698),
-            eventUtils = __webpack_require__( /*! ../../events/utils */ 9),
-            dblclickEvent = __webpack_require__( /*! ../../events/double_click */ 213),
-            dateLocalization = __webpack_require__( /*! ../../localization/date */ 34),
-            messageLocalization = __webpack_require__( /*! ../../localization/message */ 14),
-            CollectionWidget = __webpack_require__( /*! ../collection/ui.collection_widget.edit */ 47),
-            Draggable = __webpack_require__( /*! ../draggable */ 322),
-            Deferred = __webpack_require__( /*! ../../core/utils/deferred */ 7).Deferred;
+        var _renderer = __webpack_require__( /*! ../../core/renderer */ 2);
+        var _renderer2 = _interopRequireDefault(_renderer);
+        var _dom_adapter = __webpack_require__( /*! ../../core/dom_adapter */ 13);
+        var _dom_adapter2 = _interopRequireDefault(_dom_adapter);
+        var _events_engine = __webpack_require__( /*! ../../events/core/events_engine */ 5);
+        var _events_engine2 = _interopRequireDefault(_events_engine);
+        var _element_data = __webpack_require__( /*! ../../core/element_data */ 38);
+        var _element_data2 = _interopRequireDefault(_element_data);
+        var _translator = __webpack_require__( /*! ../../animation/translator */ 23);
+        var _translator2 = _interopRequireDefault(_translator);
+        var _date = __webpack_require__( /*! ../../core/utils/date */ 24);
+        var _date2 = _interopRequireDefault(_date);
+        var _common = __webpack_require__( /*! ../../core/utils/common */ 4);
+        var _common2 = _interopRequireDefault(_common);
+        var _type = __webpack_require__( /*! ../../core/utils/type */ 1);
+        var _type2 = _interopRequireDefault(_type);
+        var _iterator = __webpack_require__( /*! ../../core/utils/iterator */ 3);
+        var _object = __webpack_require__( /*! ../../core/utils/object */ 52);
+        var _object2 = _interopRequireDefault(_object);
+        var _array = __webpack_require__( /*! ../../core/utils/array */ 11);
+        var _array2 = _interopRequireDefault(_array);
+        var _extend = __webpack_require__( /*! ../../core/utils/extend */ 0);
+        var _dom = __webpack_require__( /*! ../../core/utils/dom */ 12);
+        var _utils = __webpack_require__( /*! ./utils.recurrence */ 161);
+        var _utils2 = _interopRequireDefault(_utils);
+        var _component_registrator = __webpack_require__( /*! ../../core/component_registrator */ 8);
+        var _component_registrator2 = _interopRequireDefault(_component_registrator);
+        var _uiScheduler = __webpack_require__( /*! ./ui.scheduler.publisher_mixin */ 162);
+        var _uiScheduler2 = _interopRequireDefault(_uiScheduler);
+        var _uiScheduler3 = __webpack_require__( /*! ./ui.scheduler.appointment */ 698);
+        var _uiScheduler4 = _interopRequireDefault(_uiScheduler3);
+        var _utils3 = __webpack_require__( /*! ../../events/utils */ 9);
+        var _utils4 = _interopRequireDefault(_utils3);
+        var _double_click = __webpack_require__( /*! ../../events/double_click */ 213);
+        var _double_click2 = _interopRequireDefault(_double_click);
+        var _date3 = __webpack_require__( /*! ../../localization/date */ 35);
+        var _date4 = _interopRequireDefault(_date3);
+        var _message = __webpack_require__( /*! ../../localization/message */ 14);
+        var _message2 = _interopRequireDefault(_message);
+        var _uiCollection_widget = __webpack_require__( /*! ../collection/ui.collection_widget.edit */ 48);
+        var _uiCollection_widget2 = _interopRequireDefault(_uiCollection_widget);
+        var _draggable = __webpack_require__( /*! ../draggable */ 322);
+        var _draggable2 = _interopRequireDefault(_draggable);
+        var _deferred = __webpack_require__( /*! ../../core/utils/deferred */ 7);
+
+        function _interopRequireDefault(obj) {
+            return obj && obj.__esModule ? obj : {
+                "default": obj
+            }
+        }
+        var APPOINTMENT_SETTINGS_NAME = "dxAppointmentSettings";
         var COMPONENT_CLASS = "dx-scheduler-scrollable-appointments",
             APPOINTMENT_ITEM_CLASS = "dx-scheduler-appointment",
             APPOINTMENT_TITLE_CLASS = "dx-scheduler-appointment-title",
@@ -159830,9 +160313,9 @@
             APPOINTMENT_DATE_CLASS = "dx-scheduler-appointment-content-date",
             RECURRING_ICON_CLASS = "dx-scheduler-appointment-recurrence-icon",
             ALL_DAY_CONTENT_CLASS = "dx-scheduler-appointment-content-allday",
-            DBLCLICK_EVENT_NAME = eventUtils.addNamespace(dblclickEvent.name, "dxSchedulerAppointment");
-        var toMs = dateUtils.dateToMilliseconds;
-        var SchedulerAppointments = CollectionWidget.inherit({
+            DBLCLICK_EVENT_NAME = _utils4.default.addNamespace(_double_click2.default.name, "dxSchedulerAppointment");
+        var toMs = _date2.default.dateToMilliseconds;
+        var SchedulerAppointments = _uiCollection_widget2.default.inherit({
             _supportedKeys: function() {
                 var parent = this.callBase();
                 var tabHandler = function(e) {
@@ -159845,10 +160328,10 @@
                         e.shiftKey ? index-- : index++;
                         var $nextAppointment = this._getAppointmentByIndex(index);
                         this._resetTabIndex($nextAppointment);
-                        eventsEngine.trigger($nextAppointment, "focus")
+                        _events_engine2.default.trigger($nextAppointment, "focus")
                     }
                 };
-                return extend(parent, {
+                return (0, _extend.extend)(parent, {
                     escape: function() {
                         this.moveAppointmentBack();
                         this._escPressed = true
@@ -159870,7 +160353,7 @@
             _getAppointmentByIndex: function(sortedIndex) {
                 var appointments = this._getAccessAppointments();
                 return appointments.filter(function(_, $item) {
-                    return dataUtils.data($item, "dxAppointmentSettings").sortedIndex === sortedIndex
+                    return _element_data2.default.data($item, "dxAppointmentSettings").sortedIndex === sortedIndex
                 }).eq(0)
             },
             _getAccessAppointments: function() {
@@ -159880,7 +160363,7 @@
                 this._focusTarget().attr("tabIndex", -1);
                 $appointment.attr("tabIndex", this.option("tabIndex"))
             },
-            _moveFocus: commonUtils.noop,
+            _moveFocus: _common2.default.noop,
             _focusTarget: function() {
                 return this._itemElements()
             },
@@ -159895,26 +160378,26 @@
                 }
                 clearTimeout(this._appointmentFocusedTimeout);
                 this.callBase.apply(this, arguments);
-                this._$currentAppointment = $(e.target);
-                this.option("focusedElement", getPublicElement($(e.target)));
+                this._$currentAppointment = (0, _renderer2.default)(e.target);
+                this.option("focusedElement", (0, _dom.getPublicElement)((0, _renderer2.default)(e.target)));
                 var that = this;
                 this._appointmentFocusedTimeout = setTimeout(function() {
                     that.notifyObserver("appointmentFocused")
                 })
             },
             _targetIsDisabled: function(e) {
-                return $(e.currentTarget).is(".dx-state-disabled, .dx-state-disabled *")
+                return (0, _renderer2.default)(e.currentTarget).is(".dx-state-disabled, .dx-state-disabled *")
             },
             _focusOutHandler: function() {
                 var $appointment = this._getAppointmentByIndex(0);
-                this.option("focusedElement", getPublicElement($appointment));
+                this.option("focusedElement", (0, _dom.getPublicElement)($appointment));
                 this.callBase.apply(this, arguments)
             },
             _eventBindingTarget: function() {
                 return this._itemContainer()
             },
             _getDefaultOptions: function() {
-                return extend(this.callBase(), {
+                return (0, _extend.extend)(this.callBase(), {
                     noDataText: null,
                     activeStateEnabled: true,
                     hoverStateEnabled: true,
@@ -159948,7 +160431,7 @@
                         this._invalidate();
                         break;
                     case "focusedElement":
-                        this._resetTabIndex($(args.value));
+                        this._resetTabIndex((0, _renderer2.default)(args.value));
                         this.callBase(args);
                         break;
                     case "allowDelete":
@@ -159962,28 +160445,58 @@
                         this.callBase(args)
                 }
             },
+            _isAllDayAppointment: function(appointment) {
+                return appointment.settings.length && appointment.settings[0].allDay || false
+            },
+            _isRepaintAppointment: function(appointment) {
+                return !_type2.default.isDefined(appointment.needRepaint) || true === appointment.needRepaint
+            },
+            _isRepaintAll: function(appointments) {
+                if (this.invoke("isCurrentViewAgenda")) {
+                    return false
+                }
+                for (var i = 0; i < appointments.length; i++) {
+                    var appointment = appointments[i];
+                    if (!this._isRepaintAppointment(appointment)) {
+                        return false
+                    }
+                }
+                return true
+            },
+            _applyFragment: function(fragment, allDay) {
+                if (fragment.children().length > 0) {
+                    this._getAppointmentContainer(allDay).append(fragment)
+                }
+            },
+            _onEachAppointment: function(appointment, index, container, isRepaintAll) {
+                if (appointment && true === appointment.needRemove) {
+                    this._clearItem(appointment);
+                    return
+                }
+                if (false === appointment.needRepaint) {
+                    this._processRenderedAppointment(appointment)
+                }
+                if (this._isRepaintAppointment(appointment)) {
+                    appointment.needRepaint = false;
+                    !isRepaintAll && this._clearItem(appointment);
+                    this._renderItem(index, appointment, container)
+                }
+            },
             _repaintAppointments: function(appointments) {
-                var itemsLength = appointments.length;
-                if (!itemsLength) {
-                    this._cleanItemContainer()
-                }
-                for (var i = 0; i < itemsLength; i++) {
-                    var item = appointments[i];
-                    if (item && true === item.needRemove) {
-                        this._clearItem(item);
-                        appointments.splice(i, 1);
-                        i--;
-                        continue
-                    }
-                    if (item && false === item.needRepaint) {
-                        this._processRenderedAppointment(item)
-                    }
-                    if (item && (!typeUtils.isDefined(item.needRepaint) || true === item.needRepaint)) {
-                        item.needRepaint = false;
-                        this._clearItem(item);
-                        this._renderItem(i, item)
-                    }
-                }
+                var _this = this;
+                var isRepaintAll = this._isRepaintAll(appointments);
+                var allDayFragment = (0, _renderer2.default)(_dom_adapter2.default.createDocumentFragment());
+                var commonFragment = (0, _renderer2.default)(_dom_adapter2.default.createDocumentFragment());
+                if (isRepaintAll) {
+                    this._getAppointmentContainer(true).html("");
+                    this._getAppointmentContainer(false).html("")
+                }!appointments.length && this._cleanItemContainer();
+                appointments.forEach(function(appointment, index) {
+                    var container = _this._isAllDayAppointment(appointment) ? allDayFragment : commonFragment;
+                    _this._onEachAppointment(appointment, index, container, isRepaintAll)
+                });
+                this._applyFragment(allDayFragment, true);
+                this._applyFragment(commonFragment, false)
             },
             _attachAppointmentsEvents: function() {
                 this._attachClickEvent();
@@ -160002,8 +160515,7 @@
                 var $items = this._findItemElementByItem(item.itemData);
                 if (!$items.length) {
                     return
-                }
-                each($items, function(index, $item) {
+                }(0, _iterator.each)($items, function(index, $item) {
                     var deferredColor = this._getAppointmentColor($item, item.settings[index].groupIndex);
                     deferredColor.done(function(color) {
                         if (color) {
@@ -160016,8 +160528,7 @@
                 var $items = this._findItemElementByItem(item.itemData);
                 if (!$items.length) {
                     return
-                }
-                each($items, function(_, $item) {
+                }(0, _iterator.each)($items, function(_, $item) {
                     $item.detach();
                     $item.remove()
                 })
@@ -160029,10 +160540,9 @@
                 var $items = this._getDropDownAppointments();
                 if (!$items.length) {
                     return
-                }
-                each($items, function(_, $item) {
-                    $($item).detach();
-                    $($item).remove()
+                }(0, _iterator.each)($items, function(_, $item) {
+                    (0, _renderer2.default)($item).detach();
+                    (0, _renderer2.default)($item).remove()
                 })
             },
             _getDropDownAppointments: function() {
@@ -160042,7 +160552,7 @@
                 var result = [],
                     that = this;
                 this.itemElements().each(function() {
-                    var $item = $(this);
+                    var $item = (0, _renderer2.default)(this);
                     if ($item.data(that._itemDataKey()) === item) {
                         result.push($item)
                     }
@@ -160086,33 +160596,32 @@
                 if (isNaN(startDate) || isNaN(endDate)) {
                     startDate = data.startDate;
                     endDate = data.endDate
-                }
-                $("<div>").text(this._createAppointmentTitle(data)).addClass(APPOINTMENT_TITLE_CLASS).appendTo($container);
-                if (typeUtils.isPlainObject(data)) {
+                }(0, _renderer2.default)("<div>").text(this._createAppointmentTitle(data)).addClass(APPOINTMENT_TITLE_CLASS).appendTo($container);
+                if (_type2.default.isPlainObject(data)) {
                     if (data.html) {
                         $container.html(data.html)
                     }
                 }
                 var recurrenceRule = data.recurrenceRule,
                     allDay = data.allDay,
-                    $contentDetails = $("<div>").addClass(APPOINTMENT_CONTENT_DETAILS_CLASS);
+                    $contentDetails = (0, _renderer2.default)("<div>").addClass(APPOINTMENT_CONTENT_DETAILS_CLASS);
                 var apptStartTz = data.startDateTimeZone,
                     apptEndTz = data.endDateTimeZone;
                 startDate = this.invoke("convertDateByTimezone", startDate, apptStartTz);
                 endDate = this.invoke("convertDateByTimezone", endDate, apptEndTz);
-                $("<div>").addClass(APPOINTMENT_DATE_CLASS).text(dateLocalization.format(startDate, "shorttime")).appendTo($contentDetails);
-                $("<div>").addClass(APPOINTMENT_DATE_CLASS).text(" - ").appendTo($contentDetails);
-                $("<div>").addClass(APPOINTMENT_DATE_CLASS).text(dateLocalization.format(endDate, "shorttime")).appendTo($contentDetails);
+                (0, _renderer2.default)("<div>").addClass(APPOINTMENT_DATE_CLASS).text(_date4.default.format(startDate, "shorttime")).appendTo($contentDetails);
+                (0, _renderer2.default)("<div>").addClass(APPOINTMENT_DATE_CLASS).text(" - ").appendTo($contentDetails);
+                (0, _renderer2.default)("<div>").addClass(APPOINTMENT_DATE_CLASS).text(_date4.default.format(endDate, "shorttime")).appendTo($contentDetails);
                 $contentDetails.appendTo($container);
                 if (recurrenceRule) {
-                    $("<span>").addClass(RECURRING_ICON_CLASS + " dx-icon-repeat").appendTo($container)
+                    (0, _renderer2.default)("<span>").addClass(RECURRING_ICON_CLASS + " dx-icon-repeat").appendTo($container)
                 }
                 if (allDay) {
-                    $("<div>").text(" " + messageLocalization.format("dxScheduler-allDay") + ": ").addClass(ALL_DAY_CONTENT_CLASS).prependTo($contentDetails)
+                    (0, _renderer2.default)("<div>").text(" " + _message2.default.format("dxScheduler-allDay") + ": ").addClass(ALL_DAY_CONTENT_CLASS).prependTo($contentDetails)
                 }
             },
             _createAppointmentTitle: function(data) {
-                if (typeUtils.isPlainObject(data)) {
+                if (_type2.default.isPlainObject(data)) {
                     return data.text
                 }
                 return String(data)
@@ -160136,13 +160645,13 @@
                 })
             },
             _processItemClick: function(e) {
-                var $target = $(e.currentTarget),
+                var $target = (0, _renderer2.default)(e.currentTarget),
                     data = this._getItemData($target);
                 if (this._targetIsDisabled(e)) {
                     e.stopPropagation();
                     return
                 }
-                if ("keydown" === e.type || eventUtils.isFakeClickEvent(e)) {
+                if ("keydown" === e.type || _utils4.default.isFakeClickEvent(e)) {
                     this.notifyObserver("showEditAppointmentPopup", {
                         data: data,
                         target: $target
@@ -160150,7 +160659,7 @@
                     return
                 }
                 this._appointmentClickTimeout = setTimeout(function() {
-                    if (!this._preventSingleAppointmentClick && domAdapter.getBody().contains($target[0])) {
+                    if (!this._preventSingleAppointmentClick && _dom_adapter2.default.getBody().contains($target[0])) {
                         this.notifyObserver("showAppointmentTooltip", {
                             data: data,
                             target: $target
@@ -160171,8 +160680,8 @@
                 var that = this;
                 var itemSelector = that._itemSelector();
                 var itemContainer = this._itemContainer();
-                eventsEngine.off(itemContainer, DBLCLICK_EVENT_NAME, itemSelector);
-                eventsEngine.on(itemContainer, DBLCLICK_EVENT_NAME, itemSelector, function(e) {
+                _events_engine2.default.off(itemContainer, DBLCLICK_EVENT_NAME, itemSelector);
+                _events_engine2.default.on(itemContainer, DBLCLICK_EVENT_NAME, itemSelector, function(e) {
                     that._itemDXEventHandler(e, "onAppointmentDblClick", {}, {
                         afterExecute: function(e) {
                             that._dblClickHandler(e.args[0].event)
@@ -160181,7 +160690,7 @@
                 })
             },
             _dblClickHandler: function(e) {
-                var $targetAppointment = $(e.currentTarget),
+                var $targetAppointment = (0, _renderer2.default)(e.currentTarget),
                     appointmentData = this._getItemData($targetAppointment);
                 clearTimeout(this._appointmentClickTimeout);
                 this._preventSingleAppointmentClick = true;
@@ -160190,16 +160699,19 @@
                     target: $targetAppointment
                 })
             },
-            _renderItem: function(index, item) {
-                var allDay = item.settings.length && item.settings[0].allDay,
-                    $container = this._getAppointmentContainer(allDay),
-                    coordinateCount = item.settings.length;
+            _renderItem: function(index, item, container) {
                 var itemData = item.itemData;
-                for (var i = 0; i < coordinateCount; i++) {
-                    this._currentAppointmentSettings = item.settings[i];
-                    var $item = this.callBase(index, itemData, $container);
-                    $item.data("dxAppointmentSettings", item.settings[i])
+                for (var i = 0; i < item.settings.length; i++) {
+                    var setting = item.settings[i];
+                    this._currentAppointmentSettings = setting;
+                    var $item = this.callBase(index, itemData, container);
+                    $item.data(APPOINTMENT_SETTINGS_NAME, setting)
                 }
+            },
+            _getItemContent: function($itemFrame) {
+                $itemFrame.data(APPOINTMENT_SETTINGS_NAME, this._currentAppointmentSettings);
+                var $itemContent = this.callBase($itemFrame);
+                return $itemContent
             },
             _createItemByTemplate: function(itemTemplate, renderArgs) {
                 return itemTemplate.render({
@@ -160220,10 +160732,11 @@
                 this._renderAppointment(args.itemElement, this._currentAppointmentSettings)
             },
             _renderAppointment: function($appointment, settings) {
+                $appointment.data(APPOINTMENT_SETTINGS_NAME, settings);
                 this._applyResourceDataAttr($appointment);
                 var data = this._getItemData($appointment),
                     geometry = this.invoke("getAppointmentGeometry", settings),
-                    allowResize = !settings.isCompact && this.option("allowResize") && (!typeUtils.isDefined(settings.skipResizing) || typeUtils.isString(settings.skipResizing)),
+                    allowResize = !settings.isCompact && this.option("allowResize") && (!_type2.default.isDefined(settings.skipResizing) || _type2.default.isString(settings.skipResizing)),
                     allowDrag = this.option("allowDrag"),
                     allDay = settings.allDay;
                 this.invoke("setCellDataCacheAlias", this._currentAppointmentSettings, geometry);
@@ -160231,7 +160744,7 @@
                 if (settings.virtual) {
                     this._processVirtualAppointment(settings, $appointment, data, deferredColor)
                 } else {
-                    this._createComponent($appointment, Appointment, {
+                    this._createComponent($appointment, _uiScheduler4.default, {
                         observer: this.option("observer"),
                         data: data,
                         geometry: geometry,
@@ -160259,10 +160772,10 @@
                     itemData: this._getItemData($appointment),
                     callback: function(resources) {
                         if (resources) {
-                            each(resources, function(name, values) {
-                                var attr = "data-" + commonUtils.normalizeKey(name.toLowerCase()) + "-";
+                            (0, _iterator.each)(resources, function(name, values) {
+                                var attr = "data-" + _common2.default.normalizeKey(name.toLowerCase()) + "-";
                                 for (var i = 0; i < values.length; i++) {
-                                    $appointment.attr(attr + commonUtils.normalizeKey(values[i]), true)
+                                    $appointment.attr(attr + _common2.default.normalizeKey(values[i]), true)
                                 }
                             })
                         }
@@ -160273,7 +160786,7 @@
                 return {
                     area: this._calculateResizableArea(itemSetting, appointmentData),
                     onResizeStart: function(e) {
-                        this._$currentAppointment = $(e.element);
+                        this._$currentAppointment = (0, _renderer2.default)(e.element);
                         if (this.invoke("needRecalculateResizableArea")) {
                             var updatedArea = this._calculateResizableArea(this._$currentAppointment.data("dxAppointmentSettings"), this._$currentAppointment.data("dxItemData"));
                             e.component.option("area", updatedArea);
@@ -160283,7 +160796,7 @@
                             width: e.width,
                             height: e.height
                         };
-                        this._initialCoordinates = translator.locate(this._$currentAppointment)
+                        this._initialCoordinates = _translator2.default.locate(this._$currentAppointment)
                     }.bind(this),
                     onResizeEnd: function(e) {
                         if (this._escPressed) {
@@ -160312,7 +160825,7 @@
                 return area
             },
             _resizeEndHandler: function(e) {
-                var $element = $(e.element),
+                var $element = (0, _renderer2.default)(e.element),
                     itemData = this._getItemData($element),
                     startDate = this.invoke("getStartDate", itemData, true),
                     endDate = this.invoke("getEndDate", itemData);
@@ -160320,7 +160833,7 @@
                 var updatedDates = {};
                 this.invoke("setField", "startDate", updatedDates, new Date(dateRange[0]));
                 this.invoke("setField", "endDate", updatedDates, new Date(dateRange[1]));
-                var data = extend({}, itemData, updatedDates);
+                var data = (0, _extend.extend)({}, itemData, updatedDates);
                 this.notifyObserver("updateAppointmentAfterResize", {
                     target: itemData,
                     data: data,
@@ -160383,7 +160896,7 @@
                 return result
             },
             _getAppointmentColor: function($appointment, groupIndex) {
-                var res = new Deferred;
+                var res = new _deferred.Deferred;
                 this.notifyObserver("getAppointmentColor", {
                     itemData: this._getItemData($appointment),
                     groupIndex: groupIndex,
@@ -160402,7 +160915,7 @@
                 var draggableArea, that = this,
                     $fixedContainer = this.option("fixedContainer"),
                     correctCoordinates = function(element, isFixedContainer) {
-                        var coordinates = translator.locate($(element));
+                        var coordinates = _translator2.default.locate((0, _renderer2.default)(element));
                         that.notifyObserver("correctAppointmentCoordinates", {
                             coordinates: coordinates,
                             allDay: allDay,
@@ -160413,7 +160926,7 @@
                                 }
                             }
                         });
-                        translator.move($appointment, coordinates)
+                        _translator2.default.move($appointment, coordinates)
                     };
                 this.notifyObserver("getDraggableAppointmentArea", {
                     callback: function(result) {
@@ -160422,7 +160935,7 @@
                         }
                     }
                 });
-                this._createComponent($appointment, Draggable, {
+                this._createComponent($appointment, _draggable2.default, {
                     area: draggableArea,
                     boundOffset: that._calculateBoundOffset(),
                     immediate: false,
@@ -160431,12 +160944,12 @@
                         that._skipDraggableRestriction(e);
                         that.notifyObserver("hideAppointmentTooltip");
                         $fixedContainer.append($appointment);
-                        that._$currentAppointment = $(args.element);
+                        that._$currentAppointment = (0, _renderer2.default)(args.element);
                         that._initialSize = {
                             width: args.width,
                             height: args.height
                         };
-                        that._initialCoordinates = translator.locate(that._$currentAppointment)
+                        that._initialCoordinates = _translator2.default.locate(that._$currentAppointment)
                     },
                     onDrag: function(args) {
                         correctCoordinates(args.element)
@@ -160473,7 +160986,7 @@
                 e.maxBottomOffset = null
             },
             _dragEndHandler: function(e) {
-                var $element = $(e.element),
+                var $element = (0, _renderer2.default)(e.element),
                     itemData = this._getItemData($element),
                     coordinates = this._initialCoordinates;
                 this.notifyObserver("updateAppointmentAfterDrag", {
@@ -160486,7 +160999,7 @@
             _processVirtualAppointment: function(appointmentSetting, $appointment, appointmentData, color) {
                 var virtualAppointment = appointmentSetting.virtual,
                     virtualGroupIndex = virtualAppointment.index;
-                if (!typeUtils.isDefined(this._virtualAppointments[virtualGroupIndex])) {
+                if (!_type2.default.isDefined(this._virtualAppointments[virtualGroupIndex])) {
                     this._virtualAppointments[virtualGroupIndex] = {
                         coordinates: {
                             top: virtualAppointment.top,
@@ -160510,7 +161023,7 @@
                 this._renderDropDownAppointments()
             },
             _renderDropDownAppointments: function() {
-                each(this._virtualAppointments, function(groupIndex) {
+                (0, _iterator.each)(this._virtualAppointments, function(groupIndex) {
                     var virtualGroup = this._virtualAppointments[groupIndex],
                         virtualItems = virtualGroup.items,
                         virtualCoordinates = virtualGroup.coordinates,
@@ -160564,7 +161077,7 @@
                         recurrenceException = this.invoke("getField", "recurrenceException", appointment),
                         startViewDate = this.invoke("getStartViewDate"),
                         endViewDate = this.invoke("getEndViewDate"),
-                        recurrentDates = recurrenceUtils.getDatesByRecurrence({
+                        recurrentDates = _utils2.default.getDatesByRecurrence({
                             rule: recurrenceRule,
                             exception: recurrenceException,
                             start: startDate,
@@ -160574,7 +161087,7 @@
                         }),
                         recurrentDateCount = appointment.settings ? 1 : recurrentDates.length;
                     for (var i = 0; i < recurrentDateCount; i++) {
-                        var appointmentPart = extend({}, appointment, true);
+                        var appointmentPart = (0, _extend.extend)({}, appointment, true);
                         if (recurrentDates[i]) {
                             var appointmentSettings = this._applyStartDateToObj(recurrentDates[i], {});
                             this._applyEndDateToObj(new Date(recurrentDates[i].getTime() + appointmentDuration), appointmentSettings);
@@ -160601,7 +161114,7 @@
                     parts: []
                 };
                 if (partCount > 1) {
-                    extend(appointment, parts[0]);
+                    (0, _extend.extend)(appointment, parts[0]);
                     for (var i = 1; i < partCount; i++) {
                         var startDate = this.invoke("getField", "startDate", parts[i].settings).getTime();
                         startDate = this.invoke("convertDateByTimezone", startDate, startDateTimeZone);
@@ -160613,13 +161126,13 @@
                 return result
             },
             _reduceRecurrenceAppointments: function(recurrenceIndexes, appointments) {
-                each(recurrenceIndexes, function(i, index) {
+                (0, _iterator.each)(recurrenceIndexes, function(i, index) {
                     appointments.splice(index - i, 1)
                 })
             },
             _combineAppointments: function(appointments, additionalAppointments) {
                 if (additionalAppointments.length) {
-                    arrayUtils.merge(appointments, additionalAppointments)
+                    _array2.default.merge(appointments, additionalAppointments)
                 }
                 this._sortAppointmentsByStartDate(appointments)
             },
@@ -160634,10 +161147,10 @@
             updateDraggablesBoundOffsets: function() {
                 if (this.option("allowDrag")) {
                     this.$element().find("." + APPOINTMENT_ITEM_CLASS).each(function(_, appointmentElement) {
-                        var $appointment = $(appointmentElement),
+                        var $appointment = (0, _renderer2.default)(appointmentElement),
                             appointmentData = this._getItemData($appointment);
                         if (!this.invoke("isAllDay", appointmentData)) {
-                            Draggable.getInstance($appointment).option("boundOffset", this._calculateBoundOffset())
+                            _draggable2.default.getInstance($appointment).option("boundOffset", this._calculateBoundOffset())
                         }
                     }.bind(this))
                 }
@@ -160648,7 +161161,7 @@
                     coords = this._initialCoordinates;
                 if ($appointment) {
                     if (coords) {
-                        translator.move($appointment, coords);
+                        _translator2.default.move($appointment, coords);
                         delete this._initialSize
                     }
                     if (size) {
@@ -160661,15 +161174,15 @@
             focus: function() {
                 var $appointment = this._$currentAppointment;
                 if ($appointment) {
-                    this.option("focusedElement", getPublicElement($appointment));
-                    eventsEngine.trigger(this.option("focusedElement"), "focus")
+                    this.option("focusedElement", (0, _dom.getPublicElement)($appointment));
+                    _events_engine2.default.trigger(this.option("focusedElement"), "focus")
                 }
             },
             splitAppointmentByDay: function(appointment) {
                 var dates = appointment.settings || appointment;
                 var originalStartDate = new Date(this.invoke("getField", "startDate", dates)),
-                    startDate = dateUtils.makeDate(originalStartDate),
-                    endDate = dateUtils.makeDate(this.invoke("getField", "endDate", dates)),
+                    startDate = _date2.default.makeDate(originalStartDate),
+                    endDate = _date2.default.makeDate(this.invoke("getField", "endDate", dates)),
                     startDateTimeZone = this.invoke("getField", "startDateTimeZone", appointment),
                     endDateTimeZone = this.invoke("getField", "endDateTimeZone", appointment),
                     maxAllowedDate = this.invoke("getEndViewDate"),
@@ -160690,7 +161203,7 @@
                         currentEndDate = new Date(startDate);
                     this._checkStartDate(currentStartDate, originalStartDate, startDayHour);
                     this._checkEndDate(currentEndDate, endDate, endDayHour);
-                    var appointmentData = objectUtils.deepExtendArraySafe({}, appointment, true),
+                    var appointmentData = _object2.default.deepExtendArraySafe({}, appointment, true),
                         appointmentSettings = {};
                     this._applyStartDateToObj(currentStartDate, appointmentSettings);
                     this._applyEndDateToObj(currentEndDate, appointmentSettings);
@@ -160702,21 +161215,21 @@
                 return result
             },
             _checkStartDate: function(currentDate, originalDate, startDayHour) {
-                if (!dateUtils.sameDate(currentDate, originalDate) || currentDate.getHours() <= startDayHour) {
+                if (!_date2.default.sameDate(currentDate, originalDate) || currentDate.getHours() <= startDayHour) {
                     currentDate.setHours(startDayHour, 0, 0, 0)
                 } else {
                     currentDate.setHours(originalDate.getHours(), originalDate.getMinutes(), originalDate.getSeconds(), originalDate.getMilliseconds())
                 }
             },
             _checkEndDate: function(currentDate, originalDate, endDayHour) {
-                if (!dateUtils.sameDate(currentDate, originalDate) || currentDate.getHours() > endDayHour) {
+                if (!_date2.default.sameDate(currentDate, originalDate) || currentDate.getHours() > endDayHour) {
                     currentDate.setHours(endDayHour, 0, 0, 0)
                 } else {
                     currentDate.setHours(originalDate.getHours(), originalDate.getMinutes(), originalDate.getSeconds(), originalDate.getMilliseconds())
                 }
             }
-        }).include(publisherMixin);
-        registerComponent("dxSchedulerAppointments", SchedulerAppointments);
+        }).include(_uiScheduler2.default);
+        (0, _component_registrator2.default)("dxSchedulerAppointments", SchedulerAppointments);
         module.exports = SchedulerAppointments
     },
     /*!***********************************************************************!*\
@@ -160727,18 +161240,18 @@
     function(module, exports, __webpack_require__) {
         var $ = __webpack_require__( /*! ../../core/renderer */ 2),
             eventsEngine = __webpack_require__( /*! ../../events/core/events_engine */ 5),
-            translator = __webpack_require__( /*! ../../animation/translator */ 24),
+            translator = __webpack_require__( /*! ../../animation/translator */ 23),
             recurrenceUtils = __webpack_require__( /*! ./utils.recurrence */ 161),
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
             registerComponent = __webpack_require__( /*! ../../core/component_registrator */ 8),
             tooltip = __webpack_require__( /*! ../tooltip/ui.tooltip */ 206),
             publisherMixin = __webpack_require__( /*! ./ui.scheduler.publisher_mixin */ 162),
             eventUtils = __webpack_require__( /*! ../../events/utils */ 9),
-            pointerEvents = __webpack_require__( /*! ../../events/pointer */ 27),
+            pointerEvents = __webpack_require__( /*! ../../events/pointer */ 26),
             DOMComponent = __webpack_require__( /*! ../../core/dom_component */ 59),
             Resizable = __webpack_require__( /*! ../resizable */ 210),
             messageLocalization = __webpack_require__( /*! ../../localization/message */ 14),
-            dateLocalization = __webpack_require__( /*! ../../localization/date */ 34);
+            dateLocalization = __webpack_require__( /*! ../../localization/date */ 35);
         var REDUCED_APPOINTMENT_POINTERENTER_EVENT_NAME = eventUtils.addNamespace(pointerEvents.enter, "dxSchedulerAppointment"),
             REDUCED_APPOINTMENT_POINTERLEAVE_EVENT_NAME = eventUtils.addNamespace(pointerEvents.leave, "dxSchedulerAppointment");
         var EMPTY_APPOINTMENT_CLASS = "dx-scheduler-appointment-empty",
@@ -160933,161 +161446,199 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var Class = __webpack_require__( /*! ../../core/class */ 10),
-            commonUtils = __webpack_require__( /*! ../../core/utils/common */ 4),
-            each = __webpack_require__( /*! ../../core/utils/iterator */ 3).each,
-            VerticalAppointmentsStrategy = __webpack_require__( /*! ./rendering_strategies/ui.scheduler.appointments.strategy.vertical */ 700),
-            HorizontalAppointmentsStrategy = __webpack_require__( /*! ./rendering_strategies/ui.scheduler.appointments.strategy.horizontal */ 440),
-            HorizontalMonthLineAppointmentsStrategy = __webpack_require__( /*! ./rendering_strategies/ui.scheduler.appointments.strategy.horizontal_month_line */ 441),
-            HorizontalMonthAppointmentsStrategy = __webpack_require__( /*! ./rendering_strategies/ui.scheduler.appointments.strategy.horizontal_month */ 701),
-            AgendaAppointmentsStrategy = __webpack_require__( /*! ./rendering_strategies/ui.scheduler.appointments.strategy.agenda */ 702);
+        var _createClass = function() {
+            function defineProperties(target, props) {
+                for (var i = 0; i < props.length; i++) {
+                    var descriptor = props[i];
+                    descriptor.enumerable = descriptor.enumerable || false;
+                    descriptor.configurable = true;
+                    if ("value" in descriptor) {
+                        descriptor.writable = true
+                    }
+                    Object.defineProperty(target, descriptor.key, descriptor)
+                }
+            }
+            return function(Constructor, protoProps, staticProps) {
+                if (protoProps) {
+                    defineProperties(Constructor.prototype, protoProps)
+                }
+                if (staticProps) {
+                    defineProperties(Constructor, staticProps)
+                }
+                return Constructor
+            }
+        }();
+        var _common = __webpack_require__( /*! ../../core/utils/common */ 4);
+        var _common2 = _interopRequireDefault(_common);
+        var _uiSchedulerAppointmentsStrategy = __webpack_require__( /*! ./rendering_strategies/ui.scheduler.appointments.strategy.vertical */ 700);
+        var _uiSchedulerAppointmentsStrategy2 = _interopRequireDefault(_uiSchedulerAppointmentsStrategy);
+        var _uiSchedulerAppointmentsStrategy3 = __webpack_require__( /*! ./rendering_strategies/ui.scheduler.appointments.strategy.horizontal */ 440);
+        var _uiSchedulerAppointmentsStrategy4 = _interopRequireDefault(_uiSchedulerAppointmentsStrategy3);
+        var _uiSchedulerAppointmentsStrategy5 = __webpack_require__( /*! ./rendering_strategies/ui.scheduler.appointments.strategy.horizontal_month_line */ 441);
+        var _uiSchedulerAppointmentsStrategy6 = _interopRequireDefault(_uiSchedulerAppointmentsStrategy5);
+        var _uiSchedulerAppointmentsStrategy7 = __webpack_require__( /*! ./rendering_strategies/ui.scheduler.appointments.strategy.horizontal_month */ 701);
+        var _uiSchedulerAppointmentsStrategy8 = _interopRequireDefault(_uiSchedulerAppointmentsStrategy7);
+        var _uiSchedulerAppointmentsStrategy9 = __webpack_require__( /*! ./rendering_strategies/ui.scheduler.appointments.strategy.agenda */ 702);
+        var _uiSchedulerAppointmentsStrategy10 = _interopRequireDefault(_uiSchedulerAppointmentsStrategy9);
+
+        function _interopRequireDefault(obj) {
+            return obj && obj.__esModule ? obj : {
+                "default": obj
+            }
+        }
+
+        function _classCallCheck(instance, Constructor) {
+            if (!(instance instanceof Constructor)) {
+                throw new TypeError("Cannot call a class as a function")
+            }
+        }
         var RENDERING_STRATEGIES = {
-            horizontal: HorizontalAppointmentsStrategy,
-            horizontalMonth: HorizontalMonthAppointmentsStrategy,
-            horizontalMonthLine: HorizontalMonthLineAppointmentsStrategy,
-            vertical: VerticalAppointmentsStrategy,
-            agenda: AgendaAppointmentsStrategy
+            horizontal: _uiSchedulerAppointmentsStrategy4.default,
+            horizontalMonth: _uiSchedulerAppointmentsStrategy8.default,
+            horizontalMonthLine: _uiSchedulerAppointmentsStrategy6.default,
+            vertical: _uiSchedulerAppointmentsStrategy2.default,
+            agenda: _uiSchedulerAppointmentsStrategy10.default
         };
-        var AppointmentLayoutManager = Class.inherit({
-            ctor: function(instance, renderingStrategy) {
+        var AppointmentLayoutManager = function() {
+            function AppointmentLayoutManager(instance, renderingStrategy) {
+                _classCallCheck(this, AppointmentLayoutManager);
                 this.instance = instance;
                 renderingStrategy && this.initRenderingStrategy(renderingStrategy)
-            },
-            getCellDimensions: function(options) {
-                if (this.instance._workSpace) {
-                    options.callback(this.instance._workSpace.getCellWidth(), this.instance._workSpace.getCellHeight(), this.instance._workSpace.getAllDayHeight())
-                }
-            },
-            getGroupOrientation: function(options) {
-                if (this.instance._workSpace) {
-                    options.callback(this.instance._workSpace._getRealGroupOrientation())
-                }
-            },
-            initRenderingStrategy: function(renderingStrategy) {
-                var Strategy = RENDERING_STRATEGIES[renderingStrategy];
-                this._renderingStrategyInstance = new Strategy(this.instance);
-                this.renderingStrategy = renderingStrategy
-            },
-            createAppointmentsMap: function(items) {
-                var result = [];
-                this.getCellDimensions({
-                    callback: function(width, height, allDayHeight) {
-                        this.instance._cellWidth = width;
-                        this.instance._cellHeight = height;
-                        this.instance._allDayCellHeight = allDayHeight
-                    }.bind(this)
-                });
-                this.getGroupOrientation({
-                    callback: function(groupOrientation) {
-                        this.instance._groupOrientation = groupOrientation
-                    }.bind(this)
-                });
-                this._positionMap = this._renderingStrategyInstance.createTaskPositionMap(items);
-                each(items, function(index, itemData) {
-                    !this._renderingStrategyInstance.keepAppointmentSettings() && delete itemData.settings;
-                    var appointmentSettings = this._positionMap[index];
-                    each(appointmentSettings, function(_, settings) {
-                        settings.direction = "vertical" === this.renderingStrategy && !settings.allDay ? "vertical" : "horizontal"
-                    }.bind(this));
-                    result.push({
-                        itemData: itemData,
-                        settings: appointmentSettings
-                    })
-                }.bind(this));
-                return result
-            },
-            _markDeletedAppointments: function(renderedItems, appointments) {
-                var itemFound, result = [];
-                each(renderedItems, function(i, currentItem) {
-                    itemFound = false;
-                    each(appointments, function(i, item) {
-                        if (currentItem.itemData === item.itemData) {
-                            itemFound = true
-                        }
-                    }.bind(this));
-                    if (!itemFound) {
-                        currentItem.needRemove = true;
-                        currentItem.needRepaint = false;
-                        result.push(currentItem)
-                    }
-                }.bind(this));
-                return result
-            },
-            checkRepaintItemByKeys: function(itemData) {
-                var result = false;
-                this.instance.getUpdatedAppointmentKeys().forEach(function(obj) {
-                    if (itemData[obj.key] === obj.value) {
-                        result = true
-                    }
-                });
-                return result
-            },
-            checkRepaintItemByValue: function(itemData) {
-                var appointment = this.instance.getUpdatedAppointment();
-                return appointment && (commonUtils.equalByValue(itemData, appointment) || Object.keys(appointment).length !== Object.keys(itemData).length)
-            },
-            markRepaintedAppointments: function(appointments, renderedItems) {
-                var itemFound, isAgenda = "agenda" === this.renderingStrategy,
-                    result = this._markDeletedAppointments(renderedItems, appointments),
-                    repaintAll = false;
-                each(appointments, function(_, currentItem) {
-                    itemFound = false;
-                    currentItem.needRepaint = false;
-                    each(renderedItems, function(_, item) {
-                        if (currentItem.itemData === item.itemData) {
-                            item.needRepaint = false;
-                            itemFound = true;
-                            if (this.checkRepaintItemByValue(item.itemData) || this.checkRepaintItemByKeys(item.itemData)) {
-                                item.needRepaint = true;
-                                if (isAgenda) {
-                                    repaintAll = true
-                                }
-                            }
-                            if (this._compareSettings(currentItem, item, isAgenda) || repaintAll) {
-                                item.settings = currentItem.settings;
-                                item.needRepaint = true;
-                                item.needRemove = false;
-                                if (isAgenda) {
-                                    result.push(item);
-                                    repaintAll = true
-                                }
-                            }
-                        }
-                    }.bind(this));
-                    if (!itemFound) {
-                        currentItem.needRepaint = true;
-                        currentItem.needRemove = false;
-                        renderedItems.push(currentItem);
-                        isAgenda && result.push(currentItem)
-                    }
-                }.bind(this));
-                return isAgenda && result.length ? result : renderedItems
-            },
-            _compareSettings: function(currentItem, item, isAgenda) {
-                var currentItemSettingsLength = currentItem.settings.length,
-                    itemSettingsLength = item.settings.length,
-                    result = false;
-                if (currentItemSettingsLength === itemSettingsLength) {
-                    for (var k = 0; k < currentItemSettingsLength; k++) {
-                        var currentItemSettings = currentItem.settings[k],
-                            itemSettings = item.settings[k];
-                        if (!isAgenda && itemSettings) {
-                            itemSettings.sortedIndex = currentItemSettings.sortedIndex
-                        }
-                        if (!commonUtils.equalByValue(currentItemSettings, itemSettings)) {
-                            result = true;
-                            break
-                        }
-                    }
-                } else {
-                    result = true
-                }
-                return result
-            },
-            getRenderingStrategyInstance: function() {
-                return this._renderingStrategyInstance
             }
-        });
+            _createClass(AppointmentLayoutManager, [{
+                key: "getCellDimensions",
+                value: function(options) {
+                    if (this.instance._workSpace) {
+                        options.callback(this.instance._workSpace.getCellWidth(), this.instance._workSpace.getCellHeight(), this.instance._workSpace.getAllDayHeight())
+                    }
+                }
+            }, {
+                key: "getGroupOrientation",
+                value: function(options) {
+                    if (this.instance._workSpace) {
+                        options.callback(this.instance._workSpace._getRealGroupOrientation())
+                    }
+                }
+            }, {
+                key: "initRenderingStrategy",
+                value: function(renderingStrategy) {
+                    var Strategy = RENDERING_STRATEGIES[renderingStrategy];
+                    this._renderingStrategyInstance = new Strategy(this.instance);
+                    this.renderingStrategy = renderingStrategy
+                }
+            }, {
+                key: "createAppointmentsMap",
+                value: function(items) {
+                    var _this = this;
+                    this.getCellDimensions({
+                        callback: function(width, height, allDayHeight) {
+                            _this.instance._cellWidth = width;
+                            _this.instance._cellHeight = height;
+                            _this.instance._allDayCellHeight = allDayHeight
+                        }
+                    });
+                    this.getGroupOrientation({
+                        callback: function(groupOrientation) {
+                            return _this.instance._groupOrientation = groupOrientation
+                        }
+                    });
+                    this._positionMap = this._renderingStrategyInstance.createTaskPositionMap(items);
+                    return this._createAppointmentsMapCore(items || [], this._positionMap)
+                }
+            }, {
+                key: "_createAppointmentsMapCore",
+                value: function(list, positionMap) {
+                    var _this2 = this;
+                    return list.map(function(data, index) {
+                        if (!_this2._renderingStrategyInstance.keepAppointmentSettings()) {
+                            delete data.settings
+                        }
+                        var appointmentSettings = positionMap[index];
+                        appointmentSettings.forEach(function(settings) {
+                            settings.direction = "vertical" === _this2.renderingStrategy && !settings.allDay ? "vertical" : "horizontal"
+                        });
+                        return {
+                            itemData: data,
+                            settings: appointmentSettings,
+                            needRepaint: true,
+                            needRemove: false
+                        }
+                    })
+                }
+            }, {
+                key: "_hasChangesInData",
+                value: function(data) {
+                    var updatedData = this.instance.getUpdatedAppointment();
+                    return updatedData === data || this.instance.getUpdatedAppointmentKeys().some(function(item) {
+                        return data[item.key] === item.value
+                    })
+                }
+            }, {
+                key: "_hasChangesInSettings",
+                value: function(settingList, oldSettingList) {
+                    if (settingList.length !== oldSettingList.length) {
+                        return true
+                    }
+                    for (var i = 0; i < settingList.length; i++) {
+                        var newSettings = settingList[i],
+                            oldSettings = oldSettingList[i];
+                        if (oldSettings) {
+                            oldSettings.sortedIndex = newSettings.sortedIndex
+                        }
+                        if (!_common2.default.equalByValue(newSettings, oldSettings)) {
+                            return true
+                        }
+                    }
+                    return false
+                }
+            }, {
+                key: "_getEqualAppointmentFromList",
+                value: function(appointment, list) {
+                    for (var i = 0; i < list.length; i++) {
+                        var item = list[i];
+                        if (item.itemData === appointment.itemData) {
+                            return item
+                        }
+                    }
+                    return null
+                }
+            }, {
+                key: "_getDeletedAppointments",
+                value: function(appointmentList, oldAppointmentList) {
+                    var result = [];
+                    for (var i = 0; i < oldAppointmentList.length; i++) {
+                        var oldAppointment = oldAppointmentList[i];
+                        var appointment = this._getEqualAppointmentFromList(oldAppointment, appointmentList);
+                        if (!appointment) {
+                            oldAppointment.needRemove = true;
+                            result.push(oldAppointment)
+                        }
+                    }
+                    return result
+                }
+            }, {
+                key: "getRepaintedAppointments",
+                value: function(appointmentList, oldAppointmentList) {
+                    if (0 === oldAppointmentList.length || "agenda" === this.renderingStrategy) {
+                        return appointmentList
+                    }
+                    for (var i = 0; i < appointmentList.length; i++) {
+                        var appointment = appointmentList[i];
+                        var oldAppointment = this._getEqualAppointmentFromList(appointment, oldAppointmentList);
+                        if (oldAppointment) {
+                            appointment.needRepaint = this._hasChangesInData(appointment.itemData) || this._hasChangesInSettings(appointment.settings, oldAppointment.settings)
+                        }
+                    }
+                    return appointmentList.concat(this._getDeletedAppointments(appointmentList, oldAppointmentList))
+                }
+            }, {
+                key: "getRenderingStrategyInstance",
+                value: function() {
+                    return this._renderingStrategyInstance
+                }
+            }]);
+            return AppointmentLayoutManager
+        }();
         module.exports = AppointmentLayoutManager
     },
     /*!***************************************************************************************************************!*\
@@ -161100,7 +161651,7 @@
             extend = __webpack_require__( /*! ../../../core/utils/extend */ 0).extend,
             isNumeric = __webpack_require__( /*! ../../../core/utils/type */ 1).isNumeric,
             devices = __webpack_require__( /*! ../../../core/devices */ 16),
-            dateUtils = __webpack_require__( /*! ../../../core/utils/date */ 23);
+            dateUtils = __webpack_require__( /*! ../../../core/utils/date */ 24);
         var WEEK_APPOINTMENT_DEFAULT_OFFSET = 25,
             WEEK_APPOINTMENT_MOBILE_OFFSET = 50,
             APPOINTMENT_MIN_WIDTH = 5,
@@ -161465,9 +162016,10 @@
                 return result
             },
             _columnCondition: function(a, b) {
-                var columnCondition = this._normalizeCondition(a.left, b.left),
-                    rowCondition = this._normalizeCondition(a.top, b.top),
-                    cellPositionCondition = this._normalizeCondition(a.cellPosition, b.cellPosition);
+                var isSomeEdge = this._isSomeEdge(a, b);
+                var columnCondition = this._normalizeCondition(a.left, b.left, isSomeEdge),
+                    rowCondition = this._normalizeCondition(a.top, b.top, isSomeEdge),
+                    cellPositionCondition = this._normalizeCondition(a.cellPosition, b.cellPosition, isSomeEdge);
                 return rowCondition ? rowCondition : columnCondition ? columnCondition : cellPositionCondition ? cellPositionCondition : a.isStart - b.isStart
             },
             createTaskPositionMap: function(items) {
@@ -161512,7 +162064,7 @@
     /*! all exports used */
     function(module, exports, __webpack_require__) {
         var noop = __webpack_require__( /*! ../../../core/utils/common */ 4).noop,
-            dateUtils = __webpack_require__( /*! ../../../core/utils/date */ 23),
+            dateUtils = __webpack_require__( /*! ../../../core/utils/date */ 24),
             each = __webpack_require__( /*! ../../../core/utils/iterator */ 3).each,
             arrayUtils = __webpack_require__( /*! ../../../core/utils/array */ 11),
             BaseAppointmentsStrategy = __webpack_require__( /*! ./ui.scheduler.appointments.strategy.base */ 283);
@@ -161631,7 +162183,7 @@
                     each(currentAppointments, function(index, appointment) {
                         var startDate = this.instance.fire("getField", "startDate", appointment),
                             endDate = this.instance.fire("getField", "endDate", appointment);
-                        this._checkWrongEndDate(appointment, startDate, endDate);
+                        this.instance.fire("fixWrongEndDate", appointment, startDate, endDate);
                         needClearSettings && delete appointment.settings;
                         var result = this.instance.getAppointmentsInstance()._processRecurrenceAppointment(appointment, index, false);
                         appts.parts = appts.parts.concat(result.parts);
@@ -161706,7 +162258,7 @@
         var _renderer2 = _interopRequireDefault(_renderer);
         var _class = __webpack_require__( /*! ../../core/class */ 10);
         var _class2 = _interopRequireDefault(_class);
-        var _translator = __webpack_require__( /*! ../../animation/translator */ 24);
+        var _translator = __webpack_require__( /*! ../../animation/translator */ 23);
         var _translator2 = _interopRequireDefault(_translator);
         var _type = __webpack_require__( /*! ../../core/utils/type */ 1);
         var _type2 = _interopRequireDefault(_type);
@@ -162329,7 +162881,7 @@
         var $ = __webpack_require__( /*! ../../core/renderer */ 2),
             eventsEngine = __webpack_require__( /*! ../../events/core/events_engine */ 5),
             Class = __webpack_require__( /*! ../../core/class */ 10),
-            Guid = __webpack_require__( /*! ../../core/guid */ 48),
+            Guid = __webpack_require__( /*! ../../core/guid */ 44),
             registerComponent = __webpack_require__( /*! ../../core/component_registrator */ 8),
             recurrenceUtils = __webpack_require__( /*! ./utils.recurrence */ 161),
             domUtils = __webpack_require__( /*! ../../core/utils/dom */ 12),
@@ -162337,7 +162889,7 @@
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
             inArray = __webpack_require__( /*! ../../core/utils/array */ 11).inArray,
             each = __webpack_require__( /*! ../../core/utils/iterator */ 3).each,
-            Editor = __webpack_require__( /*! ../editor/editor */ 45),
+            Editor = __webpack_require__( /*! ../editor/editor */ 46),
             CheckBox = __webpack_require__( /*! ../check_box */ 126),
             RadioGroup = __webpack_require__( /*! ../radio_group */ 323),
             Switch = __webpack_require__( /*! ../switch */ 324),
@@ -162345,8 +162897,8 @@
             SelectBox = __webpack_require__( /*! ../select_box */ 107),
             DateBox = __webpack_require__( /*! ../date_box */ 204),
             messageLocalization = __webpack_require__( /*! ../../localization/message */ 14),
-            dateLocalization = __webpack_require__( /*! ../../localization/date */ 34),
-            dateUtils = __webpack_require__( /*! ../../core/utils/date */ 23);
+            dateLocalization = __webpack_require__( /*! ../../localization/date */ 35),
+            dateUtils = __webpack_require__( /*! ../../core/utils/date */ 24);
         var clickEvent = __webpack_require__( /*! ../../events/click */ 17);
         var RECURRENCE_EDITOR = "dx-recurrence-editor",
             LABEL_POSTFIX = "-label",
@@ -162478,6 +163030,7 @@
                 if (!isDefined(this.option("value"))) {
                     this._handleDefaults()
                 }
+                this.option("visible", !!this.option("value"));
                 this._renderContainerVisibility(this.option("value"))
             },
             _renderContainerVisibility: function(value) {
@@ -162830,9 +163383,10 @@
                 this._changeEditorValue()
             },
             _formatUntilDate: function(date) {
-                var result = dateUtils.trimTime(date);
-                result.setDate(result.getDate() + 1);
-                return new Date(result.getTime() - 1)
+                if (this._recurrenceRule.rules().until && dateUtils.sameDate(this._recurrenceRule.rules().until, date)) {
+                    return date
+                }
+                return dateUtils.setToDayEnd(date)
             },
             _renderRepeatUntilEditor: function() {
                 var repeatUntil = this._recurrenceRule.rules().until || this._formatUntilDate(new Date),
@@ -163009,7 +163563,7 @@
             extend = __webpack_require__( /*! ../../../core/utils/extend */ 0).extend,
             publisherMixin = __webpack_require__( /*! ../ui.scheduler.publisher_mixin */ 162),
             messageLocalization = __webpack_require__( /*! ../../../localization/message */ 14),
-            Editor = __webpack_require__( /*! ../../editor/editor */ 45),
+            Editor = __webpack_require__( /*! ../../editor/editor */ 46),
             SelectBox = __webpack_require__( /*! ../../select_box */ 107);
         var TIMEZONE_EDITOR_CLASS = "dx-timezone-editor",
             TIMEZONE_DISPLAY_NAME_SELECTBOX_CLASS = "dx-timezone-display-name",
@@ -163489,6 +164043,9 @@
                     }
                 })
             },
+            _partialOptionChangesMap: {
+                visualRange: "VISUAL_RANGE"
+            },
             _initCore: function() {
                 this.paneAxis = {};
                 this._panesClipRects = {};
@@ -163748,7 +164305,7 @@
                 });
                 that._argumentAxes.forEach(function(axis) {
                     axis.updateCanvas(that._canvas);
-                    axis.setBusinessRange(viewport, void 0, void 0, that._axesReinitialized)
+                    axis.setBusinessRange(viewport, that._axesReinitialized)
                 });
                 that.callBase()
             },
@@ -163862,6 +164419,7 @@
                 if (!sizeShortage || !panesCanvases) {
                     return
                 }
+                this._renderer.stopAllAnimations();
                 var that = this,
                     rotated = that._isRotated(),
                     extendedArgAxes = (that._scrollBar ? [that._scrollBar] : []).concat(that._argumentAxes),
@@ -164276,6 +164834,9 @@
             },
             _notify: function() {
                 var that = this;
+                if (true === that.option("disableTwoWayBinding")) {
+                    return
+                }
                 var argumentVisualRange = vizUtils.convertVisualRangeObject(this._argumentAxes[0].visualRange(), !_isArray(that.option("argumentAxis.visualRange")));
                 that.option("argumentAxis.visualRange", argumentVisualRange);
                 that._valueAxes.forEach(function(axis) {
@@ -164287,7 +164848,6 @@
                 })
             }
         });
-        dxChart.prototype._optionChangesMap.visualRange = "VISUAL_RANGE";
         dxChart.addPlugin(__webpack_require__( /*! ./chart_components/shutter_zoom */ 747));
         dxChart.addPlugin(__webpack_require__( /*! ./chart_components/zoom_and_pan */ 748));
         registerComponent("dxChart", dxChart);
@@ -170225,7 +170785,7 @@
             consts = __webpack_require__( /*! ../components/consts */ 140),
             eventsConsts = consts.events,
             vizUtils = __webpack_require__( /*! ../core/utils */ 15),
-            pointerEvents = __webpack_require__( /*! ../../events/pointer */ 27),
+            pointerEvents = __webpack_require__( /*! ../../events/pointer */ 26),
             holdEvent = __webpack_require__( /*! ../../events/hold */ 95),
             addNamespace = __webpack_require__( /*! ../../events/utils */ 9).addNamespace,
             devices = __webpack_require__( /*! ../../core/devices */ 16),
@@ -171425,7 +171985,7 @@
         var typeUtils = __webpack_require__( /*! ../../core/utils/type */ 1),
             isNumber = typeUtils.isNumeric,
             isDefined = typeUtils.isDefined,
-            dateUtils = __webpack_require__( /*! ../../core/utils/date */ 23),
+            dateUtils = __webpack_require__( /*! ../../core/utils/date */ 24),
             addInterval = dateUtils.addInterval,
             dateToMilliseconds = dateUtils.dateToMilliseconds,
             floor = Math.floor,
@@ -171460,7 +172020,7 @@
                 return that.to(bp, direction, interval)
             },
             getInterval: function() {
-                return Math.round(this._canvasOptions.ratioOfCanvasRange * (this._businessRange.interval || Math.abs(this._canvasOptions.rangeMax - this._canvasOptions.rangeMin)))
+                return Math.round(this._canvasOptions.ratioOfCanvasRange * (isFinite(this._businessRange.interval) && this._businessRange.interval || Math.abs(this._canvasOptions.rangeMax - this._canvasOptions.rangeMin)))
             },
             zoom: function() {},
             getMinScale: function() {},
@@ -171562,7 +172122,7 @@
         module.exports = {
             _fromValue: parse,
             _toValue: parse,
-            _add: __webpack_require__( /*! ../../core/utils/date */ 23).addDateInterval
+            _add: __webpack_require__( /*! ../../core/utils/date */ 24).addDateInterval
         }
     },
     /*!************************************************************************!*\
@@ -171608,7 +172168,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var dateUtils = __webpack_require__( /*! ../../core/utils/date */ 23),
+        var dateUtils = __webpack_require__( /*! ../../core/utils/date */ 24),
             days = [0, 1, 2, 3, 4, 5, 6];
 
         function getWeekendDays(workdays) {
@@ -175702,7 +176262,7 @@
                     text = that._renderer.text(_getSampleText(that._translator, context.formatOptions), 0, 0).attr(context.textOptions).css(context.fontStyles).append(that._barsGroup);
                     bBox = text.getBBox();
                     text.remove();
-                    context.textVerticalOffset = -bBox.y - bBox.height / 2;
+                    context.textY = bBox.y;
                     context.textWidth = bBox.width;
                     context.textHeight = bBox.height
                 }
@@ -175715,7 +176275,9 @@
                 };
                 if (this._context.textEnabled) {
                     result.horizontalMargin = this._context.textWidth;
-                    result.verticalMargin = this._context.textHeight
+                    result.verticalMargin = this._context.textHeight;
+                    result.inverseHorizontalMargin = this._context.textWidth / 2;
+                    result.inverseVerticalMargin = this._context.textHeight / 2
                 }
                 return result
             },
@@ -175756,7 +176318,8 @@
                 _count = _min(_floor((radius + spacing) / context.barSize), count);
                 that._setBarsCount(_count);
                 radius = that._outerRadius;
-                context.textRadius = radius + that._textIndent;
+                context.textRadius = radius;
+                context.textIndent = that._textIndent;
                 that._palette.reset();
                 unitOffset = context.barSize + spacing;
                 for (i = 0; i < _count; ++i, radius -= unitOffset) {
@@ -175934,7 +176497,7 @@
                 });
                 if (context.textEnabled) {
                     that._line.attr({
-                        points: [context.x, context.y - that._settings.innerRadius, context.x, context.y - context.textRadius],
+                        points: [context.x, context.y - that._settings.innerRadius, context.x, context.y - context.textRadius - context.textIndent],
                         stroke: context.lineColor || options.color
                     }).sharp();
                     that._text.css({
@@ -175955,25 +176518,42 @@
                 }
             },
             setAngle: function(angle) {
-                var cosSin, that = this;
+                var cosSin, that = this,
+                    context = that._context,
+                    settings = that._settings;
                 that._angle = angle;
-                setAngles(that._settings, that._context.baseAngle, that._angle);
-                that._bar.attr(that._settings);
-                that._tracker.attr(that._settings);
-                if (that._context.textEnabled) {
-                    var text = _formatValue(that._value, that._context.formatOptions, {
+                setAngles(settings, context.baseAngle, angle);
+                that._bar.attr(settings);
+                that._tracker.attr(settings);
+                if (context.textEnabled) {
+                    cosSin = _getCosAndSin(angle);
+                    var indent = context.textIndent,
+                        radius = context.textRadius + indent,
+                        x = context.x + radius * cosSin.cos,
+                        y = context.y - radius * cosSin.sin,
+                        halfWidth = .5 * context.textWidth,
+                        textHeight = context.textHeight,
+                        textY = context.textY;
+                    if (_abs(x - context.x) > indent) {
+                        x += x < context.x ? -halfWidth : halfWidth
+                    }
+                    if (_abs(y - context.y) <= indent) {
+                        y -= textY + .5 * textHeight
+                    } else {
+                        y -= y < context.y ? textY + textHeight : textY
+                    }
+                    var text = _formatValue(that._value, context.formatOptions, {
                         index: that._index
+                    });
+                    that._text.attr({
+                        text: text,
+                        x: x,
+                        y: y
                     });
                     that._line.attr({
                         visibility: "" === text ? "hidden" : null
                     });
-                    that._line.rotate(_convertAngleToRendererSpace(that._angle), that._context.x, that._context.y);
-                    cosSin = _getCosAndSin(that._angle);
-                    that._text.attr({
-                        text: text,
-                        x: that._context.x + (that._context.textRadius + .6 * that._context.textWidth) * cosSin.cos,
-                        y: that._context.y - (that._context.textRadius + .6 * that._context.textHeight) * cosSin.sin + that._context.textVerticalOffset
-                    })
+                    that._line.rotate(_convertAngleToRendererSpace(angle), context.x, context.y)
                 }
                 return that
             },
@@ -176079,7 +176659,7 @@
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
             each = __webpack_require__( /*! ../../core/utils/iterator */ 3).each,
             vizUtils = __webpack_require__( /*! ../core/utils */ 15),
-            dateUtils = __webpack_require__( /*! ../../core/utils/date */ 23),
+            dateUtils = __webpack_require__( /*! ../../core/utils/date */ 24),
             adjust = __webpack_require__( /*! ../../core/utils/math */ 30).adjust,
             addInterval = dateUtils.addInterval,
             dateToMilliseconds = dateUtils.dateToMilliseconds,
@@ -176981,7 +177561,7 @@
                 var axis = this._axis;
                 axis.updateOptions(prepareAxisOptions(options, isCompactMode, canvas.height, canvas.height / 2 - Math.ceil(options.width / 2)));
                 axis.validate();
-                axis.setBusinessRange(businessRange, void 0, void 0, true);
+                axis.setBusinessRange(businessRange, true);
                 if (void 0 !== seriesDataSource && seriesDataSource.isShowChart()) {
                     axis.setMarginOptions(seriesDataSource.getMarginOptions(canvas))
                 }
@@ -176996,7 +177576,7 @@
                 axis.drawScaleBreaks({
                     start: canvas.top,
                     end: canvas.top + canvas.height
-                });
+                })
             },
             visualRange: function() {},
             getViewport: function() {
@@ -177251,6 +177831,11 @@
                 var that = this;
                 var translator = that._params.translator;
                 var businessRange = translator.getBusinessRange();
+                var compare = "discrete" === businessRange.axisType ? function(a, b) {
+                    return a < b
+                } : function(a, b) {
+                    return a <= b
+                };
                 var _vizUtils$adjustVisua = vizUtils.adjustVisualRange({
                         dataType: businessRange.dataType,
                         axisType: businessRange.axisType,
@@ -177268,7 +177853,7 @@
                     endValue = _vizUtils$adjustVisua.endValue;
                 startValue = isNumeric(startValue) ? adjust(startValue) : startValue;
                 endValue = isNumeric(endValue) ? adjust(endValue) : endValue;
-                var values = translator.to(startValue, -1) < translator.to(endValue, 1) ? [startValue, endValue] : [endValue, startValue];
+                var values = compare(translator.to(startValue, -1), translator.to(endValue, 1)) ? [startValue, endValue] : [endValue, startValue];
                 that._sliders[0].setDisplayValue(values[0]);
                 that._sliders[1].setDisplayValue(values[1]);
                 that._sliders[0]._position = translator.to(values[0], -1);
@@ -177809,7 +178394,7 @@
     /*! all exports used */
     function(module, exports, __webpack_require__) {
         var eventsEngine = __webpack_require__( /*! ../../events/core/events_engine */ 5),
-            pointerEvents = __webpack_require__( /*! ../../events/pointer */ 27),
+            pointerEvents = __webpack_require__( /*! ../../events/pointer */ 26),
             window = __webpack_require__( /*! ../../core/utils/window */ 6).getWindow(),
             domAdapter = __webpack_require__( /*! ../../core/dom_adapter */ 13),
             each = __webpack_require__( /*! ../../core/utils/iterator */ 3).each,
@@ -184597,7 +185182,7 @@
             noop = __webpack_require__( /*! ../core/utils/common */ 4).noop,
             when = __webpack_require__( /*! ../core/utils/deferred */ 7).when,
             fx = __webpack_require__( /*! ../animation/fx */ 31),
-            translator = __webpack_require__( /*! ../animation/translator */ 24),
+            translator = __webpack_require__( /*! ../animation/translator */ 23),
             Class = __webpack_require__( /*! ../core/class */ 10),
             extend = __webpack_require__( /*! ../core/utils/extend */ 0).extend,
             inArray = __webpack_require__( /*! ../core/utils/array */ 11).inArray,
@@ -184608,7 +185193,7 @@
             swipeEvents = __webpack_require__( /*! ../events/swipe */ 125),
             eventUtils = __webpack_require__( /*! ../events/utils */ 9),
             config = __webpack_require__( /*! ../core/config */ 25),
-            CollectionWidget = __webpack_require__( /*! ./collection/ui.collection_widget.edit */ 47);
+            CollectionWidget = __webpack_require__( /*! ./collection/ui.collection_widget.edit */ 48);
         var PANORAMA_CLASS = "dx-panorama",
             PANORAMA_WRAPPER_CLASS = "dx-panorama-wrapper",
             PANORAMA_TITLE_CLASS = "dx-panorama-title",
@@ -185326,14 +185911,14 @@
             eventsEngine = __webpack_require__( /*! ../events/core/events_engine */ 5),
             fx = __webpack_require__( /*! ../animation/fx */ 31),
             swipeEvents = __webpack_require__( /*! ../events/swipe */ 125),
-            translator = __webpack_require__( /*! ../animation/translator */ 24),
+            translator = __webpack_require__( /*! ../animation/translator */ 23),
             domUtils = __webpack_require__( /*! ../core/utils/dom */ 12),
             extend = __webpack_require__( /*! ../core/utils/extend */ 0).extend,
             isDefined = __webpack_require__( /*! ../core/utils/type */ 1).isDefined,
             registerComponent = __webpack_require__( /*! ../core/component_registrator */ 8),
             eventUtils = __webpack_require__( /*! ../events/utils */ 9),
             config = __webpack_require__( /*! ../core/config */ 25),
-            CollectionWidget = __webpack_require__( /*! ./collection/ui.collection_widget.edit */ 47),
+            CollectionWidget = __webpack_require__( /*! ./collection/ui.collection_widget.edit */ 48),
             PivotTabs = __webpack_require__( /*! ./pivot/ui.pivot_tabs */ 814),
             EmptyTemplate = __webpack_require__( /*! ./widget/empty_template */ 93),
             ChildDefaultTemplate = __webpack_require__( /*! ./widget/child_default_template */ 100),
@@ -185685,11 +186270,11 @@
             when = __webpack_require__( /*! ../../core/utils/deferred */ 7).when,
             fx = __webpack_require__( /*! ../../animation/fx */ 31),
             swipeEvents = __webpack_require__( /*! ../../events/swipe */ 125),
-            translator = __webpack_require__( /*! ../../animation/translator */ 24),
+            translator = __webpack_require__( /*! ../../animation/translator */ 23),
             eventUtils = __webpack_require__( /*! ../../events/utils */ 9),
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
             each = __webpack_require__( /*! ../../core/utils/iterator */ 3).each,
-            CollectionWidget = __webpack_require__( /*! ../collection/ui.collection_widget.edit */ 47),
+            CollectionWidget = __webpack_require__( /*! ../collection/ui.collection_widget.edit */ 48),
             config = __webpack_require__( /*! ../../core/config */ 25),
             BindableTemplate = __webpack_require__( /*! ../widget/bindable_template */ 60);
         var PIVOT_TABS_CLASS = "dx-pivottabs",
@@ -186129,7 +186714,7 @@
             extend = __webpack_require__( /*! ../core/utils/extend */ 0).extend,
             PlainEditStrategy = __webpack_require__( /*! ./collection/ui.collection_widget.edit.strategy.plain */ 191),
             SlideOutView = __webpack_require__( /*! ./slide_out_view */ 577),
-            CollectionWidget = __webpack_require__( /*! ./collection/ui.collection_widget.edit */ 47),
+            CollectionWidget = __webpack_require__( /*! ./collection/ui.collection_widget.edit */ 48),
             List = __webpack_require__( /*! ./list */ 106),
             ChildDefaultTemplate = __webpack_require__( /*! ./widget/child_default_template */ 100),
             EmptyTemplate = __webpack_require__( /*! ./widget/empty_template */ 93),
