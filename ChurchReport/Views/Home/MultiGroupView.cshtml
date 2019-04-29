@@ -19,220 +19,182 @@
 
 </head>
 
-<div id="Tool" style="height:100%; width:100%; overflow: hidden;">
-    <div id="LoadPanel">
-        @(Html.DevExtreme().LoadPanel()
-        .ID("loadPanel")
-        .ShadingColor("rgba(0,0,0,0.4)")
-        //.Position(p => p.Of("#data-grid").Of("#buttonContainer"))
-        .Position(p => p.Of("#smallgroup-grid").Of("multigroupchart"))
-        .Visible(false)
-        .ShowIndicator(true)
-        .ShowPane(true)
-        .Shading(true)
-        .CloseOnOutsideClick(false)
-        .Message("更新資料中...")
-        .Animation(l => l.Show(k => k.Easing(AnimationEasing.Swing)))
-        //.OnShown("loadPanel_shown")
-        //.OnHidden("loadPanel_hidden")
-        )
-    </div>
-    <div id="SelectDateToastContainer">
-        @(Html.DevExtreme().Toast()
-        .ID("SelectDateToast")
-        .Position(p => p
-        .At(HorizontalAlignment.Center, VerticalAlignment.Center)
-        .Offset(0, 50))
-        .Message("日期格式錯誤，格式範例: 2018/6/5")
-        .DisplayTime(5000)
-        .Type(ToastType.Error)
-        .MaxWidth(300)
-        )
+
+<div class="dx-field">
+    <div id="the whole thing" style="height:100%; width:100%; overflow: hidden;">
+        <div id="SundayLabel" class="dx-field-label" style="float: left; width:15%; background-color:white;">小組日期</div>
+        <div id="dateBoxContainer" class="dx-field-value" style="float: left; width:55%; background-color:white;">
+
+            @(Html.DevExtreme()
+            //.DateBox()
+            .DateBoxFor(m => m.m_SelectDate)
+            .Type(DateBoxType.Date)
+            .Value(Model.m_SelectDate)
+            .Width(50)
+            .DisplayFormat("yyyy/M/d")
+            .OnChange("OnDateboxChange")
+            //.DisplayFormat("yyyy/MM/dd")
+            //.OnValueChanged("OnValueChanged")
+
+
+            .OnValueChanged(@<text>
+                        function(arg) {
+
+                        $("#loadPanel").dxLoadPanel("instance").show();
+
+                        $.ajax({
+                        url: '@Url.Action("UpdateMultiGroupDate", "Home")',
+                        data: { SelectedDate: getODataLocalDateFilter(arg.value) },
+                        type: 'GET', //POST if you want to save, GET if you want to fetch data from server
+
+                        success: function (arg)
+                        {
+                        //alert("001");
+                        $("#loadPanel").dxLoadPanel("instance").hide();
+
+                        //var dataGridInstance = $("#gridContainer").dxDataGrid("instance");
+                        //dataGridInstance.refresh();
+                        //alert("002");
+
+                        window.location.href = "/Home/MultiGroupView/MultiGroup"
+                        //alert("003");
+
+                        },
+
+                        error: function (obj) {
+                        //alert('Something happened');
+                        }
+
+                        });
+                        }
+            </text>
+)
+
+            )
+        </div>
+        <div id="buttonContainer" class="dx-button-icon" style="float: left; width:30%; text-align: left; background-color:white;">
+            @(Html.DevExtreme().Button()
+            .Text("上傳")
+            .Type(ButtonType.Success)
+            .ID("save-button")
+            //.UseSubmitBehavior(true)
+            .UseSubmitBehavior(true)
+            //.ValidationGroup()
+            //.Width(60)
+
+            .OnClick("SaveWeeklyReport")
+
+            )
+        </div>
+        <div id="ToastContainer">
+            @(Html.DevExtreme().Toast()
+            .ID("toast")
+            .Position(p => p
+            .At(HorizontalAlignment.Center, VerticalAlignment.Center)
+            .Offset(0, 50))
+            .Message(DataStatus)
+            .DisplayTime(2000)
+            .MaxWidth(200)
+            )
+
+        </div>
+        <div id="LoadPanel">
+            @(Html.DevExtreme().LoadPanel()
+            .ID("loadPanel")
+            .ShadingColor("rgba(0,0,0,0.4)")
+            //.Position(p => p.Of("#data-grid").Of("#buttonContainer"))
+            .Position(p => p.Of("#smallgroupchart").Of("#smallgroup-grid").Of("#newpersonal-data-grid").Of("#form-container").Of("#smallgroup-grid"))
+            .Visible(false)
+            .ShowIndicator(true)
+            .ShowPane(true)
+            .Shading(true)
+            .CloseOnOutsideClick(false)
+            .Message("更新資料中...")
+            .Animation(l => l.Show(k => k.Easing(AnimationEasing.Swing)))
+            //.OnShown("loadPanel_shown")
+            //.OnHidden("loadPanel_hidden")
+            )
+        </div>
+        <div id="ToastContainer">
+            @(Html.DevExtreme().Toast()
+            .ID("ToastReUpload")
+            .Position(p => p
+            .At(HorizontalAlignment.Center, VerticalAlignment.Center)
+            .Offset(0, 50))
+            .Message(ReUpload)
+            .DisplayTime(5000)
+            .Type(ToastType.Error)
+            .MaxWidth(500)
+            )
+        </div>
+        <div id="SelectDateToastContainer">
+            @(Html.DevExtreme().Toast()
+            .ID("SelectDateToast")
+            .Position(p => p
+            .At(HorizontalAlignment.Center, VerticalAlignment.Center)
+            .Offset(0, 50))
+            .Message("日期格式錯誤，格式範例: 2018/6/5")
+            .DisplayTime(5000)
+            .Type(ToastType.Error)
+            .MaxWidth(300)
+            )
+        </div>
+
     </div>
 </div>
 
-<form data-ajax="true" data-ajax-begin="onBegin" data-ajax-success="onSuccess" asp-action="SaveIntegrate" asp-controller="Home" method="post">
+<div style="font-family:標楷體;font-size:100%; color:cadetblue; text-align:left;font-weight:bold">
+    <h4>@(Model.LoginFullName)</h4>
+</div>
 
-
-    <div class="dx-field">
-        <div id="the whole thing" style="height:100%; width:100%; overflow: hidden;">
-            <div id="SundayLabel" class="dx-field-label" style="float: left; width:15%; background-color:white;">小組日期</div>
-            <div id="dateBoxContainer" class="dx-field-value" style="float: left; width:55%; background-color:white;">
-
-                @(Html.DevExtreme()
-                //.DateBox()
-                .DateBoxFor(m => m.m_SelectDate)
-                .Type(DateBoxType.Date)
-                .Value(Model.m_SelectDate)
-                .Width(50)
-                .DisplayFormat("yyyy/M/d")
-                .OnChange("OnDateboxChange")
-                //.DisplayFormat("yyyy/MM/dd")
-                //.OnValueChanged("OnValueChanged")
-
-
-                .OnValueChanged(@<text>
-                            function(arg) {
-
-                            $("#loadPanel").dxLoadPanel("instance").show();
-
-                            $.ajax({
-                            url: '@Url.Action("UpdateMultiGroupDate", "Home")',
-                            data: { SelectedDate: getODataLocalDateFilter(arg.value) },
-                            type: 'GET', //POST if you want to save, GET if you want to fetch data from server
-
-                            success: function (arg)
-                            {
-                            //alert("001");
-                            $("#loadPanel").dxLoadPanel("instance").hide();
-
-                            //var dataGridInstance = $("#gridContainer").dxDataGrid("instance");
-                            //dataGridInstance.refresh();
-                            //alert("002");
-
-                            window.location.href = "/Home/MultiGroupView/MultiGroup"
-                            //alert("003");
-
-                            },
-
-                            error: function (obj) {
-                            //alert('Something happened');
-                            }
-
-                            });
-                            }
-                </text>
-)
-
-                )
-            </div>
-            <div id="buttonContainer" class="dx-button-icon" style="float: left; width:30%; text-align: left; background-color:white;">
-                @(Html.DevExtreme().Button()
-                .Text("上傳")
-                .Type(ButtonType.Success)
-                .ID("save-button")
-                //.UseSubmitBehavior(true)
-                .UseSubmitBehavior(true)
-                //.ValidationGroup()
-                //.Width(60)
-
-                .OnClick("SaveWeeklyReport")
-
-                )
-            </div>
-            <div id="ToastContainer">
-                @(Html.DevExtreme().Toast()
-                .ID("toast")
-                .Position(p => p
-                .At(HorizontalAlignment.Center, VerticalAlignment.Center)
-                .Offset(0, 50))
-                .Message(DataStatus)
-                .DisplayTime(2000)
-                .MaxWidth(200)
-                )
-
-            </div>
-            <div id="LoadPanel">
-                @(Html.DevExtreme().LoadPanel()
-                .ID("loadPanel")
-                .ShadingColor("rgba(0,0,0,0.4)")
-                //.Position(p => p.Of("#data-grid").Of("#buttonContainer"))
-                .Position(p => p.Of("#smallgroupchart").Of("#smallgroup-grid").Of("#newpersonal-data-grid").Of("#form-container").Of("#smallgroup-grid"))
-                .Visible(false)
-                .ShowIndicator(true)
-                .ShowPane(true)
-                .Shading(true)
-                .CloseOnOutsideClick(false)
-                .Message("更新資料中...")
-                .Animation(l => l.Show(k => k.Easing(AnimationEasing.Swing)))
-                //.OnShown("loadPanel_shown")
-                //.OnHidden("loadPanel_hidden")
-                )
-            </div>
-            <div id="ToastContainer">
-                @(Html.DevExtreme().Toast()
-                .ID("ToastReUpload")
-                .Position(p => p
-                .At(HorizontalAlignment.Center, VerticalAlignment.Center)
-                .Offset(0, 50))
-                .Message(ReUpload)
-                .DisplayTime(5000)
-                .Type(ToastType.Error)
-                .MaxWidth(500)
-                )
-            </div>
-            <div id="SelectDateToastContainer">
-                @(Html.DevExtreme().Toast()
-                .ID("SelectDateToast")
-                .Position(p => p
-                .At(HorizontalAlignment.Center, VerticalAlignment.Center)
-                .Offset(0, 50))
-                .Message("日期格式錯誤，格式範例: 2018/6/5")
-                .DisplayTime(5000)
-                .Type(ToastType.Error)
-                .MaxWidth(300)
-                )
-            </div>
-
-        </div>
-    </div>
-
-    <div style="font-family:標楷體;font-size:100%; color:cadetblue; text-align:left;font-weight:bold">
-        <h4>@(Model.LoginFullName)</h4>
-    </div>
-
-
-    @*<div id="the_wholething" style="height:100%; width:100%; overflow: hidden;">*@
-    @*<div id="the_wholething" style="width:1200px;height:800px;overflow:auto;">*@
-
-    <div id="multigroupchart" overflow-y:scroll>
-        @( Html.DevExtreme().PieChart()
-            .ID("multigroupchart")
-            .Palette(VizPalette.HarmonyLight)
-            .Margin(m => m.Left(0).Top(0))
-            .AdaptiveLayout(a => a.Height(200))
-            .Diameter(0.4)
-            .Export(e => e.Enabled(true))
-            .Size(s => s.Height(400).Width(400))
-            //.Animation()
-            .CommonSeriesSettings
-            (
-                s => s
-                .ArgumentField("Name")
-                //.Type(SeriesType.Spline)
-                //.Type(SeriesType.Area)
-                //.Type(SeriesType.Scatter)
-                //.HoverMode(ChartSeriesHoverMode.AllArgumentPoints)
-                //.SelectionMode(ChartSeriesSelectionMode.AllArgumentPoints)
-                .Label(l => l
-                    .Visible(true)
-                    .Format
-                    (f => f
-                        .Type(Format.FixedPoint)
-                        .Precision(0)
-                    )
+<div id="multigroupchart" overflow-y:scroll>
+    @( Html.DevExtreme().PieChart()
+        .ID("multigroupchart")
+        .Palette(VizPalette.HarmonyLight)
+        .Margin(m => m.Left(0).Top(0))
+        .AdaptiveLayout(a => a.Height(200))
+        .Diameter(0.4)
+        .Export(e => e.Enabled(true))
+        .Size(s => s.Height(400).Width(400))
+        //.Animation()
+        .CommonSeriesSettings
+        (
+            s => s
+            .ArgumentField("Name")
+            //.Type(SeriesType.Spline)
+            //.Type(SeriesType.Area)
+            //.Type(SeriesType.Scatter)
+            //.HoverMode(ChartSeriesHoverMode.AllArgumentPoints)
+            //.SelectionMode(ChartSeriesSelectionMode.AllArgumentPoints)
+            .Label(l => l
+                .Visible(true)
+                .Format
+                (f => f
+                    .Type(Format.FixedPoint)
+                    .Precision(0)
                 )
             )
-            .Series(s =>
-            {
-                //s.Add().ValueField("Name").Name("主日人數").Color("#e7d19a");
-                //s.Add().ValueField("SmallNumber").Name("小組人數").Color("#ffd700");
-                s.Add().ValueField("Number").Name("人數")
-                        .Label(l => l
-                        .Visible(true)
-                        .Font(f => f.Size(12))
-                        .Connector(c => c
-                        .Visible(true)
-                        .Width(0.8)
-                        //Option(
-                )
-                .Position(PieChartLabelPosition.Columns)
-                .CustomizeText(@<text>
-                            function(arg) {
-                            //debugger;
-                            return arg.argument + "=" +arg.valueText ;
-                            }
-                </text>)
+        )
+        .Series(s =>
+        {
+            //s.Add().ValueField("Name").Name("主日人數").Color("#e7d19a");
+            //s.Add().ValueField("SmallNumber").Name("小組人數").Color("#ffd700");
+            s.Add().ValueField("Number").Name("人數")
+                    .Label(l => l
+                    .Visible(true)
+                    .Font(f => f.Size(12))
+                    .Connector(c => c
+                    .Visible(true)
+                    .Width(0.8)
+                    //Option(
+            )
+            .Position(PieChartLabelPosition.Columns)
+            .CustomizeText(@<text>
+                        function(arg) {
+                        //debugger;
+                        return arg.argument + "=" +arg.valueText ;
+                        }
+            </text>)
 );
 }
 )
@@ -274,9 +236,9 @@ m => m
 .Export(e => e.Enabled(true))
 
 .OnPointClick(@<text>
-                    function(e) {
-                    e.target.select();
-                    }
+                function(e) {
+                e.target.select();
+                }
 </text>)
 
 .DataSource
@@ -292,227 +254,225 @@ m => m
 )
 )
 
-        )
+    )
 
-    </div>
+</div>
 
-    <div id="smallgroup-grid">
-        @(
-            Html.DevExtreme().DataGrid<WeeklyReportRecord>()
-                .ID("SmallGroupgridContainer")
-                .ShowBorders(true)
-                //.ColumnAutoWidth(true)
-                //.Visible(Model.DisplayFlag)
-                .Visible(true)
-                .Paging(p => p.PageSize(10))
-                .Sorting(sorting => sorting.Mode(GridSortingMode.None))
-                .Paging(paging => paging.Enabled(false))
-                .AllowColumnResizing(true)
-                .ColumnResizingMode(ColumnResizingMode.Widget)
-                .ColumnFixing(c => c.Enabled(true))
-                .LoadPanel(l => l.Text("更新資料中..."))
-                //.SearchPanel(s => s.Visible(false).Placeholder("搜尋.."))
-                .ShowColumnLines(true)
-                .ShowRowLines(true)
-                .RowAlternationEnabled(true)
-                .ShowBorders(true)
-                //.Export(e => e.Enabled(true).AllowExportSelectedData(true))
-                .TwoWayBindingEnabled(true)
+<div id="smallgroup-grid">
+    @(
+        Html.DevExtreme().DataGrid<WeeklyReportRecord>()
+            .ID("SmallGroupgridContainer")
+            .ShowBorders(true)
+            //.ColumnAutoWidth(true)
+            //.Visible(Model.DisplayFlag)
+            .Visible(true)
+            .Paging(p => p.PageSize(10))
+            .Sorting(sorting => sorting.Mode(GridSortingMode.None))
+            .Paging(paging => paging.Enabled(false))
+            .AllowColumnResizing(true)
+            .ColumnResizingMode(ColumnResizingMode.Widget)
+            .ColumnFixing(c => c.Enabled(true))
+            .LoadPanel(l => l.Text("更新資料中..."))
+            //.SearchPanel(s => s.Visible(false).Placeholder("搜尋.."))
+            .ShowColumnLines(true)
+            .ShowRowLines(true)
+            .RowAlternationEnabled(true)
+            .ShowBorders(true)
+            //.Export(e => e.Enabled(true).AllowExportSelectedData(true))
+            .TwoWayBindingEnabled(true)
 
-                //.Grouping
-                //(g => g
-                //.ContextMenuEnabled(true)
-                //.ExpandMode(GridGroupingExpandMode.RowClick)
-                //)
+            //.Grouping
+            //(g => g
+            //.ContextMenuEnabled(true)
+            //.ExpandMode(GridGroupingExpandMode.RowClick)
+            //)
 
-                //.GroupPanel
-                //(p => p
-                //.EmptyPanelText("請把小組名稱拉到這裡")
-                //.Visible(false) // 讓使用者不能自己決定誰被Grouping起來
-                //.AllowColumnDragging(true)
-                //)
+            //.GroupPanel
+            //(p => p
+            //.EmptyPanelText("請把小組名稱拉到這裡")
+            //.Visible(false) // 讓使用者不能自己決定誰被Grouping起來
+            //.AllowColumnDragging(true)
+            //)
 
-                .Editing(editing =>
+            .Editing(editing =>
+            {
+                //editing.Mode(GridEditMode.Batch);
+                //editing.Mode(GridEditMode.Row);
+                editing.Mode(GridEditMode.Cell);
+                //editing.Mode(GridEditMode.Batch);
+                //editing.Mode(GridEditMode.Form);
+                //editing.Mode(GridEditMode.Popup);
+                editing.AllowUpdating(true);
+                editing.AllowDeleting(false);
+                //editing.AllowAdding(false);
+                editing.Texts(a => a.SaveAllChanges("上傳檔案").AddRow("新增").CancelAllChanges("取消變更").SaveRowChanges("儲存").CancelRowChanges("取消").EditRow("編輯").DeleteRow("刪除"));
+                //editing.AllowDeleting(true);
+            })
+
+            .Columns(columns =>
+            {
+                columns.AddFor(m => m.ListEntityId).Caption("名稱").Fixed(true).Width(150).MinWidth(20).CellTemplate(new JS("cellTemplate"));
+                //columns.AddFor(m => m.Name).Caption("名稱").Fixed(true).Width(60).MinWidth(20).Alignment(HorizontalAlignment.Left).AllowSorting(false);
+                columns.AddFor(m => m.TotalNumber).Caption("總人數").Fixed(false).Width(100).MinWidth(20).Alignment(HorizontalAlignment.Center).AllowSorting(false);
+                columns.AddFor(m => m.SundayNumber).Caption("主日人數").Width(100).MinWidth(45).Alignment(HorizontalAlignment.Center).AllowSorting(false);
+                columns.AddFor(m => m.SmallGroupNumber).Caption("小組人數").Width(100).MinWidth(45).Alignment(HorizontalAlignment.Center).AllowSorting(false);
+                columns.AddFor(m => m.SundayRate).Caption("主日出席率").Width(120).MinWidth(80).Alignment(HorizontalAlignment.Center);
+                columns.AddFor(m => m.SmallGroupRate).Caption("小組出席率").Width(120).MinWidth(80).Alignment(HorizontalAlignment.Center);
+                columns.AddFor(m => m.ReportContent).Caption("日誌內容").Width(250).MinWidth(200).Alignment(HorizontalAlignment.Left);
+            })
+            .DataSource(d => d
+            .WebApi()
+            .Controller("Home")
+            .LoadAction("AssignSmallGroupGet")
+            //.InsertAction("InsertPresentRecord")
+            //.DeleteAction("DeletePresentRecord")
+            //.UpdateAction("UpdatePresentRecord")
+            .Key("ListEntityId")
+            .LoadParams(new { id = @ViewBag.ListId }))
+
+            .Summary
+            (
+                s => s.TotalItems
+                (items =>
                 {
-                    //editing.Mode(GridEditMode.Batch);
-                    //editing.Mode(GridEditMode.Row);
-                    editing.Mode(GridEditMode.Cell);
-                    //editing.Mode(GridEditMode.Batch);
-                    //editing.Mode(GridEditMode.Form);
-                    //editing.Mode(GridEditMode.Popup);
-                    editing.AllowUpdating(true);
-                    editing.AllowDeleting(false);
-                    //editing.AllowAdding(false);
-                    editing.Texts(a => a.SaveAllChanges("上傳檔案").AddRow("新增").CancelAllChanges("取消變更").SaveRowChanges("儲存").CancelRowChanges("取消").EditRow("編輯").DeleteRow("刪除"));
-                    //editing.AllowDeleting(true);
-                })
+                    //items.AddFor(m => m.TotalNumber)
+                    //.Name("TotalNumber")
+                    items.Add()
+                        .Name("TotalNumber")
+                        .ShowInColumn("TotalNumber")
+                        .DisplayFormat("總人數: {0}")
+                        //.ValueFormat(Format.Currency)
+                        //.SummaryType(SummaryType.Sum)
+                        .SummaryType(SummaryType.Custom);
 
-                .Columns(columns =>
-                {
-                    columns.AddFor(m => m.ListEntityId).Caption("名稱").Fixed(true).Width(150).MinWidth(20).CellTemplate(new JS("cellTemplate"));
-                    //columns.AddFor(m => m.Name).Caption("名稱").Fixed(true).Width(60).MinWidth(20).Alignment(HorizontalAlignment.Left).AllowSorting(false);
-                    columns.AddFor(m => m.TotalNumber).Caption("總人數").Fixed(false).Width(100).MinWidth(20).Alignment(HorizontalAlignment.Center).AllowSorting(false);
-                    columns.AddFor(m => m.SundayNumber).Caption("主日人數").Width(100).MinWidth(45).Alignment(HorizontalAlignment.Center).AllowSorting(false);
-                    columns.AddFor(m => m.SmallGroupNumber).Caption("小組人數").Width(100).MinWidth(45).Alignment(HorizontalAlignment.Center).AllowSorting(false);
-                    columns.AddFor(m => m.SundayRate).Caption("主日出席率").Width(120).MinWidth(80).Alignment(HorizontalAlignment.Center);
-                    columns.AddFor(m => m.SmallGroupRate).Caption("小組出席率").Width(120).MinWidth(80).Alignment(HorizontalAlignment.Center);
-                    columns.AddFor(m => m.ReportContent).Caption("日誌內容").Width(250).MinWidth(200).Alignment(HorizontalAlignment.Left);
-                })
-                .DataSource(d => d
-                .WebApi()
-                .Controller("Home")
-                .LoadAction("AssignSmallGroupGet")
-                //.InsertAction("InsertPresentRecord")
-                //.DeleteAction("DeletePresentRecord")
-                //.UpdateAction("UpdatePresentRecord")
-                .Key("ListEntityId")
-                .LoadParams(new { id = @ViewBag.ListId }))
+                    items.Add()
+                        .Name("SundayNumber")
+                        .ShowInColumn("SundayNumber")
+                        .DisplayFormat("主日人數: {0}")
+                        //.ValueFormat(Format.Currency)
+                        //.SummaryType(SummaryType.Sum)
+                        .SummaryType(SummaryType.Custom);
 
-                .Summary
+                    items.Add()
+                        .Name("SmallGroupNumber")
+                        .ShowInColumn("SmallGroupNumber")
+                        .DisplayFormat("小組人數: {0}")
+                        //.ValueFormat(Format.Currency)
+                        //.SummaryType(SummaryType.Sum)
+                        .SummaryType(SummaryType.Custom);
+
+                    //items.Add()
+                    //    .Name("SundayRate")
+                    //    .ShowInColumn("SundayRate")
+                    //    .DisplayFormat("主日出席率: {0}%")
+                    //    .ValueFormat(Format.FixedPoint)
+
+                    //    //.SummaryType(SummaryType.Sum)
+                    //    .SummaryType(SummaryType.Custom);
+
+                    //items.Add()
+                    //    .Name("SmallGroupRate")
+                    //    .ShowInColumn("SmallGroupRate")
+                    //    .DisplayFormat("小組出席率: {0}%")
+                    //    .ValueFormat(Format.FixedPoint)
+                    //    //.SummaryType(SummaryType.Sum)
+                    //    .SummaryType(SummaryType.Custom);
+
+                }
+                )
+                .CalculateCustomSummary
                 (
-                    s => s.TotalItems
-                    (items =>
-                    {
-                        //items.AddFor(m => m.TotalNumber)
-                        //.Name("TotalNumber")
-                        items.Add()
-                            .Name("TotalNumber")
-                            .ShowInColumn("TotalNumber")
-                            .DisplayFormat("總人數: {0}")
-                            //.ValueFormat(Format.Currency)
-                            //.SummaryType(SummaryType.Sum)
-                            .SummaryType(SummaryType.Custom);
-
-                        items.Add()
-                            .Name("SundayNumber")
-                            .ShowInColumn("SundayNumber")
-                            .DisplayFormat("主日人數: {0}")
-                            //.ValueFormat(Format.Currency)
-                            //.SummaryType(SummaryType.Sum)
-                            .SummaryType(SummaryType.Custom);
-
-                        items.Add()
-                            .Name("SmallGroupNumber")
-                            .ShowInColumn("SmallGroupNumber")
-                            .DisplayFormat("小組人數: {0}")
-                            //.ValueFormat(Format.Currency)
-                            //.SummaryType(SummaryType.Sum)
-                            .SummaryType(SummaryType.Custom);
-
-                        //items.Add()
-                        //    .Name("SundayRate")
-                        //    .ShowInColumn("SundayRate")
-                        //    .DisplayFormat("主日出席率: {0}%")
-                        //    .ValueFormat(Format.FixedPoint)
-
-                        //    //.SummaryType(SummaryType.Sum)
-                        //    .SummaryType(SummaryType.Custom);
-
-                        //items.Add()
-                        //    .Name("SmallGroupRate")
-                        //    .ShowInColumn("SmallGroupRate")
-                        //    .DisplayFormat("小組出席率: {0}%")
-                        //    .ValueFormat(Format.FixedPoint)
-                        //    //.SummaryType(SummaryType.Sum)
-                        //    .SummaryType(SummaryType.Custom);
-
-                    }
-                    )
-                    .CalculateCustomSummary
-                    (
-                                                            @<text>
-                                                                function (options)
-                                                                {
-                                                                if (options.name === "TotalNumber")
-                                                                {
-                                                                if (options.summaryProcess === "start") {
-                                                                options.totalValue = 0;
-                                                                }
-                                                                if (options.summaryProcess === "calculate") {
-                                                                options.totalValue = options.totalValue + Number(options.value.TotalNumber);
-                                                                }
-                                                                if (options.summaryProcess === "finalize") {
-                                                                //
-                                                                }
-                                                                }
+                                                                @<text>
+                                                                    function (options)
+                                                                    {
+                                                                    if (options.name === "TotalNumber")
+                                                                    {
+                                                                    if (options.summaryProcess === "start") {
+                                                                    options.totalValue = 0;
+                                                                    }
+                                                                    if (options.summaryProcess === "calculate") {
+                                                                    options.totalValue = options.totalValue + Number(options.value.TotalNumber);
+                                                                    }
+                                                                    if (options.summaryProcess === "finalize") {
+                                                                    //
+                                                                    }
+                                                                    }
 
 
-                                                                else if (options.name === "SundayNumber")
-                                                                {
-                                                                if (options.summaryProcess === "start") {
-                                                                options.totalValue = 0;
-                                                                }
-                                                                if (options.summaryProcess === "calculate") {
-                                                                options.totalValue = options.totalValue + Number(options.value.SundayNumber);
-                                                                }
-                                                                if (options.summaryProcess === "finalize") {
-                                                                //
-                                                                }
-                                                                }
+                                                                    else if (options.name === "SundayNumber")
+                                                                    {
+                                                                    if (options.summaryProcess === "start") {
+                                                                    options.totalValue = 0;
+                                                                    }
+                                                                    if (options.summaryProcess === "calculate") {
+                                                                    options.totalValue = options.totalValue + Number(options.value.SundayNumber);
+                                                                    }
+                                                                    if (options.summaryProcess === "finalize") {
+                                                                    //
+                                                                    }
+                                                                    }
 
-                                                                else if (options.name === "SmallGroupNumber")
-                                                                {
-                                                                if (options.summaryProcess === "start") {
-                                                                options.totalValue = 0;
-                                                                }
-                                                                if (options.summaryProcess === "calculate") {
-                                                                options.totalValue = options.totalValue + Number(options.value.SmallGroupNumber);
-                                                                }
-                                                                if (options.summaryProcess === "finalize") {
-                                                                //
-                                                                }
-                                                                }
+                                                                    else if (options.name === "SmallGroupNumber")
+                                                                    {
+                                                                    if (options.summaryProcess === "start") {
+                                                                    options.totalValue = 0;
+                                                                    }
+                                                                    if (options.summaryProcess === "calculate") {
+                                                                    options.totalValue = options.totalValue + Number(options.value.SmallGroupNumber);
+                                                                    }
+                                                                    if (options.summaryProcess === "finalize") {
+                                                                    //
+                                                                    }
+                                                                    }
 
-                                                                else if (options.name === "SundayRate")
-                                                                {
-                                                                if (options.summaryProcess === "start")
-                                                                {
-                                                                options.totalValue = 0;
-                                                                options.n = 0;
-                                                                }
-                                                                if (options.summaryProcess === "calculate")
-                                                                {
-                                                                options.totalValue = options.totalValue + Number(options.value.SundayRate);
-                                                                options.n++;
-                                                                }
-                                                                if (options.summaryProcess === "finalize")
-                                                                {
-                                                                options.totalValue = options.totalValue/options.n * 100;
+                                                                    else if (options.name === "SundayRate")
+                                                                    {
+                                                                    if (options.summaryProcess === "start")
+                                                                    {
+                                                                    options.totalValue = 0;
+                                                                    options.n = 0;
+                                                                    }
+                                                                    if (options.summaryProcess === "calculate")
+                                                                    {
+                                                                    options.totalValue = options.totalValue + Number(options.value.SundayRate);
+                                                                    options.n++;
+                                                                    }
+                                                                    if (options.summaryProcess === "finalize")
+                                                                    {
+                                                                    options.totalValue = options.totalValue/options.n * 100;
 
-                                                                //options.totalValue = options.n;
-                                                                //
-                                                                }
-                                                                }
+                                                                    //options.totalValue = options.n;
+                                                                    //
+                                                                    }
+                                                                    }
 
-                                                                else if (options.name === "SmallGroupRate")
-                                                                {
-                                                                if (options.summaryProcess === "start")
-                                                                {
-                                                                options.totalValue = 0;
-                                                                options.n = 0;
-                                                                }
-                                                                if (options.summaryProcess === "calculate")
-                                                                {
-                                                                options.totalValue = options.totalValue + Number(options.value.SmallGroupRate);
-                                                                options.n++;
-                                                                }
-                                                                if (options.summaryProcess === "finalize")
-                                                                {
-                                                                options.totalValue = options.totalValue/options.n * 100;
+                                                                    else if (options.name === "SmallGroupRate")
+                                                                    {
+                                                                    if (options.summaryProcess === "start")
+                                                                    {
+                                                                    options.totalValue = 0;
+                                                                    options.n = 0;
+                                                                    }
+                                                                    if (options.summaryProcess === "calculate")
+                                                                    {
+                                                                    options.totalValue = options.totalValue + Number(options.value.SmallGroupRate);
+                                                                    options.n++;
+                                                                    }
+                                                                    if (options.summaryProcess === "finalize")
+                                                                    {
+                                                                    options.totalValue = options.totalValue/options.n * 100;
 
-                                                                //options.totalValue = options.n;
-                                                                //
-                                                                }
-                                                                }
+                                                                    //options.totalValue = options.n;
+                                                                    //
+                                                                    }
+                                                                    }
 
-                                                                }
-                                                            </text>
- )
- )
-        )
-    </div>
-
-</form>
+                                                                    }
+                                                                </text>
+)
+)
+    )
+</div>
 
 <script>
     function moveEditColumnToLeft(dataGrid) {
@@ -594,8 +554,11 @@ m => m
 
 </script>
 
+<script>var DataUploadStatus = "尚未上傳喔!";</script>
+<script>var UploadDateFormat = "格式正確!";</script>
+
 <script src="~/js/DataGridAjax.js"></script>
-@*<script src="~/js/SelectDate.js"></script>*@
+<script src="~/js/SelectDate.js"></script>
 <script src="~/js/DropDownBox.js"></script>
 <script src="~/js/DataGridAjax.js"></script>
 <script src="~/js/LoadPanel.js"></script>
