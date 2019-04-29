@@ -479,9 +479,6 @@ m => m
     function getLoadPanelInstance() {
         return $("#loadPanel").dxLoadPanel("instance");
     }
-    function button_click() {
-        getLoadPanelInstance().show();
-    }
     function loadPanel_shown(e) {
         // setTimeout(function () {
         // e.component.hide();
@@ -496,8 +493,6 @@ m => m
         .text(`${cellInfo.data.Name}`)
         .appendTo(cellElement);
     }
-
-
 </script>
 
 <script>var DataUploadStatus = "尚未上傳喔!";</script>
