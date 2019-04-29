@@ -21,7 +21,7 @@
 @*<br />換行*@
 <br />
 
-<div class="dx-field" style="height:100%; width:100%; overflow: hidden;">
+<div class="dx-field" style="height:100%; width:100%; overflow: auto;">
         <div id="buttonContainer" class="dx-button-icon" style="float: left; width:30%; text-align: left; background-color:white;">
             @(Html.DevExtreme().Button()
                 .Text("上傳")
@@ -133,9 +133,9 @@
         .Provider(GeoMapProvider.Google)
         .Center("桃園市楊梅區")
         .Zoom(11)
-        .Width(750)
+        //.Width(750)
+        .Width("100%")
         .Height(440)
-        //.Width("100%")
         .Controls(true)
         .Type(GeoMapType.Roadmap)
         // NOTE: Specify your map API keys for every used provider
