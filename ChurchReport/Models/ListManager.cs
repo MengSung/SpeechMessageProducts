@@ -24,7 +24,7 @@ namespace ChurchReport.Models
         // 新增新人時，選擇進入哪一個小組的清單 + 區長或一人帶多個小組時，提供選擇點選進入觀看的Grid
         public MultiGroupList m_MultiGroupList = new MultiGroupList();
 
-        // 個別小組長點名的畫面所需要的資料
+        // 個別小組長點名的畫面所需要的資料，就是整合型頁面所需的資料
         public ListSmallGroupWeeklyReport m_ListSmallGroupWeeklyReport = new ListSmallGroupWeeklyReport();// { get; set; }
 
         // 圓餅圖
@@ -200,7 +200,7 @@ namespace ChurchReport.Models
                             SmallGroupLeaderFullName = "以利亞",
                             SundayPrayers = DateTime.Now,
                             SundayPeriod = "不斷地來愛主耶穌",
-                            m_SmallGroupDataList = new SmallGroupDataList
+                            m_SmallGroupDataList = new SmallGroupDataList()
                             {
                                 m_SmallGroupData = new SmallGroupData
                                 {
@@ -306,7 +306,7 @@ namespace ChurchReport.Models
                             SmallGroupLeaderFullName = "胡逸凡",
                             SundayPrayers = DateTime.Now,
                             SundayPeriod = "主耶穌永遠與我們同在",
-                            m_SmallGroupDataList = new SmallGroupDataList
+                            m_SmallGroupDataList = new SmallGroupDataList()
                             {
                                 m_SmallGroupData = new SmallGroupData
                                 {
@@ -413,7 +413,7 @@ namespace ChurchReport.Models
                             SmallGroupLeaderFullName = "以利亞",
                             SundayPrayers = DateTime.Now,
                             SundayPeriod = "不斷地來愛主耶穌",
-                            m_SmallGroupDataList = new SmallGroupDataList
+                            m_SmallGroupDataList = new SmallGroupDataList()
                             {
                                 m_SmallGroupData = new SmallGroupData
                                 {

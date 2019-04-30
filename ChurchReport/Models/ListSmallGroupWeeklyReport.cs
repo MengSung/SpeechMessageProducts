@@ -7,6 +7,11 @@ namespace ChurchReport.Models
 {
     public class ListSmallGroupWeeklyReport
     {
+        public ListSmallGroupWeeklyReport()
+        {
+            ModifyFlag = false;
+        }
+
         // 個別小組長點名的畫面所需要的資料
         public bool LoadFlag { get; set; }
         public String ListEntityId { get; set; } // 小組 ID
@@ -24,10 +29,10 @@ namespace ChurchReport.Models
 
         public SmallGroupDataList m_SmallGroupDataList = new SmallGroupDataList();// 包含 3 個SmallGroupData ( 小組牧養、新人跟進關懷、基本資料維護)，而每個又包含一個Members陣列
 
-        public String WeeklyReportData { get; set; }
-        public String WeeklyReportAnalysis { get; set; }
+        public String WeeklyReportData { get; set; } // 小組日誌
+        public String WeeklyReportAnalysis { get; set; } // 小組分析報告
 
-        // 圖表資料
+        // 長條圖表資料
         public ChartDataList m_WeeklyReportChart { get; set; }
 
         public bool ModifyFlag { get; set; }

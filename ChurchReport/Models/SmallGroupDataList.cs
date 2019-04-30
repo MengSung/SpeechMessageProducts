@@ -21,6 +21,11 @@ namespace ChurchReport.Models
 {
     public class SmallGroupDataList
     {
+        public SmallGroupDataList()
+        {
+            
+        }
+
         public String m_FullName = "";
         public String m_Account  = "";
         public String m_Password = "";
@@ -28,9 +33,6 @@ namespace ChurchReport.Models
         public DateTime m_SelectDate = DateTime.Now;// 初始值 2000 表示還沒選
         public DateTime m_SundayDate;
         private bool m_FirstLoginFlag;
-
-        private ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
-        //static ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("CRM2011");
 
         // 小組長點名
         public SmallGroupData m_SmallGroupData = new SmallGroupData();
@@ -42,8 +44,6 @@ namespace ChurchReport.Models
         public SmallGroupData m_AllMemeberData = new SmallGroupData();
 
         public MemberInfomationPackage m_MemberInfomationPackage;
-
-        public MultiGroupList m_MultiGroupList = new MultiGroupList();
 
         public void SetupContactIdString(String ContactIdString)
         {
