@@ -10,22 +10,18 @@ namespace ChurchReport.Models
     public class SmallGroupData
     {
         public SmallGroupData()
-        { }
-
+        {
+            ModifyFlag = false;
+        }
         ListSmallGroupWeeklyReport ParentListSmallGroupWeeklyReport { get; set; }
-
         public String LoginType { get; set; }
         public String SmallGroupLeaderContactId { get; set; }
         public String SmallGroupLeaderFullName { get; set; }
         public DateTime SundayPrayers { get; set; }
         public String SundayPrayersString { get; set; }
-
         public String DataStatus { get; set; }
-
         public bool ModifyFlag { get; set; }
-
         public String SundayPeriod { get; set; } // 提醒小組長回報的期間
-
         public List<Member> Members { get ; set ; } // 
 
         //public String m_WeeklyReportData { get; set; }
@@ -47,50 +43,10 @@ namespace ChurchReport.Models
         public void UpdateMember(string key, string values)
         {
 
-            // 修改幸福小組週報
-            //Member aUpdatedMember = JsonConvert.DeserializeObject<Member>(values);
+            // 修改資料
+            ModifyFlag = true;
 
-            //IEnumerable<Member> filteringQuery =
-            //    from aMember in Members
-            //    where PresentRecordId ==key
-            //    select aMember;
-
-            //var aUpdatedMember = Members.First(o => o.PresentRecordId == key);
-            //lock (m_QueryManyToOneLocker)
-            //{
-
-
-            //var firstObj = result.FirstOrDefault(m => m.Name == "Ada No");
-            //if (firstObj != null)
-            //{
-            //    myobject.Ada = firstObj.Value;
-            //}
-
-            //if (result != null && result.Any(m => m.Name == "Ada No"))
-            //{
-            //    myobject.Ada = result.FirstOrDefault(m => m.Name == "Ada No").Value;
-            //}
-            //Member aUpdatedMember = Members.SingleOrDefault(o => o.PresentRecordId == key);
             Member aUpdatedMember = Members.DefaultIfEmpty(null).FirstOrDefault(o => o.PresentRecordId == key);
-            //var aUpdatedMember = Members.FirstOrDefault(o => o.PresentRecordId == key);
-
-            //if(aUpdatedMember == null)
-            //{
-            //    return;
-            //}
-
-            //Member aUpdatedMember;
-            //if (Members != null && Members.Any(m => m.PresentRecordId == key))
-            //{
-            //    //aUpdatedMember = Members.FirstOrDefault(m => m.PresentRecordId == key);
-            //}
-            //else
-            //{
-            //    return;
-            //}
-
-
-            //Member aUpdatedMember = Members.Where( o=>o.PresentRecordId == key).FirstOrDefault();
 
             if (ParentListSmallGroupWeeklyReport != null)
                 {
