@@ -26,14 +26,14 @@ namespace ChurchReport.Models
 
         public String SundayPeriod { get; set; } // 提醒小組長回報的期間
 
-        public List<Member> Members { get ; set ; }
+        public List<Member> Members { get ; set ; } // 
 
         //public String m_WeeklyReportData { get; set; }
         //public String m_WeeklyReportAnalysis { get; set; }
         //public bool m_DisplayFlag { get; set; }
 
-        public String WeeklyReportData { get; set; }
-        public String WeeklyReportAnalysis { get; set; }
+        //public String WeeklyReportData { get; set; }
+        //public String WeeklyReportAnalysis { get; set; }
         public bool DisplayFlag { get; set; }
 
         public void InsertMember( string values)

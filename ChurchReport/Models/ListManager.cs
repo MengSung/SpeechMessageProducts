@@ -18,12 +18,16 @@ namespace ChurchReport.Models
         public String m_Account;
         public String m_Password;
 
+        // 地圖需要的資料
         public List<MapData> m_Markers;
-        // 新增新人時，選擇進入哪一個小組的清單
+
+        // 新增新人時，選擇進入哪一個小組的清單 + 區長或一人帶多個小組時，提供選擇點選進入觀看的Grid
         public MultiGroupList m_MultiGroupList = new MultiGroupList();
 
+        // 個別小組長點名的畫面所需要的資料
         public ListSmallGroupWeeklyReport m_ListSmallGroupWeeklyReport = new ListSmallGroupWeeklyReport();// { get; set; }
 
+        // 圓餅圖
         public MultiGroupChartDataList m_MultiGroupChartDataList = new MultiGroupChartDataList();
 
         DownloadListManager m_DownloadListManager = new DownloadListManager();

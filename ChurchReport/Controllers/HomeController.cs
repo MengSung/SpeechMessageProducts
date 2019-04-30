@@ -716,18 +716,10 @@ namespace ChurchReport.Controllers
                     }
                     SetMultiGroupLayoutParameter();
 
-                    m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_SmallGroupData.WeeklyReportData = "嘟嘟妞妞";
-                    m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_SmallGroupData.WeeklyReportAnalysis = "非常可愛";
-
-
-                    //ListSmallGroupWeeklyReport bSmallGroupData = m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.Where(e => e.ListEntityId == "001").ToList()[0];
-
                     //return View(m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.Where(e => e.ListEntityId == m_InMemoryDataContextSmallGroup.m_ListManager.ActiveListId).Select());
                     m_InMemoryDataContextSmallGroup.ListManager.SetupIntegrateData(LoginParameter);
                     return View(m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport);
 
-                    //return View(m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.Where(e => e.ListEntityId == m_InMemoryDataContextSmallGroup.m_ListManager.ActiveListId).FirstOrDefault());
-                    //return View(m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.Select(ListEntityId=> m_InMemoryDataContextSmallGroup.m_ListManager.ActiveListId));
                     #endregion
                 }
                 else if (LoginParameter == "jquery.js")

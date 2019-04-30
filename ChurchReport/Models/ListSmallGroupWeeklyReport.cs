@@ -7,14 +7,15 @@ namespace ChurchReport.Models
 {
     public class ListSmallGroupWeeklyReport
     {
+        // 個別小組長點名的畫面所需要的資料
         public bool LoadFlag { get; set; }
-        public String ListEntityId { get; set; }
-        public String WeeklyReportEntityId { get; set; }
+        public String ListEntityId { get; set; } // 小組 ID
+        public String WeeklyReportEntityId { get; set; } // 週報 ID
 
-        public String ListEntityName { get; set; }
-        public String LoginType { get; set; }
-        public String SmallGroupLeaderContactId { get; set; }
-        public String SmallGroupLeaderFullName { get; set; }
+        public String ListEntityName { get; set; } // 小組名稱
+        public String LoginType { get; set; } // 回報型式: 小組長 OR 個人回報
+        public String SmallGroupLeaderContactId { get; set; } // 小組長 ID
+        public String SmallGroupLeaderFullName { get; set; } // 小組長姓名
         public DateTime SundayPrayers { get; set; } // 小組日期
         public String SundayPeriod { get; set; }   // 提醒小組長回報的期間
 

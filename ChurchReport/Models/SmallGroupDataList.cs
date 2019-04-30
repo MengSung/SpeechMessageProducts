@@ -49,58 +49,6 @@ namespace ChurchReport.Models
         {
             m_SmallGroupData.SmallGroupLeaderContactId = ContactIdString;
         }
-        public void SetSundayPrayersByWeeklyReport(String FullName)
-        {
-            // 依據週報來決定小組日期
-            foreach (GroupWeeklyReportGuid aGroupWeeklyReportGuid in m_MemberInfomationPackage.GroupWeeklyReportGuidList)
-            {
-                if (aGroupWeeklyReportGuid.SmallGroupLeaderName != null && aGroupWeeklyReportGuid.SmallGroupLeaderName.Contains(FullName))
-                {
-                    // 找到登入者的小組，因為登入者有可能是區長，所以要確定登入者的小組聚會日期
-                    m_SmallGroupData.SundayPrayers = aGroupWeeklyReportGuid.SmallGroupDate;
-
-                    if ( m_SmallGroupData.SundayPrayers.Year == 9999 || m_SmallGroupData.SundayPrayers.Year == 1 )
-                    {
-                        #region// 表示該週報尚未上傳過，後台還沒有該週報
-                        if (this.m_SelectDate.Year != 9999)
-                        {
-                            // 表示登入的使用有更改過日期，所以網頁要顯示出選擇的日期
-                            m_SmallGroupData.SundayPrayers = this.m_SelectDate;
-                        }
-                        #endregion
-                    }
-                    else
-                    {
-                        #region// 表示該週報已經上傳過，後台還已經有該週報
-                        if (m_FirstLoginFlag) //是否是首次登入
-                        {
-                            //是首次登入，小組日期顯示後台周報的小組日期
-                            m_SmallGroupData.SundayPrayers = aGroupWeeklyReportGuid.SmallGroupDate;
-                        }
-                        else
-                        {
-                            //不是首次登入，表示登入者想要修改小組日期
-                            m_SmallGroupData.SundayPrayers = this.m_SelectDate;
-                        }
-                        #endregion
-
-                    }
-                    return;
-                }
-            }
-
-            // 除錯!
-            // 這是個人回報
-            if (this.m_SelectDate != null)
-            {
-
-                m_SmallGroupData.SundayPrayers = this.m_SelectDate;
-            }
-            else
-            {
-                m_SmallGroupData.SundayPrayers = new DateTime(9999, 1, 1);
-            }
-        }
         public void UploadMemberInfomationPackage()
         {
             UploadData aUploadData = new UploadData();
@@ -171,47 +119,6 @@ namespace ChurchReport.Models
                 }
             }
         }
-        public void AddNewPersonToSmallGroup(PersonFormViewModel aPersonFormViewModel)
-        {
-            String aGroupName = ConvertGroupName(aPersonFormViewModel.Position);
-            Member aMember = new Member
-            {
-                Id = m_SmallGroupData.Members.Count,
-                Group = aGroupName,
-                FullName = aPersonFormViewModel.LastName,
-                Status = "新朋友",
-                SmallGroupName = aGroupName,
-                SectionName = aGroupName,
-                PrayItem = aPersonFormViewModel.Notes,
-                Sunday = false,
-                SmallGroup = false,
-                StateID1 = 2,
-                Number1 = 4,
-                StateID2 = 1,
-                Number2 = 2,
-                //Picture = "../../images/employees/01.png" //D:\暫存區\ASP.NET CORE 練習區\DevExtremeAspNetCoreApp1\DevExtremeAspNetCoreApp1\wwwroot\images\employees
-                Picture = "../../images/employees/01.png" //D:\暫存區\ASP.NET CORE 練習區\DevExtremeAspNetCoreApp1\DevExtremeAspNetCoreApp1\wwwroot\images\employees
-                                                          //Picture = "https://tpehoc.speechmessage.com.tw/image/download.aspx?attribute=entityimage&entity=contact&id=66cd8034-953f-e711-80d9-00155d00640b" //D:\暫存區\ASP.NET CORE 練習區\DevExtremeAspNetCoreApp1\DevExtremeAspNetCoreApp1\wwwroot\images\employees
-
-            };
-
-            //m_SmallGroupData.Members.Add(aMember);
-            m_NewPersonFollowUpData.Members.Add(aMember);
-
-            MemberInfomation aMemberInfomation = new MemberInfomation
-            {
-                Group = aGroupName,
-                Name = aPersonFormViewModel.LastName,
-                Phone = aPersonFormViewModel.Phone,
-                Address = aPersonFormViewModel.Address,
-                Note = aPersonFormViewModel.Notes,
-                SundayPresent = false,
-                SmallGroupPresent = false
-            };
-
-            m_MemberInfomationPackage.ListMemberInfomation.Add(aMemberInfomation);
-
-        }
         public void AddNewPersonToMember(PersonFormViewModel aPersonFormViewModel)
         {
             String aGroupName = aPersonFormViewModel.Position;
@@ -246,20 +153,6 @@ namespace ChurchReport.Models
             m_NewPersonFollowUpData.Members.Add(aMember);
             m_AllMemeberData.Members.Add(aMember);
         }
-
-
-        public String ConvertGroupName(String GroupNameWithoutPercentage)
-        {
-            foreach(GroupWeeklyReportGuid aGroupWeeklyReportGuid in m_MemberInfomationPackage.GroupWeeklyReportGuidList)
-            {
-                if(aGroupWeeklyReportGuid.GroupName.Contains(GroupNameWithoutPercentage))
-                {
-                    return aGroupWeeklyReportGuid.GroupName;
-                }
-            }
-            return "";
-        }
-
     }
 }
 

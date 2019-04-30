@@ -9,6 +9,8 @@ namespace ChurchReport.Models
 {
     public class WeeklyReportRecord
     {
+        // 新增新人時，選擇進入哪一個小組的清單 + 區長或一人帶多個小組時，提供選擇點選進入觀看的Grid
+
         #region 資料區
         #region 常數參數
 
@@ -36,15 +38,15 @@ namespace ChurchReport.Models
         private ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
         #endregion
         #region 類別資料
-        public String ListEntityId { get; set; }
-        public String WeeklyReportEntityId { get; set; }
-        public string Name { get; set; }
-        public string TotalNumber { get; set; }
-        public string SundayNumber { get; set; }
-        public string SmallGroupNumber { get; set; }
-        public string SundayRate { get; set; }
-        public string SmallGroupRate { get; set; }
-        public string ReportContent { get; set; }
+        public String ListEntityId { get; set; } // 小組 ID
+        public String WeeklyReportEntityId { get; set; } // 週報 ID
+        public string Name { get; set; } // 小組名稱
+        public string TotalNumber { get; set; } // 小組人數
+        public string SundayNumber { get; set; } // 主日人數
+        public string SmallGroupNumber { get; set; } // 小組人數
+        public string SundayRate { get; set; } // 主日出席率
+        public string SmallGroupRate { get; set; } // 小組出席率
+        public string ReportContent { get; set; } // 小組日誌
         #endregion
         #endregion
 
