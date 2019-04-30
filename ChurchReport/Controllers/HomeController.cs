@@ -603,46 +603,7 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                //string json = @"[
-                //    { 'Id':1,'FullName':'吳連碧','Status':'小組長','SmallGroupName':'0201 連碧小組 - 主日出席率:50 % 小組出席率:0 %','SectionName':'0201 連碧小組 - 主日出席率:50 % 小組出席率:0 %','PrayItem':'未填','Sunday':'false','SmallGroup':'true','StateID1':'2','Number1':'4','StateID2':'1','Number2':'2','Picture':'../../ images / employees / 01.png','Shepherd':'null',},
-                //    ]";
-
-                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "小組長回報點名 001");
-                string Format = "";
-                if (aResult.Contains("台北標準時間"))
-                {
-                    Format = "ddd MMM dd yyyy HH:mm:ss GMT+0800 (台北標準時間)"; // DataGrid如果沒有設PAGE，則正確的日期格式
-                }
-                else if (aResult.Contains("CST"))
-                {
-                    Format = "ddd MMM dd yyyy HH:mm:ss GMT+0800 (CST)"; // DataGrid如果沒有設PAGE，則正確的日期格式
-                }
-                else
-                {
-                    Format = "ddd MMM dd yyyy HH:mm:ss GMT+0800"; // DataGrid如果沒有設PAGE，則正確的日期格式
-                }
-                var settings = new JsonSerializerSettings
-                {
-                    // 轉換成當地時間
-                    DateTimeZoneHandling = DateTimeZoneHandling.Local,
-                    //DateTimeZoneHandling = DateTimeZoneHandling.Utc,
-                    DateFormatString = Format,
-                    NullValueHandling = NullValueHandling.Ignore,
-                    MissingMemberHandling = MissingMemberHandling.Ignore
-                };
-
-                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "小組長回報點名 002 : " + aResult);
-                //DiscipleLessons aBestRecord = JsonConvert.DeserializeObject<DiscipleLessons>(ProcessNullValue(Values), settings);
-
-                m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_SmallGroupData.Members.Clear();
-                m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_SmallGroupData.Members = JsonConvert.DeserializeObject<List<Member>>(aResult, settings);
-
-                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "小組長回報點名 003");
-
-                m_InMemoryDataContextSmallGroup.SmallGroupDataList.TransferToMemberInfomationPackage(m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_SmallGroupData);
-                m_InMemoryDataContextSmallGroup.SmallGroupDataList.UploadMemberInfomationPackage();
-
-                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "小組長回報點名 004");
+                m_InMemoryDataContextSmallGroup.SmallGroupDataList.UploadIntegrateData();
 
                 return Json(new { status = "1", message = "成功上傳了...." });
             }
@@ -662,12 +623,14 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                //ListSmallGroupWeeklyReport aActiveListSmallGroupWeeklyReport = m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.Where(e => e.ListEntityId == m_InMemoryDataContextSmallGroup.m_ListManager.ActiveListId).FirstOrDefault();
-
-                //aActiveListSmallGroupWeeklyReport.WeeklyReportData = aListSmallGroupWeeklyReport.WeeklyReportData;
+                m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.UploadIntegrateData
+                (
+                    m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_Account,
+                    m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_Password,
+                    m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData
+                );
 
                 return Json(new { status = "1", message = "成功上傳了...." });
-                //return Json(new { status = "2", message = "密碼錯誤...." });
             }
             catch (System.Exception e)
             {
@@ -969,36 +932,8 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                string Format = "";
-                if (aResult.Contains("台北標準時間"))
-                {
-                    Format = "ddd MMM dd yyyy HH:mm:ss GMT+0800 (台北標準時間)"; // DataGrid如果沒有設PAGE，則正確的日期格式
-                }
-                else if (aResult.Contains("CST"))
-                {
-                    Format = "ddd MMM dd yyyy HH:mm:ss GMT+0800 (CST)"; // DataGrid如果沒有設PAGE，則正確的日期格式
-                }
-                else
-                {
-                    Format = "ddd MMM dd yyyy HH:mm:ss GMT+0800"; // DataGrid如果沒有設PAGE，則正確的日期格式
-                }
-                var settings = new JsonSerializerSettings
-                {
-                    // 轉換成當地時間
-                    DateTimeZoneHandling = DateTimeZoneHandling.Local,
-                    //DateTimeZoneHandling = DateTimeZoneHandling.Utc,
-                    DateFormatString = Format,
-                    NullValueHandling = NullValueHandling.Ignore,
-                    MissingMemberHandling = MissingMemberHandling.Ignore
-                };
+                m_InMemoryDataContextSmallGroup.SmallGroupDataList.UploadIntegrateData();
 
-                //DiscipleLessons aBestRecord = JsonConvert.DeserializeObject<DiscipleLessons>(ProcessNullValue(Values), settings);
-
-                m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_NewPersonFollowUpData.Members.Clear();
-                m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_NewPersonFollowUpData.Members = JsonConvert.DeserializeObject<List<Member>>(aResult, settings);
-
-                m_InMemoryDataContextSmallGroup.SmallGroupDataList.TransferToMemberInfomationPackage(m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_NewPersonFollowUpData);
-                m_InMemoryDataContextSmallGroup.SmallGroupDataList.UploadMemberInfomationPackage();
                 return Json(new { status = "1", message = "成功上傳了...." });
             }
             catch (System.Exception e)
@@ -1098,52 +1033,12 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                //m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_AllMemeberData.Members.Clear();
-
-                //var settings = new JsonSerializerSettings
-                //{
-                //    // 轉換成當地時間
-                //    DateTimeZoneHandling = DateTimeZoneHandling.Local,
-
-                //    NullValueHandling = NullValueHandling.Ignore,
-                //    MissingMemberHandling = MissingMemberHandling.Ignore
-                //};
-
-                //var format = "dd/MM/yyyy"; // your datetime format
-                //var dateTimeConverter = new IsoDateTimeConverter { DateTimeFormat = format };
-
-
-                string Format = "";
-                if (aResult.Contains("台北標準時間"))
-                {
-                    Format = "ddd MMM dd yyyy HH:mm:ss GMT+0800 (台北標準時間)"; // DataGrid如果沒有設PAGE，則正確的日期格式
-                }
-                else if (aResult.Contains("CST"))
-                {
-                    Format = "ddd MMM dd yyyy HH:mm:ss GMT+0800 (CST)"; // DataGrid如果沒有設PAGE，則正確的日期格式
-                }
-                else
-                {
-                    Format = "ddd MMM dd yyyy HH:mm:ss GMT+0800"; // DataGrid如果沒有設PAGE，則正確的日期格式
-                }
-                var settings = new JsonSerializerSettings
-                {
-                    // 轉換成當地時間
-                    DateTimeZoneHandling = DateTimeZoneHandling.Local,
-                    //DateTimeZoneHandling = DateTimeZoneHandling.Utc,
-                    DateFormatString = Format,
-                    NullValueHandling = NullValueHandling.Ignore,
-                    MissingMemberHandling = MissingMemberHandling.Ignore
-                };
-
-
-                //DiscipleLessons aBestRecord = JsonConvert.DeserializeObject<DiscipleLessons>(ProcessNullValue(Values), settings);
-
-                m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_AllMemeberData.Members = JsonConvert.DeserializeObject<List<Member>>(aResult, settings);
-
-
-                m_InMemoryDataContextSmallGroup.SmallGroupDataList.TransferToMemberInfomationPackage(m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_AllMemeberData);
-                m_InMemoryDataContextSmallGroup.SmallGroupDataList.UploadMemberInfomationPackage();
+                m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.UploadIntegrateData
+                (
+                    m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_Account,
+                    m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_Password,
+                    m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData
+                );
 
                 return Json(new { status = "1", message = "成功上傳了...." });
             }

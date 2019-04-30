@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ChurchReport.WebServiceConnector;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -36,6 +37,23 @@ namespace ChurchReport.Models
         public ChartDataList m_WeeklyReportChart { get; set; }
 
         public bool ModifyFlag { get; set; }
+
+        public UploadIntegrateData m_UploadIntegrateData = new UploadIntegrateData();
+
+        public void UploadIntegrateData(String Account, String Password, SmallGroupData aSmallGroupData )
+        {
+            if (aSmallGroupData.ModifyFlag == true)
+            {
+                DateTime aUploadSmallGroupDate = new DateTime(SundayPrayers.Year, SundayPrayers.Month, SundayPrayers.Day, 0, 0, 0);
+
+                //SetSmallGroupDateOfWeeklyReport(m_FullName, aUploadSmallGroupDate);
+
+                //aUploadIntegrateData.UploadMemberDataPackage(aAccountPasswordData, aUploadSmallGroupDate, "主日點名", m_MemberInfomationPackage);
+            }
+
+            // 上傳儲存小組日誌
+        }
+
 
     }
 }

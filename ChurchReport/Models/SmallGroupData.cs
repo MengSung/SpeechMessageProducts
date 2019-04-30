@@ -1,3 +1,5 @@
+using ChurchReport.Models.CrmTransmitModule;
+using ChurchReport.WebServiceConnector;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -23,7 +25,6 @@ namespace ChurchReport.Models
         public String SundayPeriod { get; set; } // 提醒小組長回報的期間
         public List<Member> Members { get ; set ; } // 
         public bool DisplayFlag { get; set; }
-
         public void InsertMember( string values)
         { 
             var aNewMember = new Member();
@@ -31,7 +32,6 @@ namespace ChurchReport.Models
 
             Members.Add(aNewMember);
         }
-        
         public void UpdateMember(string key, string values)
         {
 
@@ -57,8 +57,6 @@ namespace ChurchReport.Models
             // 會友資料被修改
             JsonConvert.PopulateObject(values, aUpdatedMember, settings);
         }
-
-
         public void PopulateObjectAndUpdateEntity(string key, string values)
         {
             // 修改資料
@@ -98,7 +96,6 @@ namespace ChurchReport.Models
             }
 
         }
-
         public void DeleteMember(string key)
         {
             var aDeleteMember = Members.First(o => o.PresentRecordId == key);

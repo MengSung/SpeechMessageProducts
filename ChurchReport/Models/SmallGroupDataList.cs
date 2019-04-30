@@ -49,9 +49,9 @@ namespace ChurchReport.Models
         {
             m_SmallGroupData.SmallGroupLeaderContactId = ContactIdString;
         }
-        public void UploadMemberInfomationPackage()
+        public void UploadIntegrateData()
         {
-            UploadData aUploadData = new UploadData();
+            UploadIntegrateData aUploadIntegrateData = new UploadIntegrateData();
 
             AccountPasswordData aAccountPasswordData = new AccountPasswordData
             {
@@ -63,7 +63,7 @@ namespace ChurchReport.Models
 
             SetSmallGroupDateOfWeeklyReport(m_FullName, aUploadSmallGroupDate);
 
-            aUploadData.UploadMemberDataPackage(aAccountPasswordData, aUploadSmallGroupDate, "主日點名", m_MemberInfomationPackage);
+            aUploadIntegrateData.UploadMemberDataPackage(aAccountPasswordData, aUploadSmallGroupDate, "主日點名", m_MemberInfomationPackage);
         }
         public void SetSmallGroupDateOfWeeklyReport(String FullName, DateTime SmallGroupDate)
         {
@@ -153,6 +153,7 @@ namespace ChurchReport.Models
             m_NewPersonFollowUpData.Members.Add(aMember);
             m_AllMemeberData.Members.Add(aMember);
         }
+
     }
 }
 
