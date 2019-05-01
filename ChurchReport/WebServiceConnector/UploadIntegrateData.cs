@@ -120,7 +120,132 @@ namespace ChurchReport.WebServiceConnector
 
                 this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "回傳結果");
 
-                return ;
+                this.m_FeedBackReport.Clear();
+                this.ResetDictionary(m_Sunday);
+
+                #region 處理小組名稱、初始化字典
+                // 從 APP 傳來的包含主日出席率及小組出席率之後的小組名稱
+                String GroupName = this.m_ToolUtilityClass.GetEntityStringAttribute( ref this.m_ListEntity, "listname");
+
+                // 去除掉主日出席率及小組出席率之後的小組名稱
+                String FilteredGroupName = ToolUtilityClass.DeletePresentRate(GroupName);
+
+                //台北基督之家小組名稱含有數字
+                //String FilteredOutDigitGroupName = Regex.Replace(FilteredGroupName, "[0-9]", "");//過濾掉數字
+                String FilteredOutDigitGroupName = FilteredGroupName.Replace(" ", ""); // //過濾掉空白
+                AddToDictionary(ref this.m_FeedBackReport, "主日出席統計表頭", FilteredOutDigitGroupName + Environment.NewLine + "主日出席紀錄:");
+                //AddToDictionary(ref this.m_FeedBackReport, "小組出席統計表頭" , "");
+                //AddToDictionary(ref this.m_FeedBackReport, "跟進統計表頭"     , "");
+
+                Guid aWeeklyReportId = m_WeeklyReportEntity.Id;
+                #endregion
+
+                if (this.m_ListEntity != null)
+                {
+                    // 有找到要點名的名單，但是必須登入的使用者與此名單的小組長ID要一致才能夠修改或新增點名內容，也就是族系族長不能修改小組長的點名單
+                    #region 先找到"小家長"、"小組長"、族系族長/區長"
+                    // 先找到這個名單的小家長 ID，內壢得勝靈糧堂專用
+                    Guid aThisListFamilyHeadId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref m_ListEntity, "new_familyhead_list");
+
+                    // 先找到這個名單的小組長 ID
+                    Guid aThisListSmallGroupLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref m_ListEntity, "new_contact_family_leader_list");
+
+                    // 先找到這個名單的族系族長/區長 ID
+                    Guid aThisListGraceLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref m_ListEntity, "new_contact_race_leager_list");
+
+                    #endregion
+
+                    // this.m_ContactId 的意思是登入者在系統裡的ID，登入者是"小家長"、"小組長"、族系族長/區長"，或是個人回報
+                    if (this.m_ContactId == aThisListSmallGroupLeaderId || this.m_ContactId == aThisListFamilyHeadId || this.m_ContactId == aThisListGraceLeaderId || aSmallGroupData.LoginType == "個人回報")
+                    {
+                        #region 有找到要點名的名單，而且登入的操作者與此名單或是與小組長ID、或是與小家長ID、或是與族系族長/區長一致
+
+                        // 設定是否要計算過去N週的出席的旗標，族系族長/區長不要去計算或修改小組長的出席紀錄
+                        bool CalculateFlag = DeterminCalculateFlag(m_ContactId, aThisListFamilyHeadId, aThisListSmallGroupLeaderId, aThisListGraceLeaderId);
+                        CalculateFlag = true; // 強迫每個都計算
+                        if (CalculateFlag == false)
+                        {
+                            // 如果不需要計算那就直接處理下一個小組
+                            return;
+                        }
+                        this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "有找到要點名的名單");
+
+                        // 重新整理跟群組名稱一致的點名清單
+                        //this.SetupGroupNamedListMemberInfomation(GroupName);
+
+                        if (aWeeklyReportId == Guid.Empty)
+                        {
+                            #region // 要建立週報
+                            #region // 依據有效的週報的小組組員名單當作週報出席率的分母
+                            this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "依據有效的週報的小組組員名單當作週報出席率的分母");
+                            Double ValidNumber = this.GetEffecttiveSmallGroupNumber(m_ListEntity.Id);
+                            #endregion
+                            #region// 要建立週報
+                            this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "要建立週報");
+                            if (this.CreateWeeklyReportOrNot(ref m_ListEntity, m_Sunday)) // 判斷是否真要建立週報
+                            {
+                                // 建立週報
+                                Double aWeeklySundayRate = 0.0;
+                                Double aWeeklySmallGroupRate = 0.0;
+                                int aWeeklySundayNumber = 0;
+                                int aWeeklySmallGroupNumber = 0;
+
+                                GroupWeeklyReportGuid aGroupWeeklyReportGuid = new GroupWeeklyReportGuid
+                                {
+                                    WeeklyReportGuid = WeeklyReportEntityId != null && WeeklyReportEntityId != "" ? new Guid(WeeklyReportEntityId) : new Guid(),
+                                    GroupName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref this.m_ListEntity, "listname"),
+                                    SmallGroupLeaderName = this.m_ToolUtilityClass.GetEntityLookupDisplayName(ref this.m_ListEntity, "new_contact_family_leader_list"),
+                                    SmallGroupDate = m_Sunday,
+                                    SmallGroupRate = 0,
+                                    SundayPresentRate = 0,
+                                };
+
+                                aGraceLeaderWeeklyReportEntity = CreateWeeklyReportAndPresentRecord(GroupName, aGroupWeeklyReportGuid, ref m_ListEntity, "", ValidNumber, ref aWeeklySundayRate, ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber);
+                            }
+                            #endregion
+                            #endregion
+                        }
+                        else
+                        {
+                            #region// 更新週報
+                            if (this.UpdateWeeklyReportOrNot(ref m_ListEntity)) // 判斷是否真要更新週報，只有事這組的小組長才能點名回報
+                            {
+                                GroupWeeklyReportGuid aGroupWeeklyReportGuid = new GroupWeeklyReportGuid
+                                {
+                                    WeeklyReportGuid = WeeklyReportEntityId != null && WeeklyReportEntityId != "" ? new Guid(WeeklyReportEntityId) : new Guid(),
+                                    GroupName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref this.m_ListEntity, "listname"),
+                                    SmallGroupLeaderName = this.m_ToolUtilityClass.GetEntityLookupDisplayName(ref this.m_ListEntity, "new_contact_family_leader_list"),
+                                    SmallGroupDate = m_Sunday,
+                                    SmallGroupRate = 0,
+                                    SundayPresentRate = 0,
+                                };
+
+                                aGraceLeaderWeeklyReportEntity = UpdateWeeklyReportProcess(aGroupWeeklyReportGuid, ref m_ListEntity, ref aWeeklyReportId);
+                            }
+                            #endregion
+                        }
+                        #region 如果登入者是族系族長，則他的週報要留下來，以便寫入他底下的小組長，所有的主日、小組出席紀錄
+                        //if ( this.m_ContactId != aThisListGraceLeaderId )
+                        //{
+                        //    //　不是族系族長，週報設為ＮＵＬＬ
+                        //    aGraceLeaderWeeklyReportEntity = null;
+                        //}
+                        #endregion
+
+                        #endregion
+                    }
+                    else
+                    {
+                        #region 有找到要點名的名單，但是登入的操作者與此名單小組長ID或是與小家長ID "不一致"，所以就忽略不處理
+                        #endregion
+                    }
+                }
+                else
+                {
+                    // 根本找不到這個要被點名的名單，所以就甚麼也不做
+                }
+
+                return;
             }
             catch (System.Exception Exception)
             {
@@ -452,6 +577,16 @@ namespace ChurchReport.WebServiceConnector
                 this.m_WeeklyReportEntity = WeeklyReportEntityId != null && WeeklyReportEntityId != "" ? m_ToolUtilityClass.RetrieveEntity("new_group_present_weekly_report", new Guid(WeeklyReportEntityId)) : null;
 
                 #endregion
+
+                GroupWeeklyReportGuid aGroupWeeklyReportGuid = new GroupWeeklyReportGuid
+                {
+                    WeeklyReportGuid = WeeklyReportEntityId != null && WeeklyReportEntityId != "" ? new Guid(WeeklyReportEntityId) : new Guid(),
+                    GroupName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref this.m_ListEntity, "listname"),
+                    SmallGroupLeaderName = this.m_ToolUtilityClass.GetEntityLookupDisplayName(ref this.m_ListEntity, "new_contact_family_leader_list"),
+                    SmallGroupDate = m_Sunday,
+                    SmallGroupRate = 0,
+                    SundayPresentRate = 0,
+                };
             }
             catch (System.Exception Exception)
             {

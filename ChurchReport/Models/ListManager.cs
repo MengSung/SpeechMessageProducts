@@ -179,9 +179,13 @@ namespace ChurchReport.Models
                 if (m_ListSmallGroupWeeklyReport == null)
                 {
                     m_ListSmallGroupWeeklyReport = new ListSmallGroupWeeklyReport();
+
                     m_ListSmallGroupWeeklyReport.LoadFlag = true;
                 }
+                else
+                { }
 
+                m_ListSmallGroupWeeklyReport.ListEntityId = ListEntityId;
                 m_DownloadIntegrateData.SetupIntegrateData( m_Account, m_Password, this.m_SelectDate, ListEntityId, aWeeklyReportRecord.WeeklyReportEntityId, ref m_ListSmallGroupWeeklyReport);
             }
         }
