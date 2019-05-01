@@ -44,38 +44,6 @@ namespace ChurchReport.Models
             CopyPersonFormViewModel(aPersonFormViewModel);
         }
 
-        public String UploadNewPerson(SmallGroupDataList SmallGroupDataList, PersonFormViewModel aPersonFormViewModel)
-        {
-            CopyPersonFormViewModel(aPersonFormViewModel);
-
-            AccountPasswordData aAccountPasswordData = new AccountPasswordData
-            {
-                Account = SmallGroupDataList.m_Account,
-                Password = SmallGroupDataList.m_Password
-            };
-
-            NewPerson aNewPersonManager = new NewPerson();
-
-            MappingPersonFormViewModelToNewContact(aPersonFormViewModel);
-
-            return aNewPersonManager.CreateNewContact(aAccountPasswordData, m_NewContact);
-        }
-        public String UploadNewPerson(String Account, String Password, PersonFormViewModel aPersonFormViewModel)
-        {
-            CopyPersonFormViewModel(aPersonFormViewModel);
-
-            AccountPasswordData aAccountPasswordData = new AccountPasswordData
-            {
-                Account = Account,
-                Password = Password
-            };
-
-            NewPerson aNewPersonManager = new NewPerson();
-
-            MappingPersonFormViewModelToNewContact(aPersonFormViewModel);
-
-            return aNewPersonManager.CreateNewContact(aAccountPasswordData, m_NewContact);
-        }
         public String UploadNewPerson( ref InMemoryDataContextSmallGroup aInMemoryDataContextSmallGroup, PersonFormViewModel aPersonFormViewModel)
         {
             this.m_InMemoryDataContextSmallGroup = aInMemoryDataContextSmallGroup;

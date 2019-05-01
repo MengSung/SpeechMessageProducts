@@ -73,6 +73,8 @@ namespace ChurchReport.WebServiceConnector
         DateTime m_Sunday;
         Entity m_ContactEntity; //登入者在系統裡的實體
         Guid m_ContactId; //登入者在系統裡的ID
+        Entity m_ListEntity; // 小組名單實體紀錄
+        Entity m_WeeklyReportEntity; // 週報實體紀錄
         EntityCollection m_Lists = new EntityCollection(); // 需要點名的名單
         EntityCollection m_PresentLists = new EntityCollection(); // 需要回報給族系族長/區長的名單
 
@@ -92,7 +94,19 @@ namespace ChurchReport.WebServiceConnector
         #region 上傳資料區
         #region WCF Service端
         #region 主程式
-        public void UploadData(String Account, String Password, DateTime aSmallGroupDate, String UploadCategory, SmallGroupData aSmallGroupData )
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="Account"></param>
+        /// <param name="Password"></param>
+        /// <param name="ListEntityId"></param>
+        /// <param name="WeeklyReportEntityId"></param>
+        /// <param name="aSmallGroupDate"></param>
+        /// <param name="UploadCategory"> "主日點名"、"小組點名"</param>
+        /// <param name="aSmallGroupData"></param>
+        /// <param name="WeeklyReportData"></param>
+        /// <param name="WeeklyReportAnalysis"></param>
+        public void UploadData(String Account, String Password, String ListEntityId, String WeeklyReportEntityId, DateTime aSmallGroupDate, SmallGroupData aSmallGroupData , ref String WeeklyReportData, ref String WeeklyReportAnalysis )
         {
             try
             {
@@ -100,7 +114,7 @@ namespace ChurchReport.WebServiceConnector
 
                 // 設定參數，設定主日日期，找到操作使用者登入的ENTITY及ID
                 this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "設定參數");
-                SetupCommonParameter(Account,  Password, aSmallGroupDate);
+                SetupCommonParameter(Account,  Password, aSmallGroupDate, ListEntityId, WeeklyReportEntityId);
 
                 Entity aGraceLeaderWeeklyReportEntity = null;// 族系族長的週報
 
@@ -126,7 +140,7 @@ namespace ChurchReport.WebServiceConnector
 
                 // 設定參數，設定主日日期，找到操作使用者登入的ENTITY及ID
                 this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "設定參數");
-                SetupCommonParameter( aAccountPasswordData.Account, aAccountPasswordData.Password, aSunday);
+                //SetupCommonParameter( aAccountPasswordData.Account, aAccountPasswordData.Password, aSunday);
 
                 // 初始化報告字串
                 //this.m_FeedBackReport.Clear();
@@ -397,7 +411,7 @@ namespace ChurchReport.WebServiceConnector
                 throw Exception;
             }
         }
-        private void SetupCommonParameter(String Account, String Password, DateTime aSmallGroupDate)
+        private void SetupCommonParameter(String Account, String Password, DateTime aSmallGroupDate, String ListEntityId, String WeeklyReportEntityId)
         {
             try
             {
@@ -421,42 +435,6 @@ namespace ChurchReport.WebServiceConnector
                 m_ContactId = m_ContactEntity.Id;
 
                 #region 蒐集建立週報所需要的屬性
-                // 根據是否是族系族長還是小組長會設定不同的要上傳的名單集合
-                // 並且該名單是有勾選APP點名的才被允許進來
-                this.FindListCollection();
-
-                if (m_Lists.Entities.Count == 0)
-                {
-                    // 沒找到任何要點名的名單，所以是個人回報
-                    #region 取得個人回報的名單
-                    EntityCollection aListEntityCollection = this.m_ToolUtilityClass.QueryListOfContactManyToMany(this.m_ContactEntity.Id);
-
-                    foreach (Entity ListEntity in aListEntityCollection.Entities)
-                    {
-                        // 除錯
-                        if (ListEntity.Attributes.Contains("new_app_named") && this.m_ToolUtilityClass.GetEntityStringAttribute(ListEntity, "listname").Contains("幸福") != true)
-                        {
-                            bool AppNamed = (bool)ListEntity.Attributes["new_app_named"];
-
-                            if (AppNamed == true)
-                            {
-                                this.m_Lists.Entities.Add(ListEntity);
-                            }
-                        }
-                    }
-
-                    if (this.m_Lists.Entities.Count > 0)
-                    {
-                        Guid GroupLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(this.m_Lists.Entities[0], "new_contact_family_leader_list");
-                        if (GroupLeaderId != Guid.Empty)
-                        {
-                            this.m_ContactEntity = this.m_ToolUtilityClass.RetrieveEntity("contact", GroupLeaderId);
-                        }
-                    }
-                    #endregion
-
-                }
-
                 // 搜尋小組長的門徒小組名單Lookup Id
                 m_DecipleGroupListId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref m_ContactEntity, "new_deciple_group_list_contact");
 
@@ -464,9 +442,14 @@ namespace ChurchReport.WebServiceConnector
                 // 小組長 ID
                 //this.m_GroupLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref m_ContactEntity, "new_race_leader_contact");
 
-                // 搜尋小家長的族系族長 Lookup Id
-                // 族系組長 ID
+                // 在思恩堂豐富教會有一個"上代組長"，是在個人資料裡面有一個LOOKUP 欄位 Lookup Id
                 m_RaceLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref m_ContactEntity, "new_race_leader_contact");
+
+                // 取得小組名單實體紀錄
+                this.m_ListEntity = ListEntityId != null && ListEntityId != "" ? m_ToolUtilityClass.RetrieveEntity("list", new Guid(ListEntityId)) : null;
+                
+                // 取得週報實體紀錄
+                this.m_WeeklyReportEntity = WeeklyReportEntityId != null && WeeklyReportEntityId != "" ? m_ToolUtilityClass.RetrieveEntity("new_group_present_weekly_report", new Guid(WeeklyReportEntityId)) : null;
 
                 #endregion
             }

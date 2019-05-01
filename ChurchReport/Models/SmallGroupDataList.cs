@@ -27,8 +27,8 @@ namespace ChurchReport.Models
         }
 
         public String m_FullName = "";
-        public String m_Account  = "";
-        public String m_Password = "";
+        //public String m_Account  = "";
+        //public String m_Password = "";
         //public DateTime m_SelectDate = new DateTime(2000, 1, 1);// 初始值 2000 表示還沒選
         public DateTime m_SelectDate = DateTime.Now;// 初始值 2000 表示還沒選
         public DateTime m_SundayDate;
@@ -48,22 +48,6 @@ namespace ChurchReport.Models
         public void SetupContactIdString(String ContactIdString)
         {
             m_SmallGroupData.SmallGroupLeaderContactId = ContactIdString;
-        }
-        public void UploadIntegrateData()
-        {
-            UploadIntegrateData aUploadIntegrateData = new UploadIntegrateData();
-
-            AccountPasswordData aAccountPasswordData = new AccountPasswordData
-            {
-                Account = m_Account,
-                Password = m_Password
-            };
-
-            DateTime aUploadSmallGroupDate = new DateTime(m_SmallGroupData.SundayPrayers.Year, m_SmallGroupData.SundayPrayers.Month, m_SmallGroupData.SundayPrayers.Day, 0, 0, 0);
-
-            SetSmallGroupDateOfWeeklyReport(m_FullName, aUploadSmallGroupDate);
-
-            aUploadIntegrateData.UploadMemberDataPackage(aAccountPasswordData, aUploadSmallGroupDate, "主日點名", m_MemberInfomationPackage);
         }
         public void SetSmallGroupDateOfWeeklyReport(String FullName, DateTime SmallGroupDate)
         {

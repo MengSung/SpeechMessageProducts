@@ -603,7 +603,8 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                m_InMemoryDataContextSmallGroup.SmallGroupDataList.UploadIntegrateData();
+                // 小組長點名按上傳
+                //m_InMemoryDataContextSmallGroup.SmallGroupDataList.UploadIntegrateData();
 
                 return Json(new { status = "1", message = "成功上傳了...." });
             }
@@ -623,10 +624,11 @@ namespace ChurchReport.Controllers
         {
             try
             {
+                // 整合式網頁按上傳按鈕
                 m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.UploadIntegrateData
                 (
-                    m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_Account,
-                    m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_Password,
+                    m_InMemoryDataContextSmallGroup.ListManager.m_Account,
+                    m_InMemoryDataContextSmallGroup.ListManager.m_Password,
                     m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData
                 );
 
@@ -908,8 +910,6 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                //SmallGroupData aSmallGroupData = m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.First(o => o.ListEntityId == m_InMemoryDataContextSmallGroup.ListManager.ActiveListId).m_SmallGroupDataList.m_NewPersonFollowUpData;
-
                 m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData.DeleteMember(key);
 
                 return Ok();
@@ -932,7 +932,8 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                m_InMemoryDataContextSmallGroup.SmallGroupDataList.UploadIntegrateData();
+                // 新人跟進關懷按上傳
+                //m_InMemoryDataContextSmallGroup.SmallGroupDataList.UploadIntegrateData();
 
                 return Json(new { status = "1", message = "成功上傳了...." });
             }
@@ -1027,16 +1028,16 @@ namespace ChurchReport.Controllers
                 throw e;
             }
         }
-
         [HttpPost]
         public IActionResult SavePersonInfomation(string aResult)
         {
             try
             {
+                // 維護基本資料按上傳
                 m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.UploadIntegrateData
                 (
-                    m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_Account,
-                    m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_Password,
+                    m_InMemoryDataContextSmallGroup.ListManager.m_Account,
+                    m_InMemoryDataContextSmallGroup.ListManager.m_Password,
                     m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData
                 );
 
@@ -1210,7 +1211,7 @@ namespace ChurchReport.Controllers
             {
                 if (m_InMemoryDataContextSmallGroup.WeeklyReportData.m_WeeklyReport.WeeklyReportContent == "尚未初始化")
                 {
-                    m_InMemoryDataContextSmallGroup.WeeklyReportData.SetupWeeklyReport(m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_Account, m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_Password, m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_SundayDate);
+                    m_InMemoryDataContextSmallGroup.WeeklyReportData.SetupWeeklyReport(m_InMemoryDataContextSmallGroup.m_ListManager.m_Account, m_InMemoryDataContextSmallGroup.m_ListManager.m_Password, m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_SundayDate);
 
                     ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType;// 看是小組長還是個人回報
                     ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.ListManager.LoginFullName;
