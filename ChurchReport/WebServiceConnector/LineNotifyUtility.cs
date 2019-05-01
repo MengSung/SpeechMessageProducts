@@ -18,6 +18,7 @@ using ToolUtilityNameSpace;
 using System.Text.RegularExpressions;
 using ToolUtility;
 using Line.Messaging;
+using ChurchReport.Models;
 #endregion
 
 namespace ChurchReport.WebServiceConnector
@@ -70,8 +71,26 @@ namespace ChurchReport.WebServiceConnector
 
                 SmallGroupResult = ProcessLineMessage(LoginContact, SmallGroupResult, ref aListEntity, ref aMemberInfomationPackage);
 
-
                 m_PushUtility.MultiCastTextMessageAsync(GetLineRecieverList(ref aListEntity, aMemberInfomationPackage.m_LoginType), SmallGroupResult);
+
+                #endregion
+            }
+            catch (System.Exception Exception)
+            {
+                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
+
+                throw Exception;
+            }
+        }
+        public void SendSmallGroupResultLine(Entity LoginContact, String SmallGroupResult, GroupWeeklyReportGuid aGroupWeeklyReportGuid, Guid aWeeklyReportId, ref Entity aListEntity,ref SmallGroupData aSmallGroupData)
+        {
+            try
+            {
+                #region 設定週報狀態，設定為已點名、週報主日出席率、小組出席率
+
+                SmallGroupResult = ProcessLineMessage(LoginContact, SmallGroupResult, ref aListEntity, ref aSmallGroupData);
+
+                m_PushUtility.MultiCastTextMessageAsync(GetLineRecieverList(ref aListEntity, aSmallGroupData.LoginType), SmallGroupResult);
 
                 #endregion
             }
@@ -119,6 +138,42 @@ namespace ChurchReport.WebServiceConnector
                 throw Exception;
             }
         }
+        private String ProcessLineMessage(Entity LoginContact, String SmallGroupResult, ref Entity aListEntity, ref SmallGroupData aSmallGroupData)
+        {
+            try
+            {
+                #region 設定週報狀態，設定為已點名、週報主日出席率、小組出席率
+
+                if (aSmallGroupData.LoginType == "小組長")
+                {
+                    // 取得小組名稱
+                    String GroupName = "小組名稱: " + m_ToolUtilityClass.GetEntityStringAttribute(ref aListEntity, "listname") + Environment.NewLine;
+
+                    SmallGroupResult = GroupName + SmallGroupResult + Environment.NewLine;
+
+                    // 取得代禱事項
+                    SmallGroupResult += GetAllPersonalReply(ref aSmallGroupData);
+
+                    return SmallGroupResult;
+                }
+                else
+                {
+                    String GroupName = "小組名稱: " + m_ToolUtilityClass.GetEntityStringAttribute(ref aListEntity, "listname");
+                    String LoginContactName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LoginContact, "fullname");
+                    return
+                        GroupName + Environment.NewLine +
+                        LoginContactName + " 個人回報:" + Environment.NewLine +
+                        GetPersonalReply(LoginContactName, ref aSmallGroupData);
+                }
+                #endregion
+            }
+            catch (System.Exception Exception)
+            {
+                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
+
+                throw Exception;
+            }
+        }
 
         public String GetPersonalReply(String LoginContactName, ref MemberInfomationPackage aMemberInfomationPackage)
         {
@@ -149,6 +204,35 @@ namespace ChurchReport.WebServiceConnector
                 throw Exception;
             }
         }
+        public String GetPersonalReply(String LoginContactName, ref SmallGroupData aSmallGroupData)
+        {
+            try
+            {
+                #region 設定週報狀態，設定為已點名、週報主日出席率、小組出席率
+
+                // 取得小組名稱
+                String PersonalReply = "";
+
+                foreach (Member aMemberInfomation in aSmallGroupData.Members)
+                {
+                    if (aMemberInfomation.FullName == LoginContactName)
+                    {
+                        PersonalReply += aMemberInfomation.Sunday == true ? "主日有出席" + Environment.NewLine : "主日沒出席" + Environment.NewLine;
+                        PersonalReply += aMemberInfomation.SmallGroup == true ? "小組有出席" + Environment.NewLine : "小組沒出席" + Environment.NewLine;
+                        PersonalReply += aMemberInfomation.PrayItem != "" ? "代禱事項: " + aMemberInfomation.PrayItem : "";
+                    }
+                }
+
+                return PersonalReply;
+                #endregion
+            }
+            catch (System.Exception Exception)
+            {
+                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
+
+                throw Exception;
+            }
+        }
 
         public String GetAllPersonalReply(ref MemberInfomationPackage aMemberInfomationPackage)
         {
@@ -165,6 +249,39 @@ namespace ChurchReport.WebServiceConnector
                     if (aMemberInfomation.Note != "")
                     {
                         PersonalReply += aMemberInfomation.Name + " : " + aMemberInfomation.Note + Environment.NewLine;
+                    }
+                }
+
+                if (PersonalReply != "")
+                {
+                    PersonalReply = "代禱事項: " + Environment.NewLine + PersonalReply;
+                }
+
+                return PersonalReply;
+                #endregion
+            }
+            catch (System.Exception Exception)
+            {
+                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
+
+                throw Exception;
+            }
+        }
+        public String GetAllPersonalReply(ref SmallGroupData aSmallGroupData)
+        {
+            try
+            {
+                #region 設定週報狀態，設定為已點名、週報主日出席率、小組出席率
+
+                // 取得小組名稱
+                //String PersonalReply = "代禱事項: " + Environment.NewLine;
+                String PersonalReply = "";
+
+                foreach (Member aMemberInfomation in aSmallGroupData.Members)
+                {
+                    if (aMemberInfomation.PrayItem != "")
+                    {
+                        PersonalReply += aMemberInfomation.FullName + " : " + aMemberInfomation.PrayItem + Environment.NewLine;
                     }
                 }
 
