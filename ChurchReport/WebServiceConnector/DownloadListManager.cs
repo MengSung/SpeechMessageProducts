@@ -220,6 +220,9 @@ namespace ChurchReport.WebServiceConnector
             {
                 if (GroupWeeklyReportEntity != null)
                 {
+                    // 已經有週報
+
+                    // 聚會人數就以當時上傳的人數為準
                     String TotalMemberNumber = m_ToolUtilityClass.GetEntityIntAttribute(GroupWeeklyReportEntity, "new_small_group_member_number").ToString();
                     aWeeklyReportRecordListData.Add
                     (
@@ -236,14 +239,11 @@ namespace ChurchReport.WebServiceConnector
                          }
                     );
 
-                    // 成員人數
+                    // 成員人數:萬一不知怎麼的週報的應該聚會人數不存在，就只好以現在的成員人數為準
                     int aTotalMemberNumber = TotalMemberNumber != "-9999" ? Convert.ToInt32(TotalMemberNumber) : GetSmallGroupMemberNumber(ListEntity.Id);
                     this.m_MultiGroupChartDataList.m_MultiGroupChartDataList.Where(e => e.ID == "001").First().Number += aTotalMemberNumber;
                     this.m_MultiGroupChartDataList.m_MultiGroupChartDataList.Where(e => e.ID == "002").First().Number += m_ToolUtilityClass.GetEntityIntAttribute(GroupWeeklyReportEntity, "new_sunday_present_number");
                     this.m_MultiGroupChartDataList.m_MultiGroupChartDataList.Where(e => e.ID == "003").First().Number += m_ToolUtilityClass.GetEntityIntAttribute(GroupWeeklyReportEntity, "new_small_group_number");
-                    //this.m_MultiGroupChartDataList.m_MultiGroupChartDataList.Where(e => e.ID == "001").First().Number = this.m_MultiGroupChartDataList.m_MultiGroupChartDataList.Where(e => e.ID == "001").First().Number + aTotalMemberNumber;
-                    //this.m_MultiGroupChartDataList.m_MultiGroupChartDataList.Where(e => e.ID == "002").First().Number = this.m_MultiGroupChartDataList.m_MultiGroupChartDataList.Where(e => e.ID == "002").First().Number + m_ToolUtilityClass.GetEntityIntAttribute(GroupWeeklyReportEntity, "new_sunday_present_number");
-                    //this.m_MultiGroupChartDataList.m_MultiGroupChartDataList.Where(e => e.ID == "003").First().Number = this.m_MultiGroupChartDataList.m_MultiGroupChartDataList.Where(e => e.ID == "003").First().Number + m_ToolUtilityClass.GetEntityIntAttribute(GroupWeeklyReportEntity, "new_small_group_number");
                 }
                 else
                 {
@@ -263,8 +263,8 @@ namespace ChurchReport.WebServiceConnector
                     );
 
                     int aTotalMemberNumber = GetSmallGroupMemberNumber(ListEntity.Id);
-                    this.m_MultiGroupChartDataList.m_MultiGroupChartDataList.Where(e => e.ID == "001").First().Number = this.m_MultiGroupChartDataList.m_MultiGroupChartDataList.Where(e => e.ID == "001").First().Number + aTotalMemberNumber;
-
+                    //this.m_MultiGroupChartDataList.m_MultiGroupChartDataList.Where(e => e.ID == "001").First().Number = this.m_MultiGroupChartDataList.m_MultiGroupChartDataList.Where(e => e.ID == "001").First().Number + aTotalMemberNumber;
+                    this.m_MultiGroupChartDataList.m_MultiGroupChartDataList.Where(e => e.ID == "001").First().Number += aTotalMemberNumber;
                 }
 
                 return;

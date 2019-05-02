@@ -1071,9 +1071,6 @@ namespace ChurchReport.Controllers
                 //DateTime aSelectDate = DateTime.Parse(SelectedDate);
                 DateTime aSelectDate = DateTime.Parse(SelectedDate).ToLocalTime();
                 #endregion
-
-
-
                 #region 下載資料
                 // 設定多個組長處理需要的資料
                 m_InMemoryDataContextSmallGroup.SetupListManager(m_InMemoryDataContextSmallGroup.ListManager.m_Account, m_InMemoryDataContextSmallGroup.ListManager.m_Password, aSelectDate, true);
@@ -1116,9 +1113,6 @@ namespace ChurchReport.Controllers
                 DateTime aSelectDate = DateTime.Parse(SelectedDate).ToLocalTime();
                 #endregion
 
-
-
-
                 #region 下載資料
                 // 設定多個組長處理需要的資料
                 m_InMemoryDataContextSmallGroup.SetupListManager(m_InMemoryDataContextSmallGroup.ListManager.m_Account, m_InMemoryDataContextSmallGroup.ListManager.m_Password, aSelectDate, true);
@@ -1148,8 +1142,6 @@ namespace ChurchReport.Controllers
                 DateTime aSelectDate = DateTime.Parse(SelectedDate).ToLocalTime();
                 #endregion
 
-
-
                 #region 下載資料
                 // 設定多個組長處理需要的資料
 
@@ -1172,18 +1164,6 @@ namespace ChurchReport.Controllers
                 //else
                 //{
                 //    // 得知這是多小組的回報，就不需要下載整合式網頁所需的資料
-                //    m_InMemoryDataContextSmallGroup.ListManager.SetupIntegrateData(m_InMemoryDataContextSmallGroup.ListManager.ActiveListId);
-                //}
-                #endregion
-
-
-
-
-                #region 下載資料
-                //m_InMemoryDataContextSmallGroup.SetSelectDate(aSelectDate);
-
-                //if (m_InMemoryDataContextSmallGroup.ListManager.ActiveListId != null && m_InMemoryDataContextSmallGroup.ListManager.ActiveListId != "")
-                //{
                 //    m_InMemoryDataContextSmallGroup.ListManager.SetupIntegrateData(m_InMemoryDataContextSmallGroup.ListManager.ActiveListId);
                 //}
                 #endregion

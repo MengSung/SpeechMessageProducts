@@ -129,7 +129,7 @@ namespace ChurchReport.WebServiceConnector
             }
 
             aListSmallGroupWeeklyReport.LoginType = "小組長";
-            aListSmallGroupWeeklyReport.SmallGroupLeaderFullName = m_ToolUtilityClass.GetEntityLookupDisplayName(ref m_ListEntity, "");
+            aListSmallGroupWeeklyReport.SmallGroupLeaderFullName = m_ToolUtilityClass.GetEntityLookupDisplayName(ref m_ListEntity, "new_contact_family_leader_list");
             aListSmallGroupWeeklyReport.SundayPrayers = aDownloadDate;
             aListSmallGroupWeeklyReport.SundayPeriod = "小組日期對應到主日期間是: " + m_Sunday.ToLocalTime().ToShortDateString() + " ~ " + m_Sunday.AddDays(6).ToLocalTime().ToShortDateString();
             aListSmallGroupWeeklyReport.SmallGroupLeaderContactId = m_ContactId.ToString();
@@ -905,7 +905,7 @@ namespace ChurchReport.WebServiceConnector
                             continue;
                         }
                         #endregion
-                        #region// 依據紀錄組員的全名，找到手機號碼、家裡電話、地址
+                        #region// 依據紀錄組員的全名，找到手機號碼、家裡電話、地址、生日、職業及專長
                         Entity aContactEntity = this.m_ToolUtilityClass.RetrieveEntity("contact", aFullNameEntityReference.Id);
                         // 組員的手機
                         String aMobilePhone = "";
@@ -1207,6 +1207,7 @@ namespace ChurchReport.WebServiceConnector
                 }
             }
 
+            int PresentRecordIdCounter = 0;
             foreach (Entity MemberEntity in MemberCollection.Entities)
             {
                 // 每個組員
@@ -1231,6 +1232,7 @@ namespace ChurchReport.WebServiceConnector
                     {
                         #region 只回傳使用中的組員
 
+                        #region// 依據紀錄組員的全名，找到手機號碼、家裡電話、地址、生日、職業及專長
                         // 組員的全名
                         String FullName = "";
                         if (ContactEntity.Attributes.Contains("fullname"))
@@ -1266,6 +1268,8 @@ namespace ChurchReport.WebServiceConnector
                             aIndustry = (string)ContactEntity.Attributes["new_industry"];
                         }
 
+                        #endregion
+
                         #region// 委身類型
                         String aIdentity = this.ConvertIndexToIdentity(this.m_ToolUtilityClass.GetOptionSetAttribute(ref ContactEntity, "customertypecode"));
 
@@ -1278,7 +1282,7 @@ namespace ChurchReport.WebServiceConnector
 
 
                         // 取得新人跟進週次，及跟進歷程記錄
-                        String aFollowUpWeek = "";
+                        String aFollowUpWeek = "未選擇";
                         String aNewComerNote = GetNewComerFollowupInfo(ContactEntity.Id, ref aFollowUpWeek);
 
 
@@ -1290,7 +1294,7 @@ namespace ChurchReport.WebServiceConnector
                             (
                                 new Member
                                 {
-                                    PresentRecordId = null,
+                                    PresentRecordId = PresentRecordIdCounter++.ToString(),
                                     Group = GroupName,
                                     FullName = FullName,
                                     #region 個人基本資料
