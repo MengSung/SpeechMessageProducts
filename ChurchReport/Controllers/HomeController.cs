@@ -431,13 +431,17 @@ namespace ChurchReport.Controllers
 
                     //return View(m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.Where(e => e.ListEntityId == m_InMemoryDataContextSmallGroup.m_ListManager.ActiveListId).Select());
                     //m_InMemoryDataContextSmallGroup.ListManager.SetupListSmallGroupWeeklyReport(LoginParameter);
-                    WeeklyReportViewModel aWeeklyReportViewModel = new WeeklyReportViewModel();
 
-                    aWeeklyReportViewModel.WeeklyReportData = m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.WeeklyReportData;
-                    aWeeklyReportViewModel.WeeklyReportAnalysis = m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.WeeklyReportAnalysis;
 
-                    return View(aWeeklyReportViewModel);
-                    //return View(m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport);
+
+                    //WeeklyReportViewModel aWeeklyReportViewModel = new WeeklyReportViewModel();
+                    //aWeeklyReportViewModel.WeeklyReportData = m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.WeeklyReportData;
+                    //aWeeklyReportViewModel.WeeklyReportAnalysis = m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.WeeklyReportAnalysis;
+                    //return View(aWeeklyReportViewModel);
+
+
+
+                    return View(m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport);
 
 
                     //return View(m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.Select(ListEntityId=> m_InMemoryDataContextSmallGroup.m_ListManager.ActiveListId));
@@ -628,7 +632,7 @@ namespace ChurchReport.Controllers
                 throw e;
             }
         }
-        public IActionResult SaveIntegrate(WeeklyReportViewModel aWeeklyReportViewModel)
+        public IActionResult SaveIntegrate(ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
         {
             try
             {
@@ -1013,7 +1017,6 @@ namespace ChurchReport.Controllers
                 throw e;
             }
         }
-
         [HttpPut]
         public IActionResult UpdateMaintainPersonInfomationPresentRecord(string key, string values)
         {
