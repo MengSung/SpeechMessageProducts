@@ -16,6 +16,7 @@
     <None Remove="Views\Home\BindingResultView.cshtml" />
     <None Remove="Views\Home\FeeManagerView.cshtml" />
     <None Remove="Views\Home\HappyGroupWeeklyReport.cshtml" />
+    <None Remove="Views\Home\IntegrateView - 複製 (2).cshtml" />
     <None Remove="Views\Home\IntegrateView - 複製.cshtml" />
     <None Remove="Views\Home\IntegrateView.cshtml" />
     <None Remove="Views\Home\LineLiffView.cshtml" />
