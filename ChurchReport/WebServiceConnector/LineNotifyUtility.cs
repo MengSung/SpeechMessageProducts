@@ -63,25 +63,6 @@ namespace ChurchReport.WebServiceConnector
         }
 
 
-        public void SendSmallGroupResultLine(Entity LoginContact, String SmallGroupResult, GroupWeeklyReportGuid aGroupWeeklyReportGuid, Guid aWeeklyReportId, ref Entity aListEntity, ref MemberInfomationPackage aMemberInfomationPackage)
-        {
-            try
-            {
-                #region 設定週報狀態，設定為已點名、週報主日出席率、小組出席率
-
-                SmallGroupResult = ProcessLineMessage(LoginContact, SmallGroupResult, ref aListEntity, ref aMemberInfomationPackage);
-
-                m_PushUtility.MultiCastTextMessageAsync(GetLineRecieverList(ref aListEntity, aMemberInfomationPackage.m_LoginType), SmallGroupResult);
-
-                #endregion
-            }
-            catch (System.Exception Exception)
-            {
-                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
-
-                throw Exception;
-            }
-        }
         public void SendSmallGroupResultLine(Entity LoginContact, String SmallGroupResult, GroupWeeklyReportGuid aGroupWeeklyReportGuid, Guid aWeeklyReportId, ref Entity aListEntity,ref SmallGroupData aSmallGroupData)
         {
             try
@@ -92,43 +73,6 @@ namespace ChurchReport.WebServiceConnector
 
                 m_PushUtility.MultiCastTextMessageAsync(GetLineRecieverList(ref aListEntity, aSmallGroupData.LoginType), SmallGroupResult);
 
-                #endregion
-            }
-            catch (System.Exception Exception)
-            {
-                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
-
-                throw Exception;
-            }
-        }
-
-        private String ProcessLineMessage(Entity LoginContact, String SmallGroupResult, ref Entity aListEntity, ref MemberInfomationPackage aMemberInfomationPackage)
-        {
-            try
-            {
-                #region 設定週報狀態，設定為已點名、週報主日出席率、小組出席率
-
-                if (aMemberInfomationPackage.m_LoginType == "小組長")
-                {
-                    // 取得小組名稱
-                    String GroupName = "小組名稱: " + m_ToolUtilityClass.GetEntityStringAttribute(ref aListEntity, "listname") + Environment.NewLine;
-
-                    SmallGroupResult = GroupName + SmallGroupResult + Environment.NewLine;
-
-                    // 取得代禱事項
-                    SmallGroupResult += GetAllPersonalReply(ref aMemberInfomationPackage);
-
-                    return SmallGroupResult;
-                }
-                else
-                {
-                    String GroupName = "小組名稱: " + m_ToolUtilityClass.GetEntityStringAttribute(ref aListEntity, "listname");
-                    String LoginContactName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LoginContact, "fullname");
-                    return
-                        GroupName + Environment.NewLine +
-                        LoginContactName + " 個人回報:" + Environment.NewLine +
-                        GetPersonalReply(LoginContactName, ref aMemberInfomationPackage);
-                }
                 #endregion
             }
             catch (System.Exception Exception)
@@ -174,36 +118,6 @@ namespace ChurchReport.WebServiceConnector
                 throw Exception;
             }
         }
-
-        public String GetPersonalReply(String LoginContactName, ref MemberInfomationPackage aMemberInfomationPackage)
-        {
-            try
-            {
-                #region 設定週報狀態，設定為已點名、週報主日出席率、小組出席率
-
-                // 取得小組名稱
-                String PersonalReply = "";
-
-                foreach (MemberInfomation aMemberInfomation in aMemberInfomationPackage.ListMemberInfomation)
-                {
-                    if (aMemberInfomation.Name == LoginContactName)
-                    {
-                        PersonalReply += aMemberInfomation.SundayPresent == true ? "主日有出席" + Environment.NewLine : "主日沒出席" + Environment.NewLine;
-                        PersonalReply += aMemberInfomation.SmallGroupPresent == true ? "小組有出席" + Environment.NewLine : "小組沒出席" + Environment.NewLine;
-                        PersonalReply += aMemberInfomation.Note != "" ? "代禱事項: " + aMemberInfomation.Note : "";
-                    }
-                }
-
-                return PersonalReply;
-                #endregion
-            }
-            catch (System.Exception Exception)
-            {
-                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
-
-                throw Exception;
-            }
-        }
         public String GetPersonalReply(String LoginContactName, ref SmallGroupData aSmallGroupData)
         {
             try
@@ -221,40 +135,6 @@ namespace ChurchReport.WebServiceConnector
                         PersonalReply += aMemberInfomation.SmallGroup == true ? "小組有出席" + Environment.NewLine : "小組沒出席" + Environment.NewLine;
                         PersonalReply += aMemberInfomation.PrayItem != "" ? "代禱事項: " + aMemberInfomation.PrayItem : "";
                     }
-                }
-
-                return PersonalReply;
-                #endregion
-            }
-            catch (System.Exception Exception)
-            {
-                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
-
-                throw Exception;
-            }
-        }
-
-        public String GetAllPersonalReply(ref MemberInfomationPackage aMemberInfomationPackage)
-        {
-            try
-            {
-                #region 設定週報狀態，設定為已點名、週報主日出席率、小組出席率
-
-                // 取得小組名稱
-                //String PersonalReply = "代禱事項: " + Environment.NewLine;
-                String PersonalReply = "";
-
-                foreach (MemberInfomation aMemberInfomation in aMemberInfomationPackage.ListMemberInfomation)
-                {
-                    if (aMemberInfomation.Note != "")
-                    {
-                        PersonalReply += aMemberInfomation.Name + " : " + aMemberInfomation.Note + Environment.NewLine;
-                    }
-                }
-
-                if (PersonalReply != "")
-                {
-                    PersonalReply = "代禱事項: " + Environment.NewLine + PersonalReply;
                 }
 
                 return PersonalReply;
@@ -300,8 +180,6 @@ namespace ChurchReport.WebServiceConnector
                 throw Exception;
             }
         }
-
-
         public void SendWeeklyReportLine(String WeeklyReportContent, Entity aListEntity)
         {
             try
@@ -327,9 +205,6 @@ namespace ChurchReport.WebServiceConnector
                 throw Exception;
             }
         }
-
-
-
         public List<String> GetLineRecieverList(ref Entity aListEntity, String LoginType)
         {
             try

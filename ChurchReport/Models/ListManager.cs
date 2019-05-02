@@ -186,6 +186,7 @@ namespace ChurchReport.Models
                 { }
 
                 m_ListSmallGroupWeeklyReport.ListEntityId = ListEntityId;
+                m_ListSmallGroupWeeklyReport.LoginType = m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.LoginType = LoginType;
                 m_DownloadIntegrateData.SetupIntegrateData( m_Account, m_Password, this.m_SelectDate, ListEntityId, aWeeklyReportRecord.WeeklyReportEntityId, ref m_ListSmallGroupWeeklyReport);
             }
         }
