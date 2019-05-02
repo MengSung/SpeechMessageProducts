@@ -1134,7 +1134,7 @@ namespace ChurchReport.WebServiceConnector
                                     Phone = DigitsOnly.Replace(aMobilePhone, ""),
                                     HomePhone = DigitsOnly.Replace(aHomePhone, ""),
                                     Address = aAddress,
-                                    BirthDate = aBirthDate,
+                                    //BirthDate = aBirthDate,
                                     Industry = aIndustry,
                                     #endregion
                                     Status = aIdentity, // 委身類型
@@ -1304,7 +1304,7 @@ namespace ChurchReport.WebServiceConnector
                                     Phone = DigitsOnly.Replace(aMobilePhone, ""),
                                     HomePhone = DigitsOnly.Replace(aHomePhone, ""),
                                     Address = aAddress,
-                                    BirthDate = aBirthDate,
+                                    //BirthDate = aBirthDate,
                                     Industry = aIndustry,
 
                                     #endregion

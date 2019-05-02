@@ -2485,24 +2485,24 @@ namespace ChurchReport.WebServiceConnector
             }
 
             //組員的生日
-            if (aContactEntity.Attributes.Contains("birthdate"))
-            {
-                DateTime aBirthDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aContactEntity, "birthdate").ToLocalTime().ToLocalTime();
-                if (aMember.BirthDate != aBirthDate)
-                {
-                    // 系統裡的聯絡人職業及專長跟APP上傳的不一致
-                    this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aContactEntity, "birthdate", aMember.BirthDate);
-                    ModifyFlag = true;
-                }
-            }
-            else
-            {
-                if ( aMember.BirthDate > DateTime.MinValue && aMember.BirthDate.Year > 1753 )
-                {
-                    this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aContactEntity, "birthdate", aMember.BirthDate);
-                    ModifyFlag = true;
-                }
-            }
+            //if (aContactEntity.Attributes.Contains("birthdate"))
+            //{
+            //    DateTime aBirthDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aContactEntity, "birthdate").ToLocalTime().ToLocalTime();
+            //    if (aMember.BirthDate != aBirthDate)
+            //    {
+            //        // 系統裡的聯絡人職業及專長跟APP上傳的不一致
+            //        this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aContactEntity, "birthdate", aMember.BirthDate);
+            //        ModifyFlag = true;
+            //    }
+            //}
+            //else
+            //{
+            //    if ( aMember.BirthDate > DateTime.MinValue && aMember.BirthDate.Year > 1753 )
+            //    {
+            //        this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aContactEntity, "birthdate", aMember.BirthDate);
+            //        ModifyFlag = true;
+            //    }
+            //}
 
             // 組員的職業及專長(台北基督之家)
             String aIndustry = "";

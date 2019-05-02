@@ -114,7 +114,7 @@ namespace ChurchReport.Models
                 Phone = aPersonFormViewModel.Phone,
                 HomePhone = aPersonFormViewModel.HomePhone,
                 Industry  =aPersonFormViewModel.Industry,
-                BirthDate = aPersonFormViewModel.BirthDate,
+                //BirthDate = aPersonFormViewModel.BirthDate,
                 Address = aPersonFormViewModel.Address,
                 //Gender = aPersonFormViewModel.Gender,
                 Status = "新朋友",
