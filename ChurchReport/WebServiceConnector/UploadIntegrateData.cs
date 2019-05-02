@@ -417,16 +417,6 @@ namespace ChurchReport.WebServiceConnector
                 this.m_WeeklyReportEntity = WeeklyReportEntityId != null && WeeklyReportEntityId != "" ? m_ToolUtilityClass.RetrieveEntity("new_group_present_weekly_report", new Guid(WeeklyReportEntityId)) : null;
 
                 #endregion
-
-                GroupWeeklyReportGuid aGroupWeeklyReportGuid = new GroupWeeklyReportGuid
-                {
-                    WeeklyReportGuid = WeeklyReportEntityId != null && WeeklyReportEntityId != "" ? new Guid(WeeklyReportEntityId) : new Guid(),
-                    GroupName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref this.m_ListEntity, "listname"),
-                    SmallGroupLeaderName = this.m_ToolUtilityClass.GetEntityLookupDisplayName(ref this.m_ListEntity, "new_contact_family_leader_list"),
-                    SmallGroupDate = m_Sunday,
-                    SmallGroupRate = 0,
-                    SundayPresentRate = 0,
-                };
             }
             catch (System.Exception Exception)
             {

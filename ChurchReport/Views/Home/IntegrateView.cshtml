@@ -722,11 +722,12 @@ columns.AddFor(m => m.SmallGroupName).Caption("小組").GroupIndex(0).MinWidth(1
 
         })
         .OnContentReady(@<text>
-                    function(e) {
-                    e.component.validate();
+                    function(e) 
+                    {
+                        e.component.validate();
                     }
-        </text>)
-.FormData(Model)
+                    </text>)
+        .FormData(Model)
         )
     </div>
 </form>

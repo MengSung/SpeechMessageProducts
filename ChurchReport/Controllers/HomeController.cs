@@ -1029,7 +1029,7 @@ namespace ChurchReport.Controllers
             }
         }
         [HttpPost]
-        public IActionResult SavePersonInfomation(string aResult)
+        public IActionResult SavePersonInfomation(ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
         {
             try
             {

@@ -255,6 +255,8 @@ namespace ChurchReport.WebServiceConnector
             aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData = new SmallGroupData();
             aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members = new List<Member>();
 
+            aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.LoginType = aListSmallGroupWeeklyReport.LoginType;
+
             GroupWeeklyReportGuid aGroupWeeklyReportGuid = new GroupWeeklyReportGuid();
 
             //if (WeeklyReportEntityId != Guid.Empty.ToString())
