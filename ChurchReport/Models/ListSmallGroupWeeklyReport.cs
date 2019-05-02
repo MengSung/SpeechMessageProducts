@@ -13,11 +13,11 @@ namespace ChurchReport.Models
         {
             ModifyFlag = false;
 
-            m_WeeklyReportViewModel = new WeeklyReportViewModel
-             {
-                 WeeklyReportData = "AAAAA",
-                 WeeklyReportAnalysis = "BBBBBB"
-             };
+            //m_WeeklyReportViewModel = new WeeklyReportViewModel
+            // {
+            //     WeeklyReportData = "AAAAA",
+            //     WeeklyReportAnalysis = "BBBBBB"
+            // };
 
     }
     #endregion
@@ -41,7 +41,7 @@ namespace ChurchReport.Models
         public bool ModifyFlag { get; set; }
         public UploadIntegrateData m_UploadIntegrateData = new UploadIntegrateData();
 
-        public WeeklyReportViewModel m_WeeklyReportViewModel { get; set; }
+        //public WeeklyReportViewModel m_WeeklyReportViewModel { get; set; }
         //public WeeklyReportViewModel m_WeeklyReportViewModel = new WeeklyReportViewModel
         //{
         //    WeeklyReportData = "AAAAA",
@@ -62,13 +62,13 @@ namespace ChurchReport.Models
         }
     }
 
-    public class WeeklyReportViewModel
-    {
-        public String WeeklyReportData { get; set; }
-        public String WeeklyReportAnalysis { get; set; }
-        public bool DisplayFlag { get; set; }
+    //public class WeeklyReportViewModel
+    //{
+    //    public String WeeklyReportData { get; set; }
+    //    public String WeeklyReportAnalysis { get; set; }
+    //    public bool DisplayFlag { get; set; }
 
-        //static public WeeklyReportData m_WeeklyReportData = new WeeklyReportData();
-    }
+    //    //static public WeeklyReportData m_WeeklyReportData = new WeeklyReportData();
+    //}
 
 }

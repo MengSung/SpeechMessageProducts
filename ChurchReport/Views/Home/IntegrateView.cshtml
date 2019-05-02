@@ -107,9 +107,71 @@ else
                                 .Text("上傳")
                                 .Type(ButtonType.Success)
                                 .ID("save-button")
-                                .UseSubmitBehavior(true)
-                                .OnClick("SaveIntegrateWeeklyReport")
+                                .UseSubmitBehavior(false)
 
+                                .OnClick
+                                (@<text>
+                                            function(arg)
+                                            {
+
+                                            var SmallGroupDataGrid = $("#SmallGroupgridContainer").dxDataGrid("instance");
+                                            var NewPersonDataGrid = $("#NewPersonGridContainer").dxDataGrid("instance");
+
+                                            // 取得上傳的按鈕
+                                            var ButtonContainer= $("#save-button").dxButton("instance");
+
+                                            //debugger;
+                                            var SmallGroupDataGridFlag = SmallGroupDataGrid.hasEditData();//是否還殘留尚未回傳的編輯資料
+                                            var NewPersonDataGridFlag = NewPersonDataGrid.hasEditData();//是否還殘留尚未回傳的編輯資料
+
+                                            if( SmallGroupDataGridFlag == false && NewPersonDataGridFlag == false)
+                                            {
+                                            // 顯示旋轉鈕
+                                            $("#loadPanel").dxLoadPanel("instance").show();
+
+                                            // 上傳按鈕反白
+                                            ButtonContainer.option("disabled", true);
+
+                                            // AJAX 區塊
+                                            $.ajax
+                                            (
+                                            {
+                                            url: '@Url.Action("SaveIntegrate", "Home")',
+                                            data: { aResult: "我愛嘟嘟妞妞" }, // 整理回傳給 Server 的點名資料
+                                            type: 'POST', //POST if you want to save, GET if you want to fetch data from server
+
+                                            success: function (arg)
+                                            {
+                                            // 隱藏旋轉鈕
+                                            $("#loadPanel").dxLoadPanel("instance").hide();
+
+                                            // 上傳按鈕恢復可運作
+                                            ButtonContainer.option("disabled", false);
+
+                                            // 顯示上傳成功
+                                            $("#toast").dxToast("instance").show();
+                                            },
+
+                                            error: function (obj)
+                                            {
+                                            //alert('Something happened');
+                                            }
+
+                                            }
+                                            );
+                                            // AJAX 區塊
+                                            }
+                                            else
+                                            {
+
+                                            // 隱藏旋轉鈕
+                                            $("#loadPanel").dxLoadPanel("instance").hide();
+                                            // 顯示再上傳一次
+                                            $("#ToastReUpload").dxToast("instance").show();
+
+                                            }
+                                            }
+                                </text>)
                 )
             </div>
 
@@ -177,7 +239,7 @@ else
     <div id="smallgroupchart">
         @( Html.DevExtreme().Chart()
             .ID("smallgroupchart")
-            .Export(e=>e.Enabled(true))
+            .Export(e => e.Enabled(true))
             //.Animation()
             .CommonSeriesSettings
             (
@@ -255,14 +317,14 @@ else
 
 .DataSource
 (d => d
-   .WebApi()
-   .Controller("Home")
-   .LoadAction("GetChartDataList")
-   //.InsertAction("InsertPresentRecord")
-   //.DeleteAction("DeletePresentRecord")
-   //.UpdateAction("UpdatePresentRecord")
-   .Key("WeeklyReportEntityId")
-   .LoadParams(new { WeeklyReportId = @ViewBag.ListId }
+.WebApi()
+.Controller("Home")
+.LoadAction("GetChartDataList")
+//.InsertAction("InsertPresentRecord")
+//.DeleteAction("DeletePresentRecord")
+//.UpdateAction("UpdatePresentRecord")
+.Key("WeeklyReportEntityId")
+.LoadParams(new { WeeklyReportId = @ViewBag.ListId }
 )
 )
 
@@ -290,7 +352,7 @@ else
             .ShowRowLines(true)
             .RowAlternationEnabled(true)
             .ShowBorders(true)
-            .Export(e=>e.Enabled(true).AllowExportSelectedData(true))
+            .Export(e => e.Enabled(true).AllowExportSelectedData(true))
             .TwoWayBindingEnabled(true)
 
             .Grouping
@@ -400,7 +462,7 @@ else
             .ShowRowLines(true)
             .RowAlternationEnabled(true)
             .ShowBorders(true)
-            .Export(e=>e.Enabled(true).AllowExportSelectedData(true))
+            .Export(e => e.Enabled(true).AllowExportSelectedData(true))
 
             .TwoWayBindingEnabled(true)
 
@@ -694,12 +756,12 @@ columns.AddFor(m => m.SmallGroupName).Caption("小組").GroupIndex(0).MinWidth(1
 
         })
         .OnContentReady(@<text>
-                    function(e) 
+                    function(e)
                     {
-                        e.component.validate();
+                    e.component.validate();
                     }
-                    </text>)
-        .FormData(Model.m_WeeklyReportViewModel)
+        </text>)
+.FormData(Model)
         )
     </div>
 
