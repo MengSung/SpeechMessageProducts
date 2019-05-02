@@ -632,7 +632,7 @@ namespace ChurchReport.Controllers
                 throw e;
             }
         }
-        public IActionResult SaveIntegrate(String aResult)
+        public IActionResult SaveIntegrate(ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
         {
             try
             {

@@ -12,12 +12,19 @@ namespace ChurchReport.Models
         public ListSmallGroupWeeklyReport()
         {
             ModifyFlag = false;
-        }
-        #endregion
-        #region 資料區
-        #region 參數資料
-        // 個別小組長點名的畫面所需要的資料
-        public bool LoadFlag { get; set; }
+
+            m_WeeklyReportViewModel = new WeeklyReportViewModel
+             {
+                 WeeklyReportData = "AAAAA",
+                 WeeklyReportAnalysis = "BBBBBB"
+             };
+
+    }
+    #endregion
+    #region 資料區
+    #region 參數資料
+    // 個別小組長點名的畫面所需要的資料
+    public bool LoadFlag { get; set; }
         public String ListEntityId { get; set; } // 小組 ID
         public String WeeklyReportEntityId { get; set; } // 週報 ID
         public String ListEntityName { get; set; } // 小組名稱
@@ -33,6 +40,14 @@ namespace ChurchReport.Models
         public ChartDataList m_WeeklyReportChart { get; set; }
         public bool ModifyFlag { get; set; }
         public UploadIntegrateData m_UploadIntegrateData = new UploadIntegrateData();
+
+        public WeeklyReportViewModel m_WeeklyReportViewModel { get; set; }
+        //public WeeklyReportViewModel m_WeeklyReportViewModel = new WeeklyReportViewModel
+        //{
+        //    WeeklyReportData = "AAAAA",
+        //    WeeklyReportAnalysis = "BBBBBB"
+        //};
+
         #endregion
         #endregion
         public void UploadIntegrateData(String Account, String Password, SmallGroupData aSmallGroupData )
@@ -46,4 +61,14 @@ namespace ChurchReport.Models
             }
         }
     }
+
+    public class WeeklyReportViewModel
+    {
+        public String WeeklyReportData { get; set; }
+        public String WeeklyReportAnalysis { get; set; }
+        public bool DisplayFlag { get; set; }
+
+        //static public WeeklyReportData m_WeeklyReportData = new WeeklyReportData();
+    }
+
 }
