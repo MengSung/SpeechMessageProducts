@@ -106,7 +106,7 @@ namespace ChurchReport.WebServiceConnector
         /// <param name="aSmallGroupData"></param>
         /// <param name="WeeklyReportData"></param>
         /// <param name="WeeklyReportAnalysis"></param>
-        public void UploadData(String Account, String Password, String ListEntityId, String WeeklyReportEntityId, DateTime aSmallGroupDate, SmallGroupData aSmallGroupData , ref String WeeklyReportData, ref String WeeklyReportAnalysis )
+        public void UploadData(String Account, String Password, String ListEntityId, ref String WeeklyReportEntityId, DateTime aSmallGroupDate, SmallGroupData aSmallGroupData , ref String WeeklyReportData, ref String WeeklyReportAnalysis )
         {
             try
             {
@@ -137,7 +137,8 @@ namespace ChurchReport.WebServiceConnector
                 //AddToDictionary(ref this.m_FeedBackReport, "小組出席統計表頭" , "");
                 //AddToDictionary(ref this.m_FeedBackReport, "跟進統計表頭"     , "");
 
-                Guid aWeeklyReportId = m_WeeklyReportEntity.Id;
+                Guid aWeeklyReportId = m_WeeklyReportEntity != null ? m_WeeklyReportEntity.Id : Guid.Empty;
+
                 #endregion
 
                 if (this.m_ListEntity != null)
@@ -200,7 +201,8 @@ namespace ChurchReport.WebServiceConnector
                                     SundayPresentRate = 0,
                                 };
 
-                                aGraceLeaderWeeklyReportEntity = CreateWeeklyReportAndPresentRecord(GroupName, aGroupWeeklyReportGuid, ref m_ListEntity, "", ValidNumber, ref aWeeklySundayRate, ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber, aSmallGroupData, WeeklyReportData);
+                                // 由於是新建立的週報，當回傳完成實，回到網頁操作，如果使用者又再繼續操作，就必須設定告知新建立的週報ID =WeeklyReportEntityId ，以免重複建立
+                                aGraceLeaderWeeklyReportEntity = CreateWeeklyReportAndPresentRecord(GroupName, aGroupWeeklyReportGuid, ref WeeklyReportEntityId, ref m_ListEntity, "", ValidNumber, ref aWeeklySundayRate, ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber, aSmallGroupData, WeeklyReportData);
                             }
                             #endregion
                             #endregion
@@ -908,7 +910,7 @@ namespace ChurchReport.WebServiceConnector
 
             #endregion
         }
-        private Entity CreateWeeklyReportAndPresentRecord(String GroupName, GroupWeeklyReportGuid aGroupWeeklyReportGuid, ref Entity aListEntity, String UploadCategory, Double ValidNumber, ref Double aWeeklySundayRate, ref Double aWeeklySmallGroupRate, ref int aWeeklySundayNumber, ref int aWeeklySmallGroupNumber, SmallGroupData aSmallGroupData, String WeeklyReportData)
+        private Entity CreateWeeklyReportAndPresentRecord(String GroupName, GroupWeeklyReportGuid aGroupWeeklyReportGuid, ref String WeeklyReportEntityId, ref Entity aListEntity, String UploadCategory, Double ValidNumber, ref Double aWeeklySundayRate, ref Double aWeeklySmallGroupRate, ref int aWeeklySundayNumber, ref int aWeeklySmallGroupNumber, SmallGroupData aSmallGroupData, String WeeklyReportData)
         {
             try
             {
@@ -928,6 +930,9 @@ namespace ChurchReport.WebServiceConnector
 
                 // 建立週報
                 Guid aCreatedWeeklyReportId = CreateWeeklyReport(ref aListEntity, aGroupWeeklyReportGuid);
+
+                // 由於是新建立的週報，當回傳完成實，回到網頁操作，如果使用者又再繼續操作，就必須設定告知新建立的週報ID，以免重複建立
+                WeeklyReportEntityId = aCreatedWeeklyReportId.ToString();
 
                 // 更新個人資料:手機、家裡電話、地址、設定委身類型
                 // 建立的個人聚會與靈修記錄
@@ -2646,7 +2651,7 @@ namespace ChurchReport.WebServiceConnector
                     this.m_ToolUtilityClass.SetEntityStringAttribute(ref aWeeklyReportEntity, "new_memo", WeeklyReportData);
                 }
                 // 透過 LINE 回報權柄
-                this.m_LineNotifyUtility.SendSmallGroupResultLine(this.m_ContactEntity, SmallGroupResult, aGroupWeeklyReportGuid, aWeeklyReportId, ref aListEntity, ref aSmallGroupData);
+                this.m_LineNotifyUtility.SendSmallGroupResultLine(this.m_ContactEntity, SmallGroupResult, aGroupWeeklyReportGuid, aWeeklyReportId, ref aListEntity, ref aSmallGroupData, WeeklyReportData );
 
                 // 更新週報
                 this.m_ToolUtilityClass.UpdateEntity(ref aWeeklyReportEntity);

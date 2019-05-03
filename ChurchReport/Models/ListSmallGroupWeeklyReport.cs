@@ -21,12 +21,13 @@ namespace ChurchReport.Models
 
     }
     #endregion
-    #region 資料區
-    #region 參數資料
-    // 個別小組長點名的畫面所需要的資料
-    public bool LoadFlag { get; set; }
+        #region 資料區
+        #region 參數資料
+        // 個別小組長點名的畫面所需要的資料
+        public bool LoadFlag { get; set; }
         public String ListEntityId { get; set; } // 小組 ID
-        public String WeeklyReportEntityId { get; set; } // 週報 ID
+
+        public String WeeklyReportEntityId;//{ get; set; } // 週報 ID
         public String ListEntityName { get; set; } // 小組名稱
         public String LoginType { get; set; } // 回報型式: 小組長 OR 個人回報
         public String SmallGroupLeaderContactId { get; set; } // 小組長 ID
@@ -57,7 +58,7 @@ namespace ChurchReport.Models
                 DateTime aUploadSmallGroupDate = new DateTime(SundayPrayers.Year, SundayPrayers.Month, SundayPrayers.Day, 0, 0, 0);
 
                 WeeklyReportData = aWeeklyReportData;
-                m_UploadIntegrateData.UploadData( Account, Password, ListEntityId, WeeklyReportEntityId, SundayPrayers, aSmallGroupData, ref WeeklyReportData, ref WeeklyReportAnalysis );
+                m_UploadIntegrateData.UploadData( Account, Password, ListEntityId, ref WeeklyReportEntityId, SundayPrayers, aSmallGroupData, ref WeeklyReportData, ref WeeklyReportAnalysis );
 
             }
         }

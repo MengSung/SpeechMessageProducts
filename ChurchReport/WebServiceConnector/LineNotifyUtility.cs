@@ -63,13 +63,13 @@ namespace ChurchReport.WebServiceConnector
         }
 
 
-        public void SendSmallGroupResultLine(Entity LoginContact, String SmallGroupResult, GroupWeeklyReportGuid aGroupWeeklyReportGuid, Guid aWeeklyReportId, ref Entity aListEntity,ref SmallGroupData aSmallGroupData)
+        public void SendSmallGroupResultLine(Entity LoginContact, String SmallGroupResult, GroupWeeklyReportGuid aGroupWeeklyReportGuid, Guid aWeeklyReportId, ref Entity aListEntity,ref SmallGroupData aSmallGroupData, String WeeklyReportData)
         {
             try
             {
                 #region 設定週報狀態，設定為已點名、週報主日出席率、小組出席率
 
-                SmallGroupResult = ProcessLineMessage(LoginContact, SmallGroupResult, ref aListEntity, ref aSmallGroupData);
+                SmallGroupResult = ProcessLineMessage(LoginContact, SmallGroupResult, ref aListEntity, ref aSmallGroupData, WeeklyReportData);
 
                 m_PushUtility.MultiCastTextMessageAsync(GetLineRecieverList(ref aListEntity, aSmallGroupData.LoginType), SmallGroupResult);
 
@@ -82,7 +82,7 @@ namespace ChurchReport.WebServiceConnector
                 throw Exception;
             }
         }
-        private String ProcessLineMessage(Entity LoginContact, String SmallGroupResult, ref Entity aListEntity, ref SmallGroupData aSmallGroupData)
+        private String ProcessLineMessage(Entity LoginContact, String SmallGroupResult, ref Entity aListEntity, ref SmallGroupData aSmallGroupData, String WeeklyReportData)
         {
             try
             {
@@ -96,14 +96,18 @@ namespace ChurchReport.WebServiceConnector
                     SmallGroupResult = GroupName + SmallGroupResult + Environment.NewLine;
 
                     // 取得代禱事項
-                    SmallGroupResult += GetAllPersonalReply(ref aSmallGroupData);
+                    SmallGroupResult += GetAllPersonalReply(ref aSmallGroupData) + Environment.NewLine;
+
+                    SmallGroupResult += "小組日誌:" + Environment.NewLine + WeeklyReportData + Environment.NewLine;
 
                     return SmallGroupResult;
                 }
                 else
                 {
+                    // 個人回報
                     String GroupName = "小組名稱: " + m_ToolUtilityClass.GetEntityStringAttribute(ref aListEntity, "listname");
                     String LoginContactName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LoginContact, "fullname");
+
                     return
                         GroupName + Environment.NewLine +
                         LoginContactName + " 個人回報:" + Environment.NewLine +
