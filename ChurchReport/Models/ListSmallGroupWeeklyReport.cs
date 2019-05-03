@@ -50,12 +50,13 @@ namespace ChurchReport.Models
 
         #endregion
         #endregion
-        public void UploadIntegrateData(String Account, String Password, SmallGroupData aSmallGroupData )
+        public void UploadIntegrateData(String Account, String Password, SmallGroupData aSmallGroupData , String aWeeklyReportData)
         {
             //if (aSmallGroupData.ModifyFlag == true)
             {
                 DateTime aUploadSmallGroupDate = new DateTime(SundayPrayers.Year, SundayPrayers.Month, SundayPrayers.Day, 0, 0, 0);
 
+                WeeklyReportData = aWeeklyReportData;
                 m_UploadIntegrateData.UploadData( Account, Password, ListEntityId, WeeklyReportEntityId, SundayPrayers, aSmallGroupData, ref WeeklyReportData, ref WeeklyReportAnalysis );
 
             }

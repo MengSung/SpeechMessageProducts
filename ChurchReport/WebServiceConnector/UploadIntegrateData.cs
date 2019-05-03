@@ -2641,8 +2641,10 @@ namespace ChurchReport.WebServiceConnector
                 String SmallGroupResult = this.SetupWeeklyReportResult(ref aWeeklyReportEntity);
 
                 // 設定小組日誌
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aWeeklyReportEntity, "new_memo", WeeklyReportData);
-
+                if (WeeklyReportData != "不需更新小組日誌")
+                {
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aWeeklyReportEntity, "new_memo", WeeklyReportData);
+                }
                 // 透過 LINE 回報權柄
                 this.m_LineNotifyUtility.SendSmallGroupResultLine(this.m_ContactEntity, SmallGroupResult, aGroupWeeklyReportGuid, aWeeklyReportId, ref aListEntity, ref aSmallGroupData);
 
