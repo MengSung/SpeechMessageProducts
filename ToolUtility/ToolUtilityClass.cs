@@ -2247,16 +2247,25 @@ namespace ToolUtilityNameSpace
                     //ConditionExpression StartDateCondidtion = new ConditionExpression("new_join_start_date", ConditionOperator.LessEqual, DateTime.UtcNow);
                     //ConditionExpression EndDateCondidtion = new ConditionExpression("new_join_end_date", ConditionOperator.GreaterEqual, DateTime.UtcNow);
                     //ConditionExpression StartDateCondidtion = new ConditionExpression("new_class_start_date", ConditionOperator.LessEqual, DateTime.UtcNow);
-                    ConditionExpression EndDateCondidtion = new ConditionExpression("new_class_end_date", ConditionOperator.GreaterEqual, DateTime.UtcNow.AddDays(-7));//課程報名後7天仍然可以繳費
+                    //ConditionExpression EndDateCondidtion = new ConditionExpression("new_class_end_date", ConditionOperator.OnOrAfter, DateTime.UtcNow);//課程報名後7天仍然可以繳費
+                    //ConditionExpression EndDateCondidtion = new ConditionExpression("new_class_end_date", ConditionOperator.OnOrAfter, DateTime.UtcNow.AddDays(-7));//課程報名後7天仍然可以繳費
+                    //ConditionExpression EndDateCondidtion = new ConditionExpression("new_class_end_date", ConditionOperator.OnOrBefore, DateTime.UtcNow.AddDays(7));//課程報名後7天仍然可以繳費
+                    //ConditionExpression EndDateCondidtion = new ConditionExpression("new_class_end_date", ConditionOperator.OnOrBefore, DateTime.UtcNow.AddDays(7));//課程報名後7天仍然可以繳費
 
+                    ConditionExpression DateTimeAfterConditionPrincipal = new ConditionExpression();
+                    DateTimeAfterConditionPrincipal.AttributeName = "new_class_end_date";//課程開始日期
+                    DateTimeAfterConditionPrincipal.Operator = ConditionOperator.OnOrAfter;
+                    //DateTimeAfterConditionPrincipal.Operator = ConditionOperator.OnOrBefore;
+                    DateTimeAfterConditionPrincipal.Values.Add(DateTime.UtcNow.AddDays(-7));//課程開始日期後7天仍然可以繳費
 
                     // Build the filter that is based on the condition.
                     FilterExpression filter = new FilterExpression();
                     filter.FilterOperator = LogicalOperator.And;
                     filter.Conditions.Add(condition);
                     filter.Conditions.Add(StateCondidtion);
+                    filter.Conditions.Add(DateTimeAfterConditionPrincipal);
                     //filter.Conditions.Add(StartDateCondidtion);
-                    filter.Conditions.Add(EndDateCondidtion);
+                    //filter.Conditions.Add(EndDateCondidtion);
                     #endregion
 
                     #region// Create an instance of the query expression class.
