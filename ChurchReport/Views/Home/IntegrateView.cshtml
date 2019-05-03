@@ -137,7 +137,7 @@ else
                                             (
                                             {
                                             url: '@Url.Action("SaveIntegrate", "Home")',
-                                            data: { aResult: "我愛嘟嘟妞妞" }, // 整理回傳給 Server 的點名資料
+                                            data: { WeeklyReportData: $("#WeeklyReportTextData").dxTextArea("instance").option('text') }, // 整理回傳給 Server 的點名資料
                                             type: 'POST', //POST if you want to save, GET if you want to fetch data from server
 
                                             success: function (arg)
@@ -334,6 +334,12 @@ else
 
     @if (Model.LoginType == "小組長")
     {
+        @if (Model.m_SmallGroupDataList.m_SmallGroupData.DisplayFlag == true)
+        {
+            <div style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
+                <h5>小組牧養:</h5>
+            </div>
+        }
         <div id="smallgroup-grid">
             @(Html.DevExtreme().DataGrid<Member>()
             .ID("SmallGroupgridContainer")
@@ -445,6 +451,14 @@ else
 
 
         </div>
+
+        @if (Model.m_SmallGroupDataList.m_NewPersonFollowUpData.DisplayFlag == true)
+        {
+            <div style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
+                <h5>新人跟進關懷:</h5>
+            </div>
+        }
+
         <div id="newpersonal-data-grid">
             @(Html.DevExtreme().DataGrid<Member>()
             .ID("NewPersonGridContainer")
@@ -506,7 +520,7 @@ else
                 columns.AddFor(m => m.SmallGroupName).Caption("小組").GroupIndex(0).MinWidth(10);
 
 
-                columns.AddFor(m => m.FullName).Caption("姓名").Fixed(true).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Left);
+                columns.AddFor(m => m.FullName).Caption("姓名").Fixed(true).Width(60).MinWidth(20).Alignment(HorizontalAlignment.Left);
                 columns.AddFor(m => m.Status).Caption("委身類型").Fixed(false).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Center);
                 columns.AddFor(m => m.Sunday).Caption("主日").DataType(GridColumnDataType.Boolean).Width(45).MinWidth(45);
                 columns.AddFor(m => m.SmallGroup).Caption("小組").DataType(GridColumnDataType.Boolean).Width(45).MinWidth(45);
@@ -726,44 +740,24 @@ columns.AddFor(m => m.SmallGroupName).Caption("小組").GroupIndex(0).MinWidth(1
         </ div >
     }
 
-    <div id="form-container">
-        @(Html.DevExtreme().Form()
-        .ID("form")
-        .LabelLocation(FormLabelLocation.Top)
-        .ColCount(1)
-        .Items(items =>
-        {
-            items.AddSimple()
-            .ColSpan(2)
-            //.Label(l => l.Text("小組日誌001").Visible(true))
-            .Label(l => l.Text("小組日誌").Visible(true))
-            .DataField("WeeklyReportData")
-            .Editor(e => e
-            .TextArea()
-            .Placeholder("請輸入小組日誌，離開或是切換網頁前記得按上傳鈕")
-            .Height(250)
-            );
-            items.AddSimple()
-            .ColSpan(2)
-            .Label(l => l.Text("小組出席紀錄").Visible(true))
-            .DataField("WeeklyReportAnalysis")
-            .Editor(e => e
-            .TextArea()
-            .ReadOnly(true)
-            .Disabled(false)
-            .Height(350)
-            );
-
-        })
-        .OnContentReady(@<text>
-                    function(e)
-                    {
-                    e.component.validate();
-                    }
-        </text>)
-.FormData(Model)
-        )
+    <div style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
+        <h5>小組日誌:</h5>
     </div>
+
+    @(Html.DevExtreme().TextArea()
+    .ID("WeeklyReportTextData")
+    .Value(Model.WeeklyReportData)
+    .Height(200)
+    )
+    <div style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
+        <h5>小組出席紀錄:</h5>
+    </div>
+
+    @(Html.DevExtreme().TextArea()
+    .ID("WeeklyReportTextAnalysis")
+    .Value(Model.WeeklyReportAnalysis)
+    .Height(350)
+    )
 
 </form>
 

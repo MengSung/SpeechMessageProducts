@@ -632,7 +632,7 @@ namespace ChurchReport.Controllers
                 throw e;
             }
         }
-        public IActionResult SaveIntegrate(string aResult)
+        public IActionResult SaveIntegrate(string WeeklyReportData)
         {
             try
             {
