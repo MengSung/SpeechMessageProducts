@@ -62,11 +62,14 @@
                     .MaxWidth(500)
             )
         </div>
-
 @*</div>*@
 
 <hr />
-<h3>維護基本資料</h3>
+
+            <div style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
+                <h4>維護基本資料</h4>
+            </div>
+
 
 <div id="multigroupchart" >
     @*<div id="multigroupchart" style="width:800px;height:450px;overflow:auto;">*@
@@ -91,64 +94,77 @@
     )
 </div>
     <br/>
-            <div id="buttonContainer" class="dx-button-icon" >
-            @(Html.DevExtreme().Button()
-                .Text("上傳")
-                .Type(ButtonType.Success)
-                .ID("save-button")
-                //.UseSubmitBehavior(true)
+    <div id="buttonContainer" class="dx-button-icon">
+        @(Html.DevExtreme().Button()
+            .Text("上傳")
+            .Type(ButtonType.Success)
+            .ID("save-button")
+            //.UseSubmitBehavior(true)
 
-                .OnClick
-                (@<text>
-                function(arg)
-                {
-                    // 顯示旋轉鈕
-                    $("#loadPanel").dxLoadPanel("instance").show();
+            .OnClick
+            (@<text>
+                        function(arg)
+                        {
 
-                    var dataGrid = $("#gridContainer").dxDataGrid("instance");
+                        var GroupDataGrid = $("#gridContainer").dxDataGrid("instance");
 
-                    var Flag = dataGrid.hasEditData();
+                        // 取得上傳的按鈕
+                        var ButtonContainer= $("#save-button").dxButton("instance");
 
-                    if(Flag == false)
-                    {
-                            // AJAX 區塊
-                            $.ajax
-                            (
-                                    {
-                                        url: '@Url.Action("SavePersonInfomation", "Home")',
-                                        data: { aResult: GetResult() }, // 整理回傳給 Server 的點名資料
-                                        type: 'POST', //POST if you want to save, GET if you want to fetch data from server
+                        //debugger;
+                        var GroupDataGridFlag = GroupDataGrid.hasEditData();//是否還殘留尚未回傳的編輯資料
 
-                                        success: function (arg)
-                                        {
-                                            // 隱藏旋轉鈕
-                                            $("#loadPanel").dxLoadPanel("instance").hide();
+                        if( GroupDataGridFlag == false)
+                        {
+                        // 顯示旋轉鈕
+                        $("#loadPanel").dxLoadPanel("instance").show();
 
-                                            // 顯示上傳成功
-                                            $("#toast").dxToast("instance").show();
-                                        },
+                        // 上傳按鈕反白
+                        ButtonContainer.option("disabled", true);
 
-                                        error: function (obj)
-                                        {
-                                            //alert('Something happened');
-                                        }
-                                    }
-                            );
-                            // AJAX 區塊
-                    }
-                    else
-                    {
+                        // AJAX 區塊
+                        $.ajax
+                        (
+                        {
+                        url: '@Url.Action("SavePersonInfomation", "Home")',
+                        data: { aResult: GetResult() }, // 整理回傳給 Server 的點名資料
+                        type: 'POST', //POST if you want to save, GET if you want to fetch data from server
+
+                        success: function (arg)
+                        {
                         // 隱藏旋轉鈕
                         $("#loadPanel").dxLoadPanel("instance").hide();
 
+                        // 上傳按鈕恢復可運作
+                        ButtonContainer.option("disabled", false);
+
+                        // 顯示上傳成功
+                        $("#toast").dxToast("instance").show();
+                        },
+
+                        error: function (obj)
+                        {
+                        //alert('Something happened');
+                        }
+
+                        }
+                        );
+                        // AJAX 區塊
+                        }
+                        else
+                        {
+
+                        // 隱藏旋轉鈕
+                        $("#loadPanel").dxLoadPanel("instance").hide();
                         // 顯示再上傳一次
                         $("#ToastReUpload").dxToast("instance").show();
-                    }
 
-                }
-                </text>)
-            )
-        </div>
+                        }
+                        }
+
+            </text>)
+        )
+    </div>
 
 <div id="data-grid">
     @(Html.DevExtreme().DataGrid()
