@@ -162,6 +162,7 @@ namespace ChurchReport.WebServiceConnector
 
                 #region 取得個人回報的名單
                 this.m_Lists = this.m_ToolUtilityClass.QueryListOfContactManyToMany(this.m_ContactEntity.Id);
+                ActiveListId = this.m_Lists.Entities[0].Id.ToString();
                 #endregion
 
                 #region 處理每個要點名的名單
@@ -328,6 +329,11 @@ namespace ChurchReport.WebServiceConnector
                 // 處理每個點名名單
                 foreach (Entity ListEntity in this.m_Lists.Entities)
                 {
+                    // 取得每個需要點名的名單裡的每個週報
+                    //EntityCollection GroupWeeklyReportEntityCollection = m_ToolUtilityClass.RetrieveManyToOneRelationship("list", "listid", ListEntity.Id.ToString(), "new_list_group_present_weekly_report", "new_group_present_weekly_report");
+
+                    //EntityCollection GroupWeeklyReportEntityCollection = m_ToolUtilityClass.QueryWeeklyReportBySunday( this.m_Sunday, "list", "listid", ListEntity.Id.ToString(), "new_list_group_present_weekly_report", "new_group_present_weekly_report");
+
                     // 尋找此小組的某一個主日的週報集合
                     EntityCollection GroupWeeklyReportEntityCollection = m_ToolUtilityClass.QueryWeeklyReportBySunday(this.m_Sunday, ListEntity.Id);
 
@@ -338,7 +344,9 @@ namespace ChurchReport.WebServiceConnector
                     //      有: 建立GroupName及WeeklyReportId
                     //    沒有: 建立GroupName及WeeklyReportId = Guid.Empty();
                     String GroupName = this.m_ToolUtilityClass.GetEntityStringAttribute(ListEntity, "listname");
-                    //SetupPersonalMemberInfomationPackage(GroupName, ref GroupWeeklyReportEntity, ListEntity);
+
+                    SetupWeeklyReportRecord(this.m_MultiGroupList.m_WeeklyReportRecordListData, ListEntity, GroupWeeklyReportEntity);
+
                 }
                 return;
             }

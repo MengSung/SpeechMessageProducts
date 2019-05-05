@@ -1,0 +1,404 @@
+﻿@model ChurchReport.ViewModels.PersonFormViewModel
+@{
+    var priorities = new[] { "Low", "Normal", "Urgent", "High" };
+}
+<div class="long-title"><h3>新人資訊</h3></div>
+
+<form data-ajax="true" data-ajax-begin="onBegin" data-ajax-success="onSuccess" asp-action="SaveNewPerson" asp-controller="Home" method="post">
+    <div class="dx-field">
+
+        <div id="buttonContainer" class="dx-button-icon">
+            @(Html.DevExtreme().Button()
+                    .Text("上傳")
+                    .Type(ButtonType.Success)
+                    .ID("save-button")
+                    .UseSubmitBehavior(true)
+                //.ValidationGroup()
+                //.Width(60)
+
+                .OnClick("SaveNewPerson")
+
+                //.OnClick(@<text>
+                //function(data) {
+                //
+                //        $.ajax({
+                //            url: '@Url.Action("SaveNewPerson", "Home")',
+                //            data: { aNewPerson: Model.FormData.Notes.Value },
+                //            type: 'POST', //POST if you want to save, GET if you want to fetch data from server
+                //            success: function (obj)
+                //            {
+                //                $("#toast").dxToast("instance").show();
+                //            },
+                //
+                //            error: function (obj)
+                //            {
+                //                //alert('Something happened');
+                //            }
+                //
+                //        });
+                //}
+                //</text>)
+            )
+        </div>
+        <div id="ToastContainer">
+            @(Html.DevExtreme().Toast()
+                .ID("toast")
+                .Position(p => p
+                    .At(HorizontalAlignment.Center, VerticalAlignment.Center)
+                    .Offset(0, 50))
+                    .Message("上傳成功了!")
+                    .DisplayTime(20000)
+                    .MaxWidth(200)
+            )
+
+        </div>
+        <div id="LoadPanel">
+            @(Html.DevExtreme().LoadPanel()
+                    .ID("loadPanel")
+                    .ShadingColor("rgba(0,0,0,0.4)")
+                    .Position(p => p.Of("#form-container"))
+                    .Visible(false)
+                    .ShowIndicator(true)
+                    .ShowPane(true)
+                    .Shading(true)
+                    .CloseOnOutsideClick(false)
+                    .Message("上傳資料中...")
+                    .Animation(l => l.Show(k => k.Easing(AnimationEasing.Swing)))
+                //.OnShown("loadPanel_shown")
+                //.OnHidden("loadPanel_hidden")
+            )
+
+        </div>
+
+    </div>
+    <div id="form-container">
+        @(Html.DevExtreme().Form()
+        .ID("form")
+        .ColCount(3)
+        .Items(items =>
+        {
+            //items.AddSimple()
+            //    .DataField("ID")
+            //    .IsRequired(false);
+
+            //items.AddSimple()
+            //   .DataField("FirstName")
+            //   .Label(l => l.Text("姓"))
+            //   .Editor(e => e
+            //        .TextBox()
+            //        .Disabled(true)
+            //    );
+
+            items.AddSimple()
+                .DataField("LastName")
+                .Label(l => l.Text("姓名"))
+                .Editor(e => e
+                    .TextBox()
+                    .Disabled(false)
+                    .Placeholder("輸入姓名")
+               );
+
+            items.AddSimple()
+                .DataField("Phone")
+                .Label(l => l.Text("行動電話"))
+                .Editor(e => e
+                    .TextBox()
+                    .Mask("+886 (X000) 000-000")
+                    .MaskRules(new { X = new JS("/[02-9]/") })
+                    .Placeholder("輸入手機號碼")
+                );
+
+            items.AddSimple()
+                .DataField("HomePhone")
+                .Label(l => l.Text("一般電話"))
+                .Editor(e => e
+                    .TextBox()
+                    //.Mask("+886 (X00) 0000-0000")
+                    .MaskRules(new { X = new JS("/[02-9]/") })
+                    .Placeholder("輸入電話號碼")
+                );
+
+            items.AddSimple()
+                .DataField("Address")
+                .Label(l => l.Text("地址"))
+                ;
+
+            items.AddSimple()
+               .Label(l => l.Text("性別"))
+               .DataField("Gender")
+               .Editor(e => e
+                   .RadioGroup()
+                   .Items(new[] { "男性", "女性" })
+                   .Layout(Orientation.Horizontal)
+               );
+
+            items.AddSimple()
+                .DataField("Position")
+                .Label(l => l.Text("所屬小組"))
+                .Editor(e => e
+                    .SelectBox()
+                    .DataSource(d => d.WebApi().Controller("Home").LoadAction("AssignSmallGroupGet").Key("ListEntityId"))
+                    //.DataSource(d => d.Mvc().Controller("AssignSmallGroup").LoadAction("GetType").Key("ID"))
+                    //.ValueExpr("Name")
+                    .DisplayExpr("Name")
+                    .Value(Model.Position)
+                    )
+                    //.ValidationRules
+                    //(   r => r
+                    //    .AddRequired()
+                    //    .Message("Position is required")
+                    //)
+                    ;
+
+            items.AddSimple()
+                .DataField("BirthDate")
+                .Label(l => l.Text("生日"))
+                .IsRequired(false)
+                .Editor(e => e
+                    .DateBox()
+                    .Disabled(false)
+                    .Placeholder("生日")
+                );
+
+            items.AddSimple()
+                .DataField("HireDate")
+                .Label(l => l.Text("進教會日期"))
+                .Editor(
+                        e => e.DateBox()//.Value(new JS("null")) 
+                        .Placeholder("進教會日期")
+                    );
+            //.ValidationRules(r => r
+            //        .AddRequired()
+            //        .Message("Hire date is required")
+            //    );
+
+            items.AddSimple()
+                .DataField("MerrageState")
+                .Label(l => l.Text("婚姻狀態"))
+                .Editor(e => e
+                    .SelectBox()
+                    .DataSource(new string[] {
+                                        "未知",
+                                        "已婚",
+                                        "未婚",
+                                        "離異",
+                                        "喪偶",
+                                        "單身",
+                        }
+                    //.DisplayExpr("Name")
+                    )
+                    .Value("未知")
+                    );
+
+            items.AddSimple()
+                .DataField("Introducer")
+                .Label(l => l.Text("邀請人"))
+                ;
+            //items.AddSimple()
+            //    .DataField("IntroducerPhone")
+            //    .Label(l => l.Text("邀請人電話"))
+            //    ;
+            items.AddSimple()
+                .DataField("IntroducerRelation")
+                .Label(l => l.Text("與邀請人關係"))
+                ;
+            //items.AddSimple()
+            //    .DataField("IntroducerGroup")
+            //    .Label(l => l.Text("邀請人小組"))
+            //    ;
+
+            //items.AddSimple()
+            //    .DataField("ReadBibleNumber")
+            //    .Label(l => l.Text("讀經次數"))
+            //    .Editor(e => e
+            //        .NumberBox()
+            //        .Min(0)
+            //        .Max(50)
+            //        .ShowSpinButtons(true)
+            //    )
+            //    .IsRequired(false);
+
+
+            items.AddSimple()
+                .DataField("Status")
+                .Label(l => l.Text("信仰狀態"))
+                .Editor(e => e
+                    .SelectBox()
+                    .DataSource(new string[] {
+                                        "未信主",
+                                        "基督徒",
+                                        "已決志",
+                        }
+                    //.DisplayExpr("Name")
+                    )
+                    .Value("未信主")
+                    );
+
+            //items.AddSimple()
+            //       .ColSpan(1)
+            //       .Label(l => l.Text("信仰狀況"))
+            //       .DataField("Status")
+            //       .Editor(e => e
+            //           .RadioGroup()
+            //           .Items(new[] { "未信主", "基督徒", "已決志" })
+            //           .Layout(Orientation.Horizontal)
+            //       );
+
+
+            items.AddSimple()
+                 .DataField("Industry")
+                 .Label(l => l.Text("職業及專長"))
+                 ;
+
+            items.AddSimple()
+                .ColSpan(2)
+                .Label(l => l.Text("附註"))
+                .DataField("Notes")
+                .Editor(e => e
+                    .TextArea()
+                    .Height(200)
+                );
+
+        })
+        .OnContentReady(@<text>
+        function(e) {
+        e.component.validate();
+        }
+        </text>)
+        .FormData(Model)
+        )
+    </div>
+</form>
+
+
+<div id="ToastContainer">
+    @(Html.DevExtreme().Toast()
+                .ID("toast")
+                .Position(p => p
+                .At(HorizontalAlignment.Center, VerticalAlignment.Bottom)
+                .Offset(0, 50))
+                .Message("上傳成功了!")
+                .DisplayTime(2000)
+                .MaxWidth(200)
+    )
+
+</div>
+
+
+<script>
+            function getLoadPanelInstance() {
+                return $("#loadPanel").dxLoadPanel("instance");
+            }
+
+            function button_click() {
+                getLoadPanelInstance().show();
+            }
+
+            function loadPanel_shown(e) {
+            //    setTimeout(function () {
+            //        e.component.hide();
+            //    }, 3000);
+            }
+
+            function loadPanel_hidden() {
+            }
+
+            function SaveNewPerson(arg) {
+
+                //debugger;
+                getLoadPanelInstance().show();
+                //$("#toast").dxToast("instance").show();
+                //alert("SaveNewPerson!!!");
+                //alert("OnValueChanged : " + arg.value);
+
+                //alert("OnValueChanged : " + arg.attribute('text'));
+                //alert("OnValueChanged : " + text: arg.attribute("text"));
+
+                //alert( getODataLocalDateFilter(arg.value) );
+            }
+
+</script>
+
+<script type="text/javascript">
+            function onBegin() {
+                //alert("開始!");
+                //$("#divProcessing").show()
+
+                //$("#form-signin").hide();
+                //$("#form-signin").hide();
+                //$("#divLoading").html('<image src="~/images/ajax-loader_circle.gif" alt="處理中...." />');
+                //$("#spinner-img").show();
+                @*@{
+                    Model.Notes = "GOD !!!!";
+                }*@
+            }
+
+            function onSuccess(data) {
+
+                //window.location.href = "/Jesus/Index";
+                //window.location.href = "/Jesus/Index.html";
+
+                //$("#spinner-img").hide();
+                //alert("成功 001");
+
+                getLoadPanelInstance().hide();
+
+                //DevExpress.ui.notify("新增新人已完成...", "info", 2000);
+                //alert("成功 1" + status);
+                //alert("成功 1" + data);
+                //alert("成功 2" + data.status);
+                //Account.data = data.status * 5;
+                //$("#divLoading").html("TOTAL = " + data.status );
+                //alert("成功 002");
+
+                //$("#toast").dxToast("instance").show();
+
+                //$("#toast").dxToast("instance").show();
+
+                if ( data.status == 1) {
+                    //alert("成功 3" + status);
+
+                    //DevExpress.ui.notify(data.message, "info", 2000);
+                    DevExpress.ui.notify(data.message, "success", 2000);
+                    //window.location.href = "/Jesus/Login";
+                    //window.location.href = "/Home/NewPerson";
+                }
+                else {
+                    //alert("成功 4" + status);
+                    //window.location.href = "/Home/NewPerson";
+                    //window.location.href = "/Home/InputReport/" + data.status;
+                    DevExpress.ui.notify(data.message, "error", 5000);
+                }
+            }
+
+            function onComplete(data) {
+                alert("結束!");
+                //$("#form-signin").show();
+                //$("#divProcessing").hide();
+
+                //$("#spinner-img").hide();
+                //$("#spinner-img").show();
+
+                //window.location.href = "/Jesus/Index";
+                //window.location.href = "/Home/Index";
+
+                //alert("完成");
+
+                //alert("完成 1" + status);
+                //alert("完成 1" + data);
+                //alert("完成 2" + data.status);
+
+                if (data.status == 1) {
+                    //window.location.href = "/Jesus/Login";
+                }
+                else {
+                    //window.location.href = "/Home/Index";
+
+                }
+
+                //$("#divLoading").html("");
+            }
+</script>
+
+<script src="~/lib/jquery-ajax-unobtrusive/jquery.unobtrusive-ajax.js"></script>
+<link href="~/css/NewPerson.css" rel="stylesheet" />

@@ -19,6 +19,7 @@
     <None Remove="Views\Home\IntegrateView.cshtml" />
     <None Remove="Views\Home\LineLiffView.cshtml" />
     <None Remove="Views\Home\MultiGroupView.cshtml" />
+    <None Remove="Views\Home\PersonalReport.cshtml" />
     <None Remove="Views\Home\QualificationView.cshtml" />
     <None Remove="wwwroot\css\MasterDetail.css" />
     <None Remove="wwwroot\css\Site - 複製.css" />

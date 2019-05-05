@@ -149,7 +149,7 @@ namespace ChurchReport.Controllers
                     }
                     else if (m_InMemoryDataContextSmallGroup.ListManager.LoginType != "小組長" && m_InMemoryDataContextSmallGroup.HappyGroupDataManager.HappyType == "有幸福小組名單")
                     {
-                        // 單純幸福小組長回報
+                        // 個人回報 + 單純幸福小組長回報
                         ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType;
                         ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.ListManager.LoginFullName;
                         ViewBag.HappyType = "有幸福小組名單";
