@@ -367,7 +367,7 @@ namespace ChurchReport.Controllers
         }
 
         #endregion
-        #region 整合式小組長點名及個人回報
+        #region 整合式小組長點名
         [Route("/Home/IntegrateView/{LoginParameter}")]
         public ActionResult IntegrateView(string LoginParameter)
         {
@@ -655,6 +655,140 @@ namespace ChurchReport.Controllers
             }
         }
         #endregion
+        #region 個人回報
+        [HttpGet]
+        public object LoadPersonReport(string id, DataSourceLoadOptions loadOptions)
+        {
+            try
+            {
+                //m_InMemoryDataContextSmallGroup.ListManager.SetupListSmallGroupWeeklyReport(id);
+
+                if (m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport == null)
+                {
+                    m_InMemoryDataContextSmallGroup.ListManager.SetupIntegrateData(id);
+                }
+                else if (m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.LoadFlag == false)
+                {
+                    m_InMemoryDataContextSmallGroup.ListManager.SetupIntegrateData(id);
+                }
+                else { }
+
+
+                var tasks = m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members;
+
+                //var tasks = m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.Where(e => e.ListEntityId == id).Select(e => e.m_SmallGroupDataList.m_NewPersonFollowUpData.Members).FirstOrDefault();
+
+                //return DataSourceLoader.Load<Member>(tasks, loadOptions);
+                return DataSourceLoader.Load(tasks, loadOptions);
+
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
+
+                throw e;
+            }
+        }
+        [HttpPost]
+        public IActionResult InsertPersonReport(string values)
+        {
+            try
+            {
+                m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.InsertMember(values);
+
+                return Ok();
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
+
+                throw e;
+            }
+        }
+        [HttpPut]
+        public IActionResult UpdatePersonReport(string key, string values)
+        {
+            try
+            {
+                // 修改全部的(也就是維護基本)資料
+                m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.UpdateMember(key, values);
+
+                return Ok();
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
+
+                throw e;
+            }
+        }
+        [HttpDelete]
+        public IActionResult DeletePersonReport(string key)
+        {
+            try
+            {
+                m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.DeleteMember(key);
+
+                return Ok();
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
+
+                throw e;
+            }
+        }
+        [HttpPost]
+        public IActionResult SavePersonReport(string WeeklyReportData)
+        {
+            try
+            {
+                // 整合式網頁按上傳按鈕
+                m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.UploadIntegrateData
+                (
+                    m_InMemoryDataContextSmallGroup.ListManager.m_Account,
+                    m_InMemoryDataContextSmallGroup.ListManager.m_Password,
+                    m_InMemoryDataContextSmallGroup.ListManager.LoginType,
+                    m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData,
+                    WeeklyReportData
+                );
+
+                return Json(new { status = "1", message = "成功上傳了...." });
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
+
+                throw e;
+            }
+        }
+        #endregion
+
         #region 小組長點名及個人回報
         [Route("/Home/SmallGroupReportView/{LoginParameter}")]
         public ActionResult SmallGroupReportView(string LoginParameter)
@@ -866,7 +1000,6 @@ namespace ChurchReport.Controllers
                 throw e;
             }
         }
-
         [HttpPost]
         public IActionResult InsertNewPresentRecord(string values)
         {
@@ -934,7 +1067,6 @@ namespace ChurchReport.Controllers
                 throw e;
             }
         }
-
         [HttpPost]
         public IActionResult SaveNewPersonFollowUp(string aResult)
         {

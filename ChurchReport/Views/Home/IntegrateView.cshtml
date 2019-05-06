@@ -101,78 +101,155 @@ else
 
                 )
             </div>
-            <div id="buttonContainer" class="dx-button-icon" style="float: left; width:30%; text-align: left; background-color:white;">
-                @(Html.DevExtreme().Button()
-                                .Text("上傳")
-                                .Type(ButtonType.Success)
-                                .ID("save-button")
-                                .UseSubmitBehavior(false)
+            @if (Model.LoginType == "小組長")
+            {
+                <div id="buttonContainer" class="dx-button-icon" style="float: left; width:30%; text-align: left; background-color:white;">
+                    @(Html.DevExtreme().Button()
+                                    .Text("上傳")
+                                    .Type(ButtonType.Success)
+                                    .ID("save-button")
+                                    .UseSubmitBehavior(false)
 
-                                .OnClick
-                                (@<text>
-                                            function(arg)
-                                            {
+                                    .OnClick
+                                    (@<text>
+                                                function(arg)
+                                                {
 
-                                            var SmallGroupDataGrid = $("#SmallGroupgridContainer").dxDataGrid("instance");
-                                            var NewPersonDataGrid = $("#NewPersonGridContainer").dxDataGrid("instance");
+                                                var SmallGroupDataGrid = $("#SmallGroupgridContainer").dxDataGrid("instance");
+                                                var NewPersonDataGrid = $("#NewPersonGridContainer").dxDataGrid("instance");
 
-                                            // 取得上傳的按鈕
-                                            var ButtonContainer= $("#save-button").dxButton("instance");
+                                                // 取得上傳的按鈕
+                                                var ButtonContainer= $("#save-button").dxButton("instance");
 
-                                            //debugger;
-                                            var SmallGroupDataGridFlag = SmallGroupDataGrid.hasEditData();//是否還殘留尚未回傳的編輯資料
-                                            var NewPersonDataGridFlag = NewPersonDataGrid.hasEditData();//是否還殘留尚未回傳的編輯資料
+                                                //debugger;
+                                                var SmallGroupDataGridFlag = SmallGroupDataGrid.hasEditData();//是否還殘留尚未回傳的編輯資料
+                                                var NewPersonDataGridFlag = NewPersonDataGrid.hasEditData();//是否還殘留尚未回傳的編輯資料
 
-                                            if( SmallGroupDataGridFlag == false && NewPersonDataGridFlag == false)
-                                            {
-                                            // 顯示旋轉鈕
-                                            $("#loadPanel").dxLoadPanel("instance").show();
+                                                if( SmallGroupDataGridFlag == false && NewPersonDataGridFlag == false)
+                                                {
+                                                // 顯示旋轉鈕
+                                                $("#loadPanel").dxLoadPanel("instance").show();
 
-                                            // 上傳按鈕反白
-                                            ButtonContainer.option("disabled", true);
+                                                // 上傳按鈕反白
+                                                ButtonContainer.option("disabled", true);
 
-                                            // AJAX 區塊
-                                            $.ajax
-                                            (
-                                            {
-                                            url: '@Url.Action("SaveIntegrate", "Home")',
-                                            data: { WeeklyReportData: $("#WeeklyReportTextData").dxTextArea("instance").option('text') }, // 整理回傳給 Server 的點名資料
-                                            type: 'POST', //POST if you want to save, GET if you want to fetch data from server
+                                                // AJAX 區塊
+                                                $.ajax
+                                                (
+                                                {
+                                                url: '@Url.Action("SaveIntegrate", "Home")',
+                                                data: { WeeklyReportData: $("#WeeklyReportTextData").dxTextArea("instance").option('text') }, // 整理回傳給 Server 的點名資料
+                                                type: 'POST', //POST if you want to save, GET if you want to fetch data from server
 
-                                            success: function (arg)
-                                            {
-                                            // 隱藏旋轉鈕
-                                            $("#loadPanel").dxLoadPanel("instance").hide();
+                                                success: function (arg)
+                                                {
+                                                // 隱藏旋轉鈕
+                                                $("#loadPanel").dxLoadPanel("instance").hide();
 
-                                            // 上傳按鈕恢復可運作
-                                            ButtonContainer.option("disabled", false);
+                                                // 上傳按鈕恢復可運作
+                                                ButtonContainer.option("disabled", false);
 
-                                            // 顯示上傳成功
-                                            $("#toast").dxToast("instance").show();
-                                            },
+                                                // 顯示上傳成功
+                                                $("#toast").dxToast("instance").show();
+                                                },
 
-                                            error: function (obj)
-                                            {
-                                            //alert('Something happened');
-                                            }
+                                                error: function (obj)
+                                                {
+                                                //alert('Something happened');
+                                                }
 
-                                            }
-                                            );
-                                            // AJAX 區塊
-                                            }
-                                            else
-                                            {
+                                                }
+                                                );
+                                                // AJAX 區塊
+                                                }
+                                                else
+                                                {
 
-                                            // 隱藏旋轉鈕
-                                            $("#loadPanel").dxLoadPanel("instance").hide();
-                                            // 顯示再上傳一次
-                                            $("#ToastReUpload").dxToast("instance").show();
+                                                // 隱藏旋轉鈕
+                                                $("#loadPanel").dxLoadPanel("instance").hide();
+                                                // 顯示再上傳一次
+                                                $("#ToastReUpload").dxToast("instance").show();
 
-                                            }
-                                            }
-                                </text>)
-                )
-            </div>
+                                                }
+                                                }
+                                    </text>)
+                    )
+                </div>
+            }
+            else
+            {
+        <div id="buttonContainer" class="dx-button-icon" style="float: left; width:30%; text-align: left; background-color:white;">
+            @(Html.DevExtreme().Button()
+                            .Text("上傳")
+                            .Type(ButtonType.Success)
+                            .ID("save-button")
+                            .UseSubmitBehavior(false)
+
+                            .OnClick
+                            (@<text>
+                                        function(arg)
+                                        {
+                                        //debugger;
+
+                                        var IndividualGrid = $("#IndividualGridContainer").dxDataGrid("instance");
+
+                                        // 取得上傳的按鈕
+                                        var ButtonContainer= $("#save-button").dxButton("instance");
+
+                                        //debugger;
+                                        var IndividualGridFlag = IndividualGrid.hasEditData();//是否還殘留尚未回傳的編輯資料
+
+                                        if( IndividualGridFlag == false )
+                                        {
+                                        // 顯示旋轉鈕
+                                        $("#loadPanel").dxLoadPanel("instance").show();
+
+                                        // 上傳按鈕反白
+                                        ButtonContainer.option("disabled", true);
+
+                                        // AJAX 區塊
+                                        $.ajax
+                                        (
+                                        {
+                                        url: '@Url.Action("SavePersonReport", "Home")',
+                                        data: { WeeklyReportData: "" }, // 整理回傳給 Server 的點名資料
+                                        type: 'POST', //POST if you want to save, GET if you want to fetch data from server
+
+                                        success: function (arg)
+                                        {
+                                        // 隱藏旋轉鈕
+                                        $("#loadPanel").dxLoadPanel("instance").hide();
+
+                                        // 上傳按鈕恢復可運作
+                                        ButtonContainer.option("disabled", false);
+
+                                        // 顯示上傳成功
+                                        $("#toast").dxToast("instance").show();
+                                        },
+
+                                        error: function (obj)
+                                        {
+                                        //alert('Something happened');
+                                        }
+
+                                        }
+                                        );
+                                        // AJAX 區塊
+                                        }
+                                        else
+                                        {
+
+                                        // 隱藏旋轉鈕
+                                        $("#loadPanel").dxLoadPanel("instance").hide();
+                                        // 顯示再上傳一次
+                                        $("#ToastReUpload").dxToast("instance").show();
+
+                                        }
+                                        }
+                            </text>)
+            )
+        </div>
+            }
             <div id="ToastContainer">
                 @(Html.DevExtreme().Toast()
                 .ID("toast")
@@ -234,84 +311,86 @@ else
         @Model.SundayPeriod
     </div>
 
-    <div id="smallgroupchart">
-        @( Html.DevExtreme().Chart()
-            .ID("smallgroupchart")
-            .Export(e => e.Enabled(true))
-            //.Animation()
-            .CommonSeriesSettings
-            (
-                s => s
-                .ArgumentField("SundayDate")
-                .Type(SeriesType.Bar)
-                //.Type(SeriesType.Spline)
-                //.Type(SeriesType.Area)
-                //.Type(SeriesType.Scatter)
-                .HoverMode(ChartSeriesHoverMode.AllArgumentPoints)
-                .SelectionMode(ChartSeriesSelectionMode.AllArgumentPoints)
-                .Label(l => l
-                    .Visible(true)
-                    .Format
-                    (f => f
-                        .Type(Format.FixedPoint)
-                        .Precision(0)
+    @if (Model.LoginType == "小組長")
+    {
+        <div id="smallgroupchart">
+            @( Html.DevExtreme().Chart()
+                .ID("smallgroupchart")
+                .Export(e => e.Enabled(true))
+                //.Animation()
+                .CommonSeriesSettings
+                (
+                    s => s
+                    .ArgumentField("SundayDate")
+                    .Type(SeriesType.Bar)
+                    //.Type(SeriesType.Spline)
+                    //.Type(SeriesType.Area)
+                    //.Type(SeriesType.Scatter)
+                    .HoverMode(ChartSeriesHoverMode.AllArgumentPoints)
+                    .SelectionMode(ChartSeriesSelectionMode.AllArgumentPoints)
+                    .Label(l => l
+                        .Visible(true)
+                        .Format
+                        (f => f
+                            .Type(Format.FixedPoint)
+                            .Precision(0)
+                        )
                     )
                 )
-            )
-            .Series(s =>
-            {
-                s.Add().ValueField("SundayNumber").Name("主日人數").Color("#e7d19a");
-                //s.Add().ValueField("SmallNumber").Name("小組人數").Color("#ffd700");
-                s.Add().ValueField("SmallNumber").Name("小組人數");
-            }
-            )
-
-            .ValueAxis(a => a
-                .Add()
-                .Title(t => t.Text("人數"))
-                .Position(Position.Left)
-            )
-
-            .Tooltip(t => t.Enabled(true))
-
-            .Title
-            (
-                t => t
-                .Text("聚會人數")
-                .Font
-                (
-                    f => f
-                        .Size(25)
-                        .Weight(300)
-                        //.Color("red")
-                        .Color("darkblue")
+                .Series(s =>
+                {
+                    s.Add().ValueField("SundayNumber").Name("主日人數").Color("#e7d19a");
+                    //s.Add().ValueField("SmallNumber").Name("小組人數").Color("#ffd700");
+                    s.Add().ValueField("SmallNumber").Name("小組人數");
+                }
                 )
-                .Margin
-                (
-                    m => m
-                        .Top(5)
-                        .Bottom(5)
+
+                .ValueAxis(a => a
+                    .Add()
+                    .Title(t => t.Text("人數"))
+                    .Position(Position.Left)
                 )
-                //.Subtitle("統計")
-                //.PlaceholderSize(0)
-            )
-            //.Title("聚會人數")
-            .Legend(l => l
-                .VerticalAlignment(VerticalEdge.Bottom)
-                .HorizontalAlignment(HorizontalAlignment.Center)
 
-            //.VerticalAlignment(VerticalEdge.Top)
-            //.HorizontalAlignment(HorizontalAlignment.Right)
-            //.Position(RelativePosition.Inside)
-            //.Border(b => b.Visible(true))
-            )
-            //.Export(e => e.Enabled(true))
+                .Tooltip(t => t.Enabled(true))
 
-            .OnPointClick(@<text>
-                        function(e) {
-                        e.target.select();
-                        }
-            </text>)
+                .Title
+                (
+                    t => t
+                    .Text("聚會人數")
+                    .Font
+                    (
+                        f => f
+                            .Size(25)
+                            .Weight(300)
+                            //.Color("red")
+                            .Color("darkblue")
+                    )
+                    .Margin
+                    (
+                        m => m
+                            .Top(5)
+                            .Bottom(5)
+                    )
+                    //.Subtitle("統計")
+                    //.PlaceholderSize(0)
+                )
+                //.Title("聚會人數")
+                .Legend(l => l
+                    .VerticalAlignment(VerticalEdge.Bottom)
+                    .HorizontalAlignment(HorizontalAlignment.Center)
+
+                //.VerticalAlignment(VerticalEdge.Top)
+                //.HorizontalAlignment(HorizontalAlignment.Right)
+                //.Position(RelativePosition.Inside)
+                //.Border(b => b.Visible(true))
+                )
+                //.Export(e => e.Enabled(true))
+
+                .OnPointClick(@<text>
+                            function(e) {
+                            e.target.select();
+                            }
+                </text>)
 
 .DataSource
 (d => d
@@ -326,9 +405,10 @@ else
 )
 )
 
-        )
+            )
 
-    </div>
+        </div>
+    }
 
     @if (Model.LoginType == "小組長")
     {
@@ -642,121 +722,123 @@ else
     }
     else
     {
-        < div id = "individual-data-grid" >
-        @(
-            Html.DevExtreme()
-            .DataGrid<Member>()
-            .ID("gridContainer")
-            .ShowBorders(true)
-            .ColumnAutoWidth(true)
-            .Paging(p => p.PageSize(10))
-            .Sorting(sorting => sorting.Mode(GridSortingMode.None))
-            .Paging(paging => paging.Enabled(false))
-            .AllowColumnResizing(true)
-            .ColumnResizingMode(ColumnResizingMode.Widget)
-            .ColumnFixing(c => c.Enabled(true))
-            .LoadPanel(l => l.Text("更新資料中..."))
-            .SearchPanel(s => s.Visible(true).Placeholder("搜尋.."))
-            .OnContentReady(@<text>
-                        function(e) {
-                        moveEditColumnToLeft(e.component);
-                        }
-            </text> )
+        <div id="individual-data-grid">
+            @(
+                Html.DevExtreme()
+                .DataGrid<Member>()
+                .ID("IndividualGridContainer")
+                .ShowBorders(true)
+                .ColumnAutoWidth(true)
+                .Paging(p => p.PageSize(10))
+                .Sorting(sorting => sorting.Mode(GridSortingMode.None))
+                .Paging(paging => paging.Enabled(false))
+                .AllowColumnResizing(true)
+                .ColumnResizingMode(ColumnResizingMode.Widget)
+                .ColumnFixing(c => c.Enabled(true))
+                .LoadPanel(l => l.Text("更新資料中..."))
+                .SearchPanel(s => s.Visible(true).Placeholder("搜尋.."))
+                .OnContentReady(@<text>
+                            function(e) {
+                            moveEditColumnToLeft(e.component);
+                            }
+                </text> )
 
-.OnCellPrepared("cell_prepared")
+        .OnCellPrepared("cell_prepared")
 
 
-.ShowColumnLines(true)
-.ShowRowLines(true)
-.RowAlternationEnabled(true)
-.ShowBorders(true)
+        .ShowColumnLines(true)
+        .ShowRowLines(true)
+        .RowAlternationEnabled(true)
+        .ShowBorders(true)
 
-.TwoWayBindingEnabled(true)
+        .TwoWayBindingEnabled(true)
 
-.Editing(editing =>
-{
-//editing.Mode(GridEditMode.Batch);
-//editing.Mode(GridEditMode.Row);
-//editing.Mode(GridEditMode.Cell);
-//editing.Mode(GridEditMode.Batch);
-//editing.Mode(GridEditMode.Form);
-editing.Mode(GridEditMode.Popup);
-editing.AllowUpdating(true);
-editing.AllowDeleting(false);
-//editing.AllowAdding(false);
-editing.Texts(a => a.SaveAllChanges("上傳檔案").AddRow("新增").CancelAllChanges("取消變更").SaveRowChanges("儲存").CancelRowChanges("取消").EditRow("編輯").DeleteRow("刪除"));
-//editing.AllowDeleting(true);
-})
+        .Editing(editing =>
+        {
+        //editing.Mode(GridEditMode.Batch);
+        //editing.Mode(GridEditMode.Row);
+        //editing.Mode(GridEditMode.Cell);
+        //editing.Mode(GridEditMode.Batch);
+        //editing.Mode(GridEditMode.Form);
+        editing.Mode(GridEditMode.Popup);
+        editing.AllowUpdating(true);
+        editing.AllowDeleting(false);
+        //editing.AllowAdding(false);
+        editing.Texts(a => a.SaveAllChanges("上傳檔案").AddRow("新增").CancelAllChanges("取消變更").SaveRowChanges("儲存").CancelRowChanges("取消").EditRow("編輯").DeleteRow("刪除"));
+        //editing.AllowDeleting(true);
+        })
 
-.Columns(columns =>
-{
-columns.AddFor(m => m.FullName).Caption("姓名").Fixed(false).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Left).AllowSorting(false);
-columns.AddFor(m => m.Status).Caption("委身類型").Fixed(false).Width(100).MinWidth(20).Alignment(HorizontalAlignment.Center).AllowSorting(false);
-columns.AddFor(m => m.Sunday).Caption("主日").Width(45).MinWidth(45).AllowSorting(false);
-columns.AddFor(m => m.SmallGroup).Caption("小組").Width(45).MinWidth(45).AllowSorting(false);
-columns.AddFor(m => m.SpiritualWork)
-.Caption("靈修次數").Alignment(HorizontalAlignment.Center)
-.Width(75).MinWidth(30).DataType(GridColumnDataType.Number)
-.Lookup(lookup => lookup
-.DataSource(new string[] { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", })
-//.DisplayExpr("Name")
-//.ValueExpr("ID")
-);
-columns.AddFor(m => m.MorningPray)
-.Caption("晨禱次數").Alignment(HorizontalAlignment.Center)
-.Width(75).MinWidth(30).DataType(GridColumnDataType.Number)
-.Lookup(lookup => lookup
-.DataSource(new string[] { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", })
-//.DisplayExpr("Name")
-//.ValueExpr("ID")
-);
+        .Columns(columns =>
+        {
+        columns.AddFor(m => m.FullName).Caption("姓名").Fixed(false).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Left).AllowSorting(false);
+        columns.AddFor(m => m.Status).Caption("委身類型").Fixed(false).Width(100).MinWidth(20).Alignment(HorizontalAlignment.Center).AllowSorting(false);
+        columns.AddFor(m => m.Sunday).Caption("主日").Width(45).MinWidth(45).AllowSorting(false);
+        columns.AddFor(m => m.SmallGroup).Caption("小組").Width(45).MinWidth(45).AllowSorting(false);
+        columns.AddFor(m => m.SpiritualWork)
+        .Caption("靈修次數").Alignment(HorizontalAlignment.Center)
+        .Width(75).MinWidth(30).DataType(GridColumnDataType.Number)
+        .Lookup(lookup => lookup
+        .DataSource(new string[] { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", })
+        //.DisplayExpr("Name")
+        //.ValueExpr("ID")
+        );
+        columns.AddFor(m => m.MorningPray)
+        .Caption("晨禱次數").Alignment(HorizontalAlignment.Center)
+        .Width(75).MinWidth(30).DataType(GridColumnDataType.Number)
+        .Lookup(lookup => lookup
+        .DataSource(new string[] { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", })
+        //.DisplayExpr("Name")
+        //.ValueExpr("ID")
+        );
 
-columns.AddFor(m => m.GeneralCare)
-.Caption("禱告次數").Alignment(HorizontalAlignment.Center)
-.Width(75).MinWidth(30).DataType(GridColumnDataType.Number)
-.Lookup(lookup => lookup
-.DataSource(new string[] { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", })
-);
-columns.AddFor(m => m.PrayItem).Caption("代禱事項").MinWidth(90);
-columns.AddFor(m => m.SmallGroupName).Caption("小組").GroupIndex(0).MinWidth(10);
+        columns.AddFor(m => m.GeneralCare)
+        .Caption("禱告次數").Alignment(HorizontalAlignment.Center)
+        .Width(75).MinWidth(30).DataType(GridColumnDataType.Number)
+        .Lookup(lookup => lookup
+        .DataSource(new string[] { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", })
+        );
+        columns.AddFor(m => m.PrayItem).Caption("代禱事項").MinWidth(90);
+        columns.AddFor(m => m.SmallGroupName).Caption("小組").GroupIndex(0).MinWidth(10);
 
-})
-//.DataSource(d => d.WebApi().Controller("SmallGroupReport").Key("Id"))
-.DataSource
-(d => d
-.WebApi()
-.Controller("Home")
-.LoadAction("LoadIntegrate")
-.InsertAction("InsertPresentRecord")
-.DeleteAction("DeletePresentRecord")
-.UpdateAction("UpdatePresentRecord")
-.Key("PresentRecordId")
-.LoadParams(new { id = @ViewBag.ListId })
-)
-//.DataSourceOptions(d => d.Filter("['Id', '<=' , 6]"))
+        })
+        //.DataSource(d => d.WebApi().Controller("SmallGroupReport").Key("Id"))
+        .DataSource
+        (d => d
+        .WebApi()
+        .Controller("Home")
+        .LoadAction("LoadPersonReport")
+        .InsertAction("InsertPersonReport")
+        .DeleteAction("DeletePersonReport")
+        .UpdateAction("UpdatePersonReport")
+        .Key("PresentRecordId")
+        .LoadParams(new { id = @ViewBag.ListId })
         )
-        </ div >
+        //.DataSourceOptions(d => d.Filter("['Id', '<=' , 6]"))
+            )
+        </div>
     }
 
-    <div style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
-        <h5>小組日誌:</h5>
-    </div>
+    @if (Model.LoginType == "小組長")
+    {
+        <div style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
+            <h5>小組日誌:</h5>
+        </div>
 
-    @(Html.DevExtreme().TextArea()
-    .ID("WeeklyReportTextData")
-    .Value(Model.WeeklyReportData)
-    .Height(200)
-    )
-    <div style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
-        <h5>小組出席紀錄:</h5>
-    </div>
+        @(Html.DevExtreme().TextArea()
+                .ID("WeeklyReportTextData")
+                .Value(Model.WeeklyReportData)
+                .Height(200)
+        )
+        <div style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
+            <h5>小組出席紀錄:</h5>
+        </div>
 
-    @(Html.DevExtreme().TextArea()
-    .ID("WeeklyReportTextAnalysis")
-    .Value(Model.WeeklyReportAnalysis)
-    .Height(350)
-    )
-
+        @(Html.DevExtreme().TextArea()
+                .ID("WeeklyReportTextAnalysis")
+                .Value(Model.WeeklyReportAnalysis)
+                .Height(350)
+        )
+    }
 </form>
 
 

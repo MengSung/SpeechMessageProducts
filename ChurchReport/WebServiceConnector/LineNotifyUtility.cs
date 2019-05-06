@@ -272,21 +272,18 @@ namespace ChurchReport.WebServiceConnector
                 }
                 else
                 {
-                    // 個人回報
-                    //if (aThisListGraceLeaderId == aThisAreaLeaderId && aThisListGraceLeaderId== aThisListSmallGroupLeaderId && aThisAreaLeaderId == aThisListSmallGroupLeaderId)
-                    //{
-                    //    if (aThisListGraceLeaderId != Guid.Empty) aList.Add(aThisListGraceLeaderId.ToString());
-                    //}
-                    //else if (aThisListGraceLeaderId == aThisAreaLeaderId && aThisListGraceLeaderId == aThisListSmallGroupLeaderId && aThisAreaLeaderId != aThisListSmallGroupLeaderId)
-                    //{
+                    // 小組長個人回報
+                    if (aListGraceLeaderLineId != aAreaLeaderLineId)
+                    {
+                        if (aListGraceLeaderLineId != "") aList.Add(aListGraceLeaderLineId);
+                        if (aAreaLeaderLineId != "") aList.Add(aAreaLeaderLineId);
+                    }
+                    else
+                    {
+                        if (aListGraceLeaderLineId != "") aList.Add(aListGraceLeaderLineId);
+                    }
 
-                    //}
-
-
-                    if (aListGraceLeaderLineId != "") aList.Add(aListGraceLeaderLineId);
-                    if (aAreaLeaderLineId != "") aList.Add(aAreaLeaderLineId);
                     if (aListSmallGroupLeaderLineId != "") aList.Add(aListSmallGroupLeaderLineId);
-
                 }
 
                 // 如果回報通知窗口有加入成為好友

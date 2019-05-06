@@ -68,23 +68,17 @@ namespace ChurchReport.WebServiceConnector
         Entity m_WeeklyReportEntity; // 週報實體
 
         Guid m_ContactId; //登入者在系統裡的ID
-        EntityCollection m_Lists = new EntityCollection(); // 需要點名的名單
-        EntityCollection m_PresentLists = new EntityCollection(); // 需要回報給族系族長/區長的名單
-
-        Guid m_DecipleGroupListId;
-        //Guid m_GroupLeaderId; // 小組長
-        Guid m_RaceLeaderId; // 族系族長
-        String m_SmallGroupPlace;
-        String m_SmallGroupTime;
+        String m_LoginType = ""; // "小組長" 或是 "個人回報"
 
         private const bool RACE_LEADER_CAN_CREATE_WEEKLYREPORT = true; // 族系組長能否幫小組長建立週報， true是可以
-        //private const bool RACE_LEADER_CAN_CREATE_WEEKLYREPORT = false; // 族系組長能否幫小組長建立週報，false 不可以
 
         #endregion
         #region 下載資料區
         #region 主程式區
-        public void SetupIntegrateData(String Account, String Password, DateTime aDownloadDate, String ListEntityId, String WeeklyReportEntityId, ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
+        public void SetupIntegrateData(String Account, String Password, String LoginType, DateTime aDownloadDate, String ListEntityId, String WeeklyReportEntityId, ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
         {
+            this.m_LoginType = LoginType;
+
             #region 先根據日期尋找當週主日日期
             // 其值的範圍從 0 (表示 DayOfWeek.Sunday) 為 6 (表示 DayOfWeek.Saturday)。
             int DayOfWeek = (int)aDownloadDate.DayOfWeek;
@@ -124,7 +118,7 @@ namespace ChurchReport.WebServiceConnector
                 this.m_WeeklyReportEntity = this.m_ToolUtilityClass.RetrieveEntity("new_group_present_weekly_report", new Guid(WeeklyReportEntityId));
             }
 
-            aListSmallGroupWeeklyReport.LoginType = "小組長";
+            aListSmallGroupWeeklyReport.LoginType = this.m_LoginType;
             aListSmallGroupWeeklyReport.SmallGroupLeaderFullName = m_ToolUtilityClass.GetEntityLookupDisplayName(ref m_ListEntity, "new_contact_family_leader_list");
             aListSmallGroupWeeklyReport.SundayPrayers = aDownloadDate;
             aListSmallGroupWeeklyReport.SundayPeriod = "小組日期對應到主日期間是: " + m_Sunday.ToLocalTime().ToShortDateString() + " ~ " + m_Sunday.AddDays(6).ToLocalTime().ToShortDateString();
@@ -303,7 +297,7 @@ namespace ChurchReport.WebServiceConnector
         private void GetAllMemberDataFromPresentRecord(String GroupName, Guid WeeklyReportId, ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
         {
             // 搜尋這個週報裡的所有個人聚會與靈修記錄集合
-            EntityCollection PresentRecordCollection = m_ToolUtilityClass.RetrieveManyToOneRelationship("new_group_present_weekly_report", "new_group_present_weekly_reportid", WeeklyReportId.ToString(), "new_group_present_weekly_report_prese", "new_present_record");
+            EntityCollection PresentRecordCollection = GetPresentRecordByLoginType( WeeklyReportId );
 
             #region// 處理每個出席紀錄(個人聚會與靈修記錄集合)
 
@@ -598,6 +592,31 @@ namespace ChurchReport.WebServiceConnector
             #endregion
 
             return;
+        }
+        private EntityCollection GetPresentRecordByLoginType(Guid WeeklyReportId)
+        {
+            // 搜尋這個週報裡的所有個人聚會與靈修記錄集合
+            EntityCollection PresentRecordCollection = m_ToolUtilityClass.RetrieveManyToOneRelationship("new_group_present_weekly_report", "new_group_present_weekly_reportid", WeeklyReportId.ToString(), "new_group_present_weekly_report_prese", "new_present_record");
+            if (this.m_LoginType == "小組長")
+            {
+                return PresentRecordCollection;
+            }
+            else
+            {
+                foreach (Entity PresentRecordEntity in PresentRecordCollection.Entities)
+                {
+                    if( this.m_ContactId == this.m_ToolUtilityClass.GetEntityLookupAttribute(PresentRecordEntity, "new_contact_new_present_record"))
+                    {
+                        EntityCollection LocalPresentRecordCollection = new EntityCollection();
+
+                        LocalPresentRecordCollection.Entities.Add(PresentRecordEntity);
+
+                        return LocalPresentRecordCollection;
+                    }
+                }
+            }
+
+            return null;
         }
         private void GetAllMemberDataFromList(String GroupName, Guid ListEntityId, ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
         {
