@@ -921,7 +921,7 @@ namespace ChurchReport.WebServiceConnector
                     #region 個人回報
                     // COPY MEMBER DATA 的 Group Weekly Report 的部分
                     CopyMemberInfomationPackage(this.m_MemberInfomationPackage, this.m_InitializedMemberInfomationPackage);
-
+                      
                     // 初始化 Member Data 清單
                     InitialSmallGroupLeaderMemberData(GroupName, aListEntity.Id);
 
