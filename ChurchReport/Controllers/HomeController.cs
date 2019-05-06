@@ -635,6 +635,7 @@ namespace ChurchReport.Controllers
                 (
                     m_InMemoryDataContextSmallGroup.ListManager.m_Account,
                     m_InMemoryDataContextSmallGroup.ListManager.m_Password,
+                    m_InMemoryDataContextSmallGroup.ListManager.LoginType,
                     m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData,
                     WeeklyReportData
                 );
@@ -1044,6 +1045,7 @@ namespace ChurchReport.Controllers
                 (
                     m_InMemoryDataContextSmallGroup.ListManager.m_Account,
                     m_InMemoryDataContextSmallGroup.ListManager.m_Password,
+                    m_InMemoryDataContextSmallGroup.ListManager.LoginType,
                     m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData,
                     "不需更新小組日誌"
                 );

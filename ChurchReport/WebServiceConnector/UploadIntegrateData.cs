@@ -71,6 +71,7 @@ namespace ChurchReport.WebServiceConnector
         MemberInfomationPackage m_InitializedMemberInfomationPackage = new MemberInfomationPackage();
 
         DateTime m_Sunday;
+        String m_LoginType = "";
         Entity m_ContactEntity; //登入者在系統裡的實體
         Guid m_ContactId; //登入者在系統裡的ID
         Entity m_ListEntity; // 小組名單實體紀錄
@@ -106,11 +107,12 @@ namespace ChurchReport.WebServiceConnector
         /// <param name="aSmallGroupData"></param>
         /// <param name="WeeklyReportData"></param>
         /// <param name="WeeklyReportAnalysis"></param>
-        public void UploadData(String Account, String Password, String ListEntityId, ref String WeeklyReportEntityId, DateTime aSmallGroupDate, SmallGroupData aSmallGroupData , ref String WeeklyReportData, ref String WeeklyReportAnalysis )
+        public void UploadData(String Account, String Password, String LoginType, String ListEntityId, ref String WeeklyReportEntityId, DateTime aSmallGroupDate, SmallGroupData aSmallGroupData , ref String WeeklyReportData, ref String WeeklyReportAnalysis )
         {
             try
             {
                 // 設定初始值
+                m_LoginType = LoginType;
 
                 // 設定參數，設定主日日期，找到操作使用者登入的ENTITY及ID
                 this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "設定參數");
@@ -464,7 +466,7 @@ namespace ChurchReport.WebServiceConnector
                     else
                     {
                         // 登入者與名單的小組長不是同一個人
-                        if (m_MemberInfomationPackage.m_LoginType == "小組長")
+                        if (m_LoginType == "小組長")
                         {
                             // 小組長回報
                             return false;
@@ -564,7 +566,7 @@ namespace ChurchReport.WebServiceConnector
                     else
                     {
                         // 登入者與名單的小組長不是同一個人
-                        if (m_MemberInfomationPackage.m_LoginType == "小組長")
+                        if (m_LoginType == "小組長")
                         {
                             // 小組長回報
                             return false;

@@ -197,17 +197,18 @@
                     }
                     else
                     {
-                        if (@ViewBag.MultiGroupIndex == "IntegrateView")
-                        {
-                            <li><a href="/Home/IntegrateView/IntegrateView">小組回報</a></li>
-                        }
-                        if (@ViewBag.MultiGroupIndex == "HybridView")
-                        {
-                            <li><a href="/Home/MultiGroupView/MultiGroup">回報統計</a></li>
-                            <li><a href="/Home/IntegrateView/IntegrateView">小組回報</a></li>
-                        }
                         @if (@ViewBag.LoginType == "小組長")
                         {
+                            if (@ViewBag.MultiGroupIndex == "IntegrateView")
+                            {
+                                <li><a href="/Home/IntegrateView/IntegrateView">小組回報</a></li>
+                            }
+                            if (@ViewBag.MultiGroupIndex == "HybridView")
+                            {
+                                <li><a href="/Home/MultiGroupView/MultiGroup">回報統計</a></li>
+                                <li><a href="/Home/IntegrateView/IntegrateView">小組回報</a></li>
+                            }
+
                             @if (@ViewBag.HappyType == "有幸福小組名單")
                             {
 
