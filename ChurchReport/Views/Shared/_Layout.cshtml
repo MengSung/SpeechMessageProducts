@@ -279,6 +279,10 @@
                         }
                         else
                         {
+                            @if (@ViewBag.MultiGroupIndex == "HybridView")
+                            {
+                                <li><a href="/Home/MultiGroupView/MultiGroup">回報統計</a></li>
+                            }
 
                             @if (@ViewBag.HappyType == "有幸福小組名單")
                             {
@@ -328,6 +332,7 @@
                                     <li><a href="/Home/Scheduler">行事曆</a></li>
                                     @*<li><a href="/Home/FeeManagerView">繳費與點名</a></li>*@
                                 }
+                                /**/
 
                             }
                         }
