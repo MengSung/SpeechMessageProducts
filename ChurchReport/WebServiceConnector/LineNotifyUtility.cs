@@ -137,7 +137,10 @@ namespace ChurchReport.WebServiceConnector
                     {
                         PersonalReply += aMemberInfomation.Sunday == true ? "主日有出席" + Environment.NewLine : "主日沒出席" + Environment.NewLine;
                         PersonalReply += aMemberInfomation.SmallGroup == true ? "小組有出席" + Environment.NewLine : "小組沒出席" + Environment.NewLine;
-                        PersonalReply += aMemberInfomation.PrayItem != "" ? "代禱事項: " + aMemberInfomation.PrayItem : "";
+                        PersonalReply += aMemberInfomation.PrayItem != "" ? "代禱事項: " + aMemberInfomation.PrayItem : "" + Environment.NewLine;
+                        PersonalReply += "靈修次數: " + aMemberInfomation.SpiritualWork + Environment.NewLine;
+                        PersonalReply += "晨禱次數: " + aMemberInfomation.MorningPray + Environment.NewLine;
+                        PersonalReply += "禱告次數: " + aMemberInfomation.GeneralCare + Environment.NewLine;
                     }
                 }
 
@@ -272,7 +275,7 @@ namespace ChurchReport.WebServiceConnector
                 }
                 else
                 {
-                    // 小組長個人回報
+                    // 個人回報
                     if (aListGraceLeaderLineId != aAreaLeaderLineId)
                     {
                         if (aListGraceLeaderLineId != "") aList.Add(aListGraceLeaderLineId);

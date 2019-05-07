@@ -160,9 +160,9 @@ namespace ChurchReport.WebServiceConnector
                     // this.m_ContactId 的意思是登入者在系統裡的ID，登入者是"小家長"、"小組長"、族系族長/區長"，或是個人回報
                     if (this.m_ContactId == aThisListSmallGroupLeaderId || this.m_ContactId == aThisListFamilyHeadId || this.m_ContactId == aThisListGraceLeaderId || aSmallGroupData.LoginType == "個人回報")
                     {
-                        #region 有找到要點名的名單，而且登入的操作者與此名單或是與小組長ID、或是與小家長ID、或是與族系族長/區長一致
+                        #region 有找到要點名的名單，而且登入的操作者與此名單或是與小組長ID、或是與小家長ID、或是與族系族長/區長一致，或是個人回報也可以上傳
 
-                        // 設定是否要計算過去N週的出席的旗標，族系族長/區長不要去計算或修改小組長的出席紀錄
+                        #region// 設定是否要計算過去N週的出席的旗標，族系族長/區長不要去計算或修改小組長的出席紀錄
                         bool CalculateFlag = DeterminCalculateFlag(m_ContactId, aThisListFamilyHeadId, aThisListSmallGroupLeaderId, aThisListGraceLeaderId);
                         CalculateFlag = true; // 強迫每個都計算
                         if (CalculateFlag == false)
@@ -174,6 +174,7 @@ namespace ChurchReport.WebServiceConnector
 
                         // 重新整理跟群組名稱一致的點名清單
                         //this.SetupGroupNamedListMemberInfomation(GroupName);
+                        #endregion
 
                         if (aWeeklyReportId == Guid.Empty)
                         {
