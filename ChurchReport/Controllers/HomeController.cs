@@ -421,24 +421,14 @@ namespace ChurchReport.Controllers
                     }
                     SetMultiGroupLayoutParameter();
 
-                    //ListSmallGroupWeeklyReport bSmallGroupData = m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.Where(e => e.ListEntityId == "001").ToList()[0];
-
-                    //return View(m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.Where(e => e.ListEntityId == m_InMemoryDataContextSmallGroup.m_ListManager.ActiveListId).Select());
-                    //m_InMemoryDataContextSmallGroup.ListManager.SetupListSmallGroupWeeklyReport(LoginParameter);
-
-
-
-                    //WeeklyReportViewModel aWeeklyReportViewModel = new WeeklyReportViewModel();
-                    //aWeeklyReportViewModel.WeeklyReportData = m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.WeeklyReportData;
-                    //aWeeklyReportViewModel.WeeklyReportAnalysis = m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.WeeklyReportAnalysis;
-                    //return View(aWeeklyReportViewModel);
-
-
-
-                    return View(m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport);
-
-
-                    //return View(m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.Select(ListEntityId=> m_InMemoryDataContextSmallGroup.m_ListManager.ActiveListId));
+                    if(m_InMemoryDataContextSmallGroup.ListManager.LoginType == "個人回報" )
+                    {
+                        return RedirectToAction("PersonalReport");
+                    }
+                    else
+                    {
+                        return View(m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport);
+                    }
                     #endregion
                 }
                 else if (LoginParameter == "jquery.js")
@@ -657,6 +647,54 @@ namespace ChurchReport.Controllers
         #endregion
         #region 個人回報
         [HttpGet]
+        public IActionResult PersonalReport()
+        {
+            try
+            {
+                #region 個人回報網頁選項設定
+                ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType;// 看是小組長還是個人回報
+                ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.ListManager.LoginFullName;
+                ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType;
+                ViewBag.HappyType = m_InMemoryDataContextSmallGroup.HappyGroupDataManager.HappyType;
+
+                SetMultiGroupLayoutParameter();
+
+                if (m_InMemoryDataContextSmallGroup.ListManager.m_MultiGroupList.m_WeeklyReportRecordListData.Count == 1)
+                {
+                    m_InMemoryDataContextSmallGroup.NewPersonModel.m_PersonFormViewModel.Position = m_InMemoryDataContextSmallGroup.ListManager.m_MultiGroupList.m_WeeklyReportRecordListData.First().ListEntityId;
+                }
+                else if (ViewBag.MultiGroupIndex == "HybridView")
+                {
+                    m_InMemoryDataContextSmallGroup.NewPersonModel.m_PersonFormViewModel.Position = m_InMemoryDataContextSmallGroup.ListManager.ActiveListId;
+                }
+                else if (ViewBag.MultiGroupIndex == "SingleMultiGroupView")
+                {
+                    m_InMemoryDataContextSmallGroup.NewPersonModel.m_PersonFormViewModel.Position = "";
+                }
+                else
+                {
+                    m_InMemoryDataContextSmallGroup.NewPersonModel.m_PersonFormViewModel.Position = "";
+                }
+                #endregion
+
+                m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.SetPersonalReportViewModel();
+
+                return View(m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_PersonalReportViewModel);
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
+
+                throw e;
+            }
+        }
+
+        [HttpGet]
         public object LoadPersonReport(string id, DataSourceLoadOptions loadOptions)
         {
             try
@@ -787,8 +825,39 @@ namespace ChurchReport.Controllers
                 throw e;
             }
         }
-        #endregion
+        public IActionResult SavePersonalReportForm(PersonalReportViewModel aPersonalReportViewModel)
+        {
+            try
+            {
+                m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.GetPersonalReportViewModelResult( aPersonalReportViewModel );
 
+                // 整合式網頁按上傳按鈕
+                m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.UploadIntegrateData
+                (
+                    m_InMemoryDataContextSmallGroup.ListManager.m_Account,
+                    m_InMemoryDataContextSmallGroup.ListManager.m_Password,
+                    m_InMemoryDataContextSmallGroup.ListManager.LoginType,
+                    m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData,
+                    "不需更新小組日誌"
+                );
+
+                return Json(new { status = "1", message = "成功上傳了...." });
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
+
+                throw e;
+            }
+        }
+
+
+        #endregion
         #region 小組長點名及個人回報
         [Route("/Home/SmallGroupReportView/{LoginParameter}")]
         public ActionResult SmallGroupReportView(string LoginParameter)

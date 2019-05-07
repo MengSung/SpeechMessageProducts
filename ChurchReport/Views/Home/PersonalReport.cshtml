@@ -1,12 +1,9 @@
-﻿@model ChurchReport.ViewModels.PersonFormViewModel
-@{
-    var priorities = new[] { "Low", "Normal", "Urgent", "High" };
-}
-<div class="long-title"><h3>新人資訊</h3></div>
+﻿@model ChurchReport.ViewModels.PersonalReportViewModel
 
-<form data-ajax="true" data-ajax-begin="onBegin" data-ajax-success="onSuccess" asp-action="SaveNewPerson" asp-controller="Home" method="post">
+<div class="long-title"><h4> @Model.GroupName ， @Model.FullName 個人回報</h4></div>
+
+<form data-ajax="true" data-ajax-begin="onBegin" data-ajax-success="onSuccess" asp-action="SavePersonalReportForm" asp-controller="Home" method="post">
     <div class="dx-field">
-
         <div id="buttonContainer" class="dx-button-icon">
             @(Html.DevExtreme().Button()
                     .Text("上傳")
@@ -18,26 +15,6 @@
 
                 .OnClick("SaveNewPerson")
 
-                //.OnClick(@<text>
-                //function(data) {
-                //
-                //        $.ajax({
-                //            url: '@Url.Action("SaveNewPerson", "Home")',
-                //            data: { aNewPerson: Model.FormData.Notes.Value },
-                //            type: 'POST', //POST if you want to save, GET if you want to fetch data from server
-                //            success: function (obj)
-                //            {
-                //                $("#toast").dxToast("instance").show();
-                //            },
-                //
-                //            error: function (obj)
-                //            {
-                //                //alert('Something happened');
-                //            }
-                //
-                //        });
-                //}
-                //</text>)
             )
         </div>
         <div id="ToastContainer">
@@ -77,183 +54,72 @@
         .ColCount(3)
         .Items(items =>
         {
-            //items.AddSimple()
-            //    .DataField("ID")
-            //    .IsRequired(false);
 
             //items.AddSimple()
-            //   .DataField("FirstName")
-            //   .Label(l => l.Text("姓"))
-            //   .Editor(e => e
-            //        .TextBox()
-            //        .Disabled(true)
-            //    );
-
-            items.AddSimple()
-                .DataField("LastName")
-                .Label(l => l.Text("姓名"))
-                .Editor(e => e
-                    .TextBox()
-                    .Disabled(false)
-                    .Placeholder("輸入姓名")
-               );
-
-            items.AddSimple()
-                .DataField("Phone")
-                .Label(l => l.Text("行動電話"))
-                .Editor(e => e
-                    .TextBox()
-                    .Mask("+886 (X000) 000-000")
-                    .MaskRules(new { X = new JS("/[02-9]/") })
-                    .Placeholder("輸入手機號碼")
-                );
-
-            items.AddSimple()
-                .DataField("HomePhone")
-                .Label(l => l.Text("一般電話"))
-                .Editor(e => e
-                    .TextBox()
-                    //.Mask("+886 (X00) 0000-0000")
-                    .MaskRules(new { X = new JS("/[02-9]/") })
-                    .Placeholder("輸入電話號碼")
-                );
-
-            items.AddSimple()
-                .DataField("Address")
-                .Label(l => l.Text("地址"))
-                ;
-
-            items.AddSimple()
-               .Label(l => l.Text("性別"))
-               .DataField("Gender")
-               .Editor(e => e
-                   .RadioGroup()
-                   .Items(new[] { "男性", "女性" })
-                   .Layout(Orientation.Horizontal)
-               );
-
-            items.AddSimple()
-                .DataField("Position")
-                .Label(l => l.Text("所屬小組"))
-                .Editor(e => e
-                    .SelectBox()
-                    .DataSource(d => d.WebApi().Controller("Home").LoadAction("AssignSmallGroupGet").Key("ListEntityId"))
-                    //.DataSource(d => d.Mvc().Controller("AssignSmallGroup").LoadAction("GetType").Key("ID"))
-                    //.ValueExpr("Name")
-                    .DisplayExpr("Name")
-                    .Value(Model.Position)
-                    )
-                    //.ValidationRules
-                    //(   r => r
-                    //    .AddRequired()
-                    //    .Message("Position is required")
-                    //)
-                    ;
-
-            items.AddSimple()
-                .DataField("BirthDate")
-                .Label(l => l.Text("生日"))
-                .IsRequired(false)
-                .Editor(e => e
-                    .DateBox()
-                    .Disabled(false)
-                    .Placeholder("生日")
-                );
-
-            items.AddSimple()
-                .DataField("HireDate")
-                .Label(l => l.Text("進教會日期"))
-                .Editor(
-                        e => e.DateBox()//.Value(new JS("null")) 
-                        .Placeholder("進教會日期")
-                    );
-            //.ValidationRules(r => r
-            //        .AddRequired()
-            //        .Message("Hire date is required")
-            //    );
-
-            items.AddSimple()
-                .DataField("MerrageState")
-                .Label(l => l.Text("婚姻狀態"))
-                .Editor(e => e
-                    .SelectBox()
-                    .DataSource(new string[] {
-                                        "未知",
-                                        "已婚",
-                                        "未婚",
-                                        "離異",
-                                        "喪偶",
-                                        "單身",
-                        }
-                    //.DisplayExpr("Name")
-                    )
-                    .Value("未知")
-                    );
-
-            items.AddSimple()
-                .DataField("Introducer")
-                .Label(l => l.Text("邀請人"))
-                ;
-            //items.AddSimple()
-            //    .DataField("IntroducerPhone")
-            //    .Label(l => l.Text("邀請人電話"))
-            //    ;
-            items.AddSimple()
-                .DataField("IntroducerRelation")
-                .Label(l => l.Text("與邀請人關係"))
-                ;
-            //items.AddSimple()
-            //    .DataField("IntroducerGroup")
-            //    .Label(l => l.Text("邀請人小組"))
-            //    ;
-
-            //items.AddSimple()
-            //    .DataField("ReadBibleNumber")
-            //    .Label(l => l.Text("讀經次數"))
+            //    .DataField("FullName")
+            //    .Label(l => l.Text("姓名"))
             //    .Editor(e => e
-            //        .NumberBox()
-            //        .Min(0)
-            //        .Max(50)
-            //        .ShowSpinButtons(true)
-            //    )
-            //    .IsRequired(false);
+            //        .TextBox()
+            //        .Disabled(false)
+            //        .Placeholder("輸入姓名")
+            //   );
 
-
-            items.AddSimple()
-                .DataField("Status")
-                .Label(l => l.Text("信仰狀態"))
-                .Editor(e => e
-                    .SelectBox()
-                    .DataSource(new string[] {
-                                        "未信主",
-                                        "基督徒",
-                                        "已決志",
-                        }
-                    //.DisplayExpr("Name")
-                    )
-                    .Value("未信主")
-                    );
 
             //items.AddSimple()
-            //       .ColSpan(1)
-            //       .Label(l => l.Text("信仰狀況"))
-            //       .DataField("Status")
-            //       .Editor(e => e
-            //           .RadioGroup()
-            //           .Items(new[] { "未信主", "基督徒", "已決志" })
-            //           .Layout(Orientation.Horizontal)
-            //       );
+            //    .DataField("MerrageState")
+            //    .Label(l => l.Text("婚姻狀態"))
+            //    .Editor(e => e
+            //        .SelectBox()
+            //        .DataSource(new string[] {
+            //                            "未知",
+            //                            "已婚",
+            //                            "未婚",
+            //                            "離異",
+            //                            "喪偶",
+            //                            "單身",
+            //            }
+            //        //.DisplayExpr("Name")
+            //        )
+            //        .Value("未知")
+            //        );
+
+
+            //items.AddSimple()
+            //    .DataField("Status")
+            //    .Label(l => l.Text("信仰狀態"))
+            //    .Editor(e => e
+            //        .SelectBox()
+            //        .DataSource(new string[] {
+            //                            "未信主",
+            //                            "基督徒",
+            //                            "已決志",
+            //            }
+            //        //.DisplayExpr("Name")
+            //        )
+            //        .Value("未信主")
+            //        );
 
 
             items.AddSimple()
-                 .DataField("Industry")
-                 .Label(l => l.Text("職業及專長"))
-                 ;
+                .DataField("SundayPresent")
+                .Label(l => l.Text("主日出席"))
+                .Editor(e => e
+                    .CheckBox()
+                    .Disabled(false)
+               );
+            items.AddSimple()
+                .DataField("SmallGroupPresent")
+                .Label(l => l.Text("小組出席"))
+                .Editor(e => e
+                    .CheckBox()
+                    .Disabled(false)
+               );
+
 
             items.AddSimple()
                 .ColSpan(2)
-                .Label(l => l.Text("附註"))
-                .DataField("Notes")
+                .Label(l => l.Text("代禱事項"))
+                .DataField("PrayItem")
                 .Editor(e => e
                     .TextArea()
                     .Height(200)
@@ -270,7 +136,6 @@
     </div>
 </form>
 
-
 <div id="ToastContainer">
     @(Html.DevExtreme().Toast()
                 .ID("toast")
@@ -283,7 +148,6 @@
     )
 
 </div>
-
 
 <script>
             function getLoadPanelInstance() {

@@ -1,4 +1,5 @@
-﻿using ChurchReport.WebServiceConnector;
+﻿using ChurchReport.ViewModels;
+using ChurchReport.WebServiceConnector;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -42,6 +43,9 @@ namespace ChurchReport.Models
         public bool ModifyFlag { get; set; }
         public UploadIntegrateData m_UploadIntegrateData = new UploadIntegrateData();
 
+        // 表單是個人回報需要用到"暫時"傳遞資料用的資料結構
+        public PersonalReportViewModel m_PersonalReportViewModel = new PersonalReportViewModel();
+
         //public WeeklyReportViewModel m_WeeklyReportViewModel { get; set; }
         //public WeeklyReportViewModel m_WeeklyReportViewModel = new WeeklyReportViewModel
         //{
@@ -51,21 +55,34 @@ namespace ChurchReport.Models
 
         #endregion
         #endregion
-        public void UploadIntegrateData(String Account, String Password, String LoginType, SmallGroupData aSmallGroupData , String aWeeklyReportData)
+        public void UploadIntegrateData(String Account, String Password, String LoginType, SmallGroupData aSmallGroupData, String aWeeklyReportData)
         {
-                WeeklyReportData = aWeeklyReportData;
+            WeeklyReportData = aWeeklyReportData;
 
-                m_UploadIntegrateData.UploadData( Account, Password, LoginType, ListEntityId, ref WeeklyReportEntityId, SundayPrayers, aSmallGroupData, ref WeeklyReportData, ref WeeklyReportAnalysis );
+            m_UploadIntegrateData.UploadData(Account, Password, LoginType, ListEntityId, ref WeeklyReportEntityId, SundayPrayers, aSmallGroupData, ref WeeklyReportData, ref WeeklyReportAnalysis);
+        }
+        public void SetPersonalReportViewModel()
+        {
+            if (m_SmallGroupDataList.m_AllMemeberData.Members[0] != null)
+            {
+                m_PersonalReportViewModel.GroupName = m_SmallGroupDataList.m_AllMemeberData.Members[0].Group;
+                m_PersonalReportViewModel.FullName = m_SmallGroupDataList.m_AllMemeberData.Members[0].FullName;
+                m_PersonalReportViewModel.SundayPresent = m_SmallGroupDataList.m_AllMemeberData.Members[0].Sunday;
+                m_PersonalReportViewModel.SmallGroupPresent = m_SmallGroupDataList.m_AllMemeberData.Members[0].SmallGroup;
+                m_PersonalReportViewModel.PrayItem = m_SmallGroupDataList.m_AllMemeberData.Members[0].PrayItem;
+            }
+        }
+
+        public void GetPersonalReportViewModelResult(PersonalReportViewModel aPersonalReportViewModel)
+        {
+            if (m_SmallGroupDataList.m_AllMemeberData.Members[0] != null)
+            {
+                m_SmallGroupDataList.m_AllMemeberData.Members[0].Sunday = m_PersonalReportViewModel.SundayPresent = aPersonalReportViewModel.SundayPresent;
+                m_SmallGroupDataList.m_AllMemeberData.Members[0].SmallGroup = m_PersonalReportViewModel.SmallGroupPresent = aPersonalReportViewModel.SmallGroupPresent;
+                m_SmallGroupDataList.m_AllMemeberData.Members[0].PrayItem = m_PersonalReportViewModel.PrayItem = aPersonalReportViewModel.PrayItem;
+            }
         }
     }
 
-    //public class WeeklyReportViewModel
-    //{
-    //    public String WeeklyReportData { get; set; }
-    //    public String WeeklyReportAnalysis { get; set; }
-    //    public bool DisplayFlag { get; set; }
-
-    //    //static public WeeklyReportData m_WeeklyReportData = new WeeklyReportData();
-    //}
-
 }
+
