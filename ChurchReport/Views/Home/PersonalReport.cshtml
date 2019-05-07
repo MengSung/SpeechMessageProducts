@@ -51,7 +51,7 @@
     <div id="form-container">
         @(Html.DevExtreme().Form()
         .ID("form")
-        .ColCount(3)
+        .ColCount(2)
         .Items(items =>
         {
 
@@ -84,21 +84,6 @@
             //        );
 
 
-            //items.AddSimple()
-            //    .DataField("Status")
-            //    .Label(l => l.Text("信仰狀態"))
-            //    .Editor(e => e
-            //        .SelectBox()
-            //        .DataSource(new string[] {
-            //                            "未信主",
-            //                            "基督徒",
-            //                            "已決志",
-            //            }
-            //        //.DisplayExpr("Name")
-            //        )
-            //        .Value("未信主")
-            //        );
-
 
             items.AddSimple()
                 .DataField("SundayPresent")
@@ -115,7 +100,33 @@
                     .Disabled(false)
                );
 
-
+            items.AddSimple()
+                .DataField("SpiritualWork")
+                .Label(l => l.Text("靈修次數"))
+                .Editor(e => e
+                    .SelectBox()
+                    //.DataSource(new string[] { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", })
+                    .DataSource(new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, })
+                    .Value(0)
+                    );
+            items.AddSimple()
+                .DataField("MorningPray")
+                .Label(l => l.Text("晨禱次數"))
+                .Editor(e => e
+                    .SelectBox()
+                    //.DataSource(new string[] { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", })
+                    .DataSource(new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, })
+                    .Value(0)
+                    );
+            items.AddSimple()
+                .DataField("GeneralCare")
+                .Label(l => l.Text("禱告次數"))
+                .Editor(e => e
+                    .SelectBox()
+                    //.DataSource(new string[] { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", })
+                    .DataSource(new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, })
+                    .Value(0)
+                    );
             items.AddSimple()
                 .ColSpan(2)
                 .Label(l => l.Text("代禱事項"))

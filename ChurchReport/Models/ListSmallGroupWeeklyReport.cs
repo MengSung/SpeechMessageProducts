@@ -69,6 +69,9 @@ namespace ChurchReport.Models
                 m_PersonalReportViewModel.FullName = m_SmallGroupDataList.m_AllMemeberData.Members[0].FullName;
                 m_PersonalReportViewModel.SundayPresent = m_SmallGroupDataList.m_AllMemeberData.Members[0].Sunday;
                 m_PersonalReportViewModel.SmallGroupPresent = m_SmallGroupDataList.m_AllMemeberData.Members[0].SmallGroup;
+                m_PersonalReportViewModel.SpiritualWork = m_SmallGroupDataList.m_AllMemeberData.Members[0].SpiritualWork;
+                m_PersonalReportViewModel.MorningPray = m_SmallGroupDataList.m_AllMemeberData.Members[0].MorningPray;
+                m_PersonalReportViewModel.GeneralCare = m_SmallGroupDataList.m_AllMemeberData.Members[0].GeneralCare;
                 m_PersonalReportViewModel.PrayItem = m_SmallGroupDataList.m_AllMemeberData.Members[0].PrayItem;
             }
         }
@@ -79,6 +82,9 @@ namespace ChurchReport.Models
             {
                 m_SmallGroupDataList.m_AllMemeberData.Members[0].Sunday = m_PersonalReportViewModel.SundayPresent = aPersonalReportViewModel.SundayPresent;
                 m_SmallGroupDataList.m_AllMemeberData.Members[0].SmallGroup = m_PersonalReportViewModel.SmallGroupPresent = aPersonalReportViewModel.SmallGroupPresent;
+                m_SmallGroupDataList.m_AllMemeberData.Members[0].SpiritualWork = m_PersonalReportViewModel.SpiritualWork = aPersonalReportViewModel.SpiritualWork;
+                m_SmallGroupDataList.m_AllMemeberData.Members[0].MorningPray = m_PersonalReportViewModel.MorningPray = aPersonalReportViewModel.MorningPray;
+                m_SmallGroupDataList.m_AllMemeberData.Members[0].GeneralCare = m_PersonalReportViewModel.GeneralCare = aPersonalReportViewModel.GeneralCare;
                 m_SmallGroupDataList.m_AllMemeberData.Members[0].PrayItem = m_PersonalReportViewModel.PrayItem = aPersonalReportViewModel.PrayItem;
             }
         }
