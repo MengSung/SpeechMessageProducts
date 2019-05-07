@@ -1374,7 +1374,6 @@ namespace ChurchReport.WebServiceConnector
 
             #endregion
         }
-
         private void SetSmallGroupData( ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
         {
             aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData = new SmallGroupData();
