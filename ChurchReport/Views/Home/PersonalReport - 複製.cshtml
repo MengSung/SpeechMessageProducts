@@ -55,84 +55,88 @@
         .Items(items =>
         {
 
-            items.AddGroup()
-                .Caption("出席情況")
-                .ColSpan(1)
-                .Items(groupItems =>
-                {
-                    groupItems.AddSimple()
-                            .DataField("SundayPresent")
-                            .Label(l => l.Text("主日出席"))
-                            .Editor(e => e
-                                .CheckBox().ReadOnly(false)
-                                .Disabled(false)
-                                .Hint("主日出席!如欲更動請與音訊科技聯繫!")
-                                );
-                    groupItems.AddSimple()
-                            .DataField("SmallGroupPresent")
-                            .Label(l => l.Text("小組出席"))
-                            .Editor(e => e
-                                .CheckBox().ReadOnly(false)
-                                .Disabled(false)
-                                .Hint("小組出席!如欲更動請與音訊科技聯繫!")
-                                );
-
-                });
-            items.AddGroup()
-                .Caption("靈修情況")
-                .ColSpan(1)
-                .Items(groupItems =>
-                {
-                    groupItems.AddSimple()
-                            .DataField("SpiritualWork")
-                            .Label(l => l.Text("靈修次數"))
-                            .Editor(e => e
-                                .SelectBox()
-                                //.DataSource(new string[] { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", })
-                                .DataSource(new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, })
-                                .Hint("靈修次數!如欲更動請與音訊科技聯繫!")
-                            );
-                    groupItems.AddSimple()
-                            .DataField("MorningPray")
-                            .Label(l => l.Text("晨禱次數"))
-                            .Editor(e => e
-                                .SelectBox()
-                                //.DataSource(new string[] { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", })
-                                .DataSource(new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, })
-                                .Hint("晨禱次數!如欲更動請與音訊科技聯繫!")
-                            );
-                    groupItems.AddSimple()
-                            .DataField("GeneralCare")
-                            .Label(l => l.Text("禱告次數"))
-                            .Editor(e => e
-                                .SelectBox()
-                                //.DataSource(new string[] { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", })
-                                .DataSource(new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, })
-                                .Hint("禱告次數!如欲更動請與音訊科技聯繫!")
-                            );
-
-                });
+            //items.AddSimple()
+            //    .DataField("FullName")
+            //    .Label(l => l.Text("姓名"))
+            //    .Editor(e => e
+            //        .TextBox()
+            //        .Disabled(false)
+            //        .Placeholder("輸入姓名")
+            //   );
 
 
-            items.AddGroup()
-                .Caption("代禱事項")
+            //items.AddSimple()
+            //    .DataField("MerrageState")
+            //    .Label(l => l.Text("婚姻狀態"))
+            //    .Editor(e => e
+            //        .SelectBox()
+            //        .DataSource(new string[] {
+            //                            "未知",
+            //                            "已婚",
+            //                            "未婚",
+            //                            "離異",
+            //                            "喪偶",
+            //                            "單身",
+            //            }
+            //        //.DisplayExpr("Name")
+            //        )
+            //        .Value("未知")
+            //        );
+
+
+
+            items.AddSimple()
+                .DataField("SundayPresent")
+                .Label(l => l.Text("主日出席"))
+                .Editor(e => e
+                    .CheckBox()
+                    .Disabled(false)
+               );
+            items.AddSimple()
+                .DataField("SmallGroupPresent")
+                .Label(l => l.Text("小組出席"))
+                .Editor(e => e
+                    .CheckBox()
+                    .Disabled(false)
+               );
+
+            items.AddSimple()
+                .DataField("SpiritualWork")
+                .Label(l => l.Text("靈修次數"))
+                .Editor(e => e
+                    .SelectBox()
+                    //.DataSource(new string[] { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", })
+                    .DataSource(new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, })
+                    .Value(0)
+                    );
+            items.AddSimple()
+                .DataField("MorningPray")
+                .Label(l => l.Text("晨禱次數"))
+                .Editor(e => e
+                    .SelectBox()
+                    //.DataSource(new string[] { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", })
+                    .DataSource(new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, })
+                    .Value(0)
+                    );
+            items.AddSimple()
+                .DataField("GeneralCare")
+                .Label(l => l.Text("禱告次數"))
+                .Editor(e => e
+                    .SelectBox()
+                    //.DataSource(new string[] { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", })
+                    .DataSource(new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, })
+                    .Value(0)
+                    );
+            items.AddSimple()
                 .ColSpan(2)
-                .Items(groupItems =>
-                {
-                    groupItems.AddSimple()
-                            .DataField("PrayItem")
-                            .Label(l => l.Text("代禱事項"))
-                            .Editor(e => e
-                                .TextArea()
-                                .Height(150)
-                                .Placeholder("代禱事項")
-                            );
-                });
-
+                .Label(l => l.Text("代禱事項"))
+                .DataField("PrayItem")
+                .Editor(e => e
+                    .TextArea()
+                    .Height(200)
+                );
 
         })
-
-
         .OnContentReady(@<text>
         function(e) {
         e.component.validate();
