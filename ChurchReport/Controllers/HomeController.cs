@@ -189,6 +189,92 @@ namespace ChurchReport.Controllers
             }
         }
         #endregion
+        #region Line LIFF
+        public IActionResult LineIdLoginView()
+        {
+            try
+            {
+                var images = new List<string>();
+                images.Add(Url.Content("~/assets/images/tpehoc-005.jpg"));
+                images.Add(Url.Content("~/assets/images/tpehoc-006.jpg"));
+                images.Add(Url.Content("~/assets/images/tpehoc-007.jpg"));
+                images.Add(Url.Content("~/assets/images/tpehoc-008.jpg"));
+                images.Add(Url.Content("~/assets/images/tpehoc-009.jpg"));
+
+                m_InMemoryDataContextSmallGroup.LineBindingViewModel.Images = images;
+
+                return View(m_InMemoryDataContextSmallGroup.LineBindingViewModel);
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
+
+                throw e;
+            }
+        }
+
+        [Route("/Home/BindingResultView/{LineBindingResult}")]
+        public IActionResult BindingResultView(string LineBindingResult)
+        {
+            var images = new List<string>();
+            images.Add(Url.Content("~/assets/images/tpehoc-005.jpg"));
+            images.Add(Url.Content("~/assets/images/tpehoc-006.jpg"));
+            images.Add(Url.Content("~/assets/images/tpehoc-007.jpg"));
+            images.Add(Url.Content("~/assets/images/tpehoc-008.jpg"));
+            images.Add(Url.Content("~/assets/images/tpehoc-009.jpg"));
+
+            m_InMemoryDataContextSmallGroup.LineBindingViewModel.Images = images;
+
+            m_InMemoryDataContextSmallGroup.LineBindingViewModel.BindingResult = LineBindingResult;
+
+            return View(m_InMemoryDataContextSmallGroup.LineBindingViewModel);
+        }
+
+        [HttpPost]
+        public IActionResult SaveUserLineId(string UserLineId, string GroupId, string RoomId, string ViewType)
+        {
+            try
+            {
+                m_InMemoryDataContextSmallGroup.LineBindingViewModel.LineUserId = UserLineId;
+                m_InMemoryDataContextSmallGroup.LineBindingViewModel.RoomId = RoomId;
+                m_InMemoryDataContextSmallGroup.LineBindingViewModel.GroupId = GroupId;
+                m_InMemoryDataContextSmallGroup.LineBindingViewModel.ViewType = ViewType;
+
+                if (GroupId != null && GroupId != "")
+                {
+                    m_InMemoryDataContextSmallGroup.LineBindingViewModel.DisplayId = GroupId;
+                }
+                else if (RoomId != null && RoomId != "")
+                {
+                    m_InMemoryDataContextSmallGroup.LineBindingViewModel.DisplayId = RoomId;
+                }
+                else
+                {
+                    m_InMemoryDataContextSmallGroup.LineBindingViewModel.DisplayId = UserLineId;
+                }
+
+                return Json(new { status = "1", message = "成功上傳了...." });
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
+
+                throw e;
+            }
+        }
+
+        #endregion
+
         #region 註冊帳號
         public IActionResult Register()
         {
@@ -2357,21 +2443,6 @@ namespace ChurchReport.Controllers
         }
 
         [Route("/Home/BindingResultView/{LineBindingResult}")]
-        public IActionResult BindingResultView(string LineBindingResult)
-        {
-            var images = new List<string>();
-            images.Add(Url.Content("~/assets/images/tpehoc-005.jpg"));
-            images.Add(Url.Content("~/assets/images/tpehoc-006.jpg"));
-            images.Add(Url.Content("~/assets/images/tpehoc-007.jpg"));
-            images.Add(Url.Content("~/assets/images/tpehoc-008.jpg"));
-            images.Add(Url.Content("~/assets/images/tpehoc-009.jpg"));
-
-            m_InMemoryDataContextSmallGroup.LineBindingViewModel.Images = images;
-
-            m_InMemoryDataContextSmallGroup.LineBindingViewModel.BindingResult = LineBindingResult;
-
-            return View(m_InMemoryDataContextSmallGroup.LineBindingViewModel);
-        }
 
         [HttpPost]
         public IActionResult SaveUserId(string UserLineId, string GroupId, string RoomId, string ViewType)

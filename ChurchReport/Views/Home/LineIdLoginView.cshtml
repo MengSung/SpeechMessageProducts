@@ -1,0 +1,177 @@
+﻿<!DOCTYPE html>
+
+@{
+    Layout = null;
+}
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>台中思恩堂豐富教會</title>
+    <link href="~/favicon.ico" rel="shortcut icon" type="image/x-icon" />
+
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.css" />
+    <link rel="stylesheet" href="~/css/site.css" />
+    <link href="~/css/devextreme/dx.common.css" rel="stylesheet" />
+    <link href="~/css/devextreme/dx.light.css" rel="stylesheet" />
+
+    <script src="~/lib/jquery/dist/jquery.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.js"></script>
+
+    <script src="~/js/devextreme/cldr.js"></script>
+    <script src="~/js/devextreme/cldr/event.js"></script>
+    <script src="~/js/devextreme/cldr/supplemental.js"></script>
+    <script src="~/js/devextreme/cldr/unresolved.js"></script>
+
+    <script src="~/js/devextreme/globalize.js"></script>
+    <script src="~/js/devextreme/globalize/message.js"></script>
+    <script src="~/js/devextreme/globalize/number.js"></script>
+    <script src="~/js/devextreme/globalize/currency.js"></script>
+    <script src="~/js/devextreme/globalize/date.js"></script>
+
+    @* JSZip for client side export *@
+    @*<script src="~/js/devextreme/jszip.js"></script>*@
+
+    <script src="~/js/devextreme/dx.all.js"></script>
+    <script src="~/js/devextreme/vectormap-data/world.js"></script>
+    <script src="~/lib/devextreme-aspnet-data/js/dx.aspnet.data.js"></script>
+    <script src="~/js/devextreme/aspnet/dx.aspnet.mvc.js"></script>
+
+</head>
+
+<body>
+
+
+    <div class="long-title"><h3 id="displaynamefield"></h3></div>
+
+    <form data-ajax="true" data-ajax-begin="onBegin" data-ajax-success="onSuccess" asp-action="ProcessLineBinding" asp-controller="Home" method="post" style="text-align: center;">
+    </form>
+
+    <div id="ToastContainer">
+        @(Html.DevExtreme().Toast()
+                        .ID("toast")
+                        .Position(p => p
+                        .At(HorizontalAlignment.Center, VerticalAlignment.Center)
+                        .Offset(0, 50))
+                        .Message("以利亞")
+                        .DisplayTime(2000)
+                        .MaxWidth(200)
+        )
+
+    </div>
+
+    <script src="https://d.line-scdn.net/liff/1.0/sdk.js"></script>
+    <script src="~/js/liff-starter.js"></script>
+
+    <script>
+        function getLoadPanelInstance() {
+            return $("#loadPanel").dxLoadPanel("instance");
+        }
+
+        function button_click() {
+            getLoadPanelInstance().show();
+        }
+
+        function loadPanel_shown(e) {
+            //    setTimeout(function () {
+            //        e.component.hide();
+            //    }, 3000);
+        }
+
+        function loadPanel_hidden() {
+        }
+
+        function Register(arg) {
+
+            getLoadPanelInstance().show();
+        }
+
+    </script>
+
+    <script type="text/javascript">
+        function onBegin() {
+        }
+
+        function onSuccess(data) {
+
+        }
+
+        function onComplete(data) {
+            if (data.status == 1) {
+            }
+            else {
+            }
+        }
+    </script>
+
+    <script src="~/lib/jquery-ajax-unobtrusive/jquery.unobtrusive-ajax.js"></script>
+    <link href="~/css/Gallery.css" rel="stylesheet" />
+    <link href="~/css/WeeklyReport.css" rel="stylesheet" />
+
+    <script>
+
+        window.onload = function (e) {
+            liff.init(function (data) {
+                debugger;
+                //alert("測試001!");
+                initializeApp(data);
+            });
+        };
+
+
+        var UserId = "";
+        var GroupId = "";
+        var RoomId = "";
+        var DisplayName = "";
+        var ViewType = "";
+
+
+        function initializeApp(data) {
+            UserId = data.context.userId;
+            GroupId = data.context.groupId;
+            RoomId = data.context.roomId;
+            ViewType = data.context.viewType;
+
+            UpdateLineUserId(data.context.userId, data.context.groupId, data.context.roomId, data.context.viewType);
+
+            liff.getProfile().then(function (profile) {
+                //document.getElementById('useridprofilefield').textContent = profile.userId;
+                //document.getElementById('displaynamefield').textContent = profile.displayName;
+
+                document.getElementById('displaynamefield').innerHTML = profile.displayName + "綁定 ， ID = " + UserId;
+
+                DisplayName = profile.displayName;
+                //alert("測試003!" + profile.displayName);
+            });
+        }
+
+
+        function UpdateLineUserId(aUserLineId, aGroupId, aRoomId, aViewType ) {
+                    // AJAX 區塊
+                    $.ajax
+                    (
+                        {
+                            url: '@Url.Action("SaveUserId", "Home")',
+                            data: { UserLineId: aUserLineId, GroupId: aGroupId, RoomId: aRoomId, ViewType: aViewType}, // 整理回傳給 Server 的點名資料
+                            type: 'POST', //POST if you want to save, GET if you want to fetch data from server
+
+                            success: function (arg)
+                            {
+                            },
+
+                            error: function (obj)
+                            {
+                            }
+
+                        }
+                    );
+        }
+    </script>
+</body>
+
+</html>
