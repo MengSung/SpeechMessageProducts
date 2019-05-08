@@ -115,7 +115,7 @@
             //debugger;
             //alert("測試002!" + data.context.userId);
 
-            UpdateLineUserId(data.context.userId, data.context.groupId, data.context.roomId, data.context.viewType);
+            //UpdateLineUserId(data.context.userId, data.context.groupId, data.context.roomId, data.context.viewType);
 
             liff.getProfile().then(function (profile) {
                 //document.getElementById('useridprofilefield').textContent = profile.userId;
@@ -124,6 +124,8 @@
                 document.getElementById('displaynamefield').innerHTML = profile.displayName + "綁定";
 
                 DisplayName = profile.displayName;
+
+                UpdateLineUserId(data.context.userId, data.context.groupId, data.context.roomId, data.context.viewType, profile.displayName);
                 //alert("測試003!" + profile.displayName);
             });
 
@@ -139,13 +141,13 @@
         }
 
 
-        function UpdateLineUserId(aUserLineId, aGroupId, aRoomId, aViewType ) {
+        function UpdateLineUserId(aUserLineId, aGroupId, aRoomId, aViewType, aDisplayName ) {
                     // AJAX 區塊
                     $.ajax
                     (
                         {
-                            url: '@Url.Action("SaveUserId", "Home")',
-                            data: { UserLineId: aUserLineId, GroupId: aGroupId, RoomId: aRoomId, ViewType: aViewType}, // 整理回傳給 Server 的點名資料
+                            url: '@Url.Action("SaveUserLineId", "Home")',
+                            data: { UserLineId: aUserLineId, GroupId: aGroupId, RoomId: aRoomId, ViewType: aViewType, UserDisplayName:aDisplayName}, // 整理回傳給 Server 的點名資料
                             type: 'POST', //POST if you want to save, GET if you want to fetch data from server
 
                             success: function (arg)

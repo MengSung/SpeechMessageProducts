@@ -36,6 +36,7 @@ namespace ChurchReport.ViewModel
         public string RoomId { get; set; }
         public string LineUserId { get; set; }
         public string ViewType { get; set; }
+        public string UserDisplayName { get; set; }
         public string FullName { get; set; }
         public string Mobile { get; set; }
         public string EncodeUrl { get; set; }
