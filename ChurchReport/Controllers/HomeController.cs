@@ -194,16 +194,7 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                var images = new List<string>();
-                images.Add(Url.Content("~/assets/images/tpehoc-005.jpg"));
-                images.Add(Url.Content("~/assets/images/tpehoc-006.jpg"));
-                images.Add(Url.Content("~/assets/images/tpehoc-007.jpg"));
-                images.Add(Url.Content("~/assets/images/tpehoc-008.jpg"));
-                images.Add(Url.Content("~/assets/images/tpehoc-009.jpg"));
-
-                m_InMemoryDataContextSmallGroup.LineBindingViewModel.Images = images;
-
-                return View(m_InMemoryDataContextSmallGroup.LineBindingViewModel);
+                return View();
             }
             catch (System.Exception e)
             {
@@ -216,23 +207,6 @@ namespace ChurchReport.Controllers
 
                 throw e;
             }
-        }
-
-        [Route("/Home/BindingResultView/{LineBindingResult}")]
-        public IActionResult BindingResultView(string LineBindingResult)
-        {
-            var images = new List<string>();
-            images.Add(Url.Content("~/assets/images/tpehoc-005.jpg"));
-            images.Add(Url.Content("~/assets/images/tpehoc-006.jpg"));
-            images.Add(Url.Content("~/assets/images/tpehoc-007.jpg"));
-            images.Add(Url.Content("~/assets/images/tpehoc-008.jpg"));
-            images.Add(Url.Content("~/assets/images/tpehoc-009.jpg"));
-
-            m_InMemoryDataContextSmallGroup.LineBindingViewModel.Images = images;
-
-            m_InMemoryDataContextSmallGroup.LineBindingViewModel.BindingResult = LineBindingResult;
-
-            return View(m_InMemoryDataContextSmallGroup.LineBindingViewModel);
         }
 
         [HttpPost]
@@ -2443,6 +2417,22 @@ namespace ChurchReport.Controllers
         }
 
         [Route("/Home/BindingResultView/{LineBindingResult}")]
+        public IActionResult BindingResultView(string LineBindingResult)
+        {
+            var images = new List<string>();
+            images.Add(Url.Content("~/assets/images/tpehoc-005.jpg"));
+            images.Add(Url.Content("~/assets/images/tpehoc-006.jpg"));
+            images.Add(Url.Content("~/assets/images/tpehoc-007.jpg"));
+            images.Add(Url.Content("~/assets/images/tpehoc-008.jpg"));
+            images.Add(Url.Content("~/assets/images/tpehoc-009.jpg"));
+
+            m_InMemoryDataContextSmallGroup.LineBindingViewModel.Images = images;
+
+            m_InMemoryDataContextSmallGroup.LineBindingViewModel.BindingResult = LineBindingResult;
+
+            return View(m_InMemoryDataContextSmallGroup.LineBindingViewModel);
+        }
+
 
         [HttpPost]
         public IActionResult SaveUserId(string UserLineId, string GroupId, string RoomId, string ViewType)

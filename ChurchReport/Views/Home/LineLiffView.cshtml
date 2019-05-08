@@ -238,7 +238,7 @@
         window.onload = function (e) {
             liff.init(function (data) {
                 debugger;
-                //alert("測試001!");
+                alert("測試001!");
                 initializeApp(data);
             });
         };
@@ -278,7 +278,8 @@
             //document.getElementById('roomidfield').textContent = data.context.roomId;
             //document.getElementById('groupidfield').textContent = data.context.groupId;
 
-            //alert("測試002!" + data.context.userId);
+            debugger;
+            alert("測試002!" + data.context.userId);
 
             UpdateLineUserId(data.context.userId, data.context.groupId, data.context.roomId, data.context.viewType);
 
