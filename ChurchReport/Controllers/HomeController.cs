@@ -210,7 +210,7 @@ namespace ChurchReport.Controllers
         }
 
         [HttpPost]
-        public IActionResult SaveUserLineId(string UserLineId, string GroupId, string RoomId, string ViewType, String UserDisplayName )
+        public IActionResult SaveUserLineId(string UserLineId, string GroupId, string RoomId, string ViewType)
         {
             try
             {
@@ -218,7 +218,6 @@ namespace ChurchReport.Controllers
                 m_InMemoryDataContextSmallGroup.LineBindingViewModel.RoomId = RoomId;
                 m_InMemoryDataContextSmallGroup.LineBindingViewModel.GroupId = GroupId;
                 m_InMemoryDataContextSmallGroup.LineBindingViewModel.ViewType = ViewType;
-                m_InMemoryDataContextSmallGroup.LineBindingViewModel.UserDisplayName = UserDisplayName;
 
                 if (GroupId != null && GroupId != "")
                 {
@@ -233,8 +232,8 @@ namespace ChurchReport.Controllers
                     m_InMemoryDataContextSmallGroup.LineBindingViewModel.DisplayId = UserLineId;
                 }
 
-                return RedirectToAction("Login");
-                //return Json(new { status = "1", message = "成功上傳了...." });
+                //return RedirectToAction("Login");
+                return Json(new { status = "1", message = "成功上傳了...." });
             }
             catch (System.Exception e)
             {
@@ -250,7 +249,6 @@ namespace ChurchReport.Controllers
         }
 
         #endregion
-
         #region 註冊帳號
         public IActionResult Register()
         {
