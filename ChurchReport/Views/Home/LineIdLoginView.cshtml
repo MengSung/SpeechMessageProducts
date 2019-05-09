@@ -72,6 +72,7 @@
                                 //.Type(ButtonType.Success)
                                 //.Type(ButtonType.Normal)
                                 .Type(ButtonType.Default)
+                                .Visible(false)
                                 .ID("binding-button")
                                 .UseSubmitBehavior(true)
                                 .OnClick("Register")
@@ -83,6 +84,7 @@
                                 //.Type(ButtonType.Success)
                                 //.Type(ButtonType.Normal)
                                 .Type(ButtonType.Default)
+                                .Visible(false)
                                 .ID("login-button")
                                 .UseSubmitBehavior(true)
                                 .OnClick("Register")
@@ -294,6 +296,12 @@
                                         ShowToast(data.message, "error", 5000);
                                         getLoadPanelInstance().hide();
                                         document.getElementById('displaynamefield').innerHTML = "您還沒有綁定，請選擇綁定或透過帳號密碼登入!";
+                                        // 取得綁定的按鈕
+                                        var BindingButton= $("#binding-button").dxButton("instance");
+                                        BindingButton.option("visible", true);
+                                        // 取得帳密登入的按鈕
+                                        var LoginButton= $("#login-button").dxButton("instance");
+                                        LoginButton.option("visible", true);
 
                                 }
                             },
