@@ -257,35 +257,44 @@
 
                             success: function (data)
                             {
-                                if ( data.DisplayViewType == "MultiGroupView" ) {
-                                    // 小組長或是個人回報
-                                    ShowToast(data.message, "success", 2000);
+                                if (data.message != "尚未綁定") {
+                                    if (data.DisplayViewType == "MultiGroupView") {
+                                        // 小組長或是個人回報
+                                        ShowToast(data.message, "success", 2000);
 
-                                    //DevExpress.ui.notify(data.message, "success", 2000);
+                                        //DevExpress.ui.notify(data.message, "success", 2000);
 
-                                    //window.location.href = "/Home/IntegrateView/AccountPassword";
-                                    window.location.href = "/Home/MultiGroupView/" + data.ActiveListId;
-                                }
-                                else if ( data.DisplayViewType == "IntegrateView" ) {
-                                    // 小組長或是個人回報
-                                    ShowToast(data.message, "success", 2000);
+                                        //window.location.href = "/Home/IntegrateView/AccountPassword";
+                                        window.location.href = "/Home/MultiGroupView/" + data.ActiveListId;
+                                    }
+                                    else if (data.DisplayViewType == "IntegrateView") {
+                                        // 小組長或是個人回報
+                                        ShowToast(data.message, "success", 2000);
 
-                                    //DevExpress.ui.notify(data.message, "success", 2000);
+                                        //DevExpress.ui.notify(data.message, "success", 2000);
 
-                                    window.location.href = "/Home/IntegrateView/" + data.ActiveListId;
-                                }
-                                else if ( data.DisplayViewType == "HappyGroupView" ) {
-                                    // 單純幸福小組長回報
-                                    ShowToast(data.message, "success", 2000);
+                                        window.location.href = "/Home/IntegrateView/" + data.ActiveListId;
+                                    }
+                                    else if (data.DisplayViewType == "HappyGroupView") {
+                                        // 單純幸福小組長回報
+                                        ShowToast(data.message, "success", 2000);
 
-                                    //DevExpress.ui.notify(data.message, "success", 2000);
+                                        //DevExpress.ui.notify(data.message, "success", 2000);
 
-                                    window.location.href = "/Home/HappyGroup";
+                                        window.location.href = "/Home/HappyGroup";
+                                    }
+                                    else {
+                                        ShowToast(data.message, "error", 5000);
+                                        getLoadPanelInstance().hide();
+                                        document.getElementById('displaynamefield').innerHTML = "您還沒有綁定，請選擇綁定或透過帳號密碼登入!";
+                                        //DevExpress.ui.notify(data.message, "error", 3000);
+                                    }
                                 }
                                 else {
-                                    ShowToast(data.message, "error", 5000);
+                                        ShowToast(data.message, "error", 5000);
+                                        getLoadPanelInstance().hide();
+                                        document.getElementById('displaynamefield').innerHTML = "您還沒有綁定，請選擇綁定或透過帳號密碼登入!";
 
-                                    //DevExpress.ui.notify(data.message, "error", 3000);
                                 }
                             },
 
