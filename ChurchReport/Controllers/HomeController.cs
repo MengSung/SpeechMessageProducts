@@ -244,8 +244,9 @@ namespace ChurchReport.Controllers
 
                 Entity LineLoginContact = this.m_ToolUtilityClass.RetrieveContactByLineId(UserLineId);
 
-                if (LineLoginContact != null)
+                if (this.m_ToolUtilityClass.GetEntityStringAttribute( LineLoginContact, "fullname").Contains("(Line)") == false )
                 {
+                    // 已經綁定過了。全名不包含"(Line")
                     GalleryViewModel aGalleryViewModel = new GalleryViewModel();
                     aGalleryViewModel.Account = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "new_app_acount");
                     aGalleryViewModel.Password = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "new_app_pass");
@@ -254,11 +255,9 @@ namespace ChurchReport.Controllers
                 }
                 else
                 {
+                    // 還沒有綁定
                     return Json(new { status = "1", message = "尚未綁定" });
                 }
-
-                //return RedirectToAction("Login");
-                //return Json(new { status = "1", message = "成功上傳了...." });
             }
             catch (System.Exception e)
             {
@@ -2428,8 +2427,7 @@ namespace ChurchReport.Controllers
                     m_InMemoryDataContextSmallGroup.LineBindingViewModel.DisplayId = UserLineId;
                 }
 
-                return RedirectToAction("Login");
-                //return Json(new { status = "1", message = "成功上傳了...." });
+                return Json(new { status = "1", message = "成功上傳了...." });
             }
             catch (System.Exception e)
             {

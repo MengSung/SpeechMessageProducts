@@ -74,8 +74,8 @@
                                 .Type(ButtonType.Default)
                                 .Visible(false)
                                 .ID("binding-button")
-                                .UseSubmitBehavior(true)
-                                .OnClick("Register")
+                                .UseSubmitBehavior(false)
+                                .OnClick("Binding")
                                 .Width(120)
                 )
 
@@ -86,8 +86,8 @@
                                 .Type(ButtonType.Default)
                                 .Visible(false)
                                 .ID("login-button")
-                                .UseSubmitBehavior(true)
-                                .OnClick("Register")
+                                .UseSubmitBehavior(false)
+                                .OnClick("Login")
                                 .Width(120)
                 )
 
@@ -149,10 +149,16 @@
             getLoadPanelInstance().hide();
         }
 
-        function Register(arg) {
+        function Binding(arg) {
 
-            getLoadPanelInstance().show();
+            window.location.href = "/Home/LineLiffView";
         }
+
+        function Login(arg) {
+
+            window.location.href = "/Home/Login";
+        }
+
 
     </script>
 
@@ -293,7 +299,7 @@
                                     }
                                 }
                                 else {
-                                        ShowToast(data.message, "error", 5000);
+                                        ShowToast(data.message, "error", 2000);
                                         getLoadPanelInstance().hide();
                                         document.getElementById('displaynamefield').innerHTML = "您還沒有綁定，請選擇綁定或透過帳號密碼登入!";
                                         // 取得綁定的按鈕
