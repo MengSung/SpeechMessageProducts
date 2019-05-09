@@ -50,7 +50,7 @@ namespace ChurchReport.ViewModel
         #region 工具區
         public void GetContactInfomation(String UserLineId, ref String FaithStatus, ref String GenderCode, ref DateTime BirthDate)
         {
-            m_Contact = this.m_ToolUtilityClass.RetrieveContactCollectionByLineId(UserLineId);
+            m_Contact = this.m_ToolUtilityClass.RetrieveContactByLineId(UserLineId);
             if (m_Contact == null)
             {
                 return;

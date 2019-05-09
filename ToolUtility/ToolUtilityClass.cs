@@ -1059,7 +1059,7 @@ namespace ToolUtilityNameSpace
                 throw e;
             }
         }
-        public Entity RetrieveContactCollectionByLineId(String ContactFullName)
+        public Entity RetrieveContactByLineId(String LineId)
         {
             try
             {
@@ -1072,7 +1072,7 @@ namespace ToolUtilityNameSpace
                     //  Attribute to query
                     querybyexpression.Attributes.AddRange("new_lineid", "statecode");
                     //  Value of queried attribute to return
-                    querybyexpression.Values.AddRange(ContactFullName, 0);
+                    querybyexpression.Values.AddRange(LineId, 0);
 
                     //  Query passed to the service proxy
                     EntityCollection retrieved;

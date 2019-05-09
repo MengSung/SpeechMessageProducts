@@ -194,7 +194,17 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                return View();
+                var images = new List<string>();
+                images.Add(Url.Content("~/assets/images/tpehoc-005.jpg"));
+                images.Add(Url.Content("~/assets/images/tpehoc-006.jpg"));
+                images.Add(Url.Content("~/assets/images/tpehoc-007.jpg"));
+                images.Add(Url.Content("~/assets/images/tpehoc-008.jpg"));
+                images.Add(Url.Content("~/assets/images/tpehoc-009.jpg"));
+
+                m_InMemoryDataContextSmallGroup.LineBindingViewModel.Images = images;
+
+                return View(m_InMemoryDataContextSmallGroup.LineBindingViewModel);
+
             }
             catch (System.Exception e)
             {
@@ -232,8 +242,23 @@ namespace ChurchReport.Controllers
                     m_InMemoryDataContextSmallGroup.LineBindingViewModel.DisplayId = UserLineId;
                 }
 
+                Entity LineLoginContact = this.m_ToolUtilityClass.RetrieveContactByLineId(UserLineId);
+
+                if (LineLoginContact != null)
+                {
+                    GalleryViewModel aGalleryViewModel = new GalleryViewModel();
+                    aGalleryViewModel.Account = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "new_app_acount");
+                    aGalleryViewModel.Password = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "new_app_pass");
+
+                    return ProcessLogin(aGalleryViewModel);
+                }
+                else
+                {
+                    return Json(new { status = "1", message = "尚未綁定" });
+                }
+
                 //return RedirectToAction("Login");
-                return Json(new { status = "1", message = "成功上傳了...." });
+                //return Json(new { status = "1", message = "成功上傳了...." });
             }
             catch (System.Exception e)
             {
@@ -2232,43 +2257,21 @@ namespace ChurchReport.Controllers
 
         }
         #endregion
-        #region Line綁定
-        [Route("/Home/LineBindingView/{LineBindingParameter}")]
-        //[HttpGet("{LineBindingParameter}")]
-        public IActionResult LineBindingView(string LineBindingParameter)
+        #region Line LIFF 綁定
+        public IActionResult LineLiffView()
         {
             try
             {
-                string[] LineBindingParameterArray = LineBindingParameter.Split(',');
-
                 var images = new List<string>();
                 images.Add(Url.Content("~/assets/images/tpehoc-005.jpg"));
                 images.Add(Url.Content("~/assets/images/tpehoc-006.jpg"));
                 images.Add(Url.Content("~/assets/images/tpehoc-007.jpg"));
                 images.Add(Url.Content("~/assets/images/tpehoc-008.jpg"));
                 images.Add(Url.Content("~/assets/images/tpehoc-009.jpg"));
-                //images.Add(Url.Content("~/assets/images/photo-1.jpg"));
-                //images.Add(Url.Content("~/assets/images/photo-10.jpg"));
-                //images.Add(Url.Content("~/assets/images/photo-6.jpg"));
-                //images.Add(Url.Content("~/assets/images/photo-9.jpg"));
 
-                string EncodeName = System.Net.WebUtility.UrlEncode(LineBindingParameterArray[0]) + "," + System.Net.WebUtility.UrlEncode(LineBindingParameterArray[1]) + "," + System.Net.WebUtility.UrlEncode(LineBindingParameterArray[2]);
-
-                m_InMemoryDataContextSmallGroup.LineBindingViewModel.DisplayName = LineBindingParameterArray[0];
-                m_InMemoryDataContextSmallGroup.LineBindingViewModel.LineUserId = LineBindingParameterArray[1];
-                m_InMemoryDataContextSmallGroup.LineBindingViewModel.DisplayId = LineBindingParameterArray[2];
-                m_InMemoryDataContextSmallGroup.LineBindingViewModel.FullName = LineBindingParameterArray[0];
-                m_InMemoryDataContextSmallGroup.LineBindingViewModel.EncodeUrl = System.Net.WebUtility.UrlEncode(LineBindingParameterArray[0]) + "," + System.Net.WebUtility.UrlEncode(LineBindingParameterArray[1]) + "," + System.Net.WebUtility.UrlEncode(LineBindingParameterArray[2]);
                 m_InMemoryDataContextSmallGroup.LineBindingViewModel.Images = images;
 
-                if (LineBindingParameterArray.Length >= 2)
-                {
-                    return View(m_InMemoryDataContextSmallGroup.LineBindingViewModel);
-                }
-                else
-                {
-                    return RedirectToAction("Register");
-                }
+                return View(m_InMemoryDataContextSmallGroup.LineBindingViewModel);
             }
             catch (System.Exception e)
             {
@@ -2281,7 +2284,6 @@ namespace ChurchReport.Controllers
 
                 throw e;
             }
-
         }
 
         [HttpPost]
@@ -2331,12 +2333,11 @@ namespace ChurchReport.Controllers
 
         }
 
-
         public Guid CreateLineMessage(string DisplayId, string UserId, string Message, int OptionSetValueOfMessageType)
         {
             try
             {
-                Entity aContact = m_ToolUtilityClass.RetrieveContactCollectionByLineId(UserId);
+                Entity aContact = m_ToolUtilityClass.RetrieveContactByLineId(UserId);
 
                 //await SendMessage(UserId, "001: " + UserId);
 
@@ -2372,36 +2373,6 @@ namespace ChurchReport.Controllers
                     //await SendMessage(UserId, "008");
                     return Guid.Empty;
                 }
-            }
-            catch (System.Exception e)
-            {
-                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
-
-                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
-
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
-
-                throw e;
-            }
-        }
-
-        #endregion
-        #region Line LIFF
-        public IActionResult LineLiffView()
-        {
-            try
-            {
-                var images = new List<string>();
-                images.Add(Url.Content("~/assets/images/tpehoc-005.jpg"));
-                images.Add(Url.Content("~/assets/images/tpehoc-006.jpg"));
-                images.Add(Url.Content("~/assets/images/tpehoc-007.jpg"));
-                images.Add(Url.Content("~/assets/images/tpehoc-008.jpg"));
-                images.Add(Url.Content("~/assets/images/tpehoc-009.jpg"));
-
-                m_InMemoryDataContextSmallGroup.LineBindingViewModel.Images = images;
-
-                return View(m_InMemoryDataContextSmallGroup.LineBindingViewModel);
             }
             catch (System.Exception e)
             {
