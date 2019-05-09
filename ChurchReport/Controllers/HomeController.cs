@@ -2311,7 +2311,7 @@ namespace ChurchReport.Controllers
 
                 if (aLineEntityId != null && aLineEntityId != Guid.Empty)
                 {
-                    return Json(new { status = "1", message = "歡迎 " + aLineBindingViewModel.FullName + " 開始綁定程序，請至豐富教會接收綁定結果訊息，謝謝您!", encoded = aLineBindingViewModel.DisplayName + "," + aLineBindingViewModel.LineUserId });
+                    return Json(new { status = "1", message = "感謝 " + aLineBindingViewModel.FullName + " 完成綁定程序，請回到LINE視窗進行報名或回報，謝謝您!", encoded = aLineBindingViewModel.DisplayName + "," + aLineBindingViewModel.LineUserId });
                 }
                 else
                 {
