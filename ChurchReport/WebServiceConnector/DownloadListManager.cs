@@ -329,24 +329,28 @@ namespace ChurchReport.WebServiceConnector
                 // 處理每個點名名單
                 foreach (Entity ListEntity in this.m_Lists.Entities)
                 {
-                    // 取得每個需要點名的名單裡的每個週報
-                    //EntityCollection GroupWeeklyReportEntityCollection = m_ToolUtilityClass.RetrieveManyToOneRelationship("list", "listid", ListEntity.Id.ToString(), "new_list_group_present_weekly_report", "new_group_present_weekly_report");
+                    if (m_ToolUtilityClass.GetEntityBoolAttribute(ListEntity, "new_app_named") == true)
+                    {
+                        #region// 這個名單是需要被點名的
+                        // 取得每個需要點名的名單裡的每個週報
+                        //EntityCollection GroupWeeklyReportEntityCollection = m_ToolUtilityClass.RetrieveManyToOneRelationship("list", "listid", ListEntity.Id.ToString(), "new_list_group_present_weekly_report", "new_group_present_weekly_report");
 
-                    //EntityCollection GroupWeeklyReportEntityCollection = m_ToolUtilityClass.QueryWeeklyReportBySunday( this.m_Sunday, "list", "listid", ListEntity.Id.ToString(), "new_list_group_present_weekly_report", "new_group_present_weekly_report");
+                        //EntityCollection GroupWeeklyReportEntityCollection = m_ToolUtilityClass.QueryWeeklyReportBySunday( this.m_Sunday, "list", "listid", ListEntity.Id.ToString(), "new_list_group_present_weekly_report", "new_group_present_weekly_report");
 
-                    // 尋找此小組的某一個主日的週報集合
-                    EntityCollection GroupWeeklyReportEntityCollection = m_ToolUtilityClass.QueryWeeklyReportBySunday(this.m_Sunday, ListEntity.Id);
+                        // 尋找此小組的某一個主日的週報集合
+                        EntityCollection GroupWeeklyReportEntityCollection = m_ToolUtilityClass.QueryWeeklyReportBySunday(this.m_Sunday, ListEntity.Id);
 
-                    // 此小組的某一個主日的週報集合，應該僅有一個，也就是第0個的週報
-                    Entity GroupWeeklyReportEntity = GroupWeeklyReportEntityCollection.Entities.Count == 1 ? GroupWeeklyReportEntityCollection.Entities[0] : null;
+                        // 此小組的某一個主日的週報集合，應該僅有一個，也就是第0個的週報
+                        Entity GroupWeeklyReportEntity = GroupWeeklyReportEntityCollection.Entities.Count == 1 ? GroupWeeklyReportEntityCollection.Entities[0] : null;
 
-                    //依據找到的週報有還是沒有來決定下一步:  
-                    //      有: 建立GroupName及WeeklyReportId
-                    //    沒有: 建立GroupName及WeeklyReportId = Guid.Empty();
-                    String GroupName = this.m_ToolUtilityClass.GetEntityStringAttribute(ListEntity, "listname");
+                        //依據找到的週報有還是沒有來決定下一步:  
+                        //      有: 建立GroupName及WeeklyReportId
+                        //    沒有: 建立GroupName及WeeklyReportId = Guid.Empty();
+                        String GroupName = this.m_ToolUtilityClass.GetEntityStringAttribute(ListEntity, "listname");
 
-                    SetupWeeklyReportRecord(this.m_MultiGroupList.m_WeeklyReportRecordListData, ListEntity, GroupWeeklyReportEntity);
-
+                        SetupWeeklyReportRecord(this.m_MultiGroupList.m_WeeklyReportRecordListData, ListEntity, GroupWeeklyReportEntity);
+                        #endregion
+                    }
                 }
                 return;
             }
