@@ -84,13 +84,32 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                string ContactIdString = m_ToolUtilityClass.RetrieveContactByAccountNumber(aGalleryViewModel.Account, aGalleryViewModel.Password);
-
-                if (ContactIdString != "密碼錯誤" && ContactIdString != "系統沒有設定密碼" && ContactIdString != "帳號錯誤")
+                string ContactIdString = "";
+                if (aGalleryViewModel.Account != "")
                 {
-                    Guid aContactGuid = new Guid(ContactIdString);
+                    ContactIdString = m_ToolUtilityClass.RetrieveContactByAccountNumber(aGalleryViewModel.Account, aGalleryViewModel.Password);
+                }
+                else
+                {
+                    ContactIdString = "透過Line Id 登入";
+                }
 
-                    string FullName = m_ToolUtilityClass.RetrieveEntityDynamics365("contact", aContactGuid).Attributes["fullname"].ToString();
+                if (　ContactIdString != "密碼錯誤" && ContactIdString != "系統沒有設定密碼" && ContactIdString != "帳號錯誤"　)
+                {
+                    string FullName = "";
+                    if (ContactIdString != "透過Line Id 登入")
+                    {
+                        Guid aContactGuid = new Guid(ContactIdString);
+
+                        FullName = m_ToolUtilityClass.RetrieveEntityDynamics365("contact", aContactGuid).Attributes["fullname"].ToString();
+                    }
+                    else
+                    {
+                        Entity aLoginContact = m_ToolUtilityClass.RetrieveContactEntityByLineUserId(m_InMemoryDataContextSmallGroup.LineBindingViewModel.LineUserId);
+                        FullName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aLoginContact, "fullname");
+                        aGalleryViewModel.Account = "LineIdLogin";
+                        aGalleryViewModel.Password = m_InMemoryDataContextSmallGroup.LineBindingViewModel.LineUserId;
+                    }
 
                     // 設定多個組長處理需要的資料
                     m_InMemoryDataContextSmallGroup.SetupListManager(aGalleryViewModel.Account, aGalleryViewModel.Password, DateTime.Now, true);

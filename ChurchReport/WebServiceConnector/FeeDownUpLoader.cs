@@ -79,7 +79,7 @@ namespace ChurchReport.WebServiceConnector
         public List<Fee> GetFeeList(String Account, String Password, ref String Result, ref ClassName aClassName )
         {
             // 取得登入者
-            m_ContactEntity = m_ToolUtilityClass.RetrieveContactEntityByAccountNumber(Account, Password);
+            FindLoginUser(Account, Password);
 
             if (m_ContactEntity == null) return m_FeeDataList = new List<Fee>(); // 沒找到就直接離開
 
@@ -99,6 +99,23 @@ namespace ChurchReport.WebServiceConnector
                 }
             }
         }
+        #region 使用者登入
+        private void FindLoginUser(String Account, String Password)
+        {
+            // 找登入使用者及其ID
+            if (Account != "LineIdLogin")
+            {
+                this.m_ContactEntity = this.m_ToolUtilityClass.RetrieveContactEntityByAccountNumber(Account, Password);
+            }
+            else
+            {
+                // 用 LINE 登入
+                this.m_ContactEntity = this.m_ToolUtilityClass.RetrieveContactEntityByLineUserId(Password);
+            }
+
+            this.m_ContactId = m_ContactEntity.Id;
+        }
+        #endregion
 
         #endregion
         #region 副程式呼叫
