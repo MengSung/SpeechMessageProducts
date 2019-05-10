@@ -140,6 +140,7 @@
                     .DataSource(d => d.WebApi().Controller("Home").LoadAction("AssignSmallGroupGet").Key("ListEntityId"))
                     //.DataSource(d => d.Mvc().Controller("AssignSmallGroup").LoadAction("GetType").Key("ID"))
                     //.ValueExpr("Name")
+                    //.ValueExpr(Model.GroupName)
                     .DisplayExpr("Name")
                     .Value(Model.Position)
                     )

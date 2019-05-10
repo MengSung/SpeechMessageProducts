@@ -2149,6 +2149,7 @@ namespace ChurchReport.Controllers
                 if(m_InMemoryDataContextSmallGroup.ListManager.m_MultiGroupList.m_WeeklyReportRecordListData.Count == 1 )
                 {
                     m_InMemoryDataContextSmallGroup.NewPersonModel.m_PersonFormViewModel.Position = m_InMemoryDataContextSmallGroup.ListManager.m_MultiGroupList.m_WeeklyReportRecordListData.First().ListEntityId;
+                    m_InMemoryDataContextSmallGroup.NewPersonModel.m_PersonFormViewModel.GroupName = m_InMemoryDataContextSmallGroup.ListManager.m_MultiGroupList.m_WeeklyReportRecordListData.First().Name;
                 }
                 else if (ViewBag.MultiGroupIndex == "HybridView")
                 {
@@ -2187,6 +2188,11 @@ namespace ChurchReport.Controllers
                 {
                     return Json(new { status = "2", message = "新增新人必須要有行動電話" });
                 }
+
+                //if (m_InMemoryDataContextSmallGroup.ListManager.m_MultiGroupList.m_WeeklyReportRecordListData.Count == 1 || aPersonFormViewModel.Position == null )
+                //{
+                //    aPersonFormViewModel.Position = m_InMemoryDataContextSmallGroup.ListManager.m_MultiGroupList.m_WeeklyReportRecordListData.First().Name;
+                //}
 
                 // 上傳至系統
                 //string Result = m_InMemoryDataContextSmallGroup.m_NewPersonModel.UploadNewPerson(m_InMemoryDataContextSmallGroup.ListManager.m_Account, m_InMemoryDataContextSmallGroup.ListManager.m_Password, aPersonFormViewModel);
