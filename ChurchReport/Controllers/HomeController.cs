@@ -1402,6 +1402,32 @@ namespace ChurchReport.Controllers
                 }
                 #endregion
 
+                #region 個人回報網頁選項設定
+                ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType;// 看是小組長還是個人回報
+                ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.ListManager.LoginFullName;
+                ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType;
+                ViewBag.HappyType = m_InMemoryDataContextSmallGroup.HappyGroupDataManager.HappyType;
+
+                SetMultiGroupLayoutParameter();
+
+                if (m_InMemoryDataContextSmallGroup.ListManager.m_MultiGroupList.m_WeeklyReportRecordListData.Count == 1)
+                {
+                    m_InMemoryDataContextSmallGroup.NewPersonModel.m_PersonFormViewModel.Position = m_InMemoryDataContextSmallGroup.ListManager.m_MultiGroupList.m_WeeklyReportRecordListData.First().ListEntityId;
+                }
+                else if (ViewBag.MultiGroupIndex == "HybridView")
+                {
+                    m_InMemoryDataContextSmallGroup.NewPersonModel.m_PersonFormViewModel.Position = m_InMemoryDataContextSmallGroup.ListManager.ActiveListId;
+                }
+                else if (ViewBag.MultiGroupIndex == "SingleMultiGroupView")
+                {
+                    m_InMemoryDataContextSmallGroup.NewPersonModel.m_PersonFormViewModel.Position = "";
+                }
+                else
+                {
+                    m_InMemoryDataContextSmallGroup.NewPersonModel.m_PersonFormViewModel.Position = "";
+                }
+                #endregion
+
                 return Ok();
             }
             catch (System.Exception e)
@@ -2164,7 +2190,7 @@ namespace ChurchReport.Controllers
 
                 // 上傳至系統
                 //string Result = m_InMemoryDataContextSmallGroup.m_NewPersonModel.UploadNewPerson(m_InMemoryDataContextSmallGroup.ListManager.m_Account, m_InMemoryDataContextSmallGroup.ListManager.m_Password, aPersonFormViewModel);
-                string Result = m_InMemoryDataContextSmallGroup.m_NewPersonModel.UploadNewPerson( ref m_InMemoryDataContextSmallGroup, aPersonFormViewModel);
+                string Result = m_InMemoryDataContextSmallGroup.m_NewPersonModel.UploadNewPerson( aPersonFormViewModel);
 
                 //if (aPersonFormViewModel.Position == "0" || aPersonFormViewModel.Position == "1" || aPersonFormViewModel.Position == "2" || aPersonFormViewModel.Position == "3" || aPersonFormViewModel.Position == "4" || aPersonFormViewModel.Position == "5" || aPersonFormViewModel.Position == "6" || aPersonFormViewModel.Position == "7" || aPersonFormViewModel.Position == "8" || aPersonFormViewModel.Position == "9" || aPersonFormViewModel.Position == "10")
                 //{
