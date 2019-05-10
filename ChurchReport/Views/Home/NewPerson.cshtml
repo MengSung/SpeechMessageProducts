@@ -1,7 +1,10 @@
-﻿@model ChurchReport.ViewModels.PersonFormViewModel
-@{
+﻿@{
     var priorities = new[] { "Low", "Normal", "Urgent", "High" };
 }
+
+@using ChurchReport.ViewModels
+@model PersonFormViewModel
+
 <div class="long-title"><h3>新人資訊</h3></div>
 
 <form data-ajax="true" data-ajax-begin="onBegin" data-ajax-success="onSuccess" asp-action="SaveNewPerson" asp-controller="Home" method="post">
@@ -72,7 +75,7 @@
 
     </div>
     <div id="form-container">
-        @(Html.DevExtreme().Form()
+        @(Html.DevExtreme().Form<PersonFormViewModel>()
         .ID("form")
         .ColCount(3)
         .Items(items =>
@@ -89,8 +92,8 @@
             //        .Disabled(true)
             //    );
 
-            items.AddSimple()
-                .DataField("LastName")
+            items.AddSimpleFor(m=>m.LastName)
+                //.DataField("LastName")
                 .Label(l => l.Text("姓名"))
                 .Editor(e => e
                     .TextBox()
@@ -132,17 +135,27 @@
                    .Layout(Orientation.Horizontal)
                );
 
-            items.AddSimple()
-                .DataField("Position")
+            items.AddSimpleFor(m=>m.Position)
+                //.DataField("Position")
                 .Label(l => l.Text("所屬小組"))
                 .Editor(e => e
                     .SelectBox()
-                    .DataSource(d => d.WebApi().Controller("Home").LoadAction("AssignSmallGroupGet").Key("ListEntityId"))
+                                        //.DataSource(d => d.WebApi().Controller("Home").LoadAction("AssignSmallGroupGet").Key("ListEntityId"))
+                                        .DataSource(new string[] {
+                                        "未知",
+                                        "已婚",
+                                        "未婚",
+                                        "離異",
+                                        "喪偶",
+                                        "單身",
+                        }
+                    )
                     //.DataSource(d => d.Mvc().Controller("AssignSmallGroup").LoadAction("GetType").Key("ID"))
                     //.ValueExpr("Name")
                     //.ValueExpr(Model.GroupName)
-                    .DisplayExpr("Name")
-                    .Value(Model.Position)
+                    //.DisplayExpr("Name")
+                    //.Value(Model.Position)
+                    .Value("未知")
                     )
                     //.ValidationRules
                     //(   r => r
@@ -165,7 +178,7 @@
                 .DataField("HireDate")
                 .Label(l => l.Text("進教會日期"))
                 .Editor(
-                        e => e.DateBox()//.Value(new JS("null")) 
+                        e => e.DateBox()//.Value(new JS("null"))
                         .Placeholder("進教會日期")
                     );
             //.ValidationRules(r => r
@@ -262,11 +275,11 @@
 
         })
         .OnContentReady(@<text>
-        function(e) {
-        e.component.validate();
-        }
+                    function(e) {
+                    e.component.validate();
+                    }
         </text>)
-        .FormData(Model)
+ .FormData(Model)
         )
     </div>
 </form>
@@ -287,36 +300,36 @@
 
 
 <script>
-            function getLoadPanelInstance() {
-                return $("#loadPanel").dxLoadPanel("instance");
-            }
+    function getLoadPanelInstance() {
+        return $("#loadPanel").dxLoadPanel("instance");
+    }
 
-            function button_click() {
-                getLoadPanelInstance().show();
-            }
+    function button_click() {
+        getLoadPanelInstance().show();
+    }
 
-            function loadPanel_shown(e) {
-            //    setTimeout(function () {
-            //        e.component.hide();
-            //    }, 3000);
-            }
+    function loadPanel_shown(e) {
+        //    setTimeout(function () {
+        //        e.component.hide();
+        //    }, 3000);
+    }
 
-            function loadPanel_hidden() {
-            }
+    function loadPanel_hidden() {
+    }
 
-            function SaveNewPerson(arg) {
+    function SaveNewPerson(arg) {
 
-                //debugger;
-                getLoadPanelInstance().show();
-                //$("#toast").dxToast("instance").show();
-                //alert("SaveNewPerson!!!");
-                //alert("OnValueChanged : " + arg.value);
+        //debugger;
+        getLoadPanelInstance().show();
+        //$("#toast").dxToast("instance").show();
+        //alert("SaveNewPerson!!!");
+        //alert("OnValueChanged : " + arg.value);
 
-                //alert("OnValueChanged : " + arg.attribute('text'));
-                //alert("OnValueChanged : " + text: arg.attribute("text"));
+        //alert("OnValueChanged : " + arg.attribute('text'));
+        //alert("OnValueChanged : " + text: arg.attribute("text"));
 
-                //alert( getODataLocalDateFilter(arg.value) );
-            }
+        //alert( getODataLocalDateFilter(arg.value) );
+    }
 
 </script>
 
