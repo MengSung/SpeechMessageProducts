@@ -37,20 +37,19 @@ namespace ChurchReport.Models
 
         public NewContact m_NewContact = new NewContact();
 
-        public InMemoryDataContextSmallGroup m_InMemoryDataContextSmallGroup;
         public void SetupNewPersonModel(PersonFormViewModel aPersonFormViewModel)
         {
             CopyPersonFormViewModel(aPersonFormViewModel);
         }
 
-        public String UploadNewPerson( PersonFormViewModel aPersonFormViewModel)
+        public String UploadNewPerson( String Account, String Password, PersonFormViewModel aPersonFormViewModel)
         {
             CopyPersonFormViewModel(aPersonFormViewModel);
 
             AccountPasswordData aAccountPasswordData = new AccountPasswordData
             {
-                Account = m_InMemoryDataContextSmallGroup.ListManager.m_Account,
-                Password = m_InMemoryDataContextSmallGroup.ListManager.m_Password
+                Account = Account,
+                Password = Password
             };
 
             NewPerson aNewPersonManager = new NewPerson();

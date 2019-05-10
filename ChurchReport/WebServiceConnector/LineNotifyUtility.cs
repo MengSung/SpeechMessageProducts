@@ -63,7 +63,7 @@ namespace ChurchReport.WebServiceConnector
         }
 
 
-        public void SendSmallGroupResultLine(Entity LoginContact, String SmallGroupResult, GroupWeeklyReportGuid aGroupWeeklyReportGuid, Guid aWeeklyReportId, ref Entity aListEntity,ref SmallGroupData aSmallGroupData, String WeeklyReportData)
+        public void SendSmallGroupResultLine(Entity LoginContact, String SmallGroupResult, GroupWeeklyReportGuid aGroupWeeklyReportGuid, Guid aWeeklyReportId, ref Entity aListEntity, ref SmallGroupData aSmallGroupData, String WeeklyReportData)
         {
             try
             {
@@ -72,6 +72,23 @@ namespace ChurchReport.WebServiceConnector
                 SmallGroupResult = ProcessLineMessage(LoginContact, SmallGroupResult, ref aListEntity, ref aSmallGroupData, WeeklyReportData);
 
                 m_PushUtility.MultiCastTextMessageAsync(GetLineRecieverList(ref aListEntity, aSmallGroupData.LoginType), SmallGroupResult);
+
+                #endregion
+            }
+            catch (System.Exception Exception)
+            {
+                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
+
+                throw Exception;
+            }
+        }
+        public void SendAddNewPersonResultLine(String AddNewPersonResult, Entity aListEntity)
+        {
+            try
+            {
+                #region 傳送LINE 訊息關於加入新人的結果給權柄
+
+                m_PushUtility.MultiCastTextMessageAsync(GetLineRecieverList(ref aListEntity, "小組長"), AddNewPersonResult);
 
                 #endregion
             }

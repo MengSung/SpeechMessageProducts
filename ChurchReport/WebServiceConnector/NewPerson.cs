@@ -56,16 +56,17 @@ namespace ChurchReport.WebServiceConnector
         private const int LEVEL_3 = 3;
         private const int LEVEL_4 = 4;
         private const int LEVEL_5 = 5; // 比較不會被看到的，可能是比較細節的部分
-        // 如果 TRACE_LEVEL >= TRACE_LEVEL_GROUND 就會進行追蹤
-        // 如果 TRACE_LEVEL < TRACE_LEVEL_GROUND 就不會進行追蹤
-        //int TRACE_LEVEL = 5;
-        //int TRACE_LEVEL_GROUND = 3;
+                                       // 如果 TRACE_LEVEL >= TRACE_LEVEL_GROUND 就會進行追蹤
+                                       // 如果 TRACE_LEVEL < TRACE_LEVEL_GROUND 就不會進行追蹤
+                                       //int TRACE_LEVEL = 5;
+                                       //int TRACE_LEVEL_GROUND = 3;
         #endregion
 
         #endregion
         #endregion
 
         #region 上傳資料時所需要的參數
+        private LineNotifyUtility m_LineNotifyUtility = new LineNotifyUtility();
 
         MemberInfomationPackage m_MemberInfomationPackage = new MemberInfomationPackage();
         DateTime m_Sunday;
@@ -104,15 +105,16 @@ namespace ChurchReport.WebServiceConnector
                 this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "依據姓名及手機號碼過濾，看新人是否已存在");
                 Entity aExistContact = SearchContactByMobilePhone(ref aNewContact);
 
-                if (aExistContact != null)
+                if (aExistContact == null)
                 {
-                    this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "無法建立新人，因為新人的名字和手機已存在");
-                    return AddNewContactToList( aAccountPasswordData, ref aNewContact, aExistContact);
+                    // 這是要新建立的連絡人
+                    return CreateNewContact(aAccountPasswordData, ref aNewContact);
                 }
                 else
                 {
-                    // 這是要新建立的連絡人
-                    return CreateNewContactInCrm2011(aAccountPasswordData, ref aNewContact);
+                    // 新增的新人已經存在在資料庫中了
+                    this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "無法建立新人，因為新人的名字和手機已存在");
+                    return AddNewContactToList(aAccountPasswordData, ref aNewContact, aExistContact);
                 }
             }
             catch (System.Exception e)
@@ -165,14 +167,17 @@ namespace ChurchReport.WebServiceConnector
         {
             try
             {
+                #region // 新增的新人已經存在在資料庫中了
                 // 判斷是否已經在其他小組中
-                String SmallGroupStatus = DoesContactAlreadyInaSmallGroup(aExistContact);
+                String SmallGroupStatus = "";
+                Entity aExistList = DoesContactAlreadyInASmallGroup( aExistContact, ref SmallGroupStatus);
 
-                if (SmallGroupStatus != "")
+                // 設定要加入的小組
+                Entity aListEntity = GetRelatedList(aAccountPasswordData, aNewContact.GroupName);
+
+                if ( aExistList != null )
                 {
-                    // 設定要加入的小組
-                    Entity aListEntity = GetRelatedList(aAccountPasswordData, aNewContact.GroupName);
-
+                    #region //還沒有在其他小組中
                     if (aListEntity != null)
                     {
                         SetupNewContactParameter(ref aExistContact, aAccountPasswordData, ref aNewContact, aListEntity.Id);
@@ -185,13 +190,12 @@ namespace ChurchReport.WebServiceConnector
                     // 將剛剛新增的聯絡人加入至成員名單
                     ConnectNewContactInMemberList(aExistContact.Id, aNewContact.GroupName, aListEntity);
 
-                    #region 建立個人聚會與靈修記錄
+                    
                     if (aListEntity != null)
                     {
                         // 有找到被關聯的小組名單
                         CreateNewContactPresentRecord(aListEntity, aExistContact.Id, aNewContact.GroupName);
                     }
-                    #endregion
                     #region 關聯主要小組
                     //this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aNewContactEntity, "new_cell_list_contact", "list", aListEntity.Id);
                     #endregion
@@ -200,12 +204,40 @@ namespace ChurchReport.WebServiceConnector
                     //this.m_ToolUtilityClass.UpdateEntity(ref aNewContactEntity);
                     #endregion
 
-                    return "新增的新人在資料庫已經存在，所以直接加入到" + aNewContact.GroupName + "小組中";
+                    String LoginContactFullName = this.m_ToolUtilityClass.GetEntityStringAttribute(this.m_ContactEntity, "fullname");
+                    String ExistContactFullName = this.m_ToolUtilityClass.GetEntityStringAttribute(aExistContact, "fullname");
+
+                    //String AddedGroupName = m_ToolUtilityClass.GetEntityStringAttribute(ListEntity, "listname");
+                    String DestinyGroupName = m_ToolUtilityClass.GetEntityStringAttribute(aExistList, "listname");
+
+                    String Result = LoginContactFullName + " 加入 " + ExistContactFullName + " 到 " + aNewContact.GroupName + "小組中";
+
+                    this.m_LineNotifyUtility.SendAddNewPersonResultLine(Result, aListEntity);
+
+                    return "新增的新人在資料庫已經存在，所以 " + Result;
+                    #endregion
+
                 }
                 else
                 {
+                    #region//已經在其他小組中 
+
+                    String LoginContactFullName = this.m_ToolUtilityClass.GetEntityStringAttribute(this.m_ContactEntity, "fullname");
+                    String ExistContactFullName = this.m_ToolUtilityClass.GetEntityStringAttribute(aExistContact, "fullname");
+
+                    //String AddedGroupName = m_ToolUtilityClass.GetEntityStringAttribute(ListEntity, "listname");
+                    String DestinyGroupName = m_ToolUtilityClass.GetEntityStringAttribute(aExistList, "listname");
+
+                    String Result = LoginContactFullName + " 想要加入 " + ExistContactFullName + " 到 " + aNewContact.GroupName + "小組中" + "但是" + ExistContactFullName + "已經在 " + DestinyGroupName + " 小組了!";
+
+                    //傳送LINE 訊息關於加入新人的結果給兩個小組的權柄
+                    this.m_LineNotifyUtility.SendAddNewPersonResultLine(Result, aExistList);
+                    this.m_LineNotifyUtility.SendAddNewPersonResultLine(Result, aListEntity);
+
                     return SmallGroupStatus;
+                    #endregion
                 }
+                #endregion
             }
             catch (System.Exception e)
             {
@@ -215,7 +247,7 @@ namespace ChurchReport.WebServiceConnector
                 throw e;
             }
         }
-        public String DoesContactAlreadyInaSmallGroup( Entity aExistContact)
+        public Entity DoesContactAlreadyInASmallGroup( Entity aExistContact, ref String SmallGroupStatus)
         {
             try
             {
@@ -226,13 +258,26 @@ namespace ChurchReport.WebServiceConnector
                 {
                     if (m_ToolUtilityClass.GetEntityBoolAttribute(ListEntity, "new_app_named") == true)
                     {
-                        #region// 這個名單是需要被點名的
-                        return "已經有在" +  m_ToolUtilityClass.GetEntityStringAttribute(ListEntity, "listname") ;
+                        #region// 這個名單是需要被點名的 ，已經在其他小組中
+
+                        //String LoginContactFullName = this.m_ToolUtilityClass.GetEntityStringAttribute(this.m_ContactEntity, "fullname");
+                        //String ExistContactFullName = this.m_ToolUtilityClass.GetEntityStringAttribute(aExistContact, "fullname");
+
+                        ////String AddedGroupName = m_ToolUtilityClass.GetEntityStringAttribute(ListEntity, "listname");
+                        //String DestinyGroupName = m_ToolUtilityClass.GetEntityStringAttribute(ListEntity, "listname");
+
+                        //String Result = LoginContactFullName + " 想要加入 " + ExistContactFullName + " 到 " + AddedGroupName + "小組中" + "但是" + ExistContactFullName + "已經在 " + DestinyGroupName + " 小組了!"
+
+                        ////傳送LINE 訊息關於加入新人的結果給權柄
+                        //this.m_LineNotifyUtility.SendAddNewPersonResultLine(Result, ListEntity);
+
+                        return ListEntity;
                         #endregion
                     }
                 }
 
-                return "";
+                // 沒有在其他小組中
+                return null;
             }
             catch (System.Exception e)
             {
@@ -243,7 +288,7 @@ namespace ChurchReport.WebServiceConnector
             }
         }
 
-        public String CreateNewContactInCrm2011(AccountPasswordData aAccountPasswordData, ref NewContact aNewContact)
+        public String CreateNewContact(AccountPasswordData aAccountPasswordData, ref NewContact aNewContact)
         {
             try
             {
@@ -283,7 +328,13 @@ namespace ChurchReport.WebServiceConnector
                 //this.m_ToolUtilityClass.UpdateEntity(ref aNewContactEntity);
                 #endregion
 
-                return "成功建立新人";
+                String LoginContactFullName = this.m_ToolUtilityClass.GetEntityStringAttribute(this.m_ContactEntity, "fullname");
+
+                String Result = LoginContactFullName + " 成功建立新人並且加入 " + aNewContact.Name + " 到 " + aNewContact.GroupName + "小組中";
+
+                this.m_LineNotifyUtility.SendAddNewPersonResultLine(Result, aListEntity);
+
+                return  Result;
             }
             catch (System.Exception e)
             {
