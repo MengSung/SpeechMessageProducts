@@ -248,8 +248,8 @@ namespace ChurchReport.Controllers
                 {
                     // 已經綁定過了。全名不包含"(Line")
                     GalleryViewModel aGalleryViewModel = new GalleryViewModel();
-                    aGalleryViewModel.Account = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "new_app_acount");
-                    aGalleryViewModel.Password = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "new_app_pass");
+                    //aGalleryViewModel.Account = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "new_app_acount");
+                    //aGalleryViewModel.Password = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "new_app_pass");
 
                     return ProcessLogin(aGalleryViewModel);
                 }

@@ -9,8 +9,8 @@ namespace ChurchReport.ViewModel
     public class GalleryViewModel
     {
         public IEnumerable<string> Images { get; set; }
-        public string Account { get; set; }
-        public string Password { get; set; }
+        public string Account { get; set; } = "";
+        public string Password { get; set; } = "";
     }
     public class RegisterViewModel
     {
