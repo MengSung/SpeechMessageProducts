@@ -233,9 +233,8 @@
                 //editing.Mode(GridEditMode.Popup);
                 editing.AllowUpdating(true);
                 //editing.AllowAdding(true);
-                //editing.
-                editing.Texts(a => a.SaveAllChanges("上傳檔案").AddRow("新增").CancelAllChanges("取消變更"));
-                //editing.AllowDeleting(true);
+                editing.AllowDeleting(true);
+                editing.Texts(a => a.SaveAllChanges("上傳檔案").AddRow("新增").CancelAllChanges("取消變更").SaveRowChanges("儲存").CancelRowChanges("取消").EditRow("編輯").DeleteRow("刪除"));
             })
 
     .Columns(columns =>
@@ -315,6 +314,22 @@
                     .Key("PresentRecordId")
                     .LoadParams(new { id = @ViewBag.ListId })
                 )
+
+                // 此處設定是讓選項偏左邊一排
+                .OnContentReady(
+                @<text>
+                function(e)
+                {
+                moveEditColumnToLeft(e.component);
+                //ShowToast( ReMindMessage , 'warning' , 20000)
+                }
+                </text>
+                )
+
+
+                //此處設定是鉛筆形狀還是"編輯"字樣
+                .OnCellPrepared("cell_prepared")
+                //.OnCellPrepared("cell_prepared_background_color")
 
                 //.DataSourceOptions(d => d.Filter("['Id', '<=' , 6]"))
     )
@@ -406,7 +421,6 @@
 
         return new Date(date.getFullYear(), rawMonth, rawDate);
     }
-
     function onReady(e) {
     $.ajax({
         url: '@Url.Action("GetMarkers", "Home")',
@@ -416,7 +430,35 @@
             $("#map").dxMap("instance").option("markers", data);
         }
     });
-}
+    }
+
+
+    function moveEditColumnToLeft(dataGrid) {
+        dataGrid.columnOption("command:edit", {
+            visibleIndex: -1,
+            width: 50
+        });
+    }
+    function cell_prepared(e) {
+        if (e.rowType === "data" && e.column.command === "edit")
+        {
+                var isEditing = e.row.isEditing,
+                $links = e.cellElement.find(".dx-link");
+
+                $links.text("");
+
+                if (isEditing) {
+                    $links.filter(".dx-link-save").addClass("dx-icon-save");
+                    $links.filter(".dx-link-cancel").addClass("dx-icon-revert");
+                }
+                else {
+                    $links.filter(".dx-link-edit").addClass("dx-icon-edit");
+                    $links.filter(".dx-link-delete").addClass("dx-icon-trash");
+                }
+        }
+       
+    }
+
 </script>
 
 <script src="~/js/DataGridAjax.js"></script>
