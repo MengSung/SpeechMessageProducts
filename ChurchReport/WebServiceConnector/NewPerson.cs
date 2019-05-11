@@ -175,7 +175,7 @@ namespace ChurchReport.WebServiceConnector
                 // 設定要加入的小組
                 Entity aListEntity = GetRelatedList(aAccountPasswordData, aNewContact.GroupName);
 
-                if ( aExistList != null )
+                if ( aExistList == null )
                 {
                     #region //還沒有在其他小組中
                     if (aListEntity != null)
@@ -210,11 +210,11 @@ namespace ChurchReport.WebServiceConnector
                     //String AddedGroupName = m_ToolUtilityClass.GetEntityStringAttribute(ListEntity, "listname");
                     String DestinyGroupName = m_ToolUtilityClass.GetEntityStringAttribute(aExistList, "listname");
 
-                    String Result = LoginContactFullName + " 加入 " + ExistContactFullName + " 到 " + aNewContact.GroupName + "小組中";
+                    String Result = LoginContactFullName + " 仍然成功的加入 " + ExistContactFullName + " 到 " + aNewContact.GroupName + "小組中";
 
                     this.m_LineNotifyUtility.SendAddNewPersonResultLine(Result, aListEntity);
 
-                    return "新增的新人在資料庫已經存在，所以 " + Result;
+                    return "新增的新人在資料庫已經存在，但是 " + Result;
                     #endregion
 
                 }
@@ -234,7 +234,7 @@ namespace ChurchReport.WebServiceConnector
                     this.m_LineNotifyUtility.SendAddNewPersonResultLine(Result, aExistList);
                     this.m_LineNotifyUtility.SendAddNewPersonResultLine(Result, aListEntity);
 
-                    return SmallGroupStatus;
+                    return Result;
                     #endregion
                 }
                 #endregion
