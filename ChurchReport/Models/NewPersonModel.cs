@@ -22,6 +22,7 @@ namespace ChurchReport.Models
             Position = "",
             MerrageState="未知",
             BirthDate = DateTime.Parse("1975/01/1"),
+            GroupArray = new List<String> { "親愛耶穌", "火熱約書亞", "以利亞" },
             //HireDate = DateTime.Parse("2017/08/25"),
             HireDate = DateTime.Now,
             Notes = "",
@@ -37,9 +38,9 @@ namespace ChurchReport.Models
 
         public NewContact m_NewContact = new NewContact();
 
-        public void SetupNewPersonModel(PersonFormViewModel aPersonFormViewModel)
+        public void SetupGroupArray(List<WeeklyReportRecord> aWeeklyReportRecordListData)
         {
-            CopyPersonFormViewModel(aPersonFormViewModel);
+            //m_PersonFormViewModel = new
         }
 
         public String UploadNewPerson( String Account, String Password, PersonFormViewModel aPersonFormViewModel)
@@ -58,7 +59,6 @@ namespace ChurchReport.Models
 
             return aNewPersonManager.CreateNewContact(aAccountPasswordData, m_NewContact);
         }
-
         public void CopyPersonFormViewModel(PersonFormViewModel aPersonFormViewModel)
         {
             m_PersonFormViewModel.FirstName = aPersonFormViewModel.FirstName;

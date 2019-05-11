@@ -2164,6 +2164,8 @@ namespace ChurchReport.Controllers
                     m_InMemoryDataContextSmallGroup.NewPersonModel.m_PersonFormViewModel.Position = "";
                 }
 
+                m_InMemoryDataContextSmallGroup.m_NewPersonModel.SetupGroupArray(m_InMemoryDataContextSmallGroup.ListManager.m_MultiGroupList.m_WeeklyReportRecordListData);
+
                 return View(m_InMemoryDataContextSmallGroup.NewPersonModel.m_PersonFormViewModel);
             }
             catch (System.Exception e)
