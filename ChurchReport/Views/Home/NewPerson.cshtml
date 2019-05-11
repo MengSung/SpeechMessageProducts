@@ -140,6 +140,8 @@
             .Label(l => l.Text("所屬小組"))
             .Editor(e => e
                 .SelectBox()
+                        .DataSource(Model.GroupArray)
+
                         //.DataSource(d => d.WebApi().Controller("Home").LoadAction("AssignSmallGroupGet").Key("ListEntityId"))
                         //.DataSource(new string[] {
                         //"未知",
@@ -149,14 +151,13 @@
                         //"喪偶",
                         //"單身",
                         //}
-                        .DataSource(Model.GroupArray)
                 
-                //.DataSource(d => d.Mvc().Controller("AssignSmallGroup").LoadAction("GetType").Key("ID"))
-                //.ValueExpr("Name")
-                //.ValueExpr(Model.GroupName)
-                //.DisplayExpr("Name")
-                //.Value(Model.Position)
-                .Value(Model.GroupArray[1])
+                        //.DataSource(d => d.Mvc().Controller("AssignSmallGroup").LoadAction("GetType").Key("ID"))
+                        //.ValueExpr("Name")
+                        //.ValueExpr(Model.GroupName)
+                        //.DisplayExpr("Name")
+                        //.Value(Model.Position)
+                        .Value(Model.Position)
                     )
                     //.ValidationRules
                     //(   r => r

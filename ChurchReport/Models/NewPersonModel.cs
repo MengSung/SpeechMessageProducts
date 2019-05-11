@@ -22,7 +22,7 @@ namespace ChurchReport.Models
             Position = "",
             MerrageState="未知",
             BirthDate = DateTime.Parse("1975/01/1"),
-            GroupArray = new List<String> { "親愛耶穌", "火熱約書亞", "以利亞" },
+            GroupArray = new List<String> (),
             //HireDate = DateTime.Parse("2017/08/25"),
             HireDate = DateTime.Now,
             Notes = "",
@@ -38,9 +38,17 @@ namespace ChurchReport.Models
 
         public NewContact m_NewContact = new NewContact();
 
-        public void SetupGroupArray(List<WeeklyReportRecord> aWeeklyReportRecordListData)
+        public void SetupGroupArray(List<WeeklyReportRecord> aWeeklyReportRecordListData, String ActiveListId)
         {
-            //m_PersonFormViewModel = new
+            foreach(WeeklyReportRecord aWeeklyReportRecord in aWeeklyReportRecordListData)
+            {
+                m_PersonFormViewModel.GroupArray.Add(aWeeklyReportRecord.Name);
+
+                if(aWeeklyReportRecord.ListEntityId == ActiveListId)
+                {
+                    m_PersonFormViewModel.Position = aWeeklyReportRecord.Name;
+                }
+            }
         }
 
         public String UploadNewPerson( String Account, String Password, PersonFormViewModel aPersonFormViewModel)

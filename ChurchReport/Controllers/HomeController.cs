@@ -2148,7 +2148,7 @@ namespace ChurchReport.Controllers
 
                 if(m_InMemoryDataContextSmallGroup.ListManager.m_MultiGroupList.m_WeeklyReportRecordListData.Count == 1 )
                 {
-                    m_InMemoryDataContextSmallGroup.NewPersonModel.m_PersonFormViewModel.Position = m_InMemoryDataContextSmallGroup.ListManager.m_MultiGroupList.m_WeeklyReportRecordListData.First().ListEntityId;
+                    //m_InMemoryDataContextSmallGroup.NewPersonModel.m_PersonFormViewModel.Position = m_InMemoryDataContextSmallGroup.ListManager.m_MultiGroupList.m_WeeklyReportRecordListData.First().ListEntityId;
                     //m_InMemoryDataContextSmallGroup.NewPersonModel.m_PersonFormViewModel.GroupName = m_InMemoryDataContextSmallGroup.ListManager.m_MultiGroupList.m_WeeklyReportRecordListData.First().Name;
                 }
                 else if (ViewBag.MultiGroupIndex == "HybridView")
@@ -2164,7 +2164,8 @@ namespace ChurchReport.Controllers
                     m_InMemoryDataContextSmallGroup.NewPersonModel.m_PersonFormViewModel.Position = "";
                 }
 
-                m_InMemoryDataContextSmallGroup.m_NewPersonModel.SetupGroupArray(m_InMemoryDataContextSmallGroup.ListManager.m_MultiGroupList.m_WeeklyReportRecordListData);
+                // 設定要加入的小組名稱
+                m_InMemoryDataContextSmallGroup.m_NewPersonModel.SetupGroupArray(m_InMemoryDataContextSmallGroup.ListManager.m_MultiGroupList.m_WeeklyReportRecordListData, m_InMemoryDataContextSmallGroup.ListManager.ActiveListId);
 
                 return View(m_InMemoryDataContextSmallGroup.NewPersonModel.m_PersonFormViewModel);
             }
