@@ -66,10 +66,9 @@
 
 <hr />
 
-            <div style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
-                <h4>維護基本資料</h4>
-            </div>
-
+<div style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
+    <h4>維護基本資料</h4>
+</div>
 
 <div id="multigroupchart" >
     @*<div id="multigroupchart" style="width:800px;height:450px;overflow:auto;">*@
@@ -93,8 +92,8 @@
         .OnReady("onReady")
     )
 </div>
-    <br/>
-    <div id="buttonContainer" class="dx-button-icon">
+ <br/>
+ <div id="buttonContainer" class="dx-button-icon">
         @(Html.DevExtreme().Button()
             .Text("上傳")
             .Type(ButtonType.Success)
@@ -461,10 +460,47 @@
 
 </script>
 
+<!--本地中文化-->
+<script>
+    var dictionary = {
+        "zh-tw": {
+            "dxScheduler-switcherAgenda": "會議內容", // 在這裡可以做最後的字典對應
+            "Month": "月",
+            "Subject": "主題",
+            "Company": "Company",
+            "Amount": "Amount",
+            "PaymentDate": "Payment Date"
+        },
+    };
+    DevExpress.localization.loadMessages(dictionary);
+    var formatMessage = DevExpress.localization.formatMessage;
+
+    var locale = getLocale();
+    //DevExpress.localization.locale(navigator.language || navigator.browserLanguage);
+    DevExpress.localization.locale(locale);
+
+    function changeLocale(data) {
+        setLocale(data.value);
+        document.location.reload();
+    }
+
+    function getLocale() {
+        //debugger;
+        //sessionStorage.setItem("locale", 'zh');
+        sessionStorage.setItem("locale", 'zh-tw');
+        var locale = sessionStorage.getItem("locale");
+        return locale != null ? locale : "tw";
+    }
+</script>
+<!--本地中文化-->
+<script src="~/js/devextreme/devextreme-intl.min.js"></script>
+<script src="~/js/devextreme/localization/dx.messages.zh-tw.js"></script>
+
 <script src="~/js/DataGridAjax.js"></script>
 @*<script src="~/js/SelectDate.js"></script>*@
 <script src="~/js/DropDownBox.js"></script>
 <script src="~/js/DataGridAjax.js"></script>
 <script src="~/js/LoadPanel.js"></script>
+
 <link href="~/css/SmallGroupReportController.css" rel="stylesheet" />
 

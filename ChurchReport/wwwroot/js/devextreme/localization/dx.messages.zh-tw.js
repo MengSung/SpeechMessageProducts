@@ -93,7 +93,7 @@
             "dxDataGrid-editingCancelRowChanges": "取消",
             "dxDataGrid-editingDeleteRow": "删除",
             "dxDataGrid-editingUndeleteRow": "取消删除",
-            "dxDataGrid-editingConfirmDeleteMessage": "你確定要删除這條紀錄？",
+            "dxDataGrid-editingConfirmDeleteMessage": "你確定要删除這筆紀錄？",
             "dxDataGrid-validationCancelChanges": "取消更改",
             "dxDataGrid-groupPanelEmptyText": "拖動列標題至此進行列分組",
             "dxDataGrid-noDataText": "沒有資料",

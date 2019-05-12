@@ -679,9 +679,14 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                //SmallGroupData bSmallGroupData = m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.First(o => o.ListEntityId == m_InMemoryDataContextSmallGroup.ListManager.ActiveListId).m_SmallGroupDataList.m_SmallGroupData;
+                // 刪除全部的(也就是維護基本)資料
+                m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.DeleteMember(key);
 
+                // 刪除小組長牧養主日出席、小組出席、代禱事項
                 m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.DeleteMember(key);
+
+                // 刪除小組長牧養主日出席、小組出席、代禱事項
+                m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData.DeleteMember(key);
 
                 return Ok();
             }
@@ -1223,7 +1228,14 @@ namespace ChurchReport.Controllers
         {
             try
             {
+                // 刪除小組長牧養主日出席、小組出席、代禱事項
+                m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.DeleteMember(key);
+
+                // 刪除小組長牧養主日出席、小組出席、代禱事項
                 m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData.DeleteMember(key);
+
+                // 刪除全部的(也就是維護基本)資料
+                m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.DeleteMember(key);
 
                 return Ok();
             }

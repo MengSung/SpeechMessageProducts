@@ -98,9 +98,24 @@ namespace ChurchReport.Models
         }
         public void DeleteMember(string key)
         {
-            var aDeleteMember = Members.First(o => o.PresentRecordId == key);
+            try
+            {
 
-            Members.Remove(aDeleteMember);
+                if (Members != null)
+                {
+                    if (Members.Count > 0)
+                    {
+                        var aDeleteMember = Members.FirstOrDefault(o => o.PresentRecordId == key);
+
+                        Members.Remove(aDeleteMember);
+                    }
+                }
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "¿ù»~°T®§ : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+            }
+
         }
 
     }
