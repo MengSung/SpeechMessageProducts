@@ -259,7 +259,7 @@ namespace ChurchReport.WebServiceConnector
                 throw Exception;
             }
         }
-        public void DeleteMember( String ListEntityId, Member aMemberToBeDeleted )
+        public void DeleteMember(String Account, String Password,String ListEntityId, Member aMemberToBeDeleted )
         {
             try
             {
@@ -273,6 +273,30 @@ namespace ChurchReport.WebServiceConnector
 
                     // 刪除個人聚會與靈修記錄
                     m_ToolUtilityClass.DeleteEntity("new_present_record", new Guid(aMemberToBeDeleted.PresentRecordId));
+
+                    Entity aListEntity = this.m_ToolUtilityClass.RetrieveEntity("list", new Guid(ListEntityId));
+
+                    #region 關聯小組長屬性 找到小組長
+                    Entity LoginContact;
+                    if (Account != "LineIdLogin")
+                    {
+                        LoginContact = this.m_ToolUtilityClass.RetrieveContactEntityByAccountNumber(Account, Password);
+                    }
+                    else
+                    {
+                        LoginContact = this.m_ToolUtilityClass.RetrieveContactEntityByLineUserId(Password);
+                    }
+                    #endregion
+
+                    #region 通知權柄移除掉的訊息
+                    String LoginContactFullName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LoginContact, "fullname");
+
+                    String Result = LoginContactFullName + " 將 " + this.m_ToolUtilityClass.GetEntityLookupDisplayName(ref PresentRecordEntity, "new_contact_new_present_record") + " 從" + aMemberToBeDeleted.Group + "移除掉了!";
+
+                    this.m_LineNotifyUtility.SendResultLine(Result, aListEntity);
+                    this.m_LineNotifyUtility.SendListMemberLine( aListEntity);
+
+                    #endregion
                 }
                 return;
             }

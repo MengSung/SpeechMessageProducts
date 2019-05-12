@@ -213,6 +213,7 @@ namespace ChurchReport.WebServiceConnector
                     String Result = LoginContactFullName + " 仍然成功的加入 " + ExistContactFullName + " 到 " + aNewContact.GroupName + "小組中";
 
                     this.m_LineNotifyUtility.SendAddNewPersonResultLine(Result, aListEntity);
+                    this.m_LineNotifyUtility.SendListMemberLine(aListEntity);
 
                     return "新增的新人在資料庫已經存在，但是 " + Result;
                     #endregion
@@ -232,7 +233,11 @@ namespace ChurchReport.WebServiceConnector
 
                     //傳送LINE 訊息關於加入新人的結果給兩個小組的權柄
                     this.m_LineNotifyUtility.SendAddNewPersonResultLine(Result, aExistList);
+                    this.m_LineNotifyUtility.SendListMemberLine(aExistList);
+
                     this.m_LineNotifyUtility.SendAddNewPersonResultLine(Result, aListEntity);
+                    this.m_LineNotifyUtility.SendListMemberLine(aListEntity);
+
 
                     return Result;
                     #endregion
@@ -333,8 +338,9 @@ namespace ChurchReport.WebServiceConnector
                 String Result = LoginContactFullName + " 成功建立新人並且加入 " + aNewContact.Name + " 到 " + aNewContact.GroupName + "小組中";
 
                 this.m_LineNotifyUtility.SendAddNewPersonResultLine(Result, aListEntity);
+                this.m_LineNotifyUtility.SendListMemberLine(aListEntity);
 
-                return  Result;
+                return Result;
             }
             catch (System.Exception e)
             {

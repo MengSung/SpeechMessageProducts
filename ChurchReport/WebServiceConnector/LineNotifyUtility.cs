@@ -34,6 +34,9 @@ namespace ChurchReport.WebServiceConnector
         private PushUtility m_PushUtility { get; set; }
         #endregion
         #region 常數參數
+        //private const String CRM_TYPE = "CRM2011";
+        private const String CRM_TYPE = "DYNAMICS365";
+
         // 客製化
         // 音訊教會(免費版)
         private const String JESUS_CHANNEL_ACCESS_TOKEN = @"yvyzlpbDY4ctjVuC0vEYFDF4Gz9Ed6VR57AOmqEfRPqNSFa4tmlvgFqydqOsv8C5vOG3Ew1vPtBfZoJ7Psm69HH+oKtRA4UeMWi1EZp6j4hzhjC1ePmBRQOdfcbcGgDjJzC60Q8HAI/Err6YjFZwOwdB04t89/1O/w1cDnyilFU=";
@@ -99,6 +102,132 @@ namespace ChurchReport.WebServiceConnector
                 throw Exception;
             }
         }
+        public void SendResultLine(String Result, Entity aListEntity)
+        {
+            try
+            {
+                #region 傳送LINE 訊息關於加入新人的結果給權柄
+
+                m_PushUtility.MultiCastTextMessageAsync(GetLineRecieverList(ref aListEntity, "小組長"), Result);
+
+                #endregion
+            }
+            catch (System.Exception Exception)
+            {
+                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
+
+                throw Exception;
+            }
+        }
+
+        public void SendListMemberLine( Entity aListEntity)
+        {
+            try
+            {
+                #region 傳送LINE 訊息關於加入新人的結果給權柄
+
+                String Result = m_ToolUtilityClass.GetEntityStringAttribute(ref aListEntity, "listname") + Environment.NewLine;
+
+                Result += "小組人數 = " + m_ToolUtilityClass.GetEntityIntAttribute(ref aListEntity, "membercount") + Environment.NewLine;
+
+                Result += "組員姓名 : " + Environment.NewLine;
+
+                String MemberName = "";
+                GetAllMemberNameFromList(ref MemberName, aListEntity.Id );
+
+                Result += MemberName;
+
+                m_PushUtility.MultiCastTextMessageAsync(GetLineRecieverList(ref aListEntity, "小組長"), Result);
+
+                #endregion
+            }
+            catch (System.Exception Exception)
+            {
+                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
+
+                throw Exception;
+            }
+        }
+
+        private void GetAllMemberNameFromList( ref String Result, Guid ListEntityId)
+        {
+            #region // 處理每個小組名單
+            //搜尋名單的組員
+            //EntityCollection Contacts = m_ToolUtilityClass.RetrieveManyToOneRelationship("list", "listid", ListEntityId.ToString(), "new_cell_list_contact", "contact");
+
+            Entity ListEntity = this.m_ToolUtilityClass.RetrieveEntity("list", ListEntityId);
+
+            bool ListType = this.m_ToolUtilityClass.GetEntityBoolAttribute(ListEntity, "type");
+            EntityCollection MemberCollection;
+            if (ListType == false)
+            {
+                // 靜態名單
+                if (CRM_TYPE == "DYNAMICS365")
+                {
+                    MemberCollection = this.m_ToolUtilityClass.RetrieveMemberListCollectionByListIdDynamics365(ref this.m_ToolUtilityClass.m_OrganizationService, ListEntityId);
+                }
+                else
+                {
+                    MemberCollection = this.m_ToolUtilityClass.RetrieveMemberListCollectionByListIdCrm2011(ref this.m_ToolUtilityClass.m_Crm2011OrganizationService, ListEntityId);
+                }
+            }
+            else
+            {
+                // 動態名單
+                if (CRM_TYPE == "DYNAMICS365")
+                {
+                    MemberCollection = this.m_ToolUtilityClass.RetrieveDynamicMemberListDynamics365(ref this.m_ToolUtilityClass.m_OrganizationService, ListEntityId);
+                }
+                else
+                {
+                    MemberCollection = this.m_ToolUtilityClass.RetrieveDynamicMemberListCrm2011(ref this.m_ToolUtilityClass.m_Crm2011OrganizationService, ListEntityId);
+                }
+            }
+
+            int PresentRecordIdCounter = 0;
+            foreach (Entity MemberEntity in MemberCollection.Entities)
+            {
+                // 每個組員
+                Entity ContactEntity;
+
+                if (ListType == false)
+                {
+                    // 靜態名單
+                    ContactEntity = m_ToolUtilityClass.RetrieveEntity("contact", ((EntityReference)MemberEntity.Attributes["entityid"]).Id);
+                }
+                else
+                {
+                    // 動態名單
+                    ContactEntity = m_ToolUtilityClass.RetrieveEntity("contact", (Guid)MemberEntity.Attributes["contactid"]);
+                }
+
+                if (ContactEntity.Attributes.Contains("statecode"))
+                {
+                    OptionSetValue aOptionState = ContactEntity.Attributes["statecode"] as OptionSetValue;
+
+                    if (aOptionState.Value == 0)
+                    {
+                        #region 只回傳使用中的組員
+
+                        // 組員的全名
+                        String FullName = "";
+                        if (ContactEntity.Attributes.Contains("fullname"))
+                        {
+                            Result += (string)ContactEntity.Attributes["fullname"] + Environment.NewLine;
+                        }
+
+                        #endregion
+                    }
+                    else
+                    { //String StateCode = "非使用中";
+                    }
+                }
+            }
+            #endregion
+
+            return;
+        }
+
         private String ProcessLineMessage(Entity LoginContact, String SmallGroupResult, ref Entity aListEntity, ref SmallGroupData aSmallGroupData, String WeeklyReportData)
         {
             try

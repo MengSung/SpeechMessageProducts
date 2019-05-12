@@ -61,9 +61,9 @@ namespace ChurchReport.Models
 
             m_UploadIntegrateData.UploadData(Account, Password, LoginType, ListEntityId, ref WeeklyReportEntityId, SundayPrayers, aSmallGroupData, ref WeeklyReportData, ref WeeklyReportAnalysis);
         }
-        public void DeleteMemberData(Member aMemberToBeDeleted)
+        public void DeleteMemberData(String Account, String Password, Member aMemberToBeDeleted)
         {
-            m_UploadIntegrateData.DeleteMember(  ListEntityId, aMemberToBeDeleted);
+            m_UploadIntegrateData.DeleteMember( Account, Password, ListEntityId, aMemberToBeDeleted );
         }
         public void SetPersonalReportViewModel()
         {

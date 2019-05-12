@@ -685,7 +685,12 @@ namespace ChurchReport.Controllers
                 if (DeletedMember != null)
                 {
                     // 整合式網頁按上傳按鈕
-                    m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.DeleteMemberData(DeletedMember);
+                    m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.DeleteMemberData
+                    (
+                        m_InMemoryDataContextSmallGroup.ListManager.m_Account,
+                        m_InMemoryDataContextSmallGroup.ListManager.m_Password,
+                        DeletedMember
+                    );
                 }
 
                 // 刪除小組長牧養主日出席、小組出席、代禱事項
