@@ -94,18 +94,17 @@ namespace ChurchReport.Models
                     JsonConvert.PopulateObject(BirthDateValue, aUpdatedMember, settings);
                 }
             }
-
         }
         public void DeleteMember(string key)
         {
             try
             {
-
                 if (Members != null)
                 {
                     if (Members.Count > 0)
                     {
-                        var aDeleteMember = Members.FirstOrDefault(o => o.PresentRecordId == key);
+                        //var aDeleteMember = Members.FirstOrDefault(o => o.PresentRecordId == key);
+                        Member aDeleteMember = Members.FirstOrDefault(o => o.PresentRecordId == key);
 
                         Members.Remove(aDeleteMember);
                     }
@@ -115,7 +114,6 @@ namespace ChurchReport.Models
             {
                 string ErrorString = "¿ù»~°T®§ : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
             }
-
         }
 
     }
