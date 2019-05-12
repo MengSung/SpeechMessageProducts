@@ -3396,6 +3396,29 @@ namespace ToolUtilityNameSpace
                 throw e;
             }
         }
+        public void DeleteEntity(String aEntityName, Guid aEntityId)
+        {
+            try
+            {
+                if (EXCUTION_FLAG == true)
+                {
+                    if (CRM_TYPE == "DYNAMICS365")
+                    {
+                        this.m_OrganizationService.Delete(aEntityName, aEntityId);
+                    }
+                    else
+                    {
+                        this.m_Crm2011OrganizationService.Delete(aEntityName, aEntityId);
+                    }
+                }
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                throw e;
+            }
+        }
+
         public Guid GetEntityId(Entity aEntity)
         {
             try

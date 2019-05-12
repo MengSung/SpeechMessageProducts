@@ -680,7 +680,13 @@ namespace ChurchReport.Controllers
             try
             {
                 // 刪除全部的(也就是維護基本)資料
-                m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.DeleteMember(key);
+                Member DeletedMember = m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.DeleteMember(key);
+
+                if (DeletedMember != null)
+                {
+                    // 整合式網頁按上傳按鈕
+                    m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.DeleteMemberData(DeletedMember);
+                }
 
                 // 刪除小組長牧養主日出席、小組出席、代禱事項
                 m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.DeleteMember(key);

@@ -106,7 +106,7 @@ namespace ChurchReport.WebServiceConnector
         /// <param name="aSmallGroupData"></param>
         /// <param name="WeeklyReportData"></param>
         /// <param name="WeeklyReportAnalysis"></param>
-        public void UploadData(String Account, String Password, String LoginType, String ListEntityId, ref String WeeklyReportEntityId, DateTime aSmallGroupDate, SmallGroupData aSmallGroupData , ref String WeeklyReportData, ref String WeeklyReportAnalysis )
+        public void UploadData(String Account, String Password, String LoginType, String ListEntityId, ref String WeeklyReportEntityId, DateTime aSmallGroupDate, SmallGroupData aSmallGroupData, ref String WeeklyReportData, ref String WeeklyReportAnalysis)
         {
             try
             {
@@ -115,7 +115,7 @@ namespace ChurchReport.WebServiceConnector
 
                 // 設定參數，設定主日日期，找到操作使用者登入的ENTITY及ID
                 this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "設定參數");
-                SetupCommonParameter(Account,  Password, aSmallGroupDate, ListEntityId, WeeklyReportEntityId);
+                SetupCommonParameter(Account, Password, aSmallGroupDate, ListEntityId, WeeklyReportEntityId);
 
                 Entity aGraceLeaderWeeklyReportEntity = null;// 族系族長的週報
 
@@ -126,7 +126,7 @@ namespace ChurchReport.WebServiceConnector
 
                 #region 處理小組名稱、初始化字典
                 // 從 APP 傳來的包含主日出席率及小組出席率之後的小組名稱
-                String GroupName = this.m_ToolUtilityClass.GetEntityStringAttribute( ref this.m_ListEntity, "listname");
+                String GroupName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref this.m_ListEntity, "listname");
 
                 // 去除掉主日出席率及小組出席率之後的小組名稱
                 String FilteredGroupName = ToolUtilityClass.DeletePresentRate(GroupName);
@@ -249,6 +249,31 @@ namespace ChurchReport.WebServiceConnector
                     // 根本找不到這個要被點名的名單，所以就甚麼也不做
                 }
 
+                return;
+            }
+            catch (System.Exception Exception)
+            {
+                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
+                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                throw Exception;
+            }
+        }
+        public void DeleteMember( String ListEntityId, Member aMemberToBeDeleted )
+        {
+            try
+            {
+                // 取得個人聚會與靈修記錄
+                Entity PresentRecordEntity = this.m_ToolUtilityClass.RetrieveEntity("new_present_record", new Guid(aMemberToBeDeleted.PresentRecordId));
+
+                if (PresentRecordEntity != null)
+                {
+                    // 將聯絡人從小組名單移除
+                    m_ToolUtilityClass.RemoveMembersToMarketingList(new Guid(ListEntityId), this.m_ToolUtilityClass.GetEntityLookupAttribute(ref PresentRecordEntity, "new_contact_new_present_record"));
+
+                    // 刪除個人聚會與靈修記錄
+                    m_ToolUtilityClass.DeleteEntity("new_present_record", new Guid(aMemberToBeDeleted.PresentRecordId));
+                }
                 return;
             }
             catch (System.Exception Exception)

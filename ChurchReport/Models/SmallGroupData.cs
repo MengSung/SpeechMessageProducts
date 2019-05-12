@@ -95,7 +95,7 @@ namespace ChurchReport.Models
                 }
             }
         }
-        public void DeleteMember(string key)
+        public Member DeleteMember(string key)
         {
             try
             {
@@ -107,14 +107,24 @@ namespace ChurchReport.Models
                         Member aDeleteMember = Members.FirstOrDefault(o => o.PresentRecordId == key);
 
                         Members.Remove(aDeleteMember);
+
+                        return aDeleteMember;
                     }
+                    else
+                    {
+                        return null;
+                    }
+                }
+                else
+                {
+                    return null;
                 }
             }
             catch (System.Exception e)
             {
                 string ErrorString = "¿ù»~°T®§ : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                return null;
             }
         }
-
     }
 }
