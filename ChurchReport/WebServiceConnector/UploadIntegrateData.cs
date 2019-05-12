@@ -268,36 +268,52 @@ namespace ChurchReport.WebServiceConnector
 
                 if (PresentRecordEntity != null)
                 {
+                    #region 有找到個人聚會與靈修記錄
                     // 將聯絡人從小組名單移除
                     m_ToolUtilityClass.RemoveMembersToMarketingList(new Guid(ListEntityId), this.m_ToolUtilityClass.GetEntityLookupAttribute(ref PresentRecordEntity, "new_contact_new_present_record"));
 
                     // 刪除個人聚會與靈修記錄
                     m_ToolUtilityClass.DeleteEntity("new_present_record", new Guid(aMemberToBeDeleted.PresentRecordId));
-
-                    Entity aListEntity = this.m_ToolUtilityClass.RetrieveEntity("list", new Guid(ListEntityId));
-
-                    #region 關聯小組長屬性 找到小組長
-                    Entity LoginContact;
-                    if (Account != "LineIdLogin")
-                    {
-                        LoginContact = this.m_ToolUtilityClass.RetrieveContactEntityByAccountNumber(Account, Password);
-                    }
-                    else
-                    {
-                        LoginContact = this.m_ToolUtilityClass.RetrieveContactEntityByLineUserId(Password);
-                    }
-                    #endregion
-
-                    #region 通知權柄移除掉的訊息
-                    String LoginContactFullName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LoginContact, "fullname");
-
-                    String Result = LoginContactFullName + " 將 " + this.m_ToolUtilityClass.GetEntityLookupDisplayName(ref PresentRecordEntity, "new_contact_new_present_record") + " 從" + aMemberToBeDeleted.Group + "移除掉了!";
-
-                    this.m_LineNotifyUtility.SendResultLine(Result, aListEntity);
-                    this.m_LineNotifyUtility.SendListMemberLine( aListEntity);
-
                     #endregion
                 }
+                else
+                {
+                    #region 沒找到個人聚會與靈修記錄
+                    Entity aContact = GetContactFromList(new Guid(ListEntityId), aMemberToBeDeleted.FullName);
+
+                    if(aContact != null)
+                    {
+                        // 將聯絡人從小組名單移除
+                        m_ToolUtilityClass.RemoveMembersToMarketingList(new Guid(ListEntityId), aContact.Id);
+
+                    }
+                    #endregion
+                }
+
+                Entity aListEntity = this.m_ToolUtilityClass.RetrieveEntity("list", new Guid(ListEntityId));
+
+                #region 關聯小組長屬性 找到小組長
+                Entity LoginContact;
+                if (Account != "LineIdLogin")
+                {
+                    LoginContact = this.m_ToolUtilityClass.RetrieveContactEntityByAccountNumber(Account, Password);
+                }
+                else
+                {
+                    LoginContact = this.m_ToolUtilityClass.RetrieveContactEntityByLineUserId(Password);
+                }
+                #endregion
+
+                #region 通知權柄移除掉的訊息
+                String LoginContactFullName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LoginContact, "fullname");
+
+                String Result = LoginContactFullName + " 將 " + this.m_ToolUtilityClass.GetEntityLookupDisplayName(ref PresentRecordEntity, "new_contact_new_present_record") + " 從" + aMemberToBeDeleted.Group + "移除掉了!";
+
+                this.m_LineNotifyUtility.SendResultLine(Result, aListEntity);
+                this.m_LineNotifyUtility.SendListMemberLine(aListEntity);
+
+                #endregion
+
                 return;
             }
             catch (System.Exception Exception)
@@ -307,6 +323,83 @@ namespace ChurchReport.WebServiceConnector
 
                 throw Exception;
             }
+        }
+
+        private Entity GetContactFromList(Guid ListEntityId, String aContactFullName )
+        {
+            #region // 處理每個小組名單
+            //搜尋名單的組員
+            //EntityCollection Contacts = m_ToolUtilityClass.RetrieveManyToOneRelationship("list", "listid", ListEntityId.ToString(), "new_cell_list_contact", "contact");
+
+            Entity ListEntity = this.m_ToolUtilityClass.RetrieveEntity("list", ListEntityId);
+
+            bool ListType = this.m_ToolUtilityClass.GetEntityBoolAttribute(ListEntity, "type");
+            EntityCollection MemberCollection;
+            if (ListType == false)
+            {
+                // 靜態名單
+                if (CRM_TYPE == "DYNAMICS365")
+                {
+                    MemberCollection = this.m_ToolUtilityClass.RetrieveMemberListCollectionByListIdDynamics365(ref this.m_ToolUtilityClass.m_OrganizationService, ListEntityId);
+                }
+                else
+                {
+                    MemberCollection = this.m_ToolUtilityClass.RetrieveMemberListCollectionByListIdCrm2011(ref this.m_ToolUtilityClass.m_Crm2011OrganizationService, ListEntityId);
+                }
+            }
+            else
+            {
+                // 動態名單
+                if (CRM_TYPE == "DYNAMICS365")
+                {
+                    MemberCollection = this.m_ToolUtilityClass.RetrieveDynamicMemberListDynamics365(ref this.m_ToolUtilityClass.m_OrganizationService, ListEntityId);
+                }
+                else
+                {
+                    MemberCollection = this.m_ToolUtilityClass.RetrieveDynamicMemberListCrm2011(ref this.m_ToolUtilityClass.m_Crm2011OrganizationService, ListEntityId);
+                }
+            }
+
+            foreach (Entity MemberEntity in MemberCollection.Entities)
+            {
+                // 每個組員
+                Entity ContactEntity;
+
+                if (ListType == false)
+                {
+                    // 靜態名單
+                    ContactEntity = m_ToolUtilityClass.RetrieveEntity("contact", ((EntityReference)MemberEntity.Attributes["entityid"]).Id);
+                }
+                else
+                {
+                    // 動態名單
+                    ContactEntity = m_ToolUtilityClass.RetrieveEntity("contact", (Guid)MemberEntity.Attributes["contactid"]);
+                }
+
+                if (ContactEntity.Attributes.Contains("statecode"))
+                {
+                    OptionSetValue aOptionState = ContactEntity.Attributes["statecode"] as OptionSetValue;
+
+                    if (aOptionState.Value == 0)
+                    {
+                        #region 只回傳使用中的組員
+
+                        // 組員的全名
+                        if( this.m_ToolUtilityClass.GetEntityStringAttribute(ContactEntity, "fullname" ) == aContactFullName)
+                        {
+                            return ContactEntity;
+                        }
+
+                        #endregion
+                    }
+                    else
+                    { //String StateCode = "非使用中";
+                    }
+                }
+            }
+            #endregion
+
+            return null;
         }
 
         private bool DeterminCalculateFlag(Guid m_ContactId, Guid aThisListFamilyHeadId, Guid aThisListSmallGroupLeaderId, Guid aThisListGraceLeaderId)
