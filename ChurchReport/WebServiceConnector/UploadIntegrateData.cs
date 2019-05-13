@@ -146,36 +146,28 @@ namespace ChurchReport.WebServiceConnector
                 {
                     // 有找到要點名的名單，但是必須登入的使用者與此名單的小組長ID要一致才能夠修改或新增點名內容，也就是族系族長不能修改小組長的點名單
                     #region 先找到"小家長"、"小組長"、族系族長/區長"
+
                     // 先找到這個名單的小家長 ID，內壢得勝靈糧堂專用
                     Guid aThisListFamilyHeadId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref m_ListEntity, "new_familyhead_list");
 
-                    // 先找到這個名單的小組長 ID
+                    // 找到這個名單的共同組長 ID
+                    Guid aThisListCoSmallGroupLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref m_ListEntity, "new_contact_list_vice_family_leader");
+
+                    // 找到這個名單的小組長 ID
                     Guid aThisListSmallGroupLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref m_ListEntity, "new_contact_family_leader_list");
 
-                    // 先找到這個名單的族系族長/區長 ID
-                    Guid aThisListGraceLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref m_ListEntity, "new_contact_race_leager_list");
+                    // 找到這個名單的上代組長 ID
+                    Guid aThisListUpperGenerationLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref m_ListEntity, "new_contact_race_leager_list");
+
+                    // 找到這個名單的族系族長/區長 ID
+                    Guid aThisListGraceLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref m_ListEntity, "new_contact_list_arealeader");
 
                     #endregion
 
-                    // this.m_ContactId 的意思是登入者在系統裡的ID，登入者是"小家長"、"小組長"、族系族長/區長"，或是個人回報
-                    if (this.m_ContactId == aThisListSmallGroupLeaderId || this.m_ContactId == aThisListFamilyHeadId || this.m_ContactId == aThisListGraceLeaderId || aSmallGroupData.LoginType == "個人回報")
+                    // this.m_ContactId 的意思是登入者在系統裡的ID，登入者是"小家長"、"共同組長"、"小組長"、"上代組長"、"族系族長/區長"，或是個人回報
+                    if (this.m_ContactId == aThisListFamilyHeadId || this.m_ContactId == aThisListCoSmallGroupLeaderId || this.m_ContactId == aThisListSmallGroupLeaderId || this.m_ContactId == aThisListUpperGenerationLeaderId || this.m_ContactId == aThisListGraceLeaderId || aSmallGroupData.LoginType == "個人回報")
                     {
                         #region 有找到要點名的名單，而且登入的操作者與此名單或是與小組長ID、或是與小家長ID、或是與族系族長/區長一致，或是個人回報也可以上傳
-
-                        #region// 設定是否要計算過去N週的出席的旗標，族系族長/區長不要去計算或修改小組長的出席紀錄
-                        bool CalculateFlag = DeterminCalculateFlag(m_ContactId, aThisListFamilyHeadId, aThisListSmallGroupLeaderId, aThisListGraceLeaderId);
-                        CalculateFlag = true; // 強迫每個都計算
-                        if (CalculateFlag == false)
-                        {
-                            // 如果不需要計算那就直接處理下一個小組
-                            return;
-                        }
-                        this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "有找到要點名的名單");
-
-                        // 重新整理跟群組名稱一致的點名清單
-                        //this.SetupGroupNamedListMemberInfomation(GroupName);
-                        #endregion
-
                         if (aWeeklyReportId == Guid.Empty)
                         {
                             #region // 要建立週報
@@ -185,8 +177,8 @@ namespace ChurchReport.WebServiceConnector
                             #endregion
                             #region// 要建立週報
                             this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "要建立週報");
-                            if (this.CreateWeeklyReportOrNot(ref m_ListEntity, m_Sunday)) // 判斷是否真要建立週報
-                            {
+                            //if (this.CreateWeeklyReportOrNot(ref m_ListEntity, m_Sunday)) // 判斷是否真要建立週報
+                            //{
                                 // 建立週報
                                 Double aWeeklySundayRate = 0.0;
                                 Double aWeeklySmallGroupRate = 0.0;
@@ -205,15 +197,15 @@ namespace ChurchReport.WebServiceConnector
 
                                 // 由於是新建立的週報，當回傳完成實，回到網頁操作，如果使用者又再繼續操作，就必須設定告知新建立的週報ID =WeeklyReportEntityId ，以免重複建立
                                 aGraceLeaderWeeklyReportEntity = CreateWeeklyReportAndPresentRecord(GroupName, aGroupWeeklyReportGuid, ref WeeklyReportEntityId, ref m_ListEntity, "", ValidNumber, ref aWeeklySundayRate, ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber, aSmallGroupData, WeeklyReportData);
-                            }
+                            //}
                             #endregion
                             #endregion
                         }
                         else
                         {
                             #region// 更新週報
-                            if (this.UpdateWeeklyReportOrNot(ref m_ListEntity)) // 判斷是否真要更新週報，只有事這組的小組長才能點名回報
-                            {
+                            //if (this.UpdateWeeklyReportOrNot(ref m_ListEntity)) // 判斷是否真要更新週報，只有事這組的小組長才能點名回報
+                            //{
                                 GroupWeeklyReportGuid aGroupWeeklyReportGuid = new GroupWeeklyReportGuid
                                 {
                                     WeeklyReportGuid = WeeklyReportEntityId != null && WeeklyReportEntityId != "" ? new Guid(WeeklyReportEntityId) : new Guid(),
@@ -225,7 +217,7 @@ namespace ChurchReport.WebServiceConnector
                                 };
 
                                 aGraceLeaderWeeklyReportEntity = UpdateWeeklyReportProcess(aGroupWeeklyReportGuid, ref m_ListEntity, ref aWeeklyReportId, aSmallGroupData, WeeklyReportData);
-                            }
+                            //}
                             #endregion
                         }
                         #region 如果登入者是族系族長，則他的週報要留下來，以便寫入他底下的小組長，所有的主日、小組出席紀錄
@@ -692,17 +684,31 @@ namespace ChurchReport.WebServiceConnector
         {
             try
             {
-                //EntityCollection aWeeklyReportCollection = this.m_ToolUtilityClass.QueryWeeklyReportBySunday(aSunday, aListEntity.Id);
                 #region
                 if (aListEntity != null)
                 {
                     #region// 有找到吻合的名單
-                    // 名單裡的小組長 ID
-                    Guid aSmallGroupLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_family_leader_list");
+                    #region 先找到"小家長"、"小組長"、族系族長/區長"
 
-                    if (this.m_ContactId == aSmallGroupLeaderId)
+                    // 先找到這個名單的小家長 ID，內壢得勝靈糧堂專用
+                    //Guid aThisListFamilyHeadId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref m_ListEntity, "new_familyhead_list");
+
+                    // 找到這個名單的共同組長 ID
+                    Guid aThisListCoSmallGroupLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref m_ListEntity, "new_contact_list_vice_family_leader");
+
+                    // 找到這個名單的小組長 ID
+                    Guid aThisListSmallGroupLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref m_ListEntity, "new_contact_family_leader_list");
+
+                    // 找到這個名單的上代組長 ID
+                    //Guid aThisListUpperGenerationLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref m_ListEntity, "new_contact_race_leager_list");
+
+                    // 找到這個名單的族系族長/區長 ID
+                    //Guid aThisListGraceLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref m_ListEntity, "new_contact_list_arealeader");
+
+                    #endregion
+                    if (this.m_ContactId == aThisListSmallGroupLeaderId || this.m_ContactId == aThisListCoSmallGroupLeaderId)
                     {
-                        // 登入者與名單的小組長是同一個人
+                        // 登入者與名單的小組長或是共同組長是同一個人
                         return true;
                     }
                     else
