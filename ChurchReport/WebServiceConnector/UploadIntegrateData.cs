@@ -3278,7 +3278,7 @@ namespace ChurchReport.WebServiceConnector
                 else
                 {
                     // 委身類型系統原來的和小組長上傳的一致
-                    return false;
+                    //return false;
                 }
 
                 return true;
