@@ -289,6 +289,39 @@ namespace ChurchReport.WebServiceConnector
         #endregion
         #endregion
         #region 設定委身類型
+        public bool SetIdentityByUpload(Guid aListEntityId, ref Entity aContact, ref MemberInfomation aMemberInfomation)
+        {
+            try
+            {
+                // 先找到系統的委身類型指標
+                int aIdentity = this.m_ToolUtilityClass.GetOptionSetAttribute(ref aContact, "customertypecode");
+
+                //// 在轉換回報的委身類型指標
+                //int CustomerTypeCode = ConvertIdentityToIndex(aMemberInfomation.Identity);
+
+                //if (aIdentity != CustomerTypeCode)
+                //{
+                //    // 委身類型系統原來的旱小組長上傳的有不一致
+                //    this.m_ToolUtilityClass.SetOptionSetAttribute(ref aContact, "customertypecode", CustomerTypeCode);
+
+                //    return true;
+                //}
+                //else
+                //{
+                //    // 委身類型系統原來的旱小組長上傳的一致
+                //    return false;
+                //}
+
+                return true;
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                throw e;
+            }
+        }
+
         public void SetIdentity(Guid aListEntityId, ref Entity aContact, ref MemberInfomation aMemberInfomation)
         {
             try
@@ -415,19 +448,21 @@ namespace ChurchReport.WebServiceConnector
         }
 
         // 委身類型客製化
-        // 台中生命之道靈糧堂
-        private String ConvertIndexToIdentity(int Identity)
+        // 台北基督之家
+        private String ConvertIndexToIdentity(int Index)
         {
-            switch (Identity)
+            switch (Index)
             {
                 case 100000006:
                     return "01. 牧師師母";
                 case 100000003:
                     return "02. 區長";
+                case 100000002:
+                    return "011. 區牧";
                 case 100000008:
                     return "03. 小組長";
                 case 100000012:
-                    return "04. 副組長";
+                    return "04. 實習小組長";
                 case 1:
                     return "05. 小組組員";
                 case 100000005:
@@ -444,6 +479,37 @@ namespace ChurchReport.WebServiceConnector
                     return ".";
             }
         }
+
+        // 委身類型客製化
+        // 台中生命之道靈糧堂
+        //private String ConvertIndexToIdentity(int Identity)
+        //{
+        //    switch (Identity)
+        //    {
+        //        case 100000006:
+        //            return "01. 牧師師母";
+        //        case 100000003:
+        //            return "02. 區長";
+        //        case 100000008:
+        //            return "03. 小組長";
+        //        case 100000012:
+        //            return "04. 副組長";
+        //        case 1:
+        //            return "05. 小組組員";
+        //        case 100000005:
+        //            return "06. 幸福BEST";
+        //        case 100000004:
+        //            return "07. 未入組";
+        //        case 100000000:
+        //            return "08. 新朋友";
+        //        case 100000007:
+        //            return "09. 外教會.訪客";
+        //        case 100000001:
+        //            return "10. 結案";
+        //        default:
+        //            return ".";
+        //    }
+        //}
 
         #endregion
         #region 字典處理函式庫

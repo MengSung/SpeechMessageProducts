@@ -87,7 +87,10 @@ namespace ChurchReport.WebServiceConnector
         String m_SmallGroupTime;
 
         private const bool RACE_LEADER_CAN_CREATE_WEEKLYREPORT = true; // 族系組長能否幫小組長建立週報， true是可以
-        //private const bool RACE_LEADER_CAN_CREATE_WEEKLYREPORT = false; // 族系組長能否幫小組長建立週報，false 不可以
+                                                                       //private const bool RACE_LEADER_CAN_CREATE_WEEKLYREPORT = false; // 族系組長能否幫小組長建立週報，false 不可以
+
+        //private const String SET_IDENTITY_METHOD = "透過過去8週出席次數"; // 設定委身類型的方式
+        private const String SET_IDENTITY_METHOD = "透過回報網頁設定"; // 設定委身類型的方式
 
         //List<Place2> m_GroupNamePlaces = new List<Place2>(); // 依據群組名稱過濾出來的會眾集合
         List<MemberInfomation> m_GroupNamedListMemberInfomation = new List<MemberInfomation>(); // 依據群組名稱過濾出來的會眾集合
@@ -2572,8 +2575,15 @@ namespace ChurchReport.WebServiceConnector
             #endregion
 
             // 經由最近8週的出席次數計算、設定委身類型
-            SetIdentity(aListEntityId, ref aContactEntity);
 
+            if ( SET_IDENTITY_METHOD == "透過過去8週出席次數")
+            {
+                SetIdentity(aListEntityId, ref aContactEntity);
+            }
+            else
+            {
+                ModifyFlag = SetIdentityByUpload(ref aContactEntity, ref aMember);
+            }
             if (ModifyFlag == true)
             {
                 // 更新聯絡人
@@ -3248,6 +3258,39 @@ namespace ChurchReport.WebServiceConnector
         #endregion
         #endregion
         #region 設定委身類型
+        public bool SetIdentityByUpload( ref Entity aContact, ref Member aMember)
+        {
+            try
+            {
+                // 先找到系統的委身類型指標
+                int aIdentity = this.m_ToolUtilityClass.GetOptionSetAttribute(ref aContact, "customertypecode");
+
+                //// 在轉換回報的委身類型指標
+                int CustomerTypeCode = ConvertIdentityToIndex(aMember.Status);
+
+                if (aIdentity != CustomerTypeCode)
+                {
+                    // 委身類型系統原來的旱小組長上傳的有不一致
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(ref aContact, "customertypecode", CustomerTypeCode);
+
+                    return true;
+                }
+                else
+                {
+                    // 委身類型系統原來的和小組長上傳的一致
+                    return false;
+                }
+
+                return true;
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                throw e;
+            }
+        }
+
         public void SetIdentity(Guid aListEntityId, ref Entity aContact)
         {
             try
@@ -3429,6 +3472,37 @@ namespace ChurchReport.WebServiceConnector
         }
 
         // 委身類型客製化
+        private int ConvertIdentityToIndex(String Identity)
+        {
+            switch (Identity)
+            {
+                case "牧師師母":
+                    return 100000006;
+                case "區長":
+                    return 100000003;
+                case "區牧":
+                    return 100000002;
+                case "小組長":
+                    return 100000008;
+                case "實習小組長":
+                    return 100000012;
+                case "小組組員":
+                    return 1;
+                case "幸福BEST":
+                    return 100000005;
+                case "未入組":
+                    return 100000004;
+                case "新朋友":
+                    return 100000000;
+                case "外教會.訪客":
+                    return 100000007;
+                case "結案":
+                    return 100000001;
+                default:
+                    return 100000000;
+            }
+        }
+
         // 台中生命之道靈糧堂
         private String ConvertIndexToIdentity(int Identity)
         {
