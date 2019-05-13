@@ -89,8 +89,8 @@ namespace ChurchReport.WebServiceConnector
         private const bool RACE_LEADER_CAN_CREATE_WEEKLYREPORT = true; // 族系組長能否幫小組長建立週報， true是可以
                                                                        //private const bool RACE_LEADER_CAN_CREATE_WEEKLYREPORT = false; // 族系組長能否幫小組長建立週報，false 不可以
 
-        //private const String SET_IDENTITY_METHOD = "透過過去8週出席次數"; // 設定委身類型的方式
-        private const String SET_IDENTITY_METHOD = "透過回報網頁設定"; // 設定委身類型的方式
+        private const String SET_IDENTITY_METHOD = "透過過去8週出席次數"; // 設定委身類型的方式
+        //private const String SET_IDENTITY_METHOD = "透過回報網頁設定"; // 設定委身類型的方式
 
         //List<Place2> m_GroupNamePlaces = new List<Place2>(); // 依據群組名稱過濾出來的會眾集合
         List<MemberInfomation> m_GroupNamedListMemberInfomation = new List<MemberInfomation>(); // 依據群組名稱過濾出來的會眾集合
