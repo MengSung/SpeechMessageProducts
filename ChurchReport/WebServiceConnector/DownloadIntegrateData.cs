@@ -558,7 +558,7 @@ namespace ChurchReport.WebServiceConnector
                                     Phone = DigitsOnly.Replace(aMobilePhone, ""),
                                     HomePhone = DigitsOnly.Replace(aHomePhone, ""),
                                     Address = aAddress,
-                                    //BirthDate = aBirthDate,
+                                    BirthDate = aBirthDate,
                                     Industry = aIndustry,
                                     #endregion
                                     Status = aIdentity, // 委身類型
@@ -687,7 +687,7 @@ namespace ChurchReport.WebServiceConnector
                 Phone = DigitsOnly.Replace(this.m_ToolUtilityClass.GetEntityStringAttribute(this.m_ContactEntity, "mobilephone"), ""),
                 HomePhone = DigitsOnly.Replace(this.m_ToolUtilityClass.GetEntityStringAttribute(this.m_ContactEntity, "telephone2"), ""),
                 Address = this.m_ToolUtilityClass.GetEntityStringAttribute(this.m_ContactEntity, "address2_line1"),
-                //BirthDate = aBirthDate,
+                BirthDate = m_ToolUtilityClass.GetEntityDateTimeAttribute(this.m_ContactEntity, "birthdate"),
                 Industry = this.m_ToolUtilityClass.GetEntityStringAttribute(this.m_ContactEntity, "new_industry"),
 
                 #endregion
@@ -1229,7 +1229,7 @@ namespace ChurchReport.WebServiceConnector
                                     Phone = DigitsOnly.Replace(aMobilePhone, ""),
                                     HomePhone = DigitsOnly.Replace(aHomePhone, ""),
                                     Address = aAddress,
-                                    //BirthDate = aBirthDate,
+                                    BirthDate = aBirthDate,
                                     Industry = aIndustry,
 
                                     #endregion
@@ -1340,13 +1340,13 @@ namespace ChurchReport.WebServiceConnector
                         FullName = FullName,
                         #region 個人基本資料
 
-                                    Phone = DigitsOnly.Replace(aMobilePhone, ""),
+                        Phone = DigitsOnly.Replace(aMobilePhone, ""),
                         HomePhone = DigitsOnly.Replace(aHomePhone, ""),
                         Address = aAddress,
-                                    //BirthDate = aBirthDate,
-                                    Industry = aIndustry,
-
-                                    #endregion
+                        BirthDate = aBirthDate,
+                        Industry = aIndustry,
+                        
+                        #endregion
                         Status = aIdentity, // 委身類型
                         SmallGroupName = GroupName,
                         SectionName = GroupName,
