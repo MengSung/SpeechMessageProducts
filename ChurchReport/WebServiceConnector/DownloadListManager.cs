@@ -380,131 +380,26 @@ namespace ChurchReport.WebServiceConnector
 
             this.m_ContactId = m_ContactEntity.Id;
         }
-        private void FindListCollectionForWeeklyReport()
-        {
-            try
-            {
-                // 先尋找族系名單
-                EntityCollection aListEntityCollection = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_contact_race_leager_list", "list");
-                if (aListEntityCollection.Entities.Count > 0)
-                {
-                    // 小組長小組名單集合
-                    EntityCollection aFamilyLeaderListEntityCollection = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_contact_family_leader_list", "list");
-
-                    // 合併小組名單至族系名單，單扣除掉重複的
-                    // 然後放在小組名單裡面
-                    //EntityCollection aMergeCollection = MergeCollection(ref aListEntityCollection, ref aFamilyLeaderListEntityCollection);
-                    EntityCollection aMergeCollection = MergeCollectionSmallGroupAhead(ref aListEntityCollection, ref aFamilyLeaderListEntityCollection);
-
-                    
-                    // 過濾掉需要點名的名單才進來
-                    FilterAppNamedListEntity("族長", aMergeCollection);
-
-                    // 帶領族系裡有名單，所以是族系組長，就不用在往下找看是不是小組長了 
-                    return;
-                }
-
-                // 找到小組長小組名單集合
-                aListEntityCollection = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_contact_family_leader_list", "list");
-                if (aListEntityCollection.Entities.Count > 0)
-                {
-                    // 過濾掉需要點名的名單才進來，若是小組長則名單裡就應該沒有"小家長"
-                    FilterAppNamedListEntity("小組長", aListEntityCollection);
-                    return;
-                }
-
-                // 找到小家長小組名單集合 ，內壢得勝靈糧堂才有，因為是三層，楊梅靈糧堂並沒有
-                //aListEntityCollection = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_familyhead_list", "list");
-                //if (aListEntityCollection.Entities.Count > 0)
-                //{
-                //    FilterAppNamedListEntity("小家長", aListEntityCollection);
-                //    return;
-                //}
-
-                return;
-            }
-            catch (System.Exception Exception)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
-
-                throw Exception;
-            }
-        }
         private void FindListCollection()
         {
             try
             {
-                // 先尋找族系族長 new_contact_list_arealeader
-                EntityCollection aListEntityCollection = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_contact_list_arealeader", "list");  // 上代組長
-                //EntityCollection aListEntityCollection = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_contact_list_arealeader", "list"); // 族系族長
-                if (aListEntityCollection.Entities.Count > 0)
-                {
-                    // 上代組長小組名單集合
-                    EntityCollection aFamilyLeaderListEntityCollection = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_contact_race_leager_list", "list");
+                // 初始化 m_Lists
+                // 共同組長 new_contact_list_vice_family_leader
+                this.m_Lists = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_contact_list_vice_family_leader", "list");  // 共同組長
+                MergeCollectionSmallGroupAhead(ref this.m_Lists);
 
-                    // 合併小組名單至族系名單，單扣除掉重複的
-                    // 然後放在小組名單裡面
-                    //EntityCollection aMergeCollection = MergeCollection(ref aListEntityCollection, ref aFamilyLeaderListEntityCollection);
-                    EntityCollection aMergeCollection = MergeCollectionSmallGroupAhead(ref aListEntityCollection, ref aFamilyLeaderListEntityCollection);
+                // 小組長/副組長 new_contact_family_leader_list
+                EntityCollection aListEntityCollection = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_contact_family_leader_list", "list");  // 小組長/副組長
+                MergeCollectionSmallGroupAhead(ref aListEntityCollection);
 
-
-                   // 小組長小組名單集合
-                   aFamilyLeaderListEntityCollection = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_contact_family_leader_list", "list");
-
-                   // 合併小組名單至族系名單，單扣除掉重複的
-                   // 然後放在小組名單裡面
-                   //EntityCollection aMergeCollection = MergeCollection(ref aListEntityCollection, ref aFamilyLeaderListEntityCollection);
-                    aMergeCollection = MergeCollectionSmallGroupAhead(ref aMergeCollection, ref aFamilyLeaderListEntityCollection);
-
-
-                   // 過濾掉需要點名的名單才進來，而且不是幸福小組(因為有時幸福小組也會在APP點名的框框打勾)
-                   // 但是過濾的結果會放在 => this.m_Lists
-                   FilterAppNamedListEntity(aMergeCollection);
-
-                   // 帶領族系裡有名單，所以是族系組長，就不用在往下找看是不是小組長了 
-                   return;
-
-                }
-
-                // 先尋找上代組長 new_contact_list_arealeader
+                // 上代組長 new_contact_race_leager_list
                 aListEntityCollection = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_contact_race_leager_list", "list");  // 上代組長
-                //EntityCollection aListEntityCollection = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_contact_list_arealeader", "list"); // 族系族長
-                if (aListEntityCollection.Entities.Count > 0)
-                {
-                    // 小組長小組名單集合
-                    EntityCollection aFamilyLeaderListEntityCollection = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_contact_family_leader_list", "list");
+                MergeCollectionSmallGroupAhead(ref aListEntityCollection);
 
-                    // 合併小組名單至族系名單，單扣除掉重複的
-                    // 然後放在小組名單裡面
-                    //EntityCollection aMergeCollection = MergeCollection(ref aListEntityCollection, ref aFamilyLeaderListEntityCollection);
-                    EntityCollection aMergeCollection = MergeCollectionSmallGroupAhead(ref aListEntityCollection, ref aFamilyLeaderListEntityCollection);
-
-
-                    // 過濾掉需要點名的名單才進來，而且不是幸福小組(因為有時幸福小組也會在APP點名的框框打勾)
-                    // 但是過濾的結果會放在 => this.m_Lists
-                    FilterAppNamedListEntity(aMergeCollection);
-
-                    // 帶領族系裡有名單，所以是族系組長，就不用在往下找看是不是小組長了 
-                    return;
-                }
-
-                // 找到小組長小組名單集合 
-                aListEntityCollection = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_contact_family_leader_list", "list");
-                if (aListEntityCollection.Entities.Count > 0)
-                {
-                    // 過濾掉需要點名的名單才進來
-                    FilterAppNamedListEntity(aListEntityCollection);
-                    // 帶領族系裡有名單，所以是族系組長，就不用在往下找看是不是小組長了 
-                    return;
-                }
-
-                // 找到小家長小組名單集合 
-                //aListEntityCollection = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_familyhead_list", "list");
-                //if (aListEntityCollection.Entities.Count > 0)
-                //{
-                //    FilterAppNamedListEntity(aListEntityCollection);
-                //    return;
-                //}
+                // 族系族長 new_contact_list_arealeader
+                aListEntityCollection = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_contact_list_arealeader", "list");  // 族系族長
+                MergeCollectionSmallGroupAhead(ref aListEntityCollection);
 
                 return;
             }
@@ -515,69 +410,22 @@ namespace ChurchReport.WebServiceConnector
                 throw Exception;
             }
         }
-        private EntityCollection MergeCollection(ref EntityCollection aListEntityCollection, ref EntityCollection aFamilyLeaderListEntityCollection)
+        private void MergeCollectionSmallGroupAhead(ref EntityCollection aListEntityCollection )
         {
             try
             {
                 // 族系族長或是區長的名單若是與小組長名單重疊，則要過濾出僅有族長/區長的名單
                 // 合併小組名單至族系名單，單扣除掉重複的
                 // 然後放在小組名單裡面
-                foreach (Entity RaceListEntity in aListEntityCollection.Entities)
-                {
-                    // 一個一個處理族系名單
-                    bool Flag = false;
-                    foreach (Entity FamilyLeaderListEntity in aFamilyLeaderListEntityCollection.Entities)
-                    {
-                        if (RaceListEntity.Id == FamilyLeaderListEntity.Id)
-                        {
-                            // 在小組名單裡已經有了，就跳出迴圈，不再找了
-                            Flag = true;
-                            break;
-                        }
-                    }
-
-                    if (Flag == false)
-                    {
-                        // 這個小組名單並沒有在族系名單之中
-                        //aListEntityCollection.Entities.Add(FamilyLeaderListEntity);
-
-                        // 這個族系名單並沒有在小組名單之中
-                        aFamilyLeaderListEntityCollection.Entities.Add(RaceListEntity);
-                    }
-                    else { }
-                }
-
-                return aFamilyLeaderListEntityCollection;
-            }
-            catch (System.Exception Exception)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
-
-                throw Exception;
-            }
-        }
-        private EntityCollection MergeCollectionSmallGroupAhead(ref EntityCollection aListEntityCollection, ref EntityCollection aFamilyLeaderListEntityCollection)
-        {
-            try
-            {
-                EntityCollection aMergedEntityCollection = new EntityCollection();
-
-                // 族系族長或是區長的名單若是與小組長名單重疊，則要過濾出僅有族長/區長的名單
-                // 合併小組名單至族系名單，單扣除掉重複的
-                // 然後放在小組名單裡面
-                foreach (Entity FamilyLeaderListEntity in aFamilyLeaderListEntityCollection.Entities)
-                {
-                    aMergedEntityCollection.Entities.Add(FamilyLeaderListEntity);
-                }
                 // 一個一個處理族系名單
-                foreach (Entity RaceListEntity in aListEntityCollection.Entities)
+                foreach (Entity aListEntity in aListEntityCollection.Entities)
                 {
                     // 處理一個族系族長的名單
                     bool SearchedFlag = false;
-                    foreach (Entity FamilyLeaderListEntity in aFamilyLeaderListEntityCollection.Entities)
+                    foreach (Entity m_ListEntity in this.m_Lists.Entities)
                     {
                         // 比對每一個小組名單
-                        if (RaceListEntity.Id == FamilyLeaderListEntity.Id)
+                        if (aListEntity.Id == m_ListEntity.Id)
                         {
                             // 族系族長的名單與小組長的名單有相同的了
                             SearchedFlag = true;
@@ -588,133 +436,15 @@ namespace ChurchReport.WebServiceConnector
                     if (SearchedFlag == false)
                     {
                         // 族系族長的名單沒有與小組長名單相同的
-                        aMergedEntityCollection.Entities.Add(RaceListEntity);
-                    }
-
-                }
-
-                return aMergedEntityCollection;
-            }
-            catch (System.Exception Exception)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
-
-                throw Exception;
-            }
-        }
-        private void FilterAppNamedListEntity(EntityCollection aListEntityCollection)
-        {
-            try
-            {
-                // 過濾掉需要點名的名單才進來，而且不是幸福小組(因為有時幸福小組也會在APP點名的框框打勾)
-                if (this.m_Lists != null && this.m_Lists.Entities != null)
-                {
-                    // this.m_Lists 就是要點名的名單
-                    this.m_Lists.Entities.Clear();
-                }
-
-                foreach (Entity ListEntity in aListEntityCollection.Entities)
-                {
-                    if (ListEntity.Attributes.Contains("new_app_named") && m_ToolUtilityClass.GetOptionSetAttribute(ListEntity, "statecode") == 0)
-                    {
-                        bool AppNamed = (bool)ListEntity.Attributes["new_app_named"];
-
-                        //String ListName = this.m_ToolUtilityClass.GetEntityStringAttribute(ListEntity, "listname");
-
-                        //if (ListName.Contains("幸福") == false)
+                        if (this.m_ToolUtilityClass.GetEntityBoolAttribute(aListEntity, "new_app_named") == true)
                         {
-                            // 名單裡沒有幸福二字的才要進來
-                            DateTime aHappyStartDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ListEntity, "new_happy_start_date");
-                            DateTime aHappyEndDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ListEntity, "new_happy_end_date");
-
-                            if (AppNamed == true && aHappyStartDate.Year == 1 && aHappyEndDate.Year == 1)
-                            {
-                                // 需要點名的名單才進來，而且幸福小組的開始結束時間都沒填才是一般小組的名單
-                                this.m_Lists.Entities.Add(ListEntity);
-                            }
+                            // 點名有打勾
+                            m_Lists.Entities.Add(aListEntity);
                         }
                     }
+
                 }
-                return;
-            }
-            catch (System.Exception Exception)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
-
-                throw Exception;
-            }
-        }
-        private void FilterAppNamedListEntity(String aIdentity, EntityCollection aListEntityCollection)
-        {
-            try
-            {
-                // 過濾掉需要點名的名單才進來
-                if (this.m_Lists != null && this.m_Lists.Entities != null)
-                {
-                    this.m_Lists.Entities.Clear();
-                }
-
-                foreach (Entity ListEntity in aListEntityCollection.Entities)
-                {
-                    if (ListEntity.Attributes.Contains("new_app_named") && m_ToolUtilityClass.GetOptionSetAttribute( ListEntity, "statecode" ) == 0 )
-                    {
-                        bool AppNamed = (bool)ListEntity.Attributes["new_app_named"];
-
-                        if (AppNamed == true)
-                        {
-                            if (aIdentity == "族長")
-                            {
-                                //  族長   = new_contact_race_leager_list
-                                //  小組長 = new_contact_family_leader_list
-                                //  楊梅靈糧堂，因為楊梅靈糧堂沒有小家長
-                                //Guid FamilyLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ListEntity, "new_familyhead_list");
-                                Guid GroupLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ListEntity, "new_contact_family_leader_list");
-
-                                String ListName = this.m_ToolUtilityClass.GetEntityStringAttribute(ListEntity, "listname");
-
-                                // 過濾掉需要點名的名單才進來，若是族長則名單裡就應該沒有"小家長"、"小組長"
-                                //if (FamilyLeaderId == Guid.Empty && GroupLeaderId == Guid.Empty)
-                                if (GroupLeaderId == Guid.Empty || GroupLeaderId == m_ContactId)
-                                {
-                                    if (!ListName.Contains("門徒")) // 不包含"門徒"名單
-                                    {
-                                        this.m_Lists.Entities.Add(ListEntity);
-                                    }
-                                }
-
-                                // 需要回報給族系族長/區長的名單
-                                if (!ListName.Contains("門徒")) // 不包含"門徒"名單
-                                {
-                                    this.m_PresentLists.Entities.Add(ListEntity);
-                                }
-
-                            }
-                            else if (aIdentity == "小組長")
-                            {
-                                //Guid FamilyLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ListEntity, "new_familyhead_list");
-                                //
-                                //// 過濾掉需要點名的名單才進來，若是小組長則名單裡就應該沒有"小家長"
-                                //if (FamilyLeaderId == Guid.Empty )
-                                //{
-                                //    this.m_Lists.Entities.Add(ListEntity);
-                                //}
-
-
-                                this.m_Lists.Entities.Add(ListEntity);
-                                // 需要回報給族系族長/區長的名單
-                                this.m_PresentLists.Entities.Add(ListEntity);
-                            }
-                            else if (aIdentity == "小家長")
-                            {
-                                this.m_Lists.Entities.Add(ListEntity);
-                                // 需要回報給族系族長/區長的名單
-                                this.m_PresentLists.Entities.Add(ListEntity);
-                            }
-                            else { }
-                        }
-                    }
-                }
-                return;
+                return ;
             }
             catch (System.Exception Exception)
             {

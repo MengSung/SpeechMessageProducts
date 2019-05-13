@@ -76,7 +76,7 @@ namespace ChurchReport.WebServiceConnector
         #endregion
         #region 真實運作區塊，並非模擬區塊
         #region 主程式區
-        public List<Fee> GetFeeList(String Account, String Password, ref String Result, ref ClassName aClassName )
+        public List<Fee> GetFeeList(String Account, String Password, ref String Result, ref ClassName aClassName)
         {
             // 取得登入者
             FindLoginUser(Account, Password);
@@ -88,10 +88,10 @@ namespace ChurchReport.WebServiceConnector
 
             return m_FeeDataList;
         }
-        public void SetGroupContent( String DiscipleLessonsName, String Result)
+        public void SetGroupContent(String DiscipleLessonsName, String Result)
         {
             // 取得登入者
-            foreach( Fee aFee in m_FeeDataList)
+            foreach (Fee aFee in m_FeeDataList)
             {
                 if (aFee.DiscipleLessonsName == DiscipleLessonsName)
                 {
@@ -118,330 +118,9 @@ namespace ChurchReport.WebServiceConnector
         #endregion
 
         #endregion
-        #region 副程式呼叫
-        private void FindLoginUser(AccountPasswordData aAccountPasswordData)
-        {
-            // 找登入使用者及其ID
-            if (aAccountPasswordData.Account != "LineIdLogin")
-            {
-                this.m_ContactEntity = this.m_ToolUtilityClass.RetrieveContactEntityByAccountNumber(aAccountPasswordData.Account, aAccountPasswordData.Password);
-            }
-            else
-            {
-                this.m_ContactEntity = this.m_ToolUtilityClass.RetrieveContactEntityByLineUserId(aAccountPasswordData.Password);
-            }
-
-            this.m_ContactId = m_ContactEntity.Id;
-        }
-        private void FindListCollectionForWeeklyReport()
-        {
-            try
-            {
-                // 先尋找族系名單
-                EntityCollection aListEntityCollection = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_contact_race_leager_list", "list");
-                if (aListEntityCollection.Entities.Count > 0)
-                {
-                    // 小組長小組名單集合
-                    EntityCollection aFamilyLeaderListEntityCollection = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_contact_family_leader_list", "list");
-
-                    // 合併小組名單至族系名單，單扣除掉重複的
-                    // 然後放在小組名單裡面
-                    //EntityCollection aMergeCollection = MergeCollection(ref aListEntityCollection, ref aFamilyLeaderListEntityCollection);
-                    EntityCollection aMergeCollection = MergeCollectionSmallGroupAhead(ref aListEntityCollection, ref aFamilyLeaderListEntityCollection);
-
-                    
-                    // 過濾掉需要點名的名單才進來
-                    FilterAppNamedListEntity("族長", aMergeCollection);
-
-                    // 帶領族系裡有名單，所以是族系組長，就不用在往下找看是不是小組長了 
-                    return;
-                }
-
-                // 找到小組長小組名單集合
-                aListEntityCollection = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_contact_family_leader_list", "list");
-                if (aListEntityCollection.Entities.Count > 0)
-                {
-                    // 過濾掉需要點名的名單才進來，若是小組長則名單裡就應該沒有"小家長"
-                    FilterAppNamedListEntity("小組長", aListEntityCollection);
-                    return;
-                }
-
-                // 找到小家長小組名單集合 ，內壢得勝靈糧堂才有，因為是三層，楊梅靈糧堂並沒有
-                //aListEntityCollection = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_familyhead_list", "list");
-                //if (aListEntityCollection.Entities.Count > 0)
-                //{
-                //    FilterAppNamedListEntity("小家長", aListEntityCollection);
-                //    return;
-                //}
-
-                return;
-            }
-            catch (System.Exception Exception)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
-
-                throw Exception;
-            }
-        }
-        private void FindListCollection()
-        {
-            try
-            {
-                // 先尋找上代組長 new_contact_list_arealeader
-                EntityCollection aListEntityCollection = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_contact_race_leager_list", "list");  // 上代組長
-                //EntityCollection aListEntityCollection = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_contact_list_arealeader", "list"); // 族系族長
-                if (aListEntityCollection.Entities.Count > 0)
-                {
-                    // 小組長小組名單集合
-                    EntityCollection aFamilyLeaderListEntityCollection = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_contact_family_leader_list", "list");
-
-                    // 合併小組名單至族系名單，單扣除掉重複的
-                    // 然後放在小組名單裡面
-                    //EntityCollection aMergeCollection = MergeCollection(ref aListEntityCollection, ref aFamilyLeaderListEntityCollection);
-                    EntityCollection aMergeCollection = MergeCollectionSmallGroupAhead(ref aListEntityCollection, ref aFamilyLeaderListEntityCollection);
-
-
-                    // 過濾掉需要點名的名單才進來，而且不是幸福小組(因為有時幸福小組也會在APP點名的框框打勾)
-                    // 但是過濾的結果會放在 => this.m_Lists
-                    FilterAppNamedListEntity(aMergeCollection);
-
-                    // 帶領族系裡有名單，所以是族系組長，就不用在往下找看是不是小組長了 
-                    return;
-                }
-
-                // 找到小組長小組名單集合 
-                aListEntityCollection = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_contact_family_leader_list", "list");
-                if (aListEntityCollection.Entities.Count > 0)
-                {
-                    // 過濾掉需要點名的名單才進來
-                    FilterAppNamedListEntity(aListEntityCollection);
-                    // 帶領族系裡有名單，所以是族系組長，就不用在往下找看是不是小組長了 
-                    return;
-                }
-
-                // 找到小家長小組名單集合 
-                //aListEntityCollection = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_familyhead_list", "list");
-                //if (aListEntityCollection.Entities.Count > 0)
-                //{
-                //    FilterAppNamedListEntity(aListEntityCollection);
-                //    return;
-                //}
-
-                return;
-            }
-            catch (System.Exception Exception)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
-
-                throw Exception;
-            }
-        }
-        private EntityCollection MergeCollection(ref EntityCollection aListEntityCollection, ref EntityCollection aFamilyLeaderListEntityCollection)
-        {
-            try
-            {
-                // 族系族長或是區長的名單若是與小組長名單重疊，則要過濾出僅有族長/區長的名單
-                // 合併小組名單至族系名單，單扣除掉重複的
-                // 然後放在小組名單裡面
-                foreach (Entity RaceListEntity in aListEntityCollection.Entities)
-                {
-                    // 一個一個處理族系名單
-                    bool Flag = false;
-                    foreach (Entity FamilyLeaderListEntity in aFamilyLeaderListEntityCollection.Entities)
-                    {
-                        if (RaceListEntity.Id == FamilyLeaderListEntity.Id)
-                        {
-                            // 在小組名單裡已經有了，就跳出迴圈，不再找了
-                            Flag = true;
-                            break;
-                        }
-                    }
-
-                    if (Flag == false)
-                    {
-                        // 這個小組名單並沒有在族系名單之中
-                        //aListEntityCollection.Entities.Add(FamilyLeaderListEntity);
-
-                        // 這個族系名單並沒有在小組名單之中
-                        aFamilyLeaderListEntityCollection.Entities.Add(RaceListEntity);
-                    }
-                    else { }
-                }
-
-                return aFamilyLeaderListEntityCollection;
-            }
-            catch (System.Exception Exception)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
-
-                throw Exception;
-            }
-        }
-        private EntityCollection MergeCollectionSmallGroupAhead(ref EntityCollection aListEntityCollection, ref EntityCollection aFamilyLeaderListEntityCollection)
-        {
-            try
-            {
-                EntityCollection aMergedEntityCollection = new EntityCollection();
-
-                // 族系族長或是區長的名單若是與小組長名單重疊，則要過濾出僅有族長/區長的名單
-                // 合併小組名單至族系名單，單扣除掉重複的
-                // 然後放在小組名單裡面
-                foreach (Entity FamilyLeaderListEntity in aFamilyLeaderListEntityCollection.Entities)
-                {
-                    aMergedEntityCollection.Entities.Add(FamilyLeaderListEntity);
-                }
-                // 一個一個處理族系名單
-                foreach (Entity RaceListEntity in aListEntityCollection.Entities)
-                {
-                    // 處理一個族系族長的名單
-                    bool SearchedFlag = false;
-                    foreach (Entity FamilyLeaderListEntity in aFamilyLeaderListEntityCollection.Entities)
-                    {
-                        // 比對每一個小組名單
-                        if (RaceListEntity.Id == FamilyLeaderListEntity.Id)
-                        {
-                            // 族系族長的名單與小組長的名單有相同的了
-                            SearchedFlag = true;
-                            break;
-                        }
-                    }
-
-                    if (SearchedFlag == false)
-                    {
-                        // 族系族長的名單沒有與小組長名單相同的
-                        aMergedEntityCollection.Entities.Add(RaceListEntity);
-                    }
-
-                }
-
-                return aMergedEntityCollection;
-            }
-            catch (System.Exception Exception)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
-
-                throw Exception;
-            }
-        }
-        private void FilterAppNamedListEntity(EntityCollection aListEntityCollection)
-        {
-            try
-            {
-                // 過濾掉需要點名的名單才進來，而且不是幸福小組(因為有時幸福小組也會在APP點名的框框打勾)
-                if (this.m_Lists != null && this.m_Lists.Entities != null)
-                {
-                    // this.m_Lists 就是要點名的名單
-                    this.m_Lists.Entities.Clear();
-                }
-
-                foreach (Entity ListEntity in aListEntityCollection.Entities)
-                {
-                    if (ListEntity.Attributes.Contains("new_app_named"))
-                    {
-                        bool AppNamed = (bool)ListEntity.Attributes["new_app_named"];
-
-                        DateTime aHappyStartDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ListEntity, "new_happy_start_date");
-                        DateTime aHappyEndDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ListEntity, "new_happy_end_date");
-
-                        if (AppNamed == true && aHappyStartDate.Year == 1 && aHappyEndDate.Year == 1)
-                        {
-                            // 需要點名的名單才進來，而且幸福小組的開始結束時間都沒填才是一般小組的名單
-                            this.m_Lists.Entities.Add(ListEntity);
-                        }
-                    }
-                }
-                return;
-            }
-            catch (System.Exception Exception)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
-
-                throw Exception;
-            }
-        }
-        private void FilterAppNamedListEntity(String aIdentity, EntityCollection aListEntityCollection)
-        {
-            try
-            {
-                // 過濾掉需要點名的名單才進來
-                if (this.m_Lists != null && this.m_Lists.Entities != null)
-                {
-                    this.m_Lists.Entities.Clear();
-                }
-
-                foreach (Entity ListEntity in aListEntityCollection.Entities)
-                {
-                    if (ListEntity.Attributes.Contains("new_app_named"))
-                    {
-                        bool AppNamed = (bool)ListEntity.Attributes["new_app_named"];
-
-                        if (AppNamed == true)
-                        {
-                            if (aIdentity == "族長")
-                            {
-                                //  族長   = new_contact_race_leager_list
-                                //  小組長 = new_contact_family_leader_list
-                                //  楊梅靈糧堂，因為楊梅靈糧堂沒有小家長
-                                //Guid FamilyLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ListEntity, "new_familyhead_list");
-                                Guid GroupLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ListEntity, "new_contact_family_leader_list");
-
-                                String ListName = this.m_ToolUtilityClass.GetEntityStringAttribute(ListEntity, "listname");
-
-                                // 過濾掉需要點名的名單才進來，若是族長則名單裡就應該沒有"小家長"、"小組長"
-                                //if (FamilyLeaderId == Guid.Empty && GroupLeaderId == Guid.Empty)
-                                if (GroupLeaderId == Guid.Empty || GroupLeaderId == m_ContactId)
-                                {
-                                    if (!ListName.Contains("門徒")) // 不包含"門徒"名單
-                                    {
-                                        this.m_Lists.Entities.Add(ListEntity);
-                                    }
-                                }
-
-                                // 需要回報給族系族長/區長的名單
-                                if (!ListName.Contains("門徒")) // 不包含"門徒"名單
-                                {
-                                    this.m_PresentLists.Entities.Add(ListEntity);
-                                }
-
-                            }
-                            else if (aIdentity == "小組長")
-                            {
-                                //Guid FamilyLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ListEntity, "new_familyhead_list");
-                                //
-                                //// 過濾掉需要點名的名單才進來，若是小組長則名單裡就應該沒有"小家長"
-                                //if (FamilyLeaderId == Guid.Empty )
-                                //{
-                                //    this.m_Lists.Entities.Add(ListEntity);
-                                //}
-
-
-                                this.m_Lists.Entities.Add(ListEntity);
-                                // 需要回報給族系族長/區長的名單
-                                this.m_PresentLists.Entities.Add(ListEntity);
-                            }
-                            else if (aIdentity == "小家長")
-                            {
-                                this.m_Lists.Entities.Add(ListEntity);
-                                // 需要回報給族系族長/區長的名單
-                                this.m_PresentLists.Entities.Add(ListEntity);
-                            }
-                            else { }
-                        }
-                    }
-                }
-                return;
-            }
-            catch (System.Exception Exception)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
-
-                throw Exception;
-            }
-        }
-        #endregion
         #endregion
         #region 下載資料
-        public void SetFeeDataList( ref String Result, ref ClassName aClassName)
+        public void SetFeeDataList(ref String Result, ref ClassName aClassName)
         {
             // 初始化收費與點名紀錄
             m_FeeDataList = new List<Fee>();
@@ -473,8 +152,8 @@ namespace ChurchReport.WebServiceConnector
                 // 處理一個一個的上課紀錄
                 ProcesseStorLessons(aDiscipleLessons, ref aStorLessonsEntityCollection, ref Result);
 
-                String DiscipleLessonsName = this.m_ToolUtilityClass.GetEntityStringAttribute( aDiscipleLessons, "new_name" );
-                SetGroupContent( DiscipleLessonsName, Result);
+                String DiscipleLessonsName = this.m_ToolUtilityClass.GetEntityStringAttribute(aDiscipleLessons, "new_name");
+                SetGroupContent(DiscipleLessonsName, Result);
                 //Result += Environment.NewLine;
             }
         }
@@ -485,7 +164,7 @@ namespace ChurchReport.WebServiceConnector
 
             //aClassName.Lesson1 = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDiscipleLessons, "new_l1_name");
             LessonDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aDiscipleLessons, "new_l1_date");
-            if(LessonDate.Year > 1 )
+            if (LessonDate.Year > 1)
             {
                 aClassName.Lesson1 = "第一堂:" + LessonDate.ToLocalTime().ToShortDateString();
             }
@@ -682,12 +361,12 @@ namespace ChurchReport.WebServiceConnector
             Result += "已繳費金額: " + TotalFeeAmount.ToString() + " 元";
 
         }
-        public void ProcesseStorLessonsParameter(Entity aStorLessons, ref Fee aFee )
+        public void ProcesseStorLessonsParameter(Entity aStorLessons, ref Fee aFee)
         {
             aFee.FullName = this.m_ToolUtilityClass.GetEntityLookupDisplayName(ref aStorLessons, "new_contact_new_stor_lessons");
 
             Guid aContactId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aStorLessons, "new_contact_new_stor_lessons");
-            
+
             if (aContactId != Guid.Empty)
             {
                 // 取得上課紀錄單的學員連絡人紀錄
@@ -735,19 +414,19 @@ namespace ChurchReport.WebServiceConnector
         }
         public int ProcesseFee(Entity aStorLessons, ref Fee aFee, ref EntityCollection aFeeEntityCollection)
         {
-            Money aTotalAmountPaid = new Money(0) ;
+            Money aTotalAmountPaid = new Money(0);
             foreach (Entity aFeeEntity in aFeeEntityCollection.Entities)
             {
                 // 處理一個一個的收費單
 
                 // 繳費日期
-                aFee.PayDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(aFeeEntity, "new_pay_date" ).ToLocalTime();
-                
+                aFee.PayDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(aFeeEntity, "new_pay_date").ToLocalTime();
+
                 // 繳費金額
                 Money aMoney = this.m_ToolUtilityClass.GetEntityMoneyAttribute(aFeeEntity, "new_fee_really_paid");
                 aMoney.Value = aMoney.Value > 0 ? aMoney.Value : 0; // 傳回負值就歸零
 
-                aTotalAmountPaid.Value = aTotalAmountPaid.Value + aMoney.Value ;
+                aTotalAmountPaid.Value = aTotalAmountPaid.Value + aMoney.Value;
 
                 switch (this.m_ToolUtilityClass.GetOptionSetAttribute(aFeeEntity, "new_pay_way"))
                 {
@@ -773,7 +452,7 @@ namespace ChurchReport.WebServiceConnector
 
             }
 
-            aFee.Amount = (int) aTotalAmountPaid.Value;
+            aFee.Amount = (int)aTotalAmountPaid.Value;
 
             m_FeeDataList.Add(aFee);
 
@@ -845,7 +524,7 @@ namespace ChurchReport.WebServiceConnector
         }
         #endregion
         #region 上傳資料
-        public void UpdateFeeDataList(String Key, String Value, String StorLessonsId, ref bool CreateFlag )
+        public void UpdateFeeDataList(String Key, String Value, String StorLessonsId, ref bool CreateFlag)
         {
             Entity aStorLessonEntity = this.m_ToolUtilityClass.RetrieveEntity("new_stor_lessons", new Guid(StorLessonsId));
 
@@ -863,11 +542,11 @@ namespace ChurchReport.WebServiceConnector
                     }
                     else
                     {
-                        this.m_ToolUtilityClass.SetEntityDateTimeAttributeToNull(ref aStorLessonEntity, "new_pay_date" );
+                        this.m_ToolUtilityClass.SetEntityDateTimeAttributeToNull(ref aStorLessonEntity, "new_pay_date");
                     }
                     this.m_ToolUtilityClass.UpdateEntity(ref aStorLessonEntity);
 
-                    Fee = GetFeeOfStorLesson(StorLessonsId, Key, ref CreateFlag );
+                    Fee = GetFeeOfStorLesson(StorLessonsId, Key, ref CreateFlag);
                     if (Value != null)
                     {
                         this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref Fee, "new_pay_date", DateTime.Parse(Value));
@@ -984,7 +663,7 @@ namespace ChurchReport.WebServiceConnector
             }
 
         }
-        public Entity GetFeeOfStorLesson(String StorLessonsId, String Type, ref bool CreateFlag  )
+        public Entity GetFeeOfStorLesson(String StorLessonsId, String Type, ref bool CreateFlag)
         {
             // 取得與上課紀錄相關的收費單
             EntityCollection aFeeEntityCollection = m_ToolUtilityClass.QueryEntityList("new_stor_lessons", "new_stor_lessonsid", StorLessonsId, "new_stor_lessons_new_fee", "new_fee");
@@ -997,7 +676,7 @@ namespace ChurchReport.WebServiceConnector
             else
             {
                 CreateFlag = true;
-                return CreateFee(StorLessonsId, Type );
+                return CreateFee(StorLessonsId, Type);
             }
         }
         public Entity CreateFee(String StorLessonsId, String Type)
@@ -1011,9 +690,9 @@ namespace ChurchReport.WebServiceConnector
             this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aFee, "new_contact_new_fee", "new_fee", this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aStorLessonEntity, "new_contact_new_stor_lessons"));
 
             Guid DiscipleLessonsEntityId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aStorLessonEntity, "new_new_disciple_lessons_new_stor_les");
-            this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aFee, "new_disciple_lessons_new_fee", "new_fee", DiscipleLessonsEntityId );
+            this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aFee, "new_disciple_lessons_new_fee", "new_fee", DiscipleLessonsEntityId);
 
-            this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aFee, "new_stor_lessons_new_fee", "new_fee", aStorLessonEntity.Id );
+            this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aFee, "new_stor_lessons_new_fee", "new_fee", aStorLessonEntity.Id);
 
             Entity aDiscipleLessonsEntity = this.m_ToolUtilityClass.RetrieveEntity("new_disciple_lessons", DiscipleLessonsEntityId);
 
@@ -1024,7 +703,7 @@ namespace ChurchReport.WebServiceConnector
                 this.m_ToolUtilityClass.SetEntityMoneyAttribute(ref aFee, "new_fee_shoud_pay", MoneyShouldPay);
             }
 
-            if ( Type == "Amount")
+            if (Type == "Amount")
             {
                 this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aFee, "new_pay_date", DateTime.Now);
                 //this.m_ToolUtilityClass.SetOptionSetAttribute(ref aFee, "new_pay_way", 100000004); // 預設繳費是未知
