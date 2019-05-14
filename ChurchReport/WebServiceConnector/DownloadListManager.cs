@@ -237,7 +237,7 @@ namespace ChurchReport.WebServiceConnector
                              SundayRate = m_ToolUtilityClass.GetEntityDoubleAttribute(GroupWeeklyReportEntity, "new_sunday_present_rate").ToString(),
                              SmallGroupNumber = m_ToolUtilityClass.GetEntityIntAttribute(GroupWeeklyReportEntity, "new_small_group_number").ToString(),
                              SmallGroupRate = m_ToolUtilityClass.GetEntityDoubleAttribute(GroupWeeklyReportEntity, "new_small_group_rate").ToString(),
-                             ReportContent = m_ToolUtilityClass.GetEntityStringAttribute(GroupWeeklyReportEntity, "new_memo").ToString(),
+                             ReportContent = m_ToolUtilityClass.GetEntityStringAttribute(GroupWeeklyReportEntity, "new_memo"),
                          }
                     );
 
