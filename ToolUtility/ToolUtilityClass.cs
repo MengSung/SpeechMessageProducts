@@ -2217,6 +2217,88 @@ namespace ToolUtilityNameSpace
                 throw e;
             }
         }
+
+        public EntityCollection QueryPresentRecordInWeeklyReportByContactId(Guid aContactId, Guid aWeeklyReportEntityId)
+        {
+            try
+            {
+                #region // Create the ConditionExpression.
+                ConditionExpression condition = new ConditionExpression();
+
+                // Set the condition to be when the account owner's last name is not Cannon. new_new_receive_drugs_prescribed_new_
+                condition.AttributeName = "new_group_present_weekly_report_prese";
+                condition.Operator = ConditionOperator.Equal;
+                condition.Values.Add(aWeeklyReportEntityId);
+
+                ConditionExpression StateCondidtion = new ConditionExpression();
+                // Set the condition to be when the account owner's last name is not Cannon. new_new_receive_drugs_prescribed_new_
+                //StateCondidtion.AttributeName = "statuscode";
+                StateCondidtion.AttributeName = "statecode";
+                StateCondidtion.Operator = ConditionOperator.Equal;
+                //StateCondidtion.Values.Add("Inactive");
+                //StateCondidtion.Values.Add("Active");
+                StateCondidtion.Values.Add(0);
+                //StateCondidtion.Values.Add("使用中");
+
+                //ConditionExpression DateTimeConditionPrincipal = new ConditionExpression("new_sunday_date", ConditionOperator.Equal, aSunday);
+                //ConditionExpression DateTimeConditionPrincipal = new ConditionExpression("new_sunday_date", ConditionOperator.Equal, aSunday.ToShortDateString());
+                ConditionExpression ContactCondition = new ConditionExpression();
+                ContactCondition.AttributeName = "new_contact_new_present_record";
+                ContactCondition.Operator = ConditionOperator.Equal;
+                ContactCondition.Values.Add(aContactId);
+
+
+
+                // Build the filter that is based on the condition.
+                FilterExpression filter = new FilterExpression();
+                filter.FilterOperator = LogicalOperator.And;
+                filter.Conditions.Add(condition);
+                filter.Conditions.Add(StateCondidtion);
+                filter.Conditions.Add(ContactCondition);
+                #endregion
+
+                #region// Create an instance of the query expression class.
+
+                QueryExpression query = new QueryExpression();
+
+                // Set the query properties.
+                query.EntityName = "new_present_record";
+                query.ColumnSet.AllColumns = true;
+                query.Criteria = filter;
+                #endregion
+
+                #region // 執行 Query 的Request
+                // Create the request.
+                RetrieveMultipleRequest retrieve = new RetrieveMultipleRequest();
+
+                // Set the request properties.
+                retrieve.Query = query;
+                //retrieve.ReturnDynamicEntities = true;
+
+                // Execute the request.
+                RetrieveMultipleResponse request;
+                if (CRM_TYPE == "DYNAMICS365")
+                {
+                    request = (RetrieveMultipleResponse)this.m_OrganizationService.Execute(retrieve);
+                }
+                else
+                {
+                    request = (RetrieveMultipleResponse)this.m_Crm2011OrganizationService.Execute(retrieve);
+                }
+
+                #endregion
+
+                return request.EntityCollection;
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                //Monitor.Exit(this);
+                throw e;
+            }
+        }
+
         public EntityCollection QueryEntityListByDate(String ParentEntityName, String ParentEntityIdName, String ParentEntityId, String AssociationName, String ChildEntityName)
         {
             try

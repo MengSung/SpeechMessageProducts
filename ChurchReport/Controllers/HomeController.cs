@@ -76,6 +76,8 @@ namespace ChurchReport.Controllers
 
                 await aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
 
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
                 throw e;
             }
         }
@@ -204,6 +206,8 @@ namespace ChurchReport.Controllers
 
                 aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
 
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
                 throw e;
             }
         }
@@ -233,6 +237,8 @@ namespace ChurchReport.Controllers
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
                 aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
+
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
                 throw e;
             }
@@ -287,6 +293,8 @@ namespace ChurchReport.Controllers
 
                 aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
 
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
                 throw e;
             }
         }
@@ -321,6 +329,8 @@ namespace ChurchReport.Controllers
 
                 aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
 
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
                 throw e;
             }
         }
@@ -350,6 +360,8 @@ namespace ChurchReport.Controllers
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
                 aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
+
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
                 throw e;
             }
@@ -396,6 +408,8 @@ namespace ChurchReport.Controllers
                         //ListSmallGroupWeeklyReport bSmallGroupData = m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.Where(e => e.ListEntityId == "001").ToList()[0];
 
                         //return View(m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.Where(e => e.ListEntityId == m_InMemoryDataContextSmallGroup.m_ListManager.ActiveListId).Select());
+                        //throw new Exception("沒有資料!");
+
                         return View(m_InMemoryDataContextSmallGroup.ListManager);
                         //return View(m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.Select(ListEntityId=> m_InMemoryDataContextSmallGroup.m_ListManager.ActiveListId));
                         #endregion
@@ -410,6 +424,8 @@ namespace ChurchReport.Controllers
                         //    // 登入到多小組回報，整合是頁面要先歸零
                         //    m_InMemoryDataContextSmallGroup.ListManager.m_SmallGroupWeeklyReport.LoadFlag = false;
                         //}
+
+                        //throw new Exception("沒有資料!");
 
                         return RedirectToAction("IntegrateView");
                     }
@@ -464,6 +480,10 @@ namespace ChurchReport.Controllers
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
                 aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
+
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
                 throw e;
             }
@@ -586,6 +606,8 @@ namespace ChurchReport.Controllers
 
                 aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
 
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
                 throw e;
             }
         }
@@ -623,6 +645,8 @@ namespace ChurchReport.Controllers
 
                 aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
 
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
                 throw e;
             }
         }
@@ -645,6 +669,8 @@ namespace ChurchReport.Controllers
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
                 aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
+
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
                 throw e;
             }
@@ -670,6 +696,8 @@ namespace ChurchReport.Controllers
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
                 aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
+
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
                 throw e;
             }
@@ -710,6 +738,8 @@ namespace ChurchReport.Controllers
 
                 aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
 
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
                 throw e;
             }
         }
@@ -731,6 +761,8 @@ namespace ChurchReport.Controllers
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
                 aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
+
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
                 throw e;
             }
@@ -759,6 +791,8 @@ namespace ChurchReport.Controllers
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
                 aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
+
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
                 throw e;
             }
@@ -809,6 +843,8 @@ namespace ChurchReport.Controllers
 
                 aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
 
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
                 throw e;
             }
         }
@@ -848,6 +884,8 @@ namespace ChurchReport.Controllers
 
                 aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
 
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
                 throw e;
             }
         }
@@ -868,6 +906,8 @@ namespace ChurchReport.Controllers
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
                 aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
+
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
                 throw e;
             }
@@ -891,6 +931,8 @@ namespace ChurchReport.Controllers
 
                 aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
 
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
                 throw e;
             }
         }
@@ -911,6 +953,8 @@ namespace ChurchReport.Controllers
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
                 aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
+
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
                 throw e;
             }
@@ -941,6 +985,8 @@ namespace ChurchReport.Controllers
 
                 aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
 
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
                 throw e;
             }
         }
@@ -970,6 +1016,8 @@ namespace ChurchReport.Controllers
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
                 aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
+
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
                 throw e;
             }
@@ -1071,6 +1119,8 @@ namespace ChurchReport.Controllers
 
                 aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
 
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
                 throw e;
             }
         }
@@ -1106,6 +1156,8 @@ namespace ChurchReport.Controllers
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
                 aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
+
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
                 throw e;
             }
@@ -1146,6 +1198,8 @@ namespace ChurchReport.Controllers
 
                 aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
 
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
                 throw e;
             }
         }
@@ -1185,6 +1239,8 @@ namespace ChurchReport.Controllers
 
                 aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
 
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
                 throw e;
             }
         }
@@ -1205,6 +1261,8 @@ namespace ChurchReport.Controllers
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
                 aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
+
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
                 throw e;
             }
@@ -1230,6 +1288,8 @@ namespace ChurchReport.Controllers
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
                 aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
+
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
                 throw e;
             }
@@ -1259,6 +1319,8 @@ namespace ChurchReport.Controllers
 
                 aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
 
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
                 throw e;
             }
         }
@@ -1280,6 +1342,8 @@ namespace ChurchReport.Controllers
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
                 aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
+
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
                 throw e;
             }
@@ -1316,6 +1380,8 @@ namespace ChurchReport.Controllers
 
                 aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
 
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
                 throw e;
             }
         }
@@ -1336,6 +1402,8 @@ namespace ChurchReport.Controllers
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
                 aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
+
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
                 throw e;
             }
@@ -1358,6 +1426,8 @@ namespace ChurchReport.Controllers
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
                 aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
+
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
                 throw e;
             }
@@ -1387,6 +1457,8 @@ namespace ChurchReport.Controllers
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
                 aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
+
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
                 throw e;
             }
@@ -1462,6 +1534,8 @@ namespace ChurchReport.Controllers
 
                 aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
 
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
                 throw e;
             }
         }
@@ -1490,6 +1564,8 @@ namespace ChurchReport.Controllers
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
                 aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
+
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
                 throw e;
             }
@@ -1540,6 +1616,8 @@ namespace ChurchReport.Controllers
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
                 aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
+
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
                 throw e;
             }
@@ -1599,6 +1677,8 @@ namespace ChurchReport.Controllers
 
                 aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
 
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
                 throw e;
             }
         }
@@ -1635,6 +1715,8 @@ namespace ChurchReport.Controllers
 
                 aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
 
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
                 throw e;
             }
         }
@@ -1654,6 +1736,8 @@ namespace ChurchReport.Controllers
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
                 aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
+
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
                 throw e;
             }
@@ -1697,6 +1781,8 @@ namespace ChurchReport.Controllers
 
                 aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
 
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
                 throw e;
             }
         }
@@ -1721,6 +1807,8 @@ namespace ChurchReport.Controllers
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
                 aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
+
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
                 throw e;
             }
@@ -1751,6 +1839,8 @@ namespace ChurchReport.Controllers
 
                 aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
 
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
                 throw e;
             }
         }
@@ -1780,6 +1870,8 @@ namespace ChurchReport.Controllers
 
                 aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
 
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
                 throw e;
             }
         }
@@ -1804,6 +1896,8 @@ namespace ChurchReport.Controllers
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
                 aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
+
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
                 throw e;
             }
@@ -1831,6 +1925,8 @@ namespace ChurchReport.Controllers
 
                 aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
 
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
                 throw e;
             }
         }
@@ -1855,6 +1951,8 @@ namespace ChurchReport.Controllers
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
                 aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
+
+                //return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
                 throw e;
             }
@@ -1884,6 +1982,8 @@ namespace ChurchReport.Controllers
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
                 aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
+
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
                 throw e;
             }
@@ -1930,6 +2030,8 @@ namespace ChurchReport.Controllers
 
                 aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
 
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
                 throw e;
             }
         }
@@ -1967,6 +2069,8 @@ namespace ChurchReport.Controllers
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
                 aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
+
+                //return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
                 throw e;
             }
@@ -2025,6 +2129,8 @@ namespace ChurchReport.Controllers
 
                 aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
 
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
                 throw e;
             }
         }
@@ -2057,6 +2163,8 @@ namespace ChurchReport.Controllers
 
                 aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
 
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
                 throw e;
             }
         }
@@ -2084,6 +2192,8 @@ namespace ChurchReport.Controllers
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
                 aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
+
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
                 throw e;
             }
@@ -2115,6 +2225,8 @@ namespace ChurchReport.Controllers
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
                 aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
+
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
                 throw e;
             }
@@ -2201,6 +2313,8 @@ namespace ChurchReport.Controllers
 
                 aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
 
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
                 throw e;
             }
         }
@@ -2240,6 +2354,8 @@ namespace ChurchReport.Controllers
 
                 aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
 
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
                 throw e;
             }
         }
@@ -2261,9 +2377,61 @@ namespace ChurchReport.Controllers
 
                 aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
 
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
                 throw e;
             }
 
+        }
+        #endregion
+        #region 顯示錯誤訊息
+        [Route("/Home/DisplayErrorView/{ErrorMessage}")]
+        public IActionResult DisplayErrorView(string ErrorMessage)
+        {
+            try
+            {
+                ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType;// 看是小組長還是個人回報
+                ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.ListManager.LoginFullName;
+                ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType;
+                ViewBag.HappyType = m_InMemoryDataContextSmallGroup.HappyGroupDataManager.HappyType;
+
+                SetMultiGroupLayoutParameter();
+
+                if (m_InMemoryDataContextSmallGroup.ListManager.m_MultiGroupList.m_WeeklyReportRecordListData.Count == 1)
+                {
+                    //m_InMemoryDataContextSmallGroup.NewPersonModel.m_PersonFormViewModel.Position = m_InMemoryDataContextSmallGroup.ListManager.m_MultiGroupList.m_WeeklyReportRecordListData.First().ListEntityId;
+                    //m_InMemoryDataContextSmallGroup.NewPersonModel.m_PersonFormViewModel.GroupName = m_InMemoryDataContextSmallGroup.ListManager.m_MultiGroupList.m_WeeklyReportRecordListData.First().Name;
+                }
+                else if (ViewBag.MultiGroupIndex == "HybridView")
+                {
+                    m_InMemoryDataContextSmallGroup.NewPersonModel.m_PersonFormViewModel.Position = m_InMemoryDataContextSmallGroup.ListManager.ActiveListId;
+                }
+                else if (ViewBag.MultiGroupIndex == "SingleMultiGroupView")
+                {
+                    m_InMemoryDataContextSmallGroup.NewPersonModel.m_PersonFormViewModel.Position = "";
+                }
+                else
+                {
+                    m_InMemoryDataContextSmallGroup.NewPersonModel.m_PersonFormViewModel.Position = "";
+                }
+
+                ViewBag.ErrorMessage = ErrorMessage;
+
+                return View();
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "c FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台北基督之家 : 綁定錯誤 => " + ErrorString);
+
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
+                throw e;
+            }
         }
         #endregion
         #region 圖形區塊
@@ -2286,6 +2454,8 @@ namespace ChurchReport.Controllers
 
                 aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
 
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
                 throw e;
             }
 
@@ -2306,6 +2476,8 @@ namespace ChurchReport.Controllers
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
                 aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
+
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
                 throw e;
             }
@@ -2336,6 +2508,8 @@ namespace ChurchReport.Controllers
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
                 aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
+
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
                 throw e;
             }
@@ -2382,6 +2556,8 @@ namespace ChurchReport.Controllers
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
                 aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
+
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
                 throw e;
             }
@@ -2437,6 +2613,8 @@ namespace ChurchReport.Controllers
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
                 aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
+
+                //return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
                 throw e;
             }
@@ -2494,6 +2672,8 @@ namespace ChurchReport.Controllers
 
                 aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
 
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
                 throw e;
             }
         }
@@ -2523,6 +2703,8 @@ namespace ChurchReport.Controllers
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
                 aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
+
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
                 throw e;
             }
@@ -2570,6 +2752,8 @@ namespace ChurchReport.Controllers
 
                 aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
 
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
                 throw e;
             }
         }
@@ -2592,6 +2776,8 @@ namespace ChurchReport.Controllers
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
                 aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
+
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
                 throw e;
             }

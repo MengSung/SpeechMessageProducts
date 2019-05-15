@@ -38,8 +38,11 @@ namespace ChurchReport.WebServiceConnector
         private const String CRM_TYPE = "DYNAMICS365";
 
         // 客製化
-        // 音訊教會(免費版)
-        private const String JESUS_CHANNEL_ACCESS_TOKEN = @"yvyzlpbDY4ctjVuC0vEYFDF4Gz9Ed6VR57AOmqEfRPqNSFa4tmlvgFqydqOsv8C5vOG3Ew1vPtBfZoJ7Psm69HH+oKtRA4UeMWi1EZp6j4hzhjC1ePmBRQOdfcbcGgDjJzC60Q8HAI/Err6YjFZwOwdB04t89/1O/w1cDnyilFU=";
+        // 台中思恩堂豐富教會
+        private const String CHANNEL_ACCESS_TOKEN = @"yvyzlpbDY4ctjVuC0vEYFDF4Gz9Ed6VR57AOmqEfRPqNSFa4tmlvgFqydqOsv8C5vOG3Ew1vPtBfZoJ7Psm69HH+oKtRA4UeMWi1EZp6j4hzhjC1ePmBRQOdfcbcGgDjJzC60Q8HAI/Err6YjFZwOwdB04t89/1O/w1cDnyilFU=";
+
+        // 台北基督之家
+        //private const String CHANNEL_ACCESS_TOKEN = @"MW7xRUVOMqzX651Akvg2cI8Z8oaX61lPAyL3QdSA94/pD61/FmU0wxj8rJ3CBp6Kle1qoDGIPXnMQuV5fhtYLELP+3nfPPiTdvvud9wrDp0uB204ovkDM3CE6wKpcpS2RUILadDWc4FXX6e8lyr+HQdB04t89/1O/w1cDnyilFU=";
 
         // 胡夢嵩回傳　EXCEPTION　專用的ＩＤ
         private const String MENGSUNG_LINE_ID = @"U7638e4ed509708a3573ba6d69970583d";
@@ -51,7 +54,7 @@ namespace ChurchReport.WebServiceConnector
         {
             // 客製化，請選擇
             // 音訊教會(免費版)
-            this.m_LineMessagingClient = new LineMessagingClient(JESUS_CHANNEL_ACCESS_TOKEN);
+            this.m_LineMessagingClient = new LineMessagingClient(CHANNEL_ACCESS_TOKEN);
 
             //m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
             //m_ToolUtilityClass = new ToolUtilityClass("CRM2011");
@@ -120,24 +123,27 @@ namespace ChurchReport.WebServiceConnector
             }
         }
 
-        public void SendListMemberLine( Entity aListEntity)
+        public void SendListMemberLine(Entity aListEntity)
         {
             try
             {
                 #region 傳送LINE 訊息關於加入新人的結果給權柄
 
-                String Result = m_ToolUtilityClass.GetEntityStringAttribute(ref aListEntity, "listname") + Environment.NewLine;
+                String GroupName = m_ToolUtilityClass.GetEntityStringAttribute(ref aListEntity, "listname") + Environment.NewLine;
 
-                Result += "小組人數 = " + m_ToolUtilityClass.GetEntityIntAttribute(ref aListEntity, "membercount") + Environment.NewLine;
+                //String TotalNumber = "小組人數 = " + m_ToolUtilityClass.GetEntityIntAttribute(ref aListEntity, "membercount") + Environment.NewLine;
+                String TotalNumber = "小組人數 = ";
 
-                Result += "組員姓名 : " + Environment.NewLine;
+                String MemberList = "組員姓名 : " + Environment.NewLine;
 
                 String MemberName = "";
-                GetAllMemberNameFromList(ref MemberName, aListEntity.Id );
+                int TotalMemberNumber = GetAllMemberNameFromList(ref MemberName, aListEntity.Id);
 
-                Result += MemberName;
+                MemberList += MemberName;
 
-                m_PushUtility.MultiCastTextMessageAsync(GetLineRecieverList(ref aListEntity, "小組長"), Result);
+                TotalNumber += TotalMemberNumber + Environment.NewLine;
+
+                m_PushUtility.MultiCastTextMessageAsync(GetLineRecieverList(ref aListEntity, "小組長"), GroupName + TotalNumber + MemberList);
 
                 #endregion
             }
@@ -149,7 +155,7 @@ namespace ChurchReport.WebServiceConnector
             }
         }
 
-        private void GetAllMemberNameFromList( ref String Result, Guid ListEntityId)
+        private int GetAllMemberNameFromList(ref String Result, Guid ListEntityId)
         {
             #region // 處理每個小組名單
             //搜尋名單的組員
@@ -225,7 +231,7 @@ namespace ChurchReport.WebServiceConnector
             }
             #endregion
 
-            return;
+            return MemberCollection.Entities.Count;
         }
 
         private String ProcessLineMessage(Entity LoginContact, String SmallGroupResult, ref Entity aListEntity, ref SmallGroupData aSmallGroupData, String WeeklyReportData)
@@ -374,6 +380,15 @@ namespace ChurchReport.WebServiceConnector
                     aListGraceLeaderLineId = this.m_ToolUtilityClass.GetEntityStringAttribute(aContact, "new_lineid");
                 }
 
+                // 共同區長 LINE ID
+                String aCoAreaLeaderLineId = "";
+                Guid aCoAreaLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_co_race_leager_list");
+                if (aCoAreaLeaderId != Guid.Empty)
+                {
+                    aContact = this.m_ToolUtilityClass.RetrieveEntity("contact", aCoAreaLeaderId);
+                    aCoAreaLeaderLineId = this.m_ToolUtilityClass.GetEntityStringAttribute(aContact, "new_lineid");
+                }
+
                 // 區長 LINE ID
                 String aAreaLeaderLineId = "";
                 Guid aAreaLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_race_leager_list");
@@ -392,6 +407,16 @@ namespace ChurchReport.WebServiceConnector
                     aListSmallGroupLeaderLineId = this.m_ToolUtilityClass.GetEntityStringAttribute(aContact, "new_lineid");
                 }
 
+                // 共同組長 ID
+                String aListCoSmallGroupLeaderLineId = "";
+                Guid ListCoSmallGroupLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_list_vice_family_leader");
+                if (ListCoSmallGroupLeaderId != Guid.Empty)
+                {
+                    aContact = this.m_ToolUtilityClass.RetrieveEntity("contact", ListCoSmallGroupLeaderId);
+                    aListCoSmallGroupLeaderLineId = this.m_ToolUtilityClass.GetEntityStringAttribute(aContact, "new_lineid");
+                }
+
+
                 // 回報通知窗口 ID
                 String aReportNotifyWindowLineId = "";
                 Guid aReportNotifyWindowId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_list_report_window");
@@ -409,28 +434,43 @@ namespace ChurchReport.WebServiceConnector
                 if (LoginType == "小組長")
                 {
                     // 小組長個人回報
-                    if (aListGraceLeaderLineId != aAreaLeaderLineId)
-                    {
-                        if (aListGraceLeaderLineId != "") aList.Add(aListGraceLeaderLineId);
-                        if (aAreaLeaderLineId != "") aList.Add(aAreaLeaderLineId);
-                    }
-                    else
-                    {
-                        if (aListGraceLeaderLineId != "") aList.Add(aListGraceLeaderLineId);
-                    }
+                    if (aListGraceLeaderLineId != "") aList.Add(aListGraceLeaderLineId);
+                    if (aAreaLeaderLineId != "") aList.Add(aAreaLeaderLineId);
+                    if (aListCoSmallGroupLeaderLineId != "") aList.Add(aListCoSmallGroupLeaderLineId);
+                    if (aCoAreaLeaderLineId != "") aList.Add(aCoAreaLeaderLineId);
+
+                    //if (aListGraceLeaderLineId != aAreaLeaderLineId)
+                    //{
+                    //    if (aListGraceLeaderLineId != "") aList.Add(aListGraceLeaderLineId);
+                    //    if (aAreaLeaderLineId != "") aList.Add(aAreaLeaderLineId);
+                    //    if (aListCoSmallGroupLeaderLineId != "") aList.Add(aListCoSmallGroupLeaderLineId);
+                    //    if (aCoAreaLeaderLineId != "") aList.Add(aCoAreaLeaderLineId);
+                    //}
+                    //else
+                    //{
+                    //    if (aListGraceLeaderLineId != "") aList.Add(aListGraceLeaderLineId);
+                    //}
                 }
                 else
                 {
                     // 個人回報
-                    if (aListGraceLeaderLineId != aAreaLeaderLineId)
-                    {
-                        if (aListGraceLeaderLineId != "") aList.Add(aListGraceLeaderLineId);
-                        if (aAreaLeaderLineId != "") aList.Add(aAreaLeaderLineId);
-                    }
-                    else
-                    {
-                        if (aListGraceLeaderLineId != "") aList.Add(aListGraceLeaderLineId);
-                    }
+                    if (aListGraceLeaderLineId != "") aList.Add(aListGraceLeaderLineId);
+                    if (aAreaLeaderLineId != "") aList.Add(aAreaLeaderLineId);
+                    if (aListCoSmallGroupLeaderLineId != "") aList.Add(aListCoSmallGroupLeaderLineId);
+                    if (aCoAreaLeaderLineId != "") aList.Add(aCoAreaLeaderLineId);
+
+
+                    //if (aListGraceLeaderLineId != aAreaLeaderLineId)
+                    //{
+                    //    if (aListGraceLeaderLineId != "") aList.Add(aListGraceLeaderLineId);
+                    //    if (aAreaLeaderLineId != "") aList.Add(aAreaLeaderLineId);
+                    //    if (aListCoSmallGroupLeaderLineId != "") aList.Add(aListCoSmallGroupLeaderLineId);
+                    //    if (aCoAreaLeaderLineId != "") aList.Add(aCoAreaLeaderLineId);
+                    //}
+                    //else
+                    //{
+                    //    if (aListGraceLeaderLineId != "") aList.Add(aListGraceLeaderLineId);
+                    //}
 
                     if (aListSmallGroupLeaderLineId != "") aList.Add(aListSmallGroupLeaderLineId);
                 }
