@@ -387,19 +387,29 @@ namespace ChurchReport.WebServiceConnector
             {
                 // 初始化 m_Lists
                 // 共同組長 new_contact_list_vice_family_leader
-                this.m_Lists = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_contact_list_vice_family_leader", "list");  // 共同組長
+                //this.m_Lists = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_contact_list_vice_family_leader", "list");  // 共同組長
+                this.m_Lists = m_ToolUtilityClass.QueryListByContactId(m_ContactId, "new_contact_list_vice_family_leader");  // 共同組長
                 MergeCollectionSmallGroupAhead(ref this.m_Lists);
 
                 // 小組長/副組長 new_contact_family_leader_list
-                EntityCollection aListEntityCollection = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_contact_family_leader_list", "list");  // 小組長/副組長
+                //EntityCollection aListEntityCollection = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_contact_family_leader_list", "list");  // 小組長/副組長
+                EntityCollection aListEntityCollection = m_ToolUtilityClass.QueryListByContactId(m_ContactId, "new_contact_family_leader_list");  // 小組長/副組長
+                //aListEntityCollection = m_ToolUtilityClass.QueryListByContactId(m_ContactId, "new_contact_family_leader_list");  // 小組長/副組長
+                MergeCollectionSmallGroupAhead(ref aListEntityCollection);
+
+                // 共同區長 new_contact_co_race_leager_list
+                //aListEntityCollection = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_contact_co_race_leager_list", "list");  // 共同區長
+                aListEntityCollection = m_ToolUtilityClass.QueryListByContactId(m_ContactId, "new_contact_co_race_leager_list");  // 共同區長
                 MergeCollectionSmallGroupAhead(ref aListEntityCollection);
 
                 // 上代組長 new_contact_race_leager_list
-                aListEntityCollection = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_contact_race_leager_list", "list");  // 上代組長
+                //aListEntityCollection = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_contact_race_leager_list", "list");  // 上代組長
+                aListEntityCollection = m_ToolUtilityClass.QueryListByContactId(m_ContactId, "new_contact_race_leager_list");  // 上代組長
                 MergeCollectionSmallGroupAhead(ref aListEntityCollection);
 
                 // 族系族長 new_contact_list_arealeader
-                aListEntityCollection = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_contact_list_arealeader", "list");  // 族系族長
+                //aListEntityCollection = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_contact_list_arealeader", "list");  // 族系族長
+                aListEntityCollection = m_ToolUtilityClass.QueryListByContactId(m_ContactId, "new_contact_list_arealeader");  // 族系族長
                 MergeCollectionSmallGroupAhead(ref aListEntityCollection);
 
                 return;
@@ -440,7 +450,49 @@ namespace ChurchReport.WebServiceConnector
                         if (this.m_ToolUtilityClass.GetEntityBoolAttribute(aListEntity, "new_app_named") == true)
                         {
                             // 點名有打勾
-                            m_Lists.Entities.Add(aListEntity);
+                            DateTime aHappyStartDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(aListEntity, "new_happy_start_date").ToLocalTime();
+                            DateTime aHappyEndDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(aListEntity, "new_happy_end_date").ToLocalTime();
+
+                            if( aHappyStartDate.Year != 1  )
+                            {
+                                // 小組開始日期有填
+                                if (aHappyEndDate.Year != 1)
+                                {
+                                    // 小組開始日期有填，小組結束日期有填
+                                    if (DateTime.Now >= aHappyStartDate  && DateTime.Now <= aHappyEndDate )
+                                    {
+                                        // 現在比小組開始日期還晚 ，比小組結束日期還早
+                                        m_Lists.Entities.Add(aListEntity);
+                                    }
+                                }
+                                else
+                                {
+                                    // 小組開始日期有填，小組結束日期沒填
+                                    if (DateTime.Now >= aHappyStartDate )
+                                    {
+                                        // 現在比小組結束日期還早
+                                        m_Lists.Entities.Add(aListEntity);
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                // 小組開始日期沒填
+                                if (aHappyEndDate.Year != 1)
+                                {
+                                    // 小組開始日期沒填，小組結束日期有填
+                                    if (DateTime.Now <=aHappyEndDate )
+                                    {
+                                        // 現在比小組結束日期還早
+                                        m_Lists.Entities.Add(aListEntity);
+                                    }
+                                }
+                                else
+                                {
+                                    // 小組開始日期沒填，小組結束日期沒填
+                                    m_Lists.Entities.Add(aListEntity);
+                                }
+                            }
                         }
                     }
 

@@ -2596,91 +2596,91 @@ namespace ToolUtilityNameSpace
             {
                 //lock (m_QueryManyToOneLocker)
                 //{
-                    #region // Create the ConditionExpression.
-                    #region ParentEntityIdName Condition
-                    ConditionExpression condition = new ConditionExpression();
-                    // Set the condition to be when the account owner's last name is not Cannon. new_new_receive_drugs_prescribed_new_
-                    condition.AttributeName = ParentEntityIdName;
-                    condition.Operator = ConditionOperator.Equal;
-                    condition.Values.Add(ParentEntityId);
-                    #endregion
-                    #region StateCondidtion Condition
-                    ConditionExpression StateCondidtion = new ConditionExpression();
-                    // Set the condition to be when the account owner's last name is not Cannon. new_new_receive_drugs_prescribed_new_
-                    //StateCondidtion.AttributeName = "statuscode";
-                    StateCondidtion.AttributeName = "statecode";
-                    StateCondidtion.Operator = ConditionOperator.Equal;
-                    //StateCondidtion.Values.Add("Inactive");
-                    //StateCondidtion.Values.Add("Active");
-                    StateCondidtion.Values.Add(0);
-                    //StateCondidtion.Values.Add("使用中");
-                    #endregion
+                #region // Create the ConditionExpression.
+                #region ParentEntityIdName Condition
+                ConditionExpression condition = new ConditionExpression();
+                // Set the condition to be when the account owner's last name is not Cannon. new_new_receive_drugs_prescribed_new_
+                condition.AttributeName = ParentEntityIdName;
+                condition.Operator = ConditionOperator.Equal;
+                condition.Values.Add(ParentEntityId);
+                #endregion
+                #region StateCondidtion Condition
+                ConditionExpression StateCondidtion = new ConditionExpression();
+                // Set the condition to be when the account owner's last name is not Cannon. new_new_receive_drugs_prescribed_new_
+                //StateCondidtion.AttributeName = "statuscode";
+                StateCondidtion.AttributeName = "statecode";
+                StateCondidtion.Operator = ConditionOperator.Equal;
+                //StateCondidtion.Values.Add("Inactive");
+                //StateCondidtion.Values.Add("Active");
+                StateCondidtion.Values.Add(0);
+                //StateCondidtion.Values.Add("使用中");
+                #endregion
 
-                    // Build the filter that is based on the condition.
-                    FilterExpression filter = new FilterExpression();
-                    filter.FilterOperator = LogicalOperator.And;
-                    filter.Conditions.Add(condition);
-                    filter.Conditions.Add(StateCondidtion);
-                    #endregion
+                // Build the filter that is based on the condition.
+                FilterExpression filter = new FilterExpression();
+                filter.FilterOperator = LogicalOperator.And;
+                filter.Conditions.Add(condition);
+                filter.Conditions.Add(StateCondidtion);
+                #endregion
 
-                    #region // Create a LinkEntity to link the owner's information to the account.
-                    LinkEntity link = new LinkEntity()
-                    {
-                        // Set the LinkEntity properties.
-                        LinkCriteria = filter,
+                #region // Create a LinkEntity to link the owner's information to the account.
+                LinkEntity link = new LinkEntity()
+                {
+                    // Set the LinkEntity properties.
+                    LinkCriteria = filter,
 
-                        // Set the linking entity to account.
-                        LinkFromEntityName = ChildEntityName,
+                    // Set the linking entity to account.
+                    LinkFromEntityName = ChildEntityName,
 
-                        // Set the linking attribute to owninguser.
-                        LinkFromAttributeName = AssociationName,
+                    // Set the linking attribute to owninguser.
+                    LinkFromAttributeName = AssociationName,
 
-                        // The attribute being linked to is systemuserid.
-                        LinkToAttributeName = ParentEntityIdName,
+                    // The attribute being linked to is systemuserid.
+                    LinkToAttributeName = ParentEntityIdName,
 
-                        // The entity being linked to is systemuser.
-                        LinkToEntityName = ParentEntityName
-                    };
-                    #endregion
+                    // The entity being linked to is systemuser.
+                    LinkToEntityName = ParentEntityName
+                };
+                #endregion
 
-                    #region// Create an instance of the query expression class.
-                    QueryExpression query = new QueryExpression();
+                #region// Create an instance of the query expression class.
+                QueryExpression query = new QueryExpression();
 
-                    // Set the query properties.
-                    query.EntityName = ChildEntityName;
-                    query.ColumnSet.AllColumns = true;
-                    query.LinkEntities.Add(link);
-                    #endregion
+                // Set the query properties.
+                query.EntityName = ChildEntityName;
+                query.ColumnSet.AllColumns = true;
+                query.LinkEntities.Add(link);
+                #endregion
 
-                    #region// 根據數字排序後傳回來
-                    OrderExpression OrderBySerial = new OrderExpression();
-                    OrderBySerial.AttributeName = "listname";
-                    OrderBySerial.OrderType = OrderType.Ascending;
-                    ////OrderBySerial.OrderType = OrderType.Descending;
-                    query.Orders.Add(OrderBySerial);
-                    #endregion
+                #region// 根據數字排序後傳回來
+                OrderExpression OrderBySerial = new OrderExpression();
+                OrderBySerial.AttributeName = "listname";
+                OrderBySerial.OrderType = OrderType.Ascending;
+                ////OrderBySerial.OrderType = OrderType.Descending;
+                query.Orders.Add(OrderBySerial);
+                #endregion
 
-                    #region // 執行 Query 的Request
-                    // Create the request.
-                    RetrieveMultipleRequest retrieve = new RetrieveMultipleRequest();
+                #region // 執行 Query 的Request
+                // Create the request.
+                RetrieveMultipleRequest retrieve = new RetrieveMultipleRequest();
 
-                    // Set the request properties.
-                    retrieve.Query = query;
-                    //retrieve.ReturnDynamicEntities = true;
+                // Set the request properties.
+                retrieve.Query = query;
+                //retrieve.ReturnDynamicEntities = true;
 
-                    // Execute the request
-                    RetrieveMultipleResponse request;
-                    if (CRM_TYPE == "DYNAMICS365")
-                    {
-                        request = (RetrieveMultipleResponse)this.m_OrganizationService.Execute(retrieve);
-                    }
-                    else
-                    {
-                        request = (RetrieveMultipleResponse)this.m_Crm2011OrganizationService.Execute(retrieve);
-                    }
-                    #endregion
+                // Execute the request
+                RetrieveMultipleResponse request;
+                if (CRM_TYPE == "DYNAMICS365")
+                {
+                    request = (RetrieveMultipleResponse)this.m_OrganizationService.Execute(retrieve);
+                }
+                else
+                {
+                    request = (RetrieveMultipleResponse)this.m_Crm2011OrganizationService.Execute(retrieve);
+                }
+                #endregion
 
-                    return request.EntityCollection;
+                return request.EntityCollection;
                 //}
             }
             catch (System.Exception e)
@@ -2691,6 +2691,89 @@ namespace ToolUtilityNameSpace
                 throw e;
             }
         }
+
+        public EntityCollection QueryListByContactId(Guid aContactId, String AssociationName)
+        {
+            try
+            {
+                #region // Create the ConditionExpression.
+                ConditionExpression ContactCondition = new ConditionExpression();
+                ContactCondition.AttributeName = AssociationName;
+                ContactCondition.Operator = ConditionOperator.Equal;
+                ContactCondition.Values.Add(aContactId);
+
+                // 狀態是使用中
+                ConditionExpression StateCondidtion = new ConditionExpression();
+                StateCondidtion.AttributeName = "statecode";
+                StateCondidtion.Operator = ConditionOperator.Equal;
+                StateCondidtion.Values.Add(0);
+                //StateCondidtion.Values.Add("使用中");
+
+                // 點名有打勾
+                ConditionExpression AppCondidtion = new ConditionExpression();
+                AppCondidtion.AttributeName = "new_app_named";
+                AppCondidtion.Operator = ConditionOperator.Equal;
+                AppCondidtion.Values.Add(true);
+
+
+                // Build the filter that is based on the condition.
+                FilterExpression filter = new FilterExpression();
+                filter.FilterOperator = LogicalOperator.And;
+                filter.Conditions.Add(ContactCondition);
+                filter.Conditions.Add(StateCondidtion);
+                filter.Conditions.Add(AppCondidtion);
+                #endregion
+
+                #region// Create an instance of the query expression class.
+
+                QueryExpression query = new QueryExpression();
+
+                // Set the query properties.
+                query.EntityName = "list";
+                query.ColumnSet.AllColumns = true;
+                query.Criteria = filter;
+                #endregion
+
+                #region// 根據名稱排序後傳回來
+                OrderExpression OrderBySerial = new OrderExpression();
+                OrderBySerial.AttributeName = "listname";
+                OrderBySerial.OrderType = OrderType.Ascending;
+                ////OrderBySerial.OrderType = OrderType.Descending;
+                query.Orders.Add(OrderBySerial);
+                #endregion
+
+                #region // 執行 Query 的Request
+                // Create the request.
+                RetrieveMultipleRequest retrieve = new RetrieveMultipleRequest();
+
+                // Set the request properties.
+                retrieve.Query = query;
+                //retrieve.ReturnDynamicEntities = true;
+
+                // Execute the request.
+                RetrieveMultipleResponse request;
+                if (CRM_TYPE == "DYNAMICS365")
+                {
+                    request = (RetrieveMultipleResponse)this.m_OrganizationService.Execute(retrieve);
+                }
+                else
+                {
+                    request = (RetrieveMultipleResponse)this.m_Crm2011OrganizationService.Execute(retrieve);
+                }
+
+                #endregion
+
+                return request.EntityCollection;
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                //Monitor.Exit(this);
+                throw e;
+            }
+        }
+
         public EntityCollection QueryWeeklyReportBySunday(DateTime aSunday, Guid aListEntityId)
         {
             try
