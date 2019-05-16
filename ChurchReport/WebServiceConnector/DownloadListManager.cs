@@ -162,7 +162,12 @@ namespace ChurchReport.WebServiceConnector
 
                 #region 取得個人回報的名單
                 this.m_Lists = this.m_ToolUtilityClass.QueryListOfContactManyToMany(this.m_ContactEntity.Id);
-                ActiveListId = this.m_Lists.Entities[0].Id.ToString();
+                FilterPersonalListEntity();
+
+                if (this.m_Lists.Entities.Count > 0)
+                {
+                    ActiveListId = this.m_Lists.Entities[0].Id.ToString();
+                }
                 #endregion
 
                 #region 處理每個要點名的名單
@@ -170,7 +175,7 @@ namespace ChurchReport.WebServiceConnector
                 ProcessPersonalListEntity();
                 #endregion
 
-                return ;
+                return;
                 #endregion
             }
             #endregion
@@ -323,6 +328,35 @@ namespace ChurchReport.WebServiceConnector
 
         #endregion
         #region 處理個人回報
+        private void FilterPersonalListEntity()
+        {
+            try
+            {
+                // 處理每個點名名單
+                EntityCollection aLocalEntityCollection = new EntityCollection();
+                foreach (Entity ListEntity in this.m_Lists.Entities)
+                {
+                    if (m_ToolUtilityClass.GetEntityBoolAttribute(ListEntity, "new_app_named") == true)
+                    {
+                        aLocalEntityCollection.Entities.Add(ListEntity);
+                    }
+                }
+                this.m_Lists.Entities.Clear();
+
+                if (aLocalEntityCollection.Entities.Count > 0)
+                {
+                    this.m_Lists.Entities.Add(aLocalEntityCollection.Entities[0]);
+                }
+                return;
+            }
+            catch (System.Exception Exception)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
+
+                throw Exception;
+            }
+        }
+
         private void ProcessPersonalListEntity()
         {
             try
