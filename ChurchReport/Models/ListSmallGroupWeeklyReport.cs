@@ -67,16 +67,32 @@ namespace ChurchReport.Models
         }
         public void SetPersonalReportViewModel()
         {
-            if (m_SmallGroupDataList.m_AllMemeberData.Members[0] != null)
+            try
             {
-                m_PersonalReportViewModel.GroupName = m_SmallGroupDataList.m_AllMemeberData.Members[0].Group;
-                m_PersonalReportViewModel.FullName = m_SmallGroupDataList.m_AllMemeberData.Members[0].FullName;
-                m_PersonalReportViewModel.SundayPresent = m_SmallGroupDataList.m_AllMemeberData.Members[0].Sunday;
-                m_PersonalReportViewModel.SmallGroupPresent = m_SmallGroupDataList.m_AllMemeberData.Members[0].SmallGroup;
-                m_PersonalReportViewModel.SpiritualWork = m_SmallGroupDataList.m_AllMemeberData.Members[0].SpiritualWork;
-                m_PersonalReportViewModel.MorningPray = m_SmallGroupDataList.m_AllMemeberData.Members[0].MorningPray;
-                m_PersonalReportViewModel.GeneralCare = m_SmallGroupDataList.m_AllMemeberData.Members[0].GeneralCare;
-                m_PersonalReportViewModel.PrayItem = m_SmallGroupDataList.m_AllMemeberData.Members[0].PrayItem;
+                if (m_SmallGroupDataList.m_AllMemeberData.Members != null)
+                {
+                    if (m_SmallGroupDataList.m_AllMemeberData.Members[0] != null)
+                    {
+                        m_PersonalReportViewModel.GroupName = m_SmallGroupDataList.m_AllMemeberData.Members[0].Group;
+                        m_PersonalReportViewModel.FullName = m_SmallGroupDataList.m_AllMemeberData.Members[0].FullName;
+                        m_PersonalReportViewModel.SundayPresent = m_SmallGroupDataList.m_AllMemeberData.Members[0].Sunday;
+                        m_PersonalReportViewModel.SmallGroupPresent = m_SmallGroupDataList.m_AllMemeberData.Members[0].SmallGroup;
+                        m_PersonalReportViewModel.SpiritualWork = m_SmallGroupDataList.m_AllMemeberData.Members[0].SpiritualWork;
+                        m_PersonalReportViewModel.MorningPray = m_SmallGroupDataList.m_AllMemeberData.Members[0].MorningPray;
+                        m_PersonalReportViewModel.GeneralCare = m_SmallGroupDataList.m_AllMemeberData.Members[0].GeneralCare;
+                        m_PersonalReportViewModel.PrayItem = m_SmallGroupDataList.m_AllMemeberData.Members[0].PrayItem;
+                    }
+                }
+                else
+                {
+                    throw new Exception("您沒加入任何小組，所以無法回報喔!");
+                }
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                throw e;
             }
         }
 

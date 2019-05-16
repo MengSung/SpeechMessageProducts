@@ -36,13 +36,22 @@ namespace ChurchReport.Models
 
         public void SetupListManager(String Account, String Password, DateTime aSelectDate )
         {
-            // 先把登入的帳號密碼存下來
-            m_Account = Account;
-            m_Password = Password;
+            try
+            {
+                // 先把登入的帳號密碼存下來
+                m_Account = Account;
+                m_Password = Password;
 
-            m_SelectDate = aSelectDate;
+                m_SelectDate = aSelectDate;
 
-            m_DownloadListManager.GetListManager(Account, Password, aSelectDate, ref m_MultiGroupList, ref m_MultiGroupChartDataList, ref LoginType, ref LoginFullName, ref ActiveListId);
+                m_DownloadListManager.GetListManager(Account, Password, aSelectDate, ref m_MultiGroupList, ref m_MultiGroupChartDataList, ref LoginType, ref LoginFullName, ref ActiveListId);
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                throw e;
+            }
         }
         public void SetSelectDate( DateTime aSelectDate)
         {

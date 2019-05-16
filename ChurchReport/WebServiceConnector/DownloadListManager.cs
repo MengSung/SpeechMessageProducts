@@ -86,8 +86,10 @@ namespace ChurchReport.WebServiceConnector
         #region 主程式區
         public void GetListManager( String Account, String Password, DateTime aDownloadDate, ref MultiGroupList aMultiGroupList, ref MultiGroupChartDataList aMultiGroupChartDataList, ref String LoginType, ref String LoginFullName, ref String ActiveListId )
         {
-            #region 多小組需要的資料結構，在此配置記憶體，並回傳給上層呼叫者
-            m_MultiGroupList.m_WeeklyReportRecordListData = new List<WeeklyReportRecord>();
+            try
+            {
+                #region 多小組需要的資料結構，在此配置記憶體，並回傳給上層呼叫者
+                m_MultiGroupList.m_WeeklyReportRecordListData = new List<WeeklyReportRecord>();
 
             aMultiGroupList = m_MultiGroupList;
 
@@ -121,64 +123,71 @@ namespace ChurchReport.WebServiceConnector
             aMultiGroupChartDataList = m_MultiGroupChartDataList;
             #endregion
 
-            #region 先根據日期尋找當週主日日期
-            // 其值的範圍從 0 (表示 DayOfWeek.Sunday) 為 6 (表示 DayOfWeek.Saturday)。
-            int DayOfWeek = (int)aDownloadDate.DayOfWeek;
-            this.m_Sunday = aDownloadDate.AddDays(-DayOfWeek);
-            #endregion
-
-            #region 找登入使用者及其ID
-            FindLoginUser(Account, Password); // 也就是設定 this.m_ContactEntity
-            if (m_ContactId == Guid.Empty) //是否有找到登入使用者及其ID
-            { return ; } // 沒找到就回傳 null 
-            else
-            {
-                // 取得登入者的姓名
-                LoginFullName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref this.m_ContactEntity, "fullname");
-            }
-            #endregion
-
-            #region 先尋找帶領族系名單，若找到表示就是族系族長，若沒有則在繼續尋找帶領小組名單
-            FindListCollection();
-            #endregion
-
-            #region 處理小組名單
-            if (m_Lists.Entities.Count != 0)
-            {
-                #region// 有找到要點名的名單，所以是小組長以上回報
-                LoginType = "小組長";
-                ActiveListId = this.m_Lists.Entities[0].Id.ToString();
-                #region 處理每個要點名的名單
-                ProcessListEntity();
+                #region 先根據日期尋找當週主日日期
+                // 其值的範圍從 0 (表示 DayOfWeek.Sunday) 為 6 (表示 DayOfWeek.Saturday)。
+                int DayOfWeek = (int)aDownloadDate.DayOfWeek;
+                this.m_Sunday = aDownloadDate.AddDays(-DayOfWeek);
                 #endregion
 
-                return ;
-                #endregion
-            }
-            else
-            {
-                #region// 沒找到任何要點名的名單，所以是個人回報
-                LoginType = "個人回報";
-
-                #region 取得個人回報的名單
-                this.m_Lists = this.m_ToolUtilityClass.QueryListOfContactManyToMany(this.m_ContactEntity.Id);
-                FilterPersonalListEntity();
-
-                if (this.m_Lists.Entities.Count > 0)
+                #region 找登入使用者及其ID
+                FindLoginUser(Account, Password); // 也就是設定 this.m_ContactEntity
+                if (m_ContactId == Guid.Empty) //是否有找到登入使用者及其ID
+                { return ; } // 沒找到就回傳 null 
+                else
                 {
-                    ActiveListId = this.m_Lists.Entities[0].Id.ToString();
+                    // 取得登入者的姓名
+                    LoginFullName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref this.m_ContactEntity, "fullname");
                 }
                 #endregion
 
-                #region 處理每個要點名的名單
-                m_SetIdentityFlag = false; // 因為新朋友、未入組會變更委身類型，旗標防止設定太多次，false表示尚未設定
-                ProcessPersonalListEntity();
+                #region 先尋找帶領族系名單，若找到表示就是族系族長，若沒有則在繼續尋找帶領小組名單
+                FindListCollection();
                 #endregion
 
-                return;
-                #endregion
+                #region 處理小組名單
+                if (m_Lists.Entities.Count != 0)
+                {
+                    #region// 有找到要點名的名單，所以是小組長以上回報
+                    LoginType = "小組長";
+                    ActiveListId = this.m_Lists.Entities[0].Id.ToString();
+                    #region 處理每個要點名的名單
+                    ProcessListEntity();
+                    #endregion
+
+                    return ;
+                    #endregion
+                }
+                else
+                {
+                    #region// 沒找到任何要點名的名單，所以是個人回報
+                    LoginType = "個人回報";
+
+                    #region 取得個人回報的名單
+                    this.m_Lists = this.m_ToolUtilityClass.QueryListOfContactManyToMany(this.m_ContactEntity.Id);
+                    FilterPersonalListEntity();
+
+                    if (this.m_Lists.Entities.Count > 0)
+                    {
+                        ActiveListId = this.m_Lists.Entities[0].Id.ToString();
+                    }
+                    #endregion
+
+                    #region 處理每個要點名的名單
+                    m_SetIdentityFlag = false; // 因為新朋友、未入組會變更委身類型，旗標防止設定太多次，false表示尚未設定
+                    ProcessPersonalListEntity();
+                    #endregion
+
+                    return;
+                    #endregion
+                }
+                    #endregion
             }
-            #endregion
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                throw e;
+            }
         }
 
 
