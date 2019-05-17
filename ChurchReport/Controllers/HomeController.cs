@@ -408,7 +408,6 @@ namespace ChurchReport.Controllers
                         //ListSmallGroupWeeklyReport bSmallGroupData = m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.Where(e => e.ListEntityId == "001").ToList()[0];
 
                         //return View(m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.Where(e => e.ListEntityId == m_InMemoryDataContextSmallGroup.m_ListManager.ActiveListId).Select());
-                        //throw new Exception("沒有資料!");
 
                         // 設定多個組長處理需要的資料
                         if (m_InMemoryDataContextSmallGroup.ListManager.InitialFlag == true)
@@ -420,6 +419,7 @@ namespace ChurchReport.Controllers
                             m_InMemoryDataContextSmallGroup.ListManager.InitialFlag = true;
                         }
 
+                        //throw new Exception("沒有資料!");
                         return View(m_InMemoryDataContextSmallGroup.ListManager);
                         //return View(m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.Select(ListEntityId=> m_InMemoryDataContextSmallGroup.m_ListManager.ActiveListId));
                         #endregion
@@ -490,8 +490,6 @@ namespace ChurchReport.Controllers
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
                 aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
-
-                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
