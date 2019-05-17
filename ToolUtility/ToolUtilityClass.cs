@@ -2822,7 +2822,10 @@ namespace ToolUtilityNameSpace
 
                 // Set the query properties.
                 query.EntityName = "new_group_present_weekly_report";
-                query.ColumnSet.AllColumns = true;
+                //query.ColumnSet.AllColumns = true;
+                query.ColumnSet = new ColumnSet("new_small_group_member_number", "new_sunday_present_number", "new_sunday_present_rate", "new_small_group_number", "new_small_group_rate", "new_memo");
+                //query.ColumnSet = new ColumnSet();
+
                 query.Criteria = filter;
                 query.Orders.Add(OrderByDate);
                 #endregion
