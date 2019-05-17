@@ -410,6 +410,16 @@ namespace ChurchReport.Controllers
                         //return View(m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.Where(e => e.ListEntityId == m_InMemoryDataContextSmallGroup.m_ListManager.ActiveListId).Select());
                         //throw new Exception("沒有資料!");
 
+                        // 設定多個組長處理需要的資料
+                        if (m_InMemoryDataContextSmallGroup.ListManager.InitialFlag == true)
+                        {
+                            m_InMemoryDataContextSmallGroup.SetupListManager(m_InMemoryDataContextSmallGroup.ListManager.m_Account, m_InMemoryDataContextSmallGroup.ListManager.m_Password, DateTime.Now, true);
+                        }
+                        else
+                        {
+                            m_InMemoryDataContextSmallGroup.ListManager.InitialFlag = true;
+                        }
+
                         return View(m_InMemoryDataContextSmallGroup.ListManager);
                         //return View(m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.Select(ListEntityId=> m_InMemoryDataContextSmallGroup.m_ListManager.ActiveListId));
                         #endregion

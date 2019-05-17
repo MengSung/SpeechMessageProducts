@@ -18,6 +18,8 @@ namespace ChurchReport.Models
         public String m_Account;
         public String m_Password;
 
+        public bool InitialFlag = false;
+
         // 地圖需要的資料
         public List<MapData> m_Markers;
 
