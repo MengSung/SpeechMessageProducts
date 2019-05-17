@@ -1,9 +1,9 @@
 /*!
 * DevExtreme (dx.messages.en.js)
-* Version: 18.1.3
-* Build date: Tue May 15 2018
+* Version: 18.2.7
+* Build date: Sat Mar 09 2019
 *
-* Copyright (c) 2012 - 2018 Developer Express Inc. ALL RIGHTS RESERVED
+* Copyright (c) 2012 - 2019 Developer Express Inc. ALL RIGHTS RESERVED
 * Read about DevExtreme licensing here: https://js.devexpress.com/Licensing/
 */
 "use strict";
@@ -14,7 +14,11 @@
             factory(require("devextreme/localization"))
         })
     } else {
-        factory(DevExpress.localization)
+        if ("object" === typeof module && module.exports) {
+            factory(require("devextreme/localization"))
+        } else {
+            factory(DevExpress.localization)
+        }
     }
 }(this, function(localization) {
     localization.loadMessages({
@@ -74,10 +78,13 @@
             "dxFileUploader-uploaded": "Uploaded",
             "dxFileUploader-readyToUpload": "Ready to upload",
             "dxFileUploader-uploadFailedMessage": "Upload failed",
+            "dxFileUploader-invalidFileExtension": "File type is not allowed",
+            "dxFileUploader-invalidMaxFileSize": "File is too large",
+            "dxFileUploader-invalidMinFileSize": "File is too small",
             "dxRangeSlider-ariaFrom": "From",
             "dxRangeSlider-ariaTill": "Till",
-            "dxSwitch-onText": "ON",
-            "dxSwitch-offText": "OFF",
+            "dxSwitch-switchedOnText": "ON",
+            "dxSwitch-switchedOffText": "OFF",
             "dxForm-optionalMark": "optional",
             "dxForm-requiredMessage": "{0} is required",
             "dxNumberBox-invalidValueMessage": "Value must be a number",
@@ -253,7 +260,20 @@
             "dxFilterBuilder-filterOperationIsNotBlank": "Is not blank",
             "dxFilterBuilder-filterOperationBetween": "Is between",
             "dxFilterBuilder-filterOperationAnyOf": "Is any of",
-            "dxFilterBuilder-filterOperationNoneOf": "Is none of"
+            "dxFilterBuilder-filterOperationNoneOf": "Is none of",
+            "dxHtmlEditor-dialogColorCaption": "Change Font Color",
+            "dxHtmlEditor-dialogBackgroundCaption": "Change Background Color",
+            "dxHtmlEditor-dialogLinkCaption": "Add Link",
+            "dxHtmlEditor-dialogLinkUrlField": "URL",
+            "dxHtmlEditor-dialogLinkTextField": "Text",
+            "dxHtmlEditor-dialogLinkTargetField": "Open link in new window",
+            "dxHtmlEditor-dialogImageCaption": "Add Image",
+            "dxHtmlEditor-dialogImageUrlField": "URL",
+            "dxHtmlEditor-dialogImageAltField": "Alternate text",
+            "dxHtmlEditor-dialogImageWidthField": "Width (px)",
+            "dxHtmlEditor-dialogImageHeightField": "Height (px)",
+            "dxHtmlEditor-heading": "Heading",
+            "dxHtmlEditor-normalText": "Normal text"
         }
     })
 });

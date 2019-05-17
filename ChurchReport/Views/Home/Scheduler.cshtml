@@ -11,6 +11,7 @@
         <div class="demo-container">
             @(Html.DevExtreme().Scheduler()
             .ID("scheduler")
+            .AdaptivityEnabled(true)
             //.DataSource(Model.Appointments)
             .DataSource(d => d.WebApi()
             .Controller("Home")

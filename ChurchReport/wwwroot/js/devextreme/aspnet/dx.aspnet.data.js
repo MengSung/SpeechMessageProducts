@@ -1,4 +1,4 @@
-// Version: 2.0.0
+// Version: 2.2.1
 // https://github.com/DevExpress/DevExtreme.AspNet.Data
 // Copyright (c) Developer Express Inc.
 
@@ -46,7 +46,8 @@
             updateUrl = options.updateUrl,
             insertUrl = options.insertUrl,
             deleteUrl = options.deleteUrl,
-            onBeforeSend = options.onBeforeSend;
+            onBeforeSend = options.onBeforeSend,
+            onAjaxError = options.onAjaxError;
 
         function send(operation, requiresKey, ajaxSettings, customSuccessHandler) {
             var d = $.Deferred();
@@ -72,9 +73,16 @@
                             d.resolve();
                     })
                     .fail(function(xhr, textStatus) {
-                        var message = getErrorMessageFromXhr(xhr);
-                        if(message)
-                            d.reject(message);
+                        var error = getErrorMessageFromXhr(xhr);
+
+                        if(onAjaxError) {
+                            var e = { xhr: xhr, error: error };
+                            onAjaxError(e);
+                            error = e.error;
+                        }
+
+                        if(error)
+                            d.reject(error);
                         else
                             d.reject(xhr, textStatus);
                     });
@@ -101,7 +109,7 @@
             if(options) {
 
                 ["skip", "take", "requireTotalCount", "requireGroupCount"].forEach(function(i) {
-                    if(i in options)
+                    if(options[i] !== undefined)
                         result[i] = options[i];
                 });
 
@@ -143,8 +151,15 @@
             return result;
         }
 
+        function handleInsertUpdateSuccess(d, res, xhr) {
+            var mime = xhr.getResponseHeader("Content-Type"),
+                isJSON = mime && mime.indexOf("application/json") > -1;
+            d.resolve(isJSON ? JSON.parse(res) : res);
+        }
+
         return {
             key: keyExpr,
+            errorHandler: options.errorHandler,
 
             load: function(loadOptions) {
                 return send(
@@ -198,14 +213,19 @@
             },
 
             update: updateUrl && function(key, values) {
-                return send("update", true, {
-                    url: updateUrl,
-                    method: options.updateMethod || "PUT",
-                    data: {
-                        key: serializeKey(key),
-                        values: JSON.stringify(values)
-                    }
-                });
+                return send(
+                    "update",
+                    true,
+                    {
+                        url: updateUrl,
+                        method: options.updateMethod || "PUT",
+                        data: {
+                            key: serializeKey(key),
+                            values: JSON.stringify(values)
+                        }
+                    },
+                    handleInsertUpdateSuccess
+                );
             },
 
             insert: insertUrl && function(values) {
@@ -217,11 +237,7 @@
                         method: options.insertMethod || "POST",
                         data: { values: JSON.stringify(values) }
                     },
-                    function(d, res, xhr) {
-                        var mime = xhr.getResponseHeader("Content-Type"),
-                            isJSON = mime && mime.indexOf("application/json") > -1;
-                        d.resolve(isJSON ? JSON.parse(res) : res);
-                    }
+                    handleInsertUpdateSuccess
                 );
             },
 
