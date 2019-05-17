@@ -474,7 +474,7 @@ namespace ChurchReport.WebServiceConnector
                 // 一個一個處理族系名單
                 foreach (Entity aListEntity in aListEntityCollection.Entities)
                 {
-                    // 處理一個族系族長的名單
+                    // 處理每一個要被確認是否已在m_Lists之中的名單
                     bool SearchedFlag = false;
                     foreach (Entity m_ListEntity in this.m_Lists.Entities)
                     {
@@ -538,7 +538,6 @@ namespace ChurchReport.WebServiceConnector
                             }
                         }
                     }
-
                 }
                 return ;
             }

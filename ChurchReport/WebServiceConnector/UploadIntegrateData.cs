@@ -159,6 +159,9 @@ namespace ChurchReport.WebServiceConnector
                     // 找到這個名單的小組長 ID
                     Guid aThisListSmallGroupLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref m_ListEntity, "new_contact_family_leader_list");
 
+                    // 找到這個名單的共同區長 ID
+                    Guid aThisListCoUpperGenerationLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref m_ListEntity, "new_contact_co_race_leager_list");
+
                     // 找到這個名單的上代組長 ID
                     Guid aThisListUpperGenerationLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref m_ListEntity, "new_contact_race_leager_list");
 
@@ -167,8 +170,16 @@ namespace ChurchReport.WebServiceConnector
 
                     #endregion
 
-                    // this.m_ContactId 的意思是登入者在系統裡的ID，登入者是"小家長"、"共同組長"、"小組長"、"上代組長"、"族系族長/區長"，或是個人回報
-                    if (this.m_ContactId == aThisListFamilyHeadId || this.m_ContactId == aThisListCoSmallGroupLeaderId || this.m_ContactId == aThisListSmallGroupLeaderId || this.m_ContactId == aThisListUpperGenerationLeaderId || this.m_ContactId == aThisListGraceLeaderId || aSmallGroupData.LoginType == "個人回報")
+                    // this.m_ContactId 的意思是登入者在系統裡的ID，登入者是"小家長"、"共同組長"、"小組長"、"上代組長"、"共同區長 ID"、"族系族長/區長"，或是 "個人回報"
+                    if (
+                        this.m_ContactId == aThisListFamilyHeadId || 
+                        this.m_ContactId == aThisListCoSmallGroupLeaderId || 
+                        this.m_ContactId == aThisListSmallGroupLeaderId || 
+                        this.m_ContactId == aThisListUpperGenerationLeaderId || 
+                        this.m_ContactId == aThisListCoUpperGenerationLeaderId || 
+                        this.m_ContactId == aThisListGraceLeaderId || 
+                        aSmallGroupData.LoginType == "個人回報"
+                        )
                     {
                         #region 有找到要點名的名單，而且登入的操作者與此名單或是與小組長ID、或是與小家長ID、或是與族系族長/區長一致，或是個人回報也可以上傳
                         if (aWeeklyReportId == Guid.Empty)
