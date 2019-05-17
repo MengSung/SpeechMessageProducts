@@ -40,6 +40,9 @@ namespace ChurchReport.Models
         // 新人跟進關懷
         public SmallGroupData m_NewPersonFollowUpData = new SmallGroupData();
 
+        // 幸福小組
+        public SmallGroupData m_HappyGroup = new SmallGroupData();
+
         // 全部的名單，更新基本資料要用的
         public SmallGroupData m_AllMemeberData = new SmallGroupData();
 

@@ -133,12 +133,23 @@ namespace ChurchReport.WebServiceConnector
             // 而每個又包含一個Members陣列
             aListSmallGroupWeeklyReport.m_SmallGroupDataList = new SmallGroupDataList();
 
+            // 取得基本資料
             this.GetAllMemeberDataList(ListEntityId, WeeklyReportEntityId, ref aListSmallGroupWeeklyReport);
 
-            this.SetSmallGroupData(ref aListSmallGroupWeeklyReport);
+            // 待完成....
+            // 
+            // if( 小組名稱不包含 "幸福" )
+            // {
+                this.SetSmallGroupData(ref aListSmallGroupWeeklyReport);
 
-            this.SetNewPersonFollowUpData(ref aListSmallGroupWeeklyReport);
+                this.SetNewPersonFollowUpData(ref aListSmallGroupWeeklyReport);
+            // }
+            // else "幸福小組"
+            // {
 
+            //this.SetHappyGroupData(ref aListSmallGroupWeeklyReport);
+
+            // }
             #region 排序委身類型、並且去除掉數字、空白、逗號
             // 排序委身類型
             aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members = aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members.OrderBy(o => o.Status).ToList();

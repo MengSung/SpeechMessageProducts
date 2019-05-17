@@ -31,6 +31,7 @@ namespace ChurchReport.Models
         public String WeeklyReportEntityId;//{ get; set; } // 週報 ID
         public String ListEntityName { get; set; } // 小組名稱
         public String LoginType { get; set; } // 回報型式: 小組長 OR 個人回報
+        public String GroupType { get; set; } = "一般小組"; // 小組型式: "一般小組" OR "幸福小組"
         public String SmallGroupLeaderContactId { get; set; } // 小組長 ID
         public String SmallGroupLeaderFullName { get; set; } // 小組長姓名
         public DateTime SundayPrayers { get; set; } // 小組日期
@@ -95,7 +96,6 @@ namespace ChurchReport.Models
                 throw e;
             }
         }
-
         public void GetPersonalReportViewModelResult(PersonalReportViewModel aPersonalReportViewModel)
         {
             if (m_SmallGroupDataList.m_AllMemeberData.Members[0] != null)
