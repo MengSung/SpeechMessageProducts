@@ -110,7 +110,17 @@ namespace ChurchReport.WebServiceConnector
 
             aListSmallGroupWeeklyReport.LoadFlag = true;
             this.m_ListEntity = this.m_ToolUtilityClass.RetrieveEntity("list", new Guid(ListEntityId));
+
             aListSmallGroupWeeklyReport.ListEntityName = this.m_ToolUtilityClass.GetEntityStringAttribute(m_ListEntity, "listname");
+
+            if (aListSmallGroupWeeklyReport.ListEntityName.Contains("幸福") != true)
+            {
+                aListSmallGroupWeeklyReport.GroupType = "一般小組";
+            }
+            else
+            {
+                aListSmallGroupWeeklyReport.GroupType = "幸福小組";
+            }
 
             aListSmallGroupWeeklyReport.WeeklyReportEntityId = WeeklyReportEntityId;
             if ( WeeklyReportEntityId != "" && WeeklyReportEntityId != null )
@@ -138,7 +148,7 @@ namespace ChurchReport.WebServiceConnector
 
             // 待完成....
             // 
-            if (this.m_ToolUtilityClass.GetEntityStringAttribute(ref this.m_ListEntity, "listname").Contains("幸福") != true)
+            if (aListSmallGroupWeeklyReport.GroupType.Contains("幸福") != true)
             {
                 this.SetSmallGroupData(ref aListSmallGroupWeeklyReport);
 
@@ -167,13 +177,15 @@ namespace ChurchReport.WebServiceConnector
             // }
             #region 排序委身類型、並且去除掉數字、空白、逗號
             // 排序委身類型
-            aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members = aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members.OrderBy(o => o.Status).ToList();
-            aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.Members = aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.Members.OrderBy(o => o.Status).ToList();
-            aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData.Members = aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData.Members.OrderBy(o => o.Status).ToList();
+            aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members = aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members !=null ? aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members.OrderBy(o => o.Status).ToList() : null;
+            aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.Members = aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.Members != null ? aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.Members.OrderBy(o => o.Status).ToList():null;
+            aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData.Members = aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData.Members != null ? aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData.Members.OrderBy(o => o.Status).ToList() : null;
+            aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_HappyGroup.Members = aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_HappyGroup.Members != null ? aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_HappyGroup.Members.OrderBy(o => o.Status).ToList() : null;
             // 去除掉數字、空白、逗號
             RemoveNumericAndBlank(aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members);
             RemoveNumericAndBlank(aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.Members);
             RemoveNumericAndBlank(aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData.Members);
+            RemoveNumericAndBlank(aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_HappyGroup.Members);
             #endregion
 
         }
@@ -318,12 +330,15 @@ namespace ChurchReport.WebServiceConnector
     }
         private void RemoveNumericAndBlank( List<Member> aMemberList)
         {
-            foreach (Member aMember in aMemberList)
+            if (aMemberList != null)
             {
-                // 去除掉數字、空白、逗號
-                aMember.Status = Regex.Replace(aMember.Status, "[0-9]", "");//過濾掉數字
-                aMember.Status = aMember.Status.Replace(" ", ""); // //過濾掉空白
-                aMember.Status = aMember.Status.Replace(".", ""); // //過濾掉逗號
+                foreach (Member aMember in aMemberList)
+                {
+                    // 去除掉數字、空白、逗號
+                    aMember.Status = Regex.Replace(aMember.Status, "[0-9]", "");//過濾掉數字
+                    aMember.Status = aMember.Status.Replace(" ", ""); // //過濾掉空白
+                    aMember.Status = aMember.Status.Replace(".", ""); // //過濾掉逗號
+                }
             }
         }
         private void GetAllMemberDataFromPresentRecord(String GroupName, Guid WeeklyReportId, ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
@@ -1442,11 +1457,11 @@ namespace ChurchReport.WebServiceConnector
             {
                 //if (aMember.Status.Contains("新朋友") || aMember.Status.Contains("未入組"))
                 //{
-                    aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData.Members.Add(aMember);
+                    aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_HappyGroup.Members.Add(aMember);
                 //}
             }
             // 控制新人跟進關懷點名回報是否顯示
-            aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData.DisplayFlag = aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData.Members.Count > 0 ? true : false;
+            //aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData.DisplayFlag = aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData.Members.Count > 0 ? true : false;
             //aListSmallGroupWeeklyReport.NewPersonFollowUpDisplayFlag = aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.Members.Count > 0 ? true : false;
         }
         private String GetNewComerFollowupInfo(Guid aNewComerId, ref String aFollowUpWeek)

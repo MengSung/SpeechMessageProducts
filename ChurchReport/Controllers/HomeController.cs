@@ -1821,7 +1821,6 @@ namespace ChurchReport.Controllers
                 throw e;
             }
         }
-
         [HttpGet]
         public object LoadHappyWeeklyReport(string id, DataSourceLoadOptions loadOptions)
         {
@@ -1852,7 +1851,6 @@ namespace ChurchReport.Controllers
                 throw e;
             }
         }
-
         [HttpGet]
         public object LoadBest(string id, DataSourceLoadOptions loadOptions)
         {
@@ -1883,7 +1881,6 @@ namespace ChurchReport.Controllers
                 throw e;
             }
         }
-
         // POST api/values
         [HttpPost]
         public IActionResult PostBest(string values)
@@ -1910,6 +1907,138 @@ namespace ChurchReport.Controllers
                 throw e;
             }
 
+        }
+
+
+
+        [HttpGet]
+        public object LoadHappyGroupListToIntegrate(string id, DataSourceLoadOptions loadOptions)
+        {
+            try
+            {
+                //m_InMemoryDataContextSmallGroup.ListManager.SetupListSmallGroupWeeklyReport(id);
+
+                if (m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport == null)
+                {
+                    m_InMemoryDataContextSmallGroup.ListManager.SetupIntegrateData(id);
+                }
+                else if (m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.LoadFlag == false)
+                {
+                    m_InMemoryDataContextSmallGroup.ListManager.SetupIntegrateData(id);
+                }
+                else { }
+
+                var tasks = m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_HappyGroup.Members;
+
+                //var tasks = m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.Where(e => e.ListEntityId == id).Select(e => e.m_SmallGroupDataList.m_SmallGroupData.Members).FirstOrDefault();
+
+                //return DataSourceLoader.Load<Member>(tasks, loadOptions);
+                return DataSourceLoader.Load(tasks, loadOptions);
+
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
+
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
+                throw e;
+            }
+        }
+        [HttpPost]
+        public IActionResult InsertHappyGroupPresentRecord(string values)
+        {
+            try
+            {
+                //SmallGroupData bSmallGroupData = m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.First(o => o.ListEntityId == m_InMemoryDataContextSmallGroup.ListManager.ActiveListId).m_SmallGroupDataList.m_SmallGroupData;
+
+                m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_HappyGroup.InsertMember(values);
+
+                return Ok();
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
+
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
+                throw e;
+            }
+        }
+        [HttpPut]
+        public IActionResult UpdateHappyGroupPresentRecord(string key, string values)
+        {
+            try
+            {
+                // 修改小組長牧養主日出席、小組出席、代禱事項
+                m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_HappyGroup.UpdateMember(key, values);
+
+                // 修改全部的(也就是維護基本)資料
+                m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.UpdateMember(key, values);
+
+                return Ok();
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
+
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
+                throw e;
+            }
+        }
+        [HttpDelete]
+        public IActionResult DeleteHappyGroupPresentRecord(string key)
+        {
+            try
+            {
+                // 刪除全部的(也就是維護基本)資料
+                Member DeletedMember = m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.DeleteMember(key);
+
+                if (DeletedMember != null)
+                {
+                    // 整合式網頁按上傳按鈕
+                    m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.DeleteMemberData
+                    (
+                        m_InMemoryDataContextSmallGroup.ListManager.m_Account,
+                        m_InMemoryDataContextSmallGroup.ListManager.m_Password,
+                        DeletedMember
+                    );
+                }
+
+                // 刪除小組長牧養主日出席、小組出席、代禱事項
+                m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_HappyGroup.DeleteMember(key);
+
+                return Ok();
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
+
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
+                throw e;
+            }
         }
 
         // PUT api/values/5
