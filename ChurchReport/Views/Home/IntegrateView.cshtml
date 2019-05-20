@@ -416,53 +416,64 @@ else
         @if (Model.GroupType == "幸福小組")
         {
             <div style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
-                <h5>幸福小組週次:</h5>
-            </div>
+                        <h5>幸福小組週次及主題:</h5>
+                    </div>
+            <div  class="ccle" >
+                <!-- 可以並排顯示-->
+                    @*<div style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
+                        <h5>幸福小組週次:</h5>
+                    </div>*@
 
-            @(Html.DevExtreme().SelectBox()
-                    .ID("HappyWeekIndex")
-                    .Value(Model.HappyWeekIndex)
-                    .DataSource
-                    (
-                        new string[]
-                        {
-                            "第一週",
-                            "第二週",
-                            "第三週",
-                            "第四週",
-                            "第五週",
-                            "第六週",
-                            "第七週",
-                            "第八週",
-                            "第九週",
-                            "第十週",
-                        }
+                    <div>
+                    @(Html.DevExtreme().SelectBox()
+                            .ID("HappyWeekIndex")
+                            .Value(Model.HappyWeekIndex)
+                            .DataSource
+                            (
+                                new string[]
+                                {
+                                    "第一週",
+                                    "第二週",
+                                    "第三週",
+                                    "第四週",
+                                    "第五週",
+                                    "第六週",
+                                    "第七週",
+                                    "第八週",
+                                    "第九週",
+                                    "第十週",
+                                }
+                            )
+                            .Width(150)
                     )
-            )
-            <div style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
-                <h5>幸福小組主題:</h5>
+                     </div>
+                    @*<div style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
+                        <h5>幸福小組主題:</h5>
+                    </div>*@
+                <div>
+                    @(Html.DevExtreme().SelectBox()
+                            .ID("HappyWeekTopic")
+                            .Value(Model.HappyWeekTopic)
+                            .DataSource
+                            (
+                                new string[]
+                                {
+                                    "福音的能力",
+                                    "幸福小組是符合聖經的佈道小組",
+                                    "真幸福",
+                                    "欺騙者",
+                                    "救贖者耶穌",
+                                    "垂聽禱告的上帝",
+                                    "你要遇見神",
+                                    "耶穌基督十字架的勝利",
+                                    "釋放與自由",
+                                    "帶來幸福的教會",
+                                }
+                            )
+                            .Width(150)
+                    )
+                </div>
             </div>
-
-            @(Html.DevExtreme().SelectBox()
-                    .ID("HappyWeekTopic")
-                    .Value(Model.HappyWeekTopic)
-                    .DataSource
-                    (
-                        new string[]
-                        {
-                            "福音的能力",
-                            "幸福小組是符合聖經的佈道小組",
-                            "真幸福",
-                            "欺騙者",
-                            "救贖者耶穌",
-                            "垂聽禱告的上帝",
-                            "你要遇見神",
-                            "耶穌基督十字架的勝利",
-                            "釋放與自由",
-                            "帶來幸福的教會",
-                        }
-                    )
-            )
         }
 
         @if (Model.LoginType == "小組長")
