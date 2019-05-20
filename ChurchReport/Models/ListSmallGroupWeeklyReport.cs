@@ -37,6 +37,10 @@ namespace ChurchReport.Models
         public DateTime SundayPrayers { get; set; } // 小組日期
         public String SundayPeriod { get; set; }   // 提醒小組長回報的期間
         public SmallGroupDataList m_SmallGroupDataList = new SmallGroupDataList();// 包含 3 個SmallGroupData ( 小組牧養、新人跟進關懷、基本資料維護)，而每個又包含一個Members陣列
+
+        public String HappyWeekIndex; //{ get; set; } // 幸福小組週次
+        public String HappyWeekTopic; //{ get; set; } // 幸福小組主題
+
         public String WeeklyReportData; //{ get; set; } // 小組日誌
         public String WeeklyReportAnalysis; //{ get; set; } // 小組分析報告
         // 長條圖表資料

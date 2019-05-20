@@ -191,6 +191,13 @@ namespace ChurchReport.WebServiceConnector
         }
         public void SetupWeeklyReportData(String WeeklyReportEntityId, ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
         {
+
+            if (aListSmallGroupWeeklyReport.GroupType == "幸福小組" )
+            {
+                aListSmallGroupWeeklyReport.HappyWeekIndex = m_ToolUtilityClass.GetEntityStringAttribute(this.m_WeeklyReportEntity, "new_weekly_index");
+                aListSmallGroupWeeklyReport.HappyWeekTopic = this.ConvertIndexToTopic(m_ToolUtilityClass.GetOptionSetAttribute(this.m_WeeklyReportEntity, "new_topic"));
+            }
+
             if (WeeklyReportEntityId != "" && WeeklyReportEntityId != null)
             {
                 aListSmallGroupWeeklyReport.WeeklyReportData = this.m_ToolUtilityClass.GetEntityStringAttribute(ref this.m_WeeklyReportEntity, "new_memo");
@@ -201,6 +208,7 @@ namespace ChurchReport.WebServiceConnector
                 aListSmallGroupWeeklyReport.WeeklyReportData = "";
                 aListSmallGroupWeeklyReport.WeeklyReportAnalysis = "";
             }
+
         }
         public void SetupWeeklyReportChartData( ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport )
         {
@@ -2281,6 +2289,36 @@ namespace ChurchReport.WebServiceConnector
                     return "";
             }
         }
+
+        private String ConvertIndexToTopic(int FollowUpWeekIndex)
+        {
+            switch (FollowUpWeekIndex)
+            {
+                case 100000000:
+                    return "福音的能力";
+                case 100000001:
+                    return "幸福小組是符合聖經的佈道小組";
+                case 100000002:
+                    return "真幸福";
+                case 100000003:
+                    return "欺騙者";
+                case 100000004:
+                    return "救贖者耶穌";
+                case 100000005:
+                    return "垂聽禱告的上帝";
+                case 100000006:
+                    return "你要遇見神";
+                case 100000007:
+                    return "耶穌基督十字架的勝利";
+                case 100000008:
+                    return "釋放與自由";
+                case 100000009:
+                    return "帶來幸福的教會";
+                default:
+                    return "";
+            }
+        }
+
         #endregion
         #endregion
         #region 設定委身類型
