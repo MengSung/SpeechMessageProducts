@@ -439,21 +439,16 @@ namespace ChurchReport.WebServiceConnector
                         //}
                         #endregion
                         #region// 主日點名
-                        bool aSundayPresent = false;
-                        if (PresentRecordEntity.Attributes.Contains("new_sunday_present_this_week"))
-                        {
-                            if ((int)PresentRecordEntity.Attributes["new_sunday_present_this_week"] > 0)
-                            { aSundayPresent = true; }
-                        }
+                        bool aSundayPresent = this.m_ToolUtilityClass.GetEntityIntAttribute(PresentRecordEntity, "new_sunday_present_this_week") > 0 ? true : false;
                         #endregion
                         #region// 小組點名
-                        bool aSmallGroupPresent = false;
-                        if (PresentRecordEntity.Attributes.Contains("new_group_present_this_week"))
-                        {
-                            if ((int)PresentRecordEntity.Attributes["new_group_present_this_week"] > 0)
-                            { aSmallGroupPresent = true; }
-                        }
+                        bool aSmallGroupPresent = this.m_ToolUtilityClass.GetEntityIntAttribute(PresentRecordEntity, "new_group_present_this_week") > 0 ? true : false;
                         #endregion
+                        #region// 決志
+                        bool aDecision = this.m_ToolUtilityClass.GetEntityIntAttribute(PresentRecordEntity, "new_happy_decision") > 0 ? true : false;
+                        #endregion
+
+
                         #region// 禱告次數，靈修次數
                         // 禱告次數
                         int aPrayNumber = 0;
@@ -601,6 +596,9 @@ namespace ChurchReport.WebServiceConnector
                                     Address = aAddress,
                                     BirthDate = aBirthDate,
                                     Industry = aIndustry,
+                                    BestLeader = this.m_ToolUtilityClass.GetEntityLookupDisplayName(aContactEntity, "new_contact_contact_spiritleader"),// 屬靈認領者
+                                    BestIntroducer = this.m_ToolUtilityClass.GetEntityStringAttribute(aContactEntity, "new_best_introducer"),
+                                    BestRelationship = this.m_ToolUtilityClass.GetEntityStringAttribute(aContactEntity, "new_best_relationship"),
                                     #endregion
                                     Status = aIdentity, // 委身類型
                                     SmallGroupName = GroupName,
@@ -608,6 +606,7 @@ namespace ChurchReport.WebServiceConnector
                                     PrayItem = aNote,
                                     Sunday = aSundayPresent, //主日出席
                                     SmallGroup = aSmallGroupPresent,//小組出席
+                                    Decision = aDecision, //決志
                                     #region 新人跟進關懷
                                     FollowUpWeek = aFollowUpWeek,
                                     FollowUpResult = aFollowUpResult,
@@ -738,6 +737,7 @@ namespace ChurchReport.WebServiceConnector
                 PrayItem = "",
                 Sunday = false, //主日出席
                 SmallGroup = false,//小組出席
+                Decision = false, //決志
                 #region 新人跟進關懷
                 FollowUpWeek = "未選擇",
                 FollowUpResult = "",
@@ -1272,7 +1272,9 @@ namespace ChurchReport.WebServiceConnector
                                     Address = aAddress,
                                     BirthDate = aBirthDate,
                                     Industry = aIndustry,
-
+                                    BestLeader = this.m_ToolUtilityClass.GetEntityLookupDisplayName(ContactEntity, "new_contact_contact_spiritleader"),// 屬靈認領者
+                                    BestIntroducer = this.m_ToolUtilityClass.GetEntityStringAttribute(ContactEntity, "new_best_introducer"),
+                                    BestRelationship = this.m_ToolUtilityClass.GetEntityStringAttribute(ContactEntity, "new_best_relationship"),
                                     #endregion
                                     Status = aIdentity, // 委身類型
                                     SmallGroupName = GroupName,
@@ -1280,6 +1282,7 @@ namespace ChurchReport.WebServiceConnector
                                     PrayItem = "",
                                     Sunday = false, //主日出席
                                     SmallGroup = false,//小組出席
+                                    Decision = false, //決志
                                     #region 新人跟進關懷
                                     FollowUpWeek = aFollowUpWeek,
                                     FollowUpResult = "",
@@ -1386,7 +1389,10 @@ namespace ChurchReport.WebServiceConnector
                         Address = aAddress,
                         BirthDate = aBirthDate,
                         Industry = aIndustry,
-                        
+                        BestLeader = this.m_ToolUtilityClass.GetEntityLookupDisplayName(m_ContactEntity, "new_contact_contact_spiritleader"),// 屬靈認領者
+                        BestIntroducer = this.m_ToolUtilityClass.GetEntityStringAttribute(m_ContactEntity, "new_best_introducer"),
+                        BestRelationship = this.m_ToolUtilityClass.GetEntityStringAttribute(m_ContactEntity, "new_best_relationship"),
+
                         #endregion
                         Status = aIdentity, // 委身類型
                         SmallGroupName = GroupName,
@@ -1394,8 +1400,9 @@ namespace ChurchReport.WebServiceConnector
                         PrayItem = "",
                         Sunday = false, //主日出席
                         SmallGroup = false,//小組出席
+                        Decision = false, //決志
                         #region 新人跟進關懷
-                                    FollowUpWeek = aFollowUpWeek,
+                        FollowUpWeek = aFollowUpWeek,
                         FollowUpResult = "",
                         FollowUpOption = "",
                         FollowUp = "",

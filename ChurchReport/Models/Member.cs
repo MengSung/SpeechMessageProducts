@@ -51,8 +51,10 @@ namespace ChurchReport.Models {
         public string SmallGroupName { get; set; }
         public string SectionName { get; set; }
         public string PrayItem { get; set; }
-        public bool Sunday { get; set; }
-        public bool SmallGroup { get; set; }
+        public bool Sunday { get; set; } // 主日出席
+        public bool SmallGroup { get; set; } // 小組出席
+        public bool Decision { get; set; } // 決志
+
         public int StateID1 { get; set; }
         public int Number1 { get; set; }
         public int StateID2 { get; set; }
@@ -117,7 +119,9 @@ namespace ChurchReport.Models {
 
         public string Picture { get; set; }
         public string Shepherd { get; set; }
-
+        public string BestLeader { get; set; } // 屬靈認領者
+        public string BestIntroducer { get; set; } // 介紹人
+        public string BestRelationship { get; set; } // 與介紹人關係
         public bool ModifyFlag { get; set; }
 
     }

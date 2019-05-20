@@ -861,7 +861,24 @@ else
                                             );
 
                                 columns.AddFor(m => m.Sunday).Caption("主日").Width(45).MinWidth(45).AllowSorting(false);
-                                columns.AddFor(m => m.SmallGroup).Caption("決志").Width(45).MinWidth(45).AllowSorting(false);
+                                columns.AddFor(m => m.Decision).Caption("決志").Width(45).MinWidth(45).AllowSorting(false);
+                                columns.AddFor(m => m.BestLeader)
+                                    .Caption("屬靈認領者")
+                                    .Width(90)
+                                    .Lookup(lookup => lookup
+                                    .DataSource(d => d.WebApi()
+                                        .Controller("SpiritLeaderLookup")
+                                        .LoadAction("Get")
+                                        .LoadParams(new { id = @ViewBag.ListId })
+                                        //.LoadParams(new { id = new JS("data.HappyGroupListEntityId") })
+                                        .Key("ID"))
+                                        .DisplayExpr("Name")
+                                        .ValueExpr("Name")
+                                    );
+
+                                columns.AddFor(m => m.BestIntroducer).Caption("介紹人").Width(90).MinWidth(90).AllowSorting(false);
+                                columns.AddFor(m => m.BestRelationship).Caption("與介紹人關係").Width(90).MinWidth(90).AllowSorting(false);
+
                                 //columns.AddFor(m => m.SmallGroup).Caption("小組").Width(45).MinWidth(45).AllowSorting(false);
                                 //columns.AddFor(m => m.SpiritualWork)
                                 // .Caption("靈修次數").Alignment(HorizontalAlignment.Center)
