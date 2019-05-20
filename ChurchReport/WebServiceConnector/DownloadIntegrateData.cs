@@ -138,11 +138,26 @@ namespace ChurchReport.WebServiceConnector
 
             // 待完成....
             // 
-            // if( 小組名稱不包含 "幸福" )
-            // {
+            if (this.m_ToolUtilityClass.GetEntityStringAttribute(ref this.m_ListEntity, "listname").Contains("幸福") != true)
+            {
                 this.SetSmallGroupData(ref aListSmallGroupWeeklyReport);
 
                 this.SetNewPersonFollowUpData(ref aListSmallGroupWeeklyReport);
+            }
+            else //"幸福小組"
+            {
+                this.SetHappyGroupData(ref aListSmallGroupWeeklyReport);
+            }
+            //this.SetHappyGroupData(ref aListSmallGroupWeeklyReport);
+
+            // }
+            // 待完成....
+            // 
+            // if( 小組名稱不包含 "幸福" )
+            // {
+            //this.SetSmallGroupData(ref aListSmallGroupWeeklyReport);
+
+            //this.SetNewPersonFollowUpData(ref aListSmallGroupWeeklyReport);
             // }
             // else "幸福小組"
             // {
@@ -1402,17 +1417,33 @@ namespace ChurchReport.WebServiceConnector
             aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.DisplayFlag = aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.Members.Count > 0 ? true : false;
             //aListSmallGroupWeeklyReport.SmallGroupDisplayFlag = aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.Members.Count > 0 ? true : false;
         }
-        private void SetNewPersonFollowUpData( ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
+        private void SetNewPersonFollowUpData(ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
         {
             aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData = new SmallGroupData();
             aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData.Members = new List<Member>();
 
             foreach (Member aMember in aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members)
             {
-                if ( aMember.Status.Contains("新朋友") || aMember.Status.Contains("未入組") )
+                if (aMember.Status.Contains("新朋友") || aMember.Status.Contains("未入組"))
                 {
                     aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData.Members.Add(aMember);
                 }
+            }
+            // 控制新人跟進關懷點名回報是否顯示
+            aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData.DisplayFlag = aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData.Members.Count > 0 ? true : false;
+            //aListSmallGroupWeeklyReport.NewPersonFollowUpDisplayFlag = aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.Members.Count > 0 ? true : false;
+        }
+        private void SetHappyGroupData(ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
+        {
+            aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_HappyGroup = new SmallGroupData();
+            aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_HappyGroup.Members = new List<Member>();
+
+            foreach (Member aMember in aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members)
+            {
+                //if (aMember.Status.Contains("新朋友") || aMember.Status.Contains("未入組"))
+                //{
+                    aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData.Members.Add(aMember);
+                //}
             }
             // 控制新人跟進關懷點名回報是否顯示
             aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData.DisplayFlag = aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData.Members.Count > 0 ? true : false;
