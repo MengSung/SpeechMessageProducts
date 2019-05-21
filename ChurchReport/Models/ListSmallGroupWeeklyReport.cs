@@ -60,7 +60,7 @@ namespace ChurchReport.Models
 
         #endregion
         #endregion
-        public void UploadIntegrateData(String Account, String Password, String LoginType, SmallGroupData aSmallGroupData, String aWeeklyReportData)
+        public void UploadIntegrateData(String Account, String Password, String LoginType, SmallGroupData aSmallGroupData, String aWeeklyReportData, String HappyWeekIndex, String HappyWeekTopic)
         {
             WeeklyReportData = aWeeklyReportData;
 

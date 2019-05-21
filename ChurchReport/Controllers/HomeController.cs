@@ -775,7 +775,7 @@ namespace ChurchReport.Controllers
                 throw e;
             }
         }
-        public IActionResult SaveIntegrate(string WeeklyReportData, String HappyWeekIndex)
+        public IActionResult SaveIntegrate(string WeeklyReportData, String HappyWeekIndex, String HappyWeekTopic)
         {
             try
             {
@@ -786,7 +786,9 @@ namespace ChurchReport.Controllers
                     m_InMemoryDataContextSmallGroup.ListManager.m_Password,
                     m_InMemoryDataContextSmallGroup.ListManager.LoginType,
                     m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData,
-                    WeeklyReportData
+                    WeeklyReportData,
+                    HappyWeekIndex, 
+                    HappyWeekTopic
                 );
 
                 return Json(new { status = "1", message = "成功上傳了...." });
@@ -979,7 +981,7 @@ namespace ChurchReport.Controllers
                     m_InMemoryDataContextSmallGroup.ListManager.m_Password,
                     m_InMemoryDataContextSmallGroup.ListManager.LoginType,
                     m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData,
-                    WeeklyReportData
+                    WeeklyReportData,"",""
                 );
 
                 return Json(new { status = "1", message = "成功上傳了...." });
@@ -1011,7 +1013,7 @@ namespace ChurchReport.Controllers
                     m_InMemoryDataContextSmallGroup.ListManager.m_Password,
                     m_InMemoryDataContextSmallGroup.ListManager.LoginType,
                     m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData,
-                    "不需更新小組日誌"
+                    "不需更新小組日誌", "", ""
                 );
 
                 return Json(new { status = "1", message = "成功上傳了...." });
@@ -1452,7 +1454,7 @@ namespace ChurchReport.Controllers
                     m_InMemoryDataContextSmallGroup.ListManager.m_Password,
                     m_InMemoryDataContextSmallGroup.ListManager.LoginType,
                     m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData,
-                    "不需更新小組日誌"
+                    "不需更新小組日誌", "", ""
                 );
 
                 return Json(new { status = "1", message = "成功上傳了...." });
