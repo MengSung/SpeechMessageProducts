@@ -413,69 +413,6 @@ else
             </div>
         }
 
-        @if (Model.GroupType == "幸福小組")
-        {
-            <div style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
-                        <h5>幸福小組週次及主題:</h5>
-                    </div>
-            <div  class="ccle" >
-                <!-- 可以並排顯示-->
-                    @*<div style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
-                        <h5>幸福小組週次:</h5>
-                    </div>*@
-
-                    <div>
-                    @(Html.DevExtreme().SelectBox()
-                            .ID("HappyWeekIndex")
-                            .Value(Model.HappyWeekIndex)
-                            .DataSource
-                            (
-                                new string[]
-                                {
-                                    "第一週",
-                                    "第二週",
-                                    "第三週",
-                                    "第四週",
-                                    "第五週",
-                                    "第六週",
-                                    "第七週",
-                                    "第八週",
-                                    "第九週",
-                                    "第十週",
-                                }
-                            )
-                            .Width(150)
-                    )
-                     </div>
-                    @*<div style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
-                        <h5>幸福小組主題:</h5>
-                    </div>*@
-                <div>
-                    @(Html.DevExtreme().SelectBox()
-                            .ID("HappyWeekTopic")
-                            .Value(Model.HappyWeekTopic)
-                            .DataSource
-                            (
-                                new string[]
-                                {
-                                    "福音的能力",
-                                    "幸福小組是符合聖經的佈道小組",
-                                    "真幸福",
-                                    "欺騙者",
-                                    "救贖者耶穌",
-                                    "垂聽禱告的上帝",
-                                    "你要遇見神",
-                                    "耶穌基督十字架的勝利",
-                                    "釋放與自由",
-                                    "帶來幸福的教會",
-                                }
-                            )
-                            .Width(150)
-                    )
-                </div>
-            </div>
-        }
-
         @if (Model.LoginType == "小組長")
         {
             @if (Model.GroupType == "一般小組")
@@ -488,7 +425,7 @@ else
                 }
                 <div id="smallgroup-grid">
                     @(Html.DevExtreme().DataGrid<Member>()
-                            .ID("SmallGroupGridContainer")
+                            .ID("SmallGroupgridContainer")
                             .ShowBorders(true)
                             .ColumnAutoWidth(true)
                             .Visible(Model.m_SmallGroupDataList.m_SmallGroupData.DisplayFlag)
@@ -606,13 +543,13 @@ else
 
                                 // 此處設定是讓選項偏左邊一排
                                 .OnContentReady(
-                                                        @<text>
-                                                            function(e)
-                                                            {
-                                                            moveEditColumnToLeft(e.component);
-                                                            //ShowToast( ReMindMessage , 'warning' , 20000)
-                                                            }
-                                                        </text>
+                                                                @<text>
+                                                                    function(e)
+                                                                    {
+                                                                    moveEditColumnToLeft(e.component);
+                                                                    //ShowToast( ReMindMessage , 'warning' , 20000)
+                                                                    }
+                                                                </text>
  )
 
 
@@ -824,13 +761,13 @@ else
                             )
                                 // 此處設定是讓選項偏左邊一排
                                 .OnContentReady(
-                                                                @<text>
-                                                                    function(e)
-                                                                    {
-                                                                    moveEditColumnToLeft(e.component);
-                                                                    //ShowToast( ReMindMessage , 'warning' , 20000)
-                                                                    }
-                                                                </text>
+                                                                        @<text>
+                                                                            function(e)
+                                                                            {
+                                                                            moveEditColumnToLeft(e.component);
+                                                                            //ShowToast( ReMindMessage , 'warning' , 20000)
+                                                                            }
+                                                                        </text>
  )
 
 
@@ -844,15 +781,19 @@ else
             }
             else
             {
+                <--!> 幸福小組 </--!>
+                @if (Model.m_SmallGroupDataList.m_SmallGroupData.DisplayFlag == true)
+                {
                     <div style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
-                        <h5>幸福小組:</h5>
+                        <h5>小組牧養:</h5>
                     </div>
+                }
                 <div id="happygroup-grid">
                     @(Html.DevExtreme().DataGrid<Member>()
-                            .ID("HappyGroupGridContainer")
+                            .ID("SmallGroupgridContainer")
                             .ShowBorders(true)
                             .ColumnAutoWidth(true)
-                            //.Visible(Model.m_SmallGroupDataList.m_SmallGroupData.DisplayFlag)
+                            .Visible(Model.m_SmallGroupDataList.m_SmallGroupData.DisplayFlag)
                             .Paging(p => p.PageSize(10))
                             .Sorting(sorting => sorting.Mode(GridSortingMode.None))
                             .Paging(paging => paging.Enabled(false))
@@ -924,50 +865,32 @@ else
                                             );
 
                                 columns.AddFor(m => m.Sunday).Caption("主日").Width(45).MinWidth(45).AllowSorting(false);
-                                columns.AddFor(m => m.Decision).Caption("決志").Width(45).MinWidth(45).AllowSorting(false);
-                                columns.AddFor(m => m.BestLeader)
-                                    .Caption("屬靈認領者")
-                                    .Width(90)
-                                    .Lookup(lookup => lookup
-                                    .DataSource(d => d.WebApi()
-                                        .Controller("SpiritLeaderLookup")
-                                        .LoadAction("Get")
-                                        .LoadParams(new { id = @ViewBag.ListId })
-                                        //.LoadParams(new { id = new JS("data.HappyGroupListEntityId") })
-                                        .Key("ID"))
-                                        .DisplayExpr("Name")
-                                        .ValueExpr("Name")
-                                    );
+                                columns.AddFor(m => m.SmallGroup).Caption("小組").Width(45).MinWidth(45).AllowSorting(false);
+                                columns.AddFor(m => m.SpiritualWork)
+                                 .Caption("靈修次數").Alignment(HorizontalAlignment.Center)
+                                 .Width(75).MinWidth(30).DataType(GridColumnDataType.Number)
+                                 .Lookup(lookup => lookup
+                                 .DataSource(new string[] { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", })
+                                 //.DisplayExpr("Name")
+                                 //.ValueExpr("ID")
+                                 );
+                                columns.AddFor(m => m.MorningPray)
+                                 .Caption("晨禱次數").Alignment(HorizontalAlignment.Center)
+                                 .Width(75).MinWidth(30).DataType(GridColumnDataType.Number)
+                                 .Lookup(lookup => lookup
+                                 .DataSource(new string[] { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", })
+                                 //.DisplayExpr("Name")
+                                 //.ValueExpr("ID")
+                                 );
 
-                                columns.AddFor(m => m.BestIntroducer).Caption("介紹人").Width(90).MinWidth(90).AllowSorting(false);
-                                columns.AddFor(m => m.BestRelationship).Caption("與介紹人關係").Width(90).MinWidth(90).AllowSorting(false);
-
-                                //columns.AddFor(m => m.SmallGroup).Caption("小組").Width(45).MinWidth(45).AllowSorting(false);
-                                //columns.AddFor(m => m.SpiritualWork)
-                                // .Caption("靈修次數").Alignment(HorizontalAlignment.Center)
-                                // .Width(75).MinWidth(30).DataType(GridColumnDataType.Number)
-                                // .Lookup(lookup => lookup
-                                // .DataSource(new string[] { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", })
-                                // //.DisplayExpr("Name")
-                                // //.ValueExpr("ID")
-                                // );
-                                //columns.AddFor(m => m.MorningPray)
-                                // .Caption("晨禱次數").Alignment(HorizontalAlignment.Center)
-                                // .Width(75).MinWidth(30).DataType(GridColumnDataType.Number)
-                                // .Lookup(lookup => lookup
-                                // .DataSource(new string[] { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", })
-                                // //.DisplayExpr("Name")
-                                // //.ValueExpr("ID")
-                                // );
-
-                                //columns.AddFor(m => m.GeneralCare)
-                                // .Caption("禱告次數").Alignment(HorizontalAlignment.Center)
-                                // .Width(75).MinWidth(30).DataType(GridColumnDataType.Number)
-                                // .Lookup(lookup => lookup
-                                // .DataSource(new string[] { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", })
-                                // );
+                                columns.AddFor(m => m.GeneralCare)
+                                 .Caption("禱告次數").Alignment(HorizontalAlignment.Center)
+                                 .Width(75).MinWidth(30).DataType(GridColumnDataType.Number)
+                                 .Lookup(lookup => lookup
+                                 .DataSource(new string[] { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", })
+                                 );
                                 columns.AddFor(m => m.PrayItem).Caption("代禱事項").MinWidth(90);
-                                ////columns.AddFor(m => m.SmallGroupName).SortOrder(SortOrder.Desc).Caption("小組").GroupIndex(0).MinWidth(10);
+                                //columns.AddFor(m => m.SmallGroupName).SortOrder(SortOrder.Desc).Caption("小組").GroupIndex(0).MinWidth(10);
 
 
                             })
@@ -975,23 +898,23 @@ else
                                 (d => d
                                     .WebApi()
                                     .Controller("Home")
-                                    .LoadAction("LoadHappyGroupListToIntegrate")
-                                    .InsertAction("InsertHappyGroupPresentRecord")
-                                    .DeleteAction("DeleteHappyGroupPresentRecord")
-                                    .UpdateAction("UpdateHappyGroupPresentRecord")
+                                    .LoadAction("LoadIntegrate")
+                                    .InsertAction("InsertPresentRecord")
+                                    .DeleteAction("DeletePresentRecord")
+                                    .UpdateAction("UpdateSmallGroupPresentRecord")
                                     .Key("PresentRecordId")
                                     .LoadParams(new { id = @ViewBag.ListId })
                                 )
 
                                 // 此處設定是讓選項偏左邊一排
                                 .OnContentReady(
-                                                        @<text>
-                                                            function(e)
-                                                            {
-                                                            moveEditColumnToLeft(e.component);
-                                                            //ShowToast( ReMindMessage , 'warning' , 20000)
-                                                            }
-                                                        </text>
+                                                                @<text>
+                                                                    function(e)
+                                                                    {
+                                                                    moveEditColumnToLeft(e.component);
+                                                                    //ShowToast( ReMindMessage , 'warning' , 20000)
+                                                                    }
+                                                                </text>
  )
 
 
@@ -1101,13 +1024,13 @@ columns.AddFor(m => m.SmallGroupName).Caption("小組").GroupIndex(0).MinWidth(1
 )
 // 此處設定是讓選項偏左邊一排
 .OnContentReady(
-                                                                                    @<text>
-                                                                                        function(e)
-                                                                                        {
-                                                                                        moveEditColumnToLeft(e.component);
-                                                                                        //ShowToast( ReMindMessage , 'warning' , 20000)
-                                                                                        }
-                                                                                    </text>
+                                                                                                        @<text>
+                                                                                                            function(e)
+                                                                                                            {
+                                                                                                            moveEditColumnToLeft(e.component);
+                                                                                                            //ShowToast( ReMindMessage , 'warning' , 20000)
+                                                                                                            }
+                                                                                                        </text>
              )
 
 
