@@ -110,7 +110,7 @@ namespace ChurchReport.WebServiceConnector
         /// <param name="aSmallGroupData"></param>
         /// <param name="WeeklyReportData"></param>
         /// <param name="WeeklyReportAnalysis"></param>
-        public void UploadData(String Account, String Password, String LoginType, String GroupType, String ListEntityId, ref String WeeklyReportEntityId, DateTime aSmallGroupDate, SmallGroupData aSmallGroupData, ref String WeeklyReportData, ref String WeeklyReportAnalysis)
+        public void UploadData(String Account, String Password, String LoginType, String GroupType, String ListEntityId, ref String WeeklyReportEntityId, DateTime aSmallGroupDate, SmallGroupData aSmallGroupData, ref String WeeklyReportData, ref String WeeklyReportAnalysis, String HappyWeekIndex, String HappyWeekTopic)
         {
             try
             {
@@ -178,7 +178,7 @@ namespace ChurchReport.WebServiceConnector
                         };
 
                         // 由於是新建立的週報，當回傳完成實，回到網頁操作，如果使用者又再繼續操作，就必須設定告知新建立的週報ID =WeeklyReportEntityId ，以免重複建立
-                        aGraceLeaderWeeklyReportEntity = CreateWeeklyReportAndPresentRecord(GroupName, aGroupWeeklyReportGuid, ref WeeklyReportEntityId, ref m_ListEntity, "", ValidNumber, ref aWeeklySundayRate, ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber, aSmallGroupData, WeeklyReportData);
+                        aGraceLeaderWeeklyReportEntity = CreateWeeklyReportAndPresentRecord(GroupName, aGroupWeeklyReportGuid, ref WeeklyReportEntityId, ref m_ListEntity, "", ValidNumber, ref aWeeklySundayRate, ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber, aSmallGroupData, WeeklyReportData, HappyWeekIndex, HappyWeekTopic);
                         //}
                         #endregion
                         #endregion
@@ -198,7 +198,7 @@ namespace ChurchReport.WebServiceConnector
                             SundayPresentRate = 0,
                         };
 
-                        aGraceLeaderWeeklyReportEntity = UpdateWeeklyReportProcess(aGroupWeeklyReportGuid, ref m_ListEntity, ref aWeeklyReportId, aSmallGroupData, WeeklyReportData);
+                        aGraceLeaderWeeklyReportEntity = UpdateWeeklyReportProcess(aGroupWeeklyReportGuid, ref m_ListEntity, ref aWeeklyReportId, aSmallGroupData, WeeklyReportData, HappyWeekIndex, HappyWeekTopic);
                         //}
                         #endregion
                     }
@@ -1036,7 +1036,7 @@ namespace ChurchReport.WebServiceConnector
 
             #endregion
         }
-        private Entity CreateWeeklyReportAndPresentRecord(String GroupName, GroupWeeklyReportGuid aGroupWeeklyReportGuid, ref String WeeklyReportEntityId, ref Entity aListEntity, String UploadCategory, Double ValidNumber, ref Double aWeeklySundayRate, ref Double aWeeklySmallGroupRate, ref int aWeeklySundayNumber, ref int aWeeklySmallGroupNumber, SmallGroupData aSmallGroupData, String WeeklyReportData)
+        private Entity CreateWeeklyReportAndPresentRecord(String GroupName, GroupWeeklyReportGuid aGroupWeeklyReportGuid, ref String WeeklyReportEntityId, ref Entity aListEntity, String UploadCategory, Double ValidNumber, ref Double aWeeklySundayRate, ref Double aWeeklySmallGroupRate, ref int aWeeklySundayNumber, ref int aWeeklySmallGroupNumber, SmallGroupData aSmallGroupData, String WeeklyReportData, String HappyWeekIndex, String HappyWeekTopic)
         {
             try
             {
@@ -1068,7 +1068,7 @@ namespace ChurchReport.WebServiceConnector
                     aPresentRecordCollection = CreatePresentRecordListByList(aSmallGroupData, aSmallGroupDataFromList, GroupName, ref aListEntity, ref aCreatedWeeklyReportId, ValidNumber, ref aWeeklySundayRate, ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber, ref ValidSundayMemberNumber, ref ValidSmallGroupMemberNumber, ref aGroupWeeklyReportGuid);
                 }
 
-                return UpdateWeeklyReport(aGroupWeeklyReportGuid, aPresentRecordCollection, ref aListEntity, ref aCreatedWeeklyReportId, ValidNumber, ref aWeeklySundayRate, ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber, aSmallGroupData, WeeklyReportData);
+                return UpdateWeeklyReport(aGroupWeeklyReportGuid, aPresentRecordCollection, ref aListEntity, ref aCreatedWeeklyReportId, ValidNumber, ref aWeeklySundayRate, ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber, aSmallGroupData, WeeklyReportData, HappyWeekIndex, HappyWeekTopic);
             }
             catch (System.Exception Exception)
             {
@@ -2714,7 +2714,7 @@ namespace ChurchReport.WebServiceConnector
         #region 更新個人聚會與靈修記錄
 
         #region 更新出席紀錄
-        private Entity UpdateWeeklyReport(GroupWeeklyReportGuid aGroupWeeklyReportGuid, EntityCollection PresentRecordCollection, ref Entity aListEntity, ref Guid aWeeklyReportId, Double ValidNumber, ref Double aWeeklySundayRate, ref Double aWeeklySmallGroupRate, ref int aWeeklySundayNumber, ref int aWeeklySmallGroupNumber, SmallGroupData aSmallGroupData, String WeeklyReportData)
+        private Entity UpdateWeeklyReport(GroupWeeklyReportGuid aGroupWeeklyReportGuid, EntityCollection PresentRecordCollection, ref Entity aListEntity, ref Guid aWeeklyReportId, Double ValidNumber, ref Double aWeeklySundayRate, ref Double aWeeklySmallGroupRate, ref int aWeeklySundayNumber, ref int aWeeklySmallGroupNumber, SmallGroupData aSmallGroupData, String WeeklyReportData, String HappyWeekIndex, String HappyWeekTopic)
         {
             try
             {
@@ -2827,6 +2827,11 @@ namespace ChurchReport.WebServiceConnector
                 {
                     this.m_ToolUtilityClass.SetEntityStringAttribute(ref aWeeklyReportEntity, "new_memo", WeeklyReportData);
                 }
+                // 設定幸福小組週次
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aWeeklyReportEntity, "new_weekly_index", HappyWeekIndex);
+                // 設定幸福小組主題
+                this.m_ToolUtilityClass.SetOptionSetAttribute(ref aWeeklyReportEntity, "new_topic", this.ConvertTopicToIndex(HappyWeekTopic));
+
                 // 透過 LINE 回報權柄
                 this.m_LineNotifyUtility.SendSmallGroupResultLine(this.m_ContactEntity, SmallGroupResult, aGroupWeeklyReportGuid, aWeeklyReportId, ref aListEntity, ref aSmallGroupData, WeeklyReportData );
 
@@ -2853,7 +2858,7 @@ namespace ChurchReport.WebServiceConnector
                 throw Exception;
             }
         }
-        private Entity UpdateWeeklyReportProcess(GroupWeeklyReportGuid aGroupWeeklyReportGuid, ref Entity aListEntity, ref Guid aWeeklyReportId, SmallGroupData aSmallGroupData, String WeeklyReportData)
+        private Entity UpdateWeeklyReportProcess(GroupWeeklyReportGuid aGroupWeeklyReportGuid, ref Entity aListEntity, ref Guid aWeeklyReportId, SmallGroupData aSmallGroupData, String WeeklyReportData, String HappyWeekIndex, String HappyWeekTopic)
         {
             try
             {
@@ -2878,7 +2883,7 @@ namespace ChurchReport.WebServiceConnector
                 #endregion
 
                 #region 更新週報
-                return UpdateWeeklyReport(aGroupWeeklyReportGuid, aPresentRecordCollection, ref aListEntity, ref aWeeklyReportId, ValidNumber, ref aWeeklySundayRate, ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber, aSmallGroupData, WeeklyReportData);
+                return UpdateWeeklyReport(aGroupWeeklyReportGuid, aPresentRecordCollection, ref aListEntity, ref aWeeklyReportId, ValidNumber, ref aWeeklySundayRate, ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber, aSmallGroupData, WeeklyReportData, HappyWeekIndex, HappyWeekTopic);
                 #endregion
 
                 #endregion
@@ -3202,6 +3207,34 @@ namespace ChurchReport.WebServiceConnector
                     return 100000006;
                 case "其他":
                     return 100000007;
+                default:
+                    return 100000000;
+            }
+        }
+        private int ConvertTopicToIndex(String Topic)
+        {
+            switch (Topic)
+            {
+                case "福音的能力":
+                    return 100000000;
+                case "幸福小組是符合聖經的佈道小組":
+                    return 100000001;
+                case "真幸福":
+                    return 100000002;
+                case "欺騙者":
+                    return 100000003;
+                case "救贖者耶穌":
+                    return 100000004;
+                case "垂聽禱告的上帝":
+                    return 100000005;
+                case "你要遇見神":
+                    return 100000006;
+                case "耶穌基督十字架的勝利":
+                    return 100000007;
+                case "釋放與自由":
+                    return 100000008;
+                case "帶來幸福的教會":
+                    return 100000009;
                 default:
                     return 100000000;
             }
