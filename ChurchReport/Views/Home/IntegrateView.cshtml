@@ -214,7 +214,8 @@ else
                                     (
                                     {
                                     url: '@Url.Action("SaveIntegrate", "Home")',
-                                    data: { WeeklyReportData: $("#WeeklyReportTextData").dxTextArea("instance").option('text'), HappyWeekIndex: $("#HappyWeekIndex").dxSelectBox("instance").option('text') }, // 整理回傳給 Server 的點名資料
+                                    data: { 
+                WeeklyReportData: $("#WeeklyReportTextData").dxTextArea("instance").option('text'), HappyWeekIndex: $("#HappyWeekIndex").dxSelectBox("instance").option('text'), HappyWeekTopic: $("#HappyWeekTopic").dxSelectBox("instance").option('text') }, // 整理回傳給 Server 的點名資料
                                     type: 'POST', //POST if you want to save, GET if you want to fetch data from server
 
                                     success: function (arg)
