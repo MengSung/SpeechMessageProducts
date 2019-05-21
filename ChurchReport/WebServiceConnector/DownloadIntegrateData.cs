@@ -1476,7 +1476,7 @@ namespace ChurchReport.WebServiceConnector
                 //}
             }
             // 控制新人跟進關懷點名回報是否顯示
-            //aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData.DisplayFlag = aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData.Members.Count > 0 ? true : false;
+            aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_HappyGroup.DisplayFlag = aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_HappyGroup.Members.Count > 0 ? true : false;
             //aListSmallGroupWeeklyReport.NewPersonFollowUpDisplayFlag = aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.Members.Count > 0 ? true : false;
         }
         private String GetNewComerFollowupInfo(Guid aNewComerId, ref String aFollowUpWeek)
