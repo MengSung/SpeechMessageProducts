@@ -72,6 +72,7 @@ namespace ChurchReport.WebServiceConnector
 
         DateTime m_Sunday;
         String m_LoginType = "";
+        String m_GroupType = "";
         Entity m_ContactEntity; //登入者在系統裡的實體
         Guid m_ContactId; //登入者在系統裡的ID
         Entity m_ListEntity; // 小組名單實體紀錄
@@ -109,12 +110,13 @@ namespace ChurchReport.WebServiceConnector
         /// <param name="aSmallGroupData"></param>
         /// <param name="WeeklyReportData"></param>
         /// <param name="WeeklyReportAnalysis"></param>
-        public void UploadData(String Account, String Password, String LoginType, String ListEntityId, ref String WeeklyReportEntityId, DateTime aSmallGroupDate, SmallGroupData aSmallGroupData, ref String WeeklyReportData, ref String WeeklyReportAnalysis)
+        public void UploadData(String Account, String Password, String LoginType, String GroupType, String ListEntityId, ref String WeeklyReportEntityId, DateTime aSmallGroupDate, SmallGroupData aSmallGroupData, ref String WeeklyReportData, ref String WeeklyReportAnalysis)
         {
             try
             {
                 // 設定初始值
                 m_LoginType = LoginType;
+                m_GroupType = GroupType;
 
                 // 設定參數，設定主日日期，找到操作使用者登入的ENTITY及ID
                 this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "設定參數");
@@ -1209,6 +1211,9 @@ namespace ChurchReport.WebServiceConnector
                                     //BirthDate = aBirthDate,
                                     Industry = aIndustry,
 
+                                    BestIntroducer = this.m_ToolUtilityClass.GetEntityStringAttribute(ContactEntity, "new_best_introducer"),
+                                    BestRelationship = this.m_ToolUtilityClass.GetEntityStringAttribute(ContactEntity, "new_best_relationship"),
+
                                     #endregion
                                     Status = aIdentity, // 委身類型
                                     SmallGroupName = GroupName,
@@ -2246,6 +2251,19 @@ namespace ChurchReport.WebServiceConnector
                     this.m_ToolUtilityClass.SetEntityDoubleAttribute(ref aPresentRecord, "new_small_group_rate", 0);
                 }
                 #endregion
+
+                #region 設定決志
+
+                if (aMemberInfomation.Decision == true)
+                {
+                    this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_happy_decision", 1);
+                }
+                else
+                {
+                    this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_happy_decision", 0);
+                }
+                #endregion
+
                 #region 設定附註或是代禱事項
 
                 // 楊梅靈糧堂
@@ -2546,6 +2564,50 @@ namespace ChurchReport.WebServiceConnector
                     ModifyFlag = true;
                 }
             }
+
+            // 組員的介紹人
+            String aBestIntroducer = "";
+            if (aContactEntity.Attributes.Contains("new_best_introducer"))
+            {
+                aIndustry = (string)aContactEntity.Attributes["new_best_introducer"];
+                if (aMember.BestIntroducer != aBestIntroducer)
+                {
+                    // 系統裡的連絡人介紹人跟APP上傳的不一致
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactEntity, "new_best_introducer", aMember.BestIntroducer);
+                    ModifyFlag = true;
+                }
+            }
+
+            // 組員的介紹人關係
+            String aBestRelationship = "";
+            if (aContactEntity.Attributes.Contains("new_best_relationship"))
+            {
+                aBestRelationship = (string)aContactEntity.Attributes["new_best_relationship"];
+                if (aMember.BestRelationship != aBestRelationship)
+                {
+                    // 系統裡的連絡人介紹人跟APP上傳的不一致
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactEntity, "new_best_relationship", aMember.BestRelationship);
+                    ModifyFlag = true;
+                }
+            }
+
+            if (aMember.BestLeader != "" && this.m_GroupType == "幸福小組")
+            {
+                Guid aSearchedContactSpiritLeaderId = GetContactSpiritLeaderId(aListEntityId, aMember.BestLeader);
+
+                if (aSearchedContactSpiritLeaderId != Guid.Empty)
+                {
+                    Guid aContactSpiritLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(aContactEntity, "new_contact_contact_spiritleader");
+
+                    if (aContactSpiritLeaderId != aSearchedContactSpiritLeaderId)
+                    {
+                        this.m_ToolUtilityClass.SetEntityLookUpAttribute(aContactEntity, "new_contact_contact_spiritleader", "contact", aSearchedContactSpiritLeaderId);
+                        ModifyFlag = true;
+                    }
+                }
+            }
+
+
             #endregion
 
             // 經由最近8週的出席次數計算、設定委身類型
@@ -2558,6 +2620,7 @@ namespace ChurchReport.WebServiceConnector
             {
                 ModifyFlag = SetIdentityByUpload(ref aContactEntity, ref aMember);
             }
+
             if (ModifyFlag == true)
             {
                 // 更新聯絡人
@@ -2565,6 +2628,88 @@ namespace ChurchReport.WebServiceConnector
             }
 
         }
+
+        private Guid GetContactSpiritLeaderId(Guid ListEntityId, String BestLeaderName)
+        {
+            try
+            {
+                // 每個組員
+                bool ListType = false;
+                EntityCollection MemberCollection = GetPersonalSmallGroupLeaderMemberData(ListEntityId, ref ListType);
+
+                foreach (Entity MemberEntity in MemberCollection.Entities)
+                {
+                    #region//取得名單中的每個組員
+                    Entity aContactEntity;
+
+                    if (ListType == false)
+                    {
+                        // 靜態名單
+                        aContactEntity = m_ToolUtilityClass.RetrieveEntity("contact", ((EntityReference)MemberEntity.Attributes["entityid"]).Id);
+                    }
+                    else
+                    {
+                        // 動態名單
+                        aContactEntity = m_ToolUtilityClass.RetrieveEntity("contact", (Guid)MemberEntity.Attributes["contactid"]);
+                    }
+                    #endregion
+
+                    if (this.m_ToolUtilityClass.GetEntityStringAttribute(aContactEntity, "fullname") == BestLeaderName)
+                    {
+                        return aContactEntity.Id;
+                    }
+
+                }
+
+                return Guid.Empty;
+            }
+            catch (System.Exception Exception)
+            {
+                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
+                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                throw Exception;
+            }
+        }
+
+        private EntityCollection GetPersonalSmallGroupLeaderMemberData(Guid ListEntityId, ref bool ListType)
+        {
+            #region // 處理每個小組名單
+            //搜尋名單的組員
+            Entity ListEntity = this.m_ToolUtilityClass.RetrieveEntity("list", ListEntityId);
+
+            ListType = this.m_ToolUtilityClass.GetEntityBoolAttribute(ListEntity, "type");
+            EntityCollection MemberCollection;
+            if (ListType == false)
+            {
+                // 靜態名單
+                if (CRM_TYPE == "DYNAMICS365")
+                {
+                    MemberCollection = this.m_ToolUtilityClass.RetrieveMemberListCollectionByListIdDynamics365(ref this.m_ToolUtilityClass.m_OrganizationService, ListEntityId);
+                }
+                else
+                {
+                    MemberCollection = this.m_ToolUtilityClass.RetrieveMemberListCollectionByListIdCrm2011(ref this.m_ToolUtilityClass.m_Crm2011OrganizationService, ListEntityId);
+                }
+            }
+            else
+            {
+                // 動態名單
+                if (CRM_TYPE == "DYNAMICS365")
+                {
+                    MemberCollection = this.m_ToolUtilityClass.RetrieveDynamicMemberListDynamics365(ref this.m_ToolUtilityClass.m_OrganizationService, ListEntityId);
+                }
+                else
+                {
+                    MemberCollection = this.m_ToolUtilityClass.RetrieveDynamicMemberListCrm2011(ref this.m_ToolUtilityClass.m_Crm2011OrganizationService, ListEntityId);
+                }
+            }
+
+            return MemberCollection;
+            #endregion
+
+        }
+
         #endregion
         #region 更新個人聚會與靈修記錄
 
@@ -2847,6 +2992,18 @@ namespace ChurchReport.WebServiceConnector
                             this.m_ToolUtilityClass.SetEntityDoubleAttribute(ref aMachedPresentRecordEntity, "new_small_group_rate", 0);
                         }
                         #endregion
+                        #region 設定決志
+
+                        if (aMember.Decision == true)
+                        {
+                            this.m_ToolUtilityClass.SetEntityIntAttribute(ref aMachedPresentRecordEntity, "new_happy_decision", 1);
+                        }
+                        else
+                        {
+                            this.m_ToolUtilityClass.SetEntityIntAttribute(ref aMachedPresentRecordEntity, "new_happy_decision", 0);
+                        }
+                        #endregion
+
                         #region 設定附註或是代禱事項
                         // 楊梅靈糧堂
                         //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aMachedPresentRecordEntity, "new_name", aMemberInfomation.Note);
