@@ -4416,16 +4416,16 @@ namespace ToolUtilityNameSpace
             {
                 //lock (m_OptionSetAttributeLocker)
                 //{
-                    OptionSetValue aOptionSetValue = new OptionSetValue(PropertyValue);
+                OptionSetValue aOptionSetValue = new OptionSetValue(PropertyValue);
 
-                    if (aEntity.Attributes.Contains(PropertyName))
-                    {
-                        aEntity.Attributes[PropertyName] = aOptionSetValue;
-                    }
-                    else
-                    {
-                        aEntity.Attributes.Add(PropertyName, aOptionSetValue);
-                    }
+                if (aEntity.Attributes.Contains(PropertyName))
+                {
+                    aEntity.Attributes[PropertyName] = aOptionSetValue;
+                }
+                else
+                {
+                    aEntity.Attributes.Add(PropertyName, aOptionSetValue);
+                }
                 //}
             }
             catch (System.Exception e)
@@ -4441,17 +4441,57 @@ namespace ToolUtilityNameSpace
             {
                 //lock (m_OptionSetAttributeLocker)
                 //{
-                    OptionSetValue aOptionSetValue = new OptionSetValue(PropertyValue);
+                OptionSetValue aOptionSetValue = new OptionSetValue(PropertyValue);
 
-                    if (aEntity.Attributes.Contains(PropertyName))
-                    {
-                        aEntity.Attributes[PropertyName] = aOptionSetValue;
-                    }
-                    else
-                    {
-                        aEntity.Attributes.Add(PropertyName, aOptionSetValue);
-                    }
+                if (aEntity.Attributes.Contains(PropertyName))
+                {
+                    aEntity.Attributes[PropertyName] = aOptionSetValue;
+                }
+                else
+                {
+                    aEntity.Attributes.Add(PropertyName, aOptionSetValue);
+                }
                 //}
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                throw e;
+            }
+        }
+        public void SetOptionSetAttributeNull(ref Entity aEntity, string PropertyName)
+        {
+            try
+            {
+                if (aEntity.Attributes.Contains(PropertyName))
+                {
+                    aEntity.Attributes[PropertyName] = null;
+                }
+                else
+                {
+                    aEntity.Attributes.Add(PropertyName, null);
+                }
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                throw e;
+            }
+        }
+        public void SetOptionSetAttributeNull(Entity aEntity, string PropertyName)
+        {
+            try
+            {
+                if (aEntity.Attributes.Contains(PropertyName))
+                {
+                    aEntity.Attributes[PropertyName] = null;
+                }
+                else
+                {
+                    aEntity.Attributes.Add(PropertyName, null);
+                }
             }
             catch (System.Exception e)
             {
@@ -4695,6 +4735,42 @@ namespace ToolUtilityNameSpace
             }
 
         }
+
+        public void RemoveAttribute(ref Entity aEntity, string PropertyName)
+        {
+            try
+            {
+                aEntity.Attributes.Remove(PropertyName);
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                throw e;
+            }
+        }
+
+        public void SetEntityAttributeToNull(ref Entity aEntity, string PropertyName)
+        {
+            try
+            {
+                if (aEntity.Attributes.Contains(PropertyName))
+                {
+                    aEntity.Attributes[PropertyName] = null;
+                }
+                else
+                {
+                    aEntity.Attributes.Add(PropertyName, null);
+                }
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                throw e;
+            }
+        }
+
         #endregion
         #endregion
         #region 負責人管理

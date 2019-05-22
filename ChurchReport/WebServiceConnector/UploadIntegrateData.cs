@@ -2830,7 +2830,16 @@ namespace ChurchReport.WebServiceConnector
                 // 設定幸福小組週次
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aWeeklyReportEntity, "new_weekly_index", HappyWeekIndex);
                 // 設定幸福小組主題
-                this.m_ToolUtilityClass.SetOptionSetAttribute(ref aWeeklyReportEntity, "new_topic", this.ConvertTopicToIndex(HappyWeekTopic));
+                if ( HappyWeekTopic != "" && HappyWeekTopic != null )
+                {
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(ref aWeeklyReportEntity, "new_topic", this.ConvertTopicToIndex(HappyWeekTopic));
+                }
+                else
+                {
+                    //this.m_ToolUtilityClass.RemoveAttribute(ref aWeeklyReportEntity, "new_topic");
+                    //this.m_ToolUtilityClass.SetEntityAttributeToNull(ref aWeeklyReportEntity, "new_topic");
+                    this.m_ToolUtilityClass.SetOptionSetAttributeNull(ref aWeeklyReportEntity, "new_topic");
+                }
 
                 // 透過 LINE 回報權柄
                 this.m_LineNotifyUtility.SendSmallGroupResultLine(this.m_ContactEntity, SmallGroupResult, aGroupWeeklyReportGuid, aWeeklyReportId, ref aListEntity, ref aSmallGroupData, WeeklyReportData );

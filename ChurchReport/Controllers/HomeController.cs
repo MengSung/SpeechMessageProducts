@@ -129,7 +129,7 @@ namespace ChurchReport.Controllers
                     }
 
                     // 設定幸福小組資料
-                    m_InMemoryDataContextSmallGroup.SetupHappyGroupData(aGalleryViewModel.Account, aGalleryViewModel.Password);
+                    //m_InMemoryDataContextSmallGroup.SetupHappyGroupData(aGalleryViewModel.Account, aGalleryViewModel.Password);
 
                     // 設定繳費與報名資料
                     m_InMemoryDataContextSmallGroup.FeeList.SetupFeeDataList(aGalleryViewModel.Account, aGalleryViewModel.Password);

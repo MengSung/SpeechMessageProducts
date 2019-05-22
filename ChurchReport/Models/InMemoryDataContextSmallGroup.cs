@@ -224,7 +224,6 @@ namespace ChurchReport.Models
             try
             {
                 m_HappyGroupDataManager.SetupHappyGroupData(Account, Password);
-
             }
             catch (System.Exception e)
             {
