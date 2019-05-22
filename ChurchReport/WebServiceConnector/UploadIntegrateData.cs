@@ -3209,10 +3209,19 @@ namespace ChurchReport.WebServiceConnector
                     TotalHappyDecision += HappyDecision > 0 ? HappyDecision : 0;
 
                     // 取得出席紀錄單的連絡人實體
-                    Entity aContactEntity = this.m_ToolUtilityClass.RetrieveEntity("contact", this.m_ToolUtilityClass.GetEntityLookupAttribute( PresentRecordEntity, "new_contact_new_present_record"));
+                    String Identity = "";
+                    Guid aContactId = new Guid();
+                    if ((aContactId = this.m_ToolUtilityClass.GetEntityLookupAttribute(PresentRecordEntity, "new_contact_new_present_record")) != Guid.Empty)
+                    {
+                        Entity aContactEntity = this.m_ToolUtilityClass.RetrieveEntity("contact", aContactId);
 
-                    // 取得出席紀錄單連絡人實體的委身類型
-                    String Identity = this.ConvertIndexToIdentity(this.m_ToolUtilityClass.GetOptionSetAttribute(ref aContactEntity, "customertypecode"));
+                        // 取得出席紀錄單連絡人實體的委身類型
+                        Identity = this.ConvertIndexToIdentity(this.m_ToolUtilityClass.GetOptionSetAttribute(ref aContactEntity, "customertypecode"));
+                    }
+                    else
+                    {
+                        continue;
+                    }
 
                     if (Identity.Contains("幸福BEST") || Identity.Contains("未入組") || Identity.Contains("新朋友"))
                     {
@@ -3236,6 +3245,7 @@ namespace ChurchReport.WebServiceConnector
 
                 ToolUtilityClass.DeleteLastChar(ref BestPresentList);
                 ToolUtilityClass.DeleteLastChar(ref BestDecisionList);
+                ToolUtilityClass.DeleteLastChar(ref WorkerList);
                 #endregion
 
                 this.m_ToolUtilityClass.SetEntityIntAttribute(ref HappyWeeklyReport, "new_small_group_number", TotalHappyPresent);
@@ -3243,8 +3253,12 @@ namespace ChurchReport.WebServiceConnector
 
                 this.m_ToolUtilityClass.SetEntityIntAttribute(ref HappyWeeklyReport, "new_best_attend_number", BestPresentNumber);
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref HappyWeeklyReport, "new_best_attend_list", BestPresentList);
+
                 this.m_ToolUtilityClass.SetEntityIntAttribute(ref HappyWeeklyReport, "new_best_decision_number", BestDecisionNumber);
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref HappyWeeklyReport, "new_best_decision_list", BestDecisionList);
+
+                this.m_ToolUtilityClass.SetEntityIntAttribute(ref HappyWeeklyReport, "new_worker_attend_number", WrokerNumber);
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref HappyWeeklyReport, "new_worker_attend_list", WorkerList);
 
                 this.m_ToolUtilityClass.UpdateEntity(ref HappyWeeklyReport);
 

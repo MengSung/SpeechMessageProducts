@@ -385,9 +385,13 @@ namespace ChurchReport.WebServiceConnector
             { this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aNewContactEntity, "new_race_leader_contact", "contact", m_RaceLeaderId); }
             #endregion
             #region 關聯主要小組
+            String GroupType = "";
             if (aListEntityId != null && aListEntityId != Guid.Empty)
             {
                 this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aNewContactEntity, "new_cell_list_contact", "list", aListEntityId);
+
+                
+                { }
             }
             #endregion
             #region 關聯邀請或轉介人
@@ -405,9 +409,20 @@ namespace ChurchReport.WebServiceConnector
             this.m_ToolUtilityClass.SetEntityStringAttribute(ref aNewContactEntity, "address2_line1", aNewContact.Address);
 
             // 委身類型設定為新朋友
+
+
             // 內壢得勝靈糧堂牧養新朋友稱呼代碼，跟楊梅靈糧堂不一樣
             //楊梅靈糧堂
-            this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "customertypecode", 100000000);
+            if (this.m_ToolUtilityClass.GetEntityStringAttribute(this.m_ToolUtilityClass.RetrieveEntity("list", aListEntityId), "listname").Contains("幸福"))
+            {
+                // 幸福小組新增的新人，委身類型設為"幸福 Best"
+                this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "customertypecode", 100000005);
+            }
+            else
+            {
+                // 一般小組新增的新人，委身類型設為"新朋友"
+                this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "customertypecode", 100000000);
+            }
 
             // 內壢得勝靈糧堂
             //this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "customertypecode", 100000009);
