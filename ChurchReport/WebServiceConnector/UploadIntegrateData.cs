@@ -2496,47 +2496,57 @@ namespace ChurchReport.WebServiceConnector
             bool ModifyFlag = false;
             #region // 更新個人資料:手機、家裡電話、地址、設定委身類型
             // 組員的手機
-            String aMobilePhone = "";
-            if (aContactEntity.Attributes.Contains("mobilephone"))
+            if (DigitsOnly.Replace(aMember.Phone, "") != DigitsOnly.Replace(this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContactEntity, "mobilephone"), ""))
             {
-                aMobilePhone = (string)aContactEntity.Attributes["mobilephone"];
-                aMobilePhone = DigitsOnly.Replace(aMobilePhone, "");
-
-                String aMemberInfomationPhone = DigitsOnly.Replace(aMember.Phone, "");
-
-                if (aMemberInfomationPhone != aMobilePhone)
-                {
-                    // 系統裡的聯絡人手機跟APP上傳的不一致
-                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactEntity, "mobilephone", aMember.Phone);
-                    ModifyFlag = true;
-                }
+                // 系統裡的聯絡人家裡電話跟APP上傳的不一致
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactEntity, "mobilephone", aMember.Phone);
+                ModifyFlag = true;
             }
+
+            //String aMobilePhone = "";
+            //if (aContactEntity.Attributes.Contains("mobilephone"))
+            //{
+            //    aMobilePhone = (string)aContactEntity.Attributes["mobilephone"];
+            //    aMobilePhone = DigitsOnly.Replace(aMobilePhone, "");
+
+            //    String aMemberInfomationPhone = DigitsOnly.Replace(aMember.Phone, "");
+
+            //    if (aMemberInfomationPhone != aMobilePhone)
+            //    {
+            //        // 系統裡的聯絡人手機跟APP上傳的不一致
+            //        this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactEntity, "mobilephone", aMember.Phone);
+            //        ModifyFlag = true;
+            //    }
+            //}
             // 組員的家裡電話
-            String aHomePhone = "";
-            if (aContactEntity.Attributes.Contains("telephone2"))
+            if (DigitsOnly.Replace(aMember.HomePhone, "") != DigitsOnly.Replace(this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContactEntity, "telephone2"),""))
             {
-                aHomePhone = (string)aContactEntity.Attributes["telephone2"];
-                aHomePhone = DigitsOnly.Replace(aHomePhone, "");
-                String aMemberInfomationHomePhone = DigitsOnly.Replace(aMember.HomePhone, "");
-
-                if (aMemberInfomationHomePhone != aHomePhone)
-                {
-                    // 系統裡的聯絡人家裡電話跟APP上傳的不一致
-                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactEntity, "telephone2", aMember.HomePhone);
-                    ModifyFlag = true;
-                }
+                // 系統裡的聯絡人家裡電話跟APP上傳的不一致
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactEntity, "telephone2", aMember.HomePhone);
+                ModifyFlag = true;
             }
+
+            //String aHomePhone = "";
+            //if (aContactEntity.Attributes.Contains("telephone2"))
+            //{
+            //    aHomePhone = (string)aContactEntity.Attributes["telephone2"];
+            //    aHomePhone = DigitsOnly.Replace(aHomePhone, "");
+            //    String aMemberInfomationHomePhone = DigitsOnly.Replace(aMember.HomePhone, "");
+
+            //    if (aMemberInfomationHomePhone != aHomePhone)
+            //    {
+            //        // 系統裡的聯絡人家裡電話跟APP上傳的不一致
+            //        this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactEntity, "telephone2", aMember.HomePhone);
+            //        ModifyFlag = true;
+            //    }
+            //}
+
             // 組員的地址
-            String aAddress = "";
-            if (aContactEntity.Attributes.Contains("address2_line1"))
+            if (aMember.Address != this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContactEntity, "address2_line1"))
             {
-                aAddress = (string)aContactEntity.Attributes["address2_line1"];
-                if (aMember.Address != aAddress)
-                {
-                    // 系統裡的聯絡人家裡電話跟APP上傳的不一致
-                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactEntity, "address2_line1", aMember.Address);
-                    ModifyFlag = true;
-                }
+                // 系統裡的聯絡人的地址跟APP上傳的不一致
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactEntity, "address2_line1", aMember.Address);
+                ModifyFlag = true;
             }
 
             //組員的生日
@@ -2563,30 +2573,45 @@ namespace ChurchReport.WebServiceConnector
             }
 
             // 組員的職業及專長(台北基督之家)
-            String aIndustry = "";
-            if (aContactEntity.Attributes.Contains("new_industry"))
+            if (aMember.Industry != this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContactEntity, "new_industry"))
             {
-                aIndustry = (string)aContactEntity.Attributes["new_industry"];
-                if (aMember.Industry != aIndustry)
-                {
-                    // 系統裡的聯絡人職業及專長跟APP上傳的不一致
-                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactEntity, "new_industry", aMember.Industry);
-                    ModifyFlag = true;
-                }
+                // 系統裡的聯絡人的組員的職業及專長跟APP上傳的不一致
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactEntity, "new_industry", aMember.Industry);
+                ModifyFlag = true;
             }
 
+            //String aIndustry = "";
+            //if (aContactEntity.Attributes.Contains("new_industry"))
+            //{
+            //    aIndustry = (string)aContactEntity.Attributes["new_industry"];
+            //    if (aMember.Industry != aIndustry)
+            //    {
+            //        // 系統裡的聯絡人職業及專長跟APP上傳的不一致
+            //        this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactEntity, "new_industry", aMember.Industry);
+            //        ModifyFlag = true;
+            //    }
+            //}
+
+
             // 組員的介紹人
-            String aBestIntroducer = "";
-            if (aContactEntity.Attributes.Contains("new_best_introducer"))
+            if (aMember.BestIntroducer != this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContactEntity, "new_best_introducer"))
             {
-                aIndustry = (string)aContactEntity.Attributes["new_best_introducer"];
-                if (aMember.BestIntroducer != aBestIntroducer)
-                {
-                    // 系統裡的連絡人介紹人跟APP上傳的不一致
-                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactEntity, "new_best_introducer", aMember.BestIntroducer);
-                    ModifyFlag = true;
-                }
+                // 系統裡的聯絡人的組員的職業及專長跟APP上傳的不一致
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactEntity, "new_best_introducer", aMember.BestIntroducer);
+                ModifyFlag = true;
             }
+
+            //String aBestIntroducer = "";
+            //if (aContactEntity.Attributes.Contains("new_best_introducer"))
+            //{
+            //    aBestIntroducer = (string)aContactEntity.Attributes["new_best_introducer"];
+            //    if (aMember.BestIntroducer != aBestIntroducer)
+            //    {
+            //        // 系統裡的連絡人介紹人跟APP上傳的不一致
+            //        this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactEntity, "new_best_introducer", aMember.BestIntroducer);
+            //        ModifyFlag = true;
+            //    }
+            //}
 
             // 組員的介紹人關係
             String aBestRelationship = "";

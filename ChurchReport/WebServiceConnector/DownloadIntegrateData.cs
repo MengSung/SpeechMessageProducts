@@ -210,7 +210,7 @@ namespace ChurchReport.WebServiceConnector
             }
 
         }
-        public void SetupWeeklyReportChartData( ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport )
+        public void SetupWeeklyReportChartData(ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
         {
             if (aListSmallGroupWeeklyReport.m_WeeklyReportChart == null)
             {
@@ -222,7 +222,7 @@ namespace ChurchReport.WebServiceConnector
             }
             else
             {
-                if(aListSmallGroupWeeklyReport.m_WeeklyReportChart.m_ChartDataList != null)
+                if (aListSmallGroupWeeklyReport.m_WeeklyReportChart.m_ChartDataList != null)
                 {
                     aListSmallGroupWeeklyReport.m_WeeklyReportChart.m_ChartDataList.Clear();
                 }
@@ -234,56 +234,21 @@ namespace ChurchReport.WebServiceConnector
 
             EntityCollection GroupWeeklyReportEntityCollection = this.m_ToolUtilityClass.QueryWeeklyReportBeforeTowMonthOfSunday(this.m_Sunday, this.m_ListEntity.Id);
 
-            foreach( Entity aWeeklyReporEntity in GroupWeeklyReportEntityCollection.Entities)
+            foreach (Entity aWeeklyReporEntity in GroupWeeklyReportEntityCollection.Entities)
             {
+                int aSundayNumber = this.m_ToolUtilityClass.GetEntityIntAttribute(aWeeklyReporEntity, "new_sunday_present_number");
+                int aSmallNumber = this.m_ToolUtilityClass.GetEntityIntAttribute(aWeeklyReporEntity, "new_small_group_number");
                 aListSmallGroupWeeklyReport.m_WeeklyReportChart.m_ChartDataList.Add
                 (
                     new ChartData
                     {
                         WeeklyReportEntityId = aWeeklyReporEntity.Id.ToString(),
-                        SundayDate= this.m_ToolUtilityClass.GetEntityDateTimeAttribute( aWeeklyReporEntity, "new_sunday_date").ToLocalTime().ToShortDateString(),
-                        SundayNumber = this.m_ToolUtilityClass.GetEntityIntAttribute( aWeeklyReporEntity, "new_sunday_present_number"),
-                        SmallNumber = this.m_ToolUtilityClass.GetEntityIntAttribute(aWeeklyReporEntity, "new_small_group_number"),
+                        SundayDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(aWeeklyReporEntity, "new_sunday_date").ToLocalTime().ToShortDateString(),
+                        SundayNumber = aSundayNumber >= 0 ? aSundayNumber : 0,
+                        SmallNumber = aSmallNumber >= 0 ? aSmallNumber : 0,
                     }
                 );
             }
-            //aListSmallGroupWeeklyReport.m_WeeklyReportChart = new ChartDataList
-            //{
-            //    m_ChartDataList = new List<ChartData>
-            //                    {
-            //                            new ChartData {
-            //                                WeeklyReportEntityId = "001",
-            //                                SundayDate = DateTime.Now.AddDays(-7).ToShortDateString(),
-            //                                SundayNumber = 8,
-            //                                SmallNumber =6
-            //                            },
-            //                            new ChartData {
-            //                                WeeklyReportEntityId = "002",
-            //                                SundayDate = DateTime.Now.AddDays(-14).ToShortDateString(),
-            //                                SundayNumber = 9,
-            //                                SmallNumber =5
-            //                            },
-            //                            new ChartData {
-            //                                WeeklyReportEntityId = "003",
-            //                                SundayDate = DateTime.Now.AddDays(-21).ToShortDateString(),
-            //                                SundayNumber = 7,
-            //                                SmallNumber =9
-            //                            },
-            //                            new ChartData {
-            //                                WeeklyReportEntityId = "004",
-            //                                SundayDate = DateTime.Now.AddDays(-28).ToShortDateString(),
-            //                                SundayNumber = 10,
-            //                                SmallNumber =7
-            //                            },
-            //                            new ChartData {
-            //                                WeeklyReportEntityId = "005",
-            //                                SundayDate = DateTime.Now.AddDays(-35).ToShortDateString(),
-            //                                SundayNumber = 11,
-            //                                SmallNumber =12
-            //                            },
-
-            //                    }
-            //};
 
         }
         public void GetAllMemeberDataList(String ListEntityId, String WeeklyReportEntityId, ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
