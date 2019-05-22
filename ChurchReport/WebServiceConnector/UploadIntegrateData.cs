@@ -2251,6 +2251,18 @@ namespace ChurchReport.WebServiceConnector
                     this.m_ToolUtilityClass.SetEntityDoubleAttribute(ref aPresentRecord, "new_small_group_rate", 0);
                 }
                 #endregion
+                #region 設定幸福小組出席
+
+                if (aMemberInfomation.SmallGroup == true)
+                {
+                    this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_happy_present", 1);
+                }
+                else
+                {
+                    this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_happy_present", 0);
+                }
+                #endregion
+
                 #region 設定決志
 
                 if (aMemberInfomation.Decision == true)
@@ -2851,6 +2863,11 @@ namespace ChurchReport.WebServiceConnector
                     this.m_ToolUtilityClass.SetOptionSetAttributeNull(ref aWeeklyReportEntity, "new_topic");
                 }
 
+                if (this.m_GroupType == "幸福小組")
+                {
+                    CalculateWeeklyReportTotalNumber(ref aWeeklyReportEntity);
+                }
+
                 // 透過 LINE 回報權柄
                 this.m_LineNotifyUtility.SendSmallGroupResultLine(this.m_ContactEntity, SmallGroupResult, aGroupWeeklyReportGuid, aWeeklyReportId, ref aListEntity, ref aSmallGroupData, WeeklyReportData );
 
@@ -3017,6 +3034,18 @@ namespace ChurchReport.WebServiceConnector
                         }
                         #endregion
 
+                        #region 設定幸福小組出席
+
+                        if (aMember.SmallGroup == true)
+                        {
+                            this.m_ToolUtilityClass.SetEntityIntAttribute(ref aMachedPresentRecordEntity, "new_happy_present", 1);
+                        }
+                        else
+                        {
+                            this.m_ToolUtilityClass.SetEntityIntAttribute(ref aMachedPresentRecordEntity, "new_happy_present", 0);
+                        }
+                        #endregion
+
                         #region 設定決志
 
                         if (aMember.Decision == true)
@@ -3152,6 +3181,84 @@ namespace ChurchReport.WebServiceConnector
                 throw Exception;
             }
         }
+        #region 計算幸福小組週報出席人數
+        public void CalculateWeeklyReportTotalNumber(ref Entity HappyWeeklyReport)
+        {
+            try
+            {
+                #region 取得跟週報所有的相關的靈修出席紀錄單
+                EntityCollection PresentRecordCollection = m_ToolUtilityClass.RetrieveManyToOneRelationship("new_group_present_weekly_report", "new_group_present_weekly_reportid", HappyWeeklyReport.Id.ToString(), "new_group_present_weekly_report_prese", "new_present_record");
+                #endregion
+                #region 計算幸福小組週報出席及決志人數
+                int TotalHappyPresent = 0;
+                int TotalHappyDecision = 0;
+
+                int BestPresentNumber = 0;  // Best 出席人數
+                int BestDecisionNumber = 0; // Best 決志人數
+                int WrokerNumber = 0;       // 同工出席人數
+
+                String BestPresentList = "";    //Best出席名單
+                String BestDecisionList = "";   //Best決志名單
+                String WorkerList = "";         //同工出席名單
+
+                foreach (Entity PresentRecordEntity in PresentRecordCollection.Entities)
+                {
+                    int HappyPresent = this.m_ToolUtilityClass.GetEntityIntAttribute(PresentRecordEntity, "new_happy_present");
+                    int HappyDecision = this.m_ToolUtilityClass.GetEntityIntAttribute(PresentRecordEntity, "new_happy_decision");
+                    TotalHappyPresent += HappyPresent > 0 ? HappyPresent : 0 ;
+                    TotalHappyDecision += HappyDecision > 0 ? HappyDecision : 0;
+
+                    // 取得出席紀錄單的連絡人實體
+                    Entity aContactEntity = this.m_ToolUtilityClass.RetrieveEntity("contact", this.m_ToolUtilityClass.GetEntityLookupAttribute( PresentRecordEntity, "new_contact_new_present_record"));
+
+                    // 取得出席紀錄單連絡人實體的委身類型
+                    String Identity = this.ConvertIndexToIdentity(this.m_ToolUtilityClass.GetOptionSetAttribute(ref aContactEntity, "customertypecode"));
+
+                    if (Identity.Contains("幸福BEST") || Identity.Contains("未入組") || Identity.Contains("新朋友"))
+                    {
+                        // 
+                        BestPresentNumber += HappyPresent;
+                        BestDecisionNumber += HappyDecision;
+
+                        if (HappyPresent == 1)
+                            BestPresentList += this.m_ToolUtilityClass.GetEntityLookupDisplayName(PresentRecordEntity, "new_contact_new_present_record") + ",";
+                        if (HappyDecision == 1)
+                            BestDecisionList += this.m_ToolUtilityClass.GetEntityLookupDisplayName(PresentRecordEntity, "new_contact_new_present_record") + ",";
+                    }
+                    else
+                    {
+                        WrokerNumber += HappyPresent;
+                        if (HappyPresent == 1)
+                            WorkerList += this.m_ToolUtilityClass.GetEntityLookupDisplayName(PresentRecordEntity, "new_contact_new_present_record") + ",";
+
+                    }
+                }
+
+                ToolUtilityClass.DeleteLastChar(ref BestPresentList);
+                ToolUtilityClass.DeleteLastChar(ref BestDecisionList);
+                #endregion
+
+                this.m_ToolUtilityClass.SetEntityIntAttribute(ref HappyWeeklyReport, "new_small_group_number", TotalHappyPresent);
+                this.m_ToolUtilityClass.SetEntityIntAttribute(ref HappyWeeklyReport, "new_decision_number", TotalHappyDecision);
+
+                this.m_ToolUtilityClass.SetEntityIntAttribute(ref HappyWeeklyReport, "new_best_attend_number", BestPresentNumber);
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref HappyWeeklyReport, "new_best_attend_list", BestPresentList);
+                this.m_ToolUtilityClass.SetEntityIntAttribute(ref HappyWeeklyReport, "new_best_decision_number", BestDecisionNumber);
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref HappyWeeklyReport, "new_best_decision_list", BestDecisionList);
+
+                this.m_ToolUtilityClass.UpdateEntity(ref HappyWeeklyReport);
+
+
+                return;
+            }
+            catch (System.Exception Exception)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
+
+                throw Exception;
+            }
+        }
+        #endregion
 
         private String ConvertIndexToClearIdentity(int Identity)
         {
