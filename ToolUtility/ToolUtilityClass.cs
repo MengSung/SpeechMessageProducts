@@ -133,68 +133,25 @@ namespace ToolUtilityNameSpace
 
         #region Dynamics 365 新增組織修改區
 
-        #region 台北基督之家(公司內部發展)
+        // 客製化
+
+        #region 音訊靈糧堂(雲端機房)
         //private const String SERVER = "speechmessage.com.tw";
         //private const String PORT = "7777";
-        //private const String ORGANIZATION = "tpehocback";
-        //private const String USERNAME = "administrator@speechmessage.com.tw";
-        //private const String PASSWORD = "hu9840";
-        //private const String DOMAIN = "SPEECHMESSAGE";
-        #endregion
-
-        #region 台北基督之家(雲端機房)
-        //private const String SERVER = "speechmessage.com.tw";
-        //private const String PORT = "7777";
-        //private const String ORGANIZATION = "tpehoc";
-        //private const String USERNAME = "administrator@speechmessage.com.tw";
-        //private const String PASSWORD = "hu9840";
-        //private const String DOMAIN = "DYNAMICS-365";
-        #endregion
-
-
-        #region 高雄錫安堂(公司內部發展)
-        //private const String SERVER = "speechmessage.com.tw";
-        //private const String PORT = "7777";
-        //private const String ORGANIZATION = "kszionchback";
-        //private const String USERNAME = "Administrator@speechmessage.com.tw";
-        //private const String PASSWORD = "hu9840";
-        //private const String DOMAIN = "SPEECHMESSAGE";
-        #endregion
-
-        #region 高雄錫安堂(雲端機房)
-        //private const String SERVER = "speechmessage.com.tw";
-        //private const String PORT = "7777";
-        //private const String ORGANIZATION = "kszionch";
+        //private const String ORGANIZATION = "abundance";
         //private const String USERNAME = "Administrator@speechmessage.com.tw";
         //private const String PASSWORD = "hu9840";
         //private const String DOMAIN = "DYNAMICS-365";
         #endregion
 
-        #region 台中思恩堂豐富教會(雲端機房)
+
+        #region 音訊靈糧堂(公司內部發展)
         private const String SERVER = "speechmessage.com.tw";
         private const String PORT = "7777";
-        private const String ORGANIZATION = "abundance";
+        private const String ORGANIZATION = "church";
         private const String USERNAME = "Administrator@speechmessage.com.tw";
         private const String PASSWORD = "hu9840";
-        private const String DOMAIN = "DYNAMICS-365";
-        #endregion
-
-
-        #region 台中生命之道靈糧堂(公司內部發展)
-        //private const String SERVER = "speechmessage.com.tw";
-        //private const String PORT = "7777";
-        //private const String ORGANIZATION = "wolback";
-        //private const String USERNAME = "Administrator@speechmessage.com.tw";
-        //private const String PASSWORD = "hu9840";
-        //private const String DOMAIN = "SPEECHMESSAGE";
-        #endregion
-        #region 台中生命之道靈糧堂(雲端機房)
-        //private const String SERVER = "speechmessage.com.tw";
-        //private const String PORT = "7777";
-        //private const String ORGANIZATION = "wol";
-        //private const String USERNAME = "Administrator@speechmessage.com.tw";
-        //private const String PASSWORD = "hu9840";
-        //private const String DOMAIN = "DYNAMICS-365";
+        private const String DOMAIN = "SPEECHMESSAGE";
         #endregion
 
         #region 僅供參考區塊

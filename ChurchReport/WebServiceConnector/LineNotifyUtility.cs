@@ -38,11 +38,8 @@ namespace ChurchReport.WebServiceConnector
         private const String CRM_TYPE = "DYNAMICS365";
 
         // 客製化
-        // 台中思恩堂豐富教會
-        private const String CHANNEL_ACCESS_TOKEN = @"yvyzlpbDY4ctjVuC0vEYFDF4Gz9Ed6VR57AOmqEfRPqNSFa4tmlvgFqydqOsv8C5vOG3Ew1vPtBfZoJ7Psm69HH+oKtRA4UeMWi1EZp6j4hzhjC1ePmBRQOdfcbcGgDjJzC60Q8HAI/Err6YjFZwOwdB04t89/1O/w1cDnyilFU=";
-
-        // 台北基督之家
-        //private const String CHANNEL_ACCESS_TOKEN = @"MW7xRUVOMqzX651Akvg2cI8Z8oaX61lPAyL3QdSA94/pD61/FmU0wxj8rJ3CBp6Kle1qoDGIPXnMQuV5fhtYLELP+3nfPPiTdvvud9wrDp0uB204ovkDM3CE6wKpcpS2RUILadDWc4FXX6e8lyr+HQdB04t89/1O/w1cDnyilFU=";
+        // 音訊靈糧堂
+        private const String CHANNEL_ACCESS_TOKEN = @"ZO0wZiAnnPLjFf/5DhlMVXzBWNzCU+xaW8r0vCfBolXg/NLlurOf2VxdR1ZvkRFkDThc2Tlhbqpj6rFnvDs8NtlepAHBnrPvecvuTUhV6Ld9e7p0EmuNvFsqCitOMvRKlLCkR1etr/UBO82MJSTRzwdB04t89/1O/w1cDnyilFU=";
 
         // 胡夢嵩回傳　EXCEPTION　專用的ＩＤ
         private const String MENGSUNG_LINE_ID = @"U7638e4ed509708a3573ba6d69970583d";
