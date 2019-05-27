@@ -2766,13 +2766,13 @@ namespace ChurchReport.Controllers
                 throw e;
             }
         }
-        public String BindingContactLineId(string DisplayId, string UserId, string EnteredFullName, String EnteredMobilePhone)
+        public String BindingContactLineId(string DisplayId, string UserLineId, string EnteredFullName, String EnteredMobilePhone)
         {
             try
             {
                 WebServiceConnector.LineBindingUtility aLineBindingUtility = new WebServiceConnector.LineBindingUtility();
 
-                return aLineBindingUtility.RegisterContact(DisplayId, EnteredFullName, EnteredMobilePhone);
+                return aLineBindingUtility.RegisterContact(UserLineId, EnteredFullName, EnteredMobilePhone);
             }
             catch (System.Exception e)
             {
