@@ -2632,6 +2632,7 @@ namespace ChurchReport.Controllers
         {
             try
             {
+                //真正註冊在 Line Developer
                 var images = new List<string>();
                 images.Add(Url.Content("~/assets/images/tpehoc-005.jpg"));
                 images.Add(Url.Content("~/assets/images/tpehoc-006.jpg"));
@@ -2677,18 +2678,21 @@ namespace ChurchReport.Controllers
                 Regex DigitsOnly = new Regex(@"[^\d]");
                 string Mobile = DigitsOnly.Replace(aLineBindingViewModel.Mobile, "");
 
-                string BindingString = "//" + aLineBindingViewModel.FullName + "," + aLineBindingViewModel.Mobile;
+                //string BindingString = "//" + aLineBindingViewModel.FullName + "," + aLineBindingViewModel.Mobile;
 
-                Guid aLineEntityId = CreateLineMessage(m_InMemoryDataContextSmallGroup.LineBindingViewModel.DisplayId, m_InMemoryDataContextSmallGroup.LineBindingViewModel.LineUserId, BindingString, 100000000);
+                //Guid aLineEntityId = CreateLineMessage(m_InMemoryDataContextSmallGroup.LineBindingViewModel.DisplayId, m_InMemoryDataContextSmallGroup.LineBindingViewModel.LineUserId, BindingString, 100000000);
                 //Guid aLineEntityId = CreateLineMessage(aLineBindingViewModel.DisplayId, BindingString, 100000000);
 
-                if (aLineEntityId != null && aLineEntityId != Guid.Empty)
+                String BindingResult = BindingContactLineId(m_InMemoryDataContextSmallGroup.LineBindingViewModel.DisplayId, m_InMemoryDataContextSmallGroup.LineBindingViewModel.LineUserId, aLineBindingViewModel.FullName, aLineBindingViewModel.Mobile);
+
+                if ( BindingResult.Contains("成功")) 
                 {
-                    return Json(new { status = "1", message = "感謝 " + aLineBindingViewModel.FullName + " 完成綁定程序，請回到LINE視窗進行報名或回報，謝謝您!", encoded = aLineBindingViewModel.DisplayName + "," + aLineBindingViewModel.LineUserId });
+                    //return Json(new { status = "1", message = "感謝 " + aLineBindingViewModel.FullName + " 完成綁定程序，請回到LINE視窗進行報名或回報，謝謝您!" + Environment.NewLine + BindingResult, encoded = aLineBindingViewModel.DisplayName + "," + aLineBindingViewModel.LineUserId });
+                    return Json(new { status = "1", message = "感謝 " + aLineBindingViewModel.FullName + " 完成綁定程序!" + Environment.NewLine + BindingResult, encoded = aLineBindingViewModel.DisplayName + "," + aLineBindingViewModel.LineUserId });
                 }
                 else
                 {
-                    return Json(new { status = "2", message = aLineBindingViewModel.FullName + " 綁定失敗!" });
+                    return Json(new { status = "2", message = aLineBindingViewModel.FullName + " 綁定失敗!" + Environment.NewLine + BindingResult });
                 }
             }
             catch (System.Exception e)
@@ -2747,6 +2751,28 @@ namespace ChurchReport.Controllers
                     //await SendMessage(UserId, "008");
                     return Guid.Empty;
                 }
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "音訊靈糧堂 : 綁定錯誤 => " + ErrorString);
+
+                //return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
+                throw e;
+            }
+        }
+        public String BindingContactLineId(string DisplayId, string UserId, string EnteredFullName, String EnteredMobilePhone)
+        {
+            try
+            {
+                WebServiceConnector.LineBindingUtility aLineBindingUtility = new WebServiceConnector.LineBindingUtility();
+
+                return aLineBindingUtility.RegisterContact(DisplayId, EnteredFullName, EnteredMobilePhone);
             }
             catch (System.Exception e)
             {

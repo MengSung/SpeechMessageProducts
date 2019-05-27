@@ -2174,7 +2174,6 @@ namespace ToolUtilityNameSpace
                 throw e;
             }
         }
-
         public EntityCollection QueryPresentRecordInWeeklyReportByContactId(Guid aContactId, Guid aWeeklyReportEntityId)
         {
             try
@@ -2255,7 +2254,6 @@ namespace ToolUtilityNameSpace
                 throw e;
             }
         }
-
         public EntityCollection QueryEntityListByDate(String ParentEntityName, String ParentEntityIdName, String ParentEntityId, String AssociationName, String ChildEntityName)
         {
             try
@@ -2648,7 +2646,6 @@ namespace ToolUtilityNameSpace
                 throw e;
             }
         }
-
         public EntityCollection QueryListByContactId(Guid aContactId, String AssociationName)
         {
             try
@@ -2730,7 +2727,6 @@ namespace ToolUtilityNameSpace
                 throw e;
             }
         }
-
         public EntityCollection QueryWeeklyReportBySunday(DateTime aSunday, Guid aListEntityId)
         {
             try
@@ -2908,6 +2904,42 @@ namespace ToolUtilityNameSpace
                 throw e;
             }
         }
+        public EntityCollection RetrieveContactCollectionByLineId(String LineId)
+        {
+            try
+            {
+                //lock (m_RetrieveContactLocker)
+                {
+                    //  Create query using querybyattribute
+                    QueryByAttribute querybyexpression = new QueryByAttribute("contact");
+                    querybyexpression.ColumnSet = new ColumnSet();
+                    querybyexpression.ColumnSet.AllColumns = true;
+                    //  Attribute to query
+                    querybyexpression.Attributes.AddRange("new_lineid", "statecode");
+                    //  Value of queried attribute to return
+                    querybyexpression.Values.AddRange(LineId, 0);
+
+                    //  Query passed to the service proxy
+                    //EntityCollection retrieved = aOrganizationService.RetrieveMultiple(querybyexpression);
+
+                    if (CRM_TYPE == "DYNAMICS365")
+                    {
+                        return this.m_OrganizationService.RetrieveMultiple(querybyexpression);
+                    }
+                    else
+                    {
+                        return this.m_Crm2011OrganizationService.RetrieveMultiple(querybyexpression);
+                    }
+
+                }
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                throw e;
+            }
+        }
+
         #endregion
         #region 搜尋 N:N( ManyToMany) 的集合
 
@@ -5539,6 +5571,27 @@ namespace ToolUtilityNameSpace
                 throw e;
             }
         }
+        #region 過濾出數字字串
+        public String FilterDigit(String aFilteredString)
+        {
+            try
+            {
+                //lock (m_OtherLocker)
+                {
+                    Regex DigitsOnly = new Regex(@"[^\d]");
+
+                    return DigitsOnly.Replace(aFilteredString, "");
+                }
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                throw e;
+            }
+        }
+        #endregion
+
         #endregion
         #region 除錯追蹤區
         public void TraceByLevel(Int32 TotalLevel, Int32 QualifiedLevel, String StringToProcess)
