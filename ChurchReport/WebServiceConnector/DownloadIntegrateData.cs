@@ -2431,7 +2431,7 @@ namespace ChurchReport.WebServiceConnector
 
 
         // 委身類型客製化，委身類型客製化
-        //音訊靈糧堂
+        //台中慕義堂
         private String ConvertIndexToIdentity(int Identity)
         {
             switch (Identity)

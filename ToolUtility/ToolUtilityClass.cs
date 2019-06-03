@@ -135,7 +135,7 @@ namespace ToolUtilityNameSpace
 
         // 客製化
 
-        #region 音訊靈糧堂(雲端機房)
+        #region 台中慕義堂(雲端機房)
         //private const String SERVER = "speechmessage.com.tw";
         //private const String PORT = "7777";
         //private const String ORGANIZATION = "abundance";
@@ -144,8 +144,7 @@ namespace ToolUtilityNameSpace
         //private const String DOMAIN = "DYNAMICS-365";
         #endregion
 
-
-        #region 音訊靈糧堂(公司內部發展)
+        #region 台中慕義堂(公司內部發展)
         private const String SERVER = "speechmessage.com.tw";
         private const String PORT = "7777";
         private const String ORGANIZATION = "church";
