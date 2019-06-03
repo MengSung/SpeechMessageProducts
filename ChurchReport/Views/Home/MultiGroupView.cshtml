@@ -207,6 +207,7 @@ m => m
             .ShowRowLines(true)
             .RowAlternationEnabled(true)
             .ShowBorders(true)
+            .OnRowPrepared("OnRowPrepared")
 
             .TwoWayBindingEnabled(true)
 
@@ -535,6 +536,9 @@ m => m
         .attr({ href: '@Url.RouteUrl("default", new { action = "IntegrateView", controller = "Home" })/' + `${cellInfo.data.ListEntityId}` })
         .text(`${cellInfo.data.Name}`)
         .appendTo(cellElement);
+    }
+    function OnRowPrepared(e) {
+        e.rowElement.css({ height: 50 });
     }
 
 </script>
