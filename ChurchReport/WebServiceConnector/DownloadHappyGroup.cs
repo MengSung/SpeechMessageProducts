@@ -2686,7 +2686,7 @@ namespace ChurchReport.WebServiceConnector
         #endregion
         #region 轉換下拉選項
 
-        // 客製化，台中慕義堂幸福小組專屬主題
+        // 客製化，城市之光聖教會幸福小組專屬主題
         private String ConvertIndexToTopic(int FollowUpWeekIndex)
         {
             switch (FollowUpWeekIndex)

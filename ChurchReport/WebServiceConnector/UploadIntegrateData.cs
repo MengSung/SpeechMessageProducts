@@ -3867,7 +3867,7 @@ namespace ChurchReport.WebServiceConnector
                     return 100000002;
                 case "小組長":
                     return 100000008;
-                case "實習小組長":
+                case "小家長":
                     return 100000012;
                 case "小組組員":
                     return 1;

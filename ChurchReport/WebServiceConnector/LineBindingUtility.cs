@@ -38,8 +38,8 @@ namespace ChurchReport.WebServiceConnector
         private const String CRM_TYPE = "DYNAMICS365";
 
         // 客製化
-        // 台中慕義堂
-        private const String CHANNEL_ACCESS_TOKEN = @"WDWmhzbDlQNgqeAP6vuGbQB53Qy9rUwSLKTdtcfAW34HgH5l1oEGBnFJAMx/U2n2/n2Wa9SbUXDx7WIR5g+/HX1goTNMUJvDWmhP8v6fcFijOnqXPQ3VWef87IFN9i5k+RRHET70B0Njkq6CoM7zoAdB04t89/1O/w1cDnyilFU=";
+        // 城市之光聖教會
+        private const String CHANNEL_ACCESS_TOKEN = @"zUGKNYbCG42sZUwSVv9l2m4T0Mcb8oIK4n9O+gMPUl1kpEGoUNFCrR4A4YKVFwgFFvhKFwi47HMQpIiwI6GC4rm+Nk2wa7dnvNnPoRL5/oqCgRgWUBBwzv7r/8WL1PsBe/ZHjTnhDmodvAEBBydXjgdB04t89/1O/w1cDnyilFU=";
 
         // 胡夢嵩回傳　EXCEPTION　專用的ＩＤ
         private const String MENGSUNG_LINE_ID = @"U7638e4ed509708a3573ba6d69970583d";
