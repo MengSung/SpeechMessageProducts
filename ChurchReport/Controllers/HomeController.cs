@@ -535,7 +535,16 @@ namespace ChurchReport.Controllers
                     }
                     else
                     {
-                        ViewBag.ListId = m_InMemoryDataContextSmallGroup.ListManager.ActiveListId = LoginParameter;
+                        if (LoginParameter != "IntegrateView")
+                        {
+                            ViewBag.ListId = m_InMemoryDataContextSmallGroup.ListManager.ActiveListId = LoginParameter;
+                            ViewBag.SpiritualLeaderListId = LoginParameter;
+                        }
+                        else
+                        {
+                            ViewBag.ListId = m_InMemoryDataContextSmallGroup.ListManager.ActiveListId;
+                            ViewBag.SpiritualLeaderListId = m_InMemoryDataContextSmallGroup.ListManager.ActiveListId;
+                        }
                     }
 
                     #region 用小組長回報網頁登入

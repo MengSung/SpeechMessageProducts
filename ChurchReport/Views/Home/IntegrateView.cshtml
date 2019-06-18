@@ -86,7 +86,8 @@ else
                                 //dataGridInstance.refresh();
                                 //alert("002");
 
-                                window.location.href = "/Home/IntegrateView/IntegrateView"
+                                //window.location.href = "/Home/IntegrateView/IntegrateView"
+                                window.location.href = "/Home/IntegrateView/" + arg.ActiveListId;
                                 //alert("003");
 
                                 },
@@ -1015,7 +1016,7 @@ else
                                     .DataSource(d => d.WebApi()
                                         .Controller("SpiritLeaderLookup")
                                         .LoadAction("Get")
-                                        .LoadParams(new { id = @ViewBag.ListId })
+                                        .LoadParams(new { id = @ViewBag.SpiritualLeaderListId })
                                         //.LoadParams(new { id = new JS("data.HappyGroupListEntityId") })
                                         .Key("ID"))
                                         .DisplayExpr("Name")

@@ -109,36 +109,72 @@ namespace ChurchReport.Models
         public void AddNewPersonToMember(PersonFormViewModel aPersonFormViewModel)
         {
             String aGroupName = aPersonFormViewModel.Position;
-            Member aMember = new Member
+            if (aGroupName.Contains("幸福"))
             {
-                Id = m_SmallGroupData.Members.Count,
-                Group = aGroupName,
-                FullName = aPersonFormViewModel.LastName,
-                Phone = aPersonFormViewModel.Phone,
-                HomePhone = aPersonFormViewModel.HomePhone,
-                Industry  =aPersonFormViewModel.Industry,
-                //BirthDate = aPersonFormViewModel.BirthDate,
-                Address = aPersonFormViewModel.Address,
-                //Gender = aPersonFormViewModel.Gender,
-                Status = "新朋友",
-                SmallGroupName = aGroupName,
-                SectionName = aGroupName,
-                PrayItem = aPersonFormViewModel.Notes,
-                Sunday = false,
-                SmallGroup = false,
-                StateID1 = 2,
-                Number1 = 4,
-                StateID2 = 1,
-                Number2 = 2,
-                //Picture = "../../images/employees/01.png" //D:\暫存區\ASP.NET CORE 練習區\DevExtremeAspNetCoreApp1\DevExtremeAspNetCoreApp1\wwwroot\images\employees
-                Picture = "../../images/employees/01.png" //D:\暫存區\ASP.NET CORE 練習區\DevExtremeAspNetCoreApp1\DevExtremeAspNetCoreApp1\wwwroot\images\employees
-                                                          //Picture = "https://tpehoc.speechmessage.com.tw/image/download.aspx?attribute=entityimage&entity=contact&id=66cd8034-953f-e711-80d9-00155d00640b" //D:\暫存區\ASP.NET CORE 練習區\DevExtremeAspNetCoreApp1\DevExtremeAspNetCoreApp1\wwwroot\images\employees
+                Member aMember = new Member
+                {
+                    Id = m_HappyGroup.Members.Count,
+                    Group = aGroupName,
+                    FullName = aPersonFormViewModel.LastName,
+                    Phone = aPersonFormViewModel.Phone,
+                    HomePhone = aPersonFormViewModel.HomePhone,
+                    Industry = aPersonFormViewModel.Industry,
+                    //BirthDate = aPersonFormViewModel.BirthDate,
+                    Address = aPersonFormViewModel.Address,
+                    //Gender = aPersonFormViewModel.Gender,
+                    Status = "新朋友",
+                    SmallGroupName = aGroupName,
+                    SectionName = aGroupName,
+                    PrayItem = aPersonFormViewModel.Notes,
+                    Sunday = false,
+                    SmallGroup = false,
+                    StateID1 = 2,
+                    Number1 = 4,
+                    StateID2 = 1,
+                    Number2 = 2,
+                    //Picture = "../../images/employees/01.png" //D:\暫存區\ASP.NET CORE 練習區\DevExtremeAspNetCoreApp1\DevExtremeAspNetCoreApp1\wwwroot\images\employees
+                    Picture = "../../images/employees/01.png" //D:\暫存區\ASP.NET CORE 練習區\DevExtremeAspNetCoreApp1\DevExtremeAspNetCoreApp1\wwwroot\images\employees
+                                                              //Picture = "https://tpehoc.speechmessage.com.tw/image/download.aspx?attribute=entityimage&entity=contact&id=66cd8034-953f-e711-80d9-00155d00640b" //D:\暫存區\ASP.NET CORE 練習區\DevExtremeAspNetCoreApp1\DevExtremeAspNetCoreApp1\wwwroot\images\employees
 
-            };
+                };
 
-            //m_SmallGroupData.Members.Add(aMember);
-            m_NewPersonFollowUpData.Members.Add(aMember);
-            m_AllMemeberData.Members.Add(aMember);
+                //m_SmallGroupData.Members.Add(aMember);
+                m_HappyGroup.Members.Add(aMember);
+                m_AllMemeberData.Members.Add(aMember);
+            }
+            else
+            {
+                Member aMember = new Member
+                {
+                    Id = m_SmallGroupData.Members.Count,
+                    Group = aGroupName,
+                    FullName = aPersonFormViewModel.LastName,
+                    Phone = aPersonFormViewModel.Phone,
+                    HomePhone = aPersonFormViewModel.HomePhone,
+                    Industry = aPersonFormViewModel.Industry,
+                    //BirthDate = aPersonFormViewModel.BirthDate,
+                    Address = aPersonFormViewModel.Address,
+                    //Gender = aPersonFormViewModel.Gender,
+                    Status = "新朋友",
+                    SmallGroupName = aGroupName,
+                    SectionName = aGroupName,
+                    PrayItem = aPersonFormViewModel.Notes,
+                    Sunday = false,
+                    SmallGroup = false,
+                    StateID1 = 2,
+                    Number1 = 4,
+                    StateID2 = 1,
+                    Number2 = 2,
+                    //Picture = "../../images/employees/01.png" //D:\暫存區\ASP.NET CORE 練習區\DevExtremeAspNetCoreApp1\DevExtremeAspNetCoreApp1\wwwroot\images\employees
+                    Picture = "../../images/employees/01.png" //D:\暫存區\ASP.NET CORE 練習區\DevExtremeAspNetCoreApp1\DevExtremeAspNetCoreApp1\wwwroot\images\employees
+                                                              //Picture = "https://tpehoc.speechmessage.com.tw/image/download.aspx?attribute=entityimage&entity=contact&id=66cd8034-953f-e711-80d9-00155d00640b" //D:\暫存區\ASP.NET CORE 練習區\DevExtremeAspNetCoreApp1\DevExtremeAspNetCoreApp1\wwwroot\images\employees
+
+                };
+
+                //m_SmallGroupData.Members.Add(aMember);
+                m_NewPersonFollowUpData.Members.Add(aMember);
+                m_AllMemeberData.Members.Add(aMember);
+            }
         }
 
     }
