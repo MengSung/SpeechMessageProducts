@@ -2431,7 +2431,7 @@ namespace ChurchReport.WebServiceConnector
 
 
         // 委身類型客製化，委身類型客製化
-        //城市之光聖教會
+        //台中思恩堂
         private String ConvertIndexToIdentity(int Identity)
         {
             switch (Identity)
