@@ -5,7 +5,7 @@ Layout = null;
 }
 
 <head>
-    <meta name="viewport" content="width=device-width; initial-scale=0.2; user-scalable=1;">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="description" content="">
@@ -22,31 +22,47 @@ Layout = null;
     @*<link href="~/css/devextreme/dx.contrast.compact.css" rel="stylesheet" />*@
     @*<link href="~/css/devextreme/dx.dark.compact.css" rel="stylesheet" />*@
     @*<link href="~/css/devextreme/dx.darkmoon.compact.css" rel="stylesheet" />*@
-    @*<link href="~/css/devextreme/dx.light.compact.css" rel="stylesheet" />*@
-    @*<link href="~/css/devextreme/dx.greenmist.compact.css" rel="stylesheet" />*@
-    <link href="~/css/devextreme/dx.softblue.compact.css" rel="stylesheet" />
-    @*<link href="~/css/devextreme/dx.darkviolet.compact.css" rel="stylesheet" />*@
-    @*<link href="~/css/devextreme/dx.material.blue.light.css" rel="stylesheet" />*@
-    @*<link href="~/css/devextreme/dx.android5.light.css" rel="stylesheet" />*@
+    <link href="~/css/devextreme/dx.light.compact.css" rel="stylesheet" />
     @*<link href="~/css/devextreme/dx.greenmist.compact.css" rel="stylesheet" />*@
 
-    <script src="~/lib/jquery/dist/jquery.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.5/jszip.min.js"></script>
+
+    @*<script src="~/lib/jquery/dist/jquery.js"></script>*@
     <script src="~/lib/bootstrap/dist/js/bootstrap.js"></script>
 
+    @*<script src="~/js/devextreme/cldr.js"></script>
+        <script src="~/js/devextreme/cldr/event.js"></script>
+        <script src="~/js/devextreme/cldr/supplemental.js"></script>
+        <script src="~/js/devextreme/cldr/unresolved.js"></script>
+
+        <script src="~/js/devextreme/globalize.js"></script>
+        <script src="~/js/devextreme/globalize/message.js"></script>
+        <script src="~/js/devextreme/globalize/number.js"></script>
+        <script src="~/js/devextreme/globalize/currency.js"></script>
+        <script src="~/js/devextreme/globalize/date.js"></script>*@
+
+    @* JSZip for client side export *@
+    @*<script src="~/js/devextreme/jszip.js"></script>*@
+
+
+    @* 台灣中文化的檔案 *@
+    @*<script type="text/javascript" src="js/localization/dx.messages.de.js"></script>*@
+    @*<script src="~/js/devextreme/localization/dx.messages.zh-tw.js"></script>*@
+    @*<script src="~/js/devextreme/localization/dx.messages.en.js"></script>*@
+
+    @RenderSection("Localization", false)
 
     <script src="~/js/devextreme/dx.all.js"></script>
     <script src="~/js/devextreme/vectormap-data/world.js"></script>
     <script src="~/lib/devextreme-aspnet-data/js/dx.aspnet.data.js"></script>
     <script src="~/js/devextreme/aspnet/dx.aspnet.mvc.js"></script>
 
-    <script src="jquery.js"></script>
     <meta charset="utf-8" />
     <meta name="robots" content="noindex">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="~/lib/devextreme/css/dx.common.css" />
     <link rel="stylesheet" href="~/lib/devextreme/css/dx.spa.css" />
     <link rel="stylesheet" href="~/css/demo-template.css" />
-
-    @*<script src="~/lib/jquery/dist/jquery.js"></script>*@
 
     <script src="~/lib/devextreme/js/cldr.min.js"></script>
     <script src="~/lib/devextreme/js/cldr/event.min.js"></script>
@@ -68,7 +84,8 @@ Layout = null;
     <script src="~/lib/devextreme-aspnet-data/js/dx.aspnet.data.js"></script>
     <script src="~/lib/devextreme/js/aspnet/dx.aspnet.mvc.js"></script>
 
-    </script>
+
+
 </head>
 
 
