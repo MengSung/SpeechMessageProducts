@@ -3040,6 +3040,13 @@ namespace ChurchReport.Controllers
         {
             try
             {
+                ViewBag.LoginType = "小組長"; // 看是小組長還是個人回報
+                ViewBag.LoginFullName = "耶穌";
+                ViewBag.FeeType = "有繳費點名";
+                ViewBag.HappyType = "沒幸福小組名單";
+                ViewBag.MultiGroupIndex = "SingleMultiGroupView";
+                ViewBag.SchedulerView = "單純行事曆";
+
                 AppointmentsList aAppointmentsList = new AppointmentsList();
                 return View(aAppointmentsList);
             }

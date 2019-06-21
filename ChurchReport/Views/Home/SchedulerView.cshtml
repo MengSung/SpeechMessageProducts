@@ -1,105 +1,8 @@
-﻿<!DOCTYPE html>
-
-@{
-Layout = null;
-}
-
-<head>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="description" content="">
-    <meta name="author" content="">
-
-    <title>台中思恩堂</title>
-    <link href="~/favicon.ico" rel="shortcut icon" type="image/x-icon" />
-
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.css" />
-    <link rel="stylesheet" href="~/css/site.css" />
-    <link href="~/css/devextreme/dx.common.css" rel="stylesheet" />
-    @*<link href="~/css/devextreme/dx.light.css" rel="stylesheet" />*@
-    @*<link href="~/css/devextreme/dx.carmine.compact.css" rel="stylesheet" />*@
-    @*<link href="~/css/devextreme/dx.contrast.compact.css" rel="stylesheet" />*@
-    @*<link href="~/css/devextreme/dx.dark.compact.css" rel="stylesheet" />*@
-    @*<link href="~/css/devextreme/dx.darkmoon.compact.css" rel="stylesheet" />*@
-    <link href="~/css/devextreme/dx.light.compact.css" rel="stylesheet" />
-    @*<link href="~/css/devextreme/dx.greenmist.compact.css" rel="stylesheet" />*@
-
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.5/jszip.min.js"></script>
-
-    @*<script src="~/lib/jquery/dist/jquery.js"></script>*@
-    <script src="~/lib/bootstrap/dist/js/bootstrap.js"></script>
-
-    @*<script src="~/js/devextreme/cldr.js"></script>
-        <script src="~/js/devextreme/cldr/event.js"></script>
-        <script src="~/js/devextreme/cldr/supplemental.js"></script>
-        <script src="~/js/devextreme/cldr/unresolved.js"></script>
-
-        <script src="~/js/devextreme/globalize.js"></script>
-        <script src="~/js/devextreme/globalize/message.js"></script>
-        <script src="~/js/devextreme/globalize/number.js"></script>
-        <script src="~/js/devextreme/globalize/currency.js"></script>
-        <script src="~/js/devextreme/globalize/date.js"></script>*@
-
-    @* JSZip for client side export *@
-    @*<script src="~/js/devextreme/jszip.js"></script>*@
-
-
-    @* 台灣中文化的檔案 *@
-    @*<script type="text/javascript" src="js/localization/dx.messages.de.js"></script>*@
-    @*<script src="~/js/devextreme/localization/dx.messages.zh-tw.js"></script>*@
-    @*<script src="~/js/devextreme/localization/dx.messages.en.js"></script>*@
-
-    @RenderSection("Localization", false)
-
-    <script src="~/js/devextreme/dx.all.js"></script>
-    <script src="~/js/devextreme/vectormap-data/world.js"></script>
-    <script src="~/lib/devextreme-aspnet-data/js/dx.aspnet.data.js"></script>
-    <script src="~/js/devextreme/aspnet/dx.aspnet.mvc.js"></script>
-
-    <meta charset="utf-8" />
-    <meta name="robots" content="noindex">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="~/lib/devextreme/css/dx.common.css" />
-    <link rel="stylesheet" href="~/lib/devextreme/css/dx.spa.css" />
-    <link rel="stylesheet" href="~/css/demo-template.css" />
-
-    <script src="~/lib/devextreme/js/cldr.min.js"></script>
-    <script src="~/lib/devextreme/js/cldr/event.min.js"></script>
-    <script src="~/lib/devextreme/js/cldr/supplemental.min.js"></script>
-    <script src="~/lib/devextreme/js/cldr/unresolved.min.js"></script>
-
-    <script src="~/lib/devextreme/js/globalize.min.js"></script>
-    <script src="~/lib/devextreme/js/globalize/number.min.js"></script>
-    <script src="~/lib/devextreme/js/globalize/currency.min.js"></script>
-    <script src="~/lib/devextreme/js/globalize/date.min.js"></script>
-    <script src="~/lib/devextreme/js/globalize/message.min.js"></script>
-
-    <script src="~/lib/jszip/dist/jszip.js"></script>
-
-    <script src="~/lib/devextreme/js/dx.all.js"></script>
-    <script src="~/lib/devextreme/js/vectormap-data/world.js"></script>
-    <script src="~/lib/devextreme/js/vectormap-data/usa.js"></script>
-
-    <script src="~/lib/devextreme-aspnet-data/js/dx.aspnet.data.js"></script>
-    <script src="~/lib/devextreme/js/aspnet/dx.aspnet.mvc.js"></script>
-
-
-
-</head>
-
+﻿@model ChurchReport.Models.AppointmentsList
 
 <br />
 <br />
-<br />
-<br />
 
-<div style="font-family:標楷體;font-size:100%; color:cadetblue; text-align:left;background-color:powderblue;font-weight:bold">
-    <h4>音訊科技</h4>
-</div>
-
-
-@model ChurchReport.Models.AppointmentsList
 @*<div id="the_wholething" style="width:600px;height:800px;overflow:auto;">*@
 <div id="the_wholething" style="width:auto;height:auto;overflow:auto;">
     <div class="demo-container">
@@ -352,11 +255,6 @@ new { id = 4, text = "Sandra Johnson", color = "#ff9747" }
 </script>
 
 <script>
-
-
-
-
-
     var dictionary = {
         "zh-tw": {
             "dxScheduler-switcherAgenda": "會議內容", // 在這裡可以做最後的字典對應
