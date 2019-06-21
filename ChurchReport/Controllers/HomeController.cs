@@ -2383,6 +2383,40 @@ namespace ChurchReport.Controllers
                 throw e;
             }
         }
+        public ActionResult SchedulerView()
+        {
+            try
+            {
+                ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType; // 看是小組長還是個人回報
+                ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.ListManager.LoginFullName;
+                ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType;
+                if (m_InMemoryDataContextSmallGroup.HappyGroupDataManager.HappyType == "有幸福小組名單")
+                {
+                    ViewBag.HappyType = "有幸福小組名單";
+                }
+                else
+                {
+                    ViewBag.HappyType = "沒幸福小組名單";
+                }
+                SetMultiGroupLayoutParameter();
+
+                AppointmentsList aAppointmentsList = new AppointmentsList();
+                return View(aAppointmentsList);
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂 : 綁定錯誤 => " + ErrorString);
+
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
+                throw e;
+            }
+        }
         [HttpGet]
         public object LoadAppointments(DataSourceLoadOptions loadOptions)
         {
