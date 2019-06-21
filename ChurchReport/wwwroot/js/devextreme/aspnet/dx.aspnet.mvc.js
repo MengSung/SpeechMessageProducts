@@ -1,7 +1,7 @@
 /*!
 * DevExtreme (dx.aspnet.mvc.js)
-* Version: 19.1.3
-* Build date: Tue May 14 2019
+* Version: 19.1.4
+* Build date: Mon Jun 17 2019
 *
 * Copyright (c) 2012 - 2019 Developer Express Inc. ALL RIGHTS RESERVED
 * Read about DevExtreme licensing here: https://js.devexpress.com/Licensing/
@@ -65,7 +65,12 @@
                 return templateCompiler(extractTemplateMarkup(element))
             },
             render: function(template, data) {
-                return template(data, encodeHtml)
+                var html = template(data, encodeHtml);
+                var dxMvcExtensionsObj = window.MVCx;
+                if (dxMvcExtensionsObj && !dxMvcExtensionsObj.isDXScriptInitializedOnLoad) {
+                    html = html.replace(/(<script[^>]+)id="dxss_.+?"/g, "$1")
+                }
+                return html
             }
         }
     }

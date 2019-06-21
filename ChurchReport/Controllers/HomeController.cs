@@ -2383,77 +2383,77 @@ namespace ChurchReport.Controllers
                 throw e;
             }
         }
-        public ActionResult SchedulerView()
-        {
-            try
-            {
-                ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType; // 看是小組長還是個人回報
-                ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.ListManager.LoginFullName;
-                ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType;
-                if (m_InMemoryDataContextSmallGroup.HappyGroupDataManager.HappyType == "有幸福小組名單")
-                {
-                    ViewBag.HappyType = "有幸福小組名單";
-                }
-                else
-                {
-                    ViewBag.HappyType = "沒幸福小組名單";
-                }
-                SetMultiGroupLayoutParameter();
+        //public ActionResult SchedulerView()
+        //{
+        //    try
+        //    {
+        //        ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType; // 看是小組長還是個人回報
+        //        ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.ListManager.LoginFullName;
+        //        ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType;
+        //        if (m_InMemoryDataContextSmallGroup.HappyGroupDataManager.HappyType == "有幸福小組名單")
+        //        {
+        //            ViewBag.HappyType = "有幸福小組名單";
+        //        }
+        //        else
+        //        {
+        //            ViewBag.HappyType = "沒幸福小組名單";
+        //        }
+        //        SetMultiGroupLayoutParameter();
 
-                AppointmentsList aAppointmentsList = new AppointmentsList();
-                return View(aAppointmentsList);
-            }
-            catch (System.Exception e)
-            {
-                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+        //        AppointmentsList aAppointmentsList = new AppointmentsList();
+        //        return View(aAppointmentsList);
+        //    }
+        //    catch (System.Exception e)
+        //    {
+        //        string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+        //        m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
 
-                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+        //        LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂 : 綁定錯誤 => " + ErrorString);
+        //        aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂 : 綁定錯誤 => " + ErrorString);
 
-                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+        //        return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
-                throw e;
-            }
-        }
-        [HttpGet]
-        public object LoadAppointments(DataSourceLoadOptions loadOptions)
-        {
-            AppointmentsList aAppointmentsList = new AppointmentsList();
+        //        throw e;
+        //    }
+        //}
+        //[HttpGet]
+        //public object LoadAppointments(DataSourceLoadOptions loadOptions)
+        //{
+        //    AppointmentsList aAppointmentsList = new AppointmentsList();
 
-            return DataSourceLoader.Load(aAppointmentsList.Appointments, loadOptions);
-        }
+        //    return DataSourceLoader.Load(aAppointmentsList.Appointments, loadOptions);
+        //}
 
-        [HttpPost]
-        public IActionResult PostAppointments(string values)
-        {
-            var newAppointment = new Appointment();
-            JsonConvert.PopulateObject(values, newAppointment);
+        //[HttpPost]
+        //public IActionResult PostAppointments(string values)
+        //{
+        //    var newAppointment = new Appointment();
+        //    JsonConvert.PopulateObject(values, newAppointment);
 
 
-            return Ok();
-        }
+        //    return Ok();
+        //}
 
-        [HttpPut]
-        public IActionResult PutAppointments(int key, string values)
-        {
-            AppointmentsList aAppointmentsList = new AppointmentsList();
-            var appointment = aAppointmentsList.Appointments.First(a => a.AppointmentId == key);
-            JsonConvert.PopulateObject(values, appointment);
+        //[HttpPut]
+        //public IActionResult PutAppointments(int key, string values)
+        //{
+        //    AppointmentsList aAppointmentsList = new AppointmentsList();
+        //    var appointment = aAppointmentsList.Appointments.First(a => a.AppointmentId == key);
+        //    JsonConvert.PopulateObject(values, appointment);
 
-            return Ok();
-        }
+        //    return Ok();
+        //}
 
-        [HttpDelete]
-        public void DeleteAppointments(int key)
-        {
-            AppointmentsList aAppointmentsList = new AppointmentsList();
+        //[HttpDelete]
+        //public void DeleteAppointments(int key)
+        //{
+        //    AppointmentsList aAppointmentsList = new AppointmentsList();
 
-            var appointment = aAppointmentsList.Appointments.First(a => a.AppointmentId == key);
-            aAppointmentsList.Appointments.Remove(appointment);
-            //_data.SaveChanges();
-        }
+        //    var appointment = aAppointmentsList.Appointments.First(a => a.AppointmentId == key);
+        //    aAppointmentsList.Appointments.Remove(appointment);
+        //    //_data.SaveChanges();
+        //}
         #endregion
         #region 新增新人
         public IActionResult NewPerson()
@@ -3034,5 +3034,63 @@ namespace ChurchReport.Controllers
         }
 
         #endregion
+
+        #region Line Tiff 行事曆
+        public ActionResult SchedulerView()
+        {
+            try
+            {
+                AppointmentsList aAppointmentsList = new AppointmentsList();
+                return View(aAppointmentsList);
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
+
+                throw e;
+            }
+        }
+        [HttpGet]
+        public object LoadAppointments(DataSourceLoadOptions loadOptions)
+        {
+            AppointmentsList aAppointmentsList = new AppointmentsList();
+
+            return DataSourceLoader.Load(aAppointmentsList.Appointments, loadOptions);
+        }
+
+        [HttpPost]
+        public IActionResult PostAppointments(string values)
+        {
+            var newAppointment = new Appointment();
+            JsonConvert.PopulateObject(values, newAppointment);
+            return Ok();
+        }
+
+        [HttpPut]
+        public IActionResult PutAppointments(int key, string values)
+        {
+            AppointmentsList aAppointmentsList = new AppointmentsList();
+            var appointment = aAppointmentsList.Appointments.First(a => a.AppointmentId == key);
+            JsonConvert.PopulateObject(values, appointment);
+
+            return Ok();
+        }
+
+        [HttpDelete]
+        public void DeleteAppointments(int key)
+        {
+            AppointmentsList aAppointmentsList = new AppointmentsList();
+
+            var appointment = aAppointmentsList.Appointments.First(a => a.AppointmentId == key);
+            aAppointmentsList.Appointments.Remove(appointment);
+            //_data.SaveChanges();
+        }
+        #endregion
+
     }
 }

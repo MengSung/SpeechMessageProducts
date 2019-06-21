@@ -1,0 +1,383 @@
+﻿<!DOCTYPE html>
+
+@{
+Layout = null;
+}
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width; initial-scale=0.2; user-scalable=1;">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>台中思恩堂</title>
+    <link href="~/favicon.ico" rel="shortcut icon" type="image/x-icon" />
+
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.css" />
+    <link rel="stylesheet" href="~/css/site.css" />
+    <link href="~/css/devextreme/dx.common.css" rel="stylesheet" />
+    @*<link href="~/css/devextreme/dx.light.css" rel="stylesheet" />*@
+    @*<link href="~/css/devextreme/dx.carmine.compact.css" rel="stylesheet" />*@
+    @*<link href="~/css/devextreme/dx.contrast.compact.css" rel="stylesheet" />*@
+    @*<link href="~/css/devextreme/dx.dark.compact.css" rel="stylesheet" />*@
+    @*<link href="~/css/devextreme/dx.darkmoon.compact.css" rel="stylesheet" />*@
+    @*<link href="~/css/devextreme/dx.light.compact.css" rel="stylesheet" />*@
+    @*<link href="~/css/devextreme/dx.greenmist.compact.css" rel="stylesheet" />*@
+    <link href="~/css/devextreme/dx.softblue.compact.css" rel="stylesheet" />
+    @*<link href="~/css/devextreme/dx.darkviolet.compact.css" rel="stylesheet" />*@
+    @*<link href="~/css/devextreme/dx.material.blue.light.css" rel="stylesheet" />*@
+    @*<link href="~/css/devextreme/dx.android5.light.css" rel="stylesheet" />*@
+    @*<link href="~/css/devextreme/dx.greenmist.compact.css" rel="stylesheet" />*@
+
+    <script src="~/lib/jquery/dist/jquery.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.js"></script>
+
+
+    <script src="~/js/devextreme/dx.all.js"></script>
+    <script src="~/js/devextreme/vectormap-data/world.js"></script>
+    <script src="~/lib/devextreme-aspnet-data/js/dx.aspnet.data.js"></script>
+    <script src="~/js/devextreme/aspnet/dx.aspnet.mvc.js"></script>
+
+    <script src="jquery.js"></script>
+    <script>
+
+
+        <meta charset="utf-8" />
+            <meta name="robots" content="noindex">
+                <link rel="stylesheet" href="~/lib/devextreme/css/dx.common.css" />
+                <link rel="stylesheet" href="~/lib/devextreme/css/dx.spa.css" />
+                <link rel="stylesheet" href="~/css/demo-template.css" />
+
+                <script src="~/lib/jquery/dist/jquery.js"></script>
+
+    <script src="~/lib/devextreme/js/cldr.min.js"></script>
+    <script src="~/lib/devextreme/js/cldr/event.min.js"></script>
+    <script src="~/lib/devextreme/js/cldr/supplemental.min.js"></script>
+    <script src="~/lib/devextreme/js/cldr/unresolved.min.js"></script>
+
+    <script src="~/lib/devextreme/js/globalize.min.js"></script>
+    <script src="~/lib/devextreme/js/globalize/number.min.js"></script>
+    <script src="~/lib/devextreme/js/globalize/currency.min.js"></script>
+    <script src="~/lib/devextreme/js/globalize/date.min.js"></script>
+    <script src="~/lib/devextreme/js/globalize/message.min.js"></script>
+
+    <script src="~/lib/jszip/dist/jszip.js"></script>
+
+    <script src="~/lib/devextreme/js/dx.all.js"></script>
+    <script src="~/lib/devextreme/js/vectormap-data/world.js"></script>
+    <script src="~/lib/devextreme/js/vectormap-data/usa.js"></script>
+
+    <script src="~/lib/devextreme-aspnet-data/js/dx.aspnet.data.js"></script>
+    <script src="~/lib/devextreme/js/aspnet/dx.aspnet.mvc.js"></script>
+
+    </script>
+</head>
+
+
+<br />
+<br />
+<br />
+<br />
+
+<body>
+
+    @model ChurchReport.Models.AppointmentsList
+    @*<div id="the_wholething" style="width:600px;height:800px;overflow:auto;">*@
+    <div id="the_wholething" style="width:auto;height:auto;overflow:auto;">
+        <div class="demo-container">
+            @(Html.DevExtreme().Scheduler()
+            .ID("scheduler")
+            .AdaptivityEnabled(true)
+            //.DataSource(Model.Appointments)
+            .DataSource(d => d.WebApi()
+            .Controller("Home")
+            .Key("AppointmentId")
+            .LoadAction("LoadAppointments")
+            .InsertAction("PostAppointments")
+            .UpdateAction("PutAppointments")
+            .DeleteAction("DeleteAppointments")
+            )
+            .Views(new SchedulerViewType[] {
+            SchedulerViewType.Week,
+            SchedulerViewType.Month,
+            SchedulerViewType.Day,
+            SchedulerViewType.Agenda
+            })
+            .Editing(E => E.AllowAdding(true).AllowDeleting(true).AllowDragging(true).AllowResizing(true).AllowUpdating(true))
+            .FirstDayOfWeek(FirstDayOfWeek.Monday)
+            .CurrentView(SchedulerViewType.Month)
+            .CurrentDate(new DateTime(2015, 5, 25))
+            .TextExpr("Text")
+            .StartDayHour(8)
+            .EndDayHour(19)
+            .CrossScrollingEnabled(true)
+            .StartDateExpr("StartDate")
+            .EndDateExpr("EndDate")
+            .AllDayExpr("AllDay")
+            .OnCellClick(@<text>
+                    function(e) {
+                    //alert("加入幸福BEST中...");
+
+                    //e.cancel = false;
+                    //var appointmentData = e.component.__currentTarget.dxItemData,
+                    //targetedAppointmentData = e.component.__currentTarget.__targetedAppointmentData;
+                    //$("#scheduler").dxScheduler("instance").option("currentDate", e.cellData.startDate);
+                    //$("#scheduler").dxScheduler("instance").option("currentDate", e.cellData.startDate);
+                    //alert("加入幸福BEST中..." +e.cellData.startDate);
+                    //$("#scheduler").dxScheduler("instance").showAppointmentPopup(appointmentData, false, targetedAppointmentData);
+
+                    debugger;
+                    var appointmentData = {
+                    Text: "Test",
+                    StartDate: e.cellData.startDate,
+                    EndDate: e.cellData.endDate,
+                    };
+
+                    //$("#scheduler").dxScheduler("instance").addAppointment(appointmentData);
+                    $("#scheduler").dxScheduler("instance").showAppointmentPopup(appointmentData,true);
+                    //var aScheduler = $("#scheduler").dxDataGrid("instance");
+                    }
+            </text>)
+
+.Height(600)
+//.Height("100%")
+//.Width("100%")
+.Width("auto")
+//.Width(200)
+.Resources(res =>
+{
+res.Add()
+.FieldExpr("OwnerId")
+.AllowMultiple(true)
+.Label("負責人")
+.DataSource(new object[] {
+new { id = 1, text = "Samantha Bright", color = "#cb6bb2" },
+new { id = 2, text = "John Heart", color = "#56ca85" },
+new { id = 3, text = "Todd Hoffman", color = "#1e90ff" },
+new { id = 4, text = "Sandra Johnson", color = "#ff9747" }
+});
+})
+
+            )
+
+            @*@(Html.DevExtreme().Scheduler()
+                .ID("scheduler")
+                //.DataSource(d => d.WebApi().Controller("Temp").LoadAction("Get"))
+                //.DataSource(d => d.WebApi().Controller("SchedulerData").Key("AppointmentId"))
+                //.DataSource(d => d.WebApi().Controller("AssignSmallGroup").LoadAction("GetType").Key("ID"))
+                .DataSource(Model.Appointments)
+
+                .Views(new SchedulerViewType[] {
+                SchedulerViewType.Agenda,
+                SchedulerViewType.Month,
+                SchedulerViewType.Week,
+                SchedulerViewType.WorkWeek,
+                SchedulerViewType.Day
+                })
+                .CurrentView(SchedulerViewType.WorkWeek)
+                .CurrentDate(new DateTime(2015, 5, 25))
+                .UseDropDownViewSwitcher(false)
+                .FirstDayOfWeek(FirstDayOfWeek.Monday)
+                .StartDayHour(8)
+                .EndDayHour(19)
+                .Width("100%")
+                .Height(600)
+                .TextExpr("Text")
+                .StartDateExpr("StartDate")
+                .EndDateExpr("EndDate")
+                //.AllDayExpr("AllDay")
+                //.RecurrenceRuleExpr("RecurrenceRule")
+                //.DescriptionExpr("Description")
+                .Resources(res =>
+                {
+                res.Add()
+                .FieldExpr("OwnerId")
+                .AllowMultiple(true)
+                .Label("負責人")
+                .DataSource(new object[] {
+                new { id = 1, text = "Samantha Bright", color = "#cb6bb2" },
+                new { id = 2, text = "John Heart", color = "#56ca85" },
+                new { id = 3, text = "Todd Hoffman", color = "#1e90ff" },
+                new { id = 4, text = "Sandra Johnson", color = "#ff9747" }
+                });
+                })
+                )*@
+
+
+            @*@(Html.DevExtreme().Scheduler()
+                .ID("scheduler")
+                //.DataSource(d => d.WebApi().Controller("Temp").LoadAction("Get"))
+                //.DataSource(d => d.WebApi().Controller("SchedulerData").Key("AppointmentId"))
+                //.DataSource(d => d.WebApi().Controller("AssignSmallGroup").LoadAction("GetType").Key("ID"))
+                .DataSource(Model.Appointments)
+
+                .Views(new SchedulerViewType[] {
+                SchedulerViewType.Agenda,
+                SchedulerViewType.Month,
+                SchedulerViewType.Week,
+                SchedulerViewType.WorkWeek,
+                SchedulerViewType.Day
+                })
+                .CurrentView(SchedulerViewType.WorkWeek)
+                .CurrentDate(new DateTime(2015, 5, 25))
+                .UseDropDownViewSwitcher(false)
+                .FirstDayOfWeek(FirstDayOfWeek.Monday)
+                .StartDayHour(8)
+                .EndDayHour(19)
+                .Width("100%")
+                .Height(600)
+                .TextExpr("Text")
+                .StartDateExpr("StartDate")
+                .EndDateExpr("EndDate")
+                .AllDayExpr("AllDay")
+                .RecurrenceRuleExpr("RecurrenceRule")
+                .DescriptionExpr("Description")
+                .Resources(res =>
+                {
+                res.Add()
+                .FieldExpr("OwnerId")
+                .AllowMultiple(true)
+                .Label("負責人")
+                .DataSource(new object[] {
+                new { id = 1, text = "Samantha Bright", color = "#cb6bb2" },
+                new { id = 2, text = "John Heart", color = "#56ca85" },
+                new { id = 3, text = "Todd Hoffman", color = "#1e90ff" },
+                new { id = 4, text = "Sandra Johnson", color = "#ff9747" }
+                });
+                })
+                )*@
+
+            @*<div class="options">
+                <div class="caption">Options</div>
+                <div class="option switcher-mode">
+                <span>View Switcher Mode</span>
+                @(Html.DevExtreme().SelectBox()
+                .DataSource(new string[] { "Tabs", "Drop-Down Menu" })
+                .Width(200)
+                .Value("Tabs")
+                .OnValueChanged(@<text>
+                function(data) {
+                getSchedulerInstance().option("useDropDownViewSwitcher", data.value === "Drop-Down Menu");
+                }
+                </text>)
+                )
+                </div>
+                <div class="option">
+                @(Html.DevExtreme().CheckBox()
+                .Text("Allow adding")
+                .Value(true)
+                .OnValueChanged(@<text>
+                function(data) {
+                getSchedulerInstance().option("editing.allowAdding", data.value);
+                }
+                </text>)
+                )
+                </div>
+                <div class="option">
+                @(Html.DevExtreme().CheckBox()
+                .Text("Allow updating")
+                .Value(true)
+                .OnValueChanged(@<text>
+                function(data) {
+                var value = data.value;
+                getSchedulerInstance().option("editing.allowUpdating", value);
+                $("#allow-resizing").dxCheckBox("instance").option("disabled", !value);
+                $("#allow-dragging").dxCheckBox("instance").option("disabled", !value);
+                }
+                </text>)
+                )
+                </div>
+                <div class="option">
+                @(Html.DevExtreme().CheckBox()
+                .Text("Allow deleting")
+                .Value(true)
+                .OnValueChanged(@<text>
+                function(data) {
+                getSchedulerInstance().option("editing.allowDeleting", data.value);
+                }
+                </text>)
+                )
+                </div>
+                <div class="option">
+                @(Html.DevExtreme().CheckBox()
+                .ID("allow-resizing")
+                .Text("Allow resizing")
+                .Value(true)
+                .OnValueChanged(@<text>
+                function(data) {
+                getSchedulerInstance().option("editing.allowResizing", data.value);
+                }
+                </text>)
+                )
+                </div>
+                <div class="option">
+                @(Html.DevExtreme().CheckBox()
+                .ID("allow-dragging")
+                .Text("Allow dragging")
+                .Value(true)
+                .OnValueChanged(@<text>
+                function(data) {
+                getSchedulerInstance().option("editing.allowDragging", data.value);
+                }
+                </text>)
+                )
+                </div>
+                </div>*@
+
+        </div>
+    </div>
+
+    <script>
+        function getSchedulerInstance() {
+return $("#scheduler").dxScheduler("instance");
+                        }
+    </script>
+
+    <script>
+
+
+
+
+
+var dictionary = {
+            "zh-tw": {
+            "dxScheduler-switcherAgenda": "會議內容", // 在這裡可以做最後的字典對應
+"Month": "月",
+"Subject": "主題",
+"Company": "Company",
+"Amount": "Amount",
+"PaymentDate": "Payment Date"
+},
+};
+DevExpress.localization.loadMessages(dictionary);
+var formatMessage = DevExpress.localization.formatMessage;
+
+var locale = getLocale();
+//DevExpress.localization.locale(navigator.language || navigator.browserLanguage);
+DevExpress.localization.locale(locale);
+
+function changeLocale(data) {
+            setLocale(data.value);
+        document.location.reload();
+    }
+
+function getLocale() {
+            //debugger;
+            //sessionStorage.setItem("locale", 'zh');
+            sessionStorage.setItem("locale", 'zh-tw');
+        var locale = sessionStorage.getItem("locale");
+        return locale != null ? locale : "tw";
+    }
+    </script>
+
+    <link href="~/css/Scheduler.css" rel="stylesheet" />
+    <link href="~/css/Site.css" rel="stylesheet" />
+
+    <script src="~/js/devextreme/devextreme-intl.min.js"></script>
+    <script src="~/js/devextreme/localization/dx.messages.zh-tw.js"></script>
+
+</body>
+
+</html>

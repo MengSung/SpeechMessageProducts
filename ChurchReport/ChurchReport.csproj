@@ -26,6 +26,7 @@
     <None Remove="Views\Home\PersonalReport - 尚未以群組方式顯示.cshtml" />
     <None Remove="Views\Home\PersonalReport.cshtml" />
     <None Remove="Views\Home\QualificationView.cshtml" />
+    <None Remove="Views\Home\SchedulerView.cshtml" />
     <None Remove="wwwroot\css\MasterDetail.css" />
     <None Remove="wwwroot\css\Site - 複製.css" />
     <None Remove="wwwroot\js\devextreme\devextreme-intl.min.js" />
@@ -58,7 +59,7 @@
     <PackageReference Include="Microsoft.CrmSdk.CoreAssemblies" Version="8.2.0.2" />
     <PackageReference Include="Microsoft.VisualStudio.Web.BrowserLink.Loader" Version="14.0.0" />
     <PackageReference Include="DevExtreme.AspNet.Data" Version="2.2.1" />
-    <PackageReference Include="DevExtreme.AspNet.Core" Version="19.1.3" />
+    <PackageReference Include="DevExtreme.AspNet.Core" Version="19.1.4" />
   </ItemGroup>
   <ItemGroup>
     <DotNetCliToolReference Include="BundlerMinifier.Core">

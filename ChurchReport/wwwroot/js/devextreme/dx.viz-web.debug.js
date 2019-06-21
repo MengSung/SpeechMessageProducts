@@ -1,7 +1,7 @@
 /*!
  * DevExtreme (dx.viz-web.debug.js)
- * Version: 19.1.3
- * Build date: Tue May 14 2019
+ * Version: 19.1.4
+ * Build date: Mon Jun 17 2019
  *
  * Copyright (c) 2012 - 2019 Developer Express Inc. ALL RIGHTS RESERVED
  * Read about DevExtreme licensing here: https://js.devexpress.com/Licensing/
@@ -47,7 +47,7 @@
         return Object.prototype.hasOwnProperty.call(object, property)
     };
     __webpack_require__.p = "";
-    return __webpack_require__(__webpack_require__.s = 855)
+    return __webpack_require__(__webpack_require__.s = 856)
 }([
     /*!***************************************************!*\
       !*** ./artifacts/transpiled/core/utils/extend.js ***!
@@ -86,7 +86,7 @@
                     var clone, targetValue = target[key],
                         sourceValue = source[key],
                         sourceValueIsArray = false;
-                    if (target === sourceValue) {
+                    if ("__proto__" === key || target === sourceValue) {
                         continue
                     }
                     if (deep && sourceValue && (isPlainObject(sourceValue) || (sourceValueIsArray = Array.isArray(sourceValue)))) {
@@ -207,7 +207,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var rendererBase = __webpack_require__( /*! ./renderer_base */ 247);
+        var rendererBase = __webpack_require__( /*! ./renderer_base */ 248);
         module.exports = rendererBase.get()
     },
     /*!*****************************************************!*\
@@ -571,7 +571,7 @@
         } : function(obj) {
             return obj && "function" === typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj
         };
-        var registerEventCallbacks = __webpack_require__( /*! ./event_registrator_callbacks */ 123);
+        var registerEventCallbacks = __webpack_require__( /*! ./event_registrator_callbacks */ 121);
         var extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend;
         var domAdapter = __webpack_require__( /*! ../../core/dom_adapter */ 13);
         var windowUtils = __webpack_require__( /*! ../../core/utils/window */ 7);
@@ -583,8 +583,8 @@
         var isFunction = typeUtils.isFunction;
         var isString = typeUtils.isString;
         var errors = __webpack_require__( /*! ../../core/errors */ 21);
-        var WeakMap = __webpack_require__( /*! ../../core/polyfills/weak_map */ 174);
-        var hookTouchProps = __webpack_require__( /*! ../../events/core/hook_touch_props */ 248);
+        var WeakMap = __webpack_require__( /*! ../../core/polyfills/weak_map */ 175);
+        var hookTouchProps = __webpack_require__( /*! ../../events/core/hook_touch_props */ 249);
         var EMPTY_EVENT_NAME = "dxEmptyEventType";
         var NATIVE_EVENTS_TO_SUBSCRIBE = {
             mouseenter: "mouseover",
@@ -1291,9 +1291,9 @@
     /*! all exports used */
     function(module, exports, __webpack_require__) {
         var $ = __webpack_require__( /*! ./renderer */ 2);
-        var callbacks = __webpack_require__( /*! ./component_registrator_callbacks */ 152);
+        var callbacks = __webpack_require__( /*! ./component_registrator_callbacks */ 153);
         var errors = __webpack_require__( /*! ./errors */ 21);
-        var publicComponentUtils = __webpack_require__( /*! ./utils/public_component */ 129);
+        var publicComponentUtils = __webpack_require__( /*! ./utils/public_component */ 128);
         var registerComponent = function(name, namespace, componentClass) {
             if (!componentClass) {
                 componentClass = namespace
@@ -2052,125 +2052,6 @@
         exports.rotateBBox = rotateBBox;
         exports.normalizeBBox = normalizeBBox
     },
-    /*!**************************************************!*\
-      !*** ./artifacts/transpiled/core/utils/array.js ***!
-      \**************************************************/
-    /*! dynamic exports provided */
-    /*! all exports used */
-    function(module, exports, __webpack_require__) {
-        var isDefined = __webpack_require__( /*! ./type */ 1).isDefined,
-            each = __webpack_require__( /*! ./iterator */ 3).each,
-            objectUtils = __webpack_require__( /*! ./object */ 47),
-            config = __webpack_require__( /*! ../config */ 29);
-        var isEmpty = function(entity) {
-            return Array.isArray(entity) && !entity.length
-        };
-        var wrapToArray = function(entity) {
-            return Array.isArray(entity) ? entity : [entity]
-        };
-        var intersection = function(a, b) {
-            if (!Array.isArray(a) || 0 === a.length || !Array.isArray(b) || 0 === b.length) {
-                return []
-            }
-            var result = [];
-            each(a, function(_, value) {
-                var index = inArray(value, b);
-                if (index !== -1) {
-                    result.push(value)
-                }
-            });
-            return result
-        };
-        var removeDuplicates = function(from, what) {
-            if (!Array.isArray(from) || 0 === from.length) {
-                return []
-            }
-            if (!Array.isArray(what) || 0 === what.length) {
-                return from.slice()
-            }
-            var result = [];
-            each(from, function(_, value) {
-                var index = inArray(value, what);
-                if (index === -1) {
-                    result.push(value)
-                }
-            });
-            return result
-        };
-        var normalizeIndexes = function(items, indexParameterName, currentItem, needIndexCallback) {
-            var indexedItems = {},
-                parameterIndex = 0,
-                useLegacyVisibleIndex = config().useLegacyVisibleIndex;
-            each(items, function(index, item) {
-                index = item[indexParameterName];
-                if (index >= 0) {
-                    indexedItems[index] = indexedItems[index] || [];
-                    if (item === currentItem) {
-                        indexedItems[index].unshift(item)
-                    } else {
-                        indexedItems[index].push(item)
-                    }
-                } else {
-                    item[indexParameterName] = void 0
-                }
-            });
-            if (!useLegacyVisibleIndex) {
-                each(items, function() {
-                    if (!isDefined(this[indexParameterName]) && (!needIndexCallback || needIndexCallback(this))) {
-                        while (indexedItems[parameterIndex]) {
-                            parameterIndex++
-                        }
-                        indexedItems[parameterIndex] = [this];
-                        parameterIndex++
-                    }
-                })
-            }
-            parameterIndex = 0;
-            objectUtils.orderEach(indexedItems, function(index, items) {
-                each(items, function() {
-                    if (index >= 0) {
-                        this[indexParameterName] = parameterIndex++
-                    }
-                })
-            });
-            if (useLegacyVisibleIndex) {
-                each(items, function() {
-                    if (!isDefined(this[indexParameterName]) && (!needIndexCallback || needIndexCallback(this))) {
-                        this[indexParameterName] = parameterIndex++
-                    }
-                })
-            }
-            return parameterIndex
-        };
-        var inArray = function(value, object) {
-            if (!object) {
-                return -1
-            }
-            var array = Array.isArray(object) ? object : object.toArray();
-            return array.indexOf(value)
-        };
-        var merge = function(array1, array2) {
-            for (var i = 0; i < array2.length; i++) {
-                array1[array1.length] = array2[i]
-            }
-            return array1
-        };
-        var find = function(array, condition) {
-            for (var i = 0; i < array.length; i++) {
-                if (condition(array[i])) {
-                    return array[i]
-                }
-            }
-        };
-        exports.isEmpty = isEmpty;
-        exports.wrapToArray = wrapToArray;
-        exports.intersection = intersection;
-        exports.removeDuplicates = removeDuplicates;
-        exports.normalizeIndexes = normalizeIndexes;
-        exports.inArray = inArray;
-        exports.merge = merge;
-        exports.find = find
-    },
     /*!************************************************!*\
       !*** ./artifacts/transpiled/core/utils/dom.js ***!
       \************************************************/
@@ -2183,11 +2064,11 @@
             windowUtils = __webpack_require__( /*! ./window */ 7),
             window = windowUtils.getWindow(),
             eventsEngine = __webpack_require__( /*! ../../events/core/events_engine */ 5),
-            inArray = __webpack_require__( /*! ./array */ 11).inArray,
+            inArray = __webpack_require__( /*! ./array */ 12).inArray,
             typeUtils = __webpack_require__( /*! ./type */ 1),
             isDefined = typeUtils.isDefined,
             isRenderer = typeUtils.isRenderer,
-            htmlParser = __webpack_require__( /*! ../../core/utils/html_parser */ 249);
+            htmlParser = __webpack_require__( /*! ../../core/utils/html_parser */ 250);
         var resetActiveElement = function() {
             var activeElement = domAdapter.getActiveElement();
             if (activeElement && activeElement !== domAdapter.getBody() && activeElement.blur) {
@@ -2343,6 +2224,125 @@
         exports.toggleAttr = toggleAttr;
         exports.contains = contains;
         exports.getPublicElement = getPublicElement
+    },
+    /*!**************************************************!*\
+      !*** ./artifacts/transpiled/core/utils/array.js ***!
+      \**************************************************/
+    /*! dynamic exports provided */
+    /*! all exports used */
+    function(module, exports, __webpack_require__) {
+        var isDefined = __webpack_require__( /*! ./type */ 1).isDefined,
+            each = __webpack_require__( /*! ./iterator */ 3).each,
+            objectUtils = __webpack_require__( /*! ./object */ 47),
+            config = __webpack_require__( /*! ../config */ 29);
+        var isEmpty = function(entity) {
+            return Array.isArray(entity) && !entity.length
+        };
+        var wrapToArray = function(entity) {
+            return Array.isArray(entity) ? entity : [entity]
+        };
+        var intersection = function(a, b) {
+            if (!Array.isArray(a) || 0 === a.length || !Array.isArray(b) || 0 === b.length) {
+                return []
+            }
+            var result = [];
+            each(a, function(_, value) {
+                var index = inArray(value, b);
+                if (index !== -1) {
+                    result.push(value)
+                }
+            });
+            return result
+        };
+        var removeDuplicates = function(from, what) {
+            if (!Array.isArray(from) || 0 === from.length) {
+                return []
+            }
+            if (!Array.isArray(what) || 0 === what.length) {
+                return from.slice()
+            }
+            var result = [];
+            each(from, function(_, value) {
+                var index = inArray(value, what);
+                if (index === -1) {
+                    result.push(value)
+                }
+            });
+            return result
+        };
+        var normalizeIndexes = function(items, indexParameterName, currentItem, needIndexCallback) {
+            var indexedItems = {},
+                parameterIndex = 0,
+                useLegacyVisibleIndex = config().useLegacyVisibleIndex;
+            each(items, function(index, item) {
+                index = item[indexParameterName];
+                if (index >= 0) {
+                    indexedItems[index] = indexedItems[index] || [];
+                    if (item === currentItem) {
+                        indexedItems[index].unshift(item)
+                    } else {
+                        indexedItems[index].push(item)
+                    }
+                } else {
+                    item[indexParameterName] = void 0
+                }
+            });
+            if (!useLegacyVisibleIndex) {
+                each(items, function() {
+                    if (!isDefined(this[indexParameterName]) && (!needIndexCallback || needIndexCallback(this))) {
+                        while (indexedItems[parameterIndex]) {
+                            parameterIndex++
+                        }
+                        indexedItems[parameterIndex] = [this];
+                        parameterIndex++
+                    }
+                })
+            }
+            parameterIndex = 0;
+            objectUtils.orderEach(indexedItems, function(index, items) {
+                each(items, function() {
+                    if (index >= 0) {
+                        this[indexParameterName] = parameterIndex++
+                    }
+                })
+            });
+            if (useLegacyVisibleIndex) {
+                each(items, function() {
+                    if (!isDefined(this[indexParameterName]) && (!needIndexCallback || needIndexCallback(this))) {
+                        this[indexParameterName] = parameterIndex++
+                    }
+                })
+            }
+            return parameterIndex
+        };
+        var inArray = function(value, object) {
+            if (!object) {
+                return -1
+            }
+            var array = Array.isArray(object) ? object : object.toArray();
+            return array.indexOf(value)
+        };
+        var merge = function(array1, array2) {
+            for (var i = 0; i < array2.length; i++) {
+                array1[array1.length] = array2[i]
+            }
+            return array1
+        };
+        var find = function(array, condition) {
+            for (var i = 0; i < array.length; i++) {
+                if (condition(array[i])) {
+                    return array[i]
+                }
+            }
+        };
+        exports.isEmpty = isEmpty;
+        exports.wrapToArray = wrapToArray;
+        exports.intersection = intersection;
+        exports.removeDuplicates = removeDuplicates;
+        exports.normalizeIndexes = normalizeIndexes;
+        exports.inArray = inArray;
+        exports.merge = merge;
+        exports.find = find
     },
     /*!**************************************************!*\
       !*** ./artifacts/transpiled/core/dom_adapter.js ***!
@@ -2643,9 +2643,9 @@
             extend = __webpack_require__( /*! ../core/utils/extend */ 0).extend,
             each = __webpack_require__( /*! ../core/utils/iterator */ 3).each,
             stringFormat = __webpack_require__( /*! ../core/utils/string */ 44).format,
-            humanize = __webpack_require__( /*! ../core/utils/inflector */ 31).humanize,
-            coreLocalization = __webpack_require__( /*! ./core */ 86);
-        __webpack_require__( /*! ./core */ 86);
+            humanize = __webpack_require__( /*! ../core/utils/inflector */ 32).humanize,
+            coreLocalization = __webpack_require__( /*! ./core */ 87);
+        __webpack_require__( /*! ./core */ 87);
         var PARENT_LOCALE_SEPARATOR = "-";
         var baseDictionary = extend(true, {}, __webpack_require__( /*! ./default_messages */ 438));
         var parentLocales = __webpack_require__( /*! ./cldr-data/parentLocales */ 439);
@@ -2770,7 +2770,7 @@
             Class = __webpack_require__( /*! ./class */ 14),
             errors = __webpack_require__( /*! ./errors */ 21),
             Callbacks = __webpack_require__( /*! ./utils/callbacks */ 25),
-            resizeCallbacks = __webpack_require__( /*! ./utils/resize_callbacks */ 128),
+            resizeCallbacks = __webpack_require__( /*! ./utils/resize_callbacks */ 127),
             EventsMixin = __webpack_require__( /*! ./events_mixin */ 82),
             SessionStorage = __webpack_require__( /*! ./utils/storage */ 275).sessionStorage,
             viewPort = __webpack_require__( /*! ./utils/view_port */ 77),
@@ -3064,26 +3064,26 @@
             errors = __webpack_require__( /*! ./ui.errors */ 18),
             Action = __webpack_require__( /*! ../../core/action */ 111),
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
-            inArray = __webpack_require__( /*! ../../core/utils/array */ 11).inArray,
+            inArray = __webpack_require__( /*! ../../core/utils/array */ 12).inArray,
             each = __webpack_require__( /*! ../../core/utils/iterator */ 3).each,
             commonUtils = __webpack_require__( /*! ../../core/utils/common */ 4),
             typeUtils = __webpack_require__( /*! ../../core/utils/type */ 1),
-            domUtils = __webpack_require__( /*! ../../core/utils/dom */ 12),
+            domUtils = __webpack_require__( /*! ../../core/utils/dom */ 11),
             domAdapter = __webpack_require__( /*! ../../core/dom_adapter */ 13),
             devices = __webpack_require__( /*! ../../core/devices */ 16),
             DOMComponent = __webpack_require__( /*! ../../core/dom_component */ 66),
             Template = __webpack_require__( /*! ./template */ 452),
             TemplateBase = __webpack_require__( /*! ./ui.template_base */ 73),
-            FunctionTemplate = __webpack_require__( /*! ./function_template */ 83),
-            EmptyTemplate = __webpack_require__( /*! ./empty_template */ 107),
-            ChildDefaultTemplate = __webpack_require__( /*! ./child_default_template */ 113),
-            KeyboardProcessor = __webpack_require__( /*! ./ui.keyboard_processor */ 165),
+            FunctionTemplate = __webpack_require__( /*! ./function_template */ 84),
+            EmptyTemplate = __webpack_require__( /*! ./empty_template */ 109),
+            ChildDefaultTemplate = __webpack_require__( /*! ./child_default_template */ 131),
+            KeyboardProcessor = __webpack_require__( /*! ./ui.keyboard_processor */ 167),
             selectors = __webpack_require__( /*! ./selectors */ 64),
             eventUtils = __webpack_require__( /*! ../../events/utils */ 9),
             hoverEvents = __webpack_require__( /*! ../../events/hover */ 146),
-            feedbackEvents = __webpack_require__( /*! ../../events/core/emitter.feedback */ 125),
+            feedbackEvents = __webpack_require__( /*! ../../events/core/emitter.feedback */ 124),
             clickEvent = __webpack_require__( /*! ../../events/click */ 19),
-            inflector = __webpack_require__( /*! ../../core/utils/inflector */ 31);
+            inflector = __webpack_require__( /*! ../../core/utils/inflector */ 32);
         var UI_FEEDBACK = "UIFeedback",
             WIDGET_CLASS = "dx-widget",
             ACTIVE_STATE_CLASS = "dx-state-active",
@@ -3809,7 +3809,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var errorUtils = __webpack_require__( /*! ../../core/utils/error */ 127),
+        var errorUtils = __webpack_require__( /*! ../../core/utils/error */ 126),
             errors = __webpack_require__( /*! ../../core/errors */ 21);
         module.exports = errorUtils(errors.ERROR_MESSAGES, {
             E1001: "Module '{0}'. Controller '{1}' is already registered",
@@ -3884,12 +3884,12 @@
             eventsEngine = __webpack_require__( /*! ../events/core/events_engine */ 5),
             devices = __webpack_require__( /*! ../core/devices */ 16),
             domAdapter = __webpack_require__( /*! ../core/dom_adapter */ 13),
-            domUtils = __webpack_require__( /*! ../core/utils/dom */ 12),
+            domUtils = __webpack_require__( /*! ../core/utils/dom */ 11),
             animationFrame = __webpack_require__( /*! ../animation/frame */ 112),
             eventUtils = __webpack_require__( /*! ./utils */ 9),
             pointerEvents = __webpack_require__( /*! ./pointer */ 24),
-            Emitter = __webpack_require__( /*! ./core/emitter */ 124),
-            registerEmitter = __webpack_require__( /*! ./core/emitter_registrator */ 94),
+            Emitter = __webpack_require__( /*! ./core/emitter */ 122),
+            registerEmitter = __webpack_require__( /*! ./core/emitter_registrator */ 96),
             compareVersions = __webpack_require__( /*! ../core/utils/version */ 65).compare;
         var CLICK_EVENT_NAME = "dxclick",
             TOUCH_BOUNDARY = 10,
@@ -4203,7 +4203,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var errorUtils = __webpack_require__( /*! ./utils/error */ 127);
+        var errorUtils = __webpack_require__( /*! ./utils/error */ 126);
         module.exports = errorUtils({
             E0001: "Method is not implemented",
             E0002: "Member name collision: {0}",
@@ -4262,7 +4262,7 @@
         var typeUtils = __webpack_require__( /*! ./type */ 1),
             adjust = __webpack_require__( /*! ./math */ 30).adjust,
             each = __webpack_require__( /*! ./iterator */ 3).each,
-            camelize = __webpack_require__( /*! ./inflector */ 31).camelize,
+            camelize = __webpack_require__( /*! ./inflector */ 32).camelize,
             isObject = typeUtils.isObject,
             isString = typeUtils.isString,
             isDate = typeUtils.isDate,
@@ -4867,17 +4867,17 @@
         var _support = __webpack_require__( /*! ../core/utils/support */ 45);
         var _support2 = _interopRequireDefault(_support);
         var _iterator = __webpack_require__( /*! ../core/utils/iterator */ 3);
-        var _browser = __webpack_require__( /*! ../core/utils/browser */ 33);
+        var _browser = __webpack_require__( /*! ../core/utils/browser */ 31);
         var _browser2 = _interopRequireDefault(_browser);
         var _devices = __webpack_require__( /*! ../core/devices */ 16);
         var _devices2 = _interopRequireDefault(_devices);
         var _event_registrator = __webpack_require__( /*! ./core/event_registrator */ 70);
         var _event_registrator2 = _interopRequireDefault(_event_registrator);
-        var _touch = __webpack_require__( /*! ./pointer/touch */ 259);
+        var _touch = __webpack_require__( /*! ./pointer/touch */ 260);
         var _touch2 = _interopRequireDefault(_touch);
         var _mspointer = __webpack_require__( /*! ./pointer/mspointer */ 435);
         var _mspointer2 = _interopRequireDefault(_mspointer);
-        var _mouse = __webpack_require__( /*! ./pointer/mouse */ 261);
+        var _mouse = __webpack_require__( /*! ./pointer/mouse */ 262);
         var _mouse2 = _interopRequireDefault(_mouse);
         var _mouse_and_touch = __webpack_require__( /*! ./pointer/mouse_and_touch */ 436);
         var _mouse_and_touch2 = _interopRequireDefault(_mouse_and_touch);
@@ -5176,14 +5176,15 @@
             window = windowUtils.getWindow(),
             Deferred = __webpack_require__( /*! ../core/utils/deferred */ 6).Deferred,
             errors = __webpack_require__( /*! ./widget/ui.errors */ 18),
-            domUtils = __webpack_require__( /*! ../core/utils/dom */ 12),
-            readyCallbacks = __webpack_require__( /*! ../core/utils/ready_callbacks */ 50),
+            domUtils = __webpack_require__( /*! ../core/utils/dom */ 11),
+            readyCallbacks = __webpack_require__( /*! ../core/utils/ready_callbacks */ 48),
             ready = readyCallbacks.add,
             each = __webpack_require__( /*! ../core/utils/iterator */ 3).each,
             devices = __webpack_require__( /*! ../core/devices */ 16),
             viewPortUtils = __webpack_require__( /*! ../core/utils/view_port */ 77),
-            themeReadyCallback = __webpack_require__( /*! ./themes_callback */ 263),
+            themeReadyCallback = __webpack_require__( /*! ./themes_callback */ 264),
             viewPort = viewPortUtils.value,
+            Promise = __webpack_require__( /*! ../core/polyfills/promise */ 83),
             viewPortChanged = viewPortUtils.changeCallback;
         var DX_LINK_SELECTOR = "link[rel=dx-theme]",
             THEME_ATTR = "data-theme",
@@ -5365,8 +5366,12 @@
 
         function themeNameFromDevice(device) {
             var themeName = device.platform;
-            if ("ios" === themeName) {
-                themeName += "7"
+            switch (themeName) {
+                case "ios":
+                    return "ios7";
+                case "android":
+                case "win":
+                    return "generic"
             }
             return themeName
         }
@@ -5437,6 +5442,50 @@
                 errors.log("W0010", "The 'ios7' theme", "19.1", "Use the 'generic' theme instead.")
             }
         }
+
+        function isWebFontLoaded(text, fontWeight) {
+            var testedFont = "Roboto, RobotoFallback, Arial";
+            var etalonFont = "Arial";
+            var document = domAdapter.getDocument();
+            var testElement = document.createElement("span");
+            testElement.style.position = "absolute";
+            testElement.style.top = "-9999px";
+            testElement.style.left = "-9999px";
+            testElement.style.visibility = "hidden";
+            testElement.style.fontFamily = etalonFont;
+            testElement.style.fontSize = "250px";
+            testElement.style.fontWeight = fontWeight;
+            testElement.innerHTML = text;
+            document.body.appendChild(testElement);
+            var etalonFontWidth = testElement.offsetWidth;
+            testElement.style.fontFamily = testedFont;
+            var testedFontWidth = testElement.offsetWidth;
+            testElement.parentNode.removeChild(testElement);
+            return etalonFontWidth !== testedFontWidth
+        }
+
+        function waitWebFont(text, fontWeight) {
+            var timeout = 15;
+            var attempts = 135;
+            var i = 0;
+            return new Promise(function(resolve, reject) {
+                var check = function() {
+                    var loaded = isWebFontLoaded(text, fontWeight);
+                    loaded && resolve();
+                    return loaded
+                };
+                var runCheck = function runCheck() {
+                    if (i++ > attempts) {
+                        reject();
+                        return
+                    }
+                    setTimeout(function() {
+                        check() || runCheck()
+                    }, timeout)
+                };
+                check() || runCheck()
+            })
+        }
         var initDeferred = new Deferred;
 
         function autoInit() {
@@ -5475,6 +5524,8 @@
         exports.isMaterial = isMaterial;
         exports.isIos7 = isIos7;
         exports.isGeneric = isGeneric;
+        exports.isWebFontLoaded = isWebFontLoaded;
+        exports.waitWebFont = waitWebFont;
         exports.resetTheme = function() {
             $activeThemeLink && $activeThemeLink.attr("href", "about:blank");
             currentThemeName = null;
@@ -5689,6 +5740,46 @@
         exports.getRoot = getRoot;
         exports.solveCubicEquation = solveCubicEquation
     },
+    /*!****************************************************!*\
+      !*** ./artifacts/transpiled/core/utils/browser.js ***!
+      \****************************************************/
+    /*! dynamic exports provided */
+    /*! all exports used */
+    function(module, exports, __webpack_require__) {
+        var extend = __webpack_require__( /*! ./extend */ 0).extend,
+            windowUtils = __webpack_require__( /*! ./window */ 7),
+            navigator = windowUtils.getNavigator();
+        var webkitRegExp = /(webkit)[ \/]([\w.]+)/,
+            ieRegExp = /(msie) (\d{1,2}\.\d)/,
+            ie11RegExp = /(trident).*rv:(\d{1,2}\.\d)/,
+            msEdge = /(edge)\/((\d+)?[\w.]+)/,
+            safari = /(safari)/i,
+            mozillaRegExp = /(mozilla)(?:.*? rv:([\w.]+))/;
+        var browserFromUA = function(ua) {
+            ua = ua.toLowerCase();
+            var result = {},
+                matches = ieRegExp.exec(ua) || ie11RegExp.exec(ua) || msEdge.exec(ua) || ua.indexOf("compatible") < 0 && mozillaRegExp.exec(ua) || webkitRegExp.exec(ua) || [],
+                browserName = matches[1],
+                browserVersion = matches[2];
+            if ("webkit" === browserName && ua.indexOf("chrome") < 0 && safari.exec(ua)) {
+                browserName = "safari";
+                result.webkit = true;
+                browserVersion = /Version\/([0-9.]+)/i.exec(ua);
+                browserVersion = browserVersion && browserVersion[1]
+            }
+            if ("trident" === browserName || "edge" === browserName) {
+                browserName = "msie"
+            }
+            if (browserName) {
+                result[browserName] = true;
+                result.version = browserVersion
+            }
+            return result
+        };
+        module.exports = extend({
+            _fromUA: browserFromUA
+        }, browserFromUA(navigator.userAgent))
+    },
     /*!******************************************************!*\
       !*** ./artifacts/transpiled/core/utils/inflector.js ***!
       \******************************************************/
@@ -5777,14 +5868,14 @@
         var dependencyInjector = __webpack_require__( /*! ../core/utils/dependency_injector */ 54),
             isString = __webpack_require__( /*! ../core/utils/type */ 1).isString,
             iteratorUtils = __webpack_require__( /*! ../core/utils/iterator */ 3),
-            inArray = __webpack_require__( /*! ../core/utils/array */ 11).inArray,
-            getLDMLDateFormatter = __webpack_require__( /*! ./ldml/date.formatter */ 251).getFormatter,
+            inArray = __webpack_require__( /*! ../core/utils/array */ 12).inArray,
+            getLDMLDateFormatter = __webpack_require__( /*! ./ldml/date.formatter */ 252).getFormatter,
             getLDMLDateFormat = __webpack_require__( /*! ./ldml/date.format */ 204).getFormat,
-            getLDMLDateParser = __webpack_require__( /*! ./ldml/date.parser */ 207).getParser,
-            defaultDateNames = __webpack_require__( /*! ./default_date_names */ 252),
+            getLDMLDateParser = __webpack_require__( /*! ./ldml/date.parser */ 208).getParser,
+            defaultDateNames = __webpack_require__( /*! ./default_date_names */ 253),
             numberLocalization = __webpack_require__( /*! ./number */ 51),
             errors = __webpack_require__( /*! ../core/errors */ 21);
-        __webpack_require__( /*! ./core */ 86);
+        __webpack_require__( /*! ./core */ 87);
         var FORMATS_TO_PATTERN_MAP = {
             shortdate: "M/d/y",
             shorttime: "h:mm a",
@@ -5933,46 +6024,6 @@
         });
         module.exports = dateLocalization
     },
-    /*!****************************************************!*\
-      !*** ./artifacts/transpiled/core/utils/browser.js ***!
-      \****************************************************/
-    /*! dynamic exports provided */
-    /*! all exports used */
-    function(module, exports, __webpack_require__) {
-        var extend = __webpack_require__( /*! ./extend */ 0).extend,
-            windowUtils = __webpack_require__( /*! ./window */ 7),
-            navigator = windowUtils.getNavigator();
-        var webkitRegExp = /(webkit)[ \/]([\w.]+)/,
-            ieRegExp = /(msie) (\d{1,2}\.\d)/,
-            ie11RegExp = /(trident).*rv:(\d{1,2}\.\d)/,
-            msEdge = /(edge)\/((\d+)?[\w.]+)/,
-            safari = /(safari)/i,
-            mozillaRegExp = /(mozilla)(?:.*? rv:([\w.]+))/;
-        var browserFromUA = function(ua) {
-            ua = ua.toLowerCase();
-            var result = {},
-                matches = ieRegExp.exec(ua) || ie11RegExp.exec(ua) || msEdge.exec(ua) || ua.indexOf("compatible") < 0 && mozillaRegExp.exec(ua) || webkitRegExp.exec(ua) || [],
-                browserName = matches[1],
-                browserVersion = matches[2];
-            if ("webkit" === browserName && ua.indexOf("chrome") < 0 && safari.exec(ua)) {
-                browserName = "safari";
-                result.webkit = true;
-                browserVersion = /Version\/([0-9.]+)/i.exec(ua);
-                browserVersion = browserVersion && browserVersion[1]
-            }
-            if ("trident" === browserName || "edge" === browserName) {
-                browserName = "msie"
-            }
-            if (browserName) {
-                result[browserName] = true;
-                result.version = browserVersion
-            }
-            return result
-        };
-        module.exports = extend({
-            _fromUA: browserFromUA
-        }, browserFromUA(navigator.userAgent))
-    },
     /*!*******************************************!*\
       !*** ./artifacts/transpiled/ui/button.js ***!
       \*******************************************/
@@ -5982,18 +6033,18 @@
         var $ = __webpack_require__( /*! ../core/renderer */ 2),
             eventsEngine = __webpack_require__( /*! ../events/core/events_engine */ 5),
             iconUtils = __webpack_require__( /*! ../core/utils/icon */ 59),
-            domUtils = __webpack_require__( /*! ../core/utils/dom */ 12),
+            domUtils = __webpack_require__( /*! ../core/utils/dom */ 11),
             devices = __webpack_require__( /*! ../core/devices */ 16),
             registerComponent = __webpack_require__( /*! ../core/component_registrator */ 8),
             extend = __webpack_require__( /*! ../core/utils/extend */ 0).extend,
-            ValidationMixin = __webpack_require__( /*! ./validation/validation_mixin */ 169),
-            ValidationEngine = __webpack_require__( /*! ./validation_engine */ 98),
+            ValidationMixin = __webpack_require__( /*! ./validation/validation_mixin */ 171),
+            ValidationEngine = __webpack_require__( /*! ./validation_engine */ 100),
             Widget = __webpack_require__( /*! ./widget/ui.widget */ 17),
             inkRipple = __webpack_require__( /*! ./widget/utils.ink_ripple */ 68),
             eventUtils = __webpack_require__( /*! ../events/utils */ 9),
             themes = __webpack_require__( /*! ./themes */ 28),
             clickEvent = __webpack_require__( /*! ../events/click */ 19),
-            FunctionTemplate = __webpack_require__( /*! ./widget/function_template */ 83);
+            FunctionTemplate = __webpack_require__( /*! ./widget/function_template */ 84);
         var BUTTON_CLASS = "dx-button",
             BUTTON_CONTENT_CLASS = "dx-button-content",
             BUTTON_HAS_TEXT_CLASS = "dx-button-has-text",
@@ -6171,7 +6222,9 @@
             _renderClick: function() {
                 var that = this,
                     eventName = eventUtils.addNamespace(clickEvent.name, this.NAME),
-                    actionConfig = {};
+                    actionConfig = {
+                        excludeValidators: ["readOnly"]
+                    };
                 if (this.option("useSubmitBehavior")) {
                     actionConfig.afterExecute = function(e) {
                         setTimeout(function() {
@@ -6280,12 +6333,12 @@
         var _renderer2 = _interopRequireDefault(_renderer);
         var _common = __webpack_require__( /*! ../../core/utils/common */ 4);
         var _type = __webpack_require__( /*! ../../core/utils/type */ 1);
-        var _filtering = __webpack_require__( /*! ../shared/filtering */ 160);
+        var _filtering = __webpack_require__( /*! ../shared/filtering */ 162);
         var _string = __webpack_require__( /*! ../../core/utils/string */ 44);
         var _iterator = __webpack_require__( /*! ../../core/utils/iterator */ 3);
         var _extend = __webpack_require__( /*! ../../core/utils/extend */ 0);
         var _data = __webpack_require__( /*! ../../core/utils/data */ 20);
-        var _load_panel = __webpack_require__( /*! ../load_panel */ 183);
+        var _load_panel = __webpack_require__( /*! ../load_panel */ 184);
         var _load_panel2 = _interopRequireDefault(_load_panel);
         var _utils = __webpack_require__( /*! ../../data/utils */ 40);
         var _format_helper = __webpack_require__( /*! ../../format_helper */ 61);
@@ -6715,7 +6768,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var errorUtils = __webpack_require__( /*! ../core/utils/error */ 127),
+        var errorUtils = __webpack_require__( /*! ../core/utils/error */ 126),
             coreErrors = __webpack_require__( /*! ../core/errors */ 21),
             handlers = {};
         var errors = errorUtils(coreErrors.ERROR_MESSAGES, {
@@ -6785,7 +6838,7 @@
         var _callbacks2 = _interopRequireDefault(_callbacks);
         var _common = __webpack_require__( /*! ../../core/utils/common */ 4);
         var _type = __webpack_require__( /*! ../../core/utils/type */ 1);
-        var _array = __webpack_require__( /*! ../../core/utils/array */ 11);
+        var _array = __webpack_require__( /*! ../../core/utils/array */ 12);
         var _iterator = __webpack_require__( /*! ../../core/utils/iterator */ 3);
         var _ui = __webpack_require__( /*! ../widget/ui.errors */ 18);
         var _ui2 = _interopRequireDefault(_ui);
@@ -7145,10 +7198,10 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var WeakMap = __webpack_require__( /*! ./polyfills/weak_map */ 174);
+        var WeakMap = __webpack_require__( /*! ./polyfills/weak_map */ 175);
         var domAdapter = __webpack_require__( /*! ./dom_adapter */ 13);
         var eventsEngine = __webpack_require__( /*! ../events/core/events_engine */ 5);
-        var MemorizedCallbacks = __webpack_require__( /*! ./memorized_callbacks */ 175);
+        var MemorizedCallbacks = __webpack_require__( /*! ./memorized_callbacks */ 176);
         var dataMap = new WeakMap;
         var strategy;
         var strategyChanging = new MemorizedCallbacks;
@@ -7253,16 +7306,16 @@
             window = __webpack_require__( /*! ../core/utils/window */ 7).getWindow(),
             eventsEngine = __webpack_require__( /*! ../events/core/events_engine */ 5),
             errors = __webpack_require__( /*! ../core/errors */ 21),
-            getPublicElement = __webpack_require__( /*! ../core/utils/dom */ 12).getPublicElement,
+            getPublicElement = __webpack_require__( /*! ../core/utils/dom */ 11).getPublicElement,
             extend = __webpack_require__( /*! ../core/utils/extend */ 0).extend,
             typeUtils = __webpack_require__( /*! ../core/utils/type */ 1),
             iteratorUtils = __webpack_require__( /*! ../core/utils/iterator */ 3),
             translator = __webpack_require__( /*! ./translator */ 26),
-            easing = __webpack_require__( /*! ./easing */ 258),
+            easing = __webpack_require__( /*! ./easing */ 259),
             animationFrame = __webpack_require__( /*! ./frame */ 112),
             support = __webpack_require__( /*! ../core/utils/support */ 45),
             positionUtils = __webpack_require__( /*! ./position */ 76),
-            removeEvent = __webpack_require__( /*! ../core/remove_event */ 130),
+            removeEvent = __webpack_require__( /*! ../core/remove_event */ 129),
             eventUtils = __webpack_require__( /*! ../events/utils */ 9),
             deferredUtils = __webpack_require__( /*! ../core/utils/deferred */ 6),
             when = deferredUtils.when,
@@ -7945,7 +7998,7 @@
         var _type2 = _interopRequireDefault(_type);
         var _dom_adapter = __webpack_require__( /*! ../core/dom_adapter */ 13);
         var _dom_adapter2 = _interopRequireDefault(_dom_adapter);
-        var _ready_callbacks = __webpack_require__( /*! ../core/utils/ready_callbacks */ 50);
+        var _ready_callbacks = __webpack_require__( /*! ../core/utils/ready_callbacks */ 48);
         var _window = __webpack_require__( /*! ../core/utils/window */ 7);
         var _iterator = __webpack_require__( /*! ../core/utils/iterator */ 3);
         var _data = __webpack_require__( /*! ../core/utils/data */ 20);
@@ -8233,7 +8286,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var arrayQueryImpl = __webpack_require__( /*! ./array_query */ 154),
+        var arrayQueryImpl = __webpack_require__( /*! ./array_query */ 155),
             remoteQueryImpl = __webpack_require__( /*! ./remote_query */ 458);
         var queryImpl = {
             array: arrayQueryImpl,
@@ -8295,23 +8348,23 @@
         var $ = __webpack_require__( /*! ../core/renderer */ 2),
             window = __webpack_require__( /*! ../core/utils/window */ 7).getWindow(),
             translator = __webpack_require__( /*! ../animation/translator */ 26),
-            camelize = __webpack_require__( /*! ../core/utils/inflector */ 31).camelize,
+            camelize = __webpack_require__( /*! ../core/utils/inflector */ 32).camelize,
             noop = __webpack_require__( /*! ../core/utils/common */ 4).noop,
-            getPublicElement = __webpack_require__( /*! ../core/utils/dom */ 12).getPublicElement,
+            getPublicElement = __webpack_require__( /*! ../core/utils/dom */ 11).getPublicElement,
             each = __webpack_require__( /*! ../core/utils/iterator */ 3).each,
             isDefined = __webpack_require__( /*! ../core/utils/type */ 1).isDefined,
-            inArray = __webpack_require__( /*! ../core/utils/array */ 11).inArray,
+            inArray = __webpack_require__( /*! ../core/utils/array */ 12).inArray,
             extend = __webpack_require__( /*! ../core/utils/extend */ 0).extend,
-            browser = __webpack_require__( /*! ../core/utils/browser */ 33),
+            browser = __webpack_require__( /*! ../core/utils/browser */ 31),
             messageLocalization = __webpack_require__( /*! ../localization/message */ 15),
             devices = __webpack_require__( /*! ../core/devices */ 16),
             registerComponent = __webpack_require__( /*! ../core/component_registrator */ 8),
             Button = __webpack_require__( /*! ./button */ 34),
             themes = __webpack_require__( /*! ./themes */ 28),
             Overlay = __webpack_require__( /*! ./overlay */ 58),
-            EmptyTemplate = __webpack_require__( /*! ./widget/empty_template */ 107),
-            domUtils = __webpack_require__( /*! ../core/utils/dom */ 12),
-            sizeUtils = __webpack_require__( /*! ../core/utils/size */ 272),
+            EmptyTemplate = __webpack_require__( /*! ./widget/empty_template */ 109),
+            domUtils = __webpack_require__( /*! ../core/utils/dom */ 11),
+            sizeUtils = __webpack_require__( /*! ../core/utils/size */ 207),
             windowUtils = __webpack_require__( /*! ../core/utils/window */ 7);
         __webpack_require__( /*! ./toolbar/ui.toolbar.base */ 284);
         var POPUP_CLASS = "dx-popup",
@@ -8980,13 +9033,13 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var inArray = __webpack_require__( /*! ./array */ 11).inArray,
+        var inArray = __webpack_require__( /*! ./array */ 12).inArray,
             domAdapter = __webpack_require__( /*! ../dom_adapter */ 13),
             callOnce = __webpack_require__( /*! ./call_once */ 72),
             windowUtils = __webpack_require__( /*! ./window */ 7),
             navigator = windowUtils.getNavigator(),
             devices = __webpack_require__( /*! ../devices */ 16),
-            styleUtils = __webpack_require__( /*! ./style */ 85);
+            styleUtils = __webpack_require__( /*! ./style */ 86);
         var transitionEndEventNames = {
             webkitTransition: "webkitTransitionEnd",
             MozTransition: "transitionend",
@@ -9061,13 +9114,13 @@
             typeUtils = __webpack_require__( /*! ../../core/utils/type */ 1),
             dataUtils = __webpack_require__( /*! ../utils */ 40),
             arrayUtils = __webpack_require__( /*! ../array_utils */ 132),
-            Store = __webpack_require__( /*! ../abstract_store */ 97),
+            Store = __webpack_require__( /*! ../abstract_store */ 99),
             ArrayStore = __webpack_require__( /*! ../array_store */ 67),
             CustomStore = __webpack_require__( /*! ../custom_store */ 147),
             EventsMixin = __webpack_require__( /*! ../../core/events_mixin */ 82),
             errors = __webpack_require__( /*! ../errors */ 36).errors,
-            array = __webpack_require__( /*! ../../core/utils/array */ 11),
-            queue = __webpack_require__( /*! ../../core/utils/queue */ 257),
+            array = __webpack_require__( /*! ../../core/utils/array */ 12),
+            queue = __webpack_require__( /*! ../../core/utils/queue */ 258),
             deferredUtils = __webpack_require__( /*! ../../core/utils/deferred */ 6),
             when = deferredUtils.when,
             Deferred = deferredUtils.Deferred,
@@ -9728,7 +9781,7 @@
             for (var name in changes) {
                 prevValue = target[name];
                 newValue = changes[name];
-                if (target === newValue) {
+                if ("__proto__" === name || target === newValue) {
                     continue
                 }
                 if (typeUtils.isPlainObject(newValue)) {
@@ -9745,6 +9798,45 @@
         exports.orderEach = orderEach;
         exports.deepExtendArraySafe = deepExtendArraySafe
     },
+    /*!************************************************************!*\
+      !*** ./artifacts/transpiled/core/utils/ready_callbacks.js ***!
+      \************************************************************/
+    /*! dynamic exports provided */
+    /*! all exports used */
+    function(module, exports, __webpack_require__) {
+        var domAdapter = __webpack_require__( /*! ../dom_adapter */ 13);
+        var injector = __webpack_require__( /*! ./dependency_injector */ 54);
+        var windowUtils = __webpack_require__( /*! ./window */ 7);
+        var callOnce = __webpack_require__( /*! ./call_once */ 72);
+        var callbacks = [];
+        var isReady = function() {
+            return "complete" === domAdapter.getReadyState() || "loading" !== domAdapter.getReadyState() && !domAdapter.getDocumentElement().doScroll
+        };
+        var subscribeReady = callOnce(function() {
+            var removeListener = domAdapter.listen(domAdapter.getDocument(), "DOMContentLoaded", function() {
+                readyCallbacks.fire();
+                removeListener()
+            })
+        });
+        var readyCallbacks = {
+            add: function(callback) {
+                var hasWindow = windowUtils.hasWindow();
+                if (hasWindow && isReady()) {
+                    callback()
+                } else {
+                    callbacks.push(callback);
+                    hasWindow && subscribeReady()
+                }
+            },
+            fire: function() {
+                callbacks.forEach(function(callback) {
+                    return callback()
+                });
+                callbacks = []
+            }
+        };
+        module.exports = injector(readyCallbacks)
+    },
     /*!**************************************************!*\
       !*** ./artifacts/transpiled/ui/editor/editor.js ***!
       \**************************************************/
@@ -9756,10 +9848,10 @@
             Callbacks = __webpack_require__( /*! ../../core/utils/callbacks */ 25),
             commonUtils = __webpack_require__( /*! ../../core/utils/common */ 4),
             windowUtils = __webpack_require__( /*! ../../core/utils/window */ 7),
-            getDefaultAlignment = __webpack_require__( /*! ../../core/utils/position */ 96).getDefaultAlignment,
+            getDefaultAlignment = __webpack_require__( /*! ../../core/utils/position */ 98).getDefaultAlignment,
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
             Widget = __webpack_require__( /*! ../widget/ui.widget */ 17),
-            ValidationMixin = __webpack_require__( /*! ../validation/validation_mixin */ 169),
+            ValidationMixin = __webpack_require__( /*! ../validation/validation_mixin */ 171),
             Overlay = __webpack_require__( /*! ../overlay */ 58);
         var READONLY_STATE_CLASS = "dx-state-readonly",
             INVALID_CLASS = "dx-invalid",
@@ -10284,53 +10376,55 @@
             }
         })
     },
-    /*!************************************************************!*\
-      !*** ./artifacts/transpiled/core/utils/ready_callbacks.js ***!
-      \************************************************************/
-    /*! dynamic exports provided */
-    /*! all exports used */
-    function(module, exports, __webpack_require__) {
-        var domAdapter = __webpack_require__( /*! ../dom_adapter */ 13);
-        var injector = __webpack_require__( /*! ./dependency_injector */ 54);
-        var windowUtils = __webpack_require__( /*! ./window */ 7);
-        var callOnce = __webpack_require__( /*! ./call_once */ 72);
-        var callbacks = [];
-        var isReady = function() {
-            return "complete" === domAdapter.getReadyState() || "loading" !== domAdapter.getReadyState() && !domAdapter.getDocumentElement().doScroll
-        };
-        var subscribeReady = callOnce(function() {
-            var removeListener = domAdapter.listen(domAdapter.getDocument(), "DOMContentLoaded", function() {
-                readyCallbacks.fire();
-                removeListener()
-            })
-        });
-        var readyCallbacks = {
-            add: function(callback) {
-                var hasWindow = windowUtils.hasWindow();
-                if (hasWindow && isReady()) {
-                    callback()
-                } else {
-                    callbacks.push(callback);
-                    hasWindow && subscribeReady()
-                }
-            },
-            fire: function() {
-                callbacks.forEach(function(callback) {
-                    return callback()
-                });
-                callbacks = []
-            }
-        };
-        module.exports = injector(readyCallbacks)
-    },
     /*!*****************************************************!*\
       !*** ./artifacts/transpiled/localization/number.js ***!
       \*****************************************************/
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
+        var _slicedToArray = function() {
+            function sliceIterator(arr, i) {
+                var _arr = [];
+                var _n = true;
+                var _d = false;
+                var _e = void 0;
+                try {
+                    for (var _s, _i = arr[Symbol.iterator](); !(_n = (_s = _i.next()).done); _n = true) {
+                        _arr.push(_s.value);
+                        if (i && _arr.length === i) {
+                            break
+                        }
+                    }
+                } catch (err) {
+                    _d = true;
+                    _e = err
+                } finally {
+                    try {
+                        if (!_n && _i.return) {
+                            _i.return()
+                        }
+                    } finally {
+                        if (_d) {
+                            throw _e
+                        }
+                    }
+                }
+                return _arr
+            }
+            return function(arr, i) {
+                if (Array.isArray(arr)) {
+                    return arr
+                } else {
+                    if (Symbol.iterator in Object(arr)) {
+                        return sliceIterator(arr, i)
+                    } else {
+                        throw new TypeError("Invalid attempt to destructure non-iterable instance")
+                    }
+                }
+            }
+        }();
         var dependencyInjector = __webpack_require__( /*! ../core/utils/dependency_injector */ 54),
-            inArray = __webpack_require__( /*! ../core/utils/array */ 11).inArray,
+            inArray = __webpack_require__( /*! ../core/utils/array */ 12).inArray,
             escapeRegExp = __webpack_require__( /*! ../core/utils/common */ 4).escapeRegExp,
             each = __webpack_require__( /*! ../core/utils/iterator */ 3).each,
             isPlainObject = __webpack_require__( /*! ../core/utils/type */ 1).isPlainObject,
@@ -10565,16 +10659,39 @@
                 }
                 var decimalSeparator = this.getDecimalSeparator(),
                     regExp = new RegExp("[^0-9" + escapeRegExp(decimalSeparator) + "]", "g"),
-                    cleanedText = text.replace(regExp, "").replace(decimalSeparator, ".").replace(/\.$/g, ""),
-                    parsed = +cleanedText;
-                cleanedText = cleanedText.replace(/^\./g, "");
-                if (cleanedText.length > 15) {
-                    return NaN
-                }
-                if ("" === cleanedText) {
+                    cleanedText = text.replace(regExp, "").replace(decimalSeparator, ".").replace(/\.$/g, "");
+                if ("." === cleanedText || "" === cleanedText) {
                     return null
                 }
+                if (this._calcSignificantDigits(cleanedText) > 15) {
+                    return NaN
+                }
+                var parsed = +cleanedText;
                 return parsed * this.getSign(text, format)
+            },
+            _calcSignificantDigits: function(text) {
+                var _text$split = text.split("."),
+                    _text$split2 = _slicedToArray(_text$split, 2),
+                    integer = _text$split2[0],
+                    fractional = _text$split2[1];
+                var calcDigitsAfterLeadingZeros = function(digits) {
+                    var index = -1;
+                    for (var i = 0; i < digits.length; i++) {
+                        if ("0" !== digits[i]) {
+                            index = i;
+                            break
+                        }
+                    }
+                    return index > -1 ? digits.length - index : 0
+                };
+                var result = 0;
+                if (integer) {
+                    result += calcDigitsAfterLeadingZeros(integer.split(""))
+                }
+                if (fractional) {
+                    result += calcDigitsAfterLeadingZeros(fractional.split("").reverse())
+                }
+                return result
             }
         });
         module.exports = numberLocalization
@@ -10593,7 +10710,7 @@
             each = __webpack_require__( /*! ../../core/utils/iterator */ 3).each,
             noop = __webpack_require__( /*! ../../core/utils/common */ 4).noop,
             isDefined = __webpack_require__( /*! ../../core/utils/type */ 1).isDefined,
-            PlainEditStrategy = __webpack_require__( /*! ./ui.collection_widget.edit.strategy.plain */ 179),
+            PlainEditStrategy = __webpack_require__( /*! ./ui.collection_widget.edit.strategy.plain */ 180),
             compileGetter = __webpack_require__( /*! ../../core/utils/data */ 20).compileGetter,
             DataSource = __webpack_require__( /*! ../../data/data_source/data_source */ 46).DataSource,
             Selection = __webpack_require__( /*! ../selection/selection */ 278),
@@ -11234,8 +11351,8 @@
     /*! all exports used */
     function(module, exports, __webpack_require__) {
         var config = __webpack_require__( /*! ../config */ 29),
-            getLDMLFormatter = __webpack_require__( /*! ../../localization/ldml/date.formatter */ 251).getFormatter,
-            defaultDateNames = __webpack_require__( /*! ../../localization/default_date_names */ 252),
+            getLDMLFormatter = __webpack_require__( /*! ../../localization/ldml/date.formatter */ 252).getFormatter,
+            defaultDateNames = __webpack_require__( /*! ../../localization/default_date_names */ 253),
             typeUtils = __webpack_require__( /*! ./type */ 1),
             isString = typeUtils.isString,
             isDate = typeUtils.isDate,
@@ -11437,14 +11554,14 @@
     function(module, exports, __webpack_require__) {
         var $ = __webpack_require__( /*! ../core/renderer */ 2),
             dataUtils = __webpack_require__( /*! ../core/element_data */ 38),
-            wrapToArray = __webpack_require__( /*! ../core/utils/array */ 11).wrapToArray,
-            inArray = __webpack_require__( /*! ../core/utils/array */ 11).inArray,
+            wrapToArray = __webpack_require__( /*! ../core/utils/array */ 12).wrapToArray,
+            inArray = __webpack_require__( /*! ../core/utils/array */ 12).inArray,
             iteratorUtils = __webpack_require__( /*! ../core/utils/iterator */ 3),
-            contains = __webpack_require__( /*! ../core/utils/dom */ 12).contains,
+            contains = __webpack_require__( /*! ../core/utils/dom */ 11).contains,
             registerEvent = __webpack_require__( /*! ./core/event_registrator */ 70),
             eventUtils = __webpack_require__( /*! ./utils */ 9),
-            GestureEmitter = __webpack_require__( /*! ./gesture/emitter.gesture */ 157),
-            registerEmitter = __webpack_require__( /*! ./core/emitter_registrator */ 94);
+            GestureEmitter = __webpack_require__( /*! ./gesture/emitter.gesture */ 158),
+            registerEmitter = __webpack_require__( /*! ./core/emitter_registrator */ 96);
         var DRAG_START_EVENT = "dxdragstart",
             DRAG_EVENT = "dxdrag",
             DRAG_END_EVENT = "dxdragend",
@@ -11769,9 +11886,9 @@
         var typeUtils = __webpack_require__( /*! ./core/utils/type */ 1),
             dateUtils = __webpack_require__( /*! ./core/utils/date */ 22),
             numberLocalization = __webpack_require__( /*! ./localization/number */ 51),
-            dateLocalization = __webpack_require__( /*! ./localization/date */ 32),
+            dateLocalization = __webpack_require__( /*! ./localization/date */ 33),
             dependencyInjector = __webpack_require__( /*! ./core/utils/dependency_injector */ 54);
-        __webpack_require__( /*! ./localization/currency */ 151);
+        __webpack_require__( /*! ./localization/currency */ 152);
         module.exports = dependencyInjector({
             format: function(value, _format) {
                 var formatIsValid = typeUtils.isString(_format) && "" !== _format || typeUtils.isPlainObject(_format) || typeUtils.isFunction(_format),
@@ -11986,7 +12103,7 @@
         var $ = __webpack_require__( /*! ../../core/renderer */ 2),
             TemplateBase = __webpack_require__( /*! ./ui.template_base */ 73),
             eventsEngine = __webpack_require__( /*! ../../events/core/events_engine */ 5),
-            removeEvent = __webpack_require__( /*! ../../core/remove_event */ 130),
+            removeEvent = __webpack_require__( /*! ../../core/remove_event */ 129),
             iteratorUtils = __webpack_require__( /*! ../../core/utils/iterator */ 3),
             isPrimitive = __webpack_require__( /*! ../../core/utils/type */ 1).isPrimitive;
         var watchChanges = function() {
@@ -12073,7 +12190,7 @@
         var window = windowUtils.getWindow();
         var extendFromObject = __webpack_require__( /*! ./extend */ 0).extendFromObject;
         var isDefined = __webpack_require__( /*! ./type */ 1).isDefined;
-        var Promise = __webpack_require__( /*! ../polyfills/promise */ 109);
+        var Promise = __webpack_require__( /*! ../polyfills/promise */ 83);
         var injector = __webpack_require__( /*! ./dependency_injector */ 54);
         var SUCCESS = "success",
             ERROR = "error",
@@ -12440,15 +12557,15 @@
             extend = __webpack_require__( /*! ./utils/extend */ 0).extend,
             config = __webpack_require__( /*! ./config */ 29),
             errors = __webpack_require__( /*! ./errors */ 21),
-            getPublicElement = __webpack_require__( /*! ../core/utils/dom */ 12).getPublicElement,
-            windowResizeCallbacks = __webpack_require__( /*! ../core/utils/resize_callbacks */ 128),
+            getPublicElement = __webpack_require__( /*! ../core/utils/dom */ 11).getPublicElement,
+            windowResizeCallbacks = __webpack_require__( /*! ../core/utils/resize_callbacks */ 127),
             commonUtils = __webpack_require__( /*! ./utils/common */ 4),
             each = __webpack_require__( /*! ./utils/iterator */ 3).each,
             typeUtils = __webpack_require__( /*! ./utils/type */ 1),
-            inArray = __webpack_require__( /*! ./utils/array */ 11).inArray,
-            publicComponentUtils = __webpack_require__( /*! ./utils/public_component */ 129),
+            inArray = __webpack_require__( /*! ./utils/array */ 12).inArray,
+            publicComponentUtils = __webpack_require__( /*! ./utils/public_component */ 128),
             dataUtils = __webpack_require__( /*! ./element_data */ 38),
-            Component = __webpack_require__( /*! ./component */ 131),
+            Component = __webpack_require__( /*! ./component */ 130),
             abstract = Component.abstract;
         var RTL_DIRECTION_CLASS = "dx-rtl",
             VISIBILITY_CHANGE_CLASS = "dx-visibility-change-handler",
@@ -12747,7 +12864,7 @@
         var _query = __webpack_require__( /*! ./query */ 41);
         var _query2 = _interopRequireDefault(_query);
         var _errors = __webpack_require__( /*! ./errors */ 36);
-        var _abstract_store = __webpack_require__( /*! ./abstract_store */ 97);
+        var _abstract_store = __webpack_require__( /*! ./abstract_store */ 99);
         var _abstract_store2 = _interopRequireDefault(_abstract_store);
         var _array_utils = __webpack_require__( /*! ./array_utils */ 132);
         var _array_utils2 = _interopRequireDefault(_array_utils);
@@ -12917,11 +13034,11 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var _common = __webpack_require__( /*! ./common */ 245);
-        var _node = __webpack_require__( /*! ./node */ 164);
+        var _common = __webpack_require__( /*! ./common */ 246);
+        var _node = __webpack_require__( /*! ./node */ 166);
         var _node2 = _interopRequireDefault(_node);
-        var _tiling = __webpack_require__( /*! ./tiling */ 121);
-        var _colorizing = __webpack_require__( /*! ./colorizing */ 122);
+        var _tiling = __webpack_require__( /*! ./tiling */ 119);
+        var _colorizing = __webpack_require__( /*! ./colorizing */ 120);
         var _utils = __webpack_require__( /*! ../core/utils */ 10);
         var _common2 = __webpack_require__( /*! ../../core/utils/common */ 4);
         var _type = __webpack_require__( /*! ../../core/utils/type */ 1);
@@ -12940,14 +13057,14 @@
             rightbottomlefttop: [-1, -1]
         };
         __webpack_require__( /*! ./tiling.squarified */ 409);
-        __webpack_require__( /*! ./tiling */ 121).setDefaultAlgorithm("squarified");
+        __webpack_require__( /*! ./tiling */ 119).setDefaultAlgorithm("squarified");
         __webpack_require__( /*! ./colorizing.discrete */ 411);
-        __webpack_require__( /*! ./colorizing */ 122).setDefaultColorizer("discrete");
+        __webpack_require__( /*! ./colorizing */ 120).setDefaultColorizer("discrete");
 
         function pickPositiveInteger(val) {
             return val > 0 ? Math.round(val) : 0
         }
-        var dxTreeMap = __webpack_require__( /*! ../core/base_widget */ 95).inherit({
+        var dxTreeMap = __webpack_require__( /*! ../core/base_widget */ 97).inherit({
             _handlers: {
                 beginBuildNodes: _common2.noop,
                 buildNode: _common2.noop,
@@ -13463,7 +13580,8 @@
                     wordWrap: "none"
                 } : {
                     textOverflow: tileLabelOverflow,
-                    wordWrap: tileLabelWordWrap
+                    wordWrap: tileLabelWordWrap,
+                    hideOverflowEllipsis: true
                 })
             }
             text.attr({
@@ -13484,7 +13602,7 @@
     /*! all exports used */
     function(module, exports, __webpack_require__) {
         var each = __webpack_require__( /*! ../../core/utils/iterator */ 3).each,
-            callbacks = __webpack_require__( /*! ./event_registrator_callbacks */ 123);
+            callbacks = __webpack_require__( /*! ./event_registrator_callbacks */ 121);
         var registerEvent = function(name, eventObject) {
             var strategy = {};
             if ("noBubble" in eventObject) {
@@ -13549,7 +13667,7 @@
         var $ = __webpack_require__( /*! ../../core/renderer */ 2),
             domAdapter = __webpack_require__( /*! ../../core/dom_adapter */ 13),
             Callbacks = __webpack_require__( /*! ../../core/utils/callbacks */ 25),
-            domUtils = __webpack_require__( /*! ../../core/utils/dom */ 12),
+            domUtils = __webpack_require__( /*! ../../core/utils/dom */ 11),
             Class = __webpack_require__( /*! ../../core/class */ 14),
             abstract = Class.abstract;
         var renderedCallbacks = Callbacks();
@@ -13623,7 +13741,7 @@
             iteratorUtils = __webpack_require__( /*! ../../core/utils/iterator */ 3),
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
             isDefined = __webpack_require__( /*! ../../core/utils/type */ 1).isDefined,
-            dateLocalization = __webpack_require__( /*! ../../localization/date */ 32),
+            dateLocalization = __webpack_require__( /*! ../../localization/date */ 33),
             formatHelper = __webpack_require__( /*! ../../format_helper */ 61),
             DataSourceModule = __webpack_require__( /*! ../../data/data_source/data_source */ 46),
             ArrayStore = __webpack_require__( /*! ../../data/array_store */ 67),
@@ -14263,7 +14381,7 @@
     /*! all exports used */
     function(module, exports, __webpack_require__) {
         var $ = __webpack_require__( /*! ../renderer */ 2),
-            readyCallbacks = __webpack_require__( /*! ./ready_callbacks */ 50),
+            readyCallbacks = __webpack_require__( /*! ./ready_callbacks */ 48),
             ready = readyCallbacks.add,
             changeCallback = __webpack_require__( /*! ./callbacks */ 25)(),
             $originalViewPort = $();
@@ -14346,7 +14464,7 @@
         var grep = __webpack_require__( /*! ../core/utils/common */ 4).grep,
             extend = __webpack_require__( /*! ../core/utils/extend */ 0).extend,
             each = __webpack_require__( /*! ../core/utils/iterator */ 3).each,
-            arrayQuery = __webpack_require__( /*! ./array_query */ 154),
+            arrayQuery = __webpack_require__( /*! ./array_query */ 155),
             normalizeSortingInfo = __webpack_require__( /*! ./utils */ 40).normalizeSortingInfo;
 
         function multiLevelGroup(query, groupInfo) {
@@ -14501,6 +14619,37 @@
             }
         }
     },
+    /*!********************************************************!*\
+      !*** ./artifacts/transpiled/core/polyfills/promise.js ***!
+      \********************************************************/
+    /*! dynamic exports provided */
+    /*! all exports used */
+    function(module, exports, __webpack_require__) {
+        var deferredUtils = __webpack_require__( /*! ../../core/utils/deferred */ 6),
+            windowUtils = __webpack_require__( /*! ../../core/utils/window */ 7),
+            Deferred = deferredUtils.Deferred,
+            when = deferredUtils.when,
+            promise = windowUtils.hasWindow() ? windowUtils.getWindow().Promise : Promise;
+        if (!promise) {
+            promise = function(resolver) {
+                var d = new Deferred;
+                resolver(d.resolve.bind(this), d.reject.bind(this));
+                return d.promise()
+            };
+            promise.resolve = function(val) {
+                return (new Deferred).resolve(val).promise()
+            };
+            promise.reject = function(val) {
+                return (new Deferred).reject(val).promise()
+            };
+            promise.all = function(promises) {
+                return when.apply(this, promises).then(function() {
+                    return [].slice.call(arguments)
+                })
+            }
+        }
+        module.exports = promise
+    },
     /*!*************************************************************!*\
       !*** ./artifacts/transpiled/ui/widget/function_template.js ***!
       \*************************************************************/
@@ -14508,7 +14657,7 @@
     /*! all exports used */
     function(module, exports, __webpack_require__) {
         var TemplateBase = __webpack_require__( /*! ./ui.template_base */ 73),
-            domUtils = __webpack_require__( /*! ../../core/utils/dom */ 12);
+            domUtils = __webpack_require__( /*! ../../core/utils/dom */ 11);
         var FunctionTemplate = TemplateBase.inherit({
             ctor: function(render) {
                 this._render = render
@@ -14642,7 +14791,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var camelize = __webpack_require__( /*! ./inflector */ 31).camelize,
+        var camelize = __webpack_require__( /*! ./inflector */ 32).camelize,
             callOnce = __webpack_require__( /*! ./call_once */ 72),
             typeUtils = __webpack_require__( /*! ./type */ 1),
             domAdapter = __webpack_require__( /*! ../dom_adapter */ 13);
@@ -14748,8 +14897,8 @@
     /*! all exports used */
     function(module, exports, __webpack_require__) {
         var eventUtils = __webpack_require__( /*! ./utils */ 9),
-            Emitter = __webpack_require__( /*! ./core/emitter */ 124),
-            registerEmitter = __webpack_require__( /*! ./core/emitter_registrator */ 94),
+            Emitter = __webpack_require__( /*! ./core/emitter */ 122),
+            registerEmitter = __webpack_require__( /*! ./core/emitter_registrator */ 96),
             abs = Math.abs;
         var HOLD_EVENT_NAME = "dxhold",
             HOLD_TIMEOUT = 750,
@@ -14979,11 +15128,11 @@
         var $ = __webpack_require__( /*! ../../core/renderer */ 2),
             eventsEngine = __webpack_require__( /*! ../../events/core/events_engine */ 5),
             support = __webpack_require__( /*! ../../core/utils/support */ 45),
-            browser = __webpack_require__( /*! ../../core/utils/browser */ 33),
+            browser = __webpack_require__( /*! ../../core/utils/browser */ 31),
             commonUtils = __webpack_require__( /*! ../../core/utils/common */ 4),
             typeUtils = __webpack_require__( /*! ../../core/utils/type */ 1),
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
-            getPublicElement = __webpack_require__( /*! ../../core/utils/dom */ 12).getPublicElement,
+            getPublicElement = __webpack_require__( /*! ../../core/utils/dom */ 11).getPublicElement,
             windowUtils = __webpack_require__( /*! ../../core/utils/window */ 7),
             navigator = windowUtils.getNavigator(),
             domAdapter = __webpack_require__( /*! ../../core/dom_adapter */ 13),
@@ -14994,7 +15143,7 @@
             eventUtils = __webpack_require__( /*! ../../events/utils */ 9),
             scrollEvents = __webpack_require__( /*! ./ui.events.emitter.gesture.scroll */ 508),
             simulatedStrategy = __webpack_require__( /*! ./ui.scrollable.simulated */ 293),
-            NativeStrategy = __webpack_require__( /*! ./ui.scrollable.native */ 182),
+            NativeStrategy = __webpack_require__( /*! ./ui.scrollable.native */ 183),
             when = __webpack_require__( /*! ../../core/utils/deferred */ 6).when;
         var SCROLLABLE = "dxScrollable",
             SCROLLABLE_STRATEGY = "dxScrollableStrategy",
@@ -15461,17 +15610,17 @@
             isDefined = typeUtils.isDefined,
             isPromise = typeUtils.isPromise,
             extend = __webpack_require__( /*! ../core/utils/extend */ 0).extend,
-            inArray = __webpack_require__( /*! ../core/utils/array */ 11).inArray,
+            inArray = __webpack_require__( /*! ../core/utils/array */ 12).inArray,
             each = __webpack_require__( /*! ../core/utils/iterator */ 3).each,
             deferredUtils = __webpack_require__( /*! ../core/utils/deferred */ 6),
-            getPublicElement = __webpack_require__( /*! ../core/utils/dom */ 12).getPublicElement,
+            getPublicElement = __webpack_require__( /*! ../core/utils/dom */ 11).getPublicElement,
             Deferred = deferredUtils.Deferred,
             errors = __webpack_require__( /*! ../core/errors */ 21),
             inkRipple = __webpack_require__( /*! ./widget/utils.ink_ripple */ 68),
             messageLocalization = __webpack_require__( /*! ../localization/message */ 15),
             registerComponent = __webpack_require__( /*! ../core/component_registrator */ 8),
             dataQuery = __webpack_require__( /*! ../data/query */ 41),
-            DropDownList = __webpack_require__( /*! ./drop_down_editor/ui.drop_down_list */ 212);
+            DropDownList = __webpack_require__( /*! ./drop_down_editor/ui.drop_down_list */ 213);
         var DISABLED_STATE_SELECTOR = ".dx-state-disabled",
             SELECTBOX_CLASS = "dx-selectbox",
             SELECTBOX_POPUP_CLASS = "dx-selectbox-popup",
@@ -16125,6 +16274,153 @@
         registerComponent("dxSelectBox", SelectBox);
         module.exports = SelectBox
     },
+    /*!*********************************************************!*\
+      !*** ./artifacts/transpiled/ui/shared/accessibility.js ***!
+      \*********************************************************/
+    /*! dynamic exports provided */
+    /*! all exports used */
+    function(module, exports, __webpack_require__) {
+        var _renderer = __webpack_require__( /*! ../../core/renderer */ 2);
+        var _renderer2 = _interopRequireDefault(_renderer);
+        var _events_engine = __webpack_require__( /*! ../../events/core/events_engine */ 5);
+        var _events_engine2 = _interopRequireDefault(_events_engine);
+        var _utils = __webpack_require__( /*! ../../events/utils */ 9);
+        var _utils2 = _interopRequireDefault(_utils);
+        var _extend = __webpack_require__( /*! ../../core/utils/extend */ 0);
+
+        function _interopRequireDefault(obj) {
+            return obj && obj.__esModule ? obj : {
+                "default": obj
+            }
+        }
+        var FOCUS_STATE_CLASS = "dx-state-focused",
+            FOCUS_DISABLED_CLASS = "dx-cell-focus-disabled",
+            GRID_CELL_SELECTOR = ".dx-datagrid-rowsview .dx-datagrid-content .dx-row > td",
+            TREELIST_CELL_SELECTOR = ".dx-treelist-rowsview .dx-treelist-content .dx-row > td",
+            viewItemSelectorMap = {
+                groupPanel: [".dx-datagrid-group-panel .dx-group-panel-item[tabindex]"],
+                columnHeaders: [".dx-datagrid-headers .dx-header-row > td.dx-datagrid-action", ".dx-treelist-headers .dx-header-row > td.dx-treelist-action"],
+                filterRow: [".dx-datagrid-headers .dx-datagrid-filter-row .dx-editor-cell input", ".dx-treelist-headers .dx-treelist-filter-row .dx-editor-cell input"],
+                rowsView: [GRID_CELL_SELECTOR + "[tabindex]", "" + GRID_CELL_SELECTOR, TREELIST_CELL_SELECTOR + "[tabindex]", "" + TREELIST_CELL_SELECTOR],
+                footer: [".dx-datagrid-total-footer .dx-datagrid-summary-item", ".dx-treelist-total-footer .dx-treelist-summary-item"],
+                filterPanel: [".dx-datagrid-filter-panel .dx-icon-filter", ".dx-treelist-filter-panel .dx-icon-filter"],
+                pager: [".dx-datagrid-pager [tabindex]", ".dx-treelist-pager [tabindex]"]
+            };
+        var isMouseDown = false,
+            isHiddenFocusing = false,
+            focusedElementInfo = null;
+
+        function processKeyDown(viewName, instance, event, action, $mainElement) {
+            var keyName = _utils2.default.normalizeKeyName(event);
+            if ("enter" === keyName || "space" === keyName) {
+                saveFocusedElementInfo(event.target, instance);
+                action && action({
+                    event: event
+                })
+            } else {
+                if ("tab" === keyName) {
+                    $mainElement.addClass(FOCUS_STATE_CLASS)
+                } else {
+                    module.exports.selectView(viewName, instance, event)
+                }
+            }
+        }
+
+        function saveFocusedElementInfo(target, instance) {
+            var $target = (0, _renderer2.default)(target),
+                ariaLabel = $target.attr("aria-label"),
+                $activeElements = getActiveAccessibleElements(ariaLabel, instance.element()),
+                targetIndex = $activeElements.index($target);
+            focusedElementInfo = (0, _extend.extend)({}, {
+                ariaLabel: ariaLabel,
+                index: targetIndex
+            }, {
+                viewInstance: instance
+            })
+        }
+
+        function getActiveAccessibleElements(ariaLabel, viewElement) {
+            var $activeElements, $viewElement = (0, _renderer2.default)(viewElement);
+            if (ariaLabel) {
+                $activeElements = $viewElement.find('[aria-label="' + ariaLabel + '"][tabindex]')
+            } else {
+                $activeElements = $viewElement.find("[tabindex]")
+            }
+            return $activeElements
+        }
+
+        function findFocusedViewElement(viewSelectors) {
+            for (var index in viewSelectors) {
+                var selector = viewSelectors[index],
+                    $focusViewElement = void 0;
+                $focusViewElement = (0, _renderer2.default)(selector).first();
+                if ($focusViewElement.length) {
+                    return $focusViewElement
+                }
+            }
+        }
+        module.exports = {
+            hiddenFocus: function(element) {
+                isHiddenFocusing = true;
+                element.focus();
+                isHiddenFocusing = false
+            },
+            registerKeyboardAction: function(viewName, instance, $element, selector, action) {
+                if (instance.option("useLegacyKeyboardNavigation")) {
+                    return
+                }
+                var $mainElement = (0, _renderer2.default)(instance.element());
+                _events_engine2.default.on($element, "keydown", selector, function(e) {
+                    return processKeyDown(viewName, instance, e, action, $mainElement)
+                });
+                _events_engine2.default.on($element, "mousedown", selector, function() {
+                    isMouseDown = true;
+                    $mainElement.removeClass(FOCUS_STATE_CLASS)
+                });
+                _events_engine2.default.on($element, "focusin", selector, function() {
+                    if (!isMouseDown && !isHiddenFocusing) {
+                        $mainElement.addClass(FOCUS_STATE_CLASS)
+                    }
+                    isMouseDown = false
+                })
+            },
+            restoreFocus: function(instance) {
+                if (!instance.option("useLegacyKeyboardNavigation") && focusedElementInfo) {
+                    var viewInstance = focusedElementInfo.viewInstance;
+                    if (viewInstance) {
+                        var $activeElements = getActiveAccessibleElements(focusedElementInfo.ariaLabel, viewInstance.element()),
+                            $targetElement = $activeElements.eq(focusedElementInfo.index);
+                        focusedElementInfo = null;
+                        _events_engine2.default.trigger($targetElement, "focus")
+                    }
+                }
+            },
+            selectView: function(viewName, instance, event) {
+                var keyName = _utils2.default.normalizeKeyName(event);
+                if (event.ctrlKey && ("upArrow" === keyName || "downArrow" === keyName)) {
+                    var viewNames = Object.keys(viewItemSelectorMap),
+                        viewItemIndex = viewNames.indexOf(viewName);
+                    while (viewItemIndex >= 0 && viewItemIndex < viewNames.length) {
+                        viewItemIndex = "upArrow" === keyName ? --viewItemIndex : ++viewItemIndex;
+                        var _viewName = viewNames[viewItemIndex],
+                            viewSelectors = viewItemSelectorMap[_viewName],
+                            $focusViewElement = findFocusedViewElement(viewSelectors);
+                        if ($focusViewElement && $focusViewElement.length) {
+                            $focusViewElement.attr("tabindex", instance.option("tabindex") || 0);
+                            _events_engine2.default.trigger($focusViewElement, "focus");
+                            $focusViewElement.removeClass(FOCUS_DISABLED_CLASS);
+                            break
+                        }
+                    }
+                }
+            },
+            setTabIndex: function(instance, $element) {
+                if (!instance.option("useLegacyKeyboardnavigation")) {
+                    $element.attr("tabindex", instance.option("tabindex") || 0)
+                }
+            }
+        }
+    },
     /*!*************************************************!*\
       !*** ./artifacts/transpiled/viz/core/export.js ***!
       \*************************************************/
@@ -16138,12 +16434,12 @@
         var _extend = __webpack_require__( /*! ../../core/utils/extend */ 0);
         var _window = __webpack_require__( /*! ../../core/utils/window */ 7);
         var _utils = __webpack_require__( /*! ./utils */ 10);
-        var _exporter = __webpack_require__( /*! ../../exporter */ 168);
+        var _exporter = __webpack_require__( /*! ../../exporter */ 170);
         var _exporter2 = _interopRequireDefault(_exporter);
         var _message = __webpack_require__( /*! ../../localization/message */ 15);
         var _message2 = _interopRequireDefault(_message);
         var _type = __webpack_require__( /*! ../../core/utils/type */ 1);
-        var _themes = __webpack_require__( /*! ../themes */ 49);
+        var _themes = __webpack_require__( /*! ../themes */ 50);
         var _themes2 = _interopRequireDefault(_themes);
         var _hover = __webpack_require__( /*! ../../events/hover */ 146);
         var _hover2 = _interopRequireDefault(_hover);
@@ -16758,14 +17054,28 @@
                         rtl: this._getOption("rtlEnabled", true)
                     })
                 },
+                _disablePointerEvents: function() {
+                    var pointerEventsValue = this._renderer.root.attr("pointer-events");
+                    this._renderer.root.attr({
+                        "pointer-events": "none"
+                    });
+                    return pointerEventsValue
+                },
                 exportTo: function(fileName, format) {
+                    var _this5 = this;
                     var menu = this._exportMenu;
                     var options = getExportOptions(this, this._getOption("export") || {}, fileName, format);
                     menu && menu.hide();
-                    _exporter2.default.export(this._renderer.root.element, options, getCreatorFunc(options.format));
+                    var pointerEventsValue = this._disablePointerEvents();
+                    _exporter2.default.export(this._renderer.root.element, options, getCreatorFunc(options.format)).done(function() {
+                        _this5._renderer.root.attr({
+                            "pointer-events": pointerEventsValue
+                        })
+                    });
                     menu && menu.show()
                 },
                 print: function() {
+                    var _this6 = this;
                     var menu = this._exportMenu;
                     var options = getExportOptions(this, this._getOption("export") || {});
                     options.__test = this._getOption("export").__test;
@@ -16780,8 +17090,13 @@
                         });
                         eventArgs.cancel = true
                     };
+                    var pointerEventsValue = this._disablePointerEvents();
                     menu && menu.hide();
-                    _exporter2.default.export(this._renderer.root.element, options, getCreatorFunc(options.format));
+                    _exporter2.default.export(this._renderer.root.element, options, getCreatorFunc(options.format)).done(function() {
+                        _this6._renderer.root.attr({
+                            "pointer-events": pointerEventsValue
+                        })
+                    });
                     menu && menu.show()
                 }
             },
@@ -17304,18 +17619,18 @@
     /*! all exports used */
     function(module, exports, __webpack_require__) {
         var $ = __webpack_require__( /*! ../../core/renderer */ 2),
-            readyCallbacks = __webpack_require__( /*! ../../core/utils/ready_callbacks */ 50),
+            readyCallbacks = __webpack_require__( /*! ../../core/utils/ready_callbacks */ 48),
             domAdapter = __webpack_require__( /*! ../../core/dom_adapter */ 13),
             eventsEngine = __webpack_require__( /*! ../../events/core/events_engine */ 5),
             dataUtils = __webpack_require__( /*! ../../core/element_data */ 38),
             Class = __webpack_require__( /*! ../../core/class */ 14),
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
-            inArray = __webpack_require__( /*! ../../core/utils/array */ 11).inArray,
+            inArray = __webpack_require__( /*! ../../core/utils/array */ 12).inArray,
             each = __webpack_require__( /*! ../../core/utils/iterator */ 3).each,
             registerEvent = __webpack_require__( /*! ./event_registrator */ 70),
             eventUtils = __webpack_require__( /*! ../utils */ 9),
             pointerEvents = __webpack_require__( /*! ../pointer */ 24),
-            wheelEvent = __webpack_require__( /*! ./wheel */ 110);
+            wheelEvent = __webpack_require__( /*! ./wheel */ 123);
         var MANAGER_EVENT = "dxEventManager",
             EMITTER_DATA = "dxEmitter";
         var EventManager = Class.inherit({
@@ -17542,25 +17857,28 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var noop = __webpack_require__( /*! ../../core/utils/common */ 4).noop,
+        var $ = __webpack_require__( /*! ../../core/renderer */ 2),
+            noop = __webpack_require__( /*! ../../core/utils/common */ 4).noop,
             windowUtils = __webpack_require__( /*! ../../core/utils/window */ 7),
             domAdapter = __webpack_require__( /*! ../../core/dom_adapter */ 13),
             typeUtils = __webpack_require__( /*! ../../core/utils/type */ 1),
             each = __webpack_require__( /*! ../../core/utils/iterator */ 3).each,
-            version = __webpack_require__( /*! ../../core/version */ 156),
-            _windowResizeCallbacks = __webpack_require__( /*! ../../core/utils/resize_callbacks */ 128),
+            version = __webpack_require__( /*! ../../core/version */ 157),
+            _windowResizeCallbacks = __webpack_require__( /*! ../../core/utils/resize_callbacks */ 127),
             _stringFormat = __webpack_require__( /*! ../../core/utils/string */ 44).format,
             _isObject = __webpack_require__( /*! ../../core/utils/type */ 1).isObject,
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
-            themeManagerModule = __webpack_require__( /*! ../core/base_theme_manager */ 234),
+            themeManagerModule = __webpack_require__( /*! ../core/base_theme_manager */ 235),
             _floor = Math.floor,
             DOMComponent = __webpack_require__( /*! ../../core/dom_component */ 66),
             helpers = __webpack_require__( /*! ./helpers */ 140),
             _parseScalar = __webpack_require__( /*! ./utils */ 10).parseScalar,
-            errors = __webpack_require__( /*! ./errors_warnings */ 751),
+            errors = __webpack_require__( /*! ./errors_warnings */ 752),
             _log = errors.log,
-            rendererModule = __webpack_require__( /*! ./renderers/renderer */ 173),
-            _Layout = __webpack_require__( /*! ./layout */ 753),
+            rendererModule = __webpack_require__( /*! ./renderers/renderer */ 174),
+            _Layout = __webpack_require__( /*! ./layout */ 754),
+            devices = __webpack_require__( /*! ../../core/devices */ 16),
+            eventsEngine = __webpack_require__( /*! ../../events/core/events_engine */ 5),
             OPTION_RTL_ENABLED = "rtlEnabled",
             SIZED_ELEMENT_CLASS = "dx-sized-element",
             _option = DOMComponent.prototype.option;
@@ -17676,6 +17994,7 @@
                 linkTarget && linkTarget.enableLinks().virtualLink("core").virtualLink("peripheral");
                 that._renderVisibilityChange();
                 that._attachVisibilityChangeHandlers();
+                that._toggleParentsScrollSubscription(this._isVisible());
                 that._initEventTrigger();
                 that._incidentOccurred = createIncidentOccurred(that.NAME, that._eventTrigger);
                 that._layout = new _Layout;
@@ -17817,12 +18136,30 @@
             _getAnimationOptions: noop,
             render: function() {
                 this._requestChange(["CONTAINER_SIZE"]);
-                this._onRender()
+                var visible = this._isVisible();
+                this._toggleParentsScrollSubscription(visible);
+                !visible && this._stopCurrentHandling()
             },
-            _onRender: noop,
+            _toggleParentsScrollSubscription: function(subscribe) {
+                var $parents = $(this._renderer.root.element).parents(),
+                    scrollEvents = "scroll.viz_widgets";
+                if ("generic" === devices.real().platform) {
+                    $parents = $parents.add(windowUtils.getWindow())
+                }
+                this._proxiedTargetParentsScrollHandler = this._proxiedTargetParentsScrollHandler || function() {
+                    this._stopCurrentHandling()
+                }.bind(this);
+                eventsEngine.off($().add(this._$prevRootParents), scrollEvents, this._proxiedTargetParentsScrollHandler);
+                if (subscribe) {
+                    eventsEngine.on($parents, scrollEvents, this._proxiedTargetParentsScrollHandler);
+                    this._$prevRootParents = $parents
+                }
+            },
+            _stopCurrentHandling: noop,
             _dispose: function() {
                 var that = this;
                 that.callBase.apply(that, arguments);
+                that._toggleParentsScrollSubscription(false);
                 that._removeResizeHandler();
                 that._layout.dispose();
                 that._eventTrigger.dispose();
@@ -18245,7 +18582,7 @@
     function(module, exports, __webpack_require__) {
         var Class = __webpack_require__( /*! ../core/class */ 14),
             extend = __webpack_require__( /*! ../core/utils/extend */ 0).extend,
-            inArray = __webpack_require__( /*! ../core/utils/array */ 11).inArray,
+            inArray = __webpack_require__( /*! ../core/utils/array */ 12).inArray,
             each = __webpack_require__( /*! ../core/utils/iterator */ 3).each,
             EventsMixin = __webpack_require__( /*! ../core/events_mixin */ 82),
             errors = __webpack_require__( /*! ../core/errors */ 21),
@@ -18622,7 +18959,7 @@
             devices = __webpack_require__( /*! ../core/devices */ 16),
             extend = __webpack_require__( /*! ../core/utils/extend */ 0).extend,
             inkRipple = __webpack_require__( /*! ./widget/utils.ink_ripple */ 68),
-            Editor = __webpack_require__( /*! ./editor/editor */ 48),
+            Editor = __webpack_require__( /*! ./editor/editor */ 49),
             registerComponent = __webpack_require__( /*! ../core/component_registrator */ 8),
             eventUtils = __webpack_require__( /*! ../events/utils */ 9),
             clickEvent = __webpack_require__( /*! ../events/click */ 19);
@@ -18858,13 +19195,10 @@
             this._params = params;
             this._group = params.renderer.g().attr({
                 "class": params.cssClass
-            }).linkOn(params.root || params.renderer.root, {
-                name: "title",
-                after: "peripheral"
-            });
+            }).linkOn(params.root || params.renderer.root, "title");
             this._hasText = false
         }
-        extend(Title.prototype, __webpack_require__( /*! ./layout_element */ 235).LayoutElement.prototype, {
+        extend(Title.prototype, __webpack_require__( /*! ./layout_element */ 236).LayoutElement.prototype, {
             dispose: function() {
                 var that = this;
                 that._group.linkRemove();
@@ -18889,13 +19223,15 @@
                         align: that._options.horizontalAlignment
                     };
                 if (!that._titleElement) {
-                    that._titleElement = renderer.text().attr(alignObj).append(group);
-                    that._subtitleElement = renderer.text().attr(alignObj);
+                    that._titleElement = renderer.text().append(group);
+                    that._subtitleElement = renderer.text();
                     that._clipRect = renderer.clipRect();
                     group.attr({
                         "clip-path": that._clipRect.id
                     })
                 }
+                that._titleElement.attr(alignObj);
+                that._subtitleElement.attr(alignObj);
                 group.linkAppend();
                 hasText(that._options.subtitle.text) ? that._subtitleElement.append(group) : that._subtitleElement.remove()
             },
@@ -18954,26 +19290,28 @@
                     options = extend(true, {}, themeOptions, processTitleOptions(userOptions)),
                     _hasText = hasText(options.text),
                     isLayoutChanged = _hasText || _hasText !== that._hasText;
+                that._baseLineCorrection = 0;
+                that._updateOptions(options);
+                that._boundingRect = {};
                 if (_hasText) {
-                    that._updateOptions(options);
                     that._updateStructure();
-                    that._updateTexts();
-                    that._boundingRect = {};
-                    that._updateBoundingRect();
-                    that._updateBoundingRectAlignment()
+                    that._updateTexts()
                 } else {
-                    that._group.linkRemove();
-                    that._boundingRect = null
+                    that._group.linkRemove()
                 }
+                that._updateBoundingRect();
+                that._updateBoundingRectAlignment();
                 that._hasText = _hasText;
                 return isLayoutChanged
             },
             draw: function(width, height) {
                 var that = this;
-                that._group.linkAppend();
-                that._correctTitleLength(width);
-                if (that._group.getBBox().height > height) {
-                    this.freeSpace()
+                if (that._hasText) {
+                    that._group.linkAppend();
+                    that._correctTitleLength(width);
+                    if (that._group.getBBox().height > height) {
+                        this.freeSpace()
+                    }
                 }
                 return that
             },
@@ -18995,40 +19333,45 @@
                     processTitleLength(that._subtitleElement, options.subtitle.text, maxWidth, options.subtitle, placeholderSize);
                     that._shiftSubtitle()
                 }
-                that._updateBoundingRect()
+                that._updateBoundingRect();
+                var _getCorrectedLayoutOp = this.getCorrectedLayoutOptions(),
+                    x = _getCorrectedLayoutOp.x,
+                    y = _getCorrectedLayoutOp.y,
+                    height = _getCorrectedLayoutOp.height;
+                this._clipRect.attr({
+                    x: x,
+                    y: y,
+                    width: width,
+                    height: height
+                })
             },
             getLayoutOptions: function() {
                 return this._boundingRect || null
-            },
-            getTrueSize: function() {
-                return this._group ? this._group.getBBox() : null
             },
             shift: function(x, y) {
                 var that = this,
                     box = that.getLayoutOptions();
                 that._group.move(x - box.x, y - box.y);
-                that._setClipRectSettings();
                 return that
-            },
-            _setClipRectSettings: function() {
-                var bBox = this.getLayoutOptions();
-                this._clipRect.attr({
-                    x: bBox.x,
-                    y: bBox.y,
-                    width: bBox.width,
-                    height: bBox.height
-                })
             },
             _updateBoundingRect: function() {
                 var box, that = this,
                     options = that._options,
                     margin = options.margin,
                     boundingRect = that._boundingRect;
-                box = that._group.getBBox();
-                box.height += margin.top + margin.bottom - that._baseLineCorrection;
-                box.width += margin.left + margin.right;
-                box.x -= margin.left;
-                box.y += that._baseLineCorrection - margin.top;
+                box = that._hasText ? that._group.getBBox() : {
+                    width: 0,
+                    height: 0,
+                    x: 0,
+                    y: 0,
+                    isEmpty: true
+                };
+                if (!box.isEmpty) {
+                    box.height += margin.top + margin.bottom - that._baseLineCorrection;
+                    box.width += margin.left + margin.right;
+                    box.x -= margin.left;
+                    box.y += that._baseLineCorrection - margin.top
+                }
                 if (options.placeholderSize > 0) {
                     box.height = options.placeholderSize
                 }
@@ -19036,6 +19379,14 @@
                 boundingRect.width = box.width;
                 boundingRect.x = box.x;
                 boundingRect.y = box.y
+            },
+            getCorrectedLayoutOptions: function() {
+                var srcBox = this.getLayoutOptions();
+                var correction = this._baseLineCorrection;
+                return extend({}, srcBox, {
+                    y: srcBox.y - correction,
+                    height: srcBox.height + correction
+                })
             },
             layoutOptions: function() {
                 return this._boundingRect && {
@@ -19067,10 +19418,7 @@
             },
             changeLink: function(root) {
                 this._group.linkRemove();
-                this._group.linkOn(root, {
-                    name: "title",
-                    after: "peripheral"
-                })
+                this._group.linkOn(root, "title")
             }
         });
         exports.Title = Title;
@@ -19138,9 +19486,9 @@
             return obj
         }
         var _extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
-            inArray = __webpack_require__( /*! ../../core/utils/array */ 11).inArray,
+            inArray = __webpack_require__( /*! ../../core/utils/array */ 12).inArray,
             _each = __webpack_require__( /*! ../../core/utils/iterator */ 3).each,
-            rangeCalculator = __webpack_require__( /*! ./helpers/range_data_calculator */ 240),
+            rangeCalculator = __webpack_require__( /*! ./helpers/range_data_calculator */ 241),
             typeUtils = __webpack_require__( /*! ../../core/utils/type */ 1),
             vizUtils = __webpack_require__( /*! ../core/utils */ 10),
             _noop = __webpack_require__( /*! ../../core/utils/common */ 4).noop,
@@ -19658,6 +20006,9 @@
                 options.size = pointOptions.visible ? maxSize : 0;
                 options.sizePointNormalState = pointOptions.visible ? 2 * styles.normal.r + styles.normal["stroke-width"] : 2;
                 return options
+            },
+            usePointsToDefineAutoHiding: function() {
+                return true
             }
         };
         exports.chart = _extend({}, baseScatterMethods, {
@@ -19690,43 +20041,35 @@
                 }
                 that._trackersTranslator = that.groupPointsByCoords(rotated)
             },
-            checkSeriesViewportCoord: function(axis, coord) {
-                if (0 === this._points.length) {
-                    return false
-                }
-                var range = axis.isArgumentAxis ? this.getArgumentRange() : this.getViewport();
-                var min = axis.getTranslator().translate(range.categories ? range.categories[0] : range.min);
-                var max = axis.getTranslator().translate(range.categories ? range.categories[range.categories.length - 1] : range.max);
-                var rotated = this.getOptions().rotated;
-                var inverted = axis.getOptions().inverted;
-                return axis.isArgumentAxis && (!rotated && !inverted || rotated && inverted) || !axis.isArgumentAxis && (rotated && !inverted || !rotated && inverted) ? coord >= min && coord <= max : coord >= max && coord <= min
-            },
             checkAxisVisibleAreaCoord: function(isArgument, coord) {
                 var axis = isArgument ? this.getArgumentAxis() : this.getValueAxis();
                 var visibleArea = axis.getVisibleArea();
                 return _isDefined(coord) && visibleArea[0] <= coord && visibleArea[1] >= coord
             },
-            getSeriesPairCoord: function(coord, isArgument) {
-                var that = this;
-                var oppositeCoord = void 0;
-                var nearestPoints = this.getNearestPointsByCoord(coord, isArgument);
-                var needValueCoord = isArgument && !that._options.rotated || !isArgument && that._options.rotated;
-                for (var i = 0; i < nearestPoints.length; i++) {
-                    var p = nearestPoints[i];
-                    var k = (p[1].vy - p[0].vy) / (p[1].vx - p[0].vx);
-                    var b = p[0].vy - p[0].vx * k;
-                    var tmpCoord = void 0;
-                    if (p[1].vx - p[0].vx === 0) {
-                        tmpCoord = needValueCoord ? p[0].vy : p[0].vx
-                    } else {
-                        tmpCoord = needValueCoord ? k * coord + b : (coord - b) / k
-                    }
+            checkSeriesViewportCoord: function(axis, coord) {
+                return true
+            },
+            getShapePairCoord: function(coord, isArgument, getPointClearance) {
+                var oppositeCoord = null;
+                var isOpposite = !isArgument && !this._options.rotated || isArgument && this._options.rotated;
+                var coordName = !isOpposite ? "vx" : "vy";
+                var oppositeCoordName = !isOpposite ? "vy" : "vx";
+                var points = this.getVisiblePoints();
+                for (var i = 0; i < points.length; i++) {
+                    var p = points[i];
+                    var tmpCoord = Math.abs(p[coordName] - coord) <= getPointClearance(p) ? p[oppositeCoordName] : void 0;
                     if (this.checkAxisVisibleAreaCoord(!isArgument, tmpCoord)) {
                         oppositeCoord = tmpCoord;
                         break
                     }
                 }
                 return oppositeCoord
+            },
+            getSeriesPairCoord: function(coord, isArgument) {
+                var _this = this;
+                return this.getShapePairCoord(coord, isArgument, function() {
+                    return _this._options.point.size / 2
+                })
             },
             getNearestPointsByCoord: function(coord, isArgument) {
                 var that = this;
@@ -19842,10 +20185,10 @@
     function(module, exports, __webpack_require__) {
         var domAdapter = __webpack_require__( /*! ../../core/dom_adapter */ 13),
             windowUtils = __webpack_require__( /*! ../../core/utils/window */ 7),
-            inflector = __webpack_require__( /*! ../../core/utils/inflector */ 31),
+            inflector = __webpack_require__( /*! ../../core/utils/inflector */ 32),
             window = windowUtils.getWindow(),
             $ = __webpack_require__( /*! ../../core/renderer */ 2),
-            rendererModule = __webpack_require__( /*! ./renderers/renderer */ 173),
+            rendererModule = __webpack_require__( /*! ./renderers/renderer */ 174),
             typeUtils = __webpack_require__( /*! ../../core/utils/type */ 1),
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
             HALF_ARROW_WIDTH = 10,
@@ -20291,19 +20634,16 @@
                     this._tooltip.dispose();
                     this._tooltip = null
                 },
-                _hideTooltip: function() {
-                    this._tooltip.hide()
-                },
-                _onRender: function() {
-                    if (!this._$element.is(":visible")) {
-                        this._hideTooltip()
-                    }
-                },
                 _setTooltipRendererOptions: function() {
                     this._tooltip.setRendererOptions(this._getRendererOptions())
                 },
                 _setTooltipOptions: function() {
                     this._tooltip.update(this._getOption("tooltip"))
+                }
+            },
+            extenders: {
+                _stopCurrentHandling: function() {
+                    this._tooltip && this._tooltip.hide()
                 }
             },
             customize: function(constructor) {
@@ -21083,79 +21423,6 @@
             interpretJsonFormat: interpretJsonFormat
         }
     },
-    /*!********************************************************!*\
-      !*** ./artifacts/transpiled/core/polyfills/promise.js ***!
-      \********************************************************/
-    /*! dynamic exports provided */
-    /*! all exports used */
-    function(module, exports, __webpack_require__) {
-        var deferredUtils = __webpack_require__( /*! ../../core/utils/deferred */ 6),
-            windowUtils = __webpack_require__( /*! ../../core/utils/window */ 7),
-            Deferred = deferredUtils.Deferred,
-            when = deferredUtils.when,
-            promise = windowUtils.hasWindow() ? windowUtils.getWindow().Promise : Promise;
-        if (!promise) {
-            promise = function(resolver) {
-                var d = new Deferred;
-                resolver(d.resolve.bind(this), d.reject.bind(this));
-                return d.promise()
-            };
-            promise.resolve = function(val) {
-                return (new Deferred).resolve(val).promise()
-            };
-            promise.reject = function(val) {
-                return (new Deferred).reject(val).promise()
-            };
-            promise.all = function(promises) {
-                return when.apply(this, promises).then(function() {
-                    return [].slice.call(arguments)
-                })
-            }
-        }
-        module.exports = promise
-    },
-    /*!***************************************************!*\
-      !*** ./artifacts/transpiled/events/core/wheel.js ***!
-      \***************************************************/
-    /*! dynamic exports provided */
-    /*! all exports used */
-    function(module, exports, __webpack_require__) {
-        var $ = __webpack_require__( /*! ../../core/renderer */ 2),
-            eventsEngine = __webpack_require__( /*! ../../events/core/events_engine */ 5),
-            domAdapter = __webpack_require__( /*! ../../core/dom_adapter */ 13),
-            callOnce = __webpack_require__( /*! ../../core/utils/call_once */ 72),
-            registerEvent = __webpack_require__( /*! ./event_registrator */ 70),
-            eventUtils = __webpack_require__( /*! ../utils */ 9);
-        var EVENT_NAME = "dxmousewheel",
-            EVENT_NAMESPACE = "dxWheel";
-        var getWheelEventName = callOnce(function() {
-            return domAdapter.hasDocumentProperty("onwheel") ? "wheel" : "mousewheel"
-        });
-        var wheel = {
-            setup: function(element) {
-                var $element = $(element);
-                eventsEngine.on($element, eventUtils.addNamespace(getWheelEventName(), EVENT_NAMESPACE), wheel._wheelHandler.bind(wheel))
-            },
-            teardown: function(element) {
-                eventsEngine.off(element, "." + EVENT_NAMESPACE)
-            },
-            _wheelHandler: function(e) {
-                var delta = this._getWheelDelta(e.originalEvent);
-                eventUtils.fireEvent({
-                    type: EVENT_NAME,
-                    originalEvent: e,
-                    delta: delta,
-                    pointerType: "mouse"
-                });
-                e.stopPropagation()
-            },
-            _getWheelDelta: function(event) {
-                return event.wheelDelta ? event.wheelDelta : 30 * -event.deltaY
-            }
-        };
-        registerEvent(EVENT_NAME, wheel);
-        exports.name = EVENT_NAME
-    },
     /*!*********************************************!*\
       !*** ./artifacts/transpiled/core/action.js ***!
       \*********************************************/
@@ -21368,19 +21635,6 @@
             cancel.apply(window, arguments)
         }
     },
-    /*!******************************************************************!*\
-      !*** ./artifacts/transpiled/ui/widget/child_default_template.js ***!
-      \******************************************************************/
-    /*! dynamic exports provided */
-    /*! all exports used */
-    function(module, exports, __webpack_require__) {
-        var TemplateBase = __webpack_require__( /*! ./ui.template_base */ 73);
-        module.exports = TemplateBase.inherit({
-            ctor: function(name) {
-                this.name = name
-            }
-        })
-    },
     /*!***********************************************!*\
       !*** ./artifacts/transpiled/ui/number_box.js ***!
       \***********************************************/
@@ -21404,7 +21658,7 @@
             dateSerialization = __webpack_require__( /*! ../../core/utils/date_serialization */ 53),
             isDate = __webpack_require__( /*! ../../core/utils/type */ 1).isDate,
             each = __webpack_require__( /*! ../../core/utils/iterator */ 3).each,
-            dateLocalization = __webpack_require__( /*! ../../localization/date */ 32);
+            dateLocalization = __webpack_require__( /*! ../../localization/date */ 33);
         var dateComponents = function() {
             return ["year", "day", "month", "day"]
         };
@@ -21626,116 +21880,6 @@
         };
         module.exports = dateUtils
     },
-    /*!*********************************************************!*\
-      !*** ./artifacts/transpiled/ui/shared/accessibility.js ***!
-      \*********************************************************/
-    /*! dynamic exports provided */
-    /*! all exports used */
-    function(module, exports, __webpack_require__) {
-        var _renderer = __webpack_require__( /*! ../../core/renderer */ 2);
-        var _renderer2 = _interopRequireDefault(_renderer);
-        var _events_engine = __webpack_require__( /*! ../../events/core/events_engine */ 5);
-        var _events_engine2 = _interopRequireDefault(_events_engine);
-        var _utils = __webpack_require__( /*! ../../events/utils */ 9);
-        var _utils2 = _interopRequireDefault(_utils);
-
-        function _interopRequireDefault(obj) {
-            return obj && obj.__esModule ? obj : {
-                "default": obj
-            }
-        }
-        var FOCUS_STATE_CLASS = "dx-state-focused",
-            FOCUS_DISABLED_CLASS = "dx-cell-focus-disabled",
-            GRID_CELL_SELECTOR = ".dx-datagrid-rowsview .dx-datagrid-content .dx-row > td",
-            TREELIST_CELL_SELECTOR = ".dx-treelist-rowsview .dx-treelist-content .dx-row > td",
-            viewItemSelectorMap = {
-                groupPanel: [".dx-datagrid-group-panel .dx-group-panel-item[tabindex]"],
-                columnHeaders: [".dx-datagrid-headers .dx-header-row > td.dx-datagrid-action", ".dx-treelist-headers .dx-header-row > td.dx-treelist-action"],
-                filterRow: [".dx-datagrid-headers .dx-datagrid-filter-row .dx-editor-cell input", ".dx-treelist-headers .dx-treelist-filter-row .dx-editor-cell input"],
-                rowsView: [GRID_CELL_SELECTOR + "[tabindex]", "" + GRID_CELL_SELECTOR, TREELIST_CELL_SELECTOR + "[tabindex]", "" + TREELIST_CELL_SELECTOR],
-                footer: [".dx-datagrid-total-footer .dx-datagrid-summary-item", ".dx-treelist-total-footer .dx-treelist-summary-item"],
-                filterPanel: [".dx-datagrid-filter-panel .dx-icon-filter", ".dx-treelist-filter-panel .dx-icon-filter"],
-                pager: [".dx-datagrid-pager [tabindex]", ".dx-treelist-pager [tabindex]"]
-            };
-        var isMouseDown = false,
-            isHiddenFocusing = false;
-
-        function processKeyDown(viewName, instance, event, action, $mainElement) {
-            var keyName = _utils2.default.normalizeKeyName(event);
-            if ("enter" === keyName || "space" === keyName) {
-                action && action({
-                    event: event
-                })
-            } else {
-                if ("tab" === keyName) {
-                    $mainElement.addClass(FOCUS_STATE_CLASS)
-                } else {
-                    module.exports.selectView(viewName, instance, event)
-                }
-            }
-        }
-
-        function findFocusedViewElement(viewSelectors) {
-            for (var index in viewSelectors) {
-                var selector = viewSelectors[index],
-                    $focusViewElement = void 0;
-                $focusViewElement = (0, _renderer2.default)(selector).first();
-                if ($focusViewElement.length) {
-                    return $focusViewElement
-                }
-            }
-        }
-        module.exports = {
-            hiddenFocus: function(element) {
-                isHiddenFocusing = true;
-                element.focus();
-                isHiddenFocusing = false
-            },
-            registerKeyboardAction: function(viewName, instance, $element, selector, action) {
-                if (instance.option("useLegacyKeyboardNavigation")) {
-                    return
-                }
-                var $mainElement = (0, _renderer2.default)(instance.element());
-                _events_engine2.default.on($element, "keydown", selector, function(e) {
-                    return processKeyDown(viewName, instance, e, action, $mainElement)
-                });
-                _events_engine2.default.on($element, "mousedown", selector, function() {
-                    isMouseDown = true;
-                    $mainElement.removeClass(FOCUS_STATE_CLASS)
-                });
-                _events_engine2.default.on($element, "focusin", selector, function() {
-                    if (!isMouseDown && !isHiddenFocusing) {
-                        $mainElement.addClass(FOCUS_STATE_CLASS)
-                    }
-                    isMouseDown = false
-                })
-            },
-            selectView: function(viewName, instance, event) {
-                var keyName = _utils2.default.normalizeKeyName(event);
-                if (event.ctrlKey && ("upArrow" === keyName || "downArrow" === keyName)) {
-                    var viewNames = Object.keys(viewItemSelectorMap),
-                        viewItemIndex = viewNames.indexOf(viewName);
-                    while (viewItemIndex >= 0 && viewItemIndex < viewNames.length) {
-                        viewItemIndex = "upArrow" === keyName ? --viewItemIndex : ++viewItemIndex;
-                        var _viewName = viewNames[viewItemIndex],
-                            viewSelectors = viewItemSelectorMap[_viewName],
-                            $focusViewElement = findFocusedViewElement(viewSelectors);
-                        if ($focusViewElement && $focusViewElement.length) {
-                            $focusViewElement.attr("tabindex", instance.option("tabindex") || 0);
-                            _events_engine2.default.trigger($focusViewElement, "focus");
-                            $focusViewElement.removeClass(FOCUS_DISABLED_CLASS);
-                            break
-                        }
-                    }
-                }
-            },
-            setTabIndex: function(instance, $element) {
-                if (!instance.option("useLegacyKeyboardnavigation")) {
-                    $element.attr("tabindex", instance.option("tabindex") || 0)
-                }
-            }
-        }
-    },
     /*!***************************************************************************!*\
       !*** ./artifacts/transpiled/ui/scheduler/ui.scheduler.publisher_mixin.js ***!
       \***************************************************************************/
@@ -21809,7 +21953,7 @@
             noop = __webpack_require__( /*! ../../../core/utils/common */ 4).noop,
             windowUtils = __webpack_require__( /*! ../../../core/utils/window */ 7),
             window = windowUtils.getWindow(),
-            labelModule = __webpack_require__( /*! ./label */ 239),
+            labelModule = __webpack_require__( /*! ./label */ 240),
             _extend = extend,
             _isDefined = __webpack_require__( /*! ../../../core/utils/type */ 1).isDefined,
             _normalizeEnum = __webpack_require__( /*! ../../core/utils */ 10).normalizeEnum,
@@ -22560,7 +22704,7 @@
                     });
                     that._skipLoadingIndicatorOptions = false;
                     if (state) {
-                        that._hideTooltip && that._hideTooltip()
+                        that._stopCurrentHandling()
                     }
                 }
             },
@@ -22752,7 +22896,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var MemorizedCallbacks = __webpack_require__( /*! ../../core/memorized_callbacks */ 175);
+        var MemorizedCallbacks = __webpack_require__( /*! ../../core/memorized_callbacks */ 176);
         module.exports = new MemorizedCallbacks
     },
     /*!*****************************************************!*\
@@ -22842,6 +22986,48 @@
         });
         module.exports = Emitter
     },
+    /*!***************************************************!*\
+      !*** ./artifacts/transpiled/events/core/wheel.js ***!
+      \***************************************************/
+    /*! dynamic exports provided */
+    /*! all exports used */
+    function(module, exports, __webpack_require__) {
+        var $ = __webpack_require__( /*! ../../core/renderer */ 2),
+            eventsEngine = __webpack_require__( /*! ../../events/core/events_engine */ 5),
+            domAdapter = __webpack_require__( /*! ../../core/dom_adapter */ 13),
+            callOnce = __webpack_require__( /*! ../../core/utils/call_once */ 72),
+            registerEvent = __webpack_require__( /*! ./event_registrator */ 70),
+            eventUtils = __webpack_require__( /*! ../utils */ 9);
+        var EVENT_NAME = "dxmousewheel",
+            EVENT_NAMESPACE = "dxWheel";
+        var getWheelEventName = callOnce(function() {
+            return domAdapter.hasDocumentProperty("onwheel") ? "wheel" : "mousewheel"
+        });
+        var wheel = {
+            setup: function(element) {
+                var $element = $(element);
+                eventsEngine.on($element, eventUtils.addNamespace(getWheelEventName(), EVENT_NAMESPACE), wheel._wheelHandler.bind(wheel))
+            },
+            teardown: function(element) {
+                eventsEngine.off(element, "." + EVENT_NAMESPACE)
+            },
+            _wheelHandler: function(e) {
+                var delta = this._getWheelDelta(e.originalEvent);
+                eventUtils.fireEvent({
+                    type: EVENT_NAME,
+                    originalEvent: e,
+                    delta: delta,
+                    pointerType: "mouse"
+                });
+                e.stopPropagation()
+            },
+            _getWheelDelta: function(event) {
+                return event.wheelDelta ? event.wheelDelta : 30 * -event.deltaY
+            }
+        };
+        registerEvent(EVENT_NAME, wheel);
+        exports.name = EVENT_NAME
+    },
     /*!**************************************************************!*\
       !*** ./artifacts/transpiled/events/core/emitter.feedback.js ***!
       \**************************************************************/
@@ -22850,12 +23036,12 @@
     function(module, exports, __webpack_require__) {
         var Class = __webpack_require__( /*! ../../core/class */ 14),
             commonUtils = __webpack_require__( /*! ../../core/utils/common */ 4),
-            contains = __webpack_require__( /*! ../../core/utils/dom */ 12).contains,
+            contains = __webpack_require__( /*! ../../core/utils/dom */ 11).contains,
             devices = __webpack_require__( /*! ../../core/devices */ 16),
             eventUtils = __webpack_require__( /*! ../utils */ 9),
             pointerEvents = __webpack_require__( /*! ../pointer */ 24),
-            Emitter = __webpack_require__( /*! ./emitter */ 124),
-            registerEmitter = __webpack_require__( /*! ./emitter_registrator */ 94);
+            Emitter = __webpack_require__( /*! ./emitter */ 122),
+            registerEmitter = __webpack_require__( /*! ./emitter_registrator */ 96);
         var ACTIVE_EVENT_NAME = "dxactive",
             INACTIVE_EVENT_NAME = "dxinactive",
             ACTIVE_TIMEOUT = 30,
@@ -22988,7 +23174,7 @@
     /*! all exports used */
     function(module, exports, __webpack_require__) {
         var Globalize = __webpack_require__( /*! globalize */ 71),
-            coreLocalization = __webpack_require__( /*! ../core */ 86);
+            coreLocalization = __webpack_require__( /*! ../core */ 87);
         if (Globalize && Globalize.load) {
             var likelySubtags = {
                 supplemental: {
@@ -23028,7 +23214,7 @@
         var extend = __webpack_require__( /*! ./extend */ 0).extend,
             consoleUtils = __webpack_require__( /*! ./console */ 81),
             stringUtils = __webpack_require__( /*! ./string */ 44),
-            version = __webpack_require__( /*! ../version */ 156);
+            version = __webpack_require__( /*! ../version */ 157);
         var ERROR_URL = "http://js.devexpress.com/error/" + version.split(".").slice(0, 2).join("_") + "/";
         module.exports = function(baseErrors, errors) {
             var exports = {
@@ -23088,7 +23274,7 @@
         var windowUtils = __webpack_require__( /*! ./window */ 7),
             domAdapter = __webpack_require__( /*! ../dom_adapter */ 13),
             Callbacks = __webpack_require__( /*! ./callbacks */ 25),
-            readyCallbacks = __webpack_require__( /*! ./ready_callbacks */ 50),
+            readyCallbacks = __webpack_require__( /*! ./ready_callbacks */ 48),
             callOnce = __webpack_require__( /*! ./call_once */ 72);
         var resizeCallbacks = function() {
             var prevSize, callbacks = Callbacks(),
@@ -23153,9 +23339,9 @@
     function(module, exports, __webpack_require__) {
         var dataUtils = __webpack_require__( /*! ../../core/element_data */ 38),
             eventsEngine = __webpack_require__( /*! ../../events/core/events_engine */ 5),
-            WeakMap = __webpack_require__( /*! ../polyfills/weak_map */ 174),
+            WeakMap = __webpack_require__( /*! ../polyfills/weak_map */ 175),
             isDefined = __webpack_require__( /*! ./type */ 1).isDefined,
-            removeEvent = __webpack_require__( /*! ../remove_event */ 130);
+            removeEvent = __webpack_require__( /*! ../remove_event */ 129);
         var COMPONENT_NAMES_DATA_KEY = "dxComponents",
             ANONYMOUS_COMPONENT_DATA_KEY = "dxPrivateComponent";
         var componentNames = new WeakMap,
@@ -23285,7 +23471,7 @@
             when = deferredUtils.when,
             Callbacks = __webpack_require__( /*! ./utils/callbacks */ 25),
             EventsMixin = __webpack_require__( /*! ./events_mixin */ 82),
-            publicComponentUtils = __webpack_require__( /*! ./utils/public_component */ 129),
+            publicComponentUtils = __webpack_require__( /*! ./utils/public_component */ 128),
             devices = __webpack_require__( /*! ./devices */ 16),
             isFunction = typeUtils.isFunction,
             noop = commonUtils.noop;
@@ -23785,6 +23971,19 @@
         }).include(EventsMixin);
         module.exports = Component;
         module.exports.PostponedOperations = PostponedOperations
+    },
+    /*!******************************************************************!*\
+      !*** ./artifacts/transpiled/ui/widget/child_default_template.js ***!
+      \******************************************************************/
+    /*! dynamic exports provided */
+    /*! all exports used */
+    function(module, exports, __webpack_require__) {
+        var TemplateBase = __webpack_require__( /*! ./ui.template_base */ 73);
+        module.exports = TemplateBase.inherit({
+            ctor: function(name) {
+                this.name = name
+            }
+        })
     },
     /*!**************************************************!*\
       !*** ./artifacts/transpiled/data/array_utils.js ***!
@@ -24703,7 +24902,7 @@
             eventsEngine = __webpack_require__( /*! ../../events/core/events_engine */ 5),
             noop = __webpack_require__( /*! ../../core/utils/common */ 4).noop,
             Class = __webpack_require__( /*! ../../core/class */ 14),
-            swipeEvents = __webpack_require__( /*! ../../events/swipe */ 172),
+            swipeEvents = __webpack_require__( /*! ../../events/swipe */ 173),
             eventUtils = __webpack_require__( /*! ../../events/utils */ 9);
         var LIST_EDIT_DECORATOR = "dxListEditDecorator",
             SWIPE_START_EVENT_NAME = eventUtils.addNamespace(swipeEvents.start, LIST_EDIT_DECORATOR),
@@ -24802,7 +25001,7 @@
         var errors = __webpack_require__( /*! ../../core/errors */ 21),
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
             each = __webpack_require__( /*! ../../core/utils/iterator */ 3).each,
-            inArray = __webpack_require__( /*! ../../core/utils/array */ 11).inArray,
+            inArray = __webpack_require__( /*! ../../core/utils/array */ 12).inArray,
             dateUtils = __webpack_require__( /*! ../../core/utils/date */ 22);
         var toMs = dateUtils.dateToMilliseconds;
         var leastDaysInWeek = 4;
@@ -24843,12 +25042,12 @@
                     correctDate(date, value)
                 }
             },
-            byday: function(date, byDay, weekStart, frequency) {
+            byday: function(date, byDay, appointmentWeekStart, frequency, firstDayOfWeek) {
                 var dayOfWeek = byDay;
-                if (("DAILY" === frequency || "WEEKLY" === frequency) && 0 === byDay) {
+                if (("DAILY" === frequency || "WEEKLY" === frequency) && (firstDayOfWeek && byDay >= firstDayOfWeek || !firstDayOfWeek && 0 === byDay)) {
                     dayOfWeek = 7
                 }
-                byDay += days[weekStart] > dayOfWeek ? 7 : 0;
+                byDay += days[appointmentWeekStart] > dayOfWeek ? 7 : 0;
                 date.setDate(date.getDate() - date.getDay() + byDay)
             },
             byweekno: function(date, weekNumber, weekStart) {
@@ -24929,6 +25128,15 @@
                 TH: 4,
                 FR: 5,
                 SA: 6
+            },
+            daysNames = {
+                0: "SU",
+                1: "MO",
+                2: "TU",
+                3: "WE",
+                4: "TH",
+                5: "FR",
+                6: "SA"
             };
         var getTimeZoneOffset = function() {
             return (new Date).getTimezoneOffset()
@@ -25006,7 +25214,7 @@
                 return result
             }
             rule.interval = normalizeInterval(rule);
-            dateRules = splitDateRules(rule);
+            dateRules = splitDateRules(rule, options.firstDayOfWeek);
             var duration = options.end ? options.end.getTime() - options.start.getTime() : toMs("day");
             var config = {
                 exception: options.exception,
@@ -25279,9 +25487,17 @@
             return date.getFullYear() + ("0" + (date.getMonth() + 1)).slice(-2) + ("0" + date.getDate()).slice(-2) + "T" + ("0" + date.getHours()).slice(-2) + ("0" + date.getMinutes()).slice(-2) + ("0" + date.getSeconds()).slice(-2) + "Z"
         };
         var splitDateRules = function(rule) {
+            var firstDayOfWeek = arguments.length > 1 && void 0 !== arguments[1] ? arguments[1] : null;
             var result = [];
+            if (firstDayOfWeek) {
+                rule.fdow = firstDayOfWeek
+            }
             if (!rule.wkst) {
-                rule.wkst = "MO"
+                if (firstDayOfWeek) {
+                    rule.wkst = daysNames[firstDayOfWeek]
+                } else {
+                    rule.wkst = "MO"
+                }
             }
             if (rule.byweekno && !rule.byday) {
                 var dayNames = Object.keys(days);
@@ -25334,7 +25550,7 @@
                 var current = dateRules[i],
                     updatedDate = new Date(startDate);
                 for (var field in current) {
-                    dateSetterMap[field] && dateSetterMap[field](updatedDate, current[field], rule.wkst, rule.freq)
+                    dateSetterMap[field] && dateSetterMap[field](updatedDate, current[field], rule.wkst, rule.freq, rule.fdow)
                 }
                 if (Array.isArray(updatedDate)) {
                     result = result.concat(updatedDate)
@@ -25495,19 +25711,21 @@
         }
 
         function createChainExecutor() {
-            var chain = [];
-            executeChain.add = function(item) {
-                chain.push(item)
-            };
-            return executeChain;
-
-            function executeChain() {
-                var i, result, ii = chain.length;
+            var executeChain = function executeChain() {
+                var i, result, ii = executeChain._chain.length;
                 for (i = 0; i < ii; ++i) {
-                    result = chain[i].apply(this, arguments)
+                    result = executeChain._chain[i].apply(this, arguments)
                 }
                 return result
-            }
+            };
+            executeChain._chain = [];
+            executeChain.add = function(item) {
+                executeChain._chain.push(item)
+            };
+            executeChain.copy = function(executor) {
+                executeChain._chain = executor._chain.slice()
+            };
+            return executeChain
         }
 
         function expand(target, name, expander) {
@@ -25515,11 +25733,15 @@
             if (!current) {
                 current = expander
             } else {
-                if (current.add) {
-                    current.add(expander)
-                } else {
+                if (!current.add) {
                     current = createChainExecutor();
                     current.add(target[name]);
+                    current.add(expander)
+                } else {
+                    if (false === target.hasOwnProperty(name)) {
+                        current = createChainExecutor();
+                        current.copy(target[name])
+                    }
                     current.add(expander)
                 }
             }
@@ -25604,8 +25826,8 @@
     function(module, exports, __webpack_require__) {
         var extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
             each = __webpack_require__( /*! ../../core/utils/iterator */ 3).each,
-            scatterSeries = __webpack_require__( /*! ./scatter_series */ 104),
-            areaSeries = __webpack_require__( /*! ./area_series */ 163).chart.area,
+            scatterSeries = __webpack_require__( /*! ./scatter_series */ 106),
+            areaSeries = __webpack_require__( /*! ./area_series */ 165).chart.area,
             chartSeries = scatterSeries.chart,
             polarSeries = scatterSeries.polar,
             _extend = extend,
@@ -25694,7 +25916,10 @@
                 return options
             },
             _defaultAggregator: "sum",
-            _defineDrawingState: function() {}
+            _defineDrawingState: function() {},
+            usePointsToDefineAutoHiding: function() {
+                return false
+            }
         };
         exports.chart.bar = _extend({}, chartSeries, baseBarSeriesMethods, {
             _getAffineCoordOptions: function() {
@@ -25739,7 +25964,7 @@
                 return axis.isArgumentAxis && (!rotated && !inverted || rotated && inverted) || !axis.isArgumentAxis && (rotated && !inverted || !rotated && inverted) ? coord >= min && coord <= max : coord >= max && coord <= min
             },
             getSeriesPairCoord: function(coord, isArgument) {
-                var oppositeCoord = void 0;
+                var oppositeCoord = null;
                 var isOpposite = !isArgument && !this._options.rotated || isArgument && this._options.rotated;
                 var coordName = !isOpposite ? "vx" : "vy";
                 var minCoordName = !this._options.rotated ? "minY" : "minX";
@@ -25796,7 +26021,7 @@
     /*! all exports used */
     function(module, exports, __webpack_require__) {
         var name, noop = __webpack_require__( /*! ../../core/utils/common */ 4).noop,
-            DataHelperMixin = __webpack_require__( /*! ../../data_helper */ 84),
+            DataHelperMixin = __webpack_require__( /*! ../../data_helper */ 85),
             postCtor = DataHelperMixin.postCtor,
             members = {
                 _dataSourceLoadErrorHandler: function() {
@@ -25846,9 +26071,9 @@
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
             translator1DModule = __webpack_require__( /*! ../translators/translator1d */ 402),
             _extend = extend,
-            BaseWidget = __webpack_require__( /*! ../core/base_widget */ 95),
-            themeManagerModule = __webpack_require__( /*! ./theme_manager */ 782),
-            Tracker = __webpack_require__( /*! ./tracker */ 783);
+            BaseWidget = __webpack_require__( /*! ../core/base_widget */ 97),
+            themeManagerModule = __webpack_require__( /*! ./theme_manager */ 783),
+            Tracker = __webpack_require__( /*! ./tracker */ 784);
         var dxBaseGauge = BaseWidget.inherit({
             _rootClassPrefix: "dxg",
             _themeSection: "gauge",
@@ -26061,10 +26286,10 @@
             }
             return true
         }
-        dxBaseGauge.addPlugin(__webpack_require__( /*! ../core/export */ 92).plugin);
-        dxBaseGauge.addPlugin(__webpack_require__( /*! ../core/title */ 103).plugin);
-        dxBaseGauge.addPlugin(__webpack_require__( /*! ../core/tooltip */ 105).plugin);
-        dxBaseGauge.addPlugin(__webpack_require__( /*! ../core/loading_indicator */ 120).plugin);
+        dxBaseGauge.addPlugin(__webpack_require__( /*! ../core/export */ 94).plugin);
+        dxBaseGauge.addPlugin(__webpack_require__( /*! ../core/title */ 105).plugin);
+        dxBaseGauge.addPlugin(__webpack_require__( /*! ../core/tooltip */ 107).plugin);
+        dxBaseGauge.addPlugin(__webpack_require__( /*! ../core/loading_indicator */ 118).plugin);
         var _setTooltipOptions = dxBaseGauge.prototype._setTooltipOptions;
         dxBaseGauge.prototype._setTooltipOptions = function() {
             _setTooltipOptions.apply(this, arguments);
@@ -26078,7 +26303,7 @@
     /*! all exports used */
     function(module, exports, __webpack_require__) {
         var proto = __webpack_require__( /*! ./tree_map.base */ 69).prototype,
-            nodeProto = __webpack_require__( /*! ./node */ 164).prototype,
+            nodeProto = __webpack_require__( /*! ./node */ 166).prototype,
             _extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend;
         proto._eventsMap.onNodesInitialized = {
             name: "nodesInitialized"
@@ -26267,15 +26492,15 @@
             throw errors.Error("E0024")
         }
         DevExpress._DEVEXTREME_BUNDLE_INITIALIZED = true;
-        DevExpress.clientExporter = __webpack_require__( /*! ../../exporter */ 168);
+        DevExpress.clientExporter = __webpack_require__( /*! ../../exporter */ 170);
         DevExpress.excelExporter = __webpack_require__( /*! ../../exporter/exceljs/excelExporter */ 431);
-        DevExpress.VERSION = __webpack_require__( /*! ../../core/version */ 156);
+        DevExpress.VERSION = __webpack_require__( /*! ../../core/version */ 157);
         DevExpress.Class = __webpack_require__( /*! ../../core/class */ 14);
         DevExpress.DOMComponent = __webpack_require__( /*! ../../core/dom_component */ 66);
-        DevExpress.Component = __webpack_require__( /*! ../../core/component */ 131);
+        DevExpress.Component = __webpack_require__( /*! ../../core/component */ 130);
         DevExpress.registerComponent = __webpack_require__( /*! ../../core/component_registrator */ 8);
         DevExpress.devices = __webpack_require__( /*! ../../core/devices */ 16);
-        DevExpress.Color = __webpack_require__( /*! ../../color */ 93);
+        DevExpress.Color = __webpack_require__( /*! ../../color */ 95);
         var animationFrame = __webpack_require__( /*! ../../animation/frame */ 112);
         DevExpress.EventsMixin = __webpack_require__( /*! ../../core/events_mixin */ 82);
         DevExpress.utils = {};
@@ -26283,35 +26508,35 @@
         DevExpress.utils.cancelAnimationFrame = animationFrame.cancelAnimationFrame;
         DevExpress.utils.initMobileViewport = __webpack_require__( /*! ../../mobile/init_mobile_viewport/init_mobile_viewport */ 434).initMobileViewport;
         DevExpress.utils.extendFromObject = __webpack_require__( /*! ../../core/utils/extend */ 0).extendFromObject;
-        DevExpress.utils.createComponents = __webpack_require__( /*! ../../core/utils/dom */ 12).createComponents;
-        DevExpress.utils.triggerShownEvent = __webpack_require__( /*! ../../core/utils/dom */ 12).triggerShownEvent;
-        DevExpress.utils.triggerHidingEvent = __webpack_require__( /*! ../../core/utils/dom */ 12).triggerHidingEvent;
-        DevExpress.utils.resetActiveElement = __webpack_require__( /*! ../../core/utils/dom */ 12).resetActiveElement;
+        DevExpress.utils.createComponents = __webpack_require__( /*! ../../core/utils/dom */ 11).createComponents;
+        DevExpress.utils.triggerShownEvent = __webpack_require__( /*! ../../core/utils/dom */ 11).triggerShownEvent;
+        DevExpress.utils.triggerHidingEvent = __webpack_require__( /*! ../../core/utils/dom */ 11).triggerHidingEvent;
+        DevExpress.utils.resetActiveElement = __webpack_require__( /*! ../../core/utils/dom */ 11).resetActiveElement;
         DevExpress.utils.findBestMatches = __webpack_require__( /*! ../../core/utils/common */ 4).findBestMatches;
-        DevExpress.createQueue = __webpack_require__( /*! ../../core/utils/queue */ 257).create;
-        DevExpress.utils.dom = __webpack_require__( /*! ../../core/utils/dom */ 12);
+        DevExpress.createQueue = __webpack_require__( /*! ../../core/utils/queue */ 258).create;
+        DevExpress.utils.dom = __webpack_require__( /*! ../../core/utils/dom */ 11);
         DevExpress.utils.common = __webpack_require__( /*! ../../core/utils/common */ 4);
         DevExpress.utils.date = __webpack_require__( /*! ../../core/utils/date */ 22);
-        DevExpress.utils.browser = __webpack_require__( /*! ../../core/utils/browser */ 33);
-        DevExpress.utils.inflector = __webpack_require__( /*! ../../core/utils/inflector */ 31);
+        DevExpress.utils.browser = __webpack_require__( /*! ../../core/utils/browser */ 31);
+        DevExpress.utils.inflector = __webpack_require__( /*! ../../core/utils/inflector */ 32);
         DevExpress.utils.iterator = __webpack_require__( /*! ../../core/utils/iterator */ 3);
-        DevExpress.utils.readyCallbacks = __webpack_require__( /*! ../../core/utils/ready_callbacks */ 50);
-        DevExpress.utils.resizeCallbacks = __webpack_require__( /*! ../../core/utils/resize_callbacks */ 128);
+        DevExpress.utils.readyCallbacks = __webpack_require__( /*! ../../core/utils/ready_callbacks */ 48);
+        DevExpress.utils.resizeCallbacks = __webpack_require__( /*! ../../core/utils/resize_callbacks */ 127);
         DevExpress.utils.console = __webpack_require__( /*! ../../core/utils/console */ 81);
         DevExpress.utils.string = __webpack_require__( /*! ../../core/utils/string */ 44);
         DevExpress.utils.support = __webpack_require__( /*! ../../core/utils/support */ 45);
         DevExpress.viewPort = __webpack_require__( /*! ../../core/utils/view_port */ 77).value;
-        DevExpress.hideTopOverlay = __webpack_require__( /*! ../../mobile/hide_top_overlay */ 209);
+        DevExpress.hideTopOverlay = __webpack_require__( /*! ../../mobile/hide_top_overlay */ 210);
         DevExpress.formatHelper = __webpack_require__( /*! ../../format_helper */ 61);
         DevExpress.config = __webpack_require__( /*! ../../core/config */ 29);
-        DevExpress.animationPresets = __webpack_require__( /*! ../../animation/presets/presets */ 176).presets;
+        DevExpress.animationPresets = __webpack_require__( /*! ../../animation/presets/presets */ 177).presets;
         DevExpress.fx = __webpack_require__( /*! ../../animation/fx */ 39);
         DevExpress.TransitionExecutor = __webpack_require__( /*! ../../animation/transition_executor/transition_executor */ 276).TransitionExecutor;
-        DevExpress.AnimationPresetCollection = __webpack_require__( /*! ../../animation/presets/presets */ 176).PresetCollection;
+        DevExpress.AnimationPresetCollection = __webpack_require__( /*! ../../animation/presets/presets */ 177).PresetCollection;
         DevExpress.events = __webpack_require__( /*! ../../events */ 277);
         DevExpress.events.click = __webpack_require__( /*! ../../events/click */ 19);
         DevExpress.events.utils = __webpack_require__( /*! ../../events/utils */ 9);
-        DevExpress.events.GestureEmitter = __webpack_require__( /*! ../../events/gesture/emitter.gesture */ 157);
+        DevExpress.events.GestureEmitter = __webpack_require__( /*! ../../events/gesture/emitter.gesture */ 158);
         DevExpress.localization = __webpack_require__( /*! ../../localization */ 437);
         module.exports = DevExpress
     },
@@ -26407,8 +26632,8 @@
             isFunction = __webpack_require__( /*! ../core/utils/type */ 1).isFunction,
             config = __webpack_require__( /*! ../core/config */ 29),
             errors = __webpack_require__( /*! ./errors */ 36).errors,
-            Store = __webpack_require__( /*! ./abstract_store */ 97),
-            arrayQuery = __webpack_require__( /*! ./array_query */ 154),
+            Store = __webpack_require__( /*! ./abstract_store */ 99),
+            arrayQuery = __webpack_require__( /*! ./array_query */ 155),
             queryByOptions = __webpack_require__( /*! ./store_helper */ 80).queryByOptions,
             deferredUtils = __webpack_require__( /*! ../core/utils/deferred */ 6),
             Deferred = deferredUtils.Deferred,
@@ -26702,6 +26927,34 @@
         });
         module.exports = CustomStore
     },
+    /*!************************************************************!*\
+      !*** ./artifacts/transpiled/ui/widget/swatch_container.js ***!
+      \************************************************************/
+    /*! dynamic exports provided */
+    /*! all exports used */
+    function(module, exports, __webpack_require__) {
+        var $ = __webpack_require__( /*! ../../core/renderer */ 2);
+        var viewPortUtils = __webpack_require__( /*! ../../core/utils/view_port */ 77);
+        var SWATCH_CONTAINER_CLASS_PREFIX = "dx-swatch-";
+        var getSwatchContainer = function(element) {
+            var $element = $(element);
+            var swatchContainer = $element.closest('[class^="' + SWATCH_CONTAINER_CLASS_PREFIX + '"], [class*=" ' + SWATCH_CONTAINER_CLASS_PREFIX + '"]');
+            var viewport = viewPortUtils.value();
+            if (!swatchContainer.length) {
+                return viewport
+            }
+            var swatchClassRegex = new RegExp("(\\s|^)(" + SWATCH_CONTAINER_CLASS_PREFIX + ".*?)(\\s|$)");
+            var swatchClass = swatchContainer[0].className.match(swatchClassRegex)[2];
+            var viewportSwatchContainer = viewport.children("." + swatchClass);
+            if (!viewportSwatchContainer.length) {
+                viewportSwatchContainer = $("<div>").addClass(swatchClass).appendTo(viewport)
+            }
+            return viewportSwatchContainer
+        };
+        module.exports = {
+            getSwatchContainer: getSwatchContainer
+        }
+    },
     /*!****************************************************!*\
       !*** ./artifacts/transpiled/ui/collection/item.js ***!
       \****************************************************/
@@ -26711,7 +26964,7 @@
         var $ = __webpack_require__( /*! ../../core/renderer */ 2),
             Class = __webpack_require__( /*! ../../core/class */ 14),
             each = __webpack_require__( /*! ../../core/utils/iterator */ 3).each,
-            publicComponentUtils = __webpack_require__( /*! ../../core/utils/public_component */ 129);
+            publicComponentUtils = __webpack_require__( /*! ../../core/utils/public_component */ 128);
         var INVISIBLE_STATE_CLASS = "dx-state-invisible",
             DISABLED_STATE_CLASS = "dx-state-disabled",
             ITEM_CONTENT_PLACEHOLDER_CLASS = "dx-item-content-placeholder";
@@ -26794,7 +27047,7 @@
     /*! all exports used */
     function(module, exports, __webpack_require__) {
         var eventsEngine = __webpack_require__( /*! ../events/core/events_engine */ 5),
-            domUtils = __webpack_require__( /*! ../core/utils/dom */ 12),
+            domUtils = __webpack_require__( /*! ../core/utils/dom */ 11),
             domAdapter = __webpack_require__( /*! ../core/dom_adapter */ 13),
             Class = __webpack_require__( /*! ../core/class */ 14),
             registerEvent = __webpack_require__( /*! ./core/event_registrator */ 70),
@@ -26850,13 +27103,13 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var swipeEvents = __webpack_require__( /*! ../swipe */ 172),
+        var swipeEvents = __webpack_require__( /*! ../swipe */ 173),
             eventsEngine = __webpack_require__( /*! ../../events/core/events_engine */ 5),
             DOMComponent = __webpack_require__( /*! ../../core/dom_component */ 66),
             each = __webpack_require__( /*! ../../core/utils/iterator */ 3).each,
             eventUtils = __webpack_require__( /*! ../utils */ 9),
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
-            publicComponentUtils = __webpack_require__( /*! ../../core/utils/public_component */ 129);
+            publicComponentUtils = __webpack_require__( /*! ../../core/utils/public_component */ 128);
         var DX_SWIPEABLE = "dxSwipeable",
             SWIPEABLE_CLASS = "dx-swipeable",
             ACTION_TO_EVENT_MAP = {
@@ -26974,7 +27227,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var MemorizedCallbacks = __webpack_require__( /*! ./memorized_callbacks */ 175);
+        var MemorizedCallbacks = __webpack_require__( /*! ./memorized_callbacks */ 176);
         module.exports = new MemorizedCallbacks
     },
     /*!*****************************************************!*\
@@ -26984,7 +27237,7 @@
     /*! all exports used */
     function(module, exports, __webpack_require__) {
         var eventsEngine = __webpack_require__( /*! ../../events/core/events_engine */ 5),
-            browser = __webpack_require__( /*! ../../core/utils/browser */ 33),
+            browser = __webpack_require__( /*! ../../core/utils/browser */ 31),
             domAdapter = __webpack_require__( /*! ../../core/dom_adapter */ 13),
             Class = __webpack_require__( /*! ../../core/class */ 14),
             eventUtils = __webpack_require__( /*! ../utils */ 9);
@@ -27630,8 +27883,8 @@
             iteratorUtils = __webpack_require__( /*! ../../core/utils/iterator */ 3),
             config = __webpack_require__( /*! ../../core/config */ 29),
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
-            queryAdapters = __webpack_require__( /*! ../query_adapters */ 178),
-            odataUtils = __webpack_require__( /*! ./utils */ 108),
+            queryAdapters = __webpack_require__( /*! ../query_adapters */ 179),
+            odataUtils = __webpack_require__( /*! ./utils */ 110),
             serializePropName = odataUtils.serializePropName,
             errors = __webpack_require__( /*! ../errors */ 36).errors,
             dataUtils = __webpack_require__( /*! ../utils */ 40),
@@ -27887,7 +28140,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        module.exports = "19.1.3"
+        module.exports = "19.1.4"
     },
     /*!****************************************************************!*\
       !*** ./artifacts/transpiled/events/gesture/emitter.gesture.js ***!
@@ -27898,16 +28151,16 @@
         var $ = __webpack_require__( /*! ../../core/renderer */ 2),
             eventsEngine = __webpack_require__( /*! ../../events/core/events_engine */ 5),
             devices = __webpack_require__( /*! ../../core/devices */ 16),
-            styleUtils = __webpack_require__( /*! ../../core/utils/style */ 85),
+            styleUtils = __webpack_require__( /*! ../../core/utils/style */ 86),
             callOnce = __webpack_require__( /*! ../../core/utils/call_once */ 72),
-            domUtils = __webpack_require__( /*! ../../core/utils/dom */ 12),
-            readyCallbacks = __webpack_require__( /*! ../../core/utils/ready_callbacks */ 50),
+            domUtils = __webpack_require__( /*! ../../core/utils/dom */ 11),
+            readyCallbacks = __webpack_require__( /*! ../../core/utils/ready_callbacks */ 48),
             ready = readyCallbacks.add,
             mathUtils = __webpack_require__( /*! ../../core/utils/math */ 30),
             noop = __webpack_require__( /*! ../../core/utils/common */ 4).noop,
             isDefined = __webpack_require__( /*! ../../core/utils/type */ 1).isDefined,
             eventUtils = __webpack_require__( /*! ../utils */ 9),
-            Emitter = __webpack_require__( /*! ../core/emitter */ 124),
+            Emitter = __webpack_require__( /*! ../core/emitter */ 122),
             sign = mathUtils.sign,
             abs = Math.abs;
         var SLEEP = 0,
@@ -28096,12 +28349,12 @@
             registerComponent = __webpack_require__( /*! ../core/component_registrator */ 8),
             grep = __webpack_require__( /*! ../core/utils/common */ 4).grep,
             extend = __webpack_require__( /*! ../core/utils/extend */ 0).extend,
-            arrayUtils = __webpack_require__( /*! ../core/utils/array */ 11),
+            arrayUtils = __webpack_require__( /*! ../core/utils/array */ 12),
             iteratorUtils = __webpack_require__( /*! ../core/utils/iterator */ 3),
             ActionSheetStrategy = __webpack_require__( /*! ./toolbar/ui.toolbar.strategy.action_sheet */ 557),
             DropDownMenuStrategy = __webpack_require__( /*! ./toolbar/ui.toolbar.strategy.drop_down_menu */ 558),
             ToolbarBase = __webpack_require__( /*! ./toolbar/ui.toolbar.base */ 284),
-            ChildDefaultTemplate = __webpack_require__( /*! ./widget/child_default_template */ 113);
+            ChildDefaultTemplate = __webpack_require__( /*! ./widget/child_default_template */ 131);
         var STRATEGIES = {
             actionSheet: ActionSheetStrategy,
             dropDownMenu: DropDownMenuStrategy
@@ -28302,6 +28555,16 @@
         registerComponent("dxToolbar", Toolbar);
         module.exports = Toolbar
     },
+    /*!********************************************!*\
+      !*** ./artifacts/transpiled/ui/tooltip.js ***!
+      \********************************************/
+    /*! dynamic exports provided */
+    /*! all exports used */
+    function(module, exports, __webpack_require__) {
+        module.exports = __webpack_require__( /*! ./tooltip/tooltip */ 317);
+        module.exports.show = __webpack_require__( /*! ./tooltip/ui.tooltip */ 223).show;
+        module.exports.hide = __webpack_require__( /*! ./tooltip/ui.tooltip */ 223).hide
+    },
     /*!*****************************************************!*\
       !*** ./artifacts/transpiled/ui/shared/filtering.js ***!
       \*****************************************************/
@@ -28309,7 +28572,7 @@
     /*! all exports used */
     function(module, exports, __webpack_require__) {
         var typeUtils = __webpack_require__( /*! ../../core/utils/type */ 1),
-            inArray = __webpack_require__( /*! ../../core/utils/array */ 11).inArray,
+            inArray = __webpack_require__( /*! ../../core/utils/array */ 12).inArray,
             iteratorUtils = __webpack_require__( /*! ../../core/utils/iterator */ 3);
         var DEFAULT_DATE_INTERVAL = ["year", "month", "day"],
             DEFAULT_DATETIME_INTERVAL = ["year", "month", "day", "hour", "minute"];
@@ -28500,20 +28763,20 @@
         var _element_data2 = _interopRequireDefault(_element_data);
         var _click = __webpack_require__( /*! ../../events/click */ 19);
         var _click2 = _interopRequireDefault(_click);
-        var _double_click = __webpack_require__( /*! ../../events/double_click */ 149);
+        var _double_click = __webpack_require__( /*! ../../events/double_click */ 150);
         var _double_click2 = _interopRequireDefault(_double_click);
-        var _browser = __webpack_require__( /*! ../../core/utils/browser */ 33);
+        var _browser = __webpack_require__( /*! ../../core/utils/browser */ 31);
         var _browser2 = _interopRequireDefault(_browser);
         var _common = __webpack_require__( /*! ../../core/utils/common */ 4);
-        var _style = __webpack_require__( /*! ../../core/utils/style */ 85);
+        var _style = __webpack_require__( /*! ../../core/utils/style */ 86);
         var _style2 = _interopRequireDefault(_style);
-        var _dom = __webpack_require__( /*! ../../core/utils/dom */ 12);
+        var _dom = __webpack_require__( /*! ../../core/utils/dom */ 11);
         var _type = __webpack_require__( /*! ../../core/utils/type */ 1);
         var _type2 = _interopRequireDefault(_type);
         var _iterator = __webpack_require__( /*! ../../core/utils/iterator */ 3);
         var _iterator2 = _interopRequireDefault(_iterator);
         var _extend = __webpack_require__( /*! ../../core/utils/extend */ 0);
-        var _position = __webpack_require__( /*! ../../core/utils/position */ 96);
+        var _position = __webpack_require__( /*! ../../core/utils/position */ 98);
         var _devices = __webpack_require__( /*! ../../core/devices */ 16);
         var _devices2 = _interopRequireDefault(_devices);
         var _uiGrid_core = __webpack_require__( /*! ./ui.grid_core.modules */ 37);
@@ -29428,7 +29691,7 @@
         }
         var _floor = Math.floor;
         var _ceil = Math.ceil;
-        var _Color = __webpack_require__( /*! ../color */ 93);
+        var _Color = __webpack_require__( /*! ../color */ 95);
         var _isArray = Array.isArray;
         var _isString = __webpack_require__( /*! ../core/utils/type */ 1).isString;
         var HIGHLIGHTING_STEP = 50;
@@ -29892,7 +30155,7 @@
     function(module, exports, __webpack_require__) {
         var objectUtils = __webpack_require__( /*! ../../core/utils/object */ 47),
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
-            scatterSeries = __webpack_require__( /*! ./scatter_series */ 104).chart,
+            scatterSeries = __webpack_require__( /*! ./scatter_series */ 106).chart,
             lineSeries = __webpack_require__( /*! ./line_series */ 200),
             chartLineSeries = lineSeries.chart.line,
             polarLineSeries = lineSeries.polar.line,
@@ -30001,10 +30264,27 @@
         }
         var areaSeries = exports.chart.area = _extend({}, chartLineSeries, baseAreaMethods, {
             _prepareSegment: function(points, rotated) {
-                var processedPoints = this._processSinglePointsAreaSegment(points, rotated);
+                var that = this;
+                var processedPoints = that._processSinglePointsAreaSegment(points, rotated);
+                var areaPoints = createAreaPoints(processedPoints);
+                var argAxis = that.getArgumentAxis();
+                if (argAxis.getAxisPosition) {
+                    var argAxisPosition = argAxis.getAxisPosition();
+                    var axisOptions = argAxis.getOptions();
+                    var edgeOffset = (!rotated ? -1 : 1) * Math.round(axisOptions.width / 2);
+                    if (axisOptions.visible) {
+                        areaPoints.forEach(function(p, i) {
+                            if (p) {
+                                var index = 1 === points.length ? 0 : i < points.length ? i : areaPoints.length - 1 - i;
+                                rotated && p.x === points[index].defaultX && p.x === argAxisPosition - argAxis.getAxisShift() && (p.x += edgeOffset);
+                                !rotated && p.y === points[index].defaultY && p.y === argAxisPosition - argAxis.getAxisShift() && (p.y += edgeOffset)
+                            }
+                        })
+                    }
+                }
                 return {
                     line: processedPoints,
-                    area: createAreaPoints(processedPoints),
+                    area: areaPoints,
                     singlePointSegment: processedPoints !== points
                 }
             },
@@ -30032,7 +30312,7 @@
             _prepareSegment: function(points, rotated) {
                 var stepLineSeries = lineSeries.chart.stepline;
                 points = areaSeries._processSinglePointsAreaSegment(points, rotated);
-                return areaSeries._prepareSegment.call(this, stepLineSeries._calculateStepLinePoints.call(this, points))
+                return areaSeries._prepareSegment.call(this, stepLineSeries._calculateStepLinePoints.call(this, points), rotated)
             },
             getSeriesPairCoord: lineSeries.chart.stepline.getSeriesPairCoord
         });
@@ -30148,7 +30428,7 @@
         var _events_engine2 = _interopRequireDefault(_events_engine);
         var _class = __webpack_require__( /*! ../../core/class */ 14);
         var _class2 = _interopRequireDefault(_class);
-        var _array = __webpack_require__( /*! ../../core/utils/array */ 11);
+        var _array = __webpack_require__( /*! ../../core/utils/array */ 12);
         var _iterator = __webpack_require__( /*! ../../core/utils/iterator */ 3);
         var _utils = __webpack_require__( /*! ../../events/utils */ 9);
 
@@ -30157,8 +30437,14 @@
                 "default": obj
             }
         }
+        var COMPOSITION_START_EVENT = "compositionstart";
+        var COMPOSITION_END_EVENT = "compositionend";
+        var KEYDOWN_EVENT = "keydown";
+        var NAMESPACE = "KeyboardProcessor";
         var KeyboardProcessor = _class2.default.inherit({
-            _keydown: (0, _utils.addNamespace)("keydown", "KeyboardProcessor"),
+            _keydown: (0, _utils.addNamespace)(KEYDOWN_EVENT, NAMESPACE),
+            _compositionStart: (0, _utils.addNamespace)(COMPOSITION_START_EVENT, NAMESPACE),
+            _compositionEnd: (0, _utils.addNamespace)(COMPOSITION_END_EVENT, NAMESPACE),
             ctor: function(options) {
                 var _this = this;
                 options = options || {};
@@ -30175,12 +30461,17 @@
                     this._processFunction = function(e) {
                         _this.process(e)
                     };
-                    _events_engine2.default.on(this._element, this._keydown, this._processFunction)
+                    this._toggleProcessingWithContext = this.toggleProcessing.bind(this);
+                    _events_engine2.default.on(this._element, this._keydown, this._processFunction);
+                    _events_engine2.default.on(this._element, this._compositionStart, this._toggleProcessingWithContext);
+                    _events_engine2.default.on(this._element, this._compositionEnd, this._toggleProcessingWithContext)
                 }
             },
             dispose: function() {
                 if (this._element) {
-                    _events_engine2.default.off(this._element, this._keydown, this._processFunction)
+                    _events_engine2.default.off(this._element, this._keydown, this._processFunction);
+                    _events_engine2.default.off(this._element, this._compositionStart, this._toggleProcessingWithContext);
+                    _events_engine2.default.off(this._element, this._compositionEnd, this._toggleProcessingWithContext)
                 }
                 this._element = void 0;
                 this._handler = void 0;
@@ -30208,7 +30499,10 @@
                 return this
             },
             process: function(e) {
-                if (this._focusTarget && this._focusTarget !== e.target && (0, _array.inArray)(e.target, this._focusTarget) < 0) {
+                var isNotFocusTarget = this._focusTarget && this._focusTarget !== e.target && (0, _array.inArray)(e.target, this._focusTarget) < 0;
+                var shouldSkipProcessing = this._isComposingJustFinished && 229 === e.which || this._isComposing || isNotFocusTarget;
+                this._isComposingJustFinished = false;
+                if (shouldSkipProcessing) {
                     return false
                 }
                 var args = {
@@ -30229,6 +30523,11 @@
                         childProcessor.process(e)
                     })
                 }
+            },
+            toggleProcessing: function(_ref) {
+                var type = _ref.type;
+                this._isComposing = type === COMPOSITION_START_EVENT;
+                this._isComposingJustFinished = !this._isComposing
             }
         });
         module.exports = KeyboardProcessor
@@ -30246,7 +30545,7 @@
             Class = __webpack_require__( /*! ../core/class */ 14),
             registerEvent = __webpack_require__( /*! ./core/event_registrator */ 70),
             eventUtils = __webpack_require__( /*! ./utils */ 9),
-            holdEvent = __webpack_require__( /*! ./hold */ 87);
+            holdEvent = __webpack_require__( /*! ./hold */ 88);
         var CONTEXTMENU_NAMESPACE = "dxContexMenu",
             CONTEXTMENU_NAMESPACED_EVENT_NAME = eventUtils.addNamespace("contextmenu", CONTEXTMENU_NAMESPACE),
             HOLD_NAMESPACED_EVENT_NAME = eventUtils.addNamespace(holdEvent.name, CONTEXTMENU_NAMESPACE),
@@ -30293,21 +30592,21 @@
             Guid = __webpack_require__( /*! ../../core/guid */ 42),
             registerComponent = __webpack_require__( /*! ../../core/component_registrator */ 8),
             commonUtils = __webpack_require__( /*! ../../core/utils/common */ 4),
-            domUtils = __webpack_require__( /*! ../../core/utils/dom */ 12),
+            domUtils = __webpack_require__( /*! ../../core/utils/dom */ 11),
             focused = __webpack_require__( /*! ../widget/selectors */ 64).focused,
             each = __webpack_require__( /*! ../../core/utils/iterator */ 3).each,
             isDefined = __webpack_require__( /*! ../../core/utils/type */ 1).isDefined,
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
-            getPublicElement = __webpack_require__( /*! ../../core/utils/dom */ 12).getPublicElement,
+            getPublicElement = __webpack_require__( /*! ../../core/utils/dom */ 11).getPublicElement,
             errors = __webpack_require__( /*! ../widget/ui.errors */ 18),
             positionUtils = __webpack_require__( /*! ../../animation/position */ 76),
-            getDefaultAlignment = __webpack_require__( /*! ../../core/utils/position */ 96).getDefaultAlignment,
+            getDefaultAlignment = __webpack_require__( /*! ../../core/utils/position */ 98).getDefaultAlignment,
             DropDownButton = __webpack_require__( /*! ./ui.drop_down_button */ 486).default,
             messageLocalization = __webpack_require__( /*! ../../localization/message */ 15),
             eventUtils = __webpack_require__( /*! ../../events/utils */ 9),
-            TextBox = __webpack_require__( /*! ../text_box */ 88),
+            TextBox = __webpack_require__( /*! ../text_box */ 89),
             clickEvent = __webpack_require__( /*! ../../events/click */ 19),
-            FunctionTemplate = __webpack_require__( /*! ../widget/function_template */ 83),
+            FunctionTemplate = __webpack_require__( /*! ../widget/function_template */ 84),
             Popup = __webpack_require__( /*! ../popup */ 43);
         var DROP_DOWN_EDITOR_CLASS = "dx-dropdowneditor",
             DROP_DOWN_EDITOR_INPUT_WRAPPER = "dx-dropdowneditor-input-wrapper",
@@ -30509,8 +30808,10 @@
                 var isFocused = focused(this._input());
                 var $container = this._$container;
                 this._disposeKeyboardProcessor();
-                this._$beforeButtonsContainer && this._$beforeButtonsContainer[0].parentNode.removeChild(this._$beforeButtonsContainer[0]);
-                this._$afterButtonsContainer && this._$afterButtonsContainer[0].parentNode.removeChild(this._$afterButtonsContainer[0]);
+                var beforeButtonsContainerParent = this._$beforeButtonsContainer && this._$beforeButtonsContainer[0].parentNode;
+                var afterButtonsContainerParent = this._$afterButtonsContainer && this._$afterButtonsContainer[0].parentNode;
+                beforeButtonsContainerParent && beforeButtonsContainerParent.removeChild(this._$beforeButtonsContainer[0]);
+                afterButtonsContainerParent && afterButtonsContainerParent.removeChild(this._$afterButtonsContainer[0]);
                 $container.empty();
                 var $templateWrapper = $("<div>").addClass(DROP_DOWN_EDITOR_FIELD_TEMPLATE_WRAPPER).appendTo($container);
                 fieldTemplate.render({
@@ -30882,12 +31183,13 @@
     function(module, exports, __webpack_require__) {
         var fileSaver = __webpack_require__( /*! ./exporter/file_saver */ 203).fileSaver,
             excelCreator = __webpack_require__( /*! ./exporter/excel_creator */ 421),
-            imageCreator = __webpack_require__( /*! ./exporter/image_creator */ 256),
+            imageCreator = __webpack_require__( /*! ./exporter/image_creator */ 257),
             svgCreator = __webpack_require__( /*! ./exporter/svg_creator */ 428),
-            _isFunction = __webpack_require__( /*! ./core/utils/type */ 1).isFunction;
+            _isFunction = __webpack_require__( /*! ./core/utils/type */ 1).isFunction,
+            Deferred = __webpack_require__( /*! ./core/utils/deferred */ 6).Deferred;
         exports.export = function(data, options, getData) {
             if (!data) {
-                return
+                return (new Deferred).resolve()
             }
             var exportingAction = options.exportingAction,
                 exportedAction = options.exportedAction,
@@ -30899,7 +31201,7 @@
                 };
             _isFunction(exportingAction) && exportingAction(eventArgs);
             if (!eventArgs.cancel) {
-                getData(data, options, function(blob) {
+                return getData(data, options, function(blob) {
                     _isFunction(exportedAction) && exportedAction();
                     if (_isFunction(fileSavingAction)) {
                         eventArgs.data = blob;
@@ -30910,12 +31212,13 @@
                     }
                 })
             }
+            return (new Deferred).resolve()
         };
         exports.fileSaver = fileSaver;
         exports.excel = {
             creator: excelCreator.ExcelCreator,
             getData: excelCreator.getData,
-            formatConverter: __webpack_require__( /*! ./exporter/excel_format_converter */ 250)
+            formatConverter: __webpack_require__( /*! ./exporter/excel_format_converter */ 251)
         };
         exports.excel.__internals = excelCreator.__internals;
         exports.image = {
@@ -30964,7 +31267,7 @@
             registerComponent = __webpack_require__( /*! ../core/component_registrator */ 8),
             commonUtils = __webpack_require__( /*! ../core/utils/common */ 4),
             extend = __webpack_require__( /*! ../core/utils/extend */ 0).extend,
-            inArray = __webpack_require__( /*! ../core/utils/array */ 11).inArray,
+            inArray = __webpack_require__( /*! ../core/utils/array */ 12).inArray,
             each = __webpack_require__( /*! ../core/utils/iterator */ 3).each,
             typeUtils = __webpack_require__( /*! ../core/utils/type */ 1),
             windowUtils = __webpack_require__( /*! ../core/utils/window */ 7),
@@ -30975,7 +31278,7 @@
             dragEvents = __webpack_require__( /*! ../events/drag */ 56),
             isPlainObject = typeUtils.isPlainObject,
             isFunction = typeUtils.isFunction,
-            domUtils = __webpack_require__( /*! ../core/utils/dom */ 12);
+            domUtils = __webpack_require__( /*! ../core/utils/dom */ 11);
         var RESIZABLE = "dxResizable",
             RESIZABLE_CLASS = "dx-resizable",
             RESIZABLE_RESIZING_CLASS = "dx-resizable-resizing",
@@ -31314,34 +31617,6 @@
         registerComponent(RESIZABLE, Resizable);
         module.exports = Resizable
     },
-    /*!************************************************************!*\
-      !*** ./artifacts/transpiled/ui/widget/swatch_container.js ***!
-      \************************************************************/
-    /*! dynamic exports provided */
-    /*! all exports used */
-    function(module, exports, __webpack_require__) {
-        var $ = __webpack_require__( /*! ../../core/renderer */ 2);
-        var viewPortUtils = __webpack_require__( /*! ../../core/utils/view_port */ 77);
-        var SWATCH_CONTAINER_CLASS_PREFIX = "dx-swatch-";
-        var getSwatchContainer = function(element) {
-            var $element = $(element);
-            var swatchContainer = $element.closest('[class^="' + SWATCH_CONTAINER_CLASS_PREFIX + '"], [class*=" ' + SWATCH_CONTAINER_CLASS_PREFIX + '"]');
-            var viewport = viewPortUtils.value();
-            if (!swatchContainer.length) {
-                return viewport
-            }
-            var swatchClassRegex = new RegExp("(\\s|^)(" + SWATCH_CONTAINER_CLASS_PREFIX + ".*?)(\\s|$)");
-            var swatchClass = swatchContainer[0].className.match(swatchClassRegex)[2];
-            var viewportSwatchContainer = viewport.children("." + swatchClass);
-            if (!viewportSwatchContainer.length) {
-                viewportSwatchContainer = $("<div>").addClass(swatchClass).appendTo(viewport)
-            }
-            return viewportSwatchContainer
-        };
-        module.exports = {
-            getSwatchContainer: getSwatchContainer
-        }
-    },
     /*!**********************************************!*\
       !*** ./artifacts/transpiled/events/swipe.js ***!
       \**********************************************/
@@ -31349,8 +31624,8 @@
     /*! all exports used */
     function(module, exports, __webpack_require__) {
         var eventUtils = __webpack_require__( /*! ./utils */ 9),
-            GestureEmitter = __webpack_require__( /*! ./gesture/emitter.gesture */ 157),
-            registerEmitter = __webpack_require__( /*! ./core/emitter_registrator */ 94);
+            GestureEmitter = __webpack_require__( /*! ./gesture/emitter.gesture */ 158),
+            registerEmitter = __webpack_require__( /*! ./core/emitter_registrator */ 96);
         var SWIPE_START_EVENT = "dxswipestart",
             SWIPE_EVENT = "dxswipe",
             SWIPE_END_EVENT = "dxswipeend";
@@ -31531,9 +31806,9 @@
             callOnce = __webpack_require__( /*! ../../../core/utils/call_once */ 72),
             window = windowUtils.getWindow(),
             eventsEngine = __webpack_require__( /*! ../../../events/core/events_engine */ 5),
-            browser = __webpack_require__( /*! ../../../core/utils/browser */ 33),
+            browser = __webpack_require__( /*! ../../../core/utils/browser */ 31),
             getSvgMarkup = __webpack_require__( /*! ../../../core/utils/svg */ 205).getSvgMarkup,
-            animation = __webpack_require__( /*! ./animation */ 752),
+            animation = __webpack_require__( /*! ./animation */ 753),
             math = Math,
             mathMin = math.min,
             mathMax = math.max,
@@ -31944,7 +32219,7 @@
                                 that._addFixIRICallback();
                                 value = getFuncIri(value, renderer.pathModified)
                             } else {
-                                if (/^(translate(X|Y)|rotate[XY]?|scale(X|Y)|sharp)$/i.test(key)) {
+                                if (/^(translate(X|Y)|rotate[XY]?|scale(X|Y)|sharp|sharpDirection)$/i.test(key)) {
                                     hasTransformations = true;
                                     continue
                                 } else {
@@ -32262,10 +32537,10 @@
 
         function setMaxSize(maxWidth, maxHeight) {
             var options = arguments.length > 2 && void 0 !== arguments[2] ? arguments[2] : {};
-            maxWidth = Number(maxWidth);
             var ellipsis, ellipsisWidth, that = this,
                 lines = [],
                 textChanged = false,
+                textIsEmpty = false,
                 ellipsisMaxWidth = maxWidth;
             restoreText.call(that);
             ellipsis = that.renderer.text(ELLIPSIS).attr(that._styles).append(that.renderer.root);
@@ -32292,18 +32567,21 @@
                     t.tspan.parentNode.appendChild(t.tspan);
                     return t
                 });
+                !this._texts.length && (this._texts = null);
                 textChanged = true;
-                if (this._texts.length) {
+                if (this._texts) {
                     locateTextNodes(this)
                 } else {
-                    this.element.textContent = ""
+                    this.element.textContent = "";
+                    textIsEmpty = true
                 }
             }
             ellipsis.remove();
             that._hasEllipsis = textChanged;
             return {
                 rowCount: lines.length,
-                textChanged: textChanged
+                textChanged: textChanged,
+                textIsEmpty: textIsEmpty
             }
         }
 
@@ -32381,15 +32659,21 @@
             }
         }
 
-        function setEllipsis(text, ellipsisMaxWidth) {
+        function getEllipsisString(ellipsisMaxWidth, _ref) {
+            var hideOverflowEllipsis = _ref.hideOverflowEllipsis;
+            return hideOverflowEllipsis && 0 === ellipsisMaxWidth ? "" : ELLIPSIS
+        }
+
+        function setEllipsis(text, ellipsisMaxWidth, options) {
+            var ellipsis = getEllipsisString(ellipsisMaxWidth, options);
             if (text.value.length && text.tspan.parentNode) {
                 for (var i = text.value.length - 1; i >= 1; i--) {
                     if (text.startBox + text.tspan.getSubStringLength(0, i) < ellipsisMaxWidth) {
-                        setNewText(text, i, ELLIPSIS);
+                        setNewText(text, i, ellipsis);
                         break
                     } else {
                         if (1 === i) {
-                            setNewText(text, 0, ELLIPSIS)
+                            setNewText(text, 0, ellipsis)
                         }
                     }
                 }
@@ -32431,7 +32715,7 @@
             }
             if (text.value.length) {
                 if ("ellipsis" === options.textOverflow && text.tspan.getSubStringLength(0, text.value.length) > maxWidth) {
-                    setEllipsis(text, ellipsisMaxWidth)
+                    setEllipsis(text, ellipsisMaxWidth, options)
                 }
                 if ("hide" === options.textOverflow && text.tspan.getSubStringLength(0, text.value.length) > maxWidth) {
                     return []
@@ -32455,8 +32739,8 @@
             }, 0)
         }
 
-        function setMaxHeight(lines, ellipsisMaxWidth, _ref, maxHeight, lineHeight) {
-            var textOverflow = _ref.textOverflow;
+        function setMaxHeight(lines, ellipsisMaxWidth, options, maxHeight, lineHeight) {
+            var textOverflow = options.textOverflow;
             if (!isFinite(maxHeight) || 0 === Number(maxHeight) || "none" === textOverflow) {
                 return lines
             }
@@ -32478,9 +32762,9 @@
                             var text = prevLine.parts[prevLine.parts.length - 1];
                             if (!text.hasEllipsis) {
                                 if (0 === ellipsisMaxWidth || text.endBox < ellipsisMaxWidth) {
-                                    setNewText(text, text.value.length, ELLIPSIS)
+                                    setNewText(text, text.value.length, getEllipsisString(ellipsisMaxWidth, options))
                                 } else {
-                                    setEllipsis(text, ellipsisMaxWidth)
+                                    setEllipsis(text, ellipsisMaxWidth, options)
                                 }
                             }
                         }
@@ -32541,7 +32825,7 @@
                 }
                 text.endBox = endBox = startBox + getTextWidth(text);
                 startBox = endBox;
-                if (maxWidth > 0 && endBox > maxWidth) {
+                if (_isDefined(maxWidth) && endBox > maxWidth) {
                     var wordWrapLines = wordWrap(text, maxWidth, ellipsisMaxWidth, options);
                     if (!wordWrapLines.length) {
                         lines = [];
@@ -32932,18 +33216,24 @@
             animate: function(params, options, complete) {
                 return baseAnimate(this, params, options, complete)
             },
-            sharp: function(pos) {
+            sharp: function(pos, sharpDirection) {
                 return this.attr({
-                    sharp: pos || true
+                    sharp: pos || true,
+                    sharpDirection: sharpDirection
                 })
             },
             _applyTransformation: function() {
-                var scaleXDefined, scaleYDefined, rotateX, rotateY, tr = this._settings,
-                    transformations = [],
-                    sharpMode = tr.sharp,
-                    strokeOdd = tr[KEY_STROKE_WIDTH] % 2,
-                    correctionX = strokeOdd && ("h" === sharpMode || true === sharpMode) ? SHARPING_CORRECTION : 0,
-                    correctionY = strokeOdd && ("v" === sharpMode || true === sharpMode) ? SHARPING_CORRECTION : 0;
+                var tr = this._settings;
+                var scaleXDefined = void 0;
+                var scaleYDefined = void 0;
+                var rotateX = void 0;
+                var rotateY = void 0;
+                var transformations = [];
+                var sharpMode = tr.sharp;
+                var trDirection = tr.sharpDirection || 1;
+                var strokeOdd = tr[KEY_STROKE_WIDTH] % 2;
+                var correctionX = strokeOdd && ("h" === sharpMode || true === sharpMode) ? SHARPING_CORRECTION * trDirection : 0;
+                var correctionY = strokeOdd && ("v" === sharpMode || true === sharpMode) ? SHARPING_CORRECTION * trDirection : 0;
                 transformations.push("translate(" + ((tr.translateX || 0) + correctionX) + "," + ((tr.translateY || 0) + correctionY) + ")");
                 if (tr.rotate) {
                     if ("rotateX" in tr) {
@@ -33611,7 +33901,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var inArray = __webpack_require__( /*! ../../core/utils/array */ 11).inArray,
+        var inArray = __webpack_require__( /*! ../../core/utils/array */ 12).inArray,
             windowUtils = __webpack_require__( /*! ../../core/utils/window */ 7),
             weakMap = windowUtils.hasWindow() ? windowUtils.getWindow().WeakMap : WeakMap;
         if (!weakMap) {
@@ -33686,7 +33976,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var Component = __webpack_require__( /*! ../../core/component */ 131),
+        var Component = __webpack_require__( /*! ../../core/component */ 130),
             each = __webpack_require__( /*! ../../core/utils/iterator */ 3).each,
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
             devices = __webpack_require__( /*! ../../core/devices */ 16),
@@ -34044,7 +34334,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var angular = __webpack_require__( /*! angular */ 264);
+        var angular = __webpack_require__( /*! angular */ 265);
         module.exports = angular.module("dx", [])
     },
     /*!*****************************************************!*\
@@ -34066,7 +34356,7 @@
         } : function(obj) {
             return obj && "function" === typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj
         };
-        var inArray = __webpack_require__( /*! ../../core/utils/array */ 11).inArray,
+        var inArray = __webpack_require__( /*! ../../core/utils/array */ 12).inArray,
             EditStrategy = __webpack_require__( /*! ./ui.collection_widget.edit.strategy */ 459);
         var PlainEditStrategy = EditStrategy.inherit({
             _getPlainItems: function() {
@@ -34158,7 +34448,7 @@
         } : function(obj) {
             return obj && "function" === typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj
         };
-        __webpack_require__( /*! ./core */ 126);
+        __webpack_require__( /*! ./core */ 125);
         var Globalize = __webpack_require__( /*! globalize */ 71),
             numberLocalization = __webpack_require__( /*! ../number */ 51),
             errors = __webpack_require__( /*! ../../core/errors */ 21);
@@ -34454,7 +34744,7 @@
                 this.$placeMarker = null;
                 this.editor = editor;
                 this.name = name;
-                this.options = options
+                this.options = options || {}
             }
             _createClass(TextEditorButton, [{
                 key: "_addPlaceMarker",
@@ -34485,6 +34775,13 @@
                 }
             }, {
                 key: "_isVisible",
+                value: function() {
+                    var editor = this.editor,
+                        options = this.options;
+                    return options.visible || !editor.option("readOnly")
+                }
+            }, {
+                key: "_isDisabled",
                 value: function() {
                     throw "Not implemented"
                 }
@@ -34753,7 +35050,6 @@
                 eventsEngine.off(this._$element, "." + SCROLLABLE_NATIVE);
                 eventsEngine.off(this._$container, "." + SCROLLABLE_NATIVE);
                 this._removeScrollbars();
-                clearTimeout(this._gestureEndTimer);
                 clearTimeout(this._hideScrollbarTimeout)
             },
             _removeScrollbars: function() {
@@ -34789,7 +35085,7 @@
             messageLocalization = __webpack_require__( /*! ../localization/message */ 15),
             registerComponent = __webpack_require__( /*! ../core/component_registrator */ 8),
             extend = __webpack_require__( /*! ../core/utils/extend */ 0).extend,
-            LoadIndicator = __webpack_require__( /*! ./load_indicator */ 89),
+            LoadIndicator = __webpack_require__( /*! ./load_indicator */ 90),
             Overlay = __webpack_require__( /*! ./overlay */ 58),
             Deferred = __webpack_require__( /*! ../core/utils/deferred */ 6).Deferred,
             themes = __webpack_require__( /*! ./themes */ 28);
@@ -35199,15 +35495,15 @@
         var _common = __webpack_require__( /*! ../core/utils/common */ 4);
         var _window = __webpack_require__( /*! ../core/utils/window */ 7);
         var _window2 = _interopRequireDefault(_window);
-        var _inflector = __webpack_require__( /*! ../core/utils/inflector */ 31);
+        var _inflector = __webpack_require__( /*! ../core/utils/inflector */ 32);
         var _inflector2 = _interopRequireDefault(_inflector);
         var _type = __webpack_require__( /*! ../core/utils/type */ 1);
-        var _style = __webpack_require__( /*! ../core/utils/style */ 85);
+        var _style = __webpack_require__( /*! ../core/utils/style */ 86);
         var _style2 = _interopRequireDefault(_style);
         var _iterator = __webpack_require__( /*! ../core/utils/iterator */ 3);
-        var _browser = __webpack_require__( /*! ../core/utils/browser */ 33);
+        var _browser = __webpack_require__( /*! ../core/utils/browser */ 31);
         var _browser2 = _interopRequireDefault(_browser);
-        var _item = __webpack_require__( /*! ./collection/item */ 148);
+        var _item = __webpack_require__( /*! ./collection/item */ 149);
         var _item2 = _interopRequireDefault(_item);
         var _devices = __webpack_require__( /*! ../core/devices */ 16);
         var _devices2 = _interopRequireDefault(_devices);
@@ -35888,7 +36184,7 @@
             eventsEngine = __webpack_require__( /*! ../../events/core/events_engine */ 5),
             noop = __webpack_require__( /*! ../../core/utils/common */ 4).noop,
             Class = __webpack_require__( /*! ../../core/class */ 14),
-            dateLocalization = __webpack_require__( /*! ../../localization/date */ 32);
+            dateLocalization = __webpack_require__( /*! ../../localization/date */ 33);
         var abstract = Class.abstract;
         var DateBoxStrategy = Class.inherit({
             ctor: function(dateBox) {
@@ -36018,7 +36314,7 @@
         var _fx = __webpack_require__( /*! ../../animation/fx */ 39);
         var _fx2 = _interopRequireDefault(_fx);
         var _deferred = __webpack_require__( /*! ../../core/utils/deferred */ 6);
-        var _inflector = __webpack_require__( /*! ../../core/utils/inflector */ 31);
+        var _inflector = __webpack_require__( /*! ../../core/utils/inflector */ 32);
 
         function _interopRequireDefault(obj) {
             return obj && obj.__esModule ? obj : {
@@ -36153,6 +36449,8 @@
                         _deferred.when.apply(_renderer2.default, drawer._animations).done(function() {
                             drawer._animationCompleteHandler()
                         })
+                    } else {
+                        drawer.resizeContent()
                     }
                 }
             }, {
@@ -36281,10 +36579,10 @@
             Widget = __webpack_require__( /*! ./widget/ui.widget */ 17),
             Button = __webpack_require__( /*! ./button */ 34),
             Popover = __webpack_require__( /*! ./popover */ 135),
-            DataHelperMixin = __webpack_require__( /*! ../data_helper */ 84),
-            List = __webpack_require__( /*! ./list */ 99),
+            DataHelperMixin = __webpack_require__( /*! ../data_helper */ 85),
+            List = __webpack_require__( /*! ./list */ 101),
             themes = __webpack_require__( /*! ./themes */ 28),
-            ChildDefaultTemplate = __webpack_require__( /*! ./widget/child_default_template */ 113);
+            ChildDefaultTemplate = __webpack_require__( /*! ./widget/child_default_template */ 131);
         var DROP_DOWN_MENU_CLASS = "dx-dropdownmenu",
             DROP_DOWN_MENU_POPUP_CLASS = "dx-dropdownmenu-popup",
             DROP_DOWN_MENU_POPUP_WRAPPER_CLASS = "dx-dropdownmenu-popup-wrapper",
@@ -36450,7 +36748,6 @@
             },
             _initTemplates: function() {
                 this.callBase();
-                this._defaultTemplates.item = new ChildDefaultTemplate("item", this);
                 this._defaultTemplates.content = new ChildDefaultTemplate("content", this)
             },
             _initMarkup: function() {
@@ -36562,7 +36859,7 @@
                     pageLoadMode: "scrollBottom",
                     indicateLoading: false,
                     noDataText: "",
-                    itemTemplate: this._getTemplateByOption("itemTemplate"),
+                    itemTemplate: this.option("itemTemplate"),
                     onItemClick: function(e) {
                         if (this.option("closeOnClick")) {
                             this.option("opened", false)
@@ -36694,8 +36991,8 @@
             DOMComponent = __webpack_require__( /*! ../core/dom_component */ 66),
             extend = __webpack_require__( /*! ../core/utils/extend */ 0).extend,
             map = __webpack_require__( /*! ../core/utils/iterator */ 3).map,
-            ValidationMixin = __webpack_require__( /*! ./validation/validation_mixin */ 169),
-            ValidationEngine = __webpack_require__( /*! ./validation_engine */ 98),
+            ValidationMixin = __webpack_require__( /*! ./validation/validation_mixin */ 171),
+            ValidationEngine = __webpack_require__( /*! ./validation_engine */ 100),
             DefaultAdapter = __webpack_require__( /*! ./validation/default_adapter */ 543),
             registerComponent = __webpack_require__( /*! ../core/component_registrator */ 8);
         var VALIDATOR_CLASS = "dx-validator";
@@ -36872,9 +37169,9 @@
             iteratorUtils = __webpack_require__( /*! ../core/utils/iterator */ 3),
             TabsItem = __webpack_require__( /*! ./tabs/item */ 307),
             themes = __webpack_require__( /*! ./themes */ 28),
-            holdEvent = __webpack_require__( /*! ../events/hold */ 87),
-            Scrollable = __webpack_require__( /*! ./scroll_view/ui.scrollable */ 90),
-            CollectionWidget = __webpack_require__( /*! ./collection/ui.collection_widget.live_update */ 184).default,
+            holdEvent = __webpack_require__( /*! ../events/hold */ 88),
+            Scrollable = __webpack_require__( /*! ./scroll_view/ui.scrollable */ 91),
+            CollectionWidget = __webpack_require__( /*! ./collection/ui.collection_widget.live_update */ 185).default,
             iconUtils = __webpack_require__( /*! ../core/utils/icon */ 59),
             BindableTemplate = __webpack_require__( /*! ./widget/bindable_template */ 62);
         var TABS_CLASS = "dx-tabs",
@@ -37212,16 +37509,6 @@
         module.exports = Tabs;
         module.exports.getTabsExpandedClass = TABS_EXPANDED_CLASS
     },
-    /*!********************************************!*\
-      !*** ./artifacts/transpiled/ui/tooltip.js ***!
-      \********************************************/
-    /*! dynamic exports provided */
-    /*! all exports used */
-    function(module, exports, __webpack_require__) {
-        module.exports = __webpack_require__( /*! ./tooltip/tooltip */ 317);
-        module.exports.show = __webpack_require__( /*! ./tooltip/ui.tooltip */ 222).show;
-        module.exports.hide = __webpack_require__( /*! ./tooltip/ui.tooltip */ 222).hide
-    },
     /*!*******************************************************************************!*\
       !*** ./artifacts/transpiled/ui/data_grid/ui.data_grid.data_source_adapter.js ***!
       \*******************************************************************************/
@@ -37257,12 +37544,12 @@
         var _type = __webpack_require__( /*! ../../core/utils/type */ 1);
         var _ui = __webpack_require__( /*! ../widget/ui.errors */ 18);
         var _ui2 = _interopRequireDefault(_ui);
-        var _filtering = __webpack_require__( /*! ../shared/filtering */ 160);
+        var _filtering = __webpack_require__( /*! ../shared/filtering */ 162);
         var _filtering2 = _interopRequireDefault(_filtering);
         var _format_helper = __webpack_require__( /*! ../../format_helper */ 61);
         var _format_helper2 = _interopRequireDefault(_format_helper);
         var _extend = __webpack_require__( /*! ../../core/utils/extend */ 0);
-        var _inflector = __webpack_require__( /*! ../../core/utils/inflector */ 31);
+        var _inflector = __webpack_require__( /*! ../../core/utils/inflector */ 32);
         var _inflector2 = _interopRequireDefault(_inflector);
         var _between = __webpack_require__( /*! ./between */ 618);
         var _between2 = _interopRequireDefault(_between);
@@ -38050,11 +38337,11 @@
     /*! all exports used */
     function(module, exports, __webpack_require__) {
         var DataSourceModule = __webpack_require__( /*! ../../data/data_source/data_source */ 46),
-            Store = __webpack_require__( /*! ../../data/abstract_store */ 97),
+            Store = __webpack_require__( /*! ../../data/abstract_store */ 99),
             commonUtils = __webpack_require__( /*! ../../core/utils/common */ 4),
             typeUtils = __webpack_require__( /*! ../../core/utils/type */ 1),
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
-            inArray = __webpack_require__( /*! ../../core/utils/array */ 11).inArray,
+            inArray = __webpack_require__( /*! ../../core/utils/array */ 12).inArray,
             iteratorUtils = __webpack_require__( /*! ../../core/utils/iterator */ 3),
             isDefined = typeUtils.isDefined,
             each = iteratorUtils.each,
@@ -38063,8 +38350,8 @@
             Deferred = deferredUtils.Deferred,
             Class = __webpack_require__( /*! ../../core/class */ 14),
             EventsMixin = __webpack_require__( /*! ../../core/events_mixin */ 82),
-            inflector = __webpack_require__( /*! ../../core/utils/inflector */ 31),
-            normalizeIndexes = __webpack_require__( /*! ../../core/utils/array */ 11).normalizeIndexes,
+            inflector = __webpack_require__( /*! ../../core/utils/inflector */ 32),
+            normalizeIndexes = __webpack_require__( /*! ../../core/utils/array */ 12).normalizeIndexes,
             localStore = __webpack_require__( /*! ./local_store */ 671),
             RemoteStore = __webpack_require__( /*! ./remote_store */ 672),
             xmlaStore = __webpack_require__( /*! ./xmla_store/xmla_store */ 370),
@@ -39448,7 +39735,7 @@
 
         function requestDiagram() {
             var window = (0, _window.getWindow)();
-            var diagram = window && window.DevExpress && window.DevExpress.diagram || __webpack_require__( /*! devexpress-diagram */ 732);
+            var diagram = window && window.DevExpress && window.DevExpress.diagram || __webpack_require__( /*! devexpress-diagram */ 733);
             if (!diagram) {
                 throw _ui2.default.Error("E1041", "devexpress-diagram")
             }
@@ -39464,9 +39751,9 @@
     function(module, exports, __webpack_require__) {
         var _utils = __webpack_require__( /*! ../core/utils */ 10);
         var _extend2 = __webpack_require__( /*! ../../core/utils/extend */ 0);
-        var _layout_element = __webpack_require__( /*! ../core/layout_element */ 235);
+        var _layout_element = __webpack_require__( /*! ../core/layout_element */ 236);
         var _type = __webpack_require__( /*! ../../core/utils/type */ 1);
-        var _title = __webpack_require__( /*! ../core/title */ 103);
+        var _title = __webpack_require__( /*! ../core/title */ 105);
         var _title2 = _interopRequireDefault(_title);
         var _object = __webpack_require__( /*! ../../core/utils/object */ 47);
         var _common = __webpack_require__( /*! ../../core/utils/common */ 4);
@@ -39768,6 +40055,22 @@
         var getMarkerCreator = function(type) {
             return isCircle(type) ? createCircleMarker : createSquareMarker
         };
+
+        function getTitleHorizontalAlignment(options) {
+            if (options.horizontalAlignment === CENTER) {
+                return CENTER
+            } else {
+                if (options.itemTextPosition === RIGHT) {
+                    return LEFT
+                } else {
+                    if (options.itemTextPosition === LEFT) {
+                        return RIGHT
+                    } else {
+                        return CENTER
+                    }
+                }
+            }
+        }
         var _Legend = exports.Legend = function(settings) {
             var that = this;
             that._renderer = settings.renderer;
@@ -39785,7 +40088,8 @@
             getOptions: function() {
                 return this._options
             },
-            update: function(data, options, themeManagerTitleOptions) {
+            update: function(data, options) {
+                var themeManagerTitleOptions = arguments.length > 2 && void 0 !== arguments[2] ? arguments[2] : {};
                 var that = this;
                 options = that._options = parseOptions(options, that._textField, that._allowInsidePosition) || {};
                 that._data = data && options.customizeItems && options.customizeItems(data.slice()) || data;
@@ -39802,7 +40106,11 @@
                         root: that._legendGroup
                     })
                 }
-                that._title && that._title.update(themeManagerTitleOptions, that._options.title);
+                if (that._title) {
+                    var titleOptions = options.title;
+                    themeManagerTitleOptions.horizontalAlignment = getTitleHorizontalAlignment(options);
+                    that._title.update(themeManagerTitleOptions, titleOptions)
+                }
                 return that
             },
             isVisible: function() {
@@ -39926,6 +40234,7 @@
             },
             _moveInInitialValues: function() {
                 var that = this;
+                that._title.hasText() && that._title.move([0, 0]);
                 that._legendGroup && that._legendGroup.move(0, 0);
                 that._background && that._background.attr({
                     x: 0,
@@ -40050,21 +40359,13 @@
                     setMaxInLine(line, measure)
                 }
             },
-            _getTitleBBox: function() {
-                return this._title.hasText() ? this._title.getTrueSize() : {
-                    x: 0,
-                    y: 0,
-                    height: 0,
-                    width: 0
-                }
-            },
             _applyItemPosition: function(lines, layoutOptions) {
                 var that = this,
                     position = {
                         x: 0,
                         y: 0
                     },
-                    titleX = this._getTitleBBox().x,
+                    titleX = this._title.getLayoutOptions().x,
                     maxLineLength = getMaxLineLength(lines, layoutOptions);
                 lines.forEach(function(line) {
                     var firstItem = line[0],
@@ -40195,17 +40496,10 @@
             },
             _calculateTotalBox: function() {
                 var markerBox = this._markersGroup.getBBox();
-                var titleBox = this._getTitleBBox();
+                var titleBox = this._title.getCorrectedLayoutOptions();
                 var box = this._insideLegendGroup.getBBox();
                 var verticalPadding = this._background ? 2 * this._options.paddingTopBottom : 0;
-                var titleOptions = this._title.getOptions() || {
-                    margin: {
-                        top: 0,
-                        bottom: 0
-                    }
-                };
-                var titleMargins = titleOptions.margin.top + titleOptions.margin.bottom;
-                box.height = markerBox.height + titleBox.height + verticalPadding + titleMargins;
+                box.height = markerBox.height + titleBox.height + verticalPadding;
                 return box
             },
             getActionCallback: function(point) {
@@ -40270,24 +40564,35 @@
                 return that
             },
             _shiftTitle: function(boxWidth) {
-                var title = this._title;
-                var titleBox = title.getLayoutOptions();
+                var that = this;
+                var title = that._title;
+                var titleBox = title.getCorrectedLayoutOptions();
                 if (!titleBox || !title.hasText()) {
                     return
                 }
-                var options = this._options,
-                    paddingLeftRight = this._background ? 2 * options.paddingLeftRight : 0,
-                    titleOptions = title.getOptions(),
-                    width = boxWidth - paddingLeftRight,
-                    titleX = options.horizontalAlignment === CENTER ? titleBox.x + width / 2 - titleBox.width / 2 : titleBox.x;
-                var titleY = titleBox.y + titleOptions.margin.top;
+                var _that$_options = that._options,
+                    horizontalAlignment = _that$_options.horizontalAlignment,
+                    paddingLeftRight = _that$_options.paddingLeftRight,
+                    itemTextPosition = _that$_options.itemTextPosition;
+                var width = boxWidth - (that._background ? 2 * paddingLeftRight : 0);
+                var titleOptions = title.getOptions();
+                var titleY = titleBox.y;
+                var titleX = titleBox.x;
                 if (titleOptions.verticalAlignment === BOTTOM) {
-                    titleY += this._markersGroup.getBBox().height
+                    titleY += that._markersGroup.getBBox().height
                 }
-                this._title.shift(titleX, titleY)
+                if (horizontalAlignment === CENTER || itemTextPosition === BOTTOM || itemTextPosition === TOP) {
+                    titleX = titleBox.x + width / 2 - titleBox.width / 2
+                } else {
+                    if (itemTextPosition === LEFT) {
+                        var box = that.getLayoutOptions();
+                        titleX = 2 * box.x + box.width
+                    }
+                }
+                title.shift(titleX, titleY)
             },
             _shiftMarkers: function() {
-                var titleBox = this._getTitleBBox();
+                var titleBox = this._title.getLayoutOptions();
                 var markerBox = this._markersGroup.getBBox();
                 var titleOptions = this._title.getOptions() || {};
                 var center = 0;
@@ -40296,7 +40601,7 @@
                     center = titleBox.width / 2 - markerBox.width / 2
                 }
                 if (titleOptions.verticalAlignment === TOP) {
-                    y = titleBox.height + titleOptions.margin.bottom + titleOptions.margin.top
+                    y = titleBox.height
                 }
                 if (0 !== center || 0 !== y) {
                     this._markersGroup.attr({
@@ -40458,7 +40763,7 @@
             _math = Math,
             _floor = _math.floor,
             _abs = _math.abs,
-            symbolPoint = __webpack_require__( /*! ./symbol_point */ 119),
+            symbolPoint = __webpack_require__( /*! ./symbol_point */ 117),
             CANVAS_POSITION_DEFAULT = "canvas_position_default",
             DEFAULT_BAR_TRACKER_SIZE = 9,
             CORRECTING_BAR_TRACKER_VALUE = 4,
@@ -40565,15 +40870,17 @@
                 return this._options.label.showForZeroValues || this.initialValue
             },
             _drawMarker: function(renderer, group, animationEnabled) {
-                var that = this,
-                    style = that._getStyle(),
-                    x = that.x,
-                    y = that.y,
-                    width = that.width,
-                    height = that.height,
-                    r = that._options.cornerRadius;
+                var that = this;
+                var style = that._getStyle();
+                var r = that._options.cornerRadius;
+                var rotated = that._options.rotated;
+                var _that$getMarkerCoords = that.getMarkerCoords(),
+                    x = _that$getMarkerCoords.x,
+                    y = _that$getMarkerCoords.y,
+                    width = _that$getMarkerCoords.width,
+                    height = _that$getMarkerCoords.height;
                 if (animationEnabled) {
-                    if (that._options.rotated) {
+                    if (rotated) {
                         width = 0;
                         x = that.defaultX
                     } else {
@@ -40717,11 +41024,34 @@
                 this.graphic.smartAttr(_extend({}, style, !animationEnabled ? this.getMarkerCoords() : {}))
             },
             getMarkerCoords: function() {
+                var that = this;
+                var x = that.x;
+                var y = that.y;
+                var width = that.width;
+                var height = that.height;
+                var argAxis = that.series.getArgumentAxis();
+                var rotated = that._options.rotated;
+                if (argAxis.getAxisPosition) {
+                    var axisOptions = argAxis.getOptions();
+                    var edgeOffset = Math.round(axisOptions.width / 2);
+                    var argAxisPosition = argAxis.getAxisPosition();
+                    if (axisOptions.visible) {
+                        if (!rotated) {
+                            height -= that.minY === that.defaultY && that.minY === argAxisPosition - argAxis.getAxisShift() ? edgeOffset : 0;
+                            height < 0 && (height = 0)
+                        } else {
+                            var isStartFromAxis = that.minX === that.defaultX && that.minX === argAxisPosition - argAxis.getAxisShift();
+                            x += isStartFromAxis ? edgeOffset : 0;
+                            width -= isStartFromAxis ? edgeOffset : 0;
+                            width < 0 && (width = 0)
+                        }
+                    }
+                }
                 return {
-                    x: this.x,
-                    y: this.y,
-                    width: this.width,
-                    height: this.height
+                    x: x,
+                    y: y,
+                    width: width,
+                    height: height
                 }
             },
             coordsIn: function(x, y) {
@@ -40736,7 +41066,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var series = __webpack_require__( /*! ./scatter_series */ 104),
+        var series = __webpack_require__( /*! ./scatter_series */ 106),
             chartScatterSeries = series.chart,
             polarScatterSeries = series.polar,
             objectUtils = __webpack_require__( /*! ../../core/utils/object */ 47),
@@ -40933,6 +41263,39 @@
                 var settings = this._getTrackerSettings(segment);
                 settings.points = this._getMainPointsFromSegment(segment);
                 element.attr(settings)
+            },
+            checkSeriesViewportCoord: function(axis, coord) {
+                if (0 === this._points.length) {
+                    return false
+                }
+                var range = axis.isArgumentAxis ? this.getArgumentRange() : this.getViewport();
+                var min = axis.getTranslator().translate(range.categories ? range.categories[0] : range.min);
+                var max = axis.getTranslator().translate(range.categories ? range.categories[range.categories.length - 1] : range.max);
+                var rotated = this.getOptions().rotated;
+                var inverted = axis.getOptions().inverted;
+                return axis.isArgumentAxis && (!rotated && !inverted || rotated && inverted) || !axis.isArgumentAxis && (rotated && !inverted || !rotated && inverted) ? coord >= min && coord <= max : coord >= max && coord <= min
+            },
+            getSeriesPairCoord: function(coord, isArgument) {
+                var that = this;
+                var oppositeCoord = null;
+                var nearestPoints = this.getNearestPointsByCoord(coord, isArgument);
+                var needValueCoord = isArgument && !that._options.rotated || !isArgument && that._options.rotated;
+                for (var i = 0; i < nearestPoints.length; i++) {
+                    var p = nearestPoints[i];
+                    var k = (p[1].vy - p[0].vy) / (p[1].vx - p[0].vx);
+                    var b = p[0].vy - p[0].vx * k;
+                    var tmpCoord = void 0;
+                    if (p[1].vx - p[0].vx === 0) {
+                        tmpCoord = needValueCoord ? p[0].vy : p[0].vx
+                    } else {
+                        tmpCoord = needValueCoord ? k * coord + b : (coord - b) / k
+                    }
+                    if (this.checkAxisVisibleAreaCoord(!isArgument, tmpCoord)) {
+                        oppositeCoord = tmpCoord;
+                        break
+                    }
+                }
+                return oppositeCoord
             }
         };
         var lineSeries = exports.chart.line = _extend({}, chartScatterSeries, lineMethods);
@@ -41203,7 +41566,7 @@
             _isDefined = typeUtils.isDefined,
             _isArray = Array.isArray,
             _isNumber = typeUtils.isNumeric,
-            axisModule = __webpack_require__( /*! ../axes/base_axis */ 241),
+            axisModule = __webpack_require__( /*! ../axes/base_axis */ 242),
             _map = __webpack_require__( /*! ../core/utils */ 10).map,
             _normalizeEnum = __webpack_require__( /*! ../core/utils */ 10).normalizeEnum,
             _compareArrays = __webpack_require__( /*! ./base_gauge */ 143).compareArrays,
@@ -42266,6 +42629,125 @@
         module.exports.getCurrentTemplateEngine = getCurrentTemplateEngine;
         module.exports.registerTemplateEngine = registerTemplateEngine
     },
+    /*!*************************************************!*\
+      !*** ./artifacts/transpiled/core/utils/size.js ***!
+      \*************************************************/
+    /*! dynamic exports provided */
+    /*! all exports used */
+    function(module, exports, __webpack_require__) {
+        var window = __webpack_require__( /*! ../../core/utils/window */ 7).getWindow();
+        var typeUtils = __webpack_require__( /*! ../utils/type */ 1);
+        var SPECIAL_HEIGHT_VALUES = ["auto", "none", "inherit", "initial"];
+        var getSizeByStyles = function(elementStyles, styles) {
+            var result = 0;
+            styles.forEach(function(style) {
+                result += parseFloat(elementStyles[style]) || 0
+            });
+            return result
+        };
+        var getElementBoxParams = function(name, elementStyles) {
+            var beforeName = "width" === name ? "Left" : "Top";
+            var afterName = "width" === name ? "Right" : "Bottom";
+            return {
+                padding: getSizeByStyles(elementStyles, ["padding" + beforeName, "padding" + afterName]),
+                border: getSizeByStyles(elementStyles, ["border" + beforeName + "Width", "border" + afterName + "Width"]),
+                margin: getSizeByStyles(elementStyles, ["margin" + beforeName, "margin" + afterName])
+            }
+        };
+        var getBoxSizingOffset = function(name, elementStyles, boxParams) {
+            var size = elementStyles[name];
+            if ("border-box" === elementStyles.boxSizing && size.length && "%" !== size[size.length - 1]) {
+                return boxParams.border + boxParams.padding
+            }
+            return 0
+        };
+        var getSize = function(element, name, include) {
+            var elementStyles = window.getComputedStyle(element);
+            var boxParams = getElementBoxParams(name, elementStyles);
+            var clientRect = element.getClientRects().length;
+            var boundingClientRect = element.getBoundingClientRect()[name];
+            var result = clientRect ? boundingClientRect : 0;
+            if (result <= 0) {
+                result = parseFloat(elementStyles[name] || element.style[name]) || 0;
+                result -= getBoxSizingOffset(name, elementStyles, boxParams)
+            } else {
+                result -= boxParams.padding + boxParams.border
+            }
+            if (include.paddings) {
+                result += boxParams.padding
+            }
+            if (include.borders) {
+                result += boxParams.border
+            }
+            if (include.margins) {
+                result += boxParams.margin
+            }
+            return result
+        };
+        var getContainerHeight = function(container) {
+            return typeUtils.isWindow(container) ? container.innerHeight : container.offsetHeight
+        };
+        var parseHeight = function(value, container) {
+            if (value.indexOf("px") > 0) {
+                value = parseInt(value.replace("px", ""))
+            } else {
+                if (value.indexOf("%") > 0) {
+                    value = parseInt(value.replace("%", "")) * getContainerHeight(container) / 100
+                } else {
+                    if (!isNaN(value)) {
+                        value = parseInt(value)
+                    }
+                }
+            }
+            return value
+        };
+        var getHeightWithOffset = function(value, offset, container) {
+            if (!value) {
+                return null
+            }
+            if (SPECIAL_HEIGHT_VALUES.indexOf(value) > -1) {
+                return offset ? null : value
+            }
+            if (typeUtils.isString(value)) {
+                value = parseHeight(value, container)
+            }
+            if (typeUtils.isNumeric(value)) {
+                return Math.max(0, value + offset)
+            }
+            var operationString = offset < 0 ? " - " : " ";
+            return "calc(" + value + operationString + Math.abs(offset) + "px)"
+        };
+        var addOffsetToMaxHeight = function(value, offset, container) {
+            var maxHeight = getHeightWithOffset(value, offset, container);
+            return null !== maxHeight ? maxHeight : "none"
+        };
+        var addOffsetToMinHeight = function(value, offset, container) {
+            var minHeight = getHeightWithOffset(value, offset, container);
+            return null !== minHeight ? minHeight : 0
+        };
+        var getVerticalOffsets = function(element, withMargins) {
+            if (!element) {
+                return 0
+            }
+            var boxParams = getElementBoxParams("height", window.getComputedStyle(element));
+            return boxParams.padding + boxParams.border + (withMargins ? boxParams.margin : 0)
+        };
+        var getVisibleHeight = function(element) {
+            if (element) {
+                var boundingClientRect = element.getBoundingClientRect();
+                if (boundingClientRect.height) {
+                    return boundingClientRect.height
+                }
+            }
+            return 0
+        };
+        exports.getSize = getSize;
+        exports.getElementBoxParams = getElementBoxParams;
+        exports.addOffsetToMaxHeight = addOffsetToMaxHeight;
+        exports.addOffsetToMinHeight = addOffsetToMinHeight;
+        exports.getVerticalOffsets = getVerticalOffsets;
+        exports.getVisibleHeight = getVisibleHeight
+    },
     /*!***************************************************************!*\
       !*** ./artifacts/transpiled/localization/ldml/date.parser.js ***!
       \***************************************************************/
@@ -42543,22 +43025,22 @@
     /*! all exports used */
     function(module, exports, __webpack_require__) {
         var DevExpress = __webpack_require__( /*! ../../../bundles/modules/core */ 145);
-        __webpack_require__( /*! ../../../integration/jquery */ 262);
+        __webpack_require__( /*! ../../../integration/jquery */ 263);
         __webpack_require__( /*! ../../../integration/angular */ 450);
         __webpack_require__( /*! ../../../integration/knockout */ 465);
-        __webpack_require__( /*! ../../../localization/globalize/core */ 126);
+        __webpack_require__( /*! ../../../localization/globalize/core */ 125);
         __webpack_require__( /*! ../../../localization/globalize/message */ 474);
-        __webpack_require__( /*! ../../../localization/globalize/number */ 180);
+        __webpack_require__( /*! ../../../localization/globalize/number */ 181);
         __webpack_require__( /*! ../../../localization/globalize/date */ 475);
         __webpack_require__( /*! ../../../localization/globalize/currency */ 476);
         __webpack_require__( /*! ../../../events/click */ 19);
-        __webpack_require__( /*! ../../../events/contextmenu */ 166);
-        __webpack_require__( /*! ../../../events/double_click */ 149);
+        __webpack_require__( /*! ../../../events/contextmenu */ 168);
+        __webpack_require__( /*! ../../../events/double_click */ 150);
         __webpack_require__( /*! ../../../events/drag */ 56);
-        __webpack_require__( /*! ../../../events/hold */ 87);
+        __webpack_require__( /*! ../../../events/hold */ 88);
         __webpack_require__( /*! ../../../events/hover */ 146);
         __webpack_require__( /*! ../../../events/pointer */ 24);
-        __webpack_require__( /*! ../../../events/swipe */ 172);
+        __webpack_require__( /*! ../../../events/swipe */ 173);
         __webpack_require__( /*! ../../../events/transform */ 280);
         module.exports = DevExpress
     },
@@ -42568,7 +43050,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var inArray = __webpack_require__( /*! ../core/utils/array */ 11).inArray;
+        var inArray = __webpack_require__( /*! ../core/utils/array */ 12).inArray;
         var hideCallback = function() {
             var callbacks = [];
             return {
@@ -42613,7 +43095,7 @@
     function(module, exports, __webpack_require__) {
         var _renderer = __webpack_require__( /*! ../core/renderer */ 2);
         var _renderer2 = _interopRequireDefault(_renderer);
-        var _component = __webpack_require__( /*! ../core/component */ 131);
+        var _component = __webpack_require__( /*! ../core/component */ 130);
         var _component2 = _interopRequireDefault(_component);
         var _action = __webpack_require__( /*! ../core/action */ 111);
         var _action2 = _interopRequireDefault(_action);
@@ -42621,7 +43103,7 @@
         var _devices2 = _interopRequireDefault(_devices);
         var _config = __webpack_require__( /*! ../core/config */ 29);
         var _config2 = _interopRequireDefault(_config);
-        var _dom = __webpack_require__( /*! ../core/utils/dom */ 12);
+        var _dom = __webpack_require__( /*! ../core/utils/dom */ 11);
         var _deferred = __webpack_require__( /*! ../core/utils/deferred */ 6);
         var _type = __webpack_require__( /*! ../core/utils/type */ 1);
         var _iterator = __webpack_require__( /*! ../core/utils/iterator */ 3);
@@ -42635,6 +43117,7 @@
         var _ui2 = _interopRequireDefault(_ui);
         var _popup = __webpack_require__( /*! ./popup */ 43);
         var _popup2 = _interopRequireDefault(_popup);
+        var _common = __webpack_require__( /*! ../core/utils/common */ 4);
 
         function _interopRequireDefault(obj) {
             return obj && obj.__esModule ? obj : {
@@ -42717,10 +43200,8 @@
             });
             var popupInstance = new _popup2.default($element, (0, _extend.extend)({
                 title: options.title || exports.title,
-                showTitle: function() {
-                    var isTitle = void 0 === options.showTitle ? true : options.showTitle;
-                    return isTitle
-                }(),
+                showTitle: (0, _common.ensureDefined)(options.showTitle, true),
+                dragEnabled: (0, _common.ensureDefined)(options.dragEnabled, true),
                 height: "auto",
                 width: function() {
                     var isPortrait = (0, _renderer2.default)(window).height() > (0, _renderer2.default)(window).width(),
@@ -42795,7 +43276,8 @@
             var options = (0, _type.isPlainObject)(messageHtml) ? messageHtml : {
                 title: title,
                 messageHtml: messageHtml,
-                showTitle: showTitle
+                showTitle: showTitle,
+                dragEnabled: showTitle
             };
             return exports.custom(options).show()
         };
@@ -42814,7 +43296,8 @@
                     onClick: function() {
                         return false
                     }
-                }]
+                }],
+                dragEnabled: showTitle
             };
             return exports.custom(options).show()
         }
@@ -43117,15 +43600,15 @@
             commonUtils = __webpack_require__( /*! ../../core/utils/common */ 4),
             typeUtils = __webpack_require__( /*! ../../core/utils/type */ 1),
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
-            inArray = __webpack_require__( /*! ../../core/utils/array */ 11).inArray,
-            DropDownEditor = __webpack_require__( /*! ./ui.drop_down_editor */ 167),
-            List = __webpack_require__( /*! ../list */ 99),
+            inArray = __webpack_require__( /*! ../../core/utils/array */ 12).inArray,
+            DropDownEditor = __webpack_require__( /*! ./ui.drop_down_editor */ 169),
+            List = __webpack_require__( /*! ../list */ 101),
             errors = __webpack_require__( /*! ../widget/ui.errors */ 18),
             eventUtils = __webpack_require__( /*! ../../events/utils */ 9),
             devices = __webpack_require__( /*! ../../core/devices */ 16),
-            DataExpressionMixin = __webpack_require__( /*! ../editor/ui.data_expression */ 215),
+            DataExpressionMixin = __webpack_require__( /*! ../editor/ui.data_expression */ 216),
             messageLocalization = __webpack_require__( /*! ../../localization/message */ 15),
-            ChildDefaultTemplate = __webpack_require__( /*! ../widget/child_default_template */ 113),
+            ChildDefaultTemplate = __webpack_require__( /*! ../widget/child_default_template */ 131),
             Deferred = __webpack_require__( /*! ../../core/utils/deferred */ 6).Deferred,
             DataConverterMixin = __webpack_require__( /*! ../shared/grouped_data_converter_mixin */ 282).default;
         var LIST_ITEM_SELECTOR = ".dx-list-item",
@@ -43738,13 +44221,13 @@
             commonUtils = __webpack_require__( /*! ../../core/utils/common */ 4),
             typeUtils = __webpack_require__( /*! ../../core/utils/type */ 1),
             iconUtils = __webpack_require__( /*! ../../core/utils/icon */ 59),
-            getPublicElement = __webpack_require__( /*! ../../core/utils/dom */ 12).getPublicElement,
+            getPublicElement = __webpack_require__( /*! ../../core/utils/dom */ 11).getPublicElement,
             each = __webpack_require__( /*! ../../core/utils/iterator */ 3).each,
             compileGetter = __webpack_require__( /*! ../../core/utils/data */ 20).compileGetter,
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
             fx = __webpack_require__( /*! ../../animation/fx */ 39),
             clickEvent = __webpack_require__( /*! ../../events/click */ 19),
-            swipeEvents = __webpack_require__( /*! ../../events/swipe */ 172),
+            swipeEvents = __webpack_require__( /*! ../../events/swipe */ 173),
             support = __webpack_require__( /*! ../../core/utils/support */ 45),
             messageLocalization = __webpack_require__( /*! ../../localization/message */ 15),
             inkRipple = __webpack_require__( /*! ../widget/utils.ink_ripple */ 68),
@@ -43754,9 +44237,9 @@
             eventUtils = __webpack_require__( /*! ../../events/utils */ 9),
             themes = __webpack_require__( /*! ../themes */ 28),
             windowUtils = __webpack_require__( /*! ../../core/utils/window */ 7),
-            ScrollView = __webpack_require__( /*! ../scroll_view */ 158),
-            deviceDependentOptions = __webpack_require__( /*! ../scroll_view/ui.scrollable */ 90).deviceDependentOptions,
-            CollectionWidget = __webpack_require__( /*! ../collection/ui.collection_widget.live_update */ 184).default,
+            ScrollView = __webpack_require__( /*! ../scroll_view */ 159),
+            deviceDependentOptions = __webpack_require__( /*! ../scroll_view/ui.scrollable */ 91).deviceDependentOptions,
+            CollectionWidget = __webpack_require__( /*! ../collection/ui.collection_widget.live_update */ 185).default,
             BindableTemplate = __webpack_require__( /*! ../widget/bindable_template */ 62),
             Deferred = __webpack_require__( /*! ../../core/utils/deferred */ 6).Deferred,
             DataConverterMixin = __webpack_require__( /*! ../shared/grouped_data_converter_mixin */ 282).default;
@@ -44500,7 +44983,7 @@
         var $ = __webpack_require__( /*! ../../core/renderer */ 2),
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
             messageLocalization = __webpack_require__( /*! ../../localization/message */ 15),
-            TextBox = __webpack_require__( /*! ../text_box */ 88),
+            TextBox = __webpack_require__( /*! ../text_box */ 89),
             errors = __webpack_require__( /*! ../widget/ui.errors */ 18),
             Deferred = __webpack_require__( /*! ../../core/utils/deferred */ 6).Deferred;
         module.exports = {
@@ -44642,7 +45125,7 @@
             commonUtils = __webpack_require__( /*! ../../core/utils/common */ 4),
             typeUtils = __webpack_require__( /*! ../../core/utils/type */ 1),
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
-            DataHelperMixin = __webpack_require__( /*! ../../data_helper */ 84),
+            DataHelperMixin = __webpack_require__( /*! ../../data_helper */ 85),
             DataSourceModule = __webpack_require__( /*! ../../data/data_source/data_source */ 46),
             ArrayStore = __webpack_require__( /*! ../../data/array_store */ 67),
             Deferred = __webpack_require__( /*! ../../core/utils/deferred */ 6).Deferred;
@@ -44832,7 +45315,7 @@
     /*! all exports used */
     function(module, exports, __webpack_require__) {
         var $ = __webpack_require__( /*! ../core/renderer */ 2),
-            TrackBar = __webpack_require__( /*! ./track_bar */ 219),
+            TrackBar = __webpack_require__( /*! ./track_bar */ 220),
             extend = __webpack_require__( /*! ../core/utils/extend */ 0).extend,
             isFunction = __webpack_require__( /*! ../core/utils/type */ 1).isFunction,
             registerComponent = __webpack_require__( /*! ../core/component_registrator */ 8);
@@ -44997,7 +45480,7 @@
     /*! all exports used */
     function(module, exports, __webpack_require__) {
         var $ = __webpack_require__( /*! ../core/renderer */ 2),
-            Editor = __webpack_require__( /*! ./editor/editor */ 48),
+            Editor = __webpack_require__( /*! ./editor/editor */ 49),
             registerComponent = __webpack_require__( /*! ../core/component_registrator */ 8),
             extend = __webpack_require__( /*! ../core/utils/extend */ 0).extend,
             windowUtils = __webpack_require__( /*! ../core/utils/window */ 7),
@@ -45119,8 +45602,8 @@
             grep = __webpack_require__( /*! ../core/utils/common */ 4).grep,
             extend = __webpack_require__( /*! ../core/utils/extend */ 0).extend,
             iteratorUtils = __webpack_require__( /*! ../core/utils/iterator */ 3),
-            ValidationMixin = __webpack_require__( /*! ./validation/validation_mixin */ 169),
-            ValidationEngine = __webpack_require__( /*! ./validation_engine */ 98),
+            ValidationMixin = __webpack_require__( /*! ./validation/validation_mixin */ 171),
+            ValidationEngine = __webpack_require__( /*! ./validation_engine */ 100),
             CollectionWidget = __webpack_require__( /*! ./collection/ui.collection_widget.edit */ 52);
         var VALIDATION_SUMMARY_CLASS = "dx-validationsummary",
             ITEM_CLASS = VALIDATION_SUMMARY_CLASS + "-item",
@@ -45370,12 +45853,12 @@
             clickEvent = __webpack_require__( /*! ../events/click */ 19),
             devices = __webpack_require__( /*! ../core/devices */ 16),
             extend = __webpack_require__( /*! ../core/utils/extend */ 0).extend,
-            getPublicElement = __webpack_require__( /*! ../core/utils/dom */ 12).getPublicElement,
+            getPublicElement = __webpack_require__( /*! ../core/utils/dom */ 11).getPublicElement,
             iteratorUtils = __webpack_require__( /*! ../core/utils/iterator */ 3),
             isPlainObject = __webpack_require__( /*! ../core/utils/type */ 1).isPlainObject,
             registerComponent = __webpack_require__( /*! ../core/component_registrator */ 8),
             eventUtils = __webpack_require__( /*! ../events/utils */ 9),
-            CollectionWidget = __webpack_require__( /*! ./collection/ui.collection_widget.live_update */ 184).default,
+            CollectionWidget = __webpack_require__( /*! ./collection/ui.collection_widget.live_update */ 185).default,
             deferredUtils = __webpack_require__( /*! ../core/utils/deferred */ 6),
             when = deferredUtils.when,
             Deferred = deferredUtils.Deferred,
@@ -45713,7 +46196,7 @@
     function(module, exports, __webpack_require__) {
         var $ = __webpack_require__( /*! ../../core/renderer */ 2),
             Class = __webpack_require__( /*! ../../core/class */ 14),
-            getPublicElement = __webpack_require__( /*! ../../core/utils/dom */ 12).getPublicElement,
+            getPublicElement = __webpack_require__( /*! ../../core/utils/dom */ 11).getPublicElement,
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
             isDefined = __webpack_require__( /*! ../../core/utils/type */ 1).isDefined;
         var PIVOTGRID_EXPAND_CLASS = "dx-expand";
@@ -46225,7 +46708,7 @@
             clickEvent = __webpack_require__( /*! ../../events/click */ 19),
             noop = __webpack_require__( /*! ../../core/utils/common */ 4).noop,
             isDefined = __webpack_require__( /*! ../../core/utils/type */ 1).isDefined,
-            inArray = __webpack_require__( /*! ../../core/utils/array */ 11).inArray,
+            inArray = __webpack_require__( /*! ../../core/utils/array */ 12).inArray,
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
             iteratorUtils = __webpack_require__( /*! ../../core/utils/iterator */ 3),
             messageLocalization = __webpack_require__( /*! ../../localization/message */ 15),
@@ -46561,7 +47044,7 @@
             domAdapter = __webpack_require__( /*! ../../core/dom_adapter */ 13),
             dataUtils = __webpack_require__( /*! ../../core/element_data */ 38),
             typeUtils = __webpack_require__( /*! ../../core/utils/type */ 1),
-            getPublicElement = __webpack_require__( /*! ../../core/utils/dom */ 12).getPublicElement;
+            getPublicElement = __webpack_require__( /*! ../../core/utils/dom */ 11).getPublicElement;
         var ROW_SELECTOR = "tr";
         var SchedulerTableCreator = {
             VERTICAL: "vertical",
@@ -46872,7 +47355,7 @@
             registerComponent = __webpack_require__( /*! ../../../core/component_registrator */ 8),
             SchedulerWorkSpace = __webpack_require__( /*! ./ui.scheduler.work_space.indicator */ 196),
             dateUtils = __webpack_require__( /*! ../../../core/utils/date */ 22),
-            tableCreator = __webpack_require__( /*! ../ui.scheduler.table_creator */ 227),
+            tableCreator = __webpack_require__( /*! ../ui.scheduler.table_creator */ 228),
             HorizontalShader = __webpack_require__( /*! ../shaders/ui.scheduler.current_time_shader.horizontal */ 697);
         var TIMELINE_CLASS = "dx-scheduler-timeline",
             GROUP_TABLE_CLASS = "dx-scheduler-group-table",
@@ -47043,7 +47526,7 @@
                             var templateOptions = {
                                 model: {
                                     text: text,
-                                    date: firstViewDate
+                                    date: new Date(firstViewDate)
                                 },
                                 container: $th,
                                 index: i
@@ -47308,6 +47791,9 @@
             getCellMinWidth: function() {
                 return 0
             },
+            getWorkSpaceLeftOffset: function() {
+                return 0
+            },
             scrollToTime: function(hours, minutes, date) {
                 var coordinates = this._getScrollCoordinates(hours, minutes, date),
                     scrollable = this.getScrollable(),
@@ -47428,7 +47914,7 @@
                     startDate = new Date(this.instance.fire("getField", "startDate", item)),
                     isRecurring = !!this.instance.fire("getField", "recurrenceRule", item);
                 for (var j = 0; j < position.length; j++) {
-                    var height = this.calculateAppointmentHeight(item, position[j]),
+                    var height = this.calculateAppointmentHeight(item, position[j], isRecurring),
                         width = this.calculateAppointmentWidth(item, position[j], isRecurring),
                         resultWidth = width,
                         appointmentReduced = null,
@@ -47598,7 +48084,7 @@
             },
             _normalizeCondition: function(first, second, isSomeEdge) {
                 var result = first - second;
-                return isSomeEdge || Math.abs(result) > .1 ? result : 0
+                return isSomeEdge || Math.abs(result) > 1 ? result : 0
             },
             _getResultPositions: function(sortedArray) {
                 var position, stack = [],
@@ -47725,7 +48211,10 @@
                         recurrencePartCroppedByViewStartDate = position ? position.startDate : realStartDate,
                         fullDuration = endDate.getTime() - realStartDate.getTime();
                     fullDuration = this._adjustDurationByDaylightDiff(fullDuration, realStartDate, endDate);
-                    endDate = new Date((viewStartDate.getTime() >= recurrencePartStartDate.getTime() ? recurrencePartStartDate.getTime() : viewStartDate.getTime()) + fullDuration);
+                    endDate = new Date(viewStartDate.getTime() >= recurrencePartStartDate.getTime() ? recurrencePartStartDate.getTime() : viewStartDate.getTime());
+                    if (isRecurring) {
+                        endDate = new Date(endDate.getTime() + fullDuration)
+                    }
                     if (!_date2.default.sameDate(realStartDate, endDate) && recurrencePartCroppedByViewStartDate.getTime() < viewStartDate.getTime()) {
                         var headDuration = _date2.default.trimTime(endDate).getTime() - recurrencePartCroppedByViewStartDate.getTime(),
                             tailDuration = fullDuration - headDuration || fullDuration;
@@ -47848,7 +48337,7 @@
                 }
             },
             _isAppointmentEmpty: function(height, width) {
-                return height < this._getAppointmentDefaultHeight() || width < this._getAppointmentDefaultWidth()
+                return height < this._getAppointmentMinHeight() || width < this._getAppointmentMinWidth()
             },
             _calculateGeometryConfig: function(coordinates) {
                 var overlappingMode = this.instance.fire("getMaxAppointmentsPerCell"),
@@ -47917,11 +48406,17 @@
             _getAppointmentDefaultHeight: function() {
                 return this._getAppointmentHeightByTheme()
             },
+            _getAppointmentMinHeight: function() {
+                return this._getAppointmentDefaultHeight()
+            },
             _getAppointmentHeightByTheme: function() {
                 return this._isCompactTheme() ? COMPACT_THEME_APPOINTMENT_DEFAULT_HEIGHT : APPOINTMENT_DEFAULT_HEIGHT
             },
             _getAppointmentDefaultWidth: function() {
                 return this.getPositioningStrategy()._getAppointmentDefaultWidth()
+            },
+            _getAppointmentMinWidth: function() {
+                return this._getAppointmentDefaultWidth()
             },
             _needVerticalGroupBounds: function() {
                 return false
@@ -47942,6 +48437,14 @@
         var _file_saver = __webpack_require__( /*! ../../exporter/file_saver */ 203);
         var _type = __webpack_require__( /*! ../../core/utils/type */ 1);
         var _window = __webpack_require__( /*! ../../core/utils/window */ 7);
+        var SEPARATOR = {
+            widget: "separator"
+        };
+        var CSS_CLASSES = {
+            SMALL_SELECT: "dx-diagram-select-sm",
+            BUTTON_SELECT: "dx-diagram-select-b",
+            BUTTON_COLOR: "dx-diagram-color-b"
+        };
         var DiagramCommands = {
             getToolbar: function() {
                 var _this = this;
@@ -47957,7 +48460,7 @@
                     hint: "Redo",
                     icon: "redo",
                     text: "Redo"
-                }, {
+                }, SEPARATOR, {
                     command: DiagramCommand.FontName,
                     beginGroup: true,
                     widget: "dxSelectBox",
@@ -47965,8 +48468,9 @@
                 }, {
                     command: DiagramCommand.FontSize,
                     widget: "dxSelectBox",
-                    items: ["8pt", "9pt", "10pt", "11pt", "12pt", "14pt", "16pt", "18pt", "20pt", "22pt", "24pt", "26pt", "28pt", "36pt", "48pt", "72pt"]
-                }, {
+                    items: ["8pt", "9pt", "10pt", "11pt", "12pt", "14pt", "16pt", "18pt", "20pt", "22pt", "24pt", "26pt", "28pt", "36pt", "48pt", "72pt"],
+                    cssClass: CSS_CLASSES.SMALL_SELECT
+                }, SEPARATOR, {
                     command: DiagramCommand.Bold,
                     hint: "Bold",
                     text: "Bold",
@@ -47981,19 +48485,25 @@
                     hint: "Underline",
                     text: "Underline",
                     icon: "underline"
-                }, {
+                }, SEPARATOR, {
                     command: DiagramCommand.FontColor,
                     text: "Text Color",
-                    widget: "dxColorBox"
+                    widget: "dxColorBox",
+                    icon: "dx-icon dx-icon-color",
+                    cssClass: CSS_CLASSES.BUTTON_COLOR
                 }, {
                     command: DiagramCommand.StrokeColor,
                     text: "Line Color",
-                    widget: "dxColorBox"
+                    widget: "dxColorBox",
+                    icon: "dx-icon dx-icon-background",
+                    cssClass: CSS_CLASSES.BUTTON_COLOR
                 }, {
                     command: DiagramCommand.FillColor,
                     text: "Fill Color",
-                    widget: "dxColorBox"
-                }, {
+                    widget: "dxColorBox",
+                    icon: "dx-diagram-i dx-diagram-i-button-fill",
+                    cssClass: CSS_CLASSES.BUTTON_COLOR
+                }, SEPARATOR, {
                     command: DiagramCommand.TextLeftAlign,
                     hint: "Align Left",
                     text: "Align Left",
@@ -48009,46 +48519,55 @@
                     hint: "Align Right",
                     text: "Align Right",
                     icon: "alignright"
-                }, {
+                }, SEPARATOR, {
                     command: DiagramCommand.ConnectorLineOption,
                     widget: "dxSelectBox",
-                    text: "Line Option",
+                    hint: "Line Type",
                     items: [{
-                        name: "Straight",
-                        value: 0
+                        value: 0,
+                        icon: "dx-diagram-i-connector-straight dx-diagram-i",
+                        hint: "Straight"
                     }, {
-                        name: "Orthogonal",
-                        value: 1
+                        value: 1,
+                        icon: "dx-diagram-i-connector-orthogonal dx-diagram-i",
+                        hint: "Orthogonal"
                     }],
                     displayExpr: "name",
-                    valueExpr: "value"
+                    valueExpr: "value",
+                    cssClass: CSS_CLASSES.BUTTON_SELECT
                 }, {
                     command: DiagramCommand.ConnectorStartLineEnding,
                     widget: "dxSelectBox",
-                    text: "Start Line Ending",
                     items: [{
-                        name: "None",
-                        value: 0
+                        value: 0,
+                        icon: "dx-diagram-i-connector-begin-none dx-diagram-i",
+                        hint: "None"
                     }, {
-                        name: "Arrow",
-                        value: 1
+                        value: 1,
+                        icon: "dx-diagram-i-connector-begin-arrow dx-diagram-i",
+                        hint: "Arrow"
                     }],
                     displayExpr: "name",
-                    valueExpr: "value"
+                    valueExpr: "value",
+                    hint: "Line Start",
+                    cssClass: CSS_CLASSES.BUTTON_SELECT
                 }, {
                     command: DiagramCommand.ConnectorEndLineEnding,
                     widget: "dxSelectBox",
-                    text: "End Line Ending",
                     items: [{
-                        name: "None",
-                        value: 0
+                        value: 0,
+                        icon: "dx-diagram-i-connector-end-none dx-diagram-i",
+                        hint: "None"
                     }, {
-                        name: "Arrow",
-                        value: 1
+                        value: 1,
+                        icon: "dx-diagram-i-connector-end-arrow dx-diagram-i",
+                        hint: "Arrow"
                     }],
                     displayExpr: "name",
-                    valueExpr: "value"
-                }, {
+                    valueExpr: "value",
+                    hint: "Line End",
+                    cssClass: CSS_CLASSES.BUTTON_SELECT
+                }, SEPARATOR, {
                     widget: "dxButton",
                     icon: "export",
                     text: "Export",
@@ -48097,101 +48616,46 @@
                 var _getDiagram2 = (0, _diagram_importer.getDiagram)(),
                     DiagramCommand = _getDiagram2.DiagramCommand;
                 return [{
+                    command: DiagramCommand.Units,
+                    text: "Units",
+                    widget: "dxSelectBox"
+                }, {
                     command: DiagramCommand.PageSize,
                     text: "Page Size",
                     widget: "dxSelectBox",
                     getValue: function(v) {
-                        var vParts = v.split("|");
-                        return {
-                            width: parseInt(vParts[0]),
-                            height: parseInt(vParts[1])
-                        }
+                        return JSON.parse(v)
                     },
                     setValue: function(v) {
-                        return v.width + "|" + v.height
-                    },
-                    items: [{
-                        value: "12240|15840",
-                        title: 'US-Letter (8,5" x 11")'
-                    }, {
-                        value: "15817|24491",
-                        title: "US-Tabloid (27.9 cm x 43.2 cm)"
-                    }, {
-                        value: "47679|67408",
-                        title: "A0 (84.1 cm x 118.9 cm)"
-                    }, {
-                        value: "33676|47679",
-                        title: "A1 (59.4 cm x 84.1 cm)"
-                    }, {
-                        value: "23811|33676",
-                        title: "A2 (42.0 cm x 59.4 cm)"
-                    }, {
-                        value: "16838|23811",
-                        title: "A3 (29.7 cm x 42.0 cm)"
-                    }, {
-                        value: "11906|16838",
-                        title: "A4 (21.0 cm x 29.7 cm)"
-                    }, {
-                        value: "8391|11906",
-                        title: "A5 (14.8 cm x 21.0 cm)"
-                    }, {
-                        value: "5953|8391",
-                        title: "A6 (10.5 cm x 14.8 cm)"
-                    }, {
-                        value: "4195|5953",
-                        title: "A7 (7.4 cm x 10.5 cm)"
-                    }]
+                        return JSON.stringify(v)
+                    }
                 }, {
                     command: DiagramCommand.PageLandscape,
                     text: "Page Landscape",
                     widget: "dxCheckBox"
                 }, {
-                    command: DiagramCommand.GridSize,
-                    text: "Grid Size",
-                    widget: "dxSelectBox",
-                    items: [{
-                        value: 90,
-                        title: "0.16 cm"
-                    }, {
-                        value: 180,
-                        title: "0.32 cm"
-                    }, {
-                        value: 360,
-                        title: "0.64 cm"
-                    }, {
-                        value: 720,
-                        title: "1.28 cm"
-                    }]
+                    command: DiagramCommand.PageColor,
+                    text: "Page Color",
+                    widget: "dxColorBox",
+                    beginGroup: true
+                }, {
+                    command: DiagramCommand.ShowGrid,
+                    text: "Show Grid",
+                    widget: "dxCheckBox",
+                    beginGroup: true
                 }, {
                     command: DiagramCommand.SnapToGrid,
                     text: "Snap to Grid",
                     widget: "dxCheckBox"
                 }, {
+                    command: DiagramCommand.GridSize,
+                    text: "Grid Size",
+                    widget: "dxSelectBox"
+                }, {
                     command: DiagramCommand.ZoomLevel,
                     text: "Zoom Level",
                     widget: "dxSelectBox",
-                    items: [{
-                        value: .5,
-                        title: "50%"
-                    }, {
-                        value: .75,
-                        title: "75%"
-                    }, {
-                        value: 1,
-                        title: "100%"
-                    }, {
-                        value: 1.25,
-                        title: "125%"
-                    }, {
-                        value: 1.5,
-                        title: "150%"
-                    }, {
-                        value: 2,
-                        title: "200%"
-                    }, {
-                        value: 3,
-                        title: "300%"
-                    }]
+                    beginGroup: true
                 }]
             },
             getContextMenu: function() {
@@ -48208,16 +48672,26 @@
                     text: "Paste"
                 }, {
                     command: DiagramCommand.SelectAll,
-                    text: "Select All"
+                    text: "Select All",
+                    beginGroup: true
                 }, {
                     command: DiagramCommand.Delete,
-                    text: "Delete"
+                    text: "Delete",
+                    beginGroup: true
                 }, {
                     command: DiagramCommand.BringToFront,
-                    text: "Bring to Front"
+                    text: "Bring to Front",
+                    beginGroup: true
                 }, {
                     command: DiagramCommand.SendToBack,
                     text: "Send to Back"
+                }, {
+                    command: DiagramCommand.Lock,
+                    text: "Lock",
+                    beginGroup: true
+                }, {
+                    command: DiagramCommand.Unlock,
+                    text: "Unlock"
                 }]
             },
             _exportTo: function(widget, dataURI, format, mimeString) {
@@ -48309,6 +48783,9 @@
                 key: "setEnabled",
                 value: function(enabled) {}
             }, {
+                key: "setItemSubItems",
+                value: function(key, items) {}
+            }, {
                 key: "isVisible",
                 value: function() {
                     return true
@@ -48324,7 +48801,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        module.exports = __webpack_require__( /*! ./core/export */ 92)
+        module.exports = __webpack_require__( /*! ./core/export */ 94)
     },
     /*!*****************************************************************!*\
       !*** ./artifacts/transpiled/viz/chart_components/base_chart.js ***!
@@ -48338,16 +48815,16 @@
             typeUtils = __webpack_require__( /*! ../../core/utils/type */ 1),
             iteratorModule = __webpack_require__( /*! ../../core/utils/iterator */ 3),
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
-            inArray = __webpack_require__( /*! ../../core/utils/array */ 11).inArray,
+            inArray = __webpack_require__( /*! ../../core/utils/array */ 12).inArray,
             eventUtils = __webpack_require__( /*! ../../events/utils */ 9),
-            BaseWidget = __webpack_require__( /*! ../core/base_widget */ 95),
+            BaseWidget = __webpack_require__( /*! ../core/base_widget */ 97),
             coreDataUtils = __webpack_require__( /*! ../../core/utils/data */ 20),
             legendModule = __webpack_require__( /*! ../components/legend */ 198),
-            dataValidatorModule = __webpack_require__( /*! ../components/data_validator */ 236),
-            seriesModule = __webpack_require__( /*! ../series/base_series */ 238),
+            dataValidatorModule = __webpack_require__( /*! ../components/data_validator */ 237),
+            seriesModule = __webpack_require__( /*! ../series/base_series */ 239),
             chartThemeManagerModule = __webpack_require__( /*! ../components/chart_theme_manager */ 392),
             LayoutManagerModule = __webpack_require__( /*! ./layout_manager */ 393),
-            trackerModule = __webpack_require__( /*! ./tracker */ 764),
+            trackerModule = __webpack_require__( /*! ./tracker */ 765),
             REINIT_REFRESH_ACTION = "_reinit",
             REINIT_DATA_SOURCE_REFRESH_ACTION = "_updateDataSource",
             DATA_INIT_REFRESH_ACTION = "_dataInit",
@@ -48911,7 +49388,10 @@
                 that.layoutManager.setOptions(that._layoutManagerOptions());
                 var layoutTargets = that._getLayoutTargets();
                 this._layoutAxes(function(needSpace) {
-                    var canvas = that._renderAxes(drawOptions, preparedOptions);
+                    var axisDrawOptions = needSpace ? extend({}, drawOptions, {
+                        animate: false
+                    }) : drawOptions;
+                    var canvas = that._renderAxes(axisDrawOptions, preparedOptions);
                     that._shrinkAxes(needSpace, canvas)
                 });
                 that._applyClipRects(preparedOptions);
@@ -49525,6 +50005,9 @@
             },
             _change_INIT: function() {
                 this._reinit()
+            },
+            _stopCurrentHandling: function() {
+                this._tracker.stopCurrentHandling()
             }
         });
         REFRESH_SERIES_DATA_INIT_ACTION_OPTIONS.forEach(function(name) {
@@ -49538,10 +50021,10 @@
         });
         exports.overlapping = overlapping;
         exports.BaseChart = BaseChart;
-        BaseChart.addPlugin(__webpack_require__( /*! ../core/export */ 92).plugin);
-        BaseChart.addPlugin(__webpack_require__( /*! ../core/title */ 103).plugin);
-        BaseChart.addPlugin(__webpack_require__( /*! ../core/tooltip */ 105).plugin);
-        BaseChart.addPlugin(__webpack_require__( /*! ../core/loading_indicator */ 120).plugin);
+        BaseChart.addPlugin(__webpack_require__( /*! ../core/export */ 94).plugin);
+        BaseChart.addPlugin(__webpack_require__( /*! ../core/title */ 105).plugin);
+        BaseChart.addPlugin(__webpack_require__( /*! ../core/tooltip */ 107).plugin);
+        BaseChart.addPlugin(__webpack_require__( /*! ../core/loading_indicator */ 118).plugin);
         BaseChart.addPlugin(__webpack_require__( /*! ../core/data_source */ 142).plugin);
         var _change_TITLE = BaseChart.prototype._change_TITLE;
         BaseChart.prototype._change_TITLE = function() {
@@ -49564,25 +50047,25 @@
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
             typeUtils = __webpack_require__( /*! ../../core/utils/type */ 1),
             each = __webpack_require__( /*! ../../core/utils/iterator */ 3).each,
-            paletteModule = __webpack_require__( /*! ../palette */ 162),
+            paletteModule = __webpack_require__( /*! ../palette */ 164),
             _isString = typeUtils.isString,
             _parseScalar = __webpack_require__( /*! ./utils */ 10).parseScalar,
-            themeModule = __webpack_require__( /*! ../themes */ 49),
+            themeModule = __webpack_require__( /*! ../themes */ 50),
             _getTheme = themeModule.getTheme,
             _addCacheItem = themeModule.addCacheItem,
             _removeCacheItem = themeModule.removeCacheItem,
             _extend = extend,
             _each = each;
-        __webpack_require__( /*! ./themes/generic.light */ 741);
-        __webpack_require__( /*! ./themes/generic.dark */ 742);
-        __webpack_require__( /*! ./themes/generic.contrast */ 743);
-        __webpack_require__( /*! ./themes/generic.carmine */ 744);
-        __webpack_require__( /*! ./themes/generic.darkmoon */ 745);
-        __webpack_require__( /*! ./themes/generic.softblue */ 746);
-        __webpack_require__( /*! ./themes/generic.darkviolet */ 747);
-        __webpack_require__( /*! ./themes/generic.greenmist */ 748);
-        __webpack_require__( /*! ./themes/material */ 749);
-        __webpack_require__( /*! ./themes/ios */ 750);
+        __webpack_require__( /*! ./themes/generic.light */ 742);
+        __webpack_require__( /*! ./themes/generic.dark */ 743);
+        __webpack_require__( /*! ./themes/generic.contrast */ 744);
+        __webpack_require__( /*! ./themes/generic.carmine */ 745);
+        __webpack_require__( /*! ./themes/generic.darkmoon */ 746);
+        __webpack_require__( /*! ./themes/generic.softblue */ 747);
+        __webpack_require__( /*! ./themes/generic.darkviolet */ 748);
+        __webpack_require__( /*! ./themes/generic.greenmist */ 749);
+        __webpack_require__( /*! ./themes/material */ 750);
+        __webpack_require__( /*! ./themes/ios */ 751);
 
         function getThemePart(theme, path) {
             var _theme = theme;
@@ -49733,7 +50216,7 @@
             ARGUMENT_TYPE = "argumentType",
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
             axisTypeParser = __webpack_require__( /*! ../core/utils */ 10).enumParser([STRING, NUMERIC, DATETIME]),
-            _getParser = __webpack_require__( /*! ./parse_utils */ 237).getParser,
+            _getParser = __webpack_require__( /*! ./parse_utils */ 238).getParser,
             _isDefined = typeUtils.isDefined,
             _isFunction = typeUtils.isFunction,
             _isArray = Array.isArray,
@@ -50246,23 +50729,23 @@
             typeUtils = __webpack_require__( /*! ../../core/utils/type */ 1),
             _extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
             _each = __webpack_require__( /*! ../../core/utils/iterator */ 3).each,
-            pointModule = __webpack_require__( /*! ./points/base_point */ 754),
+            pointModule = __webpack_require__( /*! ./points/base_point */ 755),
             _isDefined = typeUtils.isDefined,
             vizUtils = __webpack_require__( /*! ../core/utils */ 10),
             _isEmptyObject = typeUtils.isEmptyObject,
             _normalizeEnum = vizUtils.normalizeEnum,
             _noop = __webpack_require__( /*! ../../core/utils/common */ 4).noop,
-            states = __webpack_require__( /*! ../components/consts */ 118).states,
-            rangeCalculator = __webpack_require__( /*! ./helpers/range_data_calculator */ 240),
-            scatterSeries = __webpack_require__( /*! ./scatter_series */ 104),
+            states = __webpack_require__( /*! ../components/consts */ 116).states,
+            rangeCalculator = __webpack_require__( /*! ./helpers/range_data_calculator */ 241),
+            scatterSeries = __webpack_require__( /*! ./scatter_series */ 106),
             lineSeries = __webpack_require__( /*! ./line_series */ 200),
-            areaSeries = __webpack_require__( /*! ./area_series */ 163),
+            areaSeries = __webpack_require__( /*! ./area_series */ 165),
             barSeries = __webpack_require__( /*! ./bar_series */ 141),
-            rangeSeries = __webpack_require__( /*! ./range_series */ 759),
-            bubbleSeries = __webpack_require__( /*! ./bubble_series */ 760),
-            pieSeries = __webpack_require__( /*! ./pie_series */ 761),
-            financialSeries = __webpack_require__( /*! ./financial_series */ 762),
-            stackedSeries = __webpack_require__( /*! ./stacked_series */ 763),
+            rangeSeries = __webpack_require__( /*! ./range_series */ 760),
+            bubbleSeries = __webpack_require__( /*! ./bubble_series */ 761),
+            pieSeries = __webpack_require__( /*! ./pie_series */ 762),
+            financialSeries = __webpack_require__( /*! ./financial_series */ 763),
+            stackedSeries = __webpack_require__( /*! ./stacked_series */ 764),
             DISCRETE = "discrete",
             SELECTED_STATE = states.selectedMark,
             HOVER_STATE = states.hoverMark,
@@ -50301,20 +50784,7 @@
             pie: {},
             polar: {}
         };
-        seriesNS.mixins.chart.scatter = _extend({}, scatterSeries.chart, {
-            usePointsToDefineAutoHiding: function() {
-                return true
-            },
-            checkSeriesViewportCoord: function(axis, coord) {
-                return true
-            },
-            getSeriesPairCoord: function(coord, isArgument) {
-                var _this = this;
-                return bubbleSeries.chart.bubble.getShapePairCoord.call(this, coord, isArgument, function() {
-                    return _this._options.point.size / 2
-                })
-            }
-        });
+        seriesNS.mixins.chart.scatter = scatterSeries.chart;
         seriesNS.mixins.polar.scatter = scatterSeries.polar;
         _extend(seriesNS.mixins.pie, pieSeries);
         _extend(seriesNS.mixins.chart, lineSeries.chart, areaSeries.chart, barSeries.chart, rangeSeries.chart, bubbleSeries.chart, financialSeries, stackedSeries.chart);
@@ -50612,12 +51082,8 @@
                 var aggregation = this.getOptions().aggregation;
                 return aggregation && aggregation.enabled
             },
-            autoHidePointMarkersEnabled: function() {
-                return false
-            },
-            usePointsToDefineAutoHiding: function() {
-                return this.autoHidePointMarkersEnabled()
-            },
+            autoHidePointMarkersEnabled: _noop,
+            usePointsToDefineAutoHiding: _noop,
             createPoints: function(useAllAggregatedPoints) {
                 this._normalizeUsingAllAggregatedPoints(useAllAggregatedPoints);
                 this._createPoints()
@@ -51742,7 +52208,8 @@
                 var rowCountChanged = false;
                 if (this._text) {
                     var _text$setMaxSize = this._text.setMaxSize(maxWidth - padding, void 0, this._options),
-                        rowCount = _text$setMaxSize.rowCount;
+                        rowCount = _text$setMaxSize.rowCount,
+                        textIsEmpty = _text$setMaxSize.textIsEmpty;
                     if (0 === rowCount) {
                         rowCount = 1
                     }
@@ -51750,6 +52217,7 @@
                         rowCountChanged = true;
                         this._rowCount = rowCount
                     }
+                    textIsEmpty && disposeItem(this, "_background")
                 }
                 this._updateBackground(this._text.getBBox());
                 return rowCountChanged
@@ -52096,30 +52564,30 @@
         var _utils = __webpack_require__( /*! ../core/utils */ 10);
         var _utils2 = _interopRequireDefault(_utils);
         var _type = __webpack_require__( /*! ../../core/utils/type */ 1);
-        var _axes_constants = __webpack_require__( /*! ./axes_constants */ 242);
+        var _axes_constants = __webpack_require__( /*! ./axes_constants */ 243);
         var _axes_constants2 = _interopRequireDefault(_axes_constants);
         var _extend = __webpack_require__( /*! ../../core/utils/extend */ 0);
-        var _array = __webpack_require__( /*! ../../core/utils/array */ 11);
+        var _array = __webpack_require__( /*! ../../core/utils/array */ 12);
         var _format_helper = __webpack_require__( /*! ../../format_helper */ 61);
         var _format_helper2 = _interopRequireDefault(_format_helper);
-        var _parse_utils = __webpack_require__( /*! ../components/parse_utils */ 237);
+        var _parse_utils = __webpack_require__( /*! ../components/parse_utils */ 238);
         var _parse_utils2 = _interopRequireDefault(_parse_utils);
         var _tick_generator = __webpack_require__( /*! ./tick_generator */ 396);
         var _tick_generator2 = _interopRequireDefault(_tick_generator);
-        var _translator2d = __webpack_require__( /*! ../translators/translator2d */ 243);
+        var _translator2d = __webpack_require__( /*! ../translators/translator2d */ 244);
         var _translator2d2 = _interopRequireDefault(_translator2d);
-        var _range = __webpack_require__( /*! ../translators/range */ 106);
+        var _range = __webpack_require__( /*! ../translators/range */ 108);
         var _tick = __webpack_require__( /*! ./tick */ 397);
         var _math2 = __webpack_require__( /*! ../../core/utils/math */ 30);
         var _date = __webpack_require__( /*! ../../core/utils/date */ 22);
         var _common = __webpack_require__( /*! ../../core/utils/common */ 4);
         var _xy_axes = __webpack_require__( /*! ./xy_axes */ 398);
         var _xy_axes2 = _interopRequireDefault(_xy_axes);
-        var _polar_axes = __webpack_require__( /*! ./polar_axes */ 771);
+        var _polar_axes = __webpack_require__( /*! ./polar_axes */ 772);
         var _polar_axes2 = _interopRequireDefault(_polar_axes);
-        var _constant_line = __webpack_require__( /*! ./constant_line */ 772);
+        var _constant_line = __webpack_require__( /*! ./constant_line */ 773);
         var _constant_line2 = _interopRequireDefault(_constant_line);
-        var _strip = __webpack_require__( /*! ./strip */ 773);
+        var _strip = __webpack_require__( /*! ./strip */ 774);
         var _strip2 = _interopRequireDefault(_strip);
 
         function _interopRequireDefault(obj) {
@@ -52344,6 +52812,10 @@
         function convertVisualRangeObject(visualRange, optionValue) {
             return _utils2.default.convertVisualRangeObject(visualRange, !_isArray(optionValue))
         }
+
+        function getConstantLineSharpDirection(coord, axisCanvas) {
+            return Math.max(axisCanvas.start, axisCanvas.end) !== coord ? 1 : -1
+        }
         var Axis = exports.Axis = function(renderSettings) {
             var that = this;
             that._renderer = renderSettings.renderer;
@@ -52377,17 +52849,30 @@
                     "stroke-width": options.width,
                     stroke: options.color,
                     "stroke-opacity": options.opacity
-                }).sharp(this._getSharpParam(true)).append(this._axisLineGroup)
+                }).sharp(this._getSharpParam(true), this.getAxisSharpDirection()).append(this._axisLineGroup)
             },
-            _createPathElement: function(points, attr) {
-                return this._renderer.path(points, "line").attr(attr).sharp(this._getSharpParam())
+            _createPathElement: function(points, attr, sharpDirection) {
+                return this.sharp(this._renderer.path(points, "line").attr(attr), sharpDirection)
             },
-            _getGridLineDrawer: function(borderOptions) {
+            sharp: function(svgElement) {
+                var sharpDirection = arguments.length > 1 && void 0 !== arguments[1] ? arguments[1] : 1;
+                return svgElement.sharp(this._getSharpParam(), sharpDirection)
+            },
+            getAxisSharpDirection: function() {
+                var position = this._options.position;
+                return position === TOP || position === LEFT ? 1 : -1
+            },
+            getSharpDirectionByCoords: function(coords) {
+                var canvas = this._getCanvasStartEnd();
+                var maxCoord = Math.max(canvas.start, canvas.end);
+                return this.getRadius ? 0 : maxCoord !== coords[this._isHorizontal ? "x" : "y"] ? 1 : -1
+            },
+            _getGridLineDrawer: function() {
                 var that = this;
                 return function(tick, gridStyle) {
                     var grid = that._getGridPoints(tick.coords);
                     if (grid.points) {
-                        return that._createPathElement(grid.points, gridStyle)
+                        return that._createPathElement(grid.points, gridStyle, that.getSharpDirectionByCoords(tick.coords))
                     }
                     return null
                 }
@@ -52437,7 +52922,7 @@
                 }
             },
             _createConstantLine: function(value, attr) {
-                return this._createPathElement(this._getConstantLineGraphicAttributes(value).points, attr)
+                return this._createPathElement(this._getConstantLineGraphicAttributes(value).points, attr, getConstantLineSharpDirection(value, this._getCanvasStartEnd()))
             },
             _drawConstantLineLabelText: function(text, x, y, constantLineLabelOptions, group) {
                 var that = this,
@@ -52752,7 +53237,7 @@
                     edgeMarginCorrection = _max(options.grid.visible && options.grid.width || 0, options.tick.visible && options.tick.width || 0),
                     constantLineAboveSeries = that._axisConstantLineGroups.above,
                     constantLineUnderSeries = that._axisConstantLineGroups.under,
-                    boxes = [that._axisElementsGroup, constantLineAboveSeries.outside1, constantLineAboveSeries.outside2, constantLineUnderSeries.outside1, constantLineUnderSeries.outside2].map(function(group) {
+                    boxes = [that._axisElementsGroup, constantLineAboveSeries.outside1, constantLineAboveSeries.outside2, constantLineUnderSeries.outside1, constantLineUnderSeries.outside2, that._axisLineGroup].map(function(group) {
                         return group && group.getBBox()
                     }).concat(function(group) {
                         var box = group && group.getBBox();
@@ -52914,6 +53399,9 @@
             },
             getCanvas: function() {
                 return this._canvas
+            },
+            getAxisShift: function() {
+                return this._axisShift || 0
             },
             hideTitle: function() {
                 var that = this;
@@ -53349,15 +53837,17 @@
                 });
                 that._tickInterval = ticks.tickInterval;
                 that._minorTickInterval = ticks.minorTickInterval;
-                var majorTicksByValues = (that._majorTicks || []).reduce(function(r, t) {
+                var oldMajorTicks = that._majorTicks || [];
+                var majorTicksByValues = oldMajorTicks.reduce(function(r, t) {
                     r[t.value.valueOf()] = t;
                     return r
                 }, {});
+                var sameType = (0, _type.type)(ticks.ticks[0]) === (0, _type.type)(oldMajorTicks[0] && oldMajorTicks[0].value);
                 var skippedCategory = that._getSkippedCategory(ticks.ticks);
                 var majorTicks = ticks.ticks.map(function(v) {
                     var tick = majorTicksByValues[v.valueOf()];
-                    delete majorTicksByValues[v.valueOf()];
-                    if (tick) {
+                    if (tick && sameType) {
+                        delete majorTicksByValues[v.valueOf()];
                         tick.setSkippedCategory(skippedCategory);
                         return tick
                     } else {
@@ -53383,7 +53873,9 @@
             _reinitTranslator: function(range) {
                 var that = this,
                     translator = that._translator;
-                range.breaks = that._correctedBreaks;
+                if (that._correctedBreaks) {
+                    range.breaks = that._correctedBreaks
+                }
                 if (that._isSynchronized) {
                     return
                 }
@@ -53432,6 +53924,7 @@
                 return businessInterval
             },
             _calculateValueMargins: function(ticks) {
+                this._resetMargins();
                 var that = this;
                 var margins = that.getMarginOptions();
                 var marginSize = (margins.size || 0) / 2;
@@ -53527,12 +54020,14 @@
                 }
                 minPercentPadding = void 0 === minPercentPadding ? minPadding / screenDeltaWithMargins : minPercentPadding;
                 maxPercentPadding = void 0 === maxPercentPadding ? maxPadding / screenDeltaWithMargins : maxPercentPadding;
-                if (this._translator.isInverted()) {
-                    minValue = (0, _type.isDefined)(minValue) ? minValue : translator.from(canvasStartEnd.start + screenDelta * minPercentPadding);
-                    maxValue = (0, _type.isDefined)(maxValue) ? maxValue : translator.from(canvasStartEnd.end - screenDelta * maxPercentPadding)
-                } else {
-                    minValue = (0, _type.isDefined)(minValue) ? minValue : translator.from(canvasStartEnd.start - screenDelta * minPercentPadding);
-                    maxValue = (0, _type.isDefined)(maxValue) ? maxValue : translator.from(canvasStartEnd.end + screenDelta * maxPercentPadding)
+                if (!isDiscrete) {
+                    if (this._translator.isInverted()) {
+                        minValue = (0, _type.isDefined)(minValue) ? minValue : translator.from(canvasStartEnd.start + screenDelta * minPercentPadding, -1);
+                        maxValue = (0, _type.isDefined)(maxValue) ? maxValue : translator.from(canvasStartEnd.end - screenDelta * maxPercentPadding, 1)
+                    } else {
+                        minValue = (0, _type.isDefined)(minValue) ? minValue : translator.from(canvasStartEnd.start - screenDelta * minPercentPadding, -1);
+                        maxValue = (0, _type.isDefined)(maxValue) ? maxValue : translator.from(canvasStartEnd.end + screenDelta * maxPercentPadding, 1)
+                    }
                 }
 
                 function correctZeroLevel(minPoint, maxPoint) {
@@ -53580,6 +54075,7 @@
                 }
             },
             _resetMargins: function() {
+                this._reinitTranslator(this._getViewportRange());
                 if (this._canvas) {
                     this._translator.updateCanvas(this._processCanvas(this._canvas))
                 }
@@ -53860,6 +54356,7 @@
                 }
             },
             setInitRange: function() {
+                this._initRange = {};
                 if (0 === Object.keys(this._options.wholeRange || {}).length) {
                     this._initRange = this.getZoomBounds()
                 }
@@ -54330,11 +54827,11 @@
     function(module, exports, __webpack_require__) {
         var _Translator2d, extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
             each = __webpack_require__( /*! ../../core/utils/iterator */ 3).each,
-            Range = __webpack_require__( /*! ./range */ 106).Range,
-            categoryTranslator = __webpack_require__( /*! ./category_translator */ 766),
-            intervalTranslator = __webpack_require__( /*! ./interval_translator */ 767),
-            datetimeTranslator = __webpack_require__( /*! ./datetime_translator */ 768),
-            logarithmicTranslator = __webpack_require__( /*! ./logarithmic_translator */ 769),
+            Range = __webpack_require__( /*! ./range */ 108).Range,
+            categoryTranslator = __webpack_require__( /*! ./category_translator */ 767),
+            intervalTranslator = __webpack_require__( /*! ./interval_translator */ 768),
+            datetimeTranslator = __webpack_require__( /*! ./datetime_translator */ 769),
+            logarithmicTranslator = __webpack_require__( /*! ./logarithmic_translator */ 770),
             vizUtils = __webpack_require__( /*! ../core/utils */ 10),
             typeUtils = __webpack_require__( /*! ../../core/utils/type */ 1),
             getLog = vizUtils.getLog,
@@ -55447,9 +55944,9 @@
         var windowUtils = __webpack_require__( /*! ./utils/window */ 7);
         var window = windowUtils.getWindow();
         var typeUtils = __webpack_require__( /*! ./utils/type */ 1);
-        var styleUtils = __webpack_require__( /*! ./utils/style */ 85);
-        var sizeUtils = __webpack_require__( /*! ./utils/size */ 272);
-        var htmlParser = __webpack_require__( /*! ./utils/html_parser */ 249);
+        var styleUtils = __webpack_require__( /*! ./utils/style */ 86);
+        var sizeUtils = __webpack_require__( /*! ./utils/size */ 207);
+        var htmlParser = __webpack_require__( /*! ./utils/html_parser */ 250);
         var renderer = function(selector, context) {
             return new initRender(selector, context)
         };
@@ -55694,6 +56191,9 @@
         };
         var setCss = function(name, value) {
             if (!this[0] || !this[0].style) {
+                return
+            }
+            if (null === value || "number" === typeof value && isNaN(value)) {
                 return
             }
             name = styleUtils.styleProp(name);
@@ -56243,7 +56743,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var merge = __webpack_require__( /*! ./array */ 11).merge,
+        var merge = __webpack_require__( /*! ./array */ 12).merge,
             domAdapter = __webpack_require__( /*! ../dom_adapter */ 13);
         var isTagName = /<([a-z][^\/\0>\x20\t\r\n\f]+)/i;
         var tagWrappers = {
@@ -56306,7 +56806,7 @@
         var typeUtils = __webpack_require__( /*! ../core/utils/type */ 1),
             stringUtils = __webpack_require__( /*! ../core/utils/string */ 44),
             numberFormatter = __webpack_require__( /*! ../localization/number */ 51),
-            dateLocalization = __webpack_require__( /*! ../localization/date */ 32),
+            dateLocalization = __webpack_require__( /*! ../localization/date */ 33),
             getDateLDMLFormat = __webpack_require__( /*! ../localization/ldml/date.format */ 204).getFormat,
             getLanguageID = __webpack_require__( /*! ../localization/language_codes */ 274).getLanguageId,
             UNSUPPORTED_FORMAT_MAPPING = {
@@ -56336,7 +56836,7 @@
             SQUARE_OPEN_BRACKET_REGEXP = /\[/g,
             SQUARE_CLOSE_BRACKET_REGEXP = /]/g,
             ANY_REGEXP = /./g;
-        __webpack_require__( /*! ../localization/currency */ 151);
+        __webpack_require__( /*! ../localization/currency */ 152);
         var excelFormatConverter = module.exports = {
             _applyPrecision: function(format, precision) {
                 var result, i;
@@ -56797,7 +57297,7 @@
         var _type = __webpack_require__( /*! ../../core/utils/type */ 1);
         var _excel = __webpack_require__( /*! ./excel.tag_helper */ 78);
         var _excel2 = _interopRequireDefault(_excel);
-        var _excel3 = __webpack_require__( /*! ./excel.color_helper */ 254);
+        var _excel3 = __webpack_require__( /*! ./excel.color_helper */ 255);
         var _excel4 = _interopRequireDefault(_excel3);
 
         function _interopRequireDefault(obj) {
@@ -56887,7 +57387,7 @@
     function(module, exports, __webpack_require__) {
         var _renderer = __webpack_require__( /*! ../core/renderer */ 2);
         var _renderer2 = _interopRequireDefault(_renderer);
-        var _color = __webpack_require__( /*! ../color */ 93);
+        var _color = __webpack_require__( /*! ../color */ 95);
         var _color2 = _interopRequireDefault(_color);
         var _type = __webpack_require__( /*! ../core/utils/type */ 1);
         var _svg = __webpack_require__( /*! ../core/utils/svg */ 205);
@@ -56897,11 +57397,11 @@
         var _extend = __webpack_require__( /*! ../core/utils/extend */ 0);
         var _dom_adapter = __webpack_require__( /*! ../core/dom_adapter */ 13);
         var _dom_adapter2 = _interopRequireDefault(_dom_adapter);
-        var _dom = __webpack_require__( /*! ../core/utils/dom */ 12);
+        var _dom = __webpack_require__( /*! ../core/utils/dom */ 11);
         var _dom2 = _interopRequireDefault(_dom);
         var _window = __webpack_require__( /*! ../core/utils/window */ 7);
         var _window2 = _interopRequireDefault(_window);
-        var _inflector = __webpack_require__( /*! ../core/utils/inflector */ 31);
+        var _inflector = __webpack_require__( /*! ../core/utils/inflector */ 32);
         var _deferred = __webpack_require__( /*! ../core/utils/deferred */ 6);
 
         function _interopRequireDefault(obj) {
@@ -57495,7 +57995,7 @@
             }
         };
         exports.getData = function(data, options, callback) {
-            exports.imageCreator.getData(data, options).then(callback)
+            return exports.imageCreator.getData(data, options).then(callback)
         };
         exports.testFormats = function(formats) {
             var canvas = createCanvas(100, 100, 0);
@@ -57655,7 +58155,7 @@
         var devices = __webpack_require__( /*! ../../core/devices */ 16),
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
             each = __webpack_require__( /*! ../../core/utils/iterator */ 3).each,
-            BaseStrategy = __webpack_require__( /*! ./base */ 153);
+            BaseStrategy = __webpack_require__( /*! ./base */ 154);
         var eventMap = {
             dxpointerdown: "touchstart",
             dxpointermove: "touchmove",
@@ -57711,7 +58211,7 @@
     /*! all exports used */
     function(module, exports, __webpack_require__) {
         var each = __webpack_require__( /*! ../../core/utils/iterator */ 3).each,
-            readyCallbacks = __webpack_require__( /*! ../../core/utils/ready_callbacks */ 50),
+            readyCallbacks = __webpack_require__( /*! ../../core/utils/ready_callbacks */ 48),
             domAdapter = __webpack_require__( /*! ../../core/dom_adapter */ 13);
         var addEventsListener = function(events, handler) {
             readyCallbacks.add(function() {
@@ -57769,8 +58269,8 @@
     /*! all exports used */
     function(module, exports, __webpack_require__) {
         var extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
-            BaseStrategy = __webpack_require__( /*! ./base */ 153),
-            Observer = __webpack_require__( /*! ./observer */ 260);
+            BaseStrategy = __webpack_require__( /*! ./base */ 154),
+            Observer = __webpack_require__( /*! ./observer */ 261);
         var eventMap = {
             dxpointerdown: "mousedown",
             dxpointermove: "mousemove",
@@ -57824,7 +58324,7 @@
     function(module, exports, __webpack_require__) {
         var jQuery = __webpack_require__( /*! jquery */ 55);
         var compareVersions = __webpack_require__( /*! ../core/utils/version */ 65).compare;
-        var errors = __webpack_require__( /*! ../core/utils/error */ 127);
+        var errors = __webpack_require__( /*! ../core/utils/error */ 126);
         var useJQuery = __webpack_require__( /*! ./jquery/use_jquery */ 79)();
         if (useJQuery && compareVersions(jQuery.fn.jquery, [1, 10]) < 0) {
             throw errors.Error("E0012")
@@ -58077,7 +58577,7 @@
         });
         DevExpress.data.DataSource = __webpack_require__( /*! ../../data/data_source */ 477);
         DevExpress.data.query = __webpack_require__( /*! ../../data/query */ 41);
-        DevExpress.data.Store = __webpack_require__( /*! ../../data/abstract_store */ 97);
+        DevExpress.data.Store = __webpack_require__( /*! ../../data/abstract_store */ 99);
         DevExpress.data.ArrayStore = __webpack_require__( /*! ../../data/array_store */ 67);
         DevExpress.data.CustomStore = __webpack_require__( /*! ../../data/custom_store */ 147);
         DevExpress.data.LocalStore = __webpack_require__( /*! ../../data/local_store */ 478);
@@ -58088,7 +58588,7 @@
         DevExpress.data.utils.compileSetter = __webpack_require__( /*! ../../core/utils/data */ 20).compileSetter;
         DevExpress.EndpointSelector = __webpack_require__( /*! ../../data/endpoint_selector */ 479);
         DevExpress.data.queryImpl = __webpack_require__( /*! ../../data/query */ 41).queryImpl;
-        DevExpress.data.queryAdapters = __webpack_require__( /*! ../../data/query_adapters */ 178);
+        DevExpress.data.queryAdapters = __webpack_require__( /*! ../../data/query_adapters */ 179);
         var dataUtils = __webpack_require__( /*! ../../data/utils */ 40);
         DevExpress.data.utils.normalizeBinaryCriterion = dataUtils.normalizeBinaryCriterion;
         DevExpress.data.utils.normalizeSortingInfo = dataUtils.normalizeSortingInfo;
@@ -58181,16 +58681,16 @@
     function(module, exports, __webpack_require__) {
         var isDefined = __webpack_require__( /*! ../../core/utils/type */ 1).isDefined,
             config = __webpack_require__( /*! ../../core/config */ 29),
-            odataUtils = __webpack_require__( /*! ./utils */ 108),
-            proxyUrlFormatter = __webpack_require__( /*! ../proxy_url_formatter */ 269),
+            odataUtils = __webpack_require__( /*! ./utils */ 110),
+            proxyUrlFormatter = __webpack_require__( /*! ../proxy_url_formatter */ 270),
             errors = __webpack_require__( /*! ../errors */ 36).errors,
             query = __webpack_require__( /*! ../query */ 41),
-            Store = __webpack_require__( /*! ../abstract_store */ 97),
-            mixins = __webpack_require__( /*! ./mixins */ 271),
+            Store = __webpack_require__( /*! ../abstract_store */ 99),
+            mixins = __webpack_require__( /*! ./mixins */ 272),
             deferredUtils = __webpack_require__( /*! ../../core/utils/deferred */ 6),
             when = deferredUtils.when,
             Deferred = deferredUtils.Deferred;
-        __webpack_require__( /*! ./query_adapter */ 155);
+        __webpack_require__( /*! ./query_adapter */ 156);
         var ANONYMOUS_KEY_NAME = "5d46402c-7899-4ea9-bd81-8b73c47c7683";
 
         function expandKeyType(key, keyType) {
@@ -58246,9 +58746,8 @@
             _byKeyImpl: function(key, extraOptions) {
                 var params = {};
                 if (extraOptions) {
-                    if (extraOptions.expand) {
-                        params.$expand = odataUtils.generateExpand(this._version, extraOptions.expand)
-                    }
+                    params.$expand = odataUtils.generateExpand(this._version, extraOptions.expand, extraOptions.select);
+                    params.$select = odataUtils.generateSelect(this._version, extraOptions.select)
                 }
                 return this._sendRequest(this._byKeyUrl(key), "GET", params)
             },
@@ -58345,8 +58844,8 @@
     function(module, exports, __webpack_require__) {
         var stringUtils = __webpack_require__( /*! ../../core/utils/string */ 44),
             iteratorUtils = __webpack_require__( /*! ../../core/utils/iterator */ 3),
-            odataUtils = __webpack_require__( /*! ./utils */ 108);
-        __webpack_require__( /*! ./query_adapter */ 155);
+            odataUtils = __webpack_require__( /*! ./utils */ 110);
+        __webpack_require__( /*! ./query_adapter */ 156);
         var DEFAULT_PROTOCOL_VERSION = 2;
         var formatFunctionInvocationUrl = function(baseUrl, args) {
             return stringUtils.format("{0}({1})", baseUrl, iteratorUtils.map(args || {}, function(value, key) {
@@ -58394,125 +58893,6 @@
         exports.SharedMethods = SharedMethods;
         exports.escapeServiceOperationParams = escapeServiceOperationParams;
         exports.formatFunctionInvocationUrl = formatFunctionInvocationUrl
-    },
-    /*!*************************************************!*\
-      !*** ./artifacts/transpiled/core/utils/size.js ***!
-      \*************************************************/
-    /*! dynamic exports provided */
-    /*! all exports used */
-    function(module, exports, __webpack_require__) {
-        var window = __webpack_require__( /*! ../../core/utils/window */ 7).getWindow();
-        var typeUtils = __webpack_require__( /*! ../utils/type */ 1);
-        var SPECIAL_HEIGHT_VALUES = ["auto", "none", "inherit", "initial"];
-        var getSizeByStyles = function(elementStyles, styles) {
-            var result = 0;
-            styles.forEach(function(style) {
-                result += parseFloat(elementStyles[style]) || 0
-            });
-            return result
-        };
-        var getElementBoxParams = function(name, elementStyles) {
-            var beforeName = "width" === name ? "Left" : "Top";
-            var afterName = "width" === name ? "Right" : "Bottom";
-            return {
-                padding: getSizeByStyles(elementStyles, ["padding" + beforeName, "padding" + afterName]),
-                border: getSizeByStyles(elementStyles, ["border" + beforeName + "Width", "border" + afterName + "Width"]),
-                margin: getSizeByStyles(elementStyles, ["margin" + beforeName, "margin" + afterName])
-            }
-        };
-        var getBoxSizingOffset = function(name, elementStyles, boxParams) {
-            var size = elementStyles[name];
-            if ("border-box" === elementStyles.boxSizing && size.length && "%" !== size[size.length - 1]) {
-                return boxParams.border + boxParams.padding
-            }
-            return 0
-        };
-        var getSize = function(element, name, include) {
-            var elementStyles = window.getComputedStyle(element);
-            var boxParams = getElementBoxParams(name, elementStyles);
-            var clientRect = element.getClientRects().length;
-            var boundingClientRect = element.getBoundingClientRect()[name];
-            var result = clientRect ? boundingClientRect : 0;
-            if (result <= 0) {
-                result = parseFloat(elementStyles[name] || element.style[name]) || 0;
-                result -= getBoxSizingOffset(name, elementStyles, boxParams)
-            } else {
-                result -= boxParams.padding + boxParams.border
-            }
-            if (include.paddings) {
-                result += boxParams.padding
-            }
-            if (include.borders) {
-                result += boxParams.border
-            }
-            if (include.margins) {
-                result += boxParams.margin
-            }
-            return result
-        };
-        var getContainerHeight = function(container) {
-            return typeUtils.isWindow(container) ? container.innerHeight : container.offsetHeight
-        };
-        var parseHeight = function(value, container) {
-            if (value.indexOf("px") > 0) {
-                value = parseInt(value.replace("px", ""))
-            } else {
-                if (value.indexOf("%") > 0) {
-                    value = parseInt(value.replace("%", "")) * getContainerHeight(container) / 100
-                } else {
-                    if (!isNaN(value)) {
-                        value = parseInt(value)
-                    }
-                }
-            }
-            return value
-        };
-        var getHeightWithOffset = function(value, offset, container) {
-            if (!value) {
-                return null
-            }
-            if (SPECIAL_HEIGHT_VALUES.indexOf(value) > -1) {
-                return offset ? null : value
-            }
-            if (typeUtils.isString(value)) {
-                value = parseHeight(value, container)
-            }
-            if (typeUtils.isNumeric(value)) {
-                return Math.max(0, value + offset)
-            }
-            var operationString = offset < 0 ? " - " : " ";
-            return "calc(" + value + operationString + Math.abs(offset) + "px)"
-        };
-        var addOffsetToMaxHeight = function(value, offset, container) {
-            var maxHeight = getHeightWithOffset(value, offset, container);
-            return null !== maxHeight ? maxHeight : "none"
-        };
-        var addOffsetToMinHeight = function(value, offset, container) {
-            var minHeight = getHeightWithOffset(value, offset, container);
-            return null !== minHeight ? minHeight : 0
-        };
-        var getVerticalOffsets = function(element, withMargins) {
-            if (!element) {
-                return 0
-            }
-            var boxParams = getElementBoxParams("height", window.getComputedStyle(element));
-            return boxParams.padding + boxParams.border + (withMargins ? boxParams.margin : 0)
-        };
-        var getVisibleHeight = function(element) {
-            if (element) {
-                var boundingClientRect = element.getBoundingClientRect();
-                if (boundingClientRect.height) {
-                    return boundingClientRect.height
-                }
-            }
-            return 0
-        };
-        exports.getSize = getSize;
-        exports.getElementBoxParams = getElementBoxParams;
-        exports.addOffsetToMaxHeight = addOffsetToMaxHeight;
-        exports.addOffsetToMinHeight = addOffsetToMinHeight;
-        exports.getVerticalOffsets = getVerticalOffsets;
-        exports.getVisibleHeight = getVisibleHeight
     },
     /*!**********************************************************!*\
       !*** ./artifacts/transpiled/localization/ldml/number.js ***!
@@ -58718,7 +59098,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var locale = __webpack_require__( /*! ./core */ 86).locale,
+        var locale = __webpack_require__( /*! ./core */ 87).locale,
             LANGUAGE_CODES = {
                 ar: 1,
                 bg: 2,
@@ -59105,7 +59485,7 @@
             typeUtils = __webpack_require__( /*! ../../core/utils/type */ 1),
             iteratorUtils = __webpack_require__( /*! ../../core/utils/iterator */ 3),
             fx = __webpack_require__( /*! ../fx */ 39),
-            animationPresetsModule = __webpack_require__( /*! ../presets/presets */ 176),
+            animationPresetsModule = __webpack_require__( /*! ../presets/presets */ 177),
             deferredUtils = __webpack_require__( /*! ../../core/utils/deferred */ 6),
             when = deferredUtils.when,
             Deferred = deferredUtils.Deferred;
@@ -59625,8 +60005,8 @@
             iteratorUtils = __webpack_require__( /*! ../core/utils/iterator */ 3),
             errors = __webpack_require__( /*! ../core/errors */ 21),
             eventUtils = __webpack_require__( /*! ./utils */ 9),
-            Emitter = __webpack_require__( /*! ./core/emitter */ 124),
-            registerEmitter = __webpack_require__( /*! ./core/emitter_registrator */ 94);
+            Emitter = __webpack_require__( /*! ./core/emitter */ 122),
+            registerEmitter = __webpack_require__( /*! ./core/emitter_registrator */ 96);
         var DX_PREFIX = "dx",
             TRANSFORM = "transform",
             TRANSLATE = "translate",
@@ -59856,8 +60236,8 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var DevExpress = __webpack_require__( /*! ./core */ 208);
-        var data = DevExpress.data = __webpack_require__( /*! ../../../bundles/modules/data */ 268);
+        var DevExpress = __webpack_require__( /*! ./core */ 209);
+        var data = DevExpress.data = __webpack_require__( /*! ../../../bundles/modules/data */ 269);
         data.odata = __webpack_require__( /*! ../../../bundles/modules/data.odata */ 480);
         module.exports = data
     },
@@ -59872,10 +60252,11 @@
             commonUtils = __webpack_require__( /*! ../../core/utils/common */ 4),
             isPlainObject = __webpack_require__( /*! ../../core/utils/type */ 1).isPlainObject,
             registerComponent = __webpack_require__( /*! ../../core/component_registrator */ 8),
-            inArray = __webpack_require__( /*! ../../core/utils/array */ 11).inArray,
+            inArray = __webpack_require__( /*! ../../core/utils/array */ 12).inArray,
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
             each = __webpack_require__( /*! ../../core/utils/iterator */ 3).each,
             AsyncCollectionWidget = __webpack_require__( /*! ../collection/ui.collection_widget.async */ 484),
+            Promise = __webpack_require__( /*! ../../core/polyfills/promise */ 83),
             BindableTemplate = __webpack_require__( /*! ../widget/bindable_template */ 62);
         var TOOLBAR_CLASS = "dx-toolbar",
             TOOLBAR_BEFORE_CLASS = "dx-toolbar-before",
@@ -59969,7 +60350,10 @@
             },
             _render: function() {
                 this.callBase();
-                this._renderItemsAsync()
+                this._renderItemsAsync();
+                if (themes.isMaterial()) {
+                    this._checkWebFontForLabelsLoaded().then(this._dimensionChanged.bind(this))
+                }
             },
             _postProcessRenderItems: function() {
                 this._arrangeItems()
@@ -59988,6 +60372,16 @@
                         that["_$" + this + "Section"] = $section = $("<div>").addClass(sectionClass).appendTo($container)
                     }
                 })
+            },
+            _checkWebFontForLabelsLoaded: function() {
+                var $labels = this.$element().find(TOOLBAR_LABEL_SELECTOR);
+                var promises = [];
+                $labels.each(function(_, label) {
+                    var text = $(label).text();
+                    var fontWeight = $(label).css("fontWeight");
+                    promises.push(themes.waitWebFont(text, fontWeight))
+                });
+                return Promise.all(promises)
             },
             _arrangeItems: function(elementWidth) {
                 elementWidth = elementWidth || this.$element().width();
@@ -60217,11 +60611,11 @@
             window = __webpack_require__( /*! ../core/utils/window */ 7).getWindow(),
             domAdapter = __webpack_require__( /*! ../core/dom_adapter */ 13),
             eventsEngine = __webpack_require__( /*! ../events/core/events_engine */ 5),
-            ready = __webpack_require__( /*! ../core/utils/ready_callbacks */ 50).add,
+            ready = __webpack_require__( /*! ../core/utils/ready_callbacks */ 48).add,
             commonUtils = __webpack_require__( /*! ../core/utils/common */ 4),
             typeUtils = __webpack_require__( /*! ../core/utils/type */ 1),
             extend = __webpack_require__( /*! ../core/utils/extend */ 0).extend,
-            inArray = __webpack_require__( /*! ../core/utils/array */ 11).inArray,
+            inArray = __webpack_require__( /*! ../core/utils/array */ 12).inArray,
             pointerEvents = __webpack_require__( /*! ../events/pointer */ 24),
             registerComponent = __webpack_require__( /*! ../core/component_registrator */ 8),
             Overlay = __webpack_require__( /*! ./overlay */ 58),
@@ -60507,7 +60901,7 @@
     function(module, exports, __webpack_require__) {
         var $ = __webpack_require__( /*! ../../core/renderer */ 2),
             isDefined = __webpack_require__( /*! ../../core/utils/type */ 1).isDefined,
-            browser = __webpack_require__( /*! ../../core/utils/browser */ 33),
+            browser = __webpack_require__( /*! ../../core/utils/browser */ 31),
             domAdapter = __webpack_require__( /*! ../../core/dom_adapter */ 13);
         var isFocusingOnCaretChange = browser.msie || browser.safari;
         var getCaret = function(input) {
@@ -60571,19 +60965,29 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var $ = __webpack_require__( /*! ../../core/renderer */ 2),
-            eventUtils = __webpack_require__( /*! ../../events/utils */ 9),
-            extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
-            GroupedEditStrategy = __webpack_require__( /*! ./ui.list.edit.strategy.grouped */ 495),
-            messageLocalization = __webpack_require__( /*! ../../localization/message */ 15),
-            EditProvider = __webpack_require__( /*! ./ui.list.edit.provider */ 496),
-            ListBase = __webpack_require__( /*! ./ui.list.base */ 213);
-        var LIST_ITEM_SELECTED_CLASS = "dx-list-item-selected",
-            LIST_ITEM_RESPONSE_WAIT_CLASS = "dx-list-item-response-wait";
-        var ListEdit = ListBase.inherit({
+        var _renderer = __webpack_require__( /*! ../../core/renderer */ 2);
+        var _renderer2 = _interopRequireDefault(_renderer);
+        var _utils = __webpack_require__( /*! ../../events/utils */ 9);
+        var _extend = __webpack_require__( /*! ../../core/utils/extend */ 0);
+        var _uiListEditStrategy = __webpack_require__( /*! ./ui.list.edit.strategy.grouped */ 495);
+        var _uiListEditStrategy2 = _interopRequireDefault(_uiListEditStrategy);
+        var _message = __webpack_require__( /*! ../../localization/message */ 15);
+        var _uiListEdit = __webpack_require__( /*! ./ui.list.edit.provider */ 496);
+        var _uiListEdit2 = _interopRequireDefault(_uiListEdit);
+        var _uiList = __webpack_require__( /*! ./ui.list.base */ 214);
+        var _uiList2 = _interopRequireDefault(_uiList);
+
+        function _interopRequireDefault(obj) {
+            return obj && obj.__esModule ? obj : {
+                "default": obj
+            }
+        }
+        var LIST_ITEM_SELECTED_CLASS = "dx-list-item-selected";
+        var LIST_ITEM_RESPONSE_WAIT_CLASS = "dx-list-item-response-wait";
+        var ListEdit = _uiList2.default.inherit({
             _supportedKeys: function() {
-                var that = this,
-                    parent = this.callBase();
+                var that = this;
+                var parent = this.callBase();
                 var deleteFocusedItem = function(e) {
                     if (that.option("allowItemDeleting")) {
                         e.preventDefault();
@@ -60608,13 +61012,17 @@
                 };
                 var moveFocusedItemDown = function(e) {
                     var focusedItemIndex = that._editStrategy.getNormalizedIndex(that.option("focusedElement"));
+                    var isLastIndexFocused = focusedItemIndex === this._getLastItemIndex();
+                    if (isLastIndexFocused && this._isDataSourceLoading()) {
+                        return
+                    }
                     if (e.shiftKey && that.option("allowItemReordering")) {
                         e.preventDefault();
                         var $nextItem = that._editStrategy.getItemElement(focusedItemIndex + 1);
                         that.reorderItem(that.option("focusedElement"), $nextItem);
                         that.scrollToItem(that.option("focusedElement"))
                     } else {
-                        if (focusedItemIndex === this._getLastItemIndex() && this._editProvider.handleKeyboardEvents(focusedItemIndex, false)) {
+                        if (isLastIndexFocused && this._editProvider.handleKeyboardEvents(focusedItemIndex, false)) {
                             return
                         } else {
                             this._editProvider.handleKeyboardEvents(focusedItemIndex, true)
@@ -60632,7 +61040,7 @@
                         parent.space.apply(this, arguments)
                     }
                 };
-                return extend({}, parent, {
+                return (0, _extend.extend)({}, parent, {
                     del: deleteFocusedItem,
                     upArrow: moveFocusedItemUp,
                     downArrow: moveFocusedItemDown,
@@ -60655,12 +61063,12 @@
                 }
             },
             _getDefaultOptions: function() {
-                return extend(this.callBase(), {
+                return (0, _extend.extend)(this.callBase(), {
                     showSelectionControls: false,
                     selectionMode: "none",
                     selectAllMode: "page",
                     onSelectAllValueChanged: null,
-                    selectAllText: messageLocalization.format("dxList-selectAll"),
+                    selectAllText: (0, _message.format)("dxList-selectAll"),
                     menuItems: [],
                     menuMode: "context",
                     allowItemDeleting: false,
@@ -60707,7 +61115,7 @@
                 return "page" === this.option("selectAllMode")
             },
             _initEditProvider: function() {
-                this._editProvider = new EditProvider(this)
+                this._editProvider = new _uiListEdit2.default(this)
             },
             _disposeEditProvider: function() {
                 if (this._editProvider) {
@@ -60720,7 +61128,7 @@
             },
             _initEditStrategy: function() {
                 if (this.option("grouped")) {
-                    this._editStrategy = new GroupedEditStrategy(this)
+                    this._editStrategy = new _uiListEditStrategy2.default(this)
                 } else {
                     this.callBase()
                 }
@@ -60740,7 +61148,7 @@
                 return LIST_ITEM_RESPONSE_WAIT_CLASS
             },
             _itemClickHandler: function(e) {
-                var $itemElement = $(e.currentTarget);
+                var $itemElement = (0, _renderer2.default)(e.currentTarget);
                 if ($itemElement.is(".dx-state-disabled, .dx-state-disabled *")) {
                     return
                 }
@@ -60754,12 +61162,11 @@
                 return this.callBase.apply(this, arguments) || this._editProvider.contextMenuHandlerExists()
             },
             _itemHoldHandler: function(e) {
-                var $itemElement = $(e.currentTarget);
+                var $itemElement = (0, _renderer2.default)(e.currentTarget);
                 if ($itemElement.is(".dx-state-disabled, .dx-state-disabled *")) {
                     return
                 }
-                var isTouchEvent = eventUtils.isTouchEvent(e),
-                    handledByEditProvider = isTouchEvent && this._editProvider.handleContextMenu($itemElement, e);
+                var handledByEditProvider = (0, _utils.isTouchEvent)(e) && this._editProvider.handleContextMenu($itemElement, e);
                 if (handledByEditProvider) {
                     e.handledByEditProvider = true;
                     return
@@ -60767,7 +61174,7 @@
                 this.callBase.apply(this, arguments)
             },
             _itemContextMenuHandler: function(e) {
-                var $itemElement = $(e.currentTarget);
+                var $itemElement = (0, _renderer2.default)(e.currentTarget);
                 if ($itemElement.is(".dx-state-disabled, .dx-state-disabled *")) {
                     return
                 }
@@ -60835,7 +61242,7 @@
             getItemElementByFlatIndex: function(flatIndex) {
                 var $itemElements = this._itemElements();
                 if (flatIndex < 0 || flatIndex >= $itemElements.length) {
-                    return $()
+                    return (0, _renderer2.default)()
                 }
                 return $itemElements.eq(flatIndex)
             },
@@ -60858,7 +61265,7 @@
             abstract = EditDecorator.abstract,
             eventUtils = __webpack_require__( /*! ../../events/utils */ 9),
             pointerEvents = __webpack_require__( /*! ../../events/pointer */ 24),
-            feedbackEvents = __webpack_require__( /*! ../../events/core/emitter.feedback */ 125);
+            feedbackEvents = __webpack_require__( /*! ../../events/core/emitter.feedback */ 124);
         var LIST_EDIT_DECORATOR = "dxListEditDecorator",
             POINTER_DOWN_EVENT_NAME = eventUtils.addNamespace(pointerEvents.down, LIST_EDIT_DECORATOR),
             ACTIVE_EVENT_NAME = eventUtils.addNamespace(feedbackEvents.active, LIST_EDIT_DECORATOR),
@@ -60868,7 +61275,8 @@
             SWITCHABLE_DELETE_TOP_SHIELD_CLASS = "dx-list-switchable-delete-top-shield",
             SWITCHABLE_DELETE_BOTTOM_SHIELD_CLASS = "dx-list-switchable-delete-bottom-shield",
             SWITCHABLE_MENU_ITEM_SHIELD_POSITIONING_CLASS = "dx-list-switchable-menu-item-shield-positioning",
-            SWITCHABLE_DELETE_ITEM_CONTENT_SHIELD_CLASS = "dx-list-switchable-delete-item-content-shield";
+            SWITCHABLE_DELETE_ITEM_CONTENT_SHIELD_CLASS = "dx-list-switchable-delete-item-content-shield",
+            SWITCHABLE_DELETE_BUTTON_CONTAINER_CLASS = "dx-list-switchable-delete-button-container";
         var SwitchableEditDecorator = EditDecorator.inherit({
             _init: function() {
                 this._$topShield = $("<div>").addClass(SWITCHABLE_DELETE_TOP_SHIELD_CLASS);
@@ -60976,8 +61384,13 @@
             },
             _animatePrepareDeleteReady: abstract,
             _animateForgetDeleteReady: abstract,
+            _getDeleteButtonContainer: function($itemElement) {
+                $itemElement = $itemElement || this._$readyToDeleteItem;
+                return $itemElement.children("." + SWITCHABLE_DELETE_BUTTON_CONTAINER_CLASS)
+            },
             _deleteItem: function($itemElement) {
                 $itemElement = $itemElement || this._$readyToDeleteItem;
+                this._getDeleteButtonContainer($itemElement).detach();
                 if ($itemElement.is(".dx-state-disabled, .dx-state-disabled *")) {
                     return
                 }
@@ -61031,7 +61444,7 @@
         var $ = __webpack_require__( /*! ../../core/renderer */ 2),
             domAdapter = __webpack_require__( /*! ../../core/dom_adapter */ 13),
             eventsEngine = __webpack_require__( /*! ../../events/core/events_engine */ 5),
-            ready = __webpack_require__( /*! ../../core/utils/ready_callbacks */ 50).add,
+            ready = __webpack_require__( /*! ../../core/utils/ready_callbacks */ 48).add,
             translator = __webpack_require__( /*! ../../animation/translator */ 26),
             Widget = __webpack_require__( /*! ../widget/ui.widget */ 17),
             eventUtils = __webpack_require__( /*! ../../events/utils */ 9),
@@ -61238,7 +61651,7 @@
             domAdapter = __webpack_require__( /*! ../../core/dom_adapter */ 13),
             eventsEngine = __webpack_require__( /*! ../../events/core/events_engine */ 5),
             math = Math,
-            titleize = __webpack_require__( /*! ../../core/utils/inflector */ 31).titleize,
+            titleize = __webpack_require__( /*! ../../core/utils/inflector */ 32).titleize,
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
             windowUtils = __webpack_require__( /*! ../../core/utils/window */ 7),
             iteratorUtils = __webpack_require__( /*! ../../core/utils/iterator */ 3),
@@ -61270,6 +61683,7 @@
             MIN_VELOCITY_LIMIT = 1,
             FRAME_DURATION = math.round(1e3 / 60),
             SCROLL_LINE_HEIGHT = 20,
+            VALIDATE_WHEEL_TIMEOUT = 500,
             BOUNCE_MIN_VELOCITY_LIMIT = MIN_VELOCITY_LIMIT / 5,
             BOUNCE_DURATION = isSluggishPlatform ? 300 : 400,
             BOUNCE_FRAMES = BOUNCE_DURATION / FRAME_DURATION,
@@ -62051,6 +62465,7 @@
                 return isWheelEvent(e) ? this._validateWheel(e) : this._validateMove(e)
             },
             _validateWheel: function(e) {
+                var _this = this;
                 var scroller = this._scrollers[this._wheelDirection(e)];
                 var reachedMin = scroller._reachedMin();
                 var reachedMax = scroller._reachedMax();
@@ -62058,7 +62473,15 @@
                 var locatedNotAtBound = !reachedMin && !reachedMax;
                 var scrollFromMin = reachedMin && e.delta > 0;
                 var scrollFromMax = reachedMax && e.delta < 0;
-                return contentGreaterThanContainer && (locatedNotAtBound || scrollFromMin || scrollFromMax)
+                var validated = contentGreaterThanContainer && (locatedNotAtBound || scrollFromMin || scrollFromMax);
+                validated = validated || void 0 !== this._validateWheelTimer;
+                if (validated) {
+                    clearTimeout(this._validateWheelTimer);
+                    this._validateWheelTimer = setTimeout(function() {
+                        _this._validateWheelTimer = void 0
+                    }, VALIDATE_WHEEL_TIMEOUT)
+                }
+                return validated
             },
             _validateMove: function(e) {
                 if (!this.option("scrollByContent") && !$(e.target).closest("." + SCROLLABLE_SCROLLBAR_CLASS).length) {
@@ -62094,7 +62517,7 @@
                 this._detachEventHandlers();
                 this._$element.removeClass(SCROLLABLE_SIMULATED_CLASS);
                 this._eventForUserAction = null;
-                clearTimeout(this._gestureEndTimer)
+                clearTimeout(this._validateWheelTimer)
             },
             _detachEventHandlers: function() {
                 eventsEngine.off(this._$element, "." + SCROLLABLE_SIMULATED_CURSOR);
@@ -62297,6 +62720,12 @@
             },
             _itemClass: function() {
                 return BUTTON_GROUP_ITEM_CLASS
+            },
+            _itemSelectHandler: function(e) {
+                if ("single" === this.option("selectionMode") && this.isItemSelected(e.currentTarget)) {
+                    return
+                }
+                this.callBase(e)
             }
         });
         var ButtonGroup = _ui2.default.inherit({
@@ -62376,7 +62805,7 @@
                     accessKey: this.option("accessKey"),
                     tabIndex: this.option("tabIndex"),
                     noDataText: "",
-                    selectionRequired: "single" === this.option("selectionMode"),
+                    selectionRequired: false,
                     onItemRendered: function(e) {
                         var width = _this2.option("width");
                         (0, _type.isDefined)(width) && (0, _renderer2.default)(e.itemElement).addClass(BUTTON_GROUP_ITEM_HAS_WIDTH)
@@ -62389,7 +62818,7 @@
                         _this2._itemClickAction(e)
                     }
                 };
-                if (selectedItems.length) {
+                if ((0, _type.isDefined)(selectedItems) && selectedItems.length) {
                     options.selectedItems = selectedItems
                 }
                 this._buttonsCollection = this._createComponent($buttons, ButtonCollection, options)
@@ -62450,13 +62879,13 @@
             eventsEngine = __webpack_require__( /*! ../../events/core/events_engine */ 5),
             translator = __webpack_require__( /*! ../../animation/translator */ 26),
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
-            Color = __webpack_require__( /*! ../../color */ 93),
+            Color = __webpack_require__( /*! ../../color */ 95),
             messageLocalization = __webpack_require__( /*! ../../localization/message */ 15),
             devices = __webpack_require__( /*! ../../core/devices */ 16),
             registerComponent = __webpack_require__( /*! ../../core/component_registrator */ 8),
-            Editor = __webpack_require__( /*! ../editor/editor */ 48),
-            NumberBox = __webpack_require__( /*! ../number_box */ 114),
-            TextBox = __webpack_require__( /*! ../text_box */ 88),
+            Editor = __webpack_require__( /*! ../editor/editor */ 49),
+            NumberBox = __webpack_require__( /*! ../number_box */ 113),
+            TextBox = __webpack_require__( /*! ../text_box */ 89),
             Draggable = __webpack_require__( /*! ../draggable */ 299),
             clickEvent = __webpack_require__( /*! ../../events/click */ 19);
         var COLOR_VIEW_CLASS = "dx-colorview",
@@ -63141,7 +63570,7 @@
             stringUtils = __webpack_require__( /*! ../core/utils/string */ 44),
             registerComponent = __webpack_require__( /*! ../core/component_registrator */ 8),
             translator = __webpack_require__( /*! ../animation/translator */ 26),
-            dasherize = __webpack_require__( /*! ../core/utils/inflector */ 31).dasherize,
+            dasherize = __webpack_require__( /*! ../core/utils/inflector */ 32).dasherize,
             extend = __webpack_require__( /*! ../core/utils/extend */ 0).extend,
             DOMComponent = __webpack_require__( /*! ../core/dom_component */ 66),
             eventUtils = __webpack_require__( /*! ../events/utils */ 9),
@@ -63328,8 +63757,8 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var Calendar = __webpack_require__( /*! ../calendar */ 216),
-            DateBoxStrategy = __webpack_require__( /*! ./ui.date_box.strategy */ 187),
+        var Calendar = __webpack_require__( /*! ../calendar */ 217),
+            DateBoxStrategy = __webpack_require__( /*! ./ui.date_box.strategy */ 188),
             dateUtils = __webpack_require__( /*! ../../core/utils/date */ 22),
             commonUtils = __webpack_require__( /*! ../../core/utils/common */ 4),
             isFunction = __webpack_require__( /*! ../../core/utils/type */ 1).isFunction,
@@ -63484,13 +63913,13 @@
         var _events_engine2 = _interopRequireDefault(_events_engine);
         var _type = __webpack_require__( /*! ../../core/utils/type */ 1);
         var _type2 = _interopRequireDefault(_type);
-        var _dom = __webpack_require__( /*! ../../core/utils/dom */ 12);
+        var _dom = __webpack_require__( /*! ../../core/utils/dom */ 11);
         var _component_registrator = __webpack_require__( /*! ../../core/component_registrator */ 8);
         var _component_registrator2 = _interopRequireDefault(_component_registrator);
         var _extend = __webpack_require__( /*! ../../core/utils/extend */ 0);
         var _ui = __webpack_require__( /*! ../widget/ui.widget */ 17);
         var _ui2 = _interopRequireDefault(_ui);
-        var _empty_template = __webpack_require__( /*! ../widget/empty_template */ 107);
+        var _empty_template = __webpack_require__( /*! ../widget/empty_template */ 109);
         var _empty_template2 = _interopRequireDefault(_empty_template);
         var _window = __webpack_require__( /*! ../../core/utils/window */ 7);
         var _uiDrawerRenderingStrategy = __webpack_require__( /*! ./ui.drawer.rendering.strategy.push */ 535);
@@ -63499,7 +63928,7 @@
         var _uiDrawerRenderingStrategy4 = _interopRequireDefault(_uiDrawerRenderingStrategy3);
         var _uiDrawerRenderingStrategy5 = __webpack_require__( /*! ./ui.drawer.rendering.strategy.overlap */ 537);
         var _uiDrawerRenderingStrategy6 = _interopRequireDefault(_uiDrawerRenderingStrategy5);
-        var _uiDrawerRendering = __webpack_require__( /*! ./ui.drawer.rendering.strategy */ 188);
+        var _uiDrawerRendering = __webpack_require__( /*! ./ui.drawer.rendering.strategy */ 189);
         var _click = __webpack_require__( /*! ../../events/click */ 19);
         var _click2 = _interopRequireDefault(_click);
         var _fx = __webpack_require__( /*! ../../animation/fx */ 39);
@@ -63725,6 +64154,9 @@
                 this._$shader.css("zIndex", zIndex - 1);
                 this._$panel.css("zIndex", zIndex)
             },
+            resizeContent: function() {
+                (0, _dom.triggerResizeEvent)(this.viewContent())
+            },
             _isInvertedPosition: function() {
                 var position = this.getDrawerPosition();
                 return "right" === position || "bottom" === position
@@ -63742,6 +64174,7 @@
                 this._strategy.renderShaderVisibility(offset, animate, duration)
             },
             _animationCompleteHandler: function() {
+                this.resizeContent();
                 if (this._animationPromise) {
                     this._animationPromise.resolve();
                     this._animations = []
@@ -64023,7 +64456,7 @@
             iteratorUtils = __webpack_require__( /*! ../core/utils/iterator */ 3),
             extend = __webpack_require__( /*! ../core/utils/extend */ 0).extend,
             registerComponent = __webpack_require__( /*! ../core/component_registrator */ 8),
-            Box = __webpack_require__( /*! ./box */ 185),
+            Box = __webpack_require__( /*! ./box */ 186),
             CollectionWidget = __webpack_require__( /*! ./collection/ui.collection_widget.edit */ 52);
         var RESPONSIVE_BOX_CLASS = "dx-responsivebox",
             SCREEN_SIZE_CLASS_PREFIX = RESPONSIVE_BOX_CLASS + "-screen-",
@@ -64538,10 +64971,10 @@
             devices = __webpack_require__( /*! ../core/devices */ 16),
             registerComponent = __webpack_require__( /*! ../core/component_registrator */ 8),
             MultiView = __webpack_require__( /*! ./multi_view */ 306),
-            Tabs = __webpack_require__( /*! ./tabs */ 191),
+            Tabs = __webpack_require__( /*! ./tabs */ 192),
             TabPanelItem = __webpack_require__( /*! ./tab_panel/item */ 544).default,
             iconUtils = __webpack_require__( /*! ../core/utils/icon */ 59),
-            getPublicElement = __webpack_require__( /*! ../core/utils/dom */ 12).getPublicElement,
+            getPublicElement = __webpack_require__( /*! ../core/utils/dom */ 11).getPublicElement,
             BindableTemplate = __webpack_require__( /*! ./widget/bindable_template */ 62),
             windowUtils = __webpack_require__( /*! ../core/utils/window */ 7);
         var TABPANEL_CLASS = "dx-tabpanel",
@@ -64817,13 +65250,13 @@
             mathUtils = __webpack_require__( /*! ../core/utils/math */ 30),
             extend = __webpack_require__( /*! ../core/utils/extend */ 0).extend,
             noop = __webpack_require__( /*! ../core/utils/common */ 4).noop,
-            domUtils = __webpack_require__( /*! ../core/utils/dom */ 12),
+            domUtils = __webpack_require__( /*! ../core/utils/dom */ 11),
             isDefined = __webpack_require__( /*! ../core/utils/type */ 1).isDefined,
             devices = __webpack_require__( /*! ../core/devices */ 16),
-            getPublicElement = __webpack_require__( /*! ../core/utils/dom */ 12).getPublicElement,
+            getPublicElement = __webpack_require__( /*! ../core/utils/dom */ 11).getPublicElement,
             registerComponent = __webpack_require__( /*! ../core/component_registrator */ 8),
-            CollectionWidget = __webpack_require__( /*! ./collection/ui.collection_widget.live_update */ 184).default,
-            Swipeable = __webpack_require__( /*! ../events/gesture/swipeable */ 150),
+            CollectionWidget = __webpack_require__( /*! ./collection/ui.collection_widget.live_update */ 185).default,
+            Swipeable = __webpack_require__( /*! ../events/gesture/swipeable */ 151),
             Deferred = __webpack_require__( /*! ../core/utils/deferred */ 6).Deferred;
         var MULTIVIEW_CLASS = "dx-multiview",
             MULTIVIEW_WRAPPER_CLASS = "dx-multiview-wrapper",
@@ -65149,7 +65582,7 @@
     /*! all exports used */
     function(module, exports, __webpack_require__) {
         var $ = __webpack_require__( /*! ../../core/renderer */ 2),
-            CollectionWidgetItem = __webpack_require__( /*! ../collection/item */ 148);
+            CollectionWidgetItem = __webpack_require__( /*! ../collection/item */ 149);
         var TABS_ITEM_BADGE_CLASS = "dx-tabs-item-badge",
             BADGE_CLASS = "dx-badge";
         var TabsItem = CollectionWidgetItem.inherit({
@@ -65174,50 +65607,59 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var $ = __webpack_require__( /*! ../core/renderer */ 2),
-            registerComponent = __webpack_require__( /*! ../core/component_registrator */ 8),
-            DOMComponent = __webpack_require__( /*! ../core/dom_component */ 66),
-            ValidationSummary = __webpack_require__( /*! ./validation_summary */ 220),
-            ValidationEngine = __webpack_require__( /*! ./validation_engine */ 98),
-            Validator = __webpack_require__( /*! ./validator */ 190);
+        var _renderer = __webpack_require__( /*! ../core/renderer */ 2);
+        var _renderer2 = _interopRequireDefault(_renderer);
+        var _component_registrator = __webpack_require__( /*! ../core/component_registrator */ 8);
+        var _component_registrator2 = _interopRequireDefault(_component_registrator);
+        var _dom_component = __webpack_require__( /*! ../core/dom_component */ 66);
+        var _dom_component2 = _interopRequireDefault(_dom_component);
+        var _validation_summary = __webpack_require__( /*! ./validation_summary */ 221);
+        var _validation_summary2 = _interopRequireDefault(_validation_summary);
+        var _validation_engine = __webpack_require__( /*! ./validation_engine */ 100);
+        var _validation_engine2 = _interopRequireDefault(_validation_engine);
+        var _validator = __webpack_require__( /*! ./validator */ 191);
+        var _validator2 = _interopRequireDefault(_validator);
+
+        function _interopRequireDefault(obj) {
+            return obj && obj.__esModule ? obj : {
+                "default": obj
+            }
+        }
         var VALIDATION_ENGINE_CLASS = "dx-validationgroup";
-        var ValidationGroup = DOMComponent.inherit({
+        var VALIDATOR_CLASS = "dx-validator";
+        var VALIDATION_SUMMARY_CLASS = "dx-validationsummary";
+        var ValidationGroup = _dom_component2.default.inherit({
             _getDefaultOptions: function() {
                 return this.callBase()
             },
             _init: function() {
-                this.callBase()
+                this.callBase();
+                _validation_engine2.default.addGroup(this)
             },
             _initMarkup: function() {
                 var $element = this.$element();
                 $element.addClass(VALIDATION_ENGINE_CLASS);
-                $element.find(".dx-validator").each(function(_, validatorContainer) {
-                    Validator.getInstance($(validatorContainer))._initGroupRegistration()
+                $element.find("." + VALIDATOR_CLASS).each(function(_, validatorContainer) {
+                    _validator2.default.getInstance((0, _renderer2.default)(validatorContainer))._initGroupRegistration()
                 });
-                $element.find(".dx-validationsummary").each(function(_, summaryContainer) {
-                    ValidationSummary.getInstance($(summaryContainer))._initGroupRegistration()
+                $element.find("." + VALIDATION_SUMMARY_CLASS).each(function(_, summaryContainer) {
+                    _validation_summary2.default.getInstance((0, _renderer2.default)(summaryContainer))._initGroupRegistration()
                 });
                 this.callBase()
             },
             validate: function() {
-                return ValidationEngine.validateGroup(this)
+                return _validation_engine2.default.validateGroup(this)
             },
             reset: function() {
-                return ValidationEngine.resetGroup(this)
-            },
-            _optionChanged: function(args) {
-                switch (args.name) {
-                    default:
-                        this.callBase(args)
-                }
+                return _validation_engine2.default.resetGroup(this)
             },
             _dispose: function() {
-                ValidationEngine.removeGroup(this);
+                _validation_engine2.default.removeGroup(this);
                 this.$element().removeClass(VALIDATION_ENGINE_CLASS);
                 this.callBase()
             }
         });
-        registerComponent("dxValidationGroup", ValidationGroup);
+        (0, _component_registrator2.default)("dxValidationGroup", ValidationGroup);
         module.exports = ValidationGroup
     },
     /*!****************************************************************!*\
@@ -65530,7 +65972,7 @@
         var _window = __webpack_require__( /*! ../../../core/utils/window */ 7);
         var _popup = __webpack_require__( /*! ../../popup */ 43);
         var _popup2 = _interopRequireDefault(_popup);
-        var _list = __webpack_require__( /*! ../../list */ 99);
+        var _list = __webpack_require__( /*! ../../list */ 101);
         var _list2 = _interopRequireDefault(_list);
 
         function _interopRequireDefault(obj) {
@@ -65700,7 +66142,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var Promise = __webpack_require__( /*! ../../core/polyfills/promise */ 109),
+        var Promise = __webpack_require__( /*! ../../core/polyfills/promise */ 83),
             Class = __webpack_require__( /*! ../../core/class */ 14),
             map = __webpack_require__( /*! ../../core/utils/iterator */ 3).map,
             typeUtils = __webpack_require__( /*! ../../core/utils/type */ 1),
@@ -65847,7 +66289,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var Promise = __webpack_require__( /*! ../../core/polyfills/promise */ 109),
+        var Promise = __webpack_require__( /*! ../../core/polyfills/promise */ 83),
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
             iteratorUtils = __webpack_require__( /*! ../../core/utils/iterator */ 3),
             Provider = __webpack_require__( /*! ./provider */ 312),
@@ -66045,7 +66487,7 @@
     function(module, exports, __webpack_require__) {
         var $ = __webpack_require__( /*! ../../core/renderer */ 2),
             Widget = __webpack_require__( /*! ../widget/ui.widget */ 17),
-            Tooltip = __webpack_require__( /*! ../tooltip */ 192),
+            Tooltip = __webpack_require__( /*! ../tooltip */ 161),
             translator = __webpack_require__( /*! ../../animation/translator */ 26),
             positionUtils = __webpack_require__( /*! ../../animation/position */ 76),
             mathUtils = __webpack_require__( /*! ../../core/utils/math */ 30),
@@ -66366,24 +66808,24 @@
             dataUtils = __webpack_require__( /*! ../core/element_data */ 38),
             eventsEngine = __webpack_require__( /*! ../events/core/events_engine */ 5),
             registerComponent = __webpack_require__( /*! ../core/component_registrator */ 8),
-            browser = __webpack_require__( /*! ../core/utils/browser */ 33),
+            browser = __webpack_require__( /*! ../core/utils/browser */ 31),
             commonUtils = __webpack_require__( /*! ../core/utils/common */ 4),
             noop = commonUtils.noop,
             FilterCreator = __webpack_require__( /*! ../core/utils/selection_filter */ 279).SelectionFilterCreator,
             deferredUtils = __webpack_require__( /*! ../core/utils/deferred */ 6),
             when = deferredUtils.when,
             Deferred = deferredUtils.Deferred,
-            getPublicElement = __webpack_require__( /*! ../core/utils/dom */ 12).getPublicElement,
+            getPublicElement = __webpack_require__( /*! ../core/utils/dom */ 11).getPublicElement,
             typeUtils = __webpack_require__( /*! ../core/utils/type */ 1),
             isDefined = typeUtils.isDefined,
             windowUtils = __webpack_require__( /*! ../core/utils/window */ 7),
             extend = __webpack_require__( /*! ../core/utils/extend */ 0).extend,
-            inArray = __webpack_require__( /*! ../core/utils/array */ 11).inArray,
+            inArray = __webpack_require__( /*! ../core/utils/array */ 12).inArray,
             each = __webpack_require__( /*! ../core/utils/iterator */ 3).each,
             messageLocalization = __webpack_require__( /*! ../localization/message */ 15),
             eventUtils = __webpack_require__( /*! ../events/utils */ 9),
             clickEvent = __webpack_require__( /*! ../events/click */ 19),
-            SelectBox = __webpack_require__( /*! ./select_box */ 91),
+            SelectBox = __webpack_require__( /*! ./select_box */ 92),
             caret = __webpack_require__( /*! ./text_box/utils.caret */ 288),
             BindableTemplate = __webpack_require__( /*! ./widget/bindable_template */ 62);
         var TAGBOX_TAG_DATA_KEY = "dxTagData";
@@ -66837,17 +67279,19 @@
                 if (selectedItemsAlreadyLoaded) {
                     return d.resolve(filteredItems).promise()
                 } else {
-                    var dataSourceFilter = this._dataSource.filter();
+                    var dataSource = this._dataSource;
+                    var dataSourceFilter = dataSource.filter();
                     var filterExpr = creator.getCombinedFilter(this.option("valueExpr"), dataSourceFilter);
                     var filterLength = encodeURI(JSON.stringify(filterExpr)).length;
                     var filter = filterLength > this.option("maxFilterLength") ? void 0 : filterExpr;
-                    var loadOptions = this._dataSource.loadOptions();
+                    var loadOptions = dataSource.loadOptions();
                     var customQueryParams = loadOptions.customQueryParams;
-                    this._dataSource.store().load({
+                    dataSource.store().load({
                         filter: filter,
                         customQueryParams: customQueryParams
                     }).done(function(items) {
-                        d.resolve(items.filter(clientFilterFunction))
+                        var mappedItems = dataSource._applyMapFunction(items);
+                        d.resolve(mappedItems.filter(clientFilterFunction))
                     });
                     return d.promise()
                 }
@@ -66990,10 +67434,10 @@
                 }
             },
             _getItemModel: function(item, displayValue) {
-                if (typeUtils.isObject(item)) {
+                if (typeUtils.isObject(item) && displayValue) {
                     return item
                 } else {
-                    return displayValue
+                    return commonUtils.ensureDefined(displayValue, "")
                 }
             },
             _getTag: function(value) {
@@ -67348,9 +67792,10 @@
             extend = __webpack_require__( /*! ../core/utils/extend */ 0).extend,
             eventUtils = __webpack_require__( /*! ../events/utils */ 9),
             pointerEvents = __webpack_require__( /*! ../events/pointer */ 24),
-            TextBox = __webpack_require__( /*! ./text_box */ 88);
+            TextBox = __webpack_require__( /*! ./text_box */ 89);
         var TEXTAREA_CLASS = "dx-textarea",
-            TEXTEDITOR_INPUT_CLASS = "dx-texteditor-input";
+            TEXTEDITOR_INPUT_CLASS = "dx-texteditor-input",
+            TEXTEDITOR_INPUT_CLASS_AUTO_RESIZE = "dx-texteditor-input-auto-resize";
         var TextArea = TextBox.inherit({
             _getDefaultOptions: function() {
                 return extend(this.callBase(), {
@@ -67376,6 +67821,7 @@
             _createInput: function() {
                 var $input = $("<textarea>");
                 this._applyInputAttributes($input, this.option("inputAttr"));
+                this._updateInputAutoResizeAppearance($input);
                 return $input
             },
             _applyInputAttributes: function($input, customAttributes) {
@@ -67462,9 +67908,15 @@
                     this._updateInputHeight()
                 }
             },
+            _updateInputAutoResizeAppearance: function($input) {
+                if ($input) {
+                    $input.toggleClass(TEXTEDITOR_INPUT_CLASS_AUTO_RESIZE, this.option("autoResizeEnabled"))
+                }
+            },
             _optionChanged: function(args) {
                 switch (args.name) {
                     case "autoResizeEnabled":
+                        this._updateInputAutoResizeAppearance(this._input());
                         this._refreshEvents();
                         this._updateInputHeight();
                         break;
@@ -67503,11 +67955,11 @@
             registerComponent = __webpack_require__( /*! ../../core/component_registrator */ 8),
             noop = __webpack_require__( /*! ../../core/utils/common */ 4).noop,
             typeUtils = __webpack_require__( /*! ../../core/utils/type */ 1),
-            domUtils = __webpack_require__( /*! ../../core/utils/dom */ 12),
+            domUtils = __webpack_require__( /*! ../../core/utils/dom */ 11),
             contains = domUtils.contains,
             getPublicElement = domUtils.getPublicElement,
             each = __webpack_require__( /*! ../../core/utils/iterator */ 3).each,
-            inArray = __webpack_require__( /*! ../../core/utils/array */ 11).inArray,
+            inArray = __webpack_require__( /*! ../../core/utils/array */ 12).inArray,
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
             windowUtils = __webpack_require__( /*! ../../core/utils/window */ 7),
             fx = __webpack_require__( /*! ../../animation/fx */ 39),
@@ -68720,21 +69172,33 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var $ = __webpack_require__( /*! ../../core/renderer */ 2),
-            dataCoreUtils = __webpack_require__( /*! ../../core/utils/data */ 20),
-            extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
-            each = __webpack_require__( /*! ../../core/utils/iterator */ 3).each,
-            devices = __webpack_require__( /*! ../../core/devices */ 16),
-            iconUtils = __webpack_require__( /*! ../../core/utils/icon */ 59),
-            HierarchicalDataAdapter = __webpack_require__( /*! ./ui.data_adapter */ 588),
-            CollectionWidget = __webpack_require__( /*! ../collection/ui.collection_widget.edit */ 52),
-            BindableTemplate = __webpack_require__( /*! ../widget/bindable_template */ 62),
-            isFunction = __webpack_require__( /*! ../../core/utils/type */ 1).isFunction,
-            noop = __webpack_require__( /*! ../../core/utils/common */ 4).noop;
+        var _renderer = __webpack_require__( /*! ../../core/renderer */ 2);
+        var _renderer2 = _interopRequireDefault(_renderer);
+        var _data = __webpack_require__( /*! ../../core/utils/data */ 20);
+        var _extend = __webpack_require__( /*! ../../core/utils/extend */ 0);
+        var _iterator = __webpack_require__( /*! ../../core/utils/iterator */ 3);
+        var _devices = __webpack_require__( /*! ../../core/devices */ 16);
+        var _devices2 = _interopRequireDefault(_devices);
+        var _icon = __webpack_require__( /*! ../../core/utils/icon */ 59);
+        var _icon2 = _interopRequireDefault(_icon);
+        var _ui = __webpack_require__( /*! ./ui.data_adapter */ 588);
+        var _ui2 = _interopRequireDefault(_ui);
+        var _uiCollection_widget = __webpack_require__( /*! ../collection/ui.collection_widget.edit */ 52);
+        var _uiCollection_widget2 = _interopRequireDefault(_uiCollection_widget);
+        var _bindable_template = __webpack_require__( /*! ../widget/bindable_template */ 62);
+        var _bindable_template2 = _interopRequireDefault(_bindable_template);
+        var _type = __webpack_require__( /*! ../../core/utils/type */ 1);
+        var _common = __webpack_require__( /*! ../../core/utils/common */ 4);
+
+        function _interopRequireDefault(obj) {
+            return obj && obj.__esModule ? obj : {
+                "default": obj
+            }
+        }
         var DISABLED_STATE_CLASS = "dx-state-disabled";
-        var HierarchicalCollectionWidget = CollectionWidget.inherit({
+        var HierarchicalCollectionWidget = _uiCollection_widget2.default.inherit({
             _getDefaultOptions: function() {
-                return extend(this.callBase(), {
+                return (0, _extend.extend)(this.callBase(), {
                     keyExpr: "id",
                     displayExpr: "text",
                     selectedExpr: "selected",
@@ -68748,7 +69212,7 @@
             _defaultOptionsRules: function() {
                 return this.callBase().concat([{
                     device: function() {
-                        return "desktop" === devices.real().deviceType && !devices.isSimulator()
+                        return "desktop" === _devices2.default.real().deviceType && !_devices2.default.isSimulator()
                     },
                     options: {
                         focusStateEnabled: true
@@ -68767,7 +69231,7 @@
             },
             _initDataAdapter: function() {
                 var accessors = this._createDataAdapterAccessors();
-                this._dataAdapter = new HierarchicalDataAdapter(extend({
+                this._dataAdapter = new _ui2.default((0, _extend.extend)({
                     dataAccessors: {
                         getters: accessors.getters,
                         setters: accessors.setters
@@ -68775,10 +69239,10 @@
                     items: this.option("items")
                 }, this._getDataAdapterOptions()))
             },
-            _getDataAdapterOptions: noop,
+            _getDataAdapterOptions: _common.noop,
             _initDynamicTemplates: function() {
                 var that = this;
-                this._defaultTemplates.item = new BindableTemplate(function($container, itemData) {
+                this._defaultTemplates.item = new _bindable_template2.default(function($container, itemData) {
                     $container.html(itemData.html).append(this._getIconContainer(itemData)).append(this._getTextContainer(itemData)).append(this._getPopoutContainer(itemData));
                     that._addContentClasses(itemData, $container.parent())
                 }.bind(this), ["text", "html", "items", "icon"], this.option("integrationOptions.watchMethod"), {
@@ -68787,26 +69251,27 @@
                 })
             },
             _getIconContainer: function(itemData) {
-                return itemData.icon ? iconUtils.getImageContainer(itemData.icon) : void 0
+                return itemData.icon ? _icon2.default.getImageContainer(itemData.icon) : void 0
             },
             _getTextContainer: function(itemData) {
-                return $("<span>").text(itemData.text)
+                return (0, _renderer2.default)("<span>").text(itemData.text)
             },
-            _getPopoutContainer: noop,
-            _addContentClasses: noop,
+            _getPopoutContainer: _common.noop,
+            _addContentClasses: _common.noop,
             _initAccessors: function() {
                 var that = this;
-                each(this._getAccessors(), function(_, accessor) {
+                (0, _iterator.each)(this._getAccessors(), function(_, accessor) {
                     that._compileAccessor(accessor)
-                })
+                });
+                this._compileDisplayGetter()
             },
             _getAccessors: function() {
-                return ["key", "display", "selected", "items", "disabled", "parentId", "expanded"]
+                return ["key", "selected", "items", "disabled", "parentId", "expanded"]
             },
             _getChildNodes: function(node) {
                 var that = this,
                     arr = [];
-                each(node.internalFields.childrenKeys, function(_, key) {
+                (0, _iterator.each)(node.internalFields.childrenKeys, function(_, key) {
                     var childNode = that._dataAdapter.getNodeByKey(key);
                     arr.push(childNode)
                 });
@@ -68820,11 +69285,11 @@
                     setter = "_" + optionName + "Setter",
                     optionExpr = this.option(optionName + "Expr");
                 if (!optionExpr) {
-                    this[getter] = noop;
-                    this[setter] = noop;
+                    this[getter] = _common.noop;
+                    this[setter] = _common.noop;
                     return
                 } else {
-                    if (isFunction(optionExpr)) {
+                    if ((0, _type.isFunction)(optionExpr)) {
                         this[setter] = function(obj, value) {
                             obj[optionExpr()] = value
                         };
@@ -68834,8 +69299,8 @@
                         return
                     }
                 }
-                this[getter] = dataCoreUtils.compileGetter(optionExpr);
-                this[setter] = dataCoreUtils.compileSetter(optionExpr)
+                this[getter] = (0, _data.compileGetter)(optionExpr);
+                this[setter] = (0, _data.compileSetter)(optionExpr)
             },
             _createDataAdapterAccessors: function() {
                 var that = this,
@@ -68843,13 +69308,16 @@
                         getters: {},
                         setters: {}
                     };
-                each(this._getAccessors(), function(_, accessor) {
+                (0, _iterator.each)(this._getAccessors(), function(_, accessor) {
                     var getterName = "_" + accessor + "Getter",
                         setterName = "_" + accessor + "Setter",
                         newAccessor = "parentId" === accessor ? "parentKey" : accessor;
                     accessors.getters[newAccessor] = that[getterName];
                     accessors.setters[newAccessor] = that[setterName]
                 });
+                accessors.getters.display = !this._displayGetter ? function(itemData) {
+                    return itemData.text
+                } : this._displayGetter;
                 return accessors
             },
             _initMarkup: function() {
@@ -68859,7 +69327,7 @@
             _addWidgetClass: function() {
                 this._focusTarget().addClass(this._widgetClass())
             },
-            _widgetClass: noop,
+            _widgetClass: _common.noop,
             _renderItemFrame: function(index, itemData) {
                 var $itemFrame = this.callBase.apply(this, arguments);
                 $itemFrame.toggleClass(DISABLED_STATE_CLASS, !!this._disabledGetter(itemData));
@@ -68942,14 +69410,14 @@
         var _renderer2 = _interopRequireDefault(_renderer);
         var _events_engine = __webpack_require__( /*! ../../events/core/events_engine */ 5);
         var _events_engine2 = _interopRequireDefault(_events_engine);
-        var _uiGrid_core = __webpack_require__( /*! ./ui.grid_core.columns_view */ 161);
+        var _uiGrid_core = __webpack_require__( /*! ./ui.grid_core.columns_view */ 163);
         var _uiGrid_core2 = _interopRequireDefault(_uiGrid_core);
         var _message = __webpack_require__( /*! ../../localization/message */ 15);
         var _message2 = _interopRequireDefault(_message);
         var _type = __webpack_require__( /*! ../../core/utils/type */ 1);
         var _iterator = __webpack_require__( /*! ../../core/utils/iterator */ 3);
         var _extend = __webpack_require__( /*! ../../core/utils/extend */ 0);
-        var _accessibility = __webpack_require__( /*! ../shared/accessibility */ 116);
+        var _accessibility = __webpack_require__( /*! ../shared/accessibility */ 93);
 
         function _interopRequireDefault(obj) {
             return obj && obj.__esModule ? obj : {
@@ -69011,20 +69479,18 @@
                             return this.option("useLegacyKeyboardNavigation")
                         },
                         _getDefaultTemplate: function(column) {
-                            var template, that = this;
-                            if (column.command) {
-                                template = function($container, options) {
-                                    var column = options.column;
-                                    $container.html("&nbsp;");
-                                    $container.addClass(column.cssClass)
-                                }
-                            } else {
-                                template = function($container, options) {
-                                    var $content = createCellContent(that, $container, options);
-                                    $content.text(column.caption)
+                            var that = this;
+                            return function($container, options) {
+                                var $content = column.command ? $container : createCellContent(that, $container, options),
+                                    caption = !(0, _type.isDefined)(column.groupIndex) && column.caption;
+                                if (caption) {
+                                    $content.text(caption)
+                                } else {
+                                    if (column.command) {
+                                        $container.html("&nbsp;")
+                                    }
                                 }
                             }
-                            return template
                         },
                         _getHeaderTemplate: function(column) {
                             return column.headerCellTemplate || {
@@ -69120,24 +69586,7 @@
                             if (that.getRowCount() > 1) {
                                 $container.addClass(MULTI_ROW_HEADER_CLASS)
                             }
-                            that.callBase.apply(that, arguments);
-                            if (!that._isLegacyKeyboardNavigation()) {
-                                that._restoreLastFocusedElement()
-                            }
-                        },
-                        _restoreLastFocusedElement: function() {
-                            var _this = this;
-                            var $table = this.element(),
-                                $headerCells = $table.find("tr." + HEADER_ROW_CLASS + " > td[tabindex]");
-                            if ($headerCells.length > 1) {
-                                var $firstCell = $headerCells.first();
-                                _events_engine2.default.on($firstCell, "focus", function(e) {
-                                    if (_this._lastActionElement && e.currentTarget !== _this._lastActionElement) {
-                                        (0, _renderer2.default)(_this._lastActionElement).trigger("focus");
-                                        _this._lastActionElement = null
-                                    }
-                                })
-                            }
+                            that.callBase.apply(that, arguments)
                         },
                         _renderRows: function() {
                             var that = this;
@@ -69410,7 +69859,7 @@
         var _renderer2 = _interopRequireDefault(_renderer);
         var _common = __webpack_require__( /*! ../../core/utils/common */ 4);
         var _extend = __webpack_require__( /*! ../../core/utils/extend */ 0);
-        var _position = __webpack_require__( /*! ../../core/utils/position */ 96);
+        var _position = __webpack_require__( /*! ../../core/utils/position */ 98);
 
         function _interopRequireDefault(obj) {
             return obj && obj.__esModule ? obj : {
@@ -69513,9 +69962,9 @@
         var _type = __webpack_require__( /*! ../../core/utils/type */ 1);
         var _iterator = __webpack_require__( /*! ../../core/utils/iterator */ 3);
         var _iterator2 = _interopRequireDefault(_iterator);
-        var _position = __webpack_require__( /*! ../../core/utils/position */ 96);
+        var _position = __webpack_require__( /*! ../../core/utils/position */ 98);
         var _extend = __webpack_require__( /*! ../../core/utils/extend */ 0);
-        var _array = __webpack_require__( /*! ../../core/utils/array */ 11);
+        var _array = __webpack_require__( /*! ../../core/utils/array */ 12);
         var _config = __webpack_require__( /*! ../../core/config */ 29);
         var _config2 = _interopRequireDefault(_config);
         var _object = __webpack_require__( /*! ../../core/utils/object */ 47);
@@ -69524,21 +69973,21 @@
         var _uiGrid_core = __webpack_require__( /*! ./ui.grid_core.modules */ 37);
         var _uiGrid_core2 = _interopRequireDefault(_uiGrid_core);
         var _uiGrid_core3 = __webpack_require__( /*! ./ui.grid_core.utils */ 35);
-        var _inflector = __webpack_require__( /*! ../../core/utils/inflector */ 31);
+        var _inflector = __webpack_require__( /*! ../../core/utils/inflector */ 32);
         var _inflector2 = _interopRequireDefault(_inflector);
         var _date_serialization = __webpack_require__( /*! ../../core/utils/date_serialization */ 53);
         var _date_serialization2 = _interopRequireDefault(_date_serialization);
         var _number = __webpack_require__( /*! ../../localization/number */ 51);
         var _number2 = _interopRequireDefault(_number);
-        var _date = __webpack_require__( /*! ../../localization/date */ 32);
+        var _date = __webpack_require__( /*! ../../localization/date */ 33);
         var _date2 = _interopRequireDefault(_date);
         var _message = __webpack_require__( /*! ../../localization/message */ 15);
         var _message2 = _interopRequireDefault(_message);
         var _deferred = __webpack_require__( /*! ../../core/utils/deferred */ 6);
-        var _abstract_store = __webpack_require__( /*! ../../data/abstract_store */ 97);
+        var _abstract_store = __webpack_require__( /*! ../../data/abstract_store */ 99);
         var _abstract_store2 = _interopRequireDefault(_abstract_store);
         var _data_source = __webpack_require__( /*! ../../data/data_source/data_source */ 46);
-        var _filtering = __webpack_require__( /*! ../shared/filtering */ 160);
+        var _filtering = __webpack_require__( /*! ../shared/filtering */ 162);
         var _filtering2 = _interopRequireDefault(_filtering);
 
         function _interopRequireDefault(obj) {
@@ -69989,6 +70438,7 @@
                                     resultColumns.push(column)
                                 }
                             }
+                            var hasAddedBands = false;
                             for (i = 0; i < columnsUserState.length; i++) {
                                 columnUserState = columnsUserState[i];
                                 if (columnUserState.added && findUserStateColumn(columns, columnUserState) < 0) {
@@ -69996,10 +70446,13 @@
                                     applyFieldsState(column, columnUserState);
                                     resultColumns.push(column);
                                     if (columnUserState.added.columns) {
-                                        updateColumnIndexes(that);
-                                        resultColumns = createColumnsFromOptions(that, resultColumns)
+                                        hasAddedBands = true
                                     }
                                 }
+                            }
+                            if (hasAddedBands) {
+                                updateColumnIndexes(that);
+                                resultColumns = createColumnsFromOptions(that, resultColumns)
                             }
                             assignColumns(that, resultColumns)
                         }
@@ -71880,6 +72333,7 @@
                         options.pageIndex = dataSource.pageIndex();
                         options.lastLoadOptions = loadOptions;
                         options.operationTypes = operationTypes;
+                        that._loadingOperationTypes = operationTypes;
                         that._isRefreshing = true;
                         (0, _deferred.when)(isRefreshing || that._isRefreshed || that.refresh(options, isReload, operationTypes)).done(function() {
                             if (that._lastOperationId === options.operationId) {
@@ -72052,6 +72506,9 @@
                         that._isCustomLoading = false
                     })
                 },
+                loadingOperationTypes: function() {
+                    return this._loadingOperationTypes
+                },
                 operationTypes: function() {
                     return this._operationTypes
                 },
@@ -72147,6 +72604,9 @@
                 },
                 reload: function(full) {
                     return full ? this._dataSource.reload() : this._dataSource.load()
+                },
+                getCachedStoreData: function() {
+                    return this._cachedStoreData
                 }
             }
         }())
@@ -72174,7 +72634,7 @@
         var _type = __webpack_require__( /*! ../../core/utils/type */ 1);
         var _type2 = _interopRequireDefault(_type);
         var _extend = __webpack_require__( /*! ../../core/utils/extend */ 0);
-        var _data_helper = __webpack_require__( /*! ../../data_helper */ 84);
+        var _data_helper = __webpack_require__( /*! ../../data_helper */ 85);
         var _data_helper2 = _interopRequireDefault(_data_helper);
         var _deferred = __webpack_require__( /*! ../../core/utils/deferred */ 6);
         var _array_compare = __webpack_require__( /*! ../../core/utils/array_compare */ 295);
@@ -72345,6 +72805,13 @@
                             }
                             return filter
                         },
+                        waitReady: function() {
+                            if (this._updateLockCount) {
+                                this._readyDeferred = new _deferred.Deferred;
+                                return this._readyDeferred
+                            }
+                            return (0, _deferred.when)()
+                        },
                         _endUpdateCore: function() {
                             var changes = this._changes;
                             if (changes.length) {
@@ -72355,6 +72822,10 @@
                                 this.updateItems(1 === changes.length ? changes[0] : {
                                     repaintChangesOnly: repaintChangesOnly
                                 })
+                            }
+                            if (this._readyDeferred) {
+                                this._readyDeferred.resolve();
+                                this._readyDeferred = null
                             }
                         },
                         _handleCustomizeStoreLoadOptions: function(e) {
@@ -72888,6 +73359,10 @@
                             }
                             that._fireChanged(change)
                         },
+                        loadingOperationTypes: function() {
+                            var dataSource = this.dataSource();
+                            return dataSource && dataSource.loadingOperationTypes() || {}
+                        },
                         _fireChanged: function(change) {
                             var that = this;
                             (0, _common.deferRender)(function() {
@@ -73222,6 +73697,9 @@
                                 pageIndex: this.pageIndex(),
                                 pageSize: this.pageSize()
                             }
+                        },
+                        getCachedStoreData: function() {
+                            return this._dataSource && this._dataSource.getCachedStoreData()
                         }
                     };
                     _uiGrid_core4.default.proxyMethod(members, "load");
@@ -73482,24 +73960,24 @@
         var _events_engine = __webpack_require__( /*! ../../events/core/events_engine */ 5);
         var _events_engine2 = _interopRequireDefault(_events_engine);
         var _common = __webpack_require__( /*! ../../core/utils/common */ 4);
-        var _style = __webpack_require__( /*! ../../core/utils/style */ 85);
+        var _style = __webpack_require__( /*! ../../core/utils/style */ 86);
         var _style2 = _interopRequireDefault(_style);
         var _type = __webpack_require__( /*! ../../core/utils/type */ 1);
         var _iterator = __webpack_require__( /*! ../../core/utils/iterator */ 3);
         var _extend = __webpack_require__( /*! ../../core/utils/extend */ 0);
         var _string = __webpack_require__( /*! ../../core/utils/string */ 44);
-        var _position = __webpack_require__( /*! ../../core/utils/position */ 96);
+        var _position = __webpack_require__( /*! ../../core/utils/position */ 98);
         var _data = __webpack_require__( /*! ../../core/utils/data */ 20);
         var _uiGrid_core = __webpack_require__( /*! ./ui.grid_core.utils */ 35);
-        var _uiGrid_core2 = __webpack_require__( /*! ./ui.grid_core.columns_view */ 161);
+        var _uiGrid_core2 = __webpack_require__( /*! ./ui.grid_core.columns_view */ 163);
         var _uiGrid_core3 = _interopRequireDefault(_uiGrid_core2);
-        var _ui = __webpack_require__( /*! ../scroll_view/ui.scrollable */ 90);
+        var _ui = __webpack_require__( /*! ../scroll_view/ui.scrollable */ 91);
         var _ui2 = _interopRequireDefault(_ui);
-        var _remove_event = __webpack_require__( /*! ../../core/remove_event */ 130);
+        var _remove_event = __webpack_require__( /*! ../../core/remove_event */ 129);
         var _remove_event2 = _interopRequireDefault(_remove_event);
         var _message = __webpack_require__( /*! ../../localization/message */ 15);
         var _message2 = _interopRequireDefault(_message);
-        var _browser = __webpack_require__( /*! ../../core/utils/browser */ 33);
+        var _browser = __webpack_require__( /*! ../../core/utils/browser */ 31);
         var _browser2 = _interopRequireDefault(_browser);
 
         function _interopRequireDefault(obj) {
@@ -74416,7 +74894,8 @@
                             }
                         },
                         dispose: function() {
-                            clearTimeout(this._hideLoadingTimeoutID)
+                            clearTimeout(this._hideLoadingTimeoutID);
+                            this._scrollable && this._scrollable.dispose()
                         },
                         setScrollerSpacing: function() {}
                     }
@@ -74432,12 +74911,12 @@
     function(module, exports, __webpack_require__) {
         var _renderer = __webpack_require__( /*! ../../core/renderer */ 2);
         var _renderer2 = _interopRequireDefault(_renderer);
-        var _dom = __webpack_require__( /*! ../../core/utils/dom */ 12);
+        var _dom = __webpack_require__( /*! ../../core/utils/dom */ 11);
         var _common = __webpack_require__( /*! ../../core/utils/common */ 4);
         var _iterator = __webpack_require__( /*! ../../core/utils/iterator */ 3);
         var _uiGrid_core = __webpack_require__( /*! ./ui.grid_core.modules */ 37);
         var _uiGrid_core2 = _interopRequireDefault(_uiGrid_core);
-        var _context_menu = __webpack_require__( /*! ../context_menu */ 102);
+        var _context_menu = __webpack_require__( /*! ../context_menu */ 104);
         var _context_menu2 = _interopRequireDefault(_context_menu);
 
         function _interopRequireDefault(obj) {
@@ -74705,9 +75184,9 @@
         var _deferred = __webpack_require__( /*! ../../core/utils/deferred */ 6);
         var _dom_adapter = __webpack_require__( /*! ../../core/dom_adapter */ 13);
         var _dom_adapter2 = _interopRequireDefault(_dom_adapter);
-        var _browser = __webpack_require__( /*! ../../core/utils/browser */ 33);
+        var _browser = __webpack_require__( /*! ../../core/utils/browser */ 31);
         var _browser2 = _interopRequireDefault(_browser);
-        var _accessibility = __webpack_require__( /*! ../shared/accessibility */ 116);
+        var _accessibility = __webpack_require__( /*! ../shared/accessibility */ 93);
         var _accessibility2 = _interopRequireDefault(_accessibility);
 
         function _interopRequireDefault(obj) {
@@ -75144,7 +75623,7 @@
             _resetGroupElementHeight: function() {
                 var groupElement = this.component.$element().children().get(0),
                     scrollable = this._rowsView.getScrollable();
-                if (groupElement.style.height && (!scrollable || !scrollable.scrollTop())) {
+                if (groupElement && groupElement.style.height && (!scrollable || !scrollable.scrollTop())) {
                     groupElement.style.height = ""
                 }
             },
@@ -75366,20 +75845,20 @@
     function(module, exports, __webpack_require__) {
         var _renderer = __webpack_require__( /*! ../../core/renderer */ 2);
         var _renderer2 = _interopRequireDefault(_renderer);
-        var _toolbar = __webpack_require__( /*! ../toolbar */ 159);
+        var _toolbar = __webpack_require__( /*! ../toolbar */ 160);
         var _toolbar2 = _interopRequireDefault(_toolbar);
-        var _uiGrid_core = __webpack_require__( /*! ./ui.grid_core.columns_view */ 161);
+        var _uiGrid_core = __webpack_require__( /*! ./ui.grid_core.columns_view */ 163);
         var _uiGrid_core2 = _interopRequireDefault(_uiGrid_core);
         var _common = __webpack_require__( /*! ../../core/utils/common */ 4);
         var _type = __webpack_require__( /*! ../../core/utils/type */ 1);
-        var _dom = __webpack_require__( /*! ../../core/utils/dom */ 12);
+        var _dom = __webpack_require__( /*! ../../core/utils/dom */ 11);
 
         function _interopRequireDefault(obj) {
             return obj && obj.__esModule ? obj : {
                 "default": obj
             }
         }
-        __webpack_require__( /*! ../drop_down_menu */ 189);
+        __webpack_require__( /*! ../drop_down_menu */ 190);
         var HEADER_PANEL_CLASS = "header-panel",
             TOOLBAR_BUTTON_CLASS = "toolbar-button";
         var HeaderPanel = _uiGrid_core2.default.ColumnsView.inherit({
@@ -75720,7 +76199,7 @@
         var _uiGrid_core2 = _interopRequireDefault(_uiGrid_core);
         var _ui = __webpack_require__( /*! ../widget/ui.errors */ 18);
         var _ui2 = _interopRequireDefault(_ui);
-        var _browser = __webpack_require__( /*! ../../core/utils/browser */ 33);
+        var _browser = __webpack_require__( /*! ../../core/utils/browser */ 31);
         var _browser2 = _interopRequireDefault(_browser);
         var _storage = __webpack_require__( /*! ../../core/utils/storage */ 275);
         var _extend = __webpack_require__( /*! ../../core/utils/extend */ 0);
@@ -75884,7 +76363,7 @@
         var _message = __webpack_require__( /*! ../../localization/message */ 15);
         var _message2 = _interopRequireDefault(_message);
         var _utils = __webpack_require__( /*! ../../events/utils */ 9);
-        var _hold = __webpack_require__( /*! ../../events/hold */ 87);
+        var _hold = __webpack_require__( /*! ../../events/hold */ 88);
         var _hold2 = _interopRequireDefault(_hold);
         var _selection = __webpack_require__( /*! ../selection/selection */ 278);
         var _selection2 = _interopRequireDefault(_selection);
@@ -75966,13 +76445,20 @@
             };
             return {
                 init: function() {
+                    this._dataController = this.getController("data");
+                    this._selectionMode = this.option(SELECTION_MODE);
+                    this._isSelectionWithCheckboxes = false;
+                    this._selection = this._createSelection();
+                    this._updateSelectColumn();
+                    this.createAction("onSelectionChanged", {
+                        excludeValidators: ["disabled", "readOnly"]
+                    })
+                },
+                _getSelectionConfig: function() {
                     var that = this,
-                        dataController = that.getController("data"),
+                        dataController = that._dataController,
                         selectionOptions = that.option("selection") || {};
-                    that._dataController = dataController;
-                    that._selectionMode = that.option(SELECTION_MODE);
-                    that._isSelectionWithCheckboxes = false;
-                    that._selection = that._createSelection({
+                    return {
                         selectedKeys: that.option("selectedRowKeys"),
                         mode: that._selectionMode,
                         deferred: selectionOptions.deferred,
@@ -76009,11 +76495,7 @@
                             return dataController.totalCount()
                         },
                         onSelectionChanged: that._updateSelectedItems.bind(this)
-                    });
-                    that._updateSelectColumn();
-                    that.createAction("onSelectionChanged", {
-                        excludeValidators: ["disabled", "readOnly"]
-                    })
+                    }
                 },
                 _updateSelectColumn: function() {
                     var columnsController = this.getController("columns"),
@@ -76032,7 +76514,8 @@
                     });
                     columnsController.columnOption("command:select", "visible", isSelectColumnVisible)
                 },
-                _createSelection: function(options) {
+                _createSelection: function() {
+                    var options = this._getSelectionConfig();
                     return new _selection2.default(options)
                 },
                 _fireSelectionChanged: function(options) {
@@ -76447,6 +76930,7 @@
                             this.getController("editorFactory").createEditor(groupElement, (0, _extend.extend)({}, options.column, {
                                 parentType: "dataRow",
                                 dataType: "boolean",
+                                lookup: null,
                                 value: options.value,
                                 tabIndex: -1,
                                 setValue: function(value, e) {
@@ -76581,7 +77065,7 @@
         var _common = __webpack_require__( /*! ../../core/utils/common */ 4);
         var _uiGrid_core = __webpack_require__( /*! ./ui.grid_core.modules */ 37);
         var _uiGrid_core2 = _interopRequireDefault(_uiGrid_core);
-        var _uiGrid_core3 = __webpack_require__( /*! ./ui.grid_core.columns_view */ 161);
+        var _uiGrid_core3 = __webpack_require__( /*! ./ui.grid_core.columns_view */ 163);
         var _uiGrid_core4 = _interopRequireDefault(_uiGrid_core3);
         var _message = __webpack_require__( /*! ../../localization/message */ 15);
         var _message2 = _interopRequireDefault(_message);
@@ -76767,10 +77251,10 @@
                         searchEnabled: columnChooser.allowSearch,
                         searchTimeout: columnChooser.searchTimeout
                     };
-                if (isSelectMode) {
-                    scrollableInstance = $container.find(".dx-scrollable").data("dxScrollable");
-                    scrollTop = scrollableInstance && scrollableInstance.scrollTop();
-                    !this._columnsController.isBandColumnsUsed() && $container.addClass(this.addWidgetPrefix(COLUMN_CHOOSER_PLAIN_CLASS))
+                scrollableInstance = $container.find(".dx-scrollable").data("dxScrollable");
+                scrollTop = scrollableInstance && scrollableInstance.scrollTop();
+                if (isSelectMode && !this._columnsController.isBandColumnsUsed()) {
+                    $container.addClass(this.addWidgetPrefix(COLUMN_CHOOSER_PLAIN_CLASS))
                 }
                 treeViewConfig.onContentReady = function(e) {
                     (0, _common.deferUpdate)(function() {
@@ -77015,14 +77499,24 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var registerComponent = __webpack_require__( /*! ../../core/component_registrator */ 8),
-            searchBoxMixin = __webpack_require__( /*! ../widget/ui.search_box_mixin */ 214),
-            extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
-            TreeViewBase = __webpack_require__( /*! ./ui.tree_view.base */ 605);
-        var NODE_CONTAINER_CLASS = "dx-treeview-node-container";
-        var TreeViewSearch = TreeViewBase.inherit(searchBoxMixin).inherit({
+        var _component_registrator = __webpack_require__( /*! ../../core/component_registrator */ 8);
+        var _component_registrator2 = _interopRequireDefault(_component_registrator);
+        var _ui = __webpack_require__( /*! ../widget/ui.search_box_mixin */ 215);
+        var _ui2 = _interopRequireDefault(_ui);
+        var _extend = __webpack_require__( /*! ../../core/utils/extend */ 0);
+        var _uiTree_view = __webpack_require__( /*! ./ui.tree_view.base */ 605);
+        var _uiTree_view2 = _interopRequireDefault(_uiTree_view);
+
+        function _interopRequireDefault(obj) {
+            return obj && obj.__esModule ? obj : {
+                "default": obj
+            }
+        }
+        var WIDGET_CLASS = "dx-treeview";
+        var NODE_CONTAINER_CLASS = WIDGET_CLASS + "-node-container";
+        var TreeViewSearch = _uiTree_view2.default.inherit(_ui2.default).inherit({
             _addWidgetPrefix: function(className) {
-                return "dx-treeview-" + className
+                return WIDGET_CLASS + "-" + className
             },
             _optionChanged: function(args) {
                 switch (args.name) {
@@ -77052,7 +77546,7 @@
                 this._setOptionSilent("expandNodesRecursive", true)
             },
             _getDataAdapterOptions: function() {
-                return extend(this.callBase(), {
+                return (0, _extend.extend)(this.callBase(), {
                     searchValue: this.option("searchValue"),
                     searchMode: this.option("searchMode") || "contains",
                     searchExpr: this.option("searchExpr")
@@ -77088,7 +77582,7 @@
                 this._removeSearchBox()
             }
         });
-        registerComponent("dxTreeView", TreeViewSearch);
+        (0, _component_registrator2.default)("dxTreeView", TreeViewSearch);
         module.exports = TreeViewSearch
     },
     /*!*************************************************************************!*\
@@ -77636,7 +78130,7 @@
         var _position = __webpack_require__( /*! ../../animation/position */ 76);
         var _position2 = _interopRequireDefault(_position);
         var _utils = __webpack_require__( /*! ../../events/utils */ 9);
-        var _browser = __webpack_require__( /*! ../../core/utils/browser */ 33);
+        var _browser = __webpack_require__( /*! ../../core/utils/browser */ 31);
         var _browser2 = _interopRequireDefault(_browser);
         var _extend = __webpack_require__( /*! ../../core/utils/extend */ 0);
         var _ui = __webpack_require__( /*! ../shared/ui.editor_factory_mixin */ 344);
@@ -77851,17 +78345,17 @@
             typeUtils = __webpack_require__( /*! ../../core/utils/type */ 1),
             isWrapped = __webpack_require__( /*! ../../core/utils/variable_wrapper */ 74).isWrapped,
             compileGetter = __webpack_require__( /*! ../../core/utils/data */ 20).compileGetter,
-            browser = __webpack_require__( /*! ../../core/utils/browser */ 33),
+            browser = __webpack_require__( /*! ../../core/utils/browser */ 31),
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
             devices = __webpack_require__( /*! ../../core/devices */ 16),
-            getPublicElement = __webpack_require__( /*! ../../core/utils/dom */ 12).getPublicElement,
+            getPublicElement = __webpack_require__( /*! ../../core/utils/dom */ 11).getPublicElement,
             normalizeDataSourceOptions = __webpack_require__( /*! ../../data/data_source/data_source */ 46).normalizeDataSourceOptions,
             normalizeKeyName = __webpack_require__( /*! ../../events/utils */ 9).normalizeKeyName;
-        __webpack_require__( /*! ../text_box */ 88);
-        __webpack_require__( /*! ../number_box */ 114);
-        __webpack_require__( /*! ../check_box */ 101);
-        __webpack_require__( /*! ../select_box */ 91);
-        __webpack_require__( /*! ../date_box */ 186);
+        __webpack_require__( /*! ../text_box */ 89);
+        __webpack_require__( /*! ../number_box */ 113);
+        __webpack_require__( /*! ../check_box */ 103);
+        __webpack_require__( /*! ../select_box */ 92);
+        __webpack_require__( /*! ../date_box */ 187);
         var CHECKBOX_SIZE_CLASS = "checkbox-size",
             CELL_FOCUS_DISABLED_CLASS = "dx-cell-focus-disabled",
             EDITOR_INLINE_BLOCK = "dx-editor-inline-block";
@@ -78116,7 +78610,7 @@
         var _pointer2 = _interopRequireDefault(_pointer);
         var _uiGrid_core3 = __webpack_require__( /*! ./ui.grid_core.utils */ 35);
         var _utils = __webpack_require__( /*! ../../events/utils */ 9);
-        var _dialog = __webpack_require__( /*! ../dialog */ 210);
+        var _dialog = __webpack_require__( /*! ../dialog */ 211);
         var _dialog2 = _interopRequireDefault(_dialog);
         var _message = __webpack_require__( /*! ../../localization/message */ 15);
         var _message2 = _interopRequireDefault(_message);
@@ -78130,7 +78624,7 @@
         var _devices2 = _interopRequireDefault(_devices);
         var _form = __webpack_require__( /*! ../form */ 137);
         var _form2 = _interopRequireDefault(_form);
-        var _hold = __webpack_require__( /*! ../../events/hold */ 87);
+        var _hold = __webpack_require__( /*! ../../events/hold */ 88);
         var _hold2 = _interopRequireDefault(_hold);
         var _deferred = __webpack_require__( /*! ../../core/utils/deferred */ 6);
         var _deferred2 = _interopRequireDefault(_deferred);
@@ -78138,7 +78632,7 @@
         var _common2 = _interopRequireDefault(_common);
         var _icon = __webpack_require__( /*! ../../core/utils/icon */ 59);
         var _icon2 = _interopRequireDefault(_icon);
-        var _ui3 = __webpack_require__( /*! ../scroll_view/ui.scrollable */ 90);
+        var _ui3 = __webpack_require__( /*! ../scroll_view/ui.scrollable */ 91);
         var _ui4 = _interopRequireDefault(_ui3);
 
         function _interopRequireDefault(obj) {
@@ -78491,7 +78985,6 @@
                     return function(container, options) {
                         var buttons, $container = (0, _renderer2.default)(container);
                         if ("data" === options.rowType) {
-                            $container.css("textAlign", "center");
                             options.rtlEnabled = _this4.option("rtlEnabled");
                             buttons = _this4._getEditingButtons(options);
                             _this4._renderEditingButtons($container, buttons, options);
@@ -79057,8 +79550,9 @@
                         dataController = that._dataController,
                         oldEditRowIndex = that._getVisibleEditRowIndex(),
                         item = dataController.items()[rowIndex],
-                        key = item && item.key;
-                    if (item) {
+                        key = item && item.key,
+                        allowDeleting = isBatchMode || !this.isEditing();
+                    if (item && allowDeleting) {
                         removeByKey = function(key) {
                             that.refresh();
                             var editIndex = (0, _uiGrid_core3.getIndexByKey)(key, that._editData);
@@ -79374,6 +79868,7 @@
                         visible: isEditColumnVisible,
                         cssClass: cssClass,
                         width: "auto",
+                        alignment: "center",
                         cellTemplate: that._getEditCommandCellTemplate(),
                         fixedPosition: "right"
                     });
@@ -79489,7 +79984,8 @@
                         oldData = options.data,
                         rowKey = options.key,
                         $cellElement = (0, _renderer2.default)(options.cellElement),
-                        editMode = _getEditMode(that);
+                        editMode = _getEditMode(that),
+                        isCustomSetCellValue = options.column.setCellValue !== options.column.defaultSetCellValue;
                     if (void 0 === rowKey) {
                         that._dataController.fireError("E1043")
                     }
@@ -79518,13 +80014,13 @@
                             } else {
                                 if (editMode === EDIT_MODE_BATCH) {
                                     columns = that._columnsController.getVisibleColumns();
-                                    forceUpdateRow = columns.some(function(column) {
+                                    forceUpdateRow = isCustomSetCellValue || columns.some(function(column) {
                                         return column.calculateCellValue !== column.defaultCalculateCellValue
                                     })
                                 }
                             }
                         }
-                        if (options.row && (forceUpdateRow || options.column.setCellValue !== options.column.defaultSetCellValue)) {
+                        if (options.row && (forceUpdateRow || isCustomSetCellValue)) {
                             that._updateEditRow(options.row, forceUpdateRow)
                         }
                     }
@@ -79756,7 +80252,7 @@
                         if (_type2.default.isDefined(button.hint)) {
                             $button.attr("title", button.hint)
                         }
-                        _events_engine2.default.on($button, (0, _utils.addNamespace)(_click2.default.name, EDITING_NAMESPACE), that.createAction(function(e) {
+                        _events_engine2.default.on($button, (0, _utils.addNamespace)("click", EDITING_NAMESPACE), that.createAction(function(e) {
                             button.onClick.call(button, (0, _extend.extend)({}, e, {
                                 row: options.row,
                                 column: options.column
@@ -80239,11 +80735,11 @@
         var _button2 = _interopRequireDefault(_button);
         var _pointer = __webpack_require__( /*! ../../events/pointer */ 24);
         var _pointer2 = _interopRequireDefault(_pointer);
-        var _validation_engine = __webpack_require__( /*! ../validation_engine */ 98);
+        var _validation_engine = __webpack_require__( /*! ../validation_engine */ 100);
         var _validation_engine2 = _interopRequireDefault(_validation_engine);
-        var _validator = __webpack_require__( /*! ../validator */ 190);
+        var _validator = __webpack_require__( /*! ../validator */ 191);
         var _validator2 = _interopRequireDefault(_validator);
-        var _tooltip = __webpack_require__( /*! ../tooltip */ 192);
+        var _tooltip = __webpack_require__( /*! ../tooltip */ 161);
         var _tooltip2 = _interopRequireDefault(_tooltip);
         var _overlay = __webpack_require__( /*! ../overlay */ 58);
         var _overlay2 = _interopRequireDefault(_overlay);
@@ -80907,7 +81403,7 @@
                                     }
                                 }
                                 if (showValidationMessage && $cell && column && validationResult.brokenRule.message) {
-                                    that._showValidationMessage($focus, validationResult.brokenRule.message, column.alignment, revertTooltip)
+                                    that._showValidationMessage($focus, validationResult.brokenRule.message, column.alignment || "left", revertTooltip)
                                 }!hideBorder && that._rowsView.element() && that._rowsView.updateFreeSpaceRowHeight();
                                 return that.callBase($element, hideBorder)
                             }
@@ -80936,7 +81432,11 @@
                             var _this3 = this;
                             this.callBase.apply(this, arguments);
                             (0, _common.deferUpdate)(function() {
-                                _this3.getController("validating").createValidator(cellOptions, $container.find(".dx-widget").first())
+                                var $editor = $container.find(".dx-widget").first(),
+                                    isEditorDisposed = $editor.length && !$editor.children().length;
+                                if (!isEditorDisposed) {
+                                    _this3.getController("validating").createValidator(cellOptions, $editor)
+                                }
                             })
                         },
                         _cellPrepared: function($cell, parameters) {
@@ -80968,7 +81468,7 @@
         var _deferred = __webpack_require__( /*! ../../core/utils/deferred */ 6);
         var _translator = __webpack_require__( /*! ../../animation/translator */ 26);
         var _translator2 = _interopRequireDefault(_translator);
-        var _load_indicator = __webpack_require__( /*! ../load_indicator */ 89);
+        var _load_indicator = __webpack_require__( /*! ../load_indicator */ 90);
         var _load_indicator2 = _interopRequireDefault(_load_indicator);
 
         function _interopRequireDefault(obj) {
@@ -81920,7 +82420,7 @@
         var _window = __webpack_require__( /*! ../../core/utils/window */ 7);
         var _events_engine = __webpack_require__( /*! ../../events/core/events_engine */ 5);
         var _events_engine2 = _interopRequireDefault(_events_engine);
-        var _browser = __webpack_require__( /*! ../../core/utils/browser */ 33);
+        var _browser = __webpack_require__( /*! ../../core/utils/browser */ 31);
         var _browser2 = _interopRequireDefault(_browser);
         var _type = __webpack_require__( /*! ../../core/utils/type */ 1);
         var _position = __webpack_require__( /*! ../../animation/position */ 76);
@@ -82073,12 +82573,6 @@
                 }
                 return pageCount
             };
-            var currentPageIsLoaded = function(that) {
-                var currentPageIndex = that._dataSource.pageIndex();
-                return that._cache.some(function(cacheItem) {
-                    return cacheItem.pageIndex === currentPageIndex
-                })
-            };
             var getPageIndexForLoad = function(that) {
                 var needToLoadNextPage, needToLoadPrevPage, needToLoadPageBeforeLast, result = -1,
                     beginPageIndex = getBeginPageIndex(that),
@@ -82087,7 +82581,7 @@
                     result = that._pageIndex
                 } else {
                     if (!that._cache[that._pageIndex - beginPageIndex]) {
-                        if (currentPageIsLoaded(that) || that._isVirtual) {
+                        if (that._loadingPageIndex !== that._pageIndex || that._isVirtual) {
                             result = that._pageIndex
                         }
                     } else {
@@ -82176,7 +82670,10 @@
                 var dataSource = that._dataSource;
                 if (pageIndex === that.pageIndex() || !dataSource.isLoading() && pageIndex < dataSource.pageCount() || !dataSource.hasKnownLastPage() && pageIndex === dataSource.pageCount()) {
                     dataSource.pageIndex(pageIndex);
-                    return dataSource.load()
+                    that._loadingPageIndex = pageIndex;
+                    return (0, _deferred.when)(dataSource.load()).always(function() {
+                        that._loadingPageIndex = -1
+                    })
                 }
             };
             return {
@@ -82192,7 +82689,8 @@
                     that._sizeRatio = 1;
                     that._items = [];
                     that._cache = [];
-                    that._isVirtual = isVirtual
+                    that._isVirtual = isVirtual;
+                    that._loadingPageIndex = -1
                 },
                 getItemSizes: function() {
                     return this._itemSizes
@@ -82552,13 +83050,13 @@
         var _uiGrid_core4 = _interopRequireDefault(_uiGrid_core3);
         var _message = __webpack_require__( /*! ../../localization/message */ 15);
         var _message2 = _interopRequireDefault(_message);
-        var _editor = __webpack_require__( /*! ../editor/editor */ 48);
+        var _editor = __webpack_require__( /*! ../editor/editor */ 49);
         var _editor2 = _interopRequireDefault(_editor);
         var _overlay = __webpack_require__( /*! ../overlay */ 58);
         var _overlay2 = _interopRequireDefault(_overlay);
         var _menu = __webpack_require__( /*! ../menu */ 350);
         var _menu2 = _interopRequireDefault(_menu);
-        var _accessibility = __webpack_require__( /*! ../shared/accessibility */ 116);
+        var _accessibility = __webpack_require__( /*! ../shared/accessibility */ 93);
 
         function _interopRequireDefault(obj) {
             return obj && obj.__esModule ? obj : {
@@ -83281,11 +83779,11 @@
             eventsEngine = __webpack_require__( /*! ../../events/core/events_engine */ 5),
             registerComponent = __webpack_require__( /*! ../../core/component_registrator */ 8),
             commonUtils = __webpack_require__( /*! ../../core/utils/common */ 4),
-            getPublicElement = __webpack_require__( /*! ../../core/utils/dom */ 12).getPublicElement,
+            getPublicElement = __webpack_require__( /*! ../../core/utils/dom */ 11).getPublicElement,
             each = __webpack_require__( /*! ../../core/utils/iterator */ 3).each,
             typeUtils = __webpack_require__( /*! ../../core/utils/type */ 1),
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
-            getElementMaxHeightByWindow = __webpack_require__( /*! ../overlay/utils */ 217).getElementMaxHeightByWindow,
+            getElementMaxHeightByWindow = __webpack_require__( /*! ../overlay/utils */ 218).getElementMaxHeightByWindow,
             eventUtils = __webpack_require__( /*! ../../events/utils */ 9),
             pointerEvents = __webpack_require__( /*! ../../events/pointer */ 24),
             hoverEvents = __webpack_require__( /*! ../../events/hover */ 146),
@@ -84037,7 +84535,7 @@
         var _events_engine2 = _interopRequireDefault(_events_engine);
         var _uiGrid_core = __webpack_require__( /*! ./ui.grid_core.modules */ 37);
         var _uiGrid_core2 = _interopRequireDefault(_uiGrid_core);
-        var _filtering = __webpack_require__( /*! ../shared/filtering */ 160);
+        var _filtering = __webpack_require__( /*! ../shared/filtering */ 162);
         var _filtering2 = _interopRequireDefault(_filtering);
         var _uiGrid_core3 = __webpack_require__( /*! ./ui.grid_core.utils */ 35);
         var _uiGrid_core4 = _interopRequireDefault(_uiGrid_core3);
@@ -84049,13 +84547,14 @@
         var _data = __webpack_require__( /*! ../../core/utils/data */ 20);
         var _iterator = __webpack_require__( /*! ../../core/utils/iterator */ 3);
         var _type = __webpack_require__( /*! ../../core/utils/type */ 1);
-        var _position = __webpack_require__( /*! ../../core/utils/position */ 96);
+        var _position = __webpack_require__( /*! ../../core/utils/position */ 98);
         var _extend = __webpack_require__( /*! ../../core/utils/extend */ 0);
         var _data_source = __webpack_require__( /*! ../../data/data_source/data_source */ 46);
-        var _date = __webpack_require__( /*! ../../localization/date */ 32);
+        var _date = __webpack_require__( /*! ../../localization/date */ 33);
         var _date2 = _interopRequireDefault(_date);
         var _variable_wrapper = __webpack_require__( /*! ../../core/utils/variable_wrapper */ 74);
         var _deferred = __webpack_require__( /*! ../../core/utils/deferred */ 6);
+        var _accessibility = __webpack_require__( /*! ../shared/accessibility */ 93);
 
         function _interopRequireDefault(obj) {
             return obj && obj.__esModule ? obj : {
@@ -84272,6 +84771,7 @@
                     }
                 },
                 showHeaderFilterMenuBase: function(options) {
+                    var _this = this;
                     var that = this,
                         column = options.column;
                     if (column) {
@@ -84288,6 +84788,9 @@
                                     headerFilterByColumn.height = e.height;
                                     columnsController.columnOption(options.dataField, "headerFilter", headerFilterByColumn, true)
                                 })
+                            },
+                            onHidden: function() {
+                                return (0, _accessibility.restoreFocus)(_this)
                             }
                         });
                         options.dataSource = that.getDataSource(options);
@@ -84475,7 +84978,7 @@
         var _popup2 = _interopRequireDefault(_popup);
         var _tree_view = __webpack_require__( /*! ../tree_view */ 138);
         var _tree_view2 = _interopRequireDefault(_tree_view);
-        var _list = __webpack_require__( /*! ../list */ 99);
+        var _list = __webpack_require__( /*! ../list */ 101);
         var _list2 = _interopRequireDefault(_list);
 
         function _interopRequireDefault(obj) {
@@ -84828,7 +85331,7 @@
         var _ui2 = _interopRequireDefault(_ui);
         var _uiGrid_core3 = __webpack_require__( /*! ./ui.grid_core.utils */ 35);
         var _uiGrid_core4 = _interopRequireDefault(_uiGrid_core3);
-        var _filtering = __webpack_require__( /*! ../shared/filtering */ 160);
+        var _filtering = __webpack_require__( /*! ../shared/filtering */ 162);
         var _filtering2 = _interopRequireDefault(_filtering);
         var _uiGrid_core5 = __webpack_require__( /*! ./ui.grid_core.filter_custom_operations */ 620);
         var _uiGrid_core6 = _interopRequireDefault(_uiGrid_core5);
@@ -85183,7 +85686,7 @@
         var _tree_view2 = _interopRequireDefault(_tree_view);
         var _popup = __webpack_require__( /*! ../popup */ 43);
         var _popup2 = _interopRequireDefault(_popup);
-        var _utils3 = __webpack_require__( /*! ../overlay/utils */ 217);
+        var _utils3 = __webpack_require__( /*! ../overlay/utils */ 218);
         var _ui3 = __webpack_require__( /*! ../shared/ui.editor_factory_mixin */ 344);
         var _ui4 = _interopRequireDefault(_ui3);
         var _utils4 = __webpack_require__( /*! ../../events/utils */ 9);
@@ -85322,14 +85825,17 @@
                         this._invalidate();
                         break;
                     case "value":
-                        if (!this._disableInvalidateForValue) {
+                        var disableInvalidateForValue = this._disableInvalidateForValue;
+                        if (!disableInvalidateForValue) {
                             this._initModel();
                             this._invalidate()
                         }
+                        this._disableInvalidateForValue = false;
                         this.executeAction("onValueChanged", {
                             value: args.value,
                             previousValue: args.previousValue
                         });
+                        this._disableInvalidateForValue = disableInvalidateForValue;
                         break;
                     default:
                         this.callBase(args)
@@ -85882,10 +86388,11 @@
         var _filter_builder2 = _interopRequireDefault(_filter_builder);
         var _message = __webpack_require__( /*! ../../localization/message */ 15);
         var _message2 = _interopRequireDefault(_message);
-        var _scroll_view = __webpack_require__( /*! ./../scroll_view */ 158);
+        var _scroll_view = __webpack_require__( /*! ./../scroll_view */ 159);
         var _scroll_view2 = _interopRequireDefault(_scroll_view);
         var _popup = __webpack_require__( /*! ./../popup */ 43);
         var _popup2 = _interopRequireDefault(_popup);
+        var _accessibility = __webpack_require__( /*! ../shared/accessibility */ 93);
 
         function _interopRequireDefault(obj) {
             return obj && obj.__esModule ? obj : {
@@ -85931,6 +86438,7 @@
                     toolbarItems: that._getPopupToolbarItems()
                 }, that.option("filterBuilderPopup"), {
                     onHidden: function(e) {
+                        (0, _accessibility.restoreFocus)(that);
                         that._disposePopup()
                     }
                 }))
@@ -86045,14 +86553,14 @@
         var _events_engine2 = _interopRequireDefault(_events_engine);
         var _message = __webpack_require__( /*! ../../localization/message */ 15);
         var _message2 = _interopRequireDefault(_message);
-        var _check_box = __webpack_require__( /*! ../check_box */ 101);
+        var _check_box = __webpack_require__( /*! ../check_box */ 103);
         var _check_box2 = _interopRequireDefault(_check_box);
         var _utils = __webpack_require__( /*! ../filter_builder/utils */ 194);
         var _utils2 = _interopRequireDefault(_utils);
         var _deferred = __webpack_require__( /*! ../../core/utils/deferred */ 6);
-        var _inflector = __webpack_require__( /*! ../../core/utils/inflector */ 31);
+        var _inflector = __webpack_require__( /*! ../../core/utils/inflector */ 32);
         var _inflector2 = _interopRequireDefault(_inflector);
-        var _accessibility = __webpack_require__( /*! ../shared/accessibility */ 116);
+        var _accessibility = __webpack_require__( /*! ../shared/accessibility */ 93);
 
         function _interopRequireDefault(obj) {
             return obj && obj.__esModule ? obj : {
@@ -86476,7 +86984,10 @@
                                 return items
                             },
                             _getSearchTextEditor: function() {
-                                var $searchPanel = this.element().find("." + this.addWidgetPrefix(SEARCH_PANEL_CLASS));
+                                var $element = this.element(),
+                                    $searchPanel = $element.find("." + this.addWidgetPrefix(SEARCH_PANEL_CLASS)).filter(function() {
+                                        return (0, _renderer2.default)(this).closest(".dx-datagrid-header-panel").is($element)
+                                    });
                                 if ($searchPanel.length) {
                                     return $searchPanel.dxTextBox("instance")
                                 }
@@ -86639,7 +87150,7 @@
         var _uiGrid_core2 = _interopRequireDefault(_uiGrid_core);
         var _pager = __webpack_require__( /*! ../pager */ 625);
         var _pager2 = _interopRequireDefault(_pager);
-        var _array = __webpack_require__( /*! ../../core/utils/array */ 11);
+        var _array = __webpack_require__( /*! ../../core/utils/array */ 12);
         var _type = __webpack_require__( /*! ../../core/utils/type */ 1);
         var _window = __webpack_require__( /*! ../../core/utils/window */ 7);
 
@@ -86828,7 +87339,7 @@
         var _uiGrid_core4 = _interopRequireDefault(_uiGrid_core3);
         var _fx = __webpack_require__( /*! ../../animation/fx */ 39);
         var _fx2 = _interopRequireDefault(_fx);
-        var _swatch_container = __webpack_require__( /*! ../widget/swatch_container */ 171);
+        var _swatch_container = __webpack_require__( /*! ../widget/swatch_container */ 148);
 
         function _interopRequireDefault(obj) {
             return obj && obj.__esModule ? obj : {
@@ -87921,17 +88432,17 @@
         var _uiGrid_core2 = _interopRequireDefault(_uiGrid_core);
         var _uiGrid_core3 = __webpack_require__( /*! ./ui.grid_core.utils */ 35);
         var _type = __webpack_require__( /*! ../../core/utils/type */ 1);
-        var _array = __webpack_require__( /*! ../../core/utils/array */ 11);
+        var _array = __webpack_require__( /*! ../../core/utils/array */ 12);
         var _selectors = __webpack_require__( /*! ../widget/selectors */ 64);
         var _iterator = __webpack_require__( /*! ../../core/utils/iterator */ 3);
-        var _ui = __webpack_require__( /*! ../widget/ui.keyboard_processor */ 165);
+        var _ui = __webpack_require__( /*! ../widget/ui.keyboard_processor */ 167);
         var _ui2 = _interopRequireDefault(_ui);
         var _utils = __webpack_require__( /*! ../../events/utils */ 9);
         var _utils2 = _interopRequireDefault(_utils);
         var _pointer = __webpack_require__( /*! ../../events/pointer */ 24);
         var _pointer2 = _interopRequireDefault(_pointer);
         var _common = __webpack_require__( /*! ../../core/utils/common */ 4);
-        var _accessibility = __webpack_require__( /*! ../shared/accessibility */ 116);
+        var _accessibility = __webpack_require__( /*! ../shared/accessibility */ 93);
 
         function _interopRequireDefault(obj) {
             return obj && obj.__esModule ? obj : {
@@ -87949,8 +88460,10 @@
             FREESPACE_ROW_CLASS = "dx-freespace-row",
             VIRTUAL_ROW_CLASS = "dx-virtual-row",
             MASTER_DETAIL_CELL_CLASS = "dx-master-detail-cell",
+            EDITOR_CELL_CLASS = "dx-editor-cell",
             DROPDOWN_EDITOR_OVERLAY_CLASS = "dx-dropdowneditor-overlay",
             COMMAND_EXPAND_CLASS = "dx-command-expand",
+            COMMAND_CELL_SELECTOR = "[class^=dx-command]",
             CELL_FOCUS_DISABLED_CLASS = "dx-cell-focus-disabled",
             DATEBOX_WIDGET_NAME = "dxDateBox",
             FOCUS_STATE_CLASS = "dx-state-focused",
@@ -87983,6 +88496,10 @@
         function isCellElement($element) {
             return $element.length && "TD" === $element[0].tagName
         }
+
+        function isEditorCell(that, $cell) {
+            return !that._isRowEditMode() && $cell && $cell.hasClass(EDITOR_CELL_CLASS)
+        }
         var KeyboardNavigationController = _uiGrid_core2.default.ViewController.inherit({
             _isRowEditMode: function() {
                 var editMode = this.getController("editing").getEditMode();
@@ -88011,7 +88528,7 @@
                 this._testInteractiveElement = $focusedElement;
                 (0, _uiGrid_core3.focusAndSelectElement)(this, $focusedElement)
             },
-            _updateFocus: function(editingCanceled, fireFocusChangingCanceled) {
+            _updateFocus: function() {
                 var that = this;
                 setTimeout(function() {
                     var $cell = that._getFocusedCell(),
@@ -88023,13 +88540,7 @@
                         if ($cell && $cell.length > 0) {
                             if ($cell.is("td") || $cell.hasClass(that.addWidgetPrefix(EDIT_FORM_ITEM_CLASS))) {
                                 if (that.getController("editorFactory").focus() || $cellEditingCell) {
-                                    if (!fireFocusChangingCanceled) {
-                                        var args = that._fireFocusChangingEvents(null, $cell, true, !editingCanceled);
-                                        $cell = args.$newCellElement;
-                                        that._focus($cell, !args.isHighlighted)
-                                    } else {
-                                        that._focus($cell)
-                                    }
+                                    that._focus($cell)
                                 } else {
                                     if (that._isHiddenFocus) {
                                         that._focus($cell, true)
@@ -88057,7 +88568,8 @@
                 var event = e.event,
                     $target = (0, _renderer2.default)(event.currentTarget),
                     data = event.data,
-                    focusedViewElement = data.view && data.view.element();
+                    focusedViewElement = data.view && data.view.element(),
+                    isEditingCell = $target.hasClass(EDITOR_CELL_CLASS);
                 if (this._isEventInCurrentGrid(event) && this._isCellValid($target)) {
                     $target = this._isInsideEditForm($target) ? (0, _renderer2.default)(event.target) : $target;
                     this._focusView(data.view, data.viewIndex);
@@ -88067,7 +88579,7 @@
                         this._focusedView.element().attr("tabindex", 0);
                         this._focusedView.focus()
                     } else {
-                        if (!this._editingController.isEditing() && !this._isMasterDetailCell($target)) {
+                        if (!isEditingCell && !this._isMasterDetailCell($target)) {
                             this._clickTargetCellHandler(event, $target)
                         } else {
                             this._updateFocusedCellPosition($target)
@@ -88094,6 +88606,10 @@
                 args = this._fireFocusChangingEvents(event, $cell, true);
                 $cell = args.$newCellElement;
                 if (!args.cancel) {
+                    if (args.resetFocusedRow) {
+                        this.getController("focus")._resetFocusedRow();
+                        return
+                    }
                     if (args.rowIndexChanged) {
                         $cell = this._getFocusedCell()
                     }
@@ -88113,8 +88629,8 @@
                     this.setRowFocusType();
                     this.setFocusedRowIndex(args.prevRowIndex);
                     $cell = this._getFocusedCell();
-                    if (this._isCellValid($cell)) {
-                        this._focus($cell, true)
+                    if (this._editingController.isEditing() && isCellEditMode) {
+                        this._editingController.closeEditCell()
                     }
                 }
             },
@@ -88702,9 +89218,13 @@
                 }
             },
             _editingCellTabHandler: function(eventArgs, direction) {
-                var column, row, $cell, isEditingAllowed, editingOptions = this.option("editing"),
-                    eventTarget = eventArgs.originalEvent.target;
-                this._updateFocusedCellPosition(this._getCellElementFromTarget(eventTarget));
+                var column, row, isEditingAllowed, editingOptions = this.option("editing"),
+                    eventTarget = eventArgs.originalEvent.target,
+                    $cell = this._getCellElementFromTarget(eventTarget);
+                if ($cell.is(COMMAND_CELL_SELECTOR)) {
+                    return !this._targetCellTabHandler(eventArgs, direction)
+                }
+                this._updateFocusedCellPosition($cell);
                 $cell = this._getNextCell(direction);
                 if (!$cell || this._handleTabKeyOnMasterDetailCell($cell, direction)) {
                     return false
@@ -88733,7 +89253,7 @@
                     $cell = this._getCellElementFromTarget(eventTarget),
                     $lastInteractiveElement = this._getInteractiveElement($cell, !eventArgs.shift),
                     isOriginalHandlerRequired = false;
-                if ($lastInteractiveElement.length && eventTarget !== $lastInteractiveElement.get(0)) {
+                if (!isEditorCell(this, $cell) && $lastInteractiveElement.length && eventTarget !== $lastInteractiveElement.get(0)) {
                     isOriginalHandlerRequired = true
                 } else {
                     if (void 0 === this._focusedCellPosition.rowIndex && (0, _renderer2.default)(eventTarget).hasClass(ROW_CLASS)) {
@@ -88756,7 +89276,9 @@
                         return false
                     }
                     this._focusCell($cell);
-                    this._focusInteractiveElement($cell, eventArgs.shift)
+                    if (!isEditorCell(this, $cell)) {
+                        this._focusInteractiveElement($cell, eventArgs.shift)
+                    }
                 }
                 return isOriginalHandlerRequired
             },
@@ -89102,6 +89624,7 @@
                     });
                     that._fastEditingStarted = false;
                     that._focusedCellPosition = {};
+                    that._canceledCellPosition = null;
                     that._initFocusedViews();
                     that._documentClickHandler = that.createAction(function(e) {
                         var $target = (0, _renderer2.default)(e.event.target),
@@ -89242,6 +89765,7 @@
                         isHighlighted: isHighlighted || false,
                         cancel: false
                     };
+                this._canceledCellPosition = null;
                 that.executeAction("onFocusedCellChanging", args);
                 if (args.newColumnIndex !== columnIndex || args.newRowIndex !== rowIndex) {
                     args.$newCellElement = this._getCell({
@@ -89249,19 +89773,27 @@
                         rowIndex: args.newRowIndex
                     })
                 }
+                if (args.cancel) {
+                    this._canceledCellPosition = {
+                        rowIndex: rowIndex,
+                        columnIndex: columnIndex
+                    }
+                }
                 return args
             },
             _fireFocusedCellChanged: function($cellElement, prevCellIndex, prevRowIndex) {
-                var dataController, row, that = this,
-                    columnIndex = that.option("focusedColumnIndex"),
-                    focusedRowIndex = that.option("focusedRowIndex");
-                if (prevCellIndex !== columnIndex || prevRowIndex !== focusedRowIndex) {
+                var that = this,
+                    dataController = that.getController("data"),
+                    columnIndex = that.getView("rowsView").getCellIndex($cellElement),
+                    rowIndex = this._getRowIndex($cellElement && $cellElement.parent()),
+                    isEditingCell = that.getController("editing").isEditCell(rowIndex, columnIndex),
+                    row = dataController.items()[rowIndex];
+                if (!isEditingCell && (prevCellIndex !== columnIndex || prevRowIndex !== rowIndex)) {
                     dataController = that.getController("data");
-                    row = dataController.getVisibleRows()[focusedRowIndex - dataController.getRowIndexOffset()];
                     that.executeAction("onFocusedCellChanged", {
                         cellElement: $cellElement,
                         columnIndex: columnIndex,
-                        rowIndex: focusedRowIndex,
+                        rowIndex: rowIndex,
                         row: row,
                         column: that.getController("columns").getVisibleColumns()[columnIndex]
                     })
@@ -89271,6 +89803,7 @@
                 var newRowIndex = this._getRowIndex($newFocusedRow),
                     dataController = this.getController("data"),
                     prevFocusedRowIndex = this.getVisibleRowIndex(),
+                    loadingOperationTypes = dataController.loadingOperationTypes(),
                     args = {
                         rowElement: $newFocusedRow,
                         prevRowIndex: prevFocusedRowIndex,
@@ -89279,30 +89812,41 @@
                         rows: this.getController("data").getVisibleRows(),
                         cancel: false
                     };
-                if (!dataController || dataController.isLoading()) {
+                if (!dataController || dataController.isLoading() && (loadingOperationTypes.reload || loadingOperationTypes.paging)) {
                     args.cancel = true;
                     return args
                 }
                 if (this.option("focusedRowEnabled")) {
                     this.executeAction("onFocusedRowChanging", args);
                     if (!args.cancel && args.newRowIndex !== newRowIndex) {
-                        this.setFocusedRowIndex(args.newRowIndex);
+                        args.resetFocusedRow = args.newRowIndex < 0;
+                        if (!args.resetFocusedRow) {
+                            this.setFocusedRowIndex(args.newRowIndex)
+                        }
                         args.rowIndexChanged = true
                     }
                 }
                 return args
             },
             _fireFocusedRowChanged: function($rowElement) {
-                var row, dataController, focusedRowKey = this.option("focusedRowKey"),
-                    focusedRowIndex = this.option("focusedRowIndex");
-                if (void 0 !== focusedRowKey && this.option("focusedRowEnabled")) {
-                    dataController = this.getController("data");
-                    row = dataController.getVisibleRows()[focusedRowIndex - dataController.getRowIndexOffset()];
+                var row, dataController, focusedRowIndex = this.option("focusedRowIndex");
+                if (this.option("focusedRowEnabled")) {
+                    if (focusedRowIndex >= 0) {
+                        dataController = this.getController("data");
+                        row = focusedRowIndex >= 0 && dataController.getVisibleRows()[focusedRowIndex - dataController.getRowIndexOffset()]
+                    }
                     this.executeAction("onFocusedRowChanged", {
                         rowElement: $rowElement,
                         rowIndex: focusedRowIndex,
                         row: row
                     })
+                }
+            },
+            _processCanceledEditCellPosition: function(rowIndex, columnIndex) {
+                if (this._canceledCellPosition) {
+                    var isCanceled = this._canceledCellPosition.rowIndex === rowIndex && this._canceledCellPosition.columnIndex === columnIndex;
+                    this._canceledCellPosition = null;
+                    return isCanceled
                 }
             }
         });
@@ -89426,8 +89970,11 @@
                 controllers: {
                     editing: {
                         editCell: function(rowIndex, columnIndex) {
-                            var isCellEditing = this.callBase(rowIndex, columnIndex),
-                                keyboardController = this.getController("keyboardNavigation");
+                            var keyboardController = this.getController("keyboardNavigation");
+                            if (keyboardController._processCanceledEditCellPosition(rowIndex, columnIndex)) {
+                                return false
+                            }
+                            var isCellEditing = this.callBase(rowIndex, columnIndex);
                             if (isCellEditing) {
                                 keyboardController.setupFocusedView()
                             }
@@ -89458,7 +90005,7 @@
                             var _this = this;
                             this.closeEditCell().done(function() {
                                 var keyboardNavigation = _this.getController("keyboardNavigation");
-                                keyboardNavigation._updateFocus(true)
+                                keyboardNavigation._updateFocus()
                             })
                         },
                         init: function() {
@@ -89500,7 +90047,7 @@
         var _renderer2 = _interopRequireDefault(_renderer);
         var _events_engine = __webpack_require__( /*! ../../events/core/events_engine */ 5);
         var _events_engine2 = _interopRequireDefault(_events_engine);
-        var _wheel = __webpack_require__( /*! ../../events/core/wheel */ 110);
+        var _wheel = __webpack_require__( /*! ../../events/core/wheel */ 123);
         var _wheel2 = _interopRequireDefault(_wheel);
         var _message = __webpack_require__( /*! ../../localization/message */ 15);
         var _message2 = _interopRequireDefault(_message);
@@ -89509,7 +90056,7 @@
         var _type = __webpack_require__( /*! ../../core/utils/type */ 1);
         var _extend = __webpack_require__( /*! ../../core/utils/extend */ 0);
         var _iterator = __webpack_require__( /*! ../../core/utils/iterator */ 3);
-        var _browser = __webpack_require__( /*! ../../core/utils/browser */ 33);
+        var _browser = __webpack_require__( /*! ../../core/utils/browser */ 31);
         var _browser2 = _interopRequireDefault(_browser);
         var _translator = __webpack_require__( /*! ../../animation/translator */ 26);
         var _translator2 = _interopRequireDefault(_translator);
@@ -90167,14 +90714,15 @@
                 var maxScrollTop = void 0,
                     scrollableContent = void 0,
                     scrollableContainer = void 0,
-                    elasticScrollTop = 0;
+                    elasticScrollTop = 0,
+                    scrollbarWidth = this.getScrollbarWidth(true);
                 if (e.scrollOffset.top < 0) {
                     elasticScrollTop = -e.scrollOffset.top
                 } else {
                     if (e.reachedBottom) {
-                        scrollableContent = e.component.$content();
+                        scrollableContent = this._findContentElement();
                         scrollableContainer = e.component._container();
-                        maxScrollTop = scrollableContent.height() - scrollableContainer.height();
+                        maxScrollTop = Math.max(scrollableContent.height() + scrollbarWidth - scrollableContainer.height(), 0);
                         elasticScrollTop = maxScrollTop - e.scrollOffset.top
                     }
                 }
@@ -90345,7 +90893,7 @@
         var _click2 = _interopRequireDefault(_click);
         var _type = __webpack_require__( /*! ../../core/utils/type */ 1);
         var _type2 = _interopRequireDefault(_type);
-        var _browser = __webpack_require__( /*! ../../core/utils/browser */ 33);
+        var _browser = __webpack_require__( /*! ../../core/utils/browser */ 31);
         var _browser2 = _interopRequireDefault(_browser);
         var _guid = __webpack_require__( /*! ../../core/guid */ 42);
         var _guid2 = _interopRequireDefault(_guid);
@@ -91704,8 +92252,7 @@
         }
         var ROW_FOCUSED_CLASS = "dx-row-focused",
             FOCUSED_ROW_SELECTOR = ".dx-row." + ROW_FOCUSED_CLASS,
-            CELL_FOCUS_DISABLED_CLASS = "dx-cell-focus-disabled",
-            UPDATE_FOCUSED_ROW_CHANGE_TYPE = "updateFocusedRow";
+            CELL_FOCUS_DISABLED_CLASS = "dx-cell-focus-disabled";
         exports.FocusController = _uiGrid_core2.default.ViewController.inherit(function() {
             return {
                 init: function() {
@@ -91747,11 +92294,7 @@
                 _focusRowByIndexCore: function(index) {
                     var _this = this;
                     var dataController = this.getController("data"),
-                        isVirtualScrolling = this.getController("keyboardNavigation")._isVirtualScrolling(),
-                        pageIndex = Math.floor(index / dataController.pageSize()),
-                        visibleRowsCount = dataController.getVisibleRows().length + dataController.getRowIndexOffset(),
-                        visiblePagesCount = Math.ceil(visibleRowsCount / dataController.pageSize()),
-                        isLocalIndex = !isVirtualScrolling || visiblePagesCount > pageIndex,
+                        pageSize = dataController.pageSize(),
                         setKeyByIndex = function() {
                             if (_this._isValidFocusedRowIndex(index)) {
                                 var rowIndex = Math.min(index - dataController.getRowIndexOffset(), dataController.items().length - 1),
@@ -91761,10 +92304,38 @@
                                 }
                             }
                         };
-                    if (!isLocalIndex) {
-                        dataController.pageIndex(pageIndex).done(setKeyByIndex)
-                    } else {
-                        setKeyByIndex()
+                    if (pageSize >= 0) {
+                        if (!this._isLocalRowIndex(index)) {
+                            var pageIndex = Math.floor(index / dataController.pageSize());
+                            (0, _deferred.when)(dataController.pageIndex(pageIndex), dataController.waitReady()).done(function() {
+                                setKeyByIndex()
+                            })
+                        } else {
+                            setKeyByIndex()
+                        }
+                    }
+                },
+                _isLocalRowIndex: function(index) {
+                    var dataController = this.getController("data"),
+                        isVirtualScrolling = this.getController("keyboardNavigation")._isVirtualScrolling();
+                    if (isVirtualScrolling) {
+                        var pageIndex = Math.floor(index / dataController.pageSize()),
+                            virtualItems = dataController.virtualItemsCount(),
+                            virtualItemsBegin = virtualItems ? virtualItems.begin : -1,
+                            visibleRowsCount = dataController.getVisibleRows().length + dataController.getRowIndexOffset(),
+                            visiblePagesCount = Math.ceil(visibleRowsCount / dataController.pageSize());
+                        return virtualItemsBegin <= index && visiblePagesCount > pageIndex
+                    }
+                    return true
+                },
+                _setFocusedRowKeyByIndex: function(index) {
+                    var dataController = this.getController("data");
+                    if (this._isValidFocusedRowIndex(index)) {
+                        var rowIndex = Math.min(index - dataController.getRowIndexOffset(), dataController.items().length - 1),
+                            focusedRowKey = dataController.getKeyByRowIndex(rowIndex);
+                        if (void 0 !== focusedRowKey && !this.isRowFocused(focusedRowKey)) {
+                            this.option("focusedRowKey", focusedRowKey)
+                        }
                     }
                 },
                 _focusRowByKey: function(key) {
@@ -91775,7 +92346,11 @@
                     }
                 },
                 _resetFocusedRow: function() {
+                    if (void 0 === this.option("focusedRowKey") && this.option("focusedRowIndex") < 0) {
+                        return
+                    }
                     this.option("focusedRowKey", void 0);
+                    this.getController("keyboardNavigation").setFocusedRowIndex(-1);
                     this.option("focusedRowIndex", -1);
                     this.getController("data").updateItems({
                         changeType: "updateFocusedRow",
@@ -91798,7 +92373,7 @@
                     if (void 0 === key || !dataController.dataSource()) {
                         return result.reject().promise()
                     }
-                    var rowIndexByKey = dataController.getRowIndexByKey(key) + dataController.getRowIndexOffset();
+                    var rowIndexByKey = that._getFocusedRowIndexByKey(key);
                     if (rowIndex >= 0 && rowIndex === rowIndexByKey) {
                         that._triggerUpdateFocusedRow(key, result)
                     } else {
@@ -91809,7 +92384,11 @@
                             }
                             if (pageIndex === dataController.pageIndex()) {
                                 dataController.reload().done(function() {
-                                    that._triggerUpdateFocusedRow(key, result)
+                                    if (that.isRowFocused(key)) {
+                                        result.resolve(that._getFocusedRowIndexByKey(key))
+                                    } else {
+                                        that._triggerUpdateFocusedRow(key, result)
+                                    }
                                 }).fail(result.reject)
                             } else {
                                 dataController.pageIndex(pageIndex).done(function() {
@@ -91822,8 +92401,7 @@
                 },
                 _triggerUpdateFocusedRow: function(key, result) {
                     var dataController = this.getController("data"),
-                        rowIndex = dataController.getRowIndexByKey(key),
-                        focusedRowIndex = rowIndex + dataController.getRowIndexOffset();
+                        focusedRowIndex = this._getFocusedRowIndexByKey(key);
                     if (this._isValidFocusedRowIndex(focusedRowIndex)) {
                         this.getController("keyboardNavigation").setFocusedRowIndex(focusedRowIndex);
                         if (this.option("focusedRowEnabled")) {
@@ -91832,12 +92410,18 @@
                                 focusedRowKey: key
                             })
                         } else {
+                            var rowIndex = dataController.getRowIndexByKey(key);
                             this._scrollToFocusedRow(this.getView("rowsView").getRow(rowIndex))
                         }
                         result && result.resolve(focusedRowIndex)
                     } else {
                         result && result.resolve(-1)
                     }
+                },
+                _getFocusedRowIndexByKey: function(key) {
+                    var dataController = this.getController("data"),
+                        rowIndex = dataController.getRowIndexByKey(key);
+                    return rowIndex >= 0 ? rowIndex + dataController.getRowIndexOffset() : -1
                 },
                 _focusRowByKeyOrIndex: function() {
                     var _this2 = this;
@@ -91854,14 +92438,16 @@
                             keyboardController.setFocusedRowIndex(currentFocusedRowIndex);
                             this._triggerUpdateFocusedRow(focusedRowKey)
                         } else {
-                            this.navigateToRow(focusedRowKey).done(function(pageIndex) {
-                                if (currentFocusedRowIndex >= 0 && pageIndex < 0) {
+                            this.navigateToRow(focusedRowKey).done(function(focusedRowIndex) {
+                                if (currentFocusedRowIndex >= 0 && focusedRowIndex < 0) {
                                     _this2._focusRowByIndex()
                                 }
                             })
                         }
                     } else {
-                        this.getController("focus")._focusRowByIndex(currentFocusedRowIndex)
+                        if (currentFocusedRowIndex >= 0) {
+                            this.getController("focus")._focusRowByIndex(currentFocusedRowIndex)
+                        }
                     }
                 },
                 isRowFocused: function(key) {
@@ -91877,12 +92463,10 @@
                     (0, _iterator.each)(rowsView.getTableElements(), function(index, element) {
                         $tableElement = (0, _renderer2.default)(element);
                         that._clearPreviousFocusedRow($tableElement, focusedRowIndex);
-                        if (focusedRowIndex >= 0) {
-                            var isMainTable = 0 === index;
-                            $focusedRow = that._prepareFocusedRow(change.items[focusedRowIndex], $tableElement, focusedRowIndex);
-                            if (isMainTable) {
-                                that.getController("keyboardNavigation")._fireFocusedRowChanged($focusedRow)
-                            }
+                        var isMainTable = 0 === index;
+                        $focusedRow = that._prepareFocusedRow(change.items[focusedRowIndex], $tableElement, focusedRowIndex);
+                        if (isMainTable) {
+                            that.getController("keyboardNavigation")._fireFocusedRowChanged($focusedRow)
                         }
                     })
                 },
@@ -92089,14 +92673,14 @@
                                 paging = void 0 !== prevPageIndex && prevPageIndex !== this.pageIndex();
                             this._prevPageIndex = this.pageIndex();
                             if (reload && void 0 !== focusedRowKey) {
-                                focusController.navigateToRow(focusedRowKey).done(function(pageIndex) {
-                                    if (pageIndex < 0) {
+                                focusController.navigateToRow(focusedRowKey).done(function(focusedRowIndex) {
+                                    if (focusedRowIndex < 0) {
                                         focusController._focusRowByIndex()
                                     }
                                 })
                             } else {
                                 if (paging) {
-                                    if (!isVirtualScrolling) {
+                                    if (!isVirtualScrolling && this.option("focusedRowIndex") >= 0) {
                                         focusController._focusRowByIndex()
                                     }
                                 } else {
@@ -92222,7 +92806,7 @@
                             }
                         },
                         _update: function(change) {
-                            if (change.changeType === UPDATE_FOCUSED_ROW_CHANGE_TYPE) {
+                            if ("updateFocusedRow" === change.changeType) {
                                 if (this.option("focusedRowEnabled")) {
                                     this.getController("focus").updateFocusedRow(change)
                                 }
@@ -92484,8 +93068,8 @@
                             expandVisibleNodes = true
                         }
                     }
-                    this._isReload = this._isReload || isReload || operationTypes.reload;
                     if (!options.isCustomLoading) {
+                        this._isReload = this._isReload || isReload || operationTypes.reload;
                         if (!options.cachedStoreData) {
                             this._isChildrenLoaded = {}
                         }
@@ -92997,7 +93581,7 @@
             extend = __webpack_require__( /*! ../../../core/utils/extend */ 0).extend,
             typeUtils = __webpack_require__( /*! ../../../core/utils/type */ 1),
             iteratorUtils = __webpack_require__( /*! ../../../core/utils/iterator */ 3),
-            inArray = __webpack_require__( /*! ../../../core/utils/array */ 11).inArray,
+            inArray = __webpack_require__( /*! ../../../core/utils/array */ 12).inArray,
             pivotGridUtils = __webpack_require__( /*! ../ui.pivot_grid.utils */ 75),
             deferredUtils = __webpack_require__( /*! ../../../core/utils/deferred */ 6),
             when = deferredUtils.when,
@@ -93887,14 +94471,14 @@
             hasWindow = __webpack_require__( /*! ../../core/utils/window */ 7).hasWindow(),
             isDefined = __webpack_require__( /*! ../../core/utils/type */ 1).isDefined,
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
-            inArray = __webpack_require__( /*! ../../core/utils/array */ 11).inArray,
+            inArray = __webpack_require__( /*! ../../core/utils/array */ 12).inArray,
             iteratorUtils = __webpack_require__( /*! ../../core/utils/iterator */ 3),
             messageLocalization = __webpack_require__( /*! ../../localization/message */ 15),
             registerComponent = __webpack_require__( /*! ../../core/component_registrator */ 8),
             pivotGridUtils = __webpack_require__( /*! ./ui.pivot_grid.utils */ 75),
             TreeView = __webpack_require__( /*! ../tree_view */ 138),
-            ContextMenu = __webpack_require__( /*! ../context_menu */ 102),
-            BaseFieldChooser = __webpack_require__( /*! ./ui.pivot_grid.field_chooser_base */ 226),
+            ContextMenu = __webpack_require__( /*! ../context_menu */ 104),
+            BaseFieldChooser = __webpack_require__( /*! ./ui.pivot_grid.field_chooser_base */ 227),
             each = iteratorUtils.each,
             DIV = "<div>";
         __webpack_require__( /*! ./data_source */ 195);
@@ -94087,7 +94671,7 @@
                 that._dataChangedHandlers = [];
                 var dataSource = this._dataSource;
                 var currentState = "instantly" !== that.option("applyChangesMode") && dataSource && dataSource.state();
-                currentState && dataSource.state(that.option("state"), true);
+                currentState && that.option("state") && dataSource.state(that.option("state"), true);
                 if (0 === layout) {
                     that._renderLayout0($container)
                 } else {
@@ -94538,12 +95122,13 @@
         var _button2 = _interopRequireDefault(_button);
         var _date = __webpack_require__( /*! ../../../core/utils/date */ 22);
         var _date2 = _interopRequireDefault(_date);
-        var _function_template = __webpack_require__( /*! ../../widget/function_template */ 83);
+        var _function_template = __webpack_require__( /*! ../../widget/function_template */ 84);
         var _function_template2 = _interopRequireDefault(_function_template);
         var _renderer = __webpack_require__( /*! ../../../core/renderer */ 2);
         var _renderer2 = _interopRequireDefault(_renderer);
         var _uiList = __webpack_require__( /*! ../../list/ui.list.edit */ 289);
         var _uiList2 = _interopRequireDefault(_uiList);
+        var _extend = __webpack_require__( /*! ../../../core/utils/extend */ 0);
 
         function _interopRequireDefault(obj) {
             return obj && obj.__esModule ? obj : {
@@ -94676,7 +95261,55 @@
             }, {
                 key: "_onListItemClick",
                 value: function(e) {
-                    this.hide()
+                    this.hide();
+                    if (this._canRaiseClickEvent()) {
+                        this._raiseClickEventAndShowAppointmentPopup(e)
+                    } else {
+                        this.scheduler.showAppointmentPopup(e.itemData.data, false, e.itemData.currentData)
+                    }
+                }
+            }, {
+                key: "_canRaiseClickEvent",
+                value: function() {
+                    return true
+                }
+            }, {
+                key: "_raiseClickEventAndShowAppointmentPopup",
+                value: function(e) {
+                    var config = {
+                        itemData: e.itemData.data,
+                        itemElement: e.itemElement
+                    };
+                    var showEditAppointmentPopupAction = this.createAppointmentClickAction();
+                    showEditAppointmentPopupAction(this.createClickEventArgument(config, e))
+                }
+            }, {
+                key: "createAppointmentClickAction",
+                value: function() {
+                    var _this2 = this;
+                    return this.scheduler._createActionByOption("onAppointmentClick", {
+                        afterExecute: function(e) {
+                            var config = e.args[0];
+                            config.event.stopPropagation();
+                            _this2.scheduler.fire("showEditAppointmentPopup", {
+                                data: config.appointmentData
+                            })
+                        }
+                    })
+                }
+            }, {
+                key: "createClickEventArgument",
+                value: function(config, clickArg) {
+                    var result = (0, _extend.extendFromObject)(this.scheduler.fire("mapAppointmentFields", config), clickArg, false);
+                    return this.trimClickEventArgument(result)
+                }
+            }, {
+                key: "trimClickEventArgument",
+                value: function(e) {
+                    delete e.itemData;
+                    delete e.itemIndex;
+                    delete e.itemElement;
+                    return e
                 }
             }, {
                 key: "_onDeleteButtonClick",
@@ -94686,10 +95319,10 @@
             }, {
                 key: "_createTemplate",
                 value: function(data, currentData, color) {
-                    var _this2 = this;
+                    var _this3 = this;
                     this.scheduler._defaultTemplates[this._getItemListDefaultTemplateName()] = new _function_template2.default(function(options) {
                         var $container = (0, _renderer2.default)(options.container);
-                        $container.append(_this2._createItemListContent(data, currentData, color));
+                        $container.append(_this3._createItemListContent(data, currentData, color));
                         return $container
                     })
                 }
@@ -94733,7 +95366,7 @@
             }, {
                 key: "_createDeleteButton",
                 value: function(data, currentData) {
-                    var _this3 = this;
+                    var _this4 = this;
                     var $container = (0, _renderer2.default)("<div>").addClass(TOOLTIP_APPOINTMENT_ITEM_DELETE_BUTTON_CONTAINER),
                         $deleteButton = (0, _renderer2.default)("<div>").addClass(TOOLTIP_APPOINTMENT_ITEM_DELETE_BUTTON);
                     $container.append($deleteButton);
@@ -94741,9 +95374,9 @@
                         icon: "trash",
                         stylingMode: "text",
                         onClick: function(e) {
-                            _this3._onDeleteButtonClick();
-                            _this3.scheduler._checkRecurringAppointment(data, currentData, _this3.scheduler._getStartDate(currentData, true), function() {
-                                return _this3.scheduler.deleteAppointment(data)
+                            _this4._onDeleteButtonClick();
+                            _this4.scheduler._checkRecurringAppointment(data, currentData, _this4.scheduler._getStartDate(currentData, true), function() {
+                                return _this4.scheduler.deleteAppointment(data)
                             }, true);
                             e.event.stopPropagation()
                         }
@@ -94792,27 +95425,27 @@
             dateUtils = __webpack_require__( /*! ../../../core/utils/date */ 22),
             typeUtils = __webpack_require__( /*! ../../../core/utils/type */ 1),
             windowUtils = __webpack_require__( /*! ../../../core/utils/window */ 7),
-            getPublicElement = __webpack_require__( /*! ../../../core/utils/dom */ 12).getPublicElement,
+            getPublicElement = __webpack_require__( /*! ../../../core/utils/dom */ 11).getPublicElement,
             extend = __webpack_require__( /*! ../../../core/utils/extend */ 0).extend,
             each = __webpack_require__( /*! ../../../core/utils/iterator */ 3).each,
             messageLocalization = __webpack_require__( /*! ../../../localization/message */ 15),
-            dateLocalization = __webpack_require__( /*! ../../../localization/date */ 32),
+            dateLocalization = __webpack_require__( /*! ../../../localization/date */ 33),
             toMs = dateUtils.dateToMilliseconds,
             Widget = __webpack_require__( /*! ../../widget/ui.widget */ 17),
             abstract = Widget.abstract,
             noop = __webpack_require__( /*! ../../../core/utils/common */ 4).noop,
             isDefined = __webpack_require__( /*! ../../../core/utils/type */ 1).isDefined,
-            publisherMixin = __webpack_require__( /*! ../ui.scheduler.publisher_mixin */ 117),
+            publisherMixin = __webpack_require__( /*! ../ui.scheduler.publisher_mixin */ 115),
             eventUtils = __webpack_require__( /*! ../../../events/utils */ 9),
             pointerEvents = __webpack_require__( /*! ../../../events/pointer */ 24),
             errors = __webpack_require__( /*! ../../widget/ui.errors */ 18),
             clickEvent = __webpack_require__( /*! ../../../events/click */ 19),
-            contextMenuEvent = __webpack_require__( /*! ../../../events/contextmenu */ 166),
+            contextMenuEvent = __webpack_require__( /*! ../../../events/contextmenu */ 168),
             dragEvents = __webpack_require__( /*! ../../../events/drag */ 56),
-            Scrollable = __webpack_require__( /*! ../../scroll_view/ui.scrollable */ 90),
+            Scrollable = __webpack_require__( /*! ../../scroll_view/ui.scrollable */ 91),
             HorizontalGroupedStrategy = __webpack_require__( /*! ./ui.scheduler.work_space.grouped.strategy.horizontal */ 691),
             VerticalGroupedStrategy = __webpack_require__( /*! ./ui.scheduler.work_space.grouped.strategy.vertical */ 692),
-            tableCreator = __webpack_require__( /*! ../ui.scheduler.table_creator */ 227),
+            tableCreator = __webpack_require__( /*! ../ui.scheduler.table_creator */ 228),
             VerticalShader = __webpack_require__( /*! ../shaders/ui.scheduler.current_time_shader.vertical */ 693);
         var COMPONENT_CLASS = "dx-scheduler-work-space",
             GROUPED_WORKSPACE_CLASS = "dx-scheduler-work-space-grouped",
@@ -94874,13 +95507,14 @@
                         e.preventDefault();
                         e.stopPropagation();
                         if (this._focusedCells && this._focusedCells.length) {
-                            var $itemElement = $(this.option("focusedElement"));
+                            var $itemElement = $(this.option("focusedElement")),
+                                $cellElement = $itemElement.length ? $itemElement : this._focusedCells;
                             e.target = this._focusedCells;
                             this._showPopup = true;
                             this._cellClickAction({
                                 event: e,
                                 cellElement: $(this._focusedCells),
-                                cellData: this.getCellData($itemElement)
+                                cellData: this.getCellData($cellElement)
                             })
                         }
                     },
@@ -95482,7 +96116,7 @@
                 if (cellWidth < this.getCellMinWidth()) {
                     cellWidth = this.getCellMinWidth()
                 }
-                var minWidth = this._groupedStrategy.getWorkSpaceMinWidth(),
+                var minWidth = this.getWorkSpaceMinWidth(),
                     $headerCells = this._$headerPanel.find("tr").last().find("th");
                 var width = cellWidth * $headerCells.length;
                 if (width < minWidth) {
@@ -95495,6 +96129,9 @@
                 if (this._isVerticalGroupedWorkSpace()) {
                     this._setHorizontalGroupHeaderCellsHeight()
                 }
+            },
+            getWorkSpaceMinWidth: function() {
+                return this._groupedStrategy.getWorkSpaceMinWidth()
             },
             _dimensionChanged: function() {
                 if (this.option("crossScrollingEnabled")) {
@@ -96218,7 +96855,7 @@
                 return currentDate
             },
             _patchCellIndex: function(cellIndex) {
-                if (this.option("groupByDate")) {
+                if (this.isGroupedByDate()) {
                     cellIndex = Math.floor(cellIndex / this._getGroupCount())
                 }
                 return cellIndex
@@ -96435,7 +97072,7 @@
                 return this._groupedStrategy._getGroupTop(groupIndex)
             },
             isGroupedByDate: function() {
-                return this.option("groupByDate") && this._isHorizontalGroupedWorkSpace()
+                return this.option("groupByDate") && this._isHorizontalGroupedWorkSpace() && this._getGroupCount() > 0
             },
             getCellIndexByDate: function(date, inAllDayRow) {
                 var timeInterval = inAllDayRow ? 864e5 : this._getInterval(),
@@ -96823,7 +97460,7 @@
         var $ = __webpack_require__( /*! ../../../core/renderer */ 2),
             registerComponent = __webpack_require__( /*! ../../../core/component_registrator */ 8),
             dateUtils = __webpack_require__( /*! ../../../core/utils/date */ 22),
-            dateLocalization = __webpack_require__( /*! ../../../localization/date */ 32),
+            dateLocalization = __webpack_require__( /*! ../../../localization/date */ 33),
             each = __webpack_require__( /*! ../../../core/utils/iterator */ 3).each,
             SchedulerWorkSpace = __webpack_require__( /*! ./ui.scheduler.work_space.indicator */ 196);
         var WEEK_CLASS = "dx-scheduler-work-space-week";
@@ -96939,7 +97576,7 @@
     /*! all exports used */
     function(module, exports, __webpack_require__) {
         var registerComponent = __webpack_require__( /*! ../../../core/component_registrator */ 8),
-            SchedulerTimeline = __webpack_require__( /*! ./ui.scheduler.timeline */ 228);
+            SchedulerTimeline = __webpack_require__( /*! ./ui.scheduler.timeline */ 229);
         var TIMELINE_CLASS = "dx-scheduler-timeline-week",
             HEADER_ROW_CLASS = "dx-scheduler-header-row";
         var SchedulerTimelineWeek = SchedulerTimeline.inherit({
@@ -96952,7 +97589,7 @@
             _setTableSizes: function() {
                 this.callBase();
                 var cellWidth = this.getCellWidth(),
-                    minWidth = this._groupedStrategy.getWorkSpaceMinWidth(),
+                    minWidth = this.getWorkSpaceMinWidth(),
                     $headerCells = this.$element().find("." + HEADER_ROW_CLASS).last().find("th");
                 var width = cellWidth * $headerCells.length;
                 if (width < minWidth) {
@@ -97108,10 +97745,11 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var BaseAppointmentsStrategy = __webpack_require__( /*! ./ui.scheduler.appointments.strategy.base */ 229),
+        var BaseAppointmentsStrategy = __webpack_require__( /*! ./ui.scheduler.appointments.strategy.base */ 230),
             dateUtils = __webpack_require__( /*! ../../../core/utils/date */ 22);
         var MAX_APPOINTMENT_HEIGHT = 100,
             DEFAULT_APPOINTMENT_HEIGHT = 60,
+            MIN_APPOINTMENT_HEIGHT = 35,
             DROP_DOWN_BUTTON_OFFSET = 2,
             BOTTOM_CELL_GAP = 20;
         var toMs = dateUtils.dateToMilliseconds;
@@ -97184,6 +97822,9 @@
             },
             _getAppointmentDefaultHeight: function() {
                 return DEFAULT_APPOINTMENT_HEIGHT
+            },
+            _getAppointmentMinHeight: function() {
+                return MIN_APPOINTMENT_HEIGHT
             },
             _correctRtlCoordinatesParts: function(coordinates, width) {
                 for (var i = 1; i < coordinates.length; i++) {
@@ -97934,10 +98575,10 @@
                     error: error || null
                 }
             };
-            var createErrorInfo = function(index, error) {
+            var createErrorInfo = function(index, result) {
                 return {
                     index: index,
-                    error: error
+                    errorId: result.errorId
                 }
             };
             if (!Array.isArray(arg)) {
@@ -98193,7 +98834,7 @@
             }
         };
         var _extend = __webpack_require__( /*! ../../core/utils/extend */ 0);
-        var _double_click = __webpack_require__( /*! ../../events/double_click */ 149);
+        var _double_click = __webpack_require__( /*! ../../events/double_click */ 150);
         var _utils = __webpack_require__( /*! ../../events/utils */ 9);
         var _events_engine = __webpack_require__( /*! ../../events/core/events_engine */ 5);
         var _events_engine2 = _interopRequireDefault(_events_engine);
@@ -98871,9 +99512,9 @@
                 return Constructor
             }
         }();
-        var _component = __webpack_require__( /*! ../../core/component */ 131);
+        var _component = __webpack_require__( /*! ../../core/component */ 130);
         var _component2 = _interopRequireDefault(_component);
-        var _data_helper = __webpack_require__( /*! ../../data_helper */ 84);
+        var _data_helper = __webpack_require__( /*! ../../data_helper */ 85);
         var _data_helper2 = _interopRequireDefault(_data_helper);
 
         function _interopRequireDefault(obj) {
@@ -98960,7 +99601,7 @@
     /*! all exports used */
     function(module, exports, __webpack_require__) {
         var extend = __webpack_require__( /*! ../../../core/utils/extend */ 0).extend,
-            symbolPoint = __webpack_require__( /*! ./symbol_point */ 119),
+            symbolPoint = __webpack_require__( /*! ./symbol_point */ 117),
             _extend = extend,
             _round = Math.round,
             _sqrt = Math.sqrt,
@@ -98972,7 +99613,7 @@
             _getCosAndSin = vizUtils.getCosAndSin,
             _isDefined = __webpack_require__( /*! ../../../core/utils/type */ 1).isDefined,
             getVerticallyShiftedAngularCoords = vizUtils.getVerticallyShiftedAngularCoords,
-            RADIAL_LABEL_INDENT = __webpack_require__( /*! ../../components/consts */ 118).radialLabelIndent;
+            RADIAL_LABEL_INDENT = __webpack_require__( /*! ../../components/consts */ 116).radialLabelIndent;
         module.exports = _extend({}, symbolPoint, {
             _updateData: function(data, argumentChanged) {
                 var that = this;
@@ -99336,8 +99977,8 @@
         var each = __webpack_require__( /*! ../../../core/utils/iterator */ 3).each,
             extend = __webpack_require__( /*! ../../../core/utils/extend */ 0).extend,
             noop = __webpack_require__( /*! ../../../core/utils/common */ 4).noop,
-            labelModule = __webpack_require__( /*! ./label */ 239),
-            symbolPoint = __webpack_require__( /*! ./symbol_point */ 119),
+            labelModule = __webpack_require__( /*! ./label */ 240),
+            symbolPoint = __webpack_require__( /*! ./symbol_point */ 117),
             _extend = extend,
             _isDefined = __webpack_require__( /*! ../../../core/utils/type */ 1).isDefined,
             _math = Math,
@@ -99818,7 +100459,7 @@
     /*! all exports used */
     function(module, exports, __webpack_require__) {
         var _extend = __webpack_require__( /*! ../../../core/utils/extend */ 0).extend,
-            symbolPoint = __webpack_require__( /*! ./symbol_point */ 119),
+            symbolPoint = __webpack_require__( /*! ./symbol_point */ 117),
             barPoint = __webpack_require__( /*! ./bar_point */ 199),
             _math = Math,
             _abs = _math.abs,
@@ -100132,7 +100773,7 @@
         var noop = __webpack_require__( /*! ../../core/utils/common */ 4).noop,
             typeUtils = __webpack_require__( /*! ../../core/utils/type */ 1),
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
-            BaseThemeManager = __webpack_require__( /*! ../core/base_theme_manager */ 234).BaseThemeManager,
+            BaseThemeManager = __webpack_require__( /*! ../core/base_theme_manager */ 235).BaseThemeManager,
             _isString = typeUtils.isString,
             _isDefined = typeUtils.isDefined,
             _normalizeEnum = __webpack_require__( /*! ../core/utils */ 10).normalizeEnum;
@@ -100359,13 +101000,13 @@
     /*! all exports used */
     function(module, exports, __webpack_require__) {
         var extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
-            layoutElementModule = __webpack_require__( /*! ../core/layout_element */ 235),
+            layoutElementModule = __webpack_require__( /*! ../core/layout_element */ 236),
             _isNumber = __webpack_require__( /*! ../../core/utils/type */ 1).isNumeric,
             _min = Math.min,
             _max = Math.max,
             _floor = Math.floor,
             _sqrt = Math.sqrt,
-            consts = __webpack_require__( /*! ../components/consts */ 118),
+            consts = __webpack_require__( /*! ../components/consts */ 116),
             RADIAL_LABEL_INDENT = consts.radialLabelIndent;
 
         function getNearestCoord(firstCoord, secondCoord, pointCenterCoord) {
@@ -100725,13 +101366,13 @@
     /*! all exports used */
     function(module, exports, __webpack_require__) {
         var extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
-            inArray = __webpack_require__( /*! ../../core/utils/array */ 11).inArray,
+            inArray = __webpack_require__( /*! ../../core/utils/array */ 12).inArray,
             iteratorModule = __webpack_require__( /*! ../../core/utils/iterator */ 3),
-            rangeModule = __webpack_require__( /*! ../translators/range */ 106),
+            rangeModule = __webpack_require__( /*! ../translators/range */ 108),
             DEFAULT_AXIS_NAME = "defaultAxisName",
-            axisModule = __webpack_require__( /*! ../axes/base_axis */ 241),
+            axisModule = __webpack_require__( /*! ../axes/base_axis */ 242),
             seriesFamilyModule = __webpack_require__( /*! ../core/series_family */ 399),
-            BaseChart = __webpack_require__( /*! ./base_chart */ 233).BaseChart,
+            BaseChart = __webpack_require__( /*! ./base_chart */ 234).BaseChart,
             crosshairModule = __webpack_require__( /*! ./crosshair */ 400),
             _isArray = Array.isArray,
             _isDefined = __webpack_require__( /*! ../../core/utils/type */ 1).isDefined,
@@ -102349,6 +102990,13 @@
                 }
                 return fontStyle
             }
+
+            function createLabelHint(tick, range) {
+                var labelHint = axis.formatHint(tick.value, labelOptions, range);
+                if (isDefined(labelHint) && "" !== labelHint) {
+                    tick.label.setTitle(labelHint)
+                }
+            }
             return function(value) {
                 var tick = {
                     value: value,
@@ -102372,9 +103020,10 @@
                         }
                         if (this.mark) {
                             this.mark.append(lineGroup);
+                            axis.sharp(this.mark, axis.getSharpDirectionByCoords(this.coords));
                             this.updateTickPosition(options)
                         } else {
-                            this.mark = axis._createPathElement([], tickStyle).append(lineGroup);
+                            this.mark = axis._createPathElement([], tickStyle, axis.getSharpDirectionByCoords(this.coords)).append(lineGroup);
                             this.updateTickPosition(options)
                         }
                     },
@@ -102426,16 +103075,14 @@
                                 text: text,
                                 rotate: 0
                             }).append(elementsGroup);
+                            createLabelHint(this, range);
                             this.updateLabelPosition();
                             return
                         }
                         if (isDefined(text) && "" !== text && !emptyStrRegExp.test(text)) {
                             this.label = renderer.text(text).css(getLabelFontStyle(this)).attr(labelStyle).data("chart-data-argument", this.value).append(elementsGroup);
                             this.updateLabelPosition();
-                            var labelHint = axis.formatHint(this.value, labelOptions, range);
-                            if (isDefined(labelHint) && "" !== labelHint) {
-                                this.label.setTitle(labelHint)
-                            }
+                            createLabelHint(this, range)
                         }
                     },
                     fadeOutElements: function() {
@@ -102506,6 +103153,7 @@
                         if (gridOptions.visible && skippedCategory !== this.value) {
                             if (this.grid) {
                                 this.grid.append(axis._axisGridGroup);
+                                axis.sharp(this.grid, axis.getSharpDirectionByCoords(this.coords));
                                 this.updateGridPosition()
                             } else {
                                 this.grid = drawLine(this, gridStyle);
@@ -102532,18 +103180,18 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var _range = __webpack_require__( /*! ../translators/range */ 106);
+        var _range = __webpack_require__( /*! ../translators/range */ 108);
         var _range2 = _interopRequireDefault(_range);
         var _format_helper = __webpack_require__( /*! ../../format_helper */ 61);
         var _date = __webpack_require__( /*! ../../core/utils/date */ 22);
         var _date2 = _interopRequireDefault(_date);
         var _extend = __webpack_require__( /*! ../../core/utils/extend */ 0);
-        var _datetime_breaks = __webpack_require__( /*! ./datetime_breaks */ 770);
+        var _datetime_breaks = __webpack_require__( /*! ./datetime_breaks */ 771);
         var _common = __webpack_require__( /*! ../../core/utils/common */ 4);
         var _utils = __webpack_require__( /*! ../core/utils */ 10);
         var _utils2 = _interopRequireDefault(_utils);
         var _type = __webpack_require__( /*! ../../core/utils/type */ 1);
-        var _axes_constants = __webpack_require__( /*! ./axes_constants */ 242);
+        var _axes_constants = __webpack_require__( /*! ./axes_constants */ 243);
         var _axes_constants2 = _interopRequireDefault(_axes_constants);
 
         function _interopRequireDefault(obj) {
@@ -102877,7 +103525,7 @@
                 _getTickMarkPoints: function(coords, length, tickOptions) {
                     var isHorizontal = this._isHorizontal;
                     var options = this._options;
-                    var tickStartCoord;
+                    var tickStartCoord = void 0;
                     if ((0, _type.isDefined)(options.tickOrientation)) {
                         tickStartCoord = TICKS_CORRECTIONS[options.tickOrientation] * length
                     } else {
@@ -102885,9 +103533,13 @@
                         if ("left" === options.position || "top" === options.position) {
                             shift = -shift
                         }
-                        tickStartCoord = shift + (length % 2 === 1 ? options.width % 2 === 0 && ("left" === options.position || "top" === options.position) ? Math.floor(-length / 2) : -Math.floor(length / 2) : -length / 2 + ("bottom" === options.position || "right" === options.position || options.width % 2 === 0 ? 0 : 1))
+                        tickStartCoord = shift + this.getTickStartPositionShift(length)
                     }
                     return [coords.x + (isHorizontal ? 0 : tickStartCoord), coords.y + (isHorizontal ? tickStartCoord : 0), coords.x + (isHorizontal ? 0 : tickStartCoord + length), coords.y + (isHorizontal ? tickStartCoord + length : 0)]
+                },
+                getTickStartPositionShift: function(length) {
+                    var options = this._options;
+                    return length % 2 === 1 ? options.width % 2 === 0 && ("left" === options.position || "top" === options.position) || options.width % 2 === 1 && ("right" === options.position || "bottom" === options.position) ? Math.floor(-length / 2) : -Math.floor(length / 2) : -length / 2 + (options.width % 2 === 0 ? 0 : "bottom" === options.position || "right" === options.position ? -1 : 1)
                 },
                 _getTitleCoords: function() {
                     var that = this,
@@ -104391,7 +105043,7 @@
                 for (var i = 0; i < 2; i++) {
                     lines[i].attr({
                         points: points[i]
-                    })
+                    }).sharp(isHorizontal ? "v" : "h", isHorizontal ? y === canvas.bottom ? -1 : 1 : x === canvas.right ? -1 : 1)
                 }
             },
             _resetLinesCanvas: function() {
@@ -104470,10 +105122,10 @@
         exports.plugins = exports.__test_utils = exports.createAnnotations = void 0;
         var _dom_adapter = __webpack_require__( /*! ../../core/dom_adapter */ 13);
         var _type = __webpack_require__( /*! ../../core/utils/type */ 1);
-        var _tooltip = __webpack_require__( /*! ../core/tooltip */ 105);
+        var _tooltip = __webpack_require__( /*! ../core/tooltip */ 107);
         var _extend = __webpack_require__( /*! ../../core/utils/extend */ 0);
         var _utils = __webpack_require__( /*! ./utils */ 10);
-        var _plaque = __webpack_require__( /*! ./plaque */ 777);
+        var _plaque = __webpack_require__( /*! ./plaque */ 778);
         var _pointer = __webpack_require__( /*! ../../events/pointer */ 24);
         var _pointer2 = _interopRequireDefault(_pointer);
         var _drag = __webpack_require__( /*! ../../events/drag */ 56);
@@ -104646,11 +105298,6 @@
                                     if (series.checkSeriesViewportCoord(argAxis, coords[argCoordName])) {
                                         coords[valCoordName] = series.getSeriesPairCoord(coords[argCoordName], true)
                                     }
-                                    if (!(0, _type.isDefined)(coords[valCoordName])) {
-                                        coords[valCoordName] = this._argumentAxes.filter(function(a) {
-                                            return a.pane === axis.pane
-                                        })[0].getAxisPosition()
-                                    }
                                 }
                             }
                         }
@@ -104698,11 +105345,20 @@
             init: function() {
                 this._annotations = {
                     items: [],
+                    tooltip: new _tooltip.Tooltip({
+                        cssClass: this._rootClassPrefix + "-annotation-tooltip",
+                        eventTrigger: this._eventTrigger,
+                        widgetRoot: this.element()
+                    }),
                     hideTooltip: function() {
                         this.tooltip.annotation = null;
                         this.tooltip.hide()
                     }
-                }
+                };
+                this._annotations.tooltip.setRendererOptions(this._getRendererOptions());
+                var tooltipOptions = (0, _extend.extend)({}, this._themeManager.getOptions("tooltip"));
+                tooltipOptions.customizeTooltip = void 0;
+                this._annotations.tooltip.update(tooltipOptions)
             },
             dispose: function() {
                 this._annotationsGroup.linkRemove().linkOff();
@@ -104712,40 +105368,34 @@
             },
             extenders: {
                 _createHtmlStructure: function() {
+                    var _this2 = this;
                     this._annotationsGroup = this._renderer.g().attr({
                         "class": this._rootClassPrefix + "-annotations"
-                    }).linkOn(this._renderer.root, "annotations").linkAppend()
+                    }).linkOn(this._renderer.root, "annotations").linkAppend();
+                    _events_engine2.default.on((0, _dom_adapter.getDocument)(), POINTER_ACTION, function() {
+                        return _this2._annotations.hideTooltip()
+                    });
+                    this._annotationsGroup.on(POINTER_ACTION, this._annotationsPointerEventHandler.bind(this))
                 },
                 _renderExtraElements: function() {
-                    var _this2 = this;
+                    var _this3 = this;
                     this._annotationsGroup.clear();
                     this._annotations.items.forEach(function(item) {
-                        return item.draw(_this2, _this2._annotationsGroup)
+                        return item.draw(_this3, _this3._annotationsGroup)
                     })
+                },
+                _stopCurrentHandling: function() {
+                    this._annotations.hideTooltip()
                 }
             },
             members: {
                 _buildAnnotations: function() {
-                    var _this3 = this;
                     this._annotations.items = [];
                     var items = this._getOption("annotations");
                     if (!items || !items.length) {
                         return
                     }
-                    this._annotations.tooltip = new _tooltip.Tooltip({
-                        cssClass: this._rootClassPrefix + "-annotation-tooltip",
-                        eventTrigger: this._eventTrigger,
-                        widgetRoot: this.element()
-                    });
-                    this._annotations.tooltip.setRendererOptions(this._getRendererOptions());
-                    var tooltipOptions = (0, _extend.extend)({}, this._themeManager.getOptions("tooltip"));
-                    tooltipOptions.customizeTooltip = void 0;
-                    this._annotations.tooltip.update(tooltipOptions);
-                    this._annotations.items = createAnnotations(items, this._getOption("commonAnnotationSettings"), this._getOption("customizeAnnotation"));
-                    this._annotationsGroup.on(POINTER_ACTION, this._annotationsPointerEventHandler.bind(this));
-                    _events_engine2.default.on((0, _dom_adapter.getDocument)(), POINTER_ACTION, function() {
-                        return _this3._annotations.hideTooltip()
-                    })
+                    this._annotations.items = createAnnotations(items, this._getOption("commonAnnotationSettings"), this._getOption("customizeAnnotation"))
                 },
                 _getAnnotationCoords: function() {
                     return {}
@@ -104866,7 +105516,7 @@
     /*! all exports used */
     function(module, exports, __webpack_require__) {
         var iterateUtils = __webpack_require__( /*! ../../core/utils/iterator */ 3),
-            BaseElement = __webpack_require__( /*! ./base_indicators */ 244).BaseElement,
+            BaseElement = __webpack_require__( /*! ./base_indicators */ 245).BaseElement,
             _Number = Number,
             _abs = Math.abs,
             _isString = __webpack_require__( /*! ../../core/utils/type */ 1).isString,
@@ -105112,9 +105762,9 @@
             vizUtils = __webpack_require__( /*! ../core/utils */ 10),
             _normalizeAngle = vizUtils.normalizeAngle,
             _getCosAndSin = vizUtils.getCosAndSin,
-            circularIndicatorsModule = __webpack_require__( /*! ./circular_indicators */ 787),
+            circularIndicatorsModule = __webpack_require__( /*! ./circular_indicators */ 788),
             createIndicatorCreator = __webpack_require__( /*! ./common */ 201).createIndicatorCreator,
-            CircularRangeContainer = __webpack_require__( /*! ./circular_range_container */ 788),
+            CircularRangeContainer = __webpack_require__( /*! ./circular_range_container */ 789),
             _abs = Math.abs,
             _max = Math.max,
             _min = Math.min,
@@ -105911,15 +106561,14 @@
     function(module, exports, __webpack_require__) {
         var eventsEngine = __webpack_require__( /*! ../../events/core/events_engine */ 5),
             domAdapter = __webpack_require__( /*! ../../core/dom_adapter */ 13),
-            ready = __webpack_require__( /*! ../../core/utils/ready_callbacks */ 50).add,
+            ready = __webpack_require__( /*! ../../core/utils/ready_callbacks */ 48).add,
             isFunction = __webpack_require__( /*! ../../core/utils/type */ 1).isFunction,
-            BaseWidget = __webpack_require__( /*! ../core/base_widget */ 95),
+            BaseWidget = __webpack_require__( /*! ../core/base_widget */ 97),
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
             DEFAULT_LINE_SPACING = 2,
             DEFAULT_EVENTS_DELAY = 100,
             eventUtils = __webpack_require__( /*! ../../events/utils */ 9),
-            wheelEvent = __webpack_require__( /*! ../../events/core/wheel */ 110),
-            translator2DModule = __webpack_require__( /*! ../translators/translator2d */ 243),
+            translator2DModule = __webpack_require__( /*! ../translators/translator2d */ 244),
             _extend = extend,
             _noop = __webpack_require__( /*! ../../core/utils/common */ 4).noop;
 
@@ -106069,8 +106718,11 @@
                 that._disposeCallbacks = function() {
                     that = that._showTooltipCallback = that._hideTooltipCallback = that._disposeCallbacks = null
                 };
-                that._tooltipTracker.on(mouseEvents, data).on(touchEvents, data).on(mouseWheelEvents, data);
+                that._tooltipTracker.on(mouseEvents, data).on(touchEvents, data);
                 that._tooltipTracker.on(menuEvents)
+            },
+            _stopCurrentHandling: function() {
+                this._hideTooltip()
             },
             _disposeTooltipEvents: function() {
                 var that = this;
@@ -106116,10 +106768,6 @@
                 widget._tooltipTracker.off(mouseMoveEvents);
                 widget._hideTooltip(DEFAULT_EVENTS_DELAY)
             }
-        };
-        var mouseWheelEvents = {};
-        mouseWheelEvents[wheelEvent.name + ".sparkline-tooltip"] = function(event) {
-            event.data.widget._hideTooltip()
         };
         var mouseMoveEvents = {
             "mousemove.sparkline-tooltip": function(event) {
@@ -106176,7 +106824,7 @@
         module.exports._DEBUG_reset = function() {
             active_touch_tooltip_widget = null
         };
-        BaseSparkline.addPlugin(__webpack_require__( /*! ../core/tooltip */ 105).plugin);
+        BaseSparkline.addPlugin(__webpack_require__( /*! ../core/tooltip */ 107).plugin);
         var _initTooltip = BaseSparkline.prototype._initTooltip;
         BaseSparkline.prototype._initTooltip = _noop;
         var _disposeTooltip = BaseSparkline.prototype._disposeTooltip;
@@ -106219,7 +106867,7 @@
                 that._hideTooltipCallback()
             }
         };
-        var exportPlugin = extend(true, {}, __webpack_require__( /*! ../core/export */ 92).plugin, {
+        var exportPlugin = extend(true, {}, __webpack_require__( /*! ../core/export */ 94).plugin, {
             init: _noop,
             dispose: _noop,
             customize: null,
@@ -106245,7 +106893,7 @@
         function squarified(data) {
             return _squarify(data, accumulate, false)
         }
-        __webpack_require__( /*! ./tiling */ 121).addAlgorithm("squarified", squarified);
+        __webpack_require__( /*! ./tiling */ 119).addAlgorithm("squarified", squarified);
         module.exports = squarified
     },
     /*!*********************************************************************!*\
@@ -106256,7 +106904,7 @@
     function(module, exports, __webpack_require__) {
         var _max = Math.max,
             _round = Math.round,
-            tiling = __webpack_require__( /*! ./tiling */ 121);
+            tiling = __webpack_require__( /*! ./tiling */ 119);
 
         function compare(a, b) {
             return b.value - a.value
@@ -106405,7 +107053,7 @@
                 return colors[node._id]
             }
         }
-        __webpack_require__( /*! ./colorizing */ 122).addColorizer("discrete", discreteColorizer);
+        __webpack_require__( /*! ./colorizing */ 120).addColorizer("discrete", discreteColorizer);
         module.exports = discreteColorizer
     },
     /*!****************************************************!*\
@@ -106415,9 +107063,9 @@
     /*! all exports used */
     function(module, exports, __webpack_require__) {
         var proto = __webpack_require__( /*! ./tree_map.base */ 69).prototype,
-            nodeProto = __webpack_require__( /*! ./node */ 164).prototype,
+            nodeProto = __webpack_require__( /*! ./node */ 166).prototype,
             expand = __webpack_require__( /*! ../core/helpers */ 140).expand,
-            common = __webpack_require__( /*! ./common */ 245),
+            common = __webpack_require__( /*! ./common */ 246),
             _parseScalar = __webpack_require__( /*! ../core/utils */ 10).parseScalar,
             _buildRectAppearance = common.buildRectAppearance,
             STATE_CODE = 1;
@@ -106509,7 +107157,7 @@
     /*! all exports used */
     function(module, exports, __webpack_require__) {
         var proto = __webpack_require__( /*! ./tree_map.base */ 69).prototype,
-            nodeProto = __webpack_require__( /*! ./node */ 164).prototype,
+            nodeProto = __webpack_require__( /*! ./node */ 166).prototype,
             handlers = proto._handlers,
             _calculateState = handlers.calculateState,
             _buildState = nodeProto._buildState,
@@ -106618,7 +107266,7 @@
                 this._tooltip.hide()
             }
         };
-        __webpack_require__( /*! ./tree_map.base */ 69).addPlugin(__webpack_require__( /*! ../core/tooltip */ 105).plugin)
+        __webpack_require__( /*! ./tree_map.base */ 69).addPlugin(__webpack_require__( /*! ../core/tooltip */ 107).plugin)
     },
     /*!***************************************************!*\
       !*** ./artifacts/transpiled/viz/funnel/funnel.js ***!
@@ -106626,11 +107274,11 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var tiling = __webpack_require__( /*! ./tiling */ 825),
-            dynamicSlope = __webpack_require__( /*! ./tiling.funnel */ 826),
-            dynamicHeight = __webpack_require__( /*! ./tiling.pyramid */ 827),
+        var tiling = __webpack_require__( /*! ./tiling */ 826),
+            dynamicSlope = __webpack_require__( /*! ./tiling.funnel */ 827),
+            dynamicHeight = __webpack_require__( /*! ./tiling.pyramid */ 828),
             noop = __webpack_require__( /*! ../../core/utils/common */ 4).noop,
-            Item = __webpack_require__( /*! ./item */ 828),
+            Item = __webpack_require__( /*! ./item */ 829),
             NODES_CREATE_CHANGE = "NODES_CREATE";
         tiling.addAlgorithm("dynamicslope", dynamicSlope, true);
         tiling.addAlgorithm("dynamicheight", dynamicHeight);
@@ -106640,7 +107288,7 @@
                 return index % 2 ? 1 - coord : coord
             })
         }
-        var dxFunnel = __webpack_require__( /*! ../core/base_widget */ 95).inherit({
+        var dxFunnel = __webpack_require__( /*! ../core/base_widget */ 97).inherit({
             _rootClass: "dxf-funnel",
             _rootClassPrefix: "dxf",
             _proxyData: [],
@@ -106869,9 +107517,9 @@
     function(module, exports, __webpack_require__) {
         var _constants = __webpack_require__( /*! ./constants */ 417);
         var noop = __webpack_require__( /*! ../../core/utils/common */ 4).noop,
-            Node = __webpack_require__( /*! ./node_item */ 833),
-            Link = __webpack_require__( /*! ./link_item */ 834),
-            defaultLayoutBuilder = __webpack_require__( /*! ./layout */ 835),
+            Node = __webpack_require__( /*! ./node_item */ 834),
+            Link = __webpack_require__( /*! ./link_item */ 835),
+            defaultLayoutBuilder = __webpack_require__( /*! ./layout */ 836),
             typeUtils = __webpack_require__( /*! ../../core/utils/type */ 1),
             _isString = typeUtils.isString,
             _isNumber = typeUtils.isNumeric;
@@ -106915,7 +107563,7 @@
             });
             return result
         }
-        var dxSankey = __webpack_require__( /*! ../core/base_widget */ 95).inherit({
+        var dxSankey = __webpack_require__( /*! ../core/base_widget */ 97).inherit({
             _rootClass: "dxs-sankey",
             _rootClassPrefix: "dxs",
             _proxyData: [],
@@ -107955,7 +108603,7 @@
             stringUtils = __webpack_require__( /*! ../core/utils/string */ 44),
             JSZip = __webpack_require__( /*! jszip */ 422),
             fileSaver = __webpack_require__( /*! ./file_saver */ 203),
-            excelFormatConverter = __webpack_require__( /*! ./excel_format_converter */ 250),
+            excelFormatConverter = __webpack_require__( /*! ./excel_format_converter */ 251),
             ExcelFile = __webpack_require__( /*! ./excel/excel.file */ 423),
             isDefined = typeUtils.isDefined,
             XML_TAG = '<?xml version="1.0" encoding="utf-8"?>',
@@ -108645,9 +109293,9 @@
         var _excel2 = _interopRequireDefault(_excel);
         var _excel3 = __webpack_require__( /*! ./excel.cell_format_helper */ 424);
         var _excel4 = _interopRequireDefault(_excel3);
-        var _excel5 = __webpack_require__( /*! ./excel.fill_helper */ 253);
+        var _excel5 = __webpack_require__( /*! ./excel.fill_helper */ 254);
         var _excel6 = _interopRequireDefault(_excel5);
-        var _excel7 = __webpack_require__( /*! ./excel.font_helper */ 255);
+        var _excel7 = __webpack_require__( /*! ./excel.font_helper */ 256);
         var _excel8 = _interopRequireDefault(_excel7);
         var _excel9 = __webpack_require__( /*! ./excel.number_format_helper */ 427);
         var _excel10 = _interopRequireDefault(_excel9);
@@ -108836,9 +109484,9 @@
         var _excel2 = _interopRequireDefault(_excel);
         var _excel3 = __webpack_require__( /*! ./excel.cell_alignment_helper */ 425);
         var _excel4 = _interopRequireDefault(_excel3);
-        var _excel5 = __webpack_require__( /*! ./excel.fill_helper */ 253);
+        var _excel5 = __webpack_require__( /*! ./excel.fill_helper */ 254);
         var _excel6 = _interopRequireDefault(_excel5);
-        var _excel7 = __webpack_require__( /*! ./excel.font_helper */ 255);
+        var _excel7 = __webpack_require__( /*! ./excel.font_helper */ 256);
         var _excel8 = _interopRequireDefault(_excel7);
 
         function _interopRequireDefault(obj) {
@@ -108998,7 +109646,7 @@
         var _type = __webpack_require__( /*! ../../core/utils/type */ 1);
         var _excel = __webpack_require__( /*! ./excel.tag_helper */ 78);
         var _excel2 = _interopRequireDefault(_excel);
-        var _excel3 = __webpack_require__( /*! ./excel.color_helper */ 254);
+        var _excel3 = __webpack_require__( /*! ./excel.color_helper */ 255);
         var _excel4 = _interopRequireDefault(_excel3);
 
         function _interopRequireDefault(obj) {
@@ -109192,7 +109840,7 @@
             }
         };
         exports.getData = function(data, options, callback) {
-            exports.svgCreator.getData(data, options).done(callback)
+            return exports.svgCreator.getData(data, options).done(callback)
         }
     },
     /*!***************************************************!*\
@@ -109217,16 +109865,16 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var VERSION = __webpack_require__( /*! ../core/version */ 156),
+        var VERSION = __webpack_require__( /*! ../core/version */ 157),
             window = __webpack_require__( /*! ../core/utils/window */ 7).getWindow(),
-            imageCreator = __webpack_require__( /*! ./image_creator */ 256).imageCreator,
+            imageCreator = __webpack_require__( /*! ./image_creator */ 257).imageCreator,
             isFunction = __webpack_require__( /*! ../core/utils/type */ 1).isFunction,
             extend = __webpack_require__( /*! ../core/utils/extend */ 0).extend,
             deferredUtils = __webpack_require__( /*! ../core/utils/deferred */ 6),
             when = deferredUtils.when,
             Deferred = deferredUtils.Deferred,
             mainPageTemplate = "%PDF-1.3\r\n2 0 obj\r\n<</ProcSet[/PDF/ImageB/ImageC/ImageI]/XObject<</I0 5 0 R>>>>\r\nendobj\r\n4 0 obj\r\n<</Type/Pages/Kids[1 0 R]/Count 1>>\r\nendobj\r\n7 0 obj\r\n<</OpenAction[1 0 R /FitH null]/Type/Catalog/Pages 4 0 R/PageLayout/OneColumn>>\r\nendobj\r\n1 0 obj\r\n<</Type/Page/Resources 2 0 R/MediaBox[0 0 _width_ _height_]/Contents 3 0 R/Parent 4 0 R>>\r\nendobj\r\n",
-            contentTemplate = "3 0 obj\r\n<</Length 52>>stream\r\n0.20 w\r\n0 G\r\nq _width_ 0 0 _height_ 0.00 0.00 cm /I0 Do Q\r\nendstream\r\nendobj\r\n",
+            contentTemplate = "3 0 obj\r\n<</Length 52>>stream\r\n0.20 w\n0 G\nq _width_ 0 0 _height_ 0.00 0.00 cm /I0 Do Q\r\nendstream\r\nendobj\r\n",
             infoTemplate = "6 0 obj\r\n<</CreationDate _date_/Producer(DevExtreme _version_)>>\r\nendobj\r\n",
             imageStartTemplate = "5 0 obj\r\n<</Type/XObject/Subtype/Image/Width _width_/Height _height_/ColorSpace/DeviceRGB/BitsPerComponent 8/Filter/DCTDecode/Length _length_>>stream\r\n",
             imageEndTemplate = "\r\nendstream\r\nendobj\r\n",
@@ -109275,7 +109923,7 @@
                 })),
                 blob = new Deferred;
             blob.done(callback);
-            when(imageData).done(function(imageString) {
+            return when(imageData).done(function(imageString) {
                 var binaryData = composePdfString(imageString, options, getCurDate()),
                     pdfData = isFunction(window.Blob) ? getBlob(binaryData) : getBase64(binaryData);
                 blob.resolve(pdfData)
@@ -109507,9 +110155,9 @@
             window = windowUtils.getWindow(),
             eventsEngine = __webpack_require__( /*! ../../events/core/events_engine */ 5),
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
-            resizeCallbacks = __webpack_require__( /*! ../../core/utils/resize_callbacks */ 128),
+            resizeCallbacks = __webpack_require__( /*! ../../core/utils/resize_callbacks */ 127),
             support = __webpack_require__( /*! ../../core/utils/support */ 45),
-            styleUtils = __webpack_require__( /*! ../../core/utils/style */ 85),
+            styleUtils = __webpack_require__( /*! ../../core/utils/style */ 86),
             devices = __webpack_require__( /*! ../../core/devices */ 16);
         var initMobileViewport = function(options) {
             options = extend({}, options);
@@ -109584,8 +110232,8 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var BaseStrategy = __webpack_require__( /*! ./base */ 153),
-            Observer = __webpack_require__( /*! ./observer */ 260),
+        var BaseStrategy = __webpack_require__( /*! ./base */ 154),
+            Observer = __webpack_require__( /*! ./observer */ 261),
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend;
         var eventMap = {
             dxpointerdown: "pointerdown",
@@ -109637,9 +110285,9 @@
     /*! all exports used */
     function(module, exports, __webpack_require__) {
         var extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
-            BaseStrategy = __webpack_require__( /*! ./base */ 153),
-            MouseStrategy = __webpack_require__( /*! ./mouse */ 261),
-            TouchStrategy = __webpack_require__( /*! ./touch */ 259),
+            BaseStrategy = __webpack_require__( /*! ./base */ 154),
+            MouseStrategy = __webpack_require__( /*! ./mouse */ 262),
+            TouchStrategy = __webpack_require__( /*! ./touch */ 260),
             eventUtils = __webpack_require__( /*! ../utils */ 9);
         var eventMap = {
             dxpointerdown: "touchstart mousedown",
@@ -109707,11 +110355,11 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var core = __webpack_require__( /*! ./localization/core */ 86);
+        var core = __webpack_require__( /*! ./localization/core */ 87);
         var message = __webpack_require__( /*! ./localization/message */ 15);
         var number = __webpack_require__( /*! ./localization/number */ 51);
-        var date = __webpack_require__( /*! ./localization/date */ 32);
-        __webpack_require__( /*! ./localization/currency */ 151);
+        var date = __webpack_require__( /*! ./localization/date */ 33);
+        __webpack_require__( /*! ./localization/currency */ 152);
         exports.locale = core.locale.bind(core);
         exports.loadMessages = message.load.bind(message);
         exports.formatMessage = message.format.bind(message);
@@ -109982,7 +110630,12 @@
                 "dxHtmlEditor-dialogImageWidthField": "Width (px)",
                 "dxHtmlEditor-dialogImageHeightField": "Height (px)",
                 "dxHtmlEditor-heading": "Heading",
-                "dxHtmlEditor-normalText": "Normal text"
+                "dxHtmlEditor-normalText": "Normal text",
+                "dxFileManager-errorNoAccess": "Access denied. The operation cannot be completed.",
+                "dxFileManager-errorDirectoryExistsFormat": "Directory '{0}' already exists.",
+                "dxFileManager-errorFileExistsFormat": "File '{0}' already exists.",
+                "dxFileManager-errorFileNotFoundFormat": "File '{0}' not found",
+                "dxFileManager-errorDefault": "Unspecified error."
             }
         }
     },
@@ -110169,7 +110822,7 @@
     /*! all exports used */
     function(module, exports, __webpack_require__) {
         var jQuery = __webpack_require__( /*! jquery */ 55);
-        var rendererBase = __webpack_require__( /*! ../../core/renderer_base */ 247);
+        var rendererBase = __webpack_require__( /*! ../../core/renderer_base */ 248);
         var useJQuery = __webpack_require__( /*! ./use_jquery */ 79)();
         if (useJQuery) {
             rendererBase.set(jQuery)
@@ -110188,7 +110841,7 @@
         var isNumeric = __webpack_require__( /*! ../../core/utils/type */ 1).isNumeric;
         var setEventFixMethod = __webpack_require__( /*! ../../events/utils */ 9).setEventFixMethod;
         var registerEvent = __webpack_require__( /*! ../../events/core/event_registrator */ 70);
-        var hookTouchProps = __webpack_require__( /*! ../../events/core/hook_touch_props */ 248);
+        var hookTouchProps = __webpack_require__( /*! ../../events/core/hook_touch_props */ 249);
         if (useJQuery) {
             if (compareVersion(jQuery.fn.jquery, [3]) < 0) {
                 var POINTER_TYPE_MAP = {
@@ -110280,8 +110933,8 @@
     /*! all exports used */
     function(module, exports, __webpack_require__) {
         var jQuery = __webpack_require__( /*! jquery */ 55),
-            themes_callback = __webpack_require__( /*! ../../ui/themes_callback */ 263),
-            ready = __webpack_require__( /*! ../../core/utils/ready_callbacks */ 50).add;
+            themes_callback = __webpack_require__( /*! ../../ui/themes_callback */ 264),
+            ready = __webpack_require__( /*! ../../core/utils/ready_callbacks */ 48).add;
         if (jQuery && !themes_callback.fired()) {
             var holdReady = jQuery.holdReady || jQuery.fn.holdReady;
             holdReady(true);
@@ -110301,7 +110954,7 @@
         var jQuery = __webpack_require__( /*! jquery */ 55);
         var eventsEngine = __webpack_require__( /*! ../../events/core/events_engine */ 5);
         var useJQuery = __webpack_require__( /*! ./use_jquery */ 79)();
-        var registerEventCallbacks = __webpack_require__( /*! ../../events/core/event_registrator_callbacks */ 123);
+        var registerEventCallbacks = __webpack_require__( /*! ../../events/core/event_registrator_callbacks */ 121);
         var domAdapter = __webpack_require__( /*! ../../core/dom_adapter */ 13);
         if (useJQuery) {
             registerEventCallbacks.add(function(name, eventObject) {
@@ -110343,7 +110996,7 @@
     /*! all exports used */
     function(module, exports, __webpack_require__) {
         var jQuery = __webpack_require__( /*! jquery */ 55),
-            easing = __webpack_require__( /*! ../../animation/easing */ 258);
+            easing = __webpack_require__( /*! ../../animation/easing */ 259);
         if (jQuery) {
             easing.setEasing(jQuery.easing)
         }
@@ -110367,7 +111020,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var setPublicElementWrapper = __webpack_require__( /*! ../../core/utils/dom */ 12).setPublicElementWrapper;
+        var setPublicElementWrapper = __webpack_require__( /*! ../../core/utils/dom */ 11).setPublicElementWrapper;
         var useJQuery = __webpack_require__( /*! ./use_jquery */ 79)();
         var getPublicElement = function($element) {
             return $element
@@ -110383,7 +111036,7 @@
     /*! all exports used */
     function(module, exports, __webpack_require__) {
         var jQuery = __webpack_require__( /*! jquery */ 55);
-        var componentRegistratorCallbacks = __webpack_require__( /*! ../../core/component_registrator_callbacks */ 152);
+        var componentRegistratorCallbacks = __webpack_require__( /*! ../../core/component_registrator_callbacks */ 153);
         var errors = __webpack_require__( /*! ../../core/errors */ 21);
         if (jQuery) {
             var registerJQueryComponent = function(name, componentClass) {
@@ -110446,9 +111099,9 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var angular = __webpack_require__( /*! angular */ 264);
+        var angular = __webpack_require__( /*! angular */ 265);
         if (angular) {
-            __webpack_require__( /*! ./jquery */ 262);
+            __webpack_require__( /*! ./jquery */ 263);
             __webpack_require__( /*! ./angular/component_registrator */ 451);
             __webpack_require__( /*! ./angular/event_registrator */ 462);
             __webpack_require__( /*! ./angular/components */ 463);
@@ -110472,7 +111125,7 @@
         var _events_engine2 = _interopRequireDefault(_events_engine);
         var _config = __webpack_require__( /*! ../../core/config */ 29);
         var _config2 = _interopRequireDefault(_config);
-        var _component_registrator_callbacks = __webpack_require__( /*! ../../core/component_registrator_callbacks */ 152);
+        var _component_registrator_callbacks = __webpack_require__( /*! ../../core/component_registrator_callbacks */ 153);
         var _component_registrator_callbacks2 = _interopRequireDefault(_component_registrator_callbacks);
         var _class = __webpack_require__( /*! ../../core/class */ 14);
         var _class2 = _interopRequireDefault(_class);
@@ -110482,17 +111135,17 @@
         var _type2 = _interopRequireDefault(_type);
         var _iterator = __webpack_require__( /*! ../../core/utils/iterator */ 3);
         var _iterator2 = _interopRequireDefault(_iterator);
-        var _array = __webpack_require__( /*! ../../core/utils/array */ 11);
+        var _array = __webpack_require__( /*! ../../core/utils/array */ 12);
         var _array2 = _interopRequireDefault(_array);
-        var _locker = __webpack_require__( /*! ../../core/utils/locker */ 265);
+        var _locker = __webpack_require__( /*! ../../core/utils/locker */ 266);
         var _locker2 = _interopRequireDefault(_locker);
         var _ui = __webpack_require__( /*! ../../ui/widget/ui.widget */ 17);
         var _ui2 = _interopRequireDefault(_ui);
-        var _editor = __webpack_require__( /*! ../../ui/editor/editor */ 48);
+        var _editor = __webpack_require__( /*! ../../ui/editor/editor */ 49);
         var _editor2 = _interopRequireDefault(_editor);
         var _template = __webpack_require__( /*! ./template */ 456);
         var _template2 = _interopRequireDefault(_template);
-        var _module = __webpack_require__( /*! ./module */ 177);
+        var _module = __webpack_require__( /*! ./module */ 178);
         var _module2 = _interopRequireDefault(_module);
         var _uiCollection_widget = __webpack_require__( /*! ../../ui/collection/ui.collection_widget.edit */ 52);
         var _uiCollection_widget2 = _interopRequireDefault(_uiCollection_widget);
@@ -110500,7 +111153,7 @@
         var _data2 = _interopRequireDefault(_data);
         var _extend = __webpack_require__( /*! ../../core/utils/extend */ 0);
         var _extend2 = _interopRequireDefault(_extend);
-        var _inflector = __webpack_require__( /*! ../../core/utils/inflector */ 31);
+        var _inflector = __webpack_require__( /*! ../../core/utils/inflector */ 32);
         var _inflector2 = _interopRequireDefault(_inflector);
         var _errors = __webpack_require__( /*! ../../core/errors */ 21);
         var _errors2 = _interopRequireDefault(_errors);
@@ -111011,7 +111664,7 @@
         var _renderer2 = _interopRequireDefault(_renderer);
         var _ui = __webpack_require__( /*! ./ui.template_base */ 73);
         var _ui2 = _interopRequireDefault(_ui);
-        var _dom = __webpack_require__( /*! ../../core/utils/dom */ 12);
+        var _dom = __webpack_require__( /*! ../../core/utils/dom */ 11);
         var _template_engine_registry = __webpack_require__( /*! ./template_engine_registry */ 206);
         __webpack_require__( /*! ./template_engines */ 453);
 
@@ -111051,7 +111704,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var _dom = __webpack_require__( /*! ../../core/utils/dom */ 12);
+        var _dom = __webpack_require__( /*! ../../core/utils/dom */ 11);
         var _template_engine_registry = __webpack_require__( /*! ./template_engine_registry */ 206);
         (0, _template_engine_registry.registerTemplateEngine)("jquery-tmpl", {
             compile: function(element) {
@@ -111124,7 +111777,7 @@
         var $ = __webpack_require__( /*! ../../core/renderer */ 2),
             domAdapter = __webpack_require__( /*! ../../core/dom_adapter */ 13),
             windowUtils = __webpack_require__( /*! ../../core/utils/window */ 7),
-            ready = __webpack_require__( /*! ../../core/utils/ready_callbacks */ 50).add,
+            ready = __webpack_require__( /*! ../../core/utils/ready_callbacks */ 48).add,
             window = windowUtils.getWindow(),
             navigator = windowUtils.getNavigator(),
             eventsEngine = __webpack_require__( /*! ../../events/core/events_engine */ 5),
@@ -111133,30 +111786,30 @@
             compareVersions = __webpack_require__( /*! ../../core/utils/version */ 65).compare,
             viewPortUtils = __webpack_require__( /*! ../../core/utils/view_port */ 77),
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
-            inArray = __webpack_require__( /*! ../../core/utils/array */ 11).inArray,
-            getPublicElement = __webpack_require__( /*! ../../core/utils/dom */ 12).getPublicElement,
+            inArray = __webpack_require__( /*! ../../core/utils/array */ 12).inArray,
+            getPublicElement = __webpack_require__( /*! ../../core/utils/dom */ 11).getPublicElement,
             viewPortChanged = viewPortUtils.changeCallback,
-            hideTopOverlayCallback = __webpack_require__( /*! ../../mobile/hide_top_overlay */ 209).hideCallback,
+            hideTopOverlayCallback = __webpack_require__( /*! ../../mobile/hide_top_overlay */ 210).hideCallback,
             positionUtils = __webpack_require__( /*! ../../animation/position */ 76),
             fitIntoRange = __webpack_require__( /*! ../../core/utils/math */ 30).fitIntoRange,
-            domUtils = __webpack_require__( /*! ../../core/utils/dom */ 12),
+            domUtils = __webpack_require__( /*! ../../core/utils/dom */ 11),
             noop = __webpack_require__( /*! ../../core/utils/common */ 4).noop,
             typeUtils = __webpack_require__( /*! ../../core/utils/type */ 1),
             each = __webpack_require__( /*! ../../core/utils/iterator */ 3).each,
             devices = __webpack_require__( /*! ../../core/devices */ 16),
-            browser = __webpack_require__( /*! ../../core/utils/browser */ 33),
+            browser = __webpack_require__( /*! ../../core/utils/browser */ 31),
             registerComponent = __webpack_require__( /*! ../../core/component_registrator */ 8),
             Widget = __webpack_require__( /*! ../widget/ui.widget */ 17),
-            KeyboardProcessor = __webpack_require__( /*! ../widget/ui.keyboard_processor */ 165),
+            KeyboardProcessor = __webpack_require__( /*! ../widget/ui.keyboard_processor */ 167),
             selectors = __webpack_require__( /*! ../widget/selectors */ 64),
             dragEvents = __webpack_require__( /*! ../../events/drag */ 56),
             eventUtils = __webpack_require__( /*! ../../events/utils */ 9),
             pointerEvents = __webpack_require__( /*! ../../events/pointer */ 24),
-            Resizable = __webpack_require__( /*! ../resizable */ 170),
-            EmptyTemplate = __webpack_require__( /*! ../widget/empty_template */ 107),
+            Resizable = __webpack_require__( /*! ../resizable */ 172),
+            EmptyTemplate = __webpack_require__( /*! ../widget/empty_template */ 109),
             Deferred = __webpack_require__( /*! ../../core/utils/deferred */ 6).Deferred,
             zIndexPool = __webpack_require__( /*! ./z_index */ 455),
-            swatch = __webpack_require__( /*! ../widget/swatch_container */ 171);
+            swatch = __webpack_require__( /*! ../widget/swatch_container */ 148);
         var OVERLAY_CLASS = "dx-overlay",
             OVERLAY_WRAPPER_CLASS = "dx-overlay-wrapper",
             OVERLAY_CONTENT_CLASS = "dx-overlay-content",
@@ -111542,6 +112195,7 @@
                     delete that._parentHidden
                 });
                 if (this._parentHidden) {
+                    this._isHidden = true;
                     return deferred.resolve()
                 }
                 if (this._currentVisible) {
@@ -112022,10 +112676,10 @@
             _renderGeometryImpl: function() {
                 this._stopAnimation();
                 this._normalizePosition();
-                this._fixHeightAfterSafariAddressBarResizing();
                 this._renderShading();
                 this._renderDimensions();
                 var resultPosition = this._renderPosition();
+                this._fixHeightAfterSafariAddressBarResizing();
                 this._actions.onPositioned({
                     position: resultPosition
                 })
@@ -112278,7 +112932,8 @@
                 return getPublicElement(this._$content)
             },
             repaint: function() {
-                this._renderGeometry()
+                this._renderGeometry();
+                domUtils.triggerResizeEvent(this._$content)
             }
         });
         Overlay.baseZIndex = function(zIndex) {
@@ -112330,7 +112985,7 @@
         var $ = __webpack_require__( /*! ../../core/renderer */ 2),
             TemplateBase = __webpack_require__( /*! ../../ui/widget/ui.template_base */ 73),
             isFunction = __webpack_require__( /*! ../../core/utils/type */ 1).isFunction,
-            domUtils = __webpack_require__( /*! ../../core/utils/dom */ 12);
+            domUtils = __webpack_require__( /*! ../../core/utils/dom */ 11);
         var NgTemplate = TemplateBase.inherit({
             ctor: function(element, templateCompiler) {
                 this._element = element;
@@ -112355,29 +113010,29 @@
         var $ = __webpack_require__( /*! ../../core/renderer */ 2),
             eventsEngine = __webpack_require__( /*! ../../events/core/events_engine */ 5),
             commonUtils = __webpack_require__( /*! ../../core/utils/common */ 4),
-            getPublicElement = __webpack_require__( /*! ../../core/utils/dom */ 12).getPublicElement,
+            getPublicElement = __webpack_require__( /*! ../../core/utils/dom */ 11).getPublicElement,
             domAdapter = __webpack_require__( /*! ../../core/dom_adapter */ 13),
             isPlainObject = __webpack_require__( /*! ../../core/utils/type */ 1).isPlainObject,
             when = __webpack_require__( /*! ../../core/utils/deferred */ 6).when,
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
-            inArray = __webpack_require__( /*! ../../core/utils/array */ 11).inArray,
+            inArray = __webpack_require__( /*! ../../core/utils/array */ 12).inArray,
             iteratorUtils = __webpack_require__( /*! ../../core/utils/iterator */ 3),
             isFunction = __webpack_require__( /*! ../../core/utils/type */ 1).isFunction,
             Action = __webpack_require__( /*! ../../core/action */ 111),
             Guid = __webpack_require__( /*! ../../core/guid */ 42),
-            domUtils = __webpack_require__( /*! ../../core/utils/dom */ 12),
+            domUtils = __webpack_require__( /*! ../../core/utils/dom */ 11),
             dataUtils = __webpack_require__( /*! ../../core/utils/data */ 20),
             Widget = __webpack_require__( /*! ../widget/ui.widget */ 17),
             eventUtils = __webpack_require__( /*! ../../events/utils */ 9),
             pointerEvents = __webpack_require__( /*! ../../events/pointer */ 24),
-            DataHelperMixin = __webpack_require__( /*! ../../data_helper */ 84),
-            CollectionWidgetItem = __webpack_require__( /*! ./item */ 148),
+            DataHelperMixin = __webpack_require__( /*! ../../data_helper */ 85),
+            CollectionWidgetItem = __webpack_require__( /*! ./item */ 149),
             selectors = __webpack_require__( /*! ../widget/selectors */ 64),
             messageLocalization = __webpack_require__( /*! ../../localization/message */ 15),
-            holdEvent = __webpack_require__( /*! ../../events/hold */ 87),
+            holdEvent = __webpack_require__( /*! ../../events/hold */ 88),
             compileGetter = __webpack_require__( /*! ../../core/utils/data */ 20).compileGetter,
             clickEvent = __webpack_require__( /*! ../../events/click */ 19),
-            contextMenuEvent = __webpack_require__( /*! ../../events/contextmenu */ 166),
+            contextMenuEvent = __webpack_require__( /*! ../../events/contextmenu */ 168),
             BindableTemplate = __webpack_require__( /*! ../widget/bindable_template */ 62);
         var COLLECTION_CLASS = "dx-collection",
             ITEM_CLASS = "dx-item",
@@ -113191,12 +113846,12 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var queryAdapters = __webpack_require__( /*! ./query_adapters */ 178),
+        var queryAdapters = __webpack_require__( /*! ./query_adapters */ 179),
             errorsModule = __webpack_require__( /*! ./errors */ 36),
             each = __webpack_require__( /*! ../core/utils/iterator */ 3).each,
             isFunction = __webpack_require__( /*! ../core/utils/type */ 1).isFunction,
             Deferred = __webpack_require__( /*! ../core/utils/deferred */ 6).Deferred,
-            arrayQueryImpl = __webpack_require__( /*! ./array_query */ 154);
+            arrayQueryImpl = __webpack_require__( /*! ./array_query */ 155);
         var remoteQueryImpl = function remoteQueryImpl(url, queryOptions, tasks) {
             tasks = tasks || [];
             queryOptions = queryOptions || {};
@@ -113413,7 +114068,7 @@
     /*! all exports used */
     function(module, exports, __webpack_require__) {
         var typeUtils = __webpack_require__( /*! ../../core/utils/type */ 1),
-            SelectionStrategy = __webpack_require__( /*! ./selection.strategy */ 266),
+            SelectionStrategy = __webpack_require__( /*! ./selection.strategy */ 267),
             errors = __webpack_require__( /*! ../widget/ui.errors */ 18),
             dataQuery = __webpack_require__( /*! ../../data/query */ 41),
             Deferred = __webpack_require__( /*! ../../core/utils/deferred */ 6).Deferred;
@@ -113628,7 +114283,7 @@
             when = deferredUtils.when,
             Deferred = deferredUtils.Deferred,
             errors = __webpack_require__( /*! ../widget/ui.errors */ 18),
-            SelectionStrategy = __webpack_require__( /*! ./selection.strategy */ 266);
+            SelectionStrategy = __webpack_require__( /*! ./selection.strategy */ 267);
         module.exports = SelectionStrategy.inherit({
             ctor: function(options) {
                 this.callBase(options);
@@ -113896,9 +114551,9 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var eventRegistratorCallbacks = __webpack_require__( /*! ../../events/core/event_registrator_callbacks */ 123),
+        var eventRegistratorCallbacks = __webpack_require__( /*! ../../events/core/event_registrator_callbacks */ 121),
             eventsEngine = __webpack_require__( /*! ../../events/core/events_engine */ 5),
-            ngModule = __webpack_require__( /*! ./module */ 177);
+            ngModule = __webpack_require__( /*! ./module */ 178);
         eventRegistratorCallbacks.add(function(name) {
             var ngEventName = name.slice(0, 2) + name.charAt(2).toUpperCase() + name.slice(3);
             ngModule.directive(ngEventName, ["$parse", function($parse) {
@@ -113929,7 +114584,7 @@
     /*! all exports used */
     function(module, exports, __webpack_require__) {
         var Callbacks = __webpack_require__( /*! ../../core/utils/callbacks */ 25),
-            ngModule = __webpack_require__( /*! ./module */ 177);
+            ngModule = __webpack_require__( /*! ./module */ 178);
         ngModule.service("dxDigestCallbacks", ["$rootScope", function($rootScope) {
             var begin = Callbacks(),
                 prioritizedEnd = Callbacks(),
@@ -114014,14 +114669,14 @@
             ko = __webpack_require__( /*! knockout */ 60),
             Callbacks = __webpack_require__( /*! ../../core/utils/callbacks */ 25),
             errors = __webpack_require__( /*! ../../core/errors */ 21),
-            inflector = __webpack_require__( /*! ../../core/utils/inflector */ 31),
+            inflector = __webpack_require__( /*! ../../core/utils/inflector */ 32),
             isPlainObject = __webpack_require__( /*! ../../core/utils/type */ 1).isPlainObject,
-            registerComponentCallbacks = __webpack_require__( /*! ../../core/component_registrator_callbacks */ 152),
+            registerComponentCallbacks = __webpack_require__( /*! ../../core/component_registrator_callbacks */ 153),
             Widget = __webpack_require__( /*! ../../ui/widget/ui.widget */ 17),
             KoTemplate = __webpack_require__( /*! ./template */ 467),
-            Editor = __webpack_require__( /*! ../../ui/editor/editor */ 48),
-            Locker = __webpack_require__( /*! ../../core/utils/locker */ 265),
-            getClosestNodeWithContext = __webpack_require__( /*! ./utils */ 267).getClosestNodeWithContext,
+            Editor = __webpack_require__( /*! ../../ui/editor/editor */ 49),
+            Locker = __webpack_require__( /*! ../../core/utils/locker */ 266),
+            getClosestNodeWithContext = __webpack_require__( /*! ./utils */ 268).getClosestNodeWithContext,
             config = __webpack_require__( /*! ../../core/config */ 29);
         var LOCKS_DATA_KEY = "dxKoLocks",
             CREATED_WITH_KO_DATA_KEY = "dxKoCreation";
@@ -114209,8 +114864,8 @@
             ko = __webpack_require__( /*! knockout */ 60),
             typeUtils = __webpack_require__( /*! ../../core/utils/type */ 1),
             TemplateBase = __webpack_require__( /*! ../../ui/widget/ui.template_base */ 73),
-            domUtils = __webpack_require__( /*! ../../core/utils/dom */ 12),
-            getClosestNodeWithContext = __webpack_require__( /*! ./utils */ 267).getClosestNodeWithContext;
+            domUtils = __webpack_require__( /*! ../../core/utils/dom */ 11),
+            getClosestNodeWithContext = __webpack_require__( /*! ./utils */ 268).getClosestNodeWithContext;
         var getParentContext = function(data) {
             var parentNode = domAdapter.createElement("div");
             ko.applyBindingsToNode(parentNode, null, data);
@@ -114273,7 +114928,7 @@
             eventsEngine = __webpack_require__( /*! ../../events/core/events_engine */ 5),
             ko = __webpack_require__( /*! knockout */ 60),
             isPlainObject = __webpack_require__( /*! ../../core/utils/type */ 1).isPlainObject,
-            eventRegistratorCallbacks = __webpack_require__( /*! ../../events/core/event_registrator_callbacks */ 123),
+            eventRegistratorCallbacks = __webpack_require__( /*! ../../events/core/event_registrator_callbacks */ 121),
             eventUtils = __webpack_require__( /*! ../../events/utils */ 9);
         eventRegistratorCallbacks.add(function(name) {
             var koBindingEventName = eventUtils.addNamespace(name, name + "Binding");
@@ -114334,7 +114989,7 @@
         var each = __webpack_require__( /*! ../../core/utils/iterator */ 3).each,
             Class = __webpack_require__( /*! ../../core/class */ 14),
             EventsMixin = __webpack_require__( /*! ../../core/events_mixin */ 82),
-            ValidationEngine = __webpack_require__( /*! ../../ui/validation_engine */ 98),
+            ValidationEngine = __webpack_require__( /*! ../../ui/validation_engine */ 100),
             ko = __webpack_require__( /*! knockout */ 60);
         var koDxValidator = Class.inherit({
             ctor: function(target, option) {
@@ -114528,10 +115183,10 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        __webpack_require__( /*! ./core */ 126);
+        __webpack_require__( /*! ./core */ 125);
         var Globalize = __webpack_require__( /*! globalize */ 71),
             messageLocalization = __webpack_require__( /*! ../message */ 15),
-            coreLocalization = __webpack_require__( /*! ../core */ 86);
+            coreLocalization = __webpack_require__( /*! ../core */ 87);
         __webpack_require__( /*! globalize/message */ 71);
         if (Globalize && Globalize.formatMessage) {
             var DEFAULT_LOCALE = "en";
@@ -114589,8 +115244,8 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        __webpack_require__( /*! ./core */ 126);
-        __webpack_require__( /*! ./number */ 180);
+        __webpack_require__( /*! ./core */ 125);
+        __webpack_require__( /*! ./number */ 181);
         __webpack_require__( /*! globalize/date */ 71);
         var timeData = {
             supplemental: {
@@ -115148,9 +115803,9 @@
         };
         var ACCEPTABLE_JSON_FORMAT_PROPERTIES = ["skeleton", "date", "time", "datetime", "raw"];
         var Globalize = __webpack_require__( /*! globalize */ 71),
-            dateLocalization = __webpack_require__( /*! ../date */ 32),
+            dateLocalization = __webpack_require__( /*! ../date */ 33),
             isObject = __webpack_require__( /*! ../../core/utils/type */ 1).isObject,
-            inArray = __webpack_require__( /*! ../../core/utils/array */ 11).inArray,
+            inArray = __webpack_require__( /*! ../../core/utils/array */ 12).inArray,
             iteratorUtils = __webpack_require__( /*! ../../core/utils/iterator */ 3);
         if (Globalize && Globalize.formatDate) {
             if ("en" === Globalize.locale().locale) {
@@ -115354,9 +116009,9 @@
         } : function(obj) {
             return obj && "function" === typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj
         };
-        __webpack_require__( /*! ./core */ 126);
-        __webpack_require__( /*! ./number */ 180);
-        __webpack_require__( /*! ../currency */ 151);
+        __webpack_require__( /*! ./core */ 125);
+        __webpack_require__( /*! ./number */ 181);
+        __webpack_require__( /*! ../currency */ 152);
         __webpack_require__( /*! globalize/currency */ 71);
         var enCurrencyUSD = {
             main: {
@@ -115614,7 +116269,7 @@
     function(module, exports, __webpack_require__) {
         var errors = __webpack_require__( /*! ../core/errors */ 21),
             window = __webpack_require__( /*! ../core/utils/window */ 7).getWindow(),
-            proxyUrlFormatter = __webpack_require__( /*! ./proxy_url_formatter */ 269);
+            proxyUrlFormatter = __webpack_require__( /*! ./proxy_url_formatter */ 270);
         var IS_WINJS_ORIGIN, IS_LOCAL_ORIGIN;
 
         function isLocalHostName(url) {
@@ -115650,21 +116305,21 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        __webpack_require__( /*! ./data */ 268);
-        DevExpress.data.ODataStore = __webpack_require__( /*! ../../data/odata/store */ 270);
+        __webpack_require__( /*! ./data */ 269);
+        DevExpress.data.ODataStore = __webpack_require__( /*! ../../data/odata/store */ 271);
         DevExpress.data.ODataContext = __webpack_require__( /*! ../../data/odata/context */ 481);
         DevExpress.data.utils = DevExpress.data.utils || {};
         DevExpress.data.utils.odata = {};
-        DevExpress.data.utils.odata.keyConverters = __webpack_require__( /*! ../../data/odata/utils */ 108).keyConverters;
-        DevExpress.data.EdmLiteral = __webpack_require__( /*! ../../data/odata/utils */ 108).EdmLiteral;
-        var ODataUtilsModule = __webpack_require__( /*! ../../data/odata/utils */ 108);
+        DevExpress.data.utils.odata.keyConverters = __webpack_require__( /*! ../../data/odata/utils */ 110).keyConverters;
+        DevExpress.data.EdmLiteral = __webpack_require__( /*! ../../data/odata/utils */ 110).EdmLiteral;
+        var ODataUtilsModule = __webpack_require__( /*! ../../data/odata/utils */ 110);
         DevExpress.data.utils.odata.serializePropName = ODataUtilsModule.serializePropName;
         DevExpress.data.utils.odata.serializeValue = ODataUtilsModule.serializeValue;
         DevExpress.data.utils.odata.serializeKey = ODataUtilsModule.serializeKey;
         DevExpress.data.utils.odata.sendRequest = ODataUtilsModule.sendRequest;
         DevExpress.data.OData__internals = ODataUtilsModule.OData__internals;
         DevExpress.data.queryAdapters = DevExpress.data.queryAdapters || {};
-        DevExpress.data.queryAdapters.odata = __webpack_require__( /*! ../../data/odata/query_adapter */ 155).odata
+        DevExpress.data.queryAdapters.odata = __webpack_require__( /*! ../../data/odata/query_adapter */ 156).odata
     },
     /*!****************************************************!*\
       !*** ./artifacts/transpiled/data/odata/context.js ***!
@@ -115677,12 +116332,12 @@
             typeUtils = __webpack_require__( /*! ../../core/utils/type */ 1),
             each = __webpack_require__( /*! ../../core/utils/iterator */ 3).each,
             errorsModule = __webpack_require__( /*! ../errors */ 36),
-            ODataStore = __webpack_require__( /*! ./store */ 270),
-            mixins = __webpack_require__( /*! ./mixins */ 271),
+            ODataStore = __webpack_require__( /*! ./store */ 271),
+            mixins = __webpack_require__( /*! ./mixins */ 272),
             deferredUtils = __webpack_require__( /*! ../../core/utils/deferred */ 6),
             when = deferredUtils.when,
             Deferred = deferredUtils.Deferred;
-        __webpack_require__( /*! ./query_adapter */ 155);
+        __webpack_require__( /*! ./query_adapter */ 156);
         var ODataContext = Class.inherit({
             ctor: function(options) {
                 var that = this;
@@ -115826,7 +116481,7 @@
             noop = __webpack_require__( /*! ../core/utils/common */ 4).noop,
             registerComponent = __webpack_require__( /*! ../core/component_registrator */ 8),
             extend = __webpack_require__( /*! ../core/utils/extend */ 0).extend,
-            DropDownList = __webpack_require__( /*! ./drop_down_editor/ui.drop_down_list */ 212),
+            DropDownList = __webpack_require__( /*! ./drop_down_editor/ui.drop_down_list */ 213),
             Deferred = __webpack_require__( /*! ../core/utils/deferred */ 6).Deferred;
         var AUTOCOMPLETE_CLASS = "dx-autocomplete",
             AUTOCOMPLETE_POPUP_WRAPPER_CLASS = "dx-autocomplete-popup-wrapper";
@@ -116028,7 +116683,7 @@
         var _renderer2 = _interopRequireDefault(_renderer);
         var _events_engine = __webpack_require__( /*! ../../events/core/events_engine */ 5);
         var _events_engine2 = _interopRequireDefault(_events_engine);
-        var _button = __webpack_require__( /*! ../text_box/texteditor_button_collection/button */ 181);
+        var _button = __webpack_require__( /*! ../text_box/texteditor_button_collection/button */ 182);
         var _button2 = _interopRequireDefault(_button);
         var _button3 = __webpack_require__( /*! ../button */ 34);
         var _button4 = _interopRequireDefault(_button3);
@@ -116123,7 +116778,7 @@
                 key: "_isVisible",
                 value: function() {
                     var editor = this.editor;
-                    return editor.option("showDropDownButton")
+                    return _get(ClearButton.prototype.__proto__ || Object.getPrototypeOf(ClearButton.prototype), "_isVisible", this).call(this) && editor.option("showDropDownButton")
                 }
             }, {
                 key: "_legacyRender",
@@ -116164,7 +116819,7 @@
             navigator = windowUtils.getNavigator(),
             eventsEngine = __webpack_require__( /*! ../../events/core/events_engine */ 5),
             devices = __webpack_require__( /*! ../../core/devices */ 16),
-            inArray = __webpack_require__( /*! ../../core/utils/array */ 11).inArray,
+            inArray = __webpack_require__( /*! ../../core/utils/array */ 12).inArray,
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
             registerComponent = __webpack_require__( /*! ../../core/component_registrator */ 8),
             TextEditor = __webpack_require__( /*! ./ui.text_editor */ 287),
@@ -116305,18 +116960,18 @@
     function(module, exports, __webpack_require__) {
         var $ = __webpack_require__( /*! ../../core/renderer */ 2),
             caret = __webpack_require__( /*! ./utils.caret */ 288),
-            domUtils = __webpack_require__( /*! ../../core/utils/dom */ 12),
+            domUtils = __webpack_require__( /*! ../../core/utils/dom */ 11),
             each = __webpack_require__( /*! ../../core/utils/iterator */ 3).each,
             eventUtils = __webpack_require__( /*! ../../events/utils */ 9),
             eventsEngine = __webpack_require__( /*! ../../events/core/events_engine */ 5),
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
             focused = __webpack_require__( /*! ../widget/selectors */ 64).focused,
-            inArray = __webpack_require__( /*! ../../core/utils/array */ 11).inArray,
+            inArray = __webpack_require__( /*! ../../core/utils/array */ 12).inArray,
             isDefined = __webpack_require__( /*! ../../core/utils/type */ 1).isDefined,
             messageLocalization = __webpack_require__( /*! ../../localization/message */ 15),
             noop = __webpack_require__( /*! ../../core/utils/common */ 4).noop,
             stringUtils = __webpack_require__( /*! ../../core/utils/string */ 44),
-            wheelEvent = __webpack_require__( /*! ../../events/core/wheel */ 110),
+            wheelEvent = __webpack_require__( /*! ../../events/core/wheel */ 123),
             MaskRules = __webpack_require__( /*! ./ui.text_editor.mask.rule */ 489),
             TextEditorBase = __webpack_require__( /*! ./ui.text_editor.base */ 490);
         var stubCaret = function() {
@@ -116942,7 +117597,7 @@
     function(module, exports, __webpack_require__) {
         var Class = __webpack_require__( /*! ../../core/class */ 14),
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
-            inArray = __webpack_require__( /*! ../../core/utils/array */ 11).inArray,
+            inArray = __webpack_require__( /*! ../../core/utils/array */ 12).inArray,
             typeUtils = __webpack_require__( /*! ../../core/utils/type */ 1),
             noop = __webpack_require__( /*! ../../core/utils/common */ 4).noop,
             isFunction = typeUtils.isFunction;
@@ -117177,14 +117832,14 @@
         var $ = __webpack_require__( /*! ../../core/renderer */ 2),
             domAdapter = __webpack_require__( /*! ../../core/dom_adapter */ 13),
             eventsEngine = __webpack_require__( /*! ../../events/core/events_engine */ 5),
-            domUtils = __webpack_require__( /*! ../../core/utils/dom */ 12),
+            domUtils = __webpack_require__( /*! ../../core/utils/dom */ 11),
             focused = __webpack_require__( /*! ../widget/selectors */ 64).focused,
             isDefined = __webpack_require__( /*! ../../core/utils/type */ 1).isDefined,
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
-            inArray = __webpack_require__( /*! ../../core/utils/array */ 11).inArray,
+            inArray = __webpack_require__( /*! ../../core/utils/array */ 12).inArray,
             each = __webpack_require__( /*! ../../core/utils/iterator */ 3).each,
             themes = __webpack_require__( /*! ../themes */ 28),
-            Editor = __webpack_require__( /*! ../editor/editor */ 48),
+            Editor = __webpack_require__( /*! ../editor/editor */ 49),
             eventUtils = __webpack_require__( /*! ../../events/utils */ 9),
             pointerEvents = __webpack_require__( /*! ../../events/pointer */ 24),
             ClearButton = __webpack_require__( /*! ./ui.text_editor.clear */ 491).default,
@@ -117744,7 +118399,7 @@
         var _renderer2 = _interopRequireDefault(_renderer);
         var _events_engine = __webpack_require__( /*! ../../events/core/events_engine */ 5);
         var _events_engine2 = _interopRequireDefault(_events_engine);
-        var _button = __webpack_require__( /*! ./texteditor_button_collection/button */ 181);
+        var _button = __webpack_require__( /*! ./texteditor_button_collection/button */ 182);
         var _button2 = _interopRequireDefault(_button);
         var _utils = __webpack_require__( /*! ../../events/utils */ 9);
         var _pointer = __webpack_require__( /*! ../../events/pointer */ 24);
@@ -117889,7 +118544,7 @@
         var _custom = __webpack_require__( /*! ./custom */ 493);
         var _custom2 = _interopRequireDefault(_custom);
         var _extend = __webpack_require__( /*! ../../../core/utils/extend */ 0);
-        var _array = __webpack_require__( /*! ../../../core/utils/array */ 11);
+        var _array = __webpack_require__( /*! ../../../core/utils/array */ 12);
         var _ui = __webpack_require__( /*! ../../widget/ui.errors */ 18);
         var _ui2 = _interopRequireDefault(_ui);
 
@@ -118085,12 +118740,37 @@
                 return Constructor
             }
         }();
+        var _get = function get(object, property, receiver) {
+            if (null === object) {
+                object = Function.prototype
+            }
+            var desc = Object.getOwnPropertyDescriptor(object, property);
+            if (void 0 === desc) {
+                var parent = Object.getPrototypeOf(object);
+                if (null === parent) {
+                    return
+                } else {
+                    return get(parent, property, receiver)
+                }
+            } else {
+                if ("value" in desc) {
+                    return desc.value
+                } else {
+                    var getter = desc.get;
+                    if (void 0 === getter) {
+                        return
+                    }
+                    return getter.call(receiver)
+                }
+            }
+        };
         var _renderer = __webpack_require__( /*! ../../../core/renderer */ 2);
         var _renderer2 = _interopRequireDefault(_renderer);
-        var _button = __webpack_require__( /*! ./button */ 181);
+        var _button = __webpack_require__( /*! ./button */ 182);
         var _button2 = _interopRequireDefault(_button);
         var _button3 = __webpack_require__( /*! ../../button */ 34);
         var _button4 = _interopRequireDefault(_button3);
+        var _extend = __webpack_require__( /*! ../../../core/utils/extend */ 0);
         var _events_engine = __webpack_require__( /*! ../../../events/core/events_engine */ 5);
         var _events_engine2 = _interopRequireDefault(_events_engine);
         var _hover = __webpack_require__( /*! ../../../events/hover */ 146);
@@ -118161,17 +118841,38 @@
                     var editor = this.editor;
                     var $element = (0, _renderer2.default)("<div>");
                     this._addToContainer($element);
-                    var instance = editor._createComponent($element, _button4.default, this.options);
+                    var instance = editor._createComponent($element, _button4.default, (0, _extend.extend)({}, this.options, {
+                        disabled: this._isDisabled()
+                    }));
                     return {
                         $element: $element,
                         instance: instance
                     }
                 }
             }, {
+                key: "update",
+                value: function() {
+                    var isUpdated = _get(CustomButton.prototype.__proto__ || Object.getPrototypeOf(CustomButton.prototype), "update", this).call(this);
+                    if (this.instance) {
+                        this.instance.option("disabled", this._isDisabled())
+                    }
+                    return isUpdated
+                }
+            }, {
                 key: "_isVisible",
                 value: function() {
                     var editor = this.editor;
                     return editor.option("visible")
+                }
+            }, {
+                key: "_isDisabled",
+                value: function() {
+                    var isDefinedByUser = void 0 !== this.options.disabled;
+                    if (isDefinedByUser) {
+                        return this.instance ? this.instance.option("disabled") : this.options.disabled
+                    } else {
+                        return this.editor.option("readOnly")
+                    }
                 }
             }]);
             return CustomButton
@@ -118185,7 +118886,7 @@
     /*! all exports used */
     function(module, exports, __webpack_require__) {
         var ListEdit = __webpack_require__( /*! ./ui.list.edit */ 289),
-            searchBoxMixin = __webpack_require__( /*! ../widget/ui.search_box_mixin */ 214);
+            searchBoxMixin = __webpack_require__( /*! ../widget/ui.search_box_mixin */ 215);
         var ListSearch = ListEdit.inherit(searchBoxMixin).inherit({
             _addWidgetPrefix: function(className) {
                 return "dx-list-" + className
@@ -118226,7 +118927,7 @@
             each = __webpack_require__( /*! ../../core/utils/iterator */ 3).each,
             queryByOptions = __webpack_require__( /*! ../../data/store_helper */ 80).queryByOptions,
             query = __webpack_require__( /*! ../../data/query */ 41),
-            EditStrategy = __webpack_require__( /*! ../collection/ui.collection_widget.edit.strategy.plain */ 179);
+            EditStrategy = __webpack_require__( /*! ../collection/ui.collection_widget.edit.strategy.plain */ 180);
         var LIST_ITEM_CLASS = "dx-list-item",
             LIST_GROUP_CLASS = "dx-list-group";
         var SELECTION_SHIFT = 20,
@@ -118440,7 +119141,7 @@
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
             each = __webpack_require__( /*! ../../core/utils/iterator */ 3).each,
             errors = __webpack_require__( /*! ../widget/ui.errors */ 18),
-            decoratorRegistry = __webpack_require__( /*! ./ui.list.edit.decorator_registry */ 100);
+            decoratorRegistry = __webpack_require__( /*! ./ui.list.edit.decorator_registry */ 102);
         __webpack_require__( /*! ./ui.list.edit.decorator.static */ 497);
         __webpack_require__( /*! ./ui.list.edit.decorator.switchable.button */ 498);
         __webpack_require__( /*! ./ui.list.edit.decorator.switchable.slide */ 499);
@@ -118631,7 +119332,7 @@
     function(module, exports, __webpack_require__) {
         var $ = __webpack_require__( /*! ../../core/renderer */ 2),
             Button = __webpack_require__( /*! ../button */ 34),
-            registerDecorator = __webpack_require__( /*! ./ui.list.edit.decorator_registry */ 100).register,
+            registerDecorator = __webpack_require__( /*! ./ui.list.edit.decorator_registry */ 102).register,
             EditDecorator = __webpack_require__( /*! ./ui.list.edit.decorator */ 136);
         var STATIC_DELETE_BUTTON_CONTAINER_CLASS = "dx-list-static-delete-button-container",
             STATIC_DELETE_BUTTON_CLASS = "dx-list-static-delete-button";
@@ -118668,7 +119369,7 @@
             fx = __webpack_require__( /*! ../../animation/fx */ 39),
             Button = __webpack_require__( /*! ../button */ 34),
             messageLocalization = __webpack_require__( /*! ../../localization/message */ 15),
-            registerDecorator = __webpack_require__( /*! ./ui.list.edit.decorator_registry */ 100).register,
+            registerDecorator = __webpack_require__( /*! ./ui.list.edit.decorator_registry */ 102).register,
             SwitchableEditDecorator = __webpack_require__( /*! ./ui.list.edit.decorator.switchable */ 290);
         var SWITCHABLE_DELETE_BUTTON_CONTAINER_CLASS = "dx-list-switchable-delete-button-container",
             SWITCHABLE_DELETE_BUTTON_WRAPPER_CLASS = "dx-list-switchable-delete-button-wrapper",
@@ -118795,13 +119496,13 @@
             messageLocalization = __webpack_require__( /*! ../../localization/message */ 15),
             translator = __webpack_require__( /*! ../../animation/translator */ 26),
             eventUtils = __webpack_require__( /*! ../../events/utils */ 9),
-            feedbackEvents = __webpack_require__( /*! ../../events/core/emitter.feedback */ 125),
+            feedbackEvents = __webpack_require__( /*! ../../events/core/emitter.feedback */ 124),
             EditDecoratorMenuHelperMixin = __webpack_require__( /*! ./ui.list.edit.decorator_menu_helper */ 291),
-            registerDecorator = __webpack_require__( /*! ./ui.list.edit.decorator_registry */ 100).register,
+            registerDecorator = __webpack_require__( /*! ./ui.list.edit.decorator_registry */ 102).register,
             SwitchableEditDecorator = __webpack_require__( /*! ./ui.list.edit.decorator.switchable */ 290),
             fx = __webpack_require__( /*! ../../animation/fx */ 39),
             themes = __webpack_require__( /*! ../themes */ 28),
-            ActionSheet = __webpack_require__( /*! ../action_sheet */ 211);
+            ActionSheet = __webpack_require__( /*! ../action_sheet */ 212);
         var LIST_EDIT_DECORATOR = "dxListEditDecorator",
             CLICK_EVENT_NAME = eventUtils.addNamespace(clickEvent.name, LIST_EDIT_DECORATOR),
             ACTIVE_EVENT_NAME = eventUtils.addNamespace(feedbackEvents.active, LIST_EDIT_DECORATOR),
@@ -118881,6 +119582,9 @@
                 $itemElement.addClass(SLIDE_MENU_WRAPPER_CLASS);
                 var $slideMenuContent = $("<div>").addClass(SLIDE_MENU_CONTENT_CLASS);
                 $itemElement.wrapInner($slideMenuContent)
+            },
+            _getDeleteButtonContainer: function() {
+                return this._$buttonsContainer
             },
             handleClick: function(_, e) {
                 if ($(e.target).closest("." + SLIDE_MENU_CONTENT_CLASS).length) {
@@ -119020,7 +119724,7 @@
     function(module, exports, __webpack_require__) {
         var translator = __webpack_require__( /*! ../../animation/translator */ 26),
             fx = __webpack_require__( /*! ../../animation/fx */ 39),
-            registerDecorator = __webpack_require__( /*! ./ui.list.edit.decorator_registry */ 100).register,
+            registerDecorator = __webpack_require__( /*! ./ui.list.edit.decorator_registry */ 102).register,
             EditDecorator = __webpack_require__( /*! ./ui.list.edit.decorator */ 136),
             Deferred = __webpack_require__( /*! ../../core/utils/deferred */ 6).Deferred;
         registerDecorator("delete", "swipe", EditDecorator.inherit({
@@ -119076,10 +119780,10 @@
         var $ = __webpack_require__( /*! ../../core/renderer */ 2),
             EditDecoratorMenuHelperMixin = __webpack_require__( /*! ./ui.list.edit.decorator_menu_helper */ 291),
             messageLocalization = __webpack_require__( /*! ../../localization/message */ 15),
-            registerDecorator = __webpack_require__( /*! ./ui.list.edit.decorator_registry */ 100).register,
+            registerDecorator = __webpack_require__( /*! ./ui.list.edit.decorator_registry */ 102).register,
             EditDecorator = __webpack_require__( /*! ./ui.list.edit.decorator */ 136),
             Overlay = __webpack_require__( /*! ../overlay */ 58),
-            ListBase = __webpack_require__( /*! ./ui.list.base */ 213);
+            ListBase = __webpack_require__( /*! ./ui.list.base */ 214);
         var CONTEXTMENU_CLASS = "dx-list-context-menu",
             CONTEXTMENU_MENUCONTENT_CLASS = "dx-list-context-menucontent";
         registerDecorator("menu", "context", EditDecorator.inherit({
@@ -119185,7 +119889,7 @@
     /*! all exports used */
     function(module, exports, __webpack_require__) {
         var $ = __webpack_require__( /*! ../../core/renderer */ 2),
-            CollectionWidgetItem = __webpack_require__( /*! ../collection/item */ 148);
+            CollectionWidgetItem = __webpack_require__( /*! ../collection/item */ 149);
         var LIST_ITEM_BADGE_CONTAINER_CLASS = "dx-list-item-badge-container",
             LIST_ITEM_BADGE_CLASS = "dx-list-item-badge",
             BADGE_CLASS = "dx-badge",
@@ -119229,17 +119933,17 @@
             windowUtils = __webpack_require__( /*! ../../core/utils/window */ 7),
             messageLocalization = __webpack_require__( /*! ../../localization/message */ 15),
             registerComponent = __webpack_require__( /*! ../../core/component_registrator */ 8),
-            getPublicElement = __webpack_require__( /*! ../../core/utils/dom */ 12).getPublicElement,
+            getPublicElement = __webpack_require__( /*! ../../core/utils/dom */ 11).getPublicElement,
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
             noop = __webpack_require__( /*! ../../core/utils/common */ 4).noop,
             PullDownStrategy = __webpack_require__( /*! ./ui.scroll_view.native.pull_down */ 504),
             SwipeDownStrategy = __webpack_require__( /*! ./ui.scroll_view.native.swipe_down */ 505),
             SlideDownStrategy = __webpack_require__( /*! ./ui.scroll_view.native.slide_down */ 506),
             SimulatedStrategy = __webpack_require__( /*! ./ui.scroll_view.simulated */ 507),
-            Scrollable = __webpack_require__( /*! ./ui.scrollable */ 90),
-            LoadIndicator = __webpack_require__( /*! ../load_indicator */ 89),
+            Scrollable = __webpack_require__( /*! ./ui.scrollable */ 91),
+            LoadIndicator = __webpack_require__( /*! ../load_indicator */ 90),
             themes = __webpack_require__( /*! ./../themes */ 28),
-            LoadPanel = __webpack_require__( /*! ../load_panel */ 183);
+            LoadPanel = __webpack_require__( /*! ../load_panel */ 184);
         var SCROLLVIEW_CLASS = "dx-scrollview",
             SCROLLVIEW_CONTENT_CLASS = SCROLLVIEW_CLASS + "-content",
             SCROLLVIEW_TOP_POCKET_CLASS = SCROLLVIEW_CLASS + "-top-pocket",
@@ -119498,8 +120202,8 @@
         var $ = __webpack_require__( /*! ../../core/renderer */ 2),
             Callbacks = __webpack_require__( /*! ../../core/utils/callbacks */ 25),
             translator = __webpack_require__( /*! ../../animation/translator */ 26),
-            NativeStrategy = __webpack_require__( /*! ./ui.scrollable.native */ 182),
-            LoadIndicator = __webpack_require__( /*! ../load_indicator */ 89),
+            NativeStrategy = __webpack_require__( /*! ./ui.scrollable.native */ 183),
+            LoadIndicator = __webpack_require__( /*! ../load_indicator */ 90),
             each = __webpack_require__( /*! ../../core/utils/iterator */ 3).each,
             Deferred = __webpack_require__( /*! ../../core/utils/deferred */ 6).Deferred;
         var SCROLLVIEW_PULLDOWN_REFRESHING_CLASS = "dx-scrollview-pull-down-loading",
@@ -119577,7 +120281,7 @@
                 this.callBase();
                 this._topPocketSize = this._$topPocket.height();
                 this._bottomPocketSize = this._$bottomPocket.height();
-                this._scrollOffset = this._$container.height() - this._$content.height()
+                this._scrollOffset = Math.round(100 * (this._$container.height() - this._$content.height())) / 100
             },
             _allowedDirections: function() {
                 var allowedDirections = this.callBase();
@@ -119636,7 +120340,7 @@
                 return this._pullDownEnabled && this._location >= this._topPocketSize
             },
             _isReachBottom: function() {
-                return this._reachBottomEnabled && this._location <= this._scrollOffset + this._bottomPocketSize
+                return this._reachBottomEnabled && this._location - (this._scrollOffset + this._bottomPocketSize) <= .1
             },
             _reachBottom: function() {
                 if (this._state === STATE_LOADING) {
@@ -119716,8 +120420,8 @@
             Callbacks = __webpack_require__( /*! ../../core/utils/callbacks */ 25),
             translator = __webpack_require__( /*! ../../animation/translator */ 26),
             eventUtils = __webpack_require__( /*! ../../events/utils */ 9),
-            NativeStrategy = __webpack_require__( /*! ./ui.scrollable.native */ 182),
-            LoadIndicator = __webpack_require__( /*! ../load_indicator */ 89),
+            NativeStrategy = __webpack_require__( /*! ./ui.scrollable.native */ 183),
+            LoadIndicator = __webpack_require__( /*! ../load_indicator */ 90),
             Deferred = __webpack_require__( /*! ../../core/utils/deferred */ 6).Deferred;
         var SCROLLVIEW_PULLDOWN_DOWN_LOADING_CLASS = "dx-scrollview-pull-down-loading",
             SCROLLVIEW_PULLDOWN_INDICATOR_CLASS = "dx-scrollview-pull-down-indicator",
@@ -119912,7 +120616,7 @@
     /*! all exports used */
     function(module, exports, __webpack_require__) {
         var Callbacks = __webpack_require__( /*! ../../core/utils/callbacks */ 25),
-            NativeStrategy = __webpack_require__( /*! ./ui.scrollable.native */ 182),
+            NativeStrategy = __webpack_require__( /*! ./ui.scrollable.native */ 183),
             Deferred = __webpack_require__( /*! ../../core/utils/deferred */ 6).Deferred;
         var STATE_RELEASED = 0,
             STATE_READY = 1,
@@ -120010,7 +120714,7 @@
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
             math = Math,
             simulatedStrategy = __webpack_require__( /*! ./ui.scrollable.simulated */ 293),
-            LoadIndicator = __webpack_require__( /*! ../load_indicator */ 89);
+            LoadIndicator = __webpack_require__( /*! ../load_indicator */ 90);
         var SCROLLVIEW_PULLDOWN_REFRESHING_CLASS = "dx-scrollview-pull-down-loading",
             SCROLLVIEW_PULLDOWN_READY_CLASS = "dx-scrollview-pull-down-ready",
             SCROLLVIEW_PULLDOWN_IMAGE_CLASS = "dx-scrollview-pull-down-image",
@@ -120277,8 +120981,8 @@
             Class = __webpack_require__( /*! ../../core/class */ 14),
             abstract = Class.abstract,
             eventUtils = __webpack_require__( /*! ../../events/utils */ 9),
-            GestureEmitter = __webpack_require__( /*! ../../events/gesture/emitter.gesture */ 157),
-            registerEmitter = __webpack_require__( /*! ../../events/core/emitter_registrator */ 94),
+            GestureEmitter = __webpack_require__( /*! ../../events/gesture/emitter.gesture */ 158),
+            registerEmitter = __webpack_require__( /*! ../../events/core/emitter_registrator */ 96),
             animationFrame = __webpack_require__( /*! ../../animation/frame */ 112),
             realDevice = __webpack_require__( /*! ../../core/devices */ 16).real(),
             compareVersions = __webpack_require__( /*! ../../core/utils/version */ 65).compare;
@@ -120538,10 +121242,10 @@
             clickEvent = __webpack_require__( /*! ../../events/click */ 19),
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
             errors = __webpack_require__( /*! ../widget/ui.errors */ 18),
-            CheckBox = __webpack_require__( /*! ../check_box */ 101),
+            CheckBox = __webpack_require__( /*! ../check_box */ 103),
             RadioButton = __webpack_require__( /*! ../radio_group/radio_button */ 510),
             eventUtils = __webpack_require__( /*! ../../events/utils */ 9),
-            registerDecorator = __webpack_require__( /*! ./ui.list.edit.decorator_registry */ 100).register,
+            registerDecorator = __webpack_require__( /*! ./ui.list.edit.decorator_registry */ 102).register,
             EditDecorator = __webpack_require__( /*! ./ui.list.edit.decorator */ 136);
         var SELECT_DECORATOR_ENABLED_CLASS = "dx-list-select-decorator-enabled",
             SELECT_DECORATOR_SELECT_ALL_CLASS = "dx-list-select-all",
@@ -120715,7 +121419,7 @@
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
             inkRipple = __webpack_require__( /*! ../widget/utils.ink_ripple */ 68),
             registerComponent = __webpack_require__( /*! ../../core/component_registrator */ 8),
-            Editor = __webpack_require__( /*! ../editor/editor */ 48),
+            Editor = __webpack_require__( /*! ../editor/editor */ 49),
             eventUtils = __webpack_require__( /*! ../../events/utils */ 9),
             clickEvent = __webpack_require__( /*! ../../events/click */ 19);
         var RADIO_BUTTON_CLASS = "dx-radiobutton",
@@ -120860,7 +121564,7 @@
             mathUtils = __webpack_require__( /*! ../../core/utils/math */ 30),
             Animator = __webpack_require__( /*! ../scroll_view/animator */ 294),
             eventUtils = __webpack_require__( /*! ../../events/utils */ 9),
-            registerDecorator = __webpack_require__( /*! ./ui.list.edit.decorator_registry */ 100).register,
+            registerDecorator = __webpack_require__( /*! ./ui.list.edit.decorator_registry */ 102).register,
             EditDecorator = __webpack_require__( /*! ./ui.list.edit.decorator */ 136);
         var ReorderScrollAnimator = Animator.inherit({
             ctor: function(strategy) {
@@ -121156,7 +121860,7 @@
         var _renderer2 = _interopRequireDefault(_renderer);
         var _ui = __webpack_require__( /*! ./widget/ui.widget */ 17);
         var _ui2 = _interopRequireDefault(_ui);
-        var _function_template = __webpack_require__( /*! ./widget/function_template */ 83);
+        var _function_template = __webpack_require__( /*! ./widget/function_template */ 84);
         var _function_template2 = _interopRequireDefault(_function_template);
         var _component_registrator = __webpack_require__( /*! ../core/component_registrator */ 8);
         var _component_registrator2 = _interopRequireDefault(_component_registrator);
@@ -121164,13 +121868,13 @@
         var _button_group2 = _interopRequireDefault(_button_group);
         var _popup = __webpack_require__( /*! ./popup */ 43);
         var _popup2 = _interopRequireDefault(_popup);
-        var _list = __webpack_require__( /*! ./list */ 99);
+        var _list = __webpack_require__( /*! ./list */ 101);
         var _list2 = _interopRequireDefault(_list);
         var _data = __webpack_require__( /*! ../core/utils/data */ 20);
-        var _dom = __webpack_require__( /*! ../core/utils/dom */ 12);
+        var _dom = __webpack_require__( /*! ../core/utils/dom */ 11);
         var _dom2 = _interopRequireDefault(_dom);
         var _icon = __webpack_require__( /*! ../core/utils/icon */ 59);
-        var _data_helper = __webpack_require__( /*! ../data_helper */ 84);
+        var _data_helper = __webpack_require__( /*! ../data_helper */ 85);
         var _data_helper2 = _interopRequireDefault(_data_helper);
         var _data_source = __webpack_require__( /*! ../data/data_source/data_source */ 46);
         var _array_store = __webpack_require__( /*! ../data/array_store */ 67);
@@ -121205,6 +121909,7 @@
                     noDataText: (0, _message.format)("dxCollectionWidget-noDataText"),
                     useSelectMode: false,
                     splitButton: false,
+                    showArrowIcon: true,
                     text: "",
                     icon: void 0,
                     onButtonClick: null,
@@ -121470,7 +122175,7 @@
                 this._bindInnerWidgetOptions(this._popup, "dropDownOptions")
             },
             _renderAdditionalIcon: function() {
-                if (this.option("splitButton")) {
+                if (this.option("splitButton") || !this.option("showArrowIcon")) {
                     return
                 }
                 var $firstButtonContent = this._buttonGroup.$element().find("." + DX_BUTTON_CONTENT_CLASS).eq(0);
@@ -121589,6 +122294,12 @@
                         }));
                         this._renderAdditionalIcon();
                         break;
+                    case "showArrowIcon":
+                        if (!value) {
+                            this._buttonGroup.$element().find("." + DX_ICON_RIGHT_CLASS).remove()
+                        }
+                        this._renderAdditionalIcon();
+                        break;
                     case "stylingMode":
                     case "width":
                     case "height":
@@ -121644,19 +122355,19 @@
             inRange = __webpack_require__( /*! ../../core/utils/math */ 30).inRange,
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
             Button = __webpack_require__( /*! ../button */ 34),
-            Editor = __webpack_require__( /*! ../editor/editor */ 48),
-            Swipeable = __webpack_require__( /*! ../../events/gesture/swipeable */ 150),
+            Editor = __webpack_require__( /*! ../editor/editor */ 49),
+            Swipeable = __webpack_require__( /*! ../../events/gesture/swipeable */ 151),
             Navigator = __webpack_require__( /*! ./ui.calendar.navigator */ 514),
             Views = __webpack_require__( /*! ./ui.calendar.views */ 515),
             translator = __webpack_require__( /*! ../../animation/translator */ 26),
-            browser = __webpack_require__( /*! ../../core/utils/browser */ 33),
+            browser = __webpack_require__( /*! ../../core/utils/browser */ 31),
             dateUtils = __webpack_require__( /*! ../../core/utils/date */ 22),
             dateSerialization = __webpack_require__( /*! ../../core/utils/date_serialization */ 53),
             devices = __webpack_require__( /*! ../../core/devices */ 16),
             fx = __webpack_require__( /*! ../../animation/fx */ 39),
             windowUtils = __webpack_require__( /*! ../../core/utils/window */ 7),
             messageLocalization = __webpack_require__( /*! ../../localization/message */ 15),
-            FunctionTemplate = __webpack_require__( /*! ../widget/function_template */ 83);
+            FunctionTemplate = __webpack_require__( /*! ../widget/function_template */ 84);
         var CALENDAR_CLASS = "dx-calendar",
             CALENDAR_BODY_CLASS = "dx-calendar-body",
             CALENDAR_CELL_CLASS = "dx-calendar-cell",
@@ -122665,7 +123376,7 @@
             BaseView = __webpack_require__( /*! ./ui.calendar.base_view */ 516),
             dateUtils = __webpack_require__( /*! ../../core/utils/date */ 22),
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
-            dateLocalization = __webpack_require__( /*! ../../localization/date */ 32),
+            dateLocalization = __webpack_require__( /*! ../../localization/date */ 33),
             dateSerialization = __webpack_require__( /*! ../../core/utils/date_serialization */ 53),
             typeUtils = __webpack_require__( /*! ../../core/utils/type */ 1);
         var CALENDAR_OTHER_MONTH_CLASS = "dx-calendar-other-month",
@@ -122926,7 +123637,7 @@
             domAdapter = __webpack_require__( /*! ../../core/dom_adapter */ 13),
             eventsEngine = __webpack_require__( /*! ../../events/core/events_engine */ 5),
             dataUtils = __webpack_require__( /*! ../../core/element_data */ 38),
-            domUtils = __webpack_require__( /*! ../../core/utils/dom */ 12),
+            domUtils = __webpack_require__( /*! ../../core/utils/dom */ 11),
             Widget = __webpack_require__( /*! ../widget/ui.widget */ 17),
             dateUtils = __webpack_require__( /*! ../../core/utils/date */ 22),
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
@@ -123161,12 +123872,12 @@
     function(module, exports, __webpack_require__) {
         var $ = __webpack_require__( /*! ../../core/renderer */ 2),
             eventsEngine = __webpack_require__( /*! ../../events/core/events_engine */ 5),
-            Color = __webpack_require__( /*! ../../color */ 93),
+            Color = __webpack_require__( /*! ../../color */ 95),
             ColorView = __webpack_require__( /*! ./color_view */ 298),
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
             isFunction = __webpack_require__( /*! ../../core/utils/type */ 1).isFunction,
             registerComponent = __webpack_require__( /*! ../../core/component_registrator */ 8),
-            DropDownEditor = __webpack_require__( /*! ../drop_down_editor/ui.drop_down_editor */ 167);
+            DropDownEditor = __webpack_require__( /*! ../drop_down_editor/ui.drop_down_editor */ 169);
         var COLOR_BOX_CLASS = "dx-colorbox",
             COLOR_BOX_INPUT_CLASS = COLOR_BOX_CLASS + "-input",
             COLOR_BOX_INPUT_CONTAINER_CLASS = COLOR_BOX_INPUT_CLASS + "-container",
@@ -123471,7 +124182,7 @@
         var eventsEngine = __webpack_require__( /*! ../../events/core/events_engine */ 5),
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
             isNumeric = __webpack_require__( /*! ../../core/utils/type */ 1).isNumeric,
-            browser = __webpack_require__( /*! ../../core/utils/browser */ 33),
+            browser = __webpack_require__( /*! ../../core/utils/browser */ 31),
             devices = __webpack_require__( /*! ../../core/devices */ 16),
             fitIntoRange = __webpack_require__( /*! ../../core/utils/math */ 30).fitIntoRange,
             inRange = __webpack_require__( /*! ../../core/utils/math */ 30).inRange,
@@ -123525,8 +124236,18 @@
                 this._caretTimeout = setTimeout(function() {
                     this._caretTimeout = null;
                     var caret = this._caret();
-                    if (caret.start === caret.end) {
-                        this._moveCaretToBoundaryEventHandler(MOVE_BACKWARD, e)
+                    if (caret.start === caret.end && this._useMaskBehavior()) {
+                        var text = this._getInputVal(),
+                            decimalSeparator = number.getDecimalSeparator(),
+                            decimalSeparatorIndex = text.indexOf(decimalSeparator);
+                        if (decimalSeparatorIndex >= 0) {
+                            this._caret({
+                                start: decimalSeparatorIndex,
+                                end: decimalSeparatorIndex
+                            })
+                        } else {
+                            this._moveCaretToBoundaryEventHandler(MOVE_BACKWARD, e)
+                        }
                     }
                 }.bind(this), CARET_TIMEOUT_DURATION)
             },
@@ -123746,8 +124467,8 @@
                 if (isDecimalPointRestricted || isUselessCharRestricted) {
                     return
                 }
-                if ("" === editedText) {
-                    parsed = 0
+                if ("" === this._removeStubs(editedText)) {
+                    parsed = 0 * this._parsedValue
                 }
                 if (isNaN(parsed)) {
                     return
@@ -124158,7 +124879,7 @@
             commonUtils = __webpack_require__( /*! ../../core/utils/common */ 4),
             mathUtils = __webpack_require__( /*! ../../core/utils/math */ 30),
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
-            inArray = __webpack_require__( /*! ../../core/utils/array */ 11).inArray,
+            inArray = __webpack_require__( /*! ../../core/utils/array */ 12).inArray,
             devices = __webpack_require__( /*! ../../core/devices */ 16),
             TextEditor = __webpack_require__( /*! ../text_box/ui.text_editor */ 287),
             eventUtils = __webpack_require__( /*! ../../events/utils */ 9),
@@ -124307,8 +125028,11 @@
                 }
             },
             _spinValueChange: function(sign, dxEvent) {
-                var value = parseFloat(this._normalizeInputValue()) || 0,
-                    step = parseFloat(this.option("step"));
+                var step = parseFloat(this.option("step"));
+                if (0 === step) {
+                    return
+                }
+                var value = parseFloat(this._normalizeInputValue()) || 0;
                 value = this._correctRounding(value, step * sign);
                 var min = this.option("min"),
                     max = this.option("max");
@@ -124539,7 +125263,7 @@
         var _renderer2 = _interopRequireDefault(_renderer);
         var _events_engine = __webpack_require__( /*! ../../events/core/events_engine */ 5);
         var _events_engine2 = _interopRequireDefault(_events_engine);
-        var _button = __webpack_require__( /*! ../text_box/texteditor_button_collection/button */ 181);
+        var _button = __webpack_require__( /*! ../text_box/texteditor_button_collection/button */ 182);
         var _button2 = _interopRequireDefault(_button);
         var _number_box = __webpack_require__( /*! ./number_box.spin */ 523);
         var _number_box2 = _interopRequireDefault(_number_box);
@@ -124650,7 +125374,7 @@
                 key: "_isVisible",
                 value: function() {
                     var editor = this.editor;
-                    return editor.option("showSpinButtons")
+                    return _get(SpinButtons.prototype.__proto__ || Object.getPrototypeOf(SpinButtons.prototype), "_isVisible", this).call(this) && editor.option("showSpinButtons")
                 }
             }, {
                 key: "_isTouchFriendly",
@@ -124701,8 +125425,8 @@
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
             eventUtils = __webpack_require__( /*! ../../events/utils */ 9),
             pointerEvents = __webpack_require__( /*! ../../events/pointer */ 24),
-            feedbackEvents = __webpack_require__( /*! ../../events/core/emitter.feedback */ 125),
-            holdEvent = __webpack_require__( /*! ../../events/hold */ 87),
+            feedbackEvents = __webpack_require__( /*! ../../events/core/emitter.feedback */ 124),
+            holdEvent = __webpack_require__( /*! ../../events/hold */ 88),
             Deferred = __webpack_require__( /*! ../../core/utils/deferred */ 6).Deferred;
         var SPIN_CLASS = "dx-numberbox-spin",
             SPIN_BUTTON_CLASS = "dx-numberbox-spin-button",
@@ -124802,15 +125526,15 @@
         var _utils = __webpack_require__( /*! ../../events/utils */ 9);
         var _utils2 = _interopRequireDefault(_utils);
         var _type = __webpack_require__( /*! ../../core/utils/type */ 1);
-        var _dom = __webpack_require__( /*! ../../core/utils/dom */ 12);
+        var _dom = __webpack_require__( /*! ../../core/utils/dom */ 11);
         var _extend = __webpack_require__( /*! ../../core/utils/extend */ 0);
         var _math = __webpack_require__( /*! ../../core/utils/math */ 30);
         var _events_engine = __webpack_require__( /*! ../../events/core/events_engine */ 5);
         var _events_engine2 = _interopRequireDefault(_events_engine);
         var _uiDate_boxMask = __webpack_require__( /*! ./ui.date_box.mask.parts */ 526);
-        var _date = __webpack_require__( /*! ../../localization/date */ 32);
+        var _date = __webpack_require__( /*! ../../localization/date */ 33);
         var _date2 = _interopRequireDefault(_date);
-        var _date3 = __webpack_require__( /*! ../../localization/ldml/date.parser */ 207);
+        var _date3 = __webpack_require__( /*! ../../localization/ldml/date.parser */ 208);
         var _date4 = __webpack_require__( /*! ../../localization/ldml/date.format */ 204);
         var _uiDate_box = __webpack_require__( /*! ./ui.date_box.base */ 527);
         var _uiDate_box2 = _interopRequireDefault(_uiDate_box);
@@ -124857,14 +125581,22 @@
                         e.preventDefault()
                     },
                     upArrow: function(e) {
-                        _this._partIncrease(FORWARD);
+                        _this._upDownArrowHandler(FORWARD);
                         e.preventDefault()
                     },
                     downArrow: function(e) {
-                        _this._partIncrease(BACKWARD);
+                        _this._upDownArrowHandler(BACKWARD);
                         e.preventDefault()
                     }
                 })
+            },
+            _upDownArrowHandler: function(step) {
+                this._setNewDateIfEmpty();
+                var originalValue = this._getActivePartValue(this._initialMaskValue);
+                var currentValue = this._getActivePartValue();
+                var delta = currentValue - originalValue;
+                this._loadMaskValue(this._initialMaskValue);
+                this._partIncrease(delta + step)
             },
             _getDefaultOptions: function() {
                 return (0, _extend.extend)(this.callBase(), {
@@ -124913,6 +125645,7 @@
             _setNewDateIfEmpty: function() {
                 if (!this._maskValue) {
                     this._maskValue = new Date;
+                    this._initialMaskValue = new Date;
                     this._renderDateParts()
                 }
             },
@@ -124922,6 +125655,9 @@
                 var maxLimitLength = String(max).length;
                 var formatLength = this._getActivePartProp("pattern").length;
                 this._searchValue = (this._searchValue + char).substr(-maxLimitLength);
+                if (isNaN(this._searchValue)) {
+                    this._searchValue = char
+                }
                 this._setActivePartValue(this._searchValue);
                 if (this.option("advanceCaret")) {
                     var isShortFormat = 1 === formatLength;
@@ -124941,7 +125677,8 @@
                     startString = this._searchValue + char.toLowerCase(),
                     endLimit = limits.max - limits.min;
                 for (var i = 0; i <= endLimit; i++) {
-                    this._partIncrease(1);
+                    this._loadMaskValue(this._initialMaskValue);
+                    this._partIncrease(i + 1);
                     if (0 === this._getActivePartProp("text").toLowerCase().indexOf(startString)) {
                         this._searchValue = startString;
                         return
@@ -125027,6 +125764,9 @@
                 if (!this.option("text")) {
                     return
                 }
+                if (step) {
+                    this._initialMaskValue = new Date(this._maskValue)
+                }
                 var index = (0, _math.fitIntoRange)(this._activePartIndex + step, 0, this._dateParts.length - 1);
                 if (this._dateParts[index].isStub) {
                     var isBoundaryIndex = 0 === index && step < 0 || index === this._dateParts.length - 1 && step > 0;
@@ -125075,11 +125815,13 @@
                 return this._dateParts[this._activePartIndex][property]
             },
             _loadMaskValue: function() {
-                var value = this.dateOption("value");
-                this._maskValue = value && new Date(value)
+                var value = arguments.length > 0 && void 0 !== arguments[0] ? arguments[0] : this.dateOption("value");
+                this._maskValue = value && new Date(value);
+                this._initialMaskValue = value && new Date(value)
             },
             _saveMaskValue: function() {
                 var value = this._maskValue && new Date(this._maskValue);
+                this._initialMaskValue = new Date(value);
                 this.dateOption("value", value)
             },
             _revertChanges: function() {
@@ -125095,11 +125837,37 @@
             },
             _partIncrease: function(step) {
                 this._setNewDateIfEmpty();
-                var limits = this._getActivePartLimits(),
-                    newValue = step + this._getActivePartValue();
-                newValue = newValue > limits.max ? limits.min : newValue;
-                newValue = newValue < limits.min ? limits.max : newValue;
+                var _getActivePartLimits2 = this._getActivePartLimits(),
+                    max = _getActivePartLimits2.max,
+                    min = _getActivePartLimits2.min;
+                var limitDelta = max - min;
+                if (1 === limitDelta) {
+                    limitDelta++
+                }
+                var newValue = step + this._getActivePartValue();
+                if (newValue > max) {
+                    newValue = this._applyLimits(newValue, {
+                        limitBase: min,
+                        limitClosest: max,
+                        limitDelta: limitDelta
+                    })
+                } else {
+                    if (newValue < min) {
+                        newValue = this._applyLimits(newValue, {
+                            limitBase: max,
+                            limitClosest: min,
+                            limitDelta: limitDelta
+                        })
+                    }
+                }
                 this._setActivePartValue(newValue)
+            },
+            _applyLimits: function(newValue, _ref) {
+                var limitBase = _ref.limitBase,
+                    limitClosest = _ref.limitClosest,
+                    limitDelta = _ref.limitDelta;
+                var delta = (newValue - limitClosest) % limitDelta;
+                return delta ? limitBase + delta - 1 * (0, _math.sign)(delta) : limitClosest
             },
             _maskClickHandler: function() {
                 if (this.option("text")) {
@@ -125202,7 +125970,7 @@
             value: true
         });
         exports.renderDateParts = exports.getDatePartIndexByPosition = void 0;
-        var _date = __webpack_require__( /*! ../../localization/ldml/date.parser */ 207);
+        var _date = __webpack_require__( /*! ../../localization/ldml/date.parser */ 208);
         var _extend = __webpack_require__( /*! ../../core/utils/extend */ 0);
         var _math = __webpack_require__( /*! ../../core/utils/math */ 30);
         var _common = __webpack_require__( /*! ../../core/utils/common */ 4);
@@ -125239,7 +126007,7 @@
             a: function(date, value) {
                 var hours = date.getHours(),
                     current = hours >= 12;
-                if (current === value) {
+                if (current === !!parseInt(value)) {
                     return
                 }
                 date.setHours((hours + 12) % 24)
@@ -125382,10 +126150,10 @@
             devices = __webpack_require__( /*! ../../core/devices */ 16),
             config = __webpack_require__( /*! ../../core/config */ 29),
             dateUtils = __webpack_require__( /*! ../../core/utils/date */ 22),
-            uiDateUtils = __webpack_require__( /*! ./ui.date_utils */ 115),
+            uiDateUtils = __webpack_require__( /*! ./ui.date_utils */ 114),
             dateSerialization = __webpack_require__( /*! ../../core/utils/date_serialization */ 53),
-            DropDownEditor = __webpack_require__( /*! ../drop_down_editor/ui.drop_down_editor */ 167),
-            dateLocalization = __webpack_require__( /*! ../../localization/date */ 32),
+            DropDownEditor = __webpack_require__( /*! ../drop_down_editor/ui.drop_down_editor */ 169),
+            dateLocalization = __webpack_require__( /*! ../../localization/date */ 33),
             messageLocalization = __webpack_require__( /*! ../../localization/message */ 15),
             DATEBOX_CLASS = "dx-datebox",
             DX_AUTO_WIDTH_CLASS = "dx-auto-width",
@@ -125586,9 +126354,6 @@
                 this.$element().addClass(DATEBOX_CLASS);
                 this._renderSubmitElement();
                 this.callBase();
-                if (this.option("isValid")) {
-                    this._validateValue(this.dateOption("value"))
-                }
                 this._refreshFormatClass();
                 this._refreshPickerTypeClass();
                 this._strategy.renderInputMinMax(this._input())
@@ -125860,8 +126625,8 @@
                 this.option(this._strategy.getDefaultOptions());
                 this._refresh()
             },
-            _applyButtonHandler: function() {
-                this.dateValue(this._strategy.getValue());
+            _applyButtonHandler: function(e) {
+                this.dateValue(this._strategy.getValue(), e.event);
                 this.callBase()
             },
             _dispose: function() {
@@ -125997,10 +126762,10 @@
         var $ = __webpack_require__( /*! ../../core/renderer */ 2),
             window = __webpack_require__( /*! ../../core/utils/window */ 7).getWindow(),
             DateView = __webpack_require__( /*! ./ui.date_view */ 529),
-            DateBoxStrategy = __webpack_require__( /*! ./ui.date_box.strategy */ 187),
+            DateBoxStrategy = __webpack_require__( /*! ./ui.date_box.strategy */ 188),
             support = __webpack_require__( /*! ../../core/utils/support */ 45),
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
-            dateUtils = __webpack_require__( /*! ./ui.date_utils */ 115),
+            dateUtils = __webpack_require__( /*! ./ui.date_utils */ 114),
             messageLocalization = __webpack_require__( /*! ../../localization/message */ 15);
         var DateViewStrategy = DateBoxStrategy.inherit({
             NAME: "DateView",
@@ -126122,14 +126887,14 @@
     /*! all exports used */
     function(module, exports, __webpack_require__) {
         var $ = __webpack_require__( /*! ../../core/renderer */ 2),
-            Editor = __webpack_require__( /*! ../editor/editor */ 48),
+            Editor = __webpack_require__( /*! ../editor/editor */ 49),
             DateViewRoller = __webpack_require__( /*! ./ui.date_view_roller */ 530),
             dateUtils = __webpack_require__( /*! ../../core/utils/date */ 22),
             each = __webpack_require__( /*! ../../core/utils/iterator */ 3).each,
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
-            uiDateUtils = __webpack_require__( /*! ./ui.date_utils */ 115),
+            uiDateUtils = __webpack_require__( /*! ./ui.date_utils */ 114),
             registerComponent = __webpack_require__( /*! ../../core/component_registrator */ 8),
-            dateLocalization = __webpack_require__( /*! ../../localization/date */ 32);
+            dateLocalization = __webpack_require__( /*! ../../localization/date */ 33);
         var DATEVIEW_CLASS = "dx-dateview",
             DATEVIEW_COMPACT_CLASS = "dx-dateview-compact",
             DATEVIEW_WRAPPER_CLASS = "dx-dateview-wrapper",
@@ -126441,7 +127206,7 @@
             each = __webpack_require__( /*! ../../core/utils/iterator */ 3).each,
             eventUtils = __webpack_require__( /*! ../../events/utils */ 9),
             clickEvent = __webpack_require__( /*! ../../events/click */ 19),
-            Scrollable = __webpack_require__( /*! ../scroll_view/ui.scrollable */ 90),
+            Scrollable = __webpack_require__( /*! ../scroll_view/ui.scrollable */ 91),
             fx = __webpack_require__( /*! ../../animation/fx */ 39),
             translator = __webpack_require__( /*! ../../animation/translator */ 26);
         var DATEVIEW_ROLLER_CLASS = "dx-dateviewroller",
@@ -126689,10 +127454,10 @@
     /*! all exports used */
     function(module, exports, __webpack_require__) {
         var noop = __webpack_require__( /*! ../../core/utils/common */ 4).noop,
-            DateBoxStrategy = __webpack_require__( /*! ./ui.date_box.strategy */ 187),
+            DateBoxStrategy = __webpack_require__( /*! ./ui.date_box.strategy */ 188),
             support = __webpack_require__( /*! ../../core/utils/support */ 45),
-            inArray = __webpack_require__( /*! ../../core/utils/array */ 11).inArray,
-            dateUtils = __webpack_require__( /*! ./ui.date_utils */ 115),
+            inArray = __webpack_require__( /*! ../../core/utils/array */ 12).inArray,
+            dateUtils = __webpack_require__( /*! ./ui.date_utils */ 114),
             dateSerialization = __webpack_require__( /*! ../../core/utils/date_serialization */ 53);
         var NativeStrategy = DateBoxStrategy.inherit({
             NAME: "Native",
@@ -126748,10 +127513,10 @@
             window = __webpack_require__( /*! ../../core/utils/window */ 7).getWindow(),
             CalendarStrategy = __webpack_require__( /*! ./ui.date_box.strategy.calendar */ 300),
             TimeView = __webpack_require__( /*! ./ui.time_view */ 533),
-            dateLocalization = __webpack_require__( /*! ../../localization/date */ 32),
+            dateLocalization = __webpack_require__( /*! ../../localization/date */ 33),
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
-            Box = __webpack_require__( /*! ../box */ 185),
-            uiDateUtils = __webpack_require__( /*! ./ui.date_utils */ 115);
+            Box = __webpack_require__( /*! ../box */ 186),
+            uiDateUtils = __webpack_require__( /*! ./ui.date_utils */ 114);
         var SHRINK_VIEW_SCREEN_WIDTH = 573,
             DATEBOX_ADAPTIVITY_MODE_CLASS = "dx-datebox-adaptivity-mode";
         var CalendarWithTimeStrategy = CalendarStrategy.inherit({
@@ -126914,14 +127679,14 @@
     /*! all exports used */
     function(module, exports, __webpack_require__) {
         var $ = __webpack_require__( /*! ../../core/renderer */ 2),
-            Editor = __webpack_require__( /*! ../editor/editor */ 48),
-            NumberBox = __webpack_require__( /*! ../number_box */ 114),
-            SelectBox = __webpack_require__( /*! ../select_box */ 91),
-            Box = __webpack_require__( /*! ../box */ 185),
+            Editor = __webpack_require__( /*! ../editor/editor */ 49),
+            NumberBox = __webpack_require__( /*! ../number_box */ 113),
+            SelectBox = __webpack_require__( /*! ../select_box */ 92),
+            Box = __webpack_require__( /*! ../box */ 186),
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
             registerComponent = __webpack_require__( /*! ../../core/component_registrator */ 8),
-            dateLocalization = __webpack_require__( /*! ../../localization/date */ 32),
-            uiDateUtils = __webpack_require__( /*! ./ui.date_utils */ 115);
+            dateLocalization = __webpack_require__( /*! ../../localization/date */ 33),
+            uiDateUtils = __webpack_require__( /*! ./ui.date_utils */ 114);
         var TIMEVIEW_CLASS = "dx-timeview",
             TIMEVIEW_CLOCK_CLASS = "dx-timeview-clock",
             TIMEVIEW_FIELD_CLASS = "dx-timeview-field",
@@ -127067,15 +127832,23 @@
                     min: -1,
                     max: 24,
                     value: this._getValue().getHours(),
-                    onValueChanged: function(args) {
-                        var hours = this._convertMaxHourToMin(args.value),
-                            time = new Date(this._getValue());
-                        time.setHours(hours);
-                        uiDateUtils.normalizeTime(time);
-                        this.option("value", time)
-                    }.bind(this)
+                    onValueChanged: this._onHourBoxValueChanged.bind(this)
                 }, this._getNumberBoxConfig()));
                 this._hourBox.setAria("label", "hours")
+            },
+            _onHourBoxValueChanged: function(args) {
+                var currentValue = this._getValue(),
+                    newHours = this._convertMaxHourToMin(this._getCalculatedHours(currentValue.getHours(), args.previousValue, args.value)),
+                    newValue = new Date(currentValue);
+                newValue.setHours(newHours);
+                uiDateUtils.normalizeTime(newValue);
+                this.option("value", newValue)
+            },
+            _getCalculatedHours: function(currentHours, prevHours, newHours) {
+                if (1 === Math.abs(prevHours - newHours)) {
+                    return currentHours + (newHours - prevHours)
+                }
+                return newHours
             },
             _convertMaxHourToMin: function(hours) {
                 return (MAX_HOURS_VALUE + hours) % MAX_HOURS_VALUE
@@ -127203,13 +127976,13 @@
     function(module, exports, __webpack_require__) {
         var $ = __webpack_require__( /*! ../../core/renderer */ 2),
             window = __webpack_require__( /*! ../../core/utils/window */ 7).getWindow(),
-            List = __webpack_require__( /*! ../list */ 99),
-            DateBoxStrategy = __webpack_require__( /*! ./ui.date_box.strategy */ 187),
+            List = __webpack_require__( /*! ../list */ 101),
+            DateBoxStrategy = __webpack_require__( /*! ./ui.date_box.strategy */ 188),
             noop = __webpack_require__( /*! ../../core/utils/common */ 4).noop,
             isDate = __webpack_require__( /*! ../../core/utils/type */ 1).isDate,
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
-            dateUtils = __webpack_require__( /*! ./ui.date_utils */ 115),
-            dateLocalization = __webpack_require__( /*! ../../localization/date */ 32);
+            dateUtils = __webpack_require__( /*! ./ui.date_utils */ 114),
+            dateLocalization = __webpack_require__( /*! ../../localization/date */ 33);
         var BOUNDARY_VALUES = {
             min: new Date(0, 0, 0, 0, 0),
             max: new Date(0, 0, 0, 23, 59)
@@ -127466,7 +128239,7 @@
                 }
             }
         };
-        var _uiDrawerRendering = __webpack_require__( /*! ./ui.drawer.rendering.strategy */ 188);
+        var _uiDrawerRendering = __webpack_require__( /*! ./ui.drawer.rendering.strategy */ 189);
         var _uiDrawerRendering2 = _interopRequireDefault(_uiDrawerRendering);
         var _renderer = __webpack_require__( /*! ../../core/renderer */ 2);
         var _renderer2 = _interopRequireDefault(_renderer);
@@ -127615,12 +128388,12 @@
                 }
             }
         };
-        var _uiDrawerRendering = __webpack_require__( /*! ./ui.drawer.rendering.strategy */ 188);
+        var _uiDrawerRendering = __webpack_require__( /*! ./ui.drawer.rendering.strategy */ 189);
         var _uiDrawerRendering2 = _interopRequireDefault(_uiDrawerRendering);
         var _renderer = __webpack_require__( /*! ../../core/renderer */ 2);
         var _renderer2 = _interopRequireDefault(_renderer);
         var _extend = __webpack_require__( /*! ../../core/utils/extend */ 0);
-        var _inflector = __webpack_require__( /*! ../../core/utils/inflector */ 31);
+        var _inflector = __webpack_require__( /*! ../../core/utils/inflector */ 32);
 
         function _interopRequireDefault(obj) {
             return obj && obj.__esModule ? obj : {
@@ -127768,7 +128541,7 @@
                 }
             }
         };
-        var _uiDrawerRendering = __webpack_require__( /*! ./ui.drawer.rendering.strategy */ 188);
+        var _uiDrawerRendering = __webpack_require__( /*! ./ui.drawer.rendering.strategy */ 189);
         var _uiDrawerRendering2 = _interopRequireDefault(_uiDrawerRendering);
         var _renderer = __webpack_require__( /*! ../../core/renderer */ 2);
         var _renderer2 = _interopRequireDefault(_renderer);
@@ -127779,7 +128552,7 @@
         var _type = __webpack_require__( /*! ../../core/utils/type */ 1);
         var _type2 = _interopRequireDefault(_type);
         var _extend = __webpack_require__( /*! ../../core/utils/extend */ 0);
-        var _inflector = __webpack_require__( /*! ../../core/utils/inflector */ 31);
+        var _inflector = __webpack_require__( /*! ../../core/utils/inflector */ 32);
 
         function _interopRequireDefault(obj) {
             return obj && obj.__esModule ? obj : {
@@ -128026,10 +128799,10 @@
             commonUtils = __webpack_require__( /*! ../core/utils/common */ 4),
             extend = __webpack_require__( /*! ../core/utils/extend */ 0).extend,
             each = __webpack_require__( /*! ../core/utils/iterator */ 3).each,
-            domUtils = __webpack_require__( /*! ../core/utils/dom */ 12),
+            domUtils = __webpack_require__( /*! ../core/utils/dom */ 11),
             TransitionExecutorModule = __webpack_require__( /*! ../animation/transition_executor/transition_executor */ 276),
             Widget = __webpack_require__( /*! ./widget/ui.widget */ 17),
-            LoadIndicator = __webpack_require__( /*! ./load_indicator */ 89),
+            LoadIndicator = __webpack_require__( /*! ./load_indicator */ 90),
             isPromise = __webpack_require__( /*! ../core/utils/type */ 1).isPromise,
             deferredUtils = __webpack_require__( /*! ../core/utils/deferred */ 6),
             Deferred = deferredUtils.Deferred;
@@ -128253,16 +129026,16 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var _ui = __webpack_require__( /*! ./drop_down_editor/ui.drop_down_editor */ 167);
+        var _ui = __webpack_require__( /*! ./drop_down_editor/ui.drop_down_editor */ 169);
         var _ui2 = _interopRequireDefault(_ui);
-        var _ui3 = __webpack_require__( /*! ./editor/ui.data_expression */ 215);
+        var _ui3 = __webpack_require__( /*! ./editor/ui.data_expression */ 216);
         var _ui4 = _interopRequireDefault(_ui3);
         var _common = __webpack_require__( /*! ../core/utils/common */ 4);
         var _common2 = _interopRequireDefault(_common);
         var _iterator = __webpack_require__( /*! ../core/utils/iterator */ 3);
         var _selectors = __webpack_require__( /*! ./widget/selectors */ 64);
         var _selectors2 = _interopRequireDefault(_selectors);
-        var _ui5 = __webpack_require__( /*! ./widget/ui.keyboard_processor */ 165);
+        var _ui5 = __webpack_require__( /*! ./widget/ui.keyboard_processor */ 167);
         var _ui6 = _interopRequireDefault(_ui5);
         var _deferred = __webpack_require__( /*! ../core/utils/deferred */ 6);
         var _renderer = __webpack_require__( /*! ../core/renderer */ 2);
@@ -128270,7 +129043,7 @@
         var _events_engine = __webpack_require__( /*! ../events/core/events_engine */ 5);
         var _events_engine2 = _interopRequireDefault(_events_engine);
         var _extend = __webpack_require__( /*! ../core/utils/extend */ 0);
-        var _utils = __webpack_require__( /*! ../ui/overlay/utils */ 217);
+        var _utils = __webpack_require__( /*! ../ui/overlay/utils */ 218);
         var _component_registrator = __webpack_require__( /*! ../core/component_registrator */ 8);
         var _component_registrator2 = _interopRequireDefault(_component_registrator);
         var _utils2 = __webpack_require__( /*! ../events/utils */ 9);
@@ -128468,12 +129241,12 @@
             isDefined = __webpack_require__( /*! ../core/utils/type */ 1).isDefined,
             each = __webpack_require__( /*! ../core/utils/iterator */ 3).each,
             extend = __webpack_require__( /*! ../core/utils/extend */ 0).extend,
-            inArray = __webpack_require__( /*! ../core/utils/array */ 11).inArray,
+            inArray = __webpack_require__( /*! ../core/utils/array */ 12).inArray,
             ajax = __webpack_require__( /*! ../core/utils/ajax */ 63),
-            Editor = __webpack_require__( /*! ./editor/editor */ 48),
+            Editor = __webpack_require__( /*! ./editor/editor */ 49),
             Button = __webpack_require__( /*! ./button */ 34),
-            ProgressBar = __webpack_require__( /*! ./progress_bar */ 218),
-            browser = __webpack_require__( /*! ../core/utils/browser */ 33),
+            ProgressBar = __webpack_require__( /*! ./progress_bar */ 219),
+            browser = __webpack_require__( /*! ../core/utils/browser */ 31),
             devices = __webpack_require__( /*! ../core/devices */ 16),
             eventUtils = __webpack_require__( /*! ../events/utils */ 9),
             clickEvent = __webpack_require__( /*! ../events/click */ 19),
@@ -129601,23 +130374,23 @@
             typeUtils = __webpack_require__( /*! ../../core/utils/type */ 1),
             dataUtils = __webpack_require__( /*! ../../core/element_data */ 38),
             each = __webpack_require__( /*! ../../core/utils/iterator */ 3).each,
-            inArray = __webpack_require__( /*! ../../core/utils/array */ 11).inArray,
+            inArray = __webpack_require__( /*! ../../core/utils/array */ 12).inArray,
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
             stringUtils = __webpack_require__( /*! ../../core/utils/string */ 44),
             errors = __webpack_require__( /*! ../widget/ui.errors */ 18),
-            browser = __webpack_require__( /*! ../../core/utils/browser */ 33),
-            domUtils = __webpack_require__( /*! ../../core/utils/dom */ 12),
+            browser = __webpack_require__( /*! ../../core/utils/browser */ 31),
+            domUtils = __webpack_require__( /*! ../../core/utils/dom */ 11),
             messageLocalization = __webpack_require__( /*! ../../localization/message */ 15),
             Widget = __webpack_require__( /*! ../widget/ui.widget */ 17),
             windowUtils = __webpack_require__( /*! ../../core/utils/window */ 7),
-            ValidationEngine = __webpack_require__( /*! ../validation_engine */ 98),
+            ValidationEngine = __webpack_require__( /*! ../validation_engine */ 100),
             LayoutManager = __webpack_require__( /*! ./ui.form.layout_manager */ 542),
             FormItemsRunTimeInfo = __webpack_require__( /*! ./ui.form.items_runtime_info */ 303).default,
             TabPanel = __webpack_require__( /*! ../tab_panel */ 305),
-            Scrollable = __webpack_require__( /*! ../scroll_view/ui.scrollable */ 90),
+            Scrollable = __webpack_require__( /*! ../scroll_view/ui.scrollable */ 91),
             Deferred = __webpack_require__( /*! ../../core/utils/deferred */ 6).Deferred,
             themes = __webpack_require__( /*! ../themes */ 28);
-        __webpack_require__( /*! ../validation_summary */ 220);
+        __webpack_require__( /*! ../validation_summary */ 221);
         __webpack_require__( /*! ../validation_group */ 308);
         var FORM_CLASS = "dx-form",
             FIELD_ITEM_CLASS = "dx-field-item",
@@ -129829,7 +130602,7 @@
                 }
                 this._renderLayout();
                 this._renderValidationSummary();
-                this._cachedScreenFactor = this._getCurrentScreenFactor()
+                this._lastMarkupScreenFactor = this._targetScreenFactor || this._getCurrentScreenFactor()
             },
             _getCurrentScreenFactor: function() {
                 return windowUtils.hasWindow() ? windowUtils.getCurrentScreenFactor(this.option("screenByWidth")) : "lg"
@@ -129851,7 +130624,7 @@
                 this.callBase();
                 this._groupsColCount = [];
                 this._cachedColCountOptions = [];
-                delete this._cachedScreenFactor
+                this._lastMarkupScreenFactor = void 0
             },
             _renderScrollable: function() {
                 var useNativeScrolling = this.option("useNativeScrolling");
@@ -130411,12 +131184,13 @@
             },
             _dimensionChanged: function() {
                 var currentScreenFactor = this._getCurrentScreenFactor();
-                if (this._cachedScreenFactor !== currentScreenFactor) {
-                    if (this._isColCountChanged(this._cachedScreenFactor, currentScreenFactor)) {
-                        this._refresh()
+                if (this._lastMarkupScreenFactor !== currentScreenFactor) {
+                    if (this._isColCountChanged(this._lastMarkupScreenFactor, currentScreenFactor)) {
+                        this._targetScreenFactor = currentScreenFactor;
+                        this._refresh();
+                        this._targetScreenFactor = void 0
                     }
-                    this._cachedScreenFactor = currentScreenFactor;
-                    return
+                    this._lastMarkupScreenFactor = currentScreenFactor
                 }
             },
             _isColCountChanged: function(oldScreenSize, newScreenSize) {
@@ -130527,6 +131301,9 @@
             },
             getItemID: function(name) {
                 return "dx_" + this.option("formID") + "_" + (name || new Guid)
+            },
+            getTargetScreenFactor: function() {
+                return this._targetScreenFactor
             }
         });
         registerComponent("dxForm", Form);
@@ -130555,7 +131332,7 @@
             FormItemsRunTimeInfo = __webpack_require__( /*! ./ui.form.items_runtime_info */ 303).default,
             registerComponent = __webpack_require__( /*! ../../core/component_registrator */ 8),
             typeUtils = __webpack_require__( /*! ../../core/utils/type */ 1),
-            domUtils = __webpack_require__( /*! ../../core/utils/dom */ 12),
+            domUtils = __webpack_require__( /*! ../../core/utils/dom */ 11),
             isWrapped = __webpack_require__( /*! ../../core/utils/variable_wrapper */ 74).isWrapped,
             isWritableWrapped = __webpack_require__( /*! ../../core/utils/variable_wrapper */ 74).isWritableWrapped,
             unwrap = __webpack_require__( /*! ../../core/utils/variable_wrapper */ 74).unwrap,
@@ -130563,23 +131340,23 @@
             stringUtils = __webpack_require__( /*! ../../core/utils/string */ 44),
             each = __webpack_require__( /*! ../../core/utils/iterator */ 3).each,
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
-            inArray = __webpack_require__( /*! ../../core/utils/array */ 11).inArray,
+            inArray = __webpack_require__( /*! ../../core/utils/array */ 12).inArray,
             dataUtils = __webpack_require__( /*! ../../core/utils/data */ 20),
-            removeEvent = __webpack_require__( /*! ../../core/remove_event */ 130),
+            removeEvent = __webpack_require__( /*! ../../core/remove_event */ 129),
             clickEvent = __webpack_require__( /*! ../../events/click */ 19),
-            normalizeIndexes = __webpack_require__( /*! ../../core/utils/array */ 11).normalizeIndexes,
+            normalizeIndexes = __webpack_require__( /*! ../../core/utils/array */ 12).normalizeIndexes,
             errors = __webpack_require__( /*! ../widget/ui.errors */ 18),
             messageLocalization = __webpack_require__( /*! ../../localization/message */ 15),
-            styleUtils = __webpack_require__( /*! ../../core/utils/style */ 85),
-            inflector = __webpack_require__( /*! ../../core/utils/inflector */ 31),
+            styleUtils = __webpack_require__( /*! ../../core/utils/style */ 86),
+            inflector = __webpack_require__( /*! ../../core/utils/inflector */ 32),
             Widget = __webpack_require__( /*! ../widget/ui.widget */ 17),
-            Validator = __webpack_require__( /*! ../validator */ 190),
+            Validator = __webpack_require__( /*! ../validator */ 191),
             ResponsiveBox = __webpack_require__( /*! ../responsive_box */ 304),
             themes = __webpack_require__( /*! ../themes */ 28);
-        __webpack_require__( /*! ../text_box */ 88);
-        __webpack_require__( /*! ../number_box */ 114);
-        __webpack_require__( /*! ../check_box */ 101);
-        __webpack_require__( /*! ../date_box */ 186);
+        __webpack_require__( /*! ../text_box */ 89);
+        __webpack_require__( /*! ../number_box */ 113);
+        __webpack_require__( /*! ../check_box */ 103);
+        __webpack_require__( /*! ../date_box */ 187);
         __webpack_require__( /*! ../button */ 34);
         var FORM_EDITOR_BY_DEFAULT = "dxTextBox",
             FIELD_ITEM_CLASS = "dx-field-item",
@@ -130918,9 +131695,11 @@
                 var colCount = this.option("colCount"),
                     colCountByScreen = this.option("colCountByScreen");
                 if (colCountByScreen) {
-                    var screenFactor = windowUtils.hasWindow() ? windowUtils.getCurrentScreenFactor(this.option("screenByWidth")) : "lg",
-                        currentColCount = colCountByScreen[screenFactor];
-                    colCount = currentColCount || colCount
+                    var screenFactor = this.option("form").getTargetScreenFactor();
+                    if (!screenFactor) {
+                        screenFactor = windowUtils.hasWindow() ? windowUtils.getCurrentScreenFactor(this.option("screenByWidth")) : "lg"
+                    }
+                    colCount = colCountByScreen[screenFactor] || colCount
                 }
                 if ("auto" === colCount) {
                     if (this._cashedColCount) {
@@ -131217,9 +131996,9 @@
             _addWrapperInvalidClass: function(editorInstance) {
                 var wrapperClass = "." + FIELD_ITEM_CONTENT_WRAPPER_CLASS,
                     toggleInvalidClass = function(e) {
-                        $(e.element).parents(wrapperClass).toggleClass(INVALID_CLASS, "focusin" === e.event.type && false === e.component.option("isValid"))
+                        $(e.element).parents(wrapperClass).toggleClass(INVALID_CLASS, e.component._isFocused() && false === e.component.option("isValid"))
                     };
-                editorInstance.on("focusIn", toggleInvalidClass).on("focusOut", toggleInvalidClass)
+                editorInstance.on("focusIn", toggleInvalidClass).on("focusOut", toggleInvalidClass).on("enterKey", toggleInvalidClass)
             },
             _createEditor: function($container, renderOptions, editorOptions) {
                 var editorInstance, that = this,
@@ -131663,7 +132442,7 @@
                 }
             }
         };
-        var _item = __webpack_require__( /*! ../collection/item */ 148);
+        var _item = __webpack_require__( /*! ../collection/item */ 149);
         var _item2 = _interopRequireDefault(_item);
         var _common = __webpack_require__( /*! ../../core/utils/common */ 4);
 
@@ -131733,7 +132512,7 @@
             typeUtils = __webpack_require__( /*! ../core/utils/type */ 1),
             windowUtils = __webpack_require__( /*! ../core/utils/window */ 7),
             extend = __webpack_require__( /*! ../core/utils/extend */ 0).extend,
-            getPublicElement = __webpack_require__( /*! ../core/utils/dom */ 12).getPublicElement,
+            getPublicElement = __webpack_require__( /*! ../core/utils/dom */ 11).getPublicElement,
             fx = __webpack_require__( /*! ../animation/fx */ 39),
             clickEvent = __webpack_require__( /*! ../events/click */ 19),
             translator = __webpack_require__( /*! ../animation/translator */ 26),
@@ -131741,7 +132520,7 @@
             Widget = __webpack_require__( /*! ./widget/ui.widget */ 17),
             eventUtils = __webpack_require__( /*! ../events/utils */ 9),
             CollectionWidget = __webpack_require__( /*! ./collection/ui.collection_widget.edit */ 52),
-            Swipeable = __webpack_require__( /*! ../events/gesture/swipeable */ 150),
+            Swipeable = __webpack_require__( /*! ../events/gesture/swipeable */ 151),
             BindableTemplate = __webpack_require__( /*! ./widget/bindable_template */ 62),
             Deferred = __webpack_require__( /*! ../core/utils/deferred */ 6).Deferred;
         var GALLERY_CLASS = "dx-gallery",
@@ -132596,22 +133375,23 @@
         var _renderer2 = _interopRequireDefault(_renderer);
         var _extend = __webpack_require__( /*! ../../core/utils/extend */ 0);
         var _type = __webpack_require__( /*! ../../core/utils/type */ 1);
-        var _dom = __webpack_require__( /*! ../../core/utils/dom */ 12);
+        var _dom = __webpack_require__( /*! ../../core/utils/dom */ 11);
         var _common = __webpack_require__( /*! ../../core/utils/common */ 4);
         var _component_registrator = __webpack_require__( /*! ../../core/component_registrator */ 8);
         var _component_registrator2 = _interopRequireDefault(_component_registrator);
-        var _empty_template = __webpack_require__( /*! ../widget/empty_template */ 107);
+        var _empty_template = __webpack_require__( /*! ../widget/empty_template */ 109);
         var _empty_template2 = _interopRequireDefault(_empty_template);
-        var _editor = __webpack_require__( /*! ../editor/editor */ 48);
+        var _editor = __webpack_require__( /*! ../editor/editor */ 49);
         var _editor2 = _interopRequireDefault(_editor);
         var _ui = __webpack_require__( /*! ../widget/ui.errors */ 18);
         var _ui2 = _interopRequireDefault(_ui);
         var _callbacks = __webpack_require__( /*! ../../core/utils/callbacks */ 25);
         var _callbacks2 = _interopRequireDefault(_callbacks);
+        var _deferred = __webpack_require__( /*! ../../core/utils/deferred */ 6);
         var _quill_registrator = __webpack_require__( /*! ./quill_registrator */ 548);
         var _quill_registrator2 = _interopRequireDefault(_quill_registrator);
         __webpack_require__( /*! ./converters/delta */ 566);
-        var _converterController = __webpack_require__( /*! ./converterController */ 221);
+        var _converterController = __webpack_require__( /*! ./converterController */ 222);
         var _converterController2 = _interopRequireDefault(_converterController);
         var _wordLists = __webpack_require__( /*! ./matchers/wordLists */ 567);
         var _wordLists2 = _interopRequireDefault(_wordLists);
@@ -132708,11 +133488,17 @@
                 }
             },
             _render: function() {
+                this._prepareConverters();
+                this.callBase()
+            },
+            _prepareQuillRegistrator: function() {
                 if (!this._quillRegistrator) {
                     this._quillRegistrator = new _quill_registrator2.default
                 }
-                this._prepareConverters();
-                this.callBase()
+            },
+            _getRegistrator: function() {
+                this._prepareQuillRegistrator();
+                return this._quillRegistrator
             },
             _prepareConverters: function() {
                 if (!this._deltaConverter) {
@@ -132726,9 +133512,11 @@
                 }
             },
             _renderContentImpl: function() {
+                this._contentRenderedDeferred = new _deferred.Deferred;
                 this.callBase();
                 this._renderHtmlEditor();
-                this._renderFormDialog()
+                this._renderFormDialog();
+                return this._contentRenderedDeferred.promise()
             },
             _renderHtmlEditor: function() {
                 var _this = this;
@@ -132737,7 +133525,7 @@
                 if ((0, _type.isFunction)(customizeModules)) {
                     customizeModules(modulesConfig)
                 }
-                this._quillInstance = this._quillRegistrator.createEditor(this._$htmlContainer[0], {
+                this._quillInstance = this._getRegistrator().createEditor(this._$htmlContainer[0], {
                     placeholder: this.option("placeholder"),
                     readOnly: this.option("readOnly") || this.option("disabled"),
                     modules: modulesConfig,
@@ -132756,7 +133544,7 @@
                 return this._$templateResult && this._$templateResult.length
             },
             _getModulesConfig: function() {
-                var wordListMatcher = (0, _wordLists2.default)(this._quillRegistrator.getQuill());
+                var wordListMatcher = (0, _wordLists2.default)(this._getRegistrator().getQuill());
                 var modulesConfig = (0, _extend.extend)({
                     toolbar: this._getModuleConfigByOption("toolbar"),
                     variables: this._getModuleConfigByOption("variables"),
@@ -132795,7 +133583,7 @@
             _getCustomModules: function() {
                 var _this2 = this;
                 var modules = {};
-                var moduleNames = this._quillRegistrator.getRegisteredModuleNames();
+                var moduleNames = this._getRegistrator().getRegisteredModuleNames();
                 moduleNames.forEach(function(modulePath) {
                     modules[modulePath] = _this2._getBaseModuleConfig()
                 });
@@ -132807,6 +133595,13 @@
                 if (this.option("value") !== value) {
                     this._isEditorUpdating = true;
                     this.option("value", value)
+                }
+                this._finalizeContentRendering()
+            },
+            _finalizeContentRendering: function() {
+                if (this._contentRenderedDeferred) {
+                    this._contentRenderedDeferred.resolve();
+                    this._contentRenderedDeferred = void 0
                 }
             },
             _updateValueByType: function(valueType, value) {
@@ -132921,11 +133716,11 @@
                 this.cleanCallback.add(callback)
             },
             register: function(components) {
-                this._quillRegistrator.registerModules(components);
+                this._getRegistrator().registerModules(components);
                 this.repaint()
             },
             get: function(modulePath) {
-                return this._quillRegistrator.getQuill().import(modulePath)
+                return this._getRegistrator().getQuill().import(modulePath)
             },
             getQuillInstance: function() {
                 return this._quillInstance
@@ -133426,9 +134221,9 @@
                             this.domNode.innerText = value.text
                         }
                         if (value.target) {
-                            this.domNode.removeAttribute("target")
-                        } else {
                             this.domNode.setAttribute("target", "_blank")
+                        } else {
+                            this.domNode.removeAttribute("target")
                         }
                         this.domNode.setAttribute("href", value.href)
                     } else {
@@ -133543,9 +134338,9 @@
         var _quill_importer = __webpack_require__( /*! ../quill_importer */ 57);
         var _renderer = __webpack_require__( /*! ../../../core/renderer */ 2);
         var _renderer2 = _interopRequireDefault(_renderer);
-        var _toolbar = __webpack_require__( /*! ../../toolbar */ 159);
+        var _toolbar = __webpack_require__( /*! ../../toolbar */ 160);
         var _toolbar2 = _interopRequireDefault(_toolbar);
-        __webpack_require__( /*! ../../select_box */ 91);
+        __webpack_require__( /*! ../../select_box */ 92);
         __webpack_require__( /*! ../../color_box/color_view */ 298);
         var _widget_collector = __webpack_require__( /*! ./widget_collector */ 560);
         var _widget_collector2 = _interopRequireDefault(_widget_collector);
@@ -133553,7 +134348,7 @@
         var _type = __webpack_require__( /*! ../../../core/utils/type */ 1);
         var _extend = __webpack_require__( /*! ../../../core/utils/extend */ 0);
         var _message = __webpack_require__( /*! ../../../localization/message */ 15);
-        var _inflector = __webpack_require__( /*! ../../../core/utils/inflector */ 31);
+        var _inflector = __webpack_require__( /*! ../../../core/utils/inflector */ 32);
         var _events_engine = __webpack_require__( /*! ../../../events/core/events_engine */ 5);
         var _events_engine2 = _interopRequireDefault(_events_engine);
         var _utils = __webpack_require__( /*! ../../../events/utils */ 9);
@@ -133726,28 +134521,31 @@
                 value: function() {
                     var _this5 = this;
                     return function() {
+                        _this5.quill.focus();
                         var selection = _this5.quill.getSelection();
-                        var formats = _this5.quill.getFormat();
+                        var hasEmbedContent = _this5._hasEmbedContent(selection);
+                        var formats = selection ? _this5.quill.getFormat() : {};
                         var formData = {
                             href: formats.link || "",
-                            text: selection ? _this5.quill.getText(selection) : "",
+                            text: selection && !hasEmbedContent ? _this5.quill.getText(selection) : "",
                             target: formats.hasOwnProperty("target") ? !!formats.target : true
                         };
                         _this5._editorInstance.formDialogOption("title", (0, _message.format)(DIALOG_LINK_CAPTION));
                         var promise = _this5._editorInstance.showFormDialog({
                             formData: formData,
-                            items: _this5._linkFormItems
+                            items: _this5._getLinkFormItems(selection)
                         });
                         promise.done(function(formData) {
-                            if (selection && !formats.link) {
-                                var text = formData.text;
+                            if (selection && !hasEmbedContent) {
+                                var text = formData.text || formData.href;
                                 var index = selection.index,
                                     length = selection.length;
-                                formData.text = "";
+                                formData.text = void 0;
                                 length && _this5.quill.deleteText(index, length, SILENT_ACTION);
                                 _this5.quill.insertText(index, text, "link", formData, USER_ACTION);
                                 _this5.quill.setSelection(index + text.length, 0, USER_ACTION)
                             } else {
+                                formData.text = !selection && !formData.text ? formData.href : formData.text;
                                 _this5.quill.format("link", formData, USER_ACTION)
                             }
                         });
@@ -133755,6 +134553,37 @@
                             _this5.quill.focus()
                         })
                     }
+                }
+            }, {
+                key: "_hasEmbedContent",
+                value: function(selection) {
+                    return !!selection && this.quill.getText(selection).trim().length < selection.length
+                }
+            }, {
+                key: "_getLinkFormItems",
+                value: function(selection) {
+                    return [{
+                        dataField: "href",
+                        label: {
+                            text: (0, _message.format)(DIALOG_LINK_FIELD_URL)
+                        }
+                    }, {
+                        dataField: "text",
+                        label: {
+                            text: (0, _message.format)(DIALOG_LINK_FIELD_TEXT)
+                        },
+                        visible: !this._hasEmbedContent(selection)
+                    }, {
+                        dataField: "target",
+                        editorType: "dxCheckBox",
+                        editorOptions: {
+                            text: (0, _message.format)(DIALOG_LINK_FIELD_TARGET)
+                        },
+                        cssClass: DIALOG_LINK_FIELD_TARGET_CLASS,
+                        label: {
+                            visible: false
+                        }
+                    }]
                 }
             }, {
                 key: "_prepareImageHandler",
@@ -134139,31 +134968,6 @@
                     }
                 }
             }, {
-                key: "_linkFormItems",
-                get: function() {
-                    return [{
-                        dataField: "href",
-                        label: {
-                            text: (0, _message.format)(DIALOG_LINK_FIELD_URL)
-                        }
-                    }, {
-                        dataField: "text",
-                        label: {
-                            text: (0, _message.format)(DIALOG_LINK_FIELD_TEXT)
-                        }
-                    }, {
-                        dataField: "target",
-                        editorType: "dxCheckBox",
-                        editorOptions: {
-                            text: (0, _message.format)(DIALOG_LINK_FIELD_TARGET)
-                        },
-                        cssClass: DIALOG_LINK_FIELD_TARGET_CLASS,
-                        label: {
-                            visible: false
-                        }
-                    }]
-                }
-            }, {
                 key: "_embedFormatIndex",
                 get: function() {
                     var selection = this.quill.getSelection();
@@ -134235,7 +135039,7 @@
     function(module, exports, __webpack_require__) {
         var ToolbarStrategy = __webpack_require__( /*! ./ui.toolbar.strategy */ 310),
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
-            ActionSheet = __webpack_require__( /*! ../action_sheet */ 211);
+            ActionSheet = __webpack_require__( /*! ../action_sheet */ 212);
         var ActionSheetStrategy = ToolbarStrategy.inherit({
             NAME: "actionSheet",
             _getMenuItemTemplate: function() {
@@ -134281,7 +135085,7 @@
         var extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
             ToolbarStrategy = __webpack_require__( /*! ./ui.toolbar.strategy */ 310),
             ToolbarMenu = __webpack_require__( /*! ./ui.toolbar.menu */ 559),
-            DropDownMenu = __webpack_require__( /*! ../drop_down_menu */ 189);
+            DropDownMenu = __webpack_require__( /*! ../drop_down_menu */ 190);
         var MENU_INVISIBLE_CLASS = "dx-state-invisible";
         var DropDownMenuStrategy = ToolbarStrategy.inherit({
             NAME: "dropDownMenu",
@@ -134347,7 +135151,7 @@
         var $ = __webpack_require__( /*! ../../core/renderer */ 2),
             registerComponent = __webpack_require__( /*! ../../core/component_registrator */ 8),
             each = __webpack_require__( /*! ../../core/utils/iterator */ 3).each,
-            List = __webpack_require__( /*! ../list/ui.list.base */ 213);
+            List = __webpack_require__( /*! ../list/ui.list.base */ 214);
         var TOOLBAR_MENU_ACTION_CLASS = "dx-toolbar-menu-action",
             TOOLBAR_HIDDEN_BUTTON_CLASS = "dx-toolbar-hidden-button",
             TOOLBAR_MENU_SECTION_CLASS = "dx-toolbar-menu-section",
@@ -134537,7 +135341,7 @@
         var _events_engine2 = _interopRequireDefault(_events_engine);
         var _utils = __webpack_require__( /*! ../../../events/utils */ 9);
         var _iterator = __webpack_require__( /*! ../../../core/utils/iterator */ 3);
-        var _browser = __webpack_require__( /*! ../../../core/utils/browser */ 33);
+        var _browser = __webpack_require__( /*! ../../../core/utils/browser */ 31);
         var _browser2 = _interopRequireDefault(_browser);
         var _window = __webpack_require__( /*! ../../../core/utils/window */ 7);
 
@@ -135035,7 +135839,7 @@
         var _translator = __webpack_require__( /*! ../../../animation/translator */ 26);
         var _devices = __webpack_require__( /*! ../../../core/devices */ 16);
         var _devices2 = _interopRequireDefault(_devices);
-        var _resizable = __webpack_require__( /*! ../../resizable */ 170);
+        var _resizable = __webpack_require__( /*! ../../resizable */ 172);
         var _resizable2 = _interopRequireDefault(_resizable);
 
         function _interopRequireDefault(obj) {
@@ -135268,7 +136072,7 @@
         var _data = __webpack_require__( /*! ../../../core/utils/data */ 20);
         var _type = __webpack_require__( /*! ../../../core/utils/type */ 1);
         var _extend = __webpack_require__( /*! ../../../core/utils/extend */ 0);
-        var _dom = __webpack_require__( /*! ../../../core/utils/dom */ 12);
+        var _dom = __webpack_require__( /*! ../../../core/utils/dom */ 11);
         var _events = __webpack_require__( /*! ../../../events */ 277);
         var _popup = __webpack_require__( /*! ./popup */ 311);
         var _popup2 = _interopRequireDefault(_popup);
@@ -135773,7 +136577,7 @@
                 return Constructor
             }
         }();
-        var _converterController = __webpack_require__( /*! ../converterController */ 221);
+        var _converterController = __webpack_require__( /*! ../converterController */ 222);
         var _converterController2 = _interopRequireDefault(_converterController);
         var _quill_importer = __webpack_require__( /*! ../quill_importer */ 57);
         var _type = __webpack_require__( /*! ../../../core/utils/type */ 1);
@@ -136061,8 +136865,12 @@
         var _popup2 = _interopRequireDefault(_popup);
         var _form = __webpack_require__( /*! ../../form */ 137);
         var _form2 = _interopRequireDefault(_form);
+        var _dom_adapter = __webpack_require__( /*! ../../../core/dom_adapter */ 13);
+        var _dom = __webpack_require__( /*! ../../../core/utils/dom */ 11);
         var _deferred = __webpack_require__( /*! ../../../core/utils/deferred */ 6);
         var _message = __webpack_require__( /*! ../../../localization/message */ 15);
+        var _browser = __webpack_require__( /*! ../../../core/utils/browser */ 31);
+        var _browser2 = _interopRequireDefault(_browser);
 
         function _interopRequireDefault(obj) {
             return obj && obj.__esModule ? obj : {
@@ -136122,8 +136930,11 @@
                         contentTemplate: function(contentElem) {
                             var $formContainer = (0, _renderer2.default)("<div>").appendTo(contentElem);
                             _this._renderForm($formContainer, {
-                                onEditorEnterKey: function(e) {
-                                    _this.hide(e.component.option("formData"))
+                                onEditorEnterKey: function(_ref) {
+                                    var component = _ref.component,
+                                        dataField = _ref.dataField;
+                                    _this._updateEditorValue(component, dataField);
+                                    _this.hide(component.option("formData"))
                                 },
                                 customizeItem: function(item) {
                                     if ("simple" === item.itemType) {
@@ -136158,6 +136969,17 @@
                             }
                         }]
                     }, this._popupUserConfig)
+                }
+            }, {
+                key: "_updateEditorValue",
+                value: function(component, dataField) {
+                    if (_browser2.default.msie && parseInt(_browser2.default.version) <= 11) {
+                        var editor = component.getEditor(dataField);
+                        var activeElement = (0, _dom_adapter.getActiveElement)();
+                        if (editor.$element().find(activeElement).length) {
+                            (0, _dom.resetActiveElement)()
+                        }
+                    }
                 }
             }, {
                 key: "_renderForm",
@@ -136204,7 +137026,7 @@
             window = __webpack_require__( /*! ../core/utils/window */ 7).getWindow(),
             support = __webpack_require__( /*! ../core/utils/support */ 45),
             commonUtils = __webpack_require__( /*! ../core/utils/common */ 4),
-            domUtils = __webpack_require__( /*! ../core/utils/dom */ 12),
+            domUtils = __webpack_require__( /*! ../core/utils/dom */ 11),
             each = __webpack_require__( /*! ../core/utils/iterator */ 3).each,
             extend = __webpack_require__( /*! ../core/utils/extend */ 0).extend,
             inkRipple = __webpack_require__( /*! ./widget/utils.ink_ripple */ 68),
@@ -136212,12 +137034,12 @@
             devices = __webpack_require__( /*! ../core/devices */ 16),
             registerComponent = __webpack_require__( /*! ../core/component_registrator */ 8),
             eventUtils = __webpack_require__( /*! ../events/utils */ 9),
-            DropDownList = __webpack_require__( /*! ./drop_down_editor/ui.drop_down_list */ 212),
+            DropDownList = __webpack_require__( /*! ./drop_down_editor/ui.drop_down_list */ 213),
             themes = __webpack_require__( /*! ./themes */ 28),
             clickEvent = __webpack_require__( /*! ../events/click */ 19),
             Popover = __webpack_require__( /*! ./popover */ 135),
-            TextBox = __webpack_require__( /*! ./text_box */ 88),
-            ChildDefaultTemplate = __webpack_require__( /*! ./widget/child_default_template */ 113),
+            TextBox = __webpack_require__( /*! ./text_box */ 89),
+            ChildDefaultTemplate = __webpack_require__( /*! ./widget/child_default_template */ 131),
             translator = __webpack_require__( /*! ../animation/translator */ 26);
         var LOOKUP_CLASS = "dx-lookup",
             LOOKUP_SEARCH_CLASS = "dx-lookup-search",
@@ -136502,8 +137324,11 @@
                 if (selectedIndex === -1 || flipped) {
                     return
                 }
-                var selectedListItem = $(this._list.element()).find("." + LIST_ITEM_SELECTED_CLASS),
-                    differenceOfHeights = (selectedListItem.height() - $(this.element()).height()) / 2,
+                var selectedListItem = $(this._list.element()).find("." + LIST_ITEM_SELECTED_CLASS);
+                if (selectedListItem.offset().top < 0) {
+                    this._scrollToSelectedItem()
+                }
+                var differenceOfHeights = (selectedListItem.height() - $(this.element()).height()) / 2,
                     popupContentParent = $(this._popup.content()).parent(),
                     differenceOfOffsets = selectedListItem.offset().top - popupContentParent.offset().top,
                     lookupTop = $(this.element()).offset().top,
@@ -136905,20 +137730,20 @@
     function(module, exports, __webpack_require__) {
         var $ = __webpack_require__( /*! ../core/renderer */ 2),
             eventsEngine = __webpack_require__( /*! ../events/core/events_engine */ 5),
-            Promise = __webpack_require__( /*! ../core/polyfills/promise */ 109),
+            Promise = __webpack_require__( /*! ../core/polyfills/promise */ 83),
             fromPromise = __webpack_require__( /*! ../core/utils/deferred */ 6).fromPromise,
             registerComponent = __webpack_require__( /*! ../core/component_registrator */ 8),
             errors = __webpack_require__( /*! ./widget/ui.errors */ 18),
             devices = __webpack_require__( /*! ../core/devices */ 16),
             Widget = __webpack_require__( /*! ./widget/ui.widget */ 17),
-            inflector = __webpack_require__( /*! ../core/utils/inflector */ 31),
+            inflector = __webpack_require__( /*! ../core/utils/inflector */ 32),
             each = __webpack_require__( /*! ../core/utils/iterator */ 3).each,
             extend = __webpack_require__( /*! ../core/utils/extend */ 0).extend,
-            inArray = __webpack_require__( /*! ../core/utils/array */ 11).inArray,
+            inArray = __webpack_require__( /*! ../core/utils/array */ 12).inArray,
             isNumeric = __webpack_require__( /*! ../core/utils/type */ 1).isNumeric,
             eventUtils = __webpack_require__( /*! ../events/utils */ 9),
             pointerEvents = __webpack_require__( /*! ../events/pointer */ 24),
-            wrapToArray = __webpack_require__( /*! ../core/utils/array */ 11).wrapToArray;
+            wrapToArray = __webpack_require__( /*! ../core/utils/array */ 12).wrapToArray;
         var PROVIDERS = {
             googleStatic: __webpack_require__( /*! ./map/provider.google_static */ 571),
             google: __webpack_require__( /*! ./map/provider.dynamic.google */ 572),
@@ -137204,9 +138029,9 @@
     function(module, exports, __webpack_require__) {
         var each = __webpack_require__( /*! ../../core/utils/iterator */ 3).each,
             eventsEngine = __webpack_require__( /*! ../../events/core/events_engine */ 5),
-            Promise = __webpack_require__( /*! ../../core/polyfills/promise */ 109),
+            Promise = __webpack_require__( /*! ../../core/polyfills/promise */ 83),
             Provider = __webpack_require__( /*! ./provider */ 312),
-            Color = __webpack_require__( /*! ../../color */ 93),
+            Color = __webpack_require__( /*! ../../color */ 95),
             clickEvent = __webpack_require__( /*! ../../events/click */ 19);
         var GOOGLE_STATIC_URL = "https://maps.google.com/maps/api/staticmap?";
         var GoogleStaticProvider = Provider.inherit({
@@ -137356,12 +138181,12 @@
             window = __webpack_require__( /*! ../../core/utils/window */ 7).getWindow(),
             noop = __webpack_require__( /*! ../../core/utils/common */ 4).noop,
             devices = __webpack_require__( /*! ../../core/devices */ 16),
-            Promise = __webpack_require__( /*! ../../core/polyfills/promise */ 109),
+            Promise = __webpack_require__( /*! ../../core/polyfills/promise */ 83),
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
             map = __webpack_require__( /*! ../../core/utils/iterator */ 3).map,
             DynamicProvider = __webpack_require__( /*! ./provider.dynamic */ 313),
             errors = __webpack_require__( /*! ../widget/ui.errors */ 18),
-            Color = __webpack_require__( /*! ../../color */ 93),
+            Color = __webpack_require__( /*! ../../color */ 95),
             ajax = __webpack_require__( /*! ../../core/utils/ajax */ 63),
             isDefined = __webpack_require__( /*! ../../core/utils/type */ 1).isDefined;
         var GOOGLE_MAP_READY = "_googleScriptReady";
@@ -137744,12 +138569,12 @@
     function(module, exports, __webpack_require__) {
         var noop = __webpack_require__( /*! ../../core/utils/common */ 4).noop,
             window = __webpack_require__( /*! ../../core/utils/window */ 7).getWindow(),
-            Promise = __webpack_require__( /*! ../../core/polyfills/promise */ 109),
+            Promise = __webpack_require__( /*! ../../core/polyfills/promise */ 83),
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
             errors = __webpack_require__( /*! ../widget/ui.errors */ 18),
             iteratorUtils = __webpack_require__( /*! ../../core/utils/iterator */ 3),
             DynamicProvider = __webpack_require__( /*! ./provider.dynamic */ 313),
-            Color = __webpack_require__( /*! ../../color */ 93),
+            Color = __webpack_require__( /*! ../../color */ 95),
             ajax = __webpack_require__( /*! ../../core/utils/ajax */ 63),
             isDefined = __webpack_require__( /*! ../../core/utils/type */ 1).isDefined;
         var BING_MAP_READY = "_bingScriptReady",
@@ -138141,7 +138966,7 @@
         var registerComponent = __webpack_require__( /*! ../core/component_registrator */ 8),
             extend = __webpack_require__( /*! ../core/utils/extend */ 0).extend,
             NavBarItem = __webpack_require__( /*! ./nav_bar/item */ 575),
-            Tabs = __webpack_require__( /*! ./tabs */ 191);
+            Tabs = __webpack_require__( /*! ./tabs */ 192);
         var NAVBAR_CLASS = "dx-navbar",
             ITEM_CLASS = "dx-item-content",
             NAVBAR_ITEM_CLASS = "dx-nav-item",
@@ -138249,13 +139074,11 @@
         var _utils2 = _interopRequireDefault(_utils);
         var _component_registrator = __webpack_require__( /*! ../../core/component_registrator */ 8);
         var _component_registrator2 = _interopRequireDefault(_component_registrator);
-        var _child_default_template = __webpack_require__( /*! ../widget/child_default_template */ 113);
-        var _child_default_template2 = _interopRequireDefault(_child_default_template);
         var _uiCollection_widget = __webpack_require__( /*! ../collection/ui.collection_widget.edit */ 52);
         var _uiCollection_widget2 = _interopRequireDefault(_uiCollection_widget);
-        var _ui = __webpack_require__( /*! ../editor/ui.data_expression */ 215);
+        var _ui = __webpack_require__( /*! ../editor/ui.data_expression */ 216);
         var _ui2 = _interopRequireDefault(_ui);
-        var _editor = __webpack_require__( /*! ../editor/editor */ 48);
+        var _editor = __webpack_require__( /*! ../editor/editor */ 49);
         var _editor2 = _interopRequireDefault(_editor);
 
         function _interopRequireDefault(obj) {
@@ -138481,12 +139304,6 @@
                     _get(RadioGroup.prototype.__proto__ || Object.getPrototypeOf(RadioGroup.prototype), "_initMarkup", this).call(this)
                 }
             }, {
-                key: "_initTemplates",
-                value: function() {
-                    _get(RadioGroup.prototype.__proto__ || Object.getPrototypeOf(RadioGroup.prototype), "_initTemplates", this).call(this);
-                    this._defaultTemplates.item = new _child_default_template2.default("item", this)
-                }
-            }, {
                 key: "_itemClickHandler",
                 value: function(_ref) {
                     var itemElement = _ref.itemElement,
@@ -138576,7 +139393,7 @@
                         accessKey: this.option("accessKey"),
                         dataSource: this._dataSource,
                         focusStateEnabled: this.option("focusStateEnabled"),
-                        itemTemplate: this._getTemplateByOption("itemTemplate"),
+                        itemTemplate: this.option("itemTemplate"),
                         keyExpr: this._getCollectionKeyExpr(),
                         noDataText: "",
                         onContentReady: function() {
@@ -138935,20 +139752,20 @@
     function(module, exports, __webpack_require__) {
         var $ = __webpack_require__( /*! ../../core/renderer */ 2),
             eventsEngine = __webpack_require__( /*! ../../events/core/events_engine */ 5),
-            domUtils = __webpack_require__( /*! ../../core/utils/dom */ 12),
+            domUtils = __webpack_require__( /*! ../../core/utils/dom */ 11),
             numberLocalization = __webpack_require__( /*! ../../localization/number */ 51),
             devices = __webpack_require__( /*! ../../core/devices */ 16),
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
             applyServerDecimalSeparator = __webpack_require__( /*! ../../core/utils/common */ 4).applyServerDecimalSeparator,
             registerComponent = __webpack_require__( /*! ../../core/component_registrator */ 8),
-            TrackBar = __webpack_require__( /*! ../track_bar */ 219),
+            TrackBar = __webpack_require__( /*! ../track_bar */ 220),
             eventUtils = __webpack_require__( /*! ../../events/utils */ 9),
             pointerEvents = __webpack_require__( /*! ../../events/pointer */ 24),
-            feedbackEvents = __webpack_require__( /*! ../../events/core/emitter.feedback */ 125),
+            feedbackEvents = __webpack_require__( /*! ../../events/core/emitter.feedback */ 124),
             SliderHandle = __webpack_require__( /*! ./ui.slider_handle */ 316),
             inkRipple = __webpack_require__( /*! ../widget/utils.ink_ripple */ 68),
             clickEvent = __webpack_require__( /*! ../../events/click */ 19),
-            Swipeable = __webpack_require__( /*! ../../events/gesture/swipeable */ 150),
+            Swipeable = __webpack_require__( /*! ../../events/gesture/swipeable */ 151),
             themes = __webpack_require__( /*! ../themes */ 28),
             Deferred = __webpack_require__( /*! ../../core/utils/deferred */ 6).Deferred;
         var SLIDER_CLASS = "dx-slider";
@@ -139443,15 +140260,19 @@
         var _extend = __webpack_require__( /*! ../../core/utils/extend */ 0);
         var _guid = __webpack_require__( /*! ../../core/guid */ 42);
         var _guid2 = _interopRequireDefault(_guid);
+        var _ready_callbacks = __webpack_require__( /*! ../../core/utils/ready_callbacks */ 48);
+        var _ready_callbacks2 = _interopRequireDefault(_ready_callbacks);
         var _ui = __webpack_require__( /*! ../widget/ui.widget */ 17);
         var _ui2 = _interopRequireDefault(_ui);
         var _speed_dial_main_item = __webpack_require__( /*! ./speed_dial_main_item */ 581);
+        var _swatch_container = __webpack_require__( /*! ../widget/swatch_container */ 148);
 
         function _interopRequireDefault(obj) {
             return obj && obj.__esModule ? obj : {
                 "default": obj
             }
         }
+        var ready = _ready_callbacks2.default.add;
         var SpeedDialAction = _ui2.default.inherit({
             _getDefaultOptions: function() {
                 return (0, _extend.extend)(this.callBase(), {
@@ -139505,7 +140326,14 @@
                 }
             },
             _render: function() {
-                (0, _speed_dial_main_item.initAction)(this)
+                var _this = this;
+                if (!(0, _swatch_container.getSwatchContainer)(this.$element())) {
+                    ready(function() {
+                        return (0, _speed_dial_main_item.initAction)(_this)
+                    })
+                } else {
+                    (0, _speed_dial_main_item.initAction)(this)
+                }
             },
             _dispose: function() {
                 (0, _speed_dial_main_item.disposeAction)(this._options.id);
@@ -139530,7 +140358,7 @@
         var _events_engine2 = _interopRequireDefault(_events_engine);
         var _ui = __webpack_require__( /*! ../widget/ui.errors */ 18);
         var _ui2 = _interopRequireDefault(_ui);
-        var _swatch_container = __webpack_require__( /*! ../widget/swatch_container */ 171);
+        var _swatch_container = __webpack_require__( /*! ../widget/swatch_container */ 148);
         var _speed_dial_item = __webpack_require__( /*! ./speed_dial_item */ 582);
         var _speed_dial_item2 = _interopRequireDefault(_speed_dial_item);
         var _themes = __webpack_require__( /*! ../themes */ 28);
@@ -139878,14 +140706,14 @@
             extend = __webpack_require__( /*! ../core/utils/extend */ 0).extend,
             inkRipple = __webpack_require__( /*! ./widget/utils.ink_ripple */ 68),
             registerComponent = __webpack_require__( /*! ../core/component_registrator */ 8),
-            Editor = __webpack_require__( /*! ./editor/editor */ 48),
+            Editor = __webpack_require__( /*! ./editor/editor */ 49),
             eventUtils = __webpack_require__( /*! ../events/utils */ 9),
-            feedbackEvents = __webpack_require__( /*! ../events/core/emitter.feedback */ 125),
+            feedbackEvents = __webpack_require__( /*! ../events/core/emitter.feedback */ 124),
             themes = __webpack_require__( /*! ./themes */ 28),
             fx = __webpack_require__( /*! ../animation/fx */ 39),
             messageLocalization = __webpack_require__( /*! ../localization/message */ 15),
             clickEvent = __webpack_require__( /*! ../events/click */ 19),
-            Swipeable = __webpack_require__( /*! ../events/gesture/swipeable */ 150),
+            Swipeable = __webpack_require__( /*! ../events/gesture/swipeable */ 151),
             Deferred = __webpack_require__( /*! ../core/utils/deferred */ 6).Deferred;
         var SWITCH_CLASS = "dx-switch",
             SWITCH_WRAPPER_CLASS = SWITCH_CLASS + "-wrapper",
@@ -140229,13 +141057,13 @@
         var $ = __webpack_require__( /*! ../core/renderer */ 2),
             devices = __webpack_require__( /*! ../core/devices */ 16),
             registerComponent = __webpack_require__( /*! ../core/component_registrator */ 8),
-            inflector = __webpack_require__( /*! ../core/utils/inflector */ 31),
+            inflector = __webpack_require__( /*! ../core/utils/inflector */ 32),
             iteratorUtils = __webpack_require__( /*! ../core/utils/iterator */ 3),
             isDefined = __webpack_require__( /*! ../core/utils/type */ 1).isDefined,
             extend = __webpack_require__( /*! ../core/utils/extend */ 0).extend,
             windowUtils = __webpack_require__( /*! ../core/utils/window */ 7),
-            getPublicElement = __webpack_require__( /*! ../core/utils/dom */ 12).getPublicElement,
-            ScrollView = __webpack_require__( /*! ./scroll_view */ 158),
+            getPublicElement = __webpack_require__( /*! ../core/utils/dom */ 11).getPublicElement,
+            ScrollView = __webpack_require__( /*! ./scroll_view */ 159),
             CollectionWidget = __webpack_require__( /*! ./collection/ui.collection_widget.edit */ 52);
         var TILEVIEW_CLASS = "dx-tileview",
             TILEVIEW_CONTAINER_CLASS = "dx-tileview-wrapper",
@@ -140642,7 +141470,7 @@
         var _window = __webpack_require__( /*! ../../../core/utils/window */ 7);
         var _ui = __webpack_require__( /*! ../../widget/ui.errors */ 18);
         var _ui2 = _interopRequireDefault(_ui);
-        var _converterController = __webpack_require__( /*! ../converterController */ 221);
+        var _converterController = __webpack_require__( /*! ../converterController */ 222);
         var _converterController2 = _interopRequireDefault(_converterController);
 
         function _interopRequireDefault(obj) {
@@ -140723,8 +141551,8 @@
             typeUtils = __webpack_require__( /*! ../../core/utils/type */ 1),
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
             errors = __webpack_require__( /*! ../../ui/widget/ui.errors */ 18),
-            getOperationBySearchMode = __webpack_require__( /*! ../../ui/widget/ui.search_box_mixin */ 214).getOperationBySearchMode,
-            inArray = __webpack_require__( /*! ../../core/utils/array */ 11).inArray,
+            getOperationBySearchMode = __webpack_require__( /*! ../../ui/widget/ui.search_box_mixin */ 215).getOperationBySearchMode,
+            inArray = __webpack_require__( /*! ../../core/utils/array */ 12).inArray,
             query = __webpack_require__( /*! ../../data/query */ 41),
             storeHelper = __webpack_require__( /*! ../../data/store_helper */ 80),
             HierarchicalDataConverter = __webpack_require__( /*! ./ui.data_converter */ 589);
@@ -141347,7 +142175,7 @@
         };
         var $ = __webpack_require__( /*! ../../core/renderer */ 2),
             map = __webpack_require__( /*! ../../core/utils/iterator */ 3).map,
-            PlainEditStrategy = __webpack_require__( /*! ../collection/ui.collection_widget.edit.strategy.plain */ 179);
+            PlainEditStrategy = __webpack_require__( /*! ../collection/ui.collection_widget.edit.strategy.plain */ 180);
         var MenuBaseEditStrategy = PlainEditStrategy.inherit({
             _getPlainItems: function() {
                 return map(this._collectionWidget.option("items"), function getMenuItems(item) {
@@ -141400,7 +142228,7 @@
         var _iterator = __webpack_require__( /*! ../../core/utils/iterator */ 3);
         var _extend = __webpack_require__( /*! ../../core/utils/extend */ 0);
         var _console = __webpack_require__( /*! ../../core/utils/console */ 81);
-        var _browser = __webpack_require__( /*! ../../core/utils/browser */ 33);
+        var _browser = __webpack_require__( /*! ../../core/utils/browser */ 31);
         var _browser2 = _interopRequireDefault(_browser);
         var _ui = __webpack_require__( /*! ../widget/ui.widget */ 17);
         var _ui2 = _interopRequireDefault(_ui);
@@ -141827,80 +142655,97 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var $ = __webpack_require__( /*! ../../core/renderer */ 2),
-            domAdapter = __webpack_require__( /*! ../../core/dom_adapter */ 13),
-            eventsEngine = __webpack_require__( /*! ../../events/core/events_engine */ 5),
-            messageLocalization = __webpack_require__( /*! ../../localization/message */ 15),
-            clickEvent = __webpack_require__( /*! ../../events/click */ 19),
-            commonUtils = __webpack_require__( /*! ../../core/utils/common */ 4),
-            windowUtils = __webpack_require__( /*! ../../core/utils/window */ 7),
-            typeUtils = __webpack_require__( /*! ../../core/utils/type */ 1),
-            extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
-            each = __webpack_require__( /*! ../../core/utils/iterator */ 3).each,
-            getPublicElement = __webpack_require__( /*! ../../core/utils/dom */ 12).getPublicElement,
-            CheckBox = __webpack_require__( /*! ../check_box */ 101),
-            HierarchicalCollectionWidget = __webpack_require__( /*! ../hierarchical_collection/ui.hierarchical_collection_widget */ 322),
-            eventUtils = __webpack_require__( /*! ../../events/utils */ 9),
-            pointerEvents = __webpack_require__( /*! ../../events/pointer */ 24),
-            dblclickEvent = __webpack_require__( /*! ../../events/double_click */ 149),
-            fx = __webpack_require__( /*! ../../animation/fx */ 39),
-            Scrollable = __webpack_require__( /*! ../scroll_view/ui.scrollable */ 90),
-            LoadIndicator = __webpack_require__( /*! ../load_indicator */ 89),
-            deferredUtils = __webpack_require__( /*! ../../core/utils/deferred */ 6),
-            Deferred = deferredUtils.Deferred,
-            when = deferredUtils.when;
-        var WIDGET_CLASS = "dx-treeview",
-            NODE_CONTAINER_CLASS = "dx-treeview-node-container",
-            OPENED_NODE_CONTAINER_CLASS = "dx-treeview-node-container-opened",
-            NODE_CLASS = "dx-treeview-node",
-            ITEM_CLASS = "dx-treeview-item",
-            ITEM_WITH_CHECKBOX_CLASS = "dx-treeview-item-with-checkbox",
-            ITEM_WITHOUT_CHECKBOX_CLASS = "dx-treeview-item-without-checkbox",
-            ITEM_DATA_KEY = "dx-treeview-item-data",
-            IS_LEAF = "dx-treeview-node-is-leaf",
-            EXPAND_EVENT_NAMESPACE = "dxTreeView_expand",
-            TOGGLE_ITEM_VISIBILITY_CLASS = "dx-treeview-toggle-item-visibility",
-            LOAD_INDICATOR_CLASS = "dx-treeview-loadindicator",
-            LOAD_INDICATOR_WRAPPER_CLASS = "dx-treeview-loadindicator-wrapper",
-            NODE_LOAD_INDICATOR_CLASS = "dx-treeview-node-loadindicator",
-            TOGGLE_ITEM_VISIBILITY_OPENED_CLASS = "dx-treeview-toggle-item-visibility-opened",
-            SELECT_ALL_ITEM_CLASS = "dx-treeview-select-all-item",
-            DISABLED_STATE_CLASS = "dx-state-disabled",
-            SELECTED_ITEM_CLASS = "dx-state-selected",
-            DATA_ITEM_ID = "data-item-id";
-        var TreeViewBase = HierarchicalCollectionWidget.inherit({
+        var _renderer = __webpack_require__( /*! ../../core/renderer */ 2);
+        var _renderer2 = _interopRequireDefault(_renderer);
+        var _dom_adapter = __webpack_require__( /*! ../../core/dom_adapter */ 13);
+        var _events_engine = __webpack_require__( /*! ../../events/core/events_engine */ 5);
+        var _message = __webpack_require__( /*! ../../localization/message */ 15);
+        var _message2 = _interopRequireDefault(_message);
+        var _click = __webpack_require__( /*! ../../events/click */ 19);
+        var _click2 = _interopRequireDefault(_click);
+        var _common = __webpack_require__( /*! ../../core/utils/common */ 4);
+        var _common2 = _interopRequireDefault(_common);
+        var _window = __webpack_require__( /*! ../../core/utils/window */ 7);
+        var _window2 = _interopRequireDefault(_window);
+        var _type = __webpack_require__( /*! ../../core/utils/type */ 1);
+        var _extend = __webpack_require__( /*! ../../core/utils/extend */ 0);
+        var _iterator = __webpack_require__( /*! ../../core/utils/iterator */ 3);
+        var _dom = __webpack_require__( /*! ../../core/utils/dom */ 11);
+        var _check_box = __webpack_require__( /*! ../check_box */ 103);
+        var _check_box2 = _interopRequireDefault(_check_box);
+        var _ui = __webpack_require__( /*! ../hierarchical_collection/ui.hierarchical_collection_widget */ 322);
+        var _ui2 = _interopRequireDefault(_ui);
+        var _utils = __webpack_require__( /*! ../../events/utils */ 9);
+        var _pointer = __webpack_require__( /*! ../../events/pointer */ 24);
+        var _double_click = __webpack_require__( /*! ../../events/double_click */ 150);
+        var _double_click2 = _interopRequireDefault(_double_click);
+        var _fx = __webpack_require__( /*! ../../animation/fx */ 39);
+        var _fx2 = _interopRequireDefault(_fx);
+        var _ui3 = __webpack_require__( /*! ../scroll_view/ui.scrollable */ 91);
+        var _ui4 = _interopRequireDefault(_ui3);
+        var _load_indicator = __webpack_require__( /*! ../load_indicator */ 90);
+        var _load_indicator2 = _interopRequireDefault(_load_indicator);
+        var _deferred = __webpack_require__( /*! ../../core/utils/deferred */ 6);
+
+        function _interopRequireDefault(obj) {
+            return obj && obj.__esModule ? obj : {
+                "default": obj
+            }
+        }
+        var WIDGET_CLASS = "dx-treeview";
+        var NODE_CLASS = WIDGET_CLASS + "-node";
+        var NODE_CONTAINER_CLASS = NODE_CLASS + "-container";
+        var NODE_LOAD_INDICATOR_CLASS = NODE_CLASS + "-loadindicator";
+        var OPENED_NODE_CONTAINER_CLASS = NODE_CLASS + "-container-opened";
+        var IS_LEAF = NODE_CLASS + "-is-leaf";
+        var ITEM_CLASS = WIDGET_CLASS + "-item";
+        var ITEM_WITH_CHECKBOX_CLASS = ITEM_CLASS + "-with-checkbox";
+        var ITEM_WITHOUT_CHECKBOX_CLASS = ITEM_CLASS + "-without-checkbox";
+        var ITEM_DATA_KEY = ITEM_CLASS + "-data";
+        var TOGGLE_ITEM_VISIBILITY_CLASS = WIDGET_CLASS + "-toggle-item-visibility";
+        var LOAD_INDICATOR_CLASS = WIDGET_CLASS + "-loadindicator";
+        var LOAD_INDICATOR_WRAPPER_CLASS = WIDGET_CLASS + "-loadindicator-wrapper";
+        var TOGGLE_ITEM_VISIBILITY_OPENED_CLASS = WIDGET_CLASS + "-toggle-item-visibility-opened";
+        var SELECT_ALL_ITEM_CLASS = WIDGET_CLASS + "-select-all-item";
+        var INVISIBLE_STATE_CLASS = "dx-state-invisible";
+        var DISABLED_STATE_CLASS = "dx-state-disabled";
+        var SELECTED_ITEM_CLASS = "dx-state-selected";
+        var EXPAND_EVENT_NAMESPACE = "dxTreeView_expand";
+        var DATA_ITEM_ID = "data-item-id";
+        var TreeViewBase = _ui2.default.inherit({
             _supportedKeys: function(e) {
+                var _this = this;
                 var click = function(e) {
-                    var $itemElement = $(this.option("focusedElement"));
+                    var $itemElement = (0, _renderer2.default)(_this.option("focusedElement"));
                     if (!$itemElement.length) {
                         return
                     }
                     e.target = $itemElement;
                     e.currentTarget = $itemElement;
-                    this._itemClickHandler(e, $itemElement.children("." + ITEM_CLASS));
-                    var expandEventName = this._getEventNameByOption(this.option("expandEvent")),
-                        expandByClick = expandEventName === eventUtils.addNamespace(clickEvent.name, EXPAND_EVENT_NAMESPACE);
+                    _this._itemClickHandler(e, $itemElement.children("." + ITEM_CLASS));
+                    var expandEventName = _this._getEventNameByOption(_this.option("expandEvent")),
+                        expandByClick = expandEventName === (0, _utils.addNamespace)(_click2.default.name, EXPAND_EVENT_NAMESPACE);
                     if (expandByClick) {
-                        this._expandEventHandler(e)
+                        _this._expandEventHandler(e)
                     }
                 };
                 var select = function(e) {
                     e.preventDefault();
-                    this._changeCheckBoxState($(this.option("focusedElement")))
+                    _this._changeCheckBoxState((0, _renderer2.default)(_this.option("focusedElement")))
                 };
                 var toggleExpandedNestedItems = function(state, e) {
                     if (!this.option("expandAllEnabled")) {
                         return
                     }
                     e.preventDefault();
-                    var $rootElement = $(this.option("focusedElement"));
+                    var $rootElement = (0, _renderer2.default)(this.option("focusedElement"));
                     if (!$rootElement.length) {
                         return
                     }
                     var rootItem = this._getItemData($rootElement.find("." + ITEM_CLASS));
                     this._toggleExpandedNestedItems([rootItem], state)
                 };
-                return extend(this.callBase(), {
+                return (0, _extend.extend)(this.callBase(), {
                     enter: this._showCheckboxes() ? select : click,
                     space: this._showCheckboxes() ? select : click,
                     asterisk: toggleExpandedNestedItems.bind(this, true),
@@ -141926,17 +142771,17 @@
                 }
             },
             _getNodeElement: function(node, cache) {
-                var normalizedKey = commonUtils.normalizeKey(node.internalFields.key);
+                var normalizedKey = _common2.default.normalizeKey(node.internalFields.key);
                 if (cache) {
                     if (!cache.$nodeByKey) {
                         cache.$nodeByKey = {};
-                        this.$element().find(".dx-treeview-node").each(function() {
-                            var $node = $(this),
-                                key = $node.attr(DATA_ITEM_ID);
+                        this.$element().find("." + NODE_CLASS).each(function() {
+                            var $node = (0, _renderer2.default)(this);
+                            var key = $node.attr(DATA_ITEM_ID);
                             cache.$nodeByKey[key] = $node
                         })
                     }
-                    return cache.$nodeByKey[normalizedKey] || $()
+                    return cache.$nodeByKey[normalizedKey] || (0, _renderer2.default)()
                 }
                 return this.$element().find("[" + DATA_ITEM_ID + "='" + normalizedKey + "']")
             },
@@ -141945,7 +142790,7 @@
                 return WIDGET_CLASS
             },
             _getDefaultOptions: function() {
-                return extend(this.callBase(), {
+                return (0, _extend.extend)(this.callBase(), {
                     animationEnabled: true,
                     dataStructure: "tree",
                     deferRendering: true,
@@ -141954,7 +142799,7 @@
                     selectNodesRecursive: true,
                     expandNodesRecursive: true,
                     showCheckBoxesMode: "none",
-                    selectAllText: messageLocalization.format("dxList-selectAll"),
+                    selectAllText: _message2.default.format("dxList-selectAll"),
                     onItemSelectionChanged: null,
                     onItemExpanded: null,
                     onItemCollapsed: null,
@@ -141969,11 +142814,11 @@
                     onSelectAllValueChanged: null
                 })
             },
-            _initSelectedItems: commonUtils.noop,
-            _syncSelectionOptions: commonUtils.asyncNoop,
+            _initSelectedItems: _common2.default.noop,
+            _syncSelectionOptions: _common2.default.asyncNoop,
             _fireSelectionChanged: function() {
                 var selectionChangePromise = this._selectionChangePromise;
-                when(selectionChangePromise).done(function() {
+                (0, _deferred.when)(selectionChangePromise).done(function() {
                     this._createActionByOption("onSelectionChanged", {
                         excludeValidators: ["disabled", "readOnly"]
                     })()
@@ -142008,7 +142853,7 @@
             },
             _removeSelection: function() {
                 var that = this;
-                each(this._dataAdapter.getFullData(), function(_, node) {
+                (0, _iterator.each)(this._dataAdapter.getFullData(), function(_, node) {
                     if (!that._hasChildren(node)) {
                         return
                     }
@@ -142060,6 +142905,10 @@
                     case "virtualModeEnabled":
                     case "selectByClick":
                         break;
+                    case "selectionMode":
+                        this._initDataAdapter();
+                        this.callBase(args);
+                        break;
                     case "onSelectAllValueChanged":
                         this._createSelectAllValueChangedAction();
                         break;
@@ -142084,27 +142933,26 @@
                 }
             },
             _initVirtualMode: function() {
-                var that = this,
-                    filter = that._filter;
+                var filter = this._filter;
                 if (!filter.custom) {
-                    filter.custom = that._dataSource.filter()
+                    filter.custom = this._dataSource.filter()
                 }
                 if (!filter.internal) {
-                    filter.internal = [that.option("parentIdExpr"), that.option("rootValue")]
+                    filter.internal = [this.option("parentIdExpr"), this.option("rootValue")]
                 }
             },
             _useCustomChildrenLoader: function() {
-                return typeUtils.isFunction(this.option("createChildren")) && this._isDataStructurePlain()
+                return (0, _type.isFunction)(this.option("createChildren")) && this._isDataStructurePlain()
             },
             _loadChildrenByCustomLoader: function(parentNode) {
                 var invocationResult = this.option("createChildren").call(this, parentNode);
                 if (Array.isArray(invocationResult)) {
-                    return (new Deferred).resolve(invocationResult).promise()
+                    return (new _deferred.Deferred).resolve(invocationResult).promise()
                 }
-                if (invocationResult && typeUtils.isFunction(invocationResult.then)) {
-                    return deferredUtils.fromPromise(invocationResult)
+                if (invocationResult && (0, _type.isFunction)(invocationResult.then)) {
+                    return (0, _deferred.fromPromise)(invocationResult)
                 }
-                return (new Deferred).resolve([]).promise()
+                return (new _deferred.Deferred).resolve([]).promise()
             },
             _combineFilter: function() {
                 if (!this._filter.custom || !this._filter.custom.length) {
@@ -142134,19 +142982,19 @@
                 this._treeViewLoadIndicator = null
             },
             _createTreeViewLoadIndicator: function() {
-                this._treeViewLoadIndicator = $("<div>").addClass(LOAD_INDICATOR_CLASS);
-                this._createComponent(this._treeViewLoadIndicator, LoadIndicator, {});
+                this._treeViewLoadIndicator = (0, _renderer2.default)("<div>").addClass(LOAD_INDICATOR_CLASS);
+                this._createComponent(this._treeViewLoadIndicator, _load_indicator2.default, {});
                 return this._treeViewLoadIndicator
             },
             _dataSourceLoadingChangedHandler: function(isLoading) {
-                var resultFilter;
+                var resultFilter = void 0;
                 if (this._isVirtualMode()) {
                     resultFilter = this._combineFilter();
                     this._dataSource.filter(resultFilter)
                 }
                 if (isLoading && !this._dataSource.isLoaded()) {
                     this.option("items", []);
-                    var $wrapper = $("<div>").addClass(LOAD_INDICATOR_WRAPPER_CLASS);
+                    var $wrapper = (0, _renderer2.default)("<div>").addClass(LOAD_INDICATOR_WRAPPER_CLASS);
                     this._createTreeViewLoadIndicator().appendTo($wrapper);
                     this.itemsContainer().append($wrapper);
                     if (this._isVirtualMode() && this._dataSource.filter() !== resultFilter) {
@@ -142157,41 +143005,41 @@
                 }
             },
             _initStoreChangeHandlers: function() {
+                var _this2 = this;
                 if ("plain" !== this.option("dataStructure")) {
                     return
                 }
-                var that = this;
                 this._dataSource && this._dataSource.store().on("inserted", function(newItem) {
-                    that.option().items = that.option("items").concat(newItem);
-                    that._dataAdapter.addItem(newItem);
-                    if (!that._dataAdapter.isFiltered(newItem)) {
+                    _this2.option().items = _this2.option("items").concat(newItem);
+                    _this2._dataAdapter.addItem(newItem);
+                    if (!_this2._dataAdapter.isFiltered(newItem)) {
                         return
                     }
-                    that._updateLevel(that._parentIdGetter(newItem))
+                    _this2._updateLevel(_this2._parentIdGetter(newItem))
                 }).on("removed", function(removedKey) {
-                    var node = that._dataAdapter.getNodeByKey(removedKey);
-                    that.option("items")[that._dataAdapter.getIndexByKey(node.internalFields.key)] = 0;
-                    that._markChildrenItemsToRemove(node);
-                    that._removeItems();
-                    that._dataAdapter.removeItem(removedKey);
-                    that._updateLevel(that._parentIdGetter(node))
+                    var node = _this2._dataAdapter.getNodeByKey(removedKey);
+                    _this2.option("items")[_this2._dataAdapter.getIndexByKey(node.internalFields.key)] = 0;
+                    _this2._markChildrenItemsToRemove(node);
+                    _this2._removeItems();
+                    _this2._dataAdapter.removeItem(removedKey);
+                    _this2._updateLevel(_this2._parentIdGetter(node))
                 })
             },
             _markChildrenItemsToRemove: function(node) {
-                var that = this,
-                    keys = node.internalFields.childrenKeys;
-                each(keys, function(_, key) {
-                    that.option("items")[that._dataAdapter.getIndexByKey(key)] = 0;
-                    that._markChildrenItemsToRemove(that._dataAdapter.getNodeByKey(key))
+                var _this3 = this;
+                var keys = node.internalFields.childrenKeys;
+                (0, _iterator.each)(keys, function(_, key) {
+                    _this3.option("items")[_this3._dataAdapter.getIndexByKey(key)] = 0;
+                    _this3._markChildrenItemsToRemove(_this3._dataAdapter.getNodeByKey(key))
                 })
             },
             _removeItems: function() {
-                var that = this,
-                    counter = 0,
-                    items = extend(true, [], this.option("items"));
-                each(items, function(index, item) {
+                var _this4 = this;
+                var items = (0, _extend.extend)(true, [], this.option("items"));
+                var counter = 0;
+                (0, _iterator.each)(items, function(index, item) {
                     if (!item) {
-                        that.option("items").splice(index - counter, 1);
+                        _this4.option("items").splice(index - counter, 1);
                         counter++
                     }
                 })
@@ -142207,13 +143055,13 @@
                 if (this._scrollableContainer) {
                     return this._scrollableContainer.$content().children()
                 }
-                return $()
+                return (0, _renderer2.default)()
             },
             _getContainerByParentKey: function(parentId) {
-                var $container, node = this._dataAdapter.getNodeByKey(parentId),
-                    $itemElement = node ? this._getNodeElement(node) : [];
+                var node = this._dataAdapter.getNodeByKey(parentId);
+                var $itemElement = node ? this._getNodeElement(node) : [];
                 this._getOldContainer($itemElement).remove();
-                $container = this._renderNodeContainer($itemElement);
+                var $container = this._renderNodeContainer($itemElement);
                 if (this._isRootLevel(parentId)) {
                     if (!this._scrollableContainer) {
                         this._renderScrollableContainer()
@@ -142226,7 +143074,9 @@
                 return parentId === this.option("rootValue")
             },
             _getAccessors: function() {
-                return ["key", "display", "selected", "expanded", "items", "parentId", "disabled", "hasItems"]
+                var accessors = this.callBase();
+                accessors.push("hasItems");
+                return accessors
             },
             _getDataAdapterOptions: function() {
                 return {
@@ -142266,18 +143116,18 @@
             },
             _fireContentReadyAction: function() {
                 this.callBase();
-                if (this._scrollableContainer && windowUtils.hasWindow()) {
+                if (this._scrollableContainer && _window2.default.hasWindow()) {
                     this._scrollableContainer.update()
                 }
             },
             _renderScrollableContainer: function() {
-                this._scrollableContainer = this._createComponent($("<div>").appendTo(this.$element()), Scrollable, {
+                this._scrollableContainer = this._createComponent((0, _renderer2.default)("<div>").appendTo(this.$element()), _ui4.default, {
                     direction: this.option("scrollDirection"),
                     useKeyboard: false
                 })
             },
             _renderNodeContainer: function($parent) {
-                var $container = $("<ul>").addClass(NODE_CONTAINER_CLASS);
+                var $container = (0, _renderer2.default)("<ul>").addClass(NODE_CONTAINER_CLASS);
                 this.setAria("role", "group", $container);
                 if ($parent && $parent.length) {
                     var itemData = this._getItemData($parent.children("." + ITEM_CLASS));
@@ -142289,7 +143139,7 @@
                 return $container
             },
             _createDOMElement: function($nodeContainer, node) {
-                var $node = $("<li>").addClass(NODE_CLASS).attr(DATA_ITEM_ID, commonUtils.normalizeKey(node.internalFields.key)).prependTo($nodeContainer);
+                var $node = (0, _renderer2.default)("<li>").addClass(NODE_CLASS).attr(DATA_ITEM_ID, _common2.default.normalizeKey(node.internalFields.key)).prependTo($nodeContainer);
                 this.setAria({
                     role: "treeitem",
                     label: this._displayGetter(node.internalFields.item) || "",
@@ -142316,9 +143166,9 @@
                 this._renderFocusTarget()
             },
             _renderItem: function(node, $nodeContainer) {
-                var $node = this._createDOMElement($nodeContainer, node),
-                    nodeData = node.internalFields,
-                    showCheckBox = this._showCheckboxes();
+                var $node = this._createDOMElement($nodeContainer, node);
+                var nodeData = node.internalFields;
+                var showCheckBox = this._showCheckboxes();
                 $node.addClass(showCheckBox ? ITEM_WITH_CHECKBOX_CLASS : ITEM_WITHOUT_CHECKBOX_CLASS);
                 showCheckBox && this._renderCheckBox($node, node);
                 this.setAria("selected", nodeData.selected, $node);
@@ -142329,6 +143179,7 @@
                 }
             },
             _renderChildren: function($node, node) {
+                var _this5 = this;
                 if (!this._hasChildren(node)) {
                     this._addLeafClass($node);
                     return
@@ -142337,9 +143188,8 @@
                 if (this.option("deferRendering") && !node.internalFields.expanded) {
                     return
                 }
-                var that = this;
-                that._loadSublevel(node).done(function(childNodes) {
-                    that._renderSublevel($node, that._getActualNode(node), childNodes)
+                this._loadSublevel(node).done(function(childNodes) {
+                    _this5._renderSublevel($node, _this5._getActualNode(node), childNodes)
                 })
             },
             _getActualNode: function(cachedNode) {
@@ -142352,14 +143202,14 @@
                 return this.callBase(node)
             },
             _loadSublevel: function(node) {
-                var deferred = new Deferred,
-                    that = this,
-                    childrenNodes = that._getChildNodes(node);
+                var _this6 = this;
+                var deferred = new _deferred.Deferred;
+                var childrenNodes = this._getChildNodes(node);
                 if (childrenNodes.length) {
                     deferred.resolve(childrenNodes)
                 } else {
-                    that._loadNestedItems(node).done(function(items) {
-                        deferred.resolve(that._dataAdapter.getNodesByItems(items))
+                    this._loadNestedItems(node).done(function(items) {
+                        deferred.resolve(_this6._dataAdapter.getNodesByItems(items))
                     })
                 }
                 return deferred.promise()
@@ -142389,74 +143239,77 @@
                 $node.addClass(IS_LEAF)
             },
             _expandEventHandler: function(e) {
-                var $nodeElement = $(e.currentTarget.parentNode);
+                var $nodeElement = (0, _renderer2.default)(e.currentTarget.parentNode);
                 if (!$nodeElement.hasClass(IS_LEAF)) {
                     this._toggleExpandedState(e.currentTarget, void 0, e)
                 }
             },
             _initExpandEvent: function() {
-                var expandedEventName = this._getEventNameByOption(this.option("expandEvent")),
-                    $itemsContainer = this._itemContainer(),
-                    itemSelector = this._itemSelector();
-                eventsEngine.off($itemsContainer, "." + EXPAND_EVENT_NAMESPACE, itemSelector);
-                eventsEngine.on($itemsContainer, expandedEventName, itemSelector, this._expandEventHandler.bind(this))
+                var expandedEventName = this._getEventNameByOption(this.option("expandEvent"));
+                var $itemsContainer = this._itemContainer();
+                var itemSelector = this._itemSelector();
+                (0, _events_engine.off)($itemsContainer, "." + EXPAND_EVENT_NAMESPACE, itemSelector);
+                (0, _events_engine.on)($itemsContainer, expandedEventName, itemSelector, this._expandEventHandler.bind(this))
             },
             _getEventNameByOption: function(name) {
-                var event = "click" === name ? clickEvent : dblclickEvent;
-                return eventUtils.addNamespace(event.name, EXPAND_EVENT_NAMESPACE)
+                var event = "click" === name ? _click2.default : _double_click2.default;
+                return (0, _utils.addNamespace)(event.name, EXPAND_EVENT_NAMESPACE)
             },
             _getNode: function(identifier) {
-                if (!typeUtils.isDefined(identifier)) {
+                if (!(0, _type.isDefined)(identifier)) {
                     return null
                 }
                 if (identifier.internalFields) {
                     return identifier
                 }
-                if (typeUtils.isPrimitive(identifier)) {
+                if ((0, _type.isPrimitive)(identifier)) {
                     return this._dataAdapter.getNodeByKey(identifier)
                 }
-                var itemElement = $(identifier).get(0);
+                var itemElement = (0, _renderer2.default)(identifier).get(0);
                 if (!itemElement) {
                     return null
                 }
-                if (domAdapter.isElementNode(itemElement)) {
+                if ((0, _dom_adapter.isElementNode)(itemElement)) {
                     return this._getNodeByElement(itemElement)
                 }
                 return this._dataAdapter.getNodeByItem(itemElement)
             },
             _getNodeByElement: function(itemElement) {
-                var $node = $(itemElement).closest("." + NODE_CLASS),
-                    key = commonUtils.denormalizeKey($node.attr(DATA_ITEM_ID));
+                var $node = (0, _renderer2.default)(itemElement).closest("." + NODE_CLASS);
+                var key = _common2.default.denormalizeKey($node.attr(DATA_ITEM_ID));
                 return this._dataAdapter.getNodeByKey(key)
             },
             _toggleExpandedState: function(itemElement, state, e) {
-                var node = this._getNode(itemElement),
-                    currentState = node.internalFields.expanded;
+                var node = this._getNode(itemElement);
+                var currentState = node.internalFields.expanded;
                 if (node.internalFields.disabled || currentState === state) {
                     return
                 }
-                if (!typeUtils.isDefined(state)) {
+                if (this._hasChildren(node)) {
+                    var $node = this._getNodeElement(node);
+                    if ($node.find("." + NODE_LOAD_INDICATOR_CLASS + ":not(." + INVISIBLE_STATE_CLASS + ")").length) {
+                        return
+                    }
+                    this._createLoadIndicator($node)
+                }
+                if (!(0, _type.isDefined)(state)) {
                     state = !currentState
                 }
                 this._dataAdapter.toggleExpansion(node.internalFields.key, state);
                 node.internalFields.expanded = state;
-                if (this._hasChildren(node)) {
-                    var $node = this._getNodeElement(node);
-                    this._createLoadIndicator($node)
-                }
                 this._updateExpandedItemsUI(node, state, e)
             },
             _createLoadIndicator: function($node) {
-                var $icon = $node.children("." + TOGGLE_ITEM_VISIBILITY_CLASS),
-                    $nodeContainer = $node.children("." + NODE_CONTAINER_CLASS);
+                var $icon = $node.children("." + TOGGLE_ITEM_VISIBILITY_CLASS);
+                var $nodeContainer = $node.children("." + NODE_CONTAINER_CLASS);
                 if ($icon.hasClass(TOGGLE_ITEM_VISIBILITY_OPENED_CLASS) || $nodeContainer.not(":empty").length) {
                     return
                 }
-                this._createComponent($("<div>").addClass(NODE_LOAD_INDICATOR_CLASS), LoadIndicator, {}).$element().appendTo($node);
+                this._createComponent((0, _renderer2.default)("<div>").addClass(NODE_LOAD_INDICATOR_CLASS), _load_indicator2.default, {}).$element().appendTo($node);
                 $icon.hide()
             },
             _renderToggleItemVisibilityIcon: function($node, node) {
-                var $icon = $("<div>").addClass(TOGGLE_ITEM_VISIBILITY_CLASS).appendTo($node);
+                var $icon = (0, _renderer2.default)("<div>").addClass(TOGGLE_ITEM_VISIBILITY_CLASS).appendTo($node);
                 if (node.internalFields.expanded) {
                     $icon.addClass(TOGGLE_ITEM_VISIBILITY_OPENED_CLASS);
                     $node.parent().addClass(OPENED_NODE_CONTAINER_CLASS)
@@ -142467,16 +143320,16 @@
                 this._renderToggleItemVisibilityIconClick($icon, node)
             },
             _renderToggleItemVisibilityIconClick: function($icon, node) {
-                var that = this;
-                var eventName = eventUtils.addNamespace(clickEvent.name, that.NAME);
-                eventsEngine.off($icon, eventName);
-                eventsEngine.on($icon, eventName, function(e) {
-                    that._toggleExpandedState(node.internalFields.key, void 0, e)
+                var _this7 = this;
+                var eventName = (0, _utils.addNamespace)(_click2.default.name, this.NAME);
+                (0, _events_engine.off)($icon, eventName);
+                (0, _events_engine.on)($icon, eventName, function(e) {
+                    _this7._toggleExpandedState(node.internalFields.key, void 0, e)
                 })
             },
             _updateExpandedItemsUI: function(node, state, e) {
-                var $node = this._getNodeElement(node),
-                    isHiddenNode = !$node.length || state && $node.is(":hidden");
+                var $node = this._getNodeElement(node);
+                var isHiddenNode = !$node.length || state && $node.is(":hidden");
                 if (this.option("expandNodesRecursive") && isHiddenNode) {
                     var parentNode = this._getNode(node.internalFields.parentKey);
                     if (parentNode) {
@@ -142500,42 +143353,42 @@
                 this._updateExpandedItem(node, state, e)
             },
             _loadNestedItemsWithUpdate: function(node, state, e) {
-                var that = this,
-                    $node = this._getNodeElement(node);
-                that._loadNestedItems(node).done(function(items) {
-                    var actualNodeData = that._getActualNode(node);
-                    that._renderSublevel($node, actualNodeData, that._dataAdapter.getNodesByItems(items));
+                var _this8 = this;
+                var $node = this._getNodeElement(node);
+                this._loadNestedItems(node).done(function(items) {
+                    var actualNodeData = _this8._getActualNode(node);
+                    _this8._renderSublevel($node, actualNodeData, _this8._dataAdapter.getNodesByItems(items));
                     if (!items || !items.length) {
                         return
                     }
-                    that._fireContentReadyAction();
-                    that._updateExpandedItem(actualNodeData, state, e)
+                    _this8._fireContentReadyAction();
+                    _this8._updateExpandedItem(actualNodeData, state, e)
                 })
             },
             _loadNestedItems: function(node) {
-                var that = this;
-                if (that._useCustomChildrenLoader()) {
+                var _this9 = this;
+                if (this._useCustomChildrenLoader()) {
                     var publicNode = this._dataAdapter.getPublicNode(node);
-                    return that._loadChildrenByCustomLoader(publicNode).done(function(newItems) {
-                        if (!that._areNodesExists(newItems)) {
-                            that._appendItems(newItems)
+                    return this._loadChildrenByCustomLoader(publicNode).done(function(newItems) {
+                        if (!_this9._areNodesExists(newItems)) {
+                            _this9._appendItems(newItems)
                         }
                     })
                 }
-                if (!that._isVirtualMode()) {
-                    return (new Deferred).resolve([]).promise()
+                if (!this._isVirtualMode()) {
+                    return (new _deferred.Deferred).resolve([]).promise()
                 }
-                that._filter.internal = [that.option("parentIdExpr"), node.internalFields.key];
-                that._dataSource.filter(that._combineFilter());
-                return that._dataSource.load().done(function(newItems) {
-                    if (!that._areNodesExists(newItems)) {
-                        that._appendItems(newItems)
+                this._filter.internal = [this.option("parentIdExpr"), node.internalFields.key];
+                this._dataSource.filter(this._combineFilter());
+                return this._dataSource.load().done(function(newItems) {
+                    if (!_this9._areNodesExists(newItems)) {
+                        _this9._appendItems(newItems)
                     }
                 })
             },
             _areNodesExists: function(newItems, items) {
-                var keyOfRootItem = this.keyOf(newItems[0]),
-                    fullData = this._dataAdapter.getFullData();
+                var keyOfRootItem = this.keyOf(newItems[0]);
+                var fullData = this._dataAdapter.getFullData();
                 return !!this._dataAdapter.getNodeByKey(keyOfRootItem, fullData)
             },
             _appendItems: function(newItems) {
@@ -142546,12 +143399,13 @@
                 this._animateNodeContainer(node, state, e)
             },
             _animateNodeContainer: function(node, state, e) {
-                var nodeHeight, $node = this._getNodeElement(node),
-                    $nodeContainer = $node.children("." + NODE_CONTAINER_CLASS);
+                var $node = this._getNodeElement(node);
+                var $nodeContainer = $node.children("." + NODE_CONTAINER_CLASS);
+                var nodeHeight = void 0;
                 $nodeContainer.addClass(OPENED_NODE_CONTAINER_CLASS);
                 nodeHeight = $nodeContainer.height();
-                fx.stop($nodeContainer, true);
-                fx.animate($nodeContainer, {
+                _fx2.default.stop($nodeContainer, true);
+                _fx2.default.animate($nodeContainer, {
                     type: "custom",
                     duration: this.option("animationEnabled") ? 400 : 0,
                     from: {
@@ -142570,16 +143424,16 @@
                 })
             },
             _fireExpandedStateUpdatedEvent: function(isExpanded, node, e) {
-                var target, optionName = isExpanded ? "onItemExpanded" : "onItemCollapsed";
                 if (!this._hasChildren(node)) {
                     return
                 }
-                if (typeUtils.isDefined(e)) {
+                var optionName = isExpanded ? "onItemExpanded" : "onItemCollapsed";
+                if ((0, _type.isDefined)(e)) {
                     this._itemDXEventHandler(e, optionName, {
                         node: this._dataAdapter.getPublicNode(node)
                     })
                 } else {
-                    target = this._getNodeElement(node);
+                    var target = this._getNodeElement(node);
                     this._itemEventHandler(target, optionName, {
                         event: e,
                         node: this._dataAdapter.getPublicNode(node)
@@ -142587,10 +143441,10 @@
                 }
             },
             _normalizeIconState: function($node, hasNewItems) {
-                var $icon, $loadIndicator = $node.find(".dx-loadindicator");
-                $loadIndicator.length && LoadIndicator.getInstance($loadIndicator).option("visible", false);
+                var $loadIndicator = $node.find(".dx-loadindicator");
+                $loadIndicator.length && _load_indicator2.default.getInstance($loadIndicator).option("visible", false);
                 if (hasNewItems) {
-                    $icon = $node.find("." + TOGGLE_ITEM_VISIBILITY_CLASS);
+                    var $icon = $node.find("." + TOGGLE_ITEM_VISIBILITY_CLASS);
                     $icon.show();
                     return
                 }
@@ -142609,9 +143463,9 @@
             },
             _renderSelectAllItem: function($container) {
                 $container = $container || this.$element().find("." + NODE_CONTAINER_CLASS).first();
-                this._$selectAllItem = $("<div>").addClass(SELECT_ALL_ITEM_CLASS);
+                this._$selectAllItem = (0, _renderer2.default)("<div>").addClass(SELECT_ALL_ITEM_CLASS);
                 var value = this._dataAdapter.isAllSelected();
-                this._createComponent(this._$selectAllItem, CheckBox, {
+                this._createComponent(this._$selectAllItem, _check_box2.default, {
                     value: value,
                     text: this.option("selectAllText"),
                     onValueChanged: function(args) {
@@ -142628,8 +143482,8 @@
                 this._fireSelectionChanged()
             },
             _renderCheckBox: function($node, node) {
-                var $checkbox = $("<div>").appendTo($node);
-                this._createComponent($checkbox, CheckBox, {
+                var $checkbox = (0, _renderer2.default)("<div>").appendTo($node);
+                this._createComponent($checkbox, _check_box2.default, {
                     value: node.internalFields.selected,
                     onValueChanged: this._changeCheckboxValue.bind(this),
                     focusStateEnabled: false,
@@ -142640,8 +143494,8 @@
                 $node.toggleClass(SELECTED_ITEM_CLASS, !!value)
             },
             _toggleNodeDisabledState: function(node, state) {
-                var $node = this._getNodeElement(node),
-                    $item = $node.find("." + ITEM_CLASS).eq(0);
+                var $node = this._getNodeElement(node);
+                var $item = $node.find("." + ITEM_CLASS).eq(0);
                 this._dataAdapter.toggleNodeDisabledState(node.internalFields.key, state);
                 $item.toggleClass(DISABLED_STATE_CLASS, !!state);
                 if (this._showCheckboxes()) {
@@ -142651,17 +143505,16 @@
             },
             _itemOptionChanged: function(item, property, value) {
                 var node = this._dataAdapter.getNodeByItem(item);
-                switch (property) {
-                    case this.option("disabledExpr"):
-                        this._toggleNodeDisabledState(node, value)
+                if (property === this.option("disabledExpr")) {
+                    this._toggleNodeDisabledState(node, value)
                 }
             },
             _changeCheckboxValue: function(e) {
-                var $node = $(e.element).parent("." + NODE_CLASS),
-                    $item = $node.children("." + ITEM_CLASS),
-                    item = this._getItemData($item),
-                    node = this._getNodeByElement($item),
-                    value = e.value;
+                var $node = (0, _renderer2.default)(e.element).parent("." + NODE_CLASS);
+                var $item = $node.children("." + ITEM_CLASS);
+                var item = this._getItemData($item);
+                var node = this._getNodeByElement($item);
+                var value = e.value;
                 if (node && node.internalFields.selected === value) {
                     return
                 }
@@ -142679,7 +143532,7 @@
                     selectedNodesKeys.splice(keyIndex, 1)
                 }
                 if (deep) {
-                    each(publicNode.children, function(_, childNode) {
+                    (0, _iterator.each)(publicNode.children, function(_, childNode) {
                         this._isLastSelectedBranch(childNode, selectedNodesKeys, true)
                     }.bind(this))
                 }
@@ -142689,9 +143542,9 @@
                 return 0 === selectedNodesKeys.length
             },
             _isLastRequired: function(node) {
-                var selectionRequired = this.option("selectionRequired"),
-                    isSingleMode = this._isSingleSelection(),
-                    selectedNodesKeys = this.getSelectedNodesKeys();
+                var selectionRequired = this.option("selectionRequired");
+                var isSingleMode = this._isSingleSelection();
+                var selectedNodesKeys = this.getSelectedNodesKeys();
                 if (!selectionRequired) {
                     return
                 }
@@ -142702,8 +143555,8 @@
                 }
             },
             _updateItemSelection: function(value, itemElement, dxEvent) {
-                var that = this,
-                    node = that._getNode(itemElement);
+                var _this10 = this;
+                var node = this._getNode(itemElement);
                 if (!node || node.internalFields.selected === value) {
                     return
                 }
@@ -142715,38 +143568,38 @@
                     }
                     return
                 }
-                var selectedNodesKeys = that.getSelectedNodesKeys();
-                if (that._isSingleSelection() && value) {
-                    each(selectedNodesKeys, function(index, nodeKey) {
-                        that.unselectItem(nodeKey)
+                var selectedNodesKeys = this.getSelectedNodesKeys();
+                if (this._isSingleSelection() && value) {
+                    (0, _iterator.each)(selectedNodesKeys, function(index, nodeKey) {
+                        _this10.unselectItem(nodeKey)
                     })
                 }
-                that._dataAdapter.toggleSelection(node.internalFields.key, value);
-                that._updateItemsUI();
-                var initiator = dxEvent || that._findItemElementByItem(node.internalFields.item),
-                    handler = dxEvent ? that._itemDXEventHandler : that._itemEventHandler;
-                handler.call(that, initiator, "onItemSelectionChanged", {
-                    node: that._dataAdapter.getPublicNode(node),
+                this._dataAdapter.toggleSelection(node.internalFields.key, value);
+                this._updateItemsUI();
+                var initiator = dxEvent || this._findItemElementByItem(node.internalFields.item),
+                    handler = dxEvent ? this._itemDXEventHandler : this._itemEventHandler;
+                handler.call(this, initiator, "onItemSelectionChanged", {
+                    node: this._dataAdapter.getPublicNode(node),
                     itemData: node.internalFields.item
                 });
-                that._fireSelectionChanged()
+                this._fireSelectionChanged()
             },
             _getCheckBoxInstance: function($node) {
                 return $node.children(".dx-checkbox").dxCheckBox("instance")
             },
             _updateItemsUI: function() {
-                var that = this,
-                    cache = {};
-                each(this._dataAdapter.getData(), function(_, node) {
-                    var $node = that._getNodeElement(node, cache),
+                var _this11 = this;
+                var cache = {};
+                (0, _iterator.each)(this._dataAdapter.getData(), function(_, node) {
+                    var $node = _this11._getNodeElement(node, cache),
                         nodeSelection = node.internalFields.selected;
                     if (!$node.length) {
                         return
                     }
-                    that._toggleSelectedClass($node, nodeSelection);
-                    that.setAria("selected", nodeSelection, $node);
-                    if (that._showCheckboxes()) {
-                        var checkbox = that._getCheckBoxInstance($node);
+                    _this11._toggleSelectedClass($node, nodeSelection);
+                    _this11.setAria("selected", nodeSelection, $node);
+                    if (_this11._showCheckboxes()) {
+                        var checkbox = _this11._getCheckBoxInstance($node);
                         checkbox.option("value", nodeSelection)
                     }
                 });
@@ -142755,11 +143608,11 @@
                 }
             },
             _updateParentsState: function(node, $node) {
-                var parentNode = this._dataAdapter.getNodeByKey(node.internalFields.parentKey);
                 if (!$node) {
                     return
                 }
-                var $parentNode = $($node.parents("." + NODE_CLASS)[0]);
+                var parentNode = this._dataAdapter.getNodeByKey(node.internalFields.parentKey);
+                var $parentNode = (0, _renderer2.default)($node.parents("." + NODE_CLASS)[0]);
                 if (this._showCheckboxes()) {
                     var parentValue = parentNode.internalFields.selected;
                     this._getCheckBoxInstance($parentNode).option("value", parentValue);
@@ -142770,8 +143623,8 @@
                 }
             },
             _itemEventHandlerImpl: function(initiator, action, actionArgs) {
-                var $itemElement = $(initiator).closest("." + NODE_CLASS).children("." + ITEM_CLASS);
-                return action(extend(this._extendActionArgs($itemElement), actionArgs))
+                var $itemElement = (0, _renderer2.default)(initiator).closest("." + NODE_CLASS).children("." + ITEM_CLASS);
+                return action((0, _extend.extend)(this._extendActionArgs($itemElement), actionArgs))
             },
             _itemContextMenuHandler: function(e) {
                 this._createEventHandler("onItemContextMenu", e)
@@ -142792,24 +143645,24 @@
                 return ITEM_DATA_KEY
             },
             _attachClickEvent: function() {
-                var that = this;
-                var clickSelector = "." + that._itemClass();
+                var clickSelector = "." + this._itemClass();
                 var pointerDownSelector = "." + NODE_CLASS + ", ." + SELECT_ALL_ITEM_CLASS;
-                var eventName = eventUtils.addNamespace(clickEvent.name, that.NAME);
-                var pointerDownEvent = eventUtils.addNamespace(pointerEvents.down, that.NAME);
-                var $itemContainer = that._itemContainer();
-                eventsEngine.off($itemContainer, eventName, clickSelector);
-                eventsEngine.off($itemContainer, pointerDownEvent, pointerDownSelector);
-                eventsEngine.on($itemContainer, eventName, clickSelector, function(e) {
-                    that._itemClickHandler(e, $(this))
+                var eventName = (0, _utils.addNamespace)(_click2.default.name, this.NAME);
+                var pointerDownEvent = (0, _utils.addNamespace)(_pointer.down, this.NAME);
+                var $itemContainer = this._itemContainer();
+                var that = this;
+                (0, _events_engine.off)($itemContainer, eventName, clickSelector);
+                (0, _events_engine.off)($itemContainer, pointerDownEvent, pointerDownSelector);
+                (0, _events_engine.on)($itemContainer, eventName, clickSelector, function(e) {
+                    that._itemClickHandler(e, (0, _renderer2.default)(this))
                 });
-                eventsEngine.on($itemContainer, pointerDownEvent, pointerDownSelector, function(e) {
+                (0, _events_engine.on)($itemContainer, pointerDownEvent, pointerDownSelector, function(e) {
                     that._itemPointerDownHandler(e)
                 })
             },
             _itemClickHandler: function(e, $item) {
-                var itemData = this._getItemData($item),
-                    node = this._getNodeByElement($item);
+                var itemData = this._getItemData($item);
+                var node = this._getNodeByElement($item);
                 this._itemDXEventHandler(e, "onItemClick", {
                     node: this._dataAdapter.getPublicNode(node)
                 });
@@ -142820,32 +143673,32 @@
             _updateSelectionToFirstItem: function($items, startIndex) {
                 var itemIndex = startIndex;
                 while (itemIndex >= 0) {
-                    var $item = $($items[itemIndex]);
+                    var $item = (0, _renderer2.default)($items[itemIndex]);
                     this._updateItemSelection(true, $item.find("." + ITEM_CLASS).get(0));
                     itemIndex--
                 }
             },
             _updateSelectionToLastItem: function($items, startIndex) {
-                var itemIndex = startIndex,
-                    length = $items.length;
+                var length = $items.length;
+                var itemIndex = startIndex;
                 while (itemIndex < length) {
-                    var $item = $($items[itemIndex]);
+                    var $item = (0, _renderer2.default)($items[itemIndex]);
                     this._updateItemSelection(true, $item.find("." + ITEM_CLASS).get(0));
                     itemIndex++
                 }
             },
             _focusInHandler: function(e) {
-                var that = this;
-                that._updateFocusState(e, true);
-                if (that.option("focusedElement")) {
-                    clearTimeout(that._setFocusedItemTimeout);
-                    that._setFocusedItemTimeout = setTimeout(function() {
-                        that._setFocusedItem($(that.option("focusedElement")))
+                var _this12 = this;
+                this._updateFocusState(e, true);
+                if (this.option("focusedElement")) {
+                    clearTimeout(this._setFocusedItemTimeout);
+                    this._setFocusedItemTimeout = setTimeout(function() {
+                        _this12._setFocusedItem((0, _renderer2.default)(_this12.option("focusedElement")))
                     });
                     return
                 }
-                var $activeItem = that._getActiveItem();
-                that.option("focusedElement", getPublicElement($activeItem.closest("." + NODE_CLASS)))
+                var $activeItem = this._getActiveItem();
+                this.option("focusedElement", (0, _dom.getPublicElement)($activeItem.closest("." + NODE_CLASS)))
             },
             _setFocusedItem: function($target) {
                 if (!$target || !$target.length) {
@@ -142860,27 +143713,27 @@
                 if (!this.option("focusStateEnabled")) {
                     return
                 }
-                var $target = $(e.target).closest("." + NODE_CLASS + ", ." + SELECT_ALL_ITEM_CLASS);
+                var $target = (0, _renderer2.default)(e.target).closest("." + NODE_CLASS + ", ." + SELECT_ALL_ITEM_CLASS);
                 if (!$target.length) {
                     return
                 }
                 var itemElement = $target.hasClass(DISABLED_STATE_CLASS) ? null : $target;
-                this.option("focusedElement", getPublicElement(itemElement))
+                this.option("focusedElement", (0, _dom.getPublicElement)(itemElement))
             },
             _findNonDisabledNodes: function($nodes) {
                 return $nodes.not(function() {
-                    return $(this).children("." + ITEM_CLASS).hasClass(DISABLED_STATE_CLASS)
+                    return (0, _renderer2.default)(this).children("." + ITEM_CLASS).hasClass(DISABLED_STATE_CLASS)
                 })
             },
             _moveFocus: function(location, e) {
-                var FOCUS_UP = "up",
-                    FOCUS_DOWN = "down",
-                    FOCUS_FIRST = "first",
-                    FOCUS_LAST = "last",
-                    FOCUS_LEFT = this.option("rtlEnabled") ? "right" : "left",
-                    FOCUS_RIGHT = this.option("rtlEnabled") ? "left" : "right";
+                var FOCUS_UP = "up";
+                var FOCUS_DOWN = "down";
+                var FOCUS_FIRST = "first";
+                var FOCUS_LAST = "last";
+                var FOCUS_LEFT = this.option("rtlEnabled") ? "right" : "left";
+                var FOCUS_RIGHT = this.option("rtlEnabled") ? "left" : "right";
                 this.$element().find("." + NODE_CONTAINER_CLASS).each(function() {
-                    fx.stop(this, true)
+                    _fx2.default.stop(this, true)
                 });
                 var $items = this._findNonDisabledNodes(this._nodeElements());
                 if (!$items || !$items.length) {
@@ -142889,14 +143742,14 @@
                 switch (location) {
                     case FOCUS_UP:
                         var $prevItem = this._prevItem($items);
-                        this.option("focusedElement", getPublicElement($prevItem));
+                        this.option("focusedElement", (0, _dom.getPublicElement)($prevItem));
                         if (e.shiftKey && this._showCheckboxes()) {
                             this._updateItemSelection(true, $prevItem.find("." + ITEM_CLASS).get(0))
                         }
                         break;
                     case FOCUS_DOWN:
                         var $nextItem = this._nextItem($items);
-                        this.option("focusedElement", getPublicElement($nextItem));
+                        this.option("focusedElement", (0, _dom.getPublicElement)($nextItem));
                         if (e.shiftKey && this._showCheckboxes()) {
                             this._updateItemSelection(true, $nextItem.find("." + ITEM_CLASS).get(0))
                         }
@@ -142906,14 +143759,14 @@
                         if (e.shiftKey && this._showCheckboxes()) {
                             this._updateSelectionToFirstItem($items, $items.index(this._prevItem($items)))
                         }
-                        this.option("focusedElement", getPublicElement($firstItem));
+                        this.option("focusedElement", (0, _dom.getPublicElement)($firstItem));
                         break;
                     case FOCUS_LAST:
                         var $lastItem = $items.last();
                         if (e.shiftKey && this._showCheckboxes()) {
                             this._updateSelectionToLastItem($items, $items.index(this._nextItem($items)))
                         }
-                        this.option("focusedElement", getPublicElement($lastItem));
+                        this.option("focusedElement", (0, _dom.getPublicElement)($lastItem));
                         break;
                     case FOCUS_RIGHT:
                         this._expandFocusedContainer();
@@ -142930,14 +143783,14 @@
                 return this.$element().find("." + NODE_CLASS).not(":hidden")
             },
             _expandFocusedContainer: function() {
-                var $focusedNode = $(this.option("focusedElement"));
+                var $focusedNode = (0, _renderer2.default)(this.option("focusedElement"));
                 if (!$focusedNode.length || $focusedNode.hasClass(IS_LEAF)) {
                     return
                 }
                 var $node = $focusedNode.find("." + NODE_CONTAINER_CLASS).eq(0);
                 if ($node.hasClass(OPENED_NODE_CONTAINER_CLASS)) {
                     var $nextItem = this._nextItem(this._findNonDisabledNodes(this._nodeElements()));
-                    this.option("focusedElement", getPublicElement($nextItem));
+                    this.option("focusedElement", (0, _dom.getPublicElement)($nextItem));
                     return
                 }
                 var node = this._getNodeByElement($focusedNode.children("." + ITEM_CLASS));
@@ -142950,7 +143803,7 @@
                 return $node
             },
             _collapseFocusedContainer: function() {
-                var $focusedNode = $(this.option("focusedElement"));
+                var $focusedNode = (0, _renderer2.default)(this.option("focusedElement"));
                 if (!$focusedNode.length) {
                     return
                 }
@@ -142960,18 +143813,18 @@
                     this._toggleExpandedState(node, false)
                 } else {
                     var collapsedNode = this._getClosestNonDisabledNode($focusedNode);
-                    collapsedNode.length && this.option("focusedElement", getPublicElement(collapsedNode))
+                    collapsedNode.length && this.option("focusedElement", (0, _dom.getPublicElement)(collapsedNode))
                 }
             },
             updateDimensions: function() {
-                var that = this,
-                    deferred = new Deferred;
-                if (that._scrollableContainer) {
-                    that._scrollableContainer.update().done(function() {
-                        deferred.resolveWith(that)
+                var _this13 = this;
+                var deferred = new _deferred.Deferred;
+                if (this._scrollableContainer) {
+                    this._scrollableContainer.update().done(function() {
+                        deferred.resolveWith(_this13)
                     })
                 } else {
-                    deferred.resolveWith(that)
+                    deferred.resolveWith(this)
                 }
                 return deferred.promise()
             },
@@ -143012,12 +143865,12 @@
                 }
             },
             expandAll: function() {
-                each(this._dataAdapter.getData(), function(_, node) {
+                (0, _iterator.each)(this._dataAdapter.getData(), function(_, node) {
                     this._toggleExpandedState(node.internalFields.key, true)
                 }.bind(this))
             },
             collapseAll: function() {
-                each(this._dataAdapter.getExpandedNodesKeys(), function(_, key) {
+                (0, _iterator.each)(this._dataAdapter.getExpandedNodesKeys(), function(_, key) {
                     this._toggleExpandedState(key, false)
                 }.bind(this))
             }
@@ -143045,7 +143898,7 @@
         var _devices = __webpack_require__( /*! ../../core/devices */ 16);
         var _devices2 = _interopRequireDefault(_devices);
         var _deferred = __webpack_require__( /*! ../../core/utils/deferred */ 6);
-        var _accessibility = __webpack_require__( /*! ../shared/accessibility */ 116);
+        var _accessibility = __webpack_require__( /*! ../shared/accessibility */ 93);
 
         function _interopRequireDefault(obj) {
             return obj && obj.__esModule ? obj : {
@@ -143411,7 +144264,8 @@
                     $groupPanel.empty();
                     (0, _iterator.each)(groupColumns, function(index, groupColumn) {
                         that._createGroupPanelItem($groupPanel, groupColumn)
-                    })
+                    });
+                    (0, _accessibility.restoreFocus)(this)
                 },
                 _createGroupPanelItem: function($rootElement, groupColumn) {
                     var $groupPanelItem = (0, _renderer2.default)("<div>").addClass(groupColumn.cssClass).addClass(DATAGRID_GROUP_PANEL_ITEM_CLASS).data("columnData", groupColumn).appendTo($rootElement).text(groupColumn.caption);
@@ -143650,7 +144504,7 @@
         var _store_helper = __webpack_require__( /*! ../../data/store_helper */ 80);
         var _uiData_grid = __webpack_require__( /*! ./ui.data_grid.core */ 23);
         var _uiData_gridGrouping = __webpack_require__( /*! ./ui.data_grid.grouping.core */ 341);
-        var _uiData_grid2 = __webpack_require__( /*! ./ui.data_grid.utils */ 224);
+        var _uiData_grid2 = __webpack_require__( /*! ./ui.data_grid.utils */ 225);
         var _query = __webpack_require__( /*! ../../data/query */ 41);
         var _query2 = _interopRequireDefault(_query);
         var _deferred = __webpack_require__( /*! ../../core/utils/deferred */ 6);
@@ -144019,7 +144873,7 @@
         var _iterator = __webpack_require__( /*! ../../core/utils/iterator */ 3);
         var _uiData_grid = __webpack_require__( /*! ./ui.data_grid.core */ 23);
         var _uiData_gridGrouping = __webpack_require__( /*! ./ui.data_grid.grouping.core */ 341);
-        var _uiData_grid2 = __webpack_require__( /*! ./ui.data_grid.utils */ 224);
+        var _uiData_grid2 = __webpack_require__( /*! ./ui.data_grid.utils */ 225);
         var _ui = __webpack_require__( /*! ../widget/ui.errors */ 18);
         var _ui2 = _interopRequireDefault(_ui);
         var _errors = __webpack_require__( /*! ../../data/errors */ 36);
@@ -144718,10 +145572,10 @@
     function(module, exports, __webpack_require__) {
         var $ = __webpack_require__( /*! ../../core/renderer */ 2),
             noop = __webpack_require__( /*! ../../core/utils/common */ 4).noop,
-            getPublicElement = __webpack_require__( /*! ../../core/utils/dom */ 12).getPublicElement,
+            getPublicElement = __webpack_require__( /*! ../../core/utils/dom */ 11).getPublicElement,
             positionUtils = __webpack_require__( /*! ../../animation/position */ 76),
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
-            ContextMenu = __webpack_require__( /*! ../context_menu */ 102);
+            ContextMenu = __webpack_require__( /*! ../context_menu */ 104);
         var DX_CONTEXT_MENU_CONTENT_DELIMITER_CLASS = "dx-context-menu-content-delimiter",
             DX_SUBMENU_CLASS = "dx-submenu";
         var Submenu = ContextMenu.inherit({
@@ -145225,10 +146079,10 @@
             pointerEvents = __webpack_require__( /*! ../events/pointer */ 24),
             messageLocalization = __webpack_require__( /*! ../localization/message */ 15),
             Widget = __webpack_require__( /*! ./widget/ui.widget */ 17),
-            SelectBox = __webpack_require__( /*! ./select_box */ 91),
-            NumberBox = __webpack_require__( /*! ./number_box */ 114),
+            SelectBox = __webpack_require__( /*! ./select_box */ 92),
+            NumberBox = __webpack_require__( /*! ./number_box */ 113),
             eventUtils = __webpack_require__( /*! ../events/utils */ 9),
-            accessibility = __webpack_require__( /*! ./shared/accessibility */ 116);
+            accessibility = __webpack_require__( /*! ./shared/accessibility */ 93);
         var PAGES_LIMITER = 4,
             PAGER_CLASS = "dx-pager",
             PAGER_PAGE_CLASS = "dx-page",
@@ -145659,7 +146513,8 @@
                 this.$element().toggleClass(LIGHT_MODE_CLASS, this.option("lightModeEnabled"));
                 this._toggleVisibility(this.option("visible"));
                 this._updatePageSizes(true);
-                this._updatePages(true)
+                this._updatePages(true);
+                accessibility.restoreFocus(this)
             },
             _initMarkup: function() {
                 var $element = this.$element();
@@ -145876,7 +146731,7 @@
         var _message2 = _interopRequireDefault(_message);
         var _uiData_grid3 = __webpack_require__( /*! ./ui.data_grid.data_source_adapter */ 193);
         var _uiData_grid4 = _interopRequireDefault(_uiData_grid3);
-        var _uiGrid_core = __webpack_require__( /*! ../grid_core/ui.grid_core.columns_view */ 161);
+        var _uiGrid_core = __webpack_require__( /*! ../grid_core/ui.grid_core.columns_view */ 163);
         var _uiGrid_core2 = _interopRequireDefault(_uiGrid_core);
         var _aggregate_calculator = __webpack_require__( /*! ./aggregate_calculator */ 629);
         var _aggregate_calculator2 = _interopRequireDefault(_aggregate_calculator);
@@ -146911,21 +147766,21 @@
         var _class2 = _interopRequireDefault(_class);
         var _type = __webpack_require__( /*! ../../core/utils/type */ 1);
         var _extend = __webpack_require__( /*! ../../core/utils/extend */ 0);
-        var _position = __webpack_require__( /*! ../../core/utils/position */ 96);
-        var _array = __webpack_require__( /*! ../../core/utils/array */ 11);
+        var _position = __webpack_require__( /*! ../../core/utils/position */ 98);
+        var _array = __webpack_require__( /*! ../../core/utils/array */ 12);
         var _array2 = _interopRequireDefault(_array);
         var _uiData_grid = __webpack_require__( /*! ./ui.data_grid.core */ 23);
         var _uiData_grid2 = _interopRequireDefault(_uiData_grid);
         var _uiGrid_core = __webpack_require__( /*! ../grid_core/ui.grid_core.export_mixin */ 367);
         var _uiGrid_core2 = _interopRequireDefault(_uiGrid_core);
-        var _exporter = __webpack_require__( /*! ../../exporter */ 168);
+        var _exporter = __webpack_require__( /*! ../../exporter */ 170);
         var _message = __webpack_require__( /*! ../../localization/message */ 15);
         var _message2 = _interopRequireDefault(_message);
         var _button = __webpack_require__( /*! ../button */ 34);
         var _button2 = _interopRequireDefault(_button);
-        var _list = __webpack_require__( /*! ../list */ 99);
+        var _list = __webpack_require__( /*! ../list */ 101);
         var _list2 = _interopRequireDefault(_list);
-        var _context_menu = __webpack_require__( /*! ../context_menu */ 102);
+        var _context_menu = __webpack_require__( /*! ../context_menu */ 104);
         var _context_menu2 = _interopRequireDefault(_context_menu);
         var _deferred = __webpack_require__( /*! ../../core/utils/deferred */ 6);
 
@@ -147666,7 +148521,7 @@
         var _deferred = __webpack_require__( /*! ../../core/utils/deferred */ 6);
         var _type = __webpack_require__( /*! ../../core/utils/type */ 1);
         var _common = __webpack_require__( /*! ../../core/utils/common */ 4);
-        var _uiData_grid3 = __webpack_require__( /*! ./ui.data_grid.utils */ 224);
+        var _uiData_grid3 = __webpack_require__( /*! ./ui.data_grid.utils */ 225);
         var _data = __webpack_require__( /*! ../../core/utils/data */ 20);
         var _extend = __webpack_require__( /*! ../../core/utils/extend */ 0);
 
@@ -149026,7 +149881,8 @@
         var TREELIST_SELECT_ALL_CLASS = "dx-treelist-select-all",
             CELL_FOCUS_DISABLED_CLASS = "dx-cell-focus-disabled",
             SELECT_CHECKBOX_CLASS = "dx-select-checkbox";
-        var originalRowClick = _uiGrid_core2.default.extenders.views.rowsView._rowClick;
+        var originalRowClick = _uiGrid_core2.default.extenders.views.rowsView._rowClick,
+            originalHandleDataChanged = _uiGrid_core2.default.extenders.controllers.data._handleDataChanged;
         var nodeExists = function(array, currentKey) {
             return !!array.filter(function(key) {
                 return key === currentKey
@@ -149052,7 +149908,7 @@
                                     selectedItemKeys: this.option("selectedRowKeys")
                                 })
                             }
-                            this.callBase.apply(this, arguments)
+                            originalHandleDataChanged.apply(this, e)
                         },
                         loadDescendants: function() {
                             var that = this,
@@ -149073,6 +149929,24 @@
                         init: function() {
                             this.callBase.apply(this, arguments);
                             this._selectionStateByKey = {}
+                        },
+                        _getSelectionConfig: function() {
+                            var _this = this;
+                            var config = this.callBase.apply(this, arguments);
+                            config.plainItems = function() {
+                                return _this._dataController.getCachedStoreData() || []
+                            };
+                            config.isItemSelected = function(item) {
+                                var key = _this._dataController.keyOf(item);
+                                return _this.isRowSelected(key)
+                            };
+                            config.isSelectableItem = function() {
+                                return true
+                            };
+                            config.getItemData = function(item) {
+                                return item
+                            };
+                            return config
                         },
                         renderSelectCheckBoxContainer: function($container, model) {
                             var that = this,
@@ -149665,10 +150539,10 @@
         var $ = __webpack_require__( /*! ../../core/renderer */ 2),
             windowUtils = __webpack_require__( /*! ../../core/utils/window */ 7),
             window = windowUtils.getWindow(),
-            browser = __webpack_require__( /*! ../../core/utils/browser */ 33),
+            browser = __webpack_require__( /*! ../../core/utils/browser */ 31),
             eventsEngine = __webpack_require__( /*! ../../events/core/events_engine */ 5),
             registerComponent = __webpack_require__( /*! ../../core/component_registrator */ 8),
-            getPublicElement = __webpack_require__( /*! ../../core/utils/dom */ 12).getPublicElement,
+            getPublicElement = __webpack_require__( /*! ../../core/utils/dom */ 11).getPublicElement,
             stringUtils = __webpack_require__( /*! ../../core/utils/string */ 44),
             commonUtils = __webpack_require__( /*! ../../core/utils/common */ 4),
             each = __webpack_require__( /*! ../../core/utils/iterator */ 3).each,
@@ -149684,13 +150558,14 @@
             PivotGridDataSource = __webpack_require__( /*! ./data_source */ 195),
             dataAreaNamespace = __webpack_require__( /*! ./ui.pivot_grid.data_area */ 674),
             headersArea = __webpack_require__( /*! ./ui.pivot_grid.headers_area */ 675),
+            getSize = __webpack_require__( /*! ../../core/utils/size */ 207).getSize,
             fieldsArea = __webpack_require__( /*! ./ui.pivot_grid.fields_area */ 676),
             PivotGridFieldChooser = __webpack_require__( /*! ./ui.pivot_grid.field_chooser */ 371),
-            PivotGridFieldChooserBase = __webpack_require__( /*! ./ui.pivot_grid.field_chooser_base */ 226),
+            PivotGridFieldChooserBase = __webpack_require__( /*! ./ui.pivot_grid.field_chooser_base */ 227),
             ExportMixin = __webpack_require__( /*! ./ui.pivot_grid.export */ 678).ExportMixin,
             chartIntegrationMixin = __webpack_require__( /*! ./ui.pivot_grid.chart_integration */ 679),
             Popup = __webpack_require__( /*! ../popup */ 43),
-            ContextMenu = __webpack_require__( /*! ../context_menu */ 102),
+            ContextMenu = __webpack_require__( /*! ../context_menu */ 104),
             deferredUtils = __webpack_require__( /*! ../../core/utils/deferred */ 6),
             when = deferredUtils.when,
             Deferred = deferredUtils.Deferred,
@@ -150674,7 +151549,11 @@
                     rowHeights = rowsArea.getRowsHeight();
                     rowsAreaHeights = needSynchronizeFieldPanel ? rowHeights.slice(1) : rowHeights;
                     dataAreaHeights = dataArea.getRowsHeight();
-                    descriptionCellHeight = descriptionCell.outerHeight() + (needSynchronizeFieldPanel ? rowHeights[0] : 0);
+                    descriptionCellHeight = getSize(descriptionCell[0], "height", {
+                        paddings: true,
+                        borders: true,
+                        margins: true
+                    }) + (needSynchronizeFieldPanel ? rowHeights[0] : 0);
                     columnsAreaRowCount = that._dataController.getColumnsInfo().length;
                     resultHeights = pivotGridUtils.mergeArraysByMaxValue(rowsAreaHeights, dataAreaHeights.slice(columnsAreaRowCount));
                     columnsAreaRowHeights = dataAreaHeights.slice(0, columnsAreaRowCount);
@@ -150682,7 +151561,7 @@
                     rowsAreaColumnWidths = rowsArea.getColumnsWidth();
                     if (that._hasHeight) {
                         bordersWidth = getCommonBorderWidth([columnAreaCell, dataAreaCell, tableElement, columnHeaderCell, filterHeaderCell], "height");
-                        groupHeight = that.$element().height() - filterHeaderCell.height() - tableElement.find(".dx-data-header").height() - (Math.max(dataArea.headElement().height(), columnAreaCell.height(), descriptionCellHeight) + bordersWidth)
+                        groupHeight = that.$element().height() - filterHeaderCell.height() - tableElement.find(".dx-data-header").height() - (Math.max(dataArea.headElement().height(), columnAreaCell.height(), descriptionCellHeight) + bordersWidth);
                     }
                     totalWidth = dataArea.tableElement().width();
                     totalHeight = getArraySum(resultHeights);
@@ -150813,7 +151692,7 @@
             when = deferredUtils.when,
             Deferred = deferredUtils.Deferred,
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
-            inArray = __webpack_require__( /*! ../../core/utils/array */ 11).inArray,
+            inArray = __webpack_require__( /*! ../../core/utils/array */ 12).inArray,
             iteratorUtils = __webpack_require__( /*! ../../core/utils/iterator */ 3),
             Class = __webpack_require__( /*! ../../core/class */ 14),
             stringUtils = __webpack_require__( /*! ../../core/utils/string */ 44),
@@ -152873,7 +153752,7 @@
     function(module, exports, __webpack_require__) {
         var typeUtils = __webpack_require__( /*! ../../core/utils/type */ 1),
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
-            inArray = __webpack_require__( /*! ../../core/utils/array */ 11).inArray,
+            inArray = __webpack_require__( /*! ../../core/utils/array */ 12).inArray,
             isDefined = typeUtils.isDefined,
             pivotGridUtils = __webpack_require__( /*! ./ui.pivot_grid.utils */ 75),
             findField = pivotGridUtils.findField,
@@ -153320,7 +154199,7 @@
     /*! all exports used */
     function(module, exports, __webpack_require__) {
         var $ = __webpack_require__( /*! ../../core/renderer */ 2),
-            areaItem = __webpack_require__( /*! ./ui.pivot_grid.area_item */ 225);
+            areaItem = __webpack_require__( /*! ./ui.pivot_grid.area_item */ 226);
         var PIVOTGRID_AREA_CLASS = "dx-pivotgrid-area",
             PIVOTGRID_AREA_DATA_CLASS = "dx-pivotgrid-area-data",
             PIVOTGRID_TOTAL_CLASS = "dx-total",
@@ -153396,9 +154275,9 @@
     function(module, exports, __webpack_require__) {
         var $ = __webpack_require__( /*! ../../core/renderer */ 2),
             isDefined = __webpack_require__( /*! ../../core/utils/type */ 1).isDefined,
-            inArray = __webpack_require__( /*! ../../core/utils/array */ 11).inArray,
+            inArray = __webpack_require__( /*! ../../core/utils/array */ 12).inArray,
             each = __webpack_require__( /*! ../../core/utils/iterator */ 3).each,
-            areaItem = __webpack_require__( /*! ./ui.pivot_grid.area_item */ 225);
+            areaItem = __webpack_require__( /*! ./ui.pivot_grid.area_item */ 226);
         var PIVOTGRID_AREA_CLASS = "dx-pivotgrid-area",
             PIVOTGRID_AREA_COLUMN_CLASS = "dx-pivotgrid-horizontal-headers",
             PIVOTGRID_AREA_ROW_CLASS = "dx-pivotgrid-vertical-headers",
@@ -153641,12 +154520,12 @@
         var $ = __webpack_require__( /*! ../../core/renderer */ 2),
             noop = __webpack_require__( /*! ../../core/utils/common */ 4).noop,
             each = __webpack_require__( /*! ../../core/utils/iterator */ 3).each,
-            areaItem = __webpack_require__( /*! ./ui.pivot_grid.area_item */ 225),
+            areaItem = __webpack_require__( /*! ./ui.pivot_grid.area_item */ 226),
             pivotGridUtils = __webpack_require__( /*! ./ui.pivot_grid.utils */ 75),
             Popup = __webpack_require__( /*! ../popup */ 43),
             Button = __webpack_require__( /*! ../button */ 34),
             DIV = "<div>";
-        __webpack_require__( /*! ./ui.pivot_grid.field_chooser_base */ 226);
+        __webpack_require__( /*! ./ui.pivot_grid.field_chooser_base */ 227);
         var AREA_DRAG_CLASS = "dx-pivotgrid-drag-action";
 
         function renderGroupConnector(field, nextField, prevField, $container) {
@@ -153787,7 +154666,7 @@
             registerComponent = __webpack_require__( /*! ../../core/component_registrator */ 8),
             DOMComponent = __webpack_require__( /*! ../../core/dom_component */ 66),
             dragEvents = __webpack_require__( /*! ../../events/drag */ 56),
-            getSwatchContainer = __webpack_require__( /*! ../widget/swatch_container */ 171).getSwatchContainer;
+            getSwatchContainer = __webpack_require__( /*! ../widget/swatch_container */ 148).getSwatchContainer;
         var SORTABLE_NAMESPACE = "dxSortable",
             SORTABLE_CLASS = "dx-sortable",
             SCROLL_STEP = 2,
@@ -154207,7 +155086,7 @@
             each = __webpack_require__( /*! ../../core/utils/iterator */ 3).each,
             formatHelper = __webpack_require__( /*! ../../format_helper */ 61),
             numberLocalization = __webpack_require__( /*! ../../localization/number */ 51),
-            clientExporter = __webpack_require__( /*! ../../exporter */ 168),
+            clientExporter = __webpack_require__( /*! ../../exporter */ 170),
             excelExporter = clientExporter.excel,
             DEFAULT_DATA_TYPE = "string",
             exportMixin = __webpack_require__( /*! ../grid_core/ui.grid_core.export_mixin */ 367),
@@ -154738,11 +155617,11 @@
         var _ui2 = _interopRequireDefault(_ui);
         var _window = __webpack_require__( /*! ../../core/utils/window */ 7);
         var _window2 = _interopRequireDefault(_window);
-        var _dialog = __webpack_require__( /*! ../dialog */ 210);
+        var _dialog = __webpack_require__( /*! ../dialog */ 211);
         var _dialog2 = _interopRequireDefault(_dialog);
         var _utils = __webpack_require__( /*! ./utils.recurrence */ 139);
         var _utils2 = _interopRequireDefault(_utils);
-        var _dom = __webpack_require__( /*! ../../core/utils/dom */ 12);
+        var _dom = __webpack_require__( /*! ../../core/utils/dom */ 11);
         var _dom2 = _interopRequireDefault(_dom);
         var _date = __webpack_require__( /*! ../../core/utils/date */ 22);
         var _date2 = _interopRequireDefault(_date);
@@ -154750,7 +155629,7 @@
         var _object2 = _interopRequireDefault(_object);
         var _iterator = __webpack_require__( /*! ../../core/utils/iterator */ 3);
         var _extend = __webpack_require__( /*! ../../core/utils/extend */ 0);
-        var _array = __webpack_require__( /*! ../../core/utils/array */ 11);
+        var _array = __webpack_require__( /*! ../../core/utils/array */ 12);
         var _common = __webpack_require__( /*! ../../core/utils/common */ 4);
         var _type = __webpack_require__( /*! ../../core/utils/type */ 1);
         var _type2 = _interopRequireDefault(_type);
@@ -154768,7 +155647,7 @@
         var _ui4 = _interopRequireDefault(_ui3);
         var _uiScheduler = __webpack_require__( /*! ./ui.scheduler.subscribes */ 684);
         var _uiScheduler2 = _interopRequireDefault(_uiScheduler);
-        var _function_template = __webpack_require__( /*! ../widget/function_template */ 83);
+        var _function_template = __webpack_require__( /*! ../widget/function_template */ 84);
         var _function_template2 = _interopRequireDefault(_function_template);
         var _desktopTooltipStrategy = __webpack_require__( /*! ./tooltip_strategies/desktopTooltipStrategy */ 686);
         var _mobileTooltipStrategy = __webpack_require__( /*! ./tooltip_strategies/mobileTooltipStrategy */ 687);
@@ -154805,7 +155684,7 @@
         var _uiScheduler30 = _interopRequireDefault(_uiScheduler29);
         var _async_template_mixin = __webpack_require__( /*! ../shared/async_template_mixin */ 281);
         var _async_template_mixin2 = _interopRequireDefault(_async_template_mixin);
-        var _data_helper = __webpack_require__( /*! ../../data_helper */ 84);
+        var _data_helper = __webpack_require__( /*! ../../data_helper */ 85);
         var _data_helper2 = _interopRequireDefault(_data_helper);
         var _ui5 = __webpack_require__( /*! ./ui.loading */ 711);
         var _ui6 = _interopRequireDefault(_ui5);
@@ -154815,7 +155694,7 @@
         var _popup2 = _interopRequireDefault(_popup);
         var _deferred = __webpack_require__( /*! ../../core/utils/deferred */ 6);
         var _deferred2 = _interopRequireDefault(_deferred);
-        var _empty_template = __webpack_require__( /*! ../widget/empty_template */ 107);
+        var _empty_template = __webpack_require__( /*! ../widget/empty_template */ 109);
         var _empty_template2 = _interopRequireDefault(_empty_template);
         var _bindable_template = __webpack_require__( /*! ../widget/bindable_template */ 62);
         var _bindable_template2 = _interopRequireDefault(_bindable_template);
@@ -155052,6 +155931,7 @@
                     case "currentDate":
                         value = this._dateOption(name);
                         value = _date2.default.trimTime(new Date(value));
+                        this.option("selectedCellData", []);
                         this._workSpace.option(name, new Date(value));
                         this._header.option(name, new Date(value));
                         this._header.option("displayedDate", this._workSpace._getViewStartByOptions());
@@ -155087,7 +155967,6 @@
                         break;
                     case "currentView":
                         this._processCurrentView();
-                        this.option("selectedCellData", []);
                         this._appointments.option({
                             items: [],
                             allowDrag: this._allowDragging(),
@@ -155375,6 +156254,7 @@
                 if (!this._isAgenda() && filteredItems && this._isVisible()) {
                     this._workSpace._cleanAllowedPositions();
                     this._workSpace.option("allDayExpanded", this._isAllDayExpanded(filteredItems));
+                    this._workSpace._dimensionChanged();
                     var appointments = this._layoutManager.createAppointmentsMap(filteredItems);
                     this._appointments.option("items", appointments)
                 }
@@ -155606,21 +156486,38 @@
                 this._appointments = this._createComponent("<div>", _uiScheduler28.default, this._appointmentsConfig());
                 this._appointments.option("itemTemplate", this._getAppointmentTemplate("appointmentTemplate"));
                 this._appointmentTooltip = this.option("adaptivityEnabled") ? new _mobileTooltipStrategy.MobileTooltipStrategy(this) : new _desktopTooltipStrategy.DesktopTooltipStrategy(this);
-                this._loadResources().done(function(resources) {
-                    var _this3 = this;
-                    this._readyToRenderAppointments = _window2.default.hasWindow();
-                    this._workSpace && this._cleanWorkspace();
-                    this._renderWorkSpace(resources);
-                    this._appointments.option({
-                        fixedContainer: this._workSpace.getFixedContainer(),
-                        allDayContainer: this._workSpace.getAllDayContainer()
-                    });
-                    this._waitAsyncTemplates(function() {
-                        _this3._workSpaceRecalculation && _this3._workSpaceRecalculation.resolve()
-                    });
-                    this._filterAppointmentsByDate();
-                    this._reloadDataSource()
-                }.bind(this))
+                if (this._isLoaded()) {
+                    this._initMarkupCore(this._loadedResources);
+                    this._dataSourceChangedHandler(this._dataSource.items())
+                } else {
+                    this._loadResources().done(function(resources) {
+                        this._initMarkupCore(resources);
+                        this._reloadDataSource()
+                    }.bind(this))
+                }
+            },
+            _initMarkupCore: function(resources) {
+                var _this3 = this;
+                this._readyToRenderAppointments = _window2.default.hasWindow();
+                this._workSpace && this._cleanWorkspace();
+                this._renderWorkSpace(resources);
+                this._appointments.option({
+                    fixedContainer: this._workSpace.getFixedContainer(),
+                    allDayContainer: this._workSpace.getAllDayContainer()
+                });
+                this._waitAsyncTemplates(function() {
+                    _this3._workSpaceRecalculation && _this3._workSpaceRecalculation.resolve()
+                });
+                this._filterAppointmentsByDate()
+            },
+            _isLoaded: function() {
+                return this._isResourcesLoaded() && this._isDataSourceLoaded()
+            },
+            _isResourcesLoaded: function() {
+                return _type2.default.isDefined(this._loadedResources)
+            },
+            _isDataSourceLoaded: function() {
+                return this._dataSource && this._dataSource.isLoaded()
             },
             _render: function() {
                 this._toggleSmallClass();
@@ -155829,7 +156726,8 @@
             _cleanWorkspace: function() {
                 this._appointments.$element().detach();
                 this._workSpace._dispose();
-                this._workSpace.$element().remove()
+                this._workSpace.$element().remove();
+                this.option("selectedCellData", [])
             },
             getWorkSpaceScrollable: function() {
                 return this._workSpace.getScrollable()
@@ -155914,8 +156812,7 @@
                 if (this._appointmentForm) {
                     var startDateExpr = this._dataAccessors.expr.startDateExpr,
                         endDateExpr = this._dataAccessors.expr.endDateExpr;
-                    this._appointmentForm.resetValues();
-                    this._appointmentForm.option("formData", formData);
+                    _uiScheduler32.default.updateFormData(this._appointmentForm, formData);
                     this._appointmentForm.option("readOnly", this._editAppointmentData ? !this._editing.allowUpdating : false);
                     _uiScheduler32.default.checkEditorsType(this._appointmentForm, startDateExpr, endDateExpr, allDay)
                 } else {
@@ -156297,7 +157194,7 @@
             _updateAppointment: function(target, appointment, onUpdatePrevented) {
                 var updatingOptions = {
                     newData: appointment,
-                    oldData: target,
+                    oldData: (0, _extend.extend)({}, target),
                     cancel: false
                 };
                 var performFailAction = function(err) {
@@ -156629,7 +157526,7 @@
     function(module, exports, __webpack_require__) {
         var _renderer = __webpack_require__( /*! ../../core/renderer */ 2);
         var _renderer2 = _interopRequireDefault(_renderer);
-        var _array = __webpack_require__( /*! ../../core/utils/array */ 11);
+        var _array = __webpack_require__( /*! ../../core/utils/array */ 12);
         var _array2 = _interopRequireDefault(_array);
         var _utils = __webpack_require__( /*! ./utils.recurrence */ 139);
         var _utils2 = _interopRequireDefault(_utils);
@@ -156642,7 +157539,7 @@
         var _translator2 = _interopRequireDefault(_translator);
         var _common = __webpack_require__( /*! ../../core/utils/common */ 4);
         var _extend = __webpack_require__( /*! ../../core/utils/extend */ 0);
-        var _date3 = __webpack_require__( /*! ../../localization/date */ 32);
+        var _date3 = __webpack_require__( /*! ../../localization/date */ 33);
         var _date4 = _interopRequireDefault(_date3);
         var _uiScheduler = __webpack_require__( /*! ./timezones/ui.scheduler.timezones */ 372);
         var _uiScheduler2 = _interopRequireDefault(_uiScheduler);
@@ -156679,14 +157576,16 @@
                     allDay = this.appointmentTakesAllDay(appointmentData),
                     startViewDate = this.appointmentTakesAllDay(appointmentData) ? _date2.default.trimTime(new Date(dateRange[0])) : dateRange[0],
                     originalStartDate = options.originalStartDate || startDate,
-                    renderingStrategy = this.getLayoutManager().getRenderingStrategyInstance();
+                    renderingStrategy = this.getLayoutManager().getRenderingStrategyInstance(),
+                    firstDayOfWeek = this.option("firstDayOfWeek");
                 var recurrenceOptions = {
                     rule: recurrenceRule,
                     exception: recurrenceException,
                     start: originalStartDate,
                     end: endDate,
                     min: startViewDate,
-                    max: dateRange[1]
+                    max: dateRange[1],
+                    firstDayOfWeek: firstDayOfWeek
                 };
                 var dates = _utils2.default.getDatesByRecurrence(recurrenceOptions),
                     initialDates = void 0;
@@ -156703,14 +157602,20 @@
                     var datesLength = dates.length,
                         longParts = [],
                         resultDates = [];
-                    for (var i = 0; i < datesLength; i++) {
+                    var _loop = function(i) {
                         var endDateOfPart = renderingStrategy.endDate(appointmentData, {
                             startDate: dates[i]
                         }, !!recurrenceRule);
                         longParts = _date2.default.getDatesOfInterval(dates[i], endDateOfPart, {
-                            milliseconds: this.getWorkSpace().getIntervalDuration(allDay)
+                            milliseconds: _this.getWorkSpace().getIntervalDuration(allDay)
                         });
-                        resultDates = resultDates.concat(longParts)
+                        var maxDate = new Date(dateRange[1]);
+                        resultDates = resultDates.concat(longParts.filter(function(el) {
+                            return new Date(el) < maxDate
+                        }))
+                    };
+                    for (var i = 0; i < datesLength; i++) {
+                        _loop(i)
                     }
                     dates = resultDates
                 }
@@ -157084,7 +157989,8 @@
                     min: dateRange[0],
                     max: dateRange[1],
                     resources: resources,
-                    allDay: allDay
+                    allDay: allDay,
+                    firstDayOfWeek: this.option("firstDayOfWeek")
                 }, this._subscribes.convertDateByTimezone.bind(this))
             },
             dayHasAppointment: function(day, appointment, trimTime) {
@@ -160793,7 +161699,7 @@
         var _renderer = __webpack_require__( /*! ../../../core/renderer */ 2);
         var _renderer2 = _interopRequireDefault(_renderer);
         var _tooltipStrategyBase = __webpack_require__( /*! ./tooltipStrategyBase */ 373);
-        var _tooltip = __webpack_require__( /*! ../../tooltip */ 192);
+        var _tooltip = __webpack_require__( /*! ../../tooltip */ 161);
         var _tooltip2 = _interopRequireDefault(_tooltip);
         var _translator = __webpack_require__( /*! ../../../animation/translator */ 26);
         var _translator2 = _interopRequireDefault(_translator);
@@ -160801,9 +161707,8 @@
         var _drag2 = _interopRequireDefault(_drag);
         var _events_engine = __webpack_require__( /*! ../../../events/core/events_engine */ 5);
         var _events_engine2 = _interopRequireDefault(_events_engine);
-        var _function_template = __webpack_require__( /*! ../../widget/function_template */ 83);
+        var _function_template = __webpack_require__( /*! ../../widget/function_template */ 84);
         var _function_template2 = _interopRequireDefault(_function_template);
-        var _extend = __webpack_require__( /*! ../../../core/utils/extend */ 0);
 
         function _interopRequireDefault(obj) {
             return obj && obj.__esModule ? obj : {
@@ -160886,6 +161791,11 @@
                 value: function(e) {
                     this.scheduler.showAppointmentPopup(e.itemData.data, false, e.itemData.currentData)
                 }
+            }, {
+                key: "canRaiseClickEvent",
+                value: function() {
+                    return false
+                }
             }]);
             return TooltipSingleAppointmentBehavior
         }(TooltipBehaviorBase);
@@ -160914,42 +161824,9 @@
                     }
                 }
             }, {
-                key: "onListItemClick",
-                value: function(listItemClickArg) {
-                    var config = {
-                        itemData: listItemClickArg.itemData.data,
-                        itemElement: listItemClickArg.itemElement
-                    };
-                    var showEditAppointmentPopupAction = this.createAppointmentClickAction();
-                    showEditAppointmentPopupAction(this.createClickEventArgument(config, listItemClickArg))
-                }
-            }, {
-                key: "createAppointmentClickAction",
+                key: "canRaiseClickEvent",
                 value: function() {
-                    var _this4 = this;
-                    return this.scheduler._createActionByOption("onAppointmentClick", {
-                        afterExecute: function(e) {
-                            var config = e.args[0];
-                            config.event.stopPropagation();
-                            _this4.scheduler.fire("showEditAppointmentPopup", {
-                                data: config.appointmentData
-                            })
-                        }
-                    })
-                }
-            }, {
-                key: "createClickEventArgument",
-                value: function(config, listItemClickArg) {
-                    var result = (0, _extend.extendFromObject)(this.scheduler.fire("mapAppointmentFields", config), listItemClickArg, false);
-                    return this.trimClickEventArgument(result)
-                }
-            }, {
-                key: "trimClickEventArgument",
-                value: function(e) {
-                    delete e.itemData;
-                    delete e.itemIndex;
-                    delete e.itemElement;
-                    return e
+                    return true
                 }
             }, {
                 key: "createFunctionTemplate",
@@ -161149,10 +162026,9 @@
                     this.behavior.onListItemRendered(e)
                 }
             }, {
-                key: "_onListItemClick",
-                value: function(e) {
-                    _get(DesktopTooltipStrategy.prototype.__proto__ || Object.getPrototypeOf(DesktopTooltipStrategy.prototype), "_onListItemClick", this).call(this, e);
-                    this.behavior.onListItemClick(e)
+                key: "_canRaiseClickEvent",
+                value: function() {
+                    return this.behavior.canRaiseClickEvent()
                 }
             }]);
             return DesktopTooltipStrategy
@@ -161364,14 +162240,14 @@
             isDefined = __webpack_require__( /*! ../../core/utils/type */ 1).isDefined,
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
             each = __webpack_require__( /*! ../../core/utils/iterator */ 3).each,
-            inArray = __webpack_require__( /*! ../../core/utils/array */ 11).inArray,
-            camelize = __webpack_require__( /*! ../../core/utils/inflector */ 31).camelize,
+            inArray = __webpack_require__( /*! ../../core/utils/array */ 12).inArray,
+            camelize = __webpack_require__( /*! ../../core/utils/inflector */ 32).camelize,
             registerComponent = __webpack_require__( /*! ../../core/component_registrator */ 8),
             Widget = __webpack_require__( /*! ../widget/ui.widget */ 17),
-            publisherMixin = __webpack_require__( /*! ./ui.scheduler.publisher_mixin */ 117),
+            publisherMixin = __webpack_require__( /*! ./ui.scheduler.publisher_mixin */ 115),
             SchedulerNavigator = __webpack_require__( /*! ./ui.scheduler.navigator */ 689),
-            DropDownMenu = __webpack_require__( /*! ../drop_down_menu */ 189),
-            Tabs = __webpack_require__( /*! ../tabs */ 191),
+            DropDownMenu = __webpack_require__( /*! ../drop_down_menu */ 190),
+            Tabs = __webpack_require__( /*! ../tabs */ 192),
             errors = __webpack_require__( /*! ../../core/errors */ 21),
             messageLocalization = __webpack_require__( /*! ../../localization/message */ 15);
         var COMPONENT_CLASS = "dx-scheduler-header",
@@ -161583,11 +162459,11 @@
             devices = __webpack_require__( /*! ../../core/devices */ 16),
             Widget = __webpack_require__( /*! ../widget/ui.widget */ 17),
             Button = __webpack_require__( /*! ../button */ 34),
-            Calendar = __webpack_require__( /*! ../calendar */ 216),
+            Calendar = __webpack_require__( /*! ../calendar */ 217),
             Popover = __webpack_require__( /*! ../popover */ 135),
             Popup = __webpack_require__( /*! ../popup */ 43),
-            publisherMixin = __webpack_require__( /*! ./ui.scheduler.publisher_mixin */ 117),
-            dateLocalization = __webpack_require__( /*! ../../localization/date */ 32),
+            publisherMixin = __webpack_require__( /*! ./ui.scheduler.publisher_mixin */ 115),
+            dateLocalization = __webpack_require__( /*! ../../localization/date */ 33),
             isDefined = __webpack_require__( /*! ../../core/utils/type */ 1).isDefined;
         var ELEMENT_CLASS = "dx-scheduler-navigator",
             CALENDAR_CLASS = "dx-scheduler-navigator-calendar",
@@ -162104,12 +162980,7 @@
                 return 1
             },
             getWorkSpaceMinWidth: function() {
-                var minWidth = this._workSpace._getWorkSpaceWidth(),
-                    workspaceContainerWidth = this._workSpace.$element().get(0).getBoundingClientRect().width - this._workSpace.getTimePanelWidth();
-                if (minWidth < workspaceContainerWidth) {
-                    minWidth = workspaceContainerWidth
-                }
-                return minWidth
+                return this._workSpace.$element().get(0).getBoundingClientRect().width - this._workSpace.getTimePanelWidth()
             },
             getAllDayOffset: function() {
                 return this._workSpace.getAllDayHeight()
@@ -162301,7 +163172,7 @@
                     horizontalOffset = rtlOffset ? rtlOffset - offset : offset,
                     verticalOffset = this._workSpace._getRowCount() * this._workSpace.getCellHeight() * i;
                 if (this._workSpace.supportAllDayRow() && this._workSpace.option("showAllDayPanel")) {
-                    verticalOffset += this._workSpace.getCellHeight() * (i + 1)
+                    verticalOffset += this._workSpace.getAllDayHeight() * (i + 1)
                 }
                 $indicator.css("left", horizontalOffset + tableOffset);
                 $indicator.css("top", height + verticalOffset)
@@ -162426,7 +163297,7 @@
             dateUtils = __webpack_require__( /*! ../../../core/utils/date */ 22),
             toMs = dateUtils.dateToMilliseconds,
             SchedulerWorkSpaceWeek = __webpack_require__( /*! ./ui.scheduler.work_space_week */ 377),
-            dateLocalization = __webpack_require__( /*! ../../../localization/date */ 32);
+            dateLocalization = __webpack_require__( /*! ../../../localization/date */ 33);
         var WORK_WEEK_CLASS = "dx-scheduler-work-space-work-week";
         var dayIndexes = [1, 2, 3, 4, 5];
         var weekCounter = 0;
@@ -162488,7 +163359,7 @@
             registerComponent = __webpack_require__( /*! ../../../core/component_registrator */ 8),
             SchedulerWorkSpace = __webpack_require__( /*! ./ui.scheduler.work_space.indicator */ 196),
             dateUtils = __webpack_require__( /*! ../../../core/utils/date */ 22),
-            dateLocalization = __webpack_require__( /*! ../../../localization/date */ 32);
+            dateLocalization = __webpack_require__( /*! ../../../localization/date */ 33);
         var MONTH_CLASS = "dx-scheduler-work-space-month",
             DATE_TABLE_CURRENT_DATE_CLASS = "dx-scheduler-date-table-current-date",
             DATE_TABLE_FIRST_OF_MONTH_CLASS = "dx-scheduler-date-table-first-of-month",
@@ -162722,7 +163593,7 @@
     /*! all exports used */
     function(module, exports, __webpack_require__) {
         var registerComponent = __webpack_require__( /*! ../../../core/component_registrator */ 8),
-            SchedulerTimeline = __webpack_require__( /*! ./ui.scheduler.timeline */ 228);
+            SchedulerTimeline = __webpack_require__( /*! ./ui.scheduler.timeline */ 229);
         var TIMELINE_CLASS = "dx-scheduler-timeline-day";
         var SchedulerTimelineDay = SchedulerTimeline.inherit({
             _getElementClass: function() {
@@ -162828,7 +163699,7 @@
     /*! all exports used */
     function(module, exports, __webpack_require__) {
         var registerComponent = __webpack_require__( /*! ../../../core/component_registrator */ 8),
-            SchedulerTimeline = __webpack_require__( /*! ./ui.scheduler.timeline */ 228),
+            SchedulerTimeline = __webpack_require__( /*! ./ui.scheduler.timeline */ 229),
             dateUtils = __webpack_require__( /*! ../../../core/utils/date */ 22);
         var TIMELINE_CLASS = "dx-scheduler-timeline-month",
             DAY_IN_MILLISECONDS = 864e5;
@@ -162925,12 +163796,12 @@
             domAdapter = __webpack_require__( /*! ../../../core/dom_adapter */ 13),
             noop = __webpack_require__( /*! ../../../core/utils/common */ 4).noop,
             each = __webpack_require__( /*! ../../../core/utils/iterator */ 3).each,
-            getPublicElement = __webpack_require__( /*! ../../../core/utils/dom */ 12).getPublicElement,
+            getPublicElement = __webpack_require__( /*! ../../../core/utils/dom */ 11).getPublicElement,
             registerComponent = __webpack_require__( /*! ../../../core/component_registrator */ 8),
             SchedulerWorkSpace = __webpack_require__( /*! ./ui.scheduler.work_space */ 374),
             extend = __webpack_require__( /*! ../../../core/utils/extend */ 0).extend,
-            dateLocalization = __webpack_require__( /*! ../../../localization/date */ 32),
-            tableCreator = __webpack_require__( /*! ../ui.scheduler.table_creator */ 227);
+            dateLocalization = __webpack_require__( /*! ../../../localization/date */ 33),
+            tableCreator = __webpack_require__( /*! ../ui.scheduler.table_creator */ 228);
         var AGENDA_CLASS = "dx-scheduler-agenda",
             AGENDA_DATE_CLASS = "dx-scheduler-agenda-date",
             GROUP_TABLE_CLASS = "dx-scheduler-group-table",
@@ -163309,13 +164180,13 @@
     /*! all exports used */
     function(module, exports, __webpack_require__) {
         var Class = __webpack_require__( /*! ../../core/class */ 14),
-            arrayUtils = __webpack_require__( /*! ../../core/utils/array */ 11),
+            arrayUtils = __webpack_require__( /*! ../../core/utils/array */ 12),
             grep = __webpack_require__( /*! ../../core/utils/common */ 4).grep,
             isDefined = __webpack_require__( /*! ../../core/utils/type */ 1).isDefined,
             objectUtils = __webpack_require__( /*! ../../core/utils/object */ 47),
             iteratorUtils = __webpack_require__( /*! ../../core/utils/iterator */ 3),
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
-            inArray = __webpack_require__( /*! ../../core/utils/array */ 11).inArray,
+            inArray = __webpack_require__( /*! ../../core/utils/array */ 12).inArray,
             query = __webpack_require__( /*! ../../data/query */ 41),
             dataCoreUtils = __webpack_require__( /*! ../../core/utils/data */ 20),
             DataSourceModule = __webpack_require__( /*! ../../data/data_source/data_source */ 46),
@@ -163708,72 +164579,133 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var Class = __webpack_require__( /*! ../../core/class */ 14),
-            config = __webpack_require__( /*! ../../core/config */ 29),
-            iteratorUtils = __webpack_require__( /*! ../../core/utils/iterator */ 3),
-            dateSerialization = __webpack_require__( /*! ../../core/utils/date_serialization */ 53),
-            recurrenceUtils = __webpack_require__( /*! ./utils.recurrence */ 139),
-            dateUtils = __webpack_require__( /*! ../../core/utils/date */ 22),
-            commonUtils = __webpack_require__( /*! ../../core/utils/common */ 4),
-            typeUtils = __webpack_require__( /*! ../../core/utils/type */ 1),
-            inArray = __webpack_require__( /*! ../../core/utils/array */ 11).inArray,
-            extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
-            arrayUtils = __webpack_require__( /*! ../../core/utils/array */ 11),
-            query = __webpack_require__( /*! ../../data/query */ 41);
-        var toMs = dateUtils.dateToMilliseconds;
+        var _createClass = function() {
+            function defineProperties(target, props) {
+                for (var i = 0; i < props.length; i++) {
+                    var descriptor = props[i];
+                    descriptor.enumerable = descriptor.enumerable || false;
+                    descriptor.configurable = true;
+                    if ("value" in descriptor) {
+                        descriptor.writable = true
+                    }
+                    Object.defineProperty(target, descriptor.key, descriptor)
+                }
+            }
+            return function(Constructor, protoProps, staticProps) {
+                if (protoProps) {
+                    defineProperties(Constructor.prototype, protoProps)
+                }
+                if (staticProps) {
+                    defineProperties(Constructor, staticProps)
+                }
+                return Constructor
+            }
+        }();
+        var _config = __webpack_require__( /*! ../../core/config */ 29);
+        var _config2 = _interopRequireDefault(_config);
+        var _iterator = __webpack_require__( /*! ../../core/utils/iterator */ 3);
+        var _iterator2 = _interopRequireDefault(_iterator);
+        var _date_serialization = __webpack_require__( /*! ../../core/utils/date_serialization */ 53);
+        var _date_serialization2 = _interopRequireDefault(_date_serialization);
+        var _utils = __webpack_require__( /*! ./utils.recurrence */ 139);
+        var _utils2 = _interopRequireDefault(_utils);
+        var _date = __webpack_require__( /*! ../../core/utils/date */ 22);
+        var _date2 = _interopRequireDefault(_date);
+        var _common = __webpack_require__( /*! ../../core/utils/common */ 4);
+        var _common2 = _interopRequireDefault(_common);
+        var _type = __webpack_require__( /*! ../../core/utils/type */ 1);
+        var _type2 = _interopRequireDefault(_type);
+        var _array = __webpack_require__( /*! ../../core/utils/array */ 12);
+        var _array2 = _interopRequireDefault(_array);
+        var _extend = __webpack_require__( /*! ../../core/utils/extend */ 0);
+        var _query = __webpack_require__( /*! ../../data/query */ 41);
+        var _query2 = _interopRequireDefault(_query);
+
+        function _interopRequireDefault(obj) {
+            return obj && obj.__esModule ? obj : {
+                "default": obj
+            }
+        }
+
+        function _classCallCheck(instance, Constructor) {
+            if (!(instance instanceof Constructor)) {
+                throw new TypeError("Cannot call a class as a function")
+            }
+        }
+        var toMs = _date2.default.dateToMilliseconds;
         var DATE_FILTER_POSITION = 0,
             USER_FILTER_POSITION = 1;
-        var FilterMaker = Class.inherit({
-            ctor: function(dataAccessors) {
+        var FilterMaker = function() {
+            function FilterMaker(dataAccessors) {
+                _classCallCheck(this, FilterMaker);
                 this._filterRegistry = null;
                 this._dataAccessors = dataAccessors
-            },
-            isRegistered: function() {
-                return !!this._filterRegistry
-            },
-            clearRegistry: function() {
-                delete this._filterRegistry
-            },
-            make: function(type, args) {
-                if (!this._filterRegistry) {
-                    this._filterRegistry = {}
-                }
-                this._make[type].apply(this, args)
-            },
-            _make: {
-                date: function(min, max, useAccessors) {
-                    var startDate = useAccessors ? this._dataAccessors.getter.startDate : this._dataAccessors.expr.startDateExpr,
-                        endDate = useAccessors ? this._dataAccessors.getter.endDate : this._dataAccessors.expr.endDateExpr,
-                        recurrenceRule = this._dataAccessors.expr.recurrenceRuleExpr;
-                    this._filterRegistry.date = [
-                        [
-                            [endDate, ">", min],
-                            [startDate, "<", max]
-                        ], "or", [recurrenceRule, "startswith", "freq"], "or", [
-                            [endDate, min],
-                            [startDate, min]
-                        ]
-                    ];
-                    if (!recurrenceRule) {
-                        this._filterRegistry.date.splice(1, 2)
-                    }
-                },
-                user: function(userFilter) {
-                    this._filterRegistry.user = userFilter
-                }
-            },
-            combine: function() {
-                var filter = [];
-                this._filterRegistry.date && filter.push(this._filterRegistry.date);
-                this._filterRegistry.user && filter.push(this._filterRegistry.user);
-                return filter
-            },
-            dateFilter: function() {
-                return this._filterRegistry.date
             }
-        });
+            _createClass(FilterMaker, [{
+                key: "isRegistered",
+                value: function() {
+                    return !!this._filterRegistry
+                }
+            }, {
+                key: "clearRegistry",
+                value: function() {
+                    delete this._filterRegistry
+                }
+            }, {
+                key: "make",
+                value: function(type, args) {
+                    if (!this._filterRegistry) {
+                        this._filterRegistry = {}
+                    }
+                    this._make(type).apply(this, args)
+                }
+            }, {
+                key: "_make",
+                value: function(type) {
+                    var _this = this;
+                    switch (type) {
+                        case "date":
+                            return function(min, max, useAccessors) {
+                                var startDate = useAccessors ? _this._dataAccessors.getter.startDate : _this._dataAccessors.expr.startDateExpr,
+                                    endDate = useAccessors ? _this._dataAccessors.getter.endDate : _this._dataAccessors.expr.endDateExpr,
+                                    recurrenceRule = _this._dataAccessors.expr.recurrenceRuleExpr;
+                                _this._filterRegistry.date = [
+                                    [
+                                        [endDate, ">", min],
+                                        [startDate, "<", max]
+                                    ], "or", [recurrenceRule, "startswith", "freq"], "or", [
+                                        [endDate, min],
+                                        [startDate, min]
+                                    ]
+                                ];
+                                if (!recurrenceRule) {
+                                    _this._filterRegistry.date.splice(1, 2)
+                                }
+                            };
+                        case "user":
+                            return function(userFilter) {
+                                _this._filterRegistry.user = userFilter
+                            }
+                    }
+                }
+            }, {
+                key: "combine",
+                value: function() {
+                    var filter = [];
+                    this._filterRegistry.date && filter.push(this._filterRegistry.date);
+                    this._filterRegistry.user && filter.push(this._filterRegistry.user);
+                    return filter
+                }
+            }, {
+                key: "dateFilter",
+                value: function() {
+                    return this._filterRegistry.date
+                }
+            }]);
+            return FilterMaker
+        }();
         var compareDateWithStartDayHour = function(startDate, endDate, startDayHour, allDay, severalDays) {
-            var startTime = dateUtils.dateTimeFromDecimal(startDayHour);
+            var startTime = _date2.default.dateTimeFromDecimal(startDayHour);
             var result = startDate.getHours() >= startTime.hours && startDate.getMinutes() >= startTime.minutes || endDate.getHours() === startTime.hours && endDate.getMinutes() > startTime.minutes || endDate.getHours() > startTime.hours || severalDays || allDay;
             return result
         };
@@ -163783,7 +164715,7 @@
                 delta = (hiddenInterval - apptDuration) / toMs("hour"),
                 apptStartHour = startDate.getHours(),
                 apptStartMinutes = startDate.getMinutes();
-            var endTime = dateUtils.dateTimeFromDecimal(endDayHour);
+            var endTime = _date2.default.dateTimeFromDecimal(endDayHour);
             result = apptStartHour < endTime.hours || apptStartHour === endTime.hours && apptStartMinutes < endTime.minutes || allDay && startDate <= max;
             if (apptDuration < hiddenInterval) {
                 if (apptStartHour > endTime.hours && apptStartMinutes > endTime.minutes && delta <= apptStartHour - endDayHour) {
@@ -163792,338 +164724,413 @@
             }
             return result
         };
-        var AppointmentModel = Class.inherit({
-            _createFilter: function(min, max, remoteFiltering, dateSerializationFormat) {
-                this._filterMaker.make("date", [min, max]);
-                var userFilterPosition = this._excessFiltering() ? this._dataSource.filter()[USER_FILTER_POSITION] : this._dataSource.filter();
-                this._filterMaker.make("user", [userFilterPosition]);
-                if (remoteFiltering) {
-                    this._dataSource.filter(this._combineRemoteFilter(dateSerializationFormat))
-                }
-            },
-            _excessFiltering: function() {
-                var dateFilter = this._filterMaker.dateFilter(),
-                    dataSourceFilter = this._dataSource.filter();
-                return dataSourceFilter && (commonUtils.equalByValue(dataSourceFilter, dateFilter) || dataSourceFilter.length && commonUtils.equalByValue(dataSourceFilter[DATE_FILTER_POSITION], dateFilter))
-            },
-            _combineFilter: function() {
-                return this._filterMaker.combine()
-            },
-            _getStoreKey: function(target) {
-                var store = this._dataSource.store();
-                return store.keyOf(target)
-            },
-            _filterAppointmentByResources: function(appointment, resources) {
-                var result = false;
-
-                function checkAppointmentResourceValues() {
-                    var resource, resourceGetter = this._dataAccessors.getter.resources[resourceName];
-                    if (typeUtils.isFunction(resourceGetter)) {
-                        resource = resourceGetter(appointment)
-                    }
-                    var appointmentResourceValues = arrayUtils.wrapToArray(resource),
-                        resourceData = iteratorUtils.map(resources[i].items, function(item) {
-                            return item.id
-                        });
-                    for (var j = 0, itemDataCount = appointmentResourceValues.length; j < itemDataCount; j++) {
-                        if (inArray(appointmentResourceValues[j], resourceData) > -1) {
-                            return true
-                        }
-                    }
-                    return false
-                }
-                for (var i = 0, len = resources.length; i < len; i++) {
-                    var resourceName = resources[i].name;
-                    result = checkAppointmentResourceValues.call(this);
-                    if (!result) {
-                        return false
-                    }
-                }
-                return result
-            },
-            _filterAppointmentByRRule: function(appointment, min, max, startDayHour, endDayHour) {
-                var recurrenceRule = appointment.recurrenceRule,
-                    recurrenceException = appointment.recurrenceException,
-                    allDay = appointment.allDay,
-                    result = true,
-                    appointmentStartDate = appointment.startDate,
-                    appointmentEndDate = appointment.endDate;
-                if (allDay || this._appointmentPartInInterval(appointmentStartDate, appointmentEndDate, startDayHour, endDayHour)) {
-                    var trimmedDates = this._trimDates(min, max);
-                    min = trimmedDates.min;
-                    max = new Date(trimmedDates.max.getTime() - toMs("minute"))
-                }
-                if (recurrenceRule && !recurrenceUtils.getRecurrenceRule(recurrenceRule).isValid) {
-                    result = appointmentEndDate > min && appointmentStartDate <= max
-                }
-                if (result && recurrenceUtils.getRecurrenceRule(recurrenceRule).isValid) {
-                    result = recurrenceUtils.dateInRecurrenceRange({
-                        rule: recurrenceRule,
-                        exception: recurrenceException,
-                        start: appointmentStartDate,
-                        end: appointmentEndDate,
-                        min: min,
-                        max: max
-                    })
-                }
-                return result
-            },
-            _appointmentPartInInterval: function(startDate, endDate, startDayHour, endDayHour) {
-                var apptStartDayHour = startDate.getHours(),
-                    apptEndDayHour = endDate.getHours();
-                return apptStartDayHour <= startDayHour && apptEndDayHour <= endDayHour && apptEndDayHour >= startDayHour || apptEndDayHour >= endDayHour && apptStartDayHour <= endDayHour && apptStartDayHour >= startDayHour
-            },
-            _createCombinedFilter: function(filterOptions, timeZoneProcessor) {
-                var dataAccessors = this._dataAccessors,
-                    startDayHour = filterOptions.startDayHour,
-                    endDayHour = filterOptions.endDayHour,
-                    min = new Date(filterOptions.min),
-                    max = new Date(filterOptions.max),
-                    resources = filterOptions.resources,
-                    that = this;
-                return [
-                    [function(appointment) {
-                        var recurrenceRule, result = true,
-                            startDate = new Date(dataAccessors.getter.startDate(appointment)),
-                            endDate = new Date(dataAccessors.getter.endDate(appointment)),
-                            appointmentTakesAllDay = that.appointmentTakesAllDay(appointment, startDayHour, endDayHour),
-                            appointmentTakesSeveralDays = that.appointmentTakesSeveralDays(appointment),
-                            isAllDay = dataAccessors.getter.allDay(appointment),
-                            useRecurrence = typeUtils.isDefined(dataAccessors.getter.recurrenceRule);
-                        if (useRecurrence) {
-                            recurrenceRule = dataAccessors.getter.recurrenceRule(appointment)
-                        }
-                        if (resources && resources.length) {
-                            result = that._filterAppointmentByResources(appointment, resources)
-                        }
-                        if (appointmentTakesAllDay && false === filterOptions.allDay) {
-                            result = false
-                        }
-                        if (result && useRecurrence) {
-                            result = that._filterAppointmentByRRule({
-                                startDate: startDate,
-                                endDate: endDate,
-                                recurrenceRule: recurrenceRule,
-                                recurrenceException: dataAccessors.getter.recurrenceException(appointment),
-                                allDay: appointmentTakesAllDay
-                            }, min, max, startDayHour, endDayHour)
-                        }
-                        var startDateTimeZone = dataAccessors.getter.startDateTimeZone(appointment),
-                            endDateTimeZone = dataAccessors.getter.endDateTimeZone(appointment),
-                            comparableStartDate = timeZoneProcessor(startDate, startDateTimeZone),
-                            comparableEndDate = timeZoneProcessor(endDate, endDateTimeZone);
-                        if (result && void 0 !== startDayHour) {
-                            result = compareDateWithStartDayHour(comparableStartDate, comparableEndDate, startDayHour, appointmentTakesAllDay, appointmentTakesSeveralDays)
-                        }
-                        if (result && void 0 !== endDayHour) {
-                            result = compareDateWithEndDayHour(comparableStartDate, comparableEndDate, startDayHour, endDayHour, appointmentTakesAllDay, max)
-                        }
-                        if (result && useRecurrence && !recurrenceRule) {
-                            if (comparableEndDate < min && !isAllDay) {
-                                result = false
-                            }
-                        }
-                        return result
-                    }]
-                ]
-            },
-            ctor: function(dataSource, dataAccessors, baseAppointmentDuration) {
+        var AppointmentModel = function() {
+            function AppointmentModel(dataSource, dataAccessors, baseAppointmentDuration) {
+                _classCallCheck(this, AppointmentModel);
                 this.setDataAccessors(dataAccessors);
                 this.setDataSource(dataSource);
                 this._updatedAppointmentKeys = [];
                 this._filterMaker = new FilterMaker(dataAccessors);
                 this._baseAppointmentDuration = baseAppointmentDuration
-            },
-            setDataSource: function(dataSource) {
-                this._dataSource = dataSource;
-                this.cleanModelState();
-                this._initStoreChangeHandlers();
-                this._filterMaker && this._filterMaker.clearRegistry()
-            },
-            _initStoreChangeHandlers: function() {
-                this._dataSource && this._dataSource.store().on("updating", function(newItem) {
-                    this._updatedAppointment = newItem
-                }.bind(this));
-                this._dataSource && this._dataSource.store().on("push", function(items) {
-                    items.forEach(function(item) {
-                        this._updatedAppointmentKeys.push({
-                            key: this._dataSource.store().key(),
-                            value: item.key
-                        })
-                    }.bind(this))
-                }.bind(this))
-            },
-            getUpdatedAppointment: function() {
-                return this._updatedAppointment
-            },
-            getUpdatedAppointmentKeys: function() {
-                return this._updatedAppointmentKeys
-            },
-            cleanModelState: function() {
-                this._updatedAppointment = null;
-                this._updatedAppointmentKeys = []
-            },
-            setDataAccessors: function(dataAccessors) {
-                this._dataAccessors = dataAccessors;
-                this._filterMaker = new FilterMaker(dataAccessors)
-            },
-            filterByDate: function(min, max, remoteFiltering, dateSerializationFormat) {
-                if (!this._dataSource) {
-                    return
-                }
-                var trimmedDates = this._trimDates(min, max);
-                if (!this._filterMaker.isRegistered()) {
-                    this._createFilter(trimmedDates.min, trimmedDates.max, remoteFiltering, dateSerializationFormat)
-                } else {
-                    this._filterMaker.make("date", [trimmedDates.min, trimmedDates.max]);
-                    if (this._dataSource.filter() && this._dataSource.filter().length > 1) {
-                        this._filterMaker.make("user", [this._dataSource.filter()[1]])
-                    }
+            }
+            _createClass(AppointmentModel, [{
+                key: "_createFilter",
+                value: function(min, max, remoteFiltering, dateSerializationFormat) {
+                    this._filterMaker.make("date", [min, max]);
+                    var userFilterPosition = this._excessFiltering() ? this._dataSource.filter()[USER_FILTER_POSITION] : this._dataSource.filter();
+                    this._filterMaker.make("user", [userFilterPosition]);
                     if (remoteFiltering) {
                         this._dataSource.filter(this._combineRemoteFilter(dateSerializationFormat))
                     }
                 }
-            },
-            _combineRemoteFilter: function(dateSerializationFormat) {
-                var combinedFilter = this._filterMaker.combine();
-                return this._serializeRemoteFilter(combinedFilter, dateSerializationFormat)
-            },
-            _serializeRemoteFilter: function(filter, dateSerializationFormat) {
-                var that = this;
-                if (!Array.isArray(filter)) {
-                    return filter
+            }, {
+                key: "_excessFiltering",
+                value: function() {
+                    var dateFilter = this._filterMaker.dateFilter(),
+                        dataSourceFilter = this._dataSource.filter();
+                    return dataSourceFilter && (_common2.default.equalByValue(dataSourceFilter, dateFilter) || dataSourceFilter.length && _common2.default.equalByValue(dataSourceFilter[DATE_FILTER_POSITION], dateFilter))
                 }
-                filter = extend([], filter);
-                var startDate = that._dataAccessors.expr.startDateExpr,
-                    endDate = that._dataAccessors.expr.endDateExpr;
-                if (typeUtils.isString(filter[0])) {
-                    if (config().forceIsoDateParsing && filter.length > 1) {
-                        if (filter[0] === startDate || filter[0] === endDate) {
-                            filter[filter.length - 1] = dateSerialization.serializeDate(filter[filter.length - 1], dateSerializationFormat)
+            }, {
+                key: "_combineFilter",
+                value: function() {
+                    return this._filterMaker.combine()
+                }
+            }, {
+                key: "_getStoreKey",
+                value: function(target) {
+                    var store = this._dataSource.store();
+                    return store.keyOf(target)
+                }
+            }, {
+                key: "_filterAppointmentByResources",
+                value: function(appointment, resources) {
+                    var _this2 = this;
+                    var result = false;
+                    var checkAppointmentResourceValues = function() {
+                        var resource, resourceGetter = _this2._dataAccessors.getter.resources[resourceName];
+                        if (_type2.default.isFunction(resourceGetter)) {
+                            resource = resourceGetter(appointment)
+                        }
+                        var appointmentResourceValues = _array2.default.wrapToArray(resource),
+                            resourceData = _iterator2.default.map(resources[i].items, function(item) {
+                                return item.id
+                            });
+                        for (var j = 0, itemDataCount = appointmentResourceValues.length; j < itemDataCount; j++) {
+                            if ((0, _array.inArray)(appointmentResourceValues[j], resourceData) > -1) {
+                                return true
+                            }
+                        }
+                        return false
+                    };
+                    for (var i = 0, len = resources.length; i < len; i++) {
+                        var resourceName = resources[i].name;
+                        result = checkAppointmentResourceValues.call(this);
+                        if (!result) {
+                            return false
+                        }
+                    }
+                    return result
+                }
+            }, {
+                key: "_filterAppointmentByRRule",
+                value: function(appointment, min, max, startDayHour, endDayHour, firstDayOfWeek) {
+                    var recurrenceRule = appointment.recurrenceRule,
+                        recurrenceException = appointment.recurrenceException,
+                        allDay = appointment.allDay,
+                        result = true,
+                        appointmentStartDate = appointment.startDate,
+                        appointmentEndDate = appointment.endDate;
+                    if (allDay || this._appointmentPartInInterval(appointmentStartDate, appointmentEndDate, startDayHour, endDayHour)) {
+                        var trimmedDates = this._trimDates(min, max);
+                        min = trimmedDates.min;
+                        max = new Date(trimmedDates.max.getTime() - toMs("minute"))
+                    }
+                    if (recurrenceRule && !_utils2.default.getRecurrenceRule(recurrenceRule).isValid) {
+                        result = appointmentEndDate > min && appointmentStartDate <= max
+                    }
+                    if (result && _utils2.default.getRecurrenceRule(recurrenceRule).isValid) {
+                        result = _utils2.default.dateInRecurrenceRange({
+                            rule: recurrenceRule,
+                            exception: recurrenceException,
+                            start: appointmentStartDate,
+                            end: appointmentEndDate,
+                            min: min,
+                            max: max,
+                            firstDayOfWeek: firstDayOfWeek
+                        })
+                    }
+                    return result
+                }
+            }, {
+                key: "_appointmentPartInInterval",
+                value: function(startDate, endDate, startDayHour, endDayHour) {
+                    var apptStartDayHour = startDate.getHours(),
+                        apptEndDayHour = endDate.getHours();
+                    return apptStartDayHour <= startDayHour && apptEndDayHour <= endDayHour && apptEndDayHour >= startDayHour || apptEndDayHour >= endDayHour && apptStartDayHour <= endDayHour && apptStartDayHour >= startDayHour
+                }
+            }, {
+                key: "_createCombinedFilter",
+                value: function(filterOptions, timeZoneProcessor) {
+                    var dataAccessors = this._dataAccessors,
+                        startDayHour = filterOptions.startDayHour,
+                        endDayHour = filterOptions.endDayHour,
+                        min = new Date(filterOptions.min),
+                        max = new Date(filterOptions.max),
+                        resources = filterOptions.resources,
+                        that = this;
+                    return [
+                        [function(appointment) {
+                            var recurrenceRule, result = true,
+                                startDate = new Date(dataAccessors.getter.startDate(appointment)),
+                                endDate = new Date(dataAccessors.getter.endDate(appointment)),
+                                appointmentTakesAllDay = that.appointmentTakesAllDay(appointment, startDayHour, endDayHour),
+                                appointmentTakesSeveralDays = that.appointmentTakesSeveralDays(appointment),
+                                isAllDay = dataAccessors.getter.allDay(appointment),
+                                appointmentIsLong = appointmentTakesSeveralDays || appointmentTakesAllDay,
+                                useRecurrence = _type2.default.isDefined(dataAccessors.getter.recurrenceRule);
+                            if (useRecurrence) {
+                                recurrenceRule = dataAccessors.getter.recurrenceRule(appointment)
+                            }
+                            if (resources && resources.length) {
+                                result = that._filterAppointmentByResources(appointment, resources)
+                            }
+                            if (appointmentTakesAllDay && false === filterOptions.allDay) {
+                                result = false
+                            }
+                            if (result && useRecurrence) {
+                                result = that._filterAppointmentByRRule({
+                                    startDate: startDate,
+                                    endDate: endDate,
+                                    recurrenceRule: recurrenceRule,
+                                    recurrenceException: dataAccessors.getter.recurrenceException(appointment),
+                                    allDay: appointmentTakesAllDay
+                                }, min, max, startDayHour, endDayHour, filterOptions.firstDayOfWeek)
+                            }
+                            var startDateTimeZone = dataAccessors.getter.startDateTimeZone(appointment),
+                                endDateTimeZone = dataAccessors.getter.endDateTimeZone(appointment),
+                                comparableStartDate = timeZoneProcessor(startDate, startDateTimeZone),
+                                comparableEndDate = timeZoneProcessor(endDate, endDateTimeZone);
+                            if (result && comparableEndDate < min && appointmentIsLong && !isAllDay && (!useRecurrence || useRecurrence && !recurrenceRule)) {
+                                result = false
+                            }
+                            if (result && void 0 !== startDayHour) {
+                                result = compareDateWithStartDayHour(comparableStartDate, comparableEndDate, startDayHour, appointmentTakesAllDay, appointmentTakesSeveralDays)
+                            }
+                            if (result && void 0 !== endDayHour) {
+                                result = compareDateWithEndDayHour(comparableStartDate, comparableEndDate, startDayHour, endDayHour, appointmentTakesAllDay, max)
+                            }
+                            if (result && useRecurrence && !recurrenceRule) {
+                                if (comparableEndDate < min && !isAllDay) {
+                                    result = false
+                                }
+                            }
+                            return result
+                        }]
+                    ]
+                }
+            }, {
+                key: "setDataSource",
+                value: function(dataSource) {
+                    this._dataSource = dataSource;
+                    this.cleanModelState();
+                    this._initStoreChangeHandlers();
+                    this._filterMaker && this._filterMaker.clearRegistry()
+                }
+            }, {
+                key: "_initStoreChangeHandlers",
+                value: function() {
+                    var _this3 = this;
+                    this._dataSource && this._dataSource.store().on("updating", function(newItem) {
+                        _this3._updatedAppointment = newItem
+                    }.bind(this));
+                    this._dataSource && this._dataSource.store().on("push", function(items) {
+                        items.forEach(function(item) {
+                            _this3._updatedAppointmentKeys.push({
+                                key: _this3._dataSource.store().key(),
+                                value: item.key
+                            })
+                        }.bind(_this3))
+                    }.bind(this))
+                }
+            }, {
+                key: "getUpdatedAppointment",
+                value: function() {
+                    return this._updatedAppointment
+                }
+            }, {
+                key: "getUpdatedAppointmentKeys",
+                value: function() {
+                    return this._updatedAppointmentKeys
+                }
+            }, {
+                key: "cleanModelState",
+                value: function() {
+                    this._updatedAppointment = null;
+                    this._updatedAppointmentKeys = []
+                }
+            }, {
+                key: "setDataAccessors",
+                value: function(dataAccessors) {
+                    this._dataAccessors = dataAccessors;
+                    this._filterMaker = new FilterMaker(dataAccessors)
+                }
+            }, {
+                key: "filterByDate",
+                value: function(min, max, remoteFiltering, dateSerializationFormat) {
+                    if (!this._dataSource) {
+                        return
+                    }
+                    var trimmedDates = this._trimDates(min, max);
+                    if (!this._filterMaker.isRegistered()) {
+                        this._createFilter(trimmedDates.min, trimmedDates.max, remoteFiltering, dateSerializationFormat)
+                    } else {
+                        this._filterMaker.make("date", [trimmedDates.min, trimmedDates.max]);
+                        if (this._dataSource.filter() && this._dataSource.filter().length > 1) {
+                            this._filterMaker.make("user", [this._dataSource.filter()[1]])
+                        }
+                        if (remoteFiltering) {
+                            this._dataSource.filter(this._combineRemoteFilter(dateSerializationFormat))
                         }
                     }
                 }
-                for (var i = 0; i < filter.length; i++) {
-                    filter[i] = that._serializeRemoteFilter(filter[i], dateSerializationFormat)
+            }, {
+                key: "_combineRemoteFilter",
+                value: function(dateSerializationFormat) {
+                    var combinedFilter = this._filterMaker.combine();
+                    return this._serializeRemoteFilter(combinedFilter, dateSerializationFormat)
                 }
-                return filter
-            },
-            filterLoadedAppointments: function(filterOptions, timeZoneProcessor) {
-                if (!typeUtils.isFunction(timeZoneProcessor)) {
-                    timeZoneProcessor = function(date) {
-                        return date
+            }, {
+                key: "_serializeRemoteFilter",
+                value: function(filter, dateSerializationFormat) {
+                    var that = this;
+                    if (!Array.isArray(filter)) {
+                        return filter
+                    }
+                    filter = (0, _extend.extend)([], filter);
+                    var startDate = that._dataAccessors.expr.startDateExpr,
+                        endDate = that._dataAccessors.expr.endDateExpr;
+                    if (_type2.default.isString(filter[0])) {
+                        if ((0, _config2.default)().forceIsoDateParsing && filter.length > 1) {
+                            if (filter[0] === startDate || filter[0] === endDate) {
+                                filter[filter.length - 1] = _date_serialization2.default.serializeDate(filter[filter.length - 1], dateSerializationFormat)
+                            }
+                        }
+                    }
+                    for (var i = 0; i < filter.length; i++) {
+                        filter[i] = that._serializeRemoteFilter(filter[i], dateSerializationFormat)
+                    }
+                    return filter
+                }
+            }, {
+                key: "filterLoadedAppointments",
+                value: function(filterOptions, timeZoneProcessor) {
+                    if (!_type2.default.isFunction(timeZoneProcessor)) {
+                        timeZoneProcessor = function(date) {
+                            return date
+                        }
+                    }
+                    var combinedFilter = this._createCombinedFilter(filterOptions, timeZoneProcessor);
+                    if (this._filterMaker.isRegistered()) {
+                        var trimmedDates = this._trimDates(filterOptions.min, filterOptions.max);
+                        this._filterMaker.make("date", [trimmedDates.min, trimmedDates.max, true]);
+                        var dateFilter = this.customizeDateFilter(this._filterMaker.combine(), timeZoneProcessor);
+                        combinedFilter.push([dateFilter])
+                    }
+                    return (0, _query2.default)(this._dataSource.items()).filter(combinedFilter).toArray()
+                }
+            }, {
+                key: "_trimDates",
+                value: function(min, max) {
+                    var minCopy = _date2.default.trimTime(new Date(min)),
+                        maxCopy = _date2.default.trimTime(new Date(max));
+                    maxCopy.setDate(maxCopy.getDate() + 1);
+                    return {
+                        min: minCopy,
+                        max: maxCopy
                     }
                 }
-                var combinedFilter = this._createCombinedFilter(filterOptions, timeZoneProcessor);
-                if (this._filterMaker.isRegistered()) {
-                    var trimmedDates = this._trimDates(filterOptions.min, filterOptions.max);
-                    this._filterMaker.make("date", [trimmedDates.min, trimmedDates.max, true]);
-                    var dateFilter = this.customizeDateFilter(this._filterMaker.combine(), timeZoneProcessor);
-                    combinedFilter.push([dateFilter])
-                }
-                return query(this._dataSource.items()).filter(combinedFilter).toArray()
-            },
-            _trimDates: function(min, max) {
-                var minCopy = dateUtils.trimTime(new Date(min)),
-                    maxCopy = dateUtils.trimTime(new Date(max));
-                maxCopy.setDate(maxCopy.getDate() + 1);
-                return {
-                    min: minCopy,
-                    max: maxCopy
-                }
-            },
-            hasAllDayAppointments: function(items, startDayHour, endDayHour) {
-                if (!items) {
-                    return false
-                }
-                var that = this;
-                var result = false;
-                iteratorUtils.each(items, function(index, item) {
-                    if (that.appointmentTakesAllDay(item, startDayHour, endDayHour)) {
-                        result = true;
+            }, {
+                key: "hasAllDayAppointments",
+                value: function(items, startDayHour, endDayHour) {
+                    if (!items) {
                         return false
                     }
-                });
-                return result
-            },
-            appointmentTakesAllDay: function(appointment, startDayHour, endDayHour) {
-                var dataAccessors = this._dataAccessors,
-                    startDate = dataAccessors.getter.startDate(appointment),
-                    endDate = dataAccessors.getter.endDate(appointment),
-                    allDay = dataAccessors.getter.allDay(appointment);
-                return allDay || this._appointmentHasAllDayDuration(startDate, endDate, startDayHour, endDayHour)
-            },
-            _appointmentHasAllDayDuration: function(startDate, endDate, startDayHour, endDayHour) {
-                startDate = new Date(startDate);
-                endDate = new Date(endDate);
-                var dayDuration = 24,
-                    appointmentDurationInHours = this._getAppointmentDurationInHours(startDate, endDate);
-                return appointmentDurationInHours >= dayDuration || this._appointmentHasShortDayDuration(startDate, endDate, startDayHour, endDayHour)
-            },
-            _appointmentHasShortDayDuration: function(startDate, endDate, startDayHour, endDayHour) {
-                var appointmentDurationInHours = this._getAppointmentDurationInHours(startDate, endDate),
-                    shortDayDurationInHours = endDayHour - startDayHour;
-                return appointmentDurationInHours >= shortDayDurationInHours && startDate.getHours() === startDayHour && endDate.getHours() === endDayHour
-            },
-            _getAppointmentDurationInHours: function(startDate, endDate) {
-                return (endDate.getTime() - startDate.getTime()) / toMs("hour")
-            },
-            appointmentTakesSeveralDays: function(appointment) {
-                var dataAccessors = this._dataAccessors,
-                    startDate = dataAccessors.getter.startDate(appointment),
-                    endDate = dataAccessors.getter.endDate(appointment);
-                var startDateCopy = dateUtils.trimTime(new Date(startDate)),
-                    endDateCopy = dateUtils.trimTime(new Date(endDate));
-                return startDateCopy.getTime() !== endDateCopy.getTime()
-            },
-            customizeDateFilter: function(dateFilter, timeZoneProcessor) {
-                var currentFilter = extend(true, [], dateFilter);
-                return function(appointment) {
-                    var startDate = new Date(this._dataAccessors.getter.startDate(appointment)),
-                        endDate = new Date(this._dataAccessors.getter.endDate(appointment));
-                    endDate = this.fixWrongEndDate(appointment, startDate, endDate);
-                    appointment = extend(true, {}, appointment);
-                    var startDateTimeZone = this._dataAccessors.getter.startDateTimeZone(appointment),
-                        endDateTimeZone = this._dataAccessors.getter.endDateTimeZone(appointment);
-                    var comparableStartDate = timeZoneProcessor(startDate, startDateTimeZone),
-                        comparableEndDate = timeZoneProcessor(endDate, endDateTimeZone);
-                    this._dataAccessors.setter.startDate(appointment, comparableStartDate);
-                    this._dataAccessors.setter.endDate(appointment, comparableEndDate);
-                    return query([appointment]).filter(currentFilter).toArray().length > 0
-                }.bind(this)
-            },
-            fixWrongEndDate: function(appointment, startDate, endDate) {
-                if (this._isEndDateWrong(appointment, startDate, endDate)) {
-                    if (this._dataAccessors.getter.allDay(appointment)) {
-                        endDate = dateUtils.setToDayEnd(new Date(startDate))
-                    } else {
-                        endDate = new Date(startDate.getTime() + this._baseAppointmentDuration * toMs("minute"))
-                    }
-                    this._dataAccessors.setter.endDate(appointment, endDate)
+                    var that = this;
+                    var result = false;
+                    _iterator2.default.each(items, function(index, item) {
+                        if (that.appointmentTakesAllDay(item, startDayHour, endDayHour)) {
+                            result = true;
+                            return false
+                        }
+                    });
+                    return result
                 }
-                return endDate
-            },
-            _isEndDateWrong: function(appointment, startDate, endDate) {
-                return !endDate || isNaN(endDate.getTime()) || startDate.getTime() >= endDate.getTime()
-            },
-            add: function(data, tz) {
-                return this._dataSource.store().insert(data).done(function() {
-                    this._dataSource.load()
-                }.bind(this))
-            },
-            update: function(target, data) {
-                var key = this._getStoreKey(target);
-                return this._dataSource.store().update(key, data).done(function() {
-                    this._dataSource.load()
-                }.bind(this))
-            },
-            remove: function(target) {
-                var key = this._getStoreKey(target);
-                return this._dataSource.store().remove(key).done(function() {
-                    this._dataSource.load()
-                }.bind(this))
-            }
-        });
+            }, {
+                key: "appointmentTakesAllDay",
+                value: function(appointment, startDayHour, endDayHour) {
+                    var dataAccessors = this._dataAccessors,
+                        startDate = dataAccessors.getter.startDate(appointment),
+                        endDate = dataAccessors.getter.endDate(appointment),
+                        allDay = dataAccessors.getter.allDay(appointment);
+                    return allDay || this._appointmentHasAllDayDuration(startDate, endDate, startDayHour, endDayHour)
+                }
+            }, {
+                key: "_appointmentHasAllDayDuration",
+                value: function(startDate, endDate, startDayHour, endDayHour) {
+                    startDate = new Date(startDate);
+                    endDate = new Date(endDate);
+                    var dayDuration = 24,
+                        appointmentDurationInHours = this._getAppointmentDurationInHours(startDate, endDate);
+                    return appointmentDurationInHours >= dayDuration || this._appointmentHasShortDayDuration(startDate, endDate, startDayHour, endDayHour)
+                }
+            }, {
+                key: "_appointmentHasShortDayDuration",
+                value: function(startDate, endDate, startDayHour, endDayHour) {
+                    var appointmentDurationInHours = this._getAppointmentDurationInHours(startDate, endDate),
+                        shortDayDurationInHours = endDayHour - startDayHour;
+                    return appointmentDurationInHours >= shortDayDurationInHours && startDate.getHours() === startDayHour && endDate.getHours() === endDayHour
+                }
+            }, {
+                key: "_getAppointmentDurationInHours",
+                value: function(startDate, endDate) {
+                    return (endDate.getTime() - startDate.getTime()) / toMs("hour")
+                }
+            }, {
+                key: "appointmentTakesSeveralDays",
+                value: function(appointment) {
+                    var dataAccessors = this._dataAccessors,
+                        startDate = dataAccessors.getter.startDate(appointment),
+                        endDate = dataAccessors.getter.endDate(appointment);
+                    var startDateCopy = _date2.default.trimTime(new Date(startDate)),
+                        endDateCopy = _date2.default.trimTime(new Date(endDate));
+                    return startDateCopy.getTime() !== endDateCopy.getTime()
+                }
+            }, {
+                key: "customizeDateFilter",
+                value: function(dateFilter, timeZoneProcessor) {
+                    var _this4 = this;
+                    var currentFilter = (0, _extend.extend)(true, [], dateFilter);
+                    return function(appointment) {
+                        var startDate = new Date(_this4._dataAccessors.getter.startDate(appointment)),
+                            endDate = new Date(_this4._dataAccessors.getter.endDate(appointment));
+                        endDate = _this4.fixWrongEndDate(appointment, startDate, endDate);
+                        appointment = (0, _extend.extend)(true, {}, appointment);
+                        var startDateTimeZone = _this4._dataAccessors.getter.startDateTimeZone(appointment),
+                            endDateTimeZone = _this4._dataAccessors.getter.endDateTimeZone(appointment);
+                        var comparableStartDate = timeZoneProcessor(startDate, startDateTimeZone),
+                            comparableEndDate = timeZoneProcessor(endDate, endDateTimeZone);
+                        _this4._dataAccessors.setter.startDate(appointment, comparableStartDate);
+                        _this4._dataAccessors.setter.endDate(appointment, comparableEndDate);
+                        return (0, _query2.default)([appointment]).filter(currentFilter).toArray().length > 0
+                    }.bind(this)
+                }
+            }, {
+                key: "fixWrongEndDate",
+                value: function(appointment, startDate, endDate) {
+                    if (this._isEndDateWrong(appointment, startDate, endDate)) {
+                        if (this._dataAccessors.getter.allDay(appointment)) {
+                            endDate = _date2.default.setToDayEnd(new Date(startDate))
+                        } else {
+                            endDate = new Date(startDate.getTime() + this._baseAppointmentDuration * toMs("minute"))
+                        }
+                        this._dataAccessors.setter.endDate(appointment, endDate)
+                    }
+                    return endDate
+                }
+            }, {
+                key: "_isEndDateWrong",
+                value: function(appointment, startDate, endDate) {
+                    return !endDate || isNaN(endDate.getTime()) || startDate.getTime() >= endDate.getTime()
+                }
+            }, {
+                key: "add",
+                value: function(data, tz) {
+                    var _this5 = this;
+                    return this._dataSource.store().insert(data).done(function() {
+                        _this5._dataSource.load()
+                    }.bind(this))
+                }
+            }, {
+                key: "update",
+                value: function(target, data) {
+                    var _this6 = this;
+                    var key = this._getStoreKey(target);
+                    return this._dataSource.store().update(key, data).done(function() {
+                        _this6._dataSource.load()
+                    }.bind(this))
+                }
+            }, {
+                key: "remove",
+                value: function(target) {
+                    var _this7 = this;
+                    var key = this._getStoreKey(target);
+                    return this._dataSource.store().remove(key).done(function() {
+                        _this7._dataSource.load()
+                    }.bind(this))
+                }
+            }]);
+            return AppointmentModel
+        }();
         module.exports = AppointmentModel
     },
     /*!************************************************************************!*\
@@ -164151,23 +165158,23 @@
         var _iterator = __webpack_require__( /*! ../../core/utils/iterator */ 3);
         var _object = __webpack_require__( /*! ../../core/utils/object */ 47);
         var _object2 = _interopRequireDefault(_object);
-        var _array = __webpack_require__( /*! ../../core/utils/array */ 11);
+        var _array = __webpack_require__( /*! ../../core/utils/array */ 12);
         var _array2 = _interopRequireDefault(_array);
         var _extend = __webpack_require__( /*! ../../core/utils/extend */ 0);
-        var _dom = __webpack_require__( /*! ../../core/utils/dom */ 12);
+        var _dom = __webpack_require__( /*! ../../core/utils/dom */ 11);
         var _utils = __webpack_require__( /*! ./utils.recurrence */ 139);
         var _utils2 = _interopRequireDefault(_utils);
         var _component_registrator = __webpack_require__( /*! ../../core/component_registrator */ 8);
         var _component_registrator2 = _interopRequireDefault(_component_registrator);
-        var _uiScheduler = __webpack_require__( /*! ./ui.scheduler.publisher_mixin */ 117);
+        var _uiScheduler = __webpack_require__( /*! ./ui.scheduler.publisher_mixin */ 115);
         var _uiScheduler2 = _interopRequireDefault(_uiScheduler);
         var _uiScheduler3 = __webpack_require__( /*! ./ui.scheduler.appointment */ 704);
         var _uiScheduler4 = _interopRequireDefault(_uiScheduler3);
         var _utils3 = __webpack_require__( /*! ../../events/utils */ 9);
         var _utils4 = _interopRequireDefault(_utils3);
-        var _double_click = __webpack_require__( /*! ../../events/double_click */ 149);
+        var _double_click = __webpack_require__( /*! ../../events/double_click */ 150);
         var _double_click2 = _interopRequireDefault(_double_click);
-        var _date3 = __webpack_require__( /*! ../../localization/date */ 32);
+        var _date3 = __webpack_require__( /*! ../../localization/date */ 33);
         var _date4 = _interopRequireDefault(_date3);
         var _message = __webpack_require__( /*! ../../localization/message */ 15);
         var _message2 = _interopRequireDefault(_message);
@@ -164330,7 +165337,7 @@
             },
             _isRepaintAll: function(appointments) {
                 if (this.invoke("isCurrentViewAgenda")) {
-                    return false
+                    return true
                 }
                 for (var i = 0; i < appointments.length; i++) {
                     var appointment = appointments[i];
@@ -165118,14 +166125,14 @@
             recurrenceUtils = __webpack_require__( /*! ./utils.recurrence */ 139),
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
             registerComponent = __webpack_require__( /*! ../../core/component_registrator */ 8),
-            tooltip = __webpack_require__( /*! ../tooltip/ui.tooltip */ 222),
-            publisherMixin = __webpack_require__( /*! ./ui.scheduler.publisher_mixin */ 117),
+            tooltip = __webpack_require__( /*! ../tooltip/ui.tooltip */ 223),
+            publisherMixin = __webpack_require__( /*! ./ui.scheduler.publisher_mixin */ 115),
             eventUtils = __webpack_require__( /*! ../../events/utils */ 9),
             pointerEvents = __webpack_require__( /*! ../../events/pointer */ 24),
             DOMComponent = __webpack_require__( /*! ../../core/dom_component */ 66),
-            Resizable = __webpack_require__( /*! ../resizable */ 170),
+            Resizable = __webpack_require__( /*! ../resizable */ 172),
             messageLocalization = __webpack_require__( /*! ../../localization/message */ 15),
-            dateLocalization = __webpack_require__( /*! ../../localization/date */ 32);
+            dateLocalization = __webpack_require__( /*! ../../localization/date */ 33);
         var REDUCED_APPOINTMENT_POINTERENTER_EVENT_NAME = eventUtils.addNamespace(pointerEvents.enter, "dxSchedulerAppointment"),
             REDUCED_APPOINTMENT_POINTERLEAVE_EVENT_NAME = eventUtils.addNamespace(pointerEvents.leave, "dxSchedulerAppointment");
         var EMPTY_APPOINTMENT_CLASS = "dx-scheduler-appointment-empty",
@@ -165514,7 +166521,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var BaseAppointmentsStrategy = __webpack_require__( /*! ./ui.scheduler.appointments.strategy.base */ 229),
+        var BaseAppointmentsStrategy = __webpack_require__( /*! ./ui.scheduler.appointments.strategy.base */ 230),
             extend = __webpack_require__( /*! ../../../core/utils/extend */ 0).extend,
             isNumeric = __webpack_require__( /*! ../../../core/utils/type */ 1).isNumeric,
             devices = __webpack_require__( /*! ../../../core/devices */ 16),
@@ -165557,7 +166564,7 @@
                 var position = this._getAppointmentCoordinates(item),
                     result = [];
                 for (var j = 0; j < position.length; j++) {
-                    var height = this.calculateAppointmentHeight(item, position[j]),
+                    var height = this.calculateAppointmentHeight(item, position[j], isRecurring),
                         width = this.calculateAppointmentWidth(item, position[j], isRecurring),
                         resultHeight = height,
                         appointmentReduced = null,
@@ -165732,8 +166739,8 @@
                 width = this.cropAppointmentWidth(width, cellWidth);
                 return width
             },
-            calculateAppointmentHeight: function(appointment, position) {
-                var endDate = this.endDate(appointment, position),
+            calculateAppointmentHeight: function(appointment, position, isRecurring) {
+                var endDate = this.endDate(appointment, position, isRecurring),
                     startDate = this.startDate(appointment, false, position),
                     allDay = this.instance.fire("getField", "allDay", appointment);
                 if (this.isAllDay(appointment)) {
@@ -166045,6 +167052,9 @@
             _getAppointmentDefaultHeight: function() {
                 return this._getAppointmentHeightByTheme()
             },
+            _getAppointmentMinHeight: function() {
+                return this._getAppointmentDefaultHeight()
+            },
             _checkLongCompactAppointment: function(item, result) {
                 this._splitLongCompactAppointment(item, result);
                 return result
@@ -166103,8 +167113,8 @@
         var noop = __webpack_require__( /*! ../../../core/utils/common */ 4).noop,
             dateUtils = __webpack_require__( /*! ../../../core/utils/date */ 22),
             each = __webpack_require__( /*! ../../../core/utils/iterator */ 3).each,
-            arrayUtils = __webpack_require__( /*! ../../../core/utils/array */ 11),
-            BaseAppointmentsStrategy = __webpack_require__( /*! ./ui.scheduler.appointments.strategy.base */ 229);
+            arrayUtils = __webpack_require__( /*! ../../../core/utils/array */ 12),
+            BaseAppointmentsStrategy = __webpack_require__( /*! ./ui.scheduler.appointments.strategy.base */ 230);
         var AgendaRenderingStrategy = BaseAppointmentsStrategy.inherit({
             ctor: function(instance) {
                 this.instance = instance
@@ -166326,7 +167336,7 @@
         var _translator2 = _interopRequireDefault(_translator);
         var _message = __webpack_require__( /*! ../../localization/message */ 15);
         var _message2 = _interopRequireDefault(_message);
-        var _function_template = __webpack_require__( /*! ../widget/function_template */ 83);
+        var _function_template = __webpack_require__( /*! ../widget/function_template */ 84);
         var _function_template2 = _interopRequireDefault(_function_template);
         var _deferred = __webpack_require__( /*! ../../core/utils/deferred */ 6);
         var _deferred2 = _interopRequireDefault(_deferred);
@@ -166345,7 +167355,8 @@
         var APPOINTMENT_COLLECTOR_CLASS = "dx-scheduler-appointment-collector",
             COMPACT_APPOINTMENT_COLLECTOR_CLASS = APPOINTMENT_COLLECTOR_CLASS + "-compact",
             APPOINTMENT_COLLECTOR_CONTENT_CLASS = APPOINTMENT_COLLECTOR_CLASS + "-content";
-        var WEEK_VIEW_BUTTON_OFFSET = 5;
+        var WEEK_VIEW_COLLECTOR_OFFSET = 5;
+        var COMPACT_THEME_WEEK_VIEW_COLLECTOR_OFFSET = 1;
         exports.CompactAppointmentsHelper = function() {
             function CompactAppointmentsHelper(instance) {
                 _classCallCheck(this, CompactAppointmentsHelper);
@@ -166398,9 +167409,14 @@
                     this.instance.showAppointmentTooltipCore($button, $button.data("items"))
                 }
             }, {
-                key: "_getButtonOffset",
+                key: "_getCollectorOffset",
                 value: function(width) {
-                    return this.instance.fire("getCellWidth") - width - WEEK_VIEW_BUTTON_OFFSET
+                    return this.instance.fire("getCellWidth") - width - this._getCollectorRightOffset()
+                }
+            }, {
+                key: "_getCollectorRightOffset",
+                value: function() {
+                    return this.instance.getRenderingStrategyInstance()._isCompactTheme() ? COMPACT_THEME_WEEK_VIEW_COLLECTOR_OFFSET : WEEK_VIEW_COLLECTOR_OFFSET
                 }
             }, {
                 key: "_makeBackgroundDarker",
@@ -166460,7 +167476,7 @@
                 key: "_createCompactButtonElement",
                 value: function($container, width, isCompact, applyOffset, coordinates) {
                     var result = (0, _renderer2.default)("<div>").addClass(APPOINTMENT_COLLECTOR_CLASS).toggleClass(COMPACT_APPOINTMENT_COLLECTOR_CLASS, isCompact).appendTo($container);
-                    var offset = applyOffset ? this._getButtonOffset(width) : 0;
+                    var offset = applyOffset ? this._getCollectorOffset(width) : 0;
                     this._setPosition(result, {
                         top: coordinates.top,
                         left: coordinates.left + offset
@@ -166512,7 +167528,7 @@
     function(module, exports, __webpack_require__) {
         var $ = __webpack_require__( /*! ../../core/renderer */ 2),
             viewPortUtils = __webpack_require__( /*! ../../core/utils/view_port */ 77),
-            LoadPanel = __webpack_require__( /*! ../load_panel */ 183),
+            LoadPanel = __webpack_require__( /*! ../load_panel */ 184),
             Deferred = __webpack_require__( /*! ../../core/utils/deferred */ 6).Deferred;
         var loading = null;
         var createLoadPanel = function(options) {
@@ -166572,6 +167588,7 @@
         var SCREEN_SIZE_OF_SINGLE_COLUMN = 460;
         var SchedulerAppointmentForm = {
             _appointmentForm: {},
+            _lockDateShiftFlag: false,
             _validateAppointmentFormDate: function(editor, value, previousValue) {
                 var isCurrentDateCorrect = null === value || !!value;
                 var isPreviousDateCorrect = null === previousValue || !!previousValue;
@@ -166641,7 +167658,7 @@
                                 previousValue = _date_serialization2.default.deserializeDate(args.previousValue),
                                 endDateEditor = that._appointmentForm.getEditor(dataExprs.endDateExpr),
                                 endValue = _date_serialization2.default.deserializeDate(endDateEditor.option("value"));
-                            if (!!endValue && endValue < value) {
+                            if (!that._appointmentForm._lockDateShiftFlag && !!endValue && endValue < value) {
                                 var duration = endValue.getTime() - previousValue.getTime();
                                 endDateEditor.option("value", new Date(value.getTime() + duration))
                             }
@@ -166680,7 +167697,7 @@
                                 previousValue = _date_serialization2.default.deserializeDate(args.previousValue),
                                 startDateEditor = that._appointmentForm.getEditor(dataExprs.startDateExpr),
                                 startValue = _date_serialization2.default.deserializeDate(startDateEditor.option("value"));
-                            if (value && startValue > value) {
+                            if (!that._appointmentForm._lockDateShiftFlag && !!value && startValue > value) {
                                 var duration = previousValue ? previousValue.getTime() - startValue.getTime() : 0;
                                 startDateEditor.option("value", new Date(value.getTime() - duration))
                             }
@@ -166791,6 +167808,11 @@
                     form.itemOption(startDateExpr, "editorOptions", startDateEditorOptions);
                     form.itemOption(endDateExpr, "editorOptions", endDateEditorOptions)
                 }
+            },
+            updateFormData: function(appointmentForm, formData) {
+                appointmentForm._lockDateShiftFlag = true;
+                appointmentForm.option("formData", formData);
+                appointmentForm._lockDateShiftFlag = false
             }
         };
         module.exports = SchedulerAppointmentForm
@@ -166831,31 +167853,31 @@
         var _component_registrator2 = _interopRequireDefault(_component_registrator);
         var _utils = __webpack_require__( /*! ./utils.recurrence */ 139);
         var _utils2 = _interopRequireDefault(_utils);
-        var _dom = __webpack_require__( /*! ../../core/utils/dom */ 12);
+        var _dom = __webpack_require__( /*! ../../core/utils/dom */ 11);
         var _dom2 = _interopRequireDefault(_dom);
         var _type = __webpack_require__( /*! ../../core/utils/type */ 1);
         var _extend = __webpack_require__( /*! ../../core/utils/extend */ 0);
-        var _array = __webpack_require__( /*! ../../core/utils/array */ 11);
+        var _array = __webpack_require__( /*! ../../core/utils/array */ 12);
         var _iterator = __webpack_require__( /*! ../../core/utils/iterator */ 3);
-        var _editor = __webpack_require__( /*! ../editor/editor */ 48);
+        var _editor = __webpack_require__( /*! ../editor/editor */ 49);
         var _editor2 = _interopRequireDefault(_editor);
-        var _check_box = __webpack_require__( /*! ../check_box */ 101);
+        var _check_box = __webpack_require__( /*! ../check_box */ 103);
         var _check_box2 = _interopRequireDefault(_check_box);
         var _radio_group = __webpack_require__( /*! ../radio_group */ 314);
         var _radio_group2 = _interopRequireDefault(_radio_group);
-        var _number_box = __webpack_require__( /*! ../number_box */ 114);
+        var _number_box = __webpack_require__( /*! ../number_box */ 113);
         var _number_box2 = _interopRequireDefault(_number_box);
-        var _select_box = __webpack_require__( /*! ../select_box */ 91);
+        var _select_box = __webpack_require__( /*! ../select_box */ 92);
         var _select_box2 = _interopRequireDefault(_select_box);
-        var _date_box = __webpack_require__( /*! ../date_box */ 186);
+        var _date_box = __webpack_require__( /*! ../date_box */ 187);
         var _date_box2 = _interopRequireDefault(_date_box);
         var _message = __webpack_require__( /*! ../../localization/message */ 15);
         var _message2 = _interopRequireDefault(_message);
-        var _date = __webpack_require__( /*! ../../localization/date */ 32);
+        var _date = __webpack_require__( /*! ../../localization/date */ 33);
         var _date2 = _interopRequireDefault(_date);
         var _date3 = __webpack_require__( /*! ../../core/utils/date */ 22);
         var _date4 = _interopRequireDefault(_date3);
-        var _uiScheduler = __webpack_require__( /*! ./ui.scheduler.publisher_mixin */ 117);
+        var _uiScheduler = __webpack_require__( /*! ./ui.scheduler.publisher_mixin */ 115);
         var _uiScheduler2 = _interopRequireDefault(_uiScheduler);
 
         function _interopRequireDefault(obj) {
@@ -167559,10 +168581,10 @@
         var $ = __webpack_require__( /*! ../../../core/renderer */ 2),
             registerComponent = __webpack_require__( /*! ../../../core/component_registrator */ 8),
             extend = __webpack_require__( /*! ../../../core/utils/extend */ 0).extend,
-            publisherMixin = __webpack_require__( /*! ../ui.scheduler.publisher_mixin */ 117),
+            publisherMixin = __webpack_require__( /*! ../ui.scheduler.publisher_mixin */ 115),
             messageLocalization = __webpack_require__( /*! ../../../localization/message */ 15),
-            Editor = __webpack_require__( /*! ../../editor/editor */ 48),
-            SelectBox = __webpack_require__( /*! ../../select_box */ 91);
+            Editor = __webpack_require__( /*! ../../editor/editor */ 49),
+            SelectBox = __webpack_require__( /*! ../../select_box */ 92);
         var TIMEZONE_EDITOR_CLASS = "dx-timezone-editor",
             TIMEZONE_DISPLAY_NAME_SELECTBOX_CLASS = "dx-timezone-display-name",
             TIMEZONE_IANA_ID_SELECTBOX_CLASS = "dx-timezone-iana-id";
@@ -167752,15 +168774,15 @@
         var _uiFile_manager7 = _interopRequireDefault(_uiFile_manager6);
         var _uiFile_manager8 = __webpack_require__( /*! ./ui.file_manager.editing */ 722);
         var _uiFile_manager9 = _interopRequireDefault(_uiFile_manager8);
-        var _uiFile_manager10 = __webpack_require__( /*! ./ui.file_manager.breadcrumbs */ 726);
+        var _uiFile_manager10 = __webpack_require__( /*! ./ui.file_manager.breadcrumbs */ 727);
         var _uiFile_manager11 = _interopRequireDefault(_uiFile_manager10);
-        var _uiFile_manager12 = __webpack_require__( /*! ./ui.file_manager.adaptivity */ 727);
+        var _uiFile_manager12 = __webpack_require__( /*! ./ui.file_manager.adaptivity */ 728);
         var _uiFile_manager13 = _interopRequireDefault(_uiFile_manager12);
         var _uiFile_manager14 = __webpack_require__( /*! ./ui.file_manager.utils */ 134);
         var _file_provider = __webpack_require__( /*! ./file_provider/file_provider */ 133);
         var _array = __webpack_require__( /*! ./file_provider/array */ 387);
         var _array2 = _interopRequireDefault(_array);
-        var _ajax = __webpack_require__( /*! ./file_provider/ajax */ 728);
+        var _ajax = __webpack_require__( /*! ./file_provider/ajax */ 729);
         var _ajax2 = _interopRequireDefault(_ajax);
         var _onedrive = __webpack_require__( /*! ./file_provider/onedrive */ 420);
         var _onedrive2 = _interopRequireDefault(_onedrive);
@@ -167874,9 +168896,8 @@
                             _this3._refreshData(updatedOnlyFiles)
                         },
                         onError: function(_ref2) {
-                            var title = _ref2.title,
-                                details = _ref2.details;
-                            return _this3._showError(title + ": " + _this3._getErrorText(details))
+                            var message = _ref2.message;
+                            return _this3._showError(message)
                         },
                         onCreating: function() {
                             return _this3._setItemsViewAreaActive(false)
@@ -168069,15 +169090,8 @@
                 }
             }, {
                 key: "_showError",
-                value: function(error) {
-                    var message = this._getErrorText(error);
+                value: function(message) {
                     this._showNotification(message, false)
-                }
-            }, {
-                key: "_getErrorText",
-                value: function(error) {
-                    var result = "string" === typeof error ? error : error.responseText;
-                    return result || "General error"
                 }
             }, {
                 key: "_showNotification",
@@ -169092,7 +170106,7 @@
         var _events_engine = __webpack_require__( /*! ../../events/core/events_engine */ 5);
         var _events_engine2 = _interopRequireDefault(_events_engine);
         var _utils = __webpack_require__( /*! ../../events/utils */ 9);
-        var _contextmenu = __webpack_require__( /*! ../../events/contextmenu */ 166);
+        var _contextmenu = __webpack_require__( /*! ../../events/contextmenu */ 168);
         var _uiFile_managerUtils = __webpack_require__( /*! ./ui.file_manager.utils.js */ 134);
         var _uiFile_manager = __webpack_require__( /*! ./ui.file_manager.item_list */ 385);
         var _uiFile_manager2 = _interopRequireDefault(_uiFile_manager);
@@ -169763,7 +170777,7 @@
         var _common = __webpack_require__( /*! ../../core/utils/common */ 4);
         var _ui = __webpack_require__( /*! ../widget/ui.widget */ 17);
         var _ui2 = _interopRequireDefault(_ui);
-        var _toolbar = __webpack_require__( /*! ../toolbar */ 159);
+        var _toolbar = __webpack_require__( /*! ../toolbar */ 160);
         var _toolbar2 = _interopRequireDefault(_toolbar);
 
         function _interopRequireDefault(obj) {
@@ -170276,6 +171290,7 @@
         var _uiFile_managerDialog4 = _interopRequireDefault(_uiFile_managerDialog3);
         var _uiFile_manager3 = __webpack_require__( /*! ./ui.file_manager.file_uploader */ 725);
         var _uiFile_manager4 = _interopRequireDefault(_uiFile_manager3);
+        var _uiFile_manager5 = __webpack_require__( /*! ./ui.file_manager.messages */ 726);
 
         function _interopRequireDefault(obj) {
             return obj && obj.__esModule ? obj : {
@@ -170538,7 +171553,8 @@
                         (0, _uiFile_manager2.default)(result, function() {
                             return _this6._raiseOnSuccess(action.getSuccessMessage(items), onlyFiles)
                         }, function(info) {
-                            return _this6._raiseOnError(action.getErrorMessage(items, info), info.error)
+                            var fileItem = items[info.index];
+                            _this6._raiseOnError(info.errorId, fileItem)
                         })
                     })
                 }
@@ -170616,10 +171632,11 @@
                 }
             }, {
                 key: "_raiseOnError",
-                value: function(errorTitle, errorDetails) {
+                value: function(errorId, fileItem) {
+                    var fileItemName = fileItem ? fileItem.name : null;
+                    var message = _uiFile_manager5.FileManagerMessages.get(errorId, fileItemName);
                     this._actions.onError({
-                        title: errorTitle,
-                        details: errorDetails
+                        message: message
                     })
                 }
             }]);
@@ -170682,7 +171699,7 @@
         var _renderer = __webpack_require__( /*! ../../core/renderer */ 2);
         var _renderer2 = _interopRequireDefault(_renderer);
         var _extend = __webpack_require__( /*! ../../core/utils/extend */ 0);
-        var _text_box = __webpack_require__( /*! ../text_box */ 88);
+        var _text_box = __webpack_require__( /*! ../text_box */ 89);
         var _text_box2 = _interopRequireDefault(_text_box);
         var _uiFile_managerDialog = __webpack_require__( /*! ./ui.file_manager.dialog.js */ 386);
         var _uiFile_managerDialog2 = _interopRequireDefault(_uiFile_managerDialog);
@@ -170995,7 +172012,7 @@
         var _ui2 = _interopRequireDefault(_ui);
         var _button = __webpack_require__( /*! ../button */ 34);
         var _button2 = _interopRequireDefault(_button);
-        var _progress_bar = __webpack_require__( /*! ../progress_bar */ 218);
+        var _progress_bar = __webpack_require__( /*! ../progress_bar */ 219);
         var _progress_bar2 = _interopRequireDefault(_progress_bar);
         var _popup = __webpack_require__( /*! ../popup */ 43);
         var _popup2 = _interopRequireDefault(_popup);
@@ -171451,6 +172468,46 @@
             return FileManagerUploadProgressBox
         }(_ui2.default);
         module.exports = FileManagerFileUploader
+    },
+    /*!**************************************************************************!*\
+      !*** ./artifacts/transpiled/ui/file_manager/ui.file_manager.messages.js ***!
+      \**************************************************************************/
+    /*! dynamic exports provided */
+    /*! all exports used */
+    function(module, exports, __webpack_require__) {
+        Object.defineProperty(exports, "__esModule", {
+            value: true
+        });
+        exports.FileManagerMessages = void 0;
+        var _message = __webpack_require__( /*! ../../localization/message */ 15);
+        var _message2 = _interopRequireDefault(_message);
+
+        function _interopRequireDefault(obj) {
+            return obj && obj.__esModule ? obj : {
+                "default": obj
+            }
+        }
+        var ErrorCode = {
+            NoAccess: 0,
+            FileExists: 1,
+            FileNotFound: 2,
+            DirectoryExists: 3
+        };
+        exports.FileManagerMessages = {
+            get: function(errorId, args) {
+                switch (errorId) {
+                    case ErrorCode.NoAccess:
+                        return _message2.default.format("dxFileManager-errorNoAccess");
+                    case ErrorCode.FileExists:
+                        return _message2.default.format("dxFileManager-errorFileExistsFormat", args);
+                    case ErrorCode.FileNotFound:
+                        return _message2.default.format("dxFileManager-errorFileNotFoundFormat", args);
+                    case ErrorCode.DirectoryExists:
+                        return _message2.default.format("dxFileManager-errorDirectoryExistsFormat", args)
+                }
+                return _message2.default.format("dxFileManager-errorDefault")
+            }
+        }
     },
     /*!*****************************************************************************!*\
       !*** ./artifacts/transpiled/ui/file_manager/ui.file_manager.breadcrumbs.js ***!
@@ -172100,7 +173157,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        module.exports = __webpack_require__( /*! ./diagram/ui.diagram */ 730)
+        module.exports = __webpack_require__( /*! ./diagram/ui.diagram */ 731)
     },
     /*!*******************************************************!*\
       !*** ./artifacts/transpiled/ui/diagram/ui.diagram.js ***!
@@ -172167,18 +173224,20 @@
         var _type2 = _interopRequireDefault(_type);
         var _data = __webpack_require__( /*! ../../core/utils/data */ 20);
         var _data2 = _interopRequireDefault(_data);
-        var _uiDiagram = __webpack_require__( /*! ./ui.diagram.toolbar */ 731);
+        var _uiDiagram = __webpack_require__( /*! ./ui.diagram.toolbar */ 732);
         var _uiDiagram2 = _interopRequireDefault(_uiDiagram);
-        var _uiDiagram3 = __webpack_require__( /*! ./ui.diagram.leftpanel */ 733);
+        var _uiDiagram3 = __webpack_require__( /*! ./ui.diagram.leftpanel */ 734);
         var _uiDiagram4 = _interopRequireDefault(_uiDiagram3);
-        var _uiDiagram5 = __webpack_require__( /*! ./ui.diagram.rightpanel */ 735);
+        var _uiDiagram5 = __webpack_require__( /*! ./ui.diagram.rightpanel */ 736);
         var _uiDiagram6 = _interopRequireDefault(_uiDiagram5);
-        var _uiDiagram7 = __webpack_require__( /*! ./ui.diagram.contextmenu */ 736);
+        var _uiDiagram7 = __webpack_require__( /*! ./ui.diagram.contextmenu */ 737);
         var _uiDiagram8 = _interopRequireDefault(_uiDiagram7);
-        var _uiDiagram9 = __webpack_require__( /*! ./ui.diagram.nodes */ 737);
+        var _uiDiagram9 = __webpack_require__( /*! ./ui.diagram.nodes */ 738);
         var _uiDiagram10 = _interopRequireDefault(_uiDiagram9);
-        var _uiDiagram11 = __webpack_require__( /*! ./ui.diagram.edges */ 738);
+        var _uiDiagram11 = __webpack_require__( /*! ./ui.diagram.edges */ 739);
         var _uiDiagram12 = _interopRequireDefault(_uiDiagram11);
+        var _tooltip = __webpack_require__( /*! ../tooltip */ 161);
+        var _tooltip2 = _interopRequireDefault(_tooltip);
         var _diagram_importer = __webpack_require__( /*! ./diagram_importer */ 197);
         var _window = __webpack_require__( /*! ../../core/utils/window */ 7);
 
@@ -172229,6 +173288,7 @@
         var DIAGRAM_ITEMS_FIELD = "items";
         var DIAGRAM_FROM_FIELD = "from";
         var DIAGRAM_TO_FIELD = "to";
+        var DIAGRAM_CONNECTION_POINT_SIDES = ["north", "east", "south", "west"];
         var Diagram = function(_Widget) {
             _inherits(Diagram, _Widget);
 
@@ -172281,11 +173341,47 @@
                         dataSources: this._getDataSources(),
                         customShapes: this._getCustomShapes(),
                         onShapeCategoryRendered: function(e) {
-                            return !isServerSide && _this3._diagramInstance.createToolbox(e.$element[0], 40, 8, {}, e.category)
+                            if (isServerSide) {
+                                return
+                            }
+                            var $toolboxContainer = (0, _renderer2.default)(e.$element);
+                            _this3._diagramInstance.createToolbox($toolboxContainer[0], 40, 8, {
+                                "data-toggle": "shape-toolbox-tooltip"
+                            }, e.category);
+                            _this3._createTooltips($parent, $toolboxContainer.find('[data-toggle="shape-toolbox-tooltip"]'))
                         },
                         onDataToolboxRendered: function(e) {
                             return !isServerSide && _this3._diagramInstance.createDataSourceToolbox(e.key, e.$element[0])
                         }
+                    })
+                }
+            }, {
+                key: "_createTooltips",
+                value: function($container, targets) {
+                    var _this4 = this;
+                    targets.each(function(index, element) {
+                        var $target = (0, _renderer2.default)(element);
+                        var $tooltip = (0, _renderer2.default)("<div>").html($target.attr("title")).appendTo($container);
+                        _this4._tooltipInstance = _this4._createComponent($tooltip, _tooltip2.default, {
+                            target: $target,
+                            showEvent: "mouseenter",
+                            hideEvent: "mouseleave",
+                            position: "top",
+                            animation: {
+                                show: {
+                                    type: "fade",
+                                    from: 0,
+                                    to: 1,
+                                    delay: 500
+                                },
+                                hide: {
+                                    type: "fade",
+                                    from: 1,
+                                    to: 0,
+                                    delay: 100
+                                }
+                            }
+                        })
                     })
                 }
             }, {
@@ -172301,15 +173397,15 @@
             }, {
                 key: "_renderRightPanel",
                 value: function($parent) {
-                    var _this4 = this;
+                    var _this5 = this;
                     var drawer = this._createComponent($parent, _drawer2.default, {
                         closeOnOutsideClick: true,
                         openedStateMode: "overlap",
                         position: "right",
                         template: function($options) {
-                            _this4._createComponent($options, _uiDiagram6.default, {
+                            _this5._createComponent($options, _uiDiagram6.default, {
                                 onContentReady: function(e) {
-                                    return _this4._diagramInstance.barManager.registerBar(e.component.bar)
+                                    return _this5._diagramInstance.barManager.registerBar(e.component.bar)
                                 }
                             })
                         }
@@ -172323,17 +173419,17 @@
             }, {
                 key: "_renderContextMenu",
                 value: function($mainElement) {
-                    var _this5 = this;
+                    var _this6 = this;
                     var $contextMenu = (0, _renderer2.default)("<div>").appendTo(this.$element());
                     this._createComponent($contextMenu, _uiDiagram8.default, {
                         container: $mainElement,
                         onContentReady: function(_ref) {
                             var component = _ref.component;
-                            return _this5._diagramInstance.barManager.registerBar(component.bar)
+                            return _this6._diagramInstance.barManager.registerBar(component.bar)
                         },
                         onVisibleChanged: function(_ref2) {
                             var component = _ref2.component;
-                            return _this5._diagramInstance.barManager.updateBarItemsState(component.bar)
+                            return _this6._diagramInstance.barManager.updateBarItemsState(component.bar)
                         }
                     })
                 }
@@ -172603,9 +173699,25 @@
                                 id: s.id,
                                 title: s.title,
                                 svgUrl: s.svgUrl,
+                                svgLeft: s.svgLeft,
+                                svgTop: s.svgTop,
+                                svgWidth: s.svgWidth,
+                                svgHeight: s.svgHeight,
                                 defaultWidth: s.defaultWidth,
                                 defaultHeight: s.defaultHeight,
-                                allowHasText: s.allowHasText
+                                defaultText: s.defaultText,
+                                allowHasText: s.allowHasText,
+                                textLeft: s.textLeft,
+                                textTop: s.textTop,
+                                textWidth: s.textWidth,
+                                textHeight: s.textHeight,
+                                connectionPoints: s.connectionPoints && s.connectionPoints.map(function(pt) {
+                                    return {
+                                        x: pt.x,
+                                        y: pt.y,
+                                        side: DIAGRAM_CONNECTION_POINT_SIDES.indexOf(pt.side)
+                                    }
+                                })
                             }
                         }))
                     }
@@ -172824,18 +173936,18 @@
         var _renderer2 = _interopRequireDefault(_renderer);
         var _ui = __webpack_require__( /*! ../widget/ui.widget */ 17);
         var _ui2 = _interopRequireDefault(_ui);
-        var _toolbar = __webpack_require__( /*! ../toolbar */ 159);
+        var _toolbar = __webpack_require__( /*! ../toolbar */ 160);
         var _toolbar2 = _interopRequireDefault(_toolbar);
-        var _context_menu = __webpack_require__( /*! ../context_menu */ 102);
+        var _context_menu = __webpack_require__( /*! ../context_menu */ 104);
         var _context_menu2 = _interopRequireDefault(_context_menu);
-        var _uiDiagram = __webpack_require__( /*! ./ui.diagram.commands */ 230);
+        var _uiDiagram = __webpack_require__( /*! ./ui.diagram.commands */ 231);
         var _uiDiagram2 = _interopRequireDefault(_uiDiagram);
-        var _diagram_bar = __webpack_require__( /*! ./diagram_bar */ 231);
+        var _diagram_bar = __webpack_require__( /*! ./diagram_bar */ 232);
         var _diagram_bar2 = _interopRequireDefault(_diagram_bar);
         var _extend = __webpack_require__( /*! ../../core/utils/extend */ 0);
-        __webpack_require__( /*! ../select_box */ 91);
+        __webpack_require__( /*! ../select_box */ 92);
         __webpack_require__( /*! ../color_box */ 297);
-        __webpack_require__( /*! ../check_box */ 101);
+        __webpack_require__( /*! ../check_box */ 103);
 
         function _interopRequireDefault(obj) {
             return obj && obj.__esModule ? obj : {
@@ -172880,6 +173992,8 @@
             hint: "Show Properties",
             text: "Properties"
         }];
+        var TOOLBAR_SEPARATOR_CLASS = "dx-diagram-toolbar-separator";
+        var TOOLBAR_MENU_SEPARATOR_CLASS = "dx-diagram-toolbar-menu-separator";
         var DiagramToolbar = function(_Widget) {
             _inherits(DiagramToolbar, _Widget);
 
@@ -172917,18 +174031,31 @@
                 value: function(items, location, actionHandler) {
                     var _this2 = this;
                     return items.map(function(item) {
-                        return (0, _extend.extend)(true, _this2._createItem(item, location, actionHandler), _this2._createItemOptions(item), _this2._createItemActionOptions(item, actionHandler))
+                        return (0, _extend.extend)(true, {
+                            location: location,
+                            locateInMenu: "auto"
+                        }, _this2._createItem(item, location, actionHandler), _this2._createItemOptions(item), _this2._createItemActionOptions(item, actionHandler))
                     })
                 }
             }, {
                 key: "_createItem",
                 value: function(item, location, actionHandler) {
                     var _this3 = this;
+                    if ("separator" === item.widget) {
+                        return {
+                            template: function(data, index, element) {
+                                (0, _renderer2.default)(element).addClass(TOOLBAR_SEPARATOR_CLASS)
+                            },
+                            menuItemTemplate: function(data, index, element) {
+                                (0, _renderer2.default)(element).addClass(TOOLBAR_MENU_SEPARATOR_CLASS)
+                            }
+                        }
+                    }
                     return {
                         widget: item.widget || "dxButton",
-                        location: location,
-                        locateInMenu: "auto",
+                        cssClass: item.cssClass,
                         options: {
+                            stylingMode: "text",
                             text: item.text,
                             hint: item.hint,
                             icon: item.icon,
@@ -172948,20 +174075,82 @@
                         items = _ref.items,
                         valueExpr = _ref.valueExpr,
                         displayExpr = _ref.displayExpr,
-                        showText = _ref.showText;
+                        showText = _ref.showText,
+                        hint = _ref.hint,
+                        icon = _ref.icon;
                     if ("dxSelectBox" === widget) {
-                        return {
-                            options: {
-                                items: items,
-                                valueExpr: valueExpr,
-                                displayExpr: displayExpr
+                        return this._createSelectBoxItemOptions(hint, items, valueExpr, displayExpr)
+                    } else {
+                        if ("dxColorBox" === widget) {
+                            return this._createColorBoxItemOptions(hint, icon)
+                        } else {
+                            if (!widget || "dxButton" === widget) {
+                                return {
+                                    showText: showText || "inMenu"
+                                }
                             }
                         }
-                    } else {
-                        if (!widget || "dxButton" === widget) {
-                            return {
-                                showText: showText || "inMenu"
+                    }
+                }
+            }, {
+                key: "_createSelectBoxItemOptions",
+                value: function(hint, items, valueExpr, displayExpr) {
+                    var options = this._createSelectBoxBaseItemOptions(hint);
+                    options = (0, _extend.extend)(true, options, {
+                        options: {
+                            items: items,
+                            valueExpr: valueExpr,
+                            displayExpr: displayExpr
+                        }
+                    });
+                    var isSelectButton = items.every(function(i) {
+                        return void 0 !== i.icon
+                    });
+                    if (isSelectButton) {
+                        options = (0, _extend.extend)(true, options, {
+                            options: {
+                                fieldTemplate: function(data, container) {
+                                    (0, _renderer2.default)("<i>").addClass(data && data.icon).appendTo(container);
+                                    (0, _renderer2.default)("<div>").dxTextBox({
+                                        readOnly: true,
+                                        stylingMode: "outlined"
+                                    }).appendTo(container)
+                                },
+                                itemTemplate: function(data) {
+                                    return '<i class="' + data.icon + '"' + (data.hint && ' title="' + data.hint) + '"}></i>'
+                                }
                             }
+                        })
+                    }
+                    return options
+                }
+            }, {
+                key: "_createColorBoxItemOptions",
+                value: function(hint, icon) {
+                    var options = this._createSelectBoxBaseItemOptions(hint);
+                    if (icon) {
+                        options = (0, _extend.extend)(true, options, {
+                            options: {
+                                openOnFieldClick: true,
+                                fieldTemplate: function(data, container) {
+                                    (0, _renderer2.default)("<i>").addClass(icon).css("borderBottomColor", data).appendTo(container);
+                                    (0, _renderer2.default)("<div>").dxTextBox({
+                                        readOnly: true,
+                                        stylingMode: "outlined"
+                                    }).appendTo(container)
+                                }
+                            }
+                        })
+                    }
+                    return options
+                }
+            }, {
+                key: "_createSelectBoxBaseItemOptions",
+                value: function(hint) {
+                    return {
+                        options: {
+                            stylingMode: "filled",
+                            hint: hint
                         }
                     }
                 }
@@ -173278,12 +174467,13 @@
         var _renderer2 = _interopRequireDefault(_renderer);
         var _ui = __webpack_require__( /*! ../widget/ui.widget */ 17);
         var _ui2 = _interopRequireDefault(_ui);
-        var _accordion = __webpack_require__( /*! ../accordion */ 223);
+        var _accordion = __webpack_require__( /*! ../accordion */ 224);
         var _accordion2 = _interopRequireDefault(_accordion);
-        var _scroll_view = __webpack_require__( /*! ../scroll_view */ 158);
+        var _scroll_view = __webpack_require__( /*! ../scroll_view */ 159);
         var _scroll_view2 = _interopRequireDefault(_scroll_view);
-        var _uiDiagramShape = __webpack_require__( /*! ./ui.diagram.shape.categories */ 734);
+        var _uiDiagramShape = __webpack_require__( /*! ./ui.diagram.shape.categories */ 735);
         var _uiDiagramShape2 = _interopRequireDefault(_uiDiagramShape);
+        var _deferred = __webpack_require__( /*! ../../core/utils/deferred */ 6);
 
         function _interopRequireDefault(obj) {
             return obj && obj.__esModule ? obj : {
@@ -173343,8 +174533,8 @@
                     _get(DiagramLeftPanel.prototype.__proto__ || Object.getPrototypeOf(DiagramLeftPanel.prototype), "_initMarkup", this).call(this);
                     this.$element().addClass(DIAGRAM_LEFT_PANEL_CLASS);
                     var $scrollViewWrapper = (0, _renderer2.default)("<div>").appendTo(this.$element());
-                    var scrollView = this._createComponent($scrollViewWrapper, _scroll_view2.default);
-                    var $accordion = (0, _renderer2.default)("<div>").appendTo(scrollView.content());
+                    this._scrollView = this._createComponent($scrollViewWrapper, _scroll_view2.default);
+                    var $accordion = (0, _renderer2.default)("<div>").appendTo(this._scrollView.content());
                     this._renderAccordion($accordion)
                 }
             }, {
@@ -173394,12 +174584,25 @@
                         dataSource: data,
                         itemTemplate: function(data, index, $element) {
                             return data.onTemplate(_this3, $element, data)
+                        },
+                        onContentReady: function(e) {
+                            _this3._updateScrollAnimateSubscription(e.component)
                         }
                     });
                     if (this._customShapes.length > 0 || this._hasDataSources) {
                         this._accordionInstance.collapseItem(0);
                         this._accordionInstance.expandItem(data.length - 1)
                     }
+                }
+            }, {
+                key: "_updateScrollAnimateSubscription",
+                value: function(component) {
+                    var _this4 = this;
+                    component._deferredAnimate = new _deferred.Deferred;
+                    component._deferredAnimate.done(function() {
+                        _this4._scrollView.update();
+                        _this4._updateScrollAnimateSubscription(component)
+                    })
                 }
             }, {
                 key: "_optionChanged",
@@ -173456,6 +174659,11 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
+        var _typeof = "function" === typeof Symbol && "symbol" === typeof Symbol.iterator ? function(obj) {
+            return typeof obj
+        } : function(obj) {
+            return obj && "function" === typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj
+        };
         var _createClass = function() {
             function defineProperties(target, props) {
                 for (var i = 0; i < props.length; i++) {
@@ -173506,14 +174714,14 @@
         var _renderer2 = _interopRequireDefault(_renderer);
         var _ui = __webpack_require__( /*! ../widget/ui.widget */ 17);
         var _ui2 = _interopRequireDefault(_ui);
-        var _accordion = __webpack_require__( /*! ../accordion */ 223);
+        var _accordion = __webpack_require__( /*! ../accordion */ 224);
         var _accordion2 = _interopRequireDefault(_accordion);
         var _form = __webpack_require__( /*! ../form */ 137);
         var _form2 = _interopRequireDefault(_form);
-        var _uiDiagram = __webpack_require__( /*! ./ui.diagram.commands */ 230);
+        var _uiDiagram = __webpack_require__( /*! ./ui.diagram.commands */ 231);
         var _uiDiagram2 = _interopRequireDefault(_uiDiagram);
         var _extend = __webpack_require__( /*! ../../core/utils/extend */ 0);
-        var _diagram_bar = __webpack_require__( /*! ./diagram_bar */ 231);
+        var _diagram_bar = __webpack_require__( /*! ./diagram_bar */ 232);
         var _diagram_bar2 = _interopRequireDefault(_diagram_bar);
 
         function _interopRequireDefault(obj) {
@@ -173552,6 +174760,7 @@
             }
         }
         var DIAGRAM_RIGHT_PANEL_CLASS = "dx-diagram-right-panel";
+        var DIAGRAM_RIGHT_PANEL_BEGIN_GROUP_CLASS = "dx-diagram-right-panel-begin-group";
         var DiagramRightPanel = function(_Widget) {
             _inherits(DiagramRightPanel, _Widget);
 
@@ -173607,6 +174816,7 @@
                             return (0, _extend.extend)(true, {
                                 editorType: item.widget,
                                 dataField: item.command.toString(),
+                                cssClass: item.beginGroup && DIAGRAM_RIGHT_PANEL_BEGIN_GROUP_CLASS,
                                 label: {
                                     text: item.text
                                 },
@@ -173667,6 +174877,20 @@
                     this._updateLocked = false
                 }
             }, {
+                key: "_setItemSubItems",
+                value: function(key, items) {
+                    this._updateLocked = true;
+                    var editorInstance = this._formInstance.getEditor(key.toString());
+                    editorInstance.option("items", items.map(function(item) {
+                        var value = "object" === _typeof(item.value) ? JSON.stringify(item.value) : item.value;
+                        return {
+                            value: value,
+                            title: item.text
+                        }
+                    }));
+                    this._updateLocked = false
+                }
+            }, {
                 key: "_setEnabled",
                 value: function(enabled) {
                     this._formInstance.option("disabled", !enabled)
@@ -173704,6 +174928,11 @@
                 key: "setEnabled",
                 value: function(enabled) {
                     this._owner._setEnabled(enabled)
+                }
+            }, {
+                key: "setItemSubItems",
+                value: function(key, items) {
+                    this._owner._setItemSubItems(key, items)
                 }
             }]);
             return OptionsDiagramBar
@@ -173766,11 +174995,11 @@
         var _renderer2 = _interopRequireDefault(_renderer);
         var _ui = __webpack_require__( /*! ../widget/ui.widget */ 17);
         var _ui2 = _interopRequireDefault(_ui);
-        var _context_menu = __webpack_require__( /*! ../context_menu */ 102);
+        var _context_menu = __webpack_require__( /*! ../context_menu */ 104);
         var _context_menu2 = _interopRequireDefault(_context_menu);
-        var _uiDiagram = __webpack_require__( /*! ./ui.diagram.commands */ 230);
+        var _uiDiagram = __webpack_require__( /*! ./ui.diagram.commands */ 231);
         var _uiDiagram2 = _interopRequireDefault(_uiDiagram);
-        var _diagram_bar = __webpack_require__( /*! ./diagram_bar */ 231);
+        var _diagram_bar = __webpack_require__( /*! ./diagram_bar */ 232);
         var _diagram_bar2 = _interopRequireDefault(_diagram_bar);
 
         function _interopRequireDefault(obj) {
@@ -174122,20 +175351,20 @@
     function(module, exports, __webpack_require__) {
         var noop = __webpack_require__( /*! ../core/utils/common */ 4).noop,
             _extend = __webpack_require__( /*! ../core/utils/extend */ 0).extend,
-            inArray = __webpack_require__( /*! ../core/utils/array */ 11).inArray,
+            inArray = __webpack_require__( /*! ../core/utils/array */ 12).inArray,
             each = __webpack_require__( /*! ../core/utils/iterator */ 3).each,
             registerComponent = __webpack_require__( /*! ../core/component_registrator */ 8),
             vizUtils = __webpack_require__( /*! ./core/utils */ 10),
             typeUtils = __webpack_require__( /*! ../core/utils/type */ 1),
             mathUtils = __webpack_require__( /*! ../core/utils/math */ 30),
-            overlapping = __webpack_require__( /*! ./chart_components/base_chart */ 233).overlapping,
+            overlapping = __webpack_require__( /*! ./chart_components/base_chart */ 234).overlapping,
             LayoutManagerModule = __webpack_require__( /*! ./chart_components/layout_manager */ 393),
-            multiAxesSynchronizer = __webpack_require__( /*! ./chart_components/multi_axes_synchronizer */ 765),
+            multiAxesSynchronizer = __webpack_require__( /*! ./chart_components/multi_axes_synchronizer */ 766),
             AdvancedChart = __webpack_require__( /*! ./chart_components/advanced_chart */ 394).AdvancedChart,
-            scrollBarModule = __webpack_require__( /*! ./chart_components/scroll_bar */ 774),
+            scrollBarModule = __webpack_require__( /*! ./chart_components/scroll_bar */ 775),
             crosshairModule = __webpack_require__( /*! ./chart_components/crosshair */ 400),
-            rangeCalculator = __webpack_require__( /*! ./series/helpers/range_data_calculator */ 240),
-            rangeModule = __webpack_require__( /*! ./translators/range */ 106),
+            rangeCalculator = __webpack_require__( /*! ./series/helpers/range_data_calculator */ 241),
+            rangeModule = __webpack_require__( /*! ./translators/range */ 108),
             DEFAULT_PANE_NAME = "default",
             DEFAULT_PANES = [{
                 name: DEFAULT_PANE_NAME,
@@ -175438,8 +176667,8 @@
                 })
             }
         });
-        dxChart.addPlugin(__webpack_require__( /*! ./chart_components/shutter_zoom */ 775));
-        dxChart.addPlugin(__webpack_require__( /*! ./chart_components/zoom_and_pan */ 776));
+        dxChart.addPlugin(__webpack_require__( /*! ./chart_components/shutter_zoom */ 776));
+        dxChart.addPlugin(__webpack_require__( /*! ./chart_components/zoom_and_pan */ 777));
         dxChart.addPlugin(__webpack_require__( /*! ./core/annotations */ 401).plugins.core);
         dxChart.addPlugin(__webpack_require__( /*! ./core/annotations */ 401).plugins.chart);
         registerComponent("dxChart", dxChart);
@@ -175479,7 +176708,7 @@
             CENTER = "center",
             INSIDE = "inside",
             OUTSIDE = "outside",
-            themeModule = __webpack_require__( /*! ../../themes */ 49),
+            themeModule = __webpack_require__( /*! ../../themes */ 50),
             registerTheme = themeModule.registerTheme;
         registerTheme({
             name: "generic.light",
@@ -175605,7 +176834,7 @@
                     backgroundColor: WHITE,
                     margin: {
                         left: 0,
-                        bottom: 14,
+                        bottom: 9,
                         right: 0,
                         top: 0
                     },
@@ -177207,7 +178436,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var themeModule = __webpack_require__( /*! ../../themes */ 49),
+        var themeModule = __webpack_require__( /*! ../../themes */ 50),
             registerTheme = themeModule.registerTheme,
             WHITE = "#ffffff",
             BLACK = "#000000",
@@ -177475,7 +178704,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var themeModule = __webpack_require__( /*! ../../themes */ 49),
+        var themeModule = __webpack_require__( /*! ../../themes */ 50),
             registerTheme = themeModule.registerTheme,
             WHITE = "#ffffff",
             BLACK = "#000000",
@@ -177814,7 +179043,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var themeModule = __webpack_require__( /*! ../../themes */ 49),
+        var themeModule = __webpack_require__( /*! ../../themes */ 50),
             registerTheme = themeModule.registerTheme,
             ACCENT_COLOR = "#f05b41",
             BACKGROUND_COLOR = "#fff",
@@ -177956,7 +179185,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var themeModule = __webpack_require__( /*! ../../themes */ 49),
+        var themeModule = __webpack_require__( /*! ../../themes */ 50),
             registerTheme = themeModule.registerTheme,
             ACCENT_COLOR = "#3debd3",
             BACKGROUND_COLOR = "#465672",
@@ -178140,7 +179369,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var themeModule = __webpack_require__( /*! ../../themes */ 49),
+        var themeModule = __webpack_require__( /*! ../../themes */ 50),
             registerTheme = themeModule.registerTheme,
             ACCENT_COLOR = "#7ab8eb",
             BACKGROUND_COLOR = "#fff",
@@ -178282,7 +179511,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var themeModule = __webpack_require__( /*! ../../themes */ 49),
+        var themeModule = __webpack_require__( /*! ../../themes */ 50),
             registerTheme = themeModule.registerTheme,
             ACCENT_COLOR = "#9c63ff",
             BACKGROUND_COLOR = "#17171f",
@@ -178449,7 +179678,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var themeModule = __webpack_require__( /*! ../../themes */ 49),
+        var themeModule = __webpack_require__( /*! ../../themes */ 50),
             registerTheme = themeModule.registerTheme,
             ACCENT_COLOR = "#3cbab2",
             BACKGROUND_COLOR = "#f5f5f5",
@@ -178601,7 +179830,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var themeModule = __webpack_require__( /*! ../../themes */ 49),
+        var themeModule = __webpack_require__( /*! ../../themes */ 50),
             registerTheme = themeModule.registerTheme,
             registerThemeAlias = themeModule.registerThemeAlias,
             FONT_FAMILY = "'Roboto', 'RobotoFallback', 'Helvetica', 'Arial', sans-serif",
@@ -179054,7 +180283,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var themeModule = __webpack_require__( /*! ../../themes */ 49),
+        var themeModule = __webpack_require__( /*! ../../themes */ 50),
             IOS7_DEFAULT = "ios7.default",
             SECONDARY_TEXT_COLOR = "#767676",
             BORDER_COLOR = "#d3d3d3",
@@ -179121,7 +180350,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var errorUtils = __webpack_require__( /*! ../../core/utils/error */ 127),
+        var errorUtils = __webpack_require__( /*! ../../core/utils/error */ 126),
             errors = __webpack_require__( /*! ../../core/errors */ 21);
         module.exports = errorUtils(errors.ERROR_MESSAGES, {
             E2001: "Invalid data source",
@@ -179618,16 +180847,16 @@
     /*! all exports used */
     function(module, exports, __webpack_require__) {
         var mixins = {},
-            statesConsts = __webpack_require__( /*! ../../components/consts */ 118).states,
-            symbolPoint = __webpack_require__( /*! ./symbol_point */ 119),
+            statesConsts = __webpack_require__( /*! ../../components/consts */ 116).states,
+            symbolPoint = __webpack_require__( /*! ./symbol_point */ 117),
             barPoint = __webpack_require__( /*! ./bar_point */ 199),
-            bubblePoint = __webpack_require__( /*! ./bubble_point */ 755),
+            bubblePoint = __webpack_require__( /*! ./bubble_point */ 756),
             piePoint = __webpack_require__( /*! ./pie_point */ 389),
             rangeSymbolPoint = __webpack_require__( /*! ./range_symbol_point */ 390),
-            rangeBarPoint = __webpack_require__( /*! ./range_bar_point */ 756),
+            rangeBarPoint = __webpack_require__( /*! ./range_bar_point */ 757),
             candlestickPoint = __webpack_require__( /*! ./candlestick_point */ 391),
-            stockPoint = __webpack_require__( /*! ./stock_point */ 757),
-            polarPoints = __webpack_require__( /*! ./polar_point */ 758),
+            stockPoint = __webpack_require__( /*! ./stock_point */ 758),
+            polarPoints = __webpack_require__( /*! ./polar_point */ 759),
             _normalizeEnum = __webpack_require__( /*! ../../core/utils */ 10).normalizeEnum,
             extend = __webpack_require__( /*! ../../../core/utils/extend */ 0).extend,
             each = __webpack_require__( /*! ../../../core/utils/iterator */ 3).each,
@@ -180082,7 +181311,7 @@
     /*! all exports used */
     function(module, exports, __webpack_require__) {
         var extend = __webpack_require__( /*! ../../../core/utils/extend */ 0).extend,
-            symbolPoint = __webpack_require__( /*! ./symbol_point */ 119),
+            symbolPoint = __webpack_require__( /*! ./symbol_point */ 117),
             _extend = extend,
             MIN_BUBBLE_HEIGHT = 20;
         module.exports = _extend({}, symbolPoint, {
@@ -180299,7 +181528,7 @@
     function(module, exports, __webpack_require__) {
         var extend = __webpack_require__( /*! ../../../core/utils/extend */ 0).extend,
             _extend = extend,
-            symbolPoint = __webpack_require__( /*! ./symbol_point */ 119),
+            symbolPoint = __webpack_require__( /*! ./symbol_point */ 117),
             barPoint = __webpack_require__( /*! ./bar_point */ 199),
             piePoint = __webpack_require__( /*! ./pie_point */ 389),
             isDefined = __webpack_require__( /*! ../../../core/utils/type */ 1).isDefined,
@@ -180307,7 +181536,7 @@
             normalizeAngle = vizUtils.normalizeAngle,
             _math = Math,
             _max = _math.max,
-            RADIAL_LABEL_INDENT = __webpack_require__( /*! ../../components/consts */ 118).radialLabelIndent,
+            RADIAL_LABEL_INDENT = __webpack_require__( /*! ../../components/consts */ 116).radialLabelIndent,
             ERROR_BARS_ANGLE_OFFSET = 90,
             CANVAS_POSITION_END = "canvas_position_end",
             CANVAS_POSITION_DEFAULT = "canvas_position_default";
@@ -180507,9 +181736,9 @@
             _isDefined = __webpack_require__( /*! ../../core/utils/type */ 1).isDefined,
             _map = __webpack_require__( /*! ../core/utils */ 10).map,
             _noop = __webpack_require__( /*! ../../core/utils/common */ 4).noop,
-            scatterSeries = __webpack_require__( /*! ./scatter_series */ 104).chart,
+            scatterSeries = __webpack_require__( /*! ./scatter_series */ 106).chart,
             barSeries = __webpack_require__( /*! ./bar_series */ 141).chart.bar,
-            areaSeries = __webpack_require__( /*! ./area_series */ 163).chart.area;
+            areaSeries = __webpack_require__( /*! ./area_series */ 165).chart.area;
         exports.chart = {};
         var baseRangeSeries = {
             areErrorBarsVisible: _noop,
@@ -180672,8 +181901,8 @@
             return obj
         }
         var lineSeries = __webpack_require__( /*! ./line_series */ 200).chart.line,
-            scatterSeries = __webpack_require__( /*! ./scatter_series */ 104).chart,
-            areaSeries = __webpack_require__( /*! ./area_series */ 163).chart.area,
+            scatterSeries = __webpack_require__( /*! ./scatter_series */ 106).chart,
+            areaSeries = __webpack_require__( /*! ./area_series */ 165).chart.area,
             barSeries = __webpack_require__( /*! ./bar_series */ 141),
             chartBarSeries = barSeries.chart.bar,
             polarBarSeries = barSeries.polar.bar,
@@ -180730,28 +181959,6 @@
                     return _ref2 = {}, _defineProperty(_ref2, valueField, aggregate[0] / aggregate[2]), _defineProperty(_ref2, sizeField, aggregate[1] / aggregate[2]), _defineProperty(_ref2, series.getArgumentField(), intervalStart), _ref2
                 }
             },
-            usePointsToDefineAutoHiding: function() {
-                return true
-            },
-            checkSeriesViewportCoord: function(axis, coord) {
-                return true
-            },
-            getShapePairCoord: function(coord, isArgument, getPointClearance) {
-                var oppositeCoord = void 0;
-                var isOpposite = !isArgument && !this._options.rotated || isArgument && this._options.rotated;
-                var coordName = !isOpposite ? "vx" : "vy";
-                var oppositeCoordName = !isOpposite ? "vy" : "vx";
-                var points = this.getVisiblePoints();
-                for (var i = 0; i < points.length; i++) {
-                    var p = points[i];
-                    var tmpCoord = Math.abs(p[coordName] - coord) <= getPointClearance(p) ? p[oppositeCoordName] : void 0;
-                    if (this.checkAxisVisibleAreaCoord(!isArgument, tmpCoord)) {
-                        oppositeCoord = tmpCoord;
-                        break
-                    }
-                }
-                return oppositeCoord
-            },
             getSeriesPairCoord: function(coord, isArgument) {
                 return this.getShapePairCoord(coord, isArgument, function(point) {
                     return point.bubbleSize
@@ -180796,7 +182003,7 @@
     function(module, exports, __webpack_require__) {
         var noop = __webpack_require__( /*! ../../core/utils/common */ 4).noop,
             each = __webpack_require__( /*! ../../core/utils/iterator */ 3).each,
-            scatterSeries = __webpack_require__( /*! ./scatter_series */ 104),
+            scatterSeries = __webpack_require__( /*! ./scatter_series */ 106),
             vizUtils = __webpack_require__( /*! ../core/utils */ 10),
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
             chartScatterSeries = scatterSeries.chart,
@@ -181058,7 +182265,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var scatterSeries = __webpack_require__( /*! ./scatter_series */ 104).chart,
+        var scatterSeries = __webpack_require__( /*! ./scatter_series */ 106).chart,
             barSeries = __webpack_require__( /*! ./bar_series */ 141).chart.bar,
             _extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
             _isDefined = __webpack_require__( /*! ../../core/utils/type */ 1).isDefined,
@@ -181155,7 +182362,7 @@
                 return function(data) {
                     var reductionValue = data[level];
                     var isReduction = false;
-                    if (null !== reductionValue) {
+                    if (_isDefined(reductionValue)) {
                         if (_isDefined(prevLevelValue)) {
                             isReduction = reductionValue < prevLevelValue
                         }
@@ -181273,7 +182480,7 @@
                 return options
             },
             getSeriesPairCoord: function(coord, isArgument) {
-                var oppositeCoord = void 0;
+                var oppositeCoord = null;
                 var points = this.getVisiblePoints();
                 for (var i = 0; i < points.length; i++) {
                     var p = points[i];
@@ -181290,6 +182497,9 @@
                     }
                 }
                 return oppositeCoord
+            },
+            usePointsToDefineAutoHiding: function() {
+                return false
             }
         });
         exports.candlestick = _extend({}, exports.stock, {
@@ -181311,7 +182521,7 @@
         var _noop = __webpack_require__( /*! ../../core/utils/common */ 4).noop,
             _extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
             each = __webpack_require__( /*! ../../core/utils/iterator */ 3).each,
-            areaSeries = __webpack_require__( /*! ./area_series */ 163).chart,
+            areaSeries = __webpack_require__( /*! ./area_series */ 165).chart,
             chartAreaSeries = areaSeries.area,
             barSeries = __webpack_require__( /*! ./bar_series */ 141),
             chartBarSeries = barSeries.chart.bar,
@@ -181458,20 +182668,17 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var $ = __webpack_require__( /*! ../../core/renderer */ 2),
-            window = __webpack_require__( /*! ../../core/utils/window */ 7).getWindow(),
-            domAdapter = __webpack_require__( /*! ../../core/dom_adapter */ 13),
+        var domAdapter = __webpack_require__( /*! ../../core/dom_adapter */ 13),
             eventsEngine = __webpack_require__( /*! ../../events/core/events_engine */ 5),
             clickEvent = __webpack_require__( /*! ../../events/click */ 19),
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
             each = __webpack_require__( /*! ../../core/utils/iterator */ 3).each,
-            consts = __webpack_require__( /*! ../components/consts */ 118),
+            consts = __webpack_require__( /*! ../components/consts */ 116),
             eventsConsts = consts.events,
             vizUtils = __webpack_require__( /*! ../core/utils */ 10),
             pointerEvents = __webpack_require__( /*! ../../events/pointer */ 24),
-            holdEvent = __webpack_require__( /*! ../../events/hold */ 87),
+            holdEvent = __webpack_require__( /*! ../../events/hold */ 88),
             addNamespace = __webpack_require__( /*! ../../events/utils */ 9).addNamespace,
-            devices = __webpack_require__( /*! ../../core/devices */ 16),
             isDefined = __webpack_require__( /*! ../../core/utils/type */ 1).isDefined,
             _normalizeEnum = __webpack_require__( /*! ../core/utils */ 10).normalizeEnum,
             _floor = Math.floor,
@@ -181536,9 +182743,7 @@
                     timeout: 300
                 }, _noop)
             },
-            update: function(options) {
-                this._prepare()
-            },
+            update: function() {},
             updateSeries: function(series, resetDecorations) {
                 var that = this;
                 var noHoveredSeries = !(series && series.some(function(s) {
@@ -181569,24 +182774,6 @@
                     this._hideTooltip(point, true)
                 } else {
                     this._showTooltip(point)
-                }
-            },
-            _prepare: function() {
-                this._toggleParentsScrollSubscription(true)
-            },
-            _toggleParentsScrollSubscription: function(subscribe) {
-                var $parents = $(this._renderer.root.element).parents(),
-                    scrollEvents = addNamespace("scroll", EVENT_NS);
-                if ("generic" === devices.real().platform) {
-                    $parents = $parents.add(window)
-                }
-                this._proxiedTargetParentsScrollHandler = this._proxiedTargetParentsScrollHandler || function() {
-                    this._pointerOut()
-                }.bind(this);
-                eventsEngine.off($().add(this._$prevRootParents), scrollEvents, this._proxiedTargetParentsScrollHandler);
-                if (subscribe) {
-                    eventsEngine.on($parents, scrollEvents, this._proxiedTargetParentsScrollHandler);
-                    this._$prevRootParents = $parents
                 }
             },
             _setHoveredPoint: function(point) {
@@ -181703,11 +182890,11 @@
                 this._outHandler = null
             },
             stopCurrentHandling: function() {
-                this._pointerOut()
+                this._pointerOut(true)
             },
-            _pointerOut: function() {
+            _pointerOut: function(force) {
                 this.clearHover();
-                this._tooltip.isEnabled() && this._hideTooltip(this.pointAtShownTooltip)
+                (force || this._tooltip.isEnabled()) && this._hideTooltip(this.pointAtShownTooltip)
             },
             _triggerLegendClick: function(eventArgs, elementClick) {
                 var eventTrigger = this._eventTrigger;
@@ -181895,7 +183082,6 @@
             dispose: function() {
                 var that = this;
                 that._disableOutHandler();
-                that._toggleParentsScrollSubscription();
                 that._renderer.root.off(DOT_EVENT_NS);
                 that._seriesGroup.off(DOT_EVENT_NS)
             }
@@ -182016,7 +183202,7 @@
                 that._stuckSeries = null;
                 that._hideCrosshair();
                 that._resetTimer();
-                baseTrackerPrototype._pointerOut.call(that)
+                baseTrackerPrototype._pointerOut.apply(that, arguments)
             },
             _hoverArgumentAxis: function(x, y, e) {
                 var that = this;
@@ -182957,7 +184143,7 @@
         var circularAxes, polarAxes, vizUtils = __webpack_require__( /*! ../core/utils */ 10),
             isDefined = __webpack_require__( /*! ../../core/utils/type */ 1).isDefined,
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
-            constants = __webpack_require__( /*! ./axes_constants */ 242),
+            constants = __webpack_require__( /*! ./axes_constants */ 243),
             xyAxesLinear = __webpack_require__( /*! ./xy_axes */ 398).linear,
             tick = __webpack_require__( /*! ./tick */ 397).tick,
             _map = vizUtils.map,
@@ -183720,7 +184906,7 @@
         var _utils = __webpack_require__( /*! ../../events/utils */ 9);
         var _utils2 = _interopRequireDefault(_utils);
         var _extend = __webpack_require__( /*! ../../core/utils/extend */ 0);
-        var _translator2d = __webpack_require__( /*! ../translators/translator2d */ 243);
+        var _translator2d = __webpack_require__( /*! ../translators/translator2d */ 244);
         var _translator2d2 = _interopRequireDefault(_translator2d);
         var _type = __webpack_require__( /*! ../../core/utils/type */ 1);
         var _common = __webpack_require__( /*! ../../core/utils/common */ 4);
@@ -184067,7 +185253,7 @@
         var _type = __webpack_require__( /*! ../../core/utils/type */ 1);
         var _extend = __webpack_require__( /*! ../../core/utils/extend */ 0);
         var _utils = __webpack_require__( /*! ../core/utils */ 10);
-        var _wheel = __webpack_require__( /*! ../../events/core/wheel */ 110);
+        var _wheel = __webpack_require__( /*! ../../events/core/wheel */ 123);
         var _transform = __webpack_require__( /*! ../../events/transform */ 280);
         var _transform2 = _interopRequireDefault(_transform);
         var _drag = __webpack_require__( /*! ../../events/drag */ 56);
@@ -184123,6 +185309,10 @@
             }
             return axes
         }
+
+        function isNotEmptyAxisBusinessRange(axis) {
+            return !axis.getTranslator().getBusinessRange().isEmpty()
+        }
         module.exports = {
             name: "zoom_and_pan",
             init: function() {
@@ -184150,11 +185340,17 @@
                     if (options.valueAxis[actionField]) {
                         axes = axes.concat(actionData.valueAxes)
                     }
-                    axes.some(function(axis) {
-                        return axis.getTranslator().getBusinessRange().isEmpty() || axis.handleZooming(null, {
-                            end: true
-                        }, e, actionField).isPrevented
-                    }) && cancelEvent(e)
+                    axes.reduce(function(isPrevented, axis) {
+                        if (isPrevented) {
+                            return isPrevented
+                        }
+                        if (isNotEmptyAxisBusinessRange(axis)) {
+                            return axis.handleZooming(null, {
+                                end: true
+                            }, e, actionField).isPrevented
+                        }
+                        return isPrevented
+                    }, false) && cancelEvent(e)
                 }
 
                 function axesViewportChanging(zoomAndPan, actionField, e, offsetCalc, centerCalc) {
@@ -184162,7 +185358,7 @@
                         var zoom = {
                             zoomed: false
                         };
-                        criteria && axes.forEach(function(axis) {
+                        criteria && axes.filter(isNotEmptyAxisBusinessRange).forEach(function(axis) {
                             var options = axis.getOptions();
                             var viewport = axis.visualRange();
                             var scale = axis.getTranslator().getEventScale(e);
@@ -184260,11 +185456,12 @@
                         if (options.valueAxis[actionField]) {
                             axes = axes.concat(actionData.valueAxes)
                         }
-                        axes.forEach(function(axis) {
+                        axes.filter(isNotEmptyAxisBusinessRange).forEach(function(axis) {
                             axis.handleZooming(null, {
                                 start: true
                             }, e, actionField)
-                        })
+                        });
+                        zoomStarted = zoomStarted && axes.length
                     }
                     zoomStarted && chart._requestChange(["VISUAL_RANGE"])
                 }
@@ -184325,7 +185522,7 @@
                 function preventDefaults(e) {
                     e.preventDefault();
                     e.stopPropagation();
-                    chart._tracker.stopCurrentHandling()
+                    chart._stopCurrentHandling()
                 }
                 var zoomAndPan = {
                     dragStartHandler: function(e) {
@@ -184726,24 +185923,82 @@
                 throw new TypeError("Cannot call a class as a function")
             }
         }
-        var round = Math.round;
-        var max = Math.max;
-        var min = Math.min;
-        var buildFlatArray = function() {
-            var _ref;
-            return (_ref = []).concat.apply(_ref, arguments)
+        var math = Math;
+        var round = math.round;
+        var max = math.max;
+        var min = math.min;
+        var sin = math.sin;
+        var cos = math.cos;
+        var asin = math.asin;
+        var PI = math.PI;
+        var buildPath = function() {
+            for (var _len = arguments.length, points = Array(_len), _key = 0; _key < _len; _key++) {
+                points[_key] = arguments[_key]
+            }
+            return points.join("")
         };
-        var getCloudPoints = function(_ref2, x, y, anchorX, anchorY, _ref3) {
+
+        function getArc(cornerRadius, xDirection, yDirection) {
+            return "a " + cornerRadius + " " + cornerRadius + " 0 0 1 " + xDirection * cornerRadius + " " + yDirection * cornerRadius
+        }
+
+        function getAbsoluteArc(cornerRadius, x, y) {
+            return "A " + cornerRadius + " " + cornerRadius + " 0 0 1 " + x + " " + y
+        }
+
+        function rotateX(x, y, angle, x0, y0) {
+            return (x - x0) * round(cos(angle)) + (y - y0) * round(sin(angle)) + x0
+        }
+
+        function rotateY(x, y, angle, x0, y0) {
+            return -(x - x0) * round(sin(angle)) + (y - y0) * round(cos(angle)) + y0
+        }
+
+        function rotateSize(options, angle) {
+            if (angle % 90 === 0 && angle % 180 !== 0) {
+                return {
+                    width: options.height,
+                    height: options.width
+                }
+            }
+            return options
+        }
+
+        function getCloudAngle(_ref, x, y, anchorX, anchorY) {
+            var width = _ref.width,
+                height = _ref.height;
+            var halfWidth = width / 2;
+            var halfHeight = height / 2;
+            var xr = Math.ceil(x + halfWidth);
+            var xl = Math.floor(x - halfWidth);
+            var yt = Math.floor(y - halfHeight);
+            var yb = Math.ceil(y + halfHeight);
+            if (anchorX < xl && anchorY < yt || anchorX >= xl && anchorX <= xr && anchorY < yt) {
+                return 270
+            }
+            if (anchorX > xr && anchorY > yb || anchorX >= xl && anchorX <= xr && anchorY > yb) {
+                return 90
+            } else {
+                if (anchorX < xl && anchorY > yb || anchorX < xl && anchorY >= yt && anchorY <= yb) {
+                    return 180
+                }
+            }
+            return 0
+        }
+
+        function getCloudPoints(_ref2, x, y, anchorX, anchorY, _ref3) {
             var width = _ref2.width,
                 height = _ref2.height;
-            var arrowWidth = _ref3.arrowWidth;
+            var arrowWidth = _ref3.arrowWidth,
+                _ref3$cornerRadius = _ref3.cornerRadius,
+                cornerRadius = void 0 === _ref3$cornerRadius ? 0 : _ref3$cornerRadius;
             var halfArrowWidth = arrowWidth / 2;
             var halfWidth = width / 2;
             var halfHeight = height / 2;
-            var xr = round(x + halfWidth);
-            var xl = round(x - halfWidth);
-            var yt = round(y - halfHeight);
-            var yb = round(y + halfHeight);
+            var xr = Math.ceil(x + halfWidth);
+            var xl = Math.floor(x - halfWidth);
+            var yt = Math.floor(y - halfHeight);
+            var yb = Math.ceil(y + halfHeight);
             var leftTopCorner = [xl, yt];
             var rightTopCorner = [xr, yt];
             var rightBottomCorner = [xr, yb];
@@ -184753,45 +186008,85 @@
             var arrowBaseBottom = min(arrowY + halfArrowWidth, yb);
             var arrowBaseTop = max(arrowY - halfArrowWidth, yt);
             var arrowBaseLeft = max(arrowX - halfArrowWidth, xl);
-            var arrowBaseRight = min(arrowX + halfArrowWidth, xr);
+            cornerRadius = Math.min(width / 2, height / 2, cornerRadius);
             var points = void 0;
+            leftTopCorner[1] += cornerRadius;
+            rightTopCorner[0] -= cornerRadius;
+            rightBottomCorner[1] -= cornerRadius;
+            leftBottomCorner[0] += cornerRadius;
             if (xl <= anchorX && anchorX <= xr && yt <= anchorY && anchorY <= yb) {
-                points = buildFlatArray(leftTopCorner, rightTopCorner, rightBottomCorner, leftBottomCorner)
+                points = buildPath(leftTopCorner, getArc(cornerRadius, 1, -1), "L", rightTopCorner, getArc(cornerRadius, 1, 1), "L", rightBottomCorner, getArc(cornerRadius, -1, 1), "L", leftBottomCorner, getArc(cornerRadius, -1, -1))
             } else {
-                if (anchorX < xl && anchorY < yt) {
-                    points = buildFlatArray([xl, arrowBaseBottom, anchorX, anchorY, arrowBaseRight, yt], rightTopCorner, rightBottomCorner, leftBottomCorner)
+                if (anchorX > xr && anchorY < yt) {
+                    var arrowAngle = arrowWidth / cornerRadius || 0;
+                    var angle = PI / 4 + arrowAngle / 2;
+                    var endAngle = PI / 4 - arrowAngle / 2;
+                    var arrowEndPointX = rightTopCorner[0] + cos(endAngle) * cornerRadius;
+                    var arrowEndPointY = rightTopCorner[1] + (1 - sin(endAngle)) * cornerRadius;
+                    var arrowArc = buildPath("L", rightTopCorner, getArc(cornerRadius, cos(angle), 1 - sin(angle)), "L", [anchorX, anchorY, arrowEndPointX, arrowEndPointY], getAbsoluteArc(cornerRadius, rightTopCorner[0] + cornerRadius, rightTopCorner[1] + cornerRadius));
+                    if (Math.abs(angle) > PI / 2) {
+                        arrowArc = buildPath("L", [arrowBaseLeft, yt, anchorX, anchorY, xr, arrowBaseBottom])
+                    }
+                    points = buildPath(leftTopCorner, getArc(cornerRadius, 1, -1), arrowArc, "L", rightBottomCorner, getArc(cornerRadius, -1, 1), "L", leftBottomCorner, getArc(cornerRadius, -1, -1))
                 } else {
-                    if (anchorX >= xl && anchorX <= xr && anchorY < yt) {
-                        points = buildFlatArray(leftTopCorner, [arrowBaseLeft, yt, anchorX, anchorY, arrowBaseRight, yt], rightTopCorner, rightBottomCorner, leftBottomCorner)
-                    } else {
-                        if (anchorX > xr && anchorY < yt) {
-                            points = buildFlatArray(leftTopCorner, [arrowBaseLeft, yt, anchorX, anchorY, xr, arrowBaseBottom], rightBottomCorner, leftBottomCorner)
+                    if (anchorX > xr && anchorY >= yt && anchorY <= yb) {
+                        var _arrowArc = void 0;
+                        if (arrowBaseTop >= rightTopCorner[1] + cornerRadius && arrowBaseBottom <= rightBottomCorner[1]) {
+                            _arrowArc = buildPath(getArc(cornerRadius, 1, 1), "L", [xr, arrowBaseTop, anchorX, anchorY, xr, arrowBaseBottom], "L", rightBottomCorner, getArc(cornerRadius, -1, 1))
                         } else {
-                            if (anchorX > xr && anchorY >= yt && anchorY <= yb) {
-                                points = buildFlatArray(leftTopCorner, rightTopCorner, [xr, arrowBaseTop, anchorX, anchorY, xr, arrowBaseBottom], rightBottomCorner, leftBottomCorner)
+                            if (arrowBaseTop < rightTopCorner[1] + cornerRadius && arrowBaseBottom >= rightTopCorner[1] + cornerRadius && arrowBaseBottom <= rightBottomCorner[1]) {
+                                var arrowWidthRest = rightTopCorner[1] + cornerRadius - arrowBaseTop;
+                                var _angle = arrowWidthRest / cornerRadius;
+                                var arrowBaseTopX = rightTopCorner[0] + cos(_angle) * cornerRadius;
+                                var arrowBaseTopY = rightTopCorner[1] + (1 - sin(_angle)) * cornerRadius;
+                                _arrowArc = buildPath(getArc(cornerRadius, cos(_angle), 1 - sin(_angle)), "L", [arrowBaseTopX, arrowBaseTopY, anchorX, anchorY, xr, arrowBaseBottom], "L", rightBottomCorner, getArc(cornerRadius, -1, 1))
                             } else {
-                                if (anchorX > xr && anchorY > yb) {
-                                    points = buildFlatArray(leftTopCorner, rightTopCorner, [xr, arrowBaseTop, anchorX, anchorY, arrowBaseLeft, yb], leftBottomCorner)
+                                if (arrowBaseTop < rightTopCorner[1] + cornerRadius && arrowBaseBottom < rightTopCorner[1] + cornerRadius) {
+                                    var _arrowWidthRest = rightTopCorner[1] + cornerRadius - arrowBaseTop;
+                                    var _arrowAngle = _arrowWidthRest / cornerRadius;
+                                    var _angle2 = _arrowAngle;
+                                    var _arrowBaseTopX = rightTopCorner[0] + cos(_angle2) * cornerRadius;
+                                    var _arrowBaseTopY = rightTopCorner[1] + (1 - sin(_angle2)) * cornerRadius;
+                                    var bottomAngle = Math.sin((rightTopCorner[1] + cornerRadius - arrowBaseBottom) / cornerRadius);
+                                    var arrowBaseBottomX = rightTopCorner[0] + cornerRadius * cos(bottomAngle);
+                                    var arrowBaseBottomY = rightTopCorner[1] + cornerRadius * (1 - sin(bottomAngle));
+                                    _arrowArc = buildPath(getArc(cornerRadius, cos(_angle2), 1 - sin(_angle2)), "L", [_arrowBaseTopX, _arrowBaseTopY, anchorX, anchorY, arrowBaseBottomX, arrowBaseBottomY], getAbsoluteArc(cornerRadius, rightTopCorner[0] + cornerRadius, rightTopCorner[1] + cornerRadius), "L", rightBottomCorner, getArc(cornerRadius, -1, 1))
                                 } else {
-                                    if (anchorX >= xl && anchorX <= xr && anchorY > yb) {
-                                        points = buildFlatArray(leftTopCorner, rightTopCorner, rightBottomCorner, [arrowBaseRight, yb, anchorX, anchorY, arrowBaseLeft, yb], leftBottomCorner)
+                                    if (arrowBaseTop <= rightTopCorner[1] + cornerRadius && arrowBaseBottom >= rightBottomCorner[1]) {
+                                        var topAngle = asin((rightTopCorner[1] + cornerRadius - arrowBaseTop) / cornerRadius);
+                                        var _arrowBaseTopX2 = rightTopCorner[0] + cornerRadius * cos(topAngle);
+                                        var _arrowBaseTopY2 = rightTopCorner[1] + cornerRadius * (1 - sin(topAngle));
+                                        var _bottomAngle = asin((arrowBaseBottom - rightBottomCorner[1]) / cornerRadius);
+                                        var _arrowBaseBottomX = rightBottomCorner[0] + cornerRadius * (cos(_bottomAngle) - 1);
+                                        var _arrowBaseBottomY = rightBottomCorner[1] + cornerRadius * sin(_bottomAngle);
+                                        _arrowArc = buildPath(getArc(cornerRadius, cos(topAngle), 1 - sin(topAngle)), "L", [_arrowBaseTopX2, _arrowBaseTopY2, anchorX, anchorY, _arrowBaseBottomX, _arrowBaseBottomY], getAbsoluteArc(cornerRadius, rightBottomCorner[0] - cornerRadius, rightBottomCorner[1] + cornerRadius))
                                     } else {
-                                        if (anchorX < xl && anchorY > yb) {
-                                            points = buildFlatArray(leftTopCorner, rightTopCorner, rightBottomCorner, [arrowBaseRight, yb, anchorX, anchorY, xl, arrowBaseTop])
+                                        if (arrowBaseTop > rightTopCorner[1] + cornerRadius && arrowBaseTop <= rightBottomCorner[1] && arrowBaseBottom > rightBottomCorner[1]) {
+                                            var _bottomAngle2 = asin((arrowBaseBottom - rightBottomCorner[1]) / cornerRadius);
+                                            var _arrowBaseBottomX2 = rightBottomCorner[0] + cornerRadius * (cos(_bottomAngle2) - 1);
+                                            var _arrowBaseBottomY2 = rightBottomCorner[1] + cornerRadius * sin(_bottomAngle2);
+                                            _arrowArc = buildPath(getArc(cornerRadius, 1, 1), "L", [xr, arrowBaseTop, anchorX, anchorY, _arrowBaseBottomX2, _arrowBaseBottomY2], getAbsoluteArc(cornerRadius, rightBottomCorner[0] - cornerRadius, rightBottomCorner[1] + cornerRadius))
                                         } else {
-                                            if (anchorX < xl && anchorY >= yt && anchorY <= yb) {
-                                                points = buildFlatArray(leftTopCorner, rightTopCorner, rightBottomCorner, leftBottomCorner, [xl, arrowBaseBottom, anchorX, anchorY, xl, arrowBaseTop])
+                                            if (arrowBaseTop > rightTopCorner[1] + cornerRadius && arrowBaseBottom > rightBottomCorner[1]) {
+                                                var _bottomAngle3 = asin((arrowBaseBottom - rightBottomCorner[1]) / cornerRadius);
+                                                var _arrowBaseBottomX3 = rightBottomCorner[0] + cornerRadius * (cos(_bottomAngle3) - 1);
+                                                var _arrowBaseBottomY3 = rightBottomCorner[1] + cornerRadius * sin(_bottomAngle3);
+                                                var _topAngle = asin((arrowBaseTop - rightBottomCorner[1]) / cornerRadius);
+                                                var _arrowBaseTopX3 = rightBottomCorner[0] + cornerRadius * (cos(_topAngle) - 1);
+                                                var _arrowBaseTopY3 = rightBottomCorner[1] + cornerRadius * sin(_topAngle);
+                                                _arrowArc = buildPath(getArc(cornerRadius, 1, 1), "L", rightBottomCorner, getArc(cornerRadius, cos(_topAngle) - 1, sin(_topAngle)), "L", [_arrowBaseTopX3, _arrowBaseTopY3, anchorX, anchorY, _arrowBaseBottomX3, _arrowBaseBottomY3], getAbsoluteArc(cornerRadius, rightBottomCorner[0] - cornerRadius, rightBottomCorner[1] + cornerRadius))
                                             }
                                         }
                                     }
                                 }
                             }
                         }
+                        points = buildPath(leftTopCorner, getArc(cornerRadius, 1, -1), "L", rightTopCorner, _arrowArc, "L", leftBottomCorner, getArc(cornerRadius, -1, -1))
                     }
                 }
             }
-            return points
-        };
+            return buildPath("M", points, "Z")
+        }
         exports.Plaque = function() {
             function Plaque(options, widget, root, renderContent) {
                 _classCallCheck(this, Plaque);
@@ -184819,21 +186114,21 @@
                         yb: canvas.height - canvas.bottom,
                         height: canvas.height - canvas.bottom - canvas.top
                     };
-                    if (!(0, _type.isDefined)(anchorX) && (!(0, _type.isDefined)(x) || !(0, _type.isDefined)(y))) {
+                    if (!((0, _type.isDefined)(anchorX) && (0, _type.isDefined)(anchorY)) && !((0, _type.isDefined)(x) && (0, _type.isDefined)(y))) {
                         return
                     }
                     if ((0, _type.isDefined)(anchorX) && (anchorX < bounds.xl || bounds.xr < anchorX || anchorY < bounds.yt || bounds.yb < anchorY)) {
                         return
                     }
-                    var shadow = renderer.shadowFilter().attr((0, _extend.extend)({
+                    var shadowSettings = (0, _extend.extend)({
                         x: "-50%",
                         y: "-50%",
                         width: "200%",
                         height: "200%"
-                    }, options.shadow));
+                    }, options.shadow);
+                    var shadow = renderer.shadowFilter().attr(shadowSettings);
                     var cloudSettings = {
                         opacity: options.opacity,
-                        filter: shadow.id,
                         "stroke-width": 0,
                         fill: options.color
                     };
@@ -184849,7 +186144,10 @@
                     var group = renderer.g().attr({
                         "class": "dxc-" + options.type + "-annotation"
                     }).append(this.root);
-                    this._cloud = renderer.path([], "area").attr(cloudSettings).sharp().append(group);
+                    var cloudGroup = renderer.g().attr({
+                        filter: shadow.id
+                    }).append(group);
+                    this._cloud = renderer.path([], "area").attr(cloudSettings).sharp().append(cloudGroup);
                     this._contentGroup = renderer.g().append(group);
                     var contentWidth = options.width > 0 ? options.width : null;
                     var contentHeight = options.height > 0 ? options.height : null;
@@ -184862,11 +186160,18 @@
                         width: max(contentWidth, bBox.width) + 2 * options.paddingLeftRight,
                         height: max(contentHeight, bBox.height) + 2 * options.paddingTopBottom
                     };
+                    var xOff = shadowSettings.offsetX;
+                    var yOff = shadowSettings.offsetY;
+                    var blur = shadowSettings.blur + 1;
+                    var lm = max(blur - xOff, 0);
+                    var rm = max(blur + xOff, 0);
+                    var tm = max(blur - yOff, 0);
+                    var bm = max(blur + yOff, 0);
                     if (!(0, _type.isDefined)(x)) {
                         if (bounds.width < size.width) {
                             x = round(bounds.xl + bounds.width / 2)
                         } else {
-                            x = min(max(anchorX, Math.ceil(bounds.xl + size.width / 2)), Math.floor(bounds.xr - size.width / 2))
+                            x = min(max(anchorX, Math.ceil(bounds.xl + size.width / 2 + lm)), Math.floor(bounds.xr - size.width / 2 - rm))
                         }
                     } else {
                         if (!(0, _type.isDefined)(anchorX)) {
@@ -184879,8 +186184,8 @@
                         if (bounds.height < size.height + options.arrowLength) {
                             y = round(bounds.yt + size.height / 2)
                         } else {
-                            if (y_top - size.height / 2 < bounds.yt) {
-                                if (y_bottom + size.height / 2 < bounds.yb) {
+                            if (y_top - size.height / 2 - tm < bounds.yt) {
+                                if (y_bottom + size.height / 2 + bm < bounds.yb) {
                                     y = y_bottom
                                 } else {
                                     y = round(bounds.yt + size.height / 2)
@@ -184901,19 +186206,23 @@
             }, {
                 key: "move",
                 value: function(x, y) {
+                    x = round(x);
+                    y = round(y);
                     this.x = x;
                     this.y = y;
+                    var rotationAngle = getCloudAngle(this._size, x, y, this.anchorX, this.anchorY);
+                    var radRotationAngle = rotationAngle * PI / 180;
                     this._cloud.attr({
-                        points: getCloudPoints(this._size, x, y, this.anchorX, this.anchorY, this.options)
-                    });
+                        d: getCloudPoints(rotateSize(this._size, rotationAngle), x, y, rotateX(this.anchorX, this.anchorY, radRotationAngle, x, y), rotateY(this.anchorX, this.anchorY, radRotationAngle, x, y), this.options)
+                    }).rotate(rotationAngle, x, y);
                     this._contentGroup.move(x - this._contentBBox.x - this._contentBBox.width / 2, y - this._contentBBox.y - this._contentBBox.height / 2)
                 }
             }, {
                 key: "hitTest",
                 value: function(x, y) {
-                    var _size = this._size,
-                        width = _size.width,
-                        height = _size.height;
+                    var _ref5 = this._size || {},
+                        width = _ref5.width,
+                        height = _ref5.height;
                     return Math.abs(x - this.x) <= width / 2 && Math.abs(y - this.y) <= height / 2
                 }
             }]);
@@ -184926,16 +186235,16 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var _consts = __webpack_require__( /*! ./components/consts */ 118);
+        var _consts = __webpack_require__( /*! ./components/consts */ 116);
         var _utils = __webpack_require__( /*! ./core/utils */ 10);
         var _extend2 = __webpack_require__( /*! ../core/utils/extend */ 0);
         var _type = __webpack_require__( /*! ../core/utils/type */ 1);
         var _iterator = __webpack_require__( /*! ../core/utils/iterator */ 3);
-        var _range = __webpack_require__( /*! ./translators/range */ 106);
+        var _range = __webpack_require__( /*! ./translators/range */ 108);
         var _range2 = _interopRequireDefault(_range);
         var _component_registrator = __webpack_require__( /*! ../core/component_registrator */ 8);
         var _component_registrator2 = _interopRequireDefault(_component_registrator);
-        var _base_chart = __webpack_require__( /*! ./chart_components/base_chart */ 233);
+        var _base_chart = __webpack_require__( /*! ./chart_components/base_chart */ 234);
         var _common = __webpack_require__( /*! ../core/utils/common */ 4);
         var _translator1d = __webpack_require__( /*! ./translators/translator1d */ 402);
         var _translator1d2 = _interopRequireDefault(_translator1d);
@@ -185305,7 +186614,7 @@
         var pieSizeEqualizer = function() {
             function equalize(group, allPies) {
                 var pies = allPies.filter(function(p) {
-                        return p.getSizeGroup() === group
+                        return p._isVisible() && p.getSizeGroup() === group
                     }),
                     minRadius = Math.min.apply(null, pies.map(function(p) {
                         return p.getSizeGroupLayout().radius
@@ -185314,7 +186623,7 @@
                         return p.getSizeGroupLayout().radius === minRadius
                     });
                 pies.forEach(function(p) {
-                    p.render({
+                    return p.render({
                         force: true,
                         sizeGroupLayout: minPie.length ? minPie[0].getSizeGroupLayout() : {}
                     })
@@ -185464,7 +186773,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        module.exports = __webpack_require__( /*! ./gauges/linear_gauge */ 781)
+        module.exports = __webpack_require__( /*! ./gauges/linear_gauge */ 782)
     },
     /*!*********************************************************!*\
       !*** ./artifacts/transpiled/viz/gauges/linear_gauge.js ***!
@@ -185482,9 +186791,9 @@
             dxBaseGauge = __webpack_require__( /*! ./base_gauge */ 143).dxBaseGauge,
             dxGauge = __webpack_require__( /*! ./common */ 201).dxGauge,
             _normalizeEnum = __webpack_require__( /*! ../core/utils */ 10).normalizeEnum,
-            linearIndicatorsModule = __webpack_require__( /*! ./linear_indicators */ 784),
+            linearIndicatorsModule = __webpack_require__( /*! ./linear_indicators */ 785),
             createIndicatorCreator = __webpack_require__( /*! ./common */ 201).createIndicatorCreator,
-            LinearRangeContainer = __webpack_require__( /*! ./linear_range_container */ 785);
+            LinearRangeContainer = __webpack_require__( /*! ./linear_range_container */ 786);
         var dxLinearGauge = dxGauge.inherit({
             _rootClass: "dxg-linear-gauge",
             _factoryMethods: {
@@ -185730,7 +187039,7 @@
     function(module, exports, __webpack_require__) {
         var extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
             _extend = extend,
-            BaseThemeManager = __webpack_require__( /*! ../core/base_theme_manager */ 234).BaseThemeManager;
+            BaseThemeManager = __webpack_require__( /*! ../core/base_theme_manager */ 235).BaseThemeManager;
         var ThemeManager = BaseThemeManager.inherit({
             ctor: function(options) {
                 this.callBase.apply(this, arguments);
@@ -185758,8 +187067,8 @@
         var eventsEngine = __webpack_require__( /*! ../../events/core/events_engine */ 5),
             Class = __webpack_require__( /*! ../../core/class */ 14),
             domAdapter = __webpack_require__( /*! ../../core/dom_adapter */ 13),
-            ready = __webpack_require__( /*! ../../core/utils/ready_callbacks */ 50).add,
-            wheelEvent = __webpack_require__( /*! ../../events/core/wheel */ 110),
+            ready = __webpack_require__( /*! ../../core/utils/ready_callbacks */ 48).add,
+            wheelEvent = __webpack_require__( /*! ../../events/core/wheel */ 123),
             TOOLTIP_HIDE_DELAY = 100;
         var Tracker = Class.inherit({
             ctor: function(parameters) {
@@ -185951,7 +187260,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var baseIndicatorsModule = __webpack_require__( /*! ./base_indicators */ 244),
+        var baseIndicatorsModule = __webpack_require__( /*! ./base_indicators */ 245),
             BaseIndicator = baseIndicatorsModule.BaseIndicator,
             BaseTextCloudMarker = baseIndicatorsModule.BaseTextCloudMarker,
             BaseRangeBar = baseIndicatorsModule.BaseRangeBar,
@@ -186542,7 +187851,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var baseIndicatorsModule = __webpack_require__( /*! ./base_indicators */ 244),
+        var baseIndicatorsModule = __webpack_require__( /*! ./base_indicators */ 245),
             BaseIndicator = baseIndicatorsModule.BaseIndicator,
             BaseTextCloudMarker = baseIndicatorsModule.BaseTextCloudMarker,
             BaseRangeBar = baseIndicatorsModule.BaseRangeBar,
@@ -187026,7 +188335,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        module.exports = __webpack_require__( /*! ./gauges/bar_gauge */ 790).dxBarGauge
+        module.exports = __webpack_require__( /*! ./gauges/bar_gauge */ 791).dxBarGauge
     },
     /*!******************************************************!*\
       !*** ./artifacts/transpiled/viz/gauges/bar_gauge.js ***!
@@ -187675,7 +188984,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        module.exports = __webpack_require__( /*! ./range_selector/range_selector */ 792)
+        module.exports = __webpack_require__( /*! ./range_selector/range_selector */ 793)
     },
     /*!*******************************************************************!*\
       !*** ./artifacts/transpiled/viz/range_selector/range_selector.js ***!
@@ -187693,17 +189002,17 @@
             addInterval = dateUtils.addInterval,
             dateToMilliseconds = dateUtils.dateToMilliseconds,
             getSequenceByInterval = dateUtils.getSequenceByInterval,
-            rangeModule = __webpack_require__( /*! ../translators/range */ 106),
-            axisModule = __webpack_require__( /*! ../axes/base_axis */ 241),
+            rangeModule = __webpack_require__( /*! ../translators/range */ 108),
+            axisModule = __webpack_require__( /*! ../axes/base_axis */ 242),
             patchFontOptions = vizUtils.patchFontOptions,
-            parseUtils = __webpack_require__( /*! ../components/parse_utils */ 237),
+            parseUtils = __webpack_require__( /*! ../components/parse_utils */ 238),
             _normalizeEnum = vizUtils.normalizeEnum,
             formatHelper = __webpack_require__( /*! ../../format_helper */ 61),
             commonModule = __webpack_require__( /*! ./common */ 202),
-            slidersControllerModule = __webpack_require__( /*! ./sliders_controller */ 793),
-            trackerModule = __webpack_require__( /*! ./tracker */ 796),
-            rangeViewModule = __webpack_require__( /*! ./range_view */ 797),
-            seriesDataSourceModule = __webpack_require__( /*! ./series_data_source */ 798),
+            slidersControllerModule = __webpack_require__( /*! ./sliders_controller */ 794),
+            trackerModule = __webpack_require__( /*! ./tracker */ 797),
+            rangeViewModule = __webpack_require__( /*! ./range_view */ 798),
+            seriesDataSourceModule = __webpack_require__( /*! ./series_data_source */ 799),
             tickGeneratorModule = __webpack_require__( /*! ../axes/tick_generator */ 396),
             parseValue = vizUtils.getVizRangeObject,
             convertVisualRangeObject = vizUtils.convertVisualRangeObject,
@@ -188124,7 +189433,8 @@
                 tail = d - Math.floor(d);
             return tail > 0 ? Math.ceil(Math.abs(adjust(vizUtils.getLog(tail, 10)))) : 0
         }
-        var dxRangeSelector = __webpack_require__( /*! ../core/base_widget */ 95).inherit({
+        var dxRangeSelector = __webpack_require__( /*! ../core/base_widget */ 97).inherit({
+            _toggleParentsScrollSubscription: function() {},
             _eventsMap: {
                 onValueChanged: {
                     name: VALUE_CHANGED
@@ -188563,8 +189873,17 @@
             }
         }
 
+        function getShiftDirection() {
+            return 1
+        }
+
+        function getTickStartPositionShift(length) {
+            return length % 2 === 1 ? -Math.floor(length / 2) : -length / 2
+        }
+
         function AxisWrapper(params) {
-            this._axis = new axisModule.Axis({
+            var that = this;
+            that._axis = new axisModule.Axis({
                 renderer: params.renderer,
                 axesContainerGroup: params.root,
                 scaleBreaksGroup: params.scaleBreaksGroup,
@@ -188575,7 +189894,9 @@
                 axisClass: "range-selector",
                 isArgumentAxis: true
             });
-            this._updateSelectedRangeCallback = params.updateSelectedRange
+            that._updateSelectedRangeCallback = params.updateSelectedRange;
+            that._axis.getAxisSharpDirection = that._axis.getSharpDirectionByCoords = getShiftDirection;
+            that._axis.getTickStartPositionShift = getTickStartPositionShift
         }
         AxisWrapper.prototype = {
             constructor: AxisWrapper,
@@ -188591,7 +189912,7 @@
                 axis.validate();
                 axis.setBusinessRange(businessRange, true);
                 if (void 0 !== seriesDataSource && seriesDataSource.isShowChart()) {
-                    axis.setMarginOptions(seriesDataSource.getMarginOptions(canvas))
+                    axis.setMarginOptions(seriesDataSource.getMarginOptions(canvas));
                 }
                 axis.draw(canvas);
                 axis.shift({
@@ -188608,7 +189929,7 @@
             },
             visualRange: function() {},
             getViewport: function() {
-                return {};
+                return {}
             },
             allScaleSelected: function(value) {
                 var _axis$visualRange = this._axis.visualRange(),
@@ -188628,9 +189949,9 @@
         });
         registerComponent("dxRangeSelector", dxRangeSelector);
         module.exports = dxRangeSelector;
-        dxRangeSelector.addPlugin(__webpack_require__( /*! ../core/export */ 92).plugin);
-        dxRangeSelector.addPlugin(__webpack_require__( /*! ../core/title */ 103).plugin);
-        dxRangeSelector.addPlugin(__webpack_require__( /*! ../core/loading_indicator */ 120).plugin);
+        dxRangeSelector.addPlugin(__webpack_require__( /*! ../core/export */ 94).plugin);
+        dxRangeSelector.addPlugin(__webpack_require__( /*! ../core/title */ 105).plugin);
+        dxRangeSelector.addPlugin(__webpack_require__( /*! ../core/loading_indicator */ 118).plugin);
         dxRangeSelector.addPlugin(__webpack_require__( /*! ../core/data_source */ 142).plugin)
     },
     /*!***********************************************************************!*\
@@ -188643,7 +189964,7 @@
             commonModule = __webpack_require__( /*! ./common */ 202),
             animationSettings = commonModule.utils.animationSettings,
             emptySliderMarkerText = commonModule.consts.emptySliderMarkerText,
-            Slider = __webpack_require__( /*! ./slider */ 794),
+            Slider = __webpack_require__( /*! ./slider */ 795),
             _normalizeEnum = __webpack_require__( /*! ../core/utils */ 10).normalizeEnum,
             typeUtils = __webpack_require__( /*! ../../core/utils/type */ 1),
             isNumeric = typeUtils.isNumeric,
@@ -189094,7 +190415,7 @@
         var commonModule = __webpack_require__( /*! ./common */ 202),
             animationSettings = commonModule.utils.animationSettings,
             formatValue = commonModule.formatValue,
-            SliderMarker = __webpack_require__( /*! ./slider_marker */ 795),
+            SliderMarker = __webpack_require__( /*! ./slider_marker */ 796),
             support = __webpack_require__( /*! ../../core/utils/support */ 45),
             SPLITTER_WIDTH = 8,
             TOUCH_SPLITTER_WIDTH = 20;
@@ -189738,15 +191059,15 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var SeriesDataSource, seriesModule = __webpack_require__( /*! ../series/base_series */ 238),
+        var SeriesDataSource, seriesModule = __webpack_require__( /*! ../series/base_series */ 239),
             seriesFamilyModule = __webpack_require__( /*! ../core/series_family */ 399),
             typeUtils = __webpack_require__( /*! ../../core/utils/type */ 1),
             extend = __webpack_require__( /*! ../../core/utils/extend */ 0).extend,
-            inArray = __webpack_require__( /*! ../../core/utils/array */ 11).inArray,
+            inArray = __webpack_require__( /*! ../../core/utils/array */ 12).inArray,
             each = __webpack_require__( /*! ../../core/utils/iterator */ 3).each,
             vizUtils = __webpack_require__( /*! ../core/utils */ 10),
-            rangeModule = __webpack_require__( /*! ../translators/range */ 106),
-            dataValidatorModule = __webpack_require__( /*! ../components/data_validator */ 236),
+            rangeModule = __webpack_require__( /*! ../translators/range */ 108),
+            dataValidatorModule = __webpack_require__( /*! ../components/data_validator */ 237),
             ChartThemeManager = __webpack_require__( /*! ../components/chart_theme_manager */ 392).ThemeManager;
         var createThemeManager = function(chartOptions) {
             return new ChartThemeManager({
@@ -189961,7 +191282,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        module.exports = __webpack_require__( /*! ./vector_map/vector_map */ 800)
+        module.exports = __webpack_require__( /*! ./vector_map/vector_map */ 801)
     },
     /*!***********************************************************!*\
       !*** ./artifacts/transpiled/viz/vector_map/vector_map.js ***!
@@ -189971,14 +191292,14 @@
     function(module, exports, __webpack_require__) {
         var _parseScalar = __webpack_require__( /*! ../core/utils */ 10).parseScalar,
             projectionModule = __webpack_require__( /*! ./projection.main */ 405),
-            controlBarModule = __webpack_require__( /*! ./control_bar */ 801),
-            gestureHandlerModule = __webpack_require__( /*! ./gesture_handler */ 802),
-            trackerModule = __webpack_require__( /*! ./tracker */ 803),
-            dataExchangerModule = __webpack_require__( /*! ./data_exchanger */ 804),
-            legendModule = __webpack_require__( /*! ./legend */ 805),
-            layoutModule = __webpack_require__( /*! ./layout */ 806),
-            mapLayerModule = __webpack_require__( /*! ./map_layer */ 807),
-            tooltipViewerModule = __webpack_require__( /*! ./tooltip_viewer */ 808),
+            controlBarModule = __webpack_require__( /*! ./control_bar */ 802),
+            gestureHandlerModule = __webpack_require__( /*! ./gesture_handler */ 803),
+            trackerModule = __webpack_require__( /*! ./tracker */ 804),
+            dataExchangerModule = __webpack_require__( /*! ./data_exchanger */ 805),
+            legendModule = __webpack_require__( /*! ./legend */ 806),
+            layoutModule = __webpack_require__( /*! ./layout */ 807),
+            mapLayerModule = __webpack_require__( /*! ./map_layer */ 808),
+            tooltipViewerModule = __webpack_require__( /*! ./tooltip_viewer */ 809),
             DEFAULT_WIDTH = 800,
             DEFAULT_HEIGHT = 400,
             nextDataKey = 1,
@@ -189989,7 +191310,7 @@
         function generateDataKey() {
             return "vectormap-data-" + nextDataKey++
         }
-        var dxVectorMap = __webpack_require__( /*! ../core/base_widget */ 95).inherit({
+        var dxVectorMap = __webpack_require__( /*! ../core/base_widget */ 97).inherit({
             _eventsMap: {
                 onClick: {
                     name: "click"
@@ -190317,10 +191638,10 @@
         module.exports._TESTS_resetDataKey = function() {
             nextDataKey = 1
         };
-        dxVectorMap.addPlugin(__webpack_require__( /*! ../core/export */ 92).plugin);
-        dxVectorMap.addPlugin(__webpack_require__( /*! ../core/title */ 103).plugin);
-        dxVectorMap.addPlugin(__webpack_require__( /*! ../core/tooltip */ 105).plugin);
-        dxVectorMap.addPlugin(__webpack_require__( /*! ../core/loading_indicator */ 120).plugin)
+        dxVectorMap.addPlugin(__webpack_require__( /*! ../core/export */ 94).plugin);
+        dxVectorMap.addPlugin(__webpack_require__( /*! ../core/title */ 105).plugin);
+        dxVectorMap.addPlugin(__webpack_require__( /*! ../core/tooltip */ 107).plugin);
+        dxVectorMap.addPlugin(__webpack_require__( /*! ../core/loading_indicator */ 118).plugin)
     },
     /*!************************************************************!*\
       !*** ./artifacts/transpiled/viz/vector_map/control_bar.js ***!
@@ -190882,7 +192203,7 @@
         var _event_emitter2 = _interopRequireDefault(_event_emitter);
         var _utils = __webpack_require__( /*! ../../events/utils */ 9);
         var _utils2 = _interopRequireDefault(_utils);
-        var _wheel = __webpack_require__( /*! ../../events/core/wheel */ 110);
+        var _wheel = __webpack_require__( /*! ../../events/core/wheel */ 123);
         var _utils3 = __webpack_require__( /*! ../core/utils */ 10);
 
         function _interopRequireDefault(obj) {
@@ -191654,7 +192975,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var inArray = __webpack_require__( /*! ../../core/utils/array */ 11).inArray,
+        var inArray = __webpack_require__( /*! ../../core/utils/array */ 12).inArray,
             each = __webpack_require__( /*! ../../core/utils/iterator */ 3).each,
             _round = Math.round,
             _min = Math.min,
@@ -191932,7 +193253,7 @@
             _min = Math.min,
             _max = Math.max,
             _sqrt = Math.sqrt,
-            DataHelperMixin = __webpack_require__( /*! ../../data_helper */ 84),
+            DataHelperMixin = __webpack_require__( /*! ../../data_helper */ 85),
             _isFunction = __webpack_require__( /*! ../../core/utils/type */ 1).isFunction,
             _isDefined = __webpack_require__( /*! ../../core/utils/type */ 1).isDefined,
             _isArray = Array.isArray,
@@ -193546,7 +194867,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        module.exports = __webpack_require__( /*! ./sparklines/sparkline */ 810)
+        module.exports = __webpack_require__( /*! ./sparklines/sparkline */ 811)
     },
     /*!**********************************************************!*\
       !*** ./artifacts/transpiled/viz/sparklines/sparkline.js ***!
@@ -193555,8 +194876,8 @@
     /*! all exports used */
     function(module, exports, __webpack_require__) {
         var BaseSparkline = __webpack_require__( /*! ./base_sparkline */ 408),
-            dataValidatorModule = __webpack_require__( /*! ../components/data_validator */ 236),
-            seriesModule = __webpack_require__( /*! ../series/base_series */ 238),
+            dataValidatorModule = __webpack_require__( /*! ../components/data_validator */ 237),
+            seriesModule = __webpack_require__( /*! ../series/base_series */ 239),
             MIN_BAR_WIDTH = 1,
             MAX_BAR_WIDTH = 50,
             DEFAULT_BAR_INTERVAL = 4,
@@ -194034,7 +195355,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        module.exports = __webpack_require__( /*! ./sparklines/bullet */ 812)
+        module.exports = __webpack_require__( /*! ./sparklines/bullet */ 813)
     },
     /*!*******************************************************!*\
       !*** ./artifacts/transpiled/viz/sparklines/bullet.js ***!
@@ -194267,7 +195588,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        module.exports = __webpack_require__( /*! ./tree_map/tree_map */ 814)
+        module.exports = __webpack_require__( /*! ./tree_map/tree_map */ 815)
     },
     /*!*******************************************************!*\
       !*** ./artifacts/transpiled/viz/tree_map/tree_map.js ***!
@@ -194277,22 +195598,22 @@
     function(module, exports, __webpack_require__) {
         var dxTreeMap = module.exports = __webpack_require__( /*! ./tree_map.base */ 69);
         __webpack_require__( /*! ./tiling.squarified */ 409);
-        __webpack_require__( /*! ./tiling.strip */ 815);
-        __webpack_require__( /*! ./tiling.slice_and_dice */ 816);
-        __webpack_require__( /*! ./tiling.rotated_slice_and_dice */ 817);
+        __webpack_require__( /*! ./tiling.strip */ 816);
+        __webpack_require__( /*! ./tiling.slice_and_dice */ 817);
+        __webpack_require__( /*! ./tiling.rotated_slice_and_dice */ 818);
         __webpack_require__( /*! ./colorizing.discrete */ 411);
-        __webpack_require__( /*! ./colorizing.gradient */ 818);
-        __webpack_require__( /*! ./colorizing.range */ 819);
+        __webpack_require__( /*! ./colorizing.gradient */ 819);
+        __webpack_require__( /*! ./colorizing.range */ 820);
         __webpack_require__( /*! ./api */ 144);
         __webpack_require__( /*! ./hover */ 412);
-        __webpack_require__( /*! ./selection */ 820);
+        __webpack_require__( /*! ./selection */ 821);
         __webpack_require__( /*! ./tooltip */ 414);
-        __webpack_require__( /*! ./tracker */ 821);
-        __webpack_require__( /*! ./drilldown */ 822);
-        __webpack_require__( /*! ./plain_data_source */ 823);
-        dxTreeMap.addPlugin(__webpack_require__( /*! ../core/export */ 92).plugin);
-        dxTreeMap.addPlugin(__webpack_require__( /*! ../core/title */ 103).plugin);
-        dxTreeMap.addPlugin(__webpack_require__( /*! ../core/loading_indicator */ 120).plugin)
+        __webpack_require__( /*! ./tracker */ 822);
+        __webpack_require__( /*! ./drilldown */ 823);
+        __webpack_require__( /*! ./plain_data_source */ 824);
+        dxTreeMap.addPlugin(__webpack_require__( /*! ../core/export */ 94).plugin);
+        dxTreeMap.addPlugin(__webpack_require__( /*! ../core/title */ 105).plugin);
+        dxTreeMap.addPlugin(__webpack_require__( /*! ../core/loading_indicator */ 118).plugin)
     },
     /*!***********************************************************!*\
       !*** ./artifacts/transpiled/viz/tree_map/tiling.strip.js ***!
@@ -194309,7 +195630,7 @@
         function strip(data) {
             return _squarify(data, accumulate, true)
         }
-        __webpack_require__( /*! ./tiling */ 121).addAlgorithm("strip", strip);
+        __webpack_require__( /*! ./tiling */ 119).addAlgorithm("strip", strip);
         module.exports = strip
     },
     /*!********************************************************************!*\
@@ -194318,7 +195639,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var tiling = __webpack_require__( /*! ./tiling */ 121);
+        var tiling = __webpack_require__( /*! ./tiling */ 119);
 
         function sliceAndDice(data) {
             var items = data.items,
@@ -194338,7 +195659,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var tiling = __webpack_require__( /*! ./tiling */ 121),
+        var tiling = __webpack_require__( /*! ./tiling */ 119),
             sliceAndDiceAlgorithm = tiling.getAlgorithm("sliceanddice");
 
         function rotatedSliceAndDice(data) {
@@ -194353,7 +195674,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var _createColorCodeGetter = __webpack_require__( /*! ./colorizing */ 122).createColorCodeGetter,
+        var _createColorCodeGetter = __webpack_require__( /*! ./colorizing */ 120).createColorCodeGetter,
             _min = Math.min,
             _max = Math.max;
 
@@ -194396,7 +195717,7 @@
                 return palette.getColor((getValue(node) - arg[0]) / arg[1])
             }
         }
-        __webpack_require__( /*! ./colorizing */ 122).addColorizer("gradient", gradientColorizer);
+        __webpack_require__( /*! ./colorizing */ 120).addColorizer("gradient", gradientColorizer);
         module.exports = gradientColorizer
     },
     /*!***************************************************************!*\
@@ -194405,7 +195726,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var _createColorCodeGetter = __webpack_require__( /*! ./colorizing */ 122).createColorCodeGetter;
+        var _createColorCodeGetter = __webpack_require__( /*! ./colorizing */ 120).createColorCodeGetter;
 
         function getPaletteIndex(value, items) {
             var middle, start = 0,
@@ -194437,7 +195758,7 @@
                 return palette.getColor(getPaletteIndex(getValue(node), range))
             }
         }
-        __webpack_require__( /*! ./colorizing */ 122).addColorizer("range", rangeColorizer);
+        __webpack_require__( /*! ./colorizing */ 120).addColorizer("range", rangeColorizer);
         module.exports = rangeColorizer
     },
     /*!********************************************************!*\
@@ -194447,12 +195768,12 @@
     /*! all exports used */
     function(module, exports, __webpack_require__) {
         var proto = __webpack_require__( /*! ./tree_map.base */ 69).prototype,
-            nodeProto = __webpack_require__( /*! ./node */ 164).prototype,
+            nodeProto = __webpack_require__( /*! ./node */ 166).prototype,
             expand = __webpack_require__( /*! ../core/helpers */ 140).expand,
-            common = __webpack_require__( /*! ./common */ 245),
+            common = __webpack_require__( /*! ./common */ 246),
             _buildRectAppearance = common.buildRectAppearance,
             _normalizeEnum = __webpack_require__( /*! ../core/utils */ 10).normalizeEnum,
-            _inArray = __webpack_require__( /*! ../../core/utils/array */ 11).inArray,
+            _inArray = __webpack_require__( /*! ../../core/utils/array */ 12).inArray,
             MODE_NONE = 0,
             MODE_SINGLE = 1,
             MODE_MULTIPLE = 2,
@@ -194577,7 +195898,7 @@
     /*! all exports used */
     function(module, exports, __webpack_require__) {
         var proto = __webpack_require__( /*! ./tree_map.base */ 69).prototype,
-            Tracker = __webpack_require__( /*! ../components/tracker */ 246).Tracker,
+            Tracker = __webpack_require__( /*! ../components/tracker */ 247).Tracker,
             expand = __webpack_require__( /*! ../core/helpers */ 140).expand,
             _parseScalar = __webpack_require__( /*! ../core/utils */ 10).parseScalar,
             DATA_KEY_BASE = "__treemap_data_",
@@ -194734,13 +196055,13 @@
     /*! all exports used */
     function(module, exports, __webpack_require__) {
         var dxFunnel = __webpack_require__( /*! ./funnel/funnel */ 415);
-        dxFunnel.addPlugin(__webpack_require__( /*! ./funnel/label */ 829).plugin);
-        dxFunnel.addPlugin(__webpack_require__( /*! ./core/export */ 92).plugin);
-        dxFunnel.addPlugin(__webpack_require__( /*! ./core/title */ 103).plugin);
+        dxFunnel.addPlugin(__webpack_require__( /*! ./funnel/label */ 830).plugin);
+        dxFunnel.addPlugin(__webpack_require__( /*! ./core/export */ 94).plugin);
+        dxFunnel.addPlugin(__webpack_require__( /*! ./core/title */ 105).plugin);
         dxFunnel.addPlugin(__webpack_require__( /*! ./components/legend */ 198).plugin);
-        dxFunnel.addPlugin(__webpack_require__( /*! ./funnel/tracker */ 830).plugin);
-        dxFunnel.addPlugin(__webpack_require__( /*! ./funnel/tooltip */ 831).plugin);
-        dxFunnel.addPlugin(__webpack_require__( /*! ./core/loading_indicator */ 120).plugin);
+        dxFunnel.addPlugin(__webpack_require__( /*! ./funnel/tracker */ 831).plugin);
+        dxFunnel.addPlugin(__webpack_require__( /*! ./funnel/tooltip */ 832).plugin);
+        dxFunnel.addPlugin(__webpack_require__( /*! ./core/loading_indicator */ 118).plugin);
         module.exports = dxFunnel
     },
     /*!***************************************************!*\
@@ -194979,7 +196300,7 @@
                 }
             }
         }();
-        var _label = __webpack_require__( /*! ../series/points/label */ 239);
+        var _label = __webpack_require__( /*! ../series/points/label */ 240);
         var _label2 = _interopRequireDefault(_label);
         var _utils = __webpack_require__( /*! ../core/utils */ 10);
         var _extend = __webpack_require__( /*! ../../core/utils/extend */ 0);
@@ -195401,7 +196722,7 @@
     /*! all exports used */
     function(module, exports, __webpack_require__) {
         var proto = __webpack_require__( /*! ./funnel */ 415).prototype,
-            Tracker = __webpack_require__( /*! ../components/tracker */ 246).Tracker,
+            Tracker = __webpack_require__( /*! ../components/tracker */ 247).Tracker,
             DATA_KEY_BASE = "__funnel_data_",
             isDefined = __webpack_require__( /*! ../../core/utils/type */ 1).isDefined,
             dataKeyModifier = 0;
@@ -195529,7 +196850,7 @@
                 }
             },
             customize: function(constructor) {
-                constructor.addPlugin(__webpack_require__( /*! ../core/tooltip */ 105).plugin)
+                constructor.addPlugin(__webpack_require__( /*! ../core/tooltip */ 107).plugin)
             }
         }
     },
@@ -195540,12 +196861,12 @@
     /*! all exports used */
     function(module, exports, __webpack_require__) {
         var dxSankey = __webpack_require__( /*! ./sankey/sankey */ 416),
-            setTooltipCustomOptions = __webpack_require__( /*! ./sankey/tooltip */ 837).setTooltipCustomOptions;
-        dxSankey.addPlugin(__webpack_require__( /*! ./core/export */ 92).plugin);
-        dxSankey.addPlugin(__webpack_require__( /*! ./core/title */ 103).plugin);
-        dxSankey.addPlugin(__webpack_require__( /*! ./sankey/tracker */ 838).plugin);
-        dxSankey.addPlugin(__webpack_require__( /*! ./core/loading_indicator */ 120).plugin);
-        dxSankey.addPlugin(__webpack_require__( /*! ./core/tooltip */ 105).plugin);
+            setTooltipCustomOptions = __webpack_require__( /*! ./sankey/tooltip */ 838).setTooltipCustomOptions;
+        dxSankey.addPlugin(__webpack_require__( /*! ./core/export */ 94).plugin);
+        dxSankey.addPlugin(__webpack_require__( /*! ./core/title */ 105).plugin);
+        dxSankey.addPlugin(__webpack_require__( /*! ./sankey/tracker */ 839).plugin);
+        dxSankey.addPlugin(__webpack_require__( /*! ./core/loading_indicator */ 118).plugin);
+        dxSankey.addPlugin(__webpack_require__( /*! ./core/tooltip */ 107).plugin);
         setTooltipCustomOptions(dxSankey);
         module.exports = dxSankey
     },
@@ -195833,7 +197154,7 @@
         var _ALIGNMENT_BOTTOM = "bottom";
         var _ALIGNMENT_DEFAULT = _ALIGNMENT_CENTER;
         var graphModule = __webpack_require__( /*! ./graph */ 418);
-        var validatorModule = __webpack_require__( /*! ./data_validator */ 836);
+        var validatorModule = __webpack_require__( /*! ./data_validator */ 837);
         var layout = {
             _weightPerPixel: null,
             _getCascadeIdx: function(nodeTitle, cascadesConfig) {
@@ -196224,7 +197545,7 @@
     /*! all exports used */
     function(module, exports, __webpack_require__) {
         var proto = __webpack_require__( /*! ./sankey */ 416).prototype,
-            Tracker = __webpack_require__( /*! ../components/tracker */ 246).Tracker,
+            Tracker = __webpack_require__( /*! ../components/tracker */ 247).Tracker,
             DATA_KEY_BASE = "__sankey_data_",
             dataKeyModifier = 0;
         proto._eventsMap.onNodeClick = {
@@ -196282,70 +197603,70 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var DevExpress = __webpack_require__( /*! ./core */ 208);
+        var DevExpress = __webpack_require__( /*! ./core */ 209);
         __webpack_require__( /*! ./data */ 283);
-        __webpack_require__( /*! ./file_providers */ 840);
+        __webpack_require__( /*! ./file_providers */ 841);
         var ui = DevExpress.ui = __webpack_require__( /*! ../../../bundles/modules/ui */ 482);
         ui.themes = __webpack_require__( /*! ../../../ui/themes */ 28);
         ui.setTemplateEngine = __webpack_require__( /*! ../../../ui/set_template_engine */ 483);
-        ui.dialog = __webpack_require__( /*! ../../../ui/dialog */ 210);
+        ui.dialog = __webpack_require__( /*! ../../../ui/dialog */ 211);
         ui.notify = __webpack_require__( /*! ../../../ui/notify */ 285);
-        ui.dxActionSheet = __webpack_require__( /*! ../../../ui/action_sheet */ 211);
+        ui.dxActionSheet = __webpack_require__( /*! ../../../ui/action_sheet */ 212);
         ui.dxAutocomplete = __webpack_require__( /*! ../../../ui/autocomplete */ 485);
-        ui.dxBox = __webpack_require__( /*! ../../../ui/box */ 185);
+        ui.dxBox = __webpack_require__( /*! ../../../ui/box */ 186);
         ui.dxButton = __webpack_require__( /*! ../../../ui/button */ 34);
         ui.dxDropDownButton = __webpack_require__( /*! ../../../ui/drop_down_button */ 512);
         ui.dxButtonGroup = __webpack_require__( /*! ../../../ui/button_group */ 296);
-        ui.dxCalendar = __webpack_require__( /*! ../../../ui/calendar */ 216);
-        ui.dxCheckBox = __webpack_require__( /*! ../../../ui/check_box */ 101);
+        ui.dxCalendar = __webpack_require__( /*! ../../../ui/calendar */ 217);
+        ui.dxCheckBox = __webpack_require__( /*! ../../../ui/check_box */ 103);
         ui.dxColorBox = __webpack_require__( /*! ../../../ui/color_box */ 297);
-        ui.dxDateBox = __webpack_require__( /*! ../../../ui/date_box */ 186);
+        ui.dxDateBox = __webpack_require__( /*! ../../../ui/date_box */ 187);
         ui.dxDrawer = __webpack_require__( /*! ../../../ui/drawer */ 301);
         ui.dxDeferRendering = __webpack_require__( /*! ../../../ui/defer_rendering */ 538);
         ui.dxDropDownBox = __webpack_require__( /*! ../../../ui/drop_down_box */ 539);
-        ui.dxDropDownMenu = __webpack_require__( /*! ../../../ui/drop_down_menu */ 189);
+        ui.dxDropDownMenu = __webpack_require__( /*! ../../../ui/drop_down_menu */ 190);
         ui.dxFileUploader = __webpack_require__( /*! ../../../ui/file_uploader */ 540);
         ui.dxForm = __webpack_require__( /*! ../../../ui/form */ 137);
         ui.dxGallery = __webpack_require__( /*! ../../../ui/gallery */ 545);
         ui.dxHtmlEditor = __webpack_require__( /*! ../../../ui/html_editor */ 546);
-        ui.dxList = __webpack_require__( /*! ../../../ui/list */ 99);
-        ui.dxLoadIndicator = __webpack_require__( /*! ../../../ui/load_indicator */ 89);
-        ui.dxLoadPanel = __webpack_require__( /*! ../../../ui/load_panel */ 183);
+        ui.dxList = __webpack_require__( /*! ../../../ui/list */ 101);
+        ui.dxLoadIndicator = __webpack_require__( /*! ../../../ui/load_indicator */ 90);
+        ui.dxLoadPanel = __webpack_require__( /*! ../../../ui/load_panel */ 184);
         ui.dxLookup = __webpack_require__( /*! ../../../ui/lookup */ 569);
         ui.dxMap = __webpack_require__( /*! ../../../ui/map */ 570);
         ui.dxMultiView = __webpack_require__( /*! ../../../ui/multi_view */ 306);
         ui.dxNavBar = __webpack_require__( /*! ../../../ui/nav_bar */ 574);
-        ui.dxNumberBox = __webpack_require__( /*! ../../../ui/number_box */ 114);
+        ui.dxNumberBox = __webpack_require__( /*! ../../../ui/number_box */ 113);
         ui.dxOverlay = __webpack_require__( /*! ../../../ui/overlay */ 58);
         ui.dxPopover = __webpack_require__( /*! ../../../ui/popover */ 135);
         ui.dxPopup = __webpack_require__( /*! ../../../ui/popup */ 43);
-        ui.dxProgressBar = __webpack_require__( /*! ../../../ui/progress_bar */ 218);
+        ui.dxProgressBar = __webpack_require__( /*! ../../../ui/progress_bar */ 219);
         ui.dxRadioGroup = __webpack_require__( /*! ../../../ui/radio_group */ 314);
         ui.dxRangeSlider = __webpack_require__( /*! ../../../ui/range_slider */ 577);
-        ui.dxResizable = __webpack_require__( /*! ../../../ui/resizable */ 170);
+        ui.dxResizable = __webpack_require__( /*! ../../../ui/resizable */ 172);
         ui.dxResponsiveBox = __webpack_require__( /*! ../../../ui/responsive_box */ 304);
-        ui.dxScrollView = __webpack_require__( /*! ../../../ui/scroll_view */ 158);
-        ui.dxSelectBox = __webpack_require__( /*! ../../../ui/select_box */ 91);
+        ui.dxScrollView = __webpack_require__( /*! ../../../ui/scroll_view */ 159);
+        ui.dxSelectBox = __webpack_require__( /*! ../../../ui/select_box */ 92);
         ui.dxSlider = __webpack_require__( /*! ../../../ui/slider */ 315);
         ui.dxSpeedDialAction = __webpack_require__( /*! ../../../ui/speed_dial_action */ 579);
         ui.dxSwitch = __webpack_require__( /*! ../../../ui/switch */ 583);
         ui.dxTabPanel = __webpack_require__( /*! ../../../ui/tab_panel */ 305);
-        ui.dxTabs = __webpack_require__( /*! ../../../ui/tabs */ 191);
+        ui.dxTabs = __webpack_require__( /*! ../../../ui/tabs */ 192);
         ui.dxTagBox = __webpack_require__( /*! ../../../ui/tag_box */ 318);
         ui.dxTextArea = __webpack_require__( /*! ../../../ui/text_area */ 319);
-        ui.dxTextBox = __webpack_require__( /*! ../../../ui/text_box */ 88);
+        ui.dxTextBox = __webpack_require__( /*! ../../../ui/text_box */ 89);
         ui.dxTileView = __webpack_require__( /*! ../../../ui/tile_view */ 584);
         ui.dxToast = __webpack_require__( /*! ../../../ui/toast */ 286);
-        ui.dxToolbar = __webpack_require__( /*! ../../../ui/toolbar */ 159);
-        ui.dxTooltip = __webpack_require__( /*! ../../../ui/tooltip */ 192);
-        ui.dxTrackBar = __webpack_require__( /*! ../../../ui/track_bar */ 219);
-        DevExpress.validationEngine = __webpack_require__( /*! ../../../ui/validation_engine */ 98);
-        ui.dxValidationSummary = __webpack_require__( /*! ../../../ui/validation_summary */ 220);
+        ui.dxToolbar = __webpack_require__( /*! ../../../ui/toolbar */ 160);
+        ui.dxTooltip = __webpack_require__( /*! ../../../ui/tooltip */ 161);
+        ui.dxTrackBar = __webpack_require__( /*! ../../../ui/track_bar */ 220);
+        DevExpress.validationEngine = __webpack_require__( /*! ../../../ui/validation_engine */ 100);
+        ui.dxValidationSummary = __webpack_require__( /*! ../../../ui/validation_summary */ 221);
         ui.dxValidationGroup = __webpack_require__( /*! ../../../ui/validation_group */ 308);
-        ui.dxValidator = __webpack_require__( /*! ../../../ui/validator */ 190);
+        ui.dxValidator = __webpack_require__( /*! ../../../ui/validator */ 191);
         __webpack_require__( /*! ../../../ui/html_editor/converters/markdown */ 585);
         ui.CollectionWidget = __webpack_require__( /*! ../../../ui/collection/ui.collection_widget.edit */ 52);
-        ui.dxDropDownEditor = __webpack_require__( /*! ../../../ui/drop_down_editor/ui.drop_down_editor */ 167);
+        ui.dxDropDownEditor = __webpack_require__( /*! ../../../ui/drop_down_editor/ui.drop_down_editor */ 169);
         module.exports = ui
     },
     /*!**********************************************************************!*\
@@ -196354,9 +197675,9 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var _core = __webpack_require__( /*! ./core */ 208);
+        var _core = __webpack_require__( /*! ./core */ 209);
         var _core2 = _interopRequireDefault(_core);
-        var _file_providers = __webpack_require__( /*! ../../../bundles/modules/file_providers */ 841);
+        var _file_providers = __webpack_require__( /*! ../../../bundles/modules/file_providers */ 842);
         var _file_providers2 = _interopRequireDefault(_file_providers);
 
         function _interopRequireDefault(obj) {
@@ -196396,9 +197717,9 @@
     /*! all exports used */
     function(module, exports, __webpack_require__) {
         var data = __webpack_require__( /*! ./data */ 283);
-        var ui = __webpack_require__( /*! ./widgets-base */ 839);
-        ui.dxAccordion = __webpack_require__( /*! ../../../ui/accordion */ 223);
-        ui.dxContextMenu = __webpack_require__( /*! ../../../ui/context_menu */ 102);
+        var ui = __webpack_require__( /*! ./widgets-base */ 840);
+        ui.dxAccordion = __webpack_require__( /*! ../../../ui/accordion */ 224);
+        ui.dxContextMenu = __webpack_require__( /*! ../../../ui/context_menu */ 104);
         ui.dxDataGrid = __webpack_require__( /*! ../../../ui/data_grid */ 591);
         ui.dxTreeList = __webpack_require__( /*! ../../../ui/tree_list */ 635);
         ui.dxMenu = __webpack_require__( /*! ../../../ui/menu */ 350);
@@ -196410,7 +197731,7 @@
         ui.dxTreeView = __webpack_require__( /*! ../../../ui/tree_view */ 138);
         ui.dxFilterBuilder = __webpack_require__( /*! ../../../ui/filter_builder */ 357);
         ui.dxFileManager = __webpack_require__( /*! ../../../ui/file_manager */ 715);
-        ui.dxDiagram = __webpack_require__( /*! ../../../ui/diagram */ 729)
+        ui.dxDiagram = __webpack_require__( /*! ../../../ui/diagram */ 730)
     },
     /*!***********************************************************!*\
       !*** ./artifacts/transpiled/bundles/modules/parts/viz.js ***!
@@ -196418,46 +197739,46 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        var DevExpress = __webpack_require__( /*! ./core */ 208);
+        var DevExpress = __webpack_require__( /*! ./core */ 209);
         __webpack_require__( /*! ./data */ 283);
-        var viz = DevExpress.viz = __webpack_require__( /*! ../../../bundles/modules/viz */ 739);
-        viz.currentTheme = __webpack_require__( /*! ../../../viz/themes */ 49).currentTheme;
-        viz.registerTheme = __webpack_require__( /*! ../../../viz/themes */ 49).registerTheme;
-        viz.exportFromMarkup = __webpack_require__( /*! ../../../viz/export */ 232).exportFromMarkup;
-        viz.getMarkup = __webpack_require__( /*! ../../../viz/export */ 232).getMarkup;
-        viz.exportWidgets = __webpack_require__( /*! ../../../viz/export */ 232).exportWidgets;
-        viz.currentPalette = __webpack_require__( /*! ../../../viz/palette */ 162).currentPalette;
-        viz.getPalette = __webpack_require__( /*! ../../../viz/palette */ 162).getPalette;
-        viz.generateColors = __webpack_require__( /*! ../../../viz/palette */ 162).generateColors;
-        viz.registerPalette = __webpack_require__( /*! ../../../viz/palette */ 162).registerPalette;
-        viz.refreshTheme = __webpack_require__( /*! ../../../viz/themes */ 49).refreshTheme;
-        viz.dxChart = __webpack_require__( /*! ../../../viz/chart */ 740);
-        viz.dxPieChart = __webpack_require__( /*! ../../../viz/pie_chart */ 778);
-        viz.dxPolarChart = __webpack_require__( /*! ../../../viz/polar_chart */ 779);
-        viz.dxLinearGauge = __webpack_require__( /*! ../../../viz/linear_gauge */ 780);
-        viz.dxCircularGauge = __webpack_require__( /*! ../../../viz/circular_gauge */ 786);
-        viz.dxBarGauge = __webpack_require__( /*! ../../../viz/bar_gauge */ 789);
-        viz.dxRangeSelector = __webpack_require__( /*! ../../../viz/range_selector */ 791);
-        viz.dxVectorMap = __webpack_require__( /*! ../../../viz/vector_map */ 799);
+        var viz = DevExpress.viz = __webpack_require__( /*! ../../../bundles/modules/viz */ 740);
+        viz.currentTheme = __webpack_require__( /*! ../../../viz/themes */ 50).currentTheme;
+        viz.registerTheme = __webpack_require__( /*! ../../../viz/themes */ 50).registerTheme;
+        viz.exportFromMarkup = __webpack_require__( /*! ../../../viz/export */ 233).exportFromMarkup;
+        viz.getMarkup = __webpack_require__( /*! ../../../viz/export */ 233).getMarkup;
+        viz.exportWidgets = __webpack_require__( /*! ../../../viz/export */ 233).exportWidgets;
+        viz.currentPalette = __webpack_require__( /*! ../../../viz/palette */ 164).currentPalette;
+        viz.getPalette = __webpack_require__( /*! ../../../viz/palette */ 164).getPalette;
+        viz.generateColors = __webpack_require__( /*! ../../../viz/palette */ 164).generateColors;
+        viz.registerPalette = __webpack_require__( /*! ../../../viz/palette */ 164).registerPalette;
+        viz.refreshTheme = __webpack_require__( /*! ../../../viz/themes */ 50).refreshTheme;
+        viz.dxChart = __webpack_require__( /*! ../../../viz/chart */ 741);
+        viz.dxPieChart = __webpack_require__( /*! ../../../viz/pie_chart */ 779);
+        viz.dxPolarChart = __webpack_require__( /*! ../../../viz/polar_chart */ 780);
+        viz.dxLinearGauge = __webpack_require__( /*! ../../../viz/linear_gauge */ 781);
+        viz.dxCircularGauge = __webpack_require__( /*! ../../../viz/circular_gauge */ 787);
+        viz.dxBarGauge = __webpack_require__( /*! ../../../viz/bar_gauge */ 790);
+        viz.dxRangeSelector = __webpack_require__( /*! ../../../viz/range_selector */ 792);
+        viz.dxVectorMap = __webpack_require__( /*! ../../../viz/vector_map */ 800);
         viz.map = {};
         viz.map.sources = {};
         viz.map.projection = __webpack_require__( /*! ../../../viz/vector_map/projection */ 407).projection;
-        viz.dxSparkline = __webpack_require__( /*! ../../../viz/sparkline */ 809);
-        viz.dxBullet = __webpack_require__( /*! ../../../viz/bullet */ 811);
-        viz.dxTreeMap = __webpack_require__( /*! ../../../viz/tree_map */ 813);
-        viz.dxFunnel = __webpack_require__( /*! ../../../viz/funnel */ 824);
-        viz.dxSankey = __webpack_require__( /*! ../../../viz/sankey */ 832);
-        viz.BaseWidget = __webpack_require__( /*! ../../../viz/core/base_widget */ 95);
-        viz.getTheme = __webpack_require__( /*! ../../../viz/themes */ 49).getTheme;
-        viz.findTheme = __webpack_require__( /*! ../../../viz/themes */ 49).getTheme;
-        viz.refreshAll = __webpack_require__( /*! ../../../viz/themes */ 49).refreshTheme;
-        viz.refreshPaths = __webpack_require__( /*! ../../../viz/utils */ 845).refreshPaths;
+        viz.dxSparkline = __webpack_require__( /*! ../../../viz/sparkline */ 810);
+        viz.dxBullet = __webpack_require__( /*! ../../../viz/bullet */ 812);
+        viz.dxTreeMap = __webpack_require__( /*! ../../../viz/tree_map */ 814);
+        viz.dxFunnel = __webpack_require__( /*! ../../../viz/funnel */ 825);
+        viz.dxSankey = __webpack_require__( /*! ../../../viz/sankey */ 833);
+        viz.BaseWidget = __webpack_require__( /*! ../../../viz/core/base_widget */ 97);
+        viz.getTheme = __webpack_require__( /*! ../../../viz/themes */ 50).getTheme;
+        viz.findTheme = __webpack_require__( /*! ../../../viz/themes */ 50).getTheme;
+        viz.refreshAll = __webpack_require__( /*! ../../../viz/themes */ 50).refreshTheme;
+        viz.refreshPaths = __webpack_require__( /*! ../../../viz/utils */ 846).refreshPaths;
         viz.gauges = {
             __internals: {}
         };
         viz._dashboard = {};
-        viz._dashboard.Renderer = __webpack_require__( /*! ../../../viz/core/renderers/renderer */ 173).Renderer;
-        viz._dashboard.SvgElement = __webpack_require__( /*! ../../../viz/core/renderers/renderer */ 173).SvgElement;
+        viz._dashboard.Renderer = __webpack_require__( /*! ../../../viz/core/renderers/renderer */ 174).Renderer;
+        viz._dashboard.SvgElement = __webpack_require__( /*! ../../../viz/core/renderers/renderer */ 174).SvgElement;
         viz._dashboard.patchFontOptions = __webpack_require__( /*! ../../../viz/core/utils */ 10).patchFontOptions;
         module.exports = viz
     },
@@ -196467,7 +197788,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        exports.refreshPaths = __webpack_require__( /*! ./core/renderers/renderer */ 173).refreshPaths
+        exports.refreshPaths = __webpack_require__( /*! ./core/renderers/renderer */ 174).refreshPaths
     }, , , , , , , , , ,
     /*!**********************************************************!*\
       !*** multi ./artifacts/transpiled/bundles/dx.viz-web.js ***!
@@ -196475,7 +197796,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        module.exports = __webpack_require__( /*! c:\Projects\DevExtreme\19.1\BuildLabel\Temp\DevExtreme.v19.1\repo\GitHub\artifacts\transpiled\bundles\dx.viz-web.js */ 856)
+        module.exports = __webpack_require__( /*! c:\Projects\DevExtreme\19.1\BuildLabel\Temp\DevExtreme.v19.1\repo\GitHub\artifacts\transpiled\bundles\dx.viz-web.js */ 857)
     },
     /*!****************************************************!*\
       !*** ./artifacts/transpiled/bundles/dx.viz-web.js ***!
@@ -196483,7 +197804,7 @@
     /*! dynamic exports provided */
     /*! all exports used */
     function(module, exports, __webpack_require__) {
-        __webpack_require__( /*! ./modules/parts/widgets-web */ 843);
-        __webpack_require__( /*! ./modules/parts/viz */ 844)
+        __webpack_require__( /*! ./modules/parts/widgets-web */ 844);
+        __webpack_require__( /*! ./modules/parts/viz */ 845)
     }
 ]);
