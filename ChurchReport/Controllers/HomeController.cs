@@ -3034,7 +3034,6 @@ namespace ChurchReport.Controllers
         }
 
         #endregion
-
         #region Line Tiff 行事曆
         public ActionResult SchedulerView()
         {
@@ -3062,6 +3061,50 @@ namespace ChurchReport.Controllers
                 throw e;
             }
         }
+
+        [HttpPost]
+        public IActionResult LoadAppointmentByLineId(string UserLineId, string GroupId, string RoomId, string ViewType)
+        {
+            try
+            {
+                m_InMemoryDataContextSmallGroup.LineBindingViewModel.LineUserId = UserLineId;
+                m_InMemoryDataContextSmallGroup.LineBindingViewModel.RoomId = RoomId;
+                m_InMemoryDataContextSmallGroup.LineBindingViewModel.GroupId = GroupId;
+                m_InMemoryDataContextSmallGroup.LineBindingViewModel.ViewType = ViewType;
+
+                if (GroupId != null && GroupId != "")
+                {
+                    m_InMemoryDataContextSmallGroup.LineBindingViewModel.DisplayId = GroupId;
+                }
+                else if (RoomId != null && RoomId != "")
+                {
+                    m_InMemoryDataContextSmallGroup.LineBindingViewModel.DisplayId = RoomId;
+                }
+                else
+                {
+                    m_InMemoryDataContextSmallGroup.LineBindingViewModel.DisplayId = UserLineId;
+                }
+
+                Entity LineLoginContact = this.m_ToolUtilityClass.RetrieveContactByLineId(UserLineId);
+
+                return Json(new {  message = "歡迎" + "登入成功!" });
+
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂 : 綁定錯誤 => " + ErrorString);
+
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
+                throw e;
+            }
+        }
+
         [HttpGet]
         public object LoadAppointments(DataSourceLoadOptions loadOptions)
         {
@@ -3098,6 +3141,5 @@ namespace ChurchReport.Controllers
             //_data.SaveChanges();
         }
         #endregion
-
     }
 }
