@@ -1,4 +1,4 @@
-﻿@model ChurchReport.Models.AppointmentsList
+﻿@*@model ChurchReport.Models.AppointmentsList*@
 
 @*<br />
 <br />
@@ -32,7 +32,7 @@
         .Editing(E => E.AllowAdding(true).AllowDeleting(true).AllowDragging(true).AllowResizing(true).AllowUpdating(true))
         .FirstDayOfWeek(FirstDayOfWeek.Monday)
         .CurrentView(SchedulerViewType.Month)
-        .CurrentDate(new DateTime(2015, 5, 25))
+        .CurrentDate(DateTime.Today)
         .TextExpr("Text")
         .StartDayHour(8)
         .EndDayHour(19)
@@ -84,6 +84,19 @@ new { id = 4, text = "Sandra Johnson", color = "#ff9747" }
 });
 })
 
+        )
+
+
+
+
+        @(Html.DevExtreme().SpeedDialAction()
+            .ID("speedDialAction")
+            .Icon("plus")
+            .OnClick(@<text>
+            function() {
+            getSchedulerInstance().showAppointmentPopup();
+            }
+            </text>)
         )
 
     </div>

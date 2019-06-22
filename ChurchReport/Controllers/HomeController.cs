@@ -3046,8 +3046,10 @@ namespace ChurchReport.Controllers
                 ViewBag.MultiGroupIndex = "SingleMultiGroupView";
                 ViewBag.SchedulerView = "³æ¯Â¦æ¨Æ¾ä";
 
-                AppointmentsList aAppointmentsList = new AppointmentsList();
-                return View(aAppointmentsList);
+                //AppointmentsList aAppointmentsList = new AppointmentsList();
+                //return View(aAppointmentsList);
+
+                return View();
             }
             catch (System.Exception e)
             {
