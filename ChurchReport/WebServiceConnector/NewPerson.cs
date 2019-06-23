@@ -81,6 +81,8 @@ namespace ChurchReport.WebServiceConnector
         String m_SmallGroupPlace;
         String m_SmallGroupTime;
 
+        Guid m_OwnerId; // 小組長的負責人 Id
+
         private const bool RACE_LEADER_CAN_CREATE_WEEKLYREPORT = true; // 族系組長能否幫小組長建立週報， true是可以
         //private const bool RACE_LEADER_CAN_CREATE_WEEKLYREPORT = false; // 族系組長能否幫小組長建立週報，false 不可以
 
@@ -315,6 +317,9 @@ namespace ChurchReport.WebServiceConnector
                 // 新增連絡人
                 Guid NewContactEntityId = this.m_ToolUtilityClass.CreateEntity(aNewContactEntity);
 
+                // 指派新增連絡人的負責人
+                this.m_ToolUtilityClass.AssignOwner("contact", this.m_ToolUtilityClass.RetrieveEntity("contact", NewContactEntityId), this.m_OwnerId);
+
                 // 將剛剛新增的聯絡人加入至成員名單
                 ConnectNewContactInMemberList(NewContactEntityId, aNewContact.GroupName, aListEntity);
 
@@ -364,6 +369,10 @@ namespace ChurchReport.WebServiceConnector
                 this.m_ContactEntity = this.m_ToolUtilityClass.RetrieveContactEntityByLineUserId(aAccountPasswordData.Password);
             }
             m_ContactId = m_ContactEntity.Id;
+
+            // 小組長的負責人 Id
+            m_OwnerId = this.m_ToolUtilityClass.GetOwnerId(m_ContactEntity);
+
             #endregion
             #region 蒐集建立新人所需要的屬性
 

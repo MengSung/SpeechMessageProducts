@@ -87,6 +87,8 @@ namespace ChurchReport.WebServiceConnector
         String m_SmallGroupPlace;
         String m_SmallGroupTime;
 
+        Guid m_OwnerId; // 小組長的負責人 Id
+
         private const bool RACE_LEADER_CAN_CREATE_WEEKLYREPORT = true; // 族系組長能否幫小組長建立週報， true是可以
                                                                        //private const bool RACE_LEADER_CAN_CREATE_WEEKLYREPORT = false; // 族系組長能否幫小組長建立週報，false 不可以
 
@@ -513,6 +515,9 @@ namespace ChurchReport.WebServiceConnector
 
                 m_ContactId = m_ContactEntity.Id;
 
+                // 小組長的負責人 Id
+                m_OwnerId = this.m_ToolUtilityClass.GetOwnerId(m_ContactEntity);
+
                 #region 蒐集建立週報所需要的屬性
                 // 搜尋小組長的門徒小組名單Lookup Id
                 m_DecipleGroupListId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref m_ContactEntity, "new_deciple_group_list_contact");
@@ -909,7 +914,12 @@ namespace ChurchReport.WebServiceConnector
                 this.SetupWeeklyReortEntityAttributes(ref aWeeklyReportEntity, FamilyLeaderId, GroupLeaderId, RaceLeaderId, ShepherdLeaderId, m_DecipleGroupListId, aListEntity, m_Sunday, m_SmallGroupPlace, m_SmallGroupTime, aGroupWeeklyReportGuid);
 
                 // 新增週報
-                return this.m_ToolUtilityClass.CreateEntity(aWeeklyReportEntity);
+                Guid CreatedWeeklyReportEntity = this.m_ToolUtilityClass.CreateEntity(aWeeklyReportEntity);
+
+                // 指派週報的負責人
+                this.m_ToolUtilityClass.AssignOwner("new_group_present_weekly_report", this.m_ToolUtilityClass.RetrieveEntity("new_group_present_weekly_report", CreatedWeeklyReportEntity), this.m_OwnerId);
+
+                return CreatedWeeklyReportEntity;
             }
             catch (System.Exception Exception)
             {
@@ -1265,6 +1275,9 @@ namespace ChurchReport.WebServiceConnector
                     // 更新個人資料:手機、家裡電話、地址、設定委身類型
                     // 新增個人聚會與靈修記錄
                     Entity aPresentRecord = CreatePresentRecord(aMemberInfomation, ref aListEntity, ref aWeeklyReportId, ValidNumber, ref aWeeklySundayRate, ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber, ref aGroupWeeklyReportGuid, HappyWeekIndex, HappyWeekTopic);
+
+                    this.m_ToolUtilityClass.AssignOwner("new_present_record", aPresentRecord, this.m_OwnerId);
+
                     if (aPresentRecord != null)
                     {
                         PresentRecordEntityCollection.Entities.Add(aPresentRecord);
@@ -1279,6 +1292,9 @@ namespace ChurchReport.WebServiceConnector
                     // 更新個人資料:手機、家裡電話、地址、設定委身類型
                     // 新增個人聚會與靈修記錄
                     Entity aPresentRecord = CreatePresentRecord(aMemberInfomation, ref aListEntity, ref aWeeklyReportId, ValidNumber, ref aWeeklySundayRate, ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber, ref aGroupWeeklyReportGuid, HappyWeekIndex, HappyWeekTopic);
+
+                    this.m_ToolUtilityClass.AssignOwner("new_present_record", aPresentRecord, this.m_OwnerId);
+
                     if (aPresentRecord != null)
                     {
                         PresentRecordEntityCollection.Entities.Add(aPresentRecord);
@@ -1300,6 +1316,8 @@ namespace ChurchReport.WebServiceConnector
                     // 更新個人資料:手機、家裡電話、地址、設定委身類型
                     // 新增個人聚會與靈修記錄
                     Entity aPresentRecord = CreatePresentRecord(aMemberInfomation, ref aListEntity, ref aWeeklyReportId, ValidNumber, ref aWeeklySundayRate, ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber, ref aGroupWeeklyReportGuid, HappyWeekIndex, HappyWeekTopic);
+
+                    this.m_ToolUtilityClass.AssignOwner("new_present_record", aPresentRecord, this.m_OwnerId);
 
                     if (aPresentRecord != null)
                     {
@@ -1326,6 +1344,8 @@ namespace ChurchReport.WebServiceConnector
 
                     if (aPresentRecord != null)
                     {
+                        this.m_ToolUtilityClass.AssignOwner("new_present_record", aPresentRecord, this.m_OwnerId);
+
                         PresentRecordEntityCollection.Entities.Add(aPresentRecord);
                     }
                 }
@@ -1360,6 +1380,8 @@ namespace ChurchReport.WebServiceConnector
 
                 // 新增個人聚會與靈修記錄
                 Guid aPresentRecordId = this.m_ToolUtilityClass.CreateEntity(aPresentRecord);
+
+                this.m_ToolUtilityClass.AssignOwner("new_present_record", aPresentRecord, this.m_OwnerId);
 
                 //取得並回傳新建的聚會與靈修記錄
                 return this.m_ToolUtilityClass.RetrieveEntity("new_present_record", aPresentRecordId);
@@ -2899,6 +2921,9 @@ namespace ChurchReport.WebServiceConnector
                 // 更新週報
                 this.m_ToolUtilityClass.UpdateEntity(ref aWeeklyReportEntity);
 
+                // 指派週報的負責人
+                this.m_ToolUtilityClass.AssignOwner("new_group_present_weekly_report", aWeeklyReportEntity, this.m_OwnerId);
+
                 #endregion
 
                 #region 回傳至 APP
@@ -3131,6 +3156,8 @@ namespace ChurchReport.WebServiceConnector
                         #region 更新個人聚會與靈修記錄
                         this.m_ToolUtilityClass.UpdateEntity(ref aMachedPresentRecordEntity);
                         #endregion
+
+                        this.m_ToolUtilityClass.AssignOwner("new_present_record", aMachedPresentRecordEntity, this.m_OwnerId);
 
                         #endregion
 
