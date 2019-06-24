@@ -194,8 +194,16 @@ namespace ChurchReport.WebServiceConnector
 
             if (aListSmallGroupWeeklyReport.GroupType == "幸福小組" )
             {
-                aListSmallGroupWeeklyReport.HappyWeekIndex = m_ToolUtilityClass.GetEntityStringAttribute(this.m_WeeklyReportEntity, "new_weekly_index");
-                aListSmallGroupWeeklyReport.HappyWeekTopic = this.ConvertIndexToTopic(m_ToolUtilityClass.GetOptionSetAttribute(this.m_WeeklyReportEntity, "new_topic"));
+                if (WeeklyReportEntityId != "" && WeeklyReportEntityId != null)
+                {
+                    aListSmallGroupWeeklyReport.HappyWeekIndex = m_ToolUtilityClass.GetEntityStringAttribute(this.m_WeeklyReportEntity, "new_weekly_index");
+                    aListSmallGroupWeeklyReport.HappyWeekTopic = this.ConvertIndexToTopic(m_ToolUtilityClass.GetOptionSetAttribute(this.m_WeeklyReportEntity, "new_topic"));
+                }
+                else
+                {
+                    aListSmallGroupWeeklyReport.HappyWeekIndex = "";
+                    aListSmallGroupWeeklyReport.HappyWeekTopic = "";
+                }
             }
 
             if (WeeklyReportEntityId != "" && WeeklyReportEntityId != null)
