@@ -191,8 +191,7 @@ namespace ChurchReport.WebServiceConnector
         }
         public void SetupWeeklyReportData(String WeeklyReportEntityId, ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
         {
-
-            if (aListSmallGroupWeeklyReport.GroupType == "幸福小組" )
+            if (aListSmallGroupWeeklyReport.GroupType == "幸福小組")
             {
                 if (WeeklyReportEntityId != "" && WeeklyReportEntityId != null)
                 {

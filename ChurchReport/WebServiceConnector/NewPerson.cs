@@ -93,7 +93,7 @@ namespace ChurchReport.WebServiceConnector
         #region 建立新人
         #region WCF Service端
 
-        public String CreateNewContact(AccountPasswordData aAccountPasswordData, NewContact aNewContact)
+        public String CreateNewContactFromView(AccountPasswordData aAccountPasswordData, ref NewContact aNewContact)
         {
             this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "建立新人");
             return FilterNewContact(aAccountPasswordData, ref aNewContact);
@@ -196,7 +196,7 @@ namespace ChurchReport.WebServiceConnector
                     if (aListEntity != null)
                     {
                         // 有找到被關聯的小組名單
-                        CreateNewContactPresentRecord(aListEntity, aExistContact.Id, aNewContact.GroupName);
+                        CreateNewContactPresentRecord(aListEntity, aExistContact.Id, aNewContact.GroupName, ref aNewContact);
                     }
                     #region 關聯主要小組
                     //this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aNewContactEntity, "new_cell_list_contact", "list", aListEntity.Id);
@@ -316,6 +316,7 @@ namespace ChurchReport.WebServiceConnector
 
                 // 新增連絡人
                 Guid NewContactEntityId = this.m_ToolUtilityClass.CreateEntity(aNewContactEntity);
+                aNewContact.PresentRecordId = NewContactEntityId.ToString();
 
                 // 指派新增連絡人的負責人
                 this.m_ToolUtilityClass.AssignOwner("contact", this.m_ToolUtilityClass.RetrieveEntity("contact", NewContactEntityId), this.m_OwnerId);
@@ -327,7 +328,7 @@ namespace ChurchReport.WebServiceConnector
                 if (aListEntity != null)
                 {
                     // 有找到被關聯的小組名單
-                    CreateNewContactPresentRecord(aListEntity, NewContactEntityId, aNewContact.GroupName);
+                    CreateNewContactPresentRecord(aListEntity, NewContactEntityId, aNewContact.GroupName, ref aNewContact);
                 }
                 #endregion
                 #region 關聯主要小組
@@ -596,7 +597,7 @@ namespace ChurchReport.WebServiceConnector
                 throw e;
             }
         }
-        private void CreateNewContactPresentRecord(Entity aListEntity, Guid NewContactEntityId, String GroupName)
+        private void CreateNewContactPresentRecord(Entity aListEntity, Guid NewContactEntityId, String GroupName, ref NewContact aNewContact)
         {
             try
             {
@@ -719,6 +720,9 @@ namespace ChurchReport.WebServiceConnector
 
                         // 新增個人聚會與靈修記錄
                         Guid aPresentRecordId = this.m_ToolUtilityClass.CreateEntity(aPresentRecord);
+
+                        aNewContact.PresentRecordId = aPresentRecordId.ToString();
+
                     }
                 }
                 #endregion

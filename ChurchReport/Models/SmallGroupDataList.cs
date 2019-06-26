@@ -106,6 +106,7 @@ namespace ChurchReport.Models
                 }
             }
         }
+
         public void AddNewPersonToMember(PersonFormViewModel aPersonFormViewModel)
         {
             String aGroupName = aPersonFormViewModel.Position;
@@ -113,6 +114,7 @@ namespace ChurchReport.Models
             {
                 Member aMember = new Member
                 {
+                    PresentRecordId = aPersonFormViewModel.PresentRecordId,
                     Id = m_HappyGroup.Members.Count,
                     Group = aGroupName,
                     FullName = aPersonFormViewModel.LastName,
@@ -122,7 +124,7 @@ namespace ChurchReport.Models
                     //BirthDate = aPersonFormViewModel.BirthDate,
                     Address = aPersonFormViewModel.Address,
                     //Gender = aPersonFormViewModel.Gender,
-                    Status = "新朋友",
+                    Status = "幸福BEST",
                     SmallGroupName = aGroupName,
                     SectionName = aGroupName,
                     PrayItem = aPersonFormViewModel.Notes,
@@ -176,6 +178,7 @@ namespace ChurchReport.Models
                 m_AllMemeberData.Members.Add(aMember);
             }
         }
+
 
     }
 }

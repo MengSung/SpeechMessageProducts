@@ -579,6 +579,13 @@ namespace ChurchReport.Models.CrmTransmitModule
             set { m_Industry = value; }
         }
 
+        string m_PresentRecordId = "";
+        public string PresentRecordId
+        {
+            get { return m_PresentRecordId; }
+            set { m_PresentRecordId = value; }
+        }
+
     }
 
 

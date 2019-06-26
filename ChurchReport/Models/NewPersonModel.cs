@@ -65,7 +65,7 @@ namespace ChurchReport.Models
 
             MappingPersonFormViewModelToNewContact( aPersonFormViewModel );
 
-            return aNewPersonManager.CreateNewContact(aAccountPasswordData, m_NewContact);
+            return aNewPersonManager.CreateNewContactFromView(aAccountPasswordData, ref m_NewContact);
         }
         public void CopyPersonFormViewModel(PersonFormViewModel aPersonFormViewModel)
         {

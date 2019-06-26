@@ -1381,7 +1381,9 @@ namespace ChurchReport.WebServiceConnector
                 // 新增個人聚會與靈修記錄
                 Guid aPresentRecordId = this.m_ToolUtilityClass.CreateEntity(aPresentRecord);
 
-                this.m_ToolUtilityClass.AssignOwner("new_present_record", aPresentRecord, this.m_OwnerId);
+                //aPresentRecord = this.m_ToolUtilityClass.RetrieveEntity("new_present_record", aPresentRecordId);
+
+                //this.m_ToolUtilityClass.AssignOwner("new_present_record", aPresentRecord, this.m_OwnerId);
 
                 //取得並回傳新建的聚會與靈修記錄
                 return this.m_ToolUtilityClass.RetrieveEntity("new_present_record", aPresentRecordId);
@@ -2518,11 +2520,14 @@ namespace ChurchReport.WebServiceConnector
             bool ModifyFlag = false;
             #region // 更新個人資料:手機、家裡電話、地址、設定委身類型
             // 組員的手機
-            if (DigitsOnly.Replace(aMember.Phone, "") != DigitsOnly.Replace(this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContactEntity, "mobilephone"), ""))
+            if (aMember.Phone != null)
             {
-                // 系統裡的聯絡人家裡電話跟APP上傳的不一致
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactEntity, "mobilephone", aMember.Phone);
-                ModifyFlag = true;
+                if (DigitsOnly.Replace(aMember.Phone, "") != DigitsOnly.Replace(this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContactEntity, "mobilephone"), ""))
+                {
+                    // 系統裡的聯絡人家裡電話跟APP上傳的不一致
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactEntity, "mobilephone", aMember.Phone);
+                    ModifyFlag = true;
+                }
             }
 
             //String aMobilePhone = "";
@@ -2541,11 +2546,14 @@ namespace ChurchReport.WebServiceConnector
             //    }
             //}
             // 組員的家裡電話
-            if (DigitsOnly.Replace(aMember.HomePhone, "") != DigitsOnly.Replace(this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContactEntity, "telephone2"),""))
+            if (aMember.HomePhone != null)
             {
-                // 系統裡的聯絡人家裡電話跟APP上傳的不一致
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactEntity, "telephone2", aMember.HomePhone);
-                ModifyFlag = true;
+                if (DigitsOnly.Replace(aMember.HomePhone, "") != DigitsOnly.Replace(this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContactEntity, "telephone2"), ""))
+                {
+                    // 系統裡的聯絡人家裡電話跟APP上傳的不一致
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactEntity, "telephone2", aMember.HomePhone);
+                    ModifyFlag = true;
+                }
             }
 
             //String aHomePhone = "";
@@ -2564,42 +2572,51 @@ namespace ChurchReport.WebServiceConnector
             //}
 
             // 組員的地址
-            if (aMember.Address != this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContactEntity, "address2_line1"))
+            if (aMember.Address != null)
             {
-                // 系統裡的聯絡人的地址跟APP上傳的不一致
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactEntity, "address2_line1", aMember.Address);
-                ModifyFlag = true;
+                if (aMember.Address != this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContactEntity, "address2_line1"))
+                {
+                    // 系統裡的聯絡人的地址跟APP上傳的不一致
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactEntity, "address2_line1", aMember.Address);
+                    ModifyFlag = true;
+                }
             }
 
             //組員的生日
-            if (aContactEntity.Attributes.Contains("birthdate"))
+            if (aMember.BirthDate != null)
             {
-                DateTime aBirthDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aContactEntity, "birthdate").ToLocalTime().ToLocalTime();
-                if (aMember.BirthDate != aBirthDate)
+                if (aContactEntity.Attributes.Contains("birthdate"))
+                {
+                    DateTime aBirthDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aContactEntity, "birthdate").ToLocalTime().ToLocalTime();
+                    if (aMember.BirthDate != aBirthDate)
+                    {
+                        if (aMember.BirthDate > DateTime.MinValue && aMember.BirthDate.Year > 1753)
+                        {
+                            // 系統裡的聯絡人職業及專長跟APP上傳的不一致
+                            this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aContactEntity, "birthdate", aMember.BirthDate);
+                            ModifyFlag = true;
+                        }
+                    }
+                }
+                else
                 {
                     if (aMember.BirthDate > DateTime.MinValue && aMember.BirthDate.Year > 1753)
                     {
-                        // 系統裡的聯絡人職業及專長跟APP上傳的不一致
                         this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aContactEntity, "birthdate", aMember.BirthDate);
                         ModifyFlag = true;
                     }
                 }
             }
-            else
-            {
-                if (aMember.BirthDate > DateTime.MinValue && aMember.BirthDate.Year > 1753)
-                {
-                    this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aContactEntity, "birthdate", aMember.BirthDate);
-                    ModifyFlag = true;
-                }
-            }
 
             // 組員的職業及專長(台北基督之家)
-            if (aMember.Industry != this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContactEntity, "new_industry"))
+            if (aMember.Industry != null)
             {
-                // 系統裡的聯絡人的組員的職業及專長跟APP上傳的不一致
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactEntity, "new_industry", aMember.Industry);
-                ModifyFlag = true;
+                if (aMember.Industry != this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContactEntity, "new_industry"))
+                {
+                    // 系統裡的聯絡人的組員的職業及專長跟APP上傳的不一致
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactEntity, "new_industry", aMember.Industry);
+                    ModifyFlag = true;
+                }
             }
 
             //String aIndustry = "";
@@ -2616,11 +2633,14 @@ namespace ChurchReport.WebServiceConnector
 
 
             // 組員的介紹人
-            if (aMember.BestIntroducer != this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContactEntity, "new_best_introducer"))
+            if (aMember.BestIntroducer != null)
             {
-                // 系統裡的聯絡人的組員的職業及專長跟APP上傳的不一致
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactEntity, "new_best_introducer", aMember.BestIntroducer);
-                ModifyFlag = true;
+                if (aMember.BestIntroducer != this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContactEntity, "new_best_introducer"))
+                {
+                    // 系統裡的聯絡人的組員的職業及專長跟APP上傳的不一致
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactEntity, "new_best_introducer", aMember.BestIntroducer);
+                    ModifyFlag = true;
+                }
             }
 
             //String aBestIntroducer = "";
@@ -2636,40 +2656,47 @@ namespace ChurchReport.WebServiceConnector
             //}
 
             // 組員的介紹人關係
-            String aBestRelationship = "";
-            if (aContactEntity.Attributes.Contains("new_best_relationship"))
+            if (aMember.BestRelationship != null)
             {
-                aBestRelationship = (string)aContactEntity.Attributes["new_best_relationship"];
-                if (aMember.BestRelationship != aBestRelationship)
+                String aBestRelationship = "";
+                if (aContactEntity.Attributes.Contains("new_best_relationship"))
                 {
-                    // 系統裡的連絡人介紹人跟APP上傳的不一致
-                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactEntity, "new_best_relationship", aMember.BestRelationship);
-                    ModifyFlag = true;
-                }
-            }
-
-            if (aMember.BestLeader != "" && this.m_GroupType == "幸福小組")
-            {
-                Guid aSearchedContactSpiritLeaderId = GetContactSpiritLeaderId(aListEntityId, aMember.BestLeader);
-
-                if (aSearchedContactSpiritLeaderId != Guid.Empty)
-                {
-                    Guid aContactSpiritLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(aContactEntity, "new_contact_contact_spiritleader");
-
-                    if (aContactSpiritLeaderId != aSearchedContactSpiritLeaderId)
+                    aBestRelationship = (string)aContactEntity.Attributes["new_best_relationship"];
+                    if (aMember.BestRelationship != aBestRelationship)
                     {
-                        this.m_ToolUtilityClass.SetEntityLookUpAttribute(aContactEntity, "new_contact_contact_spiritleader", "contact", aSearchedContactSpiritLeaderId);
+                        // 系統裡的連絡人介紹人跟APP上傳的不一致
+                        this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactEntity, "new_best_relationship", aMember.BestRelationship);
                         ModifyFlag = true;
                     }
                 }
             }
 
-            #region 設定個人幸福小組出席紀錄次數與課程
-            if (HappyWeekTopic != "" && aMember.SmallGroup == true && this.m_GroupType == "幸福小組" )
+            if (aMember.BestLeader != null)
             {
-                SetContactHappyTimesAndHistory(ref aContactEntity, HappyWeekTopic);
+                if (aMember.BestLeader != "" && this.m_GroupType == "幸福小組")
+                {
+                    Guid aSearchedContactSpiritLeaderId = GetContactSpiritLeaderId(aListEntityId, aMember.BestLeader);
 
-                ModifyFlag = true;
+                    if (aSearchedContactSpiritLeaderId != Guid.Empty)
+                    {
+                        Guid aContactSpiritLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(aContactEntity, "new_contact_contact_spiritleader");
+
+                        if (aContactSpiritLeaderId != aSearchedContactSpiritLeaderId)
+                        {
+                            this.m_ToolUtilityClass.SetEntityLookUpAttribute(aContactEntity, "new_contact_contact_spiritleader", "contact", aSearchedContactSpiritLeaderId);
+                            ModifyFlag = true;
+                        }
+                    }
+                }
+            }
+            #region 設定個人幸福小組出席紀錄次數與課程
+            if (HappyWeekTopic != "" && aMember.SmallGroup == true && this.m_GroupType == "幸福小組")
+            {
+                //SetContactHappyTimesAndHistory(ref aContactEntity, HappyWeekTopic);
+
+                //ModifyFlag = true;
+
+                ModifyFlag = SetContactHappyTimesAndHistory(ref aContactEntity, HappyWeekTopic);
             }
             else
             {
@@ -2681,7 +2708,7 @@ namespace ChurchReport.WebServiceConnector
 
             // 經由最近8週的出席次數計算、設定委身類型
 
-            if ( SET_IDENTITY_METHOD == "透過過去8週出席次數")
+            if (SET_IDENTITY_METHOD == "透過過去8週出席次數")
             {
                 SetIdentity(aListEntityId, ref aContactEntity);
             }
@@ -2912,7 +2939,18 @@ namespace ChurchReport.WebServiceConnector
 
                 if (this.m_GroupType == "幸福小組")
                 {
+                    #region 處理幸福小組，如果是第一週就填入幸福小組的核心同工名單，第二週以後就回傳幸福小組Best名單
+                    String BestList = ProcessHappyGroupMembers(ref aListEntity, aWeeklyReportEntity, HappyWeekIndex, HappyWeekTopic);
+                    #endregion
+
+                    #region 計算幸福小組週報出席人數
                     CalculateWeeklyReportTotalNumber(ref aWeeklyReportEntity);
+                    #endregion
+
+                    #region 建立幸福小組的 BEST
+                    //List<BestRecord>  BestRecordList = new List<BestRecord>();
+                    //CreateDefaultBestList(ref aWeeklyReportEntity, AreaName, FamilyLeaderId, GroupLeaderId, RaceLeaderId, ShepherdLeaderId, aListEntity, aHappyGroupWeeklyReportToBeAdded.MeetingDate, HappyGroupStartTime, HappyGroupEndTime, m_SmallGroupPlace, m_SmallGroupTime, ref aHappyGroupWeeklyReportListClassToBeAdded, ref aHappyGroupWeeklyReportToBeAdded, BestList);
+                    #endregion
                 }
 
                 // 透過 LINE 回報權柄
@@ -3180,7 +3218,7 @@ namespace ChurchReport.WebServiceConnector
             }
         }
 
-        private void SetContactHappyTimesAndHistory(ref Entity BestContactEntity, String HappyCourse)
+        private bool SetContactHappyTimesAndHistory(ref Entity BestContactEntity, String HappyCourse)
         {
             try
             {
@@ -3196,6 +3234,12 @@ namespace ChurchReport.WebServiceConnector
                     String[] CourseCounter = OriginalHappyHistory.Split(',');
 
                     this.m_ToolUtilityClass.SetEntityIntAttribute(ref BestContactEntity, "new_happy_times", CourseCounter.Length - 1);
+
+                    return true;
+                }
+                else
+                {
+                    return false;
                 }
 
             }
@@ -3312,8 +3356,7 @@ namespace ChurchReport.WebServiceConnector
                 this.m_ToolUtilityClass.SetEntityIntAttribute(ref HappyWeeklyReport, "new_worker_attend_number", WrokerNumber);
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref HappyWeeklyReport, "new_worker_attend_list", WorkerList);
 
-                this.m_ToolUtilityClass.UpdateEntity(ref HappyWeeklyReport);
-
+                //this.m_ToolUtilityClass.UpdateEntity(ref HappyWeeklyReport);
 
                 return;
             }
@@ -3666,6 +3709,199 @@ namespace ChurchReport.WebServiceConnector
         #endregion
 
         #endregion
+        #region 處理幸福小組
+        private String ProcessHappyGroupMembers(ref Entity HappyGroupListEntity, Entity aWeeklyReportEntity, String HappyWeekIndex, String HappyWeekTopic)
+        {
+            try
+            {
+                // 取得核心同工名單
+                String CoreMembers = this.m_ToolUtilityClass.GetEntityStringAttribute(ref HappyGroupListEntity, "new_core_members");
+
+                // 客製化
+                if (HappyWeekIndex == "第一週" && CoreMembers == "")
+                //if (HappyWeekTopic == "第一單元 真幸福" && CoreMembers == "")
+                {
+                    // 第一單元 真幸福回報，而且核心同工名單是空的字串
+                    #region 第一單元 真幸福設定幸福小組核心同工名單，為了要能區隔過濾出BEST名單
+                    ProcessCoreMembers(ref HappyGroupListEntity, HappyWeekIndex, HappyWeekTopic);
+
+                    return "";
+                    #endregion
+                }
+                else
+                {
+                    // 第二週以後
+                    #region 設定幸福小組Best名單
+                    // 找到所有成員，減掉核心同工，就是Best名單
+                    String BestList = ExtractBestList(ref HappyGroupListEntity);
+                    #region 設定幸福小組 Best 名單
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aWeeklyReportEntity, "new_best_name_list", BestList);
+
+
+                    #endregion
+
+                    return BestList;
+
+                    #endregion
+                }
+            }
+            catch (System.Exception Exception)
+            {
+                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
+                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                throw Exception;
+            }
+        }
+
+        private void ProcessCoreMembers(ref Entity HappyGroupListEntity, String HappyWeekIndex, String HappyWeekTopic)
+        {
+            try
+            {
+                #region 設定幸福小組核心同工名單，為了要能區隔過濾出BEST名單
+                if (HappyWeekTopic != "")
+                {
+                    String CoreMembers = this.GetCoreMembers(HappyGroupListEntity.Id, HappyWeekIndex, HappyWeekTopic);
+                    if (CoreMembers != "")
+                    {
+                        this.m_ToolUtilityClass.SetEntityStringAttribute(ref HappyGroupListEntity, "new_core_members", CoreMembers);
+                    }
+                }
+                this.m_ToolUtilityClass.UpdateEntity(ref HappyGroupListEntity);
+                #endregion
+            }
+            catch (System.Exception Exception)
+            {
+                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
+                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                throw Exception;
+            }
+        }
+
+        private String GetCoreMembers(Guid ListEntityId, String HappyWeekIndex, String HappyWeekTopic)
+        {
+            try
+            {
+                // 客製化
+                if (HappyWeekIndex == "第一週")
+                //if (HappyWeekTopic == "第一單元 真幸福")
+                {
+                    bool ListType = false;
+                    EntityCollection MemberCollection = GetPersonalSmallGroupLeaderMemberData(ListEntityId, ref ListType);
+
+                    String CoreMembers = "";
+                    foreach (Entity MemberEntity in MemberCollection.Entities)
+                    {
+                        // 每個組員
+                        Entity aContactEntity;
+
+                        if (ListType == false)
+                        {
+                            // 靜態名單
+                            aContactEntity = m_ToolUtilityClass.RetrieveEntity("contact", ((EntityReference)MemberEntity.Attributes["entityid"]).Id);
+                        }
+                        else
+                        {
+                            // 動態名單
+                            aContactEntity = m_ToolUtilityClass.RetrieveEntity("contact", (Guid)MemberEntity.Attributes["contactid"]);
+                        }
+
+                        // 取得出席紀錄單連絡人實體的委身類型
+                        String Identity = this.ConvertIndexToIdentity(this.m_ToolUtilityClass.GetOptionSetAttribute(ref aContactEntity, "customertypecode"));
+
+                        if (!Identity.Contains("幸福BEST") && !Identity.Contains("未入組") && !Identity.Contains("新朋友"))
+                        {
+                            CoreMembers += this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContactEntity, "fullname") + ",";
+                        }
+                    }
+
+                    ToolUtilityClass.DeleteLastChar(ref CoreMembers);
+
+                    return CoreMembers;
+                }
+                else
+                {
+                    return "";
+                }
+
+            }
+            catch (System.Exception Exception)
+            {
+                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
+                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                throw Exception;
+            }
+        }
+
+        private String ExtractBestList(ref Entity HappyGroupListEntity)
+        {
+            try
+            {
+                #region 設定幸福小組Best名單
+                // 取得核心同工名單
+                String CoreMembers = this.m_ToolUtilityClass.GetEntityStringAttribute(ref HappyGroupListEntity, "new_core_members");
+                if (CoreMembers != "")
+                {
+                    bool ListType = false;
+                    EntityCollection MemberCollection = GetPersonalSmallGroupLeaderMemberData(HappyGroupListEntity.Id, ref ListType);
+
+                    String BestList = ""; // 幸福小組Best名單
+                    foreach (Entity MemberEntity in MemberCollection.Entities)
+                    {
+                        // 每個組員
+                        Entity aContactEntity;
+
+                        if (ListType == false)
+                        {
+                            // 靜態名單
+                            aContactEntity = m_ToolUtilityClass.RetrieveEntity("contact", ((EntityReference)MemberEntity.Attributes["entityid"]).Id);
+                        }
+                        else
+                        {
+                            // 動態名單
+                            aContactEntity = m_ToolUtilityClass.RetrieveEntity("contact", (Guid)MemberEntity.Attributes["contactid"]);
+                        }
+
+                        // 成員姓名
+                        String aContactFullName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContactEntity, "fullname");
+
+                        if (CoreMembers.Contains(aContactFullName) != true)
+                        {
+                            BestList += aContactFullName + ",";
+                        }
+                    }
+
+                    ToolUtilityClass.DeleteLastChar(ref BestList);
+
+                    //if( aHappyGroupWeeklyReportToBeAdded.HappyGroupWeeklyReportId != null && aHappyGroupWeeklyReportToBeAdded.HappyGroupWeeklyReportId != "" )
+                    //{
+                    //    Entity aWeeklyReportEntity = this.m_ToolUtilityClass.RetrieveEntity("new_group_present_weekly_report", new Guid(aHappyGroupWeeklyReportToBeAdded.HappyGroupWeeklyReportId));
+
+                    //    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aWeeklyReportEntity, "new_core_members", BestList);
+                    //}
+
+                    return BestList;
+                }
+                else
+                {
+                    return "";
+                }
+
+                #endregion
+            }
+            catch (System.Exception Exception)
+            {
+                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
+                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                throw Exception;
+            }
+        }
+
+        #endregion
+
         #endregion
         #region 設定委身類型
         public bool SetIdentityByUpload( ref Entity aContact, ref Member aMember)

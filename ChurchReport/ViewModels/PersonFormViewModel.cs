@@ -34,6 +34,7 @@ namespace ChurchReport.ViewModels
         public String IntroducerGroup { get; set; } // 邀請人小組
 
         public String Industry { get; set; } // 職業及專長
+        public String PresentRecordId { get; set; } // 建立新人時也會新增建立的靈修出席紀錄單的ID
 
         public object FormData { get; set; }
     }

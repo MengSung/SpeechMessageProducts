@@ -534,7 +534,12 @@ namespace ChurchReport.Controllers
                     }
                     else
                     {
-                        if (LoginParameter != "IntegrateView")
+                        if (LoginParameter == "undefined")
+                        {
+                            ViewBag.ListId = m_InMemoryDataContextSmallGroup.ListManager.ActiveListId;
+                            ViewBag.SpiritualLeaderListId = m_InMemoryDataContextSmallGroup.ListManager.ActiveListId;
+                        }
+                        else if (LoginParameter != "IntegrateView")
                         {
                             ViewBag.ListId = m_InMemoryDataContextSmallGroup.ListManager.ActiveListId = LoginParameter;
                             ViewBag.SpiritualLeaderListId = LoginParameter;
@@ -1573,7 +1578,9 @@ namespace ChurchReport.Controllers
                 m_InMemoryDataContextSmallGroup.SetupListManager(m_InMemoryDataContextSmallGroup.ListManager.m_Account, m_InMemoryDataContextSmallGroup.ListManager.m_Password, aSelectDate, true);
                 #endregion
 
-                return Ok();
+                return Json(new { ActiveListId = m_InMemoryDataContextSmallGroup.ListManager.ActiveListId });
+
+                //return Ok();
             }
             catch (System.Exception e)
             {
@@ -1625,7 +1632,9 @@ namespace ChurchReport.Controllers
                 //}
                 #endregion
 
-                return Ok();
+                return Json(new { ActiveListId = m_InMemoryDataContextSmallGroup.ListManager.ActiveListId });
+
+                //return Ok();
             }
             catch (System.Exception e)
             {
