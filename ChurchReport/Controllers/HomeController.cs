@@ -2524,12 +2524,13 @@ namespace ChurchReport.Controllers
                     return Json(new { status = "2", message = "新增新人必須要有行動電話" });
                 }
 
-                string Result = m_InMemoryDataContextSmallGroup.m_NewPersonModel.UploadNewPerson( m_InMemoryDataContextSmallGroup.ListManager.m_Account, m_InMemoryDataContextSmallGroup.ListManager.m_Password, aPersonFormViewModel);
+                string Result = m_InMemoryDataContextSmallGroup.m_NewPersonModel.UploadNewPerson(m_InMemoryDataContextSmallGroup.ListManager.m_Account, m_InMemoryDataContextSmallGroup.ListManager.m_Password, aPersonFormViewModel);
 
                 if (Result.Contains("成功"))
                 {
-                    if (m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport != null && aPersonFormViewModel.Position != "0" )
+                    if (m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport != null && aPersonFormViewModel.Position != "0")
                     {
+                        aPersonFormViewModel.PresentRecordId = m_InMemoryDataContextSmallGroup.m_NewPersonModel.m_NewContact.PresentRecordId;
                         m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.AddNewPersonToMember(aPersonFormViewModel);
                     }
 
@@ -2547,7 +2548,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂 : 綁定錯誤 => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中生命之道靈糧堂 : 綁定錯誤 => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 

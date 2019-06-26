@@ -141,6 +141,7 @@ namespace ChurchReport.Models
                 };
 
                 //m_SmallGroupData.Members.Add(aMember);
+                m_HappyGroup.DisplayFlag = true;
                 m_HappyGroup.Members.Add(aMember);
                 m_AllMemeberData.Members.Add(aMember);
             }
@@ -148,6 +149,7 @@ namespace ChurchReport.Models
             {
                 Member aMember = new Member
                 {
+                    PresentRecordId = aPersonFormViewModel.PresentRecordId,
                     Id = m_SmallGroupData.Members.Count,
                     Group = aGroupName,
                     FullName = aPersonFormViewModel.LastName,
@@ -174,6 +176,7 @@ namespace ChurchReport.Models
                 };
 
                 //m_SmallGroupData.Members.Add(aMember);
+                m_NewPersonFollowUpData.DisplayFlag = true;
                 m_NewPersonFollowUpData.Members.Add(aMember);
                 m_AllMemeberData.Members.Add(aMember);
             }
