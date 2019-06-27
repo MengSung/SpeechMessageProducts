@@ -63,7 +63,10 @@ namespace ChurchReport.Models
         public void UploadIntegrateData(String Account, String Password, String LoginType, SmallGroupData aSmallGroupData, String aWeeklyReportData, String HappyWeekIndex, String HappyWeekTopic)
         {
             WeeklyReportData = aWeeklyReportData;
+            HappyWeekIndex = HappyWeekIndex;
+            HappyWeekTopic = HappyWeekTopic;
 
+            //ChurchReport.Models.ListSmallGroupWeeklyReport
             m_UploadIntegrateData.UploadData(Account, Password, LoginType, GroupType, ListEntityId, ref WeeklyReportEntityId, SundayPrayers, aSmallGroupData, ref WeeklyReportData, ref WeeklyReportAnalysis, HappyWeekIndex, HappyWeekTopic);
         }
         public void DeleteMemberData(String Account, String Password, Member aMemberToBeDeleted)
