@@ -2300,7 +2300,7 @@ namespace ChurchReport.WebServiceConnector
                 #endregion
                 #region 設定附註或是代禱事項
 
-                // 楊梅靈糧堂
+                // 音訊教會
                 //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_name", aMemberInfomation.Note);
                 //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_explanation", aMemberInfomation.PrayItem);
 
@@ -2396,7 +2396,7 @@ namespace ChurchReport.WebServiceConnector
                         {
                             OptionSetValue aCustomerTypeCode = ContactEntity.Attributes["customertypecode"] as OptionSetValue;
 
-                            // 如果是新朋友或是未入組則不列入累積，楊梅靈糧堂
+                            // 如果是新朋友或是未入組則不列入累積，音訊教會
                             if (aCustomerTypeCode.Value != 100000004 && aCustomerTypeCode.Value != 100000000 && aCustomerTypeCode.Value != 100000007)
                             {
                                 EffectiveNumber++;
@@ -3146,7 +3146,7 @@ namespace ChurchReport.WebServiceConnector
                         }
                         #endregion
                         #region 設定附註或是代禱事項
-                        // 楊梅靈糧堂
+                        // 音訊教會
                         //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aMachedPresentRecordEntity, "new_name", aMemberInfomation.Note);
                         this.m_ToolUtilityClass.SetEntityStringAttribute(ref aMachedPresentRecordEntity, "new_explanation", aMember.PrayItem);
 
@@ -3605,7 +3605,7 @@ namespace ChurchReport.WebServiceConnector
                                 ClearIdentity = this.ConvertIndexToClearIdentity(aCustomerTypeCode.Value);
 
                                 // 版本轉換
-                                //// 如果是新朋友、未入組、外教會則不列入累積，楊梅靈糧堂
+                                //// 如果是新朋友、未入組、外教會則不列入累積，音訊教會
                                 if (aCustomerTypeCode.Value != 100000004 && aCustomerTypeCode.Value != 100000000 && aCustomerTypeCode.Value != 100000007)
                                 {
                                     return true;
@@ -3672,7 +3672,7 @@ namespace ChurchReport.WebServiceConnector
                 int aCustomerTypeCodeValue = this.m_ToolUtilityClass.GetOptionSetAttribute(ref aContactEntity, "customertypecode");
                 //OptionSetValue aCustomerTypeCode = aContactEntity.Attributes["customertypecode"] as OptionSetValue;
 
-                // 如果是新朋友或是未入組則不列入累積，楊梅靈糧堂
+                // 如果是新朋友或是未入組則不列入累積，音訊教會
                 if (aCustomerTypeCodeValue != 100000004 && aCustomerTypeCodeValue != 100000000 && aCustomerTypeCodeValue != 100000007 && aCustomerTypeCodeValue != EMPTY_VALUE)
                 {
                     return true;
@@ -4149,15 +4149,17 @@ namespace ChurchReport.WebServiceConnector
             }
         }
 
-        // 台中生命之道靈糧堂
+        // 高雄錫安堂
         private String ConvertIndexToIdentity(int Identity)
         {
             switch (Identity)
             {
                 case 100000006:
-                    return "01. 牧師師母";
+                    return "01. 負責弟兄";
+                case 100000002:
+                    return "01.1 區牧/副區牧";
                 case 100000003:
-                    return "02. 區長";
+                    return "02. 門徒小組長";
                 case 100000008:
                     return "03. 小組長";
                 case 100000012:

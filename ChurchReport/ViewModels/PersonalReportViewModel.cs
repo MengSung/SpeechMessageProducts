@@ -11,6 +11,7 @@ namespace ChurchReport.ViewModels
         { }
 
         public int ID { get; set; }
+        public DateTime SundayPrayers { get; set; } // 小組日期
 
         public String GroupName { get; set; }
         public String FullName { get; set; }

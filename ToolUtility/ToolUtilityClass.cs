@@ -39,7 +39,7 @@ namespace ToolUtilityNameSpace
 
         #region CRM 2011 新增組織修改區
 
-        #region 楊梅靈糧堂組織
+        #region 音訊教會組織
         //private const String SERVER = "crm2011"; // 機房雲端要用此網址
         //private const String SERVER = "system.speechmessage.com.tw";
         //private const String PORT = "7777";
@@ -92,7 +92,7 @@ namespace ToolUtilityNameSpace
         //private const String DOMAIN = "SPEECHMESSAGE";
         #endregion
 
-        #region 楊梅靈糧堂組織(公司內部發展)
+        #region 音訊教會組織(公司內部發展)
         //private const String SERVER = "speechmessage.com.tw";
         //private const String PORT = "7777";
         //private const String ORGANIZATION = "yangmeillc";
@@ -135,19 +135,19 @@ namespace ToolUtilityNameSpace
 
         // 客製化
 
-        #region 台中思恩堂(雲端機房)
+        #region 音訊教會堂(雲端機房)
         private const String SERVER = "speechmessage.com.tw";
         private const String PORT = "7777";
-        private const String ORGANIZATION = "grace";
+        private const String ORGANIZATION = "jesus";
         private const String USERNAME = "Administrator@speechmessage.com.tw";
         private const String PASSWORD = "hu9840";
         private const String DOMAIN = "DYNAMICS-365";
         #endregion
 
-        #region 台中思恩堂(公司內部發展)
+        #region 音訊教會堂(公司內部發展)
         //private const String SERVER = "speechmessage.com.tw";
         //private const String PORT = "7777";
-        //private const String ORGANIZATION = "graceback";
+        //private const String ORGANIZATION = "ymllcback";
         //private const String USERNAME = "Administrator@speechmessage.com.tw";
         //private const String PASSWORD = "hu9840";
         //private const String DOMAIN = "SPEECHMESSAGE";
@@ -1071,7 +1071,7 @@ namespace ToolUtilityNameSpace
                     querybyexpression.ColumnSet.AllColumns = true;
                     //  Attribute to query
                     //querybyexpression.Attributes.AddRange("new_account", "statecode");
-                    //楊梅靈糧堂小組長帳號
+                    //音訊教會小組長帳號
                     querybyexpression.Attributes.AddRange("new_app_acount", "statecode");
                     //  Value of queried attribute to return
                     querybyexpression.Values.AddRange(AccountNumber, 0);
@@ -1143,7 +1143,7 @@ namespace ToolUtilityNameSpace
                     querybyexpression.ColumnSet.AllColumns = true;
                     //  Attribute to query
                     //querybyexpression.Attributes.AddRange("new_account", "statecode");
-                    //楊梅靈糧堂小組長帳號
+                    //音訊教會小組長帳號
                     querybyexpression.Attributes.AddRange("new_app_acount", "statecode");
                     //  Value of queried attribute to return
                     querybyexpression.Values.AddRange(AccountNumber, 0);
@@ -1193,7 +1193,7 @@ namespace ToolUtilityNameSpace
                     querybyexpression.ColumnSet.AllColumns = true;
                     //  Attribute to query
                     //querybyexpression.Attributes.AddRange("new_account", "statecode");
-                    //楊梅靈糧堂小組長帳號
+                    //音訊教會小組長帳號
                     querybyexpression.Attributes.AddRange("new_app_acount", "statecode");
                     //  Value of queried attribute to return
                     querybyexpression.Values.AddRange(AccountNumber, 0);
@@ -1260,7 +1260,7 @@ namespace ToolUtilityNameSpace
                     querybyexpression.ColumnSet.AllColumns = true;
                     //  Attribute to query
                     //querybyexpression.Attributes.AddRange("new_account", "statecode");
-                    //楊梅靈糧堂小組長帳號
+                    //音訊教會小組長帳號
                     querybyexpression.Attributes.AddRange("new_lineid", "statecode");
                     //  Value of queried attribute to return
                     querybyexpression.Values.AddRange(LineUserId, 0);

@@ -401,7 +401,7 @@ namespace ChurchReport.WebServiceConnector
                         #endregion
                         #region// 出席紀錄組員的附註
 
-                        // 楊梅靈糧堂
+                        // 音訊教會
                         String aNote = "";
                         //if (PresentRecordEntity.Attributes.Contains("new_name"))
                         //{
@@ -946,7 +946,7 @@ namespace ChurchReport.WebServiceConnector
                 #endregion
                 #region 設定附註或是代禱事項
 
-                // 楊梅靈糧堂
+                // 音訊教會
                 //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_name", aMemberInfomation.Note);
                 //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_explanation", aMemberInfomation.PrayItem);
 
@@ -2438,19 +2438,21 @@ namespace ChurchReport.WebServiceConnector
 
 
         // 委身類型客製化，委身類型客製化
-        //台中思恩堂
+        //高雄錫安堂
         private String ConvertIndexToIdentity(int Identity)
         {
             switch (Identity)
             {
                 case 100000006:
-                    return "01. 牧師師母";
+                    return "01. 負責弟兄";
+                case 100000002:
+                    return "01.1 區牧/副區牧";
                 case 100000003:
-                    return "02. 區長";
+                    return "02. 門徒小組長";
                 case 100000008:
                     return "03. 小組長";
                 case 100000012:
-                    return "04. 小家長";
+                    return "04. 副組長";
                 case 1:
                     return "05. 小組組員";
                 case 100000005:
