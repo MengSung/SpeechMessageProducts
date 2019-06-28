@@ -4149,7 +4149,7 @@ namespace ChurchReport.WebServiceConnector
             }
         }
 
-        // 高雄錫安堂
+        // 音訊教會
         private String ConvertIndexToIdentity(int Identity)
         {
             switch (Identity)

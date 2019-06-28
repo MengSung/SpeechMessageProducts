@@ -1525,7 +1525,7 @@ namespace ChurchReport.WebServiceConnector
 
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aQueryBestContactEntity, "mobilephone", aBestRecord.MobilePhone);
 
-                // 委身類型客製化，客製委身類型欄位，每間教會委身類型都不一樣，高雄錫安堂=>"幸福小組BEST" = 100000005
+                // 委身類型客製化，客製委身類型欄位，每間教會委身類型都不一樣，音訊教會=>"幸福小組BEST" = 100000005
                 // 設定成為 BEST 的委身類型
                 this.m_ToolUtilityClass.SetOptionSetAttribute(ref aQueryBestContactEntity, "customertypecode", 100000005);
 

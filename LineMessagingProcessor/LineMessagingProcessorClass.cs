@@ -103,7 +103,7 @@ namespace LineMessagingProcessor
                 m_UserId = aEvent["source"]["userId"];
 
                 //SendMessage(m_UserId, "歡迎加入音訊科技粉絲團");
-                SendMessage(m_UserId, "歡迎加入高雄錫安堂");
+                SendMessage(m_UserId, "歡迎加入音訊教會");
                 //SendMessage(m_UserId, "歡迎加入樹林教會");
                 //await SendMessage(m_UserId, "順風美醫診所");
 
@@ -116,7 +116,7 @@ namespace LineMessagingProcessor
 
                 m_UserId = aEvent["source"]["userId"];
                 //SendMessage(m_UserId, "期待您隨時回來音訊科技粉絲團");
-                SendMessage(m_UserId, "期待您隨時回來高雄錫安堂粉絲團");
+                SendMessage(m_UserId, "期待您隨時回來音訊教會粉絲團");
                 //SendMessage(m_UserId, "期待您隨時回來樹林教會");
                 //await SendMessage(m_UserId, "期待您隨時回來順風美醫診所");
 

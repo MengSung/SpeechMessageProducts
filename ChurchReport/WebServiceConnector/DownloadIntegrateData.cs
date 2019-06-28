@@ -2438,7 +2438,7 @@ namespace ChurchReport.WebServiceConnector
 
 
         // 委身類型客製化，委身類型客製化
-        //高雄錫安堂
+        //音訊教會
         private String ConvertIndexToIdentity(int Identity)
         {
             switch (Identity)
