@@ -81,7 +81,7 @@ namespace ChurchReport.Models
                 {
                     if (m_SmallGroupDataList.m_AllMemeberData.Members[0] != null)
                     {
-                        m_PersonalReportViewModel.SundayPrayers = DateTime.Now;
+                        m_PersonalReportViewModel.SundayPrayers = SundayPrayers;
                         m_PersonalReportViewModel.GroupName = m_SmallGroupDataList.m_AllMemeberData.Members[0].Group;
                         m_PersonalReportViewModel.FullName = m_SmallGroupDataList.m_AllMemeberData.Members[0].FullName;
                         m_PersonalReportViewModel.SundayPresent = m_SmallGroupDataList.m_AllMemeberData.Members[0].Sunday;
