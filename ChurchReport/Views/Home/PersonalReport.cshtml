@@ -11,7 +11,7 @@
         .DateBoxFor(m => m.SundayPrayers)
         .Type(DateBoxType.Date)
         .Value(Model.SundayPrayers)
-        .Width(50)
+        .Width(30)
         .DisplayFormat("yyyy/M/d")
         .OnChange("OnDateboxChange")
         //.DisplayFormat("yyyy/MM/dd")
@@ -30,21 +30,13 @@
 
                     success: function (arg)
                     {
-                    //alert("001");
                     $("#loadPanel").dxLoadPanel("instance").hide();
-
-                    //var dataGridInstance = $("#gridContainer").dxDataGrid("instance");
-                    //dataGridInstance.refresh();
-                    //alert("002");
 
                     //window.location.href = "/Home/IntegrateView/IntegrateView"
                     window.location.href = "/Home/IntegrateView/" + arg.ActiveListId;
-                    //alert("003");
-
                     },
 
                     error: function (obj) {
-                    //alert('Something happened');
                     }
 
                     });
@@ -227,6 +219,26 @@
 </div>
 
 <script>
+    function OnDateboxChange(e) {
+        debugger;
+
+        //var X = e.component._$validationMessage;
+        //if( $("#SmallGroupDate").dxDateBox("instance")._$validationMessage == null )
+        if (e.component._$validationMessage == null) {
+            UploadDateFormat = "格式正確";
+        }
+        else {
+            UploadDateFormat = "格式錯誤";
+            // 顯示日期格式錯誤
+            $("#SelectDateToast").dxToast("instance").show();
+            return;
+        }
+        //var result = $("#SmallGroupDate").dxDateBox("instance").validate();
+        //var result = e.validationGroup.validate();
+
+        //alert("日期改變001");
+    }
+
     function getLoadPanelInstance() {
         return $("#loadPanel").dxLoadPanel("instance");
     }
@@ -341,6 +353,8 @@
             }
 </script>
 
+<script>var DataUploadStatus = "尚未上傳喔!";</script>
+<script>var UploadDateFormat = "格式正確!";</script>
 <script src="~/lib/jquery-ajax-unobtrusive/jquery.unobtrusive-ajax.js"></script>
 <script src="~/js/SelectDate.js"></script>
 <link href="~/css/NewPerson.css" rel="stylesheet" />
