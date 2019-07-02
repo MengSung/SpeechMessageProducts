@@ -19,6 +19,12 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using ToolUtilityNameSpace;
 
+using Line.Pay;
+using Line.Pay.Models;
+using Microsoft.Extensions.Configuration;
+using System.IO;
+using System.Threading.Tasks;
+
 namespace ChurchReport.Controllers
 {
     public class HomeController : Controller, IDisposable
@@ -82,10 +88,26 @@ namespace ChurchReport.Controllers
             }
         }
         [HttpPost]
-        public IActionResult ProcessLogin(GalleryViewModel aGalleryViewModel)
+        public async Task<IActionResult> ProcessLogin(GalleryViewModel aGalleryViewModel)
         {
             try
             {
+                LinePayClient m_LinePayClient;
+                IConfiguration configuration;
+
+                var builder = new ConfigurationBuilder()
+                    .SetBasePath(Directory.GetCurrentDirectory())
+                    .AddJsonFile("appsettings.json");
+
+                configuration = builder.Build();
+
+                m_LinePayClient = new LinePayClient(
+                    configuration["LinePay:ChannelId"],
+                    configuration["LinePay:ChannelSecret"],
+                    bool.Parse(configuration["LinePay:IsSandbox"]));
+
+                String LinePayUrl = await NotifyLinePay(m_LinePayClient);
+
                 string ContactIdString = "";
                 if (aGalleryViewModel.Account != "")
                 {
@@ -155,7 +177,8 @@ namespace ChurchReport.Controllers
                         ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType;
                         SetMultiGroupLayoutParameter();
 
-                        return Json(new { DisplayViewType = DisplayViewType, ActiveListId = m_InMemoryDataContextSmallGroup.ListManager.ActiveListId, message = "歡迎" + FullName + "登入成功!", fullname = FullName, account = aGalleryViewModel.Account, password = aGalleryViewModel.Password });
+                        //return Json(new { DisplayViewType = DisplayViewType, ActiveListId = m_InMemoryDataContextSmallGroup.ListManager.ActiveListId, message = "歡迎" + FullName + "登入成功!", fullname = FullName, account = aGalleryViewModel.Account, password = aGalleryViewModel.Password });
+                        return Json(new { LinePayUrl = LinePayUrl, DisplayViewType = DisplayViewType, ActiveListId = m_InMemoryDataContextSmallGroup.ListManager.ActiveListId, message = "歡迎" + FullName + "登入成功!", fullname = FullName, account = aGalleryViewModel.Account, password = aGalleryViewModel.Password });
                     }
                     else if (m_InMemoryDataContextSmallGroup.ListManager.LoginType != "小組長" && m_InMemoryDataContextSmallGroup.HappyGroupDataManager.HappyType == "沒幸福小組名單")
                     {
@@ -211,6 +234,59 @@ namespace ChurchReport.Controllers
                 throw e;
             }
         }
+
+        public async Task<string> NotifyLinePay( LinePayClient m_LinePayClient )
+        {
+            try
+            {
+                #region 通知住綁定的輸入格式
+                var reserve = new Reserve()
+                {
+                    //ProductName = "全人醫治",
+                    //ProductName = "幸福茶會",
+                    ProductName = "勇猛向前",
+
+                    //ProductImageUrl = "https://upload.cc/i1/2019/01/09/j2fmYa.jpg",
+                    //ProductImageUrl = "https://web.opendrive.com/api/v1/download/file.json/MF8xODExMDI4NDRf?inline=1",
+                    ProductImageUrl = "https://upload.cc/i1/2019/01/09/f69ikp.jpg",
+                    Amount = 886,
+                    Currency = Currency.TWD,
+                    OrderId = Guid.NewGuid().ToString(),
+                    ConfirmUrl = "https://church.speechmessage.com.tw:454/api/callback/Confirm",
+                    CancelUrl = "https://church.speechmessage.com.tw:454/api/callback/Confirm",
+                    Capture = true,
+                    //ConfirmUrlType = ConfirmUrlType.SERVER,
+                    ConfirmUrlType = ConfirmUrlType.CLIENT,
+                    LanguageCode = LanguageCode.zh_Hant,
+                    PayType = PayType.NORMAL
+                };
+
+                //var response = m_LinePayClient.ReserveAsync(reserve);
+                //Task<ReserveResponse> response = await m_LinePayClient.ReserveAsync(reserve);
+                var response = await m_LinePayClient.ReserveAsync(reserve);
+
+                //Redirect(response.Info.PaymentUrl.Web);
+
+                return response.Info.PaymentUrl.Web;
+
+                //RedirectToPage(response.Info.PaymentUrl.App);
+
+                //BindingAction.Add(new UriTemplateAction("不想繳費", response.Info.PaymentUrl.App));
+
+                //await m_PushUtility.SendMessage(DisplayLineId, "付款網址 = " + response.Info.PaymentUrl.Web);
+
+                #endregion
+
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                //Monitor.Exit(this);
+                throw e;
+            }
+        }
+
         #endregion
         #region Line Id Login 登入
         public IActionResult LineIdLoginView()
@@ -245,7 +321,7 @@ namespace ChurchReport.Controllers
         }
 
         [HttpPost]
-        public IActionResult SaveUserLineId(string UserLineId, string GroupId, string RoomId, string ViewType)
+        public async Task<IActionResult> SaveUserLineId(string UserLineId, string GroupId, string RoomId, string ViewType)
         {
             try
             {
@@ -276,7 +352,7 @@ namespace ChurchReport.Controllers
                     //aGalleryViewModel.Account = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "new_app_acount");
                     //aGalleryViewModel.Password = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "new_app_pass");
 
-                    return ProcessLogin(aGalleryViewModel);
+                    return await ProcessLogin(aGalleryViewModel);
                 }
                 else
                 {

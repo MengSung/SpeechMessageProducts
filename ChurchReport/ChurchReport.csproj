@@ -69,6 +69,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Line.Messaging\Line.Messaging.csproj" />
     <ProjectReference Include="..\LineMessagingProcessor\LineMessagingProcessor.csproj" />
+    <ProjectReference Include="..\LinePayCSharp\LinePayCSharp.csproj" />
     <ProjectReference Include="..\ToolUtility\ToolUtility.csproj" />
   </ItemGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">

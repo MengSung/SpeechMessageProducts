@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.26430.15
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29020.237
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ChurchReport", "ChurchReport\ChurchReport.csproj", "{DF317563-C44C-4E69-BA7A-AEF73B49BB73}"
 EndProject
@@ -12,6 +12,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Trace", "Trace\Trace.csproj", "{DC1614B1-9B67-4AC8-B7A8-66F5BEE26D5E}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Line.Messaging", "Line.Messaging\Line.Messaging.csproj", "{A6A57804-C01F-42BC-94BA-91636AF260E7}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LinePayCSharp", "LinePayCSharp\LinePayCSharp.csproj", "{B4634EB3-F6D3-4F5B-8FBC-1BEB619AD1BC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -72,6 +74,16 @@ Global
 		{A6A57804-C01F-42BC-94BA-91636AF260E7}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A6A57804-C01F-42BC-94BA-91636AF260E7}.Test_Exchange_Service|Any CPU.ActiveCfg = Debug|Any CPU
 		{A6A57804-C01F-42BC-94BA-91636AF260E7}.Test_Exchange_Service|Any CPU.Build.0 = Debug|Any CPU
+		{B4634EB3-F6D3-4F5B-8FBC-1BEB619AD1BC}.Debug_LearnCrm|Any CPU.ActiveCfg = Debug|Any CPU
+		{B4634EB3-F6D3-4F5B-8FBC-1BEB619AD1BC}.Debug_LearnCrm|Any CPU.Build.0 = Debug|Any CPU
+		{B4634EB3-F6D3-4F5B-8FBC-1BEB619AD1BC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B4634EB3-F6D3-4F5B-8FBC-1BEB619AD1BC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B4634EB3-F6D3-4F5B-8FBC-1BEB619AD1BC}.DebugOracleConnector|Any CPU.ActiveCfg = Debug|Any CPU
+		{B4634EB3-F6D3-4F5B-8FBC-1BEB619AD1BC}.DebugOracleConnector|Any CPU.Build.0 = Debug|Any CPU
+		{B4634EB3-F6D3-4F5B-8FBC-1BEB619AD1BC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B4634EB3-F6D3-4F5B-8FBC-1BEB619AD1BC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B4634EB3-F6D3-4F5B-8FBC-1BEB619AD1BC}.Test_Exchange_Service|Any CPU.ActiveCfg = Debug|Any CPU
+		{B4634EB3-F6D3-4F5B-8FBC-1BEB619AD1BC}.Test_Exchange_Service|Any CPU.Build.0 = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
