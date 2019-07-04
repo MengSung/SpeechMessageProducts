@@ -2475,77 +2475,6 @@ namespace ChurchReport.Controllers
                 throw e;
             }
         }
-        //public ActionResult SchedulerView()
-        //{
-        //    try
-        //    {
-        //        ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType; // 看是小組長還是個人回報
-        //        ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.ListManager.LoginFullName;
-        //        ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType;
-        //        if (m_InMemoryDataContextSmallGroup.HappyGroupDataManager.HappyType == "有幸福小組名單")
-        //        {
-        //            ViewBag.HappyType = "有幸福小組名單";
-        //        }
-        //        else
-        //        {
-        //            ViewBag.HappyType = "沒幸福小組名單";
-        //        }
-        //        SetMultiGroupLayoutParameter();
-
-        //        AppointmentsList aAppointmentsList = new AppointmentsList();
-        //        return View(aAppointmentsList);
-        //    }
-        //    catch (System.Exception e)
-        //    {
-        //        string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-        //        m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
-
-        //        LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
-
-        //        aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "音訊教會 : 綁定錯誤 => " + ErrorString);
-
-        //        return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
-
-        //        throw e;
-        //    }
-        //}
-        //[HttpGet]
-        //public object LoadAppointments(DataSourceLoadOptions loadOptions)
-        //{
-        //    AppointmentsList aAppointmentsList = new AppointmentsList();
-
-        //    return DataSourceLoader.Load(aAppointmentsList.Appointments, loadOptions);
-        //}
-
-        //[HttpPost]
-        //public IActionResult PostAppointments(string values)
-        //{
-        //    var newAppointment = new Appointment();
-        //    JsonConvert.PopulateObject(values, newAppointment);
-
-
-        //    return Ok();
-        //}
-
-        //[HttpPut]
-        //public IActionResult PutAppointments(int key, string values)
-        //{
-        //    AppointmentsList aAppointmentsList = new AppointmentsList();
-        //    var appointment = aAppointmentsList.Appointments.First(a => a.AppointmentId == key);
-        //    JsonConvert.PopulateObject(values, appointment);
-
-        //    return Ok();
-        //}
-
-        //[HttpDelete]
-        //public void DeleteAppointments(int key)
-        //{
-        //    AppointmentsList aAppointmentsList = new AppointmentsList();
-
-        //    var appointment = aAppointmentsList.Appointments.First(a => a.AppointmentId == key);
-        //    aAppointmentsList.Appointments.Remove(appointment);
-        //    //_data.SaveChanges();
-        //}
         #endregion
         #region 新增新人
         public IActionResult NewPerson()
@@ -3139,9 +3068,6 @@ namespace ChurchReport.Controllers
                 ViewBag.MultiGroupIndex = "SingleMultiGroupView";
                 ViewBag.SchedulerView = "單純行事曆";
 
-                //AppointmentsList aAppointmentsList = new AppointmentsList();
-                //return View(aAppointmentsList);
-
                 return View();
             }
             catch (System.Exception e)
@@ -3182,7 +3108,7 @@ namespace ChurchReport.Controllers
 
                 Entity LineLoginContact = this.m_ToolUtilityClass.RetrieveContactByLineId(UserLineId);
 
-                return Json(new {  message = "歡迎" + "登入成功!" });
+                return Json(new { message = "歡迎" + "登入成功!" });
 
             }
             catch (System.Exception e)
@@ -3235,6 +3161,122 @@ namespace ChurchReport.Controllers
             aAppointmentsList.Appointments.Remove(appointment);
             //_data.SaveChanges();
         }
+        #endregion
+        #region Line Tiff 奉獻
+        public ActionResult DedicationView()
+        {
+            try
+            {
+                ViewBag.LoginType = "小組長"; // 看是小組長還是個人回報
+                ViewBag.LoginFullName = "耶穌";
+                ViewBag.FeeType = "有繳費點名";
+                ViewBag.HappyType = "沒幸福小組名單";
+                ViewBag.MultiGroupIndex = "SingleMultiGroupView";
+                ViewBag.SchedulerView = "單純行事曆";
+
+                NewPersonModel NewPersonModel = new NewPersonModel();
+
+                return View(NewPersonModel.m_PersonFormViewModel);
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "音訊教會豐富教會 : 綁定錯誤 => " + ErrorString);
+
+                throw e;
+            }
+        }
+
+        [HttpPost]
+        public IActionResult SetupUserLineId(string UserLineId, string GroupId, string RoomId, string ViewType)
+        {
+            try
+            {
+                m_InMemoryDataContextSmallGroup.LineBindingViewModel.LineUserId = UserLineId;
+                m_InMemoryDataContextSmallGroup.LineBindingViewModel.RoomId = RoomId;
+                m_InMemoryDataContextSmallGroup.LineBindingViewModel.GroupId = GroupId;
+                m_InMemoryDataContextSmallGroup.LineBindingViewModel.ViewType = ViewType;
+
+                if (GroupId != null && GroupId != "")
+                {
+                    m_InMemoryDataContextSmallGroup.LineBindingViewModel.DisplayId = GroupId;
+                }
+                else if (RoomId != null && RoomId != "")
+                {
+                    m_InMemoryDataContextSmallGroup.LineBindingViewModel.DisplayId = RoomId;
+                }
+                else
+                {
+                    m_InMemoryDataContextSmallGroup.LineBindingViewModel.DisplayId = UserLineId;
+                }
+
+                Entity LineLoginContact = this.m_ToolUtilityClass.RetrieveContactByLineId(UserLineId);
+
+                return Json(new { message = "歡迎" + "登入成功!" });
+
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "音訊教會 : 綁定錯誤 => " + ErrorString);
+
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
+                throw e;
+            }
+        }
+
+
+        [HttpPost]
+        public IActionResult SaveDedication(PersonFormViewModel aPersonFormViewModel)
+        {
+            try
+            {
+                if (aPersonFormViewModel.Phone == "" || aPersonFormViewModel.Phone == null)
+                {
+                    return Json(new { status = "2", message = "新增新人必須要有行動電話" });
+                }
+
+                string Result = m_InMemoryDataContextSmallGroup.m_NewPersonModel.UploadNewPerson(m_InMemoryDataContextSmallGroup.ListManager.m_Account, m_InMemoryDataContextSmallGroup.ListManager.m_Password, aPersonFormViewModel);
+
+                if (Result.Contains("成功"))
+                {
+                    if (m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport != null && aPersonFormViewModel.Position != "0")
+                    {
+                        aPersonFormViewModel.PresentRecordId = m_InMemoryDataContextSmallGroup.m_NewPersonModel.m_NewContact.PresentRecordId;
+                        m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.AddNewPersonToMember(aPersonFormViewModel);
+                    }
+
+                    return Json(new { status = "1", message = Result });
+                }
+                else
+                {
+                    return Json(new { status = "2", message = Result });
+                }
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中生命之道靈糧堂 : 綁定錯誤 => " + ErrorString);
+
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
+                throw e;
+            }
+        }
+
         #endregion
     }
 }
