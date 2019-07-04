@@ -1686,9 +1686,15 @@ namespace ChurchReport.Controllers
                 #region 下載資料
                 // 設定多個組長處理需要的資料
 
+                // 因為換日期時呼叫SetupListManager()會更動到 ActiveListId；但是換日期是不應該更動到ActiveListId
+                // 所以再把他暫存起來
                 String ActiveListId = m_InMemoryDataContextSmallGroup.ListManager.ActiveListId;
 
                 m_InMemoryDataContextSmallGroup.SetupListManager(m_InMemoryDataContextSmallGroup.ListManager.m_Account, m_InMemoryDataContextSmallGroup.ListManager.m_Password, aSelectDate, true);
+
+                // 因為換日期時呼叫SetupListManager()會更動到 ActiveListId；但是換日期是不應該更動到ActiveListId
+                // 所以再把他還原回來
+                m_InMemoryDataContextSmallGroup.ListManager.ActiveListId = ActiveListId;
 
                 m_InMemoryDataContextSmallGroup.ListManager.SetupIntegrateData(ActiveListId);
 
