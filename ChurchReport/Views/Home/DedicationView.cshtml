@@ -16,7 +16,7 @@
                 //.ValidationGroup()
                 //.Width(60)
 
-                .OnClick("SaveNewPerson")
+                .OnClick("ShowLoadPanel")
 
                 //.OnClick(@<text>
                 //function(data) {
@@ -64,8 +64,6 @@
                     .CloseOnOutsideClick(false)
                     .Message("上傳資料中...")
                     .Animation(l => l.Show(k => k.Easing(AnimationEasing.Swing)))
-                //.OnShown("loadPanel_shown")
-                //.OnHidden("loadPanel_hidden")
             )
 
         </div>
@@ -76,7 +74,7 @@
         .ColCount(3)
         .Items(items =>
         {
-        items.AddSimpleFor(m=>m.LastName)
+        items.AddSimpleFor(m => m.LastName)
             //.DataField("LastName")
             .Label(l => l.Text("姓名"))
             .Editor(e => e
@@ -126,9 +124,9 @@
 
     })
         .OnContentReady(@<text>
-                function(e) {
-                e.component.validate();
-                }
+                    function(e) {
+                    e.component.validate();
+                    }
         </text>)
 .FormData(Model)
         )
@@ -141,20 +139,7 @@
         return $("#loadPanel").dxLoadPanel("instance");
     }
 
-    function button_click() {
-        getLoadPanelInstance().show();
-    }
-
-    function loadPanel_shown(e) {
-        //    setTimeout(function () {
-        //        e.component.hide();
-        //    }, 3000);
-    }
-
-    function loadPanel_hidden() {
-    }
-
-    function SaveNewPerson(arg) {
+    function ShowLoadPanel(arg) {
 
         //debugger;
         getLoadPanelInstance().show();
@@ -166,6 +151,16 @@
         //alert("OnValueChanged : " + text: arg.attribute("text"));
 
         //alert( getODataLocalDateFilter(arg.value) );
+    }
+    function ShowToast(LocalToastMessage, Type, DisplayTime) {
+        //debugger;
+        var ToastInstance = $("#toast").dxToast("instance");
+        ToastInstance.option('message', LocalToastMessage);
+        ToastInstance.option('type', Type);
+        ToastInstance.option('displayTime', DisplayTime);
+        ToastInstance.option('white-space', 'pre-line');
+        ToastInstance.option('closeOnClick', true);
+        ToastInstance.show();
     }
 
 </script>
@@ -195,7 +190,7 @@
                 getLoadPanelInstance().hide();
 
                 //DevExpress.ui.notify("新增新人已完成...", "info", 2000);
-                //alert("成功 1" + status);
+                //alert("成功 001");
                 //alert("成功 1" + data);
                 //alert("成功 2" + data.status);
                 //Account.data = data.status * 5;
@@ -207,10 +202,11 @@
                 //$("#toast").dxToast("instance").show();
 
                 if ( data.status == 1) {
-                    //alert("成功 3" + status);
+                    //alert("成功 3");
 
+                    ShowToast(data.message, "success", 2000);
                     //DevExpress.ui.notify(data.message, "info", 2000);
-                    DevExpress.ui.notify(data.message, "success", 2000);
+                    //DevExpress.ui.notify(data.message, "success", 2000);
                     //window.location.href = "/Jesus/Login";
                     //window.location.href = "/Home/NewPerson";
                     window.location.href = data.LinePayUrl;
@@ -219,7 +215,7 @@
                     //alert("成功 4" + status);
                     //window.location.href = "/Home/NewPerson";
                     //window.location.href = "/Home/InputReport/" + data.status;
-                    DevExpress.ui.notify(data.message, "error", 5000);
+                    //DevExpress.ui.notify(data.message, "error", 5000);
                 }
             }
 
@@ -330,22 +326,14 @@
                     // AJAX 區塊
         }
 
-
-        function ShowToast(LocalToastMessage, Type, DisplayTime) {
-            //debugger;
-            var ToastInstance = $("#Toast").dxToast("instance");
-            ToastInstance.option('message', LocalToastMessage);
-            ToastInstance.option('type', Type);
-            ToastInstance.option('displayTime', DisplayTime);
-            ToastInstance.option('white-space', 'pre-line');
-            ToastInstance.option('closeOnClick', true);
-            ToastInstance.show();
-        }
-
 </script>
 
 <link href="~/css/Scheduler.css" rel="stylesheet" />
 <link href="~/css/Site.css" rel="stylesheet" />
+
+<script src="~/lib/jquery-ajax-unobtrusive/jquery.unobtrusive-ajax.js"></script>
+<link href="~/css/Gallery.css" rel="stylesheet" />
+<link href="~/css/WeeklyReport.css" rel="stylesheet" />
 
 <script src="~/js/devextreme/devextreme-intl.min.js"></script>
 <script src="~/js/devextreme/localization/dx.messages.zh-tw.js"></script>

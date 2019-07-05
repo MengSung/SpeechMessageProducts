@@ -237,58 +237,6 @@ namespace ChurchReport.Controllers
             }
         }
 
-        public async Task<string> NotifyLinePay( LinePayClient m_LinePayClient )
-        {
-            try
-            {
-                #region 通知住綁定的輸入格式
-                var reserve = new Reserve()
-                {
-                    //ProductName = "全人醫治",
-                    //ProductName = "幸福茶會",
-                    ProductName = "勇猛向前",
-
-                    //ProductImageUrl = "https://upload.cc/i1/2019/01/09/j2fmYa.jpg",
-                    //ProductImageUrl = "https://web.opendrive.com/api/v1/download/file.json/MF8xODExMDI4NDRf?inline=1",
-                    ProductImageUrl = "https://upload.cc/i1/2019/01/09/f69ikp.jpg",
-                    Amount = 886,
-                    Currency = Currency.TWD,
-                    OrderId = Guid.NewGuid().ToString(),
-                    ConfirmUrl = "https://church.speechmessage.com.tw:454/api/callback/Confirm",
-                    CancelUrl = "https://church.speechmessage.com.tw:454/api/callback/Confirm",
-                    Capture = true,
-                    //ConfirmUrlType = ConfirmUrlType.SERVER,
-                    ConfirmUrlType = ConfirmUrlType.CLIENT,
-                    LanguageCode = LanguageCode.zh_Hant,
-                    PayType = PayType.NORMAL
-                };
-
-                //var response = m_LinePayClient.ReserveAsync(reserve);
-                //Task<ReserveResponse> response = await m_LinePayClient.ReserveAsync(reserve);
-                var response = await m_LinePayClient.ReserveAsync(reserve);
-
-                //Redirect(response.Info.PaymentUrl.Web);
-
-                return response.Info.PaymentUrl.Web;
-
-                //RedirectToPage(response.Info.PaymentUrl.App);
-
-                //BindingAction.Add(new UriTemplateAction("不想繳費", response.Info.PaymentUrl.App));
-
-                //await m_PushUtility.SendMessage(DisplayLineId, "付款網址 = " + response.Info.PaymentUrl.Web);
-
-                #endregion
-
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-
-                //Monitor.Exit(this);
-                throw e;
-            }
-        }
-
         #endregion
         #region Line Id Login 登入
         public IActionResult LineIdLoginView()
@@ -3275,6 +3223,58 @@ namespace ChurchReport.Controllers
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
+                throw e;
+            }
+        }
+
+        public async Task<string> NotifyLinePay(LinePayClient m_LinePayClient)
+        {
+            try
+            {
+                #region 通知住綁定的輸入格式
+                var reserve = new Reserve()
+                {
+                    //ProductName = "全人醫治",
+                    //ProductName = "幸福茶會",
+                    ProductName = "勇猛向前",
+
+                    //ProductImageUrl = "https://upload.cc/i1/2019/01/09/j2fmYa.jpg",
+                    //ProductImageUrl = "https://web.opendrive.com/api/v1/download/file.json/MF8xODExMDI4NDRf?inline=1",
+                    ProductImageUrl = "https://upload.cc/i1/2019/01/09/f69ikp.jpg",
+                    Amount = 886,
+                    Currency = Currency.TWD,
+                    OrderId = Guid.NewGuid().ToString(),
+                    ConfirmUrl = "https://church.speechmessage.com.tw:454/api/callback/Confirm",
+                    CancelUrl = "https://church.speechmessage.com.tw:454/api/callback/Confirm",
+                    Capture = true,
+                    //ConfirmUrlType = ConfirmUrlType.SERVER,
+                    ConfirmUrlType = ConfirmUrlType.CLIENT,
+                    LanguageCode = LanguageCode.zh_Hant,
+                    PayType = PayType.NORMAL
+                };
+
+                //var response = m_LinePayClient.ReserveAsync(reserve);
+                //Task<ReserveResponse> response = await m_LinePayClient.ReserveAsync(reserve);
+                var response = await m_LinePayClient.ReserveAsync(reserve);
+
+                //Redirect(response.Info.PaymentUrl.Web);
+
+                return response.Info.PaymentUrl.Web;
+
+                //RedirectToPage(response.Info.PaymentUrl.App);
+
+                //BindingAction.Add(new UriTemplateAction("不想繳費", response.Info.PaymentUrl.App));
+
+                //await m_PushUtility.SendMessage(DisplayLineId, "付款網址 = " + response.Info.PaymentUrl.Web);
+
+                #endregion
+
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                //Monitor.Exit(this);
                 throw e;
             }
         }
