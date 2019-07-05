@@ -79,10 +79,10 @@
             //.DataField("LastName")
             .Label(l => l.Text("奉獻金額"))
             .Editor(e => e
-                .NumberBox()
+                .NumberBox().Value(null)
                 .Disabled(false)
                 .Placeholder("輸入奉獻金額")
-           );
+            );
 
         items.AddSimpleFor(m => m.Category)
             .Label(l => l.Text("類別"))
