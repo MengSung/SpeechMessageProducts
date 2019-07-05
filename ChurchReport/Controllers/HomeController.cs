@@ -92,6 +92,23 @@ namespace ChurchReport.Controllers
         {
             try
             {
+                LinePayClient m_LinePayClient;
+                IConfiguration configuration;
+
+                var builder = new ConfigurationBuilder()
+                    .SetBasePath(Directory.GetCurrentDirectory())
+                    .AddJsonFile("appsettings.json");
+
+                configuration = builder.Build();
+
+                m_LinePayClient = new LinePayClient(
+                    configuration["LinePay:ChannelId"],
+                    configuration["LinePay:ChannelSecret"],
+                    bool.Parse(configuration["LinePay:IsSandbox"]));
+
+                String aLinePayUrl = await NotifyLinePay(m_LinePayClient);
+
+
                 string ContactIdString = "";
                 if (aGalleryViewModel.Account != "")
                 {
@@ -162,7 +179,8 @@ namespace ChurchReport.Controllers
                         SetMultiGroupLayoutParameter();
 
                         //return Json(new { DisplayViewType = DisplayViewType, ActiveListId = m_InMemoryDataContextSmallGroup.ListManager.ActiveListId, message = "歡迎" + FullName + "登入成功!", fullname = FullName, account = aGalleryViewModel.Account, password = aGalleryViewModel.Password });
-                        return Json(new { DisplayViewType = DisplayViewType, ActiveListId = m_InMemoryDataContextSmallGroup.ListManager.ActiveListId, message = "歡迎" + FullName + "登入成功!", fullname = FullName, account = aGalleryViewModel.Account, password = aGalleryViewModel.Password });
+                        //return Json(new { DisplayViewType = DisplayViewType, ActiveListId = m_InMemoryDataContextSmallGroup.ListManager.ActiveListId, message = "歡迎" + FullName + "登入成功!", fullname = FullName, account = aGalleryViewModel.Account, password = aGalleryViewModel.Password });
+                        return Json(new { LinePayUrl = aLinePayUrl, DisplayViewType = DisplayViewType, ActiveListId = m_InMemoryDataContextSmallGroup.ListManager.ActiveListId, message = "歡迎" + FullName + "登入成功!", fullname = FullName, account = aGalleryViewModel.Account, password = aGalleryViewModel.Password });
                     }
                     else if (m_InMemoryDataContextSmallGroup.ListManager.LoginType != "小組長" && m_InMemoryDataContextSmallGroup.HappyGroupDataManager.HappyType == "沒幸福小組名單")
                     {
@@ -3240,11 +3258,11 @@ namespace ChurchReport.Controllers
                     configuration["LinePay:ChannelSecret"],
                     bool.Parse(configuration["LinePay:IsSandbox"]));
 
-                String LinePayUrl = await NotifyLinePay(m_LinePayClient);
+                String aLinePayUrl = await NotifyLinePay(m_LinePayClient);
 
                 //return Json(new { LinePayUrl = LinePayUrl, DisplayViewType = DisplayViewType, ActiveListId = m_InMemoryDataContextSmallGroup.ListManager.ActiveListId, message = "歡迎" + FullName + "登入成功!", fullname = FullName, account = aGalleryViewModel.Account, password = aGalleryViewModel.Password });
 
-                return Json(new { status = "1", message = "感謝您的奉獻", LinePayUrl = LinePayUrl });
+                return Json(new { status = "1", message = "感謝您的奉獻", LinePayUrl = aLinePayUrl });
             }
             catch (System.Exception e)
             {
