@@ -1,7 +1,7 @@
-﻿@using ChurchReport.ViewModels
-@model PersonFormViewModel
+﻿@using ChurchReport.Models
+@model DedicationModel
 
-<div class="long-title"><h3>奉獻資訊</h3></div>
+@*<div class="long-title"><h3>奉獻資訊</h3></div>*@
 
 <div class="long-title"><h3 id="displaynamefield"></h3></div>
 
@@ -9,7 +9,7 @@
     <div class="dx-field">
         <div id="buttonContainer" class="dx-button-icon">
             @(Html.DevExtreme().Button()
-                    .Text("上傳")
+                    .Text("奉獻")
                     .Type(ButtonType.Success)
                     .ID("save-button")
                     .UseSubmitBehavior(true)
@@ -69,56 +69,34 @@
         </div>
     </div>
     <div id="form-container">
-        @(Html.DevExtreme().Form<PersonFormViewModel>()
+        @(Html.DevExtreme().Form<DedicationModel>()
         .ID("form")
         .ColCount(3)
         .Items(items =>
         {
-        items.AddSimpleFor(m => m.LastName)
+
+        items.AddSimpleFor(m => m.Amount)
             //.DataField("LastName")
-            .Label(l => l.Text("姓名"))
+            .Label(l => l.Text("奉獻金額"))
             .Editor(e => e
-                .TextBox()
+                .NumberBox()
                 .Disabled(false)
-                .Placeholder("輸入姓名")
+                .Placeholder("輸入奉獻金額")
            );
 
-        items.AddSimple()
-            .DataField("Phone")
-            .Label(l => l.Text("行動電話"))
-            .Editor(e => e
-                .TextBox()
-                .Mask("+886 (X000) 000-000")
-                .MaskRules(new { X = new JS("/[02-9]/") })
-                .Placeholder("輸入手機號碼")
-            );
-
-        items.AddSimple()
-            .DataField("BirthDate")
-            .Label(l => l.Text("生日"))
-            //.IsRequired(false)
-            .Editor(e => e
-                .DateBox()
-                .Disabled(false)
-                .Placeholder("生日")
-            );
-
-        items.AddSimple()
-            .DataField("MerrageState")
-            .Label(l => l.Text("婚姻狀態"))
+        items.AddSimpleFor(m => m.Category)
+            .Label(l => l.Text("類別"))
             .Editor(e => e
                 .SelectBox()
                 .DataSource(new string[] {
-                                        "未知",
-                                        "已婚",
-                                        "未婚",
-                                        "離異",
-                                        "喪偶",
-                                        "單身",
+                                        "十一奉獻",
+                                        "一般奉獻",
+                                        "建堂奉獻",
+                                        "宣教奉獻",
                     }
                 //.DisplayExpr("Name")
                 )
-                .Value("未知")
+                .Value("十一奉獻")
                 );
 
 
