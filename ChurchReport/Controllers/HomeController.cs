@@ -92,22 +92,6 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                LinePayClient m_LinePayClient;
-                IConfiguration configuration;
-
-                var builder = new ConfigurationBuilder()
-                    .SetBasePath(Directory.GetCurrentDirectory())
-                    .AddJsonFile("appsettings.json");
-
-                configuration = builder.Build();
-
-                m_LinePayClient = new LinePayClient(
-                    configuration["LinePay:ChannelId"],
-                    configuration["LinePay:ChannelSecret"],
-                    bool.Parse(configuration["LinePay:IsSandbox"]));
-
-                String LinePayUrl = await NotifyLinePay(m_LinePayClient);
-
                 string ContactIdString = "";
                 if (aGalleryViewModel.Account != "")
                 {
@@ -178,7 +162,7 @@ namespace ChurchReport.Controllers
                         SetMultiGroupLayoutParameter();
 
                         //return Json(new { DisplayViewType = DisplayViewType, ActiveListId = m_InMemoryDataContextSmallGroup.ListManager.ActiveListId, message = "歡迎" + FullName + "登入成功!", fullname = FullName, account = aGalleryViewModel.Account, password = aGalleryViewModel.Password });
-                        return Json(new { LinePayUrl = LinePayUrl, DisplayViewType = DisplayViewType, ActiveListId = m_InMemoryDataContextSmallGroup.ListManager.ActiveListId, message = "歡迎" + FullName + "登入成功!", fullname = FullName, account = aGalleryViewModel.Account, password = aGalleryViewModel.Password });
+                        return Json(new { DisplayViewType = DisplayViewType, ActiveListId = m_InMemoryDataContextSmallGroup.ListManager.ActiveListId, message = "歡迎" + FullName + "登入成功!", fullname = FullName, account = aGalleryViewModel.Account, password = aGalleryViewModel.Password });
                     }
                     else if (m_InMemoryDataContextSmallGroup.ListManager.LoginType != "小組長" && m_InMemoryDataContextSmallGroup.HappyGroupDataManager.HappyType == "沒幸福小組名單")
                     {
@@ -3177,6 +3161,8 @@ namespace ChurchReport.Controllers
                 NewPersonModel NewPersonModel = new NewPersonModel();
 
                 return View(NewPersonModel.m_PersonFormViewModel);
+
+                //return View();
             }
             catch (System.Exception e)
             {
@@ -3236,31 +3222,29 @@ namespace ChurchReport.Controllers
 
 
         [HttpPost]
-        public IActionResult SaveDedication(PersonFormViewModel aPersonFormViewModel)
+        public async Task<IActionResult> SaveDedication(PersonFormViewModel aPersonFormViewModel)
         {
             try
             {
-                if (aPersonFormViewModel.Phone == "" || aPersonFormViewModel.Phone == null)
-                {
-                    return Json(new { status = "2", message = "新增新人必須要有行動電話" });
-                }
+                LinePayClient m_LinePayClient;
+                IConfiguration configuration;
 
-                string Result = m_InMemoryDataContextSmallGroup.m_NewPersonModel.UploadNewPerson(m_InMemoryDataContextSmallGroup.ListManager.m_Account, m_InMemoryDataContextSmallGroup.ListManager.m_Password, aPersonFormViewModel);
+                var builder = new ConfigurationBuilder()
+                    .SetBasePath(Directory.GetCurrentDirectory())
+                    .AddJsonFile("appsettings.json");
 
-                if (Result.Contains("成功"))
-                {
-                    if (m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport != null && aPersonFormViewModel.Position != "0")
-                    {
-                        aPersonFormViewModel.PresentRecordId = m_InMemoryDataContextSmallGroup.m_NewPersonModel.m_NewContact.PresentRecordId;
-                        m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.AddNewPersonToMember(aPersonFormViewModel);
-                    }
+                configuration = builder.Build();
 
-                    return Json(new { status = "1", message = Result });
-                }
-                else
-                {
-                    return Json(new { status = "2", message = Result });
-                }
+                m_LinePayClient = new LinePayClient(
+                    configuration["LinePay:ChannelId"],
+                    configuration["LinePay:ChannelSecret"],
+                    bool.Parse(configuration["LinePay:IsSandbox"]));
+
+                String LinePayUrl = await NotifyLinePay(m_LinePayClient);
+
+                //return Json(new { LinePayUrl = LinePayUrl, DisplayViewType = DisplayViewType, ActiveListId = m_InMemoryDataContextSmallGroup.ListManager.ActiveListId, message = "歡迎" + FullName + "登入成功!", fullname = FullName, account = aGalleryViewModel.Account, password = aGalleryViewModel.Password });
+
+                return Json(new { status = "1", message = "感謝您的奉獻", LinePayUrl = LinePayUrl });
             }
             catch (System.Exception e)
             {
