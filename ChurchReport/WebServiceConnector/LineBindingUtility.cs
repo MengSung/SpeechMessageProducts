@@ -39,7 +39,7 @@ namespace ChurchReport.WebServiceConnector
 
         // 客製化
         // 音訊教會
-        private const String CHANNEL_ACCESS_TOKEN = @"g1jtWWNkjbH3OCh1cKoRvPBUkCJIygNuvV/neHXR9I4J5GBgVE85inaIaTcT4AAZ1qCuqrqJXDawrUweyBqLcX97GGokXnTRQ6MxjXAutd5Yr2FkPsZnq6kMelc/C+mqNUHaVUKFAuvTD8JvXbNmpAdB04t89/1O/w1cDnyilFU=";
+        private const String CHANNEL_ACCESS_TOKEN = @"olB/lJ55plRTngOA8I2h6U6zAXyS6xOVAM/xX0NvY/8BDYLujS0rqaPaBnRyGFyLUVAbIullsxEFN86CYVzUHCqQyMiF2wlmnPx7znO46yYUByEjL0mVXlaYHeYHD8WDYzW39NLr2UBHIS9q1q1gSwdB04t89/1O/w1cDnyilFU=";
 
         // 胡夢嵩回傳　EXCEPTION　專用的ＩＤ
         private const String MENGSUNG_LINE_ID = @"U7638e4ed509708a3573ba6d69970583d";

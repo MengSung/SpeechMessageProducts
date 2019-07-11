@@ -1409,7 +1409,7 @@ namespace ChurchReport.WebServiceConnector
 
             foreach (Member aMember in aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members)
             {
-                if (aMember.Status.Contains("牧師師母") || aMember.Status.Contains("區長") || aMember.Status.Contains("小組長") || aMember.Status.Contains("小家長") || aMember.Status.Contains("小組組員") )
+                if (aMember.Status.Contains("牧師師母") || aMember.Status.Contains("區長") || aMember.Status.Contains("小組長") || aMember.Status.Contains("區牧") || aMember.Status.Contains("小組組員") )
                 {
                     aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.Members.Add(aMember);
                 }

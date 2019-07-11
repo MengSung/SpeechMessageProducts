@@ -18,7 +18,6 @@
     <None Remove="Views\Home\DisplayErrorView.cshtml" />
     <None Remove="Views\Home\FeeManagerView.cshtml" />
     <None Remove="Views\Home\HappyGroupWeeklyReport.cshtml" />
-    <None Remove="Views\Home\IntegrateView - 複製.cshtml" />
     <None Remove="Views\Home\IntegrateView.cshtml" />
     <None Remove="Views\Home\LineIdLoginView - 沒有按鈕.cshtml" />
     <None Remove="Views\Home\LineIdLoginView.cshtml" />
