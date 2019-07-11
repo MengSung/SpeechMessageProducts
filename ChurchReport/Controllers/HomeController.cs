@@ -137,14 +137,14 @@ namespace ChurchReport.Controllers
 
                     // 設定幸福小組資料
                     //m_InMemoryDataContextSmallGroup.SetupHappyGroupData(aGalleryViewModel.Account, aGalleryViewModel.Password);
-                    if (m_InMemoryDataContextSmallGroup.m_ListManager.m_ListSmallGroupWeeklyReport.GroupType == "幸福小組")
-                    {
-                        m_InMemoryDataContextSmallGroup.HappyGroupDataManager.HappyType = "有幸福小組名單";
-                    }
-                    else
-                    {
-                        m_InMemoryDataContextSmallGroup.HappyGroupDataManager.HappyType = "沒幸福小組名單";
-                    }
+                    //if (m_InMemoryDataContextSmallGroup.m_ListManager.m_ListSmallGroupWeeklyReport.GroupType == "幸福小組")
+                    //{
+                    //    m_InMemoryDataContextSmallGroup.HappyGroupDataManager.HappyType = "有幸福小組名單";
+                    //}
+                    //else
+                    //{
+                    //    m_InMemoryDataContextSmallGroup.HappyGroupDataManager.HappyType = "沒幸福小組名單";
+                    //}
 
                     // 設定繳費與報名資料
                     m_InMemoryDataContextSmallGroup.FeeList.SetupFeeDataList(aGalleryViewModel.Account, aGalleryViewModel.Password);
