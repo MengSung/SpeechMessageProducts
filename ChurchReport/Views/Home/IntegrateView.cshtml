@@ -126,10 +126,15 @@ else
                                                 var ButtonContainer= $("#save-button").dxButton("instance");
 
                                                 //debugger;
-                                                var SmallGroupDataGridFlag = SmallGroupDataGrid.hasEditData();//是否還殘留尚未回傳的編輯資料
-                                                var NewPersonDataGridFlag = NewPersonDataGrid.hasEditData();//是否還殘留尚未回傳的編輯資料
+                                                //var SmallGroupDataGridFlag = SmallGroupDataGrid.hasEditData();//是否還殘留尚未回傳的編輯資料
+                                                //var NewPersonDataGridFlag = NewPersonDataGrid.hasEditData();//是否還殘留尚未回傳的編輯資料
 
-                                                if( SmallGroupDataGridFlag == false && NewPersonDataGridFlag == false)
+                                                $("#SmallGroupgridContainer").dxDataGrid("instance").saveEditData();
+                                                $("#NewPersonGridContainer").dxDataGrid("instance").saveEditData();
+
+
+                                                //if( SmallGroupDataGridFlag == false && NewPersonDataGridFlag == false)
+                                                if( true)
                                                 {
                                                 // 顯示旋轉鈕
                                                 $("#loadPanel").dxLoadPanel("instance").show();
@@ -203,9 +208,11 @@ else
                                     var ButtonContainer= $("#save-button").dxButton("instance");
 
                                     //debugger;
-                                    var HappyGroupDataGridFlag = HappyGroupDataGrid.hasEditData();//是否還殘留尚未回傳的編輯資料
+                                    //var HappyGroupDataGridFlag = HappyGroupDataGrid.hasEditData();//是否還殘留尚未回傳的編輯資料
 
-                                    if( HappyGroupDataGridFlag == false )
+                                    $("#HappyGroupGridContainer").dxDataGrid("instance").saveEditData();
+                                    //if( HappyGroupDataGridFlag == false )
+                                    if( true )
                                     {
                                     // 顯示旋轉鈕
                                     $("#loadPanel").dxLoadPanel("instance").show();
