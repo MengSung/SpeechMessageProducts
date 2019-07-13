@@ -3103,6 +3103,29 @@ namespace ChurchReport.Controllers
             aAppointmentsList.Appointments.Remove(appointment);
             //_data.SaveChanges();
         }
+
+        public IActionResult NavigateAppointmentDate(string SelectedDate)
+        {
+            try
+            {
+
+                return Ok();
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "¿ù»~°T®§ : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "­µ°TÆFÂ³°ó : ¸j©w¿ù»~ => " + ErrorString);
+
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
+                throw e;
+            }
+        }
+
         #endregion
         #region Line Tiff ©^Äm
         public ActionResult DedicationView()

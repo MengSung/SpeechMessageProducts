@@ -132,14 +132,30 @@ new { id = 4, text = "Sandra Johnson", color = "#ff9747" }
     function OnOptionChanged(e)
     {
         debugger;
-        if (e.name == 'currentDate'|| e.name == "currentView")
-        {
-            alert( "001:" + e.name + ': ' + e.value);
-        }
+        //if (e.name == 'currentDate'|| e.name == "currentView")
+        //{
+        //    alert( "001:" + e.name + ': ' + e.value);
+        //}
         if (e.fullName == "currentDate" || e.fullName == "currentView")
         {
-            alert( "002"+ e.fullName + ': ' + e.value);
+
+            $.ajax({
+                url: '@Url.Action("NavigateAppointmentDate", "Home")',
+                data: { SelectedDate: e.value },
+                type: 'GET', //POST if you want to save, GET if you want to fetch data from server
+
+                success: function (arg) {
+
+                },
+
+                error: function (obj) {
+                    //alert('Something happened');
+                }
+
+            });
+
         }
+
     }
 
 </script>
