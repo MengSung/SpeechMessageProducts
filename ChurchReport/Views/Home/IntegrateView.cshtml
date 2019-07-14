@@ -591,7 +591,7 @@ else
                             .AllowColumnResizing(true)
                             .ColumnResizingMode(ColumnResizingMode.Widget)
                             .ColumnFixing(c => c.Enabled(true))
-                            .LoadPanel(l => l.Text("更新資料中..."))
+                            .LoadPanel(l => l.Text("更新資料中...").Enabled(false))
                             .SearchPanel(s => s.Visible(true).Placeholder("搜尋.."))
                             .ShowColumnLines(true)
                             .ShowRowLines(true)
@@ -629,6 +629,7 @@ else
                                 //editing.Mode(GridEditMode.Popup);
                                 editing.AllowUpdating(true);
                                 editing.AllowDeleting(false);
+                                //editing.
                                 editing.Texts(a => a.SaveAllChanges("上傳檔案").AddRow("新增").CancelAllChanges("取消變更").SaveRowChanges("儲存").CancelRowChanges("取消").EditRow("編輯").DeleteRow("刪除"));
                                 //editing.AllowDeleting(true);
                             })
@@ -735,7 +736,7 @@ else
                             .AllowColumnResizing(true)
                             .ColumnResizingMode(ColumnResizingMode.Widget)
                             .ColumnFixing(c => c.Enabled(true))
-                            .LoadPanel(l => l.Text("更新資料中..."))
+                            .LoadPanel(l => l.Text("更新資料中...").Enabled(false))
                             .SearchPanel(s => s.Visible(true).Placeholder("搜尋.."))
                             .ShowColumnLines(true)
                             .ShowRowLines(true)
@@ -953,7 +954,7 @@ else
                             .AllowColumnResizing(true)
                             .ColumnResizingMode(ColumnResizingMode.Widget)
                             .ColumnFixing(c => c.Enabled(true))
-                            .LoadPanel(l => l.Text("更新資料中..."))
+                            .LoadPanel(l => l.Text("更新資料中...").Enabled(false))
                             .SearchPanel(s => s.Visible(true).Placeholder("搜尋.."))
                             .ShowColumnLines(true)
                             .ShowRowLines(true)
@@ -1115,7 +1116,7 @@ else
                             .AllowColumnResizing(true)
                             .ColumnResizingMode(ColumnResizingMode.Widget)
                             .ColumnFixing(c => c.Enabled(true))
-                            .LoadPanel(l => l.Text("更新資料中..."))
+                            .LoadPanel(l => l.Text("更新資料中...").Enabled(false))
                             .SearchPanel(s => s.Visible(true).Placeholder("搜尋.."))
                             .OnContentReady(@<text>
                                         function(e) {

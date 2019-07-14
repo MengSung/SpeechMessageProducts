@@ -175,7 +175,7 @@
             .AllowColumnResizing(true)
             .ColumnResizingMode(ColumnResizingMode.Widget)
             .ColumnFixing(c => c.Enabled(true))
-            .LoadPanel(l => l.Text("更新資料中..."))
+            .LoadPanel(l => l.Text("更新資料中...").Enabled(false))
             .SearchPanel(s => s.Visible(true).Placeholder("搜尋.."))
 
             .Export(e=>e.Enabled(true).AllowExportSelectedData(true))
