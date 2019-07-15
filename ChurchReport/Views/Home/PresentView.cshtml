@@ -573,112 +573,112 @@ function ProcessColumeHeader(columns) {
         //Colume4 = "繳費金額";
         //Colume5 = "付款方式";
 
-        ViewBag6 = @Html.Raw(JsonConvert.SerializeObject(ViewBag.Colume6) as String);
-        if (ViewBag6 != "") {
-
-            Colume6 =  ViewBag6;
-        }
-        ViewBag7 = @Html.Raw(JsonConvert.SerializeObject(ViewBag.Colume7) as String);
-        if (ViewBag7 != "") {
-
-            Colume7 =  ViewBag7;
-        }
-        ViewBag8 = @Html.Raw(JsonConvert.SerializeObject(ViewBag.Colume8) as String);
-        if (ViewBag8 != "") {
-
-            Colume8 =  ViewBag8;
-        }
         ViewBag9 = @Html.Raw(JsonConvert.SerializeObject(ViewBag.Colume9) as String);
         if (ViewBag9 != "") {
 
-            Colume9 =  ViewBag9;
+            Colume6 =  ViewBag9;
         }
         ViewBag10 = @Html.Raw(JsonConvert.SerializeObject(ViewBag.Colume10) as String);
         if (ViewBag10 != "") {
 
-            Colume10 =  ViewBag10;
+            Colume7 =  ViewBag10;
         }
         ViewBag11 = @Html.Raw(JsonConvert.SerializeObject(ViewBag.Colume11) as String);
         if (ViewBag11 != "") {
 
-            Colume11 =  ViewBag11;
+            Colume8 =  ViewBag11;
         }
         ViewBag12 = @Html.Raw(JsonConvert.SerializeObject(ViewBag.Colume12) as String);
         if (ViewBag12 != "") {
 
-            Colume12 =  ViewBag12;
+            Colume9 =  ViewBag12;
         }
         ViewBag13 = @Html.Raw(JsonConvert.SerializeObject(ViewBag.Colume13) as String);
         if (ViewBag13 != "") {
 
-            Colume13 =  ViewBag13;
+            Colume10 =  ViewBag13;
         }
         ViewBag14 = @Html.Raw(JsonConvert.SerializeObject(ViewBag.Colume14) as String);
         if (ViewBag14 != "") {
 
-            Colume14 =  ViewBag14;
+            Colume11 =  ViewBag14;
         }
         ViewBag15 = @Html.Raw(JsonConvert.SerializeObject(ViewBag.Colume15) as String);
         if (ViewBag15 != "") {
 
-            Colume15 =  ViewBag15;
+            Colume12 =  ViewBag15;
         }
         ViewBag16 = @Html.Raw(JsonConvert.SerializeObject(ViewBag.Colume16) as String);
         if (ViewBag16 != "") {
 
-            Colume16 =  ViewBag16;
+            Colume13 =  ViewBag16;
         }
         ViewBag17 = @Html.Raw(JsonConvert.SerializeObject(ViewBag.Colume17) as String);
         if (ViewBag17 != "") {
 
-            Colume17 =  ViewBag17;
+            Colume14 =  ViewBag17;
         }
-        ViewBag22 = @Html.Raw(JsonConvert.SerializeObject(ViewBag.Colume22) as String);
-        if (ViewBag22 != "") {
+        ViewBag18 = @Html.Raw(JsonConvert.SerializeObject(ViewBag.Colume18) as String);
+        if (ViewBag18 != "") {
 
-            Colume22 =  ViewBag22;
+            Colume15 =  ViewBag18;
         }
         ViewBag19 = @Html.Raw(JsonConvert.SerializeObject(ViewBag.Colume19) as String);
         if (ViewBag19 != "") {
 
-            Colume19 =  ViewBag19;
+            Colume16 =  ViewBag19;
         }
         ViewBag20 = @Html.Raw(JsonConvert.SerializeObject(ViewBag.Colume20) as String);
         if (ViewBag20 != "") {
 
-            Colume20 =  ViewBag20;
+            Colume17 =  ViewBag20;
         }
         ViewBag21 = @Html.Raw(JsonConvert.SerializeObject(ViewBag.Colume21) as String);
         if (ViewBag21 != "") {
 
-            Colume21 =  ViewBag21;
+            Colume18 =  ViewBag21;
         }
         ViewBag22 = @Html.Raw(JsonConvert.SerializeObject(ViewBag.Colume22) as String);
         if (ViewBag22 != "") {
 
-            Colume22 =  ViewBag22;
+            Colume19 =  ViewBag22;
         }
         ViewBag23 = @Html.Raw(JsonConvert.SerializeObject(ViewBag.Colume23) as String);
         if (ViewBag23 != "") {
 
-            Colume23 =  ViewBag23;
+            Colume20 =  ViewBag23;
         }
-        @*ViewBag24 = @Html.Raw(JsonConvert.SerializeObject(ViewBag.Colume24) as String);
+        ViewBag24 = @Html.Raw(JsonConvert.SerializeObject(ViewBag.Colume24) as String);
         if (ViewBag24 != "") {
 
-            Colume24 =  ViewBag24;
+            Colume21 =  ViewBag24;
         }
         ViewBag25 = @Html.Raw(JsonConvert.SerializeObject(ViewBag.Colume25) as String);
         if (ViewBag25 != "") {
 
-            Colume25 =  ViewBag25;
-        }*@
+            Colume22 =  ViewBag25;
+        }
+        ViewBag26 = @Html.Raw(JsonConvert.SerializeObject(ViewBag.Colume26) as String);
+        if (ViewBag26 != "") {
+
+            Colume23 =  ViewBag26;
+        }
+        ViewBag27 = @Html.Raw(JsonConvert.SerializeObject(ViewBag.Colume27) as String);
+        if (ViewBag27 != "") {
+
+            Colume24 =  ViewBag27;
+        }
+        ViewBag28 = @Html.Raw(JsonConvert.SerializeObject(ViewBag.Colume28) as String);
+        if (ViewBag28 != "") {
+
+            Colume25 =  ViewBag28;
+        }
     }
 }
 
 function onCustomizeColumns(columns)
 {
-    //ProcessColumeHeader(columns);
+    ProcessColumeHeader(columns);
 
     ////for (var i = 0; i < columns.length; i++) {
     ////    columns[i].caption = Bag + i.toString();
