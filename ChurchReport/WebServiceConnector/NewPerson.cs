@@ -421,8 +421,8 @@ namespace ChurchReport.WebServiceConnector
             // 委身類型設定為新朋友
 
 
-            // 內壢得勝靈糧堂牧養新朋友稱呼代碼，跟音訊靈糧堂不一樣
-            //音訊靈糧堂
+            // 內壢得勝靈糧堂牧養新朋友稱呼代碼，跟台中思恩堂豐富教會不一樣
+            //台中思恩堂豐富教會
             if (this.m_ToolUtilityClass.GetEntityStringAttribute(this.m_ToolUtilityClass.RetrieveEntity("list", aListEntityId), "listname").Contains("幸福"))
             {
                 // 幸福小組新增的新人，委身類型設為"幸福 Best"
@@ -448,13 +448,13 @@ namespace ChurchReport.WebServiceConnector
                 this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aNewContactEntity, "new_enter_church_date", aNewContact.FirstChurchDate);
             }
 
-            // 性別，音訊靈糧堂
+            // 性別，台中思恩堂豐富教會
             if (aNewContact.Gender)
             { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "gendercode", 200000); }
             else
             { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "gendercode", 200001); }
 
-            // 內壢得勝靈糧堂性別值，跟音訊靈糧堂不一樣
+            // 內壢得勝靈糧堂性別值，跟台中思恩堂豐富教會不一樣
             //if (aNewContact.Gender)
             //{ this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "gendercode", 100000001); }
             //else
@@ -581,7 +581,7 @@ namespace ChurchReport.WebServiceConnector
 
                         // 內壢得勝靈糧堂
                         //this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aNewContactEntity, "new_cell_list_contact", ref aListEntityReference);
-                        // 音訊靈糧堂
+                        // 台中思恩堂豐富教會
                         this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aNewContactEntity, "new_list_contact", ref aListEntityReference);
 
                         this.m_ToolUtilityClass.UpdateEntity(ref aNewContactEntity);
@@ -1651,7 +1651,7 @@ namespace ChurchReport.WebServiceConnector
                 #endregion
                 #region 設定附註或是代禱事項
 
-                // 音訊靈糧堂
+                // 台中思恩堂豐富教會
                 //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_name", aMemberInfomation.Note);
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_explanation", aMemberInfomation.Note);
 
@@ -1910,7 +1910,7 @@ namespace ChurchReport.WebServiceConnector
                 int aCustomerTypeCodeValue = this.m_ToolUtilityClass.GetOptionSetAttribute(ref aContactEntity, "customertypecode");
                 //OptionSetValue aCustomerTypeCode = aContactEntity.Attributes["customertypecode"] as OptionSetValue;
 
-                // 如果是新朋友或是未入組則不列入累積，音訊靈糧堂
+                // 如果是新朋友或是未入組則不列入累積，台中思恩堂豐富教會
                 if (aCustomerTypeCodeValue != 100000004 && aCustomerTypeCodeValue != 100000000 && aCustomerTypeCodeValue != 100000007 && aCustomerTypeCodeValue != EMPTY_VALUE)
                 {
                     return true;

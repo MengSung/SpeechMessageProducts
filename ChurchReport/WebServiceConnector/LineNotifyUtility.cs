@@ -38,8 +38,8 @@ namespace ChurchReport.WebServiceConnector
         private const String CRM_TYPE = "DYNAMICS365";
 
         // 客製化
-        // 音訊靈糧堂
-        private const String CHANNEL_ACCESS_TOKEN = @"olB/lJ55plRTngOA8I2h6U6zAXyS6xOVAM/xX0NvY/8BDYLujS0rqaPaBnRyGFyLUVAbIullsxEFN86CYVzUHCqQyMiF2wlmnPx7znO46yYUByEjL0mVXlaYHeYHD8WDYzW39NLr2UBHIS9q1q1gSwdB04t89/1O/w1cDnyilFU=";
+        // 台中思恩堂豐富教會
+        private const String CHANNEL_ACCESS_TOKEN = @"yvyzlpbDY4ctjVuC0vEYFDF4Gz9Ed6VR57AOmqEfRPqNSFa4tmlvgFqydqOsv8C5vOG3Ew1vPtBfZoJ7Psm69HH+oKtRA4UeMWi1EZp6j4hzhjC1ePmBRQOdfcbcGgDjJzC60Q8HAI/Err6YjFZwOwdB04t89/1O/w1cDnyilFU=";
 
         // 胡夢嵩回傳　EXCEPTION　專用的ＩＤ
         private const String MENGSUNG_LINE_ID = @"U7638e4ed509708a3573ba6d69970583d";
@@ -50,7 +50,7 @@ namespace ChurchReport.WebServiceConnector
         public LineNotifyUtility()
         {
             // 客製化，請選擇
-            // 音訊靈糧堂(免費版)
+            // 台中思恩堂豐富教會(免費版)
             this.m_LineMessagingClient = new LineMessagingClient(CHANNEL_ACCESS_TOKEN);
 
             //m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
