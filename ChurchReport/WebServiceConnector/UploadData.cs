@@ -449,21 +449,19 @@ namespace ChurchReport.WebServiceConnector
 
 
         // 委身類型客製化
-        // 台北基督之家
-        private String ConvertIndexToIdentity(int Index)
+        // 台中思恩堂豐富教會
+        private String ConvertIndexToIdentity(int Identity)
         {
-            switch (Index)
+            switch (Identity)
             {
                 case 100000006:
                     return "01. 牧師師母";
                 case 100000003:
                     return "02. 區長";
-                case 100000002:
-                    return "011. 區牧";
                 case 100000008:
                     return "03. 小組長";
                 case 100000012:
-                    return "04. 小家長";
+                    return "04. 副組長";
                 case 1:
                     return "05. 小組組員";
                 case 100000005:

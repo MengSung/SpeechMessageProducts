@@ -4117,6 +4117,7 @@ namespace ChurchReport.WebServiceConnector
             }
         }
 
+        // 台中思恩堂豐富教會
         // 委身類型客製化
         private int ConvertIdentityToIndex(String Identity)
         {
@@ -4130,7 +4131,7 @@ namespace ChurchReport.WebServiceConnector
                     return 100000002;
                 case "小組長":
                     return 100000008;
-                case "小家長":
+                case "副組長":
                     return 100000012;
                 case "小組組員":
                     return 1;
@@ -4150,16 +4151,15 @@ namespace ChurchReport.WebServiceConnector
         }
 
         // 台中思恩堂豐富教會
+        // 委身類型客製化
         private String ConvertIndexToIdentity(int Identity)
         {
             switch (Identity)
             {
                 case 100000006:
-                    return "01. 負責弟兄";
-                case 100000002:
-                    return "01.1 區牧/副區牧";
+                    return "01. 牧師師母";
                 case 100000003:
-                    return "02. 門徒小組長";
+                    return "02. 區長";
                 case 100000008:
                     return "03. 小組長";
                 case 100000012:
@@ -4180,6 +4180,7 @@ namespace ChurchReport.WebServiceConnector
                     return ".";
             }
         }
+
 
         #endregion
         #region 字典處理函式庫

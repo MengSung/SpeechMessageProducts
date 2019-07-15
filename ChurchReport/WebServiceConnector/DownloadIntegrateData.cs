@@ -1409,7 +1409,7 @@ namespace ChurchReport.WebServiceConnector
 
             foreach (Member aMember in aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members)
             {
-                if (aMember.Status.Contains("牧師師母") || aMember.Status.Contains("區長") || aMember.Status.Contains("小組長") || aMember.Status.Contains("區牧") || aMember.Status.Contains("小組組員") )
+                if (aMember.Status.Contains("牧師師母") || aMember.Status.Contains("區長") || aMember.Status.Contains("小組長") || aMember.Status.Contains("副組長") || aMember.Status.Contains("小組組員"))
                 {
                     aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.Members.Add(aMember);
                 }
@@ -2444,11 +2444,9 @@ namespace ChurchReport.WebServiceConnector
             switch (Identity)
             {
                 case 100000006:
-                    return "01. 負責弟兄";
-                case 100000002:
-                    return "01.1 區牧/副區牧";
+                    return "01. 牧師師母";
                 case 100000003:
-                    return "02. 門徒小組長";
+                    return "02. 區長";
                 case 100000008:
                     return "03. 小組長";
                 case 100000012:
