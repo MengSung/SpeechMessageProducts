@@ -233,61 +233,6 @@
             </text> );
             columns.Add().DataField("SmallGroupName").Caption("小組名稱").Width(80).MinWidth(20).Alignment(HorizontalAlignment.Left).AllowSorting(true);
             columns.Add().DataField("MobilePhone").Caption("行動電話").Fixed(false).Width(120).MinWidth(20).Alignment(HorizontalAlignment.Center).AllowSorting(true);
-            columns.Add().DataField("PayDate").Caption("繳費日期").Alignment(HorizontalAlignment.Center).DataType(GridColumnDataType.Date).Format("yyyy/M/d").Width(100).MinWidth(45).AllowSorting(true)
-            .CalculateCellValue(@<text>
-                    function(row)
-                    {
-                    if( row.PayDate != null )
-                    {
-                    //debugger;
-
-                    var PayDate = ParsingDate( row.PayDate );
-                    if( PayDate.getFullYear() == 1901 )
-                    {
-                    return null;
-                    }
-                    else
-                    {
-                    return PayDate;
-                    }
-                    }
-                    else
-                    {return null;}
-                    }
-            </text> );
-
-            columns.Add().DataField("Amount").Caption("繳費金額").DataType(GridColumnDataType.Number).Width(100).MinWidth(45).AllowSorting(false)
-.CalculateCellValue
-(
-    @<text>
-        function(row)
-        {
-        if( row.Amount <= 0 )
-        {
-        return "";
-        }
-        else
-        {
-        return row.Amount;
-        }
-        }
-    </text>
-    );
-
-                columns.Add().DataField("PayWay")
-    .Caption("付款方式").Alignment(HorizontalAlignment.Center)
-    .Width(100).MinWidth(30)
-    .Lookup(lookup => lookup
-    .DataSource(new string[] {
-"未知",
-"現金",
-"信用卡",
-"ATM轉帳",
-"超商付款",
-            })
-    //.DisplayExpr("Name")
-    //.ValueExpr("ID")
-    );
 
 
                 columns.Add().DataField("Lesson1").Caption("第一課").DataType(GridColumnDataType.Boolean).Width(60).MinWidth(45).AllowSorting(false);
@@ -597,29 +542,26 @@ return locale != null ? locale : "tw";
     var Colume3 = "生日";
     var Colume4 = "小組名稱";
     var Colume5 = "行動電話";
-    var Colume6 = "繳費日期";
-    var Colume7 = "繳費金額";
-    var Colume8 = "付款方式";
-    var Colume9 = "第一課";
-    var Colume10 = "第二課";
-    var Colume11 = "第三課";
-    var Colume12= "第四課";
-    var Colume13 = "第五課";
-    var Colume14 = "第六課";
-    var Colume15 = "第七課";
-    var Colume16 = "第八課";
-    var Colume17 = "第九課";
-    var Colume18 = "第十課";
-    var Colume19 = "第十一課";
-    var Colume20 = "第十二課";
-    var Colume21 = "第十三課";
-    var Colume22 = "第十四課";
-    var Colume23 = "第十五課";
-    var Colume24 = "作業A";
-    var Colume25 = "作業B";
-    var Colume26 = "作業C";
-    var Colume27 = "作業D";
-    var Colume28 = "作業E";
+    var Colume6 = "第一課";
+    var Colume7 = "第二課";
+    var Colume8 = "第三課";
+    var Colume9= "第四課";
+    var Colume10 = "第五課";
+    var Colume11 = "第六課";
+    var Colume12 = "第七課";
+    var Colume13 = "第八課";
+    var Colume14 = "第九課";
+    var Colume15 = "第十課";
+    var Colume16 = "第十一課";
+    var Colume17 = "第十二課";
+    var Colume18 = "第十三課";
+    var Colume19 = "第十四課";
+    var Colume20 = "第十五課";
+    var Colume21 = "作業A";
+    var Colume22 = "作業B";
+    var Colume23 = "作業C";
+    var Colume24 = "作業D";
+    var Colume25 = "作業E";
 
 function ProcessColumeHeader(columns) {
     for (var i = 0; i < columns.length; i++)
@@ -631,6 +573,21 @@ function ProcessColumeHeader(columns) {
         //Colume4 = "繳費金額";
         //Colume5 = "付款方式";
 
+        ViewBag6 = @Html.Raw(JsonConvert.SerializeObject(ViewBag.Colume6) as String);
+        if (ViewBag6 != "") {
+
+            Colume6 =  ViewBag6;
+        }
+        ViewBag7 = @Html.Raw(JsonConvert.SerializeObject(ViewBag.Colume7) as String);
+        if (ViewBag7 != "") {
+
+            Colume7 =  ViewBag7;
+        }
+        ViewBag8 = @Html.Raw(JsonConvert.SerializeObject(ViewBag.Colume8) as String);
+        if (ViewBag8 != "") {
+
+            Colume8 =  ViewBag8;
+        }
         ViewBag9 = @Html.Raw(JsonConvert.SerializeObject(ViewBag.Colume9) as String);
         if (ViewBag9 != "") {
 
@@ -676,10 +633,15 @@ function ProcessColumeHeader(columns) {
 
             Colume17 =  ViewBag17;
         }
-        ViewBag18 = @Html.Raw(JsonConvert.SerializeObject(ViewBag.Colume18) as String);
-        if (ViewBag18 != "") {
+        ViewBag22 = @Html.Raw(JsonConvert.SerializeObject(ViewBag.Colume22) as String);
+        if (ViewBag22 != "") {
 
-            Colume18 =  ViewBag18;
+            Colume22 =  ViewBag22;
+        }
+        ViewBag19 = @Html.Raw(JsonConvert.SerializeObject(ViewBag.Colume19) as String);
+        if (ViewBag19 != "") {
+
+            Colume19 =  ViewBag19;
         }
         ViewBag20 = @Html.Raw(JsonConvert.SerializeObject(ViewBag.Colume20) as String);
         if (ViewBag20 != "") {
@@ -701,7 +663,7 @@ function ProcessColumeHeader(columns) {
 
             Colume23 =  ViewBag23;
         }
-        ViewBag24 = @Html.Raw(JsonConvert.SerializeObject(ViewBag.Colume24) as String);
+        @*ViewBag24 = @Html.Raw(JsonConvert.SerializeObject(ViewBag.Colume24) as String);
         if (ViewBag24 != "") {
 
             Colume24 =  ViewBag24;
@@ -710,28 +672,13 @@ function ProcessColumeHeader(columns) {
         if (ViewBag25 != "") {
 
             Colume25 =  ViewBag25;
-        }
-        ViewBag26 = @Html.Raw(JsonConvert.SerializeObject(ViewBag.Colume26) as String);
-        if (ViewBag26 != "") {
-
-            Colume26 =  ViewBag26;
-        }
-        ViewBag27 = @Html.Raw(JsonConvert.SerializeObject(ViewBag.Colume27) as String);
-        if (ViewBag27 != "") {
-
-            Colume27 =  ViewBag27;
-        }
-        ViewBag28 = @Html.Raw(JsonConvert.SerializeObject(ViewBag.Colume28) as String);
-        if (ViewBag28 != "") {
-
-            Colume28 =  ViewBag28;
-        }
+        }*@
     }
 }
 
 function onCustomizeColumns(columns)
 {
-    ProcessColumeHeader(columns);
+    //ProcessColumeHeader(columns);
 
     ////for (var i = 0; i < columns.length; i++) {
     ////    columns[i].caption = Bag + i.toString();
@@ -765,15 +712,12 @@ function onCustomizeColumns(columns)
     columns[5].caption = Colume5;
     columns[5].width = Colume5.length * 25;
 
-    // 繳費日期
     columns[6].caption = Colume6;
     columns[6].width = Colume6.length * 25;
 
-    // 繳費金額
     columns[7].caption = Colume7;
     columns[7].width = Colume7.length * 25;
 
-    // 付款方式
     columns[8].caption = Colume8;
     columns[8].width = Colume8.length * 25;
 
@@ -883,14 +827,6 @@ function onCustomizeColumns(columns)
     columns[25].caption = Colume25;
     columns[25].width = Colume25.length * 25;
 
-    columns[26].caption = Colume25;
-    columns[26].width = Colume25.length * 25;
-
-    columns[27].caption = Colume25;
-    columns[27].width = Colume25.length * 25;
-
-    columns[28].caption = Colume25;
-    columns[28].width = Colume25.length * 25;
 }
 
 </script>
