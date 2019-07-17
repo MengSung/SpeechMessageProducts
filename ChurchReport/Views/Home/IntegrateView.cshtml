@@ -292,7 +292,9 @@ else
                                             //debugger;
                                             var IndividualGridFlag = IndividualGrid.hasEditData();//是否還殘留尚未回傳的編輯資料
 
-                                            if( IndividualGridFlag == false )
+                                            $("#IndividualGridContainer").dxDataGrid("instance").saveEditData();
+                                            //if( IndividualGridFlag == false )
+                                            if( true )
                                             {
                                             // 顯示旋轉鈕
                                             $("#loadPanel").dxLoadPanel("instance").show();

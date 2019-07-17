@@ -25,6 +25,7 @@ using Microsoft.Extensions.Configuration;
 using System.IO;
 using System.Threading.Tasks;
 using ChurchReport.WebServiceConnector;
+using System.Globalization;
 
 namespace ChurchReport.Controllers
 {
@@ -3197,6 +3198,41 @@ namespace ChurchReport.Controllers
             try
             {
 
+                string[] DateTimeList = {
+
+                            "yyyy/M/d tt hh:mm:ss",
+
+                            "yyyy/MM/dd tt hh:mm:ss",
+
+                            "yyyy/MM/dd HH:mm:ss",
+
+                            "yyyy/M/d HH:mm:ss",
+
+                            "ddd MMM dd yyyy HH:mm:ss GMT+0800 (台北標準時間)",
+
+                            "ddd MMM dd yyyy HH:mm:ss GMT+0800 (CST)",
+
+                            "ddd MMM dd yyyy HH:mm:ss GMT+0800",
+
+                            "ddd MMM dd yyyy HH:mm:ss",
+
+                            "yyyy/M/d",
+
+                            "yyyy/MM/dd"
+
+                        };
+
+
+                DateTime dt = DateTime.ParseExact(SelectedDate,
+
+                                  DateTimeList,
+
+                                  CultureInfo.InvariantCulture,
+
+                                  DateTimeStyles.AllowWhiteSpaces
+
+                                  );
+
                 return Ok();
             }
             catch (System.Exception e)
@@ -3210,7 +3246,7 @@ namespace ChurchReport.Controllers
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
-                throw e;
+                //throw e;
             }
         }
 
