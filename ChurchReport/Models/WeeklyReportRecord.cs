@@ -17,7 +17,7 @@ namespace ChurchReport.Models
         //private const String CRM_TYPE = "CRM2011";
         private const String CRM_TYPE = "DYNAMICS365";
 
-        private const bool TRANSFER_IDENTITY_FLAG = false;
+        private const bool TRANSFER_IDENTITY_FLAG = true;
 
         #region 除錯用參數
         private const int TOTAL_LEVEL = 1;//改變這個值，就會改追蹤的階層，值越小越不會追蹤，若是 TOTAL_LEVEL = 3 ，則大於 3 的 LEVEL，例如 : LEVEL_4、LEVEL_5 就不會被追蹤
