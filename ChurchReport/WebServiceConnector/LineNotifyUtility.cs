@@ -39,7 +39,7 @@ namespace ChurchReport.WebServiceConnector
 
         // 客製化
         // 台中思恩堂豐富教會
-        private const String CHANNEL_ACCESS_TOKEN = @"k4/gFG2xonyaewMi8NIPgYdqpcIDnixEpemNIEswwFPzltmlm2kGB6i+uuvvmBaxg9l8wXympy37Y2h7ueq6ECUhTGyBovUXyqgH6lF6aa5R757vsN7sRX7o03dx7tPbj5J5dICcR1JRbvBvxvZ3KQdB04t89/1O/w1cDnyilFU=";
+        private const String CHANNEL_ACCESS_TOKEN = @"yvyzlpbDY4ctjVuC0vEYFDF4Gz9Ed6VR57AOmqEfRPqNSFa4tmlvgFqydqOsv8C5vOG3Ew1vPtBfZoJ7Psm69HH+oKtRA4UeMWi1EZp6j4hzhjC1ePmBRQOdfcbcGgDjJzC60Q8HAI/Err6YjFZwOwdB04t89/1O/w1cDnyilFU=";
 
         // 胡夢嵩回傳　EXCEPTION　專用的ＩＤ
         private const String MENGSUNG_LINE_ID = @"U7638e4ed509708a3573ba6d69970583d";
