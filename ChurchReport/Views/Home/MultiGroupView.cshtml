@@ -38,6 +38,7 @@
     .DisplayFormat("yyyy/M/d")
     .OnChange("OnDateboxChange")
     .CalendarOptions( k=>k.FirstDayOfWeek(0))
+    .PickerType(DateBoxPickerType.Calendar)
     //.DisplayFormat("yyyy/MM/dd")
     //.OnValueChanged("OnValueChanged")
 
@@ -539,8 +540,8 @@ m => m
         .appendTo(cellElement);
     }
     function OnRowPrepared(e) {
-        e.rowElement.css({ height: 35 });
-        e.rowElement.css('font-size', '20px');
+        e.rowElement.css({ height: 25 });
+        e.rowElement.css('font-size', '16px');
         if (e.rowType == 'data') {
             //e.rowElement.css('background', '#fff2a8');
             e.rowElement[0].addEventListener("mouseover", function () {

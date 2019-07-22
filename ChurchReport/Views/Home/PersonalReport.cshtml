@@ -18,7 +18,8 @@
             //.OnChange("OnDateboxChange")
             //.DisplayFormat("yyyy/MM/dd")
             .OnValueChanged("OnValueChanged")
-            .CalendarOptions( k=>k.FirstDayOfWeek(0))
+            .CalendarOptions(k => k.FirstDayOfWeek(0))
+            .PickerType(DateBoxPickerType.Calendar)
 
 
                     .OnValueChanged(@<text>
@@ -44,8 +45,8 @@
 
                                 });
                                 }
-                                </text>
-                    )
+                    </text>
+)
 
             )
         </div>
@@ -354,6 +355,42 @@
                 //$("#divLoading").html("");
             }
 </script>
+
+<!--本地中文化-->
+<script>
+    var dictionary = {
+        "zh-tw": {
+            "dxScheduler-switcherAgenda": "會議內容", // 在這裡可以做最後的字典對應
+            "Month": "月",
+            "Subject": "主題",
+            "Company": "Company",
+            "Amount": "Amount",
+            "PaymentDate": "Payment Date"
+        },
+    };
+    DevExpress.localization.loadMessages(dictionary);
+    var formatMessage = DevExpress.localization.formatMessage;
+
+    var locale = getLocale();
+    //DevExpress.localization.locale(navigator.language || navigator.browserLanguage);
+    DevExpress.localization.locale(locale);
+
+    function changeLocale(data) {
+        setLocale(data.value);
+        document.location.reload();
+    }
+
+    function getLocale() {
+        //debugger;
+        //sessionStorage.setItem("locale", 'zh');
+        sessionStorage.setItem("locale", 'zh-tw');
+        var locale = sessionStorage.getItem("locale");
+        return locale != null ? locale : "tw";
+    }
+</script>
+<!--本地中文化-->
+<script src="~/js/devextreme/devextreme-intl.min.js"></script>
+<script src="~/js/devextreme/localization/dx.messages.zh-tw.js"></script>
 
 <script>var DataUploadStatus = "尚未上傳喔!";</script>
 <script>var UploadDateFormat = "格式正確!";</script>
