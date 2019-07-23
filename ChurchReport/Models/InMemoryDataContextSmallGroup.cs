@@ -21,6 +21,7 @@ namespace ChurchReport.Models
         public HappyGroupDataManager m_HappyGroupDataManager = new HappyGroupDataManager();
         public FeeList m_FeeList = new FeeList();
         public LineBindingViewModel m_LineBindingViewModel = new LineBindingViewModel();
+        public AppointmentsListManager m_AppointmentsListManager = new AppointmentsListManager();
 
         #endregion
         #region 初始化
@@ -366,6 +367,49 @@ namespace ChurchReport.Models
         }
 
         #endregion
+        #region 多個組長處理區
+        public void SetupAppointmentList(String Account, String Password, DateTime aSelectDate)
+        {
+            try
+            {
+                // 設定多個組長處理資料
+                m_AppointmentsListManager.SetupAppointmentList(Account, Password, aSelectDate);
+
+                //m_ListManager.SetupListManager();
+
+                //m_ListManager.SetupOnlyOneListManager();
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                throw e;
+            }
+
+        }
+
+        public AppointmentsListManager AppointmentsListManager
+        {
+            get
+            {
+                var session = _contextAccessor.HttpContext.Session;
+                var key = session.Id + "_AppointmentsListManager";
+
+                if (_memoryCache.Get(key) == null)
+                {
+                    _memoryCache.Set<AppointmentsListManager>(key, m_AppointmentsListManager, new MemoryCacheEntryOptions
+                    {
+                        AbsoluteExpiration = DateTime.Now.AddMinutes(3),
+                        SlidingExpiration = TimeSpan.FromMinutes(3)
+                    });
+                    session.SetInt32("dirty", 1);
+                }
+
+                return _memoryCache.Get<AppointmentsListManager>(key);
+            }
+        }
+        #endregion
+
         #region 工具區
         public void SaveChanges()
         {

@@ -5,13 +5,45 @@ using System.Threading.Tasks;
 
 namespace ChurchReport.Models
 {
-    public class AppointmentsList
+    public class AppointmentsListManager
     {
-        public List<Appointment> Appointments
+        public AppointmentsListManager()
+        { }
+
+        public String m_Account;
+        public String m_Password;
+        public DateTime m_SelectDate { get; set; } // 行事曆日期
+
+        public List<Appointment> m_Appointments;
+
+        public List<Appointment> SetupAppointmentList(String Account, String Password, DateTime aSelectDate)
         {
-            get
+            try
             {
-                return new List<Appointment> {
+                // 先把登入的帳號密碼存下來
+                m_Account = Account;
+                m_Password = Password;
+
+                m_SelectDate = aSelectDate;
+
+                SetupAppointment();
+
+                return m_Appointments;
+
+                //m_DownloadListManager.GetListManager(Account, Password, aSelectDate, ref m_MultiGroupList, ref m_MultiGroupChartDataList, ref LoginType, ref LoginFullName, ref ActiveListId);
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                throw e;
+            }
+        }
+        public void SetupAppointment()
+        {
+            try
+            {
+                m_Appointments = new List<Appointment> {
                     new Appointment {
                         AppointmentId = 1,
                         Text = "503教室-白碧娥",
@@ -162,6 +194,13 @@ namespace ChurchReport.Models
                         RecurrenceRule = "FREQ=DAILY;BYDAY=MO,TU,WE,TH,FR;UNTIL=2020530"
                     }
                 };
+
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                throw e;
             }
         }
     }

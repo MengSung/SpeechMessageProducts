@@ -22,7 +22,7 @@ namespace ChurchReport.Models
         {
             get
             {
-                AppointmentsList aAppointmentsList = new AppointmentsList();
+                AppointmentsListManager aAppointmentsList = new AppointmentsListManager();
 
                 var session = _contextAccessor.HttpContext.Session;
                 var key = session.Id + "_Appointments";
@@ -30,7 +30,7 @@ namespace ChurchReport.Models
 
                 if (_memoryCache.Get(key) == null)
                 {
-                    _memoryCache.Set<ICollection<Appointment>>(key, aAppointmentsList.Appointments, new MemoryCacheEntryOptions
+                    _memoryCache.Set<ICollection<Appointment>>(key, aAppointmentsList.m_Appointments, new MemoryCacheEntryOptions
                     {
                         SlidingExpiration = TimeSpan.FromMinutes(10)
                     });

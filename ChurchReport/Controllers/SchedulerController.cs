@@ -13,7 +13,7 @@ namespace ChurchReport.Controllers
         // GET: /<controller>/
         public ActionResult Scheduler()
         {
-            AppointmentsList aAppointmentsList = new AppointmentsList();
+            AppointmentsListManager aAppointmentsList = new AppointmentsListManager();
             return View(aAppointmentsList);
         }
     }
