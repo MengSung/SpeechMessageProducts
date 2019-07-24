@@ -224,6 +224,14 @@
 
                 document.getElementById('displaynamefield').innerHTML = profile.displayName + "的行事曆";
 
+                //getSchedulerInstance().reload();
+                //$("#scheduler").dxScheduler("getDataSource").reload()
+
+
+
+                //var schedulerInstance = getSchedulerInstance();  
+                //schedulerInstance.getDataSource().reload();
+
                 DisplayName = profile.displayName;
 
                 //alert("測試004!" + profile.displayName);
@@ -243,6 +251,9 @@
                             success: function (data)
                             {
                                 //getLoadPanelInstance().hide();
+                                var schedulerInstance = getSchedulerInstance();  
+                                schedulerInstance.getDataSource().reload();
+
                             },
 
                             error: function (obj)
