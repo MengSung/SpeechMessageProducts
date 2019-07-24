@@ -368,25 +368,6 @@ namespace ChurchReport.Models
 
         #endregion
         #region 多個組長處理區
-        public void SetupAppointmentList(String Account, String Password, DateTime aSelectDate)
-        {
-            try
-            {
-                // 設定多個組長處理資料
-                m_AppointmentsListManager.SetupAppointmentList(Account, Password, aSelectDate);
-
-                //m_ListManager.SetupListManager();
-
-                //m_ListManager.SetupOnlyOneListManager();
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-
-                throw e;
-            }
-
-        }
 
         public AppointmentsListManager AppointmentsListManager
         {

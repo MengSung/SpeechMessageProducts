@@ -112,6 +112,9 @@ namespace ChurchReport.Controllers
                         Guid aContactGuid = new Guid(ContactIdString);
 
                         FullName = m_ToolUtilityClass.RetrieveEntityDynamics365("contact", aContactGuid).Attributes["fullname"].ToString();
+
+                        m_InMemoryDataContextSmallGroup.AppointmentsListManager.m_Account = aGalleryViewModel.Account;
+                        m_InMemoryDataContextSmallGroup.AppointmentsListManager.m_Password = aGalleryViewModel.Password;
                     }
                     else
                     {
@@ -3118,10 +3121,10 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                m_InMemoryDataContextSmallGroup.LineBindingViewModel.LineUserId = UserLineId;
-                m_InMemoryDataContextSmallGroup.LineBindingViewModel.RoomId = RoomId;
-                m_InMemoryDataContextSmallGroup.LineBindingViewModel.GroupId = GroupId;
-                m_InMemoryDataContextSmallGroup.LineBindingViewModel.ViewType = ViewType;
+                m_InMemoryDataContextSmallGroup.LineBindingViewModel.LineUserId = m_InMemoryDataContextSmallGroup.AppointmentsListManager.LineUserId = UserLineId;
+                m_InMemoryDataContextSmallGroup.LineBindingViewModel.RoomId = m_InMemoryDataContextSmallGroup.AppointmentsListManager.RoomId = RoomId;
+                m_InMemoryDataContextSmallGroup.LineBindingViewModel.GroupId = m_InMemoryDataContextSmallGroup.AppointmentsListManager.GroupId = GroupId;
+                m_InMemoryDataContextSmallGroup.LineBindingViewModel.ViewType = m_InMemoryDataContextSmallGroup.AppointmentsListManager.ViewType = ViewType;
 
                 if (GroupId != null && GroupId != "")
                 {
@@ -3161,6 +3164,7 @@ namespace ChurchReport.Controllers
         {
             //AppointmentsListManager aAppointmentsList = new AppointmentsListManager();
             //m_InMemoryDataContextSmallGroup.AppointmentsListManager.SetupAppointmentList("", "", DateTime.Now);
+            m_InMemoryDataContextSmallGroup.AppointmentsListManager.SetupAppointmentList();
 
             //return DataSourceLoader.Load(m_InMemoryDataContextSmallGroup.AppointmentsListManager.SetupAppointmentList("", "", DateTime.Now), loadOptions);
             return DataSourceLoader.Load(m_InMemoryDataContextSmallGroup.AppointmentsListManager.m_Appointments, loadOptions);
@@ -3195,43 +3199,23 @@ namespace ChurchReport.Controllers
         {
             try
             {
+                string[] DateTimeList = 
+                {
+                    "yyyy/M/d tt hh:mm:ss",
+                    "yyyy/MM/dd tt hh:mm:ss",
+                    "yyyy/MM/dd HH:mm:ss",
+                    "yyyy/M/d HH:mm:ss",
+                    "ddd MMM dd yyyy HH:mm:ss GMT+0800 (台北標準時間)",
+                    "ddd MMM dd yyyy HH:mm:ss GMT+0800 (CST)",
+                    "ddd MMM dd yyyy HH:mm:ss GMT+0800",
+                    "ddd MMM dd yyyy HH:mm:ss",
+                    "yyyy/M/d",
+                    "yyyy/MM/dd"
+                };
 
-                string[] DateTimeList = {
+                DateTime ParsedSelectDate = DateTime.ParseExact(SelectedDate, DateTimeList, CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
 
-                            "yyyy/M/d tt hh:mm:ss",
-
-                            "yyyy/MM/dd tt hh:mm:ss",
-
-                            "yyyy/MM/dd HH:mm:ss",
-
-                            "yyyy/M/d HH:mm:ss",
-
-                            "ddd MMM dd yyyy HH:mm:ss GMT+0800 (台北標準時間)",
-
-                            "ddd MMM dd yyyy HH:mm:ss GMT+0800 (CST)",
-
-                            "ddd MMM dd yyyy HH:mm:ss GMT+0800",
-
-                            "ddd MMM dd yyyy HH:mm:ss",
-
-                            "yyyy/M/d",
-
-                            "yyyy/MM/dd"
-
-                        };
-
-
-                DateTime ParsedSelectDate = DateTime.ParseExact(SelectedDate,
-
-                                  DateTimeList,
-
-                                  CultureInfo.InvariantCulture,
-
-                                  DateTimeStyles.AllowWhiteSpaces
-
-                                  );
-
-                m_InMemoryDataContextSmallGroup.AppointmentsListManager.SetupAppointmentList("", "", ParsedSelectDate);
+                m_InMemoryDataContextSmallGroup.AppointmentsListManager.m_SelectDate = ParsedSelectDate;
 
                 return Ok();
             }
