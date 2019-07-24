@@ -3141,6 +3141,8 @@ namespace ChurchReport.Controllers
 
                 Entity LineLoginContact = this.m_ToolUtilityClass.RetrieveContactByLineId(UserLineId);
 
+                //m_InMemoryDataContextSmallGroup.AppointmentsListManager.SetupAppointmentList();
+
                 return Json(new { message = "歡迎" + "登入成功!" });
 
             }

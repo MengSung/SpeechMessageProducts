@@ -9,48 +9,92 @@ namespace ChurchReport.Models
     {
         public AppointmentsListManager()
         {
-            m_PreviousDate = new DateTime(1900, 1, 1);
         }
 
-        public String m_Account;
-        public String m_Password;
+        public String m_Account ="";
+        public String m_Password = "";
 
         public string GroupId { get; set; } = "";
         public string RoomId { get; set; } = "";
         public string LineUserId { get; set; } = "";
         public string ViewType { get; set; } = "";
 
-        public DateTime m_PreviousDate { get; set; } // 之前選擇的日期
-        public DateTime m_SelectDate { get; set; } // 行事曆日期
+        public DateTime m_PreviousDate { get; set; } = DateTime.Now; // 之前選擇的日期
+        public DateTime m_SelectDate { get; set; } = DateTime.Now; // 行事曆日期
 
-        public List<Appointment> m_Appointments;
+        public List<Appointment> m_Appointments = new List<Appointment>();
 
         public List<Appointment> SetupAppointmentList()
         {
             try
             {
-                if (m_PreviousDate.Year == 1900)
-                {
-                    // 這是第一次載入約會，所以預設是本日
-                    m_PreviousDate = m_SelectDate = DateTime.Now;
+                //if (m_PreviousDate.Year == 1900)
+                //{
+                //    // 這是第一次載入約會，所以預設是本日
+                //    m_PreviousDate = m_SelectDate = DateTime.Now;
 
-                    SetupAppointment();
-                }
-                else
+                //    SetupAppointment();
+                //}
+                //else
+                //{
+                //    if (m_PreviousDate != m_SelectDate)
+                //    {
+                //        // 有改變選擇的日期
+                //        m_PreviousDate = m_SelectDate;
+
+                //        SetupAppointment();
+                //    }
+                //    else
+                //    {
+                //        // 沒變選擇的日期 
+                //    }
+
+                //}
+
+
+
+
+
+                //if( m_SelectDate == null || m_SelectDate.Year == 1)
+                //{
+                //    m_SelectDate = DateTime.Now;
+                //}
+                //SetupAppointment();
+
+
+
+
+                if ( m_Account != "" || LineUserId != "" )
                 {
-                    if (m_PreviousDate != m_SelectDate)
+                    if (m_PreviousDate == null || m_PreviousDate.Year == 1)
                     {
-                        // 有改變選擇的日期
-                        m_PreviousDate = m_SelectDate;
+                        // 這是第一次載入約會，所以預設是本日
+                        m_PreviousDate = m_SelectDate = DateTime.Now;
 
                         SetupAppointment();
                     }
                     else
                     {
-                        // 沒變選擇的日期 
-                    }
+                        if (m_PreviousDate != m_SelectDate)
+                        {
+                            // 有改變選擇的日期
+                            m_PreviousDate = m_SelectDate;
 
+                            SetupAppointment();
+                        }
+                        else
+                        {
+                            // 沒變選擇的日期 
+                            if( m_SelectDate.Date == DateTime.Now.Date )
+                            {
+                                SetupAppointment();
+                            }
+                            else { }
+                        }
+
+                    }
                 }
+
 
                 return m_Appointments;
             }
