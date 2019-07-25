@@ -253,7 +253,9 @@
                                 //getLoadPanelInstance().hide();
                                 var schedulerInstance = getSchedulerInstance();  
                                 schedulerInstance.getDataSource().reload();
+                                schedulerInstance.repaint();
 
+                                //window.location.href = "/Home/SchedulerView"
                             },
 
                             error: function (obj)
