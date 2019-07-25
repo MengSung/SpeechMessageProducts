@@ -28,42 +28,6 @@ namespace ChurchReport.Models
         {
             try
             {
-                //if (m_PreviousDate.Year == 1900)
-                //{
-                //    // 這是第一次載入約會，所以預設是本日
-                //    m_PreviousDate = m_SelectDate = DateTime.Now;
-
-                //    SetupAppointment();
-                //}
-                //else
-                //{
-                //    if (m_PreviousDate != m_SelectDate)
-                //    {
-                //        // 有改變選擇的日期
-                //        m_PreviousDate = m_SelectDate;
-
-                //        SetupAppointment();
-                //    }
-                //    else
-                //    {
-                //        // 沒變選擇的日期 
-                //    }
-
-                //}
-
-
-
-
-
-                //if( m_SelectDate == null || m_SelectDate.Year == 1)
-                //{
-                //    m_SelectDate = DateTime.Now;
-                //}
-                //SetupAppointment();
-
-
-
-
                 if ( m_Account != "" || LineUserId != "" )
                 {
                     if (m_PreviousDate == null || m_PreviousDate.Year == 1)
