@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using ToolUtilityNameSpace;
 
 namespace ChurchReport.Models
@@ -81,11 +82,23 @@ namespace ChurchReport.Models
 
                 if (_memoryCache.Get(key) == null)
                 {
-                    _memoryCache.Set<ListManager>(key, m_ListManager, new MemoryCacheEntryOptions
+                    var options1 = new MemoryCacheEntryOptions();
+                    options1.PostEvictionCallbacks.Add(new PostEvictionCallbackRegistration()
                     {
-                        AbsoluteExpiration = DateTime.Now.AddMinutes(3),
-                        SlidingExpiration = TimeSpan.FromMinutes(3)
+
+                        EvictionCallback = (subkey, subValue, reason, state) =>
+                        {
+                            // 這裡執行某一個動作
+                            // ....
+                            var localCallbackInvoked = (ManualResetEvent)state;
+                            localCallbackInvoked.Set();
+                        },
                     });
+                    options1.SetAbsoluteExpiration(DateTime.Now.AddMinutes(3));
+                    options1.SetSlidingExpiration(TimeSpan.FromMinutes(3));
+
+                    _memoryCache.Set<ListManager>(key, m_ListManager, options1);
+
                     session.SetInt32("dirty", 1);
                 }
 
