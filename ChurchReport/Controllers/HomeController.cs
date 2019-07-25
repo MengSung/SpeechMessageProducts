@@ -38,6 +38,8 @@ namespace ChurchReport.Controllers
         private InMemoryDataContextSmallGroup m_InMemoryDataContextSmallGroup;
         private readonly Disposable _disposable;
 
+        //private ContextDictionary m_ContextDictionary = new ContextDictionary();
+
         #region 除錯用參數
         private const int TOTAL_LEVEL = 1;//改變這個值，就會改追蹤的階層，值越小越不會追蹤，若是 TOTAL_LEVEL = 3 ，則大於 3 的 LEVEL，例如 : LEVEL_4、LEVEL_5 就不會被追蹤
         //private const int TOTAL_LEVEL = 5;//改變這個值，就會改追蹤的階層，值越大越會追蹤，若是 TOTAL_LEVEL = 3 ，則大於 3 的 LEVEL，例如 : LEVEL_4、LEVEL_5 就不會被追蹤
@@ -56,6 +58,7 @@ namespace ChurchReport.Controllers
         public HomeController(IHttpContextAccessor httpContextAccessor, IMemoryCache memoryCache)
         {
             m_InMemoryDataContextSmallGroup = ContextDictionary.GetInMemoryDataContextSmallGroup(httpContextAccessor, memoryCache);
+            //m_InMemoryDataContextSmallGroup = m_ContextDictionary.GetInMemoryDataContextSmallGroup(httpContextAccessor, memoryCache);
         }
         #endregion
         #region 登入帳號
