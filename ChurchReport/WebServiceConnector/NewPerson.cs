@@ -209,6 +209,9 @@ namespace ChurchReport.WebServiceConnector
                     String LoginContactFullName = this.m_ToolUtilityClass.GetEntityStringAttribute(this.m_ContactEntity, "fullname");
                     String ExistContactFullName = this.m_ToolUtilityClass.GetEntityStringAttribute(aExistContact, "fullname");
 
+                    // 指派新增連絡人的負責人
+                    this.m_ToolUtilityClass.AssignOwner("contact", this.m_ToolUtilityClass.RetrieveEntity("contact", aExistContact.Id), this.m_OwnerId);
+
                     //String AddedGroupName = m_ToolUtilityClass.GetEntityStringAttribute(ListEntity, "listname");
                     //String DestinyGroupName = m_ToolUtilityClass.GetEntityStringAttribute(aExistList, "listname");
 
