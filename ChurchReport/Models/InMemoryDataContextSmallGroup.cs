@@ -82,21 +82,30 @@ namespace ChurchReport.Models
 
                 if (_memoryCache.Get(key) == null)
                 {
-                    var options1 = new MemoryCacheEntryOptions();
-                    options1.PostEvictionCallbacks.Add(new PostEvictionCallbackRegistration()
+                    var options = new MemoryCacheEntryOptions();
+                    options.PostEvictionCallbacks.Add(new PostEvictionCallbackRegistration()
                     {
                         EvictionCallback = (subkey, subValue, reason, state) =>
                         {
                             // 這裡執行某一個動作
                             // ....
-                            var localCallbackInvoked = (ManualResetEvent)state;
-                            localCallbackInvoked.Set();
+                            if (state != null)
+                            {
+                                var localCallbackInvoked = (ManualResetEvent)state;
+
+                                localCallbackInvoked.Set();
+                            }
+
+                            _memoryCache.Remove(key);
+
                         },
                     });
-                    options1.SetAbsoluteExpiration(DateTime.Now.AddMinutes(3));
-                    options1.SetSlidingExpiration(TimeSpan.FromMinutes(3));
+                    options.SetAbsoluteExpiration(DateTime.Now.AddMinutes(1));
+                    options.SetSlidingExpiration(TimeSpan.FromMinutes(1));
+                    //options.SetSize(1);
+                    //options.Size = 1024;
 
-                    _memoryCache.Set<ListManager>(key, m_ListManager, options1);
+                    _memoryCache.Set<ListManager>(key, m_ListManager, options);
 
                     session.SetInt32("dirty", 1);
                 }
@@ -164,11 +173,31 @@ namespace ChurchReport.Models
 
                 if (_memoryCache.Get(key) == null)
                 {
-                    _memoryCache.Set<SmallGroupDataList>(key, m_SmallGroupDataList, new MemoryCacheEntryOptions
+                    var options = new MemoryCacheEntryOptions();
+                    options.PostEvictionCallbacks.Add(new PostEvictionCallbackRegistration()
                     {
-                        AbsoluteExpiration = DateTime.Now.AddMinutes(3),
-                        SlidingExpiration = TimeSpan.FromMinutes(3)
+                        EvictionCallback = (subkey, subValue, reason, state) =>
+                        {
+                            // 這裡執行某一個動作
+                            // ....
+                            if (state != null)
+                            {
+                                var localCallbackInvoked = (ManualResetEvent)state;
+
+                                localCallbackInvoked.Set();
+                            }
+
+                            _memoryCache.Remove(key);
+
+                        },
                     });
+                    options.SetAbsoluteExpiration(DateTime.Now.AddMinutes(1));
+                    options.SetSlidingExpiration(TimeSpan.FromMinutes(1));
+                    //options.SetSize(1);
+                    //options.Size = 1024;
+
+                    _memoryCache.Set<SmallGroupDataList>(key, m_SmallGroupDataList, options);
+
                     session.SetInt32("dirty", 1);
                 }
 
@@ -193,14 +222,33 @@ namespace ChurchReport.Models
 
                 if (_memoryCache.Get(key) == null)
                 {
-                    _memoryCache.Set<WeeklyReportData>(key, m_WeeklyReportData, new MemoryCacheEntryOptions
+                    var options = new MemoryCacheEntryOptions();
+                    options.PostEvictionCallbacks.Add(new PostEvictionCallbackRegistration()
                     {
-                        AbsoluteExpiration = DateTime.Now.AddMinutes(3),
-                        SlidingExpiration = TimeSpan.FromMinutes(3)
+                        EvictionCallback = (subkey, subValue, reason, state) =>
+                        {
+                            // 這裡執行某一個動作
+                            // ....
+                            if (state != null)
+                            {
+                                var localCallbackInvoked = (ManualResetEvent)state;
+
+                                localCallbackInvoked.Set();
+                            }
+
+                            _memoryCache.Remove(key);
+
+                        },
                     });
+                    options.SetAbsoluteExpiration(DateTime.Now.AddMinutes(1));
+                    options.SetSlidingExpiration(TimeSpan.FromMinutes(1));
+                    //options.SetSize(1);
+                    //options.Size = 1024;
+
+                    _memoryCache.Set<WeeklyReportData>(key, m_WeeklyReportData, options);
+
                     session.SetInt32("dirty", 1);
                 }
-
                 return _memoryCache.Get<WeeklyReportData>(key);
             }
         }
@@ -217,14 +265,33 @@ namespace ChurchReport.Models
 
                 if (_memoryCache.Get(key) == null)
                 {
-                    _memoryCache.Set<NewPersonModel>(key, m_NewPersonModel, new MemoryCacheEntryOptions
+                    var options = new MemoryCacheEntryOptions();
+                    options.PostEvictionCallbacks.Add(new PostEvictionCallbackRegistration()
                     {
-                        AbsoluteExpiration = DateTime.Now.AddMinutes(3),
-                        SlidingExpiration = TimeSpan.FromMinutes(3)
+                        EvictionCallback = (subkey, subValue, reason, state) =>
+                        {
+                            // 這裡執行某一個動作
+                            // ....
+                            if (state != null)
+                            {
+                                var localCallbackInvoked = (ManualResetEvent)state;
+
+                                localCallbackInvoked.Set();
+                            }
+
+                            _memoryCache.Remove(key);
+
+                        },
                     });
+                    options.SetAbsoluteExpiration(DateTime.Now.AddMinutes(1));
+                    options.SetSlidingExpiration(TimeSpan.FromMinutes(1));
+                    //options.SetSize(1);
+                    //options.Size = 1024;
+
+                    _memoryCache.Set<NewPersonModel>(key, m_NewPersonModel, options);
+
                     session.SetInt32("dirty", 1);
                 }
-
                 return _memoryCache.Get<NewPersonModel>(key);
             }
         }
@@ -255,14 +322,33 @@ namespace ChurchReport.Models
 
                 if (_memoryCache.Get(key) == null)
                 {
-                    _memoryCache.Set<HappyGroupDataManager>(key, m_HappyGroupDataManager, new MemoryCacheEntryOptions
+                    var options = new MemoryCacheEntryOptions();
+                    options.PostEvictionCallbacks.Add(new PostEvictionCallbackRegistration()
                     {
-                        AbsoluteExpiration = DateTime.Now.AddMinutes(3),
-                        SlidingExpiration = TimeSpan.FromMinutes(3)
+                        EvictionCallback = (subkey, subValue, reason, state) =>
+                        {
+                            // 這裡執行某一個動作
+                            // ....
+                            if (state != null)
+                            {
+                                var localCallbackInvoked = (ManualResetEvent)state;
+
+                                localCallbackInvoked.Set();
+                            }
+
+                            _memoryCache.Remove(key);
+
+                        },
                     });
+                    options.SetAbsoluteExpiration(DateTime.Now.AddMinutes(1));
+                    options.SetSlidingExpiration(TimeSpan.FromMinutes(1));
+                    //options.SetSize(1);
+                    //options.Size = 1024;
+
+                    _memoryCache.Set<HappyGroupDataManager>(key, m_HappyGroupDataManager, options);
+
                     session.SetInt32("dirty", 1);
                 }
-
                 return _memoryCache.Get<HappyGroupDataManager>(key);
             }
         }
@@ -344,11 +430,31 @@ namespace ChurchReport.Models
 
                 if (_memoryCache.Get(key) == null)
                 {
-                    _memoryCache.Set<FeeList>(key, m_FeeList, new MemoryCacheEntryOptions
+                    var options = new MemoryCacheEntryOptions();
+                    options.PostEvictionCallbacks.Add(new PostEvictionCallbackRegistration()
                     {
-                        AbsoluteExpiration = DateTime.Now.AddMinutes(3),
-                        SlidingExpiration = TimeSpan.FromMinutes(3)
+                        EvictionCallback = (subkey, subValue, reason, state) =>
+                        {
+                            // 這裡執行某一個動作
+                            // ....
+                            if (state != null)
+                            {
+                                var localCallbackInvoked = (ManualResetEvent)state;
+
+                                localCallbackInvoked.Set();
+                            }
+
+                            _memoryCache.Remove(key);
+
+                        },
                     });
+                    options.SetAbsoluteExpiration(DateTime.Now.AddMinutes(1));
+                    options.SetSlidingExpiration(TimeSpan.FromMinutes(1));
+                    //options.SetSize(1);
+                    //options.Size = 1024;
+
+                    _memoryCache.Set<FeeList>(key, m_FeeList, options);
+
                     session.SetInt32("dirty", 1);
                 }
 
@@ -366,14 +472,33 @@ namespace ChurchReport.Models
 
                 if (_memoryCache.Get(key) == null)
                 {
-                    _memoryCache.Set<LineBindingViewModel>(key, m_LineBindingViewModel, new MemoryCacheEntryOptions
+                    var options = new MemoryCacheEntryOptions();
+                    options.PostEvictionCallbacks.Add(new PostEvictionCallbackRegistration()
                     {
-                        AbsoluteExpiration = DateTime.Now.AddMinutes(3),
-                        SlidingExpiration = TimeSpan.FromMinutes(3)
+                        EvictionCallback = (subkey, subValue, reason, state) =>
+                        {
+                            // 這裡執行某一個動作
+                            // ....
+                            if (state != null)
+                            {
+                                var localCallbackInvoked = (ManualResetEvent)state;
+
+                                localCallbackInvoked.Set();
+                            }
+
+                            _memoryCache.Remove(key);
+
+                        },
                     });
+                    options.SetAbsoluteExpiration(DateTime.Now.AddMinutes(1));
+                    options.SetSlidingExpiration(TimeSpan.FromMinutes(1));
+                    //options.SetSize(1);
+                    //options.Size = 1024;
+
+                    _memoryCache.Set<LineBindingViewModel>(key, m_LineBindingViewModel, options);
+
                     session.SetInt32("dirty", 1);
                 }
-
                 return _memoryCache.Get<LineBindingViewModel>(key);
             }
         }
@@ -390,11 +515,31 @@ namespace ChurchReport.Models
 
                 if (_memoryCache.Get(key) == null)
                 {
-                    _memoryCache.Set<AppointmentsListManager>(key, m_AppointmentsListManager, new MemoryCacheEntryOptions
+                    var options = new MemoryCacheEntryOptions();
+                    options.PostEvictionCallbacks.Add(new PostEvictionCallbackRegistration()
                     {
-                        AbsoluteExpiration = DateTime.Now.AddMinutes(3),
-                        SlidingExpiration = TimeSpan.FromMinutes(3)
+                        EvictionCallback = (subkey, subValue, reason, state) =>
+                        {
+                            // 這裡執行某一個動作
+                            // ....
+                            if (state != null)
+                            {
+                                var localCallbackInvoked = (ManualResetEvent)state;
+
+                                localCallbackInvoked.Set();
+                            }
+
+                            _memoryCache.Remove(key);
+
+                        },
                     });
+                    options.SetAbsoluteExpiration(DateTime.Now.AddMinutes(1));
+                    options.SetSlidingExpiration(TimeSpan.FromMinutes(1));
+                    //options.SetSize(1);
+                    //options.Size = 1024;
+
+                    _memoryCache.Set<AppointmentsListManager>(key, m_AppointmentsListManager, options);
+
                     session.SetInt32("dirty", 1);
                 }
 
