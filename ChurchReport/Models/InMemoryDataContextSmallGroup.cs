@@ -85,7 +85,6 @@ namespace ChurchReport.Models
                     var options1 = new MemoryCacheEntryOptions();
                     options1.PostEvictionCallbacks.Add(new PostEvictionCallbackRegistration()
                     {
-
                         EvictionCallback = (subkey, subValue, reason, state) =>
                         {
                             // 這裡執行某一個動作
