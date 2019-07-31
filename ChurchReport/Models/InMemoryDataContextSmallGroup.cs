@@ -402,7 +402,6 @@ namespace ChurchReport.Models
             }
         }
         #endregion
-
         #region 工具區
         public void SaveChanges()
         {
