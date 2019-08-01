@@ -97,7 +97,7 @@ namespace ChurchReport.Models
                                 localCallbackInvoked.Set();
                             }
 
-                            _memoryCache.Remove(key);
+                            //_memoryCache.Remove(key);
 
                         },
                     });
@@ -189,7 +189,7 @@ namespace ChurchReport.Models
                                 localCallbackInvoked.Set();
                             }
 
-                            _memoryCache.Remove(key);
+                            //_memoryCache.Remove(key);
 
                         },
                     });
@@ -239,7 +239,7 @@ namespace ChurchReport.Models
                                 localCallbackInvoked.Set();
                             }
 
-                            _memoryCache.Remove(key);
+                            //_memoryCache.Remove(key);
 
                         },
                     });
@@ -283,7 +283,7 @@ namespace ChurchReport.Models
                                 localCallbackInvoked.Set();
                             }
 
-                            _memoryCache.Remove(key);
+                            //_memoryCache.Remove(key);
 
                         },
                     });
@@ -341,7 +341,7 @@ namespace ChurchReport.Models
                                 localCallbackInvoked.Set();
                             }
 
-                            _memoryCache.Remove(key);
+                            //_memoryCache.Remove(key);
 
                         },
                     });
@@ -450,7 +450,7 @@ namespace ChurchReport.Models
                                 localCallbackInvoked.Set();
                             }
 
-                            _memoryCache.Remove(key);
+                            //_memoryCache.Remove(key);
 
                         },
                     });
@@ -493,7 +493,7 @@ namespace ChurchReport.Models
                                 localCallbackInvoked.Set();
                             }
 
-                            _memoryCache.Remove(key);
+                            //_memoryCache.Remove(key);
 
                         },
                     });
@@ -537,7 +537,7 @@ namespace ChurchReport.Models
                                 localCallbackInvoked.Set();
                             }
 
-                            _memoryCache.Remove(key);
+                            //_memoryCache.Remove(key);
 
                         },
                     });
