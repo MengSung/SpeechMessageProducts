@@ -100,8 +100,8 @@ namespace ChurchReport.Models
 
                         },
                     });
-                    options.SetAbsoluteExpiration(DateTime.Now.AddMinutes(1));
-                    options.SetSlidingExpiration(TimeSpan.FromMinutes(1));
+                    options.SetAbsoluteExpiration(DateTime.Now.AddMinutes(10));
+                    options.SetSlidingExpiration(TimeSpan.FromMinutes(10));
                     //options.SetSize(1);
                     //options.Size = 1024;
 
@@ -191,8 +191,8 @@ namespace ChurchReport.Models
 
                         },
                     });
-                    options.SetAbsoluteExpiration(DateTime.Now.AddMinutes(1));
-                    options.SetSlidingExpiration(TimeSpan.FromMinutes(1));
+                    options.SetAbsoluteExpiration(DateTime.Now.AddMinutes(10));
+                    options.SetSlidingExpiration(TimeSpan.FromMinutes(10));
                     //options.SetSize(1);
                     //options.Size = 1024;
 
@@ -240,8 +240,8 @@ namespace ChurchReport.Models
 
                         },
                     });
-                    options.SetAbsoluteExpiration(DateTime.Now.AddMinutes(1));
-                    options.SetSlidingExpiration(TimeSpan.FromMinutes(1));
+                    options.SetAbsoluteExpiration(DateTime.Now.AddMinutes(10));
+                    options.SetSlidingExpiration(TimeSpan.FromMinutes(10));
                     //options.SetSize(1);
                     //options.Size = 1024;
 
@@ -283,8 +283,8 @@ namespace ChurchReport.Models
 
                         },
                     });
-                    options.SetAbsoluteExpiration(DateTime.Now.AddMinutes(1));
-                    options.SetSlidingExpiration(TimeSpan.FromMinutes(1));
+                    options.SetAbsoluteExpiration(DateTime.Now.AddMinutes(10));
+                    options.SetSlidingExpiration(TimeSpan.FromMinutes(10));
                     //options.SetSize(1);
                     //options.Size = 1024;
 
@@ -340,8 +340,8 @@ namespace ChurchReport.Models
 
                         },
                     });
-                    options.SetAbsoluteExpiration(DateTime.Now.AddMinutes(1));
-                    options.SetSlidingExpiration(TimeSpan.FromMinutes(1));
+                    options.SetAbsoluteExpiration(DateTime.Now.AddMinutes(10));
+                    options.SetSlidingExpiration(TimeSpan.FromMinutes(10));
                     //options.SetSize(1);
                     //options.Size = 1024;
 
@@ -448,8 +448,8 @@ namespace ChurchReport.Models
 
                         },
                     });
-                    options.SetAbsoluteExpiration(DateTime.Now.AddMinutes(1));
-                    options.SetSlidingExpiration(TimeSpan.FromMinutes(1));
+                    options.SetAbsoluteExpiration(DateTime.Now.AddMinutes(10));
+                    options.SetSlidingExpiration(TimeSpan.FromMinutes(10));
                     //options.SetSize(1);
                     //options.Size = 1024;
 
@@ -490,8 +490,8 @@ namespace ChurchReport.Models
 
                         },
                     });
-                    options.SetAbsoluteExpiration(DateTime.Now.AddMinutes(1));
-                    options.SetSlidingExpiration(TimeSpan.FromMinutes(1));
+                    options.SetAbsoluteExpiration(DateTime.Now.AddMinutes(10));
+                    options.SetSlidingExpiration(TimeSpan.FromMinutes(10));
                     //options.SetSize(1);
                     //options.Size = 1024;
 
@@ -533,8 +533,8 @@ namespace ChurchReport.Models
 
                         },
                     });
-                    options.SetAbsoluteExpiration(DateTime.Now.AddMinutes(1));
-                    options.SetSlidingExpiration(TimeSpan.FromMinutes(1));
+                    options.SetAbsoluteExpiration(DateTime.Now.AddMinutes(10));
+                    options.SetSlidingExpiration(TimeSpan.FromMinutes(10));
                     //options.SetSize(1);
                     //options.Size = 1024;
 

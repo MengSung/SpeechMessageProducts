@@ -57,7 +57,8 @@ namespace ChurchReport.Controllers
         #region ªì©l¤Æ
         public HomeController(IHttpContextAccessor httpContextAccessor, IMemoryCache memoryCache)
         {
-            m_InMemoryDataContextSmallGroup = ContextDictionary.GetInMemoryDataContextSmallGroup(httpContextAccessor, memoryCache);
+            m_InMemoryDataContextSmallGroup = new InMemoryDataContextSmallGroup(httpContextAccessor, memoryCache);
+            //m_InMemoryDataContextSmallGroup = ContextDictionary.GetInMemoryDataContextSmallGroup(httpContextAccessor, memoryCache);
             //m_InMemoryDataContextSmallGroup = m_ContextDictionary.GetInMemoryDataContextSmallGroup(httpContextAccessor, memoryCache);
         }
         #endregion
