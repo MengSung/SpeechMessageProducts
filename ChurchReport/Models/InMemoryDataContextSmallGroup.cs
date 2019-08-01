@@ -81,8 +81,9 @@ namespace ChurchReport.Models
                 var key = session.Id + "_ListManager";
 
                 if (_memoryCache.Get(key) == null)
+                //if (!_memoryCache.TryGetValue(key, out m_ListManager))
                 {
-                    var options = new MemoryCacheEntryOptions();
+                        var options = new MemoryCacheEntryOptions();
                     options.PostEvictionCallbacks.Add(new PostEvictionCallbackRegistration()
                     {
                         EvictionCallback = (subkey, subValue, reason, state) =>
@@ -172,6 +173,7 @@ namespace ChurchReport.Models
                 var key = session.Id + "_SmallGroupDataList";
 
                 if (_memoryCache.Get(key) == null)
+                //if (!_memoryCache.TryGetValue(key, out m_SmallGroupDataList))
                 {
                     var options = new MemoryCacheEntryOptions();
                     options.PostEvictionCallbacks.Add(new PostEvictionCallbackRegistration()
@@ -221,8 +223,9 @@ namespace ChurchReport.Models
                 var key = session.Id + "_WeeklyReportData";
 
                 if (_memoryCache.Get(key) == null)
+                //if (!_memoryCache.TryGetValue(key, out m_WeeklyReportData))
                 {
-                    var options = new MemoryCacheEntryOptions();
+                        var options = new MemoryCacheEntryOptions();
                     options.PostEvictionCallbacks.Add(new PostEvictionCallbackRegistration()
                     {
                         EvictionCallback = (subkey, subValue, reason, state) =>
@@ -264,8 +267,9 @@ namespace ChurchReport.Models
                 var key = session.Id + "_NewPersonModel";
 
                 if (_memoryCache.Get(key) == null)
+                //if (!_memoryCache.TryGetValue(key, out m_NewPersonModel))
                 {
-                    var options = new MemoryCacheEntryOptions();
+                        var options = new MemoryCacheEntryOptions();
                     options.PostEvictionCallbacks.Add(new PostEvictionCallbackRegistration()
                     {
                         EvictionCallback = (subkey, subValue, reason, state) =>
@@ -321,8 +325,9 @@ namespace ChurchReport.Models
                 var key = session.Id + "_HappyGroupDataManager";
 
                 if (_memoryCache.Get(key) == null)
+                //if (!_memoryCache.TryGetValue(key, out m_HappyGroupDataManager))
                 {
-                    var options = new MemoryCacheEntryOptions();
+                        var options = new MemoryCacheEntryOptions();
                     options.PostEvictionCallbacks.Add(new PostEvictionCallbackRegistration()
                     {
                         EvictionCallback = (subkey, subValue, reason, state) =>
@@ -429,8 +434,9 @@ namespace ChurchReport.Models
                 var key = session.Id + "_FeeList";
 
                 if (_memoryCache.Get(key) == null)
+                //if (!_memoryCache.TryGetValue(key, out m_FeeList))
                 {
-                    var options = new MemoryCacheEntryOptions();
+                        var options = new MemoryCacheEntryOptions();
                     options.PostEvictionCallbacks.Add(new PostEvictionCallbackRegistration()
                     {
                         EvictionCallback = (subkey, subValue, reason, state) =>
@@ -471,8 +477,9 @@ namespace ChurchReport.Models
                 var key = session.Id + "_LineBindingViewModel";
 
                 if (_memoryCache.Get(key) == null)
+                //if (!_memoryCache.TryGetValue(key, out m_LineBindingViewModel))
                 {
-                    var options = new MemoryCacheEntryOptions();
+                        var options = new MemoryCacheEntryOptions();
                     options.PostEvictionCallbacks.Add(new PostEvictionCallbackRegistration()
                     {
                         EvictionCallback = (subkey, subValue, reason, state) =>
@@ -514,8 +521,9 @@ namespace ChurchReport.Models
                 var key = session.Id + "_AppointmentsListManager";
 
                 if (_memoryCache.Get(key) == null)
+                //if (!_memoryCache.TryGetValue(key, out m_AppointmentsListManager))
                 {
-                    var options = new MemoryCacheEntryOptions();
+                        var options = new MemoryCacheEntryOptions();
                     options.PostEvictionCallbacks.Add(new PostEvictionCallbackRegistration()
                     {
                         EvictionCallback = (subkey, subValue, reason, state) =>
