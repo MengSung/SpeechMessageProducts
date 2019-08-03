@@ -14,16 +14,6 @@ namespace ChurchReport.Models
         IHttpContextAccessor _contextAccessor;
         IMemoryCache _memoryCache;
 
-        //private ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
-        //public ListManager m_ListManager = new ListManager();
-        //public SmallGroupDataList m_SmallGroupDataList = new SmallGroupDataList();
-        //public WeeklyReportData m_WeeklyReportData = new WeeklyReportData();
-        //public NewPersonModel m_NewPersonModel = new NewPersonModel();
-        //public HappyGroupDataManager m_HappyGroupDataManager = new HappyGroupDataManager();
-        //public FeeList m_FeeList = new FeeList();
-        //public LineBindingViewModel m_LineBindingViewModel = new LineBindingViewModel();
-        //public AppointmentsListManager m_AppointmentsListManager = new AppointmentsListManager();
-
         private ToolUtilityClass m_ToolUtilityClass;
         public ListManager m_ListManager;
         public SmallGroupDataList m_SmallGroupDataList;
