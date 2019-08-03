@@ -44,44 +44,6 @@ namespace ChurchReport.Models
         }
         #endregion
         #region 多個組長處理區
-        public void SetupListManager(String Account, String Password, DateTime aSelectDate, bool DisplayDateFlag)
-        {
-            try
-            {
-                // 設定多個組長處理資料
-                m_ListManager.SetupListManager(Account, Password, aSelectDate);
-
-                //m_ListManager.SetupListManager();
-
-                //m_ListManager.SetupOnlyOneListManager();
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-
-                throw e;
-            }
-
-        }
-        public void SetSelectDate( DateTime aSelectDate)
-        {
-            try
-            {
-                // 設定多個組長處理資料
-                m_ListManager.SetSelectDate(aSelectDate);
-
-                //m_ListManager.SetupListManager();
-
-                //m_ListManager.SetupOnlyOneListManager();
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-
-                throw e;
-            }
-
-        }
 
         public ListManager ListManager
         {
@@ -134,7 +96,7 @@ namespace ChurchReport.Models
             {
                 String ContactIdString = m_ToolUtilityClass.RetrieveContactByAccountNumber(Account, Password);
 
-                m_SmallGroupDataList.SetupContactIdString(ContactIdString);
+                SmallGroupDataList.SetupContactIdString(ContactIdString);
 
             }
             catch (System.Exception e)
@@ -145,37 +107,6 @@ namespace ChurchReport.Models
             }
 
         }
-
-        public void SetCacheData()
-        {
-            var session = _contextAccessor.HttpContext.Session;
-            var key = session.Id + "_SmallGroupDataList";
-
-            if (_memoryCache.Get(key) == null)
-            {
-                _memoryCache.Set<SmallGroupDataList>(key, m_SmallGroupDataList, new MemoryCacheEntryOptions
-                {
-                    AbsoluteExpiration = DateTime.Now.AddMinutes(3),
-                    SlidingExpiration = TimeSpan.FromMinutes(3)
-                });
-                session.SetInt32("dirty", 1);
-            }
-        }
-
-        public SmallGroupDataList GetCacheData()
-        {
-            var session = _contextAccessor.HttpContext.Session;
-            var key = session.Id + "_SmallGroupDataList";
-
-            SmallGroupDataList aSmallGroupDataList = new SmallGroupDataList();
-            if (!_memoryCache.TryGetValue(key, out aSmallGroupDataList))
-            {
-                //Time = "Cache is expired or not available";
-            }
-
-            return aSmallGroupDataList;
-        }
-
         public SmallGroupDataList SmallGroupDataList
         {
             get
@@ -221,12 +152,6 @@ namespace ChurchReport.Models
         }
         #endregion
         #region 週報處理區
-
-        public void SetupWeeklyReport(String Account, String Password, DateTime SundayDate)
-        {
-            m_WeeklyReportData.SetupWeeklyReport(Account, Password, SundayDate);
-
-        }
 
         public WeeklyReportData WeeklyReportData
         {
@@ -317,21 +242,6 @@ namespace ChurchReport.Models
 
         #endregion
         #region 幸福小組處理區
-
-        public void SetupHappyGroupData( String Account, String Password)
-        {
-            try
-            {
-                m_HappyGroupDataManager.SetupHappyGroupData(Account, Password);
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-
-                throw e;
-            }
-        }
-
         public HappyGroupDataManager HappyGroupDataManager
         {
             get
@@ -376,71 +286,6 @@ namespace ChurchReport.Models
 
         #endregion
         #region 繳費與報名處理區
-
-        public void SetupFeeListAccountAndPassword(String FullName, String Account, String Password)
-        {
-            try
-            {
-                // 儲存登入者資訊
-                m_FeeList.SetupLoginUserInfo(FullName, Account, Password);
-
-                // 取得繳費及點名的資料
-                //m_FeeList.SetupFeeDataList(Account, Password);
-
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-
-                throw e;
-            }
-
-        }
-        public void SetupFeeList()
-        {
-            try
-            {
-                // 取得繳費及點名的資料
-                m_FeeList.SetupFeeDataList();
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-
-                throw e;
-            }
-
-        }
-
-        public void SetFeeManagerCacheData()
-        {
-            var session = _contextAccessor.HttpContext.Session;
-            var key = session.Id + "_FeeList";
-
-            if (_memoryCache.Get(key) == null)
-            {
-                _memoryCache.Set<FeeList>(key, m_FeeList, new MemoryCacheEntryOptions
-                {
-                    AbsoluteExpiration = DateTime.Now.AddMinutes(3),
-                    SlidingExpiration = TimeSpan.FromMinutes(3)
-                });
-                session.SetInt32("dirty", 1);
-            }
-        }
-
-        public FeeList GetFeeManagerCacheData()
-        {
-            var session = _contextAccessor.HttpContext.Session;
-            var key = session.Id + "_FeeList";
-
-            FeeList aFeeList = new FeeList();
-            if (!_memoryCache.TryGetValue(key, out aFeeList))
-            {
-                //Time = "Cache is expired or not available";
-            }
-
-            return aFeeList;
-        }
 
         public FeeList FeeList
         {
