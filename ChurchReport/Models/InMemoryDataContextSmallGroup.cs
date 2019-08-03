@@ -14,15 +14,25 @@ namespace ChurchReport.Models
         IHttpContextAccessor _contextAccessor;
         IMemoryCache _memoryCache;
 
-        private ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
-        public ListManager m_ListManager = new ListManager();
-        public SmallGroupDataList m_SmallGroupDataList = new SmallGroupDataList();
-        public WeeklyReportData m_WeeklyReportData = new WeeklyReportData();
-        public NewPersonModel m_NewPersonModel = new NewPersonModel();
-        public HappyGroupDataManager m_HappyGroupDataManager = new HappyGroupDataManager();
-        public FeeList m_FeeList = new FeeList();
-        public LineBindingViewModel m_LineBindingViewModel = new LineBindingViewModel();
-        public AppointmentsListManager m_AppointmentsListManager = new AppointmentsListManager();
+        //private ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
+        //public ListManager m_ListManager = new ListManager();
+        //public SmallGroupDataList m_SmallGroupDataList = new SmallGroupDataList();
+        //public WeeklyReportData m_WeeklyReportData = new WeeklyReportData();
+        //public NewPersonModel m_NewPersonModel = new NewPersonModel();
+        //public HappyGroupDataManager m_HappyGroupDataManager = new HappyGroupDataManager();
+        //public FeeList m_FeeList = new FeeList();
+        //public LineBindingViewModel m_LineBindingViewModel = new LineBindingViewModel();
+        //public AppointmentsListManager m_AppointmentsListManager = new AppointmentsListManager();
+
+        private ToolUtilityClass m_ToolUtilityClass;
+        public ListManager m_ListManager;
+        public SmallGroupDataList m_SmallGroupDataList;
+        public WeeklyReportData m_WeeklyReportData;
+        public NewPersonModel m_NewPersonModel;
+        public HappyGroupDataManager m_HappyGroupDataManager;
+        public FeeList m_FeeList;
+        public LineBindingViewModel m_LineBindingViewModel;
+        public AppointmentsListManager m_AppointmentsListManager;
 
         #endregion
         #region 初始化
@@ -106,6 +116,7 @@ namespace ChurchReport.Models
                     //options.SetSize(1);
                     //options.Size = 1024;
 
+                    m_ListManager = new ListManager();
                     _memoryCache.Set<ListManager>(key, m_ListManager, options);
 
                     session.SetInt32("dirty", 1);
@@ -198,6 +209,8 @@ namespace ChurchReport.Models
                     //options.SetSize(1);
                     //options.Size = 1024;
 
+                    m_SmallGroupDataList = new SmallGroupDataList();
+
                     _memoryCache.Set<SmallGroupDataList>(key, m_SmallGroupDataList, options);
 
                     session.SetInt32("dirty", 1);
@@ -248,6 +261,7 @@ namespace ChurchReport.Models
                     //options.SetSize(1);
                     //options.Size = 1024;
 
+                    m_WeeklyReportData = new WeeklyReportData();
                     _memoryCache.Set<WeeklyReportData>(key, m_WeeklyReportData, options);
 
                     session.SetInt32("dirty", 1);
@@ -292,6 +306,7 @@ namespace ChurchReport.Models
                     //options.SetSize(1);
                     //options.Size = 1024;
 
+                    m_NewPersonModel = new NewPersonModel();
                     _memoryCache.Set<NewPersonModel>(key, m_NewPersonModel, options);
 
                     session.SetInt32("dirty", 1);
@@ -350,6 +365,7 @@ namespace ChurchReport.Models
                     //options.SetSize(1);
                     //options.Size = 1024;
 
+                    m_HappyGroupDataManager = new HappyGroupDataManager();
                     _memoryCache.Set<HappyGroupDataManager>(key, m_HappyGroupDataManager, options);
 
                     session.SetInt32("dirty", 1);
@@ -459,6 +475,7 @@ namespace ChurchReport.Models
                     //options.SetSize(1);
                     //options.Size = 1024;
 
+                    m_FeeList = new FeeList();
                     _memoryCache.Set<FeeList>(key, m_FeeList, options);
 
                     session.SetInt32("dirty", 1);
@@ -502,6 +519,7 @@ namespace ChurchReport.Models
                     //options.SetSize(1);
                     //options.Size = 1024;
 
+                    m_LineBindingViewModel = new LineBindingViewModel();
                     _memoryCache.Set<LineBindingViewModel>(key, m_LineBindingViewModel, options);
 
                     session.SetInt32("dirty", 1);
@@ -511,7 +529,7 @@ namespace ChurchReport.Models
         }
 
         #endregion
-        #region 多個組長處理區
+        #region 行事曆處理區
 
         public AppointmentsListManager AppointmentsListManager
         {
@@ -546,6 +564,7 @@ namespace ChurchReport.Models
                     //options.SetSize(1);
                     //options.Size = 1024;
 
+                    m_AppointmentsListManager = new AppointmentsListManager();
                     _memoryCache.Set<AppointmentsListManager>(key, m_AppointmentsListManager, options);
 
                     session.SetInt32("dirty", 1);
@@ -556,6 +575,50 @@ namespace ChurchReport.Models
         }
         #endregion
         #region 工具區
+
+        public ToolUtilityClass ToolUtilityClass
+        {
+            get
+            {
+                var session = _contextAccessor.HttpContext.Session;
+                var key = session.Id + "_ToolUtilityClass";
+
+                if (_memoryCache.Get(key) == null)
+                //if (!_memoryCache.TryGetValue(key, out m_AppointmentsListManager))
+                {
+                    var options = new MemoryCacheEntryOptions();
+                    options.PostEvictionCallbacks.Add(new PostEvictionCallbackRegistration()
+                    {
+                        EvictionCallback = (subkey, subValue, reason, state) =>
+                        {
+                            // 這裡執行某一個動作
+                            // ....
+                            if (state != null)
+                            {
+                                var localCallbackInvoked = (ManualResetEvent)state;
+
+                                localCallbackInvoked.Set();
+                            }
+
+                            //_memoryCache.Remove(key);
+
+                        },
+                    });
+                    options.SetAbsoluteExpiration(DateTime.Now.AddMinutes(30));
+                    options.SetSlidingExpiration(TimeSpan.FromMinutes(30));
+                    //options.SetSize(1);
+                    //options.Size = 1024;
+
+                    m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
+                    _memoryCache.Set<ToolUtilityClass>(key, m_ToolUtilityClass, options);
+
+                    session.SetInt32("dirty", 1);
+                }
+
+                return _memoryCache.Get<ToolUtilityClass>(key);
+            }
+        }
+
         public void SaveChanges()
         {
             //foreach (var employee in DiscipleLessons.Where(a => a.DiscipleLessonsId == 0))

@@ -129,7 +129,7 @@ namespace ChurchReport.Controllers
                     }
 
                     // 設定多個組長處理需要的資料
-                    m_InMemoryDataContextSmallGroup.SetupListManager(aGalleryViewModel.Account, aGalleryViewModel.Password, DateTime.Now, true);
+                    m_InMemoryDataContextSmallGroup.ListManager.SetupListManager(aGalleryViewModel.Account, aGalleryViewModel.Password, DateTime.Now);
 
                     // 透過取得多小組網頁需要的資料之後，判斷這是多小組還是單一小組長的回報
                     string DisplayViewType = m_InMemoryDataContextSmallGroup.ListManager.GetDisplayViewType();
