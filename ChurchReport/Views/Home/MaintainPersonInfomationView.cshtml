@@ -70,7 +70,7 @@
     <h4>維護基本資料</h4>
 </div>
 
-<div id="multigroupchart" >
+<div id="multigroupchart">
     @*<div id="multigroupchart" style="width:800px;height:450px;overflow:auto;">*@
     @(Html.DevExtreme().Map()
         .ID("map")
@@ -78,18 +78,30 @@
         .Center("桃園市楊梅區")
         .Zoom(11)
         //.Width(750)
-        .Width("100%")
-        .Height(440)
-        .Controls(true)
-        .Type(GeoMapType.Roadmap)
-        // NOTE: Specify your map API keys for every used provider
-        .Key(k => k
-            //.Bing("YOUR_BING_MAPS_API_KEY")
-            .Google("AIzaSyBNogx0Ziqd3OIEW5b6b9BTJHXHW_YKDlM")
-            //.GoogleStatic("YOUR_GOOGLE_STATIC_MAPS_API_KEY")
-        )
-        .MarkerIconSrc(new JS("markerUrl"))
-        .OnReady("onReady")
+        //.Width("100%")
+        .Width("50%")
+        .Height(200)
+        @*.Height
+          (@<text>
+               function()
+               {
+                    //return window.innerHeight / 1.5;
+
+                    return $("#gridContainer").dxDataGrid("instance").option("height", (($(window).height()) - 20)); 
+               }
+        </text>)*@
+
+//.Height("50%")
+.Controls(true)
+.Type(GeoMapType.Roadmap)
+// NOTE: Specify your map API keys for every used provider
+.Key(k => k
+//.Bing("YOUR_BING_MAPS_API_KEY")
+.Google("AIzaSyBNogx0Ziqd3OIEW5b6b9BTJHXHW_YKDlM")
+//.GoogleStatic("YOUR_GOOGLE_STATIC_MAPS_API_KEY")
+)
+.MarkerIconSrc(new JS("markerUrl"))
+.OnReady("onReady")
     )
 </div>
  <br/>

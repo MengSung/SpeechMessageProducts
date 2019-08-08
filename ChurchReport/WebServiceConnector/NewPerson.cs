@@ -402,9 +402,6 @@ namespace ChurchReport.WebServiceConnector
             if (aListEntityId != null && aListEntityId != Guid.Empty)
             {
                 this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aNewContactEntity, "new_cell_list_contact", "list", aListEntityId);
-
-                
-                { }
             }
             #endregion
             #region 關聯邀請或轉介人
@@ -426,17 +423,24 @@ namespace ChurchReport.WebServiceConnector
 
             // 內壢得勝靈糧堂牧養新朋友稱呼代碼，跟台中思恩堂豐富教會不一樣
             //台中思恩堂豐富教會
-            if (this.m_ToolUtilityClass.GetEntityStringAttribute(this.m_ToolUtilityClass.RetrieveEntity("list", aListEntityId), "listname").Contains("幸福"))
+            if (aListEntityId != Guid.Empty)
             {
-                // 幸福小組新增的新人，委身類型設為"幸福 Best"
-                this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "customertypecode", 100000005);
+                if (this.m_ToolUtilityClass.GetEntityStringAttribute(this.m_ToolUtilityClass.RetrieveEntity("list", aListEntityId), "listname").Contains("幸福"))
+                {
+                    // 幸福小組新增的新人，委身類型設為"幸福 Best"
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "customertypecode", 100000005);
+                }
+                else
+                {
+                    // 一般小組新增的新人，委身類型設為"新朋友"
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "customertypecode", 100000000);
+                }
             }
             else
             {
                 // 一般小組新增的新人，委身類型設為"新朋友"
                 this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "customertypecode", 100000000);
             }
-
             // 內壢得勝靈糧堂
             //this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "customertypecode", 100000009);
 
@@ -749,22 +753,33 @@ namespace ChurchReport.WebServiceConnector
             {
                 // 初始化 m_Lists
                 // 共同組長 new_contact_list_vice_family_leader
-                this.m_Lists = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_contact_list_vice_family_leader", "list");  // 共同組長
+                //this.m_Lists = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_contact_list_vice_family_leader", "list");  // 共同組長
+                this.m_Lists = m_ToolUtilityClass.QueryListByContactId(m_ContactId, "new_contact_list_vice_family_leader");  // 共同組長
                 MergeCollectionSmallGroupAhead(ref this.m_Lists);
 
                 // 小組長/副組長 new_contact_family_leader_list
-                EntityCollection aListEntityCollection = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_contact_family_leader_list", "list");  // 小組長/副組長
+                //EntityCollection aListEntityCollection = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_contact_family_leader_list", "list");  // 小組長/副組長
+                EntityCollection aListEntityCollection = m_ToolUtilityClass.QueryListByContactId(m_ContactId, "new_contact_family_leader_list");  // 小組長/副組長
+                //aListEntityCollection = m_ToolUtilityClass.QueryListByContactId(m_ContactId, "new_contact_family_leader_list");  // 小組長/副組長
+                MergeCollectionSmallGroupAhead(ref aListEntityCollection);
+
+                // 共同區長 new_contact_co_race_leager_list
+                //aListEntityCollection = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_contact_co_race_leager_list", "list");  // 共同區長
+                aListEntityCollection = m_ToolUtilityClass.QueryListByContactId(m_ContactId, "new_contact_co_race_leager_list");  // 共同區長
                 MergeCollectionSmallGroupAhead(ref aListEntityCollection);
 
                 // 上代組長 new_contact_race_leager_list
-                aListEntityCollection = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_contact_race_leager_list", "list");  // 上代組長
+                //aListEntityCollection = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_contact_race_leager_list", "list");  // 上代組長
+                aListEntityCollection = m_ToolUtilityClass.QueryListByContactId(m_ContactId, "new_contact_race_leager_list");  // 上代組長
                 MergeCollectionSmallGroupAhead(ref aListEntityCollection);
 
                 // 族系族長 new_contact_list_arealeader
-                aListEntityCollection = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_contact_list_arealeader", "list");  // 族系族長
+                //aListEntityCollection = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_contact_list_arealeader", "list");  // 族系族長
+                aListEntityCollection = m_ToolUtilityClass.QueryListByContactId(m_ContactId, "new_contact_list_arealeader");  // 族系族長
                 MergeCollectionSmallGroupAhead(ref aListEntityCollection);
 
                 return;
+
             }
             catch (System.Exception Exception)
             {

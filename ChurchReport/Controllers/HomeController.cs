@@ -2544,7 +2544,7 @@ namespace ChurchReport.Controllers
                 }
 
                 // 設定要加入的小組名稱
-                m_InMemoryDataContextSmallGroup.m_NewPersonModel.SetupGroupArray(m_InMemoryDataContextSmallGroup.ListManager.m_MultiGroupList.m_WeeklyReportRecordListData, m_InMemoryDataContextSmallGroup.ListManager.ActiveListId);
+                m_InMemoryDataContextSmallGroup.NewPersonModel.SetupGroupArray(m_InMemoryDataContextSmallGroup.ListManager.m_MultiGroupList.m_WeeklyReportRecordListData, m_InMemoryDataContextSmallGroup.ListManager.ActiveListId);
 
                 return View(m_InMemoryDataContextSmallGroup.NewPersonModel.m_PersonFormViewModel);
             }
@@ -2573,13 +2573,13 @@ namespace ChurchReport.Controllers
                     return Json(new { status = "2", message = "新增新人必須要有行動電話" });
                 }
 
-                string Result = m_InMemoryDataContextSmallGroup.m_NewPersonModel.UploadNewPerson(m_InMemoryDataContextSmallGroup.ListManager.m_Account, m_InMemoryDataContextSmallGroup.ListManager.m_Password, aPersonFormViewModel);
+                string Result = m_InMemoryDataContextSmallGroup.NewPersonModel.UploadNewPerson(m_InMemoryDataContextSmallGroup.ListManager.m_Account, m_InMemoryDataContextSmallGroup.ListManager.m_Password, aPersonFormViewModel);
 
                 if (Result.Contains("成功"))
                 {
                     if (m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport != null && aPersonFormViewModel.Position != "0")
                     {
-                        aPersonFormViewModel.PresentRecordId = m_InMemoryDataContextSmallGroup.m_NewPersonModel.m_NewContact.PresentRecordId;
+                        aPersonFormViewModel.PresentRecordId = m_InMemoryDataContextSmallGroup.NewPersonModel.m_NewContact.PresentRecordId;
                         m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.AddNewPersonToMember(aPersonFormViewModel);
                     }
 
