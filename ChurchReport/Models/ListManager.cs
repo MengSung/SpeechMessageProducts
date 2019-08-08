@@ -178,7 +178,21 @@ namespace ChurchReport.Models
         public String GetDisplayViewType()
         {
             //return m_MultiGroupChartDataList.m_MultiGroupChartDataList.Count > 1 ? "MultiGroupView" : "IntegrateView";
-            return m_MultiGroupList.m_WeeklyReportRecordListData.Count > 1 ? "MultiGroupView" : "IntegrateView";
+            if (m_MultiGroupList != null)
+            {
+                if (m_MultiGroupList.m_WeeklyReportRecordListData != null)
+                {
+                    return m_MultiGroupList.m_WeeklyReportRecordListData.Count > 1 ? "MultiGroupView" : "IntegrateView";
+                }
+                else
+                {
+                    return "IntegrateView";
+                }
+            }
+            else
+            {
+                return "IntegrateView";
+            }
         }
         public void SetupIntegrateData( String ListEntityId )
         {
