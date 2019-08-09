@@ -2640,25 +2640,27 @@ namespace ChurchReport.Controllers
                 ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType;
                 ViewBag.HappyType = m_InMemoryDataContextSmallGroup.HappyGroupDataManager.HappyType;
 
-                SetMultiGroupLayoutParameter();
+                //SetMultiGroupLayoutParameter();
 
-                if (m_InMemoryDataContextSmallGroup.ListManager.m_MultiGroupList.m_WeeklyReportRecordListData.Count == 1)
-                {
-                    //m_InMemoryDataContextSmallGroup.NewPersonModel.m_PersonFormViewModel.Position = m_InMemoryDataContextSmallGroup.ListManager.m_MultiGroupList.m_WeeklyReportRecordListData.First().ListEntityId;
-                    //m_InMemoryDataContextSmallGroup.NewPersonModel.m_PersonFormViewModel.GroupName = m_InMemoryDataContextSmallGroup.ListManager.m_MultiGroupList.m_WeeklyReportRecordListData.First().Name;
-                }
-                else if (ViewBag.MultiGroupIndex == "HybridView")
-                {
-                    m_InMemoryDataContextSmallGroup.NewPersonModel.m_PersonFormViewModel.Position = m_InMemoryDataContextSmallGroup.ListManager.ActiveListId;
-                }
-                else if (ViewBag.MultiGroupIndex == "SingleMultiGroupView")
-                {
-                    m_InMemoryDataContextSmallGroup.NewPersonModel.m_PersonFormViewModel.Position = "";
-                }
-                else
-                {
-                    m_InMemoryDataContextSmallGroup.NewPersonModel.m_PersonFormViewModel.Position = "";
-                }
+                //if (m_InMemoryDataContextSmallGroup.ListManager.m_MultiGroupList.m_WeeklyReportRecordListData.Count == 1)
+                //{
+                //    //m_InMemoryDataContextSmallGroup.NewPersonModel.m_PersonFormViewModel.Position = m_InMemoryDataContextSmallGroup.ListManager.m_MultiGroupList.m_WeeklyReportRecordListData.First().ListEntityId;
+                //    //m_InMemoryDataContextSmallGroup.NewPersonModel.m_PersonFormViewModel.GroupName = m_InMemoryDataContextSmallGroup.ListManager.m_MultiGroupList.m_WeeklyReportRecordListData.First().Name;
+                //}
+                //else if (ViewBag.MultiGroupIndex == "HybridView")
+                //{
+                //    m_InMemoryDataContextSmallGroup.NewPersonModel.m_PersonFormViewModel.Position = m_InMemoryDataContextSmallGroup.ListManager.ActiveListId;
+                //}
+                //else if (ViewBag.MultiGroupIndex == "SingleMultiGroupView")
+                //{
+                //    m_InMemoryDataContextSmallGroup.NewPersonModel.m_PersonFormViewModel.Position = "";
+                //}
+                //else
+                //{
+                //    m_InMemoryDataContextSmallGroup.NewPersonModel.m_PersonFormViewModel.Position = "";
+                //}
+
+                m_InMemoryDataContextSmallGroup.NewPersonModel.m_PersonFormViewModel.Position = "";
 
                 ViewBag.ErrorMessage = ErrorMessage;
 
@@ -2673,7 +2675,7 @@ namespace ChurchReport.Controllers
 
                 aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "°ª¶¯¿ü¦w°ó : ¸j©w¿ù»~ => " + ErrorString);
 
-                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+                //return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
                 throw e;
             }
