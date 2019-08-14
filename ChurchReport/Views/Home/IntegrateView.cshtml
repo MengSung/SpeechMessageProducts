@@ -109,8 +109,8 @@ else
                 {
                     @if (Model.GroupType == "一般小組")
                     {
-            <div id="buttonContainer" class="dx-button-icon" style="float: left; width:30%; text-align: left; background-color:white;">
-                @(Html.DevExtreme().Button()
+                        <div id="buttonContainer" class="dx-button-icon" style="float: left; width:30%; text-align: left; background-color:white;">
+                            @(Html.DevExtreme().Button()
                                     .Text("上傳")
                                     .Type(ButtonType.Success)
                                     .ID("save-button")
@@ -187,20 +187,20 @@ else
                                                 }
                                                 }
                                     </text>)
-                )
-            </div>
+                                )
+                            </div>
                     }
                     else
                     {
-            <div id="buttonContainer" class="dx-button-icon" style="float: left; width:30%; text-align: left; background-color:white;">
-                @(Html.DevExtreme().Button()
-                        .Text("上傳")
-                        .Type(ButtonType.Success)
-                        .ID("save-button")
-                        .UseSubmitBehavior(false)
+                        <div id="buttonContainer" class="dx-button-icon" style="float: left; width:30%; text-align: left; background-color:white;">
+                            @(Html.DevExtreme().Button()
+                                    .Text("上傳")
+                                    .Type(ButtonType.Success)
+                                    .ID("save-button")
+                                    .UseSubmitBehavior(false)
 
-                        .OnClick
-                        (@<text>
+                                    .OnClick
+                                    (@<text>
                                     function(arg)
                                     {
 
@@ -266,9 +266,9 @@ else
 
                                     }
                                     }
-                        </text>)
-                )
-            </div>
+                                            </text>)
+                                    )
+                                </div>
                     }
                 }
                 else
@@ -594,8 +594,8 @@ else
                                 .Mode(GridScrollingMode.Virtual)
                                 .RowRenderingMode(GridRowRenderingMode.Virtual)
                              )
-                            .Paging(paging => paging.PageSize(10).Enabled(true))
-                            //.Height(100)
+                            .Paging(paging => paging.PageSize(100).Enabled(true))
+                            //.Height(400)
                             .Sorting(sorting => sorting.Mode(GridSortingMode.None))
                             .AllowColumnResizing(true)
                             .ColumnResizingMode(ColumnResizingMode.Widget)
