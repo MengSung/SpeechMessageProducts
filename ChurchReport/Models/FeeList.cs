@@ -24,6 +24,7 @@ namespace ChurchReport.Models
     {
         #region 成員資料
 
+        public List<Lesson> LessonList { get; set; }
         public List<Fee> FeeDataList { get; set; }
 
         public String FeeType { get; set; }
@@ -51,6 +52,26 @@ namespace ChurchReport.Models
              m_Password = Password;
         }
 
+        public void SetupLessonList(String Account, String Password)
+        {
+
+            m_Account = Account;
+            m_Password = Password;
+
+            String LocalResult = "";
+
+            LessonList = m_FeeDownUpLoader.GetLessonList(Account, Password, ref LocalResult, ref m_ClassName);
+
+            if (LessonList.Count > 0)
+            {
+                FeeType = "有繳費點名";
+            }
+            else
+            {
+                FeeType = "無繳費點名";
+            }
+            Result = LocalResult;
+        }
         public void SetupFeeDataList(String Account, String Password)
         {
 
@@ -59,8 +80,9 @@ namespace ChurchReport.Models
 
             String LocalResult = "";
 
-            FeeDataList = m_FeeDownUpLoader.GetFeeList(Account, Password, ref LocalResult, ref m_ClassName );
-            if(FeeDataList.Count > 0 )
+            FeeDataList = m_FeeDownUpLoader.GetFeeList(Account, Password, ref LocalResult, ref m_ClassName);
+
+            if (FeeDataList.Count > 0)
             {
                 FeeType = "有繳費點名";
             }

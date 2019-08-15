@@ -1,0 +1,254 @@
+﻿@using ChurchReport.Models
+@using Newtonsoft.Json
+
+@model ChurchReport.Models.FeeList
+
+<head>
+    <!-- Site made with Mobirise Website Builder v4.0.16, https://mobirise.com -->
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="generator" content="Mobirise v4.0.16, mobirise.com">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="shortcut icon" href="assets/images/logo.png" type="image/x-icon">
+    <meta name="description" content="">
+    <title>台中思恩堂豐富教會</title>
+
+</head>
+
+<div id="lessonlist-grid">
+    @(
+        Html.DevExtreme().DataGrid<Lesson>()
+            .ID("SmallGroupgridContainer")
+            .ShowBorders(true)
+            .ColumnAutoWidth(true)
+            //.Visible(Model.DisplayFlag)
+            .Visible(true)
+            //.RemoteOperations(true)
+            .Scrolling(s => s
+                .Mode(GridScrollingMode.Virtual)
+                .RowRenderingMode(GridRowRenderingMode.Virtual)
+             )
+            .Paging(paging => paging.PageSize(10).Enabled(true))
+            .Sorting(sorting => sorting.Mode(GridSortingMode.None))
+            .AllowColumnResizing(true)
+            .ColumnResizingMode(ColumnResizingMode.Widget)
+            .ColumnFixing(c => c.Enabled(true))
+            .LoadPanel(l => l.Text("更新資料中..."))
+            .SearchPanel(s => s.Visible(false).Placeholder("搜尋.."))
+            .ShowColumnLines(true)
+            .ShowRowLines(true)
+            .RowAlternationEnabled(true)
+            .ShowBorders(true)
+            .OnRowPrepared("OnRowPrepared")
+
+            .TwoWayBindingEnabled(true)
+
+            .Grouping
+            (g => g
+            .ContextMenuEnabled(true)
+            .ExpandMode(GridGroupingExpandMode.RowClick)
+            )
+
+            .GroupPanel
+            (p => p
+            .EmptyPanelText("請把小組名稱拉到這裡")
+            .Visible(false) // 讓使用者不能自己決定誰被Grouping起來
+            .AllowColumnDragging(true)
+            )
+
+            .Editing(editing =>
+            {
+                //editing.Mode(GridEditMode.Batch);
+                //editing.Mode(GridEditMode.Row);
+                editing.Mode(GridEditMode.Cell);
+                //editing.Mode(GridEditMode.Batch);
+                //editing.Mode(GridEditMode.Form);
+                //editing.Mode(GridEditMode.Popup);
+                editing.AllowUpdating(true);
+                editing.AllowDeleting(false);
+                //editing.AllowAdding(false);
+                editing.Texts(a => a.SaveAllChanges("上傳檔案").AddRow("新增").CancelAllChanges("取消變更").SaveRowChanges("儲存").CancelRowChanges("取消").EditRow("編輯").DeleteRow("刪除"));
+                //editing.AllowDeleting(true);
+            })
+
+            .Columns(columns =>
+            {
+                columns.AddFor(m => m.DiscipleLessonsName).Caption("課程名稱").Fixed(true).Width(250).MinWidth(20).CellTemplate(new JS("cellTemplate"));
+                columns.AddFor(m => m.EnrollStartDate).Caption("報名開始日期").DataType(GridColumnDataType.Date).Width(120).MinWidth(45);
+                columns.AddFor(m => m.EnrollEndDate).Caption("報名結束日期").DataType(GridColumnDataType.Date).Width(120).MinWidth(45);
+                columns.AddFor(m => m.LessonStartDate).Caption("課程開始日期").DataType(GridColumnDataType.Date).Width(120).MinWidth(45);
+                columns.AddFor(m => m.LessonEndDate).Caption("課程結束日期").DataType(GridColumnDataType.Date).Width(120).MinWidth(45);
+                columns.AddFor(m => m.EnrolledNumber).Caption("報名人數").DataType(GridColumnDataType.Number).Width(80).MinWidth(45);
+            })
+            .DataSource(d => d
+            .WebApi()
+            .Controller("Home")
+            .LoadAction("LoadLessonList")
+            //.InsertAction("InsertPresentRecord")
+            //.DeleteAction("DeletePresentRecord")
+            //.UpdateAction("UpdatePresentRecord")
+            .Key("DiscipleLessonsId")
+            .LoadParams(new { id = @ViewBag.ListId }))
+
+ )
+</div>
+
+<div id="Tool" style="height:100%; width:100%; overflow: hidden;">
+    <div id="LoadPanel">
+        @(Html.DevExtreme().LoadPanel()
+        .ID("loadPanel")
+        .ShadingColor("rgba(0,0,0,0.4)")
+        //.Position(p => p.Of("#data-grid").Of("#buttonContainer"))
+        .Position(p => p.Of("#data-grid"))
+        .Visible(false)
+        .ShowIndicator(true)
+        .ShowPane(true)
+        .Shading(true)
+        .CloseOnOutsideClick(false)
+        .Message("更新資料中...")
+        .Animation(l => l.Show(k => k.Easing(AnimationEasing.Swing)))
+        //.OnShown("loadPanel_shown")
+        //.OnHidden("loadPanel_hidden")
+        )
+    </div>
+</div>
+
+@*</div>*@
+<script>
+    function moveEditColumnToLeft(dataGrid) {
+        dataGrid.columnOption("command:edit", {
+            visibleIndex: -1,
+            width: 50
+        });
+    }
+    function cell_prepared(e) {
+        if (e.rowType === "data" && e.column.command === "edit") {
+            var isEditing = e.row.isEditing,
+                $links = e.cellElement.find(".dx-link");
+
+            $links.text("");
+
+            if (isEditing) {
+                $links.filter(".dx-link-save").addClass("dx-icon-save");
+                $links.filter(".dx-link-cancel").addClass("dx-icon-revert");
+            } else {
+                $links.filter(".dx-link-edit").addClass("dx-icon-edit");
+                $links.filter(".dx-link-delete").addClass("dx-icon-trash");
+            }
+        }
+    }
+    function OnDateboxChange(e) {
+        debugger;
+
+        //var X = e.component._$validationMessage;
+        //if( $("#SmallGroupDate").dxDateBox("instance")._$validationMessage == null )
+        if (e.component._$validationMessage == null) {
+            UploadDateFormat = "格式正確";
+        }
+        else {
+            UploadDateFormat = "格式錯誤";
+            // 顯示日期格式錯誤
+            $("#SelectDateToast").dxToast("instance").show();
+            return;
+        }
+        //var result = $("#SmallGroupDate").dxDateBox("instance").validate();
+        //var result = e.validationGroup.validate();
+
+        //alert("日期改變001");
+    }
+    function getLoadPanelInstance() {
+        return $("#loadPanel").dxLoadPanel("instance");
+    }
+    function button_click() {
+        getLoadPanelInstance().show();
+    }
+    function loadPanel_shown(e) {
+        // setTimeout(function () {
+        // e.component.hide();
+        // }, 3000);
+    }
+    function loadPanel_hidden()
+    {
+    }
+    function SaveWeeklyReport(arg) {
+
+        //debugger;
+
+        getLoadPanelInstance().show();
+        //$("#toast").dxToast("instance").show();
+        //alert("SaveNewPerson!!!");
+        //alert("OnValueChanged : " + arg.value);
+
+        //alert("OnValueChanged : " + arg.attribute('text'));
+        //alert("OnValueChanged : " + text: arg.attribute("text"));
+
+        //alert( getODataLocalDateFilter(arg.value) );
+    }
+    function cellTemplate(cellElement, cellInfo) {
+    $('<a/>')
+        .attr({ href: '@Url.RouteUrl("default", new { action = "FeeView", controller = "Home" })/' + `${cellInfo.data.DiscipleLessonsId}` })
+        .text(`${cellInfo.data.DiscipleLessonsName}`)
+        .appendTo(cellElement);
+    }
+    function OnRowPrepared(e) {
+        e.rowElement.css({ height: 25 });
+        e.rowElement.css('font-size', '16px');
+        if (e.rowType == 'data') {
+            //e.rowElement.css('background', '#fff2a8');
+            e.rowElement[0].addEventListener("mouseover", function () {
+              e.rowElement.css('background', '#fff2a8');
+              e.rowElement.css("transition", "background-color 0.5s");
+            });
+            e.rowElement[0].addEventListener("mouseleave", function () {
+              e.rowElement[0].style.background = ""
+            });
+        }
+    }
+
+</script>
+<!--本地中文化-->
+<script>
+    var dictionary = {
+        "zh-tw": {
+            "dxScheduler-switcherAgenda": "會議內容", // 在這裡可以做最後的字典對應
+            "Month": "月",
+            "Subject": "主題",
+            "Company": "Company",
+            "Amount": "Amount",
+            "PaymentDate": "Payment Date"
+        },
+    };
+    DevExpress.localization.loadMessages(dictionary);
+    var formatMessage = DevExpress.localization.formatMessage;
+
+    var locale = getLocale();
+    //DevExpress.localization.locale(navigator.language || navigator.browserLanguage);
+    DevExpress.localization.locale(locale);
+
+    function changeLocale(data) {
+        setLocale(data.value);
+        document.location.reload();
+    }
+
+    function getLocale() {
+        //debugger;
+        //sessionStorage.setItem("locale", 'zh');
+        sessionStorage.setItem("locale", 'zh-tw');
+        var locale = sessionStorage.getItem("locale");
+        return locale != null ? locale : "tw";
+    }
+</script>
+<!--本地中文化-->
+<script src="~/js/devextreme/devextreme-intl.min.js"></script>
+<script src="~/js/devextreme/localization/dx.messages.zh-tw.js"></script>
+
+<script>var DataUploadStatus = "尚未上傳喔!";</script>
+<script>var UploadDateFormat = "格式正確!";</script>
+<script src="~/js/DataGridAjax.js"></script>
+<script src="~/js/SelectDate.js"></script>
+<script src="~/js/DropDownBox.js"></script>
+<script src="~/js/DataGridAjax.js"></script>
+<script src="~/js/LoadPanel.js"></script>
+<script src="~/lib/jquery-ajax-unobtrusive/jquery.unobtrusive-ajax.js"></script>
+<link href="~/css/SmallGroupReportController.css" rel="stylesheet" />
+<link href="~/css/WeeklyReport.css" rel="stylesheet" />

@@ -155,7 +155,10 @@ namespace ChurchReport.Controllers
                     //}
 
                     // 設定繳費與報名資料
-                    m_InMemoryDataContextSmallGroup.FeeList.SetupFeeDataList(aGalleryViewModel.Account, aGalleryViewModel.Password);
+                    //m_InMemoryDataContextSmallGroup.FeeList.SetupFeeDataList(aGalleryViewModel.Account, aGalleryViewModel.Password);
+
+                    // 設定需要點名的課程清單
+                    m_InMemoryDataContextSmallGroup.FeeList.SetupLessonList(aGalleryViewModel.Account, aGalleryViewModel.Password);
 
                     if (m_InMemoryDataContextSmallGroup.ListManager.LoginType == "小組長" && m_InMemoryDataContextSmallGroup.HappyGroupDataManager.HappyType == "有幸福小組名單")
                     {
@@ -2181,7 +2184,7 @@ namespace ChurchReport.Controllers
 
         #endregion
         #region 課程繳費與點名
-        public ActionResult PresentView()
+        public ActionResult PresentFeeListView()
         {
             try
             {
@@ -2225,7 +2228,8 @@ namespace ChurchReport.Controllers
                 throw e;
             }
         }
-        public ActionResult FeeView()
+        [Route("/Home/FeeView/{LessonIdParameter}")]
+        public ActionResult FeeView(string LessonIdParameter)
         {
             try
             {
@@ -2418,6 +2422,34 @@ namespace ChurchReport.Controllers
         //    var serializer = new JsonSerializer { DateFormatString = "dd-MM-yyyy" };
         //    return serializer.Deserialize<T>(new JsonTextReader(new StringReader(str)));
         //}
+
+        [HttpGet]
+        public object LoadLessonList(DataSourceLoadOptions loadOptions)
+        {
+            try
+            {
+                // 上課紀錄單過濾掉上完十課的
+                // 下載對課單紀錄，含對課中及完整清單
+                //m_InMemoryDataContext.ClassSheetManager.LoadReportDiscipleLessonsList();
+
+                //loadOptions.Filter = new List<object>(new object[] { "DiscipleLessonsStatusCode", "<>", "對完十課" });
+
+                return DataSourceLoader.Load(m_InMemoryDataContextSmallGroup.FeeList.LessonList, loadOptions);
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "高雄錫安堂 : 綁定錯誤 => " + ErrorString);
+
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
+                throw e;
+            }
+        }
 
         [HttpGet]
         public object LoadFeeDataList(DataSourceLoadOptions loadOptions)

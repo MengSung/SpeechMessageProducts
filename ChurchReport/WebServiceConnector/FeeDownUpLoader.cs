@@ -61,6 +61,7 @@ namespace ChurchReport.WebServiceConnector
         #endregion
         #region 下載資料時所需要的參數
 
+        List<Lesson> m_LessonList ; // 需要點名的上課紀錄單名單
         List<Fee> m_FeeDataList = new List<Fee>(); // 需要點名的上課紀錄單名單
 
         Entity m_ContactEntity; //登入者在系統裡的實體
@@ -76,6 +77,17 @@ namespace ChurchReport.WebServiceConnector
         #endregion
         #region 真實運作區塊，並非模擬區塊
         #region 主程式區
+        public List<Lesson> GetLessonList(String Account, String Password, ref String Result, ref ClassName aClassName)
+        {
+            // 取得登入者
+            FindLoginUser(Account, Password);
+
+            if (m_ContactEntity == null) return m_LessonList = new List<Lesson>(); // 沒找到就直接離開
+
+            SetLessonList(ref Result, ref aClassName);
+
+            return m_LessonList;
+        }
         public List<Fee> GetFeeList(String Account, String Password, ref String Result, ref ClassName aClassName)
         {
             // 取得登入者
@@ -120,6 +132,19 @@ namespace ChurchReport.WebServiceConnector
         #endregion
         #endregion
         #region 下載資料
+        public void SetLessonList(ref String Result, ref ClassName aClassName)
+        {
+            // 初始化收費與點名紀錄
+            m_LessonList = new List<Lesson>();
+
+            // 取得與登入者需要收費的課程，課程結束後7日還會出現讚點名繳費網站
+            EntityCollection aDiscipleLessonsEntityCollection = m_ToolUtilityClass.QueryEntityListByDate("contact", "contactid", this.m_ContactEntity.Id.ToString(), "new_contact_new_disciple_lessons_fee", "new_disciple_lessons");
+
+            //處理一個一個的課程
+            ProcesseLessonsList(ref aDiscipleLessonsEntityCollection, ref Result, ref aClassName);
+
+        }
+
         public void SetFeeDataList(ref String Result, ref ClassName aClassName)
         {
             // 初始化收費與點名紀錄
@@ -131,6 +156,34 @@ namespace ChurchReport.WebServiceConnector
             //處理一個一個的課程
             ProcesseDiscipleLessons(ref aDiscipleLessonsEntityCollection, ref Result, ref aClassName);
 
+        }
+        public void ProcesseLessonsList(ref EntityCollection aDiscipleLessonsEntityCollection, ref String Result, ref ClassName aClassName)
+        {
+            foreach ( Entity aDiscipleLessons in aDiscipleLessonsEntityCollection.Entities)
+            {
+                Lesson aLesson = new Lesson();
+
+                // 課程名稱
+                aLesson.DiscipleLessonsName = this.m_ToolUtilityClass.GetEntityStringAttribute(aDiscipleLessons, "new_name");
+                // 課程 ID
+                aLesson.DiscipleLessonsId = aDiscipleLessons.Id.ToString();
+
+                // 報名開始日期
+                aLesson.EnrollStartDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(aDiscipleLessons, "new_join_start_date");
+                // 報名結束日期
+                aLesson.EnrollEndDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(aDiscipleLessons, "new_join_end_date");
+                // 課程開始日期
+                aLesson.LessonStartDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(aDiscipleLessons, "new_class_start_date");
+                // 課程結束日期
+                aLesson.LessonEndDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(aDiscipleLessons, "new_class_end_date");
+
+                // 報名人數
+                EntityCollection aStorLessonsEntityCollection = m_ToolUtilityClass.QueryEntityList("new_disciple_lessons", "new_disciple_lessonsid", aDiscipleLessons.Id.ToString(), "new_new_disciple_lessons_new_stor_les", "new_stor_lessons");
+                aLesson.EnrolledNumber = aStorLessonsEntityCollection.Entities.Count;
+
+                // 把課程加入到清單中
+                this.m_LessonList.Add(aLesson);
+            }
         }
         public void ProcesseDiscipleLessons(ref EntityCollection aDiscipleLessonsEntityCollection, ref String Result, ref ClassName aClassName)
         {
@@ -333,7 +386,6 @@ namespace ChurchReport.WebServiceConnector
             aClassName.HomeWorkE = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDiscipleLessons, "new_homework5");
 
         }
-
         public void ProcesseStorLessons(Entity aDiscipleLessons, ref EntityCollection aStorLessonsEntityCollection, ref String Result)
         {
             int TotalFeeAmount = 0;
