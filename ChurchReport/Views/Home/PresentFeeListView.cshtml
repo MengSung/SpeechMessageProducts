@@ -15,6 +15,9 @@
 
 </head>
 
+<br />
+<br />
+
 <div id="lessonlist-grid">
     @(
         Html.DevExtreme().DataGrid<Lesson>()
@@ -90,7 +93,7 @@
             .Key("DiscipleLessonsId")
             .LoadParams(new { id = @ViewBag.ListId }))
 
- )
+    )
 </div>
 
 <div id="Tool" style="height:100%; width:100%; overflow: hidden;">
