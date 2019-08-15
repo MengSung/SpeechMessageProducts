@@ -76,12 +76,12 @@
 
             .Columns(columns =>
             {
-                columns.AddFor(m => m.DiscipleLessonsName).Caption("課程名稱").Fixed(true).Width(250).MinWidth(20).CellTemplate(new JS("cellTemplate"));
-                columns.AddFor(m => m.EnrollStartDate).Caption("報名開始日期").DataType(GridColumnDataType.Date).Width(120).MinWidth(45);
-                columns.AddFor(m => m.EnrollEndDate).Caption("報名結束日期").DataType(GridColumnDataType.Date).Width(120).MinWidth(45);
-                columns.AddFor(m => m.LessonStartDate).Caption("課程開始日期").DataType(GridColumnDataType.Date).Width(120).MinWidth(45);
-                columns.AddFor(m => m.LessonEndDate).Caption("課程結束日期").DataType(GridColumnDataType.Date).Width(120).MinWidth(45);
-                columns.AddFor(m => m.EnrolledNumber).Caption("報名人數").DataType(GridColumnDataType.Number).Width(80).MinWidth(45);
+                columns.AddFor(m => m.DiscipleLessonsName).Caption("課程名稱").Fixed(true).Width(250).MinWidth(20).CellTemplate(new JS("cellTemplate")).AllowEditing(false);
+                columns.AddFor(m => m.EnrolledNumber).Caption("報名人數").DataType(GridColumnDataType.Number).Width(80).MinWidth(45).AllowEditing(false).Alignment(HorizontalAlignment.Center);
+                columns.AddFor(m => m.EnrollStartDate).Caption("報名開始日期").DataType(GridColumnDataType.Date).Width(120).MinWidth(45).AllowEditing(false).Alignment(HorizontalAlignment.Center);
+                columns.AddFor(m => m.EnrollEndDate).Caption("報名結束日期").DataType(GridColumnDataType.Date).Width(120).MinWidth(45).AllowEditing(false).Alignment(HorizontalAlignment.Center);
+                columns.AddFor(m => m.LessonStartDate).Caption("課程開始日期").DataType(GridColumnDataType.Date).Width(120).MinWidth(45).AllowEditing(false).Alignment(HorizontalAlignment.Center);
+                columns.AddFor(m => m.LessonEndDate).Caption("課程結束日期").DataType(GridColumnDataType.Date).Width(120).MinWidth(45).AllowEditing(false).Alignment(HorizontalAlignment.Center);
             })
             .DataSource(d => d
             .WebApi()

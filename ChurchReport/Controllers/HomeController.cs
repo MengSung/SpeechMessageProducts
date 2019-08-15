@@ -2228,6 +2228,52 @@ namespace ChurchReport.Controllers
                 throw e;
             }
         }
+
+        public ActionResult PresentView()
+        {
+            try
+            {
+                #region 用小組長回報網頁登入
+                ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType;// 看是小組長還是個人回報
+                ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.ListManager.LoginFullName;
+                ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType;
+
+                if (m_InMemoryDataContextSmallGroup.HappyGroupDataManager.HappyType == "有幸福小組名單")
+                {
+                    ViewBag.HappyType = "有幸福小組名單";
+                }
+                else
+                {
+                    ViewBag.HappyType = "沒幸福小組名單";
+                }
+
+                ViewBag.FeeResult = m_InMemoryDataContextSmallGroup.FeeList.Result;
+
+                // 設定繳費與報名資料
+                //m_InMemoryDataContextSmallGroup.SetupFeeList();
+
+                SetFeeManagerViewBag();
+                SetMultiGroupLayoutParameter();
+
+                return View(m_InMemoryDataContextSmallGroup.FeeList);
+
+                #endregion
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "高雄錫安堂 : 綁定錯誤 => " + ErrorString);
+
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
+                throw e;
+            }
+        }
+
         [Route("/Home/FeeView/{LessonIdParameter}")]
         public ActionResult FeeView(string LessonIdParameter)
         {
@@ -2250,7 +2296,7 @@ namespace ChurchReport.Controllers
                 ViewBag.FeeResult = m_InMemoryDataContextSmallGroup.FeeList.Result;
 
                 // 設定繳費與報名資料
-                //m_InMemoryDataContextSmallGroup.SetupFeeList();
+                m_InMemoryDataContextSmallGroup.FeeList.SetupPresentFeeList(LessonIdParameter);
 
                 SetFeeManagerViewBag();
                 SetMultiGroupLayoutParameter();

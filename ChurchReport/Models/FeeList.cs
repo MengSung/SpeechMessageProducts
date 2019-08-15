@@ -72,6 +72,14 @@ namespace ChurchReport.Models
             }
             Result = LocalResult;
         }
+        public void SetupPresentFeeList( String DiscipleLessonsId )
+        {
+            String LocalResult = "";
+
+            FeeDataList = m_FeeDownUpLoader.GetPresentFeeList(DiscipleLessonsId, ref LocalResult, ref m_ClassName);
+
+            Result = LocalResult;
+        }
         public void SetupFeeDataList(String Account, String Password)
         {
 

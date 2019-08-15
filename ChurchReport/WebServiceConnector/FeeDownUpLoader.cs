@@ -100,6 +100,13 @@ namespace ChurchReport.WebServiceConnector
 
             return m_FeeDataList;
         }
+        public List<Fee> GetPresentFeeList( String DiscipleLessonsId , ref String Result, ref ClassName aClassName)
+        {
+            //實際要回傳，不是模擬
+            SetPresentFeeList(DiscipleLessonsId, ref Result, ref aClassName);
+
+            return m_FeeDataList;
+        }
         public void SetGroupContent(String DiscipleLessonsName, String Result)
         {
             // 取得登入者
@@ -157,6 +164,32 @@ namespace ChurchReport.WebServiceConnector
             ProcesseDiscipleLessons(ref aDiscipleLessonsEntityCollection, ref Result, ref aClassName);
 
         }
+        public void SetPresentFeeList(String DiscipleLessonsId, ref String Result, ref ClassName aClassName)
+        {
+            // 初始化收費與點名紀錄
+            m_FeeDataList = new List<Fee>();
+
+            //處理一個課程
+            ProcessDiscipleLesson(DiscipleLessonsId, ref Result, ref aClassName);
+        }
+
+        public void ProcessDiscipleLesson(String DiscipleLessonsId, ref String Result, ref ClassName aClassName)
+        {
+            Result = ""; // 上課人數及繳費結果歸零
+
+            // 取得與課程相關的上課紀錄
+            EntityCollection aStorLessonsEntityCollection = m_ToolUtilityClass.QueryEntityList("new_disciple_lessons", "new_disciple_lessonsid", DiscipleLessonsId, "new_new_disciple_lessons_new_stor_les", "new_stor_lessons");
+
+            // 處理一個一個的上課紀錄
+            Entity aDiscipleLessonsEntity = this.m_ToolUtilityClass.RetrieveEntity("new_disciple_lessons", new Guid(DiscipleLessonsId) );
+
+            ProcesseStorLessons(aDiscipleLessonsEntity, ref aStorLessonsEntityCollection, ref Result);
+
+            String DiscipleLessonsName = this.m_ToolUtilityClass.GetEntityStringAttribute(aDiscipleLessonsEntity, "new_name");
+            SetGroupContent(DiscipleLessonsName, Result);
+            //Result += Environment.NewLine;
+        }
+
         public void ProcesseLessonsList(ref EntityCollection aDiscipleLessonsEntityCollection, ref String Result, ref ClassName aClassName)
         {
             foreach ( Entity aDiscipleLessons in aDiscipleLessonsEntityCollection.Entities)
