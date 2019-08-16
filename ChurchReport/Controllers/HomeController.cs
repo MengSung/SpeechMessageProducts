@@ -2428,16 +2428,6 @@ namespace ChurchReport.Controllers
                 ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType;// 看是小組長還是個人回報
                 ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.ListManager.LoginFullName;
                 ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType;
-                #region 繳費與點名是否顯示在選單中
-                if (m_InMemoryDataContextSmallGroup.FeeList.FeeDataList != null && m_InMemoryDataContextSmallGroup.FeeList.FeeDataList.Count > 0)
-                {
-                    ViewBag.FeeDataListCount = "繳費與點名已有資料";
-                }
-                else
-                {
-                    ViewBag.FeeDataListCount = "繳費與點名尚無資料";
-                }
-                #endregion
 
                 if (m_InMemoryDataContextSmallGroup.HappyGroupDataManager.HappyType == "有幸福小組名單")
                 {
@@ -2456,6 +2446,16 @@ namespace ChurchReport.Controllers
                 SetFeeManagerViewBag();
                 SetMultiGroupLayoutParameter();
 
+                #region 繳費與點名是否顯示在選單中
+                if (m_InMemoryDataContextSmallGroup.FeeList.FeeDataList != null && m_InMemoryDataContextSmallGroup.FeeList.FeeDataList.Count > 0)
+                {
+                    ViewBag.FeeDataListCount = "繳費與點名已有資料";
+                }
+                else
+                {
+                    ViewBag.FeeDataListCount = "繳費與點名尚無資料";
+                }
+                #endregion
                 return View(m_InMemoryDataContextSmallGroup.FeeList);
 
                 #endregion
@@ -2475,7 +2475,7 @@ namespace ChurchReport.Controllers
             }
         }
 
-        [Route("/Home/FeeView/{LessonIdParameter}")]
+        [Route("/Home/FeeView/{LessonIdParameter?}")]
         public ActionResult FeeView(string LessonIdParameter)
         {
             try
@@ -2484,16 +2484,6 @@ namespace ChurchReport.Controllers
                 ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType;// 看是小組長還是個人回報
                 ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.ListManager.LoginFullName;
                 ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType;
-                #region 繳費與點名是否顯示在選單中
-                if (m_InMemoryDataContextSmallGroup.FeeList.FeeDataList != null && m_InMemoryDataContextSmallGroup.FeeList.FeeDataList.Count > 0)
-                {
-                    ViewBag.FeeDataListCount = "繳費與點名已有資料";
-                }
-                else
-                {
-                    ViewBag.FeeDataListCount = "繳費與點名尚無資料";
-                }
-                #endregion
                 if (m_InMemoryDataContextSmallGroup.HappyGroupDataManager.HappyType == "有幸福小組名單")
                 {
                     ViewBag.HappyType = "有幸福小組名單";
@@ -2506,10 +2496,24 @@ namespace ChurchReport.Controllers
                 ViewBag.FeeResult = m_InMemoryDataContextSmallGroup.FeeList.Result;
 
                 // 設定繳費與報名資料
-                m_InMemoryDataContextSmallGroup.FeeList.SetupPresentFeeList(LessonIdParameter);
+                if (LessonIdParameter != null)
+                {
+                    m_InMemoryDataContextSmallGroup.FeeList.SetupPresentFeeList(LessonIdParameter);
+                }
 
                 SetFeeManagerViewBag();
                 SetMultiGroupLayoutParameter();
+
+                #region 繳費與點名是否顯示在選單中
+                if (m_InMemoryDataContextSmallGroup.FeeList.FeeDataList != null && m_InMemoryDataContextSmallGroup.FeeList.FeeDataList.Count > 0)
+                {
+                    ViewBag.FeeDataListCount = "繳費與點名已有資料";
+                }
+                else
+                {
+                    ViewBag.FeeDataListCount = "繳費與點名尚無資料";
+                }
+                #endregion
 
                 return View(m_InMemoryDataContextSmallGroup.FeeList);
 
@@ -2537,16 +2541,6 @@ namespace ChurchReport.Controllers
                 ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType;// 看是小組長還是個人回報
                 ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.ListManager.LoginFullName;
                 ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType;
-                #region 繳費與點名是否顯示在選單中
-                if (m_InMemoryDataContextSmallGroup.FeeList.FeeDataList != null && m_InMemoryDataContextSmallGroup.FeeList.FeeDataList.Count > 0)
-                {
-                    ViewBag.FeeDataListCount = "繳費與點名已有資料";
-                }
-                else
-                {
-                    ViewBag.FeeDataListCount = "繳費與點名尚無資料";
-                }
-                #endregion
 
                 if (m_InMemoryDataContextSmallGroup.HappyGroupDataManager.HappyType == "有幸福小組名單")
                 {
@@ -2565,6 +2559,16 @@ namespace ChurchReport.Controllers
                 SetFeeManagerViewBag();
                 SetMultiGroupLayoutParameter();
 
+                #region 繳費與點名是否顯示在選單中
+                if (m_InMemoryDataContextSmallGroup.FeeList.FeeDataList != null && m_InMemoryDataContextSmallGroup.FeeList.FeeDataList.Count > 0)
+                {
+                    ViewBag.FeeDataListCount = "繳費與點名已有資料";
+                }
+                else
+                {
+                    ViewBag.FeeDataListCount = "繳費與點名尚無資料";
+                }
+                #endregion
                 return View(m_InMemoryDataContextSmallGroup.FeeList);
 
                 #endregion
