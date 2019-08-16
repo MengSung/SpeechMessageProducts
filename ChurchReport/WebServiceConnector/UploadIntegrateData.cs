@@ -138,7 +138,7 @@ namespace ChurchReport.WebServiceConnector
                 // 去除掉主日出席率及小組出席率之後的小組名稱
                 String FilteredGroupName = ToolUtilityClass.DeletePresentRate(GroupName);
 
-                //高雄錫安堂小組名稱含有數字
+                //台中思恩堂豐富教會小組名稱含有數字
                 //String FilteredOutDigitGroupName = Regex.Replace(FilteredGroupName, "[0-9]", "");//過濾掉數字
                 String FilteredOutDigitGroupName = FilteredGroupName.Replace(" ", ""); // //過濾掉空白
                 AddToDictionary(ref this.m_FeedBackReport, "主日出席統計表頭", FilteredOutDigitGroupName + Environment.NewLine + "主日出席紀錄:");
@@ -2300,7 +2300,7 @@ namespace ChurchReport.WebServiceConnector
                 #endregion
                 #region 設定附註或是代禱事項
 
-                // 高雄錫安堂
+                // 台中思恩堂豐富教會
                 //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_name", aMemberInfomation.Note);
                 //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_explanation", aMemberInfomation.PrayItem);
 
@@ -2396,7 +2396,7 @@ namespace ChurchReport.WebServiceConnector
                         {
                             OptionSetValue aCustomerTypeCode = ContactEntity.Attributes["customertypecode"] as OptionSetValue;
 
-                            // 如果是新朋友或是未入組則不列入累積，高雄錫安堂
+                            // 如果是新朋友或是未入組則不列入累積，台中思恩堂豐富教會
                             if (aCustomerTypeCode.Value != 100000004 && aCustomerTypeCode.Value != 100000000 && aCustomerTypeCode.Value != 100000007)
                             {
                                 EffectiveNumber++;
@@ -2608,7 +2608,7 @@ namespace ChurchReport.WebServiceConnector
                 }
             }
 
-            // 組員的職業及專長(高雄錫安堂)
+            // 組員的職業及專長(台中思恩堂豐富教會)
             if (aMember.Industry != null)
             {
                 if (aMember.Industry != this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContactEntity, "new_industry"))
@@ -3146,7 +3146,7 @@ namespace ChurchReport.WebServiceConnector
                         }
                         #endregion
                         #region 設定附註或是代禱事項
-                        // 高雄錫安堂
+                        // 台中思恩堂豐富教會
                         //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aMachedPresentRecordEntity, "new_name", aMemberInfomation.Note);
                         this.m_ToolUtilityClass.SetEntityStringAttribute(ref aMachedPresentRecordEntity, "new_explanation", aMember.PrayItem);
 
@@ -3605,7 +3605,7 @@ namespace ChurchReport.WebServiceConnector
                                 ClearIdentity = this.ConvertIndexToClearIdentity(aCustomerTypeCode.Value);
 
                                 // 版本轉換
-                                //// 如果是新朋友、未入組、外教會則不列入累積，高雄錫安堂
+                                //// 如果是新朋友、未入組、外教會則不列入累積，台中思恩堂豐富教會
                                 if (aCustomerTypeCode.Value != 100000004 && aCustomerTypeCode.Value != 100000000 && aCustomerTypeCode.Value != 100000007)
                                 {
                                     return true;
@@ -3672,7 +3672,7 @@ namespace ChurchReport.WebServiceConnector
                 int aCustomerTypeCodeValue = this.m_ToolUtilityClass.GetOptionSetAttribute(ref aContactEntity, "customertypecode");
                 //OptionSetValue aCustomerTypeCode = aContactEntity.Attributes["customertypecode"] as OptionSetValue;
 
-                // 如果是新朋友或是未入組則不列入累積，高雄錫安堂
+                // 如果是新朋友或是未入組則不列入累積，台中思恩堂豐富教會
                 if (aCustomerTypeCodeValue != 100000004 && aCustomerTypeCodeValue != 100000000 && aCustomerTypeCodeValue != 100000007 && aCustomerTypeCodeValue != EMPTY_VALUE)
                 {
                     return true;
@@ -4117,7 +4117,7 @@ namespace ChurchReport.WebServiceConnector
             }
         }
 
-        // 高雄錫安堂
+        // 台中思恩堂豐富教會
         // 委身類型客製化
         private int ConvertIdentityToIndex(String Identity)
         {
@@ -4150,7 +4150,7 @@ namespace ChurchReport.WebServiceConnector
             }
         }
 
-        // 高雄錫安堂
+        // 台中思恩堂豐富教會
         // 委身類型客製化
         private String ConvertIndexToIdentity(int Identity)
         {

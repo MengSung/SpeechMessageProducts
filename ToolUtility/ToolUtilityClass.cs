@@ -111,7 +111,7 @@ namespace ToolUtilityNameSpace
         //private const String DOMAIN = "SPEECHMESSAGE";
         #endregion
 
-        #region 台北基督之家(公司內部發展)
+        #region 台中思恩堂豐富教會(公司內部發展)
         //private const String SERVER = "speechmessage.com.tw";
         //private const String PORT = "7777";
         //private const String ORGANIZATION = "tpehocback";
@@ -120,7 +120,7 @@ namespace ToolUtilityNameSpace
         //private const String DOMAIN = "SPEECHMESSAGE";
         #endregion
 
-        #region 台北基督之家(雲端機房)
+        #region 台中思恩堂豐富教會(雲端機房)
         //private const String SERVER = "speechmessage.com.tw";
         //private const String PORT = "7777";
         //private const String ORGANIZATION = "tpehoc";
@@ -137,7 +137,7 @@ namespace ToolUtilityNameSpace
         #region 台中思恩堂豐富教會(雲端機房)
         private const String SERVER = "speechmessage.com.tw";
         private const String PORT = "7777";
-        private const String ORGANIZATION = "abundanceback";
+        private const String ORGANIZATION = "abundance";
         private const String USERNAME = "Administrator@speechmessage.com.tw";
         private const String PASSWORD = "hu9840";
         private const String DOMAIN = "DYNAMICS-365";
