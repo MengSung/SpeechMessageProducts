@@ -191,8 +191,9 @@
     $('<a/>')
         .attr({ href: '@Url.RouteUrl("default", new { action = "FeeView", controller = "Home" })/' + `${cellInfo.data.DiscipleLessonsId}` })
         .text(`${cellInfo.data.DiscipleLessonsName}`)
-        .appendTo(cellElement);
+        .appendTo(cellElement)
     }
+
     function OnRowPrepared(e) {
         e.rowElement.css({ height: 25 });
         e.rowElement.css('font-size', '16px');
