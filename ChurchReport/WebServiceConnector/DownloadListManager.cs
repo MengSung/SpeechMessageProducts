@@ -214,7 +214,7 @@ namespace ChurchReport.WebServiceConnector
                     //依據找到的週報有還是沒有來決定下一步:  
                     //      有: 建立GroupName及WeeklyReportId
                     //    沒有: 建立GroupName及WeeklyReportId = Guid.Empty();
-                    String GroupName = this.m_ToolUtilityClass.GetEntityStringAttribute(ListEntity, "listname");
+                    //String GroupName = this.m_ToolUtilityClass.GetEntityStringAttribute(ListEntity, "listname");
 
                     // 取得週報資料
                     SetupWeeklyReportRecord(this.m_MultiGroupList.m_WeeklyReportRecordListData, ListEntity, GroupWeeklyReportEntity);
