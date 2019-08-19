@@ -1845,8 +1845,8 @@ namespace ToolUtilityNameSpace
 
                     // Set the properties of the QueryExpression.
                     queryPrincipal.EntityName = @"new_present_record";
-                    queryPrincipal.ColumnSet.AllColumns = true;
-                    //queryPrincipal.ColumnSet = colsPrincipal;
+                    //queryPrincipal.ColumnSet.AllColumns = true;
+                    queryPrincipal.ColumnSet = new ColumnSet("new_sunday_present_this_week", "new_group_present_this_week");
                     queryPrincipal.Criteria = filterPrincipal;
                     queryPrincipal.Orders.Add(OrderByDate);
 

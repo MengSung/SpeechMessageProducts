@@ -92,8 +92,8 @@ namespace ChurchReport.WebServiceConnector
         private const bool RACE_LEADER_CAN_CREATE_WEEKLYREPORT = true; // 族系組長能否幫小組長建立週報， true是可以
                                                                        //private const bool RACE_LEADER_CAN_CREATE_WEEKLYREPORT = false; // 族系組長能否幫小組長建立週報，false 不可以
 
-        private const String SET_IDENTITY_METHOD = "透過過去8週出席次數"; // 設定委身類型的方式
-        //private const String SET_IDENTITY_METHOD = "透過回報網頁設定"; // 設定委身類型的方式
+        //private const String SET_IDENTITY_METHOD = "透過過去8週出席次數"; // 設定委身類型的方式
+        private const String SET_IDENTITY_METHOD = "透過回報網頁手動設定"; // 設定委身類型的方式
 
         //List<Place2> m_GroupNamePlaces = new List<Place2>(); // 依據群組名稱過濾出來的會眾集合
         List<MemberInfomation> m_GroupNamedListMemberInfomation = new List<MemberInfomation>(); // 依據群組名稱過濾出來的會眾集合
@@ -2708,13 +2708,28 @@ namespace ChurchReport.WebServiceConnector
 
             // 經由最近8週的出席次數計算、設定委身類型
 
-            if (SET_IDENTITY_METHOD == "透過過去8週出席次數")
+            //if (SET_IDENTITY_METHOD == "透過過去8週出席次數")
+            //{
+            //    SetIdentity(aListEntityId, ref aContactEntity);
+            //}
+            //else
+            //{
+            //    ModifyFlag = SetIdentityByUpload(ref aContactEntity, ref aMember);
+            //}
+
+            if (SetIdentityByUpload(ref aContactEntity, ref aMember) == true)
             {
-                SetIdentity(aListEntityId, ref aContactEntity);
+                // 有透過手動更改委身類型
+                ModifyFlag = true;
             }
             else
             {
-                ModifyFlag = SetIdentityByUpload(ref aContactEntity, ref aMember);
+                if (SET_IDENTITY_METHOD == "透過過去8週出席次數")
+                {
+                    // 沒透過手動更改委身類型，就改為由系統判斷
+                    // 透過過去8週出席次數，自動計算委身類型
+                    ModifyFlag = SetIdentity(aListEntityId, ref aContactEntity);
+                }
             }
 
             if (ModifyFlag == true)
@@ -3924,7 +3939,7 @@ namespace ChurchReport.WebServiceConnector
                 else
                 {
                     // 委身類型系統原來的和小組長上傳的一致
-                    //return false;
+                    return false;
                 }
 
                 return true;
@@ -3937,13 +3952,64 @@ namespace ChurchReport.WebServiceConnector
             }
         }
 
-        public void SetIdentity(Guid aListEntityId, ref Entity aContact)
+        public bool SetIdentity(Guid aListEntityId, ref Entity aContact)
         {
             try
             {
                 // 先找到委身類型
                 int aIdentity = this.m_ToolUtilityClass.GetOptionSetAttribute(ref aContact, "customertypecode");
 
+                // 轉換委身類型的中文名稱
+                String aIdentityType = ConvertIndexToIdentity(aIdentity);
+
+                if (aIdentityType == "07. 未入組" || aIdentityType == "08. 新朋友")
+                {
+                    // 如果委身型態是"未入組"或是"新朋友"
+                    // 先搜尋過去2個月的靈修出席紀錄
+                    // 如果主日次數+小組次數 大於等於 8 次，則委身類型設定為"小組組員"
+                    if (PassOrFail(aListEntityId, ref aContact) == true)
+                    {
+                        this.m_ToolUtilityClass.SetOptionSetAttribute(ref aContact, "customertypecode", 1);
+
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+                else if (aIdentityType == "06. 小組組員")
+                {
+                    // 如果主日次數+小組次數 小於 8 次，則委身類型設定為"未入組"
+                    if (PassOrFail(aListEntityId, ref aContact) == false)
+                    {
+                        // 被MARK掉了，就表示不會降階
+                        //this.m_ToolUtilityClass.SetOptionSetAttribute(ref aContact, "customertypecode", 100000004);
+
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+                else { return false; }
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                throw e;
+            }
+        }
+        public void SetIdentity_BACK(Guid aListEntityId, ref Entity aContact)
+        {
+            try
+            {
+                // 先找到委身類型
+                int aIdentity = this.m_ToolUtilityClass.GetOptionSetAttribute(ref aContact, "customertypecode");
+
+                // 轉換委身類型的中文名稱
                 String aIdentityType = ConvertIndexToIdentity(aIdentity);
 
                 if (aIdentityType == "07. 未入組" || aIdentityType == "08. 新朋友")
