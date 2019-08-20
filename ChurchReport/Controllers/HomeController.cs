@@ -921,7 +921,7 @@ namespace ChurchReport.Controllers
             try
             {
                 // 整合式網頁按上傳按鈕
-                m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.UploadIntegrateData
+                Task.Run(() => m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.UploadIntegrateData
                 (
                     m_InMemoryDataContextSmallGroup.ListManager.m_Account,
                     m_InMemoryDataContextSmallGroup.ListManager.m_Password,
@@ -930,7 +930,7 @@ namespace ChurchReport.Controllers
                     WeeklyReportData,
                     HappyWeekIndex, 
                     HappyWeekTopic
-                );
+                ) );
 
                 return Json(new { status = "1", message = "成功上傳了...." });
             }
@@ -1127,14 +1127,14 @@ namespace ChurchReport.Controllers
             try
             {
                 // 整合式網頁按上傳按鈕
-                m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.UploadIntegrateData
+                Task.Run(() => m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.UploadIntegrateData
                 (
                     m_InMemoryDataContextSmallGroup.ListManager.m_Account,
                     m_InMemoryDataContextSmallGroup.ListManager.m_Password,
                     m_InMemoryDataContextSmallGroup.ListManager.LoginType,
                     m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData,
                     WeeklyReportData,"",""
-                );
+                ));
 
                 return Json(new { status = "1", message = "成功上傳了...." });
             }
@@ -1159,14 +1159,14 @@ namespace ChurchReport.Controllers
                 m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.GetPersonalReportViewModelResult( aPersonalReportViewModel );
 
                 // 整合式網頁按上傳按鈕
-                m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.UploadIntegrateData
+                Task.Run(() => m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.UploadIntegrateData
                 (
                     m_InMemoryDataContextSmallGroup.ListManager.m_Account,
                     m_InMemoryDataContextSmallGroup.ListManager.m_Password,
                     m_InMemoryDataContextSmallGroup.ListManager.LoginType,
                     m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData,
                     "不需更新小組日誌", "", ""
-                );
+                ));
 
                 return Json(new { status = "1", message = "成功上傳了...." });
             }
@@ -1642,14 +1642,14 @@ namespace ChurchReport.Controllers
             try
             {
                 // 維護基本資料按上傳
-                m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.UploadIntegrateData
+                Task.Run(() => m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.UploadIntegrateData
                 (
                     m_InMemoryDataContextSmallGroup.ListManager.m_Account,
                     m_InMemoryDataContextSmallGroup.ListManager.m_Password,
                     m_InMemoryDataContextSmallGroup.ListManager.LoginType,
                     m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData,
                     "不需更新小組日誌", "", ""
-                );
+                ));
 
                 return Json(new { status = "1", message = "成功上傳了...." });
             }
@@ -2341,7 +2341,7 @@ namespace ChurchReport.Controllers
                 // 上傳至雲端系統資料庫
                 string SerializedHappyGroupDataManager = (string)TempData.Peek("HappyGroupDataManager");
 
-                m_InMemoryDataContextSmallGroup.HappyGroupDataManager.SaveActiveHappyGroup();
+                Task.Run(() => m_InMemoryDataContextSmallGroup.HappyGroupDataManager.SaveActiveHappyGroup());
 
                 // 初始化成為尚未修改的旗標
                 m_InMemoryDataContextSmallGroup.HappyGroupDataManager.InitialHappyGroupData(ref m_InMemoryDataContextSmallGroup.HappyGroupDataManager.m_ActiveHappyGroupListClass);
@@ -2904,7 +2904,7 @@ namespace ChurchReport.Controllers
                     if (m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport != null && aPersonFormViewModel.Position != "0")
                     {
                         aPersonFormViewModel.PresentRecordId = m_InMemoryDataContextSmallGroup.NewPersonModel.m_NewContact.PresentRecordId;
-                        m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.AddNewPersonToMember(aPersonFormViewModel);
+                        Task.Run(() => m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.AddNewPersonToMember(aPersonFormViewModel));
                     }
 
                     return Json(new { status = "1", message = Result });
