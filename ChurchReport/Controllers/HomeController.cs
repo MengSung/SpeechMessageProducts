@@ -1470,9 +1470,11 @@ namespace ChurchReport.Controllers
             try
             {
                 // 修改新人跟進關懷主日出席、小組出席、代禱事項
+                //Task.Run(() => m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData.UpdateMember(key, values));
                 m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData.UpdateMember(key, values);
 
                 // 修改全部的(也就是維護基本)資料
+                //Task.Run(() => m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.UpdateMember(key, values));
                 m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.UpdateMember(key, values);
 
                 return Ok();
