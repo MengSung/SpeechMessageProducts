@@ -830,9 +830,11 @@ namespace ChurchReport.Controllers
             try
             {
                 // 修改小組長牧養主日出席、小組出席、代禱事項
+                //Task.Run(() => m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.UpdateMember(key, values));
                 m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.UpdateMember(key, values);
 
                 // 修改全部的(也就是維護基本)資料
+                //Task.Run(() => m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.UpdateMember(key, values));
                 m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.UpdateMember(key, values);
 
                 return Ok();
@@ -1080,6 +1082,7 @@ namespace ChurchReport.Controllers
             try
             {
                 // 修改全部的(也就是維護基本)資料
+                //Task.Run(() => m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.UpdateMember(key, values));
                 m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.UpdateMember(key, values);
 
                 return Ok();
@@ -1618,6 +1621,7 @@ namespace ChurchReport.Controllers
             try
             {
                 // 修改全部的(也就是維護基本)資料
+                //Task.Run(() => m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.UpdateMember(key, values));
                 m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.UpdateMember(key, values);
 
                 return Ok();
@@ -2218,9 +2222,11 @@ namespace ChurchReport.Controllers
             try
             {
                 // 修改小組長牧養主日出席、小組出席、代禱事項
+                //Task.Run(() => m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_HappyGroup.UpdateMember(key, values));
                 m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_HappyGroup.UpdateMember(key, values);
 
                 // 修改全部的(也就是維護基本)資料
+                //Task.Run(() => m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.UpdateMember(key, values));
                 m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.UpdateMember(key, values);
 
                 return Ok();
@@ -2286,6 +2292,7 @@ namespace ChurchReport.Controllers
             {
                 // 修改週報或是BEST
                 //m_InMemoryDataContextSmallGroup.HappyGroupDataManager.UpdateUpdatedMasterOrDetail(key, values);
+                //Task.Run(() => m_InMemoryDataContextSmallGroup.HappyGroupDataManager.UpdateActiveHappyGroup(key, values));
                 m_InMemoryDataContextSmallGroup.HappyGroupDataManager.UpdateActiveHappyGroup(key, values);
 
                 return Ok();
@@ -2341,7 +2348,8 @@ namespace ChurchReport.Controllers
                 // 上傳至雲端系統資料庫
                 string SerializedHappyGroupDataManager = (string)TempData.Peek("HappyGroupDataManager");
 
-                Task.Run(() => m_InMemoryDataContextSmallGroup.HappyGroupDataManager.SaveActiveHappyGroup());
+                //Task.Run(() => m_InMemoryDataContextSmallGroup.HappyGroupDataManager.SaveActiveHappyGroup());
+                m_InMemoryDataContextSmallGroup.HappyGroupDataManager.SaveActiveHappyGroup();
 
                 // 初始化成為尚未修改的旗標
                 m_InMemoryDataContextSmallGroup.HappyGroupDataManager.InitialHappyGroupData(ref m_InMemoryDataContextSmallGroup.HappyGroupDataManager.m_ActiveHappyGroupListClass);
