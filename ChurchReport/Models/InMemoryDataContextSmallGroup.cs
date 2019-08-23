@@ -365,7 +365,6 @@ namespace ChurchReport.Models
 
         #endregion
         #region 行事曆處理區
-
         public AppointmentsListManager AppointmentsListManager
         {
             get
