@@ -113,20 +113,26 @@ namespace ChurchReport.Controllers
                     string FullName = "";
                     if (ContactIdString != "透過Line Id 登入")
                     {
+                        #region 使用者透過網頁的帳號密碼登入，所以帳號密碼就依據使用者輸入的為準
                         Guid aContactGuid = new Guid(ContactIdString);
 
                         FullName = m_ToolUtilityClass.RetrieveEntityDynamics365("contact", aContactGuid).Attributes["fullname"].ToString();
 
-                        m_InMemoryDataContextSmallGroup.AppointmentsListManager.m_Account = aGalleryViewModel.Account;
-                        m_InMemoryDataContextSmallGroup.AppointmentsListManager.m_Password = aGalleryViewModel.Password;
+                        #endregion
                     }
                     else
                     {
+                        #region 使用者透過網頁的帳號密碼登入，所以帳號="LineIdLogin"字串，密碼=LineId
                         Entity aLoginContact = m_ToolUtilityClass.RetrieveContactEntityByLineUserId(m_InMemoryDataContextSmallGroup.LineBindingViewModel.LineUserId);
                         FullName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aLoginContact, "fullname");
                         aGalleryViewModel.Account = "LineIdLogin";
                         aGalleryViewModel.Password = m_InMemoryDataContextSmallGroup.LineBindingViewModel.LineUserId;
+                        #endregion
                     }
+
+                    // 依據登入方式設定行事曆的帳密
+                    m_InMemoryDataContextSmallGroup.AppointmentsListManager.m_Account = aGalleryViewModel.Account;
+                    m_InMemoryDataContextSmallGroup.AppointmentsListManager.m_Password = aGalleryViewModel.Password;
 
                     // 設定多個組長處理需要的資料
                     m_InMemoryDataContextSmallGroup.ListManager.SetupListManager(aGalleryViewModel.Account, aGalleryViewModel.Password, DateTime.Now);
