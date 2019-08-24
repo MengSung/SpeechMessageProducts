@@ -110,10 +110,10 @@ namespace ChurchReport.WebServiceConnector
 
         #endregion
         #region 下載資料
-        public List<Appointment> RetrieveAppointmentList(DateTime aSelectDate)
-        {
-            this.m_ToolUtilityClass.QueryWeeklyReportBeforeTowMonthOfSunday()
-        }
+        //public List<Appointment> RetrieveAppointmentList(DateTime aSelectDate)
+        //{
+        //    this.m_ToolUtilityClass.QueryWeeklyReportBeforeTowMonthOfSunday();
+        //}
 
         #endregion
             #region 上傳資料

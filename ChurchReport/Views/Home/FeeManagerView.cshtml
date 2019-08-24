@@ -23,63 +23,63 @@
 
             .OnClick
             (@<text>
-                function(arg)
-                {
+                        function(arg)
+                        {
 
-                var dataGrid = $("#FeeGridContainer").dxDataGrid("instance");
-                // 取得上傳的按鈕
-                var ButtonContainer= $("#save-button").dxButton("instance");
+                        var dataGrid = $("#FeeGridContainer").dxDataGrid("instance");
+                        // 取得上傳的按鈕
+                        var ButtonContainer= $("#save-button").dxButton("instance");
 
-                //debugger;
-                var Flag = dataGrid.hasEditData();//是否還殘留尚未回傳的編輯資料
+                        $("#FeeGridContainer").dxDataGrid("instance").saveEditData();
 
-                if(Flag == false)
-                {
-                // 顯示旋轉鈕
-                $("#loadPanel").dxLoadPanel("instance").show();
+                        //if(Flag == false)
+                        if(true)
+                        {
+                        // 顯示旋轉鈕
+                        $("#loadPanel").dxLoadPanel("instance").show();
 
-                // 上傳按鈕反白
-                ButtonContainer.option("disabled", true);
+                        // 上傳按鈕反白
+                        ButtonContainer.option("disabled", true);
 
-                // AJAX 區塊
-                $.ajax
-                (
-                {
-                url: '@Url.Action("SaveFeeManager", "Home")',
-                data: { aResult: GetFeeResult() }, // 整理回傳給 Server 的點名資料
-                type: 'POST', //POST if you want to save, GET if you want to fetch data from server
+                        // AJAX 區塊
+                        $.ajax
+                        (
+                        {
+                        url: '@Url.Action("SaveFeeManager", "Home")',
+                        data: { aResult: GetFeeResult() }, // 整理回傳給 Server 的點名資料
+                        type: 'POST', //POST if you want to save, GET if you want to fetch data from server
 
-                success: function (arg)
-                {
-                // 隱藏旋轉鈕
-                $("#loadPanel").dxLoadPanel("instance").hide();
+                        success: function (arg)
+                        {
+                        // 隱藏旋轉鈕
+                        $("#loadPanel").dxLoadPanel("instance").hide();
 
-                // 上傳按鈕恢復可運作
-                ButtonContainer.option("disabled", false);
+                        // 上傳按鈕恢復可運作
+                        ButtonContainer.option("disabled", false);
 
-                // 顯示上傳成功
-                $("#toast").dxToast("instance").show();
-                },
+                        // 顯示上傳成功
+                        $("#toast").dxToast("instance").show();
+                        },
 
-                error: function (obj)
-                {
-                //alert('Something happened');
-                }
+                        error: function (obj)
+                        {
+                        //alert('Something happened');
+                        }
 
-                }
-                );
-                // AJAX 區塊
-                }
-                else
-                {
+                        }
+                        );
+                        // AJAX 區塊
+                        }
+                        else
+                        {
 
-                // 隱藏旋轉鈕
-                $("#loadPanel").dxLoadPanel("instance").hide();
-                // 顯示再上傳一次
-                $("#ToastReUpload").dxToast("instance").show();
+                        // 隱藏旋轉鈕
+                        $("#loadPanel").dxLoadPanel("instance").hide();
+                        // 顯示再上傳一次
+                        $("#ToastReUpload").dxToast("instance").show();
 
-                }
-                }
+                        }
+                        }
             </text>)
         )
     </div>
