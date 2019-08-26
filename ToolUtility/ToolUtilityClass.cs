@@ -1615,7 +1615,6 @@ namespace ToolUtilityNameSpace
         }
         #endregion
         #region 取得客戶(Account)組織
-
         public Guid RetrieveAccountCollectionByName(String AccountName)
         {
             try
@@ -1649,6 +1648,112 @@ namespace ToolUtilityNameSpace
                 throw e;
             }
         }
+        #endregion
+        #region 取得約會
+        public EntityCollection RetrieveAppointmentsByDate(DateTime aSelectedDate)
+        {
+            try
+            {
+                //lock (m_RetrieveContactLocker)
+                //{
+                //  Create query using querybyattribute
+                QueryByAttribute querybyexpression = new QueryByAttribute("appointment");
+                querybyexpression.ColumnSet = new ColumnSet();
+                querybyexpression.ColumnSet.AllColumns = true;
+                //  Attribute to query
+                querybyexpression.Attributes.AddRange("fullname", "statecode");
+                //  Value of queried attribute to return
+                //querybyexpression.Values.AddRange(ContactFullName, 0);
+
+                EntityCollection retrieved;
+                if (CRM_TYPE == "DYNAMICS365")
+                {
+                    retrieved = this.m_OrganizationService.RetrieveMultiple(querybyexpression);
+                }
+                else
+                {
+                    retrieved = this.m_Crm2011OrganizationService.RetrieveMultiple(querybyexpression);
+                }
+
+
+                return retrieved;
+                //}
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                throw e;
+            }
+        }
+        public EntityCollection RetrieveAppointmentsByFetchXml()
+        {
+            try
+            {
+                //var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+                //  <entity name='appointment'>
+                //    <attribute name='subject' />
+                //    <attribute name='statecode' />
+                //    <attribute name='scheduledstart' />
+                //    <attribute name='scheduledend' />
+                //    <attribute name='regardingobjectid' />
+                //    <attribute name='ownerid' />
+                //    <attribute name='new_meeting_kind' />
+                //    <attribute name='activityid' />
+                //    <order attribute='subject' descending='false' />
+                //    <filter type='and'>
+                //      <condition attribute='scheduledstart' operator='this-month' />
+                //    </filter>
+                //  </entity>
+                //</fetch>";
+
+                DateTime StartDate = DateTime.Now.AddDays(-24);
+                string StartDateString = StartDate.Year + "-" + StartDate.Month + "-" + StartDate.Day;
+
+                var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+                      <entity name='appointment'>
+                        <attribute name='subject' />
+                        <attribute name='statecode' />
+                        <attribute name='scheduledstart' />
+                        <attribute name='scheduledend' />
+                        <attribute name='regardingobjectid' />
+                        <attribute name='ownerid' />
+                        <attribute name='new_meeting_kind' />
+                        <attribute name='activityid' />
+                        <order attribute='subject' descending='false' />
+                        <filter type='and'>
+                          <condition attribute='scheduledstart' operator='on-or-after'  value=" + @"'2019-8-1'" +@" />
+                          <condition attribute='scheduledstart' operator='on-or-before' value=" + @"'2019-8-31'" +@" />
+                        </filter>
+                      </entity>
+                    </fetch>";
+
+
+                RetrieveMultipleRequest fetchRequest1 = new RetrieveMultipleRequest
+                {
+                    Query = new FetchExpression(fetchXml)
+                };
+
+                EntityCollection retrieved;
+                if (CRM_TYPE == "DYNAMICS365")
+                {
+                    retrieved = ((RetrieveMultipleResponse)this.m_OrganizationService.Execute(fetchRequest1)).EntityCollection;
+                }
+                else
+                {
+                    retrieved = ((RetrieveMultipleResponse)this.m_Crm2011OrganizationService.Execute(fetchRequest1)).EntityCollection;
+                }
+
+
+                return retrieved;
+                //}
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                throw e;
+            }
+        }
+
         #endregion
         #endregion
         #region 搜尋 N:1 的集合
@@ -3270,7 +3375,6 @@ namespace ToolUtilityNameSpace
                 throw e;
             }
         }
-
         public Guid CreateEntity(Entity aEntityTobeToCreate)
         {
             try
@@ -3332,7 +3436,6 @@ namespace ToolUtilityNameSpace
                 throw e;
             }
         }
-
         public async Task<Guid> CreateEntityAsync(IOrganizationService aOrganizationService, Entity aEntityTobeToCreate)
         {
             try
@@ -3351,7 +3454,6 @@ namespace ToolUtilityNameSpace
                 throw e;
             }
         }
-
         public void UpdateEntity(ref Entity aEntityTobeUpdated)
         {
             try
@@ -3402,7 +3504,6 @@ namespace ToolUtilityNameSpace
                 throw e;
             }
         }
-
         public void UpdateEntity(ref IOrganizationService aOrganizationService, ref Entity aEntityTobeUpdated)
         {
             try
@@ -3439,7 +3540,6 @@ namespace ToolUtilityNameSpace
                 throw e;
             }
         }
-
         public void UpdateEntityCrm2011(ref IOrganizationService aOrganizationService, ref Entity aEntityTobeUpdated)
         {
             try
@@ -3512,7 +3612,6 @@ namespace ToolUtilityNameSpace
                 throw e;
             }
         }
-
         public async Task UpdateEntityAsync(IOrganizationService aOrganizationService, Entity aEntityTobeUpdated)
         {
             try
@@ -3571,7 +3670,6 @@ namespace ToolUtilityNameSpace
                 throw e;
             }
         }
-
         public Guid GetEntityId(Entity aEntity)
         {
             try
@@ -4901,6 +4999,100 @@ namespace ToolUtilityNameSpace
                         this.m_Crm2011OrganizationService.Execute(orgServiceRequest);
                     }
                 //}
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                throw e;
+            }
+        }
+
+        #endregion
+        #region 活動相關的收件人或寄件人
+        public void GetActivityPartyList(Entity ActivityEntity, String FromOrTo, ArrayList aFromOrToList, ArrayList aFromOrToTypeList)
+        {
+            try
+            {
+                EntityCollection aFromEntityCollection = ActivityEntity.GetAttributeValue<EntityCollection>(FromOrTo);
+
+                for (int i = 0; i < aFromEntityCollection.Entities.Count; i++)
+                {
+                    #region 取得活動寄送者
+                    EntityReference aFromOrToEntityReference = (EntityReference)aFromEntityCollection.Entities[i]["partyid"];
+
+                    Guid aFromOrToEntityId = aFromOrToEntityReference.Id;
+
+                    String EntityName = aFromOrToEntityReference.LogicalName;
+
+                    aFromOrToTypeList.Add(EntityName);
+
+                    Entity aRetrievedFromOrToEntity = this.RetrieveEntity(EntityName, aFromOrToEntityId);
+
+                    aFromOrToList.Add(aRetrievedFromOrToEntity);
+
+
+                    #endregion
+                }
+
+                return;
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                throw e;
+            }
+        }
+        public void GetActivityPartyIdList(Entity ActivityEntity, String FromOrTo, ArrayList aFromOrToIdList, ArrayList aFromOrToTypeList)
+        {
+            try
+            {
+                EntityCollection aFromEntityCollection = ActivityEntity.GetAttributeValue<EntityCollection>(FromOrTo);
+
+                for (int i = 0; i < aFromEntityCollection.Entities.Count; i++)
+                {
+                    #region 取得活動寄送者
+                    EntityReference aFromOrToEntityReference = (EntityReference)aFromEntityCollection.Entities[i]["partyid"];
+
+                    aFromOrToTypeList.Add(aFromOrToEntityReference.LogicalName);
+
+                    aFromOrToIdList.Add(aFromOrToEntityReference.Id);
+
+
+                    #endregion
+                }
+
+                return;
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                throw e;
+            }
+        }
+
+        public void SetActivityStatusToCompleted(String ActivityName, Guid aActivityId)
+        {
+            try
+            {
+                // Create the request object.
+                SetStateRequest aSetStateActivityRequest = new SetStateRequest();
+
+                // Set the properties of the request object.
+                aSetStateActivityRequest.State = new OptionSetValue(1);
+                //aSetStatePhoneActivityRequest.Status = new OptionSetValue(2);
+                aSetStateActivityRequest.Status = new OptionSetValue(4);
+
+                // EntityId is the GUID of the account whose state is being changed.
+                EntityReference EntityMoniker = new EntityReference(ActivityName, aActivityId);
+                aSetStateActivityRequest.EntityMoniker = EntityMoniker;
+
+                // Execute the request.
+                SetStateResponse StateSetResponse = (SetStateResponse)this.m_OrganizationService.Execute(aSetStateActivityRequest);
+
+                return;
             }
             catch (System.Exception e)
             {

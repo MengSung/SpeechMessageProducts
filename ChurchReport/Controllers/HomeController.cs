@@ -2825,7 +2825,7 @@ namespace ChurchReport.Controllers
                 }
                 SetMultiGroupLayoutParameter();
 
-                return View(m_InMemoryDataContextSmallGroup.AppointmentsListManager.m_Appointments);
+                return View(m_InMemoryDataContextSmallGroup.AppointmentsListManager);
             }
             catch (System.Exception e)
             {

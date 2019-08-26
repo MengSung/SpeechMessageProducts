@@ -85,7 +85,7 @@ namespace ChurchReport.WebServiceConnector
             }
             else
             {
-
+                return RetrieveAppointmentList(aSelectDate);
             }
 
             return new List<Appointment>() ;
@@ -110,14 +110,17 @@ namespace ChurchReport.WebServiceConnector
 
         #endregion
         #region 下載資料
-        //public List<Appointment> RetrieveAppointmentList(DateTime aSelectDate)
-        //{
-        //    this.m_ToolUtilityClass.QueryWeeklyReportBeforeTowMonthOfSunday();
-        //}
+        public List<Appointment> RetrieveAppointmentList(DateTime aSelectDate)
+        {
+
+            this.m_ToolUtilityClass.RetrieveAppointmentsByFetchXml();
+
+            return new List<Appointment>();
+        }
 
         #endregion
-            #region 上傳資料
-            #endregion
+        #region 上傳資料
+        #endregion
 
-        }
     }
+}
