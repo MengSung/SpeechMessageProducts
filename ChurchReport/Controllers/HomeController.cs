@@ -3528,7 +3528,7 @@ namespace ChurchReport.Controllers
         }
 
         [HttpPut]
-        public IActionResult PutAppointments(int key, string values)
+        public IActionResult PutAppointments(String key, string values)
         {
             var appointment = m_InMemoryDataContextSmallGroup.AppointmentsListManager.m_Appointments.First(a => a.AppointmentId == key);
             JsonConvert.PopulateObject(values, appointment);
@@ -3537,7 +3537,7 @@ namespace ChurchReport.Controllers
         }
 
         [HttpDelete]
-        public void DeleteAppointments(int key)
+        public void DeleteAppointments(String key)
         {
             var appointment = m_InMemoryDataContextSmallGroup.AppointmentsListManager.m_Appointments.First(a => a.AppointmentId == key);
             m_InMemoryDataContextSmallGroup.AppointmentsListManager.m_Appointments.Remove(appointment);

@@ -47,7 +47,7 @@ namespace ChurchReport.Controllers
         }
 
         [HttpPut]
-        public IActionResult Put(int key, string values)
+        public IActionResult Put(String key, string values)
         {
             var appointment = _data.Appointments.First(a => a.AppointmentId == key);
             JsonConvert.PopulateObject(values, appointment);
@@ -62,7 +62,7 @@ namespace ChurchReport.Controllers
 
 
         [HttpDelete]
-        public void Delete(int key)
+        public void Delete(String key)
         {
             var appointment = _data.Appointments.First(a => a.AppointmentId == key);
             _data.Appointments.Remove(appointment);

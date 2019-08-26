@@ -4,7 +4,7 @@ namespace ChurchReport.Models
 {
     public class Appointment
     {
-        public int AppointmentId { get; set; }
+        public String AppointmentId { get; set; }
         public string Text { get; set; }
         public int[] OwnerId { get; set; }
         public DateTime StartDate { get; set; }

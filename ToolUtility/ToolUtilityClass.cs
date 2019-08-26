@@ -1689,23 +1689,6 @@ namespace ToolUtilityNameSpace
         {
             try
             {
-                //var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
-                //  <entity name='appointment'>
-                //    <attribute name='subject' />
-                //    <attribute name='statecode' />
-                //    <attribute name='scheduledstart' />
-                //    <attribute name='scheduledend' />
-                //    <attribute name='regardingobjectid' />
-                //    <attribute name='ownerid' />
-                //    <attribute name='new_meeting_kind' />
-                //    <attribute name='activityid' />
-                //    <order attribute='subject' descending='false' />
-                //    <filter type='and'>
-                //      <condition attribute='scheduledstart' operator='this-month' />
-                //    </filter>
-                //  </entity>
-                //</fetch>";
-
                 //DateTime StartDate = DateTime.Now.AddDays(-24);
                 string StartDateString = @"'" + StartDate.Year + "-" + StartDate.Month + "-" + StartDate.Day + @"'";
 

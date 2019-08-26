@@ -43,7 +43,7 @@ namespace ChurchReport.Models
 
         public void SaveChanges()
         {
-            foreach (var appointment in Appointments.Where(a => a.AppointmentId == 0))
+            foreach (var appointment in Appointments.Where(a => a.AppointmentId == ""))
             {
                 appointment.AppointmentId = Appointments.Max(a => a.AppointmentId) + 1;
             }

@@ -115,13 +115,41 @@ namespace ChurchReport.WebServiceConnector
             try
             {
                 int DaysInSelectDate = System.DateTime.DaysInMonth(aSelectDate.Year, aSelectDate.Month);
-                // System.DateTime.
-                //int daysInJuly = System.DateTime.DaysInMonth(2001, 7);
                 DateTime StartDate = new DateTime(aSelectDate.Year, aSelectDate.Month, 1);
                 DateTime EndDate = new DateTime(aSelectDate.Year, aSelectDate.Month, DaysInSelectDate);
-                this.m_ToolUtilityClass.RetrieveAppointmentsByFetchXml(StartDate, EndDate);
+                EntityCollection AppointmentEntityCollection = this.m_ToolUtilityClass.RetrieveAppointmentsByFetchXml(StartDate, EndDate);
 
-                return new List<Appointment>();
+                return SetupAppointmentsListEntityCollection( AppointmentEntityCollection );
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                throw e;
+            }
+        }
+        public List<Appointment> SetupAppointmentsListEntityCollection (EntityCollection AppointmentEntityCollection)
+        {
+            try
+            {
+
+                List<Appointment> aAppointmentsList = new List<Appointment>();
+
+                foreach (Entity aAppointmentEntity in AppointmentEntityCollection.Entities)
+                {
+                    aAppointmentsList.Add
+                    (
+                        new Appointment
+                        {
+                            AppointmentId = aAppointmentEntity.Id.ToString(),
+                            Text = this.m_ToolUtilityClass.GetEntityStringAttribute(aAppointmentEntity, "subject"),
+                            StartDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute( aAppointmentEntity, "scheduledstart").ToLocalTime(),
+                            EndDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(aAppointmentEntity, "scheduledend").ToLocalTime(),
+                        }
+                    ) ;
+                }
+
+                return aAppointmentsList;
             }
             catch (System.Exception e)
             {
