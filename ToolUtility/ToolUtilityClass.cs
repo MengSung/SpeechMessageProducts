@@ -1705,7 +1705,7 @@ namespace ToolUtilityNameSpace
                         <attribute name='ownerid' />
                         <attribute name='new_meeting_kind' />
                         <attribute name='activityid' />
-                        <order attribute='subject' descending='false' />
+                        < order attribute='subject' descending='false' />
                         <filter type='and'>
                           <condition attribute='scheduledstart' operator='on-or-after'  value=" + StartDateString + @" />
                           <condition attribute='scheduledstart' operator='on-or-before' value=" + EndDateString   + @" />
@@ -5036,17 +5036,20 @@ namespace ToolUtilityNameSpace
             {
                 EntityCollection aFromEntityCollection = ActivityEntity.GetAttributeValue<EntityCollection>(FromOrTo);
 
-                for (int i = 0; i < aFromEntityCollection.Entities.Count; i++)
+                if ( aFromEntityCollection != null)
                 {
-                    #region 取得活動寄送者
-                    EntityReference aFromOrToEntityReference = (EntityReference)aFromEntityCollection.Entities[i]["partyid"];
+                    for (int i = 0; i < aFromEntityCollection.Entities.Count; i++)
+                    {
+                        #region 取得活動寄送者
+                        EntityReference aFromOrToEntityReference = (EntityReference)aFromEntityCollection.Entities[i]["partyid"];
 
-                    aFromOrToTypeList.Add(aFromOrToEntityReference.LogicalName);
+                        aFromOrToTypeList.Add(aFromOrToEntityReference.LogicalName);
 
-                    aFromOrToIdList.Add(aFromOrToEntityReference.Id);
+                        aFromOrToIdList.Add(aFromOrToEntityReference.Id);
 
 
-                    #endregion
+                        #endregion
+                    }
                 }
 
                 return;

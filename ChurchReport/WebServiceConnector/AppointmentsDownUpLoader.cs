@@ -17,6 +17,7 @@ using Microsoft.Crm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Messages;
 using ToolUtilityNameSpace;
 using System.Text.RegularExpressions;
+using System.Collections;
 #endregion
 
 namespace ChurchReport.WebServiceConnector
@@ -135,8 +136,12 @@ namespace ChurchReport.WebServiceConnector
 
                 List<Appointment> aAppointmentsList = new List<Appointment>();
 
+                ArrayList aFromOrToIdList = new ArrayList();
+                ArrayList aFromOrToTypeList = new ArrayList();
                 foreach (Entity aAppointmentEntity in AppointmentEntityCollection.Entities)
                 {
+                    this.m_ToolUtilityClass.GetActivityPartyIdList(aAppointmentEntity, "requiredattendees", aFromOrToIdList, aFromOrToTypeList);
+
                     aAppointmentsList.Add
                     (
                         new Appointment
