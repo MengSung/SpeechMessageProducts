@@ -1685,7 +1685,7 @@ namespace ToolUtilityNameSpace
                 throw e;
             }
         }
-        public EntityCollection RetrieveAppointmentsByFetchXml()
+        public EntityCollection RetrieveAppointmentsByFetchXml(DateTime StartDate, DateTime EndDate)
         {
             try
             {
@@ -1706,8 +1706,11 @@ namespace ToolUtilityNameSpace
                 //  </entity>
                 //</fetch>";
 
-                DateTime StartDate = DateTime.Now.AddDays(-24);
-                string StartDateString = StartDate.Year + "-" + StartDate.Month + "-" + StartDate.Day;
+                //DateTime StartDate = DateTime.Now.AddDays(-24);
+                string StartDateString = @"'" + StartDate.Year + "-" + StartDate.Month + "-" + StartDate.Day + @"'";
+
+                //DateTime EndDate = DateTime.Now.AddDays(24);
+                string EndDateString = @"'" + EndDate.Year + "-" + EndDate.Month + "-" + EndDate.Day + @"'";
 
                 var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
                       <entity name='appointment'>
@@ -1721,8 +1724,8 @@ namespace ToolUtilityNameSpace
                         <attribute name='activityid' />
                         <order attribute='subject' descending='false' />
                         <filter type='and'>
-                          <condition attribute='scheduledstart' operator='on-or-after'  value=" + @"'2019-8-1'" +@" />
-                          <condition attribute='scheduledstart' operator='on-or-before' value=" + @"'2019-8-31'" +@" />
+                          <condition attribute='scheduledstart' operator='on-or-after'  value=" + StartDateString + @" />
+                          <condition attribute='scheduledstart' operator='on-or-before' value=" + EndDateString   + @" />
                         </filter>
                       </entity>
                     </fetch>";

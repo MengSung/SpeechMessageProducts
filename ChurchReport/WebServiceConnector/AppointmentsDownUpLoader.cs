@@ -112,10 +112,23 @@ namespace ChurchReport.WebServiceConnector
         #region 下載資料
         public List<Appointment> RetrieveAppointmentList(DateTime aSelectDate)
         {
+            try
+            {
+                int DaysInSelectDate = System.DateTime.DaysInMonth(aSelectDate.Year, aSelectDate.Month);
+                // System.DateTime.
+                //int daysInJuly = System.DateTime.DaysInMonth(2001, 7);
+                DateTime StartDate = new DateTime(aSelectDate.Year, aSelectDate.Month, 1);
+                DateTime EndDate = new DateTime(aSelectDate.Year, aSelectDate.Month, DaysInSelectDate);
+                this.m_ToolUtilityClass.RetrieveAppointmentsByFetchXml(StartDate, EndDate);
 
-            this.m_ToolUtilityClass.RetrieveAppointmentsByFetchXml();
+                return new List<Appointment>();
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
 
-            return new List<Appointment>();
+                throw e;
+            }
         }
 
         #endregion
