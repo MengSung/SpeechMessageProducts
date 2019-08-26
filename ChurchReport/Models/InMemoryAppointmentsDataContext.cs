@@ -41,9 +41,9 @@ namespace ChurchReport.Models
             }
         }
 
-        public void SaveChanges()
+        public void SaveChanges( String Key)
         {
-            foreach (var appointment in Appointments.Where(a => a.AppointmentId == ""))
+            foreach (var appointment in Appointments.Where(a => a.AppointmentId == Key))
             {
                 appointment.AppointmentId = Appointments.Max(a => a.AppointmentId) + 1;
             }

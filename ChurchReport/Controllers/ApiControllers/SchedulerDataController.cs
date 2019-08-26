@@ -41,7 +41,7 @@ namespace ChurchReport.Controllers
             //    return BadRequest(ModelState.GetFullErrorMessage());
 
             _data.Appointments.Add(newAppointment);
-            _data.SaveChanges();
+            //_data.SaveChanges();
 
             return Ok();
         }
@@ -55,7 +55,7 @@ namespace ChurchReport.Controllers
             //if (!TryValidateModel(appointment))
             //    return BadRequest(ModelState.GetFullErrorMessage());
 
-            _data.SaveChanges();
+            _data.SaveChanges(key);
 
             return Ok();
         }
@@ -66,7 +66,7 @@ namespace ChurchReport.Controllers
         {
             var appointment = _data.Appointments.First(a => a.AppointmentId == key);
             _data.Appointments.Remove(appointment);
-            _data.SaveChanges();
+            _data.SaveChanges(key);
         }
     }
 }

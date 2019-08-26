@@ -3486,7 +3486,11 @@ namespace ChurchReport.Controllers
                     m_InMemoryDataContextSmallGroup.LineBindingViewModel.DisplayId = UserLineId;
                 }
 
-                Entity LineLoginContact = this.m_ToolUtilityClass.RetrieveContactByLineId(UserLineId);
+                // 依據登入方式設定行事曆的帳密
+                m_InMemoryDataContextSmallGroup.AppointmentsListManager.m_Account = "LineIdLogin";
+                m_InMemoryDataContextSmallGroup.AppointmentsListManager.m_Password = m_InMemoryDataContextSmallGroup.LineBindingViewModel.LineUserId;
+
+                //Entity LineLoginContact = this.m_ToolUtilityClass.RetrieveContactByLineId(UserLineId);
 
                 //m_InMemoryDataContextSmallGroup.AppointmentsListManager.SetupAppointmentList();
 

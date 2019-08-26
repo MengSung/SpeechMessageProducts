@@ -143,6 +143,7 @@ namespace ChurchReport.WebServiceConnector
                         {
                             AppointmentId = aAppointmentEntity.Id.ToString(),
                             Text = this.m_ToolUtilityClass.GetEntityStringAttribute(aAppointmentEntity, "subject"),
+                            OwnerId = new int[] { 1 },
                             StartDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute( aAppointmentEntity, "scheduledstart").ToLocalTime(),
                             EndDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(aAppointmentEntity, "scheduledend").ToLocalTime(),
                         }
