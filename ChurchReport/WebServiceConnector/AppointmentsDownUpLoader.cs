@@ -140,19 +140,31 @@ namespace ChurchReport.WebServiceConnector
                 ArrayList aFromOrToTypeList = new ArrayList();
                 foreach (Entity aAppointmentEntity in AppointmentEntityCollection.Entities)
                 {
-                    this.m_ToolUtilityClass.GetActivityPartyIdList(aAppointmentEntity, "requiredattendees", aFromOrToIdList, aFromOrToTypeList);
+                    aFromOrToIdList.Clear();
+                    aFromOrToTypeList.Clear();
 
-                    aAppointmentsList.Add
-                    (
-                        new Appointment
+                    this.m_ToolUtilityClass.GetActivityPartyIdList(aAppointmentEntity, "requiredattendees", aFromOrToIdList, aFromOrToTypeList);
+                    this.m_ToolUtilityClass.GetActivityPartyIdList(aAppointmentEntity, "optionalattendees", aFromOrToIdList, aFromOrToTypeList);
+                    
+                    foreach (Guid ContactId in aFromOrToIdList)
+                    {
+                        if ( m_ContactEntity.Id.ToString() == ContactId.ToString() )
                         {
-                            AppointmentId = aAppointmentEntity.Id.ToString(),
-                            Text = this.m_ToolUtilityClass.GetEntityStringAttribute(aAppointmentEntity, "subject"),
-                            OwnerId = new int[] { 1 },
-                            StartDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute( aAppointmentEntity, "scheduledstart").ToLocalTime(),
-                            EndDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(aAppointmentEntity, "scheduledend").ToLocalTime(),
+                            aAppointmentsList.Add
+                            (
+                                new Appointment
+                                {
+                                    AppointmentId = aAppointmentEntity.Id.ToString(),
+                                    Text = this.m_ToolUtilityClass.GetEntityStringAttribute(aAppointmentEntity, "subject"),
+                                    OwnerId = new int[] { 1 },
+                                    StartDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(aAppointmentEntity, "scheduledstart").ToLocalTime(),
+                                    EndDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(aAppointmentEntity, "scheduledend").ToLocalTime(),
+                                }
+                            );
+
+                            break;
                         }
-                    ) ;
+                    }
                 }
 
                 return aAppointmentsList;

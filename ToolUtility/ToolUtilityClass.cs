@@ -1705,7 +1705,9 @@ namespace ToolUtilityNameSpace
                         <attribute name='ownerid' />
                         <attribute name='new_meeting_kind' />
                         <attribute name='activityid' />
-                        < order attribute='subject' descending='false' />
+                        <attribute name='requiredattendees' />
+                        <attribute name='optionalattendees' />
+                        <order attribute='subject' descending='false' />
                         <filter type='and'>
                           <condition attribute='scheduledstart' operator='on-or-after'  value=" + StartDateString + @" />
                           <condition attribute='scheduledstart' operator='on-or-before' value=" + EndDateString   + @" />
