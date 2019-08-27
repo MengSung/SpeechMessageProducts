@@ -6,6 +6,8 @@ namespace ChurchReport.Models
     {
         public String AppointmentId { get; set; }
         public string Text { get; set; }
+        public string AppointmentType { get; set; }
+        public int[] CategoryId { get; set; }
         public int[] OwnerId { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }

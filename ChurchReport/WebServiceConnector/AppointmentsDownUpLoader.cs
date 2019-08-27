@@ -141,7 +141,7 @@ namespace ChurchReport.WebServiceConnector
                 {
                     #region 處理一個一個約會
 
-                    SetupAppointment( aAppointmentsList, aAppointmentEntity, aFromOrToIdList, aFromOrToTypeList);
+                    SetupAppointmentList( aAppointmentsList, aAppointmentEntity, aFromOrToIdList, aFromOrToTypeList);
 
                     #endregion
                 }
@@ -155,39 +155,68 @@ namespace ChurchReport.WebServiceConnector
                 throw e;
             }
         }
-        public void SetupAppointment(List<Appointment> aAppointmentsList, Entity aAppointmentEntity, ArrayList aFromOrToIdList, ArrayList aFromOrToTypeList)
+        public void SetupAppointmentList(List<Appointment> aAppointmentsList, Entity aAppointmentEntity, ArrayList aFromOrToIdList, ArrayList aFromOrToTypeList)
         {
             try
             {
-                    #region 處理一個一個約會
-                    aFromOrToIdList.Clear();
-                    aFromOrToTypeList.Clear();
+                #region 處理一個一個約會
+                int CategoryId = this.m_ToolUtilityClass.GetOptionSetAttribute(ref aAppointmentEntity, "new_meeting_kind");
+                String AppointmentType = this.ConvertCategoryIdToAppointmentType(CategoryId);
 
-                    this.m_ToolUtilityClass.GetActivityPartyIdList(aAppointmentEntity, "requiredattendees", aFromOrToIdList, aFromOrToTypeList);
-                    this.m_ToolUtilityClass.GetActivityPartyIdList(aAppointmentEntity, "optionalattendees", aFromOrToIdList, aFromOrToTypeList);
+                aFromOrToIdList.Clear();
+                aFromOrToTypeList.Clear();
 
+                //設定出席者的 ID 陣列
+                this.m_ToolUtilityClass.GetActivityPartyIdList(aAppointmentEntity, "requiredattendees", aFromOrToIdList, aFromOrToTypeList);
+                //設定列席者的 ID 陣列
+                this.m_ToolUtilityClass.GetActivityPartyIdList(aAppointmentEntity, "optionalattendees", aFromOrToIdList, aFromOrToTypeList);
+
+                if (AppointmentType != "教會行事曆")
+                {
                     foreach (Guid ContactId in aFromOrToIdList)
                     {
                         if (m_ContactEntity.Id.ToString() == ContactId.ToString())
                         {
-                            aAppointmentsList.Add
-                            (
-                                new Appointment
-                                {
-                                    AppointmentId = aAppointmentEntity.Id.ToString(),
-                                    Text = this.m_ToolUtilityClass.GetEntityStringAttribute(aAppointmentEntity, "subject"),
-                                    OwnerId = new int[] { 1 },
-                                    StartDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(aAppointmentEntity, "scheduledstart").ToLocalTime(),
-                                    EndDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(aAppointmentEntity, "scheduledend").ToLocalTime(),
-                                }
-                            );
+                            Appointment aAppointment = SetupAppointment(aAppointmentEntity, AppointmentType, CategoryId);
+                            aAppointmentsList.Add(aAppointment);
 
                             break;
                         }
                     }
-                    #endregion
+                }
+                else {
+                    // 如果是"教會行事曆"則一律要顯示
+                    Appointment aAppointment = SetupAppointment(aAppointmentEntity, AppointmentType, CategoryId);
+                    aAppointmentsList.Add(aAppointment);
+                }
+                #endregion
 
-                return ;
+                return;
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                throw e;
+            }
+        }
+        public Appointment SetupAppointment( Entity aAppointmentEntity, String AppointmentType, int CategoryId)
+        {
+            try
+            {
+                #region 建立一個約會
+                return new Appointment
+                {
+                    AppointmentId = aAppointmentEntity.Id.ToString(),
+                    Text = this.m_ToolUtilityClass.GetEntityStringAttribute(aAppointmentEntity, "subject"),
+                    AppointmentType = AppointmentType,
+                    CategoryId = new int[] { CategoryId },
+                    OwnerId = new int[] { CategoryId },
+                    StartDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(aAppointmentEntity, "scheduledstart").ToLocalTime(),
+                    EndDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(aAppointmentEntity, "scheduledend").ToLocalTime(),
+                };
+
+                #endregion
             }
             catch (System.Exception e)
             {
@@ -200,6 +229,53 @@ namespace ChurchReport.WebServiceConnector
         #endregion
         #region 上傳資料
         #endregion
+        #region 類別對應工具
+        private String ConvertCategoryIdToAppointmentType(int CategoryId)
+        {
+            switch (CategoryId)
+            {
+                case 1:
+                    return "教會行事曆";
+                case 2:
+                    return "服事";
+                case 3:
+                    return "課程";
+                case 4:
+                    return "場地";
+                case 5:
+                    return "會議";
+                case 6:
+                    return "人資出差勤";
+                case 7:
+                    return "其他";
+                default:
+                    return "其他";
+            }
+        }
 
+        private int ConvertAppointmentTypeToCategoryId(String AppointmentType)
+        {
+            switch (AppointmentType)
+            {
+                case "教會行事曆":
+                    return 1;
+                case "服事":
+                    return 2;
+                case "課程":
+                    return 3;
+                case "場地":
+                    return 4;
+                case "會議":
+                    return 5;
+                case "人資出差勤":
+                    return 6;
+                case "其他":
+                    return 7;
+                default:
+                    return 7;
+            }
+        }
+
+        #endregion
     }
 }
