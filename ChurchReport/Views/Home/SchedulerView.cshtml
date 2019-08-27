@@ -78,19 +78,22 @@
 .Width("100%")
 //.Width("auto")
 //.Width(200)
-.Resources(res =>
-{
-res.Add()
-.FieldExpr("OwnerId")
-.AllowMultiple(true)
-.Label("負責人")
-.DataSource(new object[] {
-new { id = 1, text = "Samantha Bright", color = "#cb6bb2" },
-new { id = 2, text = "John Heart", color = "#56ca85" },
-new { id = 3, text = "Todd Hoffman", color = "#1e90ff" },
-new { id = 4, text = "Sandra Johnson", color = "#ff9747" }
-});
-})
+            .Resources(res =>
+            {
+             res.Add()
+             .FieldExpr("CategoryId")
+             .AllowMultiple(true)
+             .Label("類別")
+             .DataSource(new object[] {
+             new { id = 1, text = "教會行事曆", color = "#cb6bb2" },
+             new { id = 2, text = "服事", color = "#56ca85" },
+             new { id = 3, text = "課程", color = "#1e90ff" },
+             new { id = 4, text = "場地", color = "#ff9747" },
+             new { id = 5, text = "會議", color = "#019771" },
+             new { id = 6, text = "人資出差勤", color = "#0553B0" },
+             new { id = 7, text = "其他", color = "#B0053B" },
+            });
+            })
 
         )
 
