@@ -129,26 +129,46 @@ namespace ChurchReport.WebServiceConnector
                 throw e;
             }
         }
-        public List<Appointment> SetupAppointmentsListEntityCollection (EntityCollection AppointmentEntityCollection)
+        public List<Appointment> SetupAppointmentsListEntityCollection(EntityCollection AppointmentEntityCollection)
         {
             try
             {
-
                 List<Appointment> aAppointmentsList = new List<Appointment>();
 
-                ArrayList aFromOrToIdList = new ArrayList();
-                ArrayList aFromOrToTypeList = new ArrayList();
+                ArrayList aFromOrToIdList = new ArrayList(); //出席者+列席者的 ID 陣列
+                ArrayList aFromOrToTypeList = new ArrayList();//出席者+列席者的 型態(聯絡人、組織、使用者)陣列
                 foreach (Entity aAppointmentEntity in AppointmentEntityCollection.Entities)
                 {
+                    #region 處理一個一個約會
+
+                    SetupAppointment( aAppointmentsList, aAppointmentEntity, aFromOrToIdList, aFromOrToTypeList);
+
+                    #endregion
+                }
+
+                return aAppointmentsList;
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                throw e;
+            }
+        }
+        public void SetupAppointment(List<Appointment> aAppointmentsList, Entity aAppointmentEntity, ArrayList aFromOrToIdList, ArrayList aFromOrToTypeList)
+        {
+            try
+            {
+                    #region 處理一個一個約會
                     aFromOrToIdList.Clear();
                     aFromOrToTypeList.Clear();
 
                     this.m_ToolUtilityClass.GetActivityPartyIdList(aAppointmentEntity, "requiredattendees", aFromOrToIdList, aFromOrToTypeList);
                     this.m_ToolUtilityClass.GetActivityPartyIdList(aAppointmentEntity, "optionalattendees", aFromOrToIdList, aFromOrToTypeList);
-                    
+
                     foreach (Guid ContactId in aFromOrToIdList)
                     {
-                        if ( m_ContactEntity.Id.ToString() == ContactId.ToString() )
+                        if (m_ContactEntity.Id.ToString() == ContactId.ToString())
                         {
                             aAppointmentsList.Add
                             (
@@ -165,9 +185,9 @@ namespace ChurchReport.WebServiceConnector
                             break;
                         }
                     }
-                }
+                    #endregion
 
-                return aAppointmentsList;
+                return ;
             }
             catch (System.Exception e)
             {
