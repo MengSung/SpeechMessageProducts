@@ -229,12 +229,19 @@ namespace ChurchReport.WebServiceConnector
                 throw Exception;
             }
         }
-        public void DeleteMember(String Account, String Password,String ListEntityId, Member aMemberToBeDeleted )
+        public void DeleteMember(String Account, String Password, String ListEntityId, Member aMemberToBeDeleted)
         {
             try
             {
                 // 取得個人聚會與靈修記錄
-                Entity PresentRecordEntity = this.m_ToolUtilityClass.RetrieveEntity("new_present_record", new Guid(aMemberToBeDeleted.PresentRecordId));
+                Entity PresentRecordEntity = null;
+
+                try
+                {
+                    PresentRecordEntity = this.m_ToolUtilityClass.RetrieveEntity("new_present_record", new Guid(aMemberToBeDeleted.PresentRecordId));
+                }
+                catch (System.Exception Exception)
+                { }
 
                 if (PresentRecordEntity != null)
                 {
@@ -251,7 +258,7 @@ namespace ChurchReport.WebServiceConnector
                     #region 沒找到個人聚會與靈修記錄
                     Entity aContact = GetContactFromList(new Guid(ListEntityId), aMemberToBeDeleted.FullName);
 
-                    if(aContact != null)
+                    if (aContact != null)
                     {
                         // 將聯絡人從小組名單移除
                         m_ToolUtilityClass.RemoveMembersToMarketingList(new Guid(ListEntityId), aContact.Id);
@@ -277,7 +284,8 @@ namespace ChurchReport.WebServiceConnector
                 #region 通知權柄移除掉的訊息
                 String LoginContactFullName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LoginContact, "fullname");
 
-                String Result = LoginContactFullName + " 將 " + this.m_ToolUtilityClass.GetEntityLookupDisplayName(ref PresentRecordEntity, "new_contact_new_present_record") + " 從" + aMemberToBeDeleted.Group + "移除掉了!";
+                //String Result = LoginContactFullName + " 將 " + this.m_ToolUtilityClass.GetEntityLookupDisplayName(ref PresentRecordEntity, "new_contact_new_present_record") + " 從" + aMemberToBeDeleted.Group + "移除掉了!";
+                String Result = LoginContactFullName + " 將 " + aMemberToBeDeleted.FullName + " 從" + aMemberToBeDeleted.Group + "移除掉了!";
 
                 this.m_LineNotifyUtility.SendResultLine(Result, aListEntity);
                 this.m_LineNotifyUtility.SendListMemberLine(aListEntity);
@@ -3916,7 +3924,6 @@ namespace ChurchReport.WebServiceConnector
         }
 
         #endregion
-
         #endregion
         #region 設定委身類型
         public bool SetIdentityByUpload( ref Entity aContact, ref Member aMember)
