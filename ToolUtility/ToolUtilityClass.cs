@@ -1743,6 +1743,128 @@ namespace ToolUtilityNameSpace
         }
 
         #endregion
+        #region 取得課程
+        /// <summary>
+        /// 特定連絡人已報名的課程
+        /// </summary>
+        /// <param name="StartDate"></param>
+        /// <param name="EndDate"></param>
+        /// <returns></returns>
+        public EntityCollection RetrieveEnrolledLessonsByFetchXml(DateTime StartDate, DateTime EndDate, String ContactName, String ContactId)
+        {
+            try
+            {
+                //DateTime StartDate = DateTime.Now.AddDays(-24);
+                string StartDateString = @"'" + StartDate.Year + "-" + StartDate.Month + "-" + StartDate.Day + @"'";
+
+                //DateTime EndDate = DateTime.Now.AddDays(24);
+                string EndDateString = @"'" + EndDate.Year + "-" + EndDate.Month + "-" + EndDate.Day + @"'";
+
+                ContactName = @"'" + ContactName + @"'";
+                ContactId = @"'{" + ContactId + @"}'";
+
+                var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='true'>
+                      <entity name='new_disciple_lessons'>
+                        <attribute name='new_name' />
+                        <attribute name='createdon' />
+                        <attribute name='new_class_start_date' />
+                        <attribute name='new_class_end_date' />
+                        <attribute name='new_classification' />
+                        <attribute name='new_disciple_lessonsid' />
+                        <order attribute='new_classification' descending='false' />
+                        <filter type='and'>
+                            <condition attribute='new_class_start_date' operator='on-or-after'  value=" + StartDateString + @" />
+                            <condition attribute='new_class_end_date' operator='on-or-before' value=" + EndDateString + @" />
+                        </filter>
+                        <link-entity name='new_stor_lessons' from='new_new_disciple_lessons_new_stor_les' to='new_disciple_lessonsid' alias='ab'>
+                          <filter type='and'>
+                            <condition attribute='new_contact_new_stor_lessons' operator='eq' uiname=" + ContactName + @" uitype ='contact' value=" + ContactId + @" />
+                          </filter>
+                        </link-entity>
+                      </entity>
+                    </fetch>";
+
+
+                RetrieveMultipleRequest fetchRequest1 = new RetrieveMultipleRequest
+                {
+                    Query = new FetchExpression(fetchXml)
+                };
+
+                EntityCollection retrieved;
+                if (CRM_TYPE == "DYNAMICS365")
+                {
+                    retrieved = ((RetrieveMultipleResponse)this.m_OrganizationService.Execute(fetchRequest1)).EntityCollection;
+                }
+                else
+                {
+                    retrieved = ((RetrieveMultipleResponse)this.m_Crm2011OrganizationService.Execute(fetchRequest1)).EntityCollection;
+                }
+
+
+                return retrieved;
+                //}
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                throw e;
+            }
+        }
+        public EntityCollection RetrieveLessonsByMonth(DateTime StartDate, DateTime EndDate)
+        {
+            try
+            {
+                //DateTime StartDate = DateTime.Now.AddDays(-24);
+                string StartDateString = @"'" + StartDate.Year + "-" + StartDate.Month + "-" + StartDate.Day + @"'";
+
+                //DateTime EndDate = DateTime.Now.AddDays(24);
+                string EndDateString = @"'" + EndDate.Year + "-" + EndDate.Month + "-" + EndDate.Day + @"'";
+
+                var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='true'>
+                      <entity name='new_disciple_lessons'>
+                        <attribute name='new_name' />
+                        <attribute name='createdon' />
+                        <attribute name='new_class_start_date' />
+                        <attribute name='new_class_end_date' />
+                        <attribute name='new_classification' />
+                        <attribute name='new_disciple_lessonsid' />
+                        <order attribute='new_classification' descending='false' />
+                        <filter type='and'>
+                            <condition attribute='new_class_start_date' operator='on-or-after'  value=" + StartDateString + @" />
+                            <condition attribute='new_class_end_date' operator='on-or-before' value=" + EndDateString + @" />
+                        </filter>
+                      </entity>
+                    </fetch>";
+
+
+                RetrieveMultipleRequest fetchRequest1 = new RetrieveMultipleRequest
+                {
+                    Query = new FetchExpression(fetchXml)
+                };
+
+                EntityCollection retrieved;
+                if (CRM_TYPE == "DYNAMICS365")
+                {
+                    retrieved = ((RetrieveMultipleResponse)this.m_OrganizationService.Execute(fetchRequest1)).EntityCollection;
+                }
+                else
+                {
+                    retrieved = ((RetrieveMultipleResponse)this.m_Crm2011OrganizationService.Execute(fetchRequest1)).EntityCollection;
+                }
+
+
+                return retrieved;
+                //}
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                throw e;
+            }
+        }
+
+        #endregion
+
         #endregion
         #region 搜尋 N:1 的集合
         //private readonly object m_QueryManyToOneLocker = new object();

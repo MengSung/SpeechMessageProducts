@@ -120,7 +120,11 @@ namespace ChurchReport.WebServiceConnector
                 DateTime EndDate = new DateTime(aSelectDate.Year, aSelectDate.Month, DaysInSelectDate);
                 EntityCollection AppointmentEntityCollection = this.m_ToolUtilityClass.RetrieveAppointmentsByFetchXml(StartDate, EndDate);
 
-                return SetupAppointmentsListEntityCollection( AppointmentEntityCollection );
+                List<Appointment>  aAppointmentList = SetupAppointmentsListEntityCollection(AppointmentEntityCollection);
+
+                SetupAppointmentListByLesson( aAppointmentList, StartDate, EndDate);
+
+                return aAppointmentList;
             }
             catch (System.Exception e)
             {
@@ -129,6 +133,8 @@ namespace ChurchReport.WebServiceConnector
                 throw e;
             }
         }
+
+        #region 依據約會建立的行事曆
         public List<Appointment> SetupAppointmentsListEntityCollection(EntityCollection AppointmentEntityCollection)
         {
             try
@@ -225,7 +231,86 @@ namespace ChurchReport.WebServiceConnector
                 throw e;
             }
         }
+        #endregion
+        #region 依據課程建立的行事曆
+        public void SetupAppointmentListByLesson(List<Appointment> aAppointmentsList, DateTime StartDate, DateTime EndDate)
+        {
+            try
+            {
+                #region 取得課程
 
+                String ContactFullName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref this.m_ContactEntity, "fullname");
+
+                // 本月開始上課的課程
+                EntityCollection LessonEntityCollectionByMonth = this.m_ToolUtilityClass.RetrieveLessonsByMonth(StartDate, EndDate);
+
+                // 本月我已報名的課程
+                EntityCollection EnrolledLessonEntityCollection = this.m_ToolUtilityClass.RetrieveEnrolledLessonsByFetchXml(StartDate, EndDate, ContactFullName, m_ContactEntity.Id.ToString());
+
+                foreach (Entity aLessonEntity in LessonEntityCollectionByMonth.Entities)
+                {
+                    bool SearchFlag = false;
+                    foreach (Entity aEnrolledLessonEntity in EnrolledLessonEntityCollection.Entities)
+                    {
+                        if(aLessonEntity.Id == aEnrolledLessonEntity.Id)
+                        {
+                            // 已報名的課程
+                            SetdLessonAppointment(aAppointmentsList, aLessonEntity, 8);
+                            SearchFlag = true;
+                            break;
+                        }
+                    }
+
+                    // 沒報名的課程
+                    if (SearchFlag == false)
+                    {
+                        SetdLessonAppointment(aAppointmentsList, aLessonEntity, 3);
+                    }
+                }
+                #endregion
+
+                return;
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                throw e;
+            }
+        }
+
+
+        public void SetdLessonAppointment(List<Appointment> aAppointmentsList, Entity LessonEntity, int CategoryId)
+        {
+            try
+            {
+                #region 取得課程
+
+                aAppointmentsList.Add(
+                    new Appointment
+                    {
+                        AppointmentId = LessonEntity.Id.ToString(),
+                        Text = this.m_ToolUtilityClass.GetEntityStringAttribute(LessonEntity, "new_name"),
+                        AppointmentType = "課程",
+                        CategoryId = new int[] { CategoryId },
+                        OwnerId = new int[] { CategoryId },
+                        StartDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(LessonEntity, "new_class_start_date").ToLocalTime(),
+                        EndDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(LessonEntity, "new_class_end_date").ToLocalTime(),
+                    }
+                );
+                #endregion
+
+                return;
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                throw e;
+            }
+        }
+
+        #endregion
         #endregion
         #region 上傳資料
         #endregion
