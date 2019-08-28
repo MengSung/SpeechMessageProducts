@@ -73,19 +73,6 @@ namespace ChurchReport.Models
                 throw e;
             }
         }
-        public void SetupAppointment_BACK()
-        {
-            try
-            {
-
-            }
-            catch (System.Exception e)
-            {
-                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-
-                throw e;
-            }
-        }
         public void SetupAppointment()
         {
             try
@@ -100,6 +87,22 @@ namespace ChurchReport.Models
                 throw e;
             }
         }
+
+        public void CreateAppointment(Appointment aAppointment)
+        {
+            try
+            {
+                // 新增約會
+                this.m_AppointmentsDownUpLoader.CreateAppointment(aAppointment);
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                throw e;
+            }
+        }
+
     }
 }
 

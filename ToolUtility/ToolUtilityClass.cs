@@ -5214,6 +5214,34 @@ namespace ToolUtilityNameSpace
                 throw e;
             }
         }
+        public void SetAppointmentStatusToScheduled( Guid aActivityId)
+        {
+            try
+            {
+                // Create the request object.
+                SetStateRequest aSetStateActivityRequest = new SetStateRequest();
+
+                // Set the properties of the request object.
+                aSetStateActivityRequest.State = new OptionSetValue(3);
+                //aSetStatePhoneActivityRequest.Status = new OptionSetValue(2);
+                aSetStateActivityRequest.Status = new OptionSetValue(5);
+
+                // EntityId is the GUID of the account whose state is being changed.
+                EntityReference EntityMoniker = new EntityReference("appointment", aActivityId);
+                aSetStateActivityRequest.EntityMoniker = EntityMoniker;
+
+                // Execute the request.
+                SetStateResponse StateSetResponse = (SetStateResponse)this.m_OrganizationService.Execute(aSetStateActivityRequest);
+
+                return;
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                throw e;
+            }
+        }
 
         #endregion
         #region 處理附加檔

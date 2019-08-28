@@ -65,6 +65,7 @@ namespace ChurchReport.WebServiceConnector
         Entity m_ContactEntity; //登入者在系統裡的實體
         Guid m_ContactId; //登入者在系統裡的ID
 
+        Guid m_OwnerId; // 預約人的負責人 Id
         #endregion
         #region 主程式區
         /// <summary>
@@ -312,8 +313,88 @@ namespace ChurchReport.WebServiceConnector
 
         #endregion
         #endregion
-        #region 上傳資料
+        #region 新增、修改、刪除約會
+        public void CreateAppointment(Appointment aAppointment)
+        {
+            try
+            {
+                Entity aAppointmentEntity = new Entity("appointment");
+
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aAppointmentEntity, "subject", aAppointment.Text);
+                this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aAppointmentEntity, "scheduledstart", aAppointment.StartDate.ToLocalTime());
+                this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aAppointmentEntity, "scheduledend", aAppointment.EndDate.ToLocalTime());
+
+
+                aAppointmentEntity["requiredattendees"] = BuildReciever(m_ContactEntity);
+
+                //this.m_ToolUtilityClass.SetOptionSetAttribute(ref aAppointmentEntity, "statecode", 3);
+
+
+                m_OwnerId = this.m_ToolUtilityClass.GetOwnerId(m_ContactEntity);
+
+                Entity oParty = new Entity("activityparty");
+                oParty["partyid"] = new EntityReference("systemuser", m_OwnerId);
+
+                //Place the party record into a collection
+                EntityCollection oCollection = new EntityCollection();
+                oCollection.Entities.Add(oParty);
+
+                //Set the organizer field to the collection:
+                aAppointmentEntity["organizer"] = new EntityCollection();
+                aAppointmentEntity["organizer"] = oCollection;
+
+
+                // 新增約會
+                Guid CreatedAppointmentEntityId = this.m_ToolUtilityClass.CreateEntity(aAppointmentEntity);
+
+                #region 指派約會的負責人
+                // 小組長的負責人 Id
+                //m_OwnerId = this.m_ToolUtilityClass.GetOwnerId(m_ContactEntity);
+
+                this.m_ToolUtilityClass.AssignOwner("appointment", this.m_ToolUtilityClass.RetrieveEntity("appointment", CreatedAppointmentEntityId), this.m_OwnerId);
+                #endregion
+
+
+
+                this.m_ToolUtilityClass.SetAppointmentStatusToScheduled(CreatedAppointmentEntityId);
+
+
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                throw e;
+            }
+        }
+
+        public EntityCollection BuildReciever(Entity aRecieverEntity)
+        {
+            try
+            {
+
+                #region// 傳送模板訊息
+                Entity aParty = new Entity("activityparty");
+                aParty["partyid"] = new EntityReference("contact", aRecieverEntity.Id);
+
+
+                // Create a new EntityCollection and add the 2 parties
+                EntityCollection to = new EntityCollection();
+                to.Entities.Add(aParty);
+
+                return to;
+                #endregion
+
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                throw e;
+            }
+        }
         #endregion
+
         #region 類別對應工具
         private String ConvertCategoryIdToAppointmentType(int CategoryId)
         {

@@ -3528,6 +3528,9 @@ namespace ChurchReport.Controllers
         {
             var newAppointment = new Appointment();
             JsonConvert.PopulateObject(values, newAppointment);
+
+            Task.Run(() => m_InMemoryDataContextSmallGroup.AppointmentsListManager.CreateAppointment(newAppointment));
+
             return Ok();
         }
 
