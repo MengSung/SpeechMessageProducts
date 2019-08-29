@@ -328,8 +328,12 @@ namespace ChurchReport.WebServiceConnector
                 //設定"形成類別"
                 if (aAppointment.CategoryId.Length > 0)
                 {
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(ref aAppointmentEntity, "new_meeting_kind", aAppointment.CategoryId[0]);
+                    if (aAppointment.CategoryId[0] > 0)
+                    {
+                        this.m_ToolUtilityClass.SetOptionSetAttribute(ref aAppointmentEntity, "new_meeting_kind", aAppointment.CategoryId[0]);
+                    }
                 }
+
 
                 // 設定出席者
                 aAppointmentEntity["requiredattendees"] = BuildReciever(m_ContactEntity);
@@ -383,9 +387,12 @@ namespace ChurchReport.WebServiceConnector
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aAppointmentEntity, "description", aAppointment.Description);
 
                 //設定"形成類別"
-                if (aAppointment.CategoryId.Length > 0)
+                if (aAppointment.CategoryId.Length > 0 )
                 {
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(ref aAppointmentEntity, "new_meeting_kind", aAppointment.CategoryId[0]);
+                    if (aAppointment.CategoryId[0] > 0)
+                    {
+                        this.m_ToolUtilityClass.SetOptionSetAttribute(ref aAppointmentEntity, "new_meeting_kind", aAppointment.CategoryId[0]);
+                    }
                 }
 
                 // 設定出席者
