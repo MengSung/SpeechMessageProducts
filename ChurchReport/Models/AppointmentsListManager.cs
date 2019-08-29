@@ -88,12 +88,15 @@ namespace ChurchReport.Models
             }
         }
 
-        public void CreateAppointment(Appointment aAppointment)
+        public void CreateAppointment(ref Appointment aAppointment)
         {
             try
             {
                 // 新增約會
-                this.m_AppointmentsDownUpLoader.CreateAppointment(aAppointment);
+                //this.m_AppointmentsDownUpLoader.CreateAppointment(ref aAppointment);
+
+                this.m_Appointments.Add(aAppointment);
+
             }
             catch (System.Exception e)
             {

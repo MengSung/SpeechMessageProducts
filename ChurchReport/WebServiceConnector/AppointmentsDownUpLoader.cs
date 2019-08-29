@@ -314,7 +314,7 @@ namespace ChurchReport.WebServiceConnector
         #endregion
         #endregion
         #region 新增、修改、刪除約會
-        public void CreateAppointment(Appointment aAppointment)
+        public void CreateAppointment(ref Appointment aAppointment)
         {
             try
             {
@@ -355,6 +355,7 @@ namespace ChurchReport.WebServiceConnector
 
                 // 新增約會
                 Guid CreatedAppointmentEntityId = this.m_ToolUtilityClass.CreateEntity(aAppointmentEntity);
+                aAppointment.AppointmentId = CreatedAppointmentEntityId.ToString();
 
                 #region 指派約會的負責人
                 //m_OwnerId = this.m_ToolUtilityClass.GetOwnerId(m_ContactEntity);

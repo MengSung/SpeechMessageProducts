@@ -3529,7 +3529,8 @@ namespace ChurchReport.Controllers
             var newAppointment = new Appointment();
             JsonConvert.PopulateObject(values, newAppointment);
 
-            Task.Run(() => m_InMemoryDataContextSmallGroup.AppointmentsListManager.CreateAppointment(newAppointment));
+            //Task.Run(() => m_InMemoryDataContextSmallGroup.AppointmentsListManager.CreateAppointment(newAppointment));
+            m_InMemoryDataContextSmallGroup.AppointmentsListManager.CreateAppointment( ref newAppointment);
 
             m_InMemoryDataContextSmallGroup.SaveChanges();
 
@@ -3542,7 +3543,7 @@ namespace ChurchReport.Controllers
             var appointment = m_InMemoryDataContextSmallGroup.AppointmentsListManager.m_Appointments.First(a => a.AppointmentId == key);
             JsonConvert.PopulateObject(values, appointment);
 
-            Task.Run(() => m_InMemoryDataContextSmallGroup.AppointmentsListManager.UpdateAppointment(appointment));
+            //Task.Run(() => m_InMemoryDataContextSmallGroup.AppointmentsListManager.UpdateAppointment(appointment));
             //m_InMemoryDataContextSmallGroup.AppointmentsListManager.UpdateAppointment(appointment);
 
             m_InMemoryDataContextSmallGroup.SaveChanges();
@@ -3555,7 +3556,8 @@ namespace ChurchReport.Controllers
         {
             var appointment = m_InMemoryDataContextSmallGroup.AppointmentsListManager.m_Appointments.First(a => a.AppointmentId == key);
 
-            Task.Run(() => m_InMemoryDataContextSmallGroup.AppointmentsListManager.DeleteAppointment(appointment));
+            //Task.Run(() => m_InMemoryDataContextSmallGroup.AppointmentsListManager.DeleteAppointment(appointment));
+            //m_InMemoryDataContextSmallGroup.AppointmentsListManager.DeleteAppointment(appointment);
 
             m_InMemoryDataContextSmallGroup.SaveChanges();
 
