@@ -103,6 +103,35 @@ namespace ChurchReport.Models
             }
         }
 
+        public void UpdateAppointment(Appointment aAppointment)
+        {
+            try
+            {
+                // 修改約會
+                this.m_AppointmentsDownUpLoader.UpdateAppointment(aAppointment);
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                throw e;
+            }
+        }
+        public void DeleteAppointment(Appointment aAppointment)
+        {
+            try
+            {
+                // 刪除約會
+                this.m_AppointmentsDownUpLoader.DeleteAppointment(aAppointment);
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                throw e;
+            }
+        }
+
     }
 }
 

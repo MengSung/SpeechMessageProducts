@@ -323,13 +323,18 @@ namespace ChurchReport.WebServiceConnector
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aAppointmentEntity, "subject", aAppointment.Text);
                 this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aAppointmentEntity, "scheduledstart", aAppointment.StartDate.ToLocalTime());
                 this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aAppointmentEntity, "scheduledend", aAppointment.EndDate.ToLocalTime());
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aAppointmentEntity, "description", aAppointment.Description);
 
+                //設定"形成類別"
+                if (aAppointment.CategoryId.Length > 0)
+                {
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(ref aAppointmentEntity, "new_meeting_kind", aAppointment.CategoryId[0]);
+                }
 
+                // 設定出席者
                 aAppointmentEntity["requiredattendees"] = BuildReciever(m_ContactEntity);
 
-                //this.m_ToolUtilityClass.SetOptionSetAttribute(ref aAppointmentEntity, "statecode", 3);
-
-
+                #region 設定召集人
                 m_OwnerId = this.m_ToolUtilityClass.GetOwnerId(m_ContactEntity);
 
                 Entity oParty = new Entity("activityparty");
@@ -342,13 +347,12 @@ namespace ChurchReport.WebServiceConnector
                 //Set the organizer field to the collection:
                 aAppointmentEntity["organizer"] = new EntityCollection();
                 aAppointmentEntity["organizer"] = oCollection;
-
+                #endregion
 
                 // 新增約會
                 Guid CreatedAppointmentEntityId = this.m_ToolUtilityClass.CreateEntity(aAppointmentEntity);
 
                 #region 指派約會的負責人
-                // 小組長的負責人 Id
                 //m_OwnerId = this.m_ToolUtilityClass.GetOwnerId(m_ContactEntity);
 
                 this.m_ToolUtilityClass.AssignOwner("appointment", this.m_ToolUtilityClass.RetrieveEntity("appointment", CreatedAppointmentEntityId), this.m_OwnerId);
@@ -359,6 +363,52 @@ namespace ChurchReport.WebServiceConnector
                 this.m_ToolUtilityClass.SetAppointmentStatusToScheduled(CreatedAppointmentEntityId);
 
 
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                throw e;
+            }
+        }
+        public void UpdateAppointment(Appointment aAppointment)
+        {
+            try
+            {
+                Entity aAppointmentEntity = this.m_ToolUtilityClass.RetrieveEntity("appointment", new Guid(aAppointment.AppointmentId));
+
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aAppointmentEntity, "subject", aAppointment.Text);
+                this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aAppointmentEntity, "scheduledstart", aAppointment.StartDate.ToLocalTime());
+                this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aAppointmentEntity, "scheduledend", aAppointment.EndDate.ToLocalTime());
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aAppointmentEntity, "description", aAppointment.Description);
+
+                //設定"形成類別"
+                if (aAppointment.CategoryId.Length > 0)
+                {
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(ref aAppointmentEntity, "new_meeting_kind", aAppointment.CategoryId[0]);
+                }
+
+                // 設定出席者
+                aAppointmentEntity["requiredattendees"] = BuildReciever(m_ContactEntity);
+
+
+                // 新增約會
+                this.m_ToolUtilityClass.UpdateEntity(aAppointmentEntity);
+
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                throw e;
+            }
+        }
+        public void DeleteAppointment(Appointment aAppointment)
+        {
+            try
+            {
+                // 刪除約會
+                this.m_ToolUtilityClass.DeleteEntity("appointment", new Guid(aAppointment.AppointmentId));
             }
             catch (System.Exception e)
             {
@@ -414,11 +464,14 @@ namespace ChurchReport.WebServiceConnector
                     return "人資出差勤";
                 case 7:
                     return "其他";
+                case 8:
+                    return "已報名課程";
                 default:
                     return "其他";
             }
         }
 
+        
         private int ConvertAppointmentTypeToCategoryId(String AppointmentType)
         {
             switch (AppointmentType)
@@ -437,6 +490,8 @@ namespace ChurchReport.WebServiceConnector
                     return 6;
                 case "其他":
                     return 7;
+                case "已報名課程":
+                    return 8;
                 default:
                     return 7;
             }

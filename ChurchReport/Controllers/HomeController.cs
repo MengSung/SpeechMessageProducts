@@ -3531,6 +3531,8 @@ namespace ChurchReport.Controllers
 
             Task.Run(() => m_InMemoryDataContextSmallGroup.AppointmentsListManager.CreateAppointment(newAppointment));
 
+            m_InMemoryDataContextSmallGroup.SaveChanges();
+
             return Ok();
         }
 
@@ -3540,6 +3542,11 @@ namespace ChurchReport.Controllers
             var appointment = m_InMemoryDataContextSmallGroup.AppointmentsListManager.m_Appointments.First(a => a.AppointmentId == key);
             JsonConvert.PopulateObject(values, appointment);
 
+            Task.Run(() => m_InMemoryDataContextSmallGroup.AppointmentsListManager.UpdateAppointment(appointment));
+            //m_InMemoryDataContextSmallGroup.AppointmentsListManager.UpdateAppointment(appointment);
+
+            m_InMemoryDataContextSmallGroup.SaveChanges();
+
             return Ok();
         }
 
@@ -3547,8 +3554,11 @@ namespace ChurchReport.Controllers
         public void DeleteAppointments(String key)
         {
             var appointment = m_InMemoryDataContextSmallGroup.AppointmentsListManager.m_Appointments.First(a => a.AppointmentId == key);
-            m_InMemoryDataContextSmallGroup.AppointmentsListManager.m_Appointments.Remove(appointment);
-            //_data.SaveChanges();
+
+            Task.Run(() => m_InMemoryDataContextSmallGroup.AppointmentsListManager.DeleteAppointment(appointment));
+
+            m_InMemoryDataContextSmallGroup.SaveChanges();
+
         }
 
         public IActionResult NavigateAppointmentDate(string SelectedDate)
