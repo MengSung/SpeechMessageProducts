@@ -93,9 +93,9 @@ namespace ChurchReport.Models
             try
             {
                 // 新增約會
-                //this.m_AppointmentsDownUpLoader.CreateAppointment(ref aAppointment);
+                this.m_AppointmentsDownUpLoader.CreateAppointment(ref aAppointment);
 
-                this.m_Appointments.Add(aAppointment);
+                //this.m_Appointments.Add(aAppointment);
 
             }
             catch (System.Exception e)

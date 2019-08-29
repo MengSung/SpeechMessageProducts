@@ -325,15 +325,25 @@ namespace ChurchReport.WebServiceConnector
                 this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aAppointmentEntity, "scheduledend", aAppointment.EndDate.ToLocalTime());
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aAppointmentEntity, "description", aAppointment.Description);
 
-                //設定"形成類別"
-                if (aAppointment.CategoryId.Length > 0)
+                #region //設定"行程類別"
+                if (aAppointment.CategoryId != null && aAppointment.CategoryId.Length > 0 )
                 {
                     if (aAppointment.CategoryId[0] > 0)
                     {
                         this.m_ToolUtilityClass.SetOptionSetAttribute(ref aAppointmentEntity, "new_meeting_kind", aAppointment.CategoryId[0]);
                     }
+                    else
+                    {
+                        // 新增約會沒填類別，預設就是"其他"
+                        this.m_ToolUtilityClass.SetOptionSetAttribute(ref aAppointmentEntity, "new_meeting_kind", 7);
+                    }
                 }
-
+                else
+                {
+                    // 新增約會沒填類別，預設就是"其他"
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(ref aAppointmentEntity, "new_meeting_kind", 7);
+                }
+                #endregion
 
                 // 設定出席者
                 aAppointmentEntity["requiredattendees"] = BuildReciever(m_ContactEntity);
