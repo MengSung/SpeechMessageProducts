@@ -3530,9 +3530,9 @@ namespace ChurchReport.Controllers
             JsonConvert.PopulateObject(values, newAppointment);
 
             //Task.Run(() => m_InMemoryDataContextSmallGroup.AppointmentsListManager.CreateAppointment(newAppointment));
-            m_InMemoryDataContextSmallGroup.AppointmentsListManager.CreateAppointment( ref newAppointment);
+            //m_InMemoryDataContextSmallGroup.AppointmentsListManager.CreateAppointment( ref newAppointment);
 
-            m_InMemoryDataContextSmallGroup.SaveChanges();
+            //m_InMemoryDataContextSmallGroup.SaveChanges();
 
             return Ok();
         }
@@ -3546,7 +3546,7 @@ namespace ChurchReport.Controllers
             //Task.Run(() => m_InMemoryDataContextSmallGroup.AppointmentsListManager.UpdateAppointment(appointment));
             //m_InMemoryDataContextSmallGroup.AppointmentsListManager.UpdateAppointment(appointment);
 
-            m_InMemoryDataContextSmallGroup.SaveChanges();
+            //m_InMemoryDataContextSmallGroup.SaveChanges();
 
             return Ok();
         }
@@ -3559,7 +3559,7 @@ namespace ChurchReport.Controllers
             //Task.Run(() => m_InMemoryDataContextSmallGroup.AppointmentsListManager.DeleteAppointment(appointment));
             //m_InMemoryDataContextSmallGroup.AppointmentsListManager.DeleteAppointment(appointment);
 
-            m_InMemoryDataContextSmallGroup.SaveChanges();
+            //m_InMemoryDataContextSmallGroup.SaveChanges();
 
         }
 
