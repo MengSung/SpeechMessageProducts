@@ -1707,6 +1707,7 @@ namespace ToolUtilityNameSpace
                         <attribute name='activityid' />
                         <attribute name='requiredattendees' />
                         <attribute name='optionalattendees' />
+                        <attribute name='new_list_appointment' />
                         <order attribute='subject' descending='false' />
                         <filter type='and'>
                           <condition attribute='scheduledstart' operator='on-or-after'  value=" + StartDateString + @" />
@@ -1864,7 +1865,6 @@ namespace ToolUtilityNameSpace
         }
 
         #endregion
-
         #endregion
         #region 搜尋 N:1 的集合
         //private readonly object m_QueryManyToOneLocker = new object();
@@ -5063,7 +5063,6 @@ namespace ToolUtilityNameSpace
                 throw e;
             }
         }
-
         public void AddMembersToMarketingList(Guid thisListGuid, List<Guid> memberGuidList)
         {
             try
@@ -5090,7 +5089,6 @@ namespace ToolUtilityNameSpace
                 throw e;
             }
         }
-
         public void RemoveMembersToMarketingList(Guid aListGuid, Guid MemberGuid)
         {
             try
@@ -5116,6 +5114,66 @@ namespace ToolUtilityNameSpace
 
                 throw e;
             }
+        }
+        public ArrayList GetAllMemberDataFromList(Guid ListEntityId)
+        {
+            #region // 處理每個小組名單
+            //搜尋名單的組員
+            //EntityCollection Contacts = m_ToolUtilityClass.RetrieveManyToOneRelationship("list", "listid", ListEntityId.ToString(), "new_cell_list_contact", "contact");
+
+            Entity ListEntity = this.RetrieveEntity("list", ListEntityId);
+
+            bool ListType = this.GetEntityBoolAttribute(ListEntity, "type");
+            EntityCollection MemberCollection;
+            if (ListType == false)
+            {
+                // 靜態名單
+                if (CRM_TYPE == "DYNAMICS365")
+                {
+                    MemberCollection = this.RetrieveMemberListCollectionByListIdDynamics365(ref this.m_OrganizationService, ListEntityId);
+                }
+                else
+                {
+                    MemberCollection = this.RetrieveMemberListCollectionByListIdCrm2011(ref this.m_Crm2011OrganizationService, ListEntityId);
+                }
+            }
+            else
+            {
+                // 動態名單
+                if (CRM_TYPE == "DYNAMICS365")
+                {
+                    MemberCollection = this.RetrieveDynamicMemberListDynamics365(ref this.m_OrganizationService, ListEntityId);
+                }
+                else
+                {
+                    MemberCollection = this.RetrieveDynamicMemberListCrm2011(ref this.m_Crm2011OrganizationService, ListEntityId);
+                }
+            }
+
+            int PresentRecordIdCounter = 0;
+            ArrayList MemberEntityIdList = new ArrayList();
+            foreach (Entity MemberEntity in MemberCollection.Entities)
+            {
+                // 每個組員
+                Entity ContactEntity;
+
+                if (ListType == false)
+                {
+                    // 靜態名單
+                    MemberEntityIdList.Add(((EntityReference)MemberEntity.Attributes["entityid"]).Id);
+                    //ContactEntity = m_ToolUtilityClass.RetrieveEntity("contact", ((EntityReference)MemberEntity.Attributes["entityid"]).Id);
+                }
+                else
+                {
+                    // 動態名單
+                    MemberEntityIdList.Add((Guid)MemberEntity.Attributes["contactid"]);
+                    //ContactEntity = m_ToolUtilityClass.RetrieveEntity("contact", (Guid)MemberEntity.Attributes["contactid"]);
+                }
+
+            }
+            #endregion
+
+            return MemberEntityIdList;
         }
 
         #endregion

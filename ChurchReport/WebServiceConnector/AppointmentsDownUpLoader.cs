@@ -116,14 +116,20 @@ namespace ChurchReport.WebServiceConnector
         {
             try
             {
+
+                // 1. 依據約會建立的行事曆
                 int DaysInSelectDate = System.DateTime.DaysInMonth(aSelectDate.Year, aSelectDate.Month);
                 DateTime StartDate = new DateTime(aSelectDate.Year, aSelectDate.Month, 1);
                 DateTime EndDate = new DateTime(aSelectDate.Year, aSelectDate.Month, DaysInSelectDate);
+
+                // 取得約會集合
                 EntityCollection AppointmentEntityCollection = this.m_ToolUtilityClass.RetrieveAppointmentsByFetchXml(StartDate, EndDate);
 
+                // 建立約會
                 List<Appointment>  aAppointmentList = SetupAppointmentsListEntityCollection(AppointmentEntityCollection);
 
-                SetupAppointmentListByLesson( aAppointmentList, StartDate, EndDate);
+                // 2. 依據課程建立的行事曆
+                SetupAppointmentListByLesson( aAppointmentList, StartDate, EndDate );
 
                 return aAppointmentList;
             }
@@ -170,7 +176,9 @@ namespace ChurchReport.WebServiceConnector
                 int CategoryId = this.m_ToolUtilityClass.GetOptionSetAttribute(ref aAppointmentEntity, "new_meeting_kind");
                 String AppointmentType = this.ConvertCategoryIdToAppointmentType(CategoryId);
 
+                // 清空出席者及列席者清單
                 aFromOrToIdList.Clear();
+                // 清空出席者及列席者類型清單
                 aFromOrToTypeList.Clear();
 
                 //設定出席者的 ID 陣列
@@ -178,17 +186,28 @@ namespace ChurchReport.WebServiceConnector
                 //設定列席者的 ID 陣列
                 this.m_ToolUtilityClass.GetActivityPartyIdList(aAppointmentEntity, "optionalattendees", aFromOrToIdList, aFromOrToTypeList);
 
+                Guid ListEntityId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aAppointmentEntity, "new_list_appointment");
+
                 if (AppointmentType != "教會行事曆")
                 {
+                    // 如果不是"教會行事曆"則要看看連絡人是否在出席者、列席者清單中
+                    bool SearchFlag = false;
                     foreach (Guid ContactId in aFromOrToIdList)
                     {
                         if (m_ContactEntity.Id.ToString() == ContactId.ToString())
                         {
+                            // 登入者有在此約會的出席者及列席者
                             Appointment aAppointment = SetupAppointment(aAppointmentEntity, AppointmentType, CategoryId);
                             aAppointmentsList.Add(aAppointment);
 
+                            SearchFlag = true;
                             break;
                         }
+                    }
+
+                    if( ListEntityId != Guid.Empty && SearchFlag == false )
+                    {
+                        SetupAppointmentFromList(aAppointmentsList, aAppointmentEntity, ListEntityId, AppointmentType, CategoryId);
                     }
                 }
                 else {
@@ -207,6 +226,35 @@ namespace ChurchReport.WebServiceConnector
                 throw e;
             }
         }
+        public void SetupAppointmentFromList( List<Appointment> aAppointmentsList, Entity aAppointmentEntity, Guid ListEntityId, String AppointmentType, int CategoryId)
+        {
+            try
+            {
+                #region 建立一個約會
+
+                ArrayList MemberEntityIdList = this.m_ToolUtilityClass.GetAllMemberDataFromList( ListEntityId );
+
+                foreach( Guid MemberId in MemberEntityIdList)
+                {
+                    if (m_ContactEntity.Id == MemberId)
+                    {
+                        // 登入者有在此約會的出席者及列席者
+                        Appointment aAppointment = SetupAppointment(aAppointmentEntity, AppointmentType, CategoryId);
+                        aAppointmentsList.Add(aAppointment);
+
+                        break;
+                    }
+                }
+                #endregion
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                throw e;
+            }
+        }
+
         public Appointment SetupAppointment( Entity aAppointmentEntity, String AppointmentType, int CategoryId)
         {
             try

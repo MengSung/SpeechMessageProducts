@@ -3517,9 +3517,11 @@ namespace ChurchReport.Controllers
         {
             //AppointmentsListManager aAppointmentsList = new AppointmentsListManager();
             //m_InMemoryDataContextSmallGroup.AppointmentsListManager.SetupAppointmentList("", "", DateTime.Now);
+            // 準備整理好約會清單 m_Appointments
             m_InMemoryDataContextSmallGroup.AppointmentsListManager.SetupAppointmentList();
 
             //return DataSourceLoader.Load(m_InMemoryDataContextSmallGroup.AppointmentsListManager.SetupAppointmentList("", "", DateTime.Now), loadOptions);
+            // 回傳整理好的約會清單 m_Appointments
             return DataSourceLoader.Load(m_InMemoryDataContextSmallGroup.AppointmentsListManager.m_Appointments, loadOptions);
         }
 
