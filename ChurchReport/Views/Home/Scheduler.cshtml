@@ -19,10 +19,10 @@
         .DeleteAction("DeleteAppointments")
         )
         .Views(new SchedulerViewType[] {
-        SchedulerViewType.Week,
-        SchedulerViewType.Month,
-        SchedulerViewType.Day,
-        SchedulerViewType.Agenda
+            SchedulerViewType.Week,
+            SchedulerViewType.Month,
+            SchedulerViewType.Day,
+            SchedulerViewType.Agenda
         })
         .Editing(E => E.AllowAdding(true).AllowDeleting(true).AllowDragging(true).AllowResizing(true).AllowUpdating(true))
         .FirstDayOfWeek(FirstDayOfWeek.Monday)
