@@ -3587,6 +3587,9 @@ namespace ChurchReport.Controllers
 
                 DateTime ParsedSelectDate = DateTime.ParseExact(SelectedDate, DateTimeList, CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
 
+                // 因為我們都是以月為行事曆的單位，所以我強迫選擇的日期永遠為當月的1 號
+                //ParsedSelectDate = new DateTime(ParsedSelectDate.Year, ParsedSelectDate.Month, 1);
+
                 m_InMemoryDataContextSmallGroup.AppointmentsListManager.m_SelectDate = ParsedSelectDate;
 
                 return Ok();
@@ -3596,11 +3599,13 @@ namespace ChurchReport.Controllers
                 string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
                 m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
 
-                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+                //LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
+                //aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
 
-                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+                //return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
+                return Ok();
 
                 //throw e;
             }

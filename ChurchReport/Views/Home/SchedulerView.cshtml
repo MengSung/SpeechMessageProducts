@@ -24,12 +24,44 @@
         .UpdateAction("PutAppointments")
         .DeleteAction("DeleteAppointments")
         )
-        .Views(new SchedulerViewType[] {
-        SchedulerViewType.Week,
-        SchedulerViewType.Month,
-        SchedulerViewType.Day,
-        SchedulerViewType.Agenda
-        })
+        //.Views(new SchedulerViewType[] {
+        //    SchedulerViewType.Week,
+        //    SchedulerViewType.Month,
+        //    SchedulerViewType.Day,
+        //    SchedulerViewType.Agenda
+        //})
+
+        .Views(views =>
+            {
+                views.Add()
+                    .Name("月(總攬)")
+                    .Type(SchedulerViewType.Month)
+                    .GroupOrientation(Orientation.Vertical);
+                    //.Groups(new string[] { "CategoryId" })
+                    //.CellDuration(60)
+                    //.IntervalCount(2);
+                views.Add()
+                    .Name("月(分類)")
+                    .Type(SchedulerViewType.Month)
+                    .GroupOrientation(Orientation.Vertical)
+                    .Groups(new string[] { "CategoryId" });
+                    //.CellDuration(60)
+                    //.IntervalCount(2);
+                views.Add()
+                    .Name("議程")
+                    .Type(SchedulerViewType.Agenda)
+                    .AgendaDuration(30);
+                views.Add()
+                    .Name("時間軸")
+                    .Type(SchedulerViewType.TimelineMonth);
+                //views.Add()
+                //    .Name("時間軸2")
+                //    .Type(SchedulerViewType.TimelineWeek);
+                //views.Add()
+                //    .Name("時間軸3")
+                //    .Type(SchedulerViewType.TimelineDay);
+            }
+        )
         .Editing(E => E.AllowAdding(true).AllowDeleting(true).AllowDragging(true).AllowResizing(true).AllowUpdating(true))
         .FirstDayOfWeek(FirstDayOfWeek.Sunday)
         .CurrentView(SchedulerViewType.Month)
@@ -50,7 +82,8 @@
 .EndDateExpr("EndDate")
 .AllDayExpr("AllDay")
 .OnOptionChanged("OnOptionChanged")
-.Groups(new string[] { "CategoryId" })
+//.Groups(new string[] { "CategoryId" })
+//.GroupByDate(true)
 
 @*.OnCellClick(@<text>
                 function(e) {

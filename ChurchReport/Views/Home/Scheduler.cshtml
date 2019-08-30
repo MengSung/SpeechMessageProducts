@@ -18,12 +18,46 @@
         .UpdateAction("PutAppointments")
         .DeleteAction("DeleteAppointments")
         )
-        .Views(new SchedulerViewType[] {
-            SchedulerViewType.Week,
-            SchedulerViewType.Month,
-            SchedulerViewType.Day,
-            SchedulerViewType.Agenda
-        })
+
+        //.Views(new SchedulerViewType[] {
+        //    SchedulerViewType.Week,
+        //    SchedulerViewType.Month,
+        //    SchedulerViewType.Day,
+        //    SchedulerViewType.Agenda
+        //})
+
+        .Views(views =>
+            {
+                views.Add()
+                    .Name("月(總攬)")
+                    .Type(SchedulerViewType.Month)
+                    .GroupOrientation(Orientation.Vertical);
+                    //.Groups(new string[] { "CategoryId" })
+                    //.CellDuration(60)
+                    //.IntervalCount(2);
+                views.Add()
+                    .Name("月(分類)")
+                    .Type(SchedulerViewType.Month)
+                    .GroupOrientation(Orientation.Vertical)
+                    .Groups(new string[] { "CategoryId" });
+                    //.CellDuration(60)
+                    //.IntervalCount(2);
+                views.Add()
+                    .Name("議程")
+                    .Type(SchedulerViewType.Agenda)
+                    .AgendaDuration(30);
+                views.Add()
+                    .Name("時間軸")
+                    .Type(SchedulerViewType.TimelineMonth);
+                //views.Add()
+                //    .Name("時間軸2")
+                //    .Type(SchedulerViewType.TimelineWeek);
+                //views.Add()
+                //    .Name("時間軸3")
+                //    .Type(SchedulerViewType.TimelineDay);
+            }
+        )
+
         .Editing(E => E.AllowAdding(true).AllowDeleting(true).AllowDragging(true).AllowResizing(true).AllowUpdating(true))
         .FirstDayOfWeek(FirstDayOfWeek.Monday)
         .CurrentView(SchedulerViewType.Month)
@@ -33,18 +67,19 @@
                 @*.AppointmentTooltipTemplate(@<text>
                             @(Html.Partial("_AppointmentTemplate"))
                 </text>)*@
-.CurrentDate(DateTime.Now)
-.TextExpr("Text")
-.DescriptionExpr("Description")
-.StartDayHour(8)
-.EndDayHour(22)
-.CrossScrollingEnabled(true)
-.StartDateExpr("StartDate")
-.EndDateExpr("EndDate")
-.AllDayExpr("AllDay")
-.OnOptionChanged("OnOptionChanged")
-//.GroupOrientation(Orientation.Horizontal)
-.Groups(new string[] { "CategoryId" })
+            .CurrentDate(DateTime.Now)
+            .TextExpr("Text")
+            .DescriptionExpr("Description")
+            .StartDayHour(8)
+            .EndDayHour(22)
+            .CrossScrollingEnabled(true)
+            .StartDateExpr("StartDate")
+            .EndDateExpr("EndDate")
+            .AllDayExpr("AllDay")
+            .OnOptionChanged("OnOptionChanged")
+            //.GroupOrientation(Orientation.Horizontal)
+            //.Groups(new string[] { "CategoryId" })
+            //.GroupByDate(true)
 @*.OnCellClick(@<text>
                     function(e) {
                     //alert("加入幸福BEST中...");
@@ -77,20 +112,20 @@
             //.Width(200)
             .Resources(res =>
             {
-             res.Add()
-             .FieldExpr("CategoryId")
-             .AllowMultiple(true)
-             .Label("類別")
-             .DataSource(new object[] {
-             new { id = 1, text = "教會行事曆", color = "#cb6bb2" },
-             new { id = 2, text = "服事", color = "#56ca85" },
-             new { id = 3, text = "課程", color = "#1e90ff" },
-             new { id = 8, text = "已報名課程", color = "#9700A0" },
-             new { id = 4, text = "場地", color = "#ff9747" },
-             new { id = 5, text = "會議", color = "#019771" },
-             new { id = 6, text = "人資出差勤", color = "#0553B0" },
-             new { id = 7, text = "其他", color = "#B0053B" },
-            });
+                 res.Add()
+                 .FieldExpr("CategoryId")
+                 .AllowMultiple(true)
+                 .Label("類別")
+                 .DataSource(new object[] {
+                     new { id = 1, text = "教會行事曆", color = "#cb6bb2" },
+                     new { id = 2, text = "服事", color = "#56ca85" },
+                     new { id = 3, text = "課程", color = "#1e90ff" },
+                     new { id = 8, text = "已報名課程", color = "#9700A0" },
+                     new { id = 4, text = "場地", color = "#ff9747" },
+                     new { id = 5, text = "會議", color = "#019771" },
+                     new { id = 6, text = "人資出差勤", color = "#0553B0" },
+                     new { id = 7, text = "其他", color = "#B0053B" },
+                });
             })
 
         )
