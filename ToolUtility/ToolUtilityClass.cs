@@ -1694,7 +1694,7 @@ namespace ToolUtilityNameSpace
 
                 //DateTime EndDate = DateTime.Now.AddDays(24);
                 string EndDateString = @"'" + EndDate.Year + "-" + EndDate.Month + "-" + EndDate.Day + @"'";
-
+                
                 var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
                       <entity name='appointment'>
                         <attribute name='subject' />
@@ -1708,6 +1708,7 @@ namespace ToolUtilityNameSpace
                         <attribute name='requiredattendees' />
                         <attribute name='optionalattendees' />
                         <attribute name='new_list_appointment' />
+                        <attribute name='description' />
                         <order attribute='subject' descending='false' />
                         <filter type='and'>
                           <condition attribute='scheduledstart' operator='on-or-after'  value=" + StartDateString + @" />

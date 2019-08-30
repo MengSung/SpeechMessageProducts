@@ -269,6 +269,7 @@ namespace ChurchReport.WebServiceConnector
                     OwnerId = new int[] { CategoryId },
                     StartDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(aAppointmentEntity, "scheduledstart").ToLocalTime(),
                     EndDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(aAppointmentEntity, "scheduledend").ToLocalTime(),
+                    Description = this.m_ToolUtilityClass.GetEntityStringAttribute(aAppointmentEntity, "description"),
                 };
 
                 #endregion
