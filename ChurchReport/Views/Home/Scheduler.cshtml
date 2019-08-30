@@ -43,6 +43,8 @@
 .EndDateExpr("EndDate")
 .AllDayExpr("AllDay")
 .OnOptionChanged("OnOptionChanged")
+//.GroupOrientation(Orientation.Horizontal)
+.Groups(new string[] { "CategoryId" })
 @*.OnCellClick(@<text>
                     function(e) {
                     //alert("加入幸福BEST中...");
