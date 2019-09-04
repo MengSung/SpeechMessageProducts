@@ -3351,10 +3351,11 @@ namespace ChurchReport.Controllers
                 //DateTime BirthDate = DateTime.Now;
                 DateTime BirthDate = DateTime.MinValue;
                 //DateTime BirthDate = null;
+                String PersonalId = "";
 
-                m_InMemoryDataContextSmallGroup.LineBindingViewModel.GetContactInfomation(UserLineId, ref FaithStatus, ref GenderCode, ref BirthDate);
+                m_InMemoryDataContextSmallGroup.LineBindingViewModel.GetContactInfomation(UserLineId, ref FaithStatus, ref GenderCode, ref BirthDate, ref PersonalId );
 
-                return Json(new { faithStatus = FaithStatus, genderCode = GenderCode, birthDate = BirthDate, message = "成功上傳了...." });
+                return Json(new { faithStatus = FaithStatus, genderCode = GenderCode, birthDate = BirthDate, personalId = PersonalId, message = "成功上傳了...." });
             }
             catch (System.Exception e)
             {
@@ -3377,7 +3378,7 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                m_InMemoryDataContextSmallGroup.LineBindingViewModel.UpdateContactInfomation(aLineBindingViewModel.FaithStatus, aLineBindingViewModel.GenderCode, aLineBindingViewModel.BirthDate);
+                m_InMemoryDataContextSmallGroup.LineBindingViewModel.UpdateContactInfomation(aLineBindingViewModel.FaithStatus, aLineBindingViewModel.GenderCode, aLineBindingViewModel.BirthDate, aLineBindingViewModel.PersonalId);
 
                 return Json(new { status = "1", message = "謝謝 " + aLineBindingViewModel.FullName + " 填寫基本資料!", encoded = aLineBindingViewModel.DisplayName + "," + aLineBindingViewModel.LineUserId });
             }

@@ -152,10 +152,20 @@
                                                         //{return null;}
                                                         }
                                                     </text>)
-                                                                                                .ShowClearButton(true)
-                                                                                                .Placeholder("請填寫生日")
-                                                                                            );
-                                                                                   })
+                                                            .ShowClearButton(true)
+                                                            .Placeholder("請填寫生日")
+                                                        );
+
+
+
+                                                items.AddSimple()
+                                                .DataField("PersonalId")
+                                                .Label(l => l.Text("身分證字號"))
+                                                .Editor(e => e
+                                                    .TextBox().Placeholder("請填寫身分證字號")
+                                                    );
+
+                                        })
                 )
             </div>
         </div>
@@ -363,6 +373,7 @@
                                 $("#form").dxForm("instance").updateData('FaithStatus', data. faithStatus);
                                 $("#form").dxForm("instance").updateData('GenderCode', data.genderCode);
                                 $("#form").dxForm("instance").updateData('BirthDate', data.birthDate);
+                                $("#form").dxForm("instance").updateData('PersonalId', data.personalId);
 
                                 getLoadPanelInstance().hide();
                             },
@@ -394,6 +405,8 @@
                                 $("#form").dxForm("instance").updateData('FaithStatus', data. faithStatus);
                                 $("#form").dxForm("instance").updateData('GenderCode', data.genderCode);
                                 $("#form").dxForm("instance").updateData('BirthDate', data.birthDate);
+                                $("#form").dxForm("instance").updateData('PersonalId', data.personalId);
+
                             },
 
                             error: function (obj)

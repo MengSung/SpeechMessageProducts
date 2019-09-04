@@ -45,10 +45,12 @@ namespace ChurchReport.ViewModel
         public string FaithStatus { get; set; } //信仰狀態
         public String GenderCode { get; set; }  // 性別
         public DateTime BirthDate { get; set; }   // 生日
+        public string PersonalId { get; set; } //身分證字號
+
         #endregion
 
         #region 工具區
-        public void GetContactInfomation(String UserLineId, ref String FaithStatus, ref String GenderCode, ref DateTime BirthDate)
+        public void GetContactInfomation(String UserLineId, ref String FaithStatus, ref String GenderCode, ref DateTime BirthDate, ref String PersonalId )
         {
             m_Contact = this.m_ToolUtilityClass.RetrieveContactByLineId(UserLineId);
             if (m_Contact == null)
@@ -62,10 +64,12 @@ namespace ChurchReport.ViewModel
                 GenderCode = GetGenderCode(m_Contact);
 
                 BirthDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref m_Contact, "birthdate");
+
+                PersonalId = this.m_ToolUtilityClass.GetEntityStringAttribute(ref m_Contact, "new_personal_id");
             }
         }
 
-        public void UpdateContactInfomation(String FaithStatus, String GenderCode, DateTime BirthDate)
+        public void UpdateContactInfomation(String FaithStatus, String GenderCode, DateTime BirthDate, String PersonalId )
         {
             if (m_Contact == null)
             {
@@ -75,8 +79,8 @@ namespace ChurchReport.ViewModel
             {
                 this.m_ToolUtilityClass.SetOptionSetAttribute(ref this.m_Contact, "new_spiriitual_identity", GetFaithStatusIndex(FaithStatus));
                 this.m_ToolUtilityClass.SetOptionSetAttribute(ref this.m_Contact, "gendercode", GetGenderCodeIndex(GenderCode));
-
                 this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref this.m_Contact, "birthdate", BirthDate.ToLocalTime());
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref this.m_Contact, "new_personal_id", PersonalId );
 
                 this.m_ToolUtilityClass.UpdateEntity(ref this.m_Contact);
             }
