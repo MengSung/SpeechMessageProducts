@@ -63,6 +63,7 @@ namespace ChurchReport.Controllers
         }
         #endregion
         #region 登入帳號
+        //[CheckSessionOut]
         public async System.Threading.Tasks.Task<IActionResult> Login()
         {
             try
@@ -612,6 +613,7 @@ namespace ChurchReport.Controllers
         #endregion
         #region 整合式小組長點名
         [Route("/Home/IntegrateView/{LoginParameter}")]
+        [CheckSessionOut]
         public ActionResult IntegrateView(string LoginParameter)
         {
             try

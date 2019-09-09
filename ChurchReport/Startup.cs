@@ -1,4 +1,5 @@
 using System;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -7,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Serialization;
+//using Microsoft.Extensions.DependencyInjection;
 
 namespace ChurchReport
 {
@@ -31,7 +33,45 @@ namespace ChurchReport
             //services.AddCookieTempData();
             services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
-            services.AddSession(options => options.IdleTimeout = TimeSpan.FromMinutes(30));
+            //services.AddSession
+            //(
+            //    options => options.IdleTimeout = TimeSpan.FromMinutes(30)
+            //);
+
+            services.AddSession(options =>
+            {
+                // Set a short timeout for easy testing.
+                //options.IdleTimeout = TimeSpan.FromMinutes(30);
+                options.IdleTimeout = TimeSpan.FromSeconds(30);
+                options.Cookie.HttpOnly = true;
+                // Make the session cookie essential
+                options.Cookie.IsEssential = true;
+            });
+
+            services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+            .AddCookie(options =>
+            {
+                options.LoginPath = "/Home/Login";
+                //options.LogoutPath = "/Account/LogOff";
+                options.LogoutPath = "/Home/Login";
+                options.Cookie.Expiration = TimeSpan.FromSeconds(30);
+                options.CookieName = ".ChurchReport.Session";
+            });
+            //services.ConfigureApplicationCookie(options =>
+            //{
+            //    options.Cookie.HttpOnly = true;
+            //    options.Cookie.Expiration = TimeSpan.FromSeconds(60);
+            //    options.LoginPath = "/Account/Login";
+            //    options.LogoutPath = "/Account/Logout";
+            //    options.AccessDeniedPath = "/Account/AccessDenied";
+            //    options.SlidingExpiration = true;
+            //});
+
+            //services.AddAuthenticationCore(CookieAuthenticationDefaults.AuthenticationScheme)
+            //    .AddCookie(options => {
+            //        options.LoginPath = "/login";
+            //        options.AccessDeniedPath = "/login";
+            //    });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
