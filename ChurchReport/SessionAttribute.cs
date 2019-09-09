@@ -18,22 +18,22 @@ namespace ChurchReport
     {
         public override void OnActionExecuting(ActionExecutingContext filterContext)
         {
-            //HttpContext context = HttpContext.Current;
+            HttpContext context = HttpContext.Current;
 
-            if (filterContext.HttpContext.Session != null)
+            if (context.Session != null)
             {
-                if (filterContext.HttpContext.Session.IsAvailable)
+                if (context.Session.IsNewSession)
                 {
-                    string sessionCookie = filterContext.HttpContext.Request.Headers["Cookie"];
+                    string sessionCookie = context.Request.Headers["Cookie"];
 
-                    if ((sessionCookie != null) && (sessionCookie.IndexOf("ChurchReport.Session") >= 0))
+                    if ((sessionCookie != null) && (sessionCookie.IndexOf("MyProjectName.Session") >= 0))
                     {
                         FormsAuthentication.SignOut();
                         string redirectTo = "~/Home/Login"; //YOUR LOGIN PAGE HERE
-                        if (!string.IsNullOrEmpty(filterContext.HttpContext.Request.ToString()))
+                        if (!string.IsNullOrEmpty(context.Request.RawUrl))
                         {
                             //redirectTo = string.Format("~/Account/Login?ReturnUrl={0}", HttpUtility.UrlEncode(context.Request.RawUrl));
-                            redirectTo = string.Format("~/Home/Login?ReturnUrl={0}", HttpUtility.UrlEncode(filterContext.HttpContext.Request.ToString()));
+                            redirectTo = string.Format("~/Home/Login?ReturnUrl={0}", HttpUtility.UrlEncode(context.Request.RawUrl));
                             filterContext.Result = new RedirectResult(redirectTo);
                             return;
                         }
