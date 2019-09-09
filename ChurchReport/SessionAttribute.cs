@@ -18,31 +18,51 @@ namespace ChurchReport
     {
         public override void OnActionExecuting(ActionExecutingContext filterContext)
         {
-            HttpContext context = HttpContext.Current;
+            //HttpContext context = HttpContext.Current;
 
-            if (context.Session != null)
+            if (filterContext.HttpContext.Session != null)
             {
-                if (context.Session.IsNewSession)
+                if (filterContext.HttpContext.Session.IsAvailable)
                 {
-                    string sessionCookie = context.Request.Headers["Cookie"];
-
-                    if ((sessionCookie != null) && (sessionCookie.IndexOf("MyProjectName.Session") >= 0))
+                    string sessionCookie = filterContext.HttpContext.Request.Headers["Cookie"];
+                    if (sessionCookie != null)
                     {
-                        FormsAuthentication.SignOut();
+                        //FormsAuthentication.SignOut();
                         string redirectTo = "~/Home/Login"; //YOUR LOGIN PAGE HERE
-                        if (!string.IsNullOrEmpty(context.Request.RawUrl))
-                        {
-                            //redirectTo = string.Format("~/Account/Login?ReturnUrl={0}", HttpUtility.UrlEncode(context.Request.RawUrl));
-                            redirectTo = string.Format("~/Home/Login?ReturnUrl={0}", HttpUtility.UrlEncode(context.Request.RawUrl));
-                            filterContext.Result = new RedirectResult(redirectTo);
-                            return;
-                        }
-
+                        filterContext.Result = new RedirectResult(redirectTo);
                     }
                 }
             }
 
             base.OnActionExecuting(filterContext);
         }
+        //public override void OnActionExecuting_BACKUP(ActionExecutingContext filterContext)
+        //{
+        //    HttpContext context = HttpContext.Current;
+
+        //    if (context.Session != null)
+        //    {
+        //        if (context.Session.IsNewSession)
+        //        {
+        //            string sessionCookie = context.Request.Headers["Cookie"];
+
+        //            if ((sessionCookie != null) && (sessionCookie.IndexOf("MyProjectName.Session") >= 0))
+        //            {
+        //                FormsAuthentication.SignOut();
+        //                string redirectTo = "~/Home/Login"; //YOUR LOGIN PAGE HERE
+        //                if (!string.IsNullOrEmpty(context.Request.RawUrl))
+        //                {
+        //                    //redirectTo = string.Format("~/Account/Login?ReturnUrl={0}", HttpUtility.UrlEncode(context.Request.RawUrl));
+        //                    redirectTo = string.Format("~/Home/Login?ReturnUrl={0}", HttpUtility.UrlEncode(context.Request.RawUrl));
+        //                    filterContext.Result = new RedirectResult(redirectTo);
+        //                    return;
+        //                }
+
+        //            }
+        //        }
+        //    }
+
+        //    base.OnActionExecuting(filterContext);
+        //}
     }
 }
