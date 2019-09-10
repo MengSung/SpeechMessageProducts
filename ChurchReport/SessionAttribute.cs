@@ -26,9 +26,11 @@ namespace ChurchReport
 
             if (filterContext.HttpContext.Session != null)
             {
-                if ( SessionId == "" )
+                if (SessionId == "")
                 {
                     SessionId = filterContext.HttpContext.Session.Id;
+                    //filterContext.Result = new RedirectResult("~/Home/DisplayErrorView/TEST!");
+                    //return;
                 }
                 else
                 {
@@ -50,13 +52,11 @@ namespace ChurchReport
                         //    }));
 
 
-                        filterContext.Result = new RedirectResult("~/Home/Login");
-
-                        await filterContext.Result.ExecuteResultAsync(filterContext);
+                        //filterContext.Result = new RedirectResult("~/Home/Login");
+                        filterContext.Result = new RedirectResult("~/Home/DisplayErrorView/TEST!");
 
                         return;
 
-                        
                     }
                 }
             }
@@ -88,6 +88,14 @@ namespace ChurchReport
         //    }
         //    base.OnActionExecuting(filterContext);
         //}
+
+
+        //public override void OnActionExecuting(ActionExecutingContext filterContext)
+        //{
+        //    filterContext.Result = new RedirectResult("~/Home/DisplayErrorView/TEST!");
+        //    return;
+        //}
+
         //public override void OnActionExecuting(ActionExecutingContext filterContext)
         //{
         //    HttpContext context = HttpContext.Current;
