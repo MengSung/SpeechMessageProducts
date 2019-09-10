@@ -41,8 +41,8 @@ namespace ChurchReport
             services.AddSession(options =>
             {
                 // Set a short timeout for easy testing.
-                options.IdleTimeout = TimeSpan.FromMinutes(30);
-                //options.IdleTimeout = TimeSpan.FromSeconds(30);
+                //options.IdleTimeout = TimeSpan.FromMinutes(30);
+                options.IdleTimeout = TimeSpan.FromSeconds(30);
                 options.Cookie.HttpOnly = true;
                 // Make the session cookie essential
                 options.Cookie.IsEssential = true;
@@ -57,7 +57,18 @@ namespace ChurchReport
                 options.Cookie.Expiration = TimeSpan.FromSeconds(30);
                 //options.Cookie.Expiration = TimeSpan.FromMinutes(30);
                 options.CookieName = ".ChurchReport.Session";
+
+                options.Cookie.SameSite = SameSiteMode.None;
+                options.LoginPath = new Microsoft.AspNetCore.Http.PathString("/Home/Login");
+                options.AccessDeniedPath = "/Home/Login";
+                options.ReturnUrlParameter = "/Home/Login";
+                options.AccessDeniedPath = "/Home/AccessDenied";
+                options.LogoutPath = "/Home/Login";
+                options.ExpireTimeSpan = TimeSpan.FromMinutes(1);//set it less for testing purpose
+
             });
+
+            // options.Events.OnRedirectToLogin
             //services.ConfigureApplicationCookie(options =>
             //{
             //    options.Cookie.HttpOnly = true;

@@ -5,7 +5,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
+using System.Web.Routing;
 using System.Web.Security;
+using System.Web.SessionState;
+//using Microsoft.AspNetCore.Http;
 
 namespace ChurchReport
 {
@@ -16,27 +19,76 @@ namespace ChurchReport
     [AttributeUsage(AttributeTargets.Method, Inherited = true, AllowMultiple = false)]
     public class CheckSessionOutAttribute : ActionFilterAttribute
     {
-        public override void OnActionExecuting(ActionExecutingContext filterContext)
+        String SessionId = "";
+        public async override void OnActionExecuting(ActionExecutingContext filterContext)
         {
             //HttpContext context = HttpContext.Current;
 
             if (filterContext.HttpContext.Session != null)
             {
-                if (filterContext.HttpContext.Session.IsAvailable)
+                if ( SessionId == "" )
                 {
-                    string sessionCookie = filterContext.HttpContext.Request.Headers["Cookie"];
-                    if (sessionCookie != null)
+                    SessionId = filterContext.HttpContext.Session.Id;
+                }
+                else
+                {
+                    if (SessionId != filterContext.HttpContext.Session.Id)
                     {
-                        //FormsAuthentication.SignOut();
-                        string redirectTo = "~/Home/Login"; //YOUR LOGIN PAGE HERE
-                        filterContext.Result = new RedirectResult(redirectTo);
+                        //string sessionCookie = filterContext.HttpContext.Request.Headers["Cookie"];
+                        //if (sessionCookie != null)
+                        //{
+                        //    //FormsAuthentication.SignOut();
+                        //    string redirectTo = "~/Home/Login"; //YOUR LOGIN PAGE HERE
+                        //    filterContext.Result = new RedirectResult(redirectTo);
+                        //}
+
+                        //filterContext.Result =
+                        //    new RedirectToRouteResult(new RouteValueDictionary(new
+                        //    {
+                        //        controller = "Home",
+                        //        action = "Login"
+                        //    }));
+
+
+                        filterContext.Result = new RedirectResult("~/Home/Login");
+
+                        await filterContext.Result.ExecuteResultAsync(filterContext);
+
+                        return;
+
+                        
                     }
                 }
             }
 
             base.OnActionExecuting(filterContext);
         }
-        //public override void OnActionExecuting_BACKUP(ActionExecutingContext filterContext)
+
+
+
+        //public override void OnActionExecuting(ActionExecutingContext context)
+        //{
+        //    if (context.HttpContext.Session == null || !context.HttpContext.Session.TryGetValue("ID", out byte[] val))
+        //    {
+        //        context.Result =
+        //            new RedirectToRouteResult(new RouteValueDictionary(new
+        //            {
+        //                controller = "Home",
+        //                action = "Login"
+        //            }));
+        //    }
+        //    base.OnActionExecuting(context);
+        //}
+
+        //public override void OnActionExecuting(ActionExecutingContext filterContext)
+        //{
+        //    if (HttpContext.Current.Session["UserProfile"] != null)
+        //    {
+        //        filterContext.Result = new RedirectResult("~/Home/Login");
+        //    }
+        //    base.OnActionExecuting(filterContext);
+        //}
+        //public override void OnActionExecuting(ActionExecutingContext filterContext)
         //{
         //    HttpContext context = HttpContext.Current;
 

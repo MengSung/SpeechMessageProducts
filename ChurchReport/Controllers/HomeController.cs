@@ -613,7 +613,7 @@ namespace ChurchReport.Controllers
         #endregion
         #region 整合式小組長點名
         [Route("/Home/IntegrateView/{LoginParameter}")]
-        //[CheckSessionOut]
+        [CheckSessionOut]
         public ActionResult IntegrateView(string LoginParameter)
         {
             try
@@ -833,6 +833,7 @@ namespace ChurchReport.Controllers
             }
         }
         [HttpPut]
+        [CheckSessionOut]
         public IActionResult UpdateSmallGroupPresentRecord(string key, string values)
         {
             try

@@ -387,4 +387,15 @@
     </div>
 </body>
 
+@*<script>
+    //session end
+    var sessionTimeoutWarning = @Session.Timeout- 1; //when session end 1 minute before this code makes redirect
+
+    var sTimeout = parseInt(sessionTimeoutWarning) * 60 * 1000;
+    setTimeout('SessionEnd()', sTimeout);
+
+    function SessionEnd() {
+        window.location = "/Home/Login"; //Redirect to LogOff, and then redirect to Login
+    }
+</script>*@
 </html>
