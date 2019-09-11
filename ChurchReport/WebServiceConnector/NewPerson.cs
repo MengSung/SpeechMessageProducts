@@ -391,7 +391,7 @@ namespace ChurchReport.WebServiceConnector
                 this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aNewContactEntity, "new_cell_list_contact", "list", aListEntity.Id);
                 #endregion
                 #region 更新新建立的連絡人
-                //aNewContactEntity = this.m_ToolUtilityClass.RetrieveEntity("contact", NewContactEntityId);
+                aNewContactEntity = this.m_ToolUtilityClass.RetrieveEntity("contact", NewContactEntityId);
                 this.m_ToolUtilityClass.UpdateEntity(ref aNewContactEntity);
                 #endregion
 
