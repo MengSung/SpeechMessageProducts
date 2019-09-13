@@ -931,6 +931,22 @@ namespace ChurchReport.Controllers
         {
             try
             {
+                if (m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.ListEntityName.Contains("幸福"))
+                {
+                    if (HappyWeekIndex == null && HappyWeekTopic == null)
+                    {
+                        return Json(new { status = "2", message = "幸福小組必須填寫第幾週和主題" });
+                    }
+                    else if (HappyWeekIndex == null)
+                    {
+                        return Json(new { status = "2", message = "幸福小組必須填寫第幾週" });
+                    }
+                    else if (HappyWeekTopic == null)
+                    {
+                        return Json(new { status = "2", message = "幸福小組必須填寫主題" });
+                    }
+                    else { }
+                }
                 // 整合式網頁按上傳按鈕
                 Task.Run(() => m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.UploadIntegrateData
                 (
@@ -939,9 +955,9 @@ namespace ChurchReport.Controllers
                     m_InMemoryDataContextSmallGroup.ListManager.LoginType,
                     m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData,
                     WeeklyReportData,
-                    HappyWeekIndex, 
+                    HappyWeekIndex,
                     HappyWeekTopic
-                ) );
+                ));
 
                 return Json(new { status = "1", message = "成功上傳了...." });
             }
