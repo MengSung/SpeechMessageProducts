@@ -683,7 +683,7 @@ else
                                 //columns.Add().DataField("PrayItem").Caption("代禱事項").Fixed(false).MinWidth(90);
                                 //columns.Add().DataField("SmallGroupName").Caption("小組").GroupIndex(0).MinWidth(10);
 
-                                columns.AddFor(m => m.FullName).Caption("姓名").Fixed(true).Width(60).MinWidth(20).Alignment(HorizontalAlignment.Left).AllowSorting(false);
+                                columns.AddFor(m => m.FullName).Caption("姓名").Fixed(true).Width(60).MinWidth(20).Alignment(HorizontalAlignment.Left).AllowSorting(false).AllowEditing(false);
                                 //columns.AddFor(m => m.Status).Caption("委身類型").Fixed(false).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Center).AllowSorting(false);
                                 //客製化，委身類型
                                 columns.Add().DataField("Status")
@@ -829,7 +829,7 @@ else
                                 //columns.AddFor(m => m.SmallGroupName).Caption("小組").GroupIndex(0).MinWidth(10);
 
 
-                                columns.AddFor(m => m.FullName).Caption("姓名").Fixed(true).Width(60).MinWidth(20).Alignment(HorizontalAlignment.Left);
+                                columns.AddFor(m => m.FullName).Caption("姓名").Fixed(true).Width(60).MinWidth(20).Alignment(HorizontalAlignment.Left).AllowEditing(false);
                                 //columns.AddFor(m => m.Status).Caption("委身類型").Fixed(false).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Center);
 
                                 //客製化，委身類型
@@ -1053,7 +1053,7 @@ else
                                 //columns.Add().DataField("PrayItem").Caption("代禱事項").Fixed(false).MinWidth(90);
                                 //columns.Add().DataField("SmallGroupName").Caption("小組").GroupIndex(0).MinWidth(10);
 
-                                columns.AddFor(m => m.FullName).Caption("姓名").Fixed(true).Width(60).MinWidth(20).Alignment(HorizontalAlignment.Left).AllowSorting(false);
+                                columns.AddFor(m => m.FullName).Caption("姓名").Fixed(true).Width(60).MinWidth(20).Alignment(HorizontalAlignment.Left).AllowSorting(false).AllowEditing(false);
                                 //columns.AddFor(m => m.Status).Caption("委身類型").Fixed(false).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Center).AllowSorting(false);
                                 //客製化，委身類型
                                 columns.Add().DataField("Status")
@@ -1199,7 +1199,7 @@ else
 
                             .Columns(columns =>
                             {
-                            columns.AddFor(m => m.FullName).Caption("姓名").Fixed(false).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Left).AllowSorting(false);
+                            columns.AddFor(m => m.FullName).Caption("姓名").Fixed(false).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Left).AllowSorting(false).AllowEditing(false);
                             columns.AddFor(m => m.Status).Caption("委身類型").Fixed(false).Width(100).MinWidth(20).Alignment(HorizontalAlignment.Center).AllowSorting(false);
                             columns.AddFor(m => m.Sunday).Caption("主日").Width(45).MinWidth(45).AllowSorting(false);
                             columns.AddFor(m => m.SmallGroup).Caption("小組").Width(45).MinWidth(45).AllowSorting(false);
@@ -1283,6 +1283,7 @@ else
                     .ID("WeeklyReportTextAnalysis")
                     .Value(Model.WeeklyReportAnalysis)
                     .Height(350)
+                    .Disabled(true)
             )
         }
     </div>
