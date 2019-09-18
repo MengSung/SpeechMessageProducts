@@ -72,9 +72,13 @@ namespace ChurchReport.WebServiceConnector
             {
                 #region 設定週報狀態，設定為已點名、週報主日出席率、小組出席率
 
-                SmallGroupResult = ProcessLineMessage(LoginContact, SmallGroupResult, ref aListEntity, ref aSmallGroupData, WeeklyReportData);
+                //if ( aSmallGroupData.LoginType == "小組長" )
+                {
+                    SmallGroupResult = ProcessLineMessage(LoginContact, SmallGroupResult, ref aListEntity, ref aSmallGroupData, WeeklyReportData);
 
-                m_PushUtility.MultiCastTextMessageAsync(GetLineRecieverList(ref aListEntity, aSmallGroupData.LoginType), SmallGroupResult);
+                    //m_PushUtility.MultiCastTextMessageAsync(GetLineRecieverList(ref aListEntity, aSmallGroupData.LoginType), SmallGroupResult);
+                    m_PushUtility.MultiCastTextMessageAsync(GetLineRecieverList(ref LoginContact, ref aListEntity, aSmallGroupData.LoginType), SmallGroupResult);
+                }
 
                 #endregion
             }
@@ -435,6 +439,149 @@ namespace ChurchReport.WebServiceConnector
                     if (aAreaLeaderLineId != "") aList.Add(aAreaLeaderLineId);
                     if (aListCoSmallGroupLeaderLineId != "") aList.Add(aListCoSmallGroupLeaderLineId);
                     if (aCoAreaLeaderLineId != "") aList.Add(aCoAreaLeaderLineId);
+
+                    //if (aListGraceLeaderLineId != aAreaLeaderLineId)
+                    //{
+                    //    if (aListGraceLeaderLineId != "") aList.Add(aListGraceLeaderLineId);
+                    //    if (aAreaLeaderLineId != "") aList.Add(aAreaLeaderLineId);
+                    //    if (aListCoSmallGroupLeaderLineId != "") aList.Add(aListCoSmallGroupLeaderLineId);
+                    //    if (aCoAreaLeaderLineId != "") aList.Add(aCoAreaLeaderLineId);
+                    //}
+                    //else
+                    //{
+                    //    if (aListGraceLeaderLineId != "") aList.Add(aListGraceLeaderLineId);
+                    //}
+                }
+                else
+                {
+                    // 個人回報
+                    if (aListGraceLeaderLineId != "") aList.Add(aListGraceLeaderLineId);
+                    if (aAreaLeaderLineId != "") aList.Add(aAreaLeaderLineId);
+                    if (aListCoSmallGroupLeaderLineId != "") aList.Add(aListCoSmallGroupLeaderLineId);
+                    if (aCoAreaLeaderLineId != "") aList.Add(aCoAreaLeaderLineId);
+
+
+                    //if (aListGraceLeaderLineId != aAreaLeaderLineId)
+                    //{
+                    //    if (aListGraceLeaderLineId != "") aList.Add(aListGraceLeaderLineId);
+                    //    if (aAreaLeaderLineId != "") aList.Add(aAreaLeaderLineId);
+                    //    if (aListCoSmallGroupLeaderLineId != "") aList.Add(aListCoSmallGroupLeaderLineId);
+                    //    if (aCoAreaLeaderLineId != "") aList.Add(aCoAreaLeaderLineId);
+                    //}
+                    //else
+                    //{
+                    //    if (aListGraceLeaderLineId != "") aList.Add(aListGraceLeaderLineId);
+                    //}
+
+                    if (aListSmallGroupLeaderLineId != "") aList.Add(aListSmallGroupLeaderLineId);
+                }
+
+                // 如果回報通知窗口有加入成為好友
+                if (aReportNotifyWindowLineId != "") aList.Add(aReportNotifyWindowLineId);
+
+                return aList;
+            }
+            catch (System.Exception Exception)
+            {
+                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
+
+                throw Exception;
+            }
+        }
+        public List<String> GetLineRecieverList(ref Entity LoginContact, ref Entity aListEntity, String LoginType)
+        {
+            try
+            {
+                #region 先找到"小家長"、"小組長"、族系族長/區長"
+                Entity aContact;
+
+                // 區牧 LINE ID
+                String aListGraceLeaderLineId = "";
+                Guid aListGraceLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_list_arealeader");
+                if (aListGraceLeaderId != Guid.Empty)
+                {
+                    if (LoginContact.Id != aListGraceLeaderId)
+                    {
+                        // 登入回報者與此人是不一樣的ID
+                        aContact = this.m_ToolUtilityClass.RetrieveEntity("contact", aListGraceLeaderId);
+                        aListGraceLeaderLineId = this.m_ToolUtilityClass.GetEntityStringAttribute(aContact, "new_lineid");
+                    }
+                }
+
+                // 共同區長 LINE ID
+                String aCoAreaLeaderLineId = "";
+                Guid aCoAreaLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_co_race_leager_list");
+                if (aCoAreaLeaderId != Guid.Empty)
+                {
+                    if (LoginContact.Id != aCoAreaLeaderId)
+                    {
+                        // 登入回報者與此人是不一樣的ID
+                        aContact = this.m_ToolUtilityClass.RetrieveEntity("contact", aCoAreaLeaderId);
+                        aCoAreaLeaderLineId = this.m_ToolUtilityClass.GetEntityStringAttribute(aContact, "new_lineid");
+                    }
+                }
+
+                // 區長 LINE ID
+                String aAreaLeaderLineId = "";
+                Guid aAreaLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_race_leager_list");
+                if (aAreaLeaderId != Guid.Empty)
+                {
+                    if (LoginContact.Id != aAreaLeaderId)
+                    {
+                        // 登入回報者與此人是不一樣的ID
+                        aContact = this.m_ToolUtilityClass.RetrieveEntity("contact", aAreaLeaderId);
+                        aAreaLeaderLineId = this.m_ToolUtilityClass.GetEntityStringAttribute(aContact, "new_lineid");
+                    }
+                }
+
+                // 小組長 ID
+                String aListSmallGroupLeaderLineId = "";
+                Guid aListSmallGroupLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_family_leader_list");
+                if (aListSmallGroupLeaderId != Guid.Empty)
+                {
+                    if (LoginContact.Id != aListSmallGroupLeaderId)
+                    {
+                        // 登入回報者與此人是不一樣的ID
+                        aContact = this.m_ToolUtilityClass.RetrieveEntity("contact", aListSmallGroupLeaderId);
+                        aListSmallGroupLeaderLineId = this.m_ToolUtilityClass.GetEntityStringAttribute(aContact, "new_lineid");
+                    }
+                }
+
+                // 共同組長 ID
+                String aListCoSmallGroupLeaderLineId = "";
+                Guid ListCoSmallGroupLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_list_vice_family_leader");
+                if (ListCoSmallGroupLeaderId != Guid.Empty)
+                {
+                    if (LoginContact.Id != ListCoSmallGroupLeaderId)
+                    {
+                        aContact = this.m_ToolUtilityClass.RetrieveEntity("contact", ListCoSmallGroupLeaderId);
+                        aListCoSmallGroupLeaderLineId = this.m_ToolUtilityClass.GetEntityStringAttribute(aContact, "new_lineid");
+                    }
+                }
+
+
+                // 回報通知窗口 ID
+                String aReportNotifyWindowLineId = "";
+                Guid aReportNotifyWindowId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_list_report_window");
+                if (aReportNotifyWindowId != Guid.Empty)
+                {
+                    aContact = this.m_ToolUtilityClass.RetrieveEntity("contact", aReportNotifyWindowId);
+                    aReportNotifyWindowLineId = this.m_ToolUtilityClass.GetEntityStringAttribute(aContact, "new_lineid");
+                }
+
+                #endregion
+
+                List<String> aList = new List<String>();
+
+
+                if (LoginType == "小組長")
+                {
+                    // 小組長個人回報
+                    if (aListGraceLeaderLineId != "") aList.Add(aListGraceLeaderLineId);
+                    if (aAreaLeaderLineId != "") aList.Add(aAreaLeaderLineId);
+                    if (aCoAreaLeaderLineId != "") aList.Add(aCoAreaLeaderLineId);
+                    if (aListSmallGroupLeaderLineId != "") aList.Add(aListSmallGroupLeaderLineId);
+                    if (aListCoSmallGroupLeaderLineId != "") aList.Add(aListCoSmallGroupLeaderLineId);
 
                     //if (aListGraceLeaderLineId != aAreaLeaderLineId)
                     //{
