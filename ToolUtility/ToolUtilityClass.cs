@@ -1704,6 +1704,8 @@ namespace ToolUtilityNameSpace
                         <attribute name='regardingobjectid' />
                         <attribute name='ownerid' />
                         <attribute name='new_meeting_kind' />
+                        <attribute name='new_leave_kind' />
+                        <attribute name='new_location_kind' />
                         <attribute name='activityid' />
                         <attribute name='requiredattendees' />
                         <attribute name='optionalattendees' />

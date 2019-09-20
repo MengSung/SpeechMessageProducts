@@ -176,6 +176,12 @@ namespace ChurchReport.WebServiceConnector
                 int CategoryId = this.m_ToolUtilityClass.GetOptionSetAttribute(ref aAppointmentEntity, "new_meeting_kind");
                 String AppointmentType = this.ConvertCategoryIdToAppointmentType(CategoryId);
 
+                int LeaveId = this.m_ToolUtilityClass.GetOptionSetAttribute(ref aAppointmentEntity, "new_leave_kind");
+                String LeaveType = this.ConvertLeaveIdToAppointmentType(LeaveId);
+
+                int LocationId = this.m_ToolUtilityClass.GetOptionSetAttribute(ref aAppointmentEntity, "new_location_kind");
+                String LocationType = this.ConvertLocationIdToAppointmentType(LocationId);
+
                 // 清空出席者及列席者清單
                 aFromOrToIdList.Clear();
                 // 清空出席者及列席者類型清單
@@ -197,7 +203,7 @@ namespace ChurchReport.WebServiceConnector
                         if (m_ContactEntity.Id.ToString() == ContactId.ToString())
                         {
                             // 登入者有在此約會的出席者及列席者
-                            Appointment aAppointment = SetupAppointment(aAppointmentEntity, AppointmentType, CategoryId);
+                            Appointment aAppointment = SetupAppointment(aAppointmentEntity, AppointmentType, CategoryId, LeaveId, LocationId);
                             aAppointmentsList.Add(aAppointment);
 
                             SearchFlag = true;
@@ -207,12 +213,12 @@ namespace ChurchReport.WebServiceConnector
 
                     if( ListEntityId != Guid.Empty && SearchFlag == false )
                     {
-                        SetupAppointmentFromList(aAppointmentsList, aAppointmentEntity, ListEntityId, AppointmentType, CategoryId);
+                        SetupAppointmentFromList(aAppointmentsList, aAppointmentEntity, ListEntityId, AppointmentType, CategoryId, LeaveId, LocationId);
                     }
                 }
                 else {
                     // 如果是"教會行事曆"則一律要顯示
-                    Appointment aAppointment = SetupAppointment(aAppointmentEntity, AppointmentType, CategoryId);
+                    Appointment aAppointment = SetupAppointment(aAppointmentEntity, AppointmentType, CategoryId, LeaveId, LocationId);
                     aAppointmentsList.Add(aAppointment);
                 }
                 #endregion
@@ -226,7 +232,7 @@ namespace ChurchReport.WebServiceConnector
                 throw e;
             }
         }
-        public void SetupAppointmentFromList( List<Appointment> aAppointmentsList, Entity aAppointmentEntity, Guid ListEntityId, String AppointmentType, int CategoryId)
+        public void SetupAppointmentFromList( List<Appointment> aAppointmentsList, Entity aAppointmentEntity, Guid ListEntityId, String AppointmentType, int CategoryId, int LeaveId, int LocationId)
         {
             try
             {
@@ -239,7 +245,7 @@ namespace ChurchReport.WebServiceConnector
                     if (m_ContactEntity.Id == MemberId)
                     {
                         // 登入者有在此約會的出席者及列席者
-                        Appointment aAppointment = SetupAppointment(aAppointmentEntity, AppointmentType, CategoryId);
+                        Appointment aAppointment = SetupAppointment(aAppointmentEntity, AppointmentType, CategoryId, LeaveId, LocationId);
                         aAppointmentsList.Add(aAppointment);
 
                         break;
@@ -255,7 +261,7 @@ namespace ChurchReport.WebServiceConnector
             }
         }
 
-        public Appointment SetupAppointment( Entity aAppointmentEntity, String AppointmentType, int CategoryId)
+        public Appointment SetupAppointment( Entity aAppointmentEntity, String AppointmentType, int CategoryId, int LeaveId, int LocationId )
         {
             try
             {
@@ -265,7 +271,9 @@ namespace ChurchReport.WebServiceConnector
                     AppointmentId = aAppointmentEntity.Id.ToString(),
                     Text = this.m_ToolUtilityClass.GetEntityStringAttribute(aAppointmentEntity, "subject"),
                     AppointmentType = AppointmentType,
-                    CategoryId = new int[] { CategoryId },
+                    CategoryId =  CategoryId,
+                    LeaveId = LeaveId,
+                    LocationId = LocationId,
                     OwnerId = new int[] { CategoryId },
                     StartDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(aAppointmentEntity, "scheduledstart").ToLocalTime(),
                     EndDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(aAppointmentEntity, "scheduledend").ToLocalTime(),
@@ -342,7 +350,7 @@ namespace ChurchReport.WebServiceConnector
                         AppointmentId = LessonEntity.Id.ToString(),
                         Text = this.m_ToolUtilityClass.GetEntityStringAttribute(LessonEntity, "new_name"),
                         AppointmentType = "課程",
-                        CategoryId = new int[] { CategoryId },
+                        CategoryId = CategoryId,
                         OwnerId = new int[] { CategoryId },
                         StartDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(LessonEntity, "new_class_start_date").ToLocalTime(),
                         EndDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(LessonEntity, "new_class_end_date").ToLocalTime(),
@@ -375,11 +383,11 @@ namespace ChurchReport.WebServiceConnector
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aAppointmentEntity, "description", aAppointment.Description);
 
                 #region //設定"行程類別"
-                if (aAppointment.CategoryId != null && aAppointment.CategoryId.Length > 0 )
+                if (aAppointment.CategoryId != null && aAppointment.CategoryId > 0)
                 {
-                    if (aAppointment.CategoryId[0] > 0)
+                    if (aAppointment.CategoryId > 0)
                     {
-                        this.m_ToolUtilityClass.SetOptionSetAttribute(ref aAppointmentEntity, "new_meeting_kind", aAppointment.CategoryId[0]);
+                        this.m_ToolUtilityClass.SetOptionSetAttribute(ref aAppointmentEntity, "new_meeting_kind", aAppointment.CategoryId);
                     }
                     else
                     {
@@ -391,6 +399,44 @@ namespace ChurchReport.WebServiceConnector
                 {
                     // 新增約會沒填類別，預設就是"其他"
                     this.m_ToolUtilityClass.SetOptionSetAttribute(ref aAppointmentEntity, "new_meeting_kind", 7);
+                }
+                #endregion
+                #region //設定"人資休假"
+                if (aAppointment.LeaveId != null && aAppointment.LeaveId > 0)
+                {
+                    if (aAppointment.LeaveId > 0)
+                    {
+                        this.m_ToolUtilityClass.SetOptionSetAttribute(ref aAppointmentEntity, "new_leave_kind", aAppointment.LeaveId);
+                    }
+                    else
+                    {
+                        // 新增約會沒填人資，預設就是"未填"
+                        this.m_ToolUtilityClass.SetOptionSetAttribute(ref aAppointmentEntity, "new_leave_kind", 1);
+                    }
+                }
+                else
+                {
+                    // 新增約會沒填人資，預設就是"未填"
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(ref aAppointmentEntity, "new_leave_kind", 1);
+                }
+                #endregion
+                #region //設定"場地預約"
+                if (aAppointment.LocationId != null && aAppointment.LocationId > 0)
+                {
+                    if (aAppointment.LeaveId > 0)
+                    {
+                        this.m_ToolUtilityClass.SetOptionSetAttribute(ref aAppointmentEntity, "new_location_kind", aAppointment.LocationId);
+                    }
+                    else
+                    {
+                        // 新增約會沒填場地，預設就是"未填"
+                        this.m_ToolUtilityClass.SetOptionSetAttribute(ref aAppointmentEntity, "new_location_kind", 1);
+                    }
+                }
+                else
+                {
+                    // 新增約會沒填場地，預設就是"未填"
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(ref aAppointmentEntity, "new_location_kind", 1);
                 }
                 #endregion
 
@@ -446,12 +492,28 @@ namespace ChurchReport.WebServiceConnector
                 this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aAppointmentEntity, "scheduledend", aAppointment.EndDate.ToLocalTime());
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aAppointmentEntity, "description", aAppointment.Description);
 
-                //設定"形成類別"
-                if (aAppointment.CategoryId.Length > 0 )
+                //設定"行事曆類別"
+                if (aAppointment.CategoryId != null)
                 {
-                    if (aAppointment.CategoryId[0] > 0)
+                    if (aAppointment.CategoryId > 0)
                     {
-                        this.m_ToolUtilityClass.SetOptionSetAttribute(ref aAppointmentEntity, "new_meeting_kind", aAppointment.CategoryId[0]);
+                        this.m_ToolUtilityClass.SetOptionSetAttribute(ref aAppointmentEntity, "new_meeting_kind", aAppointment.CategoryId);
+                    }
+                }
+                //設定"人資休假"
+                if (aAppointment.LeaveId != null)
+                {
+                    if (aAppointment.LeaveId > 0)
+                    {
+                        this.m_ToolUtilityClass.SetOptionSetAttribute(ref aAppointmentEntity, "new_leave_kind", aAppointment.LeaveId);
+                    }
+                }
+                //設定"場地"
+                if (aAppointment.LocationId > 0 != null)
+                {
+                    if (aAppointment.LocationId > 0)
+                    {
+                        this.m_ToolUtilityClass.SetOptionSetAttribute(ref aAppointmentEntity, "new_location_kind", aAppointment.LocationId);
                     }
                 }
 
@@ -538,7 +600,7 @@ namespace ChurchReport.WebServiceConnector
             }
         }
 
-        
+
         private int ConvertAppointmentTypeToCategoryId(String AppointmentType)
         {
             switch (AppointmentType)
@@ -561,6 +623,88 @@ namespace ChurchReport.WebServiceConnector
                     return 8;
                 default:
                     return 7;
+            }
+        }
+
+        #endregion
+        #region 人資對應工具
+        private String ConvertLeaveIdToAppointmentType(int CategoryId)
+        {
+            switch (CategoryId)
+            {
+                case 1:
+                    return "未填";
+                case 2:
+                    return "休假";
+                case 3:
+                    return "病假";
+                case 4:
+                    return "事假";
+                case 5:
+                    return "出差";
+                default:
+                    return "未填";
+            }
+        }
+
+
+        private int ConvertAppointmentTypeToLeaveId(String AppointmentType)
+        {
+            switch (AppointmentType)
+            {
+                case "未填":
+                    return 1;
+                case "休假":
+                    return 2;
+                case "病假":
+                    return 3;
+                case "事假":
+                    return 4;
+                case "出差":
+                    return 5;
+                default:
+                    return 1;
+            }
+        }
+
+        #endregion
+        #region 場地對應工具
+        private String ConvertLocationIdToAppointmentType(int CategoryId)
+        {
+            switch (CategoryId)
+            {
+                case 1:
+                    return "未填";
+                case 2:
+                    return "101教室";
+                case 3:
+                    return "102教室";
+                case 4:
+                    return "103教室";
+                case 5:
+                    return "104教室";
+                default:
+                    return "未填";
+            }
+        }
+
+
+        private int ConvertAppointmentTypeToLocationId(String AppointmentType)
+        {
+            switch (AppointmentType)
+            {
+                case "未填":
+                    return 1;
+                case "101教室":
+                    return 2;
+                case "102教室":
+                    return 3;
+                case "103教室":
+                    return 4;
+                case "104教室":
+                    return 5;
+                default:
+                    return 1;
             }
         }
 
