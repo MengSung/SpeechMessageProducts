@@ -112,11 +112,11 @@
             //.Width(200)
             .Resources(res =>
             {
-                 res.Add()
-                 .FieldExpr("CategoryId")
-                 .AllowMultiple(true)
-                 .Label("類別")
-                 .DataSource(new object[] {
+                res.Add()
+                .FieldExpr("CategoryId")
+                .AllowMultiple(true)
+                .Label("類別")
+                .DataSource(new object[] {
                      new { id = 1, text = "教會行事曆", color = "#cb6bb2" },
                      new { id = 2, text = "服事", color = "#56ca85" },
                      new { id = 3, text = "課程", color = "#1e90ff" },
@@ -125,7 +125,29 @@
                      new { id = 5, text = "會議", color = "#019771" },
                      new { id = 6, text = "人資出差勤", color = "#0553B0" },
                      new { id = 7, text = "其他", color = "#B0053B" },
+               });
+
+                res.Add()
+                .FieldExpr("LeaveId")
+                .AllowMultiple(false)
+                .Label("人事出差勤")
+                .DataSource(new object[] {
+                      new { id = 9, text = "休假", color = "#cb6bb2" },
+                      new { id = 10, text = "病假", color = "#56ca85" },
+                      new { id = 11, text = "事假", color = "#1e90ff" },
+                      new { id = 12, text = "出差", color = "#9700A0" },
+               });
+                res.Add()
+                .FieldExpr("LocationId")
+                .AllowMultiple(false)
+                .Label("場地")
+                 .DataSource(new object[] {
+                      new { id = 1, text = "101教室", color = "#cb6bb2" },
+                      new { id = 2, text = "102教室", color = "#56ca85" },
+                      new { id = 3, text = "103教室", color = "#1e90ff" },
+                      new { id = 4, text = "104教室", color = "#9700A0" },
                 });
+
             })
 
         )
