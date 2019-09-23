@@ -3548,6 +3548,7 @@ namespace ChurchReport.Controllers
         [HttpPost]
         public IActionResult PostAppointments(string values)
         {
+            #region 新增約會
             var newAppointment = new Appointment();
             JsonConvert.PopulateObject(values, newAppointment);
 
@@ -3559,11 +3560,13 @@ namespace ChurchReport.Controllers
             //m_InMemoryDataContextSmallGroup.SaveChanges();
 
             return Ok();
+            #endregion
         }
 
         [HttpPut]
         public IActionResult PutAppointments(String key, string values)
         {
+            #region 修改約會
             var appointment = m_InMemoryDataContextSmallGroup.AppointmentsListManager.m_Appointments.First(a => a.AppointmentId == key);
             JsonConvert.PopulateObject(values, appointment);
 
@@ -3573,18 +3576,20 @@ namespace ChurchReport.Controllers
             //m_InMemoryDataContextSmallGroup.SaveChanges();
 
             return Ok();
+            #endregion
         }
 
         [HttpDelete]
         public void DeleteAppointments(String key)
         {
+            #region 刪除約會
             var appointment = m_InMemoryDataContextSmallGroup.AppointmentsListManager.m_Appointments.First(a => a.AppointmentId == key);
 
             //Task.Run(() => m_InMemoryDataContextSmallGroup.AppointmentsListManager.DeleteAppointment(appointment));
             m_InMemoryDataContextSmallGroup.AppointmentsListManager.DeleteAppointment(appointment);
 
             //m_InMemoryDataContextSmallGroup.SaveChanges();
-
+            #endregion
         }
 
         public IActionResult NavigateAppointmentDate(string SelectedDate)

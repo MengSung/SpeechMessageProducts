@@ -458,6 +458,9 @@ namespace ChurchReport.WebServiceConnector
                 aAppointmentEntity["organizer"] = oCollection;
                 #endregion
 
+                // 設定全天事件
+                this.m_ToolUtilityClass.SetEntityBoolAttribute( ref aAppointmentEntity, "isalldayevent", aAppointment.AllDay);
+
                 // 新增約會
                 Guid CreatedAppointmentEntityId = this.m_ToolUtilityClass.CreateEntity(aAppointmentEntity);
                 aAppointment.AppointmentId = CreatedAppointmentEntityId.ToString();
@@ -468,10 +471,7 @@ namespace ChurchReport.WebServiceConnector
                 this.m_ToolUtilityClass.AssignOwner("appointment", this.m_ToolUtilityClass.RetrieveEntity("appointment", CreatedAppointmentEntityId), this.m_OwnerId);
                 #endregion
 
-
-
                 this.m_ToolUtilityClass.SetAppointmentStatusToScheduled(CreatedAppointmentEntityId);
-
 
             }
             catch (System.Exception e)
@@ -520,8 +520,10 @@ namespace ChurchReport.WebServiceConnector
                 // 設定出席者
                 aAppointmentEntity["requiredattendees"] = BuildReciever(m_ContactEntity);
 
+                // 設定全天事件
+                this.m_ToolUtilityClass.SetEntityBoolAttribute(ref aAppointmentEntity, "isalldayevent", aAppointment.AllDay);
 
-                // 新增約會
+                // 修改約會
                 this.m_ToolUtilityClass.UpdateEntity(aAppointmentEntity);
 
             }
