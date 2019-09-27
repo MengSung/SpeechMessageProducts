@@ -387,7 +387,7 @@ namespace ChurchReport.WebServiceConnector
                 {
                     if (aAppointment.CategoryId > 0)
                     {
-                        this.m_ToolUtilityClass.SetOptionSetAttribute(ref aAppointmentEntity, "new_meeting_kind", aAppointment.CategoryId);
+                        this.m_ToolUtilityClass.SetOptionSetAttribute(ref aAppointmentEntity, "new_meeting_kind", (int)aAppointment.CategoryId);
                     }
                     else
                     {
@@ -406,7 +406,7 @@ namespace ChurchReport.WebServiceConnector
                 {
                     if (aAppointment.LeaveId > 0)
                     {
-                        this.m_ToolUtilityClass.SetOptionSetAttribute(ref aAppointmentEntity, "new_leave_kind", aAppointment.LeaveId);
+                        this.m_ToolUtilityClass.SetOptionSetAttribute(ref aAppointmentEntity, "new_leave_kind", (int)aAppointment.LeaveId);
                     }
                     else
                     {
@@ -425,7 +425,7 @@ namespace ChurchReport.WebServiceConnector
                 {
                     if (aAppointment.LeaveId > 0)
                     {
-                        this.m_ToolUtilityClass.SetOptionSetAttribute(ref aAppointmentEntity, "new_location_kind", aAppointment.LocationId);
+                        this.m_ToolUtilityClass.SetOptionSetAttribute(ref aAppointmentEntity, "new_location_kind", (int)aAppointment.LocationId);
                     }
                     else
                     {
@@ -472,7 +472,6 @@ namespace ChurchReport.WebServiceConnector
                 #endregion
 
                 this.m_ToolUtilityClass.SetAppointmentStatusToScheduled(CreatedAppointmentEntityId);
-
             }
             catch (System.Exception e)
             {
@@ -497,7 +496,7 @@ namespace ChurchReport.WebServiceConnector
                 {
                     if (aAppointment.CategoryId > 0)
                     {
-                        this.m_ToolUtilityClass.SetOptionSetAttribute(ref aAppointmentEntity, "new_meeting_kind", aAppointment.CategoryId);
+                        this.m_ToolUtilityClass.SetOptionSetAttribute(ref aAppointmentEntity, "new_meeting_kind", (int)aAppointment.CategoryId);
                     }
                 }
                 //設定"人資休假"
@@ -505,7 +504,7 @@ namespace ChurchReport.WebServiceConnector
                 {
                     if (aAppointment.LeaveId > 0)
                     {
-                        this.m_ToolUtilityClass.SetOptionSetAttribute(ref aAppointmentEntity, "new_leave_kind", aAppointment.LeaveId);
+                        this.m_ToolUtilityClass.SetOptionSetAttribute(ref aAppointmentEntity, "new_leave_kind", (int)aAppointment.LeaveId);
                     }
                 }
                 //設定"場地"
@@ -513,7 +512,7 @@ namespace ChurchReport.WebServiceConnector
                 {
                     if (aAppointment.LocationId > 0)
                     {
-                        this.m_ToolUtilityClass.SetOptionSetAttribute(ref aAppointmentEntity, "new_location_kind", aAppointment.LocationId);
+                        this.m_ToolUtilityClass.SetOptionSetAttribute(ref aAppointmentEntity, "new_location_kind", (int)aAppointment.LocationId);
                     }
                 }
 
@@ -637,18 +636,23 @@ namespace ChurchReport.WebServiceConnector
                 case 1:
                     return "未填";
                 case 2:
-                    return "休假";
+                    return "一例一休";
                 case 3:
-                    return "病假";
+                    return "特休";
                 case 4:
-                    return "事假";
+                    return "病假";
                 case 5:
-                    return "出差";
+                    return "事假";
+                case 6:
+                    return "公假";
+                case 7:
+                    return "婚假";
+                case 8:
+                    return "喪假";
                 default:
                     return "未填";
             }
         }
-
 
         private int ConvertAppointmentTypeToLeaveId(String AppointmentType)
         {
@@ -656,14 +660,20 @@ namespace ChurchReport.WebServiceConnector
             {
                 case "未填":
                     return 1;
-                case "休假":
+                case "一例一休":
                     return 2;
-                case "病假":
+                case "特休":
                     return 3;
-                case "事假":
+                case "病假":
                     return 4;
-                case "出差":
+                case "事假":
                     return 5;
+                case "公假":
+                    return 6;
+                case "婚假":
+                    return 7;
+                case "喪假":
+                    return 8;
                 default:
                     return 1;
             }
