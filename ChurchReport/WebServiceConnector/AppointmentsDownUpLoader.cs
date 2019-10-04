@@ -380,8 +380,10 @@ namespace ChurchReport.WebServiceConnector
                 Entity aAppointmentEntity = new Entity("appointment");
 
                 #region //設定"主題"
-                String Subject = SetAppointmentSubject(ref aAppointment, GetAppointmentSigningType(ref aAppointment));
-
+                if (aAppointment.Text == "")
+                {
+                    aAppointment.Text = SetAppointmentSubject(ref aAppointment, GetAppointmentSigningType(ref aAppointment));
+                }
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aAppointmentEntity, "subject", aAppointment.Text);
                 #endregion
                 #region //設定"開始結束時間"
@@ -401,13 +403,37 @@ namespace ChurchReport.WebServiceConnector
                     else
                     {
                         // 新增約會沒填類別，預設就是"其他"
-                        this.m_ToolUtilityClass.SetOptionSetAttribute(ref aAppointmentEntity, "new_meeting_kind", 7);
+                        String SigningType = GetAppointmentSigningType(ref aAppointment);
+                        if (SigningType == "請假簽核")
+                        {
+                            this.m_ToolUtilityClass.SetOptionSetAttribute(ref aAppointmentEntity, "new_meeting_kind", ConvertAppointmentTypeToCategoryId("人資出差勤"));
+                        }
+                        else if (SigningType == "場地或資源簽核")
+                        {
+                            this.m_ToolUtilityClass.SetOptionSetAttribute(ref aAppointmentEntity, "new_meeting_kind", ConvertAppointmentTypeToCategoryId("場地"));
+                        }
+                        else
+                        {
+                            this.m_ToolUtilityClass.SetOptionSetAttribute(ref aAppointmentEntity, "new_meeting_kind", ConvertAppointmentTypeToCategoryId("其他"));
+                        }
                     }
                 }
                 else
                 {
                     // 新增約會沒填類別，預設就是"其他"
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(ref aAppointmentEntity, "new_meeting_kind", 7);
+                    String SigningType = GetAppointmentSigningType(ref aAppointment);
+                    if (SigningType == "請假簽核")
+                    {
+                        this.m_ToolUtilityClass.SetOptionSetAttribute(ref aAppointmentEntity, "new_meeting_kind", ConvertAppointmentTypeToCategoryId("人資出差勤"));
+                    }
+                    else if (SigningType == "場地或資源簽核")
+                    {
+                        this.m_ToolUtilityClass.SetOptionSetAttribute(ref aAppointmentEntity, "new_meeting_kind", ConvertAppointmentTypeToCategoryId("場地"));
+                    }
+                    else
+                    {
+                        this.m_ToolUtilityClass.SetOptionSetAttribute(ref aAppointmentEntity, "new_meeting_kind", ConvertAppointmentTypeToCategoryId("其他"));
+                    }
                 }
                 #endregion
                 #region //設定"人資休假"
@@ -464,6 +490,20 @@ namespace ChurchReport.WebServiceConnector
                 //Set the organizer field to the collection:
                 aAppointmentEntity["organizer"] = new EntityCollection();
                 aAppointmentEntity["organizer"] = oCollection;
+                #endregion
+                #region //設定代理人
+                Guid aGuid = this.m_ToolUtilityClass.GetEntityLookupAttribute(m_ContactEntity, "new_replace_contact");
+                if (aGuid != Guid.Empty)
+                {
+                    this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aAppointmentEntity, "new_replace_contact_appointment", "contact", aGuid);
+                }
+                #endregion
+                #region //設定主管
+                aGuid = this.m_ToolUtilityClass.GetEntityLookupAttribute(m_ContactEntity, "new_manager_contact");
+                if (aGuid != Guid.Empty)
+                {
+                    this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aAppointmentEntity, "new_manager_contact_appointment", "contact", aGuid);
+                }
                 #endregion
                 #region//設定全天事件
                 this.m_ToolUtilityClass.SetEntityBoolAttribute(ref aAppointmentEntity, "isalldayevent", aAppointment.AllDay);
@@ -556,7 +596,6 @@ namespace ChurchReport.WebServiceConnector
                 throw e;
             }
         }
-
         public EntityCollection BuildReciever(Entity aRecieverEntity)
         {
             try
@@ -891,35 +930,29 @@ namespace ChurchReport.WebServiceConnector
             try
             {
                 #region 如果約會沒有設定主題，在這裡幫忙設定
-                String LineId = "";
-                //SigningType += "-" + this.m_ToolUtilityClass;
-                //if (SigningType == "請假簽核")
-                //{
-                //    if (aAppointment.LeaveId > 0)
-                //    {
-                //        this.m_ToolUtilityClass.SetOptionSetAttribute(ref aAppointmentEntity, "new_leave_kind", (int)aAppointment.LeaveId);
-                //    }
-                //    else
-                //    {
-                //        // 新增約會沒填人資，預設就是"未填"
-                //        this.m_ToolUtilityClass.SetOptionSetAttribute(ref aAppointmentEntity, "new_leave_kind", 1);
-                //    }
+                // 設定申請人
+                String Subject = SigningType + "-" + this.m_ToolUtilityClass.GetEntityStringAttribute(ref m_ContactEntity, "fullname") + "-";
+                if (SigningType == "請假簽核")
+                {
+                    String Leave = this.ConvertLeaveIdToAppointmentType((int)aAppointment.LeaveId);
+                    Subject += "請假假由: " + Leave + "，";
+                    Subject += "開始時間: " + aAppointment.StartDate.ToLocalTime() + "，";
+                    Subject += "結束時間: " + aAppointment.EndDate.ToLocalTime() + "。";
+                }
+                else if (SigningType == "場地或資源簽核")
+                {
+                    String Location = this.ConvertLocationIdToAppointmentType((int)aAppointment.LocationId);
+                    Subject += "場地或資源: " + Location + "，";
+                    Subject += "開始時間: " + aAppointment.StartDate.ToLocalTime() + "，";
+                    Subject += "結束時間: " + aAppointment.EndDate.ToLocalTime() + "。";
+                }
+                else
+                {
+                    Subject += "開始時間: " + aAppointment.StartDate.ToLocalTime() + "，";
+                    Subject += "結束時間: " + aAppointment.EndDate.ToLocalTime() + "。";
+                }
 
-                //    String Leave = this.ConvertIndexToLeave(this.m_ToolUtilityClass.GetOptionSetAttribute(ref aAppointmentEntity, "new_leave_kind"));
-                //    SigningType += "請假假由: " + Leave + "，";
-                //    SigningType += "開始時間: " + this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aAppointmentEntity, "scheduledstart").ToLocalTime() + "，";
-                //    SigningType += "結束時間: " + this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aAppointmentEntity, "scheduledend").ToLocalTime() + "。";
-                //}
-                //else if (SigningType == "場地或資源簽核")
-                //{
-                //    String Location = this.ConvertIndexToLocation(this.m_ToolUtilityClass.GetOptionSetAttribute(ref aAppointmentEntity, "new_location_kind"));
-                //    SigningType += "場地或資源: " + Location + "，";
-                //    SigningType += "開始時間: " + this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aAppointmentEntity, "scheduledstart").ToLocalTime() + "，";
-                //    SigningType += "結束時間: " + this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aAppointmentEntity, "scheduledend").ToLocalTime() + "。";
-                //}
-                //else { }
-
-                return "";
+                return Subject;
                 #endregion
             }
             catch (System.Exception e)
@@ -945,7 +978,7 @@ namespace ChurchReport.WebServiceConnector
                 }
                 else
                 {
-                    return "一般簽核";
+                    return "一般行事曆";
                 }
                 #endregion
             }
