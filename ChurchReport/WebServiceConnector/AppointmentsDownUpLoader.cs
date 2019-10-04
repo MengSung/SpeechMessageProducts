@@ -90,7 +90,7 @@ namespace ChurchReport.WebServiceConnector
                 return RetrieveAppointmentList(aSelectDate);
             }
 
-            return new List<Appointment>() ;
+            return new List<Appointment>();
         }
         #region 使用者登入
         private void FindLoginUser(String Account, String Password)
@@ -126,10 +126,10 @@ namespace ChurchReport.WebServiceConnector
                 EntityCollection AppointmentEntityCollection = this.m_ToolUtilityClass.RetrieveAppointmentsByFetchXml(StartDate, EndDate);
 
                 // 建立約會
-                List<Appointment>  aAppointmentList = SetupAppointmentsListEntityCollection(AppointmentEntityCollection);
+                List<Appointment> aAppointmentList = SetupAppointmentsListEntityCollection(AppointmentEntityCollection);
 
                 // 2. 依據課程建立的行事曆
-                SetupAppointmentListByLesson( aAppointmentList, StartDate, EndDate );
+                SetupAppointmentListByLesson(aAppointmentList, StartDate, EndDate);
 
                 return aAppointmentList;
             }
@@ -154,7 +154,7 @@ namespace ChurchReport.WebServiceConnector
                 {
                     #region 處理一個一個約會
 
-                    SetupAppointmentList( aAppointmentsList, aAppointmentEntity, aFromOrToIdList, aFromOrToTypeList);
+                    SetupAppointmentList(aAppointmentsList, aAppointmentEntity, aFromOrToIdList, aFromOrToTypeList);
 
                     #endregion
                 }
@@ -211,12 +211,13 @@ namespace ChurchReport.WebServiceConnector
                         }
                     }
 
-                    if( ListEntityId != Guid.Empty && SearchFlag == false )
+                    if (ListEntityId != Guid.Empty && SearchFlag == false)
                     {
                         SetupAppointmentFromList(aAppointmentsList, aAppointmentEntity, ListEntityId, AppointmentType, CategoryId, LeaveId, LocationId);
                     }
                 }
-                else {
+                else
+                {
                     // 如果是"教會行事曆"則一律要顯示
                     Appointment aAppointment = SetupAppointment(aAppointmentEntity, AppointmentType, CategoryId, LeaveId, LocationId);
                     aAppointmentsList.Add(aAppointment);
@@ -232,15 +233,15 @@ namespace ChurchReport.WebServiceConnector
                 throw e;
             }
         }
-        public void SetupAppointmentFromList( List<Appointment> aAppointmentsList, Entity aAppointmentEntity, Guid ListEntityId, String AppointmentType, int CategoryId, int LeaveId, int LocationId)
+        public void SetupAppointmentFromList(List<Appointment> aAppointmentsList, Entity aAppointmentEntity, Guid ListEntityId, String AppointmentType, int CategoryId, int LeaveId, int LocationId)
         {
             try
             {
                 #region 建立一個約會
 
-                ArrayList MemberEntityIdList = this.m_ToolUtilityClass.GetAllMemberDataFromList( ListEntityId );
+                ArrayList MemberEntityIdList = this.m_ToolUtilityClass.GetAllMemberDataFromList(ListEntityId);
 
-                foreach( Guid MemberId in MemberEntityIdList)
+                foreach (Guid MemberId in MemberEntityIdList)
                 {
                     if (m_ContactEntity.Id == MemberId)
                     {
@@ -261,7 +262,7 @@ namespace ChurchReport.WebServiceConnector
             }
         }
 
-        public Appointment SetupAppointment( Entity aAppointmentEntity, String AppointmentType, int CategoryId, int LeaveId, int LocationId )
+        public Appointment SetupAppointment(Entity aAppointmentEntity, String AppointmentType, int CategoryId, int LeaveId, int LocationId)
         {
             try
             {
@@ -271,7 +272,7 @@ namespace ChurchReport.WebServiceConnector
                     AppointmentId = aAppointmentEntity.Id.ToString(),
                     Text = this.m_ToolUtilityClass.GetEntityStringAttribute(aAppointmentEntity, "subject"),
                     AppointmentType = AppointmentType,
-                    CategoryId =  CategoryId,
+                    CategoryId = CategoryId,
                     LeaveId = LeaveId,
                     LocationId = LocationId,
                     OwnerId = new int[] { CategoryId },
@@ -310,7 +311,7 @@ namespace ChurchReport.WebServiceConnector
                     bool SearchFlag = false;
                     foreach (Entity aEnrolledLessonEntity in EnrolledLessonEntityCollection.Entities)
                     {
-                        if(aLessonEntity.Id == aEnrolledLessonEntity.Id)
+                        if (aLessonEntity.Id == aEnrolledLessonEntity.Id)
                         {
                             // 已報名的課程
                             SetdLessonAppointment(aAppointmentsList, aLessonEntity, 8);
@@ -375,13 +376,21 @@ namespace ChurchReport.WebServiceConnector
         {
             try
             {
+                #region 新增約會
                 Entity aAppointmentEntity = new Entity("appointment");
 
+                #region //設定"主題"
+                String Subject = SetAppointmentSubject(ref aAppointment, GetAppointmentSigningType(ref aAppointment));
+
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aAppointmentEntity, "subject", aAppointment.Text);
+                #endregion
+                #region //設定"開始結束時間"
                 this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aAppointmentEntity, "scheduledstart", aAppointment.StartDate.ToLocalTime());
                 this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aAppointmentEntity, "scheduledend", aAppointment.EndDate.ToLocalTime());
+                #endregion
+                #region //設定"描述"
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aAppointmentEntity, "description", aAppointment.Description);
-
+                #endregion
                 #region //設定"行程類別"
                 if (aAppointment.CategoryId != null && aAppointment.CategoryId > 0)
                 {
@@ -439,11 +448,10 @@ namespace ChurchReport.WebServiceConnector
                     this.m_ToolUtilityClass.SetOptionSetAttribute(ref aAppointmentEntity, "new_location_kind", 1);
                 }
                 #endregion
-
-                // 設定出席者
+                #region//設定出席者
                 aAppointmentEntity["requiredattendees"] = BuildReciever(m_ContactEntity);
-
-                #region 設定召集人
+                #endregion
+                #region //設定召集人
                 m_OwnerId = this.m_ToolUtilityClass.GetOwnerId(m_ContactEntity);
 
                 Entity oParty = new Entity("activityparty");
@@ -457,21 +465,22 @@ namespace ChurchReport.WebServiceConnector
                 aAppointmentEntity["organizer"] = new EntityCollection();
                 aAppointmentEntity["organizer"] = oCollection;
                 #endregion
-
-                // 設定全天事件
-                this.m_ToolUtilityClass.SetEntityBoolAttribute( ref aAppointmentEntity, "isalldayevent", aAppointment.AllDay);
-
-                // 新增約會
+                #region//設定全天事件
+                this.m_ToolUtilityClass.SetEntityBoolAttribute(ref aAppointmentEntity, "isalldayevent", aAppointment.AllDay);
+                #endregion
+                #region//新增約會
                 Guid CreatedAppointmentEntityId = this.m_ToolUtilityClass.CreateEntity(aAppointmentEntity);
                 aAppointment.AppointmentId = CreatedAppointmentEntityId.ToString();
-
-                #region 指派約會的負責人
+                #endregion
+                #region //指派約會的負責人
                 //m_OwnerId = this.m_ToolUtilityClass.GetOwnerId(m_ContactEntity);
 
                 this.m_ToolUtilityClass.AssignOwner("appointment", this.m_ToolUtilityClass.RetrieveEntity("appointment", CreatedAppointmentEntityId), this.m_OwnerId);
                 #endregion
 
                 this.m_ToolUtilityClass.SetAppointmentStatusToScheduled(CreatedAppointmentEntityId);
+
+                #endregion
             }
             catch (System.Exception e)
             {
@@ -574,7 +583,7 @@ namespace ChurchReport.WebServiceConnector
             }
         }
         #endregion
-
+        #region 選項轉換
         #region 類別對應工具
         private String ConvertCategoryIdToAppointmentType(int CategoryId)
         {
@@ -720,6 +729,234 @@ namespace ChurchReport.WebServiceConnector
             }
         }
 
+        #endregion
+        #region 簽核狀態
+        public String ConvertIndexToSigningStatus(int OptionValue)
+        {
+            try
+            {
+                switch (OptionValue)
+                {
+                    #region Switch
+                    case 100000000:
+                        {
+                            return "初始值";
+                        }
+                    case 100000001:
+                        {
+                            return "同意";
+                        }
+                    case 100000002:
+                        {
+                            return "退回";
+                        }
+                    default:
+                        {
+                            return "初始值";
+                        }
+                        #endregion
+                }
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                throw e;
+            }
+        }
+        public int ConvertSigningStatusToIndex(String OptionValue)
+        {
+            try
+            {
+                switch (OptionValue)
+                {
+                    #region Switch
+                    case "初始值":
+                        {
+                            return 100000000;
+                        }
+                    case "同意":
+                        {
+                            return 100000001;
+                        }
+                    case "退回":
+                        {
+                            return 100000002;
+                        }
+                    default:
+                        {
+                            return 100000000;
+                        }
+                        #endregion
+                }
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                throw e;
+            }
+        }
+
+        #endregion
+        #region 簽核事件
+        public String ConvertIndexToSigningEvent(int OptionValue)
+        {
+            try
+            {
+                switch (OptionValue)
+                {
+                    #region Switch
+                    case 100000000:
+                        {
+                            return "無事件";
+                        }
+                    case 100000001:
+                        {
+                            return "簽核";
+                        }
+                    case 100000002:
+                        {
+                            return "時間";
+                        }
+                    case 100000003:
+                        {
+                            return "場地";
+                        }
+                    case 100000004:
+                        {
+                            return "請假類別";
+                        }
+                    default:
+                        {
+                            return "初始值";
+                        }
+                        #endregion
+                }
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                throw e;
+            }
+        }
+        public int ConvertSigningEventToIndex(String OptionValue)
+        {
+            try
+            {
+                switch (OptionValue)
+                {
+                    #region Switch
+                    case "無事件":
+                        {
+                            return 100000000;
+                        }
+                    case "簽核":
+                        {
+                            return 100000001;
+                        }
+                    case "時間":
+                        {
+                            return 100000002;
+                        }
+                    case "場地":
+                        {
+                            return 100000003;
+                        }
+                    case "請假類別":
+                        {
+                            return 100000004;
+                        }
+                    default:
+                        {
+                            return 100000000;
+                        }
+                        #endregion
+                }
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                throw e;
+            }
+        }
+
+        #endregion
+        #endregion
+        #region 工具區
+        public String SetAppointmentSubject(ref Appointment aAppointment, String SigningType)
+        {
+            try
+            {
+                #region 如果約會沒有設定主題，在這裡幫忙設定
+                String LineId = "";
+                //SigningType += "-" + this.m_ToolUtilityClass;
+                //if (SigningType == "請假簽核")
+                //{
+                //    if (aAppointment.LeaveId > 0)
+                //    {
+                //        this.m_ToolUtilityClass.SetOptionSetAttribute(ref aAppointmentEntity, "new_leave_kind", (int)aAppointment.LeaveId);
+                //    }
+                //    else
+                //    {
+                //        // 新增約會沒填人資，預設就是"未填"
+                //        this.m_ToolUtilityClass.SetOptionSetAttribute(ref aAppointmentEntity, "new_leave_kind", 1);
+                //    }
+
+                //    String Leave = this.ConvertIndexToLeave(this.m_ToolUtilityClass.GetOptionSetAttribute(ref aAppointmentEntity, "new_leave_kind"));
+                //    SigningType += "請假假由: " + Leave + "，";
+                //    SigningType += "開始時間: " + this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aAppointmentEntity, "scheduledstart").ToLocalTime() + "，";
+                //    SigningType += "結束時間: " + this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aAppointmentEntity, "scheduledend").ToLocalTime() + "。";
+                //}
+                //else if (SigningType == "場地或資源簽核")
+                //{
+                //    String Location = this.ConvertIndexToLocation(this.m_ToolUtilityClass.GetOptionSetAttribute(ref aAppointmentEntity, "new_location_kind"));
+                //    SigningType += "場地或資源: " + Location + "，";
+                //    SigningType += "開始時間: " + this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aAppointmentEntity, "scheduledstart").ToLocalTime() + "，";
+                //    SigningType += "結束時間: " + this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aAppointmentEntity, "scheduledend").ToLocalTime() + "。";
+                //}
+                //else { }
+
+                return "";
+                #endregion
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                //Monitor.Exit(this);
+                throw e;
+            }
+        }
+        public String GetAppointmentSigningType(ref Appointment aAppointment)
+        {
+            try
+            {
+                #region 如果約會沒有設定主題，在這裡幫忙設定
+                if (aAppointment.LeaveId != null && aAppointment.LeaveId > 0)
+                {
+                    return "請假簽核";
+                }
+                else if (aAppointment.LocationId != null && aAppointment.LocationId > 0)
+                {
+                    return "場地或資源簽核";
+                }
+                else
+                {
+                    return "一般簽核";
+                }
+                #endregion
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                //Monitor.Exit(this);
+                throw e;
+            }
+        }
         #endregion
     }
 }
