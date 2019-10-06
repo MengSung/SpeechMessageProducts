@@ -386,6 +386,9 @@ namespace ChurchReport.WebServiceConnector
                 }
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aAppointmentEntity, "subject", aAppointment.Text);
                 #endregion
+                #region //設定"簽核內容"
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aAppointmentEntity, "new_signing_content", GetAppointmentContent(ref aAppointment, GetAppointmentSigningType(ref aAppointment)));
+                #endregion
                 #region //設定"開始結束時間"
                 this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aAppointmentEntity, "scheduledstart", aAppointment.StartDate.ToLocalTime());
                 this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aAppointmentEntity, "scheduledend", aAppointment.EndDate.ToLocalTime());
@@ -393,6 +396,12 @@ namespace ChurchReport.WebServiceConnector
                 #region //設定"描述"
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aAppointmentEntity, "description", aAppointment.Description);
                 #endregion
+                #region //設定"時數"及"日數"
+                int Hours = 0;
+                float Days = 0.0F;
+                CalculateHoursAndDays(ref aAppointment, ref Hours, ref Days);
+                #endregion
+
                 #region //設定"行程類別"
                 if (aAppointment.CategoryId != null && aAppointment.CategoryId > 0)
                 {
@@ -990,6 +999,192 @@ namespace ChurchReport.WebServiceConnector
                 throw e;
             }
         }
+        public String GetAppointmentContent(ref Appointment aAppointment, String SigningType)
+        {
+            try
+            {
+                #region 建立出差勤及場地預約的本文訊息
+                String Content = "";
+                String LineId = "";
+                Content = "申請人: " + this.m_ToolUtilityClass.GetEntityStringAttribute(ref m_ContactEntity, "fullname") + Environment.NewLine;
+
+                if (SigningType == "請假簽核")
+                {
+                    String Leave = this.ConvertLeaveIdToAppointmentType((int)aAppointment.LeaveId);
+                    Content += "請假假由: " + Leave + Environment.NewLine;
+                    Content += "開始時間: " + aAppointment.StartDate.ToLocalTime() + Environment.NewLine;
+                    Content += "結束時間: " + aAppointment.EndDate.ToLocalTime() + Environment.NewLine;
+                    if (aAppointment.Description != null && aAppointment.Description != "")
+                    {
+                        Content += "描述: " + aAppointment.Description + Environment.NewLine;
+                    }
+                    return Content;
+                }
+                else if (SigningType == "場地或資源簽核")
+                {
+                    String Location = this.ConvertLocationIdToAppointmentType((int)aAppointment.LocationId);
+                    Content += "場地或資源: " + Location + Environment.NewLine;
+                    Content += "開始時間: " + aAppointment.StartDate.ToLocalTime() + Environment.NewLine;
+                    Content += "結束時間: " + aAppointment.EndDate.ToLocalTime() + Environment.NewLine;
+                    if (aAppointment.Description != null && aAppointment.Description != "")
+                    {
+                        Content += "描述: " + aAppointment.Description + Environment.NewLine;
+                    }
+                    return Content;
+                }
+                else
+                {
+                    return Content;
+                }
+
+                #endregion
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                //Monitor.Exit(this);
+                throw e;
+            }
+        }
+        public void CalculateHoursAndDays(ref Appointment aAppointment, ref int Hours, ref float Days)
+        {
+            try
+            {
+                #region 建立出差勤及場地預約的本文訊息
+                TimeSpan TimeSpan = new TimeSpan(aAppointment.EndDate.Ticks - aAppointment.StartDate.Ticks);
+
+                Days = TimeSpan.Days;
+
+
+                #endregion
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                //Monitor.Exit(this);
+                throw e;
+            }
+        }
+        public void CalculateHoursAndDaysOfLocalDate(ref Appointment aAppointment, ref int Hours, ref float Days)
+        {
+            try
+            {
+                #region 建立出差勤及場地預約的本文訊息
+                int MorningHour = 0;
+                int AfternoonHour = 0;
+                if (aAppointment.StartDate.Hour <= 12)
+                {
+                    if (aAppointment.EndDate.Hour >= 17)
+                    {
+                        MorningHour = 12 - aAppointment.StartDate.Hour;
+                        AfternoonHour = 4;
+                    }
+                    else if (aAppointment.EndDate.Hour <= 12)
+                    {
+                        MorningHour = aAppointment.EndDate.Hour - aAppointment.EndDate.Hour;
+                    }
+                    else if (aAppointment.EndDate.Hour >= 12 && aAppointment.EndDate.Hour >= 17)
+                    {
+                        AfternoonHour = 17 - aAppointment.EndDate.Hour;
+                    }
+                }
+                else if (aAppointment.StartDate.Hour >= 13)
+                {
+                    if (aAppointment.EndDate.Hour >= 17)
+                    {
+                        AfternoonHour = 17 - aAppointment.StartDate.Hour;
+                    }
+                    else
+                    {
+                        AfternoonHour = aAppointment.EndDate.Hour - aAppointment.EndDate.Hour;
+                    }
+                }
+
+                #endregion
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                //Monitor.Exit(this);
+                throw e;
+            }
+        }
+        public void CalculateHoursAndDaysOfLocalDate( DateTime StartDate, DateTime EndDate, ref int Hours, ref float Days)
+        {
+            try
+            {
+                DateTime CalculateStartDate = StartDate;
+                DateTime CalculateEndDate = EndDate;
+                SetCalculateStartEndDate(StartDate, EndDate, ref CalculateStartDate, ref CalculateEndDate);
+
+                #region 建立出差勤及場地預約的本文訊息
+                int MorningHour = 0;
+                int AfternoonHour = 0;
+                if (StartDate.Hour <= 12)
+                {
+                    if (EndDate.Hour >= 17)
+                    {
+                        MorningHour = 12 - StartDate.Hour;
+                        AfternoonHour = 4;
+                    }
+                    else if (EndDate.Hour <= 12)
+                    {
+                        MorningHour = EndDate.Hour - EndDate.Hour;
+                    }
+                    else if (EndDate.Hour >= 12 && EndDate.Hour >= 17)
+                    {
+                        AfternoonHour = 17 - EndDate.Hour;
+                    }
+                }
+                else if (StartDate.Hour >= 13)
+                {
+                    if (EndDate.Hour >= 17)
+                    {
+                        AfternoonHour = 17 - StartDate.Hour;
+                    }
+                    else
+                    {
+                        AfternoonHour = EndDate.Hour - EndDate.Hour;
+                    }
+                }
+
+                #endregion
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                //Monitor.Exit(this);
+                throw e;
+            }
+        }
+        private void SetCalculateStartEndDate(DateTime StartDate, DateTime EndDate, ref DateTime CalculateStartDate, ref DateTime CalculateEndDate)
+        {
+            try
+            {
+                if(StartDate.Date == EndDate.Date)
+                {
+                    CalculateStartDate = StartDate;
+                    CalculateEndDate = EndDate;
+                }
+                else
+                {
+                    CalculateStartDate = EndDate;
+                    CalculateEndDate = StartDate;
+                }
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                //Monitor.Exit(this);
+                throw e;
+            }
+        }
+
         #endregion
     }
 }
