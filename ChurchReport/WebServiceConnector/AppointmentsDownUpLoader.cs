@@ -399,7 +399,8 @@ namespace ChurchReport.WebServiceConnector
                 #region //設定"時數"及"日數"
                 int Hours = 0;
                 float Days = 0.0F;
-                CalculateHoursAndDays(ref aAppointment, ref Hours, ref Days);
+                //CalculateHoursAndDays(ref aAppointment, ref Hours, ref Days);
+                CalculateHoursAndDaysOfLocalDate(aAppointment.StartDate, aAppointment.EndDate, ref Hours, ref Days);
                 #endregion
 
                 #region //設定"行程類別"
@@ -1120,38 +1121,21 @@ namespace ChurchReport.WebServiceConnector
                 DateTime CalculateEndDate = EndDate;
                 SetCalculateStartEndDate(StartDate, EndDate, ref CalculateStartDate, ref CalculateEndDate);
 
-                #region 建立出差勤及場地預約的本文訊息
-                int MorningHour = 0;
-                int AfternoonHour = 0;
-                if (StartDate.Hour <= 12)
+                TimeSpan TimeSpan = new TimeSpan(EndDate.Ticks - StartDate.Ticks);
+                int TimeSpanDays = TimeSpan.Days;
+                if (TimeSpanDays == 0)
                 {
-                    if (EndDate.Hour >= 17)
-                    {
-                        MorningHour = 12 - StartDate.Hour;
-                        AfternoonHour = 4;
-                    }
-                    else if (EndDate.Hour <= 12)
-                    {
-                        MorningHour = EndDate.Hour - EndDate.Hour;
-                    }
-                    else if (EndDate.Hour >= 12 && EndDate.Hour >= 17)
-                    {
-                        AfternoonHour = 17 - EndDate.Hour;
-                    }
+                    Hours = GetHour(CalculateStartDate, CalculateEndDate);
                 }
-                else if (StartDate.Hour >= 13)
+                else
                 {
-                    if (EndDate.Hour >= 17)
-                    {
-                        AfternoonHour = 17 - StartDate.Hour;
-                    }
-                    else
-                    {
-                        AfternoonHour = EndDate.Hour - EndDate.Hour;
-                    }
+                    int FirstDateHour = GetHour(CalculateStartDate, new DateTime(CalculateStartDate.Year, CalculateStartDate.Month, CalculateStartDate.Day, 17, 0, 0));
+                    int LastDateHour = GetHour(new DateTime(CalculateEndDate.Year, CalculateEndDate.Month, CalculateEndDate.Day, 8, 0, 0), CalculateEndDate);
+
+                    Hours = FirstDateHour + 8 * TimeSpanDays + LastDateHour;
                 }
 
-                #endregion
+                Days /= 8;
             }
             catch (System.Exception e)
             {
@@ -1165,7 +1149,7 @@ namespace ChurchReport.WebServiceConnector
         {
             try
             {
-                if(StartDate.Date == EndDate.Date)
+                if (StartDate.Date == EndDate.Date)
                 {
                     CalculateStartDate = StartDate;
                     CalculateEndDate = EndDate;
@@ -1175,6 +1159,46 @@ namespace ChurchReport.WebServiceConnector
                     CalculateStartDate = EndDate;
                     CalculateEndDate = StartDate;
                 }
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                //Monitor.Exit(this);
+                throw e;
+            }
+        }
+        private int GetHour( DateTime StartDate, DateTime EndDate)
+        {
+            try
+            {
+                #region 建立出差勤及場地預約的本文訊息
+                if (StartDate.Hour < 8 && StartDate.Hour <= 12 && EndDate.Hour >= 8 && EndDate.Hour <= 12)
+                {
+                    return EndDate.Hour - 8;
+                }
+                else if (StartDate.Hour >= 8 && StartDate.Hour <= 12 && EndDate.Hour >= 8 && EndDate.Hour <= 12)
+                {
+                    return EndDate.Hour - StartDate.Hour;
+                }
+                else if (StartDate.Hour >= 8 && StartDate.Hour <= 12 && EndDate.Hour >= 13 && EndDate.Hour <= 17)
+                {
+                    return (12 - StartDate.Hour) + (EndDate.Hour - 13);
+                }
+                else if (StartDate.Hour >= 13 && StartDate.Hour <= 17 && EndDate.Hour >= 13 && EndDate.Hour <= 17)
+                {
+                    return EndDate.Hour - StartDate.Hour;
+                }
+                else if (StartDate.Hour >= 13 && StartDate.Hour <= 17 && EndDate.Hour >= 13 && EndDate.Hour > 17)
+                {
+                    return 17 - StartDate.Hour;
+                }
+                else
+                {
+                    return 0;
+                }
+
+                #endregion
             }
             catch (System.Exception e)
             {
