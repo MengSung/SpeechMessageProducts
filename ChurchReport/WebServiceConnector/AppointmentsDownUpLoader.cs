@@ -390,8 +390,16 @@ namespace ChurchReport.WebServiceConnector
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aAppointmentEntity, "new_signing_content", GetAppointmentContent(ref aAppointment, GetAppointmentSigningType(ref aAppointment)));
                 #endregion
                 #region //設定"開始結束時間"
-                this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aAppointmentEntity, "scheduledstart", aAppointment.StartDate.ToLocalTime());
-                this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aAppointmentEntity, "scheduledend", aAppointment.EndDate.ToLocalTime());
+                this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aAppointmentEntity, "scheduledstart", aAppointment.StartDate);
+
+                if (aAppointment.AllDay == true)
+                {
+                    aAppointment.EndDate = aAppointment.EndDate.AddDays(1);
+                }
+                else
+                { }
+
+                this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aAppointmentEntity, "scheduledend", aAppointment.EndDate);
                 #endregion
                 #region //設定"描述"
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aAppointmentEntity, "description", aAppointment.Description);
@@ -1143,7 +1151,9 @@ namespace ChurchReport.WebServiceConnector
                     int FirstDateHour = GetHour(CalculateStartDate, new DateTime(CalculateStartDate.Year, CalculateStartDate.Month, CalculateStartDate.Day, 17, 0, 0));
                     int LastDateHour = GetHour(new DateTime(CalculateEndDate.Year, CalculateEndDate.Month, CalculateEndDate.Day, 8, 0, 0), CalculateEndDate);
 
-                    Hours = FirstDateHour + 8 * TimeSpanDays + LastDateHour;
+                    int LeaveDays = TimeSpanDays - GetHolidayNumber(TimeSpanStartDate.AddDays(1), TimeSpanEndDate.AddDays(-1));
+
+                    Hours = FirstDateHour +  LeaveDays * 8 + LastDateHour;
                 }
 
                 Days = (float)Hours / 8.0F;
@@ -1161,16 +1171,17 @@ namespace ChurchReport.WebServiceConnector
             try
             {
                 DateTime TimeSpanStartDate = new DateTime(StartDate.Year, StartDate.Month, StartDate.Day, 0, 0, 0);
-                DateTime TimeSpanEndDate = new DateTime(EndDate.Year, EndDate.Month, EndDate.Day, 0, 0, 0);
+                DateTime TimeSpanEndDate = new DateTime(EndDate.Year, EndDate.Month, EndDate.Day , 0, 0, 0);
                 TimeSpan TimeSpan = new TimeSpan(TimeSpanEndDate.Ticks - TimeSpanStartDate.Ticks);
 
-                if (TimeSpan.Days == 1)
+                int LeaveDays = TimeSpan.Days - GetHolidayNumber(StartDate, EndDate);
+                if ( LeaveDays == 1 )
                 {
                     Hours = 8;
                 }
                 else
                 {
-                    Hours = (TimeSpan.Days + 1) * 8;
+                    Hours = LeaveDays  * 8;
                 }
 
                 Days = (float)Hours / 8.0F;
@@ -1208,7 +1219,7 @@ namespace ChurchReport.WebServiceConnector
                 throw e;
             }
         }
-        private int GetHour( DateTime StartDate, DateTime EndDate)
+        private int GetHour(DateTime StartDate, DateTime EndDate)
         {
             try
             {
@@ -1223,7 +1234,7 @@ namespace ChurchReport.WebServiceConnector
                 }
                 else if (StartDate.Hour >= 8 && StartDate.Hour <= 12 && EndDate.Hour >= 13 && EndDate.Hour <= 17)
                 {
-                    return (12 - StartDate.Hour) + ( EndDate.Hour - 13);
+                    return (12 - StartDate.Hour) + (EndDate.Hour - 13);
                 }
                 else if (StartDate.Hour >= 12 && StartDate.Hour <= 17 && EndDate.Hour >= 13 && EndDate.Hour <= 17)
                 {
@@ -1252,6 +1263,39 @@ namespace ChurchReport.WebServiceConnector
                     return 0;
                 }
 
+                #endregion
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                //Monitor.Exit(this);
+                throw e;
+            }
+        }
+        private int GetHolidayNumber(DateTime StartDate, DateTime EndDate)
+        {
+            try
+            {
+                #region 請假期間有幾個星期一
+
+                DateTime TimeSpanStartDate = new DateTime(StartDate.Year, StartDate.Month, StartDate.Day, 0, 0, 0);
+                DateTime TimeSpanEndDate = new DateTime(EndDate.Year, EndDate.Month, EndDate.Day, 0, 0, 0);
+                TimeSpan TimeSpan = new TimeSpan(TimeSpanEndDate.Ticks - TimeSpanStartDate.Ticks);
+
+                int HolidayNumber = 0;
+                DateTime AuditDate = TimeSpanStartDate;
+
+                for ( int i = 0; i < TimeSpan.Days; i ++)
+                {
+                    AuditDate = StartDate.AddDays(i);
+                    if(AuditDate.DayOfWeek == DayOfWeek.Monday)
+                    {
+                        HolidayNumber++;
+                    }
+                }
+
+                return HolidayNumber;
                 #endregion
             }
             catch (System.Exception e)
