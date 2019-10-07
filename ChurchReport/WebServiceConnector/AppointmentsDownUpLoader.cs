@@ -1151,7 +1151,8 @@ namespace ChurchReport.WebServiceConnector
                     int FirstDateHour = GetHour(CalculateStartDate, new DateTime(CalculateStartDate.Year, CalculateStartDate.Month, CalculateStartDate.Day, 17, 0, 0));
                     int LastDateHour = GetHour(new DateTime(CalculateEndDate.Year, CalculateEndDate.Month, CalculateEndDate.Day, 8, 0, 0), CalculateEndDate);
 
-                    int LeaveDays = TimeSpanDays - GetHolidayNumber(TimeSpanStartDate.AddDays(1), TimeSpanEndDate.AddDays(-1));
+                    //int LeaveDays = TimeSpanDays - GetHolidayNumber(TimeSpanStartDate.AddDays(1), TimeSpanEndDate.AddDays(-1));
+                    int LeaveDays = TimeSpanDays - GetHolidayNumber(TimeSpanStartDate.AddDays(1), TimeSpanEndDate);
 
                     Hours = FirstDateHour +  LeaveDays * 8 + LastDateHour;
                 }
