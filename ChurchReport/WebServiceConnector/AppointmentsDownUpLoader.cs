@@ -400,7 +400,15 @@ namespace ChurchReport.WebServiceConnector
                 int Hours = 0;
                 float Days = 0.0F;
                 //CalculateHoursAndDays(ref aAppointment, ref Hours, ref Days);
-                CalculateHoursAndDaysOfLocalDate(aAppointment.StartDate, aAppointment.EndDate, ref Hours, ref Days);
+                if (aAppointment.AllDay != true)
+                {
+                    CalculateHoursAndDaysOfLocalDate(aAppointment.StartDate, aAppointment.EndDate, ref Hours, ref Days);
+                }
+                else
+                {
+                    CalculateHoursAndDaysOfAllDayEvent(aAppointment.StartDate, aAppointment.EndDate, ref Hours, ref Days);
+                }
+
                 this.m_ToolUtilityClass.SetEntityIntAttribute(ref aAppointmentEntity, "new_hours", Hours);
                 this.m_ToolUtilityClass.SetEntityDoubleAttribute(ref aAppointmentEntity, "new_days", Days);
                 //this.m_ToolUtilityClass.SetEntityFloatAttribute(ref aAppointmentEntity, "new_days", Days);
@@ -1115,23 +1123,17 @@ namespace ChurchReport.WebServiceConnector
                 throw e;
             }
         }
-        public void CalculateHoursAndDaysOfLocalDate( DateTime StartDate, DateTime EndDate, ref int Hours, ref float Days)
+        public void CalculateHoursAndDaysOfLocalDate(DateTime StartDate, DateTime EndDate, ref int Hours, ref float Days)
         {
             try
             {
-                //StartDate = StartDate.ToLocalTime();
-                //EndDate = EndDate.ToLocalTime();
-                //DateTime CalculateStartDate = StartDate.ToLocalTime();
-                //DateTime CalculateEndDate = EndDate.ToLocalTime();
                 DateTime CalculateStartDate = StartDate;
                 DateTime CalculateEndDate = EndDate;
 
                 DateTime TimeSpanStartDate = new DateTime(CalculateStartDate.Year, CalculateStartDate.Month, CalculateStartDate.Day, 0, 0, 0);
                 DateTime TimeSpanEndDate = new DateTime(CalculateEndDate.Year, CalculateEndDate.Month, CalculateEndDate.Day, 0, 0, 0);
                 TimeSpan TimeSpan = new TimeSpan(TimeSpanEndDate.Ticks - TimeSpanStartDate.Ticks);
-                int TimeSpanDays = TimeSpan.Days-1;
-                //TimeSpan TimeSpan = new TimeSpan(EndDate.Ticks - StartDate.Ticks);
-                //int TimeSpanDays = TimeSpan.Days;
+                int TimeSpanDays = TimeSpan.Days - 1;
                 if (SetCalculateStartEndDate(StartDate, EndDate, ref CalculateStartDate, ref CalculateEndDate) == true)
                 {
                     Hours = GetHour(CalculateStartDate, CalculateEndDate);
@@ -1142,6 +1144,33 @@ namespace ChurchReport.WebServiceConnector
                     int LastDateHour = GetHour(new DateTime(CalculateEndDate.Year, CalculateEndDate.Month, CalculateEndDate.Day, 8, 0, 0), CalculateEndDate);
 
                     Hours = FirstDateHour + 8 * TimeSpanDays + LastDateHour;
+                }
+
+                Days = (float)Hours / 8.0F;
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                //Monitor.Exit(this);
+                throw e;
+            }
+        }
+        public void CalculateHoursAndDaysOfAllDayEvent(DateTime StartDate, DateTime EndDate, ref int Hours, ref float Days)
+        {
+            try
+            {
+                DateTime TimeSpanStartDate = new DateTime(StartDate.Year, StartDate.Month, StartDate.Day, 0, 0, 0);
+                DateTime TimeSpanEndDate = new DateTime(EndDate.Year, EndDate.Month, EndDate.Day, 0, 0, 0);
+                TimeSpan TimeSpan = new TimeSpan(TimeSpanEndDate.Ticks - TimeSpanStartDate.Ticks);
+
+                if (TimeSpan.Days == 1)
+                {
+                    Hours = 8;
+                }
+                else
+                {
+                    Hours = (TimeSpan.Days + 1) * 8;
                 }
 
                 Days = (float)Hours / 8.0F;
