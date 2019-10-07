@@ -386,9 +386,6 @@ namespace ChurchReport.WebServiceConnector
                 }
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aAppointmentEntity, "subject", aAppointment.Text);
                 #endregion
-                #region //設定"簽核內容"
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aAppointmentEntity, "new_signing_content", GetAppointmentContent(ref aAppointment, GetAppointmentSigningType(ref aAppointment)));
-                #endregion
                 #region //設定"開始結束時間"
                 this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aAppointmentEntity, "scheduledstart", aAppointment.StartDate);
 
@@ -400,9 +397,6 @@ namespace ChurchReport.WebServiceConnector
                 { }
 
                 this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aAppointmentEntity, "scheduledend", aAppointment.EndDate);
-                #endregion
-                #region //設定"描述"
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aAppointmentEntity, "description", aAppointment.Description);
                 #endregion
                 #region //設定"時數"及"日數"
                 int Hours = 0;
@@ -420,6 +414,14 @@ namespace ChurchReport.WebServiceConnector
                 this.m_ToolUtilityClass.SetEntityIntAttribute(ref aAppointmentEntity, "new_hours", Hours);
                 this.m_ToolUtilityClass.SetEntityDoubleAttribute(ref aAppointmentEntity, "new_days", Days);
                 //this.m_ToolUtilityClass.SetEntityFloatAttribute(ref aAppointmentEntity, "new_days", Days);
+                #endregion
+                #region //設定"簽核內容"
+                String Content = GetAppointmentContent(ref aAppointment, GetAppointmentSigningType(ref aAppointment), Hours.ToString(), Days.ToString());
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aAppointmentEntity, "new_signing_content", Content);
+                #endregion
+                #region //設定"描述"
+                String Description = aAppointment.Description + Environment.NewLine + "----------------------------------------------" + Content;
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aAppointmentEntity, "description", Description);
                 #endregion
                 #region //設定"行程類別"
                 if (aAppointment.CategoryId != null && aAppointment.CategoryId > 0)
@@ -1018,7 +1020,7 @@ namespace ChurchReport.WebServiceConnector
                 throw e;
             }
         }
-        public String GetAppointmentContent(ref Appointment aAppointment, String SigningType)
+        public String GetAppointmentContent(ref Appointment aAppointment, String SigningType, String Hours, String Days)
         {
             try
             {
@@ -1033,6 +1035,9 @@ namespace ChurchReport.WebServiceConnector
                     Content += "請假假由: " + Leave + Environment.NewLine;
                     Content += "開始時間: " + aAppointment.StartDate.ToLocalTime() + Environment.NewLine;
                     Content += "結束時間: " + aAppointment.EndDate.ToLocalTime() + Environment.NewLine;
+                    //Content += "期間(小時數為單位): " + Hours + " 小時" + Environment.NewLine;
+                    //Content += "期間(日數為單位): " + Days + " 日" + Environment.NewLine;
+                    Content += "期間: " + Days + " 日" + Environment.NewLine;
                     if (aAppointment.Description != null && aAppointment.Description != "")
                     {
                         Content += "描述: " + aAppointment.Description + Environment.NewLine;
@@ -1045,6 +1050,9 @@ namespace ChurchReport.WebServiceConnector
                     Content += "場地或資源: " + Location + Environment.NewLine;
                     Content += "開始時間: " + aAppointment.StartDate.ToLocalTime() + Environment.NewLine;
                     Content += "結束時間: " + aAppointment.EndDate.ToLocalTime() + Environment.NewLine;
+                    //Content += "期間(小時數為單位): " + Hours + " 小時" + Environment.NewLine;
+                    //Content += "期間(日數為單位): " + Days + " 日" + Environment.NewLine;
+                    Content += "期間: " + Days + " 日" + Environment.NewLine;
                     if (aAppointment.Description != null && aAppointment.Description != "")
                     {
                         Content += "描述: " + aAppointment.Description + Environment.NewLine;
