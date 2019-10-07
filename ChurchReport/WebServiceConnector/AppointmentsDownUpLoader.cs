@@ -401,8 +401,10 @@ namespace ChurchReport.WebServiceConnector
                 float Days = 0.0F;
                 //CalculateHoursAndDays(ref aAppointment, ref Hours, ref Days);
                 CalculateHoursAndDaysOfLocalDate(aAppointment.StartDate, aAppointment.EndDate, ref Hours, ref Days);
+                this.m_ToolUtilityClass.SetEntityIntAttribute(ref aAppointmentEntity, "new_hours", Hours);
+                this.m_ToolUtilityClass.SetEntityDoubleAttribute(ref aAppointmentEntity, "new_days", Days);
+                //this.m_ToolUtilityClass.SetEntityFloatAttribute(ref aAppointmentEntity, "new_days", Days);
                 #endregion
-
                 #region //設定"行程類別"
                 if (aAppointment.CategoryId != null && aAppointment.CategoryId > 0)
                 {
@@ -1117,13 +1119,20 @@ namespace ChurchReport.WebServiceConnector
         {
             try
             {
+                //StartDate = StartDate.ToLocalTime();
+                //EndDate = EndDate.ToLocalTime();
+                //DateTime CalculateStartDate = StartDate.ToLocalTime();
+                //DateTime CalculateEndDate = EndDate.ToLocalTime();
                 DateTime CalculateStartDate = StartDate;
                 DateTime CalculateEndDate = EndDate;
-                SetCalculateStartEndDate(StartDate, EndDate, ref CalculateStartDate, ref CalculateEndDate);
 
-                TimeSpan TimeSpan = new TimeSpan(EndDate.Ticks - StartDate.Ticks);
-                int TimeSpanDays = TimeSpan.Days;
-                if (TimeSpanDays == 0)
+                DateTime TimeSpanStartDate = new DateTime(CalculateStartDate.Year, CalculateStartDate.Month, CalculateStartDate.Day, 0, 0, 0);
+                DateTime TimeSpanEndDate = new DateTime(CalculateEndDate.Year, CalculateEndDate.Month, CalculateEndDate.Day, 0, 0, 0);
+                TimeSpan TimeSpan = new TimeSpan(TimeSpanEndDate.Ticks - TimeSpanStartDate.Ticks);
+                int TimeSpanDays = TimeSpan.Days-1;
+                //TimeSpan TimeSpan = new TimeSpan(EndDate.Ticks - StartDate.Ticks);
+                //int TimeSpanDays = TimeSpan.Days;
+                if (SetCalculateStartEndDate(StartDate, EndDate, ref CalculateStartDate, ref CalculateEndDate) == true)
                 {
                     Hours = GetHour(CalculateStartDate, CalculateEndDate);
                 }
@@ -1135,7 +1144,7 @@ namespace ChurchReport.WebServiceConnector
                     Hours = FirstDateHour + 8 * TimeSpanDays + LastDateHour;
                 }
 
-                Days /= 8;
+                Days = (float)Hours / 8.0F;
             }
             catch (System.Exception e)
             {
@@ -1145,19 +1154,21 @@ namespace ChurchReport.WebServiceConnector
                 throw e;
             }
         }
-        private void SetCalculateStartEndDate(DateTime StartDate, DateTime EndDate, ref DateTime CalculateStartDate, ref DateTime CalculateEndDate)
+        private bool SetCalculateStartEndDate(DateTime StartDate, DateTime EndDate, ref DateTime CalculateStartDate, ref DateTime CalculateEndDate)
         {
             try
             {
                 if (StartDate.Date == EndDate.Date)
                 {
-                    CalculateStartDate = StartDate;
-                    CalculateEndDate = EndDate;
+                    //CalculateStartDate = StartDate;
+                    //CalculateEndDate = EndDate;
+                    return true;
                 }
                 else
                 {
-                    CalculateStartDate = EndDate;
-                    CalculateEndDate = StartDate;
+                    //CalculateStartDate = EndDate;
+                    //CalculateEndDate = StartDate;
+                    return false ;
                 }
             }
             catch (System.Exception e)
@@ -1183,15 +1194,29 @@ namespace ChurchReport.WebServiceConnector
                 }
                 else if (StartDate.Hour >= 8 && StartDate.Hour <= 12 && EndDate.Hour >= 13 && EndDate.Hour <= 17)
                 {
-                    return (12 - StartDate.Hour) + (EndDate.Hour - 13);
+                    return (12 - StartDate.Hour) + ( EndDate.Hour - 13);
                 }
-                else if (StartDate.Hour >= 13 && StartDate.Hour <= 17 && EndDate.Hour >= 13 && EndDate.Hour <= 17)
+                else if (StartDate.Hour >= 12 && StartDate.Hour <= 17 && EndDate.Hour >= 13 && EndDate.Hour <= 17)
                 {
-                    return EndDate.Hour - StartDate.Hour;
+                    if (StartDate.Hour < 13)
+                    {
+                        return EndDate.Hour - 13;
+                    }
+                    else
+                    {
+                        return EndDate.Hour - StartDate.Hour;
+                    }
                 }
-                else if (StartDate.Hour >= 13 && StartDate.Hour <= 17 && EndDate.Hour >= 13 && EndDate.Hour > 17)
+                else if (StartDate.Hour >= 12 && StartDate.Hour <= 17 && EndDate.Hour >= 13 && EndDate.Hour > 17)
                 {
-                    return 17 - StartDate.Hour;
+                    if (StartDate.Hour < 13)
+                    {
+                        return 17 - 13;
+                    }
+                    else
+                    {
+                        return 17 - StartDate.Hour;
+                    }
                 }
                 else
                 {

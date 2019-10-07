@@ -3555,6 +3555,8 @@ namespace ChurchReport.Controllers
             //m_InMemoryDataContextSmallGroup.AppointmentsListManager.m_Appointments.Add(newAppointment);
 
             //Task.Run(() => m_InMemoryDataContextSmallGroup.AppointmentsListManager.CreateAppointment(newAppointment));
+            newAppointment.StartDate = newAppointment.StartDate.ToLocalTime();
+            newAppointment.EndDate = newAppointment.EndDate.ToLocalTime();
             m_InMemoryDataContextSmallGroup.AppointmentsListManager.CreateAppointment( ref newAppointment );
 
             //m_InMemoryDataContextSmallGroup.SaveChanges();
@@ -3571,6 +3573,8 @@ namespace ChurchReport.Controllers
             JsonConvert.PopulateObject(values, appointment);
 
             //Task.Run(() => m_InMemoryDataContextSmallGroup.AppointmentsListManager.UpdateAppointment(appointment));
+            appointment.StartDate = appointment.StartDate.ToLocalTime();
+            appointment.EndDate = appointment.EndDate.ToLocalTime();
             m_InMemoryDataContextSmallGroup.AppointmentsListManager.UpdateAppointment(appointment);
 
             //m_InMemoryDataContextSmallGroup.SaveChanges();
