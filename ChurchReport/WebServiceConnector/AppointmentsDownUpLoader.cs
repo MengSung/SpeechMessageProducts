@@ -503,20 +503,20 @@ namespace ChurchReport.WebServiceConnector
                 #region //設定"場地預約"
                 if (aAppointment.LocationId != null && aAppointment.LocationId > 0)
                 {
-                    if (aAppointment.LeaveId > 0)
+                    if (aAppointment.LocationId > 0)
                     {
                         this.m_ToolUtilityClass.SetOptionSetAttribute(ref aAppointmentEntity, "new_location_kind", (int)aAppointment.LocationId);
                     }
                     else
                     {
                         // 新增約會沒填場地，預設就是"未填"
-                        this.m_ToolUtilityClass.SetOptionSetAttribute(ref aAppointmentEntity, "new_location_kind", 1);
+                        this.m_ToolUtilityClass.SetOptionSetAttribute(ref aAppointmentEntity, "new_location_kind", 100000000);
                     }
                 }
                 else
                 {
                     // 新增約會沒填場地，預設就是"未填"
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(ref aAppointmentEntity, "new_location_kind", 1);
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(ref aAppointmentEntity, "new_location_kind", 100000000);
                 }
                 #endregion
                 #region//設定出席者
