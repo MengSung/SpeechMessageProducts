@@ -550,6 +550,13 @@ namespace ChurchReport.WebServiceConnector
                     this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aAppointmentEntity, "new_manager_contact_appointment", "contact", aGuid);
                 }
                 #endregion
+                #region //設定簽核者，如果是新增的約會簽核，預設就是代理人
+                //aGuid = this.m_ToolUtilityClass.GetEntityLookupAttribute(m_ContactEntity, "new_replace_contact");
+                //if (aGuid != Guid.Empty)
+                //{
+                //    this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aAppointmentEntity, "new_signing_contact", "contact", aGuid);
+                //}
+                #endregion
                 #region//設定全天事件
                 this.m_ToolUtilityClass.SetEntityBoolAttribute(ref aAppointmentEntity, "isalldayevent", aAppointment.AllDay);
                 #endregion
@@ -778,36 +785,67 @@ namespace ChurchReport.WebServiceConnector
         {
             switch (CategoryId)
             {
-                case 1:
+                case 100000000:
                     return "未填";
-                case 2:
-                    return "101教室";
-                case 3:
-                    return "102教室";
-                case 4:
-                    return "103教室";
-                case 5:
-                    return "104教室";
+                case 100000001:
+                    return "2F大堂";
+                case 100000002:
+                    return "2F交誼廳";
+                case 100000003:
+                    return "2F拉法";
+                case 100000004:
+                    return "2F以勒";
+                case 100000005:
+                    return "2F尼西";
+                case 100000006:
+                    return "2F沙龍";
+                case 100000007:
+                    return "B1大堂";
+                case 100000008:
+                    return "B1副堂";
+                case 100000009:
+                    return "B1交誼廳";
+                case 100000010:
+                    return "B1敬拜團室";
+                case 100000011:
+                    return "B1新家人";
+                case 100000012:
+                    return "B1講員VIP";
                 default:
                     return "未填";
             }
         }
-
 
         private int ConvertAppointmentTypeToLocationId(String AppointmentType)
         {
             switch (AppointmentType)
             {
                 case "未填":
-                    return 1;
-                case "101教室":
-                    return 2;
-                case "102教室":
-                    return 3;
-                case "103教室":
-                    return 4;
-                case "104教室":
-                    return 5;
+                    return 100000000;
+                case "2F大堂":
+                    return 100000001;
+                case "2F交誼廳":
+                    return 100000002;
+                case "2F拉法":
+                    return 100000003;
+                case "2F以勒":
+                    return 100000004;
+                case "2F尼西":
+                    return 100000005;
+                case "2F沙龍":
+                    return 100000006;
+                case "B1大堂":
+                    return 100000007;
+                case "B1副堂":
+                    return 100000008;
+                case "B1交誼廳":
+                    return 100000009;
+                case "B1敬拜團室":
+                    return 100000010;
+                case "B1新家人":
+                    return 100000011;
+                case "B1講員VIP":
+                    return 100000012;
                 default:
                     return 1;
             }
