@@ -1049,8 +1049,16 @@ namespace ChurchReport.WebServiceConnector
                     Content = "申請人: " + this.m_ToolUtilityClass.GetEntityStringAttribute(ref m_ContactEntity, "fullname") + Environment.NewLine;
                     String Leave = this.ConvertLeaveIdToAppointmentType((int)aAppointment.LeaveId);
                     Content += "請假假由: " + Leave + Environment.NewLine;
-                    Content += "開始時間: " + aAppointment.StartDate.ToLocalTime() + Environment.NewLine;
-                    Content += "結束時間: " + aAppointment.EndDate.ToLocalTime() + Environment.NewLine;
+                    if (aAppointment.AllDay != true)
+                    {
+                        Content += "開始時間: " + aAppointment.StartDate.ToLocalTime() + Environment.NewLine;
+                        Content += "結束時間: " + aAppointment.EndDate.ToLocalTime() + Environment.NewLine;
+                    }
+                    else
+                    {
+                        Content += "開始時間: " + aAppointment.StartDate.ToLocalTime().ToShortDateString() + Environment.NewLine;
+                        Content += "結束時間: " + aAppointment.EndDate.AddDays(-1).ToLocalTime().ToShortDateString() + Environment.NewLine;
+                    }
                     //Content += "期間(小時數為單位): " + Hours + " 小時" + Environment.NewLine;
                     //Content += "期間(日數為單位): " + Days + " 日" + Environment.NewLine;
                     Content += "總計期間: " + Days + " 日" + Environment.NewLine;
@@ -1067,8 +1075,18 @@ namespace ChurchReport.WebServiceConnector
                     Content = "申請人: " + this.m_ToolUtilityClass.GetEntityStringAttribute(ref m_ContactEntity, "fullname") + Environment.NewLine;
                     String Location = this.ConvertLocationIdToAppointmentType((int)aAppointment.LocationId);
                     Content += "場地或資源: " + Location + Environment.NewLine;
-                    Content += "開始時間: " + aAppointment.StartDate.ToLocalTime() + Environment.NewLine;
-                    Content += "結束時間: " + aAppointment.EndDate.ToLocalTime() + Environment.NewLine;
+                    //Content += "開始時間: " + aAppointment.StartDate.ToLocalTime() + Environment.NewLine;
+                    //Content += "結束時間: " + aAppointment.EndDate.ToLocalTime() + Environment.NewLine;
+                    if (aAppointment.AllDay != true)
+                    {
+                        Content += "開始時間: " + aAppointment.StartDate.ToLocalTime() + Environment.NewLine;
+                        Content += "結束時間: " + aAppointment.EndDate.ToLocalTime() + Environment.NewLine;
+                    }
+                    else
+                    {
+                        Content += "開始時間: " + aAppointment.StartDate.ToLocalTime().ToShortDateString() + Environment.NewLine;
+                        Content += "結束時間: " + aAppointment.EndDate.AddDays(-1).ToLocalTime().ToShortDateString() + Environment.NewLine;
+                    }
                     //Content += "期間(小時數為單位): " + Hours + " 小時" + Environment.NewLine;
                     //Content += "期間(日數為單位): " + Days + " 日" + Environment.NewLine;
                     Content += "總計期間: " + Days + " 日" + Environment.NewLine;
