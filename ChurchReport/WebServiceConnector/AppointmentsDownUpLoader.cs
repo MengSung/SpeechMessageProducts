@@ -420,7 +420,7 @@ namespace ChurchReport.WebServiceConnector
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aAppointmentEntity, "new_signing_content", Content);
                 #endregion
                 #region //設定"描述"
-                String Description = aAppointment.Description + Environment.NewLine + "----------------------------------------------" + Content;
+                String Description = aAppointment.Description + Content;
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aAppointmentEntity, "description", Description);
                 #endregion
                 #region //設定"行程類別"
@@ -1027,10 +1027,11 @@ namespace ChurchReport.WebServiceConnector
                 #region 建立出差勤及場地預約的本文訊息
                 String Content = "";
                 String LineId = "";
-                Content = "申請人: " + this.m_ToolUtilityClass.GetEntityStringAttribute(ref m_ContactEntity, "fullname") + Environment.NewLine;
+                
 
                 if (SigningType == "請假簽核")
                 {
+                    Content = "申請人: " + this.m_ToolUtilityClass.GetEntityStringAttribute(ref m_ContactEntity, "fullname") + Environment.NewLine;
                     String Leave = this.ConvertLeaveIdToAppointmentType((int)aAppointment.LeaveId);
                     Content += "請假假由: " + Leave + Environment.NewLine;
                     Content += "開始時間: " + aAppointment.StartDate.ToLocalTime() + Environment.NewLine;
@@ -1042,10 +1043,13 @@ namespace ChurchReport.WebServiceConnector
                     {
                         Content += "描述: " + aAppointment.Description + Environment.NewLine;
                     }
+
+                    Content = Environment.NewLine + "----------------------------------------------" + Environment.NewLine + Content;
                     return Content;
                 }
                 else if (SigningType == "場地或資源簽核")
                 {
+                    Content = "申請人: " + this.m_ToolUtilityClass.GetEntityStringAttribute(ref m_ContactEntity, "fullname") + Environment.NewLine;
                     String Location = this.ConvertLocationIdToAppointmentType((int)aAppointment.LocationId);
                     Content += "場地或資源: " + Location + Environment.NewLine;
                     Content += "開始時間: " + aAppointment.StartDate.ToLocalTime() + Environment.NewLine;
@@ -1057,13 +1061,15 @@ namespace ChurchReport.WebServiceConnector
                     {
                         Content += "描述: " + aAppointment.Description + Environment.NewLine;
                     }
+
+                    Content = Environment.NewLine + "----------------------------------------------" + Environment.NewLine + Content;
                     return Content;
                 }
                 else
                 {
                     return Content;
                 }
-
+                
                 #endregion
             }
             catch (System.Exception e)
