@@ -18,6 +18,9 @@ using Microsoft.Xrm.Sdk.Messages;
 using ToolUtilityNameSpace;
 using System.Text.RegularExpressions;
 using System.Collections;
+using System.Net;
+using System.IO;
+using System.Text;
 #endregion
 
 namespace ChurchReport.WebServiceConnector
@@ -401,14 +404,19 @@ namespace ChurchReport.WebServiceConnector
                 #region //設定"時數"及"日數"
                 int Hours = 0;
                 float Days = 0.0F;
+                String HolidayDescription = "";
                 //CalculateHoursAndDays(ref aAppointment, ref Hours, ref Days);
                 if (aAppointment.AllDay != true)
                 {
-                    CalculateHoursAndDaysOfLocalDate(aAppointment.StartDate, aAppointment.EndDate, ref Hours, ref Days);
+                    CalculateHoursAndDaysOfLocalDate(aAppointment.StartDate, aAppointment.EndDate, ref Hours, ref Days, ref HolidayDescription);
                 }
                 else
                 {
-                    CalculateHoursAndDaysOfAllDayEvent(aAppointment.StartDate, aAppointment.EndDate, ref Hours, ref Days);
+                    CalculateHoursAndDaysOfAllDayEvent(aAppointment.StartDate, aAppointment.EndDate, ref Hours, ref Days, ref HolidayDescription);
+                }
+                if (HolidayDescription != "")
+                {
+                    HolidayDescription = Environment.NewLine + "----------------------------------------------" + Environment.NewLine + "假日說明:" + Environment.NewLine + HolidayDescription;
                 }
 
                 this.m_ToolUtilityClass.SetEntityIntAttribute(ref aAppointmentEntity, "new_hours", Hours);
@@ -417,10 +425,17 @@ namespace ChurchReport.WebServiceConnector
                 #endregion
                 #region //設定"簽核內容"
                 String Content = GetAppointmentContent(ref aAppointment, GetAppointmentSigningType(ref aAppointment), Hours.ToString(), Days.ToString());
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aAppointmentEntity, "new_signing_content", Content);
+                //if( aAppointment.Description != null && aAppointment.Description != "")
+                //{
+                //    aAppointment.Description += Environment.NewLine + "----------------------------------------------" + Environment.NewLine;
+                //}
+                //String Description = aAppointment.Description + Content + HolidayDescription;
+                String Description = Content + HolidayDescription;
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aAppointmentEntity, "new_signing_content", Description);
                 #endregion
                 #region //設定"描述"
-                String Description = aAppointment.Description + Content;
+                //String Description = aAppointment.Description + Content + HolidayDescription;
+                //Description = Content + HolidayDescription;
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aAppointmentEntity, "description", Description);
                 #endregion
                 #region //設定"行程類別"
@@ -1038,13 +1053,13 @@ namespace ChurchReport.WebServiceConnector
                     Content += "結束時間: " + aAppointment.EndDate.ToLocalTime() + Environment.NewLine;
                     //Content += "期間(小時數為單位): " + Hours + " 小時" + Environment.NewLine;
                     //Content += "期間(日數為單位): " + Days + " 日" + Environment.NewLine;
-                    Content += "期間: " + Days + " 日" + Environment.NewLine;
+                    Content += "總計期間: " + Days + " 日" + Environment.NewLine;
                     if (aAppointment.Description != null && aAppointment.Description != "")
                     {
-                        Content += "描述: " + aAppointment.Description + Environment.NewLine;
+                        Content += "說明: " + aAppointment.Description + Environment.NewLine;
                     }
 
-                    Content = Environment.NewLine + "----------------------------------------------" + Environment.NewLine + Content;
+                    //Content = Environment.NewLine + "----------------------------------------------" + Environment.NewLine + Content;
                     return Content;
                 }
                 else if (SigningType == "場地或資源簽核")
@@ -1056,13 +1071,13 @@ namespace ChurchReport.WebServiceConnector
                     Content += "結束時間: " + aAppointment.EndDate.ToLocalTime() + Environment.NewLine;
                     //Content += "期間(小時數為單位): " + Hours + " 小時" + Environment.NewLine;
                     //Content += "期間(日數為單位): " + Days + " 日" + Environment.NewLine;
-                    Content += "期間: " + Days + " 日" + Environment.NewLine;
+                    Content += "總計期間: " + Days + " 日" + Environment.NewLine;
                     if (aAppointment.Description != null && aAppointment.Description != "")
                     {
-                        Content += "描述: " + aAppointment.Description + Environment.NewLine;
+                        Content += "說明: " + aAppointment.Description + Environment.NewLine;
                     }
 
-                    Content = Environment.NewLine + "----------------------------------------------" + Environment.NewLine + Content;
+                    //Content = Environment.NewLine + "----------------------------------------------" + Environment.NewLine + Content;
                     return Content;
                 }
                 else
@@ -1145,7 +1160,7 @@ namespace ChurchReport.WebServiceConnector
                 throw e;
             }
         }
-        public void CalculateHoursAndDaysOfLocalDate(DateTime StartDate, DateTime EndDate, ref int Hours, ref float Days)
+        public void CalculateHoursAndDaysOfLocalDate(DateTime StartDate, DateTime EndDate, ref int Hours, ref float Days, ref String Description)
         {
             try
             {
@@ -1166,7 +1181,7 @@ namespace ChurchReport.WebServiceConnector
                     int LastDateHour = GetHour(new DateTime(CalculateEndDate.Year, CalculateEndDate.Month, CalculateEndDate.Day, 8, 0, 0), CalculateEndDate);
 
                     //int LeaveDays = TimeSpanDays - GetHolidayNumber(TimeSpanStartDate.AddDays(1), TimeSpanEndDate.AddDays(-1));
-                    int LeaveDays = TimeSpanDays - GetHolidayNumber(TimeSpanStartDate.AddDays(1), TimeSpanEndDate);
+                    int LeaveDays = TimeSpanDays - GetHolidayNumber(TimeSpanStartDate.AddDays(1), TimeSpanEndDate, ref Description);
 
                     Hours = FirstDateHour +  LeaveDays * 8 + LastDateHour;
                 }
@@ -1181,7 +1196,7 @@ namespace ChurchReport.WebServiceConnector
                 throw e;
             }
         }
-        public void CalculateHoursAndDaysOfAllDayEvent(DateTime StartDate, DateTime EndDate, ref int Hours, ref float Days)
+        public void CalculateHoursAndDaysOfAllDayEvent(DateTime StartDate, DateTime EndDate, ref int Hours, ref float Days, ref String Description)
         {
             try
             {
@@ -1189,7 +1204,7 @@ namespace ChurchReport.WebServiceConnector
                 DateTime TimeSpanEndDate = new DateTime(EndDate.Year, EndDate.Month, EndDate.Day , 0, 0, 0);
                 TimeSpan TimeSpan = new TimeSpan(TimeSpanEndDate.Ticks - TimeSpanStartDate.Ticks);
 
-                int LeaveDays = TimeSpan.Days - GetHolidayNumber(StartDate, EndDate);
+                int LeaveDays = TimeSpan.Days - GetHolidayNumber(StartDate, EndDate, ref Description);
                 if ( LeaveDays == 1 )
                 {
                     Hours = 8;
@@ -1288,7 +1303,7 @@ namespace ChurchReport.WebServiceConnector
                 throw e;
             }
         }
-        private int GetHolidayNumber(DateTime StartDate, DateTime EndDate)
+        private int GetHolidayNumber(DateTime StartDate, DateTime EndDate, ref String Description)
         {
             try
             {
@@ -1300,17 +1315,102 @@ namespace ChurchReport.WebServiceConnector
 
                 int HolidayNumber = 0;
                 DateTime AuditDate = TimeSpanStartDate;
+                HolidayOpenData aHolidayOpenData = GetNationHoliday();
 
-                for ( int i = 0; i < TimeSpan.Days; i ++)
+                for (int i = 0; i < TimeSpan.Days; i++)
                 {
                     AuditDate = StartDate.AddDays(i);
-                    if(AuditDate.DayOfWeek == DayOfWeek.Monday)
+
+                    String NationHolidayDescription = "";
+                    if (AuditDate.DayOfWeek == DayOfWeek.Monday)
                     {
+                        Description += Environment.NewLine + AuditDate.Date.ToShortDateString() + Environment.NewLine +"星期一放假日" + Environment.NewLine;
+                        HolidayNumber++;
+                    }
+                    else if(IsAHolidayRecord(AuditDate, aHolidayOpenData, ref NationHolidayDescription) == true)
+                    {
+                        Description += NationHolidayDescription;
                         HolidayNumber++;
                     }
                 }
 
                 return HolidayNumber;
+                #endregion
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                //Monitor.Exit(this);
+                throw e;
+            }
+        }
+
+        private bool IsAHolidayRecord( DateTime AuditDate , HolidayOpenData aHolidayOpenData, ref String Description)
+        {
+            try
+            {
+                #region
+
+                foreach( Record aRecord in aHolidayOpenData.result.records )
+                {
+                    DateTime aRecordDateTime = DateTime.Parse(aRecord.date);
+
+                    if( AuditDate.Date == aRecordDateTime.Date )
+                    {
+                        if ( aRecord.isHoliday == "是" )
+                        {
+                            if (aRecord.holidayCategory == "放假之紀念日及節日" || aRecord.holidayCategory == "調整放假日")
+                            {
+                                if (aRecord.name != "" && aRecord.description != "")
+                                {
+                                    Description = Environment.NewLine + AuditDate.Date.ToShortDateString() + Environment.NewLine + aRecord.name + Environment.NewLine + aRecord.holidayCategory + Environment.NewLine + aRecord.description + Environment.NewLine;
+                                }
+                                else if (aRecord.name == "" && aRecord.description == "")
+                                {
+                                    Description = Environment.NewLine + AuditDate.Date.ToShortDateString() + Environment.NewLine + aRecord.holidayCategory + Environment.NewLine;
+                                }
+                                else
+                                {
+                                    Description = Environment.NewLine + AuditDate.Date.ToShortDateString() + Environment.NewLine + aRecord.name + Environment.NewLine + aRecord.holidayCategory + Environment.NewLine + aRecord.description + Environment.NewLine;
+                                }
+
+                                return true;
+                            }
+                        }
+                    }
+                }
+
+                return false;
+                #endregion
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                //Monitor.Exit(this);
+                throw e;
+            }
+        }
+
+        private HolidayOpenData GetNationHoliday()
+        {
+            try
+            {
+                #region
+                var url = "http://data.ntpc.gov.tw/api/v1/rest/datastore/382000000A-000077-002";
+                var request = WebRequest.Create(url);
+                // 透過 Chrome 開發者工具可以取得 Method, ContentType
+                request.Method = "GET";
+                request.ContentType = "application/json;charset=UTF-8";
+                //取得 request 的 response stream
+                var response = request.GetResponse() as HttpWebResponse;
+                var responseStream = response.GetResponseStream();
+                var reader = new StreamReader(responseStream,  Encoding.GetEncoding("utf-8"));
+                var srcString = reader.ReadToEnd();
+                HolidayOpenData jsonData = Newtonsoft.Json.JsonConvert.DeserializeObject<HolidayOpenData>(srcString);
+
+                return jsonData;
                 #endregion
             }
             catch (System.Exception e)
