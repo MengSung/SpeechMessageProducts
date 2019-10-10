@@ -416,7 +416,8 @@ namespace ChurchReport.WebServiceConnector
                 }
                 if (HolidayDescription != "")
                 {
-                    HolidayDescription = Environment.NewLine + "----------------------------------------------" + Environment.NewLine + "假日說明:" + Environment.NewLine + HolidayDescription;
+                    //HolidayDescription = Environment.NewLine + "----------------------------------------------" + Environment.NewLine + "假日說明:" + Environment.NewLine + HolidayDescription;
+                    HolidayDescription = Environment.NewLine + "----------------------------" + Environment.NewLine + "假日說明:" + Environment.NewLine + HolidayDescription;
                 }
 
                 this.m_ToolUtilityClass.SetEntityIntAttribute(ref aAppointmentEntity, "new_hours", Hours);
