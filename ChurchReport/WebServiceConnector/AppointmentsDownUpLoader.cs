@@ -537,6 +537,12 @@ namespace ChurchReport.WebServiceConnector
                 aAppointmentEntity["organizer"] = new EntityCollection();
                 aAppointmentEntity["organizer"] = oCollection;
                 #endregion
+                #region //設定申請人
+                if (m_ContactEntity.Id != Guid.Empty)
+                {
+                    this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aAppointmentEntity, "new_applier_appointment", "contact", m_ContactEntity.Id);
+                }
+                #endregion
                 #region //設定代理人
                 Guid aGuid = this.m_ToolUtilityClass.GetEntityLookupAttribute(m_ContactEntity, "new_replace_contact");
                 if (aGuid != Guid.Empty)
