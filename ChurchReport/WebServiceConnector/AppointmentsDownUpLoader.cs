@@ -36,6 +36,8 @@ namespace ChurchReport.WebServiceConnector
 
         private Dictionary<String, String> m_FeedBackReport = new Dictionary<string, string>();
 
+        private Dictionary<String, double> m_SigningReport = new Dictionary<string, double>();
+
         bool m_SetIdentityFlag = false;
         #endregion
         #region 常數參數
@@ -431,6 +433,12 @@ namespace ChurchReport.WebServiceConnector
                 //    aAppointment.Description += Environment.NewLine + "----------------------------------------------" + Environment.NewLine;
                 //}
                 //String Description = aAppointment.Description + Content + HolidayDescription;
+
+                //if ( GetAppointmentSigningType(ref aAppointment) == "請假簽核" )
+                //{
+                //    Content += GetAllAppointmentAsync(aAppointmentEntity);
+                //}
+
                 String Description = Content + HolidayDescription;
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aAppointmentEntity, "new_signing_content", Description);
                 #endregion
@@ -1013,6 +1021,123 @@ namespace ChurchReport.WebServiceConnector
         }
 
         #endregion
+        #region 人資簽核狀態
+        public String ConvertIndexToLeaveSigningStatus(int OptionValue)
+        {
+            try
+            {
+                switch (OptionValue)
+                {
+                    #region Switch
+                    case 100000000:
+                        {
+                            return "初始狀態";
+                        }
+                    case 100000001:
+                        {
+                            return "等待代理人簽核中";
+                        }
+                    case 100000002:
+                        {
+                            return "代理人未簽核";
+                        }
+                    case 100000003:
+                        {
+                            return "代理人未批准";
+                        }
+                    case 100000004:
+                        {
+                            return "等待主管簽核中";
+                        }
+                    case 100000005:
+                        {
+                            return "主管未簽核";
+                        }
+                    case 100000006:
+                        {
+                            return "主管未批准";
+                        }
+                    case 100000007:
+                        {
+                            return "主管已簽核";
+                        }
+                    case 100000008:
+                        {
+                            return "病假結案";
+                        }
+                    default:
+                        {
+                            return "初始值";
+                        }
+                        #endregion
+                }
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                throw e;
+            }
+        }
+        public int ConvertLeaveSigningStatusToIndex(String OptionValue)
+        {
+            try
+            {
+                switch (OptionValue)
+                {
+                    #region Switch
+                    case "初始狀態":
+                        {
+                            return 100000000;
+                        }
+                    case "簽核等待代理人簽核中":
+                        {
+                            return 100000001;
+                        }
+                    case "代理人未簽核":
+                        {
+                            return 100000002;
+                        }
+                    case "代理人未批准":
+                        {
+                            return 100000003;
+                        }
+                    case "等待主管簽核中":
+                        {
+                            return 100000004;
+                        }
+                    case "主管未簽核":
+                        {
+                            return 100000005;
+                        }
+                    case "主管未批准":
+                        {
+                            return 100000006;
+                        }
+                    case "主管已簽核":
+                        {
+                            return 100000007;
+                        }
+                    case "病假結案":
+                        {
+                            return 100000008;
+                        }
+                    default:
+                        {
+                            return 100000000;
+                        }
+                        #endregion
+                }
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                throw e;
+            }
+        }
+
+        #endregion
         #endregion
         #region 工具區
         public String SetAppointmentSubject(ref Appointment aAppointment, String SigningType)
@@ -1134,7 +1259,9 @@ namespace ChurchReport.WebServiceConnector
                     }
                     //Content += "期間(小時數為單位): " + Hours + " 小時" + Environment.NewLine;
                     //Content += "期間(日數為單位): " + Days + " 日" + Environment.NewLine;
-                    Content += "總計期間: " + Days + " 日" + Environment.NewLine;
+                    //Content += "總計期間: " + Days + " 日" + Environment.NewLine;
+                    TimeSpan aTimeSpan = new TimeSpan(aAppointment.EndDate.Ticks - aAppointment.StartDate.Ticks);
+                    Content += "總計期間: " + aTimeSpan.Hours + " 小時" + Environment.NewLine;
                     if (aAppointment.Description != null && aAppointment.Description != "")
                     {
                         Content += "說明: " + aAppointment.Description + Environment.NewLine;
@@ -1486,5 +1613,118 @@ namespace ChurchReport.WebServiceConnector
         }
 
         #endregion
+        #region 顯示出差勤休假統計
+        public String GetAllAppointmentAsync(Entity aAppointmentEntity)
+        {
+            try
+            {
+                //this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "GetAllAppointmentAsync-001");
+                Guid aApplierId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aAppointmentEntity, "new_applier_appointment");
+                #region //設定申請人
+                    //this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "GetAllAppointmentAsync-002");
+                    Entity aApplier = this.m_ContactEntity;
+                    //this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "GetAllAppointmentAsync-003");
+
+                    String ContactFullName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aApplier, "fullname");
+                    //this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "GetAllAppointmentAsync-004");
+
+                    #endregion
+                #region//取得休假集合
+                    //this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "GetAllAppointmentAsync-005");
+                    EntityCollection aAppointmentEntityCollection = this.m_ToolUtilityClass.RetrieveAppointmentsByFetchXml(ContactFullName, aApplier.Id.ToString());
+                    //this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "GetAllAppointmentAsync-006");
+                    #endregion
+                if (aAppointmentEntityCollection.Entities.Count > 0)
+                    {
+                        //this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "GetAllAppointmentAsync-007");
+                        //this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, Environment.NewLine + "------------------------ " + Environment.NewLine + ContactFullName + " 今年休假統計:" + Environment.NewLine + GetAllAppointments(aAppointmentEntityCollection));
+                        String aSpecialLeaveDays = "依據年資應得特休日數 = " + this.m_ToolUtilityClass.GetEntityIntAttribute(ref aApplier, "new_special_leave_days").ToString() + "日" + Environment.NewLine + "---------------------";
+                        return Environment.NewLine + "------------------------ " + Environment.NewLine + ContactFullName + " 今年休假統計:" + Environment.NewLine + aSpecialLeaveDays + Environment.NewLine + GetAllAppointments(aAppointmentEntityCollection);
+                    }
+                else
+                    {
+                        //this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "GetAllAppointmentAsync-008");
+                        return Environment.NewLine + "------------------------ " + Environment.NewLine + ContactFullName + "您好，您沒有任何休假紀錄。";
+                    }
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                throw e;
+            }
+        }
+        public String GetAllAppointments(EntityCollection aAppointmentEntityCollection)
+        {
+            try
+            {
+                foreach (Entity aAppointment in aAppointmentEntityCollection.Entities)
+                {
+                    String AppointmentKey = ConvertLeaveIdToAppointmentType(this.m_ToolUtilityClass.GetOptionSetAttribute(aAppointment, "new_leave_kind"));
+                    AppointmentKey += ":" + ConvertIndexToLeaveSigningStatus(this.m_ToolUtilityClass.GetOptionSetAttribute(aAppointment, "new_leave_signing_status"));
+
+                    double Days = this.m_ToolUtilityClass.GetEntityDoubleAttribute(aAppointment, "new_days");
+
+                    AddToDictionary(ref this.m_SigningReport, AppointmentKey, Days);
+                }
+
+                return GetSigningReport();
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                throw e;
+            }
+        }
+        public String GetSigningReport()
+        {
+            try
+            {
+                String SigningReport = "";
+                foreach (var aSigningReport in m_SigningReport)
+                {
+                    SigningReport += aSigningReport.Key + "=" + aSigningReport.Value.ToString() + "日" + Environment.NewLine;
+                }
+                return SigningReport;
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                throw e;
+            }
+        }
+        private bool AddToDictionary(ref Dictionary<String, double> aDictionary, String Method, double Content)
+        {
+            try
+            {
+                if (aDictionary.ContainsKey(Method))
+                {
+                    // 關鍵( Key ) 已經在字典裡了
+                    aDictionary[Method] += Content;
+                    return true;
+                }
+                else
+                {
+                    // 關鍵( Key )還沒有在字典裡
+                    aDictionary.Add(Method, Content);
+                    return false;
+                }
+            }
+            catch (FormatException)
+            {
+                return false;
+            }
+            catch (System.Exception e)
+            {
+                throw e;
+            }
+        }
+
+        #endregion
+
     }
 }

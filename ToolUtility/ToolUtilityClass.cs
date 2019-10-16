@@ -1745,6 +1745,66 @@ namespace ToolUtilityNameSpace
                 throw e;
             }
         }
+        public EntityCollection RetrieveAppointmentsByFetchXml(String ContactName, String ContactId)
+        {
+            try
+            {
+                var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+                      <entity name='appointment'>
+                        <attribute name='subject' />
+                        <attribute name='statecode' />
+                        <attribute name='scheduledstart' />
+                        <attribute name='scheduledend' />
+                        <attribute name='regardingobjectid' />
+                        <attribute name='ownerid' />
+                        <attribute name='new_meeting_kind' />
+                        <attribute name='new_leave_kind' />
+                        <attribute name='new_location_kind' />
+                        <attribute name='new_leave_signing_status' />
+                        <attribute name='activityid' />
+                        <attribute name='requiredattendees' />
+                        <attribute name='optionalattendees' />
+                        <attribute name='new_list_appointment' />
+                        <attribute name='description' />
+                        <attribute name='new_hours' />
+                        <attribute name='new_days' />
+                        <order attribute='subject' descending='false' />
+                        <filter type='and'>
+                          <condition attribute='new_applier_appointment' operator='eq' uiname='" + ContactName + @"' uitype='contact' value='{" + ContactId + @"}' />
+                          <condition attribute='scheduledstart' operator='this-year' />
+                          <condition attribute='new_leave_signing_status' operator='in'>
+                                <value> 100000004 </value >
+                                <value> 100000001 </value >
+                                <value> 100000007 </value >
+                          </condition >
+                        </filter>
+                      </entity>
+                    </fetch>";
+
+                RetrieveMultipleRequest fetchRequest1 = new RetrieveMultipleRequest
+                {
+                    Query = new FetchExpression(fetchXml)
+                };
+
+                EntityCollection retrieved = ((RetrieveMultipleResponse)this.m_OrganizationService.Execute(fetchRequest1)).EntityCollection;
+
+                //if (CRM_TYPE == "DYNAMICS365")
+                //{
+                //    retrieved = ((RetrieveMultipleResponse)this.m_OrganizationService.Execute(fetchRequest1)).EntityCollection;
+                //}
+                //else
+                //{
+                //    retrieved = ((RetrieveMultipleResponse)this.m_Crm2011OrganizationService.Execute(fetchRequest1)).EntityCollection;
+                //}
+
+                return retrieved;
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                throw e;
+            }
+        }
 
         #endregion
         #region 取得課程
