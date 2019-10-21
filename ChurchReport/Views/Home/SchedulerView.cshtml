@@ -389,12 +389,14 @@
 
                             success: function (data)
                             {
-                                //alert("測試 AJAX!" );
+                                //alert("測試 AJAX-001!" );
                                 //getLoadPanelInstance().hide();
-
-                                var schedulerinstance = getschedulerinstance();  
-                                schedulerinstance.getdatasource().reload();
+                                var schedulerinstance = getSchedulerInstance();  
+                                //alert("測試 AJAX-002!" + schedulerinstance);
+                                schedulerinstance.getDataSource().reload();
+                                //alert("測試 AJAX-003!" + schedulerinstance);
                                 schedulerinstance.repaint();
+                                //alert("測試 AJAX-004!" );
 
                                 //window.location.href = "/Home/SchedulerView"
                             },
