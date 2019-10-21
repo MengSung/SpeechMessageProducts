@@ -332,8 +332,8 @@
                 //alert("測試005!" );
             });
 
-            //alert("測試007!" );
-            //await UpdateLineUserId(UserId, GroupId, RoomId, ViewType);
+            //alert("測試007!" + UserId );
+            //UpdateLineUserId(UserId, GroupId, RoomId, ViewType);
             //document.getElementById('displaynamefield').innerHTML = profile.displayName + "的行事曆";
             //alert("測試008!");
 
@@ -380,23 +380,23 @@
 
         function UpdateLineUserId(aUserLineId, aGroupId, aRoomId, aViewType ) {
                     // AJAX 區塊
-                    $.ajax
+                    return $.ajax
                     (
                         {
                             url: '@Url.Action("LoadAppointmentByLineId", "Home")',
                             data: { UserLineId: aUserLineId, GroupId: aGroupId, RoomId: aRoomId, ViewType: aViewType}, // 整理回傳給 Server 的點名資料
                             type: 'POST', //POST if you want to save, GET if you want to fetch data from server
-
+                            //async: false,
                             success: function (data)
                             {
                                 //alert("測試 AJAX-001!" );
-                                //getLoadPanelInstance().hide();
+                                ////getLoadPanelInstance().hide();
                                 var schedulerinstance = getSchedulerInstance();  
-                                //alert("測試 AJAX-002!" + schedulerinstance);
+                                ////alert("測試 AJAX-002!" + schedulerinstance);
                                 schedulerinstance.getDataSource().reload();
-                                //alert("測試 AJAX-003!" + schedulerinstance);
+                                ////alert("測試 AJAX-003!" + schedulerinstance);
                                 schedulerinstance.repaint();
-                                //alert("測試 AJAX-004!" );
+                                ////alert("測試 AJAX-004!" );
 
                                 //window.location.href = "/Home/SchedulerView"
                             },
