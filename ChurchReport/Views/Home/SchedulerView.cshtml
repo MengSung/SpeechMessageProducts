@@ -335,6 +335,11 @@
                 //alert("測試005!" );
             });
 
+            //alert("測試007!" );
+            //await UpdateLineUserId(UserId, GroupId, RoomId, ViewType);
+            //document.getElementById('displaynamefield').innerHTML = profile.displayName + "的行事曆";
+            //alert("測試008!");
+
             //UserId = data.context.userId;
             //GroupId = data.context.groupId;
             //RoomId = data.context.roomId;
@@ -387,11 +392,12 @@
 
                             success: function (data)
                             {
+                                //alert("測試 AJAX!" );
                                 //getLoadPanelInstance().hide();
 
-                                //var schedulerinstance = getschedulerinstance();  
-                                //schedulerinstance.getdatasource().reload();
-                                //schedulerinstance.repaint();
+                                var schedulerinstance = getschedulerinstance();  
+                                schedulerinstance.getdatasource().reload();
+                                schedulerinstance.repaint();
 
                                 //window.location.href = "/Home/SchedulerView"
                             },
