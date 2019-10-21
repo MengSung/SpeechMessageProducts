@@ -276,13 +276,29 @@
             liff.init(
                 { liffId: "1599197387-B6XzLOr0" },
                 function (data) {
-                //debugger;
-                //alert("測試001!");
-                initializeApp(data);
+                    //debugger;
+                    //alert("測試 window.onload 001!");
+                    initializeApp(data);
+                    //alert("測試 window.onload 002!");
                 }
             );
         };
 
+        // async () => {
+        //     const loaded = new Promise(resolve => {
+        //         window.onload = function (e) {
+        //             liff.init(
+        //                 { liffId: "1599197387-B6XzLOr0" },
+        //                 function (data) {
+        //                     //debugger;
+        //                     alert("測試001!");
+        //                     initializeApp(data);
+        //                 }
+        //             );
+        //         };
+        //     } 
+        //      result = await loaded;
+        //} 
 
         var UserId = "";
         var GroupId = "";
@@ -291,9 +307,9 @@
         var ViewType = "";
 
 
-    function initializeApp(data) {
+    async function initializeApp(data) {
                 //alert("測試002!") + data;
-                liff.getProfile().then( function (profile) {
+                await liff.getProfile().then( function (profile) {
                 //document.getElementById('useridprofilefield').textContent = profile.userId;
                 //document.getElementById('displaynamefield').textContent = profile.displayName;
 
@@ -373,9 +389,9 @@
                             {
                                 //getLoadPanelInstance().hide();
 
-                                //var schedulerInstance = getSchedulerInstance();  
-                                //schedulerInstance.getDataSource().reload();
-                                //schedulerInstance.repaint();
+                                //var schedulerinstance = getschedulerinstance();  
+                                //schedulerinstance.getdatasource().reload();
+                                //schedulerinstance.repaint();
 
                                 //window.location.href = "/Home/SchedulerView"
                             },
