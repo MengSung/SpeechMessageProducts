@@ -3491,7 +3491,8 @@ namespace ChurchReport.Controllers
 
         #endregion
         #region Line Tiff ¦æ¨Æ¾ä
-        public ActionResult SchedulerView()
+        [Route("/Home/SchedulerView/{SchedulerViewPatameter}")]
+        public ActionResult SchedulerView(string SchedulerViewPatameter)
         {
             try
             {
