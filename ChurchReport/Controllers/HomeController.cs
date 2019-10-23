@@ -109,12 +109,6 @@ namespace ChurchReport.Controllers
                     ContactIdString = "透過Line Id 登入";
                 }
 
-                #region 控制 Navigation 下拉項目
-                ViewBag.SchedulerView = m_InMemoryDataContextSmallGroup.ListManager.SchedulerView = "不是單純行事曆";
-                ViewBag.DisplayNavigation = m_InMemoryDataContextSmallGroup.ListManager.DisplayNavigation = "顯示牧養回報項目";
-                ViewBag.UserType = m_InMemoryDataContextSmallGroup.ListManager.UserType = "行政同工";
-                #endregion
-
                 if (　ContactIdString != "密碼錯誤" && ContactIdString != "系統沒有設定密碼" && ContactIdString != "帳號錯誤"　)
                 {
                     string FullName = "";
@@ -143,6 +137,12 @@ namespace ChurchReport.Controllers
 
                     // 設定多個組長處理需要的資料
                     m_InMemoryDataContextSmallGroup.ListManager.SetupListManager(aGalleryViewModel.Account, aGalleryViewModel.Password, DateTime.Now);
+
+                    #region 控制 Navigation 下拉項目
+                    ViewBag.SchedulerView = m_InMemoryDataContextSmallGroup.ListManager.SchedulerView = "不是單純行事曆";
+                    ViewBag.DisplayNavigation = m_InMemoryDataContextSmallGroup.ListManager.DisplayNavigation = "顯示牧養回報項目";
+                    ViewBag.UserType = m_InMemoryDataContextSmallGroup.ListManager.UserType ;
+                    #endregion
 
                     // 透過取得多小組網頁需要的資料之後，判斷這是多小組還是單一小組長的回報
                     string DisplayViewType = m_InMemoryDataContextSmallGroup.ListManager.GetDisplayViewType();
@@ -173,7 +173,6 @@ namespace ChurchReport.Controllers
                     // 設定需要點名的課程清單
                     m_InMemoryDataContextSmallGroup.FeeList.SetupLessonList(aGalleryViewModel.Account, aGalleryViewModel.Password);
 
-                    ViewBag.UserType = "行政同工";
                     if (m_InMemoryDataContextSmallGroup.ListManager.LoginType == "小組長" && m_InMemoryDataContextSmallGroup.HappyGroupDataManager.HappyType == "有幸福小組名單")
                     {
                         // 小組長回報，而且有幸福小組
@@ -487,7 +486,11 @@ namespace ChurchReport.Controllers
                         }
 
                         #region 選單控制區塊
-                        ViewBag.UserType = "行政同工";
+                        #region 控制 Navigation 下拉項目
+                        ViewBag.SchedulerView = m_InMemoryDataContextSmallGroup.ListManager.SchedulerView = "不是單純行事曆";
+                        ViewBag.DisplayNavigation = m_InMemoryDataContextSmallGroup.ListManager.DisplayNavigation = "顯示牧養回報項目";
+                        ViewBag.UserType = m_InMemoryDataContextSmallGroup.ListManager.UserType;
+                        #endregion
 
                         ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType; // 看是小組長還是個人回報
                         ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.ListManager.LoginFullName;
@@ -628,7 +631,11 @@ namespace ChurchReport.Controllers
             try
             {
                 //ViewBag.ListId = m_InMemoryDataContextSmallGroup.ListManager.ActiveListId = LoginParameter;
-                ViewBag.UserType = "行政同工";
+                #region 控制 Navigation 下拉項目
+                ViewBag.SchedulerView = m_InMemoryDataContextSmallGroup.ListManager.SchedulerView = "不是單純行事曆";
+                ViewBag.DisplayNavigation = m_InMemoryDataContextSmallGroup.ListManager.DisplayNavigation = "顯示牧養回報項目";
+                ViewBag.UserType = m_InMemoryDataContextSmallGroup.ListManager.UserType;
+                #endregion
 
                 if (LoginParameter != "AccountPassword")
                 {
@@ -1232,7 +1239,11 @@ namespace ChurchReport.Controllers
             try
             {
                 ViewBag.ListId = m_InMemoryDataContextSmallGroup.ListManager.ActiveListId;
-                ViewBag.UserType = "行政同工";
+                #region 控制 Navigation 下拉項目
+                ViewBag.SchedulerView = m_InMemoryDataContextSmallGroup.ListManager.SchedulerView = "不是單純行事曆";
+                ViewBag.DisplayNavigation = m_InMemoryDataContextSmallGroup.ListManager.DisplayNavigation = "顯示牧養回報項目";
+                ViewBag.UserType = m_InMemoryDataContextSmallGroup.ListManager.UserType;
+                #endregion
 
                 if (LoginParameter == "AccountPassword")
                 {
