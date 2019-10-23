@@ -272,9 +272,11 @@
         //      });
         //};
 
-        window.onload = function (e) {
+    window.onload = function (e) {
+            //var message = '@TempData["Proponent"]';           
+            //window.alert( "耶和華" + message);         
             liff.init(
-                { liffId: "1599197387-B6XzLOr0" },
+                { liffId: '@TempData["Proponent"]' },
                 function (data) {
                     //debugger;
                     //alert("測試 window.onload 001!");

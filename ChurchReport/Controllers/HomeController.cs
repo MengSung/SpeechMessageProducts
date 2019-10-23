@@ -3530,7 +3530,8 @@ namespace ChurchReport.Controllers
                 ViewBag.SchedulerView = m_InMemoryDataContextSmallGroup.ListManager.SchedulerView = "單純行事曆";
                 ViewBag.DisplayNavigation = m_InMemoryDataContextSmallGroup.ListManager.DisplayNavigation = "不顯示牧養回報項目";
                 ViewBag.UserType = m_InMemoryDataContextSmallGroup.ListManager.UserType = m_InMemoryDataContextSmallGroup.AppointmentsListManager.UserType;
-
+                //ViewBag.Prop = SchedulerViewPatameter;
+                TempData["Proponent"] = SchedulerViewPatameter;
                 #endregion
 
                 return View();
