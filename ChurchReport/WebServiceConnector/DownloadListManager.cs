@@ -84,41 +84,41 @@ namespace ChurchReport.WebServiceConnector
         #endregion
         #region 下載資料區
         #region 主程式區
-        public void GetListManager( String Account, String Password, DateTime aDownloadDate, ref MultiGroupList aMultiGroupList, ref MultiGroupChartDataList aMultiGroupChartDataList, ref String LoginType, ref String LoginFullName, ref String ActiveListId )
+        public void GetListManager( String Account, String Password, DateTime aDownloadDate, ref MultiGroupList aMultiGroupList, ref MultiGroupChartDataList aMultiGroupChartDataList, ref String LoginType, ref String UserType, ref String LoginFullName, ref String ActiveListId )
         {
             try
             {
                 #region 多小組需要的資料結構，在此配置記憶體，並回傳給上層呼叫者
                 m_MultiGroupList.m_WeeklyReportRecordListData = new List<WeeklyReportRecord>();
 
-            aMultiGroupList = m_MultiGroupList;
+                aMultiGroupList = m_MultiGroupList;
 
-            //m_MultiGroupChartDataList.m_MultiGroupChartDataList = new List<MultiGroupChartData>();
+                //m_MultiGroupChartDataList.m_MultiGroupChartDataList = new List<MultiGroupChartData>();
 
-            m_MultiGroupChartDataList = new MultiGroupChartDataList
-            {
-                m_MultiGroupChartDataList = new List<MultiGroupChartData>
+                m_MultiGroupChartDataList = new MultiGroupChartDataList
                 {
-                    new MultiGroupChartData
+                    m_MultiGroupChartDataList = new List<MultiGroupChartData>
                     {
-                        ID = "001",
-                        Name= "總人數",
-                        Number = 0
-                    },
-                    new MultiGroupChartData
-                    {
-                        ID = "002",
-                        Name= "主日人數",
-                        Number = 0
-                    },
-                    new MultiGroupChartData
-                    {
-                        ID = "003",
-                        Name= "小組人數",
-                        Number = 0
+                        new MultiGroupChartData
+                        {
+                            ID = "001",
+                            Name= "總人數",
+                            Number = 0
+                        },
+                        new MultiGroupChartData
+                        {
+                            ID = "002",
+                            Name= "主日人數",
+                            Number = 0
+                        },
+                        new MultiGroupChartData
+                        {
+                            ID = "003",
+                            Name= "小組人數",
+                            Number = 0
+                        }
                     }
-                }
-            };
+                };
 
             aMultiGroupChartDataList = m_MultiGroupChartDataList;
             #endregion
@@ -139,6 +139,8 @@ namespace ChurchReport.WebServiceConnector
                     LoginFullName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref this.m_ContactEntity, "fullname");
                 }
                 #endregion
+
+                SetUserType(ref UserType);
 
                 #region 先尋找帶領族系名單，若找到表示就是族系族長，若沒有則在繼續尋找帶領小組名單
                 FindListCollection();
@@ -558,6 +560,20 @@ namespace ChurchReport.WebServiceConnector
                 throw Exception;
             }
         }
+
+        private void SetUserType( ref String UserType)
+        {
+            // 找登入使用者及其ID
+            if( this.m_ToolUtilityClass.GetEntityLookupAttribute( ref this.m_ContactEntity, "new_replace_contact") != Guid.Empty && this.m_ToolUtilityClass.GetEntityLookupAttribute(ref this.m_ContactEntity, "new_manager_contact") != Guid.Empty)
+            {
+                UserType = "行政同工";
+            }
+            else
+            {
+                UserType = "非行政同工";
+            }
+        }
+
         #endregion
         #endregion
     }

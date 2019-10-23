@@ -17,7 +17,7 @@ namespace ChurchReport.Models
 
         public String SchedulerView { get; set; } = "";
         public String DisplayNavigation { get; set; } = "";
-        public String UserType { get; set; } = "";
+        public String UserType = "";
 
         //public String ListName { get; set; } // 小組名稱
 
@@ -52,7 +52,7 @@ namespace ChurchReport.Models
 
                 m_SelectDate = aSelectDate;
 
-                m_DownloadListManager.GetListManager(Account, Password, aSelectDate, ref m_MultiGroupList, ref m_MultiGroupChartDataList, ref LoginType, ref LoginFullName, ref ActiveListId);
+                m_DownloadListManager.GetListManager(Account, Password, aSelectDate, ref m_MultiGroupList, ref m_MultiGroupChartDataList, ref LoginType, ref UserType, ref LoginFullName, ref ActiveListId );
             }
             catch (System.Exception e)
             {

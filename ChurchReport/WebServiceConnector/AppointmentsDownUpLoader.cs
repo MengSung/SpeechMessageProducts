@@ -80,10 +80,12 @@ namespace ChurchReport.WebServiceConnector
         /// <param name="Password"></param>
         /// <param name="aSelectDate"></param>
         /// <returns></returns>
-        public List<Appointment> GetAppointmentList(String Account, String Password, DateTime aSelectDate)
+        public List<Appointment> GetAppointmentList(String Account, String Password, DateTime aSelectDate , ref String UserType)
         {
             // 取得登入者
             FindLoginUser(Account, Password);
+
+            SetUserType(ref UserType);
 
             if (m_ContactEntity == null)
             {
@@ -1535,7 +1537,6 @@ namespace ChurchReport.WebServiceConnector
                 throw e;
             }
         }
-
         private bool IsAHolidayRecord( DateTime AuditDate , HolidayOpenData aHolidayOpenData, ref String Description)
         {
             try
@@ -1582,7 +1583,6 @@ namespace ChurchReport.WebServiceConnector
                 throw e;
             }
         }
-
         private HolidayOpenData GetNationHoliday()
         {
             try
@@ -1609,6 +1609,18 @@ namespace ChurchReport.WebServiceConnector
 
                 //Monitor.Exit(this);
                 throw e;
+            }
+        }
+        private void SetUserType(ref String UserType)
+        {
+            // 找登入使用者及其ID
+            if (this.m_ToolUtilityClass.GetEntityLookupAttribute(ref this.m_ContactEntity, "new_replace_contact") != Guid.Empty && this.m_ToolUtilityClass.GetEntityLookupAttribute(ref this.m_ContactEntity, "new_manager_contact") != Guid.Empty)
+            {
+                UserType = "行政同工";
+            }
+            else
+            {
+                UserType = "非行政同工";
             }
         }
 

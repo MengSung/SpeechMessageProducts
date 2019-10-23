@@ -23,6 +23,8 @@ namespace ChurchReport.Models
         public DateTime m_PreviousDate { get; set; } = DateTime.Now; // 之前選擇的日期
         public DateTime m_SelectDate { get; set; } = DateTime.Now; // 行事曆日期
 
+        public String UserType = "行政同工";
+
         // 要顯示的約會清單
         public List<Appointment> m_Appointments = new List<Appointment>();
 
@@ -78,7 +80,7 @@ namespace ChurchReport.Models
             try
             {
                 // 載入使用者的本月約會
-                m_Appointments = this.m_AppointmentsDownUpLoader.GetAppointmentList(this.m_Account, this.m_Password, this.m_SelectDate);
+                m_Appointments = this.m_AppointmentsDownUpLoader.GetAppointmentList(this.m_Account, this.m_Password, this.m_SelectDate, ref UserType );
             }
             catch (System.Exception e)
             {
@@ -134,6 +136,7 @@ namespace ChurchReport.Models
                 throw e;
             }
         }
+
 
     }
 }

@@ -100,7 +100,7 @@ namespace ChurchReport.Controllers
             try
             {
                 string ContactIdString = "";
-                if (aGalleryViewModel.Account != "")
+                if ( aGalleryViewModel.Account != "" )
                 {
                     ContactIdString = m_ToolUtilityClass.RetrieveContactByAccountNumber(aGalleryViewModel.Account, aGalleryViewModel.Password);
                 }
@@ -108,6 +108,12 @@ namespace ChurchReport.Controllers
                 {
                     ContactIdString = "透過Line Id 登入";
                 }
+
+                #region 控制 Navigation 下拉項目
+                ViewBag.SchedulerView = m_InMemoryDataContextSmallGroup.ListManager.SchedulerView = "不是單純行事曆";
+                ViewBag.DisplayNavigation = m_InMemoryDataContextSmallGroup.ListManager.DisplayNavigation = "顯示牧養回報項目";
+                ViewBag.UserType = m_InMemoryDataContextSmallGroup.ListManager.UserType = "行政同工";
+                #endregion
 
                 if (　ContactIdString != "密碼錯誤" && ContactIdString != "系統沒有設定密碼" && ContactIdString != "帳號錯誤"　)
                 {
@@ -123,7 +129,7 @@ namespace ChurchReport.Controllers
                     }
                     else
                     {
-                        #region 使用者透過網頁的帳號密碼登入，所以帳號="LineIdLogin"字串，密碼=LineId
+                        #region 使用者透過網頁的帳號密碼登入，所以帳號 Account="LineIdLogin"字串，密碼 Password=LineId
                         Entity aLoginContact = m_ToolUtilityClass.RetrieveContactEntityByLineUserId(m_InMemoryDataContextSmallGroup.LineBindingViewModel.LineUserId);
                         FullName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aLoginContact, "fullname");
                         aGalleryViewModel.Account = "LineIdLogin";
@@ -3503,6 +3509,7 @@ namespace ChurchReport.Controllers
         {
             try
             {
+                #region 控制 Navigation 下拉項目
                 ViewBag.LoginType = "小組長"; // 看是小組長還是個人回報
                 ViewBag.LoginFullName = "耶穌";
                 ViewBag.FeeType = "有繳費點名";
@@ -3511,7 +3518,9 @@ namespace ChurchReport.Controllers
                 ViewBag.MultiGroupIndex = "SingleMultiGroupView";
                 ViewBag.SchedulerView = m_InMemoryDataContextSmallGroup.ListManager.SchedulerView = "單純行事曆";
                 ViewBag.DisplayNavigation = m_InMemoryDataContextSmallGroup.ListManager.DisplayNavigation = "不顯示牧養回報項目";
-                ViewBag.UserType = m_InMemoryDataContextSmallGroup.ListManager.UserType = "行政同工";
+                ViewBag.UserType = m_InMemoryDataContextSmallGroup.ListManager.UserType = m_InMemoryDataContextSmallGroup.AppointmentsListManager.UserType;
+
+                #endregion
 
                 return View();
             }
@@ -3555,9 +3564,11 @@ namespace ChurchReport.Controllers
                 m_InMemoryDataContextSmallGroup.AppointmentsListManager.m_Account = "LineIdLogin";
                 m_InMemoryDataContextSmallGroup.AppointmentsListManager.m_Password = m_InMemoryDataContextSmallGroup.LineBindingViewModel.LineUserId;
 
-                //Entity LineLoginContact = this.m_ToolUtilityClass.RetrieveContactByLineId(UserLineId);
-
-                //m_InMemoryDataContextSmallGroup.AppointmentsListManager.SetupAppointmentList();
+                #region 控制 Navigation 下拉項目
+                ViewBag.SchedulerView = m_InMemoryDataContextSmallGroup.ListManager.SchedulerView = "單純行事曆";
+                ViewBag.DisplayNavigation = m_InMemoryDataContextSmallGroup.ListManager.DisplayNavigation = "不顯示牧養回報項目";
+                ViewBag.UserType = m_InMemoryDataContextSmallGroup.ListManager.UserType = m_InMemoryDataContextSmallGroup.AppointmentsListManager.UserType;
+                #endregion
 
                 return Json(new { message = "歡迎" + "登入成功!" });
 
