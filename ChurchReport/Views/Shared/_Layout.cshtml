@@ -194,18 +194,18 @@
                         <!--顯示牧養回報項目-->
                         @if (@ViewBag.MultiGroupIndex == "SingleMultiGroupView")
                         {
+                            <!--多個牧養回報-->
                             <li><a href="/Home/MultiGroupView/MultiGroup">回報統計</a></li>
                             <li><a href="/Home/NewPerson">新增新人</a></li>
                             @if (@ViewBag.UserType == "行政同工")
                             {
-                                <li><a href="/Home/Scheduler/差勤簽核">差勤簽核000</a></li>
-                                <li><a href="/Home/Scheduler/場地及資源預約">場地及資源預約000</a></li>
+                                <li><a href="/Home/Scheduler/差勤簽核">差勤簽核</a></li>
+                                <li><a href="/Home/Scheduler/場地及資源預約">場地及資源預約</a></li>
                             }
                             else
                             {
-                                <li><a href="/Home/Scheduler/差勤簽核">場地及資源預約000</a></li>
+                                <li><a href="/Home/Scheduler/差勤簽核">場地及資源預約</a></li>
                             }
-
                             @if (@ViewBag.HappyType == "有幸福小組名單")
                             {
                                 @*<li><a href="/Home/HappyGroup">幸福小組回報</a></li>*@
@@ -222,8 +222,10 @@
                         }
                         else
                         {
+                            <!--單一牧養回報項目-->
                             @if (@ViewBag.LoginType == "小組長")
                             {
+                                <!--小組長回報-->
                                 if (@ViewBag.MultiGroupIndex == "IntegrateView")
                                 {
                                     <li><a href="/Home/IntegrateView/IntegrateView">小組回報</a></li>
@@ -233,12 +235,12 @@
                                     <li><a href="/Home/MultiGroupView/MultiGroup">回報統計</a></li>
                                     <li><a href="/Home/IntegrateView/IntegrateView">小組回報</a></li>
                                 }
-
                                 @if (@ViewBag.HappyType == "有幸福小組名單")
                                 {
-
+                                    <!--小組長回報，有幸福小組名單-->
                                     @if (@ViewBag.FeeType == "有繳費點名")
                                     {
+                                        <!--小組長回報，有幸福小組名單，有繳費點名-->
                                         // 小組長，有幸福小組名單，有繳費點名
                                         <li>@*<a href="/Home/SmallGroupReportView/AccountPassword">小組牧養</a>*@</li>
                                         @*<li><a href="/Home/IntegrateView/AccountPassword">牧養回報</a></li>*@
@@ -270,9 +272,19 @@
 
                                     }
 
+                                    @if (@ViewBag.UserType == "行政同工")
+                                    {
+                                        <li><a href="/Home/Scheduler/差勤簽核">差勤簽核</a></li>
+                                        <li><a href="/Home/Scheduler/場地及資源預約">場地及資源預約</a></li>
+                                    }
+                                    else
+                                    {
+                                        <li><a href="/Home/Scheduler/差勤簽核">場地及資源預約</a></li>
+                                    }
                                 }
                                 else
                                 {
+                                    <!--小組長，無幸福小組名單-->
                                     @if (@ViewBag.FeeType == "有繳費點名")
                                     {
                                         // 小組長，無幸福小組名單，有繳費點名
@@ -284,15 +296,6 @@
                                         @*<li><a href="/Home/HappyGroup">幸福小組回報</a></li>*@
                                         @*<li><a href="/Home/WeeklyReport">小組日誌</a></li>*@
                                         <li><a href="/Home/MaintainPersonInfomationView">維護基本資料</a></li>
-                                        @if (@ViewBag.UserType == "行政同工")
-                                        {
-                                            <li><a href="/Home/Scheduler/差勤簽核">差勤簽核001</a></li>
-                                            <li><a href="/Home/Scheduler/場地及資源預約">場地及資源預約001</a></li>
-                                        }
-                                        else
-                                        {
-                                            <li><a href="/Home/Scheduler/差勤簽核">差勤簽核001</a></li>
-                                        }
                                         <li><a href="/Home/PresentFeeListView">課程清單</a></li>
                                         @if (@ViewBag.FeeDataListCount == "繳費與點名已有資料")
                                         {
@@ -311,12 +314,19 @@
                                         @*<li><a href="/Home/HappyGroup">幸福小組回報</a></li>*@
                                         @*<li><a href="/Home/WeeklyReport">小組日誌</a></li>*@
                                         <li><a href="/Home/MaintainPersonInfomationView">維護基本資料</a></li>
-                                        <li><a href="/Home/Scheduler/差勤簽核">差勤簽核002</a></li>
                                         @*<li><a href="/Home/FeeManagerView">繳費與點名</a></li>*@
                                     }
 
                                 }
-
+                                @if (@ViewBag.UserType == "行政同工")
+                                {
+                                    <li><a href="/Home/Scheduler/差勤簽核">差勤簽核</a></li>
+                                    <li><a href="/Home/Scheduler/場地及資源預約">場地及資源預約</a></li>
+                                }
+                                else
+                                {
+                                    <li><a href="/Home/Scheduler/差勤簽核">場地及資源預約</a></li>
+                                }
                             }
                             else
                             {
@@ -324,7 +334,6 @@
                                 {
                                     <li><a href="/Home/MultiGroupView/MultiGroup">回報統計</a></li>
                                 }
-
                                 @if (@ViewBag.HappyType == "有幸福小組名單")
                                 {
 
@@ -336,7 +345,6 @@
                                         <li><a href="/Home/MaintainPersonInfomationView">維護個人基本資料</a></li>
                                         <li><a href="/Home/NewPerson">新增新人</a></li>
                                         @*<li><a href="/Home/HappyGroup">幸福小組回報</a></li>*@
-                                        <li><a href="/Home/Scheduler/差勤簽核">差勤簽核005</a></li>
                                         @if (@ViewBag.FeeDataListCount == "繳費與點名已有資料")
                                         {
                                             <li><a href="/Home/FeeView">繳費</a></li>
@@ -352,7 +360,6 @@
                                         <li><a href="/Home/MaintainPersonInfomationView">維護個人基本資料</a></li>
                                         <li><a href="/Home/NewPerson">新增新人</a></li>
                                         @*<li><a href="/Home/HappyGroup">幸福小組回報</a></li>*@
-                                        <li><a href="/Home/Scheduler/差勤簽核">差勤簽核006</a></li>
                                         @*<li><a href="/Home/FeeManagerView">繳費與點名</a></li>*@
                                     }
 
@@ -388,6 +395,15 @@
                                     }
                                     /**/
 
+                                }
+                                @if (@ViewBag.UserType == "行政同工")
+                                {
+                                    <li><a href="/Home/Scheduler/差勤簽核">差勤簽核</a></li>
+                                    <li><a href="/Home/Scheduler/場地及資源預約">場地及資源預約</a></li>
+                                }
+                                else
+                                {
+                                    <li><a href="/Home/Scheduler/差勤簽核">場地及資源預約</a></li>
                                 }
                             }
                         }
@@ -426,7 +442,7 @@
     //session end
     var sessionTimeoutWarning = @Session.Timeout- 1; //when session end 1 minute before this code makes redirect
 
-    var sTimeout = parseInt(sessionTimeoutWarning) * 60 * 1000;
+    var sTimeout = parseInt(sessionTimeoutWarning) * 60 * 1;
     setTimeout('SessionEnd()', sTimeout);
 
     function SessionEnd() {
