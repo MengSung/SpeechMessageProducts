@@ -19,6 +19,7 @@ namespace ChurchReport.Models
         public string RoomId { get; set; } = "";
         public string LineUserId { get; set; } = "";
         public string ViewType { get; set; } = "";
+        public string ScheduleType { get; set; } = "場地及資源預約"; // 差勤簽核 OR 場地及資源預約
 
         public DateTime m_PreviousDate { get; set; } = DateTime.Now; // 之前選擇的日期
         public DateTime m_SelectDate { get; set; } = DateTime.Now; // 行事曆日期
@@ -80,7 +81,9 @@ namespace ChurchReport.Models
             try
             {
                 // 載入使用者的本月約會
-                m_Appointments = this.m_AppointmentsDownUpLoader.GetAppointmentList(this.m_Account, this.m_Password, this.m_SelectDate, ref UserType );
+                // UserType 會在此取得行政同工
+                // ScheduleType 是下參數決定是取得和種類的約會，差勤簽核 OR 場地及資源預約
+                m_Appointments = this.m_AppointmentsDownUpLoader.GetAppointmentList(this.m_Account, this.m_Password, this.m_SelectDate, ref UserType , ScheduleType );
             }
             catch (System.Exception e)
             {

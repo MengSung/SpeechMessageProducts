@@ -1806,6 +1806,71 @@ namespace ToolUtilityNameSpace
             }
         }
 
+        public EntityCollection RetrieveAppointmentsByFetchXmlAndScheduleType(DateTime StartDate, DateTime EndDate, String ScheduleType)
+        {
+            try
+            {
+                //DateTime StartDate = DateTime.Now.AddDays(-24);
+                string StartDateString = @"'" + StartDate.Year + "-" + StartDate.Month + "-" + StartDate.Day + @"'";
+
+                //DateTime EndDate = DateTime.Now.AddDays(24);
+                string EndDateString = @"'" + EndDate.Year + "-" + EndDate.Month + "-" + EndDate.Day + @"'";
+
+                //DateTime EndDate = DateTime.Now.AddDays(24);
+                string ScheduleTypeString = @"'" + ScheduleType + @"'";
+
+                var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+                      <entity name='appointment'>
+                        <attribute name='subject' />
+                        <attribute name='statecode' />
+                        <attribute name='scheduledstart' />
+                        <attribute name='scheduledend' />
+                        <attribute name='regardingobjectid' />
+                        <attribute name='ownerid' />
+                        <attribute name='new_meeting_kind' />
+                        <attribute name='new_leave_kind' />
+                        <attribute name='new_location_kind' />
+                        <attribute name='activityid' />
+                        <attribute name='requiredattendees' />
+                        <attribute name='optionalattendees' />
+                        <attribute name='new_list_appointment' />
+                        <attribute name='description' />
+                        <order attribute='subject' descending='false' />
+                        <filter type='and'>
+                          <condition attribute='scheduledstart' operator='on-or-after'  value=" + StartDateString + @" />
+                          <condition attribute='scheduledstart' operator='on-or-before' value=" + EndDateString + @" />
+                          <condition attribute='new_meeting_kind' operator='eq' value=" + ScheduleTypeString + @" />
+                        </filter>
+                      </entity>
+                    </fetch>";
+
+
+                RetrieveMultipleRequest fetchRequest1 = new RetrieveMultipleRequest
+                {
+                    Query = new FetchExpression(fetchXml)
+                };
+
+                EntityCollection retrieved;
+                if (CRM_TYPE == "DYNAMICS365")
+                {
+                    retrieved = ((RetrieveMultipleResponse)this.m_OrganizationService.Execute(fetchRequest1)).EntityCollection;
+                }
+                else
+                {
+                    retrieved = ((RetrieveMultipleResponse)this.m_Crm2011OrganizationService.Execute(fetchRequest1)).EntityCollection;
+                }
+
+
+                return retrieved;
+                //}
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                throw e;
+            }
+        }
+
         #endregion
         #region 取得課程
         /// <summary>

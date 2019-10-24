@@ -80,7 +80,7 @@ namespace ChurchReport.WebServiceConnector
         /// <param name="Password"></param>
         /// <param name="aSelectDate"></param>
         /// <returns></returns>
-        public List<Appointment> GetAppointmentList(String Account, String Password, DateTime aSelectDate , ref String UserType)
+        public List<Appointment> GetAppointmentList(String Account, String Password, DateTime aSelectDate , ref String UserType, String ScheduleType )
         {
             // 取得登入者
             FindLoginUser(Account, Password);
@@ -94,7 +94,15 @@ namespace ChurchReport.WebServiceConnector
             }
             else
             {
-                return RetrieveAppointmentList(aSelectDate);
+                if (UserType != "行政同工" && ScheduleType == "差勤簽核")
+                {
+                    // 使用者不是行政同工，但卻想要查看差勤簽核，回傳空約會
+                    return new List<Appointment>();
+                }
+                else
+                {
+                    return RetrieveAppointmentList(aSelectDate, ScheduleType);
+                }
             }
 
             return new List<Appointment>();
@@ -137,6 +145,43 @@ namespace ChurchReport.WebServiceConnector
 
                 // 2. 依據課程建立的行事曆
                 SetupAppointmentListByLesson(aAppointmentList, StartDate, EndDate);
+
+                return aAppointmentList;
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                throw e;
+            }
+        }
+        public List<Appointment> RetrieveAppointmentList(DateTime aSelectDate, String ScheduleType)
+        {
+            try
+            {
+                // 1. 依據約會建立的行事曆
+                int DaysInSelectDate = System.DateTime.DaysInMonth(aSelectDate.Year, aSelectDate.Month);
+                DateTime StartDate = new DateTime(aSelectDate.Year, aSelectDate.Month, 1);
+                DateTime EndDate = new DateTime(aSelectDate.Year, aSelectDate.Month, DaysInSelectDate);
+
+                // 取得約會集合
+                EntityCollection AppointmentEntityCollection;
+                if (ScheduleType == "差勤簽核")
+                {
+                    //行程類別:人資出差勤 = 6
+                    AppointmentEntityCollection = this.m_ToolUtilityClass.RetrieveAppointmentsByFetchXmlAndScheduleType(StartDate, EndDate, "6");
+                }
+                else
+                {
+                    //行程類別:場地 = 4
+                    AppointmentEntityCollection = this.m_ToolUtilityClass.RetrieveAppointmentsByFetchXmlAndScheduleType(StartDate, EndDate, "4");
+                }
+
+                // 建立約會
+                List<Appointment> aAppointmentList = SetupAppointmentsListEntityCollection(AppointmentEntityCollection);
+
+                // 2. 依據課程建立的行事曆
+                //SetupAppointmentListByLesson(aAppointmentList, StartDate, EndDate);
 
                 return aAppointmentList;
             }
@@ -201,34 +246,41 @@ namespace ChurchReport.WebServiceConnector
 
                 Guid ListEntityId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aAppointmentEntity, "new_list_appointment");
 
-                if (AppointmentType != "教會行事曆")
-                {
-                    // 如果不是"教會行事曆"則要看看連絡人是否在出席者、列席者清單中
-                    bool SearchFlag = false;
-                    foreach (Guid ContactId in aFromOrToIdList)
-                    {
-                        if (m_ContactEntity.Id.ToString() == ContactId.ToString())
-                        {
-                            // 登入者有在此約會的出席者及列席者
-                            Appointment aAppointment = SetupAppointment(aAppointmentEntity, AppointmentType, CategoryId, LeaveId, LocationId);
-                            aAppointmentsList.Add(aAppointment);
+                #region 如果不是教會行事曆，登入者有在此約會的出席者及列席者的約會才要顯示
+                //if (AppointmentType != "教會行事曆")
+                //{
+                //    // 如果不是"教會行事曆"則要看看連絡人是否在出席者、列席者清單中
+                //    bool SearchFlag = false;
+                //    foreach (Guid ContactId in aFromOrToIdList)
+                //    {
+                //        if (m_ContactEntity.Id.ToString() == ContactId.ToString())
+                //        {
+                //            // 登入者有在此約會的出席者及列席者
+                //            Appointment aAppointment = SetupAppointment(aAppointmentEntity, AppointmentType, CategoryId, LeaveId, LocationId);
+                //            aAppointmentsList.Add(aAppointment);
 
-                            SearchFlag = true;
-                            break;
-                        }
-                    }
+                //            SearchFlag = true;
+                //            break;
+                //        }
+                //    }
 
-                    if (ListEntityId != Guid.Empty && SearchFlag == false)
-                    {
-                        SetupAppointmentFromList(aAppointmentsList, aAppointmentEntity, ListEntityId, AppointmentType, CategoryId, LeaveId, LocationId);
-                    }
-                }
-                else
-                {
-                    // 如果是"教會行事曆"則一律要顯示
-                    Appointment aAppointment = SetupAppointment(aAppointmentEntity, AppointmentType, CategoryId, LeaveId, LocationId);
-                    aAppointmentsList.Add(aAppointment);
-                }
+                //    if (ListEntityId != Guid.Empty && SearchFlag == false)
+                //    {
+                //        SetupAppointmentFromList(aAppointmentsList, aAppointmentEntity, ListEntityId, AppointmentType, CategoryId, LeaveId, LocationId);
+                //    }
+                //}
+                //else
+                //{
+                //    // 如果是"教會行事曆"則一律要顯示
+                //    Appointment aAppointment = SetupAppointment(aAppointmentEntity, AppointmentType, CategoryId, LeaveId, LocationId);
+                //    aAppointmentsList.Add(aAppointment);
+                //}
+                #endregion
+
+                // 豐富教會版本是只有差勤簽核及場地預約，所以就"全部"都要顯示
+                Appointment aAppointment = SetupAppointment(aAppointmentEntity, AppointmentType, CategoryId, LeaveId, LocationId);
+                aAppointmentsList.Add(aAppointment);
+
                 #endregion
 
                 return;

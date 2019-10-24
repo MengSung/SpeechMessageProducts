@@ -2843,7 +2843,7 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                if (ScheduleType == "差勤簽核")
+                if ( ScheduleType == "差勤簽核" )
                 {
                     ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType; // 看是小組長還是個人回報
                     ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.ListManager.LoginFullName;
@@ -2869,8 +2869,8 @@ namespace ChurchReport.Controllers
                     }
                     ViewBag.SchedulerView = m_InMemoryDataContextSmallGroup.ListManager.SchedulerView;
                     ViewBag.DisplayNavigation = m_InMemoryDataContextSmallGroup.ListManager.DisplayNavigation;
-                    ViewBag.UserType = m_InMemoryDataContextSmallGroup.ListManager.UserType ;
-
+                    ViewBag.UserType = m_InMemoryDataContextSmallGroup.ListManager.UserType; // 是否是行政同工
+                    m_InMemoryDataContextSmallGroup.AppointmentsListManager.ScheduleType = ScheduleType; // 差勤簽核 OR 場地及資源預約
                     SetMultiGroupLayoutParameter();
                 }
                 else 
@@ -2899,7 +2899,8 @@ namespace ChurchReport.Controllers
                     }
                     ViewBag.SchedulerView = m_InMemoryDataContextSmallGroup.ListManager.SchedulerView;
                     ViewBag.DisplayNavigation = m_InMemoryDataContextSmallGroup.ListManager.DisplayNavigation;
-                    ViewBag.UserType = m_InMemoryDataContextSmallGroup.ListManager.UserType;
+                    ViewBag.UserType = m_InMemoryDataContextSmallGroup.ListManager.UserType; // 是否是行政同工
+                    m_InMemoryDataContextSmallGroup.AppointmentsListManager.ScheduleType = ScheduleType; // 差勤簽核 OR 場地及資源預約
                     SetMultiGroupLayoutParameter();
                 }
 
@@ -3529,7 +3530,7 @@ namespace ChurchReport.Controllers
                 ViewBag.MultiGroupIndex = "SingleMultiGroupView";
                 ViewBag.SchedulerView = m_InMemoryDataContextSmallGroup.ListManager.SchedulerView = "單純行事曆";
                 ViewBag.DisplayNavigation = m_InMemoryDataContextSmallGroup.ListManager.DisplayNavigation = "不顯示牧養回報項目";
-                ViewBag.UserType = m_InMemoryDataContextSmallGroup.ListManager.UserType = m_InMemoryDataContextSmallGroup.AppointmentsListManager.UserType;
+                ViewBag.UserType = m_InMemoryDataContextSmallGroup.ListManager.UserType = m_InMemoryDataContextSmallGroup.AppointmentsListManager.UserType;// 是否是行政同工
                 //ViewBag.Prop = SchedulerViewPatameter;
                 TempData["Proponent"] = SchedulerViewPatameter;
                 #endregion
@@ -3579,7 +3580,7 @@ namespace ChurchReport.Controllers
                 #region 控制 Navigation 下拉項目
                 ViewBag.SchedulerView = m_InMemoryDataContextSmallGroup.ListManager.SchedulerView = "單純行事曆";
                 ViewBag.DisplayNavigation = m_InMemoryDataContextSmallGroup.ListManager.DisplayNavigation = "不顯示牧養回報項目";
-                ViewBag.UserType = m_InMemoryDataContextSmallGroup.ListManager.UserType = m_InMemoryDataContextSmallGroup.AppointmentsListManager.UserType;
+                ViewBag.UserType = m_InMemoryDataContextSmallGroup.ListManager.UserType = m_InMemoryDataContextSmallGroup.AppointmentsListManager.UserType;// 是否是行政同工
                 #endregion
 
                 return Json(new { message = "歡迎" + "登入成功!" });
