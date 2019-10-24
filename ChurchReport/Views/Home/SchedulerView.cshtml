@@ -310,7 +310,8 @@
 
 
     async function initializeApp(data) {
-                //alert("測試002!") + data;
+        //alert("測試 initializeApp-001 : " + data);
+        liff.scanCode();
                 await liff.getProfile().then( function (profile) {
                 //document.getElementById('useridprofilefield').textContent = profile.userId;
                 //document.getElementById('displaynamefield').textContent = profile.displayName;
