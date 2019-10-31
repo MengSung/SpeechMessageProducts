@@ -3734,7 +3734,8 @@ namespace ChurchReport.Controllers
                 TempData["Proponent"] = QrCodeViewPatameter;
                 TempData["QrCodeId"] = QrCodeId;
                 //TempData["ClassName"] = "從懷疑到相信";
-                TempData["ClassName"] = m_InMemoryDataContextSmallGroup.LineBindingViewModel.LineUserId;
+                //TempData["ClassName"] = m_InMemoryDataContextSmallGroup.LineBindingViewModel.LineUserId;
+                TempData["ClassName"] = " ";
                 #endregion
 
                 return View();
