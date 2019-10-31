@@ -3710,6 +3710,103 @@ namespace ChurchReport.Controllers
         }
 
         #endregion
+        #region  QR Code (Line Tiff)
+        [Route("/Home/QrCodeView/{QrCodeViewPatameter}")]
+        public ActionResult QrCodeView(String QrCodeId, string QrCodeViewPatameter)
+        {
+            try
+            {
+                #region 控制 Navigation 下拉項目
+                ViewBag.LoginType = "小組長"; // 看是小組長還是個人回報
+                ViewBag.LoginFullName = "耶穌";
+                ViewBag.FeeType = "有繳費點名";
+                ViewBag.FeeDataListCount = "繳費與點名尚無資料";
+                ViewBag.HappyType = "沒幸福小組名單";
+                ViewBag.MultiGroupIndex = "SingleMultiGroupView";
+                ViewBag.SchedulerView = m_InMemoryDataContextSmallGroup.ListManager.SchedulerView = "單純行事曆";
+                ViewBag.DisplayNavigation = m_InMemoryDataContextSmallGroup.ListManager.DisplayNavigation = "不顯示牧養回報項目";
+                ViewBag.UserType = m_InMemoryDataContextSmallGroup.ListManager.UserType = m_InMemoryDataContextSmallGroup.AppointmentsListManager.UserType;// 是否是行政同工
+
+                m_InMemoryDataContextSmallGroup.ListManager.QrCodeId = QrCodeId;
+
+                //ViewBag.Prop = SchedulerViewPatameter;
+                // 傳遞參數給網頁
+                TempData["Proponent"] = QrCodeViewPatameter;
+                TempData["QrCodeId"] = QrCodeId;
+                //TempData["ClassName"] = "從懷疑到相信";
+                TempData["ClassName"] = m_InMemoryDataContextSmallGroup.LineBindingViewModel.LineUserId;
+                #endregion
+
+                return View();
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會豐富教會 : 綁定錯誤 => " + ErrorString);
+
+                throw e;
+            }
+        }
+
+        [HttpPost]
+        public IActionResult QrCodeGetLineId(string UserLineId, string GroupId, string RoomId, string ViewType)
+        {
+            try
+            {
+                m_InMemoryDataContextSmallGroup.LineBindingViewModel.LineUserId = m_InMemoryDataContextSmallGroup.AppointmentsListManager.LineUserId = UserLineId;
+                m_InMemoryDataContextSmallGroup.LineBindingViewModel.RoomId = m_InMemoryDataContextSmallGroup.AppointmentsListManager.RoomId = RoomId;
+                m_InMemoryDataContextSmallGroup.LineBindingViewModel.GroupId = m_InMemoryDataContextSmallGroup.AppointmentsListManager.GroupId = GroupId;
+                m_InMemoryDataContextSmallGroup.LineBindingViewModel.ViewType = m_InMemoryDataContextSmallGroup.AppointmentsListManager.ViewType = ViewType;
+
+                if (GroupId != null && GroupId != "")
+                {
+                    m_InMemoryDataContextSmallGroup.LineBindingViewModel.DisplayId = GroupId;
+                }
+                else if (RoomId != null && RoomId != "")
+                {
+                    m_InMemoryDataContextSmallGroup.LineBindingViewModel.DisplayId = RoomId;
+                }
+                else
+                {
+                    m_InMemoryDataContextSmallGroup.LineBindingViewModel.DisplayId = UserLineId;
+                }
+
+                // 依據登入方式設定行事曆的帳密
+                m_InMemoryDataContextSmallGroup.AppointmentsListManager.m_Account = "LineIdLogin";
+                m_InMemoryDataContextSmallGroup.AppointmentsListManager.m_Password = m_InMemoryDataContextSmallGroup.LineBindingViewModel.LineUserId;
+
+                #region 控制 Navigation 下拉項目
+                ViewBag.SchedulerView = m_InMemoryDataContextSmallGroup.ListManager.SchedulerView = "單純行事曆";
+                ViewBag.DisplayNavigation = m_InMemoryDataContextSmallGroup.ListManager.DisplayNavigation = "不顯示牧養回報項目";
+                ViewBag.UserType = m_InMemoryDataContextSmallGroup.ListManager.UserType = m_InMemoryDataContextSmallGroup.AppointmentsListManager.UserType;// 是否是行政同工
+                #endregion
+
+                TempData["ClassName"] = "從相信到堅信";
+
+                //return Json(new { DisplayViewType = DisplayViewType, ActiveListId = m_InMemoryDataContextSmallGroup.ListManager.ActiveListId, message = "歡迎" + FullName + "登入成功!", fullname = FullName, account = aGalleryViewModel.Account, password = aGalleryViewModel.Password });
+                return Json(new { message = "歡迎" + m_InMemoryDataContextSmallGroup.ListManager.QrCodeId + "登入成功!" });
+
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台中思恩堂豐富教會 : 綁定錯誤 => " + ErrorString);
+
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
+                throw e;
+            }
+        }
+
+        #endregion
         #region Line Tiff 奉獻
         public ActionResult DedicationView()
         {
