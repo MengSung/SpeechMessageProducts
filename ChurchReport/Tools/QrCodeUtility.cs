@@ -18,6 +18,8 @@ using Microsoft.Xrm.Sdk.Messages;
 using ToolUtilityNameSpace;
 using System.Text.RegularExpressions;
 using ChurchReport.Models;
+using ToolUtility;
+using Line.Messaging;
 #endregion
 
 namespace ChurchReport.Tools
@@ -28,65 +30,127 @@ namespace ChurchReport.Tools
         #region 參數資料
         private ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
         //ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("CRM2011");
+        private LineMessagingClient m_LineMessagingClient { get; set; }
 
-        private LineNotifyUtility m_LineNotifyUtility = new LineNotifyUtility();
+        private PushUtility m_PushUtility { get; set; }
 
-        private static Regex DigitsOnly = new Regex(@"[^\d]");
-
-        private Dictionary<String, String> m_FeedBackReport = new Dictionary<string, string>();
-
-        bool m_SetIdentityFlag = false;
-        #endregion
-        #region 常數參數
-
-        //private const String CRM_TYPE = "CRM2011";
-        private const String CRM_TYPE = "DYNAMICS365";
-
-        private const bool TRANSFER_IDENTITY_FLAG = false;
-
-        //private const int MONTH_PERIOD = 2;      //幾個月內出席超過這次數就會改變委身類型=>小組組員
-        private const int WEEK_PERIOD = 8;      //過去幾　WEEK_PERIOD　周內出席超過這次數就會改變委身類型=>小組組員
-        private const int MINIMUM_THRESHOLD = 4;      //2個月內出席超過這次數就會改變委身類型=>小組組員
-
-        #region 除錯用參數
-        private const int TOTAL_LEVEL = 1;//改變這個值，就會改追蹤的階層，值越小越不會追蹤，若是 TOTAL_LEVEL = 3 ，則大於 3 的 LEVEL，例如 : LEVEL_4、LEVEL_5 就不會被追蹤
-        //private const int TOTAL_LEVEL = 5;//改變這個值，就會改追蹤的階層，值越大越會追蹤，若是 TOTAL_LEVEL = 3 ，則大於 3 的 LEVEL，例如 : LEVEL_4、LEVEL_5 就不會被追蹤
-        private const int LEVEL_1 = 1; // 比較容易被看到的，可能是比較大範圍的部分
-        private const int LEVEL_2 = 2;
-        private const int LEVEL_3 = 3;
-        private const int LEVEL_4 = 4;
-        private const int LEVEL_5 = 5; // 比較不會被看到的，可能是比較細節的部分
-        // 如果 TRACE_LEVEL >= TRACE_LEVEL_GROUND 就會進行追蹤
-        // 如果 TRACE_LEVEL < TRACE_LEVEL_GROUND 就不會進行追蹤
-        //int TRACE_LEVEL = 5;
-        //int TRACE_LEVEL_GROUND = 3;
-        #endregion
+        // 客製化
+        // 音訊教會
+        private const String CHANNEL_ACCESS_TOKEN = @"k4/gFG2xonyaewMi8NIPgYdqpcIDnixEpemNIEswwFPzltmlm2kGB6i+uuvvmBaxg9l8wXympy37Y2h7ueq6ECUhTGyBovUXyqgH6lF6aa5R757vsN7sRX7o03dx7tPbj5J5dICcR1JRbvBvxvZ3KQdB04t89/1O/w1cDnyilFU=";
 
         #endregion
         #endregion
-
-        public void SetupQrCodeIdString( String QrCodeIdString , String UserLineId, ref String ClassName, ref String UserName, ref String ClassIndex , ref String OnboardType)
+        public QrCodeUtility()
         {
-            Entity aContact = this.m_ToolUtilityClass.RetrieveContactEntityByLineUserId(UserLineId);
-            UserName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContact, "fullname");
+            // 客製化，請選擇
+            // 音訊教會(免費版)
+            this.m_LineMessagingClient = new LineMessagingClient(CHANNEL_ACCESS_TOKEN);
 
-            string[] arr = QrCodeIdString.Split('_');
-            Guid aGuid = new Guid(arr[0]);
-            Entity aLesson = this.m_ToolUtilityClass.RetrieveEntity("new_disciple_lessons", aGuid);
-            ClassName = this.m_ToolUtilityClass.GetEntityStringAttribute(aLesson, "new_name");
-
-            ClassIndex = "第一堂課";
-
-            if (arr[2] == "On")
-            {
-                OnboardType = DateTime.Now.ToLocalTime().ToString() + " 簽到";
-            }
-            else
-            {
-                OnboardType = DateTime.Now.ToLocalTime().ToString() + " 簽退";
-            }
-            //SmallGroupLeaderContactId = ContactIdString;
+            // 客製化
+            m_PushUtility = new PushUtility(m_LineMessagingClient);
         }
+
+        public void SetupQrCodeIdString(String QrCodeIdString, String UserLineId, ref String ClassName, ref String UserName, ref String ClassIndex, ref String OnboardType)
+        {
+            try
+            {
+
+                Entity aContact = this.m_ToolUtilityClass.RetrieveContactEntityByLineUserId(UserLineId);
+                UserName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContact, "fullname");
+
+                string[] arr = QrCodeIdString.Split('_');
+                Guid aGuid = new Guid(arr[0]);
+                Entity aLesson = this.m_ToolUtilityClass.RetrieveEntity("new_disciple_lessons", aGuid);
+                ClassName = this.m_ToolUtilityClass.GetEntityStringAttribute(aLesson, "new_name");
+
+                ClassIndex = "第" + arr[1] + "堂課";
+                String ClassIndexcontent = this.m_ToolUtilityClass.GetEntityStringAttribute( ref aLesson, this.GetClassAttribute(arr[1])) ;
+                if (ClassIndexcontent != "")
+                {
+                    ClassIndex += "，" + ClassIndexcontent;
+                }
+                else
+                { }
+
+                if (arr[2] == "On")
+                {
+                    OnboardType = DateTime.Now.ToLocalTime().ToString() + " 簽到";
+                }
+                else
+                {
+                    OnboardType = DateTime.Now.ToLocalTime().ToString() + " 簽退";
+                }
+
+                String NotifyMessage = GetNotifyMessageString(ref ClassName, ref UserName, ref ClassIndex, ref OnboardType);
+
+                //m_LineMessagingClient.PushMessageAsync(UserLineId, NotifyMessage);
+
+                m_PushUtility.SendMessage(UserLineId, NotifyMessage);
+
+                //SmallGroupLeaderContactId = ContactIdString;
+            }
+            catch (System.Exception Exception)
+            {
+                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
+
+                throw Exception;
+            }
+        }
+
+        public String GetNotifyMessageString( ref String ClassName, ref String UserName, ref String ClassIndex, ref String OnboardType)
+        {
+
+            return  
+                "課程名稱: " + ClassName + Environment.NewLine +
+                "姓名: " + UserName + Environment.NewLine +
+                "課堂資訊: " + ClassIndex + Environment.NewLine +
+                OnboardType
+            ;
+        }
+        #region 選項轉換
+        #region 取得課堂欄位名稱
+
+        private String GetClassAttribute( String ClassIndex )
+        {
+            switch (ClassIndex)
+            {
+                case "1":
+                    return "new_l1_name";
+                case "2":
+                    return "new_l2_name";
+                case "3":
+                    return "new_l3_name";
+                case "4":
+                    return "new_l4_name";
+                case "5":
+                    return "new_l5_name";
+                case "6":
+                    return "new_l6_name";
+                case "7":
+                    return "new_l7_name";
+                case "8":
+                    return "new_l8_name";
+                case "9":
+                    return "new_l9_name";
+                case "10":
+                    return "new_l10_name";
+                case "11":
+                    return "new_l11_name";
+                case "12":
+                    return "new_l12_name";
+                case "13":
+                    return "new_l13_name";
+                case "14":
+                    return "new_l14_name";
+                case "15":
+                    return "new_l15_name";
+                default:
+                    return "new_l1_name";
+            }
+        }
+
+        #endregion
+        #endregion
 
     }
 }
