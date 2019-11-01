@@ -26,6 +26,7 @@ using System.IO;
 using System.Threading.Tasks;
 using ChurchReport.WebServiceConnector;
 using System.Globalization;
+using ChurchReport.Tools;
 
 namespace ChurchReport.Controllers
 {
@@ -3788,8 +3789,19 @@ namespace ChurchReport.Controllers
 
                 TempData["ClassName"] = "從相信到堅信";
 
+                QrCodeUtility aQrCodeUtility = new QrCodeUtility();
+
+                String ClassName = "";
+                String UserName = "";
+                String ClassIndex = "";
+                String OnboardType= "";
+
+                aQrCodeUtility.SetupQrCodeIdString(m_InMemoryDataContextSmallGroup.ListManager.QrCodeId, UserLineId, ref ClassName, ref UserName, ref ClassIndex, ref OnboardType);
+
+                //aQrCodeUtility.SetupQrCodeIdString(m_InMemoryDataContextSmallGroup.ListManager.QrCodeId);
+
                 //return Json(new { DisplayViewType = DisplayViewType, ActiveListId = m_InMemoryDataContextSmallGroup.ListManager.ActiveListId, message = "歡迎" + FullName + "登入成功!", fullname = FullName, account = aGalleryViewModel.Account, password = aGalleryViewModel.Password });
-                return Json(new { message = "歡迎" + m_InMemoryDataContextSmallGroup.ListManager.QrCodeId + "登入成功!" });
+                return Json(new { message = "歡迎" + m_InMemoryDataContextSmallGroup.ListManager.QrCodeId + "登入成功!" , classname = ClassName , username = UserName, classindex = ClassIndex , onboardtype = OnboardType });
 
             }
             catch (System.Exception e)
