@@ -1999,10 +1999,13 @@ namespace ToolUtilityNameSpace
         /// <param name="StartDate"></param>
         /// <param name="EndDate"></param>
         /// <returns></returns>
-        public EntityCollection RetrieveStorLessonsByFetchXml( String ContactName, String ContactId)
+        public EntityCollection RetrieveStorLessonsByFetchXml(String LessonName, String LessonId, String ContactName, String ContactId)
         {
             try
             {
+                LessonName = @"'" + LessonName + @"'";
+                LessonId = @"'{" + LessonId + @"}'";
+
                 ContactName = @"'" + ContactName + @"'";
                 ContactId = @"'{" + ContactId + @"}'";
 
@@ -2019,8 +2022,8 @@ namespace ToolUtilityNameSpace
                         <order attribute='new_new_disciple_lessons_new_stor_les' descending='false' />
                         <order attribute='new_contact_new_stor_lessons' descending='false' />
                         <filter type='and'>
-                          <condition attribute='new_new_disciple_lessons_new_stor_les' operator='eq' uiname='福音茶會' uitype='new_disciple_lessons' value='{EE3F978E-2380-E811-80D5-00155D006913}' />
-                          <condition attribute='new_contact_new_stor_lessons' operator='eq' uiname='蔡麗娟' uitype='contact' value='{688ACA70-0AA8-E711-80E0-00155D00640B}' />
+                          <condition attribute='new_new_disciple_lessons_new_stor_les' operator='eq' uiname=" + LessonName + @" uitype ='new_disciple_lessons' value=" + LessonId + @" />
+                          <condition attribute='new_contact_new_stor_lessons' operator='eq' uiname=" + ContactName + @" uitype ='contact' value=" + ContactId + @" />
                         </filter>
                         <link-entity name='contact' from='contactid' to='new_contact_new_stor_lessons' visible='false' link-type='outer' alias='a_45d999afd4cc4001b091647bb91668ef'>
                           <attribute name='telephone2' />
