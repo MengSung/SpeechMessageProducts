@@ -1991,7 +1991,73 @@ namespace ToolUtilityNameSpace
                 throw e;
             }
         }
+        #endregion
+        #region 取得上課紀錄單
+        /// <summary>
+        /// 特定連絡人已報名的課程
+        /// </summary>
+        /// <param name="StartDate"></param>
+        /// <param name="EndDate"></param>
+        /// <returns></returns>
+        public EntityCollection RetrieveStorLessonsByFetchXml( String ContactName, String ContactId)
+        {
+            try
+            {
+                ContactName = @"'" + ContactName + @"'";
+                ContactId = @"'{" + ContactId + @"}'";
 
+                var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+                      <entity name='new_stor_lessons'>
+                        <attribute name='createdon' />
+                        <attribute name='new_contact_new_stor_lessons' />
+                        <attribute name='new_absence_record' />
+                        <attribute name='new_fee' />
+                        <attribute name='new_pay_date' />
+                        <attribute name='new_classification' />
+                        <attribute name='new_new_disciple_lessons_new_stor_les' />
+                        <attribute name='new_stor_lessonsid' />
+                        <order attribute='new_new_disciple_lessons_new_stor_les' descending='false' />
+                        <order attribute='new_contact_new_stor_lessons' descending='false' />
+                        <filter type='and'>
+                          <condition attribute='new_new_disciple_lessons_new_stor_les' operator='eq' uiname='福音茶會' uitype='new_disciple_lessons' value='{EE3F978E-2380-E811-80D5-00155D006913}' />
+                          <condition attribute='new_contact_new_stor_lessons' operator='eq' uiname='蔡麗娟' uitype='contact' value='{688ACA70-0AA8-E711-80E0-00155D00640B}' />
+                        </filter>
+                        <link-entity name='contact' from='contactid' to='new_contact_new_stor_lessons' visible='false' link-type='outer' alias='a_45d999afd4cc4001b091647bb91668ef'>
+                          <attribute name='telephone2' />
+                          <attribute name='address2_line1' />
+                          <attribute name='parentcustomerid' />
+                          <attribute name='mobilephone' />
+                          <attribute name='emailaddress1' />
+                        </link-entity>
+                      </entity>
+                    </fetch>";
+
+
+                RetrieveMultipleRequest fetchRequest1 = new RetrieveMultipleRequest
+                {
+                    Query = new FetchExpression(fetchXml)
+                };
+
+                EntityCollection retrieved;
+                if (CRM_TYPE == "DYNAMICS365")
+                {
+                    retrieved = ((RetrieveMultipleResponse)this.m_OrganizationService.Execute(fetchRequest1)).EntityCollection;
+                }
+                else
+                {
+                    retrieved = ((RetrieveMultipleResponse)this.m_Crm2011OrganizationService.Execute(fetchRequest1)).EntityCollection;
+                }
+
+
+                return retrieved;
+                //}
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                throw e;
+            }
+        }
         #endregion
         #endregion
         #region 搜尋 N:1 的集合
@@ -3278,7 +3344,6 @@ namespace ToolUtilityNameSpace
                 throw e;
             }
         }
-
         #endregion
         #region 搜尋 N:N( ManyToMany) 的集合
 

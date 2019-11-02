@@ -54,15 +54,17 @@ namespace ChurchReport.Tools
         {
             try
             {
-
+                // 取得掃描者全名
                 Entity aContact = this.m_ToolUtilityClass.RetrieveContactEntityByLineUserId(UserLineId);
                 UserName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContact, "fullname");
 
+                // 取得課程
                 string[] arr = QrCodeIdString.Split('_');
                 Guid aGuid = new Guid(arr[0]);
                 Entity aLesson = this.m_ToolUtilityClass.RetrieveEntity("new_disciple_lessons", aGuid);
                 ClassName = this.m_ToolUtilityClass.GetEntityStringAttribute(aLesson, "new_name");
 
+                // 取得堂數
                 ClassIndex = "第" + arr[1] + "堂課";
                 String ClassIndexcontent = this.m_ToolUtilityClass.GetEntityStringAttribute( ref aLesson, this.GetClassAttribute(arr[1])) ;
                 if (ClassIndexcontent != "")
@@ -72,6 +74,7 @@ namespace ChurchReport.Tools
                 else
                 { }
 
+                // 取得簽到簽退時間
                 if (arr[2] == "On")
                 {
                     OnboardType = DateTime.Now.ToLocalTime().ToString() + " 簽到";
@@ -85,6 +88,10 @@ namespace ChurchReport.Tools
 
                 //m_LineMessagingClient.PushMessageAsync(UserLineId, NotifyMessage);
 
+                // 在上課紀錄單簽到退
+                SetSigningLesson(aLesson, arr[1], arr[2]);
+
+                // 送出 LINE 訊息
                 m_PushUtility.SendMessage(UserLineId, NotifyMessage);
 
                 //SmallGroupLeaderContactId = ContactIdString;
@@ -97,20 +104,45 @@ namespace ChurchReport.Tools
             }
         }
 
-        public String GetNotifyMessageString( ref String ClassName, ref String UserName, ref String ClassIndex, ref String OnboardType)
+        public String GetNotifyMessageString( ref String ClassName, ref String UserName, ref String ClassIndex, ref String OnboardType )
         {
+            try
+            {
+                return
+                    "課程名稱: " + ClassName + Environment.NewLine +
+                    "姓名: " + UserName + Environment.NewLine +
+                    "課堂資訊: " + ClassIndex + Environment.NewLine +
+                    OnboardType;
+            }
+            catch (System.Exception Exception)
+            {
+                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
 
-            return  
-                "課程名稱: " + ClassName + Environment.NewLine +
-                "姓名: " + UserName + Environment.NewLine +
-                "課堂資訊: " + ClassIndex + Environment.NewLine +
-                OnboardType
-            ;
+                throw Exception;
+            }
         }
-        #region 選項轉換
+        #region 設定簽到簽退
+        public bool SetSigningLesson(Entity aLesson, String ClassIndex, String OnboardType)
+        {
+            try
+            {
+                // 取得與課程相關的上課紀錄
+                //EntityCollection aStorLessonsEntityCollection = m_ToolUtilityClass.QueryEntityList("new_disciple_lessons", "new_disciple_lessonsid", aLesson.Id.ToString(), "new_new_disciple_lessons_new_stor_les", "new_stor_lessons");
+                EntityCollection aStorLessonsEntityCollection = m_ToolUtilityClass.RetrieveStorLessonsByFetchXml("ContactName", "ContactId" );
+                
+                return true;
+            }
+            catch (System.Exception Exception)
+            {
+                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
+
+                throw Exception;
+            }
+        }
+        #endregion
         #region 取得課堂欄位名稱
 
-        private String GetClassAttribute( String ClassIndex )
+        private String GetClassAttribute(String ClassIndex)
         {
             switch (ClassIndex)
             {
@@ -150,7 +182,5 @@ namespace ChurchReport.Tools
         }
 
         #endregion
-        #endregion
-
     }
 }
