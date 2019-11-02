@@ -128,6 +128,13 @@ namespace ChurchReport.Tools
                 else
                 {
                     // 沒找到上課紀錄單
+
+                    // 待完成.....
+                    // 建立一個上課紀錄單
+                    // Entity CreatededStorLessons = this.CreateStorLessons(.....);
+
+                    // SigningProcess(CreatededStorLessons, ClassIndex, OnboardType);
+
                     return false;
                 }
             }
