@@ -151,22 +151,14 @@ namespace ChurchReport.Tools
             {
                 // 取得上課紀錄單
                 String SigningTimeAttribute = this.GetStorLessonsTimeAttribute(ClassIndex, OnboardType);
-
+                String SigningPresentAttribute = "new_" + ClassIndex + "_present";
                 if (OnboardType == "On")
                 {
                     // 簽到
                     DateTime aSigningTime = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aRetrievedStorLessons, SigningTimeAttribute);
                     if ( aSigningTime.Year <= 1)
                     {
-                        m_SigningTime = DateTime.Now;
-                        this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aRetrievedStorLessons, SigningTimeAttribute, m_SigningTime);
-                        this.m_ToolUtilityClass.UpdateEntity(ref aRetrievedStorLessons);
-
-                        // 送出 LINE 訊息
-                        String NotifyMessage = GetNotifyMessageString();
-                        //m_LineMessagingClient.PushMessageAsync(UserLineId, NotifyMessage);
-                        m_PushUtility.SendMessage( m_UserLineId, NotifyMessage);
-
+                        SetStorLessonsTimeAttribute(aRetrievedStorLessons, SigningTimeAttribute, SigningPresentAttribute);
                     }
                     else
                     {
@@ -179,18 +171,8 @@ namespace ChurchReport.Tools
                 else
                 {
                     // 簽退
-                    m_SigningTime = DateTime.Now;
-                    this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aRetrievedStorLessons, SigningTimeAttribute, m_SigningTime);
-                    this.m_ToolUtilityClass.UpdateEntity(ref aRetrievedStorLessons);
-
-                    // 送出 LINE 訊息
-                    String NotifyMessage = GetNotifyMessageString();
-                    //m_LineMessagingClient.PushMessageAsync(UserLineId, NotifyMessage);
-                    m_PushUtility.SendMessage(m_UserLineId, NotifyMessage);
-
+                    SetStorLessonsTimeAttribute(aRetrievedStorLessons, SigningTimeAttribute, SigningPresentAttribute);
                 }
-
-                
             }
             catch (System.Exception Exception)
             {
@@ -200,6 +182,31 @@ namespace ChurchReport.Tools
             }
         }
 
+        private void SetStorLessonsTimeAttribute(Entity aRetrievedStorLessons, String SigningTimeAttribute, String SigningPresentAttribute)
+        {
+            try
+            {
+                // 簽到或簽退
+                // 設定簽到或簽退時間
+                m_SigningTime = DateTime.Now;
+                // 填寫簽到時間
+                this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aRetrievedStorLessons, SigningTimeAttribute, m_SigningTime);
+                // 打勾出席
+                this.m_ToolUtilityClass.SetEntityBoolAttribute(ref aRetrievedStorLessons, SigningPresentAttribute, true);
+                this.m_ToolUtilityClass.UpdateEntity(ref aRetrievedStorLessons);
+
+                // 送出 LINE 訊息
+                String NotifyMessage = GetNotifyMessageString();
+                //m_LineMessagingClient.PushMessageAsync(UserLineId, NotifyMessage);
+                m_PushUtility.SendMessage(m_UserLineId, NotifyMessage);
+            }
+            catch (System.Exception Exception)
+            {
+                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
+
+                throw Exception;
+            }
+        }
         public String GetStorLessonsTimeAttribute(String ClassIndex, String OnboardType)
         {
             try
