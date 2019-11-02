@@ -41,6 +41,9 @@ namespace ChurchReport.Tools
         private String m_OnboardType = "";
         private Entity m_Lesson = null;
 
+        private String m_ClassIndexInfo = "";
+        private String m_OnboardTypeInfo = "";
+
         private DateTime m_SigningTime;
         // 客製化
         // 音訊教會
@@ -88,6 +91,10 @@ namespace ChurchReport.Tools
 
                 // 在上課紀錄單進行簽到退
                 SigningLesson(m_Lesson, ClassName, UserName, aContact.Id.ToString(), m_ClassIndex, m_OnboardType);
+
+                ClassIndex = m_ClassIndexInfo ;
+
+                OnboardType = m_OnboardTypeInfo ;
 
             }
             catch (System.Exception Exception)
@@ -141,7 +148,8 @@ namespace ChurchReport.Tools
                 if (OnboardType == "On")
                 {
                     // 簽到
-                    if (this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aRetrievedStorLessons, SigningTimeAttribute).Year <= 1)
+                    DateTime aSigningTime = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aRetrievedStorLessons, SigningTimeAttribute);
+                    if ( aSigningTime.Year <= 1)
                     {
                         m_SigningTime = DateTime.Now;
                         this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aRetrievedStorLessons, SigningTimeAttribute, m_SigningTime);
@@ -155,10 +163,10 @@ namespace ChurchReport.Tools
                     }
                     else
                     {
-                        // 送出 LINE 訊息
-                        //String NotifyMessage = GetNotifyMessageString();
-                        //m_LineMessagingClient.PushMessageAsync(UserLineId, NotifyMessage);
-                        //m_PushUtility.SendMessage(m_UserLineId, NotifyMessage);
+                        String NotifyMessage = GetNotifyMessageString();
+
+                        m_OnboardTypeInfo = "已經在 " + aSigningTime.ToLocalTime().ToString() + " 簽到過了";
+
                     }
                 }
                 else
@@ -276,6 +284,9 @@ namespace ChurchReport.Tools
                     SigningTypeAndTime = m_SigningTime.ToLocalTime().ToString() + " 簽退";
                 }
 
+                m_ClassIndexInfo = LocalClassIndex;
+
+                m_OnboardTypeInfo = SigningTypeAndTime;
 
                 return
                     "課程名稱: " + m_ClassName + Environment.NewLine +
