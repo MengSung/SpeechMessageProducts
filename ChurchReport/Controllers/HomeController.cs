@@ -3796,6 +3796,8 @@ namespace ChurchReport.Controllers
                 String ClassIndex = "";
                 String OnboardType= "";
 
+                UserProfile aUserProfile = new UserProfile();
+
                 aQrCodeUtility.SetupQrCodeIdString(m_InMemoryDataContextSmallGroup.ListManager.QrCodeId, UserLineId, ref ClassName, ref UserName, ref ClassIndex, ref OnboardType);
 
                 //aQrCodeUtility.SetupQrCodeIdString(m_InMemoryDataContextSmallGroup.ListManager.QrCodeId);
