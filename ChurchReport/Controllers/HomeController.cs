@@ -2872,6 +2872,7 @@ namespace ChurchReport.Controllers
                     ViewBag.DisplayNavigation = m_InMemoryDataContextSmallGroup.ListManager.DisplayNavigation;
                     ViewBag.UserType = m_InMemoryDataContextSmallGroup.ListManager.UserType; // 是否是行政同工
                     m_InMemoryDataContextSmallGroup.AppointmentsListManager.ScheduleType = ScheduleType; // 差勤簽核 OR 場地及資源預約
+                    ViewBag.SchedulerDisplayType = "差勤簽核";
                     SetMultiGroupLayoutParameter();
                 }
                 else 
@@ -2902,6 +2903,7 @@ namespace ChurchReport.Controllers
                     ViewBag.DisplayNavigation = m_InMemoryDataContextSmallGroup.ListManager.DisplayNavigation;
                     ViewBag.UserType = m_InMemoryDataContextSmallGroup.ListManager.UserType; // 是否是行政同工
                     m_InMemoryDataContextSmallGroup.AppointmentsListManager.ScheduleType = ScheduleType; // 差勤簽核 OR 場地及資源預約
+                    ViewBag.SchedulerDisplayType = "場地簽核";
                     SetMultiGroupLayoutParameter();
                 }
 
@@ -3532,6 +3534,8 @@ namespace ChurchReport.Controllers
                 ViewBag.SchedulerView = m_InMemoryDataContextSmallGroup.ListManager.SchedulerView = "單純行事曆";
                 ViewBag.DisplayNavigation = m_InMemoryDataContextSmallGroup.ListManager.DisplayNavigation = "不顯示牧養回報項目";
                 ViewBag.UserType = m_InMemoryDataContextSmallGroup.ListManager.UserType = m_InMemoryDataContextSmallGroup.AppointmentsListManager.UserType;// 是否是行政同工
+                ViewBag.SchedulerDisplayType = SchedulerViewPatameter == "差勤簽核" ? "差勤簽核" : "場地簽核";
+
                 //ViewBag.Prop = SchedulerViewPatameter;
                 TempData["Proponent"] = SchedulerViewPatameter;
                 #endregion
@@ -3582,6 +3586,7 @@ namespace ChurchReport.Controllers
                 ViewBag.SchedulerView = m_InMemoryDataContextSmallGroup.ListManager.SchedulerView = "單純行事曆";
                 ViewBag.DisplayNavigation = m_InMemoryDataContextSmallGroup.ListManager.DisplayNavigation = "不顯示牧養回報項目";
                 ViewBag.UserType = m_InMemoryDataContextSmallGroup.ListManager.UserType = m_InMemoryDataContextSmallGroup.AppointmentsListManager.UserType;// 是否是行政同工
+                ViewBag.SchedulerDisplayType = m_InMemoryDataContextSmallGroup.AppointmentsListManager.UserType == "行政同工" ? "差勤簽核" : "場地簽核";
                 #endregion
 
                 return Json(new { message = "歡迎" + "登入成功!" });
