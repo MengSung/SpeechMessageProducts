@@ -281,14 +281,16 @@
     <script src="https://static.line-scdn.net/liff/edge/2.1/sdk.js"></script>
     <script src="~/js/liff-starter.js"></script>
     <script>
-
-       window.onload = function (e) {
+    window.onload = function (e) {
+            //var message = '@TempData["Proponent"]';           
+            //window.alert( "耶和華" + message);         
             liff.init(
-                { liffId: "1599197387-V6yx1ZE2" },
+                { liffId: '@TempData["Proponent"]' },
                 function (data) {
-                //debugger;
-                //alert("測試001!");
-                initializeApp(data);
+                    //debugger;
+                    //alert("測試 window.onload 001!");
+                    initializeApp(data);
+                    //alert("測試 window.onload 002!");
                 }
             );
         };
@@ -331,27 +333,20 @@
 
             //alert("初始化");
             getLoadPanelInstance().show();
-            GetQualificationData(data.context.userId, data.context.groupId, data.context.roomId, data.context.viewType);
 
-            liff.getProfile().then(function (profile) {
-                //document.getElementById('useridprofilefield').textContent = profile.userId;
-                //document.getElementById('displaynamefield').textContent = profile.displayName;
+            await liff.getProfile().then( function (profile) {
+                DisplayName = profile.displayName;
+                UserId = profile.userId;
+                //alert("測試 UserId =" + UserId);
+                GroupId= profile.aGroupId;
+                RoomId = profile.aRoomId;
+                ViewType = profile.aViewType;
+                //alert("測試004!" + DisplayName);
+                // 取得 UserId 的Ajax
+                GetQualificationData(data.context.userId, data.context.groupId, data.context.roomId, data.context.viewType);
 
                 document.getElementById('displaynamefield').innerHTML = profile.displayName + "基本資料";
-
-                DisplayName = profile.displayName;
-                //alert("測試003!" + profile.displayName);
             });
-
-            //UserProfile = liff.getProfile();
-
-            //alert("測試003!" + UserProfile.displayName);
-
-            //liff.getProfile().then(function (profile) {
-            //    document.getElementById('useridprofilefield').textContent = profile.userId;
-            //    //document.getElementById('displaynamefield').textContent = profile.displayName;
-            //    document.getElementById('displaynamefield').innerHTML = "不斷喜樂";
-            //}
         }
 
 

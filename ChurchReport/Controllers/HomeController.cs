@@ -310,7 +310,8 @@ namespace ChurchReport.Controllers
 
         #endregion
         #region Line Id Login 登入
-        public IActionResult LineIdLoginView()
+        [Route("/Home/LineIdLoginView/{LineIdLoginViewPatameter}")]
+        public IActionResult LineIdLoginView(string LineIdLoginViewPatameter)
         {
             try
             {
@@ -322,6 +323,8 @@ namespace ChurchReport.Controllers
                 images.Add(Url.Content("~/assets/images/tpehoc-009.jpg"));
 
                 m_InMemoryDataContextSmallGroup.LineBindingViewModel.Images = images;
+
+                TempData["Proponent"] = LineIdLoginViewPatameter;
 
                 return View(m_InMemoryDataContextSmallGroup.LineBindingViewModel);
 
@@ -3154,7 +3157,8 @@ namespace ChurchReport.Controllers
         }
         #endregion
         #region Line LIFF 綁定
-        public IActionResult LineLiffView()
+        [Route("/Home/LineLiffView/{LineLiffViewPatameter}")]
+        public IActionResult LineLiffView(string LineLiffViewPatameter)
         {
             try
             {
@@ -3167,6 +3171,8 @@ namespace ChurchReport.Controllers
                 images.Add(Url.Content("~/assets/images/tpehoc-009.jpg"));
 
                 m_InMemoryDataContextSmallGroup.LineBindingViewModel.Images = images;
+
+                TempData["Proponent"] = LineLiffViewPatameter;
 
                 return View(m_InMemoryDataContextSmallGroup.LineBindingViewModel);
             }
@@ -3236,7 +3242,6 @@ namespace ChurchReport.Controllers
             }
 
         }
-
         public Guid CreateLineMessage(string DisplayId, string UserId, string Message, int OptionSetValueOfMessageType)
         {
             try
@@ -3314,7 +3319,6 @@ namespace ChurchReport.Controllers
                 throw e;
             }
         }
-
         [Route("/Home/BindingResultView/{LineBindingResult}")]
         public IActionResult BindingResultView(string LineBindingResult)
         {
@@ -3331,8 +3335,6 @@ namespace ChurchReport.Controllers
 
             return View(m_InMemoryDataContextSmallGroup.LineBindingViewModel);
         }
-
-
         [HttpPost]
         public IActionResult SaveUserId(string UserLineId, string GroupId, string RoomId, string ViewType)
         {
@@ -3375,7 +3377,8 @@ namespace ChurchReport.Controllers
 
         #endregion
         #region Line 上課資格
-        public IActionResult QualificationView()
+        [Route("/Home/QualificationView/{QualificationViewPatameter}")]
+        public IActionResult QualificationView(string QualificationViewPatameter)
         {
             try
             {
@@ -3387,6 +3390,8 @@ namespace ChurchReport.Controllers
                 images.Add(Url.Content("~/assets/images/tpehoc-009.jpg"));
 
                 m_InMemoryDataContextSmallGroup.LineBindingViewModel.Images = images;
+
+                TempData["Proponent"] = QualificationViewPatameter;
 
                 return View(m_InMemoryDataContextSmallGroup.LineBindingViewModel);
             }
@@ -3828,7 +3833,8 @@ namespace ChurchReport.Controllers
 
         #endregion
         #region Line Tiff 奉獻
-        public ActionResult DedicationView()
+        [Route("/Home/DedicationView/{DedicationViewPatameter}")]
+        public ActionResult DedicationView(string DedicationViewPatameter)
         {
             try
             {
@@ -3843,6 +3849,8 @@ namespace ChurchReport.Controllers
                 ViewBag.UserType = m_InMemoryDataContextSmallGroup.ListManager.UserType = "行政同工";
 
                 DedicationModel DedicationModel = new DedicationModel();
+
+                TempData["Proponent"] = DedicationViewPatameter;
 
                 return View(DedicationModel);
 
