@@ -1,6 +1,5 @@
 ﻿@using ChurchReport.Models
 @model DedicationModel
-
 @*<div class="long-title"><h3>奉獻資訊</h3></div>*@
 
 <div class="long-title"><h3 id="displaynamefield"></h3></div>
@@ -226,17 +225,20 @@
             }
 </script>
 
-<script src="https://d.line-scdn.net/liff/1.0/sdk.js"></script>
 <script src="~/js/liff-starter.js"></script>
-
+@*<script src="https://d.line-scdn.net/liff/1.0/sdk.js"></script>*@
+<script src="https://static.line-scdn.net/liff/edge/2.1/sdk.js"></script>
 <script>
 
-        window.onload = function (e) {
-            liff.init(function (data) {
+       window.onload = function (e) {
+            liff.init(
+                { liffId: "1653527433-wWXylXE6" },
+                function (data) {
                 //debugger;
                 //alert("測試001!");
                 initializeApp(data);
-            });
+                }
+            );
         };
 
 

@@ -162,7 +162,7 @@
 
     </div>
 
-    <script src="https://d.line-scdn.net/liff/1.0/sdk.js"></script>
+
     <script src="~/js/liff-starter.js"></script>
 
     <script>
@@ -239,14 +239,19 @@
     <link href="~/css/Gallery.css" rel="stylesheet" />
     <link href="~/css/WeeklyReport.css" rel="stylesheet" />
 
+    @*<script src="https://d.line-scdn.net/liff/1.0/sdk.js"></script>*@
+    <script src="https://static.line-scdn.net/liff/edge/2.1/sdk.js"></script>
     <script>
 
-        window.onload = function (e) {
-            liff.init(function (data) {
+       window.onload = function (e) {
+            liff.init(
+                { liffId: "1653527433-1eOe3O6d" },
+                function (data) {
                 //debugger;
                 //alert("測試001!");
                 initializeApp(data);
-            });
+                }
+            );
         };
 
         //function GetDisplayName() {
@@ -284,7 +289,7 @@
             //document.getElementById('roomidfield').textContent = data.context.roomId;
             //document.getElementById('groupidfield').textContent = data.context.groupId;
 
-            debugger;
+            //debugger;
             //alert("測試002!" + data.context.userId);
 
             UpdateLineUserId(data.context.userId, data.context.groupId, data.context.roomId, data.context.viewType);
@@ -319,18 +324,18 @@
                        url: '@Url.Action("SaveUserId", "Home")',
                        data: { UserLineId: aUserLineId, GroupId: aGroupId, RoomId: aRoomId, ViewType: aViewType}, // 整理回傳給 Server 的點名資料
                        type: 'POST', //POST if you want to save, GET if you want to fetch data from server
-               
+
                        success: function (data)
                        {
                           //ShowToast(data.message, "success", 3000);
                           //getLoadPanelInstance().hide();
                           //document.getElementById('displaynamefield').innerHTML = data.message;
                        },
-               
+
                        error: function (obj)
                        {
                        }
-               
+
                    }
                );
                // AJAX 區塊

@@ -118,54 +118,54 @@
                                                     .Disabled(false)
                                                     .OnValueChanged
                                                     (@<text>
-                                                        function(e)
-                                                        {
-                                                        //debugger;
-                                                        //if( e.value != null )
-                                                        //{
-                                                        //debugger;
+                                                                function(e)
+                                                                {
+                                                                //debugger;
+                                                                //if( e.value != null )
+                                                                //{
+                                                                //debugger;
 
-                                                        //var PayDate = ParsingDate( e.value != null );
-                                                        var DateValue = e.component.option("value");
+                                                                //var PayDate = ParsingDate( e.value != null );
+                                                                var DateValue = e.component.option("value");
 
-                                                        if(DateValue != undefined)
-                                                        {
-                                                        var ParsedDateValue = ParsingDate(e.component.option("value"))
-                                                        //alert( "001: " + ParsedDateValue);
-                                                        //alert( "002: " + ParsedDateValue.getFullYear());
-                                                        if( ParsedDateValue.getFullYear() == 1901 )
-                                                        {
-                                                        //return null;
-                                                        //alert( "002: ");
-                                                        e.component.option("value", null);
-                                                        //return DateValue;
-                                                        }
-                                                        else
-                                                        {
-                                                        //alert( "003: ");
+                                                                if(DateValue != undefined)
+                                                                {
+                                                                var ParsedDateValue = ParsingDate(e.component.option("value"))
+                                                                //alert( "001: " + ParsedDateValue);
+                                                                //alert( "002: " + ParsedDateValue.getFullYear());
+                                                                if( ParsedDateValue.getFullYear() == 1901 )
+                                                                {
+                                                                //return null;
+                                                                //alert( "002: ");
+                                                                e.component.option("value", null);
+                                                                //return DateValue;
+                                                                }
+                                                                else
+                                                                {
+                                                                //alert( "003: ");
 
-                                                        //return e.value;
-                                                        }
-                                                        }
-                                                        //}
-                                                        //else
-                                                        //{return null;}
-                                                        }
+                                                                //return e.value;
+                                                                }
+                                                                }
+                                                                //}
+                                                                //else
+                                                                //{return null;}
+                                                                }
                                                     </text>)
-                                                            .ShowClearButton(true)
-                                                            .Placeholder("請填寫生日")
-                                                        );
+                                       .ShowClearButton(true)
+                                       .Placeholder("請填寫生日")
+                                   );
 
 
 
-                                                items.AddSimple()
-                                                .DataField("PersonalId")
-                                                .Label(l => l.Text("身分證字號"))
-                                                .Editor(e => e
-                                                    .TextBox().Placeholder("請填寫身分證字號")
-                                                    );
+                           items.AddSimple()
+                           .DataField("PersonalId")
+                           .Label(l => l.Text("身分證字號"))
+                           .Editor(e => e
+                               .TextBox().Placeholder("請填寫身分證字號")
+                               );
 
-                                        })
+                   })
                 )
             </div>
         </div>
@@ -214,8 +214,6 @@
 
     </div>
 
-    <script src="https://d.line-scdn.net/liff/1.0/sdk.js"></script>
-    <script src="~/js/liff-starter.js"></script>
 
     <script>
         function getLoadPanelInstance() {
@@ -266,7 +264,7 @@
             else {
                 DevExpress.ui.notify(data.message, "error", 5000);
                 window.location.href = "/Home/QualificationView/";
-       }
+            }
         }
 
         function onComplete(data) {
@@ -280,15 +278,19 @@
     <script src="~/lib/jquery-ajax-unobtrusive/jquery.unobtrusive-ajax.js"></script>
     <link href="~/css/Gallery.css" rel="stylesheet" />
     <link href="~/css/WeeklyReport.css" rel="stylesheet" />
-
+    <script src="https://static.line-scdn.net/liff/edge/2.1/sdk.js"></script>
+    <script src="~/js/liff-starter.js"></script>
     <script>
 
-        window.onload = function (e) {
-            liff.init(function (data) {
-                debugger;
-                //alert("載入頁面");
+       window.onload = function (e) {
+            liff.init(
+                { liffId: "1599197387-V6yx1ZE2" },
+                function (data) {
+                //debugger;
+                //alert("測試001!");
                 initializeApp(data);
-            });
+                }
+            );
         };
 
         //function GetDisplayName() {
