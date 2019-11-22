@@ -139,10 +139,13 @@ namespace ChurchReport.Controllers
                     // 設定多個組長處理需要的資料
                     m_InMemoryDataContextSmallGroup.ListManager.SetupListManager(aGalleryViewModel.Account, aGalleryViewModel.Password, DateTime.Now);
 
+                    // 差勤簽核 OR 場地及資源預約
+                    m_InMemoryDataContextSmallGroup.AppointmentsListManager.SetupAppointmentList();
+
                     #region 控制 Navigation 下拉項目
                     ViewBag.SchedulerView = m_InMemoryDataContextSmallGroup.ListManager.SchedulerView = "不是單純行事曆";
                     ViewBag.DisplayNavigation = m_InMemoryDataContextSmallGroup.ListManager.DisplayNavigation = "顯示牧養回報項目";
-                    ViewBag.UserType = m_InMemoryDataContextSmallGroup.ListManager.UserType ;
+                    ViewBag.UserType = m_InMemoryDataContextSmallGroup.ListManager.UserType = m_InMemoryDataContextSmallGroup.AppointmentsListManager.UserType;
                     #endregion
 
                     // 透過取得多小組網頁需要的資料之後，判斷這是多小組還是單一小組長的回報

@@ -611,6 +611,15 @@ namespace ChurchReport.WebServiceConnector
                 {
                     this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aAppointmentEntity, "new_replace_contact_appointment", "contact", aGuid);
                 }
+                else
+                {
+                    //沒有設代理人，但是仍要查看第二順位代理人
+                    aGuid = this.m_ToolUtilityClass.GetEntityLookupAttribute(m_ContactEntity, "new_second_replace_contact");
+                    if (aGuid != Guid.Empty)
+                    {
+                        this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aAppointmentEntity, "new_replace_contact_appointment", "contact", aGuid);
+                    }
+                }
                 #endregion
                 #region //設定主管
                 aGuid = this.m_ToolUtilityClass.GetEntityLookupAttribute(m_ContactEntity, "new_manager_contact");
@@ -1666,16 +1675,44 @@ namespace ChurchReport.WebServiceConnector
         private void SetUserType(ref String UserType)
         {
             // 找登入使用者及其ID
-            if (this.m_ToolUtilityClass.GetEntityLookupAttribute(ref this.m_ContactEntity, "new_replace_contact") != Guid.Empty && this.m_ToolUtilityClass.GetEntityLookupAttribute(ref this.m_ContactEntity, "new_manager_contact") != Guid.Empty)
+            if (this.m_ToolUtilityClass.GetEntityLookupAttribute(ref this.m_ContactEntity, "new_replace_contact") != Guid.Empty)
             {
-                UserType = "行政同工";
+                // 代理人有填
+                if (this.m_ToolUtilityClass.GetEntityLookupAttribute(ref this.m_ContactEntity, "new_manager_contact") != Guid.Empty)
+                {
+                    // 有填主管
+                    UserType = "行政同工";
+                }
+                else
+                {
+                    // 沒填主管
+                    UserType = "非行政同工";
+                }
             }
             else
             {
-                UserType = "非行政同工";
+                if (this.m_ToolUtilityClass.GetEntityLookupAttribute(ref this.m_ContactEntity, "new_second_replace_contact") != Guid.Empty)
+                {
+                    // 代理人沒填但是第二順位代理人都有填
+                    if (this.m_ToolUtilityClass.GetEntityLookupAttribute(ref this.m_ContactEntity, "new_manager_contact") != Guid.Empty)
+                    {
+                        // 有填主管
+                        UserType = "行政同工";
+                    }
+                    else
+                    {
+                        // 沒填主管
+                        UserType = "非行政同工";
+                    }
+
+                }
+                else
+                {
+                    // 代理人及第二順位代理人都沒填
+                    UserType = "非行政同工";
+                }
             }
         }
-
         #endregion
         #region 顯示出差勤休假統計
         public String GetAllAppointmentAsync(Entity aAppointmentEntity)
