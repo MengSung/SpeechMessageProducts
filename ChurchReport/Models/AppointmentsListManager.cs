@@ -35,7 +35,7 @@ namespace ChurchReport.Models
         {
             try
             {
-                if ( m_Account != "" || LineUserId != "" )
+                if (m_Account != "" || LineUserId != "")
                 {
                     if (m_PreviousDate == null || m_PreviousDate.Year == 1)
                     {
@@ -56,16 +56,17 @@ namespace ChurchReport.Models
                         else
                         {
                             // 沒變選擇的日期 
-                            if( m_SelectDate.Date == DateTime.Now.Date )
+                            if (m_SelectDate.Date == DateTime.Now.Date)
                             {
                                 SetupAppointment();
                             }
-                            else { }
+                            else
+                            {
+                                SetupAppointment();
+                            }
                         }
-
                     }
                 }
-
 
                 return m_Appointments;
             }
