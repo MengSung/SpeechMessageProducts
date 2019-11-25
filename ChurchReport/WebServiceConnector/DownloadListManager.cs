@@ -443,12 +443,14 @@ namespace ChurchReport.WebServiceConnector
                 // 初始化 m_Lists
                 // 共同組長 new_contact_list_vice_family_leader
                 //this.m_Lists = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_contact_list_vice_family_leader", "list");  // 共同組長
-                this.m_Lists = m_ToolUtilityClass.QueryListByContactId(m_ContactId, "new_contact_list_vice_family_leader");  // 共同組長
-                MergeCollectionSmallGroupAhead(ref this.m_Lists);
+                //this.m_Lists = m_ToolUtilityClass.QueryListByContactId(m_ContactId, "new_contact_list_vice_family_leader");  // 共同組長
+                //MergeCollectionSmallGroupAhead(ref this.m_Lists);
+                EntityCollection aListEntityCollection = m_ToolUtilityClass.QueryListByContactId(m_ContactId, "new_contact_list_vice_family_leader");  // 共同組長
+                MergeCollectionSmallGroupAhead(ref aListEntityCollection);
 
                 // 小組長/副組長 new_contact_family_leader_list
                 //EntityCollection aListEntityCollection = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_contact_family_leader_list", "list");  // 小組長/副組長
-                EntityCollection aListEntityCollection = m_ToolUtilityClass.QueryListByContactId(m_ContactId, "new_contact_family_leader_list");  // 小組長/副組長
+                aListEntityCollection = m_ToolUtilityClass.QueryListByContactId(m_ContactId, "new_contact_family_leader_list");  // 小組長/副組長
                 //aListEntityCollection = m_ToolUtilityClass.QueryListByContactId(m_ContactId, "new_contact_family_leader_list");  // 小組長/副組長
                 MergeCollectionSmallGroupAhead(ref aListEntityCollection);
 
