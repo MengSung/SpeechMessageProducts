@@ -14,6 +14,7 @@ namespace ChurchReport.ViewModels
 
         public String FirstName { get; set; }
         public String LastName { get; set; }
+        public String CustomerTypeCode { get; set; }//委身類型
         public String Gender { get; set; }
         public String Phone { get; set; }
         public String HomePhone { get; set; }

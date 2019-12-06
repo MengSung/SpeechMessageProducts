@@ -385,10 +385,10 @@ namespace ChurchReport.WebServiceConnector
                 {
                     // 有找到被關聯的小組名單
                     CreateNewContactPresentRecord(aListEntity, NewContactEntityId, aNewContact.GroupName, ref aNewContact);
+                    #region 關聯主要小組
+                    this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aNewContactEntity, "new_cell_list_contact", "list", aListEntity.Id);
+                    #endregion
                 }
-                #endregion
-                #region 關聯主要小組
-                this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aNewContactEntity, "new_cell_list_contact", "list", aListEntity.Id);
                 #endregion
                 #region 更新新建立的連絡人
                 aNewContactEntity = this.m_ToolUtilityClass.RetrieveEntity("contact", NewContactEntityId);
@@ -399,8 +399,11 @@ namespace ChurchReport.WebServiceConnector
 
                 String Result = LoginContactFullName + " 成功建立新人並且加入 " + aNewContact.Name + " 到 " + aNewContact.GroupName + "小組中";
 
-                this.m_LineNotifyUtility.SendAddNewPersonResultLine(Result, aListEntity);
-                this.m_LineNotifyUtility.SendListMemberLine(aListEntity);
+                if (aListEntity != null)
+                {
+                    this.m_LineNotifyUtility.SendAddNewPersonResultLine(Result, aListEntity);
+                    this.m_LineNotifyUtility.SendListMemberLine(aListEntity);
+                }
 
                 return Result;
             }
@@ -474,8 +477,8 @@ namespace ChurchReport.WebServiceConnector
             // 委身類型設定為新朋友
 
 
-            // 內壢得勝靈糧堂牧養新朋友稱呼代碼，跟音訊教會不一樣
-            //音訊教會
+            // 內壢得勝靈糧堂牧養新朋友稱呼代碼，跟台中思恩堂不一樣
+            //台中思恩堂
             if (aListEntityId != Guid.Empty)
             {
                 if (this.m_ToolUtilityClass.GetEntityStringAttribute(this.m_ToolUtilityClass.RetrieveEntity("list", aListEntityId), "listname").Contains("幸福"))
@@ -485,34 +488,61 @@ namespace ChurchReport.WebServiceConnector
                 }
                 else
                 {
-                    // 一般小組新增的新人，委身類型設為"新朋友"
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "customertypecode", 100000000);
+                    if (aNewContact.CustomerTypeCode == "小組組員")
+                    {
+                        // 一般小組新增的新人，委身類型設為"小組組員"
+                        this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "customertypecode", 1);
+                    }
+                    else if (aNewContact.CustomerTypeCode == "新朋友")
+                    {
+                        // 一般小組新增的新人，委身類型設為"新朋友"
+                        this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "customertypecode", 100000000);
+                    }
+                    else
+                    {
+                        // 一般小組新增的新人，委身類型設為"新朋友"
+                        this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "customertypecode", 100000000);
+                    }
                 }
             }
             else
             {
-                // 一般小組新增的新人，委身類型設為"新朋友"
-                this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "customertypecode", 100000000);
+                if (aNewContact.CustomerTypeCode == "小組組員")
+                {
+                    // 一般小組新增的新人，委身類型設為"小組組員"
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "customertypecode", 1);
+                }
+                else if (aNewContact.CustomerTypeCode == "新朋友")
+                {
+                    // 一般小組新增的新人，委身類型設為"新朋友"
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "customertypecode", 100000000);
+                }
+                else
+                {
+                    // 一般小組新增的新人，委身類型設為"新朋友"
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "customertypecode", 100000000);
+                }
             }
             // 內壢得勝靈糧堂
             //this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "customertypecode", 100000009);
 
             // 生日
-            if (aNewContact.BirthDate.Year > 1900)
+            if (aNewContact.BirthDate.Year != 1919)
             {
                 this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aNewContactEntity, "birthdate", aNewContact.BirthDate);
             }
             // 進教會日期
-            if (aNewContact.FirstChurchDate.Year > 1900)
+            if (aNewContact.FirstChurchDate.Year != 1919)
             {
                 this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aNewContactEntity, "new_enter_church_date", aNewContact.FirstChurchDate);
             }
 
-            // 性別，音訊教會
-            if (aNewContact.Gender)
+            // 性別，台中思恩堂
+            if (aNewContact.Gender == "男性")
             { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "gendercode", 200000); }
-            else
+            else if (aNewContact.Gender == "女性")
             { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "gendercode", 200001); }
+            else { }
 
             // 內壢得勝靈糧堂性別值，跟音訊教會不一樣
             //if (aNewContact.Gender)
@@ -607,7 +637,16 @@ namespace ChurchReport.WebServiceConnector
                 this.FindListCollection();
 
                 // 找到要被關聯的小組名單集合
-                return FindListByName(GroupName);
+                Entity FoundListEntity = FindListByName(GroupName);
+
+                if (FoundListEntity != null)
+                {
+                    return FoundListEntity;
+                }
+                else
+                {
+                    return this.m_ToolUtilityClass.RetrieveListEntityByName(GroupName);
+                }
             }
             catch (System.Exception e)
             {
@@ -1107,11 +1146,15 @@ namespace ChurchReport.WebServiceConnector
                 {
                     aFollowUpHistoryReport += "性別:男性" + Environment.NewLine;
                 }
-                else
+                else if (Gender == 200001)
                 {
                     aFollowUpHistoryReport += "性別:女性" + Environment.NewLine;
-
                 }
+                else
+                {
+                    aFollowUpHistoryReport += "性別:未知" + Environment.NewLine;
+                }
+                #endregion
                 #endregion
                 #region// 首次進入教會日期
                 try
@@ -1273,12 +1316,15 @@ namespace ChurchReport.WebServiceConnector
                 {
                     aFollowUpHistoryReport += "性別:男性" + Environment.NewLine;
                 }
-                else
+                else if (Gender == 200001)
                 {
                     aFollowUpHistoryReport += "性別:女性" + Environment.NewLine;
-
                 }
-                #endregion
+                else
+                {
+                    aFollowUpHistoryReport += "性別:未知" + Environment.NewLine;
+                }
+
                 #region// 首次進入教會日期
                 try
                 {

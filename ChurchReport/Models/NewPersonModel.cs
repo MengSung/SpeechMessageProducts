@@ -16,12 +16,12 @@ namespace ChurchReport.Models
             ID = 1,
             FirstName = "張",
             LastName = "",
-            Gender = "男性",
+            Gender = "未知",
             Phone = "",
             HomePhone = "",
             Position = "",
             MerrageState="未知",
-            BirthDate = DateTime.Parse("1975/01/1"),
+            BirthDate = DateTime.Parse("1919/01/1"),
             GroupArray = new List<String> (),
             //HireDate = DateTime.Parse("2017/08/25"),
             HireDate = DateTime.Now,
@@ -71,6 +71,7 @@ namespace ChurchReport.Models
         {
             m_PersonFormViewModel.FirstName = aPersonFormViewModel.FirstName;
             m_PersonFormViewModel.LastName = aPersonFormViewModel.LastName;
+            m_PersonFormViewModel.CustomerTypeCode = aPersonFormViewModel.CustomerTypeCode;
             m_PersonFormViewModel.Gender = aPersonFormViewModel.Gender;
             m_PersonFormViewModel.Phone = aPersonFormViewModel.Phone;
             m_PersonFormViewModel.HomePhone = aPersonFormViewModel.HomePhone;
@@ -107,14 +108,18 @@ namespace ChurchReport.Models
             m_NewContact.Industry           = aPersonFormViewModel.Industry;
 
             // 性別
-            if (aPersonFormViewModel.Gender == "男性")
-            {
-                m_NewContact.Gender = true;
-            }
-            else
-            {
-                m_NewContact.Gender = false;
-            }
+            m_NewContact.Gender = aPersonFormViewModel.Gender;
+            //if (aPersonFormViewModel.Gender == "男性")
+            //{
+            //    m_NewContact.Gender = true;
+            //}
+            //else
+            //{
+            //    m_NewContact.Gender = false;
+            //}
+
+            // 委身類型
+            m_NewContact.CustomerTypeCode = aPersonFormViewModel.CustomerTypeCode;
 
             // "未知", "已婚", "未婚", "離異", "喪偶","單身"
             m_NewContact.MerrageState = aPersonFormViewModel.MerrageState;

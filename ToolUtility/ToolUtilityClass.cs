@@ -2062,6 +2062,56 @@ namespace ToolUtilityNameSpace
             }
         }
         #endregion
+        #region 取得名單
+        public Entity RetrieveListEntityByName(String ListName)
+        {
+            try
+            {
+                //lock (m_RetrieveContactLocker)
+                //{
+                //  Create query using querybyattribute
+                //Console.WriteLine("除錯 001");
+
+                QueryByAttribute querybyexpression = new QueryByAttribute("list");
+                querybyexpression.ColumnSet = new ColumnSet();
+                querybyexpression.ColumnSet.AllColumns = true;
+                //  Attribute to query
+                querybyexpression.Attributes.AddRange("listname", "statecode");
+                //  Value of queried attribute to return
+                querybyexpression.Values.AddRange(ListName, 0);
+
+                //Console.WriteLine("除錯 002");
+                //  Query passed to the service proxy
+                EntityCollection retrieved;
+                if (CRM_TYPE == "DYNAMICS365")
+                {
+                    retrieved = this.m_OrganizationService.RetrieveMultiple(querybyexpression);
+                }
+                else
+                {
+                    retrieved = this.m_Crm2011OrganizationService.RetrieveMultiple(querybyexpression);
+                }
+
+                String ContactInformation = "";
+
+                //Console.WriteLine("除錯 003");
+                if (retrieved.Entities.Count > 0 && retrieved != null)
+                {
+                    return retrieved.Entities[0];
+                }
+                else
+                {
+                    return null;
+                }
+                //}
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                throw e;
+            }
+        }
+        #endregion
         #endregion
         #region 搜尋 N:1 的集合
         //private readonly object m_QueryManyToOneLocker = new object();

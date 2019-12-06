@@ -484,11 +484,20 @@ namespace ChurchReport.Models.CrmTransmitModule
             set { m_Address = value; }
         }
 
-        bool m_Gender = false;
-        public bool Gender
+        // 性別
+        String m_Gender = "未知";
+        public String Gender
         {
             get { return m_Gender; }
             set { m_Gender = value; }
+        }
+
+        // 委身類型
+        String m_CustomerTypeCode = "小組組員";
+        public String CustomerTypeCode
+        {
+            get { return m_CustomerTypeCode; }
+            set { m_CustomerTypeCode = value; }
         }
 
         DateTime m_BirthDate;
