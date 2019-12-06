@@ -159,7 +159,7 @@ namespace ChurchReport.Models
                     //BirthDate = aPersonFormViewModel.BirthDate,
                     Address = aPersonFormViewModel.Address,
                     //Gender = aPersonFormViewModel.Gender,
-                    Status = "新朋友",
+                    Status = aPersonFormViewModel.CustomerTypeCode,
                     SmallGroupName = aGroupName,
                     SectionName = aGroupName,
                     PrayItem = aPersonFormViewModel.Notes,
@@ -175,14 +175,18 @@ namespace ChurchReport.Models
 
                 };
 
-                // 新增新朋友時，導入階段希望先設定為"小組組員"
-                //m_SmallGroupData.DisplayFlag = true;
-                //m_SmallGroupData.Members.Add(aMember);
-
-                // 新增新朋友時，導入成功後設定為"新朋友"
-                m_NewPersonFollowUpData.DisplayFlag = true;
-                m_NewPersonFollowUpData.Members.Add(aMember);
-
+                if (aPersonFormViewModel.CustomerTypeCode == "小組組員")
+                {
+                    // 新增新朋友時，導入階段希望先設定為"小組組員"
+                    m_SmallGroupData.DisplayFlag = true;
+                    m_SmallGroupData.Members.Add(aMember);
+                }
+                else
+                {
+                    // 新增新朋友時，導入成功後設定為"新朋友"
+                    m_NewPersonFollowUpData.DisplayFlag = true;
+                    m_NewPersonFollowUpData.Members.Add(aMember);
+                }
                 // 加入至"維護基本資料"用
                 m_AllMemeberData.Members.Add(aMember);
 
