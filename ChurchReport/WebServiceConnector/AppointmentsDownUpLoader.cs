@@ -1272,14 +1272,32 @@ namespace ChurchReport.WebServiceConnector
         {
             try
             {
+                //設定"簽核內容"
                 #region 建立出差勤及場地預約的本文訊息
                 String Content = "";
                 String LineId = "";
-                
 
                 if (SigningType == "請假簽核")
                 {
                     Content = "申請人: " + this.m_ToolUtilityClass.GetEntityStringAttribute(ref m_ContactEntity, "fullname") + Environment.NewLine;
+
+                    #region //設定代理人
+                    String aReplaceContact = this.m_ToolUtilityClass.GetEntityLookupDisplayName( ref m_ContactEntity, "new_replace_contact");
+                    if (aReplaceContact != "" )
+                    {
+                        Content += "代理人: " + aReplaceContact + Environment.NewLine;
+                    }
+                    else
+                    {
+                        //沒有設代理人，但是仍要查看第二順位代理人
+                        aReplaceContact = this.m_ToolUtilityClass.GetEntityLookupDisplayName( ref m_ContactEntity, "new_second_replace_contact");
+                        if ( aReplaceContact != "")
+                        {
+                            Content += "代理人: " + aReplaceContact + Environment.NewLine;
+                        }
+                    }
+                    #endregion
+
                     String Leave = this.ConvertLeaveIdToAppointmentType((int)aAppointment.LeaveId);
                     Content += "請假假由: " + Leave + Environment.NewLine;
                     if (aAppointment.AllDay != true)
