@@ -544,7 +544,7 @@ namespace ChurchReport.WebServiceConnector
             { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "gendercode", 200001); }
             else { }
 
-            // 內壢得勝靈糧堂性別值，跟音訊教會不一樣
+            // 內壢得勝靈糧堂性別值，跟台中忠孝路長老教會不一樣
             //if (aNewContact.Gender)
             //{ this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "gendercode", 100000001); }
             //else
@@ -680,7 +680,7 @@ namespace ChurchReport.WebServiceConnector
 
                         // 內壢得勝靈糧堂
                         //this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aNewContactEntity, "new_cell_list_contact", ref aListEntityReference);
-                        // 音訊教會
+                        // 台中忠孝路長老教會
                         this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aNewContactEntity, "new_list_contact", ref aListEntityReference);
 
                         this.m_ToolUtilityClass.UpdateEntity(ref aNewContactEntity);
@@ -718,7 +718,7 @@ namespace ChurchReport.WebServiceConnector
 
                         // 內壢得勝靈糧堂
                         //this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aNewContactEntity, "new_cell_list_contact", ref aListEntityReference);
-                        // 音訊教會
+                        // 台中忠孝路長老教會
                         this.m_ToolUtilityClass.SetEntityLookUpToNull(ref aNewContactEntity, "new_list_contact");
 
                         this.m_ToolUtilityClass.UpdateEntity(ref aNewContactEntity);
@@ -1806,7 +1806,7 @@ namespace ChurchReport.WebServiceConnector
                 #endregion
                 #region 設定附註或是代禱事項
 
-                // 音訊教會
+                // 台中忠孝路長老教會
                 //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_name", aMemberInfomation.Note);
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_explanation", aMemberInfomation.Note);
 
@@ -2065,7 +2065,7 @@ namespace ChurchReport.WebServiceConnector
                 int aCustomerTypeCodeValue = this.m_ToolUtilityClass.GetOptionSetAttribute(ref aContactEntity, "customertypecode");
                 //OptionSetValue aCustomerTypeCode = aContactEntity.Attributes["customertypecode"] as OptionSetValue;
 
-                // 如果是新朋友或是未入組則不列入累積，音訊教會
+                // 如果是新朋友或是未入組則不列入累積，台中忠孝路長老教會
                 if (aCustomerTypeCodeValue != 100000004 && aCustomerTypeCodeValue != 100000000 && aCustomerTypeCodeValue != 100000007 && aCustomerTypeCodeValue != EMPTY_VALUE)
                 {
                     return true;
