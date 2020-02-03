@@ -39,7 +39,7 @@ namespace ToolUtilityNameSpace
 
         #region CRM 2011 新增組織修改區
 
-        #region 台中忠孝路長老教會組織
+        #region 永和禮拜堂組織
         //private const String SERVER = "crm2011"; // 機房雲端要用此網址
         //private const String SERVER = "system.speechmessage.com.tw";
         //private const String PORT = "7777";
@@ -92,7 +92,7 @@ namespace ToolUtilityNameSpace
         //private const String DOMAIN = "SPEECHMESSAGE";
         #endregion
 
-        #region 台中忠孝路長老教會組織(公司內部發展)
+        #region 永和禮拜堂組織(公司內部發展)
         //private const String SERVER = "speechmessage.com.tw";
         //private const String PORT = "7777";
         //private const String ORGANIZATION = "yangmeillc";
@@ -111,7 +111,7 @@ namespace ToolUtilityNameSpace
         //private const String DOMAIN = "SPEECHMESSAGE";
         #endregion
 
-        #region 台中忠孝路長老教會(公司內部發展)
+        #region 永和禮拜堂(公司內部發展)
         //private const String SERVER = "speechmessage.com.tw";
         //private const String PORT = "7777";
         //private const String ORGANIZATION = "tpehocback";
@@ -120,7 +120,7 @@ namespace ToolUtilityNameSpace
         //private const String DOMAIN = "SPEECHMESSAGE";
         #endregion
 
-        #region 台中忠孝路長老教會(雲端機房)
+        #region 永和禮拜堂(雲端機房)
         //private const String SERVER = "speechmessage.com.tw";
         //private const String PORT = "7777";
         //private const String ORGANIZATION = "tpehoc";
@@ -134,7 +134,7 @@ namespace ToolUtilityNameSpace
         #region Dynamics 365 新增組織修改區
 
         // 客製化
-        #region 台中忠孝路長老教會(雲端機房)
+        #region 永和禮拜堂(雲端機房)
         //private const String SERVER = "speechmessage.com.tw";
         //private const String PORT = "7777";
         //private const String ORGANIZATION = "abundance";
@@ -143,10 +143,10 @@ namespace ToolUtilityNameSpace
         //private const String DOMAIN = "DYNAMICS-365";
         #endregion
 
-        #region 台中忠孝路長老教會(公司內部發展)
+        #region 永和禮拜堂(公司內部發展)
         private const String SERVER = "speechmessage.com.tw";
         private const String PORT = "7777";
-        private const String ORGANIZATION = "abundanceback";
+        private const String ORGANIZATION = "yhchurchback";
         private const String USERNAME = "Administrator@speechmessage.com.tw";
         private const String PASSWORD = "hu9840";
         private const String DOMAIN = "SPEECHMESSAGE";
@@ -1070,7 +1070,7 @@ namespace ToolUtilityNameSpace
                     querybyexpression.ColumnSet.AllColumns = true;
                     //  Attribute to query
                     //querybyexpression.Attributes.AddRange("new_account", "statecode");
-                    //台中忠孝路長老教會小組長帳號
+                    //永和禮拜堂小組長帳號
                     querybyexpression.Attributes.AddRange("new_app_acount", "statecode");
                     //  Value of queried attribute to return
                     querybyexpression.Values.AddRange(AccountNumber, 0);
@@ -1142,7 +1142,7 @@ namespace ToolUtilityNameSpace
                     querybyexpression.ColumnSet.AllColumns = true;
                     //  Attribute to query
                     //querybyexpression.Attributes.AddRange("new_account", "statecode");
-                    //台中忠孝路長老教會小組長帳號
+                    //永和禮拜堂小組長帳號
                     querybyexpression.Attributes.AddRange("new_app_acount", "statecode");
                     //  Value of queried attribute to return
                     querybyexpression.Values.AddRange(AccountNumber, 0);
@@ -1192,7 +1192,7 @@ namespace ToolUtilityNameSpace
                     querybyexpression.ColumnSet.AllColumns = true;
                     //  Attribute to query
                     //querybyexpression.Attributes.AddRange("new_account", "statecode");
-                    //台中忠孝路長老教會小組長帳號
+                    //永和禮拜堂小組長帳號
                     querybyexpression.Attributes.AddRange("new_app_acount", "statecode");
                     //  Value of queried attribute to return
                     querybyexpression.Values.AddRange(AccountNumber, 0);
@@ -1259,7 +1259,7 @@ namespace ToolUtilityNameSpace
                     querybyexpression.ColumnSet.AllColumns = true;
                     //  Attribute to query
                     //querybyexpression.Attributes.AddRange("new_account", "statecode");
-                    //台中忠孝路長老教會小組長帳號
+                    //永和禮拜堂小組長帳號
                     querybyexpression.Attributes.AddRange("new_lineid", "statecode");
                     //  Value of queried attribute to return
                     querybyexpression.Values.AddRange(LineUserId, 0);
