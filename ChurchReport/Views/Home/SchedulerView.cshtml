@@ -278,18 +278,9 @@
 
     async function initializeApp(data) {
         //alert("測試 initializeApp-001 : " + data);
-        liff.scanCode();
+        //liff.scanCode();
                 await liff.getProfile().then( function (profile) {
-                //document.getElementById('useridprofilefield').textContent = profile.userId;
-                //document.getElementById('displaynamefield').textContent = profile.displayName;
-
-                //document.getElementById('displaynamefield').innerHTML = profile.displayName + "的行事曆";
-
-                //getSchedulerInstance().reload();
-                //$("#scheduler").dxScheduler("getDataSource").reload()
-                //var schedulerInstance = getSchedulerInstance();  
-                //schedulerInstance.getDataSource().reload();
-                //alert("測試003!");
+                document.getElementById('displaynamefield').innerHTML = profile.displayName + "的行事曆";
                 DisplayName = profile.displayName;
                 UserId = profile.userId;
                 //alert("測試 UserId =" + UserId);
@@ -298,55 +289,9 @@
                 ViewType = profile.aViewType;
                 //alert("測試004!" + DisplayName);
                 UpdateLineUserId(UserId, GroupId, RoomId, ViewType);
-                document.getElementById('displaynamefield').innerHTML = profile.displayName + "的行事曆";
-                //alert("測試005!" );
             });
 
-            //alert("測試007!" + UserId );
-            //UpdateLineUserId(UserId, GroupId, RoomId, ViewType);
-            //document.getElementById('displaynamefield').innerHTML = profile.displayName + "的行事曆";
-            //alert("測試008!");
-
-            //UserId = data.context.userId;
-            //GroupId = data.context.groupId;
-            //RoomId = data.context.roomId;
-            //ViewType = data.context.viewType;
-            //document.getElementById('languagefield').textContent = data.language;
-            //document.getElementById('viewtypefield').textContent = data.context.viewType;
-            //document.getElementById('useridfield').textContent = data.context.userId;
-            //document.getElementById('utouidfield').textContent = data.context.utouId;
-            //document.getElementById('roomidfield').textContent = data.context.roomId;
-            //document.getElementById('groupidfield').textContent = data.context.groupId;
-
-            //debugger;
-            //alert("測試006!" );
-
-            //getLoadPanelInstance().show();
-
-            //UpdateLineUserId(data.context.userId, data.context.groupId, data.context.roomId, data.context.viewType);
-
-            //alert("測試003!" );
-
-            //liff.getProfile().then(function (profile) {
-            //    //document.getElementById('useridprofilefield').textContent = profile.userId;
-            //    //document.getElementById('displaynamefield').textContent = profile.displayName;
-
-            //    document.getElementById('displaynamefield').innerHTML = profile.displayName + "的行事曆";
-
-            //    //getSchedulerInstance().reload();
-            //    //$("#scheduler").dxScheduler("getDataSource").reload()
-
-
-
-            //    //var schedulerInstance = getSchedulerInstance();  
-            //    //schedulerInstance.getDataSource().reload();
-
-            //    DisplayName = profile.displayName;
-
-            //    //alert("測試004!" + profile.displayName);
-            //});
         }
-
 
         function UpdateLineUserId(aUserLineId, aGroupId, aRoomId, aViewType ) {
                     // AJAX 區塊
