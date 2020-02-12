@@ -1,28 +1,31 @@
 /*!
 * DevExtreme (dx.aspnet.mvc.js)
-* Version: 19.1.4
-* Build date: Mon Jun 17 2019
+* Version: 19.2.6
+* Build date: Thu Jan 30 2020
 *
-* Copyright (c) 2012 - 2019 Developer Express Inc. ALL RIGHTS RESERVED
+* Copyright (c) 2012 - 2020 Developer Express Inc. ALL RIGHTS RESERVED
 * Read about DevExtreme licensing here: https://js.devexpress.com/Licensing/
 */
 ! function(factory) {
     if ("function" === typeof define && define.amd) {
         define(function(require, exports, module) {
-            module.exports = factory(require("jquery"), require("./ui/set_template_engine"), require("./ui/widget/ui.template_base").renderedCallbacks, require("./core/guid"), require("./ui/validation_engine"), require("./core/utils/iterator"), require("./core/utils/dom").extractTemplateMarkup, require("./core/utils/string").encodeHtml)
+            module.exports = factory(require("jquery"), require("./core/templates/template_engine_registry").setTemplateEngine, require("./core/templates/template_base").renderedCallbacks, require("./core/guid"), require("./ui/validation_engine"), require("./core/utils/iterator"), require("./core/utils/dom").extractTemplateMarkup, require("./core/utils/string").encodeHtml, require("./core/utils/ajax"))
         })
     } else {
-        var ui = DevExpress.ui;
-        DevExpress.aspnet = factory(window.jQuery, ui && ui.setTemplateEngine, ui && ui.templateRendered, DevExpress.data.Guid, DevExpress.validationEngine, DevExpress.utils.iterator, DevExpress.utils.dom.extractTemplateMarkup, DevExpress.utils.string.encodeHtml)
+        DevExpress.aspnet = factory(window.jQuery, DevExpress.setTemplateEngine, DevExpress.templateRendered, DevExpress.data.Guid, DevExpress.validationEngine, DevExpress.utils.iterator, DevExpress.utils.dom.extractTemplateMarkup, DevExpress.utils.string.encodeHtml, DevExpress.utils.ajax)
     }
-}(function($, setTemplateEngine, templateRendered, Guid, validationEngine, iteratorUtils, extractTemplateMarkup, encodeHtml) {
+}(function($, setTemplateEngine, templateRendered, Guid, validationEngine, iteratorUtils, extractTemplateMarkup, encodeHtml, ajax) {
     var templateCompiler = createTemplateCompiler();
+    var pendingCreateComponentRoutines = [];
+    var enableAlternateTemplateTags = true;
 
     function createTemplateCompiler() {
         var OPEN_TAG = "<%",
             CLOSE_TAG = "%>",
             ENCODE_QUALIFIER = "-",
             INTERPOLATE_QUALIFIER = "=";
+        var EXTENDED_OPEN_TAG = /[<[]%/g,
+            EXTENDED_CLOSE_TAG = /%[>\]]/g;
 
         function acceptText(bag, text) {
             if (text) {
@@ -44,10 +47,10 @@
         }
         return function(text) {
             var bag = ["var _ = [];", "with(obj||{}) {"],
-                chunks = text.split(OPEN_TAG);
+                chunks = text.split(enableAlternateTemplateTags ? EXTENDED_OPEN_TAG : OPEN_TAG);
             acceptText(bag, chunks.shift());
             for (var i = 0; i < chunks.length; i++) {
-                var tmp = chunks[i].split(CLOSE_TAG);
+                var tmp = chunks[i].split(enableAlternateTemplateTags ? EXTENDED_CLOSE_TAG : CLOSE_TAG);
                 if (2 !== tmp.length) {
                     throw "Template syntax error"
                 }
@@ -102,16 +105,21 @@
     }
 
     function createComponent(name, options, id, validatorOptions) {
-        var render = function(_, container) {
-            var selector = "#" + id.replace(/[^\w-]/g, "\\$&"),
-                $component = $(selector, container)[name](options);
+        var selector = "#" + String(id).replace(/[^\w-]/g, "\\$&");
+        pendingCreateComponentRoutines.push(function() {
+            var $component = $(selector)[name](options);
             if ($.isPlainObject(validatorOptions)) {
                 $component.dxValidator(validatorOptions)
             }
-            templateRendered.remove(render)
-        };
-        templateRendered.add(render)
+        })
     }
+    templateRendered.add(function() {
+        var snapshot = pendingCreateComponentRoutines.slice();
+        pendingCreateComponentRoutines = [];
+        snapshot.forEach(function(func) {
+            func()
+        })
+    });
     return {
         createComponent: createComponent,
         renderComponent: function(name, options, id, validatorOptions) {
@@ -134,6 +142,9 @@
                 setTemplateEngine(createTemplateEngine())
             }
         },
+        enableAlternateTemplateTags: function(value) {
+            enableAlternateTemplateTags = value
+        },
         createValidationSummaryItems: function(validationGroup, editorNames) {
             var groupConfig, items, summary = getValidationSummary(validationGroup);
             if (summary) {
@@ -143,6 +154,32 @@
                     items.length && summary.option("items", items)
                 }
             }
+        },
+        sendValidationRequest: function(propertyName, propertyValue, url, method) {
+            var d = $.Deferred();
+            var data = {};
+            data[propertyName] = propertyValue;
+            ajax.sendRequest({
+                url: url,
+                dataType: "json",
+                method: method || "GET",
+                data: data
+            }).then(function(response) {
+                if ("string" === typeof response) {
+                    d.resolve({
+                        isValid: false,
+                        message: response
+                    })
+                } else {
+                    d.resolve(response)
+                }
+            }, function(xhr) {
+                d.reject({
+                    isValid: false,
+                    message: xhr.responseText
+                })
+            });
+            return d.promise()
         }
     }
 });

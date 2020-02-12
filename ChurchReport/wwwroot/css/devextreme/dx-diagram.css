@@ -1,27 +1,30 @@
 /*!
  * DevExpress Diagram (dx-diagram)
- * Version: 0.0.26
- * Build date: Thu Jun 13 2019
+ * Version: 0.1.53
+ * Build date: Thu Jan 09 2020
  * 
- * Copyright (c) 2012 - 2019 Developer Express Inc. ALL RIGHTS RESERVED
+ * Copyright (c) 2012 - 2020 Developer Express Inc. ALL RIGHTS RESERVED
  * Read about DevExpress licensing here: https://www.devexpress.com/Support/EULAs
  */
 .dxdi-control {
-  background-color: rgba(0, 0, 0, 0.15);
   overflow: auto;
   width: 100%;
-  box-sizing: border-box; }
-
-.dxdi-control .dxdi-canvas-container {
+  height: 100%;
   box-sizing: border-box;
-  min-width: 100%;
-  min-height: 100%; }
+  position: relative; }
+  .dxdi-control.dxdi-read-only .shape, .dxdi-control.dxdi-read-only .shape-expand-btn,
+  .dxdi-control.dxdi-read-only .toolbox-item, .dxdi-control.dxdi-read-only .toolbox-text-item,
+  .dxdi-control.dxdi-read-only text {
+    cursor: default !important; }
+  .dxdi-control .dxdi-canvas {
+    display: block;
+    background-color: #d9d9d9;
+    transform-origin: 0 0;
+    overflow: hidden;
+    /* Fix excess scroll size in IE */ }
 
-.dxdi-control .dxdi-canvas {
-  display: block;
-  box-shadow: 0px 0px 8px 0px rgba(0, 0, 0, 0.5);
-  background-color: white;
-  transform-origin: 0 0; }
+.dxdi-canvas.dxdi-drag-scroll {
+  cursor: grab !important; }
 
 .dxdi-canvas * {
   user-select: none; }
@@ -29,6 +32,9 @@
 .dxdi-canvas text {
   font-family: Arial;
   font-size: 10pt; }
+
+.dxdi-canvas .page {
+  fill: white; }
 
 .dxdi-canvas .pages-grid-line {
   fill: none;
@@ -57,9 +63,9 @@
 .dxdi-canvas .toolbox-item path,
 .dxdi-canvas .toolbox-item line,
 .dxdi-canvas .toolbox-item ellipse {
-  fill: white;
+  fill: #ffffff;
   stroke-width: 2;
-  stroke: black; }
+  stroke: #000000; }
 
 .dxdi-canvas .shape ellipse,
 .dxdi-canvas .toolbox-item ellipse {
@@ -69,6 +75,11 @@
 .dxdi-canvas .toolbox-item text {
   fill: black;
   text-anchor: middle; }
+
+.dxdi-canvas .shape text.rotated,
+.dxdi-canvas .toolbox-item text.rotated {
+  writing-mode: vertical-lr;
+  transform: rotate(-180deg); }
 
 .dxdi-canvas .shape rect.selector,
 .dxdi-canvas .toolbox-item rect.selector {
@@ -83,6 +94,53 @@
 .dxdi-canvas .shape.text-input text {
   display: none; }
 
+.dxdi-canvas .shape.container > rect:first-child {
+  fill: transparent; }
+
+.dxdi-canvas .shape .shape-expand-btn {
+  cursor: pointer; }
+
+.dxdi-canvas .shape .dxdi-image .dxdi-spinner ellipse {
+  stroke: #000000;
+  stroke-opacity: 0.2; }
+
+.dxdi-canvas .shape .dxdi-image .dxdi-spinner path {
+  stroke: #FD7010;
+  stroke-linecap: round; }
+
+.dxdi-canvas .shape .dxdi-image .dxdi-spinner ellipse, .dxdi-canvas .shape .dxdi-image .dxdi-spinner path {
+  fill: none;
+  stroke-width: 5; }
+
+.dxdi-canvas .shape .dxdi-image .dxdi-spinner {
+  animation: loading-spinner 1s linear infinite; }
+
+@keyframes loading-spinner {
+  from {
+    transform: rotate(0deg); }
+  to {
+    transform: rotate(360deg); } }
+
+.dxdi-canvas .shape .dxdi-image .dxdi-user .dxdi-background {
+  fill: #000000;
+  opacity: 0.2;
+  stroke: none; }
+
+.dxdi-canvas .shape .dxdi-image .dxdi-user ellipse, .dxdi-canvas .shape .dxdi-image .dxdi-user path {
+  fill: #ffffff;
+  stroke: none; }
+
+.dxdi-canvas .shape .dxdi-image .dxdi-warning ellipse {
+  stroke: none;
+  fill: #EE1616; }
+
+.dxdi-canvas .shape .dxdi-image .dxdi-warning rect {
+  stroke: none;
+  fill: #ffffff; }
+
+.dxdi-canvas .container-children .shape .selector {
+  stroke-width: 8; }
+
 .dxdi-canvas .toolbox-item {
   cursor: pointer; }
 
@@ -92,7 +150,7 @@
 .dxdi-canvas .connector path, .dxdi-canvas .connector line {
   fill: transparent;
   stroke-width: 2;
-  stroke: black;
+  stroke: #000000;
   stroke-linecap: round; }
 
 .dxdi-canvas .connector path.selector, .dxdi-canvas .connector line.selector {
@@ -120,32 +178,32 @@
 .dxdi-canvas .selection-mark {
   stroke: dodgerblue; }
 
-.dxdi-canvas .selection-mark[data-type="7"][data-value="1"] {
+.dxdi-canvas .selection-mark[data-type="9"][data-value="1"] {
   cursor: nw-resize; }
 
-.dxdi-canvas .selection-mark[data-type="7"][data-value="2"] {
+.dxdi-canvas .selection-mark[data-type="9"][data-value="2"] {
   cursor: ne-resize; }
 
-.dxdi-canvas .selection-mark[data-type="7"][data-value="3"] {
+.dxdi-canvas .selection-mark[data-type="9"][data-value="3"] {
   cursor: se-resize; }
 
-.dxdi-canvas .selection-mark[data-type="7"][data-value="4"] {
+.dxdi-canvas .selection-mark[data-type="9"][data-value="4"] {
   cursor: sw-resize; }
 
-.dxdi-canvas .selection-mark[data-type="7"][data-value="5"] {
+.dxdi-canvas .selection-mark[data-type="9"][data-value="5"] {
   cursor: n-resize; }
 
-.dxdi-canvas .selection-mark[data-type="7"][data-value="6"] {
+.dxdi-canvas .selection-mark[data-type="9"][data-value="6"] {
   cursor: e-resize; }
 
-.dxdi-canvas .selection-mark[data-type="7"][data-value="7"] {
+.dxdi-canvas .selection-mark[data-type="9"][data-value="7"] {
   cursor: s-resize; }
 
-.dxdi-canvas .selection-mark[data-type="7"][data-value="8"] {
+.dxdi-canvas .selection-mark[data-type="9"][data-value="8"] {
   cursor: w-resize; }
 
-.dxdi-canvas .selection-mark[data-type="2"],
-.dxdi-canvas .selection-mark[data-type="3"] {
+.dxdi-canvas .selection-mark[data-type="4"],
+.dxdi-canvas .selection-mark[data-type="5"] {
   cursor: move; }
 
 .dxdi-canvas .locked-selection-mark {
@@ -157,6 +215,7 @@
   cursor: pointer;
   stroke: goldenrod; }
 
+.dxdi-canvas .container-target,
 .dxdi-canvas .connection-target {
   fill: transparent;
   stroke: orchid;
@@ -305,6 +364,12 @@
   fill: rgba(144, 144, 144, 0.02);
   stroke: #666666; }
 
+.dxdi-control:not(.focused) .dxdi-canvas .connection-point,
+.dxdi-control:not(.focused) .dxdi-canvas .connection-point.selector,
+.dxdi-control:not(.focused) .dxdi-canvas .connection-mark,
+.dxdi-control:not(.focused) .dxdi-canvas .connection-mark.selector {
+  display: none; }
+
 .dxdi-control:not(.focused) .dxdi-canvas .connector-selection,
 .dxdi-control:not(.focused) .dxdi-canvas .connector-multi-selection {
   stroke: #666666; }
@@ -316,10 +381,9 @@
 .dxdi-control:not(.focused) .dxdi-canvas .connector-side-mark {
   fill: #666666; }
 
-.dxdi-canvas.export {
-  position: fixed;
-  left: -10000px !important;
-  top: -10000px !important; }
+.dxdi-canvas.export * {
+  cursor: inherit !important;
+  pointer-events: all !important; }
 
 .dxdi-toolbox,
 .dxdi-toolbox .dxdi-canvas,
@@ -331,67 +395,83 @@
   fill: transparent;
   stroke: currentColor; }
 
+.dxdi-toolbox .dxdi-canvas .toolbox-item .dxdi-image-placeholder {
+  opacity: 0.75;
+  fill: currentColor;
+  stroke: none; }
+
+.dxdi-toolbox .dxdi-canvas .toolbox-item .dxdi-shape-text {
+  opacity: 0.25; }
+
 .dxdi-toolbox .dxdi-canvas .toolbox-item text,
 .dxdi-toolbox-drag-item .dxdi-canvas text {
   font-weight: bold;
   font-family: "Segoe UI","Helvetica Neue",Helvetica,Arial,"san-serif";
   fill: currentColor; }
 
-.dxdi-datasource {
-  margin: 0 0 1em; }
+.dxdi-toolbox-drag-item .dxdi-canvas .dxdi-image-placeholder {
+  opacity: 0.75;
+  fill: currentColor;
+  stroke: none; }
 
-.dxdi-datasource-title {
-  font-size: 1.1em;
-  font-weight: bold;
-  margin: 0 0 1em; }
+.dxdi-toolbox-drag-item .dxdi-canvas .dxdi-shape-text {
+  display: none; }
 
-.dxdi-datasource-item {
+.dxdi-toolbox .toolbox-text-item {
   cursor: pointer;
   user-select: none;
   margin: 0 0 0.6em; }
 
 .dxdi-toolbox-drag-item,
-.dxdi-datasource-drag-item {
+.dxdi-toolbox-drag-text-item {
   font-family: Arial;
   font-size: 10pt;
   color: black;
   position: absolute;
   z-index: 10000; }
 
+.dxdi-toolbox-drag-item text {
+  pointer-events: none; }
+
 .dxdi-toolbox-drag-item, .dxdi-toolbox-drag-item *,
-.dxdi-datasource-drag-item,
-.dxdi-datasource-drag-item * {
+.dxdi-toolbox-drag-text-item,
+.dxdi-toolbox-drag-text-item * {
   pointer-events: none !important; }
 
-.dxdi-datasource-drag-item {
+.dxdi-toolbox-drag-text-item {
   background-color: white;
-  border: 2px solid black;
+  border: 2px solid #000000;
   padding: 0.5em; }
 
 .dxdi-tb-drag-captured {
   display: none; }
 
-.dxdi-input,
+.dxdi-focus-input,
+.dxdi-text-input-container,
 .dxdi-text-input {
   padding: 0;
   outline: none;
   border: none; }
 
 .dxdi-clipboard-input,
-.dxdi-input.focus {
+.dxdi-focus-input {
   position: fixed;
   overflow: hidden;
   left: -1000px !important;
   top: -1000px !important; }
 
-.dxdi-input.shape-text,
-.dxdi-input.connector-text {
+.dxdi-text-input-container {
+  display: none; }
+
+.dxdi-text-input-container.shape-text,
+.dxdi-text-input-container.connector-text {
+  display: inherit;
   position: absolute;
   overflow: hidden;
   background-color: transparent;
   transform-origin: 0 0; }
 
-.dxdi-input.shape-text > div[contenteditable] {
+.dxdi-text-input-container.shape-text .dxdi-text-input {
   display: table-cell;
   overflow: hidden;
   padding: 0;
@@ -404,10 +484,10 @@
   text-align: center;
   vertical-align: middle; }
 
-.dxdi-input.connector-text {
+.dxdi-text-input-container.connector-text {
   overflow: visible; }
 
-.dxdi-input.connector-text > div[contenteditable] {
+.dxdi-text-input-container.connector-text .dxdi-text-input {
   padding: 2px;
   outline: none;
   height: calc(1.1em + 6px);
@@ -422,4 +502,7 @@
   line-height: 1.1em;
   text-align: center;
   vertical-align: middle; }
+
+.dxdi-page-shadow {
+  fill: #808080; }
 
