@@ -252,7 +252,7 @@
         var ViewType = "";
 
 
-        function initializeApp(data) {
+        async function initializeApp(data) {
 
             await liff.getProfile().then(function (profile) {
                 DisplayName = profile.displayName;
