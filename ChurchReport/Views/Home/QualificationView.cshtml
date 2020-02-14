@@ -253,17 +253,27 @@
                 //DevExpress.ui.notify( data.message, "success", 15000 );
 
                 DevExpress.ui.notify({
-                    displayTime: 15000,
+                    displayTime: 5000,
                     closeOnClick: true,
                     message: data.message,
                     type: 'success',
                 });
 
-                window.location.href = "/Home/QualificationView/";
+                //$("#toast").dxToast("show");
+
+                //window.location.href = "/Home/LineBindingView/" + '@Model.EncodeUrl';
+                //window.location.href = "/Home/BindingResultView/" + data.message;
+
+                //ShowToast(data.message, "success", 3000);
+                //getLoadPanelInstance().hide();
+                document.getElementById('displaynamefield').innerHTML = data.message;
             }
             else {
                 DevExpress.ui.notify(data.message, "error", 5000);
-                window.location.href = "/Home/QualificationView/";
+                //window.location.href = "/Home/LineBindingView/" + '@Model.EncodeUrl';
+                //window.location.href = "/Home/BindingResultView/" + data.message;
+
+                document.getElementById('displaynamefield').innerHTML = data.message;
             }
         }
 
@@ -332,7 +342,7 @@
 
 
             //alert("初始化");
-            //getLoadPanelInstance().show();
+            getLoadPanelInstance().show();
 
             await liff.getProfile().then( function (profile) {
                 DisplayName = profile.displayName;
