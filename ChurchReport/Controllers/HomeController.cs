@@ -70,11 +70,8 @@ namespace ChurchReport.Controllers
             try
             {
                 var images = new List<string>();
-                images.Add(Url.Content("~/assets/images/pastor-gary-kuo.png"));
-                images.Add(Url.Content("~/assets/images/page2-img2.png"));
-                images.Add(Url.Content("~/assets/images/page2-img3.png"));
-                images.Add(Url.Content("~/assets/images/page2-img4.png"));
-                images.Add(Url.Content("~/assets/images/page2-img5.png"));
+                images.Add(Url.Content("~/assets/images/永和堂牧養系統web_banner-01.jpg"));
+                images.Add(Url.Content("~/assets/images/永和堂牧養系統web_banner-02.png"));
 
                 return View(new GalleryViewModel
                 {
