@@ -948,7 +948,7 @@ namespace ChurchReport.Controllers
                 throw e;
             }
         }
-        public IActionResult SaveIntegrate(string WeeklyReportData, String HappyWeekIndex, String HappyWeekTopic)
+        public IActionResult SaveIntegrate(string WeeklyReportData, String HappyWeekIndex, String HappyWeekTopic, String CheckBox)
         {
             try
             {
