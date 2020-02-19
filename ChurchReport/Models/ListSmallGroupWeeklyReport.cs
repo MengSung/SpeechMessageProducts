@@ -43,6 +43,7 @@ namespace ChurchReport.Models
 
         public String WeeklyReportData; //{ get; set; } // 小組日誌
         public String WeeklyReportAnalysis; //{ get; set; } // 小組分析報告
+        public bool PauseCheckBox; //{ get; set; } // 小組是否暫停
         // 長條圖表資料
         public ChartDataList m_WeeklyReportChart { get; set; }
         public bool ModifyFlag { get; set; }
@@ -60,11 +61,12 @@ namespace ChurchReport.Models
 
         #endregion
         #endregion
-        public void UploadIntegrateData(String Account, String Password, String LoginType, SmallGroupData aSmallGroupData, String aWeeklyReportData, String HappyWeekIndex, String HappyWeekTopic)
+        public void UploadIntegrateData(String Account, String Password, String LoginType, SmallGroupData aSmallGroupData, String aWeeklyReportData, String HappyWeekIndex, String HappyWeekTopic, bool PauseCheckBox )
         {
             WeeklyReportData = aWeeklyReportData;
             HappyWeekIndex = HappyWeekIndex;
             HappyWeekTopic = HappyWeekTopic;
+            PauseCheckBox = PauseCheckBox;
 
             //ChurchReport.Models.ListSmallGroupWeeklyReport
             m_UploadIntegrateData.UploadData(Account, Password, LoginType, GroupType, ListEntityId, ref WeeklyReportEntityId, SundayPrayers, aSmallGroupData, ref WeeklyReportData, ref WeeklyReportAnalysis, HappyWeekIndex, HappyWeekTopic);

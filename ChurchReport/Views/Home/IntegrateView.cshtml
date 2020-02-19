@@ -204,91 +204,91 @@ else
                     }
                     else
                     {
-                        <div id="buttonContainer" class="dx-button-icon" style="float: left; width:30%; text-align: left; background-color:white;">
-                            @(Html.DevExtreme().Button()
-                                    .Text("上傳")
-                                    .Type(ButtonType.Success)
-                                    .ID("save-button")
-                                    .UseSubmitBehavior(false)
+            <div id="buttonContainer" class="dx-button-icon" style="float: left; width:30%; text-align: left; background-color:white;">
+                @(Html.DevExtreme().Button()
+                        .Text("上傳")
+                        .Type(ButtonType.Success)
+                        .ID("save-button")
+                        .UseSubmitBehavior(false)
 
-                                    .OnClick
-                                    (@<text>
-                                                function(arg)
-                                                {
+                        .OnClick
+                        (@<text>
+                                    function(arg)
+                                    {
 
-                                                var HappyGroupDataGrid = $("#HappyGroupGridContainer").dxDataGrid("instance");
+                                    var HappyGroupDataGrid = $("#HappyGroupGridContainer").dxDataGrid("instance");
 
-                                                // 取得上傳的按鈕
-                                                var ButtonContainer= $("#save-button").dxButton("instance");
+                                    // 取得上傳的按鈕
+                                    var ButtonContainer= $("#save-button").dxButton("instance");
 
-                                                //debugger;
-                                                //var HappyGroupDataGridFlag = HappyGroupDataGrid.hasEditData();//是否還殘留尚未回傳的編輯資料
+                                    //debugger;
+                                    //var HappyGroupDataGridFlag = HappyGroupDataGrid.hasEditData();//是否還殘留尚未回傳的編輯資料
 
-                                                $("#HappyGroupGridContainer").dxDataGrid("instance").saveEditData();
-                                                //if( HappyGroupDataGridFlag == false )
-                                                if( true )
-                                                {
-                                                // 顯示旋轉鈕
-                                                $("#loadPanel").dxLoadPanel("instance").show();
+                                    $("#HappyGroupGridContainer").dxDataGrid("instance").saveEditData();
+                                    //if( HappyGroupDataGridFlag == false )
+                                    if( true )
+                                    {
+                                    // 顯示旋轉鈕
+                                    $("#loadPanel").dxLoadPanel("instance").show();
 
-                                                // 上傳按鈕反白
-                                                ButtonContainer.option("disabled", true);
+                                    // 上傳按鈕反白
+                                    ButtonContainer.option("disabled", true);
 
-                                                // AJAX 區塊
-                                                $.ajax
-                                                (
-                                                {
-                                                url: '@Url.Action("SaveIntegrate", "Home")',
-                                                data: {
-                                                WeeklyReportData: $("#WeeklyReportTextData").dxTextArea("instance").option('text'),
-                                                HappyWeekIndex: $("#HappyWeekIndex").dxSelectBox("instance").option('text'),
-                                                HappyWeekTopic: $("#HappyWeekTopic").dxSelectBox("instance").option('text'),
-                                                
-                                                }, // 整理回傳給 Server 的點名資料
-                                                type: 'POST', //POST if you want to save, GET if you want to fetch data from server
+                                    // AJAX 區塊
+                                    $.ajax
+                                    (
+                                    {
+                                    url: '@Url.Action("SaveIntegrate", "Home")',
+                                    data: {
+                                    WeeklyReportData: $("#WeeklyReportTextData").dxTextArea("instance").option('text'),
+                                    HappyWeekIndex: $("#HappyWeekIndex").dxSelectBox("instance").option('text'),
+                                    HappyWeekTopic: $("#HappyWeekTopic").dxSelectBox("instance").option('text'),
+                                    CheckBox:$("#CheckBoxId").dxCheckBox("instance").option("value")
+                                    }, // 整理回傳給 Server 的點名資料
+                                    type: 'POST', //POST if you want to save, GET if you want to fetch data from server
 
-                                                success: function (arg)
-                                                {
-                                                // 隱藏旋轉鈕
-                                                $("#loadPanel").dxLoadPanel("instance").hide();
+                                    success: function (arg)
+                                    {
+                                    // 隱藏旋轉鈕
+                                    $("#loadPanel").dxLoadPanel("instance").hide();
 
-                                                // 上傳按鈕恢復可運作
-                                                ButtonContainer.option("disabled", false);
+                                    // 上傳按鈕恢復可運作
+                                    ButtonContainer.option("disabled", false);
 
-                                                // 顯示上傳成功
-                                                if (arg.status == 1)
-                                                {
-                                                ShowToast(arg.message, "success", 2000);
-                                                }
-                                                else{
-                                                ShowToast(arg.message, "error", 5000);}
+                                    // 顯示上傳成功
+                                    if (arg.status == 1)
+                                    {
+                                    ShowToast(arg.message, "success", 2000);
+                                    }
+                                    else{
+                                    ShowToast(arg.message, "error", 5000);}
 
-                                                //$("#toast").dxToast("instance").show();
-                                                },
+                                    //$("#toast").dxToast("instance").show();
+                                    },
 
-                                                error: function (obj)
-                                                {
-                                                //alert('Something happened');
-                                                }
+                                    error: function (obj)
+                                    {
+                                    //alert('Something happened');
+                                    }
 
-                                                }
-                                                );
-                                                // AJAX 區塊
-                                                }
-                                                else
-                                                {
+                                    }
+                                    );
+                                    // AJAX 區塊
+                                    }
+                                    else
+                                    {
 
-                                                // 隱藏旋轉鈕
-                                                $("#loadPanel").dxLoadPanel("instance").hide();
-                                                $("#HappyGroupGridContainer").dxDataGrid("instance").saveEditData();
-                                                // 顯示再上傳一次
-                                                $("#ToastReUpload").dxToast("instance").show();
+                                    // 隱藏旋轉鈕
+                                    $("#loadPanel").dxLoadPanel("instance").hide();
+                                    $("#HappyGroupGridContainer").dxDataGrid("instance").saveEditData();
+                                    // 顯示再上傳一次
+                                    $("#ToastReUpload").dxToast("instance").show();
 
-                                                }
-                                                }
-                                    </text>)
-                            )
-                        </div>
+                                    }
+                                    }
+                        </text>)
+                )
+            </div>
                     }
                 }
                 else
@@ -545,7 +545,7 @@ else
 
             </div>
             <div style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold"><h5>小組是否暫停</h5></div>
-            @(Html.DevExtreme().CheckBox().ID("CheckBoxId"))
+            @(Html.DevExtreme().CheckBox().ID("CheckBoxId").Value(Model.PauseCheckBox))
         }
 
         @if (Model.GroupType == "幸福小組")
