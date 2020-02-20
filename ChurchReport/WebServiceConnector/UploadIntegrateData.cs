@@ -2342,7 +2342,7 @@ namespace ChurchReport.WebServiceConnector
                 //this.m_ToolUtilityClass.SetEntityIntAttribute(ref aMachedPresentRecordEntity, "new_morning_pray", aMemberInfomation.FamilyNumber);
                 //this.m_ToolUtilityClass.SetEntityIntAttribute(ref aMachedPresentRecordEntity, "new_evening_pray", aMemberInfomation.WorkAndCampusNumber);
                 #endregion
-                #region 設定小組暫停
+                #region 設定小組是否暫停
                 this.m_ToolUtilityClass.SetEntityBoolAttribute(ref aPresentRecord, "new_pause", PauseCheckBox);
                 #endregion
 
@@ -2957,7 +2957,7 @@ namespace ChurchReport.WebServiceConnector
                     }
                     else
                     {
-                        // 設定週報狀態為暫停
+                        // 設定週報狀態為均已點名
                         this.m_ToolUtilityClass.SetOptionSetAttribute(ref aWeeklyReportEntity, "new_weekly_report_status", 100000001);
                     }
                 }
@@ -3227,7 +3227,7 @@ namespace ChurchReport.WebServiceConnector
                         //this.m_ToolUtilityClass.SetEntityIntAttribute(ref aMachedPresentRecordEntity, "new_morning_pray", aMemberInfomation.FamilyNumber);
                         //this.m_ToolUtilityClass.SetEntityIntAttribute(ref aMachedPresentRecordEntity, "new_evening_pray", aMemberInfomation.WorkAndCampusNumber);
                         #endregion
-                        #region 設定小組暫停
+                        #region 設定小組是否暫停
                         this.m_ToolUtilityClass.SetEntityBoolAttribute(ref aMachedPresentRecordEntity, "new_pause", PauseCheckBox);
                         #endregion
                         #region 更新個人聚會與靈修記錄
