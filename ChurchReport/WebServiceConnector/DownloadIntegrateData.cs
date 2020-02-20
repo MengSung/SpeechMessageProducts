@@ -193,6 +193,7 @@ namespace ChurchReport.WebServiceConnector
         {
             if (aListSmallGroupWeeklyReport.GroupType == "幸福小組")
             {
+                #region 這是幸福小組，所以要設定週次及主題
                 if (WeeklyReportEntityId != "" && WeeklyReportEntityId != null)
                 {
                     aListSmallGroupWeeklyReport.HappyWeekIndex = m_ToolUtilityClass.GetEntityStringAttribute(this.m_WeeklyReportEntity, "new_weekly_index");
@@ -203,18 +204,25 @@ namespace ChurchReport.WebServiceConnector
                     aListSmallGroupWeeklyReport.HappyWeekIndex = "";
                     aListSmallGroupWeeklyReport.HappyWeekTopic = "";
                 }
+                #endregion
             }
 
-            if (WeeklyReportEntityId != "" && WeeklyReportEntityId != null)
+            #region 無論是一般小組或是幸福小組，都要設定小組日誌、分析及暫停
+            if ( WeeklyReportEntityId != "" && WeeklyReportEntityId != null)
             {
                 aListSmallGroupWeeklyReport.WeeklyReportData = this.m_ToolUtilityClass.GetEntityStringAttribute(ref this.m_WeeklyReportEntity, "new_memo");
                 aListSmallGroupWeeklyReport.WeeklyReportAnalysis = this.m_ToolUtilityClass.GetEntityStringAttribute(ref this.m_WeeklyReportEntity, "new_sunday_present_report");
+                //取得"週報狀態"的暫停值
+                aListSmallGroupWeeklyReport.PauseCheckBox = this.m_ToolUtilityClass.GetOptionSetAttribute(ref this.m_WeeklyReportEntity, "new_weekly_report_status") == 100000002 ? true:false ;
             }
             else
             {
                 aListSmallGroupWeeklyReport.WeeklyReportData = "";
                 aListSmallGroupWeeklyReport.WeeklyReportAnalysis = "";
+                // //取得"週報狀態"的暫停值，因為還沒有此週報，所以先傳回沒暫停
+                aListSmallGroupWeeklyReport.PauseCheckBox = false;
             }
+            #endregion
 
         }
         public void SetupWeeklyReportChartData(ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)

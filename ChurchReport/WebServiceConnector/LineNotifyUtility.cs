@@ -66,7 +66,7 @@ namespace ChurchReport.WebServiceConnector
         }
 
 
-        public void SendSmallGroupResultLine(Entity LoginContact, String SmallGroupResult, GroupWeeklyReportGuid aGroupWeeklyReportGuid, Guid aWeeklyReportId, ref Entity aListEntity, ref SmallGroupData aSmallGroupData, String WeeklyReportData)
+        public void SendSmallGroupResultLine(Entity LoginContact, String SmallGroupResult, GroupWeeklyReportGuid aGroupWeeklyReportGuid, Guid aWeeklyReportId, ref Entity aListEntity, ref SmallGroupData aSmallGroupData, String WeeklyReportData, bool PauseCheckBox)
         {
             try
             {
@@ -74,7 +74,7 @@ namespace ChurchReport.WebServiceConnector
 
                 //if ( aSmallGroupData.LoginType == "小組長" )
                 {
-                    SmallGroupResult = ProcessLineMessage(LoginContact, SmallGroupResult, ref aListEntity, ref aSmallGroupData, WeeklyReportData);
+                    SmallGroupResult = ProcessLineMessage(LoginContact, SmallGroupResult, ref aListEntity, ref aSmallGroupData, WeeklyReportData, PauseCheckBox);
 
                     //m_PushUtility.MultiCastTextMessageAsync(GetLineRecieverList(ref aListEntity, aSmallGroupData.LoginType), SmallGroupResult);
                     m_PushUtility.MultiCastTextMessageAsync(GetLineRecieverList(ref LoginContact, ref aListEntity, aSmallGroupData.LoginType), SmallGroupResult);
@@ -235,7 +235,7 @@ namespace ChurchReport.WebServiceConnector
             return MemberCollection.Entities.Count;
         }
 
-        private String ProcessLineMessage(Entity LoginContact, String SmallGroupResult, ref Entity aListEntity, ref SmallGroupData aSmallGroupData, String WeeklyReportData)
+        private String ProcessLineMessage(Entity LoginContact, String SmallGroupResult, ref Entity aListEntity, ref SmallGroupData aSmallGroupData, String WeeklyReportData, bool PauseCheckBox)
         {
             try
             {
@@ -251,7 +251,14 @@ namespace ChurchReport.WebServiceConnector
                     // 取得代禱事項
                     SmallGroupResult += GetAllPersonalReply(ref aSmallGroupData) + Environment.NewLine;
 
-                    SmallGroupResult += "小組日誌:" + Environment.NewLine + WeeklyReportData + Environment.NewLine;
+                    if (PauseCheckBox != true)
+                    {
+                        SmallGroupResult += "小組日誌:" + Environment.NewLine + WeeklyReportData + Environment.NewLine;
+                    }
+                    else
+                    {
+                        SmallGroupResult += "小組暫停!" + Environment.NewLine ;
+                    }
 
                     return SmallGroupResult;
                 }

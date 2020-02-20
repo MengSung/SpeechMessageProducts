@@ -69,7 +69,7 @@ namespace ChurchReport.Models
             PauseCheckBox = PauseCheckBox;
 
             //ChurchReport.Models.ListSmallGroupWeeklyReport
-            m_UploadIntegrateData.UploadData(Account, Password, LoginType, GroupType, ListEntityId, ref WeeklyReportEntityId, SundayPrayers, aSmallGroupData, ref WeeklyReportData, ref WeeklyReportAnalysis, HappyWeekIndex, HappyWeekTopic);
+            m_UploadIntegrateData.UploadData(Account, Password, LoginType, GroupType, ListEntityId, ref WeeklyReportEntityId, SundayPrayers, aSmallGroupData, ref WeeklyReportData, ref WeeklyReportAnalysis, HappyWeekIndex, HappyWeekTopic, PauseCheckBox );
         }
         public void DeleteMemberData(String Account, String Password, Member aMemberToBeDeleted)
         {

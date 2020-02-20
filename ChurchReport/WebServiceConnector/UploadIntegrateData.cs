@@ -112,7 +112,7 @@ namespace ChurchReport.WebServiceConnector
         /// <param name="aSmallGroupData"></param>
         /// <param name="WeeklyReportData"></param>
         /// <param name="WeeklyReportAnalysis"></param>
-        public void UploadData(String Account, String Password, String LoginType, String GroupType, String ListEntityId, ref String WeeklyReportEntityId, DateTime aSmallGroupDate, SmallGroupData aSmallGroupData, ref String WeeklyReportData, ref String WeeklyReportAnalysis, String HappyWeekIndex, String HappyWeekTopic)
+        public void UploadData(String Account, String Password, String LoginType, String GroupType, String ListEntityId, ref String WeeklyReportEntityId, DateTime aSmallGroupDate, SmallGroupData aSmallGroupData, ref String WeeklyReportData, ref String WeeklyReportAnalysis, String HappyWeekIndex, String HappyWeekTopic, bool PauseCheckBox)
         {
             try
             {
@@ -180,7 +180,7 @@ namespace ChurchReport.WebServiceConnector
                         };
 
                         // 由於是新建立的週報，當回傳完成實，回到網頁操作，如果使用者又再繼續操作，就必須設定告知新建立的週報ID =WeeklyReportEntityId ，以免重複建立
-                        aGraceLeaderWeeklyReportEntity = CreateWeeklyReportAndPresentRecord(GroupName, aGroupWeeklyReportGuid, ref WeeklyReportEntityId, ref m_ListEntity, "", ValidNumber, ref aWeeklySundayRate, ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber, aSmallGroupData, WeeklyReportData, HappyWeekIndex, HappyWeekTopic);
+                        aGraceLeaderWeeklyReportEntity = CreateWeeklyReportAndPresentRecord(GroupName, aGroupWeeklyReportGuid, ref WeeklyReportEntityId, ref m_ListEntity, "", ValidNumber, ref aWeeklySundayRate, ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber, aSmallGroupData, WeeklyReportData, HappyWeekIndex, HappyWeekTopic, PauseCheckBox);
                         //}
                         #endregion
                         #endregion
@@ -200,7 +200,7 @@ namespace ChurchReport.WebServiceConnector
                             SundayPresentRate = 0,
                         };
 
-                        aGraceLeaderWeeklyReportEntity = UpdateWeeklyReportProcess(aGroupWeeklyReportGuid, ref m_ListEntity, ref aWeeklyReportId, aSmallGroupData, WeeklyReportData, HappyWeekIndex, HappyWeekTopic);
+                        aGraceLeaderWeeklyReportEntity = UpdateWeeklyReportProcess(aGroupWeeklyReportGuid, ref m_ListEntity, ref aWeeklyReportId, aSmallGroupData, WeeklyReportData, HappyWeekIndex, HappyWeekTopic, PauseCheckBox);
                         //}
                         #endregion
                     }
@@ -1054,7 +1054,7 @@ namespace ChurchReport.WebServiceConnector
 
             #endregion
         }
-        private Entity CreateWeeklyReportAndPresentRecord(String GroupName, GroupWeeklyReportGuid aGroupWeeklyReportGuid, ref String WeeklyReportEntityId, ref Entity aListEntity, String UploadCategory, Double ValidNumber, ref Double aWeeklySundayRate, ref Double aWeeklySmallGroupRate, ref int aWeeklySundayNumber, ref int aWeeklySmallGroupNumber, SmallGroupData aSmallGroupData, String WeeklyReportData, String HappyWeekIndex, String HappyWeekTopic)
+        private Entity CreateWeeklyReportAndPresentRecord(String GroupName, GroupWeeklyReportGuid aGroupWeeklyReportGuid, ref String WeeklyReportEntityId, ref Entity aListEntity, String UploadCategory, Double ValidNumber, ref Double aWeeklySundayRate, ref Double aWeeklySmallGroupRate, ref int aWeeklySundayNumber, ref int aWeeklySmallGroupNumber, SmallGroupData aSmallGroupData, String WeeklyReportData, String HappyWeekIndex, String HappyWeekTopic, bool PauseCheckBox)
         {
             try
             {
@@ -1073,7 +1073,7 @@ namespace ChurchReport.WebServiceConnector
                 if (aSmallGroupData.LoginType == "小組長")
                 {
                     // 小組長回報
-                    aPresentRecordCollection = CreatePresentRecordList(aSmallGroupData, GroupName, ref aListEntity, ref aCreatedWeeklyReportId, ValidNumber, ref aWeeklySundayRate, ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber, ref ValidSundayMemberNumber, ref ValidSmallGroupMemberNumber, ref aGroupWeeklyReportGuid, HappyWeekIndex, HappyWeekTopic);
+                    aPresentRecordCollection = CreatePresentRecordList(aSmallGroupData, GroupName, ref aListEntity, ref aCreatedWeeklyReportId, ValidNumber, ref aWeeklySundayRate, ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber, ref ValidSundayMemberNumber, ref ValidSmallGroupMemberNumber, ref aGroupWeeklyReportGuid, HappyWeekIndex, HappyWeekTopic, PauseCheckBox);
                 }
                 else
                 {
@@ -1083,10 +1083,11 @@ namespace ChurchReport.WebServiceConnector
 
                     SetAllMemberDataByPersonalReport(GroupName, aListEntity.Id, ref aSmallGroupDataFromList);
 
-                    aPresentRecordCollection = CreatePresentRecordListByList(aSmallGroupData, aSmallGroupDataFromList, GroupName, ref aListEntity, ref aCreatedWeeklyReportId, ValidNumber, ref aWeeklySundayRate, ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber, ref ValidSundayMemberNumber, ref ValidSmallGroupMemberNumber, ref aGroupWeeklyReportGuid, HappyWeekIndex, HappyWeekTopic);
+                    aPresentRecordCollection = CreatePresentRecordListByList(aSmallGroupData, aSmallGroupDataFromList, GroupName, ref aListEntity, ref aCreatedWeeklyReportId, ValidNumber, ref aWeeklySundayRate, ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber, ref ValidSundayMemberNumber, ref ValidSmallGroupMemberNumber, ref aGroupWeeklyReportGuid, HappyWeekIndex, HappyWeekTopic, PauseCheckBox);
                 }
 
-                return UpdateWeeklyReport(aGroupWeeklyReportGuid, aPresentRecordCollection, ref aListEntity, ref aCreatedWeeklyReportId, ValidNumber, ref aWeeklySundayRate, ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber, aSmallGroupData, WeeklyReportData, HappyWeekIndex, HappyWeekTopic);
+
+                return UpdateWeeklyReport(aGroupWeeklyReportGuid, aPresentRecordCollection, ref aListEntity, ref aCreatedWeeklyReportId, ValidNumber, ref aWeeklySundayRate, ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber, aSmallGroupData, WeeklyReportData, HappyWeekIndex, HappyWeekTopic, PauseCheckBox);
             }
             catch (System.Exception Exception)
             {
@@ -1272,7 +1273,7 @@ namespace ChurchReport.WebServiceConnector
 
         #endregion
         #region 建立的個人聚會與靈修記錄
-        private EntityCollection CreatePresentRecordList(SmallGroupData aSmallGroupData, String GroupName, ref Entity aListEntity, ref Guid aWeeklyReportId, Double ValidNumber, ref Double aWeeklySundayRate, ref Double aWeeklySmallGroupRate, ref int aWeeklySundayNumber, ref int aWeeklySmallGroupNumber, ref int ValidSundayMemberNumber, ref int ValidSmallGroupMemberNumber, ref GroupWeeklyReportGuid aGroupWeeklyReportGuid, String HappyWeekIndex, String HappyWeekTopic)
+        private EntityCollection CreatePresentRecordList(SmallGroupData aSmallGroupData, String GroupName, ref Entity aListEntity, ref Guid aWeeklyReportId, Double ValidNumber, ref Double aWeeklySundayRate, ref Double aWeeklySmallGroupRate, ref int aWeeklySundayNumber, ref int aWeeklySmallGroupNumber, ref int ValidSundayMemberNumber, ref int ValidSmallGroupMemberNumber, ref GroupWeeklyReportGuid aGroupWeeklyReportGuid, String HappyWeekIndex, String HappyWeekTopic, bool PauseCheckBox)
         {
             EntityCollection PresentRecordEntityCollection = new EntityCollection();
 
@@ -1282,8 +1283,9 @@ namespace ChurchReport.WebServiceConnector
                 {
                     // 更新個人資料:手機、家裡電話、地址、設定委身類型
                     // 新增個人聚會與靈修記錄
-                    Entity aPresentRecord = CreatePresentRecord(aMemberInfomation, ref aListEntity, ref aWeeklyReportId, ValidNumber, ref aWeeklySundayRate, ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber, ref aGroupWeeklyReportGuid, HappyWeekIndex, HappyWeekTopic);
+                    Entity aPresentRecord = CreatePresentRecord(aMemberInfomation, ref aListEntity, ref aWeeklyReportId, ValidNumber, ref aWeeklySundayRate, ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber, ref aGroupWeeklyReportGuid, HappyWeekIndex, HappyWeekTopic, PauseCheckBox);
 
+                    //指派負責人
                     this.m_ToolUtilityClass.AssignOwner("new_present_record", aPresentRecord, this.m_OwnerId);
 
                     if (aPresentRecord != null)
@@ -1299,7 +1301,7 @@ namespace ChurchReport.WebServiceConnector
                 {
                     // 更新個人資料:手機、家裡電話、地址、設定委身類型
                     // 新增個人聚會與靈修記錄
-                    Entity aPresentRecord = CreatePresentRecord(aMemberInfomation, ref aListEntity, ref aWeeklyReportId, ValidNumber, ref aWeeklySundayRate, ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber, ref aGroupWeeklyReportGuid, HappyWeekIndex, HappyWeekTopic);
+                    Entity aPresentRecord = CreatePresentRecord(aMemberInfomation, ref aListEntity, ref aWeeklyReportId, ValidNumber, ref aWeeklySundayRate, ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber, ref aGroupWeeklyReportGuid, HappyWeekIndex, HappyWeekTopic, PauseCheckBox);
 
                     this.m_ToolUtilityClass.AssignOwner("new_present_record", aPresentRecord, this.m_OwnerId);
 
@@ -1313,7 +1315,7 @@ namespace ChurchReport.WebServiceConnector
 
             return PresentRecordEntityCollection;
         }
-        private EntityCollection CreatePresentRecordListByList(SmallGroupData aSmallGroupData, SmallGroupData aSmallGroupDataFromList, String GroupName, ref Entity aListEntity, ref Guid aWeeklyReportId, Double ValidNumber, ref Double aWeeklySundayRate, ref Double aWeeklySmallGroupRate, ref int aWeeklySundayNumber, ref int aWeeklySmallGroupNumber, ref int ValidSundayMemberNumber, ref int ValidSmallGroupMemberNumber, ref GroupWeeklyReportGuid aGroupWeeklyReportGuid, String HappyWeekIndex, String HappyWeekTopic)
+        private EntityCollection CreatePresentRecordListByList(SmallGroupData aSmallGroupData, SmallGroupData aSmallGroupDataFromList, String GroupName, ref Entity aListEntity, ref Guid aWeeklyReportId, Double ValidNumber, ref Double aWeeklySundayRate, ref Double aWeeklySmallGroupRate, ref int aWeeklySundayNumber, ref int aWeeklySmallGroupNumber, ref int ValidSundayMemberNumber, ref int ValidSmallGroupMemberNumber, ref GroupWeeklyReportGuid aGroupWeeklyReportGuid, String HappyWeekIndex, String HappyWeekTopic, bool PauseCheckBox)
         {
             EntityCollection PresentRecordEntityCollection = new EntityCollection();
 
@@ -1323,7 +1325,7 @@ namespace ChurchReport.WebServiceConnector
                 {
                     // 更新個人資料:手機、家裡電話、地址、設定委身類型
                     // 新增個人聚會與靈修記錄
-                    Entity aPresentRecord = CreatePresentRecord(aMemberInfomation, ref aListEntity, ref aWeeklyReportId, ValidNumber, ref aWeeklySundayRate, ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber, ref aGroupWeeklyReportGuid, HappyWeekIndex, HappyWeekTopic);
+                    Entity aPresentRecord = CreatePresentRecord(aMemberInfomation, ref aListEntity, ref aWeeklyReportId, ValidNumber, ref aWeeklySundayRate, ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber, ref aGroupWeeklyReportGuid, HappyWeekIndex, HappyWeekTopic, PauseCheckBox);
 
                     this.m_ToolUtilityClass.AssignOwner("new_present_record", aPresentRecord, this.m_OwnerId);
 
@@ -1343,11 +1345,11 @@ namespace ChurchReport.WebServiceConnector
                     Entity aPresentRecord;
                     if (aSmallGroupData.Members[0].FullName != aMemberInfomation.FullName)
                     {
-                        aPresentRecord = CreatePresentRecord(aMemberInfomation, ref aListEntity, ref aWeeklyReportId, ValidNumber, ref aWeeklySundayRate, ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber, ref aGroupWeeklyReportGuid, HappyWeekIndex, HappyWeekTopic);
+                        aPresentRecord = CreatePresentRecord(aMemberInfomation, ref aListEntity, ref aWeeklyReportId, ValidNumber, ref aWeeklySundayRate, ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber, ref aGroupWeeklyReportGuid, HappyWeekIndex, HappyWeekTopic, PauseCheckBox);
                     }
                     else
                     {
-                        aPresentRecord = CreatePresentRecord(aSmallGroupData.Members[0], ref aListEntity, ref aWeeklyReportId, ValidNumber, ref aWeeklySundayRate, ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber, ref aGroupWeeklyReportGuid, HappyWeekIndex, HappyWeekTopic);
+                        aPresentRecord = CreatePresentRecord(aSmallGroupData.Members[0], ref aListEntity, ref aWeeklyReportId, ValidNumber, ref aWeeklySundayRate, ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber, ref aGroupWeeklyReportGuid, HappyWeekIndex, HappyWeekTopic, PauseCheckBox);
                     }
 
                     if (aPresentRecord != null)
@@ -1362,7 +1364,7 @@ namespace ChurchReport.WebServiceConnector
 
             return PresentRecordEntityCollection;
         }
-        private Entity CreatePresentRecord(Member aMemberInfomation, ref Entity aListEntity, ref Guid aWeeklyReportId, Double ValidNumber, ref Double aWeeklySundayRate, ref Double aWeeklySmallGroupRate, ref int aWeeklySundayNumber, ref int aWeeklySmallGroupNumber, ref GroupWeeklyReportGuid aGroupWeeklyReportGuid, String HappyWeekIndex, String HappyWeekTopic)
+        private Entity CreatePresentRecord(Member aMemberInfomation, ref Entity aListEntity, ref Guid aWeeklyReportId, Double ValidNumber, ref Double aWeeklySundayRate, ref Double aWeeklySmallGroupRate, ref int aWeeklySundayNumber, ref int aWeeklySmallGroupNumber, ref GroupWeeklyReportGuid aGroupWeeklyReportGuid, String HappyWeekIndex, String HappyWeekTopic, bool PauseCheckBox)
         {
             EntityCollection PresentRecordEntityCollection = new EntityCollection();
 
@@ -1384,7 +1386,7 @@ namespace ChurchReport.WebServiceConnector
                 Entity aPresentRecord = new Entity("new_present_record");
 
                 // 設定個人聚會與靈修記錄相關屬性
-                this.SetupPresentRecordEntityAttributes(aPresentRecord, aMemberInfomation, ref aContactEntity, ref aListEntity, ref aWeeklyReportId, ValidNumber, ref aWeeklySundayRate, ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber, ref aGroupWeeklyReportGuid, HappyWeekIndex, HappyWeekTopic);
+                this.SetupPresentRecordEntityAttributes(aPresentRecord, aMemberInfomation, ref aContactEntity, ref aListEntity, ref aWeeklyReportId, ValidNumber, ref aWeeklySundayRate, ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber, ref aGroupWeeklyReportGuid, HappyWeekIndex, HappyWeekTopic, PauseCheckBox);
 
                 // 新增個人聚會與靈修記錄
                 Guid aPresentRecordId = this.m_ToolUtilityClass.CreateEntity(aPresentRecord);
@@ -2136,7 +2138,7 @@ namespace ChurchReport.WebServiceConnector
                     return "";
             }
         }
-        private void SetupPresentRecordEntityAttributes(Entity aPresentRecord, Member aMemberInfomation, ref Entity aContactEntity, ref Entity aListEntity, ref Guid aWeeklyReportId, Double ValidNumber, ref Double aWeeklySundayRate, ref Double aWeeklySmallGroupRate, ref int aWeeklySundayNumber, ref int aWeeklySmallGroupNumber, ref GroupWeeklyReportGuid aGroupWeeklyReportGuid, String HappyWeekIndex, String HappyWeekTopic)
+        private void SetupPresentRecordEntityAttributes(Entity aPresentRecord, Member aMemberInfomation, ref Entity aContactEntity, ref Entity aListEntity, ref Guid aWeeklyReportId, Double ValidNumber, ref Double aWeeklySundayRate, ref Double aWeeklySmallGroupRate, ref int aWeeklySundayNumber, ref int aWeeklySmallGroupNumber, ref GroupWeeklyReportGuid aGroupWeeklyReportGuid, String HappyWeekIndex, String HappyWeekTopic, bool PauseCheckBox )
         {
             try
             {
@@ -2294,7 +2296,6 @@ namespace ChurchReport.WebServiceConnector
                     this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_happy_present", 0);
                 }
                 #endregion
-
                 #region 設定決志
 
                 if (aMemberInfomation.Decision == true)
@@ -2341,6 +2342,10 @@ namespace ChurchReport.WebServiceConnector
                 //this.m_ToolUtilityClass.SetEntityIntAttribute(ref aMachedPresentRecordEntity, "new_morning_pray", aMemberInfomation.FamilyNumber);
                 //this.m_ToolUtilityClass.SetEntityIntAttribute(ref aMachedPresentRecordEntity, "new_evening_pray", aMemberInfomation.WorkAndCampusNumber);
                 #endregion
+                #region 設定小組暫停
+                this.m_ToolUtilityClass.SetEntityBoolAttribute(ref aPresentRecord, "new_pause", PauseCheckBox);
+                #endregion
+
                 #region 設定行動電話
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_cell_hpone", aMemberInfomation.Phone);
                 #endregion
@@ -2833,7 +2838,7 @@ namespace ChurchReport.WebServiceConnector
         #region 更新個人聚會與靈修記錄
 
         #region 更新出席紀錄
-        private Entity UpdateWeeklyReport(GroupWeeklyReportGuid aGroupWeeklyReportGuid, EntityCollection PresentRecordCollection, ref Entity aListEntity, ref Guid aWeeklyReportId, Double ValidNumber, ref Double aWeeklySundayRate, ref Double aWeeklySmallGroupRate, ref int aWeeklySundayNumber, ref int aWeeklySmallGroupNumber, SmallGroupData aSmallGroupData, String WeeklyReportData, String HappyWeekIndex, String HappyWeekTopic)
+        private Entity UpdateWeeklyReport(GroupWeeklyReportGuid aGroupWeeklyReportGuid, EntityCollection PresentRecordCollection, ref Entity aListEntity, ref Guid aWeeklyReportId, Double ValidNumber, ref Double aWeeklySundayRate, ref Double aWeeklySmallGroupRate, ref int aWeeklySundayNumber, ref int aWeeklySmallGroupNumber, SmallGroupData aSmallGroupData, String WeeklyReportData, String HappyWeekIndex, String HappyWeekTopic, bool PauseCheckBox)
         {
             try
             {
@@ -2942,9 +2947,19 @@ namespace ChurchReport.WebServiceConnector
                 String SmallGroupResult = this.SetupWeeklyReportResult(ref aWeeklyReportEntity);
 
                 // 設定小組日誌
-                if (WeeklyReportData != "不需更新小組日誌")
+                if ( WeeklyReportData != "不需更新小組日誌" )
                 {
                     this.m_ToolUtilityClass.SetEntityStringAttribute(ref aWeeklyReportEntity, "new_memo", WeeklyReportData);
+                    if (PauseCheckBox == true)
+                    {
+                        // 設定週報狀態為暫停
+                        this.m_ToolUtilityClass.SetOptionSetAttribute(ref aWeeklyReportEntity, "new_weekly_report_status", 100000002);
+                    }
+                    else
+                    {
+                        // 設定週報狀態為暫停
+                        this.m_ToolUtilityClass.SetOptionSetAttribute(ref aWeeklyReportEntity, "new_weekly_report_status", 100000001);
+                    }
                 }
                 // 設定幸福小組週次
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aWeeklyReportEntity, "new_weekly_index", HappyWeekIndex);
@@ -2977,7 +2992,7 @@ namespace ChurchReport.WebServiceConnector
                 }
 
                 // 透過 LINE 回報權柄
-                this.m_LineNotifyUtility.SendSmallGroupResultLine(this.m_ContactEntity, SmallGroupResult, aGroupWeeklyReportGuid, aWeeklyReportId, ref aListEntity, ref aSmallGroupData, WeeklyReportData );
+                this.m_LineNotifyUtility.SendSmallGroupResultLine(this.m_ContactEntity, SmallGroupResult, aGroupWeeklyReportGuid, aWeeklyReportId, ref aListEntity, ref aSmallGroupData, WeeklyReportData, PauseCheckBox);
 
                 // 更新週報
                 this.m_ToolUtilityClass.UpdateEntity(ref aWeeklyReportEntity);
@@ -3005,7 +3020,7 @@ namespace ChurchReport.WebServiceConnector
                 throw Exception;
             }
         }
-        private Entity UpdateWeeklyReportProcess(GroupWeeklyReportGuid aGroupWeeklyReportGuid, ref Entity aListEntity, ref Guid aWeeklyReportId, SmallGroupData aSmallGroupData, String WeeklyReportData, String HappyWeekIndex, String HappyWeekTopic)
+        private Entity UpdateWeeklyReportProcess(GroupWeeklyReportGuid aGroupWeeklyReportGuid, ref Entity aListEntity, ref Guid aWeeklyReportId, SmallGroupData aSmallGroupData, String WeeklyReportData, String HappyWeekIndex, String HappyWeekTopic, bool PauseCheckBox)
         {
             try
             {
@@ -3026,11 +3041,11 @@ namespace ChurchReport.WebServiceConnector
                 ValidNumber = GetValidMemberNumber(aPresentRecordCollection);
 
                 #region// 更新個人資料:手機、家裡電話、地址、設定委身類型 + 更新個人聚會與靈修記錄
-                UpdatePresentRecord(this.m_GroupNamedListMemberInfomation, aPresentRecordCollection, ref aListEntity, ref aWeeklyReportId, ValidNumber, ref aWeeklySundayRate, ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber, ref aGroupWeeklyReportGuid, aSmallGroupData, HappyWeekIndex, HappyWeekTopic);
+                UpdatePresentRecord(this.m_GroupNamedListMemberInfomation, aPresentRecordCollection, ref aListEntity, ref aWeeklyReportId, ValidNumber, ref aWeeklySundayRate, ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber, ref aGroupWeeklyReportGuid, aSmallGroupData, HappyWeekIndex, HappyWeekTopic, PauseCheckBox);
                 #endregion
 
                 #region 更新週報
-                return UpdateWeeklyReport(aGroupWeeklyReportGuid, aPresentRecordCollection, ref aListEntity, ref aWeeklyReportId, ValidNumber, ref aWeeklySundayRate, ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber, aSmallGroupData, WeeklyReportData, HappyWeekIndex, HappyWeekTopic);
+                return UpdateWeeklyReport(aGroupWeeklyReportGuid, aPresentRecordCollection, ref aListEntity, ref aWeeklyReportId, ValidNumber, ref aWeeklySundayRate, ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber, aSmallGroupData, WeeklyReportData, HappyWeekIndex, HappyWeekTopic, PauseCheckBox);
                 #endregion
 
                 #endregion
@@ -3043,7 +3058,7 @@ namespace ChurchReport.WebServiceConnector
                 throw Exception;
             }
         }
-        private void UpdatePresentRecord(List<MemberInfomation> aGroupNamedListMemberInfomation, EntityCollection PresentRecordCollection, ref Entity aListEntity, ref Guid aWeeklyReportId, Double ValidNumber, ref Double aWeeklySundayRate, ref Double aWeeklySmallGroupRate, ref int aWeeklySundayNumber, ref int aWeeklySmallGroupNumber, ref GroupWeeklyReportGuid aGroupWeeklyReportGuid, SmallGroupData aSmallGroupData, String HappyWeekIndex, String HappyWeekTopic)
+        private void UpdatePresentRecord(List<MemberInfomation> aGroupNamedListMemberInfomation, EntityCollection PresentRecordCollection, ref Entity aListEntity, ref Guid aWeeklyReportId, Double ValidNumber, ref Double aWeeklySundayRate, ref Double aWeeklySmallGroupRate, ref int aWeeklySundayNumber, ref int aWeeklySmallGroupNumber, ref GroupWeeklyReportGuid aGroupWeeklyReportGuid, SmallGroupData aSmallGroupData, String HappyWeekIndex, String HappyWeekTopic, bool PauseCheckBox)
         {
             try
             {
@@ -3144,7 +3159,6 @@ namespace ChurchReport.WebServiceConnector
                             this.m_ToolUtilityClass.SetEntityDoubleAttribute(ref aMachedPresentRecordEntity, "new_small_group_rate", 0);
                         }
                         #endregion
-
                         #region 設定幸福小組出席
 
                         if (aMember.SmallGroup == true)
@@ -3156,7 +3170,6 @@ namespace ChurchReport.WebServiceConnector
                             this.m_ToolUtilityClass.SetEntityIntAttribute(ref aMachedPresentRecordEntity, "new_happy_present", 0);
                         }
                         #endregion
-
                         #region 設定決志
 
                         if (aMember.Decision == true)
@@ -3214,10 +3227,14 @@ namespace ChurchReport.WebServiceConnector
                         //this.m_ToolUtilityClass.SetEntityIntAttribute(ref aMachedPresentRecordEntity, "new_morning_pray", aMemberInfomation.FamilyNumber);
                         //this.m_ToolUtilityClass.SetEntityIntAttribute(ref aMachedPresentRecordEntity, "new_evening_pray", aMemberInfomation.WorkAndCampusNumber);
                         #endregion
+                        #region 設定小組暫停
+                        this.m_ToolUtilityClass.SetEntityBoolAttribute(ref aMachedPresentRecordEntity, "new_pause", PauseCheckBox);
+                        #endregion
                         #region 更新個人聚會與靈修記錄
                         this.m_ToolUtilityClass.UpdateEntity(ref aMachedPresentRecordEntity);
                         #endregion
 
+                        //指派負責人
                         this.m_ToolUtilityClass.AssignOwner("new_present_record", aMachedPresentRecordEntity, this.m_OwnerId);
 
                         #endregion
@@ -3226,7 +3243,7 @@ namespace ChurchReport.WebServiceConnector
                     else
                     {
                         // 沒找到靈修紀錄
-                        CreatePresentRecord(aMember, ref aListEntity, ref aWeeklyReportId, ValidNumber, ref aWeeklySundayRate, ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber, ref aGroupWeeklyReportGuid, HappyWeekIndex, HappyWeekTopic);
+                        CreatePresentRecord(aMember, ref aListEntity, ref aWeeklyReportId, ValidNumber, ref aWeeklySundayRate, ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber, ref aGroupWeeklyReportGuid, HappyWeekIndex, HappyWeekTopic, PauseCheckBox);
                     }
                 }
 
