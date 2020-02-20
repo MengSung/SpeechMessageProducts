@@ -544,8 +544,8 @@ else
                 )
 
             </div>
-            <div style="font-family:標楷體;font-size:100%; color:mediumslateblue; text-align:left;font-weight:bold"><h5>小組是否暫停</h5></div>
-            @(Html.DevExtreme().CheckBox().ID("CheckBoxId").Value(Model.PauseCheckBox))
+            @*<div style="font-family:標楷體;font-size:100%; color:mediumslateblue; text-align:left;font-weight:bold"><h5>小組是否暫停</h5></div>*@
+            @*@(Html.DevExtreme().CheckBox().ID("CheckBoxId").Value(Model.PauseCheckBox))*@
         }
 
         @if (Model.GroupType == "幸福小組")
@@ -616,6 +616,8 @@ else
         {
             @if (Model.GroupType == "一般小組")
             {
+                <div style="font-family:標楷體;font-size:100%; color:mediumslateblue; text-align:left;font-weight:bold"><h5>小組是否暫停</h5></div>
+                @(Html.DevExtreme().CheckBox().ID("CheckBoxId").Value(Model.PauseCheckBox))
                 @if (Model.m_SmallGroupDataList.m_SmallGroupData.DisplayFlag == true)
                 {
                     <div style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
