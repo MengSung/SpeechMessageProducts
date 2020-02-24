@@ -970,7 +970,22 @@ namespace ChurchReport.Controllers
                 }
                 // 整合式網頁按上傳按鈕
                 bool PasueCheckBox = CheckBox == "true" ? true : false;
-                Task AsyncTask = Task.Run(() => m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.UploadIntegrateData
+
+                //Task AsyncTask = Task.Run( () =>  m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.UploadIntegrateData
+                //(
+                //    m_InMemoryDataContextSmallGroup.ListManager.m_Account,
+                //    m_InMemoryDataContextSmallGroup.ListManager.m_Password,
+                //    m_InMemoryDataContextSmallGroup.ListManager.LoginType,
+                //    m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData,
+                //    WeeklyReportData,
+                //    HappyWeekIndex,
+                //    HappyWeekTopic,
+                //    PasueCheckBox // 小組是否暫停
+                //));
+
+                //await AsyncTask;
+
+                Task.Factory.StartNew(() => m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.UploadIntegrateData
                 (
                     m_InMemoryDataContextSmallGroup.ListManager.m_Account,
                     m_InMemoryDataContextSmallGroup.ListManager.m_Password,
@@ -980,9 +995,7 @@ namespace ChurchReport.Controllers
                     HappyWeekIndex,
                     HappyWeekTopic,
                     PasueCheckBox // 小組是否暫停
-                ));
-
-                await AsyncTask;
+                ), TaskCreationOptions.LongRunning);
                 //Parallel.ForEach( (item) =>
                 //{
                 //    m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.UploadIntegrateData
@@ -998,7 +1011,8 @@ namespace ChurchReport.Controllers
                 //                    );             
                 // });
 
-                return Json(new { status = "1", message = "成功上傳了.... : " + "Status = " + AsyncTask.Status + " IsFaulted = " + AsyncTask.IsFaulted + " IsCanceled=" + AsyncTask.IsCanceled });
+                //return Json(new { status = "1", message = "成功上傳了.... : " + "Status = " + AsyncTask.Status + " IsFaulted = " + AsyncTask.IsFaulted + " IsCanceled=" + AsyncTask.IsCanceled });
+                return Json(new { status = "1", message = "成功上傳了.... !"  });
             }
             catch (System.Exception e)
             {
@@ -1194,14 +1208,23 @@ namespace ChurchReport.Controllers
             try
             {
                 // 整合式網頁按上傳按鈕
-                Task.Run(() => m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.UploadIntegrateData
+                //Task.Run(() => m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.UploadIntegrateData
+                //(
+                //    m_InMemoryDataContextSmallGroup.ListManager.m_Account,
+                //    m_InMemoryDataContextSmallGroup.ListManager.m_Password,
+                //    m_InMemoryDataContextSmallGroup.ListManager.LoginType,
+                //    m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData,
+                //    WeeklyReportData,"","",false
+                //));
+
+                Task.Factory.StartNew(() => m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.UploadIntegrateData
                 (
                     m_InMemoryDataContextSmallGroup.ListManager.m_Account,
                     m_InMemoryDataContextSmallGroup.ListManager.m_Password,
                     m_InMemoryDataContextSmallGroup.ListManager.LoginType,
                     m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData,
-                    WeeklyReportData,"","",false
-                ));
+                    WeeklyReportData, "", "", false
+                ), TaskCreationOptions.LongRunning);
 
                 return Json(new { status = "1", message = "成功上傳了...." });
             }
@@ -1226,14 +1249,23 @@ namespace ChurchReport.Controllers
                 m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.GetPersonalReportViewModelResult( aPersonalReportViewModel );
 
                 // 整合式網頁按上傳按鈕
-                Task.Run(() => m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.UploadIntegrateData
+                //Task.Run(() => m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.UploadIntegrateData
+                //(
+                //    m_InMemoryDataContextSmallGroup.ListManager.m_Account,
+                //    m_InMemoryDataContextSmallGroup.ListManager.m_Password,
+                //    m_InMemoryDataContextSmallGroup.ListManager.LoginType,
+                //    m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData,
+                //    "不需更新小組日誌", "", "",false
+                //));
+
+                Task.Factory.StartNew(() => m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.UploadIntegrateData
                 (
                     m_InMemoryDataContextSmallGroup.ListManager.m_Account,
                     m_InMemoryDataContextSmallGroup.ListManager.m_Password,
                     m_InMemoryDataContextSmallGroup.ListManager.LoginType,
                     m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData,
-                    "不需更新小組日誌", "", "",false
-                ));
+                    "不需更新小組日誌", "", "", false
+                ), TaskCreationOptions.LongRunning);
 
                 return Json(new { status = "1", message = "成功上傳了...." });
             }
@@ -1717,14 +1749,23 @@ namespace ChurchReport.Controllers
             try
             {
                 // 維護基本資料按上傳
-                Task.Run(() => m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.UploadIntegrateData
+                //Task.Run(() => m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.UploadIntegrateData
+                //(
+                //    m_InMemoryDataContextSmallGroup.ListManager.m_Account,
+                //    m_InMemoryDataContextSmallGroup.ListManager.m_Password,
+                //    m_InMemoryDataContextSmallGroup.ListManager.LoginType,
+                //    m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData,
+                //    "不需更新小組日誌", "", "",false
+                //));
+
+                Task.Factory.StartNew(() => m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.UploadIntegrateData
                 (
                     m_InMemoryDataContextSmallGroup.ListManager.m_Account,
                     m_InMemoryDataContextSmallGroup.ListManager.m_Password,
                     m_InMemoryDataContextSmallGroup.ListManager.LoginType,
                     m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData,
-                    "不需更新小組日誌", "", "",false
-                ));
+                    "不需更新小組日誌", "", "", false
+                ), TaskCreationOptions.LongRunning);
 
                 return Json(new { status = "1", message = "成功上傳了...." });
             }
@@ -3023,7 +3064,9 @@ namespace ChurchReport.Controllers
                     if (m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport != null && aPersonFormViewModel.Position != "0")
                     {
                         aPersonFormViewModel.PresentRecordId = m_InMemoryDataContextSmallGroup.NewPersonModel.m_NewContact.PresentRecordId;
-                        Task.Run(() => m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.AddNewPersonToMember(aPersonFormViewModel));
+                        //Task.Run(() => m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.AddNewPersonToMember(aPersonFormViewModel));
+                        //Task.Factory.StartNew(() => m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.AddNewPersonToMember(aPersonFormViewModel), TaskCreationOptions.LongRunning);
+                        m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.AddNewPersonToMember(aPersonFormViewModel);
                     }
 
                     return Json(new { status = "1", message = Result });
