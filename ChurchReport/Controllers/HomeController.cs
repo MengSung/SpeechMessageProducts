@@ -948,7 +948,7 @@ namespace ChurchReport.Controllers
                 throw e;
             }
         }
-        public IActionResult SaveIntegrate(string WeeklyReportData, String HappyWeekIndex, String HappyWeekTopic, String CheckBox)
+        public async Task<IActionResult> SaveIntegrate(string WeeklyReportData, String HappyWeekIndex, String HappyWeekTopic, String CheckBox)
         {
             try
             {
@@ -970,7 +970,7 @@ namespace ChurchReport.Controllers
                 }
                 // 整合式網頁按上傳按鈕
                 bool PasueCheckBox = CheckBox == "true" ? true : false;
-                Task.Run(() => m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.UploadIntegrateData
+                await Task.Run(() => m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.UploadIntegrateData
                 (
                     m_InMemoryDataContextSmallGroup.ListManager.m_Account,
                     m_InMemoryDataContextSmallGroup.ListManager.m_Password,
@@ -981,6 +981,21 @@ namespace ChurchReport.Controllers
                     HappyWeekTopic,
                     PasueCheckBox // 小組是否暫停
                 ));
+
+                //Parallel.ForEach( (item) =>
+                //{
+                //    m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.UploadIntegrateData
+                //                    (
+                //                        m_InMemoryDataContextSmallGroup.ListManager.m_Account,
+                //                        m_InMemoryDataContextSmallGroup.ListManager.m_Password,
+                //                        m_InMemoryDataContextSmallGroup.ListManager.LoginType,
+                //                        m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData,
+                //                        WeeklyReportData,
+                //                        HappyWeekIndex,
+                //                        HappyWeekTopic,
+                //                        PasueCheckBox // 小組是否暫停
+                //                    );             
+                // });
 
                 return Json(new { status = "1", message = "成功上傳了...." });
             }
