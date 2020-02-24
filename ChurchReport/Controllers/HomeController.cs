@@ -970,7 +970,7 @@ namespace ChurchReport.Controllers
                 }
                 // 整合式網頁按上傳按鈕
                 bool PasueCheckBox = CheckBox == "true" ? true : false;
-                await Task.Run(() => m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.UploadIntegrateData
+                Task AsyncTask = Task.Run(() => m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.UploadIntegrateData
                 (
                     m_InMemoryDataContextSmallGroup.ListManager.m_Account,
                     m_InMemoryDataContextSmallGroup.ListManager.m_Password,
@@ -982,6 +982,7 @@ namespace ChurchReport.Controllers
                     PasueCheckBox // 小組是否暫停
                 ));
 
+                await AsyncTask;
                 //Parallel.ForEach( (item) =>
                 //{
                 //    m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.UploadIntegrateData
@@ -997,7 +998,7 @@ namespace ChurchReport.Controllers
                 //                    );             
                 // });
 
-                return Json(new { status = "1", message = "成功上傳了...." });
+                return Json(new { status = "1", message = "成功上傳了.... : " + "Status = " + AsyncTask.Status + " IsFaulted = " + AsyncTask.IsFaulted + " IsCanceled=" + AsyncTask.IsCanceled });
             }
             catch (System.Exception e)
             {
