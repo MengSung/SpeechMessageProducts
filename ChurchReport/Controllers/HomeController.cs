@@ -952,6 +952,7 @@ namespace ChurchReport.Controllers
         {
             try
             {
+                // 整合式網頁按上傳按鈕
                 if (m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.ListEntityName.Contains("幸福"))
                 {
                     if (HappyWeekIndex == null && HappyWeekTopic == null)
@@ -968,7 +969,6 @@ namespace ChurchReport.Controllers
                     }
                     else { }
                 }
-                // 整合式網頁按上傳按鈕
                 bool PasueCheckBox = CheckBox == "true" ? true : false;
 
                 //Task AsyncTask = Task.Run( () =>  m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.UploadIntegrateData
@@ -3065,8 +3065,8 @@ namespace ChurchReport.Controllers
                     {
                         aPersonFormViewModel.PresentRecordId = m_InMemoryDataContextSmallGroup.NewPersonModel.m_NewContact.PresentRecordId;
                         //Task.Run(() => m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.AddNewPersonToMember(aPersonFormViewModel));
-                        //Task.Factory.StartNew(() => m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.AddNewPersonToMember(aPersonFormViewModel), TaskCreationOptions.LongRunning);
-                        m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.AddNewPersonToMember(aPersonFormViewModel);
+                        Task.Factory.StartNew(() => m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.AddNewPersonToMember(aPersonFormViewModel), TaskCreationOptions.LongRunning);
+                        //m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.AddNewPersonToMember(aPersonFormViewModel);
                     }
 
                     return Json(new { status = "1", message = Result });

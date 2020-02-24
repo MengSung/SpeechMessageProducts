@@ -120,7 +120,6 @@ else
                         (@<text>
                                     function(arg)
                                     {
-
                                     var SmallGroupDataGrid = $("#SmallGroupgridContainer").dxDataGrid("instance");
                                     var NewPersonDataGrid = $("#NewPersonGridContainer").dxDataGrid("instance");
 
@@ -143,6 +142,7 @@ else
 
                                     // 上傳按鈕反白
                                     ButtonContainer.option("disabled", true);
+
 
                                     // AJAX 區塊
                                     $.ajax
@@ -243,7 +243,7 @@ else
                                     WeeklyReportData: $("#WeeklyReportTextData").dxTextArea("instance").option('text'),
                                     HappyWeekIndex: $("#HappyWeekIndex").dxSelectBox("instance").option('text'),
                                     HappyWeekTopic: $("#HappyWeekTopic").dxSelectBox("instance").option('text'),
-                                    CheckBox:$("#CheckBoxId").dxCheckBox("instance").option("value")
+                                    @*CheckBox:$("#CheckBoxId").dxCheckBox("instance").option("value")*@
                                     }, // 整理回傳給 Server 的點名資料
                                     type: 'POST', //POST if you want to save, GET if you want to fetch data from server
 
