@@ -279,7 +279,11 @@ namespace ChurchReport.WebServiceConnector
                 //this.m_ToolUtilityClass.UpdateEntity(ref this.m_CrmService, SenderEntity);
 
                 // 刪除系統中的登錄者
-                this.m_ToolUtilityClass.DeleteEntity( "contact", EnteredLineContactEntity.Id);
+                if (this.m_ToolUtilityClass.GetEntityStringAttribute(EnteredLineContactEntity, "fullname").EndsWith("(Line)") == true)
+                {
+                    // 必須確保是"真的"尚未綁定過的才能刪除
+                    this.m_ToolUtilityClass.DeleteEntity("contact", EnteredLineContactEntity.Id);
+                }
 
                 #endregion
 
