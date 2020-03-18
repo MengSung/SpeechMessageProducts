@@ -1645,7 +1645,8 @@ namespace ChurchReport.WebServiceConnector
                 #endregion
 
                 // 取得與此新人相關的出席紀錄單
-                EntityCollection PresentRecordCollection = m_ToolUtilityClass.QueryPresentRecordSortBySunday("contact", "contactid", aContact.Id.ToString(), "new_contact_new_present_record", "new_present_record");
+                //EntityCollection PresentRecordCollection = m_ToolUtilityClass.QueryPresentRecordSortBySunday("contact", "contactid", aContact.Id.ToString(), "new_contact_new_present_record", "new_present_record");
+                EntityCollection PresentRecordCollection = m_ToolUtilityClass.QueryPresentRecordSortBySundayFetchXml(10, this.m_ToolUtilityClass.GetEntityStringAttribute(aContact, "fullname"), aContact.Id.ToString());
 
                 #region 關懷歷程記錄
                 if (PresentRecordCollection.Entities.Count > 0)
@@ -1663,6 +1664,8 @@ namespace ChurchReport.WebServiceConnector
                 foreach (Entity PresentRecordEntity in PresentRecordCollection.Entities)
                 {
                     #region 處理一個一個的出席紀錄
+
+                    //Entity PresentRecordEntity = this.m_ToolUtilityClass.RetrieveEntity("new_present_record", aPresentRecordEntity.Id);
 
                     #region 決定本週的週次
                     DateTime aSundayDate = DateTime.Now;

@@ -2532,6 +2532,60 @@ namespace ToolUtilityNameSpace
                 throw e;
             }
         }
+        public EntityCollection QueryPresentRecordSortBySundayFetchXml( int LastWeeks, String ContactName, String ContactId)
+        {
+            try
+            {
+                String LastWeeksString = @"'" + LastWeeks.ToString() + @"'";
+
+                ContactName = @"'" + ContactName + @"'";
+                ContactId = @"'{" + ContactId + @"}'";
+
+                var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+                      <entity name='new_present_record'>
+                        <attribute name='new_present_recordid' />
+                        <attribute name='new_name' />
+                        <attribute name='createdon' />
+                        <attribute name='new_sunday_date' />
+                        <attribute name='new_sunday_date' />
+                        <attribute name='new_sunday_date' />
+                        <attribute name='new_sunday_date' />
+                        <attribute name='new_sunday_date' />
+                        <attribute name='new_sunday_date' />
+                        <order attribute='new_name' descending='false' />
+                        <filter type='and'>
+                          <condition attribute='new_contact_new_present_record' operator='eq' uiname=" + ContactName + @" uitype ='contact' value=" + ContactId + @" />
+                          <condition attribute='new_sunday_date' operator='last-x-weeks' value="  + LastWeeksString + @" />
+                        </filter>
+                      </entity>
+                    </fetch>";
+
+                RetrieveMultipleRequest fetchRequest1 = new RetrieveMultipleRequest
+                {
+                    Query = new FetchExpression(fetchXml)
+                };
+
+                EntityCollection retrieved;
+                if (CRM_TYPE == "DYNAMICS365")
+                {
+                    retrieved = ((RetrieveMultipleResponse)this.m_OrganizationService.Execute(fetchRequest1)).EntityCollection;
+                }
+                else
+                {
+                    retrieved = ((RetrieveMultipleResponse)this.m_Crm2011OrganizationService.Execute(fetchRequest1)).EntityCollection;
+                }
+
+
+                return retrieved;
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                //Monitor.Exit(this);
+                throw e;
+            }
+        }
         public EntityCollection QueryPresentRecordSortBySunday_BACKUP(String ParentEntityName, String ParentEntityIdName, String ParentEntityId, String AssociationName, String ChildEntityName)
         {
             try
