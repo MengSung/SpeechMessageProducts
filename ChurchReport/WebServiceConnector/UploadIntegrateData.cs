@@ -2345,7 +2345,6 @@ namespace ChurchReport.WebServiceConnector
                 #region 設定小組是否暫停
                 this.m_ToolUtilityClass.SetEntityBoolAttribute(ref aPresentRecord, "new_pause", PauseCheckBox);
                 #endregion
-
                 #region 設定行動電話
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_cell_hpone", aMemberInfomation.Phone);
                 #endregion
