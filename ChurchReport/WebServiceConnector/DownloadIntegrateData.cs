@@ -435,8 +435,6 @@ namespace ChurchReport.WebServiceConnector
                         #region// 決志
                         bool aDecision = this.m_ToolUtilityClass.GetEntityIntAttribute(PresentRecordEntity, "new_happy_decision") > 0 ? true : false;
                         #endregion
-
-
                         #region// 禱告次數，靈修次數
                         // 禱告次數
                         int aPrayNumber = 0;
@@ -1747,6 +1745,7 @@ namespace ChurchReport.WebServiceConnector
                         this.m_ToolUtilityClass.SetOptionSetAttribute(PresentRecordEntity, "new_weeks", WeekIndex);
                         //Entity aRetrievedPresentRecordEntity = this.m_ToolUtilityClass.RetrieveEntity("new_present_record", PresentRecordEntity.Id);
                         //this.m_ToolUtilityClass.UpdateEntity(ref this.m_ToolUtilityClass.m_OrganizationService, PresentRecordEntity);
+                        // 待完成........
                         if (CRM_TYPE == "DYNAMICS365")
                         {
                             this.m_ToolUtilityClass.UpdateEntityDynamics365(ref this.m_ToolUtilityClass.m_OrganizationService, PresentRecordEntity);
