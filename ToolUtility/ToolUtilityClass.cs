@@ -2547,11 +2547,12 @@ namespace ToolUtilityNameSpace
                         <attribute name='new_name' />
                         <attribute name='createdon' />
                         <attribute name='new_sunday_date' />
-                        <attribute name='new_sunday_date' />
-                        <attribute name='new_sunday_date' />
-                        <attribute name='new_sunday_date' />
-                        <attribute name='new_sunday_date' />
-                        <attribute name='new_sunday_date' />
+                        <attribute name='new_groupleader_present_record' />
+                        <attribute name='new_followup_ways' />
+                        <attribute name='new_follow_up' />
+                        <attribute name='new_conclusion_choise' />
+                        <attribute name='new_next_step' />
+                        <attribute name='new_explanation' />
                         <order attribute='new_name' descending='false' />
                         <filter type='and'>
                           <condition attribute='new_contact_new_present_record' operator='eq' uiname=" + ContactName + @" uitype ='contact' value=" + ContactId + @" />

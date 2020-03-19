@@ -4214,6 +4214,8 @@ namespace ChurchReport.WebServiceConnector
             {
                 case "牧師師母":
                     return 100000006;
+                case "區牧":
+                    return 100000002;
                 case "區長":
                     return 100000003;
                 case "小組長":
@@ -4245,6 +4247,8 @@ namespace ChurchReport.WebServiceConnector
             {
                 case 100000006:
                     return "01. 牧師師母";
+                case 100000002:
+                    return "011. 區牧";
                 case 100000003:
                     return "02. 區長";
                 case 100000008:
