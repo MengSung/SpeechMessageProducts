@@ -3971,7 +3971,7 @@ namespace ChurchReport.Controllers
 
                 TempData["ClassName"] = "從相信到堅信";
 
-                QrCodeUtility aQrCodeUtility = new QrCodeUtility();
+                SmallGroupQrCodeUtility aSmallGroupQrCodeUtility = new SmallGroupQrCodeUtility();
 
                 String ClassName = "";
                 String UserName = "";
@@ -3980,7 +3980,7 @@ namespace ChurchReport.Controllers
 
                 UserProfile aUserProfile = new UserProfile();
 
-                aQrCodeUtility.SetupQrCodeIdString(m_InMemoryDataContextSmallGroup.ListManager.QrCodeId, UserLineId, ref ClassName, ref UserName, ref ClassIndex, ref OnboardType);
+                aSmallGroupQrCodeUtility.SetupQrCodeIdString(m_InMemoryDataContextSmallGroup.ListManager.QrCodeId, UserLineId, ref ClassName, ref UserName, ref ClassIndex, ref OnboardType);
 
                 //aQrCodeUtility.SetupQrCodeIdString(m_InMemoryDataContextSmallGroup.ListManager.QrCodeId);
 

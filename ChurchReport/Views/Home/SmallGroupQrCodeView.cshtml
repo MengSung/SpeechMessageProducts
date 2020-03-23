@@ -104,17 +104,43 @@
                     return $.ajax
                     (
                         {
-                            url: '@Url.Action("QrCodeGetLineId", "Home")',
+                            url: '@Url.Action("SmallGroupQrCodeView", "Home")',
                             data: { UserLineId: aUserLineId, GroupId: aGroupId, RoomId: aRoomId, ViewType: aViewType}, // 整理回傳給 Server 的點名資料
                             type: 'POST', //POST if you want to save, GET if you want to fetch data from server
                             //async: false,
                             success: function (data)
                             {
+                                //alert("測試 AJAX-001 : " + data.message);
+                                //ShowToast(data.message, "success", 2000);
+                                //document.getElementById('classnamefield').innerHTML = " 課程名稱 : " + data.message;
+                                //alert("測試 AJAX-002 : " + document.getElementById('classnamefield'));
+                                //alert("測試 AJAX-003 : " + document.getElementById('classnamefield').value);
+                                //alert("測試 AJAX-004 : " + document.getElementById('classnamefield').innerHTML);
+
+                                //document.getElementById('classnamefield').value = " 課程名稱 : " + data.message;
+                                //alert("測試 AJAX-005 : " + document.getElementById('classnamefield').innerHTML);
+                                //alert("測試 AJAX-006 : " + document.getElementById('classnamefield').value);
+
                                 document.getElementById('classnamefield').innerHTML     = "課程名稱: "    + data.classname;
                                 document.getElementById('usernamefield').innerHTML      = "姓名: "        + data.username;
                                 document.getElementById('classindexfield').innerHTML    = "課堂資訊: "    + data.classindex;
                                 //document.getElementById('onboardtypefield').innerHTML   = "簽到退時間: "  + data.onboardtype;
                                 document.getElementById('onboardtypefield').innerHTML   = data.onboardtype;
+                                //alert("測試 AJAX-007 : " + document.getElementById('classnamefield').innerHTML);
+                                //alert("測試 AJAX-008 : " + document.getElementById('classnamefield').value);
+
+                                //ClassName = " 課程名稱 : " + data.message;
+                                //alert("測試 AJAX-001!" );
+                                //liff.scanCode();
+                                ////getLoadPanelInstance().hide();
+                                //var schedulerinstance = getSchedulerInstance();
+                                ////alert("測試 AJAX-002!" + schedulerinstance);
+                                //schedulerinstance.getDataSource().reload();
+                                ////alert("測試 AJAX-003!" + schedulerinstance);
+                                //schedulerinstance.repaint();
+                                ////alert("測試 AJAX-004!" );
+                                //window.setTimeout(UpdateLineUserId, 3000);
+                                //window.location.href = "/Home/SchedulerView"
                             },
 
                             error: function (obj)
@@ -122,6 +148,7 @@
                                 //getLoadPanelInstance().hide();
                                 window.location.href = "/Home/Login";
                             }
+
                         }
                     );
                     // AJAX 區塊
