@@ -110,7 +110,7 @@ namespace ChurchReport.Controllers
                 if (　ContactIdString != "密碼錯誤" && ContactIdString != "系統沒有設定密碼" && ContactIdString != "帳號錯誤"　)
                 {
                     string FullName = "";
-                    if ( ContactIdString != "透過 Line Id 登入" )
+                    if ( ContactIdString != "透過Line Id 登入" )
                     {
                         #region 使用者透過網頁的帳號密碼登入，所以帳號密碼就依據使用者輸入的為準
                         Guid aContactGuid = new Guid(ContactIdString);
