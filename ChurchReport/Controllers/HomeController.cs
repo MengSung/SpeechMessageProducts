@@ -3973,19 +3973,18 @@ namespace ChurchReport.Controllers
 
                 SmallGroupQrCodeUtility aSmallGroupQrCodeUtility = new SmallGroupQrCodeUtility();
 
-                String ClassName = "";
+                String SmallGroupName = "";
                 String UserName = "";
-                String ClassIndex = "";
                 String OnboardType = "";
 
                 UserProfile aUserProfile = new UserProfile();
 
-                aSmallGroupQrCodeUtility.SetupQrCodeIdString(m_InMemoryDataContextSmallGroup.ListManager.QrCodeId, UserLineId, ref ClassName, ref UserName, ref ClassIndex, ref OnboardType);
+                aSmallGroupQrCodeUtility.SetupQrCodeIdString(m_InMemoryDataContextSmallGroup.ListManager.QrCodeId, UserLineId, ref SmallGroupName, ref UserName, ref OnboardType);
 
                 //aQrCodeUtility.SetupQrCodeIdString(m_InMemoryDataContextSmallGroup.ListManager.QrCodeId);
 
                 //return Json(new { DisplayViewType = DisplayViewType, ActiveListId = m_InMemoryDataContextSmallGroup.ListManager.ActiveListId, message = "歡迎" + FullName + "登入成功!", fullname = FullName, account = aGalleryViewModel.Account, password = aGalleryViewModel.Password });
-                return Json(new { message = "歡迎" + m_InMemoryDataContextSmallGroup.ListManager.QrCodeId + "登入成功!", classname = ClassName, username = UserName, classindex = ClassIndex, onboardtype = OnboardType });
+                return Json(new { message = "歡迎" + m_InMemoryDataContextSmallGroup.ListManager.QrCodeId + "登入成功!", smallgroupname = SmallGroupName, username = UserName,  onboardtype = OnboardType });
 
             }
             catch (System.Exception e)

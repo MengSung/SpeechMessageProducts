@@ -1,7 +1,6 @@
 ﻿
-<div class="long-title"><h3 id="classnamefield"></h3></div>
+<div class="long-title"><h3 id="smallgroupfield"></h3></div>
 <div class="long-title"><h3 id="usernamefield"></h3></div>
-<div class="long-title"><h3 id="classindexfield"></h3></div>
 <div class="long-title"><h3 id="onboardtypefield"></h3></div>
 @*<div class="long-title"><h3 id="displaynamefield"></h3></div>*@
 
@@ -86,14 +85,8 @@
                 // 取得 UserId 的Ajax
                 UpdateLineUserId(UserId, GroupId, RoomId, ViewType);
 
-                document.getElementById('classnamefield').innerHTML = "正在處理中......" ;
+               document.getElementById('smallgroupfield').innerHTML = "正在處理中......" ;
 
-                //document.getElementById('classnamefield').innerHTML = " 課程名稱 : " + '@TempData["ClassName"]';
-                //document.getElementById('classnamefield').innerHTML = "";
-                //document.getElementById('classnamefield').innerHTML = ClassName;
-
-                //document.getElementById('displaynamefield').innerHTML = profile.displayName + " : " + '@TempData["QrCodeId"]'+"的QR Code";
-                //alert("測試005!" );
             });
 
         }
@@ -110,37 +103,12 @@
                             //async: false,
                             success: function (data)
                             {
-                                //alert("測試 AJAX-001 : " + data.message);
-                                //ShowToast(data.message, "success", 2000);
-                                //document.getElementById('classnamefield').innerHTML = " 課程名稱 : " + data.message;
-                                //alert("測試 AJAX-002 : " + document.getElementById('classnamefield'));
-                                //alert("測試 AJAX-003 : " + document.getElementById('classnamefield').value);
-                                //alert("測試 AJAX-004 : " + document.getElementById('classnamefield').innerHTML);
 
-                                //document.getElementById('classnamefield').value = " 課程名稱 : " + data.message;
-                                //alert("測試 AJAX-005 : " + document.getElementById('classnamefield').innerHTML);
-                                //alert("測試 AJAX-006 : " + document.getElementById('classnamefield').value);
-
-                                document.getElementById('classnamefield').innerHTML     = "課程名稱: "    + data.classname;
+                                document.getElementById('smallgroupfield').innerHTML = "小組: " + data.smallgroupname;
                                 document.getElementById('usernamefield').innerHTML      = "姓名: "        + data.username;
-                                document.getElementById('classindexfield').innerHTML    = "課堂資訊: "    + data.classindex;
+                                //document.getElementById('classindexfield').innerHTML    = "課堂資訊: "    + data.classindex;
                                 //document.getElementById('onboardtypefield').innerHTML   = "簽到退時間: "  + data.onboardtype;
                                 document.getElementById('onboardtypefield').innerHTML   = data.onboardtype;
-                                //alert("測試 AJAX-007 : " + document.getElementById('classnamefield').innerHTML);
-                                //alert("測試 AJAX-008 : " + document.getElementById('classnamefield').value);
-
-                                //ClassName = " 課程名稱 : " + data.message;
-                                //alert("測試 AJAX-001!" );
-                                //liff.scanCode();
-                                ////getLoadPanelInstance().hide();
-                                //var schedulerinstance = getSchedulerInstance();
-                                ////alert("測試 AJAX-002!" + schedulerinstance);
-                                //schedulerinstance.getDataSource().reload();
-                                ////alert("測試 AJAX-003!" + schedulerinstance);
-                                //schedulerinstance.repaint();
-                                ////alert("測試 AJAX-004!" );
-                                //window.setTimeout(UpdateLineUserId, 3000);
-                                //window.location.href = "/Home/SchedulerView"
                             },
 
                             error: function (obj)

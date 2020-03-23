@@ -2062,6 +2062,64 @@ namespace ToolUtilityNameSpace
             }
         }
         #endregion
+        #region 取得個人聚會與靈修記錄
+        /// <summary>
+        /// 特定連絡人已報名的課程
+        /// </summary>
+        /// <param name="StartDate"></param>
+        /// <param name="EndDate"></param>
+        /// <returns></returns>
+        public EntityCollection RetrievePresentRecordByFetchXml(String WeeklyReportName, String WeeklyReportId, String ContactName, String ContactId)
+        {
+            try
+            {
+                WeeklyReportName = @"'" + WeeklyReportName + @"'";
+                WeeklyReportId = @"'{" + WeeklyReportId + @"}'";
+
+                ContactName = @"'" + ContactName + @"'";
+                ContactId = @"'{" + ContactId + @"}'";
+
+
+                var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+                      <entity name='new_present_record'>
+                        <attribute name='new_present_recordid' />
+                        <attribute name='new_name' />
+                        <attribute name='createdon' />
+                        <order attribute='new_name' descending='false' />
+                        <filter type='and'>
+                          <condition attribute='new_group_present_weekly_report_prese' operator='eq' uiname=" + WeeklyReportName + @" uitype ='new_disciple_lessons' value=" + WeeklyReportId + @" />
+                          <condition attribute='new_contact_new_present_record' operator='eq' uiname=" + ContactName + @" uitype='contact' value=" + ContactId + @" />
+                        </filter>
+                      </entity>
+                    </fetch>";
+
+
+                RetrieveMultipleRequest fetchRequest1 = new RetrieveMultipleRequest
+                {
+                    Query = new FetchExpression(fetchXml)
+                };
+
+                EntityCollection retrieved;
+                if (CRM_TYPE == "DYNAMICS365")
+                {
+                    retrieved = ((RetrieveMultipleResponse)this.m_OrganizationService.Execute(fetchRequest1)).EntityCollection;
+                }
+                else
+                {
+                    retrieved = ((RetrieveMultipleResponse)this.m_Crm2011OrganizationService.Execute(fetchRequest1)).EntityCollection;
+                }
+
+
+                return retrieved;
+                //}
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                throw e;
+            }
+        }
+        #endregion
         #region 取得名單
         public Entity RetrieveListEntityByName(String ListName)
         {

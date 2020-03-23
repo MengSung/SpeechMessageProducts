@@ -39,11 +39,11 @@ namespace ChurchReport.Tools
         private String m_UserLineId = "";
         private String m_UserName = "";
         private String m_SmallGroupName = "";
-        private String m_ClassIndex = "";
+        //private String m_ClassIndex = "";
         private String m_OnboardType = "";
         private Entity m_WeeklyReport = null;
 
-        private String m_ClassIndexInfo = "";
+        //private String m_ClassIndexInfo = "";
         private String m_OnboardTypeInfo = "";
 
         private DateTime m_SigningTime;
@@ -70,7 +70,7 @@ namespace ChurchReport.Tools
         }
         #endregion
         #region 主程式
-        public void SetupQrCodeIdString(String QrCodeIdString, String UserLineId, ref String ClassName, ref String UserName, ref String ClassIndex, ref String OnboardType)
+        public void SetupQrCodeIdString(String QrCodeIdString, String UserLineId, ref String SmallGroupName, ref String UserName, ref String OnboardType)
         {
             try
             {
@@ -90,19 +90,18 @@ namespace ChurchReport.Tools
                 Guid aGuid = new Guid(arr[0]);
                 m_WeeklyReport = this.m_ToolUtilityClass.RetrieveEntity("new_group_present_weekly_report", aGuid);
 
-                // 取得小組名稱
-                m_SmallGroupName = ClassName = this.m_ToolUtilityClass.GetEntityLookupDisplayName( m_WeeklyReport, "new_list_group_present_weekly_report");
+                // 取得小組名稱，並且回傳給網頁去顯示
+                m_SmallGroupName = SmallGroupName = this.m_ToolUtilityClass.GetEntityLookupDisplayName( m_WeeklyReport, "new_list_group_present_weekly_report");
 
                 // 設定是簽到還是簽退
                 m_OnboardType = arr[1];
 
                 #endregion
 
-                // 在上課紀錄單進行簽到退
-                SigningWeeklyReport(m_WeeklyReport, ClassName, UserName, m_Contact.Id.ToString(), m_ClassIndex, m_OnboardType);
-
-                // 傳回給網頁第幾堂課及其名稱
-                ClassIndex = m_ClassIndexInfo;
+                // 在人聚會與靈修記錄進行簽到退
+                // 取得週報名稱
+                String WeeklyReportName = this.m_ToolUtilityClass.GetEntityStringAttribute(m_WeeklyReport, "new_name");
+                SigningWeeklyReport(m_WeeklyReport, WeeklyReportName, UserName, m_Contact.Id.ToString(), m_OnboardType);
 
                 // 傳回給網頁簽到或簽退時間，及是否已簽到過了
                 OnboardType = m_OnboardTypeInfo;
@@ -117,33 +116,33 @@ namespace ChurchReport.Tools
         }
         #endregion
         #region 設定簽到簽退
-        public bool SigningWeeklyReport(Entity aLesson, String LessonName, String UserName, String UserId, String ClassIndex, String OnboardType)
+        public bool SigningWeeklyReport(Entity aWeeklyReport, String WeeklyReportName, String UserName, String UserId,  String OnboardType)
         {
             try
             {
-                // 取得與課程相關的上課紀錄
+                // 取得與週報相關的個人聚會與靈修記錄
                 //EntityCollection aStorLessonsEntityCollection = m_ToolUtilityClass.QueryEntityList("new_disciple_lessons", "new_disciple_lessonsid", aLesson.Id.ToString(), "new_new_disciple_lessons_new_stor_les", "new_stor_lessons");
-                EntityCollection aStorLessonsEntityCollection = m_ToolUtilityClass.RetrieveStorLessonsByFetchXml(LessonName, aLesson.Id.ToString(), UserName, UserId);
+                EntityCollection aPresentRecordCollection = m_ToolUtilityClass.RetrievePresentRecordByFetchXml(WeeklyReportName, aWeeklyReport.Id.ToString(), UserName, UserId);
 
-                if (aStorLessonsEntityCollection.Entities.Count > 0)
+                if ( aPresentRecordCollection.Entities.Count > 0 )
                 {
-                    // 有找到上課紀錄單
-                    Entity RetrievedStorLessons = this.m_ToolUtilityClass.RetrieveEntity("new_stor_lessons", aStorLessonsEntityCollection.Entities[0].Id);
+                    // 有找到個人聚會與靈修記錄
+                    Entity aPresentRecord = this.m_ToolUtilityClass.RetrieveEntity("new_present_record", aPresentRecordCollection.Entities[0].Id);
 
                     // 進行簽到或是簽退
-                    SigningProcess(RetrievedStorLessons, ClassIndex, OnboardType);
+                    SigningProcess(aPresentRecord, OnboardType);
                     //SetStorLessonsClass(m_Lesson, LessonName, UserName, UserId, ClassIndex, OnboardType);
 
                     return true;
                 }
                 else
                 {
-                    // 沒找到上課紀錄單
+                    // 沒找到個人聚會與靈修記錄
 
                     // 建立一個上課紀錄單
-                    Entity CreatededStorLessons = this.m_ToolUtilityClass.RetrieveEntity("new_stor_lessons", CreateNewStorLesson(m_Contact, ref aLesson));
+                    //Entity CreatededStorLessons = this.m_ToolUtilityClass.RetrieveEntity("new_stor_lessons", CreateNewStorLesson(m_Contact, ref aLesson));
 
-                    SigningProcess(CreatededStorLessons, ClassIndex, OnboardType);
+                    //SigningProcess(CreatededStorLessons, ClassIndex, OnboardType);
 
                     return false;
                 }
@@ -155,20 +154,21 @@ namespace ChurchReport.Tools
                 throw Exception;
             }
         }
-        public void SigningProcess(Entity aRetrievedStorLessons, String ClassIndex, String OnboardType)
+        public void SigningProcess(Entity aRetrievedPresentRecord, String OnboardType)
         {
             try
             {
-                // 取得上課紀錄單
-                String SigningTimeAttribute = this.GetStorLessonsTimeAttribute(ClassIndex, OnboardType);
-                String SigningPresentAttribute = "new_" + ClassIndex + "_present";
-                if (OnboardType == "On")
+                // 取得個人聚會與靈修記錄
+                //String SigningTimeAttribute = this.GetStorLessonsTimeAttribute(ClassIndex, OnboardType);
+                //String SigningPresentAttribute = "new_" + ClassIndex + "_present";
+                if ( OnboardType == "On" || OnboardType == "on" )
                 {
                     // 簽到
-                    DateTime aSigningTime = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aRetrievedStorLessons, SigningTimeAttribute);
+                    DateTime aSigningTime = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aRetrievedPresentRecord, "new_small_group_signing_time");
                     if (aSigningTime.Year <= 1)
                     {
-                        SetStorLessonsTimeAttribute(aRetrievedStorLessons, SigningTimeAttribute, SigningPresentAttribute);
+                        // 設定簽到時間，一班小組、幸福小組打勾，更新個人聚會與靈修記錄
+                        SetPresentRecordTimeAttribute(aRetrievedPresentRecord, "new_small_group_signing_time", "new_group_present_this_week");
                     }
                     else
                     {
@@ -181,7 +181,7 @@ namespace ChurchReport.Tools
                 else
                 {
                     // 簽退
-                    SetStorLessonsTimeAttribute(aRetrievedStorLessons, SigningTimeAttribute, SigningPresentAttribute);
+                    // SetStorLessonsTimeAttribute(aRetrievedPresentRecord, "new_small_group_signing_time", "new_group_present_this_week");
                 }
             }
             catch (System.Exception Exception)
@@ -191,7 +191,7 @@ namespace ChurchReport.Tools
                 throw Exception;
             }
         }
-        private void SetStorLessonsTimeAttribute(Entity aRetrievedStorLessons, String SigningTimeAttribute, String SigningPresentAttribute)
+        private void SetPresentRecordTimeAttribute(Entity aRetrievedPresentRecord, String SigningTimeAttribute, String SigningPresentAttribute)
         {
             try
             {
@@ -199,10 +199,14 @@ namespace ChurchReport.Tools
                 // 設定簽到或簽退時間
                 m_SigningTime = DateTime.Now;
                 // 填寫簽到時間
-                this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aRetrievedStorLessons, SigningTimeAttribute, m_SigningTime);
-                // 打勾出席
-                this.m_ToolUtilityClass.SetEntityBoolAttribute(ref aRetrievedStorLessons, SigningPresentAttribute, true);
-                this.m_ToolUtilityClass.UpdateEntity(ref aRetrievedStorLessons);
+                this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aRetrievedPresentRecord, SigningTimeAttribute, m_SigningTime);
+                // 一般小組出席設定為整數1
+                this.m_ToolUtilityClass.SetEntityIntAttribute( ref aRetrievedPresentRecord, SigningPresentAttribute, 1 );
+                // 幸福小組出席設定為整數1
+                this.m_ToolUtilityClass.SetEntityIntAttribute( ref aRetrievedPresentRecord, "new_happy_present", 1 );
+
+                // 更新個人聚會與靈修記錄
+                this.m_ToolUtilityClass.UpdateEntity(ref aRetrievedPresentRecord);
 
                 // 送出 LINE 訊息
                 String NotifyMessage = GetNotifyMessageString();
@@ -1144,19 +1148,9 @@ namespace ChurchReport.Tools
         {
             try
             {
-
-                String LocalClassIndex = "第" + m_ClassIndex + "堂課";
-                String ClassIndexcontent = this.m_ToolUtilityClass.GetEntityStringAttribute(ref this.m_WeeklyReport, this.GetClassAttribute(m_ClassIndex));
-                if (ClassIndexcontent != "")
-                {
-                    LocalClassIndex += "，" + ClassIndexcontent;
-                }
-                else
-                { }
-
                 // 取得簽到簽退時間
                 String SigningTypeAndTime = "";
-                if (m_OnboardType == "On")
+                if (m_OnboardType == "On" || m_OnboardType == "on")
                 {
                     SigningTypeAndTime = m_SigningTime.ToLocalTime().ToString() + " 簽到";
                 }
@@ -1165,14 +1159,11 @@ namespace ChurchReport.Tools
                     SigningTypeAndTime = m_SigningTime.ToLocalTime().ToString() + " 簽退";
                 }
 
-                m_ClassIndexInfo = LocalClassIndex;
-
                 m_OnboardTypeInfo = SigningTypeAndTime;
 
                 return
-                    "課程名稱: " + m_SmallGroupName + Environment.NewLine +
+                    "小組: " + m_SmallGroupName + Environment.NewLine +
                     "姓名: " + m_UserName + Environment.NewLine +
-                    "課堂資訊: " + LocalClassIndex + Environment.NewLine +
                     SigningTypeAndTime;
             }
             catch (System.Exception Exception)
