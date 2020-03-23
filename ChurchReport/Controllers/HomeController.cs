@@ -3894,7 +3894,7 @@ namespace ChurchReport.Controllers
 
         #endregion
         #region  小組聚會 QR CODE 簽到簽退掃描(Line Tiff)
-        [Route("/Home/QrCodeView/{QrCodeViewPatameter}")]
+        [Route("/Home/SmallGroupQrCodeView/{QrCodeViewPatameter}")]
         public ActionResult SmallGroupQrCodeView(String QrCodeId, string QrCodeViewPatameter)
         {
             try

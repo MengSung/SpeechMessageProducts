@@ -88,7 +88,7 @@ namespace ChurchReport.Tools
                 // 取得週報
                 string[] arr = QrCodeIdString.Split('_');
                 Guid aGuid = new Guid(arr[0]);
-                m_WeeklyReport = this.m_ToolUtilityClass.RetrieveEntity("new_disciple_lessons", aGuid);
+                m_WeeklyReport = this.m_ToolUtilityClass.RetrieveEntity("new_group_present_weekly_report", aGuid);
 
                 // 取得小組名稱
                 m_SmallGroupName = ClassName = this.m_ToolUtilityClass.GetEntityLookupDisplayName( m_WeeklyReport, "new_list_group_present_weekly_report");
