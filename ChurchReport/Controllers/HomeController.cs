@@ -3937,7 +3937,7 @@ namespace ChurchReport.Controllers
         }
 
         [HttpPost]
-        public IActionResult SmallGroupQrCodeGetLineId(string UserLineId, string GroupId, string RoomId, string ViewType)
+        public IActionResult SmallGroupQrCodeGetLineId( string DisplayName, string UserLineId, string GroupId, string RoomId, string ViewType)
         {
             try
             {
@@ -3979,12 +3979,12 @@ namespace ChurchReport.Controllers
 
                 UserProfile aUserProfile = new UserProfile();
 
-                aSmallGroupQrCodeUtility.SetupQrCodeIdString(m_InMemoryDataContextSmallGroup.ListManager.QrCodeId, UserLineId, ref SmallGroupName, ref UserName, ref OnboardType);
+                aSmallGroupQrCodeUtility.SetupQrCodeIdString(m_InMemoryDataContextSmallGroup.ListManager.QrCodeId, DisplayName, UserLineId, ref SmallGroupName, ref UserName, ref OnboardType);
 
                 //aQrCodeUtility.SetupQrCodeIdString(m_InMemoryDataContextSmallGroup.ListManager.QrCodeId);
 
                 //return Json(new { DisplayViewType = DisplayViewType, ActiveListId = m_InMemoryDataContextSmallGroup.ListManager.ActiveListId, message = "歡迎" + FullName + "登入成功!", fullname = FullName, account = aGalleryViewModel.Account, password = aGalleryViewModel.Password });
-                return Json(new { message = "歡迎" + m_InMemoryDataContextSmallGroup.ListManager.QrCodeId + "登入成功!", smallgroupname = SmallGroupName, username = UserName,  onboardtype = OnboardType });
+                return Json(new { result = OnboardType, smallgroupname = SmallGroupName, username = UserName,  onboardtype = OnboardType });
 
             }
             catch (System.Exception e)

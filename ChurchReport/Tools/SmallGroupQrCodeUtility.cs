@@ -70,7 +70,7 @@ namespace ChurchReport.Tools
         }
         #endregion
         #region 主程式
-        public void SetupQrCodeIdString(String QrCodeIdString, String UserLineId, ref String SmallGroupName, ref String UserName, ref String OnboardType)
+        public void SetupQrCodeIdString( String QrCodeIdString, String DisplayName, String UserLineId, ref String SmallGroupName, ref String UserName, ref String OnboardType)
         {
             try
             {
@@ -81,7 +81,8 @@ namespace ChurchReport.Tools
                 m_Contact = this.m_ToolUtilityClass.RetrieveContactEntityByLineUserId(UserLineId);
                 if( m_Contact == null )
                 {
-                    this.AddNewFriend(UserLineId);
+                    // 透過 LINE ID 找不到此好友，可能還沒加入官LINE@
+                    this.AddNewFriend(DisplayName, UserLineId);
                 }
                 m_UserName = UserName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref m_Contact, "fullname");
 
@@ -98,17 +99,20 @@ namespace ChurchReport.Tools
 
                 #endregion
 
-                // 在人聚會與靈修記錄進行簽到退
                 // 取得週報名稱
                 String WeeklyReportName = this.m_ToolUtilityClass.GetEntityStringAttribute(m_WeeklyReport, "new_name");
-                SigningWeeklyReport(m_WeeklyReport, WeeklyReportName, UserName, m_Contact.Id.ToString(), m_OnboardType);
+                // 個人聚會與靈修記錄進行簽到退 , 同時傳回結果
+                SigningWeeklyReport( m_WeeklyReport, WeeklyReportName, UserName, m_Contact.Id.ToString(), m_OnboardType );
 
                 // 傳回給網頁簽到或簽退時間，及是否已簽到過了
                 OnboardType = m_OnboardTypeInfo;
 
                 // 計算週報出席人數及出席率
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref m_WeeklyReport, "new_saved_flag", "計算出席率");
-                this.m_ToolUtilityClass.UpdateEntity(ref m_WeeklyReport);
+                if (m_OnboardTypeInfo.StartsWith("錯誤") != true)
+                {
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref m_WeeklyReport, "new_saved_flag", "計算出席率");
+                    this.m_ToolUtilityClass.UpdateEntity(ref m_WeeklyReport);
+                }
 
             }
             catch (System.Exception Exception)
@@ -120,7 +124,7 @@ namespace ChurchReport.Tools
         }
         #endregion
         #region 設定簽到簽退
-        public bool SigningWeeklyReport(Entity aWeeklyReport, String WeeklyReportName, String UserName, String UserId,  String OnboardType)
+        public bool SigningWeeklyReport(Entity aWeeklyReport, String WeeklyReportName, String UserName, String UserId,  String OnboardType )
         {
             try
             {
@@ -147,6 +151,8 @@ namespace ChurchReport.Tools
                     //Entity CreatededStorLessons = this.m_ToolUtilityClass.RetrieveEntity("new_stor_lessons", CreateNewStorLesson(m_Contact, ref aLesson));
 
                     //SigningProcess(CreatededStorLessons, ClassIndex, OnboardType);
+
+                    m_OnboardTypeInfo = "錯誤 : " + UserName + " 還沒有加入" + m_SmallGroupName; 
 
                     return false;
                 }
@@ -178,7 +184,14 @@ namespace ChurchReport.Tools
                     {
                         String NotifyMessage = GetNotifyMessageString();
 
-                        m_OnboardTypeInfo = "已經在 " + aSigningTime.ToLocalTime().ToString() + " 簽到過了";
+                        if (m_UserName.Contains("(Line)") != true)
+                        {
+                            m_OnboardTypeInfo = "已經在 " + aSigningTime.ToLocalTime().ToString() + " 簽到過了";
+                        }
+                        else
+                        {
+                            m_OnboardTypeInfo = "已經在 " + aSigningTime.ToLocalTime().ToString() + " 簽到過了" + Environment.NewLine + "， 可是您尚未綁定過喔!";
+                        }
 
                     }
                 }
@@ -1163,12 +1176,30 @@ namespace ChurchReport.Tools
                     SigningTypeAndTime = m_SigningTime.ToLocalTime().ToString() + " 簽退";
                 }
 
-                m_OnboardTypeInfo = SigningTypeAndTime;
+                                
+                if (m_UserName.Contains("(Line)") != true)
+                {
+                    // 彈跳要用到的簽到退時間資訊
+                    m_OnboardTypeInfo = SigningTypeAndTime;
 
-                return
-                    "小組: " + m_SmallGroupName + Environment.NewLine +
-                    "姓名: " + m_UserName + Environment.NewLine +
-                    SigningTypeAndTime;
+                    // 回傳 LINE 要用到的訊息
+                    return
+                        "小組: " + m_SmallGroupName + Environment.NewLine +
+                        "姓名: " + m_UserName + Environment.NewLine +
+                        SigningTypeAndTime;
+                }
+                else
+                {
+                    // 彈跳要用到的簽到退時間資訊
+                    m_OnboardTypeInfo = SigningTypeAndTime + Environment.NewLine + "，可是您尚未綁定過喔!";
+
+                    // 回傳 LINE 要用到的訊息
+                    return
+                        "小組: " + m_SmallGroupName + Environment.NewLine +
+                        "姓名: " + m_UserName + Environment.NewLine +
+                        SigningTypeAndTime + Environment.NewLine +
+                        "可是您尚未綁定過喔!";
+                }
             }
             catch (System.Exception Exception)
             {
@@ -1178,7 +1209,7 @@ namespace ChurchReport.Tools
             }
         }
 
-        public async Task AddNewFriend(String UserId)
+        public async Task AddNewFriend( String aDisplayName, String UserId)
         {
             try
             {
@@ -1186,8 +1217,8 @@ namespace ChurchReport.Tools
 
                 #region// 新加入
                 //UserProfile aUserProfile = await GetProfile(UserId);
-                Task<UserProfile> aUserProfileTask = m_LineMessagingClient.GetUserProfileAsync(UserId);
-                UserProfile aUserProfile = await aUserProfileTask;
+                //Task<UserProfile> aUserProfileTask = m_LineMessagingClient.GetUserProfileAsync(UserId);
+                //UserProfile aUserProfile = await aUserProfileTask;
 
                 //UserProfile aUserProfile = await m_LineMessagingClient.GetUserProfileAsync(UserId);
 
@@ -1196,9 +1227,9 @@ namespace ChurchReport.Tools
                 // 寫入LINE的個人基本資料
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref m_Contact, "new_lineid", UserId);
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref m_Contact, "new_lineid_backup", UserId);
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref m_Contact, "new_line_displayname", aUserProfile.DisplayName);
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref m_Contact, "new_line_picture_url", aUserProfile.PictureUrl);
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref m_Contact, "new_line_status_message", aUserProfile.StatusMessage);
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref m_Contact, "new_line_displayname", aDisplayName);
+                //this.m_ToolUtilityClass.SetEntityStringAttribute(ref m_Contact, "new_line_picture_url", aUserProfile.PictureUrl);
+                //this.m_ToolUtilityClass.SetEntityStringAttribute(ref m_Contact, "new_line_status_message", aUserProfile.StatusMessage);
                 this.m_ToolUtilityClass.SetEntityBoolAttribute(ref m_Contact, "new_line_register", false);
 
                 // 委身類型客製化，客製委身類型欄位，每間教會委身類型都不一樣，台中思恩堂豐富教會豐富教會=>"新朋友" = 100000000
@@ -1206,15 +1237,15 @@ namespace ChurchReport.Tools
                 this.m_ToolUtilityClass.SetOptionSetAttribute(ref m_Contact, "customertypecode", 100000000);
 
                 // 設定在CRM 2011 的初始連絡人姓名
-                String Year = DateTime.Now.Year.ToString();
-                String Month = DateTime.Now.Month.ToString();
-                String Day = DateTime.Now.Day.ToString();
-                String Hour = DateTime.Now.Hour.ToString();
-                String Minute = DateTime.Now.Minute.ToString();
-                String Second = DateTime.Now.Second.ToString();
+                //String Year = DateTime.Now.Year.ToString();
+                //String Month = DateTime.Now.Month.ToString();
+                //String Day = DateTime.Now.Day.ToString();
+                //String Hour = DateTime.Now.Hour.ToString();
+                //String Minute = DateTime.Now.Minute.ToString();
+                //String Second = DateTime.Now.Second.ToString();
 
                 //String LastName = "Line新加入者" + "-" + Year + "-" + Month + "-" + Day + "-" + Hour + "-" + Minute + "-" + Second;
-                String LastName = aUserProfile.DisplayName + "(Line)";
+                String LastName = aDisplayName + "(Line)";
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref m_Contact, "lastname", LastName);
 
                 //設定LINE狀態為"新加入"

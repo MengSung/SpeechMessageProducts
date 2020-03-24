@@ -81,6 +81,7 @@ namespace ChurchReport.Tools
                 m_Contact = this.m_ToolUtilityClass.RetrieveContactEntityByLineUserId(UserLineId);
                 if( m_Contact == null )
                 {
+                    // 透過 LINE ID 找不到此好友，可能還沒加入官LINE@
                     this.AddNewFriend(UserLineId);
                 }
                 m_UserName = UserName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref m_Contact, "fullname");
