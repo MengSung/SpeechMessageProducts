@@ -3826,7 +3826,7 @@ namespace ChurchReport.Controllers
         }
 
         [HttpPost]
-        public IActionResult QrCodeGetLineId(string UserLineId, string GroupId, string RoomId, string ViewType)
+        public IActionResult QrCodeGetLineId( string DisplayName, string UserLineId, string GroupId, string RoomId, string ViewType)
         {
             try
             {
@@ -3869,7 +3869,7 @@ namespace ChurchReport.Controllers
 
                 UserProfile aUserProfile = new UserProfile();
 
-                aQrCodeUtility.SetupQrCodeIdString(m_InMemoryDataContextSmallGroup.ListManager.QrCodeId, UserLineId, ref ClassName, ref UserName, ref ClassIndex, ref OnboardType);
+                aQrCodeUtility.SetupQrCodeIdString(m_InMemoryDataContextSmallGroup.ListManager.QrCodeId, DisplayName, UserLineId, ref ClassName, ref UserName, ref ClassIndex, ref OnboardType);
 
                 //aQrCodeUtility.SetupQrCodeIdString(m_InMemoryDataContextSmallGroup.ListManager.QrCodeId);
 

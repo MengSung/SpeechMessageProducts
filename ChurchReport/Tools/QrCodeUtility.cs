@@ -70,7 +70,7 @@ namespace ChurchReport.Tools
         }
         #endregion
         #region 主程式
-        public void SetupQrCodeIdString(String QrCodeIdString, String UserLineId, ref String ClassName, ref String UserName, ref String ClassIndex, ref String OnboardType)
+        public void SetupQrCodeIdString( String QrCodeIdString, String DisplayName, String UserLineId, ref String ClassName, ref String UserName, ref String ClassIndex, ref String OnboardType)
         {
             try
             {
@@ -82,7 +82,11 @@ namespace ChurchReport.Tools
                 if( m_Contact == null )
                 {
                     // 透過 LINE ID 找不到此好友，可能還沒加入官LINE@
-                    this.AddNewFriend(UserLineId);
+                    //this.AddNewFriend( DisplayName, UserLineId );
+
+                    OnboardType = "錯誤 : " + DisplayName + "還沒有加入楊梅靈糧堂的 Line@" ;
+
+                    return;
                 }
                 m_UserName = UserName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref m_Contact, "fullname");
 
@@ -175,9 +179,14 @@ namespace ChurchReport.Tools
                     else
                     {
                         String NotifyMessage = GetNotifyMessageString();
-
-                        m_OnboardTypeInfo = "已經在 " + aSigningTime.ToLocalTime().ToString() + " 簽到過了";
-
+                        if (m_UserName.Contains("(Line)") != true)
+                        {
+                            m_OnboardTypeInfo = "已經在 " + aSigningTime.ToLocalTime().ToString() + " 簽到過了";
+                        }
+                        else
+                        {
+                            m_OnboardTypeInfo = "已經在 " + aSigningTime.ToLocalTime().ToString() + " 簽到過了" + Environment.NewLine + "， 可是您尚未綁定過喔!";
+                        }
                     }
                 }
                 else
@@ -1185,7 +1194,7 @@ namespace ChurchReport.Tools
             }
         }
 
-        public async Task AddNewFriend(String UserId)
+        public async Task AddNewFriend(String aDisplayName, String UserId)
         {
             try
             {
@@ -1193,8 +1202,8 @@ namespace ChurchReport.Tools
 
                 #region// 新加入
                 //UserProfile aUserProfile = await GetProfile(UserId);
-                Task<UserProfile> aUserProfileTask = m_LineMessagingClient.GetUserProfileAsync(UserId);
-                UserProfile aUserProfile = await aUserProfileTask;
+                //Task<UserProfile> aUserProfileTask = m_LineMessagingClient.GetUserProfileAsync(UserId);
+                //UserProfile aUserProfile = await aUserProfileTask;
 
                 //UserProfile aUserProfile = await m_LineMessagingClient.GetUserProfileAsync(UserId);
 
@@ -1203,9 +1212,9 @@ namespace ChurchReport.Tools
                 // 寫入LINE的個人基本資料
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref m_Contact, "new_lineid", UserId);
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref m_Contact, "new_lineid_backup", UserId);
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref m_Contact, "new_line_displayname", aUserProfile.DisplayName);
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref m_Contact, "new_line_picture_url", aUserProfile.PictureUrl);
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref m_Contact, "new_line_status_message", aUserProfile.StatusMessage);
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref m_Contact, "new_line_displayname", aDisplayName);
+                //this.m_ToolUtilityClass.SetEntityStringAttribute(ref m_Contact, "new_line_picture_url", aUserProfile.PictureUrl);
+                //this.m_ToolUtilityClass.SetEntityStringAttribute(ref m_Contact, "new_line_status_message", aUserProfile.StatusMessage);
                 this.m_ToolUtilityClass.SetEntityBoolAttribute(ref m_Contact, "new_line_register", false);
 
                 // 委身類型客製化，客製委身類型欄位，每間教會委身類型都不一樣，台中思恩堂豐富教會豐富教會=>"新朋友" = 100000000
@@ -1213,15 +1222,15 @@ namespace ChurchReport.Tools
                 this.m_ToolUtilityClass.SetOptionSetAttribute(ref m_Contact, "customertypecode", 100000000);
 
                 // 設定在CRM 2011 的初始連絡人姓名
-                String Year = DateTime.Now.Year.ToString();
-                String Month = DateTime.Now.Month.ToString();
-                String Day = DateTime.Now.Day.ToString();
-                String Hour = DateTime.Now.Hour.ToString();
-                String Minute = DateTime.Now.Minute.ToString();
-                String Second = DateTime.Now.Second.ToString();
+                //String Year = DateTime.Now.Year.ToString();
+                //String Month = DateTime.Now.Month.ToString();
+                //String Day = DateTime.Now.Day.ToString();
+                //String Hour = DateTime.Now.Hour.ToString();
+                //String Minute = DateTime.Now.Minute.ToString();
+                //String Second = DateTime.Now.Second.ToString();
 
                 //String LastName = "Line新加入者" + "-" + Year + "-" + Month + "-" + Day + "-" + Hour + "-" + Minute + "-" + Second;
-                String LastName = aUserProfile.DisplayName + "(Line)";
+                String LastName = aDisplayName + "(Line)";
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref m_Contact, "lastname", LastName);
 
                 //設定LINE狀態為"新加入"

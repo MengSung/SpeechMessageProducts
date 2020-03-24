@@ -99,22 +99,29 @@
         }
 
 
-        function UpdateLineUserId(aUserLineId, aGroupId, aRoomId, aViewType ) {
+    function UpdateLineUserId(aDisplayName, aUserLineId, aGroupId, aRoomId, aViewType)
+    {
                     // AJAX 區塊
                     return $.ajax
                     (
                         {
                             url: '@Url.Action("QrCodeGetLineId", "Home")',
-                            data: { UserLineId: aUserLineId, GroupId: aGroupId, RoomId: aRoomId, ViewType: aViewType}, // 整理回傳給 Server 的點名資料
+                            data: { DisplayName: aDisplayName, UserLineId: aUserLineId, GroupId: aGroupId, RoomId: aRoomId, ViewType: aViewType}, // 整理回傳給 Server 的點名資料
                             type: 'POST', //POST if you want to save, GET if you want to fetch data from server
                             //async: false,
                             success: function (data)
                             {
-                                document.getElementById('classnamefield').innerHTML     = "課程名稱: "    + data.classname;
-                                document.getElementById('usernamefield').innerHTML      = "姓名: "        + data.username;
-                                document.getElementById('classindexfield').innerHTML    = "課堂資訊: "    + data.classindex;
-                                //document.getElementById('onboardtypefield').innerHTML   = "簽到退時間: "  + data.onboardtype;
-                                document.getElementById('onboardtypefield').innerHTML   = data.onboardtype;
+                                if (data.result.includes("錯誤") != true) {
+                                    // 正確掃描
+                                    document.getElementById('classnamefield').innerHTML = "課程名稱: " + data.classname;
+                                    document.getElementById('usernamefield').innerHTML = "姓名: " + data.username;
+                                    document.getElementById('classindexfield').innerHTML = "課堂資訊: " + data.classindex;
+                                    //document.getElementById('onboardtypefield').innerHTML   = "簽到退時間: "  + data.onboardtype;
+                                    document.getElementById('onboardtypefield').innerHTML = data.onboardtype;
+                                }
+                                else {
+                                    document.getElementById('smallgroupfield').innerHTML = data.result;
+                                }
                             },
 
                             error: function (obj)

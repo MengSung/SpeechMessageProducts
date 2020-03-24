@@ -260,48 +260,6 @@ namespace ChurchReport.Tools
             }
         }
         #endregion
-        #region 取得課堂欄位名稱
-
-        private String GetClassAttribute(String ClassIndex)
-        {
-            switch (ClassIndex)
-            {
-                case "1":
-                    return "new_l1_name";
-                case "2":
-                    return "new_l2_name";
-                case "3":
-                    return "new_l3_name";
-                case "4":
-                    return "new_l4_name";
-                case "5":
-                    return "new_l5_name";
-                case "6":
-                    return "new_l6_name";
-                case "7":
-                    return "new_l7_name";
-                case "8":
-                    return "new_l8_name";
-                case "9":
-                    return "new_l9_name";
-                case "10":
-                    return "new_l10_name";
-                case "11":
-                    return "new_l11_name";
-                case "12":
-                    return "new_l12_name";
-                case "13":
-                    return "new_l13_name";
-                case "14":
-                    return "new_l14_name";
-                case "15":
-                    return "new_l15_name";
-                default:
-                    return "new_l1_name";
-            }
-        }
-
-        #endregion
         #region 新增、修改課程記錄
         public Guid CreateNewStorLesson(Entity aContact, ref Entity aDiscepleLessons)
         {
@@ -384,42 +342,6 @@ namespace ChurchReport.Tools
             catch (System.Exception e)
             {
                 String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                throw e;
-            }
-        }
-        private void SetupNewStorLessonsEntityAttributes(ref Entity aNewStorLessonsEntity, String[] aDetailAttributesArray, ref Entity aDiscepleLessons)
-        {
-            try
-            {
-                #region 關聯雙翼養育課程屬性
-                if (aDiscepleLessons.Id != Guid.Empty)
-                { this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aNewStorLessonsEntity, "new_new_disciple_lessons_new_stor_les", "new_disciple_lessons", aDiscepleLessons.Id); }
-                #endregion
-
-                #region 關聯姓名屬性
-                String ContactName = aDetailAttributesArray[1];
-                String MobilePhone = aDetailAttributesArray[3];
-                //Entity aContactEntity = this.m_ToolUtilityClass.RetrieveContactByName(ref this.m_CrmService, ContactName);
-                Entity aContactEntity = this.m_ToolUtilityClass.RetrieveContactEntityByFullNameAndMobileNumber(ContactName, MobilePhone);
-                if (aContactEntity != null && aContactEntity.Id != Guid.Empty)
-                { this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aNewStorLessonsEntity, "new_contact_new_stor_lessons", "contact", aContactEntity.Id); }
-                else
-                {
-                    aContactEntity = this.m_ToolUtilityClass.RetrieveContactEntityByName( ContactName);
-                    if (aContactEntity.Id != Guid.Empty)
-                    { this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aNewStorLessonsEntity, "new_contact_new_stor_lessons", "contact", aContactEntity.Id); }
-                }
-                #endregion
-
-
-                // 設定學員上課記錄相關屬性
-                this.UpdateNewStorLessonsEntityAttributes(ref aNewStorLessonsEntity, aDetailAttributesArray);
-
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString() + Environment.NewLine;
-
                 throw e;
             }
         }
