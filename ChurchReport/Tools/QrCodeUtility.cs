@@ -24,6 +24,7 @@ using Line.Messaging;
 
 namespace ChurchReport.Tools
 {
+    #region 課程 QR Code 簽到及簽退掃描
     public class QrCodeUtility
     {
         #region 資料區
@@ -105,7 +106,7 @@ namespace ChurchReport.Tools
                 #endregion
 
                 // 在上課紀錄單進行簽到退
-                SigningLesson(m_Lesson, ClassName, UserName, m_Contact.Id.ToString(), m_ClassIndex, m_OnboardType);
+                SigningLesson( m_Lesson, ClassName, UserName, m_Contact.Id.ToString(), m_ClassIndex, m_OnboardType );
 
                 // 傳回給網頁第幾堂課及其名稱
                 ClassIndex = m_ClassIndexInfo;
@@ -129,7 +130,7 @@ namespace ChurchReport.Tools
             {
                 // 取得與課程相關的上課紀錄
                 //EntityCollection aStorLessonsEntityCollection = m_ToolUtilityClass.QueryEntityList("new_disciple_lessons", "new_disciple_lessonsid", aLesson.Id.ToString(), "new_new_disciple_lessons_new_stor_les", "new_stor_lessons");
-                EntityCollection aStorLessonsEntityCollection = m_ToolUtilityClass.RetrieveStorLessonsByFetchXml(LessonName, aLesson.Id.ToString(), UserName, UserId);
+                EntityCollection aStorLessonsEntityCollection = m_ToolUtilityClass.RetrieveStorLessonsByFetchXml( LessonName, aLesson.Id.ToString(), UserName, UserId );
 
                 if (aStorLessonsEntityCollection.Entities.Count > 0)
                 {
@@ -137,7 +138,7 @@ namespace ChurchReport.Tools
                     Entity RetrievedStorLessons = this.m_ToolUtilityClass.RetrieveEntity("new_stor_lessons", aStorLessonsEntityCollection.Entities[0].Id);
 
                     // 進行簽到或是簽退
-                    SigningProcess(RetrievedStorLessons, ClassIndex, OnboardType);
+                    SigningProcess( RetrievedStorLessons, ClassIndex, OnboardType );
                     //SetStorLessonsClass(m_Lesson, LessonName, UserName, UserId, ClassIndex, OnboardType);
 
                     return true;
@@ -147,8 +148,15 @@ namespace ChurchReport.Tools
                     // 沒找到上課紀錄單
 
                     // 建立一個上課紀錄單
-                    Entity CreatededStorLessons = this.m_ToolUtilityClass.RetrieveEntity("new_stor_lessons", CreateNewStorLesson(m_Contact, ref aLesson));
+                    Entity CreatededStorLessons = this.m_ToolUtilityClass.RetrieveEntity("new_stor_lessons", CreateNewStorLesson( m_Contact, ref aLesson ));
 
+                    if( this.m_ToolUtilityClass.GetEntityMoneyAttribute( ref m_Lesson, "new_lessons_fee").Value > 0 )
+                    {
+                        // 課程有課程費用，就要建立收費單
+                        CreateFee(CreatededStorLessons, "Amount");
+                    }
+
+                    // 進行簽到或是簽退
                     SigningProcess(CreatededStorLessons, ClassIndex, OnboardType);
 
                     return false;
@@ -338,10 +346,6 @@ namespace ChurchReport.Tools
                 throw e;
             }
         }
-
-
-
-
         static readonly object m_RetrieveStorLessonsLocker = new object();
         public Entity RetrieveStorLessonsById(ref IOrganizationService aOrganizationService, String IdNumber)
         {
@@ -374,42 +378,6 @@ namespace ChurchReport.Tools
             catch (System.Exception e)
             {
                 String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                throw e;
-            }
-        }
-        private void SetupNewStorLessonsEntityAttributes(ref Entity aNewStorLessonsEntity, String[] aDetailAttributesArray, ref Entity aDiscepleLessons)
-        {
-            try
-            {
-                #region 關聯雙翼養育課程屬性
-                if (aDiscepleLessons.Id != Guid.Empty)
-                { this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aNewStorLessonsEntity, "new_new_disciple_lessons_new_stor_les", "new_disciple_lessons", aDiscepleLessons.Id); }
-                #endregion
-
-                #region 關聯姓名屬性
-                String ContactName = aDetailAttributesArray[1];
-                String MobilePhone = aDetailAttributesArray[3];
-                //Entity aContactEntity = this.m_ToolUtilityClass.RetrieveContactByName(ref this.m_CrmService, ContactName);
-                Entity aContactEntity = this.m_ToolUtilityClass.RetrieveContactEntityByFullNameAndMobileNumber(ContactName, MobilePhone);
-                if (aContactEntity != null && aContactEntity.Id != Guid.Empty)
-                { this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aNewStorLessonsEntity, "new_contact_new_stor_lessons", "contact", aContactEntity.Id); }
-                else
-                {
-                    aContactEntity = this.m_ToolUtilityClass.RetrieveContactEntityByName( ContactName);
-                    if (aContactEntity.Id != Guid.Empty)
-                    { this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aNewStorLessonsEntity, "new_contact_new_stor_lessons", "contact", aContactEntity.Id); }
-                }
-                #endregion
-
-
-                // 設定學員上課記錄相關屬性
-                this.UpdateNewStorLessonsEntityAttributes(ref aNewStorLessonsEntity, aDetailAttributesArray);
-
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString() + Environment.NewLine;
-
                 throw e;
             }
         }
@@ -513,7 +481,6 @@ namespace ChurchReport.Tools
                 //throw e; Mrak掉就是吸收錯誤
             }
         }
-
         #region  JAVASCRIPT 
         //function BuildSavedString(i)
         //{
@@ -920,7 +887,6 @@ namespace ChurchReport.Tools
                 throw e;
             }
         }
-
         private void SetupDateTimeAttributes(ref Entity aDiscipleLessons, String aDiscipleLessonsAttribute, String AttributeName)
         {
             try
@@ -938,7 +904,6 @@ namespace ChurchReport.Tools
                 throw e;
             }
         }
-
         private void SetupPresentAttributes(ref Entity aNewStorLessonsEntity, String[] aDetailAttributesArray)
         {
             try
@@ -1148,6 +1113,66 @@ namespace ChurchReport.Tools
                 throw e;
             }
         }
+        #endregion
+        #region 新增、修改收費單
+        public Entity CreateFee( Entity aStorLessonEntity, String Type )
+        {
+            // 取得與上課紀錄相關的收費單
+            //Entity aStorLessonEntity = this.m_ToolUtilityClass.RetrieveEntity("new_stor_lessons", new Guid(StorLessonsId));
+
+            Entity aFee = new Entity("new_fee");
+
+            this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aFee, "new_contact_new_fee", "new_fee", this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aStorLessonEntity, "new_contact_new_stor_lessons"));
+
+            Guid DiscipleLessonsEntityId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aStorLessonEntity, "new_new_disciple_lessons_new_stor_les");
+            this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aFee, "new_disciple_lessons_new_fee", "new_fee", DiscipleLessonsEntityId);
+
+            this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aFee, "new_stor_lessons_new_fee", "new_fee", aStorLessonEntity.Id);
+
+            Entity aDiscipleLessonsEntity = this.m_ToolUtilityClass.RetrieveEntity("new_disciple_lessons", DiscipleLessonsEntityId);
+
+            Money MoneyShouldPay = this.m_ToolUtilityClass.GetEntityMoneyAttribute(ref aDiscipleLessonsEntity, "new_lessons_fee");
+
+            if (MoneyShouldPay.Value >= 0)
+            {
+                this.m_ToolUtilityClass.SetEntityMoneyAttribute(ref aFee, "new_fee_shoud_pay", MoneyShouldPay);
+            }
+
+            if (Type == "Amount")
+            {
+                this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aFee, "new_pay_date", DateTime.Now);
+                //this.m_ToolUtilityClass.SetOptionSetAttribute(ref aFee, "new_pay_way", 100000004); // 預設繳費是未知
+                this.m_ToolUtilityClass.SetOptionSetAttribute(ref aFee, "new_pay_way", 100000000); // 預設繳費是現金
+            }
+            return this.m_ToolUtilityClass.RetrieveEntity("new_fee", this.m_ToolUtilityClass.CreateEntity(aFee));
+        }
+
+        public void SetFeePayWay(String Value, ref Entity aFeeEntity)
+        {
+
+            switch (Value)
+            {
+                case "未知":
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_pay_way", 100000004);
+                    break;
+                case "現金":
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_pay_way", 100000000);
+                    break;
+                case "信用卡":
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_pay_way", 100000001);
+                    break;
+                case "ATM轉帳":
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_pay_way", 100000002);
+                    break;
+                case "超商付款":
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_pay_way", 100000003);
+                    break;
+                default:
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_pay_way", 100000004);
+                    break;
+
+            }
+        }
 
         #endregion
         #region 工具區
@@ -1282,4 +1307,5 @@ namespace ChurchReport.Tools
 
         #endregion
     }
+    #endregion
 }

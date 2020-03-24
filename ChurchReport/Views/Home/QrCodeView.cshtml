@@ -84,7 +84,7 @@
                 ViewType = profile.aViewType;
                 //alert("測試004!" + DisplayName);
                 // 取得 UserId 的Ajax
-                UpdateLineUserId(UserId, GroupId, RoomId, ViewType);
+                UpdateLineUserId( DisplayName, UserId, GroupId, RoomId, ViewType);
 
                 document.getElementById('classnamefield').innerHTML = "正在處理中......" ;
 
@@ -120,7 +120,7 @@
                                     document.getElementById('onboardtypefield').innerHTML = data.onboardtype;
                                 }
                                 else {
-                                    document.getElementById('smallgroupfield').innerHTML = data.result;
+                                    document.getElementById('classnamefield').innerHTML = data.result;
                                 }
                             },
 
