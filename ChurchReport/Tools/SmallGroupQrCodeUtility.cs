@@ -82,7 +82,7 @@ namespace ChurchReport.Tools
                 if( m_Contact == null )
                 {
                     // 透過 LINE ID 找不到此好友，可能還沒加入官LINE@
-                    this.AddNewFriend(DisplayName, UserLineId);
+                    //this.AddNewFriend(DisplayName, UserLineId);
                 }
                 m_UserName = UserName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref m_Contact, "fullname");
 
@@ -816,7 +816,6 @@ namespace ChurchReport.Tools
                     this.m_ToolUtilityClass.SetEntityIntAttribute(ref aNewStorLessonsEntity, "new_exam", this.m_ToolUtilityClass.GetEntityIntAttribute(ref aDiscipleLessons, "new_exam"));
                 }
                 #endregion
-
                 #region 課程名稱
 
                 // 取得課程名稱
@@ -829,7 +828,6 @@ namespace ChurchReport.Tools
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aNewStorLessonsEntity, "new_name", LessonDisplayName + "_" + FullName);
 
                 #endregion
-
                 #region 費用
                 if (m_ToolUtilityClass.GetEntityMoneyAttribute(ref aDiscipleLessons, "new_lessons_fee").Value >= 0)
                 {
@@ -1130,7 +1128,6 @@ namespace ChurchReport.Tools
                 throw Exception;
             }
         }
-
         public async Task AddNewFriend( String aDisplayName, String UserId)
         {
             try

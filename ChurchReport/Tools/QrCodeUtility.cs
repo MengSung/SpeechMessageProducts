@@ -1178,13 +1178,32 @@ namespace ChurchReport.Tools
 
                 m_ClassIndexInfo = LocalClassIndex;
 
-                m_OnboardTypeInfo = SigningTypeAndTime;
+                if (m_UserName.Contains("(Line)") != true)
+                {
+                    // 彈跳要用到的簽到退時間資訊
+                    m_OnboardTypeInfo = SigningTypeAndTime;
 
-                return
+                    // 回傳 LINE 要用到的訊息
+                    return
                     "課程名稱: " + m_ClassName + Environment.NewLine +
                     "姓名: " + m_UserName + Environment.NewLine +
                     "課堂資訊: " + LocalClassIndex + Environment.NewLine +
                     SigningTypeAndTime;
+                }
+                else
+                {
+                    // 彈跳要用到的簽到退時間資訊
+                    m_OnboardTypeInfo = SigningTypeAndTime + Environment.NewLine + "，可是您尚未綁定過喔!";
+
+                    // 回傳 LINE 要用到的訊息
+                    return
+                    "課程名稱: " + m_ClassName + Environment.NewLine +
+                    "姓名: " + m_UserName + Environment.NewLine +
+                    "課堂資訊: " + LocalClassIndex + Environment.NewLine +
+                    SigningTypeAndTime + Environment.NewLine +
+                    "可是您尚未綁定過喔!";
+                }
+
             }
             catch (System.Exception Exception)
             {
