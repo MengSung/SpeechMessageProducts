@@ -106,6 +106,10 @@ namespace ChurchReport.Tools
                 // 傳回給網頁簽到或簽退時間，及是否已簽到過了
                 OnboardType = m_OnboardTypeInfo;
 
+                // 計算週報出席人數及出席率
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref m_WeeklyReport, "new_saved_flag", "計算出席率");
+                this.m_ToolUtilityClass.UpdateEntity(ref m_WeeklyReport);
+
             }
             catch (System.Exception Exception)
             {
