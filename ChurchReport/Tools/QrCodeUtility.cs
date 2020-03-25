@@ -96,23 +96,42 @@ namespace ChurchReport.Tools
                 Guid aGuid = new Guid(arr[0]);
                 m_Lesson = this.m_ToolUtilityClass.RetrieveEntity("new_disciple_lessons", aGuid);
                 m_ClassName = ClassName = this.m_ToolUtilityClass.GetEntityStringAttribute(m_Lesson, "new_name");
-
-                // 取得堂數
-                m_ClassIndex = arr[1];
-
-                // 設定是簽到還是簽退
-                m_OnboardType = arr[2];
-
                 #endregion
 
-                // 在上課紀錄單進行簽到退
-                SigningLesson( m_Lesson, ClassName, UserName, m_Contact.Id.ToString(), m_ClassIndex, m_OnboardType );
 
-                // 傳回給網頁第幾堂課及其名稱
-                ClassIndex = m_ClassIndexInfo;
+                // 取得堂數
+                m_ClassIndex = arr.Length >= 2?arr[1]: "" ;
 
-                // 傳回給網頁簽到或簽退時間，及是否已簽到過了
-                OnboardType = m_OnboardTypeInfo;
+                if ( m_ClassIndex.Contains("enroll") != true )
+                {
+                    #region 課程簽到及簽退
+
+                    // 設定是簽到還是簽退
+                    m_OnboardType = arr[2];
+
+
+                    // 在上課紀錄單進行簽到退
+                    SigningLesson(m_Lesson, ClassName, UserName, m_Contact.Id.ToString(), m_ClassIndex, m_OnboardType);
+
+                    // 傳回給網頁第幾堂課及其名稱
+                    ClassIndex = m_ClassIndexInfo;
+
+                    // 傳回給網頁簽到或簽退時間，及是否已簽到過了
+                    OnboardType = m_OnboardTypeInfo;
+                    #endregion
+                }
+                else if (m_ClassIndex.Contains("enroll") == true)
+                {
+                    #region 課程報名
+                    // 在上課紀錄單進行報名
+                    SigningLesson(m_Lesson, ClassName, UserName, m_Contact.Id.ToString(), m_ClassIndex, m_OnboardType);
+
+                    // 傳回給網頁簽到或簽退時間，及是否已簽到過了
+                    OnboardType = m_OnboardTypeInfo;
+
+                    #endregion
+                }
+                else { }
 
             }
             catch (System.Exception Exception)
@@ -137,7 +156,7 @@ namespace ChurchReport.Tools
                     // 有找到上課紀錄單
                     Entity RetrievedStorLessons = this.m_ToolUtilityClass.RetrieveEntity("new_stor_lessons", aStorLessonsEntityCollection.Entities[0].Id);
 
-                    // 進行簽到或是簽退
+                    // 進行簽到或是簽退或是報名
                     SigningProcess( RetrievedStorLessons, ClassIndex, OnboardType );
                     //SetStorLessonsClass(m_Lesson, LessonName, UserName, UserId, ClassIndex, OnboardType);
 
@@ -156,7 +175,7 @@ namespace ChurchReport.Tools
                         CreateFee(CreatededStorLessons, "Amount");
                     }
 
-                    // 進行簽到或是簽退
+                    // 進行簽到或是簽退或是報名
                     SigningProcess(CreatededStorLessons, ClassIndex, OnboardType);
 
                     return false;
@@ -173,34 +192,60 @@ namespace ChurchReport.Tools
         {
             try
             {
-                // 取得上課紀錄單
-                String SigningTimeAttribute = this.GetStorLessonsTimeAttribute(ClassIndex, OnboardType);
-                String SigningPresentAttribute = "new_" + ClassIndex + "_present";
-                if (OnboardType == "On")
-                {
-                    // 簽到
-                    DateTime aSigningTime = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aRetrievedStorLessons, SigningTimeAttribute);
-                    if (aSigningTime.Year <= 1)
+                if (m_ClassIndex.Contains("enroll") != true) { 
+                    #region 進行簽到或是簽退
+                    // 取得上課紀錄單
+                    String SigningTimeAttribute = this.GetStorLessonsTimeAttribute(ClassIndex, OnboardType);
+                    String SigningPresentAttribute = "new_" + ClassIndex + "_present";
+                    if (OnboardType == "On")
                     {
-                        SetStorLessonsTimeAttribute(aRetrievedStorLessons, SigningTimeAttribute, SigningPresentAttribute);
-                    }
-                    else
-                    {
-                        String NotifyMessage = GetNotifyMessageString();
-                        if (m_UserName.Contains("(Line)") != true)
+                        // 簽到
+                        DateTime aSigningTime = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aRetrievedStorLessons, SigningTimeAttribute);
+                        if (aSigningTime.Year <= 1)
                         {
-                            m_OnboardTypeInfo = "已經在 " + aSigningTime.ToLocalTime().ToString() + " 簽到過了";
+                            SetStorLessonsTimeAttribute(aRetrievedStorLessons, SigningTimeAttribute, SigningPresentAttribute);
                         }
                         else
                         {
-                            m_OnboardTypeInfo = "已經在 " + aSigningTime.ToLocalTime().ToString() + " 簽到過了" + Environment.NewLine + "， 可是您尚未綁定過喔!";
+                            String NotifyMessage = GetNotifyMessageString();
+                            if (m_UserName.Contains("(Line)") != true)
+                            {
+                                m_OnboardTypeInfo = "已經在 " + aSigningTime.ToLocalTime().ToString() + " 簽到過了";
+                            }
+                            else
+                            {
+                                m_OnboardTypeInfo = "已經在 " + aSigningTime.ToLocalTime().ToString() + " 簽到過了" + Environment.NewLine + "， 可是您尚未綁定過喔!";
+                            }
                         }
                     }
+                    else
+                    {
+                        // 簽退
+                        SetStorLessonsTimeAttribute(aRetrievedStorLessons, SigningTimeAttribute, SigningPresentAttribute);
+                    }
+                    #endregion
                 }
                 else
                 {
-                    // 簽退
-                    SetStorLessonsTimeAttribute(aRetrievedStorLessons, SigningTimeAttribute, SigningPresentAttribute);
+                    #region 進行報名
+                        DateTime aSigningTime = this.m_ToolUtilityClass.GetEntityDateTimeAttribute( ref aRetrievedStorLessons, "new_enroll_time");
+                        if (aSigningTime.Year <= 1)
+                        {
+                            SetStorLessonsEnrollTimeAttribute(aRetrievedStorLessons, "new_enroll_time");
+                        }
+                        else
+                        {
+                            String NotifyMessage = GetEnrollNotifyMessageString();
+                            if (m_UserName.Contains("(Line)") != true)
+                            {
+                                m_OnboardTypeInfo = "已經在 " + aSigningTime.ToLocalTime().ToString() + " 報名過了";
+                            }
+                            else
+                            {
+                                m_OnboardTypeInfo = "已經在 " + aSigningTime.ToLocalTime().ToString() + " 報名過了" + Environment.NewLine + "， 可是您尚未綁定過喔!";
+                            }
+                        }
+                    #endregion
                 }
             }
             catch (System.Exception Exception)
@@ -225,6 +270,28 @@ namespace ChurchReport.Tools
 
                 // 送出 LINE 訊息
                 String NotifyMessage = GetNotifyMessageString();
+                //m_LineMessagingClient.PushMessageAsync(UserLineId, NotifyMessage);
+                m_PushUtility.SendMessage(m_UserLineId, NotifyMessage);
+            }
+            catch (System.Exception Exception)
+            {
+                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
+
+                throw Exception;
+            }
+        }
+        private void SetStorLessonsEnrollTimeAttribute(Entity aRetrievedStorLessons, String SigningTimeAttribute)
+        {
+            try
+            {
+                // 設定報名時間
+                m_SigningTime = DateTime.Now;
+                // 填寫報名時間
+                this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aRetrievedStorLessons, SigningTimeAttribute, m_SigningTime);
+                this.m_ToolUtilityClass.UpdateEntity(ref aRetrievedStorLessons);
+
+                // 送出 LINE 訊息
+                String NotifyMessage = GetEnrollNotifyMessageString();
                 //m_LineMessagingClient.PushMessageAsync(UserLineId, NotifyMessage);
                 m_PushUtility.SendMessage(m_UserLineId, NotifyMessage);
             }
@@ -1225,6 +1292,45 @@ namespace ChurchReport.Tools
                     "課程名稱: " + m_ClassName + Environment.NewLine +
                     "姓名: " + m_UserName + Environment.NewLine +
                     "課堂資訊: " + LocalClassIndex + Environment.NewLine +
+                    SigningTypeAndTime + Environment.NewLine +
+                    "可是您尚未綁定過喔!";
+                }
+
+            }
+            catch (System.Exception Exception)
+            {
+                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
+
+                throw Exception;
+            }
+        }
+        public String GetEnrollNotifyMessageString()
+        {
+            try
+            {
+                // 取得簽到簽退時間
+                String SigningTypeAndTime = m_SigningTime.ToLocalTime().ToString() + " 報名";
+
+                if (m_UserName.Contains("(Line)") != true)
+                {
+                    // 彈跳要用到的簽到退時間資訊
+                    m_OnboardTypeInfo = SigningTypeAndTime;
+
+                    // 回傳 LINE 要用到的訊息
+                    return
+                    "課程名稱: " + m_ClassName + Environment.NewLine +
+                    "姓名: " + m_UserName + Environment.NewLine +
+                    SigningTypeAndTime;
+                }
+                else
+                {
+                    // 彈跳要用到的簽到退時間資訊
+                    m_OnboardTypeInfo = SigningTypeAndTime + Environment.NewLine + "，可是您尚未綁定過喔!";
+
+                    // 回傳 LINE 要用到的訊息
+                    return
+                    "課程名稱: " + m_ClassName + Environment.NewLine +
+                    "姓名: " + m_UserName + Environment.NewLine +
                     SigningTypeAndTime + Environment.NewLine +
                     "可是您尚未綁定過喔!";
                 }

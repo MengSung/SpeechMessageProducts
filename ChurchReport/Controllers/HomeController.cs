@@ -3782,7 +3782,7 @@ namespace ChurchReport.Controllers
         }
 
         #endregion
-        #region  教會課程 QR CODE 簽到簽退掃描(Line Tiff)
+        #region  教會課程 QR CODE 簽到、簽退+ 報名 掃描(Line Tiff)
         [Route("/Home/QrCodeView/{QrCodeViewPatameter}")]
         public ActionResult QrCodeView(String QrCodeId, string QrCodeViewPatameter)
         {
@@ -3869,7 +3869,7 @@ namespace ChurchReport.Controllers
 
                 UserProfile aUserProfile = new UserProfile();
 
-                aQrCodeUtility.SetupQrCodeIdString(m_InMemoryDataContextSmallGroup.ListManager.QrCodeId, DisplayName, UserLineId, ref ClassName, ref UserName, ref ClassIndex, ref OnboardType);
+                aQrCodeUtility.SetupQrCodeIdString( m_InMemoryDataContextSmallGroup.ListManager.QrCodeId, DisplayName, UserLineId, ref ClassName, ref UserName, ref ClassIndex, ref OnboardType );
 
                 //aQrCodeUtility.SetupQrCodeIdString(m_InMemoryDataContextSmallGroup.ListManager.QrCodeId);
 
