@@ -41,7 +41,8 @@ namespace ChurchReport.Tools
         private String m_SmallGroupName = "";
         //private String m_ClassIndex = "";
         private String m_OnboardType = "";
-        private Entity m_WeeklyReport = null;
+
+        private Entity m_MeetingStatistics = null;
 
         //private String m_ClassIndexInfo = "";
         private String m_OnboardTypeInfo = "";
@@ -50,11 +51,6 @@ namespace ChurchReport.Tools
         // 客製化
         // 永和禮拜堂
         private const String CHANNEL_ACCESS_TOKEN = @"HeuLkSEF5CX7hdZo4956IPpgJNdb8VqRZeL1Gu37kFFm+1F7DObAGjfeVYaggzwjZ5H4qraesvquODt7Y81jbtspNZkEq5n3oLDG+G32xQsRx1jCobkABL/Z7RKjkSACNT6h72bPQXsVn9aCuI5OogdB04t89/1O/w1cDnyilFU=";
-
-
-        // 神學生預設費用
-        private const decimal GOD_STUDENT_FEE = 400;
-        private const String SAVED_FLAG_FIELD = @"new_saved_flag";
 
         #endregion
         #endregion
@@ -74,7 +70,7 @@ namespace ChurchReport.Tools
         {
             try
             {
-                #region 設定區域變數
+                #region 設定區域變數 : 掃描者、全名、聚會統計、簽到還是簽退
                 m_UserLineId = UserLineId;
 
                 // 取得掃描者全名
@@ -90,34 +86,32 @@ namespace ChurchReport.Tools
                 }
                 m_UserName = UserName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref m_Contact, "fullname");
 
-                // 取得週報
-                string[] arr = QrCodeIdString.Split('_');
+                // 取得聚會統計
+                string[] arr = QrCodeIdString.Split('@');
                 Guid aGuid = new Guid(arr[0]);
-                m_WeeklyReport = this.m_ToolUtilityClass.RetrieveEntity("new_group_present_weekly_report", aGuid);
-
-                // 取得小組名稱，並且回傳給網頁去顯示
-                m_SmallGroupName = SmallGroupName = this.m_ToolUtilityClass.GetEntityLookupDisplayName( m_WeeklyReport, "new_list_group_present_weekly_report");
+                m_MeetingStatistics = this.m_ToolUtilityClass.RetrieveEntity("new_meeting_statistics", aGuid);
 
                 // 設定是簽到還是簽退
                 m_OnboardType = arr[1];
 
                 #endregion
 
-                // 取得週報名稱
-                String WeeklyReportName = this.m_ToolUtilityClass.GetEntityStringAttribute(m_WeeklyReport, "new_name");
+                // 取得聚會統計名稱
+                String MeetingStatisticsName = this.m_ToolUtilityClass.GetEntityStringAttribute( m_MeetingStatistics, "new_name" );
+
                 // 個人聚會與靈修記錄進行簽到退 , 同時傳回結果
-                SigningWeeklyReport( m_WeeklyReport, WeeklyReportName, UserName, m_Contact.Id.ToString(), m_OnboardType );
+                SigningMeetingStatistics( m_MeetingStatistics, MeetingStatisticsName, UserName, m_Contact.Id.ToString(), m_OnboardType );
 
                 // 傳回給網頁簽到或簽退時間，及是否已簽到過了
                 OnboardType = m_OnboardTypeInfo;
 
-                // 計算週報出席人數及出席率
+                #region 計算週報主日出席人數及出席率
                 if (m_OnboardTypeInfo.StartsWith("錯誤") != true)
                 {
-                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref m_WeeklyReport, "new_saved_flag", "計算出席率");
-                    this.m_ToolUtilityClass.UpdateEntity(ref m_WeeklyReport);
+                    //this.m_ToolUtilityClass.SetEntityStringAttribute(ref m_MeetingStatistics, "new_saved_flag", "計算出席率");
+                    //this.m_ToolUtilityClass.UpdateEntity(ref m_MeetingStatistics);
                 }
-
+                #endregion
             }
             catch (System.Exception Exception)
             {
@@ -128,13 +122,12 @@ namespace ChurchReport.Tools
         }
         #endregion
         #region 設定簽到簽退
-        public bool SigningWeeklyReport(Entity aWeeklyReport, String WeeklyReportName, String UserName, String UserId,  String OnboardType )
+        public bool SigningMeetingStatistics(Entity aMeetingStatistics, String MeetingStatisticsName, String UserName, String UserId,  String OnboardType )
         {
             try
             {
-                // 取得與週報相關的個人聚會與靈修記錄
-                //EntityCollection aStorLessonsEntityCollection = m_ToolUtilityClass.QueryEntityList("new_disciple_lessons", "new_disciple_lessonsid", aLesson.Id.ToString(), "new_new_disciple_lessons_new_stor_les", "new_stor_lessons");
-                EntityCollection aPresentRecordCollection = m_ToolUtilityClass.RetrievePresentRecordByFetchXml(WeeklyReportName, aWeeklyReport.Id.ToString(), UserName, UserId);
+                // 取得與聚會統計主日日期相關的個人聚會與靈修記錄
+                EntityCollection aPresentRecordCollection = m_ToolUtilityClass.RetrievePresentRecordByFetchXmlAndSundayDate( UserName, UserId, this.m_ToolUtilityClass.GetEntityDateTimeAttribute( ref aMeetingStatistics, "new_sunday_date") );
 
                 if ( aPresentRecordCollection.Entities.Count > 0 )
                 {
@@ -142,7 +135,7 @@ namespace ChurchReport.Tools
                     Entity aPresentRecord = this.m_ToolUtilityClass.RetrieveEntity("new_present_record", aPresentRecordCollection.Entities[0].Id);
 
                     // 進行簽到或是簽退
-                    SigningProcess(aPresentRecord, OnboardType);
+                    //SigningProcess(aPresentRecord, OnboardType);
                     //SetStorLessonsClass(m_Lesson, LessonName, UserName, UserId, ClassIndex, OnboardType);
 
                     return true;

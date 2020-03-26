@@ -97,7 +97,7 @@
                     return $.ajax
                     (
                         {
-                            url: '@Url.Action("SmallGroupQrCodeGetLineId", "Home")',
+                            url: '@Url.Action("SundayQrCodeGetLineId", "Home")',
                             data: { DisplayName:aDisplayName, UserLineId: aUserLineId, GroupId: aGroupId, RoomId: aRoomId, ViewType: aViewType}, // 整理回傳給 Server 的點名資料
                             type: 'POST', //POST if you want to save, GET if you want to fetch data from server
                             //async: false,
