@@ -4004,7 +4004,7 @@ namespace ChurchReport.Controllers
 
         #endregion
         #region  ¥D¤é QR CODE Ã±¨ì¡BÃ±°h ±½´y(Line Tiff)
-        [Route("/Home/QrCodeView/{QrCodeViewPatameter}")]
+        [Route("/Home/SundayQrCodeView/{QrCodeViewPatameter}")]
         public ActionResult SundayQrCodeView(String QrCodeId, string QrCodeViewPatameter)
         {
             try
