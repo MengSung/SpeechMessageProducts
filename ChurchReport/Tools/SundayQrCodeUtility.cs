@@ -66,7 +66,7 @@ namespace ChurchReport.Tools
         }
         #endregion
         #region 主程式
-        public void SetupQrCodeIdString( String QrCodeIdString, String DisplayName, String UserLineId, ref String SundayName, ref String UserName, ref String OnboardType)
+        public void SetupQrCodeIdString( String QrCodeIdString, String DisplayName, String UserLineId, ref String SundayName, ref String CategoryName, ref String UserName, ref String OnboardType)
         {
             try
             {
@@ -115,6 +115,8 @@ namespace ChurchReport.Tools
 
                 #region// 取得聚會統計名稱
                 String MeetingStatisticsName = this.m_ToolUtilityClass.GetEntityStringAttribute( m_MeetingStatistics, "new_name" );
+
+                CategoryName = ConvertMeetingStatisticsQrName(m_MeetingStatisticsAttribute);
                 #endregion
 
                 #region// 個人聚會與靈修記錄進行簽到退 , 同時傳回結果
@@ -198,13 +200,27 @@ namespace ChurchReport.Tools
                 {
                     String NotifyMessage = GetNotifyMessageString();
 
-                    if (m_UserName.Contains("(Line)") != true)
+                    if (OnboardType == "On" || OnboardType == "on")
                     {
-                        m_OnboardTypeInfo = "已經在 " + aSigningTime.ToLocalTime().ToString() + " 簽到過了";
+                        if (m_UserName.Contains("(Line)") != true)
+                        {
+                            m_OnboardTypeInfo = "已經在 " + aSigningTime.ToLocalTime().ToString() + " 簽到過了";
+                        }
+                        else
+                        {
+                            m_OnboardTypeInfo = "已經在 " + aSigningTime.ToLocalTime().ToString() + " 簽到過了" + Environment.NewLine + "， 可是您尚未綁定過喔!";
+                        }
                     }
                     else
                     {
-                        m_OnboardTypeInfo = "已經在 " + aSigningTime.ToLocalTime().ToString() + " 簽到過了" + Environment.NewLine + "， 可是您尚未綁定過喔!";
+                        if (m_UserName.Contains("(Line)") != true)
+                        {
+                            m_OnboardTypeInfo = "已經在 " + aSigningTime.ToLocalTime().ToString() + " 簽退過了";
+                        }
+                        else
+                        {
+                            m_OnboardTypeInfo = "已經在 " + aSigningTime.ToLocalTime().ToString() + " 簽退過了" + Environment.NewLine + "， 可是您尚未綁定過喔!";
+                        }
                     }
 
                 }
@@ -456,7 +472,6 @@ namespace ChurchReport.Tools
                 throw Exception;
             }
         }
-
         private void SetupPresentRecordEntityAttributes(Entity aPresentRecord, ref Entity aContactEntity)
         {
             try
@@ -494,6 +509,69 @@ namespace ChurchReport.Tools
 
                 throw e;
             }
+        }
+        private String ConvertMeetingStatisticsQrName(String MeetingStatisticsAttribute)
+        {
+            if (MeetingStatisticsAttribute.Contains("new_sunday_first_qr"))
+            {
+                if (m_OnboardType == "on" || m_OnboardType == "On")
+                {
+                    return "主日第一堂簽到";
+                }
+                else
+                {
+                    return "主日第一堂簽退";
+                }
+            }
+            else if (MeetingStatisticsAttribute.Contains("new_sunday_second_qr"))
+            {
+                if (m_OnboardType == "on" || m_OnboardType == "On")
+                {
+                    return "主日第二堂簽到";
+                }
+                else
+                {
+                    return "主日第二堂簽退";
+                }
+            }
+            else if (MeetingStatisticsAttribute.Contains("new_saturday_worship"))
+            {
+                if (m_OnboardType == "on" || m_OnboardType == "On")
+                {
+                    return "週六崇拜簽到";
+                }
+                else
+                {
+                    return "週六崇拜簽退";
+                }
+            }
+            else if (MeetingStatisticsAttribute.Contains("new_yongmen"))
+            {
+                if (m_OnboardType == "on" || m_OnboardType == "On")
+                {
+                    return "青年崇拜簽到";
+                }
+                else
+                {
+                    return "青年崇拜簽退";
+                }
+            }
+            else if (MeetingStatisticsAttribute.Contains("new_child"))
+            {
+                if (m_OnboardType == "on" || m_OnboardType == "On")
+                {
+                    return "兒童主日學簽到";
+                }
+                else
+                {
+                    return "兒童主日學簽退";
+                }
+            }
+            else
+            {
+                return "";
+            }
+
         }
 
         #endregion
