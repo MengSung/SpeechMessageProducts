@@ -39,6 +39,7 @@ namespace ChurchReport.Tools
         private String m_UserLineId = "";
         private String m_UserName = "";
         private String m_SundayName = "";
+        private String m_CategoryName = "";
         //private String m_ClassIndex = "";
         private String m_OnboardType = "";
 
@@ -116,7 +117,7 @@ namespace ChurchReport.Tools
                 #region// 取得聚會統計名稱
                 String MeetingStatisticsName = this.m_ToolUtilityClass.GetEntityStringAttribute( m_MeetingStatistics, "new_name" );
 
-                CategoryName = ConvertMeetingStatisticsQrName(m_MeetingStatisticsAttribute);
+                m_CategoryName = CategoryName = ConvertMeetingStatisticsQrName(m_MeetingStatisticsAttribute);
                 #endregion
 
                 #region// 個人聚會與靈修記錄進行簽到退 , 同時傳回結果
@@ -287,6 +288,7 @@ namespace ChurchReport.Tools
                     // 回傳 LINE 要用到的訊息
                     return
                         "主日: " + m_SundayName + Environment.NewLine +
+                        "類型: " + m_CategoryName + Environment.NewLine +
                         "姓名: " + m_UserName + Environment.NewLine +
                         SigningTypeAndTime;
                 }
@@ -298,6 +300,7 @@ namespace ChurchReport.Tools
                     // 回傳 LINE 要用到的訊息
                     return
                         "主日: " + this.m_SundayName + Environment.NewLine +
+                        "類型: " + m_CategoryName + Environment.NewLine +
                         "姓名: " + m_UserName + Environment.NewLine +
                         SigningTypeAndTime + Environment.NewLine +
                         "可是您尚未綁定過喔!";
