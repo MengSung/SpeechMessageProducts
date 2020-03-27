@@ -158,7 +158,6 @@ namespace ChurchReport.Tools
 
                     // 進行簽到或是簽退或是報名
                     SigningProcess( RetrievedStorLessons, ClassIndex, OnboardType );
-                    //SetStorLessonsClass(m_Lesson, LessonName, UserName, UserId, ClassIndex, OnboardType);
 
                     return true;
                 }

@@ -38,14 +38,13 @@ namespace ChurchReport.Tools
 
         private String m_UserLineId = "";
         private String m_UserName = "";
-        private String m_SmallGroupName = "";
+        private String m_SundayName = "";
         //private String m_ClassIndex = "";
         private String m_OnboardType = "";
 
-        private Entity m_MeetingStatistics = null;
-
-        //private String m_ClassIndexInfo = "";
-        private String m_OnboardTypeInfo = "";
+        private Entity m_MeetingStatistics = null;          //聚會統計紀錄
+        private String m_MeetingStatisticsAttribute = "";   //聚會統計掃描QR CODE 欄位
+        private String m_OnboardTypeInfo = "";              //簽到還是簽退
 
         private DateTime m_SigningTime;
         // 客製化
@@ -66,14 +65,14 @@ namespace ChurchReport.Tools
         }
         #endregion
         #region 主程式
-        public void SetupQrCodeIdString( String QrCodeIdString, String DisplayName, String UserLineId, ref String SmallGroupName, ref String UserName, ref String OnboardType)
+        public void SetupQrCodeIdString( String QrCodeIdString, String DisplayName, String UserLineId, ref String SundayName, ref String UserName, ref String OnboardType)
         {
             try
             {
-                #region 設定區域變數 : 掃描者、全名、聚會統計、簽到還是簽退
+                #region// 設定區域變數 : 掃描者、全名、聚會統計、簽到還是簽退
                 m_UserLineId = UserLineId;
 
-                // 取得掃描者全名
+                #region// 取得掃描者全名
                 m_Contact = this.m_ToolUtilityClass.RetrieveContactEntityByLineUserId(UserLineId);
                 if( m_Contact == null )
                 {
@@ -85,27 +84,44 @@ namespace ChurchReport.Tools
                     return;
                 }
                 m_UserName = UserName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref m_Contact, "fullname");
+                #endregion
 
-                // 取得聚會統計
+                #region// 取得聚會統計
                 string[] arr = QrCodeIdString.Split('@');
                 Guid aGuid = new Guid(arr[0]);
                 m_MeetingStatistics = this.m_ToolUtilityClass.RetrieveEntity("new_meeting_statistics", aGuid);
+                // 取得聚會統計，主日聚會名稱
+                m_SundayName = SundayName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref m_MeetingStatistics, "new_name");
 
-                // 設定是簽到還是簽退
-                m_OnboardType = arr[1];
+                if(m_SundayName == "")
+                {
+                    m_SundayName = SundayName = "主日聚會";
+                }
+                #endregion
+
+                #region// 
+                m_MeetingStatisticsAttribute = arr[1];
+                #endregion
+
+                #region// 設定是簽到還是簽退
+                m_OnboardType = arr[2];
+                #endregion
 
                 #endregion
 
-                // 取得聚會統計名稱
+                #region// 取得聚會統計名稱
                 String MeetingStatisticsName = this.m_ToolUtilityClass.GetEntityStringAttribute( m_MeetingStatistics, "new_name" );
+                #endregion
 
-                // 個人聚會與靈修記錄進行簽到退 , 同時傳回結果
-                SigningMeetingStatistics( m_MeetingStatistics, MeetingStatisticsName, UserName, m_Contact.Id.ToString(), m_OnboardType );
+                #region// 個人聚會與靈修記錄進行簽到退 , 同時傳回結果
+                SigningMeetingStatistics( m_MeetingStatistics, UserName, m_Contact.Id.ToString(), m_OnboardType );
+                #endregion
 
-                // 傳回給網頁簽到或簽退時間，及是否已簽到過了
+                #region// 傳回給網頁簽到或簽退時間，及是否已簽到過了
                 OnboardType = m_OnboardTypeInfo;
+                #endregion
 
-                #region 計算週報主日出席人數及出席率
+                #region// 計算週報主日出席人數及出席率
                 if (m_OnboardTypeInfo.StartsWith("錯誤") != true)
                 {
                     //this.m_ToolUtilityClass.SetEntityStringAttribute(ref m_MeetingStatistics, "new_saved_flag", "計算出席率");
@@ -122,12 +138,13 @@ namespace ChurchReport.Tools
         }
         #endregion
         #region 設定簽到簽退
-        public bool SigningMeetingStatistics(Entity aMeetingStatistics, String MeetingStatisticsName, String UserName, String UserId,  String OnboardType )
+        public bool SigningMeetingStatistics(Entity aMeetingStatistics, String UserName, String UserId,  String OnboardType )
         {
             try
             {
                 // 取得與聚會統計主日日期相關的個人聚會與靈修記錄
-                EntityCollection aPresentRecordCollection = m_ToolUtilityClass.RetrievePresentRecordByFetchXmlAndSundayDate( UserName, UserId, this.m_ToolUtilityClass.GetEntityDateTimeAttribute( ref aMeetingStatistics, "new_sunday_date") );
+                DateTime aSundayDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aMeetingStatistics, "new_sunday_date").ToLocalTime();
+                EntityCollection aPresentRecordCollection = m_ToolUtilityClass.RetrievePresentRecordByFetchXmlAndSundayDate( UserName, UserId, aSundayDate);
 
                 if ( aPresentRecordCollection.Entities.Count > 0 )
                 {
@@ -135,8 +152,7 @@ namespace ChurchReport.Tools
                     Entity aPresentRecord = this.m_ToolUtilityClass.RetrieveEntity("new_present_record", aPresentRecordCollection.Entities[0].Id);
 
                     // 進行簽到或是簽退
-                    //SigningProcess(aPresentRecord, OnboardType);
-                    //SetStorLessonsClass(m_Lesson, LessonName, UserName, UserId, ClassIndex, OnboardType);
+                    SigningProcess(aPresentRecord, OnboardType);
 
                     return true;
                 }
@@ -149,7 +165,7 @@ namespace ChurchReport.Tools
 
                     //SigningProcess(CreatededStorLessons, ClassIndex, OnboardType);
 
-                    m_OnboardTypeInfo = "錯誤 : " + UserName + " 還沒有加入" + m_SmallGroupName; 
+                    //m_OnboardTypeInfo = "錯誤 : " + UserName + " 還沒有加入" + m_SmallGroupName; 
 
                     return false;
                 }
@@ -165,37 +181,29 @@ namespace ChurchReport.Tools
         {
             try
             {
-                // 取得個人聚會與靈修記錄
-                //String SigningTimeAttribute = this.GetStorLessonsTimeAttribute(ClassIndex, OnboardType);
-                //String SigningPresentAttribute = "new_" + ClassIndex + "_present";
-                if ( OnboardType == "On" || OnboardType == "on" )
+                // 依據掃描網址取得個人聚會與靈修記錄簽到或簽退時間的欄位屬性
+                String aPresentRecordSigningAttribute = this.ConvertMeetingStatisticsToPresentRecordAttribute(this.m_MeetingStatisticsAttribute);
+
+                // 取得個人聚會與靈修記錄簽的到或簽退時間
+                DateTime aSigningTime = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aRetrievedPresentRecord, aPresentRecordSigningAttribute);
+                if (aSigningTime.Year <= 1)
                 {
-                    // 簽到
-                    DateTime aSigningTime = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aRetrievedPresentRecord, "new_small_group_signing_time");
-                    if (aSigningTime.Year <= 1)
-                    {
-                        // 設定簽到時間，一班小組、幸福小組打勾，更新個人聚會與靈修記錄
-                        SetPresentRecordTimeAttribute(aRetrievedPresentRecord, "new_small_group_signing_time", "new_group_present_this_week");
-                    }
-                    else
-                    {
-                        String NotifyMessage = GetNotifyMessageString();
-
-                        if (m_UserName.Contains("(Line)") != true)
-                        {
-                            m_OnboardTypeInfo = "已經在 " + aSigningTime.ToLocalTime().ToString() + " 簽到過了";
-                        }
-                        else
-                        {
-                            m_OnboardTypeInfo = "已經在 " + aSigningTime.ToLocalTime().ToString() + " 簽到過了" + Environment.NewLine + "， 可是您尚未綁定過喔!";
-                        }
-
-                    }
+                    // 還沒簽到及簽退，設定簽到時間，主日出席設為1，更新個人聚會與靈修記錄
+                    SetPresentRecordTimeAttribute(aRetrievedPresentRecord, aPresentRecordSigningAttribute, "new_sunday_present_this_week");
                 }
                 else
                 {
-                    // 簽退
-                    // SetStorLessonsTimeAttribute(aRetrievedPresentRecord, "new_small_group_signing_time", "new_group_present_this_week");
+                    String NotifyMessage = GetNotifyMessageString();
+
+                    if (m_UserName.Contains("(Line)") != true)
+                    {
+                        m_OnboardTypeInfo = "已經在 " + aSigningTime.ToLocalTime().ToString() + " 簽到過了";
+                    }
+                    else
+                    {
+                        m_OnboardTypeInfo = "已經在 " + aSigningTime.ToLocalTime().ToString() + " 簽到過了" + Environment.NewLine + "， 可是您尚未綁定過喔!";
+                    }
+
                 }
             }
             catch (System.Exception Exception)
@@ -281,7 +289,7 @@ namespace ChurchReport.Tools
 
                     // 回傳 LINE 要用到的訊息
                     return
-                        "小組: " + m_SmallGroupName + Environment.NewLine +
+                        "主日: " + m_SundayName + Environment.NewLine +
                         "姓名: " + m_UserName + Environment.NewLine +
                         SigningTypeAndTime;
                 }
@@ -292,7 +300,7 @@ namespace ChurchReport.Tools
 
                     // 回傳 LINE 要用到的訊息
                     return
-                        "小組: " + m_SmallGroupName + Environment.NewLine +
+                        "主日: " + this.m_SundayName + Environment.NewLine +
                         "姓名: " + m_UserName + Environment.NewLine +
                         SigningTypeAndTime + Environment.NewLine +
                         "可是您尚未綁定過喔!";
@@ -371,6 +379,70 @@ namespace ChurchReport.Tools
                 throw e;
             }
         }
+        private String ConvertMeetingStatisticsToPresentRecordAttribute( String MeetingStatisticsAttribute )
+        {
+            if(MeetingStatisticsAttribute.Contains("new_sunday_first_qr"))
+            { 
+                if(m_OnboardType== "on" || m_OnboardType == "On")
+                {
+                    return "new_sunday_first_qr_on_time";
+                }
+                else
+                {
+                    return "new_sunday_first_qr_off";
+                }
+            }
+            else if (MeetingStatisticsAttribute.Contains("new_sunday_second_qr"))
+            {
+                if (m_OnboardType == "on" || m_OnboardType == "On")
+                {
+                    return "new_sunday_second_qr_on_time";
+                }
+                else
+                {
+                    return "new_sunday_second_qr_off_time";
+                }
+            }
+            else if (MeetingStatisticsAttribute.Contains("new_saturday_worship"))
+            {
+                if (m_OnboardType == "on" || m_OnboardType == "On")
+                {
+                    return "new_saturday_worship_on_time";
+                }
+                else
+                {
+                    return "new_saturday_worship_off_time";
+                }
+            }
+            else if (MeetingStatisticsAttribute.Contains("new_yongmen"))
+            {
+                if (m_OnboardType == "on" || m_OnboardType == "On")
+                {
+                    return "new_yongmen_on_time";
+                }
+                else
+                {
+                    return "new_yongmen_off_time";
+                }
+            }
+            else if (MeetingStatisticsAttribute.Contains("new_child"))
+            {
+                if (m_OnboardType == "on" || m_OnboardType == "On")
+                {
+                    return "new_child_on_time";
+                }
+                else
+                {
+                    return "new_child_off_time";
+                }
+            }
+            else
+            {
+                return "";
+            }
+
+        }
+
         #endregion
     }
 }

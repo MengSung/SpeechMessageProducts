@@ -1,5 +1,5 @@
 ﻿
-<div class="long-title"><h3 id="smallgroupfield"></h3></div>
+<div class="long-title"><h3 id="sundayfield"></h3></div>
 <div class="long-title"><h3 id="usernamefield"></h3></div>
 <div class="long-title"><h3 id="onboardtypefield"></h3></div>
 @*<div class="long-title"><h3 id="displaynamefield"></h3></div>*@
@@ -85,7 +85,7 @@
                 // 取得 UserId 的Ajax
                UpdateLineUserId(DisplayName, UserId, GroupId, RoomId, ViewType);
 
-               document.getElementById('smallgroupfield').innerHTML = "正在處理中......" ;
+               document.getElementById('sundayfield').innerHTML = "正在處理中......" ;
 
             });
 
@@ -106,7 +106,7 @@
                                 if (data.result.includes("錯誤") != true)
                                 {
                                     // 正確掃描
-                                    document.getElementById('smallgroupfield').innerHTML = "小組: " + data.smallgroupname;
+                                    document.getElementById('sundayfield').innerHTML = "主日: " + data.sundayname;
                                     document.getElementById('usernamefield').innerHTML = "姓名: " + data.username;
                                     //document.getElementById('classindexfield').innerHTML    = "課堂資訊: "    + data.classindex;
                                     //document.getElementById('onboardtypefield').innerHTML   = "簽到退時間: "  + data.onboardtype;
@@ -114,7 +114,7 @@
                                 }
                                 else
                                 {
-                                    document.getElementById('smallgroupfield').innerHTML = data.result;
+                                    document.getElementById('sundayfield').innerHTML = data.result;
                                 }
                             },
 
