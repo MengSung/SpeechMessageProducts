@@ -43,6 +43,7 @@ namespace ChurchReport.Tools
         private String m_OnboardType = "";
 
         private Entity m_MeetingStatistics = null;          //聚會統計紀錄
+        private DateTime m_Sunday = DateTime.Now;
         private String m_MeetingStatisticsAttribute = "";   //聚會統計掃描QR CODE 欄位
         private String m_OnboardTypeInfo = "";              //簽到還是簽退
 
@@ -97,6 +98,9 @@ namespace ChurchReport.Tools
                 {
                     m_SundayName = SundayName = "主日聚會";
                 }
+
+                // 取得聚會統計，主日日期
+                this.m_Sunday = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref m_MeetingStatistics, "new_sunday_date").ToLocalTime();
                 #endregion
 
                 #region// 
@@ -160,12 +164,11 @@ namespace ChurchReport.Tools
                 {
                     // 沒找到個人聚會與靈修記錄
 
-                    // 建立一個上課紀錄單
-                    //Entity CreatededStorLessons = this.m_ToolUtilityClass.RetrieveEntity("new_stor_lessons", CreateNewStorLesson(m_Contact, ref aLesson));
+                    // 建立一個個人聚會與靈修記錄
+                    Entity aPresentRecord = CreatePresentRecord();
 
-                    //SigningProcess(CreatededStorLessons, ClassIndex, OnboardType);
-
-                    //m_OnboardTypeInfo = "錯誤 : " + UserName + " 還沒有加入" + m_SmallGroupName; 
+                    // 進行簽到或是簽退
+                    SigningProcess(aPresentRecord, OnboardType);
 
                     return false;
                 }
@@ -234,28 +237,6 @@ namespace ChurchReport.Tools
                 String NotifyMessage = GetNotifyMessageString();
                 //m_LineMessagingClient.PushMessageAsync(UserLineId, NotifyMessage);
                 m_PushUtility.SendMessage(m_UserLineId, NotifyMessage);
-            }
-            catch (System.Exception Exception)
-            {
-                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
-
-                throw Exception;
-            }
-        }
-        public String GetStorLessonsTimeAttribute(String ClassIndex, String OnboardType)
-        {
-            try
-            {
-                if (OnboardType == "On")
-                {
-                    // new_1_signon_time
-                    return "new_" + ClassIndex + "_signon_time";
-                }
-                else
-                {
-                    // new_1_signoff_time
-                    return "new_" + ClassIndex + "_signoff_time";
-                }
             }
             catch (System.Exception Exception)
             {
@@ -442,7 +423,80 @@ namespace ChurchReport.Tools
             }
 
         }
+        public Entity CreatePresentRecord()
+        {
+            try
+            {
+                if (m_Contact != null)
+                {
+                    // 這是新建立的個人聚會與靈修記錄
+                    Entity aPresentRecord = new Entity("new_present_record");
+
+                    // 設定個人聚會與靈修記錄相關屬性
+                    this.SetupPresentRecordEntityAttributes( aPresentRecord, ref this.m_Contact);
+
+                    // 新增個人聚會與靈修記錄
+                    Guid aPresentRecordId = this.m_ToolUtilityClass.CreateEntity(aPresentRecord);
+
+                    //指派負責人
+                    //this.m_ToolUtilityClass.AssignOwner("new_present_record", aPresentRecord, this.m_OwnerId);
+
+                    //取得並回傳新建的聚會與靈修記錄
+                    return this.m_ToolUtilityClass.RetrieveEntity("new_present_record", aPresentRecordId);
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            catch (System.Exception Exception)
+            {
+                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
+
+                throw Exception;
+            }
+        }
+
+        private void SetupPresentRecordEntityAttributes(Entity aPresentRecord, ref Entity aContactEntity)
+        {
+            try
+            {
+                #region 設定名稱
+                String PresentRecordName = m_UserName + "_" + this.m_SundayName + String.Format("-{0:00}/{1:00}/{2:00} 出席紀錄", this.m_Sunday.Year, this.m_Sunday.Month, this.m_Sunday.Day);
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_name", PresentRecordName);
+                //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_explanation", PresentRecordName);
+                #endregion
+                #region 設定姓名
+                // 找到組員ID
+                Guid aContactEntityId = aContactEntity.Id;
+                this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aPresentRecord, "new_contact_new_present_record", "contact", aContactEntityId);
+                #endregion
+
+                #region 設定歸零
+                this.m_ToolUtilityClass.SetEntityDoubleAttribute(ref aPresentRecord, "new_sunday_rate", 0);             // 設定主日出席率
+                this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_group_present_this_week", 0);    // 設定小組出席
+                this.m_ToolUtilityClass.SetEntityDoubleAttribute(ref aPresentRecord, "new_small_group_rate", 0);        // 設定小組出席率
+                this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_happy_present", 0);              // 設定幸福小組出席
+                #endregion
+
+                #region 設定主日聚會日期
+                this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aPresentRecord, "new_sunday_date", this.m_Sunday);
+                #endregion
+
+                #region 設定聚會統計關聯
+                this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aPresentRecord, "new_meeting_statistics_new_present_re", "new_meeting_statistics", this.m_MeetingStatistics.Id);
+                #endregion
+
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString() + Environment.NewLine;
+
+                throw e;
+            }
+        }
 
         #endregion
+
     }
 }
