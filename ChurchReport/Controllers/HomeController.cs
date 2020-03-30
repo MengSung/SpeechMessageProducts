@@ -4091,6 +4091,7 @@ namespace ChurchReport.Controllers
 
                 UserProfile aUserProfile = new UserProfile();
 
+                // 主日掃描後的相關設定
                 aSundayQrCodeUtility.SetupQrCodeIdString(m_InMemoryDataContextSmallGroup.ListManager.QrCodeId, DisplayName, UserLineId, ref SundayName, ref CategoryName, ref UserName, ref OnboardType);
 
                 //aQrCodeUtility.SetupQrCodeIdString(m_InMemoryDataContextSmallGroup.ListManager.QrCodeId);

@@ -104,7 +104,7 @@ namespace ChurchReport.Tools
                 this.m_Sunday = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref m_MeetingStatistics, "new_sunday_date").ToLocalTime();
                 #endregion
 
-                #region// 
+                #region// 取得聚會統計屬性
                 m_MeetingStatisticsAttribute = arr[1];
                 #endregion
 
@@ -155,23 +155,28 @@ namespace ChurchReport.Tools
 
                 if ( aPresentRecordCollection.Entities.Count > 0 )
                 {
-                    // 有找到個人聚會與靈修記錄
+                    #region// 有找到個人聚會與靈修記錄
                     Entity aPresentRecord = this.m_ToolUtilityClass.RetrieveEntity("new_present_record", aPresentRecordCollection.Entities[0].Id);
 
                     // 進行簽到或是簽退
                     SigningProcess(aPresentRecord, OnboardType);
 
+                    #region 設定聚會統計關聯
+                    this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aPresentRecord, "new_meeting_statistics_new_present_re", "new_meeting_statistics", this.m_MeetingStatistics.Id);
+                    #endregion
+                    #endregion
+
                     return true;
                 }
                 else
                 {
-                    // 沒找到個人聚會與靈修記錄
-
+                    #region// 沒找到個人聚會與靈修記錄
                     // 建立一個個人聚會與靈修記錄
                     Entity aPresentRecord = CreatePresentRecord();
 
                     // 進行簽到或是簽退
                     SigningProcess(aPresentRecord, OnboardType);
+                    #endregion
 
                     return false;
                 }
@@ -489,22 +494,18 @@ namespace ChurchReport.Tools
                 Guid aContactEntityId = aContactEntity.Id;
                 this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aPresentRecord, "new_contact_new_present_record", "contact", aContactEntityId);
                 #endregion
-
                 #region 設定歸零
                 this.m_ToolUtilityClass.SetEntityDoubleAttribute(ref aPresentRecord, "new_sunday_rate", 0);             // 設定主日出席率
                 this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_group_present_this_week", 0);    // 設定小組出席
                 this.m_ToolUtilityClass.SetEntityDoubleAttribute(ref aPresentRecord, "new_small_group_rate", 0);        // 設定小組出席率
                 this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_happy_present", 0);              // 設定幸福小組出席
                 #endregion
-
                 #region 設定主日聚會日期
                 this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aPresentRecord, "new_sunday_date", this.m_Sunday);
                 #endregion
-
                 #region 設定聚會統計關聯
                 this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aPresentRecord, "new_meeting_statistics_new_present_re", "new_meeting_statistics", this.m_MeetingStatistics.Id);
                 #endregion
-
             }
             catch (System.Exception e)
             {
