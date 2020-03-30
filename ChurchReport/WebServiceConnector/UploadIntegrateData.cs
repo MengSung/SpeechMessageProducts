@@ -4238,6 +4238,8 @@ namespace ChurchReport.WebServiceConnector
                     return 100000000;
                 case "外教會.訪客":
                     return 100000007;
+                case "外教會訪客":
+                    return 100000007;
                 case "結案":
                     return 100000001;
                 default:
