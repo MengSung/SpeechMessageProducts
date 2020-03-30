@@ -2993,7 +2993,11 @@ namespace ChurchReport.WebServiceConnector
                 }
 
                 // 透過 LINE 回報權柄
-                this.m_LineNotifyUtility.SendSmallGroupResultLine(this.m_ContactEntity, SmallGroupResult, aGroupWeeklyReportGuid, aWeeklyReportId, ref aListEntity, ref aSmallGroupData, WeeklyReportData, PauseCheckBox);
+                if (aSmallGroupData.LoginType == "小組長")
+                {
+                    // 個人回報就不LINE給權柄了
+                    this.m_LineNotifyUtility.SendSmallGroupResultLine(this.m_ContactEntity, SmallGroupResult, aGroupWeeklyReportGuid, aWeeklyReportId, ref aListEntity, ref aSmallGroupData, WeeklyReportData, PauseCheckBox);
+                }
 
                 // 更新週報
                 this.m_ToolUtilityClass.UpdateEntity(ref aWeeklyReportEntity);
