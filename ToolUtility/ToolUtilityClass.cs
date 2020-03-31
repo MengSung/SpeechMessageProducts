@@ -2216,6 +2216,59 @@ namespace ToolUtilityNameSpace
                 throw e;
             }
         }
+        public EntityCollection RetrieveListByFetchXmlContact( String ContactName )
+        {
+            try
+            {
+                #region 取得聯絡人的
+                ContactName = @"'" + ContactName + @"'";
+                var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='true'>
+                          <entity name='list'>
+                            <attribute name='listname' />
+                            <attribute name='createdfromcode' />
+                            <attribute name='lastusedon' />
+                            <attribute name='purpose' />
+                            <attribute name='listid' />
+                            <order attribute='listname' descending='true' />
+                            <filter type='and'>
+                              <condition attribute='new_app_named' operator='eq' value='1' />
+                              <condition attribute='purpose' operator='eq' value='小組名單' />
+                            </filter>
+                            <link-entity name='listmember' from='listid' to='listid' visible='false' intersect='true'>
+                              <link-entity name='contact' from='contactid' to='entityid' alias='af'>
+                                <filter type='and'>
+                                  <condition attribute='fullname' operator='eq' value=" + ContactName + @" />
+                                </filter>
+                              </link-entity>
+                            </link-entity>
+                          </entity>
+                        </fetch>";
+
+                RetrieveMultipleRequest fetchRequest = new RetrieveMultipleRequest
+                {
+                    Query = new FetchExpression(fetchXml)
+                };
+
+                EntityCollection retrieved;
+                if (CRM_TYPE == "DYNAMICS365")
+                {
+                    retrieved = ((RetrieveMultipleResponse)this.m_OrganizationService.Execute(fetchRequest)).EntityCollection;
+                }
+                else
+                {
+                    retrieved = ((RetrieveMultipleResponse)this.m_Crm2011OrganizationService.Execute(fetchRequest)).EntityCollection;
+                }
+
+
+                return retrieved;
+                #endregion
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                throw e;
+            }
+        }
         #endregion
         #endregion
         #region 搜尋 N:1 的集合
@@ -3587,7 +3640,6 @@ namespace ToolUtilityNameSpace
                 throw e;
             }
         }
-
         public EntityCollection RetrieveDynamicMemberListDynamics365(Guid aListId)
         {
             ColumnSet cols = new ColumnSet(new string[] { "query" });
@@ -3599,7 +3651,6 @@ namespace ToolUtilityNameSpace
             EntityCollection dynamicmemberec = this.m_OrganizationService.RetrieveMultiple(new FetchExpression(dynamicQuery));
             return dynamicmemberec;
         }
-
         #endregion
         #region 搜尋 N:N( ManyToMany) 的集合
 

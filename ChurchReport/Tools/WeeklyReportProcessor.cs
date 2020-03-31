@@ -1,17 +1,8 @@
-﻿
-
-using System;
-using System.Runtime.Serialization;
-using Microsoft.Win32;
+﻿using System;
 using System.Collections.Generic;
-using TraceNameSpace;
 
 #region CRM 2011 reference
 using Microsoft.Xrm.Sdk;
-using ToolUtility;
-using System.Collections;
-using System.Globalization;
-using System.IO;
 #endregion
 
 // 編譯後的執行指令
@@ -19,10 +10,6 @@ using System.IO;
 // $(SolutionDir)packages\ilmerge.2.14.1208\tools\ILMerge.exe  /keyfile:"D:\音訊科技專案\音訊科技金鑰\SpeechMessageCrmKey.snk"  /target:"library" /copyattrs /out:$(TargetDir)$(TargetName)$(TargetExt)  $(ProjectDir)$(IntermediateOutputPath)$(TargetName)$(TargetExt) $(ProjectDir)$(OutputPath)LineUtility.dll $(ProjectDir)$(OutputPath)ToolUtilityDynamics365.dll $(ProjectDir)$(OutputPath)YangMeillcStorLessonsPlugIn.dll $(SolutionDir)packages\RestSharp.105.2.3\lib\net45\RestSharp.dll
 //測試
 
-using System.Threading.Tasks;
-using System.Diagnostics;
-using System.Text;
-using System.Threading;
 using ToolUtilityNameSpace;
 using System.Text.RegularExpressions;
 

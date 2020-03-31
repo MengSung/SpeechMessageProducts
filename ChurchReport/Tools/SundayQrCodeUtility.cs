@@ -1,23 +1,11 @@
-﻿using ChurchReport.WebServiceConnector;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
+﻿using System;
 using ToolUtilityNameSpace;
+//using ChurchReport.Tools.WeeklyReportProcessor;
 
 #region Dynamics 365 Microsoft.Xrm.Sdk.dll
 // These namespaces are found in the Microsoft.Xrm.Sdk.dll assembly
 // located in the SDK\bin folder of the SDK download.
 using Microsoft.Xrm.Sdk;
-using Microsoft.Xrm.Sdk.Query;
-using Microsoft.Xrm.Sdk.Client;
-using Microsoft.Xrm.Sdk.Discovery;
-using Microsoft.Crm.Sdk.Messages;
-using Microsoft.Xrm.Sdk.Messages;
-using ToolUtilityNameSpace;
-using System.Text.RegularExpressions;
-using ChurchReport.Models;
 using ToolUtility;
 using Line.Messaging;
 #endregion
@@ -318,65 +306,76 @@ namespace ChurchReport.Tools
                 throw Exception;
             }
         }
-        public async Task AddNewFriend( String aDisplayName, String UserId)
+        private String ConvertMeetingStatisticsQrName(String MeetingStatisticsAttribute)
         {
-            try
+            if (MeetingStatisticsAttribute.Contains("new_sunday_first_qr"))
             {
-                #region 如果好友不存在，則新增好友，新加入好友
-
-                #region// 新加入
-                //UserProfile aUserProfile = await GetProfile(UserId);
-                //Task<UserProfile> aUserProfileTask = m_LineMessagingClient.GetUserProfileAsync(UserId);
-                //UserProfile aUserProfile = await aUserProfileTask;
-
-                //UserProfile aUserProfile = await m_LineMessagingClient.GetUserProfileAsync(UserId);
-
-                m_Contact = new Entity("contact");
-
-                // 寫入LINE的個人基本資料
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref m_Contact, "new_lineid", UserId);
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref m_Contact, "new_lineid_backup", UserId);
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref m_Contact, "new_line_displayname", aDisplayName);
-                //this.m_ToolUtilityClass.SetEntityStringAttribute(ref m_Contact, "new_line_picture_url", aUserProfile.PictureUrl);
-                //this.m_ToolUtilityClass.SetEntityStringAttribute(ref m_Contact, "new_line_status_message", aUserProfile.StatusMessage);
-                this.m_ToolUtilityClass.SetEntityBoolAttribute(ref m_Contact, "new_line_register", false);
-
-                // 委身類型客製化，客製委身類型欄位，每間教會委身類型都不一樣，台中思恩堂豐富教會豐富教會=>"新朋友" = 100000000
-                // 設定成為 新朋友 的委身類型
-                this.m_ToolUtilityClass.SetOptionSetAttribute(ref m_Contact, "customertypecode", 100000000);
-
-                // 設定在CRM 2011 的初始連絡人姓名
-                //String Year = DateTime.Now.Year.ToString();
-                //String Month = DateTime.Now.Month.ToString();
-                //String Day = DateTime.Now.Day.ToString();
-                //String Hour = DateTime.Now.Hour.ToString();
-                //String Minute = DateTime.Now.Minute.ToString();
-                //String Second = DateTime.Now.Second.ToString();
-
-                //String LastName = "Line新加入者" + "-" + Year + "-" + Month + "-" + Day + "-" + Hour + "-" + Minute + "-" + Second;
-                String LastName = aDisplayName + "(Line)";
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref m_Contact, "lastname", LastName);
-
-                //設定LINE狀態為"新加入"
-                this.m_ToolUtilityClass.SetOptionSetAttribute(ref m_Contact, "new_line_status", 100000001);
-
-                await m_ToolUtilityClass.CreateEntityAsync(m_ToolUtilityClass.m_OrganizationService, m_Contact);
-                #endregion
-
-                #endregion
+                if (m_OnboardType == "on" || m_OnboardType == "On")
+                {
+                    return "主日第一堂簽到";
+                }
+                else
+                {
+                    return "主日第一堂簽退";
+                }
             }
-            catch (System.Exception e)
+            else if (MeetingStatisticsAttribute.Contains("new_sunday_second_qr"))
             {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-
-                throw e;
+                if (m_OnboardType == "on" || m_OnboardType == "On")
+                {
+                    return "主日第二堂簽到";
+                }
+                else
+                {
+                    return "主日第二堂簽退";
+                }
             }
+            else if (MeetingStatisticsAttribute.Contains("new_saturday_worship"))
+            {
+                if (m_OnboardType == "on" || m_OnboardType == "On")
+                {
+                    return "週六崇拜簽到";
+                }
+                else
+                {
+                    return "週六崇拜簽退";
+                }
+            }
+            else if (MeetingStatisticsAttribute.Contains("new_yongmen"))
+            {
+                if (m_OnboardType == "on" || m_OnboardType == "On")
+                {
+                    return "青年崇拜簽到";
+                }
+                else
+                {
+                    return "青年崇拜簽退";
+                }
+            }
+            else if (MeetingStatisticsAttribute.Contains("new_child"))
+            {
+                if (m_OnboardType == "on" || m_OnboardType == "On")
+                {
+                    return "兒童主日學簽到";
+                }
+                else
+                {
+                    return "兒童主日學簽退";
+                }
+            }
+            else
+            {
+                return "";
+            }
+
         }
-        private String ConvertMeetingStatisticsToPresentRecordAttribute( String MeetingStatisticsAttribute )
+        #endregion
+        #region 個人聚會與靈修記錄
+        private String ConvertMeetingStatisticsToPresentRecordAttribute(String MeetingStatisticsAttribute)
         {
-            if(MeetingStatisticsAttribute.Contains("new_sunday_first_qr"))
-            { 
-                if(m_OnboardType== "on" || m_OnboardType == "On")
+            if (MeetingStatisticsAttribute.Contains("new_sunday_first_qr"))
+            {
+                if (m_OnboardType == "on" || m_OnboardType == "On")
                 {
                     return "new_sunday_first_qr_on_time";
                 }
@@ -441,20 +440,7 @@ namespace ChurchReport.Tools
             {
                 if (m_Contact != null)
                 {
-                    // 這是新建立的個人聚會與靈修記錄
-                    Entity aPresentRecord = new Entity("new_present_record");
-
-                    // 設定個人聚會與靈修記錄相關屬性
-                    this.SetupPresentRecordEntityAttributes( aPresentRecord, ref this.m_Contact);
-
-                    // 新增個人聚會與靈修記錄
-                    Guid aPresentRecordId = this.m_ToolUtilityClass.CreateEntity(aPresentRecord);
-
-                    //指派負責人
-                    //this.m_ToolUtilityClass.AssignOwner("new_present_record", aPresentRecord, this.m_OwnerId);
-
-                    //取得並回傳新建的聚會與靈修記錄
-                    return this.m_ToolUtilityClass.RetrieveEntity("new_present_record", aPresentRecordId);
+                    return CreatePresentRecordOnSmallGroup();               
                 }
                 else
                 {
@@ -502,70 +488,69 @@ namespace ChurchReport.Tools
                 throw e;
             }
         }
-        private String ConvertMeetingStatisticsQrName(String MeetingStatisticsAttribute)
+        private Entity CreatePresentRecordWithNoSmallGroup()
         {
-            if (MeetingStatisticsAttribute.Contains("new_sunday_first_qr"))
+            try
             {
-                if (m_OnboardType == "on" || m_OnboardType == "On")
-                {
-                    return "主日第一堂簽到";
-                }
-                else
-                {
-                    return "主日第一堂簽退";
-                }
-            }
-            else if (MeetingStatisticsAttribute.Contains("new_sunday_second_qr"))
-            {
-                if (m_OnboardType == "on" || m_OnboardType == "On")
-                {
-                    return "主日第二堂簽到";
-                }
-                else
-                {
-                    return "主日第二堂簽退";
-                }
-            }
-            else if (MeetingStatisticsAttribute.Contains("new_saturday_worship"))
-            {
-                if (m_OnboardType == "on" || m_OnboardType == "On")
-                {
-                    return "週六崇拜簽到";
-                }
-                else
-                {
-                    return "週六崇拜簽退";
-                }
-            }
-            else if (MeetingStatisticsAttribute.Contains("new_yongmen"))
-            {
-                if (m_OnboardType == "on" || m_OnboardType == "On")
-                {
-                    return "青年崇拜簽到";
-                }
-                else
-                {
-                    return "青年崇拜簽退";
-                }
-            }
-            else if (MeetingStatisticsAttribute.Contains("new_child"))
-            {
-                if (m_OnboardType == "on" || m_OnboardType == "On")
-                {
-                    return "兒童主日學簽到";
-                }
-                else
-                {
-                    return "兒童主日學簽退";
-                }
-            }
-            else
-            {
-                return "";
-            }
+                // 這是新建立的個人聚會與靈修記錄
+                Entity aPresentRecord = new Entity("new_present_record");
 
+                // 設定個人聚會與靈修記錄相關屬性
+                this.SetupPresentRecordEntityAttributes(aPresentRecord, ref this.m_Contact);
+
+                // 新增個人聚會與靈修記錄
+                Guid aPresentRecordId = this.m_ToolUtilityClass.CreateEntity(aPresentRecord);
+
+                //指派負責人
+                //this.m_ToolUtilityClass.AssignOwner("new_present_record", aPresentRecord, this.m_OwnerId);
+
+                //取得並回傳新建的聚會與靈修記錄
+                return this.m_ToolUtilityClass.RetrieveEntity("new_present_record", aPresentRecordId);
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString() + Environment.NewLine;
+
+                throw e;
+            }
         }
+        private Entity CreatePresentRecordOnSmallGroup()
+        {
+            try
+            {
+                // 找到聯絡人的所有要點名的小組(牧養小組，而非幸福小組)
+                EntityCollection aListCollection = m_ToolUtilityClass.RetrieveListByFetchXmlContact(m_UserName);
 
+                if ( aListCollection.Entities.Count > 0 )
+                {
+                    foreach( Entity aListEntity in aListCollection.Entities )
+                    {
+                        // 取得小組名單實體
+                        Entity aRetrievedListEntity = this.m_ToolUtilityClass.RetrieveEntity("list", aListEntity.Id);
+
+                        // 取得小組長紀錄
+                        Guid aSmallGroupLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(aRetrievedListEntity, "new_contact_family_leader_list");
+                        Entity aSmallGroupLeaderEntity = this.m_ToolUtilityClass.RetrieveEntity("contact", aSmallGroupLeaderId);
+
+                        WeeklyReportProcessor aWeeklyReportProcessor;
+                    }
+
+                    // 有找到小組
+                    return CreatePresentRecordWithNoSmallGroup();
+                }
+                else
+                {
+                    // 還沒有小組
+                    return CreatePresentRecordWithNoSmallGroup();
+                }
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString() + Environment.NewLine;
+
+                throw e;
+            }
+        }
         #endregion
 
     }
