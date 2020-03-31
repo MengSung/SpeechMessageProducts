@@ -3557,6 +3557,49 @@ namespace ToolUtilityNameSpace
                 throw e;
             }
         }
+        public EntityCollection RetrieveMemberListCollectionByListIdDynamics365(Guid aListId)
+        {
+            try
+            {
+                //lock (m_RetrieveContactLocker)
+                //{
+
+                QueryByAttribute query = new QueryByAttribute("listmember");
+                query.AddAttributeValue("listid", aListId);
+                query.ColumnSet = new ColumnSet(true);
+
+                #region// 根據建立時間排序後傳回來
+                //OrderExpression OrderBySunday = new OrderExpression();
+                //OrderBySunday.AttributeName = "new_sunday_date";
+                ////OrderBySunday.OrderType = OrderType.Ascending;
+                //OrderBySunday.OrderType = OrderType.Descending;
+                //////OrderBySerial.OrderType = OrderType.Descending;
+                //query.Orders.Add(OrderBySunday);
+                #endregion
+
+                EntityCollection entityCollection = this.m_OrganizationService.RetrieveMultiple(query);
+                return entityCollection;
+                //}
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                throw e;
+            }
+        }
+
+        public EntityCollection RetrieveDynamicMemberListDynamics365(Guid aListId)
+        {
+            ColumnSet cols = new ColumnSet(new string[] { "query" });
+
+            // GUID of the Dynamic Marketing List
+            var entity = this.m_OrganizationService.Retrieve("list", aListId, cols);
+            var dynamicQuery = entity.Attributes["query"].ToString();
+
+            EntityCollection dynamicmemberec = this.m_OrganizationService.RetrieveMultiple(new FetchExpression(dynamicQuery));
+            return dynamicmemberec;
+        }
+
         #endregion
         #region 搜尋 N:N( ManyToMany) 的集合
 

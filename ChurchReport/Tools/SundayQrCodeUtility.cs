@@ -372,18 +372,6 @@ namespace ChurchReport.Tools
                 throw e;
             }
         }
-        public async Task<UserProfile> GetProfile(String UserId)
-        {
-            try
-            {
-                return await m_LineMessagingClient.GetUserProfileAsync(UserId);
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                throw e;
-            }
-        }
         private String ConvertMeetingStatisticsToPresentRecordAttribute( String MeetingStatisticsAttribute )
         {
             if(MeetingStatisticsAttribute.Contains("new_sunday_first_qr"))

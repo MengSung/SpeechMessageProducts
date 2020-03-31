@@ -3867,7 +3867,7 @@ namespace ChurchReport.Controllers
                 String ClassIndex = "";
                 String OnboardType = "";
 
-                UserProfile aUserProfile = new UserProfile();
+                LineMessagingProcessor.UserProfile aUserProfile = new LineMessagingProcessor.UserProfile();
 
                 aQrCodeUtility.SetupQrCodeIdString( m_InMemoryDataContextSmallGroup.ListManager.QrCodeId, DisplayName, UserLineId, ref ClassName, ref UserName, ref ClassIndex, ref OnboardType );
 
@@ -3977,7 +3977,7 @@ namespace ChurchReport.Controllers
                 String UserName = "";
                 String OnboardType = "";
 
-                UserProfile aUserProfile = new UserProfile();
+                LineMessagingProcessor.UserProfile aUserProfile = new LineMessagingProcessor.UserProfile();
 
                 aSmallGroupQrCodeUtility.SetupQrCodeIdString(m_InMemoryDataContextSmallGroup.ListManager.QrCodeId, DisplayName, UserLineId, ref SmallGroupName, ref UserName, ref OnboardType);
 
@@ -4089,7 +4089,7 @@ namespace ChurchReport.Controllers
                 String ClassIndex = "";
                 String OnboardType = "";
 
-                UserProfile aUserProfile = new UserProfile();
+                LineMessagingProcessor.UserProfile aUserProfile = new LineMessagingProcessor.UserProfile();
 
                 // 主日掃描後的相關設定
                 aSundayQrCodeUtility.SetupQrCodeIdString(m_InMemoryDataContextSmallGroup.ListManager.QrCodeId, DisplayName, UserLineId, ref SundayName, ref CategoryName, ref UserName, ref OnboardType);
