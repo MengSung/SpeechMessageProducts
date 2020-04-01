@@ -118,11 +118,11 @@ namespace ChurchReport.Tools
                 #endregion
 
                 #region// 計算週報主日出席人數及出席率
-                if (m_OnboardTypeInfo.StartsWith("錯誤") != true)
-                {
-                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref m_MeetingStatistics, "new_saved_flag", "計算出席率");
-                    this.m_ToolUtilityClass.UpdateEntity(ref m_MeetingStatistics);
-                }
+                //if (m_OnboardTypeInfo.StartsWith("錯誤") != true)
+                //{
+                //    //this.m_ToolUtilityClass.SetEntityStringAttribute(ref m_MeetingStatistics, "new_saved_flag", "計算出席率");
+                //    //this.m_ToolUtilityClass.UpdateEntity(ref m_MeetingStatistics);
+                //}
                 #endregion
             }
             catch (System.Exception Exception)
@@ -153,6 +153,23 @@ namespace ChurchReport.Tools
                     #region 設定聚會統計關聯
                     this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aPresentRecord, "new_meeting_statistics_new_present_re", "new_meeting_statistics", this.m_MeetingStatistics.Id);
                     #endregion
+
+                    this.m_ToolUtilityClass.UpdateEntity( ref aPresentRecord );
+
+                    #region// 計算週報主日出席人數及出席率
+                    Guid aWeeklyReportId = this.m_ToolUtilityClass.GetEntityLookupAttribute(aPresentRecord, "new_group_present_weekly_report_prese");
+
+                    if (aWeeklyReportId != Guid.Empty)
+                    {
+                        Entity aWeeklyReportEntity = this.m_ToolUtilityClass.RetrieveEntity("new_group_present_weekly_report", aWeeklyReportId);
+                        if (aWeeklyReportEntity != null)
+                        {
+                            this.m_ToolUtilityClass.SetEntityStringAttribute(ref aWeeklyReportEntity, "new_saved_flag", "計算出席率");
+                            this.m_ToolUtilityClass.UpdateEntity(ref aWeeklyReportEntity);
+                        }
+                    }
+                    #endregion
+
                     #endregion
 
                     return true;
@@ -162,18 +179,6 @@ namespace ChurchReport.Tools
                     #region// 沒找到個人聚會與靈修記錄
                     // 建立一個個人聚會與靈修記錄
                     Entity aPresentRecord = CreatePresentRecord();
-
-                    // 進行簽到或是簽退
-                    if (aPresentRecord != null)
-                    {
-                        SigningProcess(aPresentRecord, OnboardType);
-
-                        #region 設定聚會統計關聯
-                        this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aPresentRecord, "new_meeting_statistics_new_present_re", "new_meeting_statistics", this.m_MeetingStatistics.Id);
-                        #endregion
-
-                    }
-                    #endregion
 
                     return false;
                 }
@@ -280,7 +285,6 @@ namespace ChurchReport.Tools
                 {
                     SigningTypeAndTime = m_SigningTime.ToLocalTime().ToString() + " 簽退";
                 }
-
                                 
                 if (m_UserName.Contains("(Line)") != true)
                 {
@@ -449,9 +453,8 @@ namespace ChurchReport.Tools
             {
                 if ( m_Contact != null )
                 {
-                    Entity aPresentRecord =  CreatePresentRecordOnSmallGroup();
-
-                    return aPresentRecord;
+                    // 有加入到教會的官方的LINE@
+                    return CreatePresentRecordOnSmallGroup();
                 }
                 else
                 {
@@ -559,8 +562,33 @@ namespace ChurchReport.Tools
                             {
                                 EntityCollection aPresentRecordCollection = this.m_ToolUtilityClass.RetrievePresentRecordByFetchXmlAndWeeklyReport(m_UserName, m_Contact.Id.ToString(), this.m_ToolUtilityClass.GetEntityStringAttribute(aWeeklyReportEntity, "new_name"), aWeeklyReportEntity.Id.ToString());
 
-                                if(aPresentRecordCollection.Entities.Count > 0 )
+                                if( aPresentRecordCollection.Entities.Count > 0 )
                                 {
+                                    // 進行簽到或是簽退
+                                    Entity aPresentRecord = aPresentRecordCollection.Entities[0];
+
+                                    if ( aPresentRecord != null)
+                                    {
+                                        aPresentRecord = this.m_ToolUtilityClass.RetrieveEntity("new_present_record", aPresentRecord.Id);
+
+                                        SigningProcess(aPresentRecord, m_OnboardType);
+
+                                        #region 設定聚會統計關聯
+                                        this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aPresentRecord, "new_meeting_statistics_new_present_re", "new_meeting_statistics", this.m_MeetingStatistics.Id);
+                                        #endregion
+
+                                        // 更新出席紀錄單
+                                        this.m_ToolUtilityClass.UpdateEntity(ref aPresentRecord);
+
+                                        #region// 計算週報主日出席人數及出席率
+                                        if (m_OnboardTypeInfo.StartsWith("錯誤") != true)
+                                        {
+                                            this.m_ToolUtilityClass.SetEntityStringAttribute(ref aWeeklyReportEntity, "new_saved_flag", "計算出席率");
+                                            this.m_ToolUtilityClass.UpdateEntity(ref aWeeklyReportEntity);
+                                        }
+                                        #endregion
+                                    }
+
                                     return aPresentRecordCollection.Entities[0];
                                 }
                                 else 
@@ -581,7 +609,20 @@ namespace ChurchReport.Tools
                 else
                 {
                     // 還沒有小組
-                    return CreatePresentRecordWithNoSmallGroup();
+
+                    // 新增建立一個個人聚會與靈修記錄
+                    Entity aPresentRecord = CreatePresentRecordWithNoSmallGroup();
+
+                    //#region 個人聚會與靈修記錄
+                    // 進行簽到或是簽退
+                    if (aPresentRecord != null)
+                    {
+                        SigningProcess(aPresentRecord, m_OnboardType);
+                    }
+                    
+
+                    return aPresentRecord;
+
                 }
             }
             catch (System.Exception e)
@@ -591,6 +632,8 @@ namespace ChurchReport.Tools
                 throw e;
             }
         }
+        #endregion
+        //#endregion
         #endregion
 
     }
