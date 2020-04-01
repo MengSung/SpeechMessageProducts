@@ -524,7 +524,8 @@ namespace ChurchReport.Tools
 
                 if ( aListCollection.Entities.Count > 0 )
                 {
-                    foreach( Entity aListEntity in aListCollection.Entities )
+                    // 有找到小組
+                    foreach ( Entity aListEntity in aListCollection.Entities )
                     {
                         // 取得小組名單實體
                         Entity aRetrievedListEntity = this.m_ToolUtilityClass.RetrieveEntity("list", aListEntity.Id);
@@ -540,7 +541,6 @@ namespace ChurchReport.Tools
                         #endregion
                     }
 
-                    // 有找到小組
                     return CreatePresentRecordWithNoSmallGroup();
                 }
                 else
