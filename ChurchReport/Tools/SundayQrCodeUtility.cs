@@ -120,8 +120,8 @@ namespace ChurchReport.Tools
                 #region// 計算週報主日出席人數及出席率
                 if (m_OnboardTypeInfo.StartsWith("錯誤") != true)
                 {
-                    //this.m_ToolUtilityClass.SetEntityStringAttribute(ref m_MeetingStatistics, "new_saved_flag", "計算出席率");
-                    //this.m_ToolUtilityClass.UpdateEntity(ref m_MeetingStatistics);
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref m_MeetingStatistics, "new_saved_flag", "計算出席率");
+                    this.m_ToolUtilityClass.UpdateEntity(ref m_MeetingStatistics);
                 }
                 #endregion
             }
@@ -164,7 +164,15 @@ namespace ChurchReport.Tools
                     Entity aPresentRecord = CreatePresentRecord();
 
                     // 進行簽到或是簽退
-                    SigningProcess(aPresentRecord, OnboardType);
+                    if (aPresentRecord != null)
+                    {
+                        SigningProcess(aPresentRecord, OnboardType);
+
+                        #region 設定聚會統計關聯
+                        this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aPresentRecord, "new_meeting_statistics_new_present_re", "new_meeting_statistics", this.m_MeetingStatistics.Id);
+                        #endregion
+
+                    }
                     #endregion
 
                     return false;
@@ -439,9 +447,11 @@ namespace ChurchReport.Tools
         {
             try
             {
-                if (m_Contact != null)
+                if ( m_Contact != null )
                 {
-                    return CreatePresentRecordOnSmallGroup();               
+                    Entity aPresentRecord =  CreatePresentRecordOnSmallGroup();
+
+                    return aPresentRecord;
                 }
                 else
                 {
@@ -539,9 +549,34 @@ namespace ChurchReport.Tools
                         Dictionary<String, String> WeeklyReportDictionary = new Dictionary<String, String>();
                         aWeeklyReportProcessor.CreateWeeklyReportAndPresentRecord(aSmallGroupLeaderEntity, DateTime.Now, ref WeeklyReportDictionary);
                         #endregion
+
+                        foreach (KeyValuePair<string, string> WeeklyReportKeyValuePair in WeeklyReportDictionary)
+                        {
+                            #region 找到與此建立的週報和聯絡人相關的出席紀錄單
+                            Entity aWeeklyReportEntity = this.m_ToolUtilityClass.RetrieveEntity(@"new_group_present_weekly_report", new Guid(WeeklyReportKeyValuePair.Value));
+
+                            if( aWeeklyReportEntity != null )
+                            {
+                                EntityCollection aPresentRecordCollection = this.m_ToolUtilityClass.RetrievePresentRecordByFetchXmlAndWeeklyReport(m_UserName, m_Contact.Id.ToString(), this.m_ToolUtilityClass.GetEntityStringAttribute(aWeeklyReportEntity, "new_name"), aWeeklyReportEntity.Id.ToString());
+
+                                if(aPresentRecordCollection.Entities.Count > 0 )
+                                {
+                                    return aPresentRecordCollection.Entities[0];
+                                }
+                                else 
+                                { 
+                                    return null; 
+                                }
+                            }
+                            else
+                            {
+                                return null;
+                            }
+                            #endregion
+                        }
                     }
 
-                    return CreatePresentRecordWithNoSmallGroup();
+                    return null;
                 }
                 else
                 {

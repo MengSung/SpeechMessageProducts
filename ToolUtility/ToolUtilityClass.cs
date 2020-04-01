@@ -2119,7 +2119,7 @@ namespace ToolUtilityNameSpace
                 throw e;
             }
         }
-        public EntityCollection RetrievePresentRecordByFetchXmlAndSundayDate( String ContactName, String ContactId, DateTime SundayDate )
+        public EntityCollection RetrievePresentRecordByFetchXmlAndSundayDate(String ContactName, String ContactId, DateTime SundayDate)
         {
             try
             {
@@ -2137,6 +2137,54 @@ namespace ToolUtilityNameSpace
                         <filter type='and'>
                              <condition attribute='new_contact_new_present_record' operator='eq' uiname=" + ContactName + @" uitype='contact' value=" + ContactId + @" />
                              <condition attribute='new_sunday_date' operator='on' value=" + SundayDateString + @" />
+                        </filter>
+                      </entity>
+                    </fetch>";
+
+                RetrieveMultipleRequest fetchRequest = new RetrieveMultipleRequest
+                {
+                    Query = new FetchExpression(fetchXml)
+                };
+
+                EntityCollection retrieved;
+                if (CRM_TYPE == "DYNAMICS365")
+                {
+                    retrieved = ((RetrieveMultipleResponse)this.m_OrganizationService.Execute(fetchRequest)).EntityCollection;
+                }
+                else
+                {
+                    retrieved = ((RetrieveMultipleResponse)this.m_Crm2011OrganizationService.Execute(fetchRequest)).EntityCollection;
+                }
+
+
+                return retrieved;
+                //}
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                throw e;
+            }
+        }
+        public EntityCollection RetrievePresentRecordByFetchXmlAndWeeklyReport(String ContactName, String ContactId, String WeeklyReportNmae , String WeeklyReportId)
+        {
+            try
+            {
+                ContactName = @"'" + ContactName + @"'";
+                ContactId = @"'{" + ContactId + @"}'";
+
+                WeeklyReportNmae = @"'" + WeeklyReportNmae + @"'";
+                WeeklyReportId = @"'{" + WeeklyReportId + @"}'";
+
+                var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+                      <entity name='new_present_record'>
+                        <attribute name='new_present_recordid' />
+                        <attribute name='new_name' />
+                        <attribute name='createdon' />
+                        <order attribute='new_name' descending='false' />
+                        <filter type='and'>
+                          <condition attribute='new_group_present_weekly_report_prese' operator='eq' uiname=" + WeeklyReportNmae + @" uitype='new_group_present_weekly_report' value=" + WeeklyReportId + @" />
+                          <condition attribute='new_contact_new_present_record' operator='eq' uiname=" + ContactName + @" uitype='contact' value=" + ContactId + @" />
                         </filter>
                       </entity>
                     </fetch>";
