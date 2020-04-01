@@ -8,6 +8,7 @@ using ToolUtilityNameSpace;
 using Microsoft.Xrm.Sdk;
 using ToolUtility;
 using Line.Messaging;
+using System.Collections.Generic;
 #endregion
 
 namespace ChurchReport.Tools
@@ -532,7 +533,11 @@ namespace ChurchReport.Tools
                         Guid aSmallGroupLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(aRetrievedListEntity, "new_contact_family_leader_list");
                         Entity aSmallGroupLeaderEntity = this.m_ToolUtilityClass.RetrieveEntity("contact", aSmallGroupLeaderId);
 
+                        #region 建立週報及出席紀錄單
                         WeeklyReportProcessor aWeeklyReportProcessor = new WeeklyReportProcessor(this.m_ToolUtilityClass);
+                        Dictionary<String, String> WeeklyReportDictionary = new Dictionary<String, String>();
+                        aWeeklyReportProcessor.CreateWeeklyReportAndPresentRecord(aSmallGroupLeaderEntity, DateTime.Now, ref WeeklyReportDictionary);
+                        #endregion
                     }
 
                     // 有找到小組

@@ -81,7 +81,7 @@ namespace ChurchReport.Tools
         #endregion
         #region 下載資料區
         #region 主程式區
-        public void GetListManager(String Account, String Password, DateTime aDownloadDate, ref String LoginFullName, ref Dictionary<String, String> WeeklyReportDictionary)
+        public void CreateWeeklyReportAndPresentRecord( Entity aLoginContact, DateTime aDownloadDate,  ref Dictionary<String, String> WeeklyReportDictionary)
         {
             try
             {
@@ -92,14 +92,7 @@ namespace ChurchReport.Tools
                 #endregion
 
                 #region 找登入使用者及其ID
-                FindLoginUser(Account, Password); // 也就是設定 this.m_ContactEntity
-                if (m_ContactId == Guid.Empty) //是否有找到登入使用者及其ID
-                { return; } // 沒找到就回傳 null 
-                else
-                {
-                    // 取得登入者的姓名
-                    LoginFullName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref this.m_ContactEntity, "fullname");
-                }
+                m_ContactId = aLoginContact.Id;
                 #endregion
 
                 #region 先尋找帶領族系名單，若找到表示就是族系族長，若沒有則在繼續尋找帶領小組名單
@@ -365,43 +358,43 @@ namespace ChurchReport.Tools
                             DateTime aHappyStartDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(aListEntity, "new_happy_start_date").ToLocalTime();
                             DateTime aHappyEndDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(aListEntity, "new_happy_end_date").ToLocalTime();
 
-                            if (aHappyStartDate.Year != 1000)
+                            if ( aHappyStartDate.Year != 1 )
                             {
-                                // 小組開始日期有填
-                                if (aHappyEndDate.Year != 1000)
+                                // 幸福小組開始日期有填
+                                if (aHappyEndDate.Year != 1)
                                 {
-                                    // 小組開始日期有填，小組結束日期有填
+                                    // 幸福小組開始日期有填，小組結束日期有填
                                     if (DateTime.Now >= aHappyStartDate && DateTime.Now <= aHappyEndDate)
                                     {
-                                        // 現在比小組開始日期還晚 ，比小組結束日期還早
+                                        // 現在比幸福小組開始日期還晚 ，比幸福小組結束日期還早
                                         m_Lists.Entities.Add(aListEntity);
                                     }
                                 }
                                 else
                                 {
-                                    // 小組開始日期有填，小組結束日期沒填
+                                    // 幸福小組開始日期有填，幸福小組結束日期沒填
                                     if (DateTime.Now >= aHappyStartDate)
                                     {
-                                        // 現在比小組結束日期還早
+                                        // 現在比幸福小組結束日期還早
                                         m_Lists.Entities.Add(aListEntity);
                                     }
                                 }
                             }
                             else
                             {
-                                // 小組開始日期沒填
-                                if (aHappyEndDate.Year != 1000)
+                                // 幸福小組開始日期沒填
+                                if ( aHappyEndDate.Year != 1 )
                                 {
-                                    // 小組開始日期沒填，小組結束日期有填
+                                    // 幸福小組開始日期沒填，幸福小組結束日期有填
                                     if (DateTime.Now <= aHappyEndDate)
                                     {
-                                        // 現在比小組結束日期還早
+                                        // 現在比幸福小組結束日期還早
                                         m_Lists.Entities.Add(aListEntity);
                                     }
                                 }
                                 else
                                 {
-                                    // 小組開始日期沒填，小組結束日期沒填
+                                    // 幸福小組開始日期沒填，幸福小組結束日期沒填
                                     m_Lists.Entities.Add(aListEntity);
                                 }
                             }
