@@ -18,25 +18,8 @@ namespace ChurchReport.Tools
     public class WeeklyReportProcessor
     {
         #region 資料區
-        #region 系統參數
-        IOrganizationServiceFactory m_ServiceFactory;
-        ITracingService m_TracingService;
-
-        // Obtain the execution context from the service provider.
-        //IPluginExecutionContext context = (IPluginExecutionContext)serviceProvider.GetService(typeof(IPluginExecutionContext));
-
-        IServiceProvider m_ServiceProvider;
-        IPluginExecutionContext m_Context;
-
-        // Use the context service to create an instance of IOrganizationService.
-        IOrganizationService m_CrmService;
-
-        String m_OrganizationName = "";
-        //</snippetFollowupPlugin4>
-        #endregion
         #region 參數資料
         private ToolUtilityClass m_ToolUtilityClass;
-        LineUtilityClass m_LineUtilityClass;
 
         private static Regex DigitsOnly = new Regex(@"[^\d]");
 
@@ -91,16 +74,9 @@ namespace ChurchReport.Tools
 
         #endregion
         #region 初始值設定
-        public WeeklyReportProcessor(IOrganizationService aCrmService, IPluginExecutionContext aContext, ToolUtilityClass aToolUtilityClass, LineUtilityClass aLineUtilityClass)
+        public WeeklyReportProcessor( ToolUtilityClass aToolUtilityClass)
         {
-            m_CrmService = aCrmService;
-            this.m_Context = aContext;
-
             m_ToolUtilityClass = aToolUtilityClass;
-
-            m_LineUtilityClass = aLineUtilityClass;
-
-            m_OrganizationName = aContext.OrganizationName;
         }
         #endregion
         #region 下載資料區

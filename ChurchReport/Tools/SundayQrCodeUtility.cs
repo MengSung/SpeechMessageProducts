@@ -532,7 +532,7 @@ namespace ChurchReport.Tools
                         Guid aSmallGroupLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(aRetrievedListEntity, "new_contact_family_leader_list");
                         Entity aSmallGroupLeaderEntity = this.m_ToolUtilityClass.RetrieveEntity("contact", aSmallGroupLeaderId);
 
-                        WeeklyReportProcessor aWeeklyReportProcessor;
+                        WeeklyReportProcessor aWeeklyReportProcessor = new WeeklyReportProcessor(this.m_ToolUtilityClass);
                     }
 
                     // 有找到小組
