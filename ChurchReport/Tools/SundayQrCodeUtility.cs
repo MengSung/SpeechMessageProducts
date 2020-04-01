@@ -176,7 +176,7 @@ namespace ChurchReport.Tools
                 }
                 else
                 {
-                    #region// 沒找到個人聚會與靈修記錄
+                    //#region// 沒找到個人聚會與靈修記錄
                     // 建立一個個人聚會與靈修記錄
                     Entity aPresentRecord = CreatePresentRecord();
 
@@ -571,14 +571,14 @@ namespace ChurchReport.Tools
                                     {
                                         aPresentRecord = this.m_ToolUtilityClass.RetrieveEntity("new_present_record", aPresentRecord.Id);
 
-                                        SigningProcess(aPresentRecord, m_OnboardType);
-
                                         #region 設定聚會統計關聯
                                         this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aPresentRecord, "new_meeting_statistics_new_present_re", "new_meeting_statistics", this.m_MeetingStatistics.Id);
                                         #endregion
 
+                                        SigningProcess(aPresentRecord, m_OnboardType);
+
                                         // 更新出席紀錄單
-                                        this.m_ToolUtilityClass.UpdateEntity(ref aPresentRecord);
+                                        //this.m_ToolUtilityClass.UpdateEntity(ref aPresentRecord);
 
                                         #region// 計算週報主日出席人數及出席率
                                         if (m_OnboardTypeInfo.StartsWith("錯誤") != true)
@@ -633,8 +633,5 @@ namespace ChurchReport.Tools
             }
         }
         #endregion
-        //#endregion
-        #endregion
-
     }
 }
