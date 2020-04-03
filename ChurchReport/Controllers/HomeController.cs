@@ -3782,7 +3782,7 @@ namespace ChurchReport.Controllers
         }
 
         #endregion
-        #region  教會課程 QR CODE 簽到、簽退+ 報名 掃描(Line Tiff)
+        #region  教會課程 QR CODE 簽到、簽退+ 報名 掃描(Line Liff)
         [Route("/Home/QrCodeView/{QrCodeViewPatameter}")]
         public ActionResult QrCodeView(String QrCodeId, string QrCodeViewPatameter)
         {
@@ -3893,7 +3893,7 @@ namespace ChurchReport.Controllers
         }
 
         #endregion
-        #region  小組聚會 QR CODE 簽到簽退掃描(Line Tiff)
+        #region  小組聚會 QR CODE 簽到簽退掃描(Line Liff)
         [Route("/Home/SmallGroupQrCodeView/{QrCodeViewPatameter}")]
         public ActionResult SmallGroupQrCodeView(String QrCodeId, string QrCodeViewPatameter)
         {
@@ -4003,7 +4003,7 @@ namespace ChurchReport.Controllers
         }
 
         #endregion
-        #region  主日 QR CODE 簽到、簽退 掃描(Line Tiff)
+        #region  主日 QR CODE 簽到、簽退 掃描(Line Liff)
         [Route("/Home/SundayQrCodeView/{QrCodeViewPatameter}")]
         public ActionResult SundayQrCodeView(String QrCodeId, string QrCodeViewPatameter)
         {
