@@ -139,39 +139,41 @@ namespace ChurchReport.Tools
             try
             {
                 // 取得與聚會統計主日日期相關的個人聚會與靈修記錄
-                DateTime aSundayDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aMeetingStatistics, "new_sunday_date").ToLocalTime();
-                EntityCollection aPresentRecordCollection = m_ToolUtilityClass.RetrievePresentRecordByFetchXmlAndSundayDate( UserName, UserId, aSundayDate);
+                EntityCollection aPresentRecordCollection = m_ToolUtilityClass.RetrievePresentRecordByFetchXmlAndSundayDate( UserName, UserId, this.m_Sunday);
 
                 if ( aPresentRecordCollection.Entities.Count > 0 )
                 {
                     #region// 有找到個人聚會與靈修記錄
-                    Entity aPresentRecord = this.m_ToolUtilityClass.RetrieveEntity("new_present_record", aPresentRecordCollection.Entities[0].Id);
-
-                    // 進行簽到或是簽退
-                    SigningProcess(aPresentRecord, OnboardType);
-
-                    #region 設定聚會統計關聯
-                    this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aPresentRecord, "new_meeting_statistics_new_present_re", "new_meeting_statistics", this.m_MeetingStatistics.Id);
-                    #endregion
-
-                    this.m_ToolUtilityClass.UpdateEntity( ref aPresentRecord );
-
-                    #region// 計算週報主日出席人數及出席率
-                    Guid aWeeklyReportId = this.m_ToolUtilityClass.GetEntityLookupAttribute(aPresentRecord, "new_group_present_weekly_report_prese");
-
-                    if (aWeeklyReportId != Guid.Empty)
+                    foreach (Entity aPresentRecord in aPresentRecordCollection.Entities)
                     {
-                        Entity aWeeklyReportEntity = this.m_ToolUtilityClass.RetrieveEntity("new_group_present_weekly_report", aWeeklyReportId);
-                        if (aWeeklyReportEntity != null)
+                        Entity aRetrievedPresentRecord = this.m_ToolUtilityClass.RetrieveEntity("new_present_record", aPresentRecord.Id);
+
+                        // 進行簽到或是簽退
+                        SigningProcess(aRetrievedPresentRecord, OnboardType);
+
+                        #region 設定聚會統計關聯
+                        this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aRetrievedPresentRecord, "new_meeting_statistics_new_present_re", "new_meeting_statistics", this.m_MeetingStatistics.Id);
+                        #endregion
+
+                        // 更新個人聚會與靈修記錄
+                        this.m_ToolUtilityClass.UpdateEntity(ref aRetrievedPresentRecord);
+
+                        #region// 計算週報主日出席人數及出席率
+                        Guid aWeeklyReportId = this.m_ToolUtilityClass.GetEntityLookupAttribute(aRetrievedPresentRecord, "new_group_present_weekly_report_prese");
+
+                        if (aWeeklyReportId != Guid.Empty)
                         {
-                            this.m_ToolUtilityClass.SetEntityStringAttribute(ref aWeeklyReportEntity, "new_saved_flag", "計算出席率");
-                            this.m_ToolUtilityClass.UpdateEntity(ref aWeeklyReportEntity);
+                            Entity aWeeklyReportEntity = this.m_ToolUtilityClass.RetrieveEntity("new_group_present_weekly_report", aWeeklyReportId);
+                            if (aWeeklyReportEntity != null)
+                            {
+                                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aWeeklyReportEntity, "new_saved_flag", "計算出席率");
+                                this.m_ToolUtilityClass.UpdateEntity(ref aWeeklyReportEntity);
+                            }
                         }
+                        #endregion
+
+                        #endregion
                     }
-                    #endregion
-
-                    #endregion
-
                     return true;
                 }
                 else
@@ -550,7 +552,7 @@ namespace ChurchReport.Tools
                         #region 建立週報及出席紀錄單
                         WeeklyReportProcessor aWeeklyReportProcessor = new WeeklyReportProcessor(this.m_ToolUtilityClass);
                         Dictionary<String, String> WeeklyReportDictionary = new Dictionary<String, String>();
-                        aWeeklyReportProcessor.CreateWeeklyReportAndPresentRecord(aSmallGroupLeaderEntity, DateTime.Now, ref WeeklyReportDictionary);
+                        aWeeklyReportProcessor.CreateWeeklyReportAndPresentRecord(aSmallGroupLeaderEntity, this.m_Sunday, ref WeeklyReportDictionary);
                         #endregion
 
                         foreach (KeyValuePair<string, string> WeeklyReportKeyValuePair in WeeklyReportDictionary)
