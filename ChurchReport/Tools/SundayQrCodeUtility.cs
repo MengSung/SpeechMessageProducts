@@ -539,7 +539,7 @@ namespace ChurchReport.Tools
 
                 if ( aListCollection.Entities.Count > 0 )
                 {
-                    // 有找到小組
+                    #region// 有找到小組
                     foreach ( Entity aListEntity in aListCollection.Entities )
                     {
                         // 取得小組名單實體
@@ -605,13 +605,12 @@ namespace ChurchReport.Tools
                             #endregion
                         }
                     }
-
                     return null;
+                    #endregion
                 }
                 else
                 {
-                    // 還沒有小組
-
+                    #region// 還沒有小組
                     // 新增建立一個個人聚會與靈修記錄
                     Entity aPresentRecord = CreatePresentRecordWithNoSmallGroup();
 
@@ -621,10 +620,9 @@ namespace ChurchReport.Tools
                     {
                         SigningProcess(aPresentRecord, m_OnboardType);
                     }
-                    
 
                     return aPresentRecord;
-
+                    #endregion
                 }
             }
             catch (System.Exception e)
