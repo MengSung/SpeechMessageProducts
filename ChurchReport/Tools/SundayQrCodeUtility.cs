@@ -178,17 +178,18 @@ namespace ChurchReport.Tools
                         }
                         #endregion
 
-                        #endregion
                     }
                     return true;
+                    #endregion
                 }
                 else
                 {
-                    //#region// 沒找到個人聚會與靈修記錄
+                    #region// 沒找到個人聚會與靈修記錄
                     // 建立一個個人聚會與靈修記錄
-                    Entity aPresentRecord = CreatePresentRecord();
+                    CreatePresentRecord();
 
                     return false;
+                    #endregion
                 }
             }
             catch (System.Exception Exception)
@@ -455,18 +456,17 @@ namespace ChurchReport.Tools
             }
 
         }
-        public Entity CreatePresentRecord()
+        public void CreatePresentRecord()
         {
             try
             {
                 if ( m_Contact != null )
                 {
                     // 有加入到教會的官方的LINE@
-                    return CreatePresentRecordOnSmallGroup();
+                    CreatePresentRecordOnSmallGroup();
                 }
                 else
                 {
-                    return null;
                 }
             }
             catch (System.Exception Exception)
@@ -536,7 +536,7 @@ namespace ChurchReport.Tools
                 throw e;
             }
         }
-        private Entity CreatePresentRecordOnSmallGroup()
+        private void CreatePresentRecordOnSmallGroup()
         {
             try
             {
@@ -602,22 +602,18 @@ namespace ChurchReport.Tools
                                         }
                                         #endregion
                                     }
-
-                                    return aPresentRecordCollection.Entities[0];
                                 }
                                 else 
                                 { 
-                                    return null; 
                                 }
                             }
                             else
                             {
-                                return null;
                             }
                             #endregion
                         }
                     }
-                    return null;
+                    //return null;
                     #endregion
                 }
                 else
@@ -633,7 +629,7 @@ namespace ChurchReport.Tools
                         SigningProcess(aPresentRecord, m_OnboardType);
                     }
 
-                    return aPresentRecord;
+                    //return aPresentRecord;
                     #endregion
                 }
             }
