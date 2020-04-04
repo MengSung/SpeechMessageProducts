@@ -141,6 +141,7 @@ namespace ChurchReport.Tools
                 // 取得與聚會統計主日日期相關的個人聚會與靈修記錄
                 EntityCollection aPresentRecordCollection = m_ToolUtilityClass.RetrievePresentRecordByFetchXmlAndSundayDate( UserName, UserId, this.m_Sunday);
 
+                bool RelateMeetingStatisticsFlag = false;
                 if ( aPresentRecordCollection.Entities.Count > 0 )
                 {
                     #region// 有找到個人聚會與靈修記錄
@@ -152,7 +153,12 @@ namespace ChurchReport.Tools
                         SigningProcess(aRetrievedPresentRecord, OnboardType);
 
                         #region 設定聚會統計關聯
-                        this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aRetrievedPresentRecord, "new_meeting_statistics_new_present_re", "new_meeting_statistics", this.m_MeetingStatistics.Id);
+                        // RelateMeetingStatisticsFlag 的作用是如果建立 N 個出席紀錄單，但是我只要有一筆紀錄顯示在聚會統計即可，以免造成聚會統計有N筆掃描紀錄
+                        if (RelateMeetingStatisticsFlag == false)
+                        {
+                            this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aRetrievedPresentRecord, "new_meeting_statistics_new_present_re", "new_meeting_statistics", this.m_MeetingStatistics.Id);
+                            RelateMeetingStatisticsFlag = true;
+                        }
                         #endregion
 
                         // 更新個人聚會與靈修記錄
@@ -555,6 +561,7 @@ namespace ChurchReport.Tools
                         aWeeklyReportProcessor.CreateWeeklyReportAndPresentRecord(aSmallGroupLeaderEntity, this.m_Sunday, ref WeeklyReportDictionary);
                         #endregion
 
+                        bool RelateMeetingStatisticsFlag = false;
                         foreach (KeyValuePair<string, string> WeeklyReportKeyValuePair in WeeklyReportDictionary)
                         {
                             #region 找到與此建立的週報和聯絡人相關的出席紀錄單
@@ -574,7 +581,12 @@ namespace ChurchReport.Tools
                                         aPresentRecord = this.m_ToolUtilityClass.RetrieveEntity("new_present_record", aPresentRecord.Id);
 
                                         #region 設定聚會統計關聯
-                                        this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aPresentRecord, "new_meeting_statistics_new_present_re", "new_meeting_statistics", this.m_MeetingStatistics.Id);
+                                        // RelateMeetingStatisticsFlag 的作用是如果建立 N 個出席紀錄單，但是我只要有一筆紀錄顯示在聚會統計即可，以免造成聚會統計有N筆掃描紀錄
+                                        if ( RelateMeetingStatisticsFlag == false )
+                                        {
+                                            this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aPresentRecord, "new_meeting_statistics_new_present_re", "new_meeting_statistics", this.m_MeetingStatistics.Id);
+                                            RelateMeetingStatisticsFlag = true;
+                                        }
                                         #endregion
 
                                         SigningProcess(aPresentRecord, m_OnboardType);
