@@ -22,7 +22,7 @@ String ReUpload = "您有一些操作沒有完成，請檢查一下剛剛輸入�
 <div class="dx-field">
     <div id="buttonContainer" class="dx-button-icon" style="float: left; width:30%; text-align: left; background-color:white;">
         @(Html.DevExtreme().Button()
-        .Text("上傳")
+        .Text("上傳").Height(50).Width(80).Icon("check")
         .Type(ButtonType.Success)
         .ID("save-button")
         //.UseSubmitBehavior(true)
