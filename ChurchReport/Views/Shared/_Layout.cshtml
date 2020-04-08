@@ -184,7 +184,8 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                <a class="navbar-brand" href="/">首頁</a>
+                <a class="navbar-brand">永和禮拜堂</a>
+                @*<a class="navbar-brand" href="/">永和禮拜堂</a>*@
                 @*<a class="navbar-brand" href="/">@(ViewBag.LoginFullName + "回報")</a>*@
             </div>
             <div id="navbar" class="collapse navbar-collapse">
@@ -197,6 +198,7 @@
                             <!--多個牧養回報-->
                             <li><a href="/Home/MultiGroupView/MultiGroup">回報統計</a></li>
                             <li><a href="/Home/NewPerson">新增新人</a></li>
+                            @*<li><a href="/Home/Login">登入</a></li>*@
                             @if (@ViewBag.UserType == "行政同工")
                             {
                                 @*<li><a href="/Home/Scheduler/差勤簽核">差勤簽核</a></li>*@
@@ -341,8 +343,8 @@
                                     {
                                         // 不是小組長，有幸福小組名單，有繳費點名
                                         @*<li><a href="/Home/IntegrateView/Personal">個人回報</a></li>*@
-                                        <li><a href="/Home/PersonalReport">個人回報</a></li>
-                                        <li><a href="/Home/MaintainPersonInfomationView">維護個人基本資料</a></li>
+                                        @*<li><a href="/Home/PersonalReport">個人回報</a></li>*@
+                                        <li><a href="/Home/MaintainPersonInfomationView">個人資料</a></li>
                                         <li><a href="/Home/NewPerson">新增新人</a></li>
                                         @*<li><a href="/Home/HappyGroup">幸福小組回報</a></li>*@
                                         @if (@ViewBag.FeeDataListCount == "繳費與點名已有資料")
@@ -356,8 +358,8 @@
                                     {
                                         // 不是小組長，有幸福小組名單，無繳費點名
                                         @*<li><a href="/Home/IntegrateView/Personal">個人回報</a></li>*@
-                                        <li><a href="/Home/PersonalReport">個人回報</a></li>
-                                        <li><a href="/Home/MaintainPersonInfomationView">維護個人基本資料</a></li>
+                                        @*<li><a href="/Home/PersonalReport">個人回報</a></li>*@
+                                        <li><a href="/Home/MaintainPersonInfomationView">個人資料</a></li>
                                         <li><a href="/Home/NewPerson">新增新人</a></li>
                                         @*<li><a href="/Home/HappyGroup">幸福小組回報</a></li>*@
                                         @*<li><a href="/Home/FeeManagerView">繳費與點名</a></li>*@
@@ -370,8 +372,8 @@
                                     {
                                         // 不是小組長，無幸福小組名單，有繳費點名
                                         @*<li><a href="/Home/IntegrateView/Personal">個人回報</a></li>*@
-                                        <li><a href="/Home/PersonalReport">個人回報</a></li>
-                                        <li><a href="/Home/MaintainPersonInfomationView">維護個人基本資料</a></li>
+                                        @*<li><a href="/Home/PersonalReport">個人回報</a></li>*@
+                                        <li><a href="/Home/MaintainPersonInfomationView">個人資料</a></li>
                                         <li><a href="/Home/NewPerson">新增新人</a></li>
                                         @*<li><a href="/Home/HappyGroup">幸福小組回報</a></li>*@
                                         <li><a href="/Home/Scheduler/差勤簽核">差勤簽核</a></li>
@@ -386,8 +388,8 @@
                                     {
                                         // 不是小組長，無幸福小組名單，無繳費點名
                                         @*<li><a href="/Home/IntegrateView/Personal">個人回報</a></li>*@
-                                        <li><a href="/Home/PersonalReport">個人回報</a></li>
-                                        <li><a href="/Home/MaintainPersonInfomationView">維護個人基本資料</a></li>
+                                        @*<li><a href="/Home/PersonalReport">個人回報</a></li>*@
+                                        <li><a href="/Home/MaintainPersonInfomationView">個人資料</a></li>
                                         <li><a href="/Home/NewPerson">新增新人</a></li>
                                         @*<li><a href="/Home/HappyGroup">幸福小組回報</a></li>*@
                                         <li><a href="/Home/Scheduler/差勤簽核">差勤簽核</a></li>
@@ -407,6 +409,8 @@
                                 }
                             }
                         }
+
+                        <li><a href="/Home/Login">登入</a></li>
                     }
                     else
                     {

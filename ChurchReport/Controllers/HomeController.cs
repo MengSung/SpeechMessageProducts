@@ -714,7 +714,7 @@ namespace ChurchReport.Controllers
 
                     if(m_InMemoryDataContextSmallGroup.ListManager.LoginType == "個人回報" )
                     {
-                        return RedirectToAction("PersonalReport");
+                        return RedirectToAction("Login");
                     }
                     else
                     {
