@@ -67,7 +67,7 @@
 <hr />
 
 <div style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
-    <h4>維護基本資料</h4>
+    <h4>個人資料</h4>
 </div>
 
 <div id="multigroupchart">
@@ -77,6 +77,7 @@
         .Provider(GeoMapProvider.Google)
         .Center("桃園市楊梅區")
         .Zoom(11)
+        .Visible(false)
         //.Width(750)
         //.Width("100%")
         .Width("50%")
@@ -188,9 +189,9 @@
             .ColumnResizingMode(ColumnResizingMode.Widget)
             .ColumnFixing(c => c.Enabled(true))
             .LoadPanel(l => l.Text("更新資料中...").Enabled(false))
-            .SearchPanel(s => s.Visible(true).Placeholder("搜尋.."))
+            .SearchPanel(s => s.Visible(false).Placeholder("搜尋.."))
 
-            .Export(e=>e.Enabled(true).AllowExportSelectedData(true))
+            .Export(e=>e.Enabled(false).AllowExportSelectedData(true))
             //.StateStoring(s => s
             //    .Enabled(true)
             //    .Type(StateStoringType.LocalStorage)
@@ -278,7 +279,7 @@
                 //columns.Add().DataField("Status").Caption("委身類型").AllowEditing(false).Fixed(false).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Center);
                 //客製化，委身類型
                 columns.Add().DataField("Status")
-                    .Caption("委身類型").Alignment(HorizontalAlignment.Center).AllowEditing(true)
+                    .Caption("委身類型").Alignment(HorizontalAlignment.Center).AllowEditing(false)
                     .Width(100).MinWidth(30).DataType(GridColumnDataType.Number)
                     .Lookup(lookup => lookup
                     .DataSource(new string[] { "牧師師母", "區長", "區牧", "小組長", "副組長", "小組組員", "幸福BEST", "未入組", "新朋友", "外教會.訪客", "結案", })
