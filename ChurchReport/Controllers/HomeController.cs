@@ -714,7 +714,7 @@ namespace ChurchReport.Controllers
 
                     if(m_InMemoryDataContextSmallGroup.ListManager.LoginType == "個人回報" )
                     {
-                        return RedirectToAction("Login");
+                        return RedirectToAction("DisplayErrorView", new { ErrorMessage = "您沒有點名的權限" });
                     }
                     else
                     {
@@ -3125,7 +3125,7 @@ namespace ChurchReport.Controllers
                 ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.ListManager.LoginFullName;
                 ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType;
                 ViewBag.HappyType = m_InMemoryDataContextSmallGroup.HappyGroupDataManager.HappyType;
-
+                @ViewBag.DisplayNavigation = "不顯示牧養回報項目";
                 //SetMultiGroupLayoutParameter();
 
                 //if (m_InMemoryDataContextSmallGroup.ListManager.m_MultiGroupList.m_WeeklyReportRecordListData.Count == 1)

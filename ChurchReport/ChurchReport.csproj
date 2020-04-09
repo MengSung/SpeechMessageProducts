@@ -24,7 +24,6 @@
     <None Remove="Views\Home\LineIdLoginView.cshtml" />
     <None Remove="Views\Home\LineLiffView.cshtml" />
     <None Remove="Views\Home\MultiGroupView.cshtml" />
-    <None Remove="Views\Home\PersonalReport - 尚未以群組方式顯示.cshtml" />
     <None Remove="Views\Home\PersonalReport.cshtml" />
     <None Remove="Views\Home\PresentView.cshtml" />
     <None Remove="Views\Home\QrCodeView.cshtml" />
