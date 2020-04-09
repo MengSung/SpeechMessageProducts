@@ -276,19 +276,19 @@
                 columns.Add().DataField("SmallGroupName").Caption("小組").GroupIndex(0).MinWidth(10);
 
                 columns.Add().DataField("FullName").Caption("姓名").AllowEditing(false).Fixed(true).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Left).AllowEditing(false);
-                //columns.Add().DataField("Status").Caption("委身類型").AllowEditing(false).Fixed(false).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Center);
+                //columns.Add().DataField("Status").Caption("會員身分").AllowEditing(false).Fixed(false).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Center);
                 //客製化，委身類型
-                columns.Add().DataField("Status")
-                    .Caption("委身類型").Alignment(HorizontalAlignment.Center).AllowEditing(false)
-                    .Width(100).MinWidth(30).DataType(GridColumnDataType.Number)
-                    .Lookup(lookup => lookup
-                    .DataSource(new string[] { "牧師師母", "區長", "區牧", "小組長", "副組長", "小組組員", "幸福BEST", "未入組", "新朋友", "外教會.訪客", "結案", })
-                    //.DisplayExpr("Name")
-                    //.ValueExpr("ID")
-                    );
+                //columns.Add().DataField("Status")
+                //    .Caption("會員身分").Alignment(HorizontalAlignment.Center).AllowEditing(false)
+                //    .Width(100).MinWidth(30).DataType(GridColumnDataType.Number)
+                //    .Lookup(lookup => lookup
+                //    .DataSource(new string[] { "牧師師母", "區長", "區牧", "小組長", "副組長", "小組組員", "幸福BEST", "未入組", "新朋友", "外教會.訪客", "結案", })
+                //    //.DisplayExpr("Name")
+                //    //.ValueExpr("ID")
+                //    );
 
                 columns.Add().DataField("Phone").Caption("行動電話").Fixed(false).Width(120).MinWidth(90).Alignment(HorizontalAlignment.Left);
-                columns.Add().DataField("HomePhone").Caption("家裡電話").Fixed(false).Width(120).MinWidth(90).Alignment(HorizontalAlignment.Left);
+                //columns.Add().DataField("HomePhone").Caption("家裡電話").Fixed(false).Width(120).MinWidth(90).Alignment(HorizontalAlignment.Left);
 
                 //columns.Add().DataField("BirthDate").Caption("生日").DataType(GridColumnDataType.Date).Format("yyyy/M/d").Alignment(HorizontalAlignment.Center).Fixed(false).Width(100).MinWidth(80);
                     
@@ -317,7 +317,7 @@
                             </text> )
                     .Format("yyyy/M/d").Alignment(HorizontalAlignment.Center).Fixed(false).Width(100).MinWidth(80);
 
-                columns.Add().DataField("Industry").Caption("職業及專長").Fixed(false).Width(100).MinWidth(90).Alignment(HorizontalAlignment.Left);
+                //columns.Add().DataField("Industry").Caption("職業及專長").Fixed(false).Width(100).MinWidth(90).Alignment(HorizontalAlignment.Left);
                 columns.Add().DataField("Address").Caption("地址").Fixed(false).Width(200).MinWidth(90).Alignment(HorizontalAlignment.Left);
                 })
                 //.DataSource(d => d.WebApi().Controller("SmallGroupReport").Key("Id"))

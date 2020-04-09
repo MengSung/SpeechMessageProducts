@@ -230,14 +230,14 @@ else
             .Columns(columns =>
             {
             //columns.Add().DataField("FullName").Caption("姓名").Fixed(true).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Left);
-            //columns.Add().DataField("Status").Caption("委身類型").Fixed(false).Width(100).MinWidth(20).Alignment(HorizontalAlignment.Center);
+            //columns.Add().DataField("Status").Caption("會員身分").Fixed(false).Width(100).MinWidth(20).Alignment(HorizontalAlignment.Center);
             //columns.Add().DataField("Sunday").Caption("主日").DataType(GridColumnDataType.Boolean).Width(45).MinWidth(45);
             //columns.Add().DataField("SmallGroup").Caption("小組").DataType(GridColumnDataType.Boolean).Width(45).MinWidth(45);
             //columns.Add().DataField("PrayItem").Caption("代禱事項").Fixed(false).MinWidth(90);
             //columns.Add().DataField("SmallGroupName").Caption("小組").GroupIndex(0).MinWidth(10);
 
             columns.AddFor(m => m.FullName).Caption("姓名").Fixed(true).Width(60).MinWidth(20).Alignment(HorizontalAlignment.Left).AllowSorting(false);
-            columns.AddFor(m => m.Status).Caption("委身類型").Fixed(false).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Center).AllowSorting(false).AllowEditing(false);
+            columns.AddFor(m => m.Status).Caption("會員身分").Fixed(false).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Center).AllowSorting(false).AllowEditing(false);
             columns.AddFor(m => m.Sunday).Caption("主日").Width(45).MinWidth(45).AllowSorting(false);
             columns.AddFor(m => m.SmallGroup).Caption("小組").Width(45).MinWidth(45).AllowSorting(false);
             //columns.AddFor(m => m.SpiritualWork)
@@ -340,7 +340,7 @@ else
             columns.Add().DataField("SmallGroupName").Caption("小組").GroupIndex(0).MinWidth(10);
 
             columns.Add().DataField("FullName").Caption("姓名").Fixed(true).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Left);
-            columns.Add().DataField("Status").Caption("委身類型").Fixed(false).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Center).AllowEditing(false);
+            columns.Add().DataField("Status").Caption("會員身分").Fixed(false).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Center).AllowEditing(false);
             columns.Add().DataField("Sunday").Caption("主日").DataType(GridColumnDataType.Boolean).Width(45).MinWidth(45);
             columns.Add().DataField("SmallGroup").Caption("小組").DataType(GridColumnDataType.Boolean).Width(45).MinWidth(45);
 
@@ -507,7 +507,7 @@ else
                 .Columns(columns =>
                 {
                 columns.AddFor(m => m.FullName).Caption("姓名").Fixed(false).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Left).AllowSorting(false);
-                columns.AddFor(m => m.Status).Caption("委身類型").Fixed(false).Width(100).MinWidth(20).Alignment(HorizontalAlignment.Center).AllowSorting(false).AllowEditing(false);
+                columns.AddFor(m => m.Status).Caption("會員身分").Fixed(false).Width(100).MinWidth(20).Alignment(HorizontalAlignment.Center).AllowSorting(false).AllowEditing(false);
                 columns.AddFor(m => m.Sunday).Caption("主日").Width(45).MinWidth(45).AllowSorting(false);
                 columns.AddFor(m => m.SmallGroup).Caption("小組").Width(45).MinWidth(45).AllowSorting(false);
                 columns.AddFor(m => m.SpiritualWork)
