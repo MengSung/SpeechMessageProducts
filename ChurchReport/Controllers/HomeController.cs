@@ -4274,27 +4274,11 @@ namespace ChurchReport.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> SaveDedicationInfo(DedicationModel DedicationModel)
+        public async Task<IActionResult> SaveDedicationInfo(DedicationInfoModel DedicationInfoModel)
         {
             try
             {
-                //LinePayClient m_LinePayClient;
-                //IConfiguration configuration;
-
-                //var builder = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("appsettings.json");
-
-                //configuration = builder.Build();
-
-                //m_LinePayClient = new LinePayClient(configuration["LinePay:ChannelId"], configuration["LinePay:ChannelSecret"], bool.Parse(configuration["LinePay:IsSandbox"]));
-
-                LinePayProcessor LinePayProcessor = new LinePayProcessor();
-
-                //String aLinePayUrl = await LinePayProcessor.NotifyLinePay(m_LinePayClient, DedicationModel);
-                String aLinePayUrl = await LinePayProcessor.NotifyLinePay(m_InMemoryDataContextSmallGroup.LineBindingViewModel.LineUserId, DedicationModel);
-
-                //return Json(new { LinePayUrl = LinePayUrl, DisplayViewType = DisplayViewType, ActiveListId = m_InMemoryDataContextSmallGroup.ListManager.ActiveListId, message = "歡迎" + FullName + "登入成功!", fullname = FullName, account = aGalleryViewModel.Account, password = aGalleryViewModel.Password });
-
-                return Json(new { status = "1", message = "感謝您的奉獻", LinePayUrl = aLinePayUrl });
+                return Json(new { status = "1", message = "感謝您的奉獻", LinePayUrl = "神與您同在" });
             }
             catch (System.Exception e)
             {

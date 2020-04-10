@@ -32,7 +32,7 @@ namespace ChurchReport.WebServiceConnector
             m_LinePayClient = new LinePayClient(configuration["LinePay:ChannelId"], configuration["LinePay:ChannelSecret"], bool.Parse(configuration["LinePay:IsSandbox"]));
 
         }
-        public async Task<string> NotifyLinePay( String LineId, DedicationModel DedicationModel )
+        public async Task<string> NotifyLinePay(String LineId, DedicationModel DedicationModel)
         {
             try
             {
@@ -64,7 +64,7 @@ namespace ChurchReport.WebServiceConnector
                 //Task<ReserveResponse> response = await m_LinePayClient.ReserveAsync(reserve);
                 var response = await m_LinePayClient.ReserveAsync(reserve);
 
-                CreateFee( LineId, response, DedicationModel);
+                CreateFee(LineId, response, DedicationModel);
                 //Redirect(response.Info.PaymentUrl.Web);
 
                 return response.Info.PaymentUrl.Web;
