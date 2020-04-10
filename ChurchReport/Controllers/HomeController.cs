@@ -4238,5 +4238,81 @@ namespace ChurchReport.Controllers
 
 
         #endregion
+        #region 奉獻資訊
+        [Route("/Home/DedicationInofView/{DedicationInfoViewPatameter}")]
+        public ActionResult DedicationInofView(string DedicationInfoViewPatameter)
+        {
+            try
+            {
+                ViewBag.LoginType = "小組長"; // 看是小組長還是個人回報
+                ViewBag.LoginFullName = "耶穌";
+                ViewBag.FeeType = "有繳費點名";
+                ViewBag.FeeDataListCount = "繳費與點名尚無資料";
+                ViewBag.HappyType = "沒幸福小組名單";
+                ViewBag.MultiGroupIndex = "SingleMultiGroupView";
+                //ViewBag.SchedulerView = m_InMemoryDataContextSmallGroup.ListManager.SchedulerView = "單純行事曆";
+                ViewBag.DisplayNavigation = m_InMemoryDataContextSmallGroup.ListManager.DisplayNavigation = "不顯示牧養回報項目";
+                ViewBag.UserType = m_InMemoryDataContextSmallGroup.ListManager.UserType = "行政同工";
+
+                DedicationInfoModel DedicationInfoModel = new DedicationInfoModel();
+
+                TempData["Proponent"] = DedicationInfoViewPatameter;
+
+                return View(DedicationInfoModel);
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "永和禮拜堂 : 綁定錯誤 => " + ErrorString);
+
+                throw e;
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SaveDedicationInfo(DedicationModel DedicationModel)
+        {
+            try
+            {
+                //LinePayClient m_LinePayClient;
+                //IConfiguration configuration;
+
+                //var builder = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("appsettings.json");
+
+                //configuration = builder.Build();
+
+                //m_LinePayClient = new LinePayClient(configuration["LinePay:ChannelId"], configuration["LinePay:ChannelSecret"], bool.Parse(configuration["LinePay:IsSandbox"]));
+
+                LinePayProcessor LinePayProcessor = new LinePayProcessor();
+
+                //String aLinePayUrl = await LinePayProcessor.NotifyLinePay(m_LinePayClient, DedicationModel);
+                String aLinePayUrl = await LinePayProcessor.NotifyLinePay(m_InMemoryDataContextSmallGroup.LineBindingViewModel.LineUserId, DedicationModel);
+
+                //return Json(new { LinePayUrl = LinePayUrl, DisplayViewType = DisplayViewType, ActiveListId = m_InMemoryDataContextSmallGroup.ListManager.ActiveListId, message = "歡迎" + FullName + "登入成功!", fullname = FullName, account = aGalleryViewModel.Account, password = aGalleryViewModel.Password });
+
+                return Json(new { status = "1", message = "感謝您的奉獻", LinePayUrl = aLinePayUrl });
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "永和禮拜堂 : 綁定錯誤 => " + ErrorString);
+
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
+                throw e;
+            }
+        }
+
+
+        #endregion
+
     }
 }
