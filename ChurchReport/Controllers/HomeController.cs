@@ -4278,7 +4278,11 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                return Json(new { status = "1", message = "感謝您的奉獻，願神與您同在" } ) ;
+                DedicationInfo DedicationInfo = new DedicationInfo();
+
+                String FullName = await DedicationInfo.CreateFeeAsync(m_InMemoryDataContextSmallGroup.LineBindingViewModel.LineUserId, DedicationInfoModel);
+
+                return Json(new { status = "1", message = "感謝" + FullName + "的奉獻，願神與" + FullName+ "同在" } ) ;
             }
             catch (System.Exception e)
             {

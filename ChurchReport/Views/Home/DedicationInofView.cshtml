@@ -75,29 +75,20 @@
         {
             items.AddSimpleFor(m => m.DedicationDate)
                 //.DataField("LastName")
-                .Label(l => l.Text("奉獻日期"))
+                .Label(l => l.Text("匯款日期"))
                 .Editor(e => e
                     .DateBox().Value(DateTime.Now)
                     .Disabled(false)
-                    .Placeholder("輸入奉獻日期")
+                    .Placeholder("輸入匯款日期")
                 );
 
-            items.AddSimpleFor(m => m.BankName)
+            items.AddSimpleFor(m => m.SerialNumber)
                 //.DataField("LastName")
-                .Label(l => l.Text("銀行名稱"))
+                .Label(l => l.Text("帳戶後六碼"))
                 .Editor(e => e
                     .TextBox()
                     .Disabled(false)
-                    .Placeholder("輸入銀行名稱")
-                );
-
-            items.AddSimpleFor(m => m.BankName)
-                //.DataField("LastName")
-                .Label(l => l.Text("匯款/轉帳"))
-                .Editor(e => e
-                    .TextBox()
-                    .Disabled(false)
-                    .Placeholder("輸入號碼")
+                    .Placeholder("輸入帳戶後六碼")
                 );
 
             items.AddSimpleFor(m => m.Amount)
@@ -114,14 +105,18 @@
                 .Editor(e => e
                     .SelectBox()
                     .DataSource(new string[] {
-                                        "十一奉獻",
-                                        "一般奉獻",
-                                        "建堂奉獻",
-                                        "宣教奉獻",
-                        }
+                       "十一",
+                       "感恩",
+                       "建堂",
+                       "宣教",
+                       "急難救助",
+                       "青年事工",
+                       "萬軍",
+                    }
                     //.DisplayExpr("Name")
                     )
-                    .Value("十一奉獻")
+                    .Placeholder("奉獻類別")
+                    .Value("十一")
                     );
 
 
@@ -214,7 +209,7 @@
                     //DevExpress.ui.notify(data.message, "success", 2000);
                     //window.location.href = "/Jesus/Login";
                     //window.location.href = "/Home/NewPerson";
-                    window.location.href = data.LinePayUrl;
+                    //window.location.href = data.LinePayUrl;
 
                     document.getElementById('displaynamefield').innerHTML = data.message;
                 }
