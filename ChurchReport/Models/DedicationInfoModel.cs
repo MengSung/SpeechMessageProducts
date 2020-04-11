@@ -10,8 +10,11 @@ namespace ChurchReport.Models
         public DedicationInfoModel()
         { }
 
-        public int Amount { get; set; }
-        public String Category { get; set; }
+        public DateTime DedicationDate { get; set; }    //奉獻日期
+        public String BankName { get; set; }            //銀行名稱
+        public String SerialNumber { get; set; }        //奉獻號碼
+        public int Amount { get; set; }                 //奉獻金額
+        public String Category { get; set; }            //奉獻類別
 
     }
 }

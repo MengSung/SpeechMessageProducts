@@ -4278,7 +4278,7 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                return Json(new { status = "1", message = "感謝您的奉獻", LinePayUrl = "神與您同在" });
+                return Json(new { status = "1", message = "感謝您的奉獻，願神與您同在" } ) ;
             }
             catch (System.Exception e)
             {
