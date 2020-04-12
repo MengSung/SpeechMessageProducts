@@ -8,7 +8,7 @@
     <div class="dx-field">
         <div id="buttonContainer" class="dx-button-icon">
             @(Html.DevExtreme().Button()
-                    .Text("奉獻")
+                    .Text("上傳")
                     .Type(ButtonType.Success)
                     .ID("save-button")
                     .UseSubmitBehavior(true)
@@ -86,7 +86,7 @@
                 //.DataField("LastName")
                 .Label(l => l.Text("帳戶後六碼"))
                 .Editor(e => e
-                    .TextBox()
+                    .NumberBox()
                     .Disabled(false)
                     .Placeholder("輸入帳戶後六碼")
                 );
@@ -112,12 +112,22 @@
                        "急難救助",
                        "青年事工",
                        "萬軍",
+                       "其他",
                     }
                     //.DisplayExpr("Name")
                     )
                     .Placeholder("奉獻類別")
                     .Value("十一")
                     );
+
+            items.AddSimpleFor(m => m.Others)
+                //.DataField("LastName")
+                .Label(l => l.Text("其他奉獻"))
+                .Editor(e => e
+                    .TextBox()
+                    .Disabled(false)
+                    .Placeholder("請輸入其他奉獻內容")
+                );
 
 
         })

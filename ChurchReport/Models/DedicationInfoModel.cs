@@ -15,6 +15,7 @@ namespace ChurchReport.Models
         public String SerialNumber { get; set; }        //奉獻號碼
         public int Amount { get; set; }                 //奉獻金額
         public String Category { get; set; }            //奉獻類別
+        public String Others { get; set; }              //其他奉獻
 
     }
 }
