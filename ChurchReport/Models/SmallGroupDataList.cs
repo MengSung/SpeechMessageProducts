@@ -86,6 +86,7 @@ namespace ChurchReport.Models
                     aMemberInfomation.Address = aMember.Address;
                     //aMemberInfomation.BirthDate = aMember.BirthDate;
                     aMemberInfomation.Industry = aMember.Industry;
+                    aMemberInfomation.EquipmentStatus = aMember.EquipmentStatus;// 裝備狀態
 
                     aMemberInfomation.SundayPresent = aMember.Sunday;
                     aMemberInfomation.SmallGroupPresent = aMember.SmallGroup;
@@ -121,6 +122,8 @@ namespace ChurchReport.Models
                     Phone = aPersonFormViewModel.Phone,
                     HomePhone = aPersonFormViewModel.HomePhone,
                     Industry = aPersonFormViewModel.Industry,
+                    EquipmentStatus = aPersonFormViewModel.EquipmentStatus,
+
                     //BirthDate = aPersonFormViewModel.BirthDate,
                     Address = aPersonFormViewModel.Address,
                     //Gender = aPersonFormViewModel.Gender,
@@ -156,6 +159,8 @@ namespace ChurchReport.Models
                     Phone = aPersonFormViewModel.Phone,
                     HomePhone = aPersonFormViewModel.HomePhone,
                     Industry = aPersonFormViewModel.Industry,
+                    EquipmentStatus = aPersonFormViewModel.EquipmentStatus,
+
                     //BirthDate = aPersonFormViewModel.BirthDate,
                     Address = aPersonFormViewModel.Address,
                     //Gender = aPersonFormViewModel.Gender,

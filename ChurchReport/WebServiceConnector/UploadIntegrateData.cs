@@ -1193,6 +1193,13 @@ namespace ChurchReport.WebServiceConnector
                             aIndustry = (string)ContactEntity.Attributes["new_industry"];
                         }
 
+                        // 組員的裝備狀態
+                        String aEquipmentStatus = "";
+                        if (ContactEntity.Attributes.Contains("new_equipment_status"))
+                        {
+                            aEquipmentStatus = (string)ContactEntity.Attributes["new_equipment_status"];
+                        }
+
                         #endregion
 
                         #region// 委身類型
@@ -1229,6 +1236,7 @@ namespace ChurchReport.WebServiceConnector
                                     Address = aAddress,
                                     //BirthDate = aBirthDate,
                                     Industry = aIndustry,
+                                    EquipmentStatus = aEquipmentStatus,
 
                                     BestIntroducer = this.m_ToolUtilityClass.GetEntityStringAttribute(ContactEntity, "new_best_introducer"),
                                     BestRelationship = this.m_ToolUtilityClass.GetEntityStringAttribute(ContactEntity, "new_best_relationship"),
@@ -2638,18 +2646,6 @@ namespace ChurchReport.WebServiceConnector
                     ModifyFlag = true;
                 }
             }
-
-            //String aIndustry = "";
-            //if (aContactEntity.Attributes.Contains("new_industry"))
-            //{
-            //    aIndustry = (string)aContactEntity.Attributes["new_industry"];
-            //    if (aMember.Industry != aIndustry)
-            //    {
-            //        // 系統裡的聯絡人職業及專長跟APP上傳的不一致
-            //        this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactEntity, "new_industry", aMember.Industry);
-            //        ModifyFlag = true;
-            //    }
-            //}
 
 
             // 組員的介紹人

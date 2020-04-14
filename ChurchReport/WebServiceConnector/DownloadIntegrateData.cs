@@ -391,6 +391,13 @@ namespace ChurchReport.WebServiceConnector
                             aIndustry = (string)aContactEntity.Attributes["new_industry"];
                         }
 
+                        // 組員的裝備狀態
+                        String aEquipmentStatus = "";
+                        if (aContactEntity.Attributes.Contains("new_equipment_status"))
+                        {
+                            aEquipmentStatus = (string)aContactEntity.Attributes["new_equipment_status"];
+                        }
+
                         #endregion
                         #region// 委身類型
                         String aIdentity = this.ConvertIndexToIdentity(this.m_ToolUtilityClass.GetOptionSetAttribute(ref aContactEntity, "customertypecode"));
@@ -582,6 +589,7 @@ namespace ChurchReport.WebServiceConnector
                                     Address = aAddress,
                                     BirthDate = aBirthDate,
                                     Industry = aIndustry,
+                                    EquipmentStatus = aEquipmentStatus,
                                     BestLeader = this.m_ToolUtilityClass.GetEntityLookupDisplayName(aContactEntity, "new_contact_contact_spiritleader"),// 屬靈認領者
                                     BestIntroducer = this.m_ToolUtilityClass.GetEntityStringAttribute(aContactEntity, "new_best_introducer"),
                                     BestRelationship = this.m_ToolUtilityClass.GetEntityStringAttribute(aContactEntity, "new_best_relationship"),
@@ -715,6 +723,7 @@ namespace ChurchReport.WebServiceConnector
                 Address = this.m_ToolUtilityClass.GetEntityStringAttribute(this.m_ContactEntity, "address2_line1"),
                 BirthDate = m_ToolUtilityClass.GetEntityDateTimeAttribute(this.m_ContactEntity, "birthdate"),
                 Industry = this.m_ToolUtilityClass.GetEntityStringAttribute(this.m_ContactEntity, "new_industry"),
+                EquipmentStatus = this.m_ToolUtilityClass.GetEntityStringAttribute(this.m_ContactEntity, "new_equipment_status"),
 
                 #endregion
                 Status = this.ConvertIndexToIdentity(this.m_ToolUtilityClass.GetOptionSetAttribute(ref m_ContactEntity, "customertypecode")), // 委身類型
@@ -1222,6 +1231,13 @@ namespace ChurchReport.WebServiceConnector
                             aIndustry = (string)ContactEntity.Attributes["new_industry"];
                         }
 
+                        // 組員的裝備狀態
+                        String aEquipmentStatus = "";
+                        if (ContactEntity.Attributes.Contains("new_equipment_status"))
+                        {
+                            aEquipmentStatus = (string)ContactEntity.Attributes["new_equipment_status"];
+                        }
+
                         #endregion
 
                         #region// 委身類型
@@ -1258,6 +1274,7 @@ namespace ChurchReport.WebServiceConnector
                                     Address = aAddress,
                                     BirthDate = aBirthDate,
                                     Industry = aIndustry,
+                                    EquipmentStatus = aEquipmentStatus,
                                     BestLeader = this.m_ToolUtilityClass.GetEntityLookupDisplayName(ContactEntity, "new_contact_contact_spiritleader"),// 屬靈認領者
                                     BestIntroducer = this.m_ToolUtilityClass.GetEntityStringAttribute(ContactEntity, "new_best_introducer"),
                                     BestRelationship = this.m_ToolUtilityClass.GetEntityStringAttribute(ContactEntity, "new_best_relationship"),
@@ -1339,6 +1356,13 @@ namespace ChurchReport.WebServiceConnector
                 aIndustry = (string)m_ContactEntity.Attributes["new_industry"];
             }
 
+            // 組員的裝備狀態
+            String aEquipmentStatus = "";
+            if (m_ContactEntity.Attributes.Contains("new_equipment_status"))
+            {
+                aEquipmentStatus = (string)m_ContactEntity.Attributes["new_equipment_status"];
+            }
+
             #endregion
 
             #region// 委身類型
@@ -1375,6 +1399,7 @@ namespace ChurchReport.WebServiceConnector
                         Address = aAddress,
                         BirthDate = aBirthDate,
                         Industry = aIndustry,
+                        EquipmentStatus = aEquipmentStatus,
                         BestLeader = this.m_ToolUtilityClass.GetEntityLookupDisplayName(m_ContactEntity, "new_contact_contact_spiritleader"),// 屬靈認領者
                         BestIntroducer = this.m_ToolUtilityClass.GetEntityStringAttribute(m_ContactEntity, "new_best_introducer"),
                         BestRelationship = this.m_ToolUtilityClass.GetEntityStringAttribute(m_ContactEntity, "new_best_relationship"),

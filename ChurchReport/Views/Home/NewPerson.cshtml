@@ -80,216 +80,220 @@
         .ColCount(3)
         .Items(items =>
         {
-        //items.AddSimple()
-        //    .DataField("ID")
-        //    .IsRequired(false);
+            //items.AddSimple()
+            //    .DataField("ID")
+            //    .IsRequired(false);
 
-        //items.AddSimple()
-        //   .DataField("FirstName")
-        //   .Label(l => l.Text("姓"))
-        //   .Editor(e => e
-        //        .TextBox()
-        //        .Disabled(true)
-        //    );
+            //items.AddSimple()
+            //   .DataField("FirstName")
+            //   .Label(l => l.Text("姓"))
+            //   .Editor(e => e
+            //        .TextBox()
+            //        .Disabled(true)
+            //    );
 
-        items.AddSimpleFor(m=>m.LastName)
-            //.DataField("LastName")
-            .Label(l => l.Text("姓名"))
-            .Editor(e => e
-                .TextBox()
-                .Disabled(false)
-                .Placeholder("輸入姓名")
-           );
-
-        items.AddSimple()
-            .DataField("Phone")
-            .Label(l => l.Text("行動電話"))
-            .Editor(e => e
-                .TextBox()
-                .Mask("+886 (X000) 000-000")
-                .MaskRules(new { X = new JS("/[02-9]/") })
-                .Placeholder("輸入手機號碼")
-            );
-
-        items.AddSimple()
-            .DataField("HomePhone")
-            .Label(l => l.Text("一般電話"))
-            .Editor(e => e
-                .TextBox()
-                //.Mask("+886 (X00) 0000-0000")
-                .MaskRules(new { X = new JS("/[02-9]/") })
-                .Placeholder("輸入電話號碼")
-            );
-
-        items.AddSimple()
-            .DataField("Address")
-            .Label(l => l.Text("地址"))
-            ;
-
-        items.AddSimple()
-                .DataField("Gender")
-                .Label(l => l.Text("性別"))
+            items.AddSimpleFor(m=>m.LastName)
+                //.DataField("LastName")
+                .Label(l => l.Text("姓名"))
                 .Editor(e => e
-                    .SelectBox()
-                    .DataSource(new string[] {
+                    .TextBox()
+                    .Disabled(false)
+                    .Placeholder("輸入姓名")
+               );
+
+            items.AddSimple()
+                .DataField("Phone")
+                .Label(l => l.Text("行動電話"))
+                .Editor(e => e
+                    .TextBox()
+                    .Mask("+886 (X000) 000-000")
+                    .MaskRules(new { X = new JS("/[02-9]/") })
+                    .Placeholder("輸入手機號碼")
+                );
+
+            items.AddSimple()
+                .DataField("HomePhone")
+                .Label(l => l.Text("一般電話"))
+                .Editor(e => e
+                    .TextBox()
+                    //.Mask("+886 (X00) 0000-0000")
+                    .MaskRules(new { X = new JS("/[02-9]/") })
+                    .Placeholder("輸入電話號碼")
+                );
+
+            items.AddSimple()
+                .DataField("Address")
+                .Label(l => l.Text("地址"))
+                ;
+
+            items.AddSimple()
+                    .DataField("Gender")
+                    .Label(l => l.Text("性別"))
+                    .Editor(e => e
+                        .SelectBox()
+                        .DataSource(new string[] {
                         "未知",
                         "男性",
                         "女性",
-                        }
-                    //.DisplayExpr("Name")
-                    )
-                    .Value("未知")
-                    );
-
-        items.AddSimpleFor(m=>m.Position)
-            //.DataField("Position")
-            .Label(l => l.Text("所屬小組"))
-            .Editor(e => e
-                .SelectBox()
-                        .DataSource(Model.GroupArray)
-
-                        //.DataSource(d => d.WebApi().Controller("Home").LoadAction("AssignSmallGroupGet").Key("ListEntityId"))
-                        //.DataSource(new string[] {
-                        //"未知",
-                        //"已婚",
-                        //"未婚",
-                        //"離異",
-                        //"喪偶",
-                        //"單身",
-                        //}
-                
-                        //.DataSource(d => d.Mvc().Controller("AssignSmallGroup").LoadAction("GetType").Key("ID"))
-                        //.ValueExpr("Name")
-                        //.ValueExpr(Model.GroupName)
+                            }
                         //.DisplayExpr("Name")
-                        //.Value(Model.Position)
-                        .Value(Model.Position)
-                    )
-                    //.ValidationRules
-                    //(   r => r
-                    //    .AddRequired()
-                    //    .Message("Position is required")
-                    //)
-                    ;
+                        )
+                        .Value("未知")
+                        );
 
-        items.AddSimple()
-            .DataField("BirthDate")
-            .Label(l => l.Text("生日"))
-            .IsRequired(false)
-            .Editor(e => e
-                .DateBox()
-                .Disabled(false)
-                .Placeholder("生日")
-                .PickerType(DateBoxPickerType.Calendar)
-            );
+            items.AddSimpleFor(m=>m.Position)
+                //.DataField("Position")
+                .Label(l => l.Text("所屬小組"))
+                .Editor(e => e
+                    .SelectBox()
+                            .DataSource(Model.GroupArray)
 
-        items.AddSimple()
-            .DataField("HireDate")
-            .Label(l => l.Text("進教會日期"))
-            .Editor(
-                    e => e.DateBox()//.Value(new JS("null"))
-                    .Placeholder("進教會日期")
+                            //.DataSource(d => d.WebApi().Controller("Home").LoadAction("AssignSmallGroupGet").Key("ListEntityId"))
+                            //.DataSource(new string[] {
+                            //"未知",
+                            //"已婚",
+                            //"未婚",
+                            //"離異",
+                            //"喪偶",
+                            //"單身",
+                            //}
+
+                            //.DataSource(d => d.Mvc().Controller("AssignSmallGroup").LoadAction("GetType").Key("ID"))
+                            //.ValueExpr("Name")
+                            //.ValueExpr(Model.GroupName)
+                            //.DisplayExpr("Name")
+                            //.Value(Model.Position)
+                            .Value(Model.Position)
+                        )
+                        //.ValidationRules
+                        //(   r => r
+                        //    .AddRequired()
+                        //    .Message("Position is required")
+                        //)
+                        ;
+
+            items.AddSimple()
+                .DataField("BirthDate")
+                .Label(l => l.Text("生日"))
+                .IsRequired(false)
+                .Editor(e => e
+                    .DateBox()
+                    .Disabled(false)
+                    .Placeholder("生日")
                     .PickerType(DateBoxPickerType.Calendar)
-               );
-        //.ValidationRules(r => r
-        //        .AddRequired()
-        //        .Message("Hire date is required")
-        //    );
+                );
 
-        items.AddSimple()
-            .DataField("MerrageState")
-            .Label(l => l.Text("婚姻狀態"))
-            .Editor(e => e
-                .SelectBox()
-                .DataSource(new string[] {
+            items.AddSimple()
+                .DataField("HireDate")
+                .Label(l => l.Text("進教會日期"))
+                .Editor(
+                        e => e.DateBox()//.Value(new JS("null"))
+                        .Placeholder("進教會日期")
+                        .PickerType(DateBoxPickerType.Calendar)
+                   );
+            //.ValidationRules(r => r
+            //        .AddRequired()
+            //        .Message("Hire date is required")
+            //    );
+
+            items.AddSimple()
+                .DataField("MerrageState")
+                .Label(l => l.Text("婚姻狀態"))
+                .Editor(e => e
+                    .SelectBox()
+                    .DataSource(new string[] {
                                         "未知",
                                         "已婚",
                                         "未婚",
                                         "離異",
                                         "喪偶",
                                         "單身",
-                    }
-                //.DisplayExpr("Name")
-                )
-                .Value("未知")
-                );
-
-        items.AddSimple()
-                .DataField("CustomerTypeCode")
-                .Label(l => l.Text("委身類型"))
-                .Editor(e => e
-                    .SelectBox()
-                    .DataSource(new string[] {
-                                        "新朋友",
-                                        "小組組員",
                         }
                     //.DisplayExpr("Name")
                     )
-                    .Value("新朋友")
-                    //.Value("小組組員")
+                    .Value("未知")
                     );
 
-        items.AddSimple()
-            .DataField("Introducer")
-            .Label(l => l.Text("邀請人"))
-            ;
-        //items.AddSimple()
-        //    .DataField("IntroducerPhone")
-        //    .Label(l => l.Text("邀請人電話"))
-        //    ;
-        items.AddSimple()
-            .DataField("IntroducerRelation")
-            .Label(l => l.Text("與邀請人關係"))
-            ;
-        //items.AddSimple()
-        //    .DataField("IntroducerGroup")
-        //    .Label(l => l.Text("邀請人小組"))
-        //    ;
+            items.AddSimple()
+                    .DataField("CustomerTypeCode")
+                    .Label(l => l.Text("委身類型"))
+                    .Editor(e => e
+                        .SelectBox()
+                        .DataSource(new string[] {
+                                        "新朋友",
+                                        "小組組員",
+                            }
+                        //.DisplayExpr("Name")
+                        )
+                        .Value("新朋友")
+                        //.Value("小組組員")
+                        );
 
-        //items.AddSimple()
-        //    .DataField("ReadBibleNumber")
-        //    .Label(l => l.Text("讀經次數"))
-        //    .Editor(e => e
-        //        .NumberBox()
-        //        .Min(0)
-        //        .Max(50)
-        //        .ShowSpinButtons(true)
-        //    )
-        //    .IsRequired(false);
+            items.AddSimple()
+                .DataField("Introducer")
+                .Label(l => l.Text("邀請人"))
+                ;
+            //items.AddSimple()
+            //    .DataField("IntroducerPhone")
+            //    .Label(l => l.Text("邀請人電話"))
+            //    ;
+            items.AddSimple()
+                .DataField("IntroducerRelation")
+                .Label(l => l.Text("與邀請人關係"))
+                ;
+            //items.AddSimple()
+            //    .DataField("IntroducerGroup")
+            //    .Label(l => l.Text("邀請人小組"))
+            //    ;
+
+            //items.AddSimple()
+            //    .DataField("ReadBibleNumber")
+            //    .Label(l => l.Text("讀經次數"))
+            //    .Editor(e => e
+            //        .NumberBox()
+            //        .Min(0)
+            //        .Max(50)
+            //        .ShowSpinButtons(true)
+            //    )
+            //    .IsRequired(false);
 
 
-        items.AddSimple()
-            .DataField("Status")
-            .Label(l => l.Text("信仰狀態"))
-            .Editor(e => e
-                .SelectBox()
-                .DataSource(new string[] {
+            items.AddSimple()
+                .DataField("Status")
+                .Label(l => l.Text("信仰狀態"))
+                .Editor(e => e
+                    .SelectBox()
+                    .DataSource(new string[] {
                                         "未信主",
                                         "基督徒",
                                         "已決志",
-                    }
-                //.DisplayExpr("Name")
-                )
-                .Value("未信主")
-                );
+                        }
+                    //.DisplayExpr("Name")
+                    )
+                    .Value("未信主")
+                    );
 
-        //items.AddSimple()
-        //       .ColSpan(1)
-        //       .Label(l => l.Text("信仰狀況"))
-        //       .DataField("Status")
-        //       .Editor(e => e
-        //           .RadioGroup()
-        //           .Items(new[] { "未信主", "基督徒", "已決志" })
-        //           .Layout(Orientation.Horizontal)
-        //       );
+            //items.AddSimple()
+            //       .ColSpan(1)
+            //       .Label(l => l.Text("信仰狀況"))
+            //       .DataField("Status")
+            //       .Editor(e => e
+            //           .RadioGroup()
+            //           .Items(new[] { "未信主", "基督徒", "已決志" })
+            //           .Layout(Orientation.Horizontal)
+            //       );
 
 
-        items.AddSimple()
-             .DataField("Industry")
-             .Label(l => l.Text("職業及專長"))
-             ;
+            items.AddSimple()
+                 .DataField("Industry")
+                 .Label(l => l.Text("職業及專長"))
+                 ;
+            items.AddSimple()
+                 .DataField("EquipmentStatus ")
+                 .Label(l => l.Text("裝備狀態"))
+                 ;
 
-        items.AddSimple()
+            items.AddSimple()
             .ColSpan(2)
             .Label(l => l.Text("附註"))
             .DataField("Notes")
@@ -298,7 +302,7 @@
                 .Height(200)
             );
 
-    })
+        })
         .OnContentReady(@<text>
                     function(e) {
                     e.component.validate();

@@ -46,6 +46,14 @@ namespace ChurchReport.Models {
             get;
             set;
         }
+
+        // ¸Ë³Æª¬ºA
+        public string EquipmentStatus
+        {
+            get;
+            set;
+        }
+
         #endregion
 
         public string SmallGroupName { get; set; }
