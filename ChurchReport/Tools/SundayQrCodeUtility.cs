@@ -25,6 +25,7 @@ namespace ChurchReport.Tools
 
         private PushUtility m_PushUtility { get; set; }
 
+        private String m_QrCodeIdString = "";
         private String m_UserLineId = "";
         private String m_UserName = "";
         private String m_SundayName = "";
@@ -61,6 +62,8 @@ namespace ChurchReport.Tools
             try
             {
                 #region// 設定區域變數 : 掃描者、全名、聚會統計、簽到還是簽退
+                m_QrCodeIdString = QrCodeIdString;
+
                 m_UserLineId = UserLineId;
 
                 #region// 取得掃描者全名
@@ -78,20 +81,28 @@ namespace ChurchReport.Tools
                 #endregion
 
                 #region// 取得聚會統計
-                string[] arr = QrCodeIdString.Split('@');
+                string[] arr;
+                if ( QrCodeIdString.Contains("@") )
+                {
+                    arr = QrCodeIdString.Split('@');
+                }
+                else 
+                {
+                    arr = QrCodeIdString.Split('_');
+                }
+
                 Guid aGuid = new Guid(arr[0]);
                 m_MeetingStatistics = this.m_ToolUtilityClass.RetrieveEntity("new_meeting_statistics", aGuid);
                 // 取得聚會統計，主日聚會名稱
                 m_SundayName = SundayName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref m_MeetingStatistics, "new_name");
 
-                if(m_SundayName == "")
+                if (m_SundayName == "")
                 {
                     m_SundayName = SundayName = "主日聚會";
                 }
 
                 // 取得聚會統計，主日日期
                 this.m_Sunday = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref m_MeetingStatistics, "new_sunday_date").ToLocalTime();
-                #endregion
 
                 #region// 取得聚會統計屬性
                 m_MeetingStatisticsAttribute = arr[1];
@@ -103,10 +114,22 @@ namespace ChurchReport.Tools
 
                 #endregion
 
+
+                #endregion
+
                 #region// 取得聚會統計名稱
                 String MeetingStatisticsName = this.m_ToolUtilityClass.GetEntityStringAttribute( m_MeetingStatistics, "new_name" );
 
-                m_CategoryName = CategoryName = ConvertMeetingStatisticsQrName(m_MeetingStatisticsAttribute);
+                // 取得類別名稱
+                if (QrCodeIdString.Contains("@"))
+                {
+                    m_CategoryName = CategoryName = ConvertMeetingStatisticsQrName(m_MeetingStatisticsAttribute);
+                }
+                else
+                {
+                    m_CategoryName = CategoryName = GetDynamicCategoryName();
+                }
+
                 #endregion
 
                 #region// 個人聚會與靈修記錄進行簽到退 , 同時傳回結果
@@ -204,7 +227,15 @@ namespace ChurchReport.Tools
             try
             {
                 // 依據掃描網址取得個人聚會與靈修記錄簽到或簽退時間的欄位屬性
-                String aPresentRecordSigningAttribute = this.ConvertMeetingStatisticsToPresentRecordAttribute(this.m_MeetingStatisticsAttribute);
+                String aPresentRecordSigningAttribute = "";
+                if ( m_QrCodeIdString.Contains("@") )
+                {
+                    aPresentRecordSigningAttribute = this.ConvertMeetingStatisticsToPresentRecordAttribute(this.m_MeetingStatisticsAttribute);
+                }
+                else
+                {
+                    aPresentRecordSigningAttribute = this.GetDynamicPresentRecordAttribute();
+                }
 
                 // 取得個人聚會與靈修記錄簽的到或簽退時間
                 DateTime aSigningTime = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aRetrievedPresentRecord, aPresentRecordSigningAttribute);
@@ -391,6 +422,16 @@ namespace ChurchReport.Tools
             }
 
         }
+        private String GetDynamicCategoryName()
+        {
+            if( this.m_OnboardType == "On")
+            {
+                return this.m_ToolUtilityClass.GetEntityStringAttribute(ref this.m_MeetingStatistics, "new_" + m_MeetingStatisticsAttribute + "_sign_on_name");
+            }
+            else {
+                return this.m_ToolUtilityClass.GetEntityStringAttribute(ref this.m_MeetingStatistics, "new_" + m_MeetingStatisticsAttribute + "_sign_off_name");
+            }
+        }
         #endregion
         #region 個人聚會與靈修記錄
         private String ConvertMeetingStatisticsToPresentRecordAttribute(String MeetingStatisticsAttribute)
@@ -455,6 +496,18 @@ namespace ChurchReport.Tools
                 return "";
             }
 
+        }
+        private String GetDynamicPresentRecordAttribute()
+        {
+            // new_1_sign_on_time
+            if (this.m_OnboardType == "On")
+            {
+                return "new_" + m_MeetingStatisticsAttribute + "_sign_on_time";
+            }
+            else
+            {
+                return "new_" + m_MeetingStatisticsAttribute + "_sign_off_time";
+            }
         }
         public void CreatePresentRecord()
         {
