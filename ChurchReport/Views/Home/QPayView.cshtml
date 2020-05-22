@@ -1,8 +1,10 @@
 ﻿@using ChurchReport.Models
-@model DedicationModel
+@model QpayModel
 @*<div class="long-title"><h3>奉獻資訊</h3></div>*@
 
-<div class="long-title"><h3 id="displaynamefield"></h3></div>
+<div style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
+    <h5 id="displaynamefield"></h5>
+</div>
 
 <form data-ajax="true" data-ajax-begin="onBegin" data-ajax-success="onSuccess" asp-action="SaveQPayDedication" asp-controller="Home" method="post">
     <div class="dx-field">
@@ -68,7 +70,7 @@
         </div>
     </div>
     <div id="form-container">
-        @(Html.DevExtreme().Form<DedicationModel>()
+        @(Html.DevExtreme().Form<QpayModel>()
         .ID("form")
         .ColCount(3)
         .Items(items =>
@@ -88,14 +90,18 @@
             .Editor(e => e
                 .SelectBox()
                 .DataSource(new string[] {
-                                        "十一奉獻",
-                                        "一般奉獻",
-                                        "建堂奉獻",
-                                        "宣教奉獻",
+                       "十一",
+                       "感恩",
+                       "建堂",
+                       "宣教",
+                       "急難救助",
+                       "青年事工",
+                       "萬軍",
+                       "其他",
                     }
                 //.DisplayExpr("Name")
                 )
-                .Value("十一奉獻")
+                .Value("十一")
                 );
 
 
@@ -186,7 +192,7 @@
                     //DevExpress.ui.notify(data.message, "success", 2000);
                     //window.location.href = "/Jesus/Login";
                     //window.location.href = "/Home/NewPerson";
-                    window.location.href = data.LinePayUrl;
+                    window.location.href = data.CardPayURL;
                 }
                 else {
                     //alert("成功 4" + status);
@@ -231,8 +237,8 @@
 <script>
 
     window.onload = function (e) {
-            //var message = '@TempData["Proponent"]';           
-            //window.alert( "耶和華" + message);         
+            //var message = '@TempData["Proponent"]';
+            //window.alert( "耶和華" + message);
             liff.init(
                 { liffId: '@TempData["Proponent"]' },
                 function (data) {
@@ -266,6 +272,7 @@
                 UpdateLineUserId(UserId, GroupId, RoomId, ViewType);
 
                 document.getElementById('displaynamefield').innerHTML = profile.displayName + "奉獻";
+
                 DisplayName = profile.displayName;
             });
         }
@@ -281,6 +288,14 @@
 
                             success: function (data)
                             {
+                                debugger;
+
+                                //alert("測試001!");
+                                //alert("測試002!" + data.FullName);
+                                //document.getElementById('displaynamefield').innerHTML = "奉獻--" + data.message;
+                                document.getElementById('displaynamefield').innerHTML = data.FullName + "奉獻編號:" + data.DedicationNumber;
+                                //alert("測試003!");
+
                                 //getLoadPanelInstance().hide();
                             },
 

@@ -4255,7 +4255,6 @@ namespace ChurchReport.Controllers
             }
         }
         #endregion
-
         #region 永豐金流奉獻
         [Route("/Home/QPayView/{DedicationViewPatameter}")]
         public ActionResult QPayView(string DedicationViewPatameter)
@@ -4272,11 +4271,11 @@ namespace ChurchReport.Controllers
                 ViewBag.DisplayNavigation = m_InMemoryDataContextSmallGroup.ListManager.DisplayNavigation = "不顯示牧養回報項目";
                 ViewBag.UserType = m_InMemoryDataContextSmallGroup.ListManager.UserType = "行政同工";
 
-                DedicationModel DedicationModel = new DedicationModel();
+                QpayModel QpayModel = new QpayModel();
 
                 TempData["Proponent"] = DedicationViewPatameter;
 
-                return View(DedicationModel);
+                return View(QpayModel);
 
                 //return View();
             }
@@ -4294,7 +4293,7 @@ namespace ChurchReport.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> SaveQPayDedication(DedicationModel DedicationModel)
+        public async Task<IActionResult> SaveQPayDedication(QpayModel QpayModel)
         {
             try
             {
@@ -4307,14 +4306,13 @@ namespace ChurchReport.Controllers
 
                 //m_LinePayClient = new LinePayClient(configuration["LinePay:ChannelId"], configuration["LinePay:ChannelSecret"], bool.Parse(configuration["LinePay:IsSandbox"]));
 
-                LinePayProcessor LinePayProcessor = new LinePayProcessor();
+                QPayProcessor QPayProcessor = new QPayProcessor();
 
-                //String aLinePayUrl = await LinePayProcessor.NotifyLinePay(m_LinePayClient, DedicationModel);
-                String aLinePayUrl = await LinePayProcessor.NotifyLinePay(m_InMemoryDataContextSmallGroup.LineBindingViewModel.LineUserId, DedicationModel);
+                String CardPayURL = await QPayProcessor.CreateFeeAsync(m_InMemoryDataContextSmallGroup.LineBindingViewModel.LineUserId, QpayModel);
 
                 //return Json(new { LinePayUrl = LinePayUrl, DisplayViewType = DisplayViewType, ActiveListId = m_InMemoryDataContextSmallGroup.ListManager.ActiveListId, message = "歡迎" + FullName + "登入成功!", fullname = FullName, account = aGalleryViewModel.Account, password = aGalleryViewModel.Password });
 
-                return Json(new { status = "1", message = "感謝您的奉獻", LinePayUrl = aLinePayUrl });
+                return Json(new { status = "1", message = "感謝您的奉獻", CardPayURL = CardPayURL });
             }
             catch (System.Exception e)
             {
@@ -4333,7 +4331,6 @@ namespace ChurchReport.Controllers
 
 
         #endregion
-
         #region Line Id 資訊區
         [HttpPost]
         public IActionResult SetupUserLineId(string UserLineId, string GroupId, string RoomId, string ViewType)
@@ -4360,7 +4357,12 @@ namespace ChurchReport.Controllers
 
                 Entity LineLoginContact = this.m_ToolUtilityClass.RetrieveContactByLineId(UserLineId);
 
-                return Json(new { message = "歡迎" + "登入成功!" });
+                // 全名
+                String FullName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "fullname");
+                // 奉獻單編號
+                String DedicationNumber = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "pager");
+
+                return Json( new { FullName = FullName , DedicationNumber = DedicationNumber } );
 
             }
             catch (System.Exception e)
