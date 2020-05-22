@@ -1,0 +1,308 @@
+﻿@using ChurchReport.Models
+@model DedicationModel
+@*<div class="long-title"><h3>奉獻資訊</h3></div>*@
+
+<div class="long-title"><h3 id="displaynamefield"></h3></div>
+
+<form data-ajax="true" data-ajax-begin="onBegin" data-ajax-success="onSuccess" asp-action="SaveQPayDedication" asp-controller="Home" method="post">
+    <div class="dx-field">
+        <div id="buttonContainer" class="dx-button-icon">
+            @(Html.DevExtreme().Button()
+                    .Text("奉獻")
+                    .Type(ButtonType.Success)
+                    .ID("save-button")
+                    .UseSubmitBehavior(true)
+                //.ValidationGroup()
+                //.Width(60)
+
+                .OnClick("ShowLoadPanel")
+
+                //.OnClick(@<text>
+                //function(data) {
+                //
+                //        $.ajax({
+                //            url: '@Url.Action("SaveNewPerson", "Home")',
+                //            data: { aNewPerson: Model.FormData.Notes.Value },
+                //            type: 'POST', //POST if you want to save, GET if you want to fetch data from server
+                //            success: function (obj)
+                //            {
+                //                $("#toast").dxToast("instance").show();
+                //            },
+                //
+                //            error: function (obj)
+                //            {
+                //                //alert('Something happened');
+                //            }
+                //
+                //        });
+                //}
+                //</text>)
+            )
+        </div>
+        <div id="ToastContainer">
+            @(Html.DevExtreme().Toast()
+                .ID("toast")
+                .Position(p => p
+                    .At(HorizontalAlignment.Center, VerticalAlignment.Center)
+                    .Offset(0, 50))
+                    .Message("上傳成功了!")
+                    .DisplayTime(20000)
+                    .MaxWidth(200)
+            )
+
+        </div>
+        <div id="LoadPanel">
+            @(Html.DevExtreme().LoadPanel()
+                    .ID("loadPanel")
+                    .ShadingColor("rgba(0,0,0,0.4)")
+                    .Position(p => p.Of("#form-container"))
+                    .Visible(false)
+                    .ShowIndicator(true)
+                    .ShowPane(true)
+                    .Shading(true)
+                    .CloseOnOutsideClick(false)
+                    .Message("上傳資料中...")
+                    .Animation(l => l.Show(k => k.Easing(AnimationEasing.Swing)))
+            )
+
+        </div>
+    </div>
+    <div id="form-container">
+        @(Html.DevExtreme().Form<DedicationModel>()
+        .ID("form")
+        .ColCount(3)
+        .Items(items =>
+        {
+
+        items.AddSimpleFor(m => m.Amount)
+            //.DataField("LastName")
+            .Label(l => l.Text("奉獻金額"))
+            .Editor(e => e
+                .NumberBox().Value(null)
+                .Disabled(false)
+                .Placeholder("輸入奉獻金額")
+            );
+
+        items.AddSimpleFor(m => m.Category)
+            .Label(l => l.Text("類別"))
+            .Editor(e => e
+                .SelectBox()
+                .DataSource(new string[] {
+                                        "十一奉獻",
+                                        "一般奉獻",
+                                        "建堂奉獻",
+                                        "宣教奉獻",
+                    }
+                //.DisplayExpr("Name")
+                )
+                .Value("十一奉獻")
+                );
+
+
+    })
+        .OnContentReady(@<text>
+                    function(e) {
+                    e.component.validate();
+                    }
+        </text>)
+.FormData(Model)
+        )
+    </div>
+
+</form>
+
+<script>
+    function getLoadPanelInstance() {
+        return $("#loadPanel").dxLoadPanel("instance");
+    }
+
+    function ShowLoadPanel(arg) {
+
+        //debugger;
+        getLoadPanelInstance().show();
+        //$("#toast").dxToast("instance").show();
+        //alert("SaveNewPerson!!!");
+        //alert("OnValueChanged : " + arg.value);
+
+        //alert("OnValueChanged : " + arg.attribute('text'));
+        //alert("OnValueChanged : " + text: arg.attribute("text"));
+
+        //alert( getODataLocalDateFilter(arg.value) );
+    }
+    function ShowToast(LocalToastMessage, Type, DisplayTime) {
+        //debugger;
+        var ToastInstance = $("#toast").dxToast("instance");
+        ToastInstance.option('message', LocalToastMessage);
+        ToastInstance.option('type', Type);
+        ToastInstance.option('displayTime', DisplayTime);
+        ToastInstance.option('white-space', 'pre-line');
+        ToastInstance.option('closeOnClick', true);
+        ToastInstance.show();
+    }
+
+</script>
+
+<script type="text/javascript">
+            function onBegin() {
+                //alert("開始!");
+                //$("#divProcessing").show()
+
+                //$("#form-signin").hide();
+                //$("#form-signin").hide();
+                //$("#divLoading").html('<image src="~/images/ajax-loader_circle.gif" alt="處理中...." />');
+                //$("#spinner-img").show();
+                @*@{
+                    Model.Notes = "GOD !!!!";
+                }*@
+            }
+
+            function onSuccess(data) {
+
+                //window.location.href = "/Jesus/Index";
+                //window.location.href = "/Jesus/Index.html";
+
+                //$("#spinner-img").hide();
+                //alert("成功 001");
+
+                getLoadPanelInstance().hide();
+
+                //DevExpress.ui.notify("新增新人已完成...", "info", 2000);
+                //alert("成功 001");
+                //alert("成功 1" + data);
+                //alert("成功 2" + data.status);
+                //Account.data = data.status * 5;
+                //$("#divLoading").html("TOTAL = " + data.status );
+                //alert("成功 002");
+
+                //$("#toast").dxToast("instance").show();
+
+                //$("#toast").dxToast("instance").show();
+
+                if ( data.status == 1) {
+                    //alert("成功 3");
+
+                    ShowToast(data.message, "success", 2000);
+                    //DevExpress.ui.notify(data.message, "info", 2000);
+                    //DevExpress.ui.notify(data.message, "success", 2000);
+                    //window.location.href = "/Jesus/Login";
+                    //window.location.href = "/Home/NewPerson";
+                    window.location.href = data.LinePayUrl;
+                }
+                else {
+                    //alert("成功 4" + status);
+                    //window.location.href = "/Home/NewPerson";
+                    //window.location.href = "/Home/InputReport/" + data.status;
+                    //DevExpress.ui.notify(data.message, "error", 5000);
+                }
+            }
+
+            function onComplete(data) {
+                alert("結束!");
+                //$("#form-signin").show();
+                //$("#divProcessing").hide();
+
+                //$("#spinner-img").hide();
+                //$("#spinner-img").show();
+
+                //window.location.href = "/Jesus/Index";
+                //window.location.href = "/Home/Index";
+
+                //alert("完成");
+
+                //alert("完成 1" + status);
+                //alert("完成 1" + data);
+                //alert("完成 2" + data.status);
+
+                if (data.status == 1) {
+                    //window.location.href = "/Jesus/Login";
+                }
+                else {
+                    //window.location.href = "/Home/Index";
+
+                }
+
+                //$("#divLoading").html("");
+            }
+</script>
+
+<script src="~/js/liff-starter.js"></script>
+@*<script src="https://d.line-scdn.net/liff/1.0/sdk.js"></script>*@
+<script src="https://static.line-scdn.net/liff/edge/2.1/sdk.js"></script>
+<script>
+
+    window.onload = function (e) {
+            //var message = '@TempData["Proponent"]';           
+            //window.alert( "耶和華" + message);         
+            liff.init(
+                { liffId: '@TempData["Proponent"]' },
+                function (data) {
+                    //debugger;
+                    //alert("測試 window.onload 001!");
+                    initializeApp(data);
+                    //alert("測試 window.onload 002!");
+                }
+            );
+        };
+
+
+        var UserId = "";
+        var GroupId = "";
+        var RoomId = "";
+        var DisplayName = "";
+        var ViewType = "";
+
+
+        async function initializeApp(data) {
+
+            await liff.getProfile().then(function (profile) {
+                DisplayName = profile.displayName;
+                UserId = profile.userId;
+                //alert("測試 UserId =" + UserId);
+                GroupId= profile.aGroupId;
+                RoomId = profile.aRoomId;
+                ViewType = profile.aViewType;
+                //alert("測試004!" + DisplayName);
+                // 取得 UserId 的Ajax
+                UpdateLineUserId(UserId, GroupId, RoomId, ViewType);
+
+                document.getElementById('displaynamefield').innerHTML = profile.displayName + "奉獻";
+                DisplayName = profile.displayName;
+            });
+        }
+
+        function UpdateLineUserId(aUserLineId, aGroupId, aRoomId, aViewType ) {
+                    // AJAX 區塊
+                    $.ajax
+                    (
+                        {
+                            url: '@Url.Action("SetupUserLineId", "Home")',
+                            data: { UserLineId: aUserLineId, GroupId: aGroupId, RoomId: aRoomId, ViewType: aViewType}, // 整理回傳給 Server 的點名資料
+                            type: 'POST', //POST if you want to save, GET if you want to fetch data from server
+
+                            success: function (data)
+                            {
+                                //getLoadPanelInstance().hide();
+                            },
+
+                            error: function (obj)
+                            {
+                                //getLoadPanelInstance().hide();
+                                window.location.href = "/Home/Login";
+                            }
+
+                        }
+                    );
+                    // AJAX 區塊
+        }
+
+</script>
+
+<link href="~/css/Scheduler.css" rel="stylesheet" />
+<link href="~/css/Site.css" rel="stylesheet" />
+
+<script src="~/lib/jquery-ajax-unobtrusive/jquery.unobtrusive-ajax.js"></script>
+<link href="~/css/Gallery.css" rel="stylesheet" />
+<link href="~/css/WeeklyReport.css" rel="stylesheet" />
+
+<script src="~/js/devextreme/devextreme-intl.min.js"></script>
+<script src="~/js/devextreme/localization/dx.messages.zh-tw.js"></script>

@@ -4117,7 +4117,7 @@ namespace ChurchReport.Controllers
         }
 
         #endregion
-        #region Line Tiff 奉獻
+        #region Line Pay 奉獻
         [Route("/Home/DedicationView/{DedicationViewPatameter}")]
         public ActionResult DedicationView(string DedicationViewPatameter)
         {
@@ -4153,50 +4153,6 @@ namespace ChurchReport.Controllers
                 throw e;
             }
         }
-
-        [HttpPost]
-        public IActionResult SetupUserLineId(string UserLineId, string GroupId, string RoomId, string ViewType)
-        {
-            try
-            {
-                m_InMemoryDataContextSmallGroup.LineBindingViewModel.LineUserId = UserLineId;
-                m_InMemoryDataContextSmallGroup.LineBindingViewModel.RoomId = RoomId;
-                m_InMemoryDataContextSmallGroup.LineBindingViewModel.GroupId = GroupId;
-                m_InMemoryDataContextSmallGroup.LineBindingViewModel.ViewType = ViewType;
-
-                if (GroupId != null && GroupId != "")
-                {
-                    m_InMemoryDataContextSmallGroup.LineBindingViewModel.DisplayId = GroupId;
-                }
-                else if (RoomId != null && RoomId != "")
-                {
-                    m_InMemoryDataContextSmallGroup.LineBindingViewModel.DisplayId = RoomId;
-                }
-                else
-                {
-                    m_InMemoryDataContextSmallGroup.LineBindingViewModel.DisplayId = UserLineId;
-                }
-
-                Entity LineLoginContact = this.m_ToolUtilityClass.RetrieveContactByLineId(UserLineId);
-
-                return Json(new { message = "歡迎" + "登入成功!" });
-
-            }
-            catch (System.Exception e)
-            {
-                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
-
-                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
-
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "永和禮拜堂 : 綁定錯誤 => " + ErrorString);
-
-                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
-
-                throw e;
-            }
-        }
-
 
         [HttpPost]
         public async Task<IActionResult> SaveDedication(DedicationModel DedicationModel)
@@ -4238,7 +4194,7 @@ namespace ChurchReport.Controllers
 
 
         #endregion
-        #region 奉獻資訊
+        #region 奉獻資訊，僅填寫相關資訊而已
         [Route("/Home/DedicationInofView/{DedicationInfoViewPatameter}")]
         public ActionResult DedicationInofView(string DedicationInfoViewPatameter)
         {
@@ -4298,7 +4254,129 @@ namespace ChurchReport.Controllers
                 throw e;
             }
         }
+        #endregion
 
+        #region 永豐金流奉獻
+        [Route("/Home/QPayView/{DedicationViewPatameter}")]
+        public ActionResult QPayView(string DedicationViewPatameter)
+        {
+            try
+            {
+                ViewBag.LoginType = "小組長"; // 看是小組長還是個人回報
+                ViewBag.LoginFullName = "耶穌";
+                ViewBag.FeeType = "有繳費點名";
+                ViewBag.FeeDataListCount = "繳費與點名尚無資料";
+                ViewBag.HappyType = "沒幸福小組名單";
+                ViewBag.MultiGroupIndex = "SingleMultiGroupView";
+                //ViewBag.SchedulerView = m_InMemoryDataContextSmallGroup.ListManager.SchedulerView = "單純行事曆";
+                ViewBag.DisplayNavigation = m_InMemoryDataContextSmallGroup.ListManager.DisplayNavigation = "不顯示牧養回報項目";
+                ViewBag.UserType = m_InMemoryDataContextSmallGroup.ListManager.UserType = "行政同工";
+
+                DedicationModel DedicationModel = new DedicationModel();
+
+                TempData["Proponent"] = DedicationViewPatameter;
+
+                return View(DedicationModel);
+
+                //return View();
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "永和禮拜堂 : 綁定錯誤 => " + ErrorString);
+
+                throw e;
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SaveQPayDedication(DedicationModel DedicationModel)
+        {
+            try
+            {
+                //LinePayClient m_LinePayClient;
+                //IConfiguration configuration;
+
+                //var builder = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("appsettings.json");
+
+                //configuration = builder.Build();
+
+                //m_LinePayClient = new LinePayClient(configuration["LinePay:ChannelId"], configuration["LinePay:ChannelSecret"], bool.Parse(configuration["LinePay:IsSandbox"]));
+
+                LinePayProcessor LinePayProcessor = new LinePayProcessor();
+
+                //String aLinePayUrl = await LinePayProcessor.NotifyLinePay(m_LinePayClient, DedicationModel);
+                String aLinePayUrl = await LinePayProcessor.NotifyLinePay(m_InMemoryDataContextSmallGroup.LineBindingViewModel.LineUserId, DedicationModel);
+
+                //return Json(new { LinePayUrl = LinePayUrl, DisplayViewType = DisplayViewType, ActiveListId = m_InMemoryDataContextSmallGroup.ListManager.ActiveListId, message = "歡迎" + FullName + "登入成功!", fullname = FullName, account = aGalleryViewModel.Account, password = aGalleryViewModel.Password });
+
+                return Json(new { status = "1", message = "感謝您的奉獻", LinePayUrl = aLinePayUrl });
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "永和禮拜堂 : 綁定錯誤 => " + ErrorString);
+
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
+                throw e;
+            }
+        }
+
+
+        #endregion
+
+        #region Line Id 資訊區
+        [HttpPost]
+        public IActionResult SetupUserLineId(string UserLineId, string GroupId, string RoomId, string ViewType)
+        {
+            try
+            {
+                m_InMemoryDataContextSmallGroup.LineBindingViewModel.LineUserId = UserLineId;
+                m_InMemoryDataContextSmallGroup.LineBindingViewModel.RoomId = RoomId;
+                m_InMemoryDataContextSmallGroup.LineBindingViewModel.GroupId = GroupId;
+                m_InMemoryDataContextSmallGroup.LineBindingViewModel.ViewType = ViewType;
+
+                if (GroupId != null && GroupId != "")
+                {
+                    m_InMemoryDataContextSmallGroup.LineBindingViewModel.DisplayId = GroupId;
+                }
+                else if (RoomId != null && RoomId != "")
+                {
+                    m_InMemoryDataContextSmallGroup.LineBindingViewModel.DisplayId = RoomId;
+                }
+                else
+                {
+                    m_InMemoryDataContextSmallGroup.LineBindingViewModel.DisplayId = UserLineId;
+                }
+
+                Entity LineLoginContact = this.m_ToolUtilityClass.RetrieveContactByLineId(UserLineId);
+
+                return Json(new { message = "歡迎" + "登入成功!" });
+
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "永和禮拜堂 : 綁定錯誤 => " + ErrorString);
+
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
+                throw e;
+            }
+        }
 
         #endregion
 
