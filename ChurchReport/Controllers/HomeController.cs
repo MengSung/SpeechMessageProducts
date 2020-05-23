@@ -4297,22 +4297,20 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                //LinePayClient m_LinePayClient;
-                //IConfiguration configuration;
-
-                //var builder = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("appsettings.json");
-
-                //configuration = builder.Build();
-
-                //m_LinePayClient = new LinePayClient(configuration["LinePay:ChannelId"], configuration["LinePay:ChannelSecret"], bool.Parse(configuration["LinePay:IsSandbox"]));
-
                 QPayProcessor QPayProcessor = new QPayProcessor();
 
-                String CardPayURL = await QPayProcessor.CreateFeeAsync(m_InMemoryDataContextSmallGroup.LineBindingViewModel.LineUserId, QpayModel);
+                String DedicationResult = await QPayProcessor.CreateFeeAsync(m_InMemoryDataContextSmallGroup.LineBindingViewModel.LineUserId, QpayModel);
 
-                //return Json(new { LinePayUrl = LinePayUrl, DisplayViewType = DisplayViewType, ActiveListId = m_InMemoryDataContextSmallGroup.ListManager.ActiveListId, message = "歡迎" + FullName + "登入成功!", fullname = FullName, account = aGalleryViewModel.Account, password = aGalleryViewModel.Password });
-
-                return Json(new { status = "1", message = "感謝您的奉獻", CardPayURL = CardPayURL });
+                String PayWay = "";
+                if (DedicationResult.Contains("***請依照訊息付款 ***") != true )
+                {
+                    PayWay = "信用卡";
+                }
+                else
+                {
+                    PayWay = "虛擬帳號";
+                }
+                return Json(new { status = "1", message = "感謝您的奉獻", DedicationResult = DedicationResult , PayWay  = PayWay });
             }
             catch (System.Exception e)
             {
@@ -4328,7 +4326,6 @@ namespace ChurchReport.Controllers
                 throw e;
             }
         }
-
 
         #endregion
         #region Line Id 資訊區

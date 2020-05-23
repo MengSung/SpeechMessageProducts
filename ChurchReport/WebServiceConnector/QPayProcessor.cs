@@ -66,13 +66,40 @@ namespace ChurchReport.WebServiceConnector
 
                 Entity LineLoginContact = this.m_ToolUtilityClass.RetrieveContactByLineId(LineId);
 
-                Guid aCreatedFeeId = CreateFee(LineId, QpayModel);
+                Guid aCreatedFeeId = CreateFee( LineId, QpayModel);
 
-                CreOrder CreatedCardOrder = await CreOrderCard( QpayModel.Amount, QpayModel.Category, DateTime.Now.ToString("yyyyMMddhhmmssfff"), aCreatedFeeId.ToString(), GetLastCCToken(LineLoginContact));
+                if (QpayModel.PayWay == "信用卡")
+                {
+                    CreOrder CreatedCardOrder = await CreOrderCard(QpayModel.Amount, QpayModel.Category, DateTime.Now.ToString("yyyyMMddhhmmssfff"), aCreatedFeeId.ToString(), GetLastCCToken(LineLoginContact));
+                    return CreatedCardOrder.CardParam.CardPayURL;
+                }
+                else
+                {
+                    CreOrder CreatedAtmOrder = await CreateOrderATM(QpayModel.Amount, QpayModel.Category, DateTime.Now.ToString("yyyyMMddhhmmssfff"), aCreatedFeeId.ToString());
+                    m_AtmExpireDate = DateTime.Now.AddDays(10);
 
-                CreOrder CreatedAtmOrder = await CreateOrderATM(QpayModel.Amount, QpayModel.Category, DateTime.Now.ToString("yyyyMMddhhmmssfff"), aCreatedFeeId.ToString());
-
-                return CreatedCardOrder.CardParam.CardPayURL;
+                    //return
+                    //        "姓名 : " + this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "fullname") + Environment.NewLine +
+                    //        "名稱 : " + QpayModel.Category + Environment.NewLine +
+                    //        "金額 : " + QpayModel.Amount + "元" + Environment.NewLine +
+                    //        "付款到期日: " + m_AtmExpireDate.ToLocalTime().ToShortDateString() + Environment.NewLine +
+                    //        "*** 請依照訊息付款 ***" + Environment.NewLine +
+                    //        "銀行代碼 : 807 永豐商業銀行" + Environment.NewLine +
+                    //        "分行代號 : 021 台北分行" + Environment.NewLine +
+                    //        "帳號     : " + CreatedAtmOrder.ATMParam.AtmPayNo + Environment.NewLine +
+                    //        //"戶名     : 音訊豐富教會<br/>";
+                    //        "戶名     : 其他應付款-代收-網路收款";
+                    return
+                            "姓名 : " + this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "fullname") + "<br/>" +
+                            "名稱 : " + QpayModel.Category + "<br/>" +
+                            "金額 : " + QpayModel.Amount + "元" + "<br/>" +
+                            "付款到期日: " + m_AtmExpireDate.ToLocalTime().ToShortDateString() + "<br/>" +
+                            "*** 請依照訊息付款 ***" + "<br/>" +
+                            "銀行代碼 : 807 永豐商業銀行" + "<br/>" +
+                            "分行代號 : 021 台北分行" + "<br/>" +
+                            "帳號     : " + CreatedAtmOrder.ATMParam.AtmPayNo + "<br/>" +
+                            "戶名     : 其他應付款-代收-網路收款";
+                }
 
                 #endregion
 

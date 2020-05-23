@@ -14,31 +14,7 @@
                     .Type(ButtonType.Success)
                     .ID("save-button")
                     .UseSubmitBehavior(true)
-                //.ValidationGroup()
-                //.Width(60)
-
-                .OnClick("ShowLoadPanel")
-
-                //.OnClick(@<text>
-                //function(data) {
-                //
-                //        $.ajax({
-                //            url: '@Url.Action("SaveNewPerson", "Home")',
-                //            data: { aNewPerson: Model.FormData.Notes.Value },
-                //            type: 'POST', //POST if you want to save, GET if you want to fetch data from server
-                //            success: function (obj)
-                //            {
-                //                $("#toast").dxToast("instance").show();
-                //            },
-                //
-                //            error: function (obj)
-                //            {
-                //                //alert('Something happened');
-                //            }
-                //
-                //        });
-                //}
-                //</text>)
+                    .OnClick("ShowLoadPanel")
             )
         </div>
         <div id="ToastContainer">
@@ -76,20 +52,15 @@
         .Items(items =>
         {
 
-        items.AddSimpleFor(m => m.Amount)
-            //.DataField("LastName")
-            .Label(l => l.Text("奉獻金額"))
-            .Editor(e => e
-                .NumberBox().Value(null)
-                .Disabled(false)
-                .Placeholder("輸入奉獻金額")
-            );
-
-        items.AddSimpleFor(m => m.Category)
-            .Label(l => l.Text("類別"))
-            .Editor(e => e
-                .SelectBox()
-                .DataSource(new string[] {
+            items.AddSimpleFor
+            (m => m.Category)
+                .Label(l => l.Text("類別"))
+                .Editor
+                (
+                    e => e
+                    .SelectBox()
+                    .DataSource(new string[]
+                    {
                        "十一",
                        "感恩",
                        "建堂",
@@ -102,10 +73,35 @@
                 //.DisplayExpr("Name")
                 )
                 .Value("十一")
-                );
+            );
 
+            items.AddSimpleFor(m => m.Amount)
+                    //.DataField("LastName")
+                    .Label(l => l.Text("奉獻金額"))
+                    .Editor(e => e
+                        .NumberBox().Value(null)
+                        .Disabled(false)
+                        .Placeholder("輸入奉獻金額")
+                    );
 
-    })
+            items.AddSimpleFor
+                    (m => m.PayWay)
+                        .Label(l => l.Text("付款方式"))
+                        .Editor
+                        (
+                            e => e
+                            .SelectBox()
+                            .DataSource(new string[]
+                            {
+                                           "信用卡",
+                                           "ATM轉帳/匯款",
+                            }
+                        //.DisplayExpr("Name")
+                        )
+                        .Value("信用卡")
+                    );
+
+        })
         .OnContentReady(@<text>
                     function(e) {
                     e.component.validate();
@@ -115,13 +111,16 @@
         )
     </div>
 
+    <div style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
+        <h5 id="atmfield"></h5>
+    </div>
+
 </form>
 
 <script>
     function getLoadPanelInstance() {
         return $("#loadPanel").dxLoadPanel("instance");
     }
-
     function ShowLoadPanel(arg) {
 
         //debugger;
@@ -145,89 +144,34 @@
         ToastInstance.option('closeOnClick', true);
         ToastInstance.show();
     }
-
 </script>
 
 <script type="text/javascript">
             function onBegin() {
-                //alert("開始!");
-                //$("#divProcessing").show()
-
-                //$("#form-signin").hide();
-                //$("#form-signin").hide();
-                //$("#divLoading").html('<image src="~/images/ajax-loader_circle.gif" alt="處理中...." />');
-                //$("#spinner-img").show();
-                @*@{
-                    Model.Notes = "GOD !!!!";
-                }*@
             }
 
             function onSuccess(data) {
 
-                //window.location.href = "/Jesus/Index";
-                //window.location.href = "/Jesus/Index.html";
-
-                //$("#spinner-img").hide();
-                //alert("成功 001");
-
                 getLoadPanelInstance().hide();
 
-                //DevExpress.ui.notify("新增新人已完成...", "info", 2000);
-                //alert("成功 001");
-                //alert("成功 1" + data);
-                //alert("成功 2" + data.status);
-                //Account.data = data.status * 5;
-                //$("#divLoading").html("TOTAL = " + data.status );
-                //alert("成功 002");
-
-                //$("#toast").dxToast("instance").show();
-
-                //$("#toast").dxToast("instance").show();
-
-                if ( data.status == 1) {
+                if (data.PayWay =="信用卡") {
                     //alert("成功 3");
-
                     ShowToast(data.message, "success", 2000);
-                    //DevExpress.ui.notify(data.message, "info", 2000);
-                    //DevExpress.ui.notify(data.message, "success", 2000);
-                    //window.location.href = "/Jesus/Login";
-                    //window.location.href = "/Home/NewPerson";
-                    window.location.href = data.CardPayURL;
+                    window.location.href = data.DedicationResult;
                 }
-                else {
-                    //alert("成功 4" + status);
-                    //window.location.href = "/Home/NewPerson";
-                    //window.location.href = "/Home/InputReport/" + data.status;
-                    //DevExpress.ui.notify(data.message, "error", 5000);
+                else
+                {
+                    document.getElementById('atmfield').innerHTML = data.DedicationResult;
                 }
             }
 
             function onComplete(data) {
                 alert("結束!");
-                //$("#form-signin").show();
-                //$("#divProcessing").hide();
-
-                //$("#spinner-img").hide();
-                //$("#spinner-img").show();
-
-                //window.location.href = "/Jesus/Index";
-                //window.location.href = "/Home/Index";
-
-                //alert("完成");
-
-                //alert("完成 1" + status);
-                //alert("完成 1" + data);
-                //alert("完成 2" + data.status);
 
                 if (data.status == 1) {
-                    //window.location.href = "/Jesus/Login";
                 }
                 else {
-                    //window.location.href = "/Home/Index";
-
                 }
-
-                //$("#divLoading").html("");
             }
 </script>
 
@@ -250,13 +194,11 @@
             );
         };
 
-
         var UserId = "";
         var GroupId = "";
         var RoomId = "";
         var DisplayName = "";
         var ViewType = "";
-
 
         async function initializeApp(data) {
 
@@ -288,20 +230,11 @@
 
                             success: function (data)
                             {
-                                debugger;
-
-                                //alert("測試001!");
-                                //alert("測試002!" + data.FullName);
-                                //document.getElementById('displaynamefield').innerHTML = "奉獻--" + data.message;
                                 document.getElementById('displaynamefield').innerHTML = data.FullName + "奉獻編號:" + data.DedicationNumber;
-                                //alert("測試003!");
-
-                                //getLoadPanelInstance().hide();
                             },
 
                             error: function (obj)
                             {
-                                //getLoadPanelInstance().hide();
                                 window.location.href = "/Home/Login";
                             }
 
