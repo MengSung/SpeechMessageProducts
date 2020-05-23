@@ -72,7 +72,28 @@
                     }
                 //.DisplayExpr("Name")
                 )
-                .Value("十一")
+                .Placeholder("奉獻類別")
+                //.Value("十一")
+                .OnValueChanged("OnCategorySelectBoxValueChanged")
+            );
+
+            items.AddSimpleFor
+            (m => m.Others)
+                .Label(l => l.Text("其他"))
+                .Visible(false)
+                .Name("OtherDedication")
+                .Editor
+                (
+                    e => e
+                    .SelectBox()
+                    .DataSource(new string[]
+                    {
+                       "特別",
+                       "外教會",
+                    }
+                //.DisplayExpr("Name")
+                )
+                .Value("特別")
             );
 
             items.AddSimpleFor(m => m.Amount)
@@ -144,6 +165,17 @@
         ToastInstance.option('closeOnClick', true);
         ToastInstance.show();
     }
+    function OnCategorySelectBoxValueChanged(e) {
+        if (e.value == "其他") {
+            //alert(e.value + "顯示");
+            $("#form").dxForm("instance").itemOption("OtherDedication", 'visible', true);
+        }
+        else {
+            //alert(e.value + "隱藏");
+            $("#form").dxForm("instance").itemOption("OtherDedication", 'visible', false);
+        }
+    }
+
 </script>
 
 <script type="text/javascript">

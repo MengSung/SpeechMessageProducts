@@ -270,7 +270,7 @@
                         }
                     //.DisplayExpr("Name")
                     )
-                    .Value("未信主")
+                    //.OnValueChanged("OnSelectStatusBoxValueChanged")
                     );
 
             //items.AddSimple()
@@ -286,6 +286,8 @@
 
             items.AddSimple()
                  .DataField("Industry")
+                 //.Visible(false)
+                 .Name("OtherDedication")
                  .Label(l => l.Text("職業及專長"))
                  ;
             items.AddSimple()
@@ -358,6 +360,29 @@
         //alert("OnValueChanged : " + text: arg.attribute("text"));
 
         //alert( getODataLocalDateFilter(arg.value) );
+    }
+
+    //var initialUpdate = true;  
+
+    function OnSelectStatusBoxValueChanged(e)
+    {
+        //if (initialUpdate) {
+        //    initialUpdate = false;
+        //    return;
+        //}
+
+        //initialUpdate = true;
+        //$("#formRapports").dxForm("instance").itemOption("Filtre.TESTDATE", 'visible', true);  
+        if (e.value == "未信主")
+        {
+            //alert(e.value + "HIDE" );
+            $("#form").dxForm("instance").itemOption("OtherDedication", 'visible', false);
+        }
+        else
+        {
+            //alert(e.value + "DISPLAY");
+            $("#form").dxForm("instance").itemOption("OtherDedication", 'visible', true);
+        }
     }
 
 </script>
