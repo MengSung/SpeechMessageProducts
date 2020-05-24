@@ -54,11 +54,10 @@ namespace ChurchReport.WebServiceConnector
         private DateTime m_AtmExpireDate;
 
         #endregion
-
+        #region 初始化
         public QPayProcessor()
         {
         }
-        #region 初始化
         public QPayProcessor(LineMessagingClient aLineMessagingClient, PushUtility aPushUtility, ReplyUtility aReplyUtility)
         {
             m_LineMessagingClient = aLineMessagingClient;
@@ -68,7 +67,7 @@ namespace ChurchReport.WebServiceConnector
             m_ReplyUtility = aReplyUtility;
         }
         #endregion
-
+        #region 建立收費單
         public async Task<string> CreateFeeAsync(String LineId, QpayModel QpayModel)
         {
             try
@@ -77,7 +76,7 @@ namespace ChurchReport.WebServiceConnector
 
                 Entity LineLoginContact = this.m_ToolUtilityClass.RetrieveContactByLineId(LineId);
 
-                Guid aCreatedFeeId = CreateFee( LineId, QpayModel);
+                Guid aCreatedFeeId = CreateFee(LineId, QpayModel);
                 Entity aFeeToUpdate = this.m_ToolUtilityClass.RetrieveEntity("new_fee", aCreatedFeeId);
 
                 if (QpayModel.PayWay == "信用卡")
@@ -120,7 +119,7 @@ namespace ChurchReport.WebServiceConnector
                 throw e;
             }
         }
-        #region 建立收費單
+
         public Guid CreateFee(String LineId, QpayModel QpayModel)
         {
             try
@@ -255,11 +254,17 @@ namespace ChurchReport.WebServiceConnector
                 // 永豐金流 QPay
                 if (CardOrderNo != "")
                 {
+                    // 收費單付款方式
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(ref aFeeToCreated, "new_pay_way", 100000001); // 100000001 = 信用卡
+
                     // 信用卡訂單編號
                     this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeToCreated, "new_q_pay_card_order_no", CardOrderNo);
                 }
                 if (AtmOrderNo != "")
                 {
+                    // 收費單付款方式
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(ref aFeeToCreated, "new_pay_way", 100000002); // 100000002 = ATM轉帳/匯款
+
                     // 虛擬帳號訂單編號
                     this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeToCreated, "new_q_pay_order_atm_no", AtmOrderNo);
                     // 轉帳/匯款編號
