@@ -58,6 +58,17 @@ namespace ChurchReport.WebServiceConnector
         public QPayProcessor()
         {
         }
+        #region 初始化
+        public QPayProcessor(LineMessagingClient aLineMessagingClient, PushUtility aPushUtility, ReplyUtility aReplyUtility)
+        {
+            m_LineMessagingClient = aLineMessagingClient;
+            //m_LinePayClient = LinePayClient;
+
+            m_PushUtility = aPushUtility;
+            m_ReplyUtility = aReplyUtility;
+        }
+        #endregion
+
         public async Task<string> CreateFeeAsync(String LineId, QpayModel QpayModel)
         {
             try
@@ -67,10 +78,15 @@ namespace ChurchReport.WebServiceConnector
                 Entity LineLoginContact = this.m_ToolUtilityClass.RetrieveContactByLineId(LineId);
 
                 Guid aCreatedFeeId = CreateFee( LineId, QpayModel);
+                Entity aFeeToUpdate = this.m_ToolUtilityClass.RetrieveEntity("new_fee", aCreatedFeeId);
 
                 if (QpayModel.PayWay == "信用卡")
                 {
                     CreOrder CreatedCardOrder = await CreOrderCard(QpayModel.Amount, QpayModel.Category, DateTime.Now.ToString("yyyyMMddhhmmssfff"), aCreatedFeeId.ToString(), GetLastCCToken(LineLoginContact));
+
+                    // 用剛剛建立的收費單，填寫訂單編號
+                    UpdateFee(ref aFeeToUpdate, CreatedCardOrder.OrderNo, "", "");
+
                     return CreatedCardOrder.CardParam.CardPayURL;
                 }
                 else
@@ -78,17 +94,9 @@ namespace ChurchReport.WebServiceConnector
                     CreOrder CreatedAtmOrder = await CreateOrderATM(QpayModel.Amount, QpayModel.Category, DateTime.Now.ToString("yyyyMMddhhmmssfff"), aCreatedFeeId.ToString());
                     m_AtmExpireDate = DateTime.Now.AddDays(10);
 
-                    //return
-                    //        "姓名 : " + this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "fullname") + Environment.NewLine +
-                    //        "名稱 : " + QpayModel.Category + Environment.NewLine +
-                    //        "金額 : " + QpayModel.Amount + "元" + Environment.NewLine +
-                    //        "付款到期日: " + m_AtmExpireDate.ToLocalTime().ToShortDateString() + Environment.NewLine +
-                    //        "*** 請依照訊息付款 ***" + Environment.NewLine +
-                    //        "銀行代碼 : 807 永豐商業銀行" + Environment.NewLine +
-                    //        "分行代號 : 021 台北分行" + Environment.NewLine +
-                    //        "帳號     : " + CreatedAtmOrder.ATMParam.AtmPayNo + Environment.NewLine +
-                    //        //"戶名     : 音訊豐富教會<br/>";
-                    //        "戶名     : 其他應付款-代收-網路收款";
+                    // 用剛剛建立的收費單，填寫訂單編號
+                    UpdateFee(ref aFeeToUpdate, "", CreatedAtmOrder.OrderNo, CreatedAtmOrder.ATMParam.AtmPayNo);
+
                     return
                             "姓名 : " + this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "fullname") + "<br/>" +
                             "名稱 : " + QpayModel.Category + "<br/>" +
@@ -112,7 +120,8 @@ namespace ChurchReport.WebServiceConnector
                 throw e;
             }
         }
-        public Guid CreateFee( String LineId, QpayModel QpayModel)
+        #region 建立收費單
+        public Guid CreateFee(String LineId, QpayModel QpayModel)
         {
             try
             {
@@ -120,7 +129,7 @@ namespace ChurchReport.WebServiceConnector
 
                 Entity aFeeToCreated = new Entity("new_fee");
 
-                SetFeeParameter( LineId, aFeeToCreated, QpayModel );
+                SetFeeParameter(LineId, aFeeToCreated, QpayModel);
 
                 return this.m_ToolUtilityClass.CreateEntity(aFeeToCreated);
                 #endregion
@@ -134,7 +143,7 @@ namespace ChurchReport.WebServiceConnector
                 throw e;
             }
         }
-        public void SetFeeParameter(String LineId, Entity aFeeToCreated, QpayModel QpayModel )
+        public void SetFeeParameter(String LineId, Entity aFeeToCreated, QpayModel QpayModel)
         {
             try
             {
@@ -147,7 +156,7 @@ namespace ChurchReport.WebServiceConnector
                 FullName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContact, "fullname");
 
                 // 收費單名稱
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeToCreated, "new_name",  FullName + "奉獻");
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeToCreated, "new_name", FullName + "奉獻");
 
                 // 收費單姓名關聯 LOOKUP
                 this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aFeeToCreated, "new_contact_new_fee", "contact", aContact.Id);
@@ -156,7 +165,7 @@ namespace ChurchReport.WebServiceConnector
                 this.m_ToolUtilityClass.SetEntityMoneyAttribute(ref aFeeToCreated, "new_fee_shoud_pay", new Money(QpayModel.Amount));
 
                 // 收費單實收金額
-                this.m_ToolUtilityClass.SetEntityMoneyAttribute(ref aFeeToCreated, "new_fee_really_paid", new Money(QpayModel.Amount));
+                this.m_ToolUtilityClass.SetEntityMoneyAttribute(ref aFeeToCreated, "new_fee_really_paid", new Money(0));
 
                 // 收費單付款方式，預設是ATM轉帳
                 this.m_ToolUtilityClass.SetOptionSetAttribute(ref aFeeToCreated, "new_pay_way", 100000002);
@@ -219,55 +228,12 @@ namespace ChurchReport.WebServiceConnector
 
             }
         }
-
-
-
-
-
-
-
-
-
-
-
-        #region 初始化
-        public QPayProcessor(LineMessagingClient aLineMessagingClient, PushUtility aPushUtility, ReplyUtility aReplyUtility)
-        {
-            m_LineMessagingClient = aLineMessagingClient;
-            //m_LinePayClient = LinePayClient;
-
-            m_PushUtility = aPushUtility;
-            m_ReplyUtility = aReplyUtility;
-        }
-        #endregion
-        #region 建立收費單
-        public Guid CreateFee(string UserId, Entity aLessonEntity, Guid NewStorLessonId, CreOrder CreatedCardOrder, CreOrder CreatedAtmOrder, String ItemName, String Price)
+        public void UpdateFee(ref Entity aFeeToUpdate, String CardOrderNo, String AtmOrderNo, String AtmPayNo )
         {
             try
             {
                 #region 通知住綁定的輸入格式
-
-                Entity aFeeToCreated = new Entity("new_fee");
-
-                SetFeeParameter(aFeeToCreated, UserId, aLessonEntity, NewStorLessonId, CreatedCardOrder, CreatedAtmOrder, ItemName, Price);
-
-                return this.m_ToolUtilityClass.CreateEntity(aFeeToCreated);
-                #endregion
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-
-                //Monitor.Exit(this);
-                throw e;
-            }
-        }
-        public void UpdateFee(ref Entity aFeeToUpdate, string UserId, Entity aLessonEntity, Guid NewStorLessonId, String CardOrderNo, String AtmOrderNo, String AtmPayNo, String ItemName, String Price)
-        {
-            try
-            {
-                #region 通知住綁定的輸入格式
-                SetFeeParameter(aFeeToUpdate, UserId, aLessonEntity, NewStorLessonId, CardOrderNo, AtmOrderNo, AtmPayNo, ItemName, Price);
+                SetFeeParameter(aFeeToUpdate, CardOrderNo, AtmOrderNo, AtmPayNo);
 
                 this.m_ToolUtilityClass.UpdateEntity(aFeeToUpdate);
                 #endregion
@@ -280,136 +246,11 @@ namespace ChurchReport.WebServiceConnector
                 throw e;
             }
         }
-        public void SetFeeParameter(Entity aFeeToCreated, string UserId, Entity aLessonEntity, Guid NewStorLessonId, CreOrder CreatedCardOrder, CreOrder CreatedAtmOrder, String ItemName, String Price)
+        public void SetFeeParameter(Entity aFeeToCreated, String CardOrderNo, String AtmOrderNo, String AtmPayNo)
         {
             try
             {
                 #region 通知住綁定的輸入格式
-                // 連絡人姓名
-                Entity aContact = this.m_ToolUtilityClass.RetrieveContactByLineId(UserId);
-
-                // 取得課程名稱
-                String LessonDisplayName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aLessonEntity, "new_name");
-
-                // 取得報名者的全名
-                String FullName = "";
-                FullName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContact, "fullname");
-
-                // 收費單名稱
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeToCreated, "new_name", LessonDisplayName + "_" + FullName);
-
-                // 收費單姓名關聯 LOOKUP
-                this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aFeeToCreated, "new_contact_new_fee", "contact", aContact.Id);
-
-                // 收費單課程關聯LOOKUP
-                this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aFeeToCreated, "new_disciple_lessons_new_fee", "new_disciple_lessons", aLessonEntity.Id);
-
-                // 品項
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeToCreated, "new_item", ItemName);
-
-                // 收費單應收金額
-                this.m_ToolUtilityClass.SetEntityMoneyAttribute(ref aFeeToCreated, "new_fee_shoud_pay", new Money(Convert.ToDecimal(Price)));
-
-                //this.m_ToolUtilityClass.SetEntityMoneyAttribute(ref aFeeToCreated, "new_fee_shoud_pay", this.m_ToolUtilityClass.GetEntityMoneyAttribute(aLessonEntity, "new_lessons_fee"));
-                //this.m_ToolUtilityClass.SetEntityMoneyAttribute(ref aFeeToCreated, "new_fee_shoud_pay", this.m_ToolUtilityClass.GetEntityMoneyAttribute(aLessonEntity, "new_lessons_fee"));
-                //this.m_ToolUtilityClass.SetEntityMoneyAttribute(ref aFeeToCreated, "new_fee_really_paid", this.m_ToolUtilityClass.GetEntityMoneyAttribute(aLessonEntity, "new_lessons_fee"));
-
-                // 收費單實收金額
-                this.m_ToolUtilityClass.SetEntityMoneyAttribute(ref aFeeToCreated, "new_fee_really_paid", new Money(0));
-
-                // 收費單付款方式
-                this.m_ToolUtilityClass.SetOptionSetAttribute(ref aFeeToCreated, "new_pay_way", 100000004); // 100000004 = 未知、100000005=LinePay
-
-                // 收費單付款狀態
-                this.m_ToolUtilityClass.SetOptionSetAttribute(ref aFeeToCreated, "new_pay_status", 100000000); // 100000000 = 新建立
-
-                // 收費單上課紀錄關聯
-                this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aFeeToCreated, "new_stor_lessons_new_fee", "new_stor_lessons", NewStorLessonId);
-
-                // 收費單收費日期
-                this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aFeeToCreated, "new_pay_date", DateTime.Now.ToLocalTime());
-
-                // 永豐金流 QPay
-                if (CreatedCardOrder != null)
-                {
-                    // 信用卡訂單編號
-                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeToCreated, "new_q_pay_card_order_no", CreatedCardOrder.OrderNo);
-                }
-                if (CreatedAtmOrder != null)
-                {
-                    // 虛擬帳號訂單編號
-                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeToCreated, "new_q_pay_order_atm_no", CreatedAtmOrder.OrderNo);
-                    // 轉帳/匯款編號
-                    String aAtmPayNumber = this.m_ToolUtilityClass.GetEntityStringAttribute(aFeeToCreated, "new_atm_pay_number") + DateTime.Now.ToString() + " = " + CreatedAtmOrder.OrderNo + " : " + CreatedAtmOrder.ATMParam.AtmPayNo + Environment.NewLine;
-                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeToCreated, "new_atm_pay_number", aAtmPayNumber);
-                }
-
-                // Line Pay
-                //this.m_ToolUtilityClass.SetEntityIntAttribute(ref aFeeToCreated, "new_transaction_id", (int)aReserveResponse.Info.TransactionId);
-
-                //// 交易識別碼
-                //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeToCreated, "new_transaction_id_string", aReserveResponse.Info.TransactionId.ToString());
-                ////付款憑證
-                //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeToCreated, "new_payment_access_token", aReserveResponse.Info.PaymentAccessToken);
-                //// 付款網頁
-                //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeToCreated, "new_payment_url_web", aReserveResponse.Info.PaymentUrl.Web);
-                //// 付款應用
-                //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeToCreated, "new_payment_url_app", aReserveResponse.Info.PaymentUrl.App);
-
-                #endregion
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-
-                //Monitor.Exit(this);
-                throw e;
-            }
-        }
-        public void SetFeeParameter(Entity aFeeToCreated, string UserId, Entity aLessonEntity, Guid NewStorLessonId, String CardOrderNo, String AtmOrderNo, String AtmPayNo, String ItemName, String Price)
-        {
-            try
-            {
-                #region 通知住綁定的輸入格式
-                // 連絡人姓名
-                Entity aContact = this.m_ToolUtilityClass.RetrieveContactByLineId(UserId);
-
-                // 取得課程名稱
-                String LessonDisplayName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aLessonEntity, "new_name");
-
-                // 取得報名者的全名
-                String FullName = "";
-                FullName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContact, "fullname");
-
-                // 收費單名稱
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeToCreated, "new_name", LessonDisplayName + "_" + FullName);
-
-                // 收費單姓名關聯 LOOKUP
-                this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aFeeToCreated, "new_contact_new_fee", "contact", aContact.Id);
-
-                // 收費單課程關聯LOOKUP
-                this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aFeeToCreated, "new_disciple_lessons_new_fee", "new_disciple_lessons", aLessonEntity.Id);
-
-                // 品項
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeToCreated, "new_item", ItemName);
-
-                // 收費單應收金額
-                this.m_ToolUtilityClass.SetEntityMoneyAttribute(ref aFeeToCreated, "new_fee_shoud_pay", new Money(Convert.ToDecimal(Price)));
-
-                // 收費單實收金額
-                this.m_ToolUtilityClass.SetEntityMoneyAttribute(ref aFeeToCreated, "new_fee_really_paid", new Money(0));
-
-                // 收費單付款方式
-                this.m_ToolUtilityClass.SetOptionSetAttribute(ref aFeeToCreated, "new_pay_way", 100000004); // 100000004 = 未知、100000005=LinePay
-
-                // 收費單付款狀態
-                this.m_ToolUtilityClass.SetOptionSetAttribute(ref aFeeToCreated, "new_pay_status", 100000000); // 100000000 = 新建立
-
-                // 收費單上課紀錄關聯
-                this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aFeeToCreated, "new_stor_lessons_new_fee", "new_stor_lessons", NewStorLessonId);
-
-                // 收費單收費日期
-                this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aFeeToCreated, "new_pay_date", DateTime.Now.ToLocalTime());
 
                 // 永豐金流 QPay
                 if (CardOrderNo != "")
@@ -425,18 +266,6 @@ namespace ChurchReport.WebServiceConnector
                     String aAtmPayNumber = this.m_ToolUtilityClass.GetEntityStringAttribute(aFeeToCreated, "new_atm_pay_number") + DateTime.Now.ToString() + " = " + AtmOrderNo + " : " + AtmPayNo + Environment.NewLine;
                     this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeToCreated, "new_atm_pay_number", aAtmPayNumber);
                 }
-
-                // Line Pay
-                //this.m_ToolUtilityClass.SetEntityIntAttribute(ref aFeeToCreated, "new_transaction_id", (int)aReserveResponse.Info.TransactionId);
-
-                //// 交易識別碼
-                //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeToCreated, "new_transaction_id_string", aReserveResponse.Info.TransactionId.ToString());
-                ////付款憑證
-                //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeToCreated, "new_payment_access_token", aReserveResponse.Info.PaymentAccessToken);
-                //// 付款網頁
-                //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeToCreated, "new_payment_url_web", aReserveResponse.Info.PaymentUrl.Web);
-                //// 付款應用
-                //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeToCreated, "new_payment_url_app", aReserveResponse.Info.PaymentUrl.App);
 
                 #endregion
             }
@@ -618,6 +447,5 @@ namespace ChurchReport.WebServiceConnector
         }
 
         #endregion
-
     }
 }

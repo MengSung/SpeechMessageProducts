@@ -4272,6 +4272,7 @@ namespace ChurchReport.Controllers
                 ViewBag.UserType = m_InMemoryDataContextSmallGroup.ListManager.UserType = "行政同工";
 
                 QpayModel QpayModel = new QpayModel();
+                QpayModel.Category = "十一";
 
                 TempData["Proponent"] = DedicationViewPatameter;
 
