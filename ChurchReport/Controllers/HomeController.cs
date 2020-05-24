@@ -4302,7 +4302,7 @@ namespace ChurchReport.Controllers
                 String DedicationResult = await QPayProcessor.CreateFeeAsync(m_InMemoryDataContextSmallGroup.LineBindingViewModel.LineUserId, QpayModel);
 
                 String PayWay = "";
-                if (DedicationResult.Contains("***請依照訊息付款 ***") != true )
+                if (DedicationResult.Contains("*** 請依照訊息付款 ***") != true )
                 {
                     PayWay = "信用卡";
                 }
