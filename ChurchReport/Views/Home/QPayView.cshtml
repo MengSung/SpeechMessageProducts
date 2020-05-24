@@ -55,6 +55,7 @@
             items.AddSimpleFor
             (m => m.Category)
                 .Label(l => l.Text("類別"))
+                //.Name("Category")
                 .Editor
                 (
                     e => e
@@ -72,8 +73,8 @@
                     }
                 //.DisplayExpr("Name")
                 )
-                .Placeholder("奉獻類別")
-                .Value(Model.Category)
+                .Placeholder("請選擇奉獻類別")
+                //.Value(Model.Category)
                 .OnValueChanged("OnCategorySelectBoxValueChanged")
             );
 
@@ -93,6 +94,7 @@
                     }
                 //.DisplayExpr("Name")
                 )
+                .Placeholder("請選擇奉獻類別")
                 .Value("特別")
             );
 
@@ -165,14 +167,45 @@
         ToastInstance.option('closeOnClick', true);
         ToastInstance.show();
     }
+
+    var GlobalCategory = "";
+
     function OnCategorySelectBoxValueChanged(e) {
-        if (e.value == "其他") {
+        if (e.value == "其他")
+        {
             //alert(e.value + "顯示");
+            //alert(e.value + "顯示 :" + GlobalCategory);
             $("#form").dxForm("instance").itemOption("OtherDedication", 'visible', true);
+
+            //if (GlobalCategory != e.value) {
+            //    GlobalCategory = e.value;
+
+            //    alert(e.value + "顯示 001");
+            //    alert(e.value + "顯示 001" + $("#form").dxForm("instance").getEditor("Category"));
+            //    $("#form").dxForm("instance").getEditor("Category").option("value", e.value);
+            //    alert(e.value + "顯示 002");
+            //    //$("#form").dxForm("instance").Option("Category", e.value);
+            //    //$("#form").dxForm("instance").itemOption("Category", e.value);
+            //}
         }
-        else {
+        else
+        {
             //alert(e.value + "隱藏");
+            //alert(e.value + "隱藏 000:" + GlobalCategory );
             $("#form").dxForm("instance").itemOption("OtherDedication", 'visible', false);
+
+            //if (GlobalCategory != e.value) {
+            //    alert(e.value + "隱藏 001:" + GlobalCategory);
+
+            //    GlobalCategory = e.value;
+            //    alert(e.value + "隱藏 002:" + GlobalCategory);
+
+            //    alert(e.value + "隱藏 003" + $("#form").dxForm("instance").getEditor("Category"));
+            //    $("#form").dxForm("instance").getEditor("Category").option("value", e.value);
+            //    alert(e.value + "隱藏 004");
+            //    //$("#form").dxForm("instance").Option("Category", e.value);
+            //    //$("#form").dxForm("instance").itemOption("Category", e.value);
+            //}
         }
     }
 
