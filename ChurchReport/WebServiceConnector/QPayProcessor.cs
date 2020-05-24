@@ -98,35 +98,7 @@ namespace ChurchReport.WebServiceConnector
                 }
                 else
                 {
-                    CreOrder CreatedAtmOrder = await CreateOrderATM(QpayModel.Amount, QpayModel.Category, DateTime.Now.ToString("yyyyMMddhhmmssfff"), aCreatedFeeId.ToString());
-
-                    // 用剛剛建立的收費單，填寫訂單編號
-                    UpdateFee(ref aFeeToUpdate, "", CreatedAtmOrder.OrderNo, CreatedAtmOrder.ATMParam.AtmPayNo);
-
-                    String AtmInfoToLine =
-                            "姓名 : " + this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "fullname") + Environment.NewLine +
-                            "名稱 : " + QpayModel.Category + Environment.NewLine +
-                            "金額 : " + QpayModel.Amount + "元" + Environment.NewLine +
-                            "付款到期日: " + DateTime.Now.AddDays(10).ToLocalTime().ToShortDateString() + Environment.NewLine +
-                            "*** 請依照訊息付款 ***" + Environment.NewLine +
-                            "銀行代碼 : 807 永豐商業銀行" + Environment.NewLine +
-                            "分行代號 : 021 台北分行" + Environment.NewLine +
-                            "帳號     : " + CreatedAtmOrder.ATMParam.AtmPayNo + Environment.NewLine +
-                            "戶名     : 其他應付款-代收-網路收款";
-
-                    m_PushUtility.SendMessage(LineId, AtmInfoToLine);
-
-                    String AtmInfo =
-                            "姓名 : " + this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "fullname") + "<br/>" +
-                            "名稱 : " + QpayModel.Category + "<br/>" +
-                            "金額 : " + QpayModel.Amount + "元" + "<br/>" +
-                            "付款到期日: " + DateTime.Now.AddDays(10).ToLocalTime().ToShortDateString() + "<br/>" +
-                            "*** 請依照訊息付款 ***" + "<br/>" +
-                            "銀行代碼 : 807 永豐商業銀行" + "<br/>" +
-                            "分行代號 : 021 台北分行" + "<br/>" +
-                            "帳號     : " + CreatedAtmOrder.ATMParam.AtmPayNo + "<br/>" +
-                            "戶名     : 其他應付款-代收-網路收款";
-                    return AtmInfo;
+                    return await ProcessAtm( aCreatedFeeId,  aFeeToUpdate,  QpayModel,  LineId,  LineLoginContact);
                 }
                 #endregion
 
@@ -302,7 +274,6 @@ namespace ChurchReport.WebServiceConnector
                 throw e;
             }
         }
-
         public async Task<string> ProcessAtm(Guid aCreatedFeeId, Entity aFeeToUpdate, QpayModel QpayModel, String LineId, Entity LineLoginContact)
         {
             try
@@ -349,7 +320,6 @@ namespace ChurchReport.WebServiceConnector
                 throw e;
             }
         }
-
         #endregion
         #region 永豐金流工具區
         public async Task<CreOrder> CreOrderCard(int Amount, String ProductName, String OrderDate, String FeeId, String CCToken = null)
