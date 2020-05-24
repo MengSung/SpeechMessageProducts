@@ -87,16 +87,10 @@
                 (
                     e => e
                     .SelectBox()
-                    .DataSource(new string[]
-                    {
-                       "特別",
-                       "外教會",
-                    }
-                //.DisplayExpr("Name")
-                )
-                .Placeholder("請選擇奉獻類別")
-                .Value("特別")
-            );
+                    .DataSource(Model.OtherCategoryArray)
+                    .Placeholder("請選擇奉獻類別")
+                    //.Value("特別")
+                );
 
             items.AddSimpleFor(m => m.Amount)
                     //.DataField("LastName")

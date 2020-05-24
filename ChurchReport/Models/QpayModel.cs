@@ -17,6 +17,6 @@ namespace ChurchReport.Models
         public String Category { get; set; }                            //奉獻類別
         public String PayWay { get; set; }                              //付款方式
         public String Others { get; set; }                              //其他奉獻
-
+        public List<String> OtherCategoryArray { get; set; }
     }
 }

@@ -4272,7 +4272,12 @@ namespace ChurchReport.Controllers
                 ViewBag.UserType = m_InMemoryDataContextSmallGroup.ListManager.UserType = "行政同工";
 
                 QpayModel QpayModel = new QpayModel();
+
                 QpayModel.Category = "十一";
+                QpayModel.OtherCategoryArray = new List<String> ();
+                QpayModel.OtherCategoryArray.Add("特別");
+                QpayModel.OtherCategoryArray.Add("外教會");
+
 
                 TempData["Proponent"] = DedicationViewPatameter;
 
