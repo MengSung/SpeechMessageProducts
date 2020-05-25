@@ -4327,7 +4327,7 @@ namespace ChurchReport.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> SaveQPayDedication(QpayModel QpayModel)
+        public async Task<IActionResult> SaveQPayDedication(QpayModel QpayModel, String myHiddenInput)
         {
             try
             {

@@ -149,6 +149,7 @@
             .RowAlternationEnabled(true)
             .ShowBorders(true)
             .TwoWayBindingEnabled(true)
+            .OnContentReady("onCreditCardGridContentReady")
             .Editing(editing =>
             {
                 //editing.Mode(GridEditMode.Batch);
@@ -167,28 +168,18 @@
             {
                 columns.AddFor(m => m.CreditCardNumber).Caption("卡號").Width(180).MinWidth(180).Fixed(true);
                 columns.AddFor(m => m.ExpireDate).Caption("過期日").Width(100).MinWidth(100);
-                })
+            })
                 .DataSource
                 ( Model.CreditCardList)
 
-                // 此處設定是讓選項偏左邊一排
-                .OnContentReady(
-                    @<text>
-                    function(e)
-                    {
-                        //moveEditColumnToLeft(e.component);
-                    }
-                    </text>
-                )
-
-                //此處設定是鉛筆形狀還是"編輯"字樣
-                //.OnCellPrepared("cell_prepared")
-                //.OnCellPrepared("cell_prepared_background_color")
-
+                    .OnContentReady("onCreditCardGridContentReady")
+                    // 此處設定是讓選項偏左邊一排
+                    //.OnContentReady("moveEditColumnToLeft")
+                    //此處設定是鉛筆形狀還是"編輯"字樣
+                    //.OnCellPrepared("cell_prepared")
+                    //.OnCellPrepared("cell_prepared_background_color")
             )
         </div>
-
-
     </div>
 
     <div id="buttonContainer2" class="dx-button-icon">
@@ -281,7 +272,6 @@
             //}
         }
     }
-
     function moveEditColumnToLeft(dataGrid) {
         dataGrid.columnOption("command:edit", {
             visibleIndex: -1,
@@ -306,6 +296,12 @@
         }
 
     }
+
+    function onCreditCardGridContentReady(e) {
+        var items = e.component.getDataSource().items();
+        $("input[name='myHiddenInput']").val(JSON.stringify(items));
+        //myHiddenInput - is the name of your hidden input  
+    }  
 
 </script>
 
