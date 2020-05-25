@@ -128,6 +128,16 @@
         )
     </div>
 
+    <div id="buttonContainer2" class="dx-button-icon">
+        @(Html.DevExtreme().Button()
+                    .Text("奉獻")
+                    .Type(ButtonType.Success)
+                    .ID("save-button2")
+                    .UseSubmitBehavior(true)
+                    .OnClick("ShowLoadPanel")
+            )
+    </div>
+
     <div style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
         <h5 id="atmfield"></h5>
     </div>
