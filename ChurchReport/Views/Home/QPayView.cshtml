@@ -48,7 +48,7 @@
     <div id="form-container">
         @(Html.DevExtreme().Form<QpayModel>()
         .ID("form")
-        .ColCount(3)
+        .ColCount(2)
         .Items(items =>
         {
             items.AddSimpleFor
@@ -117,69 +117,72 @@
                         .Value("信用卡")
                     );
 
+            items.AddSimple().ColSpan(2)
+               .Label(l => l.Text("信用卡清單").Location(FormLabelLocation.Top))
+               .Template(@<text>
+                            @(Html.DevExtreme().DataGrid<CreditCard>()
+                            .ID("CreditCardGrid")
+                            .ShowBorders(true)
+                            //.ColumnAutoWidth(true)
+                            //.Paging(p => p.PageSize(10))
+                            .Paging(paging => paging.Enabled(false))
+                            .AllowColumnResizing(true)
+                            .ColumnResizingMode(ColumnResizingMode.Widget)
+                            .ColumnFixing(c => c.Enabled(true))
+                            .LoadPanel(l => l.Text("更新資料中...").Enabled(false))
+                            .SearchPanel(s => s.Visible(false).Placeholder("搜尋.."))
+                            .Export(e=>e.Enabled(false).AllowExportSelectedData(true))
+                            .ShowColumnLines(true)
+                            .ShowRowLines(true)
+                            .RowAlternationEnabled(true)
+                            .ShowBorders(true)
+                            .RemoteOperations(true)
+                            .TwoWayBindingEnabled(true)
+                            .OnContentReady("onCreditCardGridContentReady")
+                            .Editing(editing =>
+                            {
+                                //editing.Mode(GridEditMode.Batch);
+                                //editing.Mode(GridEditMode.Row);
+                                editing.Mode(GridEditMode.Cell);
+                                //editing.Mode(GridEditMode.Batch);
+                                //editing.Mode(GridEditMode.Form);
+                                //editing.Mode(GridEditMode.Popup);
+                                editing.AllowUpdating(true);
+                                //editing.AllowAdding(true);
+                                editing.AllowDeleting(true);
+                                editing.Texts(a => a.SaveAllChanges("上傳檔案").AddRow("新增").CancelAllChanges("取消變更").SaveRowChanges("儲存").CancelRowChanges("取消").EditRow("編輯").DeleteRow("刪除"));
+                            })
+
+                            .Columns(columns =>
+                            {
+                                columns.AddFor(m => m.CreditCardNumber).Caption("卡號").Width(180).MinWidth(180).Fixed(true);
+                                columns.AddFor(m => m.ExpireDate).Caption("過期日").Width(100).MinWidth(100);
+                            })
+                            .DataSource
+                            ( Model.CreditCardList)
+
+                            .OnContentReady("onCreditCardGridContentReady")
+                            // 此處設定是讓選項偏左邊一排
+                            //.OnContentReady("moveEditColumnToLeft")
+                            //此處設定是鉛筆形狀還是"編輯"字樣
+                            //.OnCellPrepared("cell_prepared")
+                            //.OnCellPrepared("cell_prepared_background_color")
+                            )
+                </text>);
+
+
         })
-        .OnContentReady(@<text>
-                    function(e) {
-                    e.component.validate();
-                    }
+        .OnContentReady
+        (@<text>
+            function(e)
+            {
+                e.component.validate();
+            }
         </text>)
+
         .FormData(Model)
         )
 
-        <br/>
-        <div style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
-            <h5>信用卡清單:</h5>
-        </div>
-
-        <div id="creditcard-grid">
-            @(Html.DevExtreme().DataGrid<CreditCard>()
-            .ID("CreditCardGrid")
-            .ShowBorders(true)
-            //.ColumnAutoWidth(true)
-            //.Paging(p => p.PageSize(10))
-            .Paging(paging => paging.Enabled(false))
-            .AllowColumnResizing(true)
-            .ColumnResizingMode(ColumnResizingMode.Widget)
-            .ColumnFixing(c => c.Enabled(true))
-            .LoadPanel(l => l.Text("更新資料中...").Enabled(false))
-            .SearchPanel(s => s.Visible(false).Placeholder("搜尋.."))
-            .Export(e=>e.Enabled(false).AllowExportSelectedData(true))
-            .ShowColumnLines(true)
-            .ShowRowLines(true)
-            .RowAlternationEnabled(true)
-            .ShowBorders(true)
-            .TwoWayBindingEnabled(true)
-            .OnContentReady("onCreditCardGridContentReady")
-            .Editing(editing =>
-            {
-                //editing.Mode(GridEditMode.Batch);
-                //editing.Mode(GridEditMode.Row);
-                editing.Mode(GridEditMode.Cell);
-                //editing.Mode(GridEditMode.Batch);
-                //editing.Mode(GridEditMode.Form);
-                //editing.Mode(GridEditMode.Popup);
-                editing.AllowUpdating(true);
-                //editing.AllowAdding(true);
-                editing.AllowDeleting(true);
-                editing.Texts(a => a.SaveAllChanges("上傳檔案").AddRow("新增").CancelAllChanges("取消變更").SaveRowChanges("儲存").CancelRowChanges("取消").EditRow("編輯").DeleteRow("刪除"));
-            })
-
-            .Columns(columns =>
-            {
-                columns.AddFor(m => m.CreditCardNumber).Caption("卡號").Width(180).MinWidth(180).Fixed(true);
-                columns.AddFor(m => m.ExpireDate).Caption("過期日").Width(100).MinWidth(100);
-            })
-                .DataSource
-                ( Model.CreditCardList)
-
-                    .OnContentReady("onCreditCardGridContentReady")
-                    // 此處設定是讓選項偏左邊一排
-                    //.OnContentReady("moveEditColumnToLeft")
-                    //此處設定是鉛筆形狀還是"編輯"字樣
-                    //.OnCellPrepared("cell_prepared")
-                    //.OnCellPrepared("cell_prepared_background_color")
-            )
-        </div>
     </div>
 
     <div id="buttonContainer2" class="dx-button-icon">
@@ -345,7 +348,7 @@
 <script src="https://static.line-scdn.net/liff/edge/2.1/sdk.js"></script>
 <script>
 
-    window.onload = function (e) {
+        window.onload = function (e) {
             //var message = '@TempData["Proponent"]';
             //window.alert( "耶和華" + message);
             liff.init(
