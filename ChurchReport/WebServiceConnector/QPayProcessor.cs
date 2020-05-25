@@ -171,7 +171,10 @@ namespace ChurchReport.WebServiceConnector
                 SetFeePayWay(QpayModel.Category, ref aFeeToCreated);
 
                 // 收費單奉獻其他類別
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeToCreated, "new_others", QpayModel.Others);
+                if (QpayModel.Category == "其他")
+                {
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeToCreated, "new_others", QpayModel.Others);
+                }
 
                 #endregion
 

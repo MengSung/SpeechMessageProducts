@@ -4271,19 +4271,9 @@ namespace ChurchReport.Controllers
                 ViewBag.DisplayNavigation = m_InMemoryDataContextSmallGroup.ListManager.DisplayNavigation = "不顯示牧養回報項目";
                 ViewBag.UserType = m_InMemoryDataContextSmallGroup.ListManager.UserType = "行政同工";
 
-                QpayModel QpayModel = new QpayModel();
-
-                QpayModel.Category = "十一";
-                QpayModel.OtherCategoryArray = new List<String> ();
-                QpayModel.OtherCategoryArray.Add("特別");
-                QpayModel.OtherCategoryArray.Add("外教會");
-
-
                 TempData["Proponent"] = DedicationViewPatameter;
 
-                return View(QpayModel);
-
-                //return View();
+                return View(SetQpayModel());
             }
             catch (System.Exception e)
             {
@@ -4294,6 +4284,38 @@ namespace ChurchReport.Controllers
 
                 aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "永和禮拜堂 : 綁定錯誤 => " + ErrorString);
 
+                throw e;
+            }
+        }
+        public QpayModel SetQpayModel()
+        {
+            try
+            {
+                QpayModel QpayModel = new QpayModel();
+
+                QpayModel.Category = "十一";
+
+                QpayModel.OtherCategoryArray = new List<String>();
+                EntityCollection TaskCollection = m_ToolUtilityClass.RetrieveTaskByFetchXml("宣道支持奉獻(請勿刪除)");
+                String Description = "";
+                if ( TaskCollection.Entities.Count > 0 )
+                {
+                    Description = this.m_ToolUtilityClass.GetEntityStringAttribute(TaskCollection.Entities[0], "description");
+                }
+
+                String[] OtherCategoryArray = Description.Split(',');
+                foreach (String OtherCategory in OtherCategoryArray)
+                {
+                    QpayModel.OtherCategoryArray.Add(OtherCategory);
+                }
+
+                return QpayModel;
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                //Monitor.Exit(this);
                 throw e;
             }
         }

@@ -2062,6 +2062,62 @@ namespace ToolUtilityNameSpace
             }
         }
         #endregion
+        #region 取得工作
+        /// <summary>
+        /// 特定連絡人已報名的課程
+        /// </summary>
+        /// <param name="StartDate"></param>
+        /// <param name="EndDate"></param>
+        /// <returns></returns>
+        public EntityCollection RetrieveTaskByFetchXml(String Subject )
+        {
+            try
+            {
+                Subject = @"'" + Subject + @"'";
+                var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+                      <entity name='task'>
+                        <attribute name='subject' />
+                        <attribute name='statecode' />
+                        <attribute name='prioritycode' />
+                        <attribute name='scheduledend' />
+                        <attribute name='createdby' />
+                        <attribute name='regardingobjectid' />
+                        <attribute name='activityid' />
+                        <attribute name='description' />
+                        <order attribute='subject' descending='false' />
+                        <filter type='and'>
+                          <condition attribute='subject' operator='eq' value=" + Subject + @" />
+                        </filter>
+                      </entity>
+                    </fetch>";
+
+
+                RetrieveMultipleRequest fetchRequest1 = new RetrieveMultipleRequest
+                {
+                    Query = new FetchExpression(fetchXml)
+                };
+
+                EntityCollection retrieved;
+                if (CRM_TYPE == "DYNAMICS365")
+                {
+                    retrieved = ((RetrieveMultipleResponse)this.m_OrganizationService.Execute(fetchRequest1)).EntityCollection;
+                }
+                else
+                {
+                    retrieved = ((RetrieveMultipleResponse)this.m_Crm2011OrganizationService.Execute(fetchRequest1)).EntityCollection;
+                }
+
+
+                return retrieved;
+                //}
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                throw e;
+            }
+        }
+        #endregion
         #region 取得個人聚會與靈修記錄
         /// <summary>
         /// 特定連絡人已報名的課程
