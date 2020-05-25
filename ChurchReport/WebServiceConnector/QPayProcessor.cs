@@ -101,7 +101,6 @@ namespace ChurchReport.WebServiceConnector
                     return await ProcessAtm( aCreatedFeeId,  aFeeToUpdate,  QpayModel,  LineId,  LineLoginContact);
                 }
                 #endregion
-
             }
             catch (System.Exception e)
             {
@@ -124,7 +123,6 @@ namespace ChurchReport.WebServiceConnector
 
                 return this.m_ToolUtilityClass.CreateEntity(aFeeToCreated);
                 #endregion
-
             }
             catch (System.Exception e)
             {
@@ -177,7 +175,6 @@ namespace ChurchReport.WebServiceConnector
                 }
 
                 #endregion
-
             }
             catch (System.Exception e)
             {

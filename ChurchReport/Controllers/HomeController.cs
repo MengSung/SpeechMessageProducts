@@ -4309,6 +4309,12 @@ namespace ChurchReport.Controllers
                     QpayModel.OtherCategoryArray.Add(OtherCategory);
                 }
 
+                QpayModel.CreditCardList = new List<CreditCard>{
+                    new CreditCard { CCToken = "0000", CreditCardNumber = "AAAAAAAAAAAAAAAA", ExpireDate = "2020/5/25" },
+                    new CreditCard { CCToken = "1111", CreditCardNumber = "BBBBBBBBBBBBBBBB", ExpireDate = "2020/5/26" },
+                    new CreditCard { CCToken = "2222", CreditCardNumber = "CCCCCCCCCCCCCCCC", ExpireDate = "2020/5/27" },
+                };
+
                 return QpayModel;
             }
             catch (System.Exception e)
@@ -4327,18 +4333,25 @@ namespace ChurchReport.Controllers
             {
                 QPayProcessor QPayProcessor = new QPayProcessor();
 
-                String DedicationResult = await QPayProcessor.CreateFeeAsync(m_InMemoryDataContextSmallGroup.LineBindingViewModel.LineUserId, QpayModel);
-
-                String PayWay = "";
-                if (DedicationResult.Contains("*** 請依照訊息付款 ***") != true )
+                if (QpayModel.Amount != null && QpayModel.Amount > 0)
                 {
-                    PayWay = "信用卡";
+                    String DedicationResult = await QPayProcessor.CreateFeeAsync(m_InMemoryDataContextSmallGroup.LineBindingViewModel.LineUserId, QpayModel);
+
+                    String PayWay = "";
+                    if (DedicationResult.Contains("*** 請依照訊息付款 ***") != true)
+                    {
+                        PayWay = "信用卡";
+                    }
+                    else
+                    {
+                        PayWay = "虛擬帳號";
+                    }
+                    return Json(new { status = "1", message = "感謝您的奉獻", DedicationResult = DedicationResult, PayWay = PayWay });
                 }
                 else
                 {
-                    PayWay = "虛擬帳號";
+                    return Json(new { status = "2", message = "未輸入奉獻金額" });
                 }
-                return Json(new { status = "1", message = "感謝您的奉獻", DedicationResult = DedicationResult , PayWay  = PayWay });
             }
             catch (System.Exception e)
             {
@@ -4406,6 +4419,5 @@ namespace ChurchReport.Controllers
         }
 
         #endregion
-
     }
 }
