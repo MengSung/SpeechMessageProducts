@@ -23,6 +23,7 @@ namespace ChurchReport.Models
         public FeeList m_FeeList;
         public LineBindingViewModel m_LineBindingViewModel;
         public AppointmentsListManager m_AppointmentsListManager;
+        public QpayManager m_QpayManager;
 
         #endregion
         #region 初始化
@@ -34,7 +35,6 @@ namespace ChurchReport.Models
         }
         #endregion
         #region 多個組長處理區
-
         public ListManager ListManager
         {
             get
@@ -142,7 +142,6 @@ namespace ChurchReport.Models
         }
         #endregion
         #region 週報處理區
-
         public WeeklyReportData WeeklyReportData
         {
             get
@@ -408,6 +407,51 @@ namespace ChurchReport.Models
             }
         }
         #endregion
+        #region 永豐金流奉獻處理區
+        public QpayManager QpayManager
+        {
+            get
+            {
+                var session = _contextAccessor.HttpContext.Session;
+                var key = session.Id + "_QpayManager";
+
+                if (_memoryCache.Get(key) == null)
+                //if (!_memoryCache.TryGetValue(key, out m_ListManager))
+                {
+                    var options = new MemoryCacheEntryOptions();
+                    options.PostEvictionCallbacks.Add(new PostEvictionCallbackRegistration()
+                    {
+                        EvictionCallback = (subkey, subValue, reason, state) =>
+                        {
+                            // 這裡執行某一個動作
+                            // ....
+                            if (state != null)
+                            {
+                                var localCallbackInvoked = (ManualResetEvent)state;
+
+                                localCallbackInvoked.Set();
+                            }
+
+                            //_memoryCache.Remove(key);
+
+                        },
+                    });
+                    options.SetAbsoluteExpiration(DateTime.Now.AddMinutes(30));
+                    options.SetSlidingExpiration(TimeSpan.FromMinutes(30));
+                    //options.SetSize(1);
+                    //options.Size = 1024;
+
+                    m_QpayManager = new QpayManager();
+                    _memoryCache.Set<QpayManager>(key, m_QpayManager, options);
+
+                    session.SetInt32("dirty", 1);
+                }
+
+                return _memoryCache.Get<QpayManager>(key);
+            }
+        }
+        #endregion
+
         #region 工具區
 
         public ToolUtilityClass ToolUtilityClass

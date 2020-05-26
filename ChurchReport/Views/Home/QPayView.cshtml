@@ -3,7 +3,7 @@
 @*<div class="long-title"><h3>奉獻資訊</h3></div>*@
 
 <div style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
-    <h5 id="displaynamefield"></h5>
+    <h5 id="displaynamefield">正在登入中，請稍待........</h5>
 </div>
 
 <form data-ajax="true" data-ajax-begin="onBegin" data-ajax-success="onSuccess" asp-action="SaveQPayDedication" asp-controller="Home" method="post">
@@ -381,7 +381,7 @@
                 // 取得 UserId 的Ajax
                 UpdateLineUserId(UserId, GroupId, RoomId, ViewType);
 
-                document.getElementById('displaynamefield').innerHTML = profile.displayName + "奉獻";
+                document.getElementById('displaynamefield').innerHTML = profile.displayName + "正在登入中，請稍待........";
 
                 DisplayName = profile.displayName;
             });

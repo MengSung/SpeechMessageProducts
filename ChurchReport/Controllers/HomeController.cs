@@ -100,6 +100,7 @@ namespace ChurchReport.Controllers
                 string ContactIdString = "";
                 if ( aGalleryViewModel.Account != "" )
                 {
+                    // 透過帳號密碼登入畫面進入的
                     ContactIdString = m_ToolUtilityClass.RetrieveContactByAccountNumber(aGalleryViewModel.Account, aGalleryViewModel.Password);
                 }
                 else
@@ -4274,7 +4275,9 @@ namespace ChurchReport.Controllers
 
                 TempData["Proponent"] = DedicationViewPatameter;
 
-                return View(SetQpayModel());
+                //m_InMemoryDataContextSmallGroup.QpayManager.SetQpayModel();
+
+                return View( m_InMemoryDataContextSmallGroup.QpayManager.SetQpayModel() );
             }
             catch (System.Exception e)
             {
@@ -4288,71 +4291,13 @@ namespace ChurchReport.Controllers
                 throw e;
             }
         }
-        public QpayModel SetQpayModel()
-        {
-            try
-            {
-                QpayModel QpayModel = new QpayModel();
-
-                QpayModel.Category = "十一";
-
-                QpayModel.OtherCategoryArray = new List<String>();
-                EntityCollection TaskCollection = m_ToolUtilityClass.RetrieveTaskByFetchXml("宣道支持奉獻(請勿刪除)");
-                String Description = "";
-                if ( TaskCollection.Entities.Count > 0 )
-                {
-                    Description = this.m_ToolUtilityClass.GetEntityStringAttribute(TaskCollection.Entities[0], "description");
-                }
-
-                String[] OtherCategoryArray = Description.Split(',');
-                foreach (String OtherCategory in OtherCategoryArray)
-                {
-                    QpayModel.OtherCategoryArray.Add(OtherCategory);
-                }
-
-                QpayModel.CreditCardList = new List<CreditCard>{
-                    new CreditCard { CCToken = "0000", CreditCardNumber = "AAAAAAAAAAAAAAAA", ExpireDate = "2020/5/25" },
-                    new CreditCard { CCToken = "1111", CreditCardNumber = "BBBBBBBBBBBBBBBB", ExpireDate = "2020/5/26" },
-                    new CreditCard { CCToken = "2222", CreditCardNumber = "CCCCCCCCCCCCCCCC", ExpireDate = "2020/5/27" },
-                };
-
-                return QpayModel;
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-
-                //Monitor.Exit(this);
-                throw e;
-            }
-        }
 
         [HttpPost]
         public async Task<IActionResult> SaveQPayDedication( QpayModel QpayModel )
         {
             try
             {
-                QPayProcessor QPayProcessor = new QPayProcessor();
-
-                if (QpayModel.Amount != null && QpayModel.Amount > 0)
-                {
-                    String DedicationResult = await QPayProcessor.CreateFeeAsync(m_InMemoryDataContextSmallGroup.LineBindingViewModel.LineUserId, QpayModel);
-
-                    String PayWay = "";
-                    if (DedicationResult.Contains("*** 請依照訊息付款 ***") != true)
-                    {
-                        PayWay = "信用卡";
-                    }
-                    else
-                    {
-                        PayWay = "虛擬帳號";
-                    }
-                    return Json(new { status = "1", message = "感謝您的奉獻", DedicationResult = DedicationResult, PayWay = PayWay });
-                }
-                else
-                {
-                    return Json(new { status = "2", message = "未輸入奉獻金額" });
-                }
+                return await m_InMemoryDataContextSmallGroup.QpayManager.SaveQPayDedication(QpayModel, m_InMemoryDataContextSmallGroup.LineBindingViewModel.LineUserId);
             }
             catch (System.Exception e)
             {
@@ -4370,6 +4315,48 @@ namespace ChurchReport.Controllers
         }
 
         #endregion
+        #region 奉獻收費清單
+        public ActionResult DedicationFeeView()
+        {
+            try
+            {
+                #region 用小組長回報網頁登入
+                ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType;// 看是小組長還是個人回報
+                ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.ListManager.LoginFullName;
+                ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType;
+
+                if (m_InMemoryDataContextSmallGroup.HappyGroupDataManager.HappyType == "有幸福小組名單")
+                {
+                    ViewBag.HappyType = "有幸福小組名單";
+                }
+                else
+                {
+                    ViewBag.HappyType = "沒幸福小組名單";
+                }
+
+                // 設定繳費與報名資料
+                //m_InMemoryDataContextSmallGroup.SetupFeeList();
+
+                return View(m_InMemoryDataContextSmallGroup.FeeList);
+
+                #endregion
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "永和禮拜堂 : 綁定錯誤 => " + ErrorString);
+
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
+                throw e;
+            }
+        }
+        #endregion
+
         #region Line Id 資訊區
         [HttpPost]
         public IActionResult SetupUserLineId(string UserLineId, string GroupId, string RoomId, string ViewType)

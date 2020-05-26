@@ -86,8 +86,6 @@
   </PropertyGroup>
   <Target Name="PostpublishScript" AfterTargets="Publish" Condition=" '$(IsCrossTargetingBuild)' != 'true' " />
   <ProjectExtensions>
-    <VisualStudio>
-      <UserProperties DismissedDevExtremeVersion="" />
-    </VisualStudio>
+    <VisualStudio><UserProperties DismissedDevExtremeVersion="" /></VisualStudio>
   </ProjectExtensions>
 </Project>
