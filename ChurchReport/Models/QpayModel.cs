@@ -10,6 +10,8 @@ namespace ChurchReport.Models
         public QpayModel()
         { }
 
+        public String FullName { get; set; }                            //姓名
+        public String DedicationNumber { get; set; }                    //奉獻編號
         public DateTime DedicationDate { get; set; } = DateTime.Now;    //奉獻日期
         public String BankName { get; set; }                            //銀行名稱
         public String SerialNumber { get; set; }                        //奉獻號碼

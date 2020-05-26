@@ -15,7 +15,7 @@ namespace ChurchReport.Models
     {
         private ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
 
-        private QpayModel m_QpayModel = new QpayModel();
+        public QpayModel m_QpayModel { get; set; } = new QpayModel();            
 
         private QPayProcessor m_QPayProcessor = new QPayProcessor();
 

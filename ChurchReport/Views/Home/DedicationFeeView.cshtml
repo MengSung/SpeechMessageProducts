@@ -44,6 +44,9 @@
 
     </div>
 </div>
+<div style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
+    <h5 id="displaynamefield">@Model.FullName 奉獻編號:@Model.DedicationNumber</h5>
+</div>
 
 <div id="data-grid">
 
@@ -92,6 +95,10 @@
 
     )
 </div>
+<div style="font-family:標楷體;font-size:100%; color:darkred; text-align:left;font-weight:bold">
+    <h4 id="displaynamefield">總金額 = @Model.TotalAmount</h4>
+</div>
+
 <script>var DataUploadStatus = "尚未上傳喔!";</script>
 <script src="~/js/FeeDataGridAjax.js"></script>
 <script src="~/js/SelectDate.js"></script>
