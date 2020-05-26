@@ -4346,16 +4346,7 @@ namespace ChurchReport.Controllers
                 ViewBag.DedicationType = m_InMemoryDataContextSmallGroup.ListManager.UserType = "奉獻管理";
                 #endregion
 
-                Entity LineLoginContact = this.m_ToolUtilityClass.RetrieveContactByLineId(m_InMemoryDataContextSmallGroup.LineBindingViewModel.LineUserId);
-
-                // 全名
-                m_InMemoryDataContextSmallGroup.QpayManager.m_QpayModel.FullName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "fullname");
-                // 奉獻單編號
-                m_InMemoryDataContextSmallGroup.QpayManager.m_QpayModel.DedicationNumber = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "pager");
-
-                m_InMemoryDataContextSmallGroup.QpayManager.SetDedicationFeeList();
-
-                return View(m_InMemoryDataContextSmallGroup.QpayManager.SetDedicationFeeList());
+                return View(m_InMemoryDataContextSmallGroup.QpayManager.SetDedicationFeeList(m_InMemoryDataContextSmallGroup.LineBindingViewModel.LineUserId));
 
             }
             catch (System.Exception e)

@@ -95,18 +95,35 @@ namespace ChurchReport.Models
             }
         }
 
-        public QpayModel SetDedicationFeeList()
+        public QpayModel SetDedicationFeeList( String UserLineId )
         {
             try
             {
-                m_QpayModel.DedicationFeeList = new List<DedicationFee>{
-                    new DedicationFee { DedicationDate = new DateTime( 2020, 5, 23), PayDate = new DateTime( 2020, 5, 23), Amount = 6000, PayWay = "信用卡", Category="十一", Others = "" },
-                    new DedicationFee { DedicationDate = new DateTime( 2020, 5, 24), PayDate = new DateTime( 2020, 5, 25), Amount = 5000, PayWay = "ATM轉帳/匯款", Category="十一", Others = "" },
-                    new DedicationFee { DedicationDate = new DateTime( 2020, 5, 25), PayDate = new DateTime( 2020, 5, 25), Amount = 8000, PayWay = "信用卡", Category="十一", Others = "" },
-              };
+                Entity LineLoginContact = this.m_ToolUtilityClass.RetrieveContactByLineId(UserLineId);
 
-                m_QpayModel.TotalAmount = 19000;
+                // 全名
+                m_QpayModel.FullName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "fullname");
+                // 奉獻單編號
+                m_QpayModel.DedicationNumber = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "pager");
 
+                m_QpayModel.DedicationFeeList = new List<DedicationFee>();
+                EntityCollection aDedicationFeeEntityCollection = this.m_ToolUtilityClass.RetrieveDedicationFeeByFetchXml(m_QpayModel.FullName, LineLoginContact.Id.ToString());
+
+                m_QpayModel.TotalAmount = 0;
+                foreach ( Entity aDedicationFeeEntity in aDedicationFeeEntityCollection.Entities)
+                {
+                    DedicationFee aDedicationFee = new DedicationFee();
+
+                    aDedicationFee.DedicationDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(aDedicationFeeEntity, "createdon");
+                    aDedicationFee.PayDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(aDedicationFeeEntity, "new_pay_date");
+                    aDedicationFee.Amount = Convert.ToInt32(this.m_ToolUtilityClass.GetEntityMoneyAttribute(aDedicationFeeEntity, "new_fee_really_paid").Value);
+                    m_QpayModel.TotalAmount += aDedicationFee.Amount;
+                    aDedicationFee.PayWay = ConvertToPayway( aDedicationFeeEntity );
+                    aDedicationFee.Category = ConvertToCategory(aDedicationFeeEntity);
+                    aDedicationFee.Others = this.m_ToolUtilityClass.GetEntityStringAttribute(aDedicationFeeEntity, "new_others");
+                    m_QpayModel.DedicationFeeList.Add(aDedicationFee);
+                }
+                
                 return m_QpayModel;
             }
             catch (System.Exception e)
@@ -118,6 +135,49 @@ namespace ChurchReport.Models
             }
         }
 
+        private String ConvertToPayway(Entity aFeeEntity)
+        {
+            switch (this.m_ToolUtilityClass.GetOptionSetAttribute(aFeeEntity, "new_pay_way"))
+            {
+                case 100000004:
+                    return  "未知";
+                case 100000000:
+                    return  "現金";
+                case 100000001:
+                    return  "信用卡";
+                case 100000002:
+                    return  "ATM轉帳";
+                case 100000003:
+                    return  "超商付款";
+                default:
+                    return  "未知";
+            }
+        }
+
+        public String ConvertToCategory( Entity aFeeEntity )
+        {
+            switch (this.m_ToolUtilityClass.GetOptionSetAttribute(aFeeEntity, "new_category"))
+            {
+                case 100000000:
+                    return "十一";
+                case 100000001:
+                    return "感恩";
+                case 100000002:
+                    return "建堂";
+                case 100000003:
+                    return "宣教";
+                case 100000004:
+                    return "急難救助";
+                case 100000005:
+                    return "青年事工";
+                case 100000006:
+                    return "萬軍";
+                case 100000007:
+                    return "其他";
+                default:
+                    return "十一";
+            }
+        }
 
     }
 }

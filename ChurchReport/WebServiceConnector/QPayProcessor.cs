@@ -486,7 +486,6 @@ namespace ChurchReport.WebServiceConnector
                 return null;
             }
             #endregion
-
         }
 
         #endregion
