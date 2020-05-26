@@ -429,7 +429,16 @@
                         }
                         else
                         {
-                            <!--三條槓下拉什麼都沒有-->
+                            @if (@ViewBag.DedicationType == "奉獻管理")
+                            {
+                                @*<li><a href="http://mrbs.yhchurch.info/">場地及資源預約</a></li>*@
+                                <li><a href="/Home/PersonalReport">個人回報</a></li>
+                                <li><a href="/Home/Scheduler/差勤簽核">差勤簽核</a></li>
+                            }
+                            else
+                            {
+                                <!--三條槓下拉什麼都沒有-->
+                            }
                         }
                     }
                 </ul>

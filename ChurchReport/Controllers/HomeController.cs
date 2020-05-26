@@ -4270,6 +4270,7 @@ namespace ChurchReport.Controllers
                 //ViewBag.SchedulerView = m_InMemoryDataContextSmallGroup.ListManager.SchedulerView = "單純行事曆";
                 ViewBag.DisplayNavigation = m_InMemoryDataContextSmallGroup.ListManager.DisplayNavigation = "不顯示牧養回報項目";
                 ViewBag.UserType = m_InMemoryDataContextSmallGroup.ListManager.UserType = "行政同工";
+                ViewBag.DedicationType = m_InMemoryDataContextSmallGroup.ListManager.UserType = "奉獻管理";
 
                 TempData["Proponent"] = DedicationViewPatameter;
 
