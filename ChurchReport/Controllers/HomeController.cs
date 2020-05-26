@@ -4334,12 +4334,22 @@ namespace ChurchReport.Controllers
                     ViewBag.HappyType = "沒幸福小組名單";
                 }
 
-                // 設定繳費與報名資料
-                //m_InMemoryDataContextSmallGroup.SetupFeeList();
-
-                return View(m_InMemoryDataContextSmallGroup.FeeList);
-
+                ViewBag.LoginType = "小組長"; // 看是小組長還是個人回報
+                ViewBag.LoginFullName = "耶穌";
+                ViewBag.FeeType = "有繳費點名";
+                ViewBag.FeeDataListCount = "繳費與點名尚無資料";
+                ViewBag.HappyType = "沒幸福小組名單";
+                ViewBag.MultiGroupIndex = "SingleMultiGroupView";
+                //ViewBag.SchedulerView = m_InMemoryDataContextSmallGroup.ListManager.SchedulerView = "單純行事曆";
+                ViewBag.DisplayNavigation = m_InMemoryDataContextSmallGroup.ListManager.DisplayNavigation = "不顯示牧養回報項目";
+                ViewBag.UserType = m_InMemoryDataContextSmallGroup.ListManager.UserType = "行政同工";
+                ViewBag.DedicationType = m_InMemoryDataContextSmallGroup.ListManager.UserType = "奉獻管理";
                 #endregion
+
+                m_InMemoryDataContextSmallGroup.QpayManager.SetDedicationFeeList();
+
+                return View(m_InMemoryDataContextSmallGroup.QpayManager.SetDedicationFeeList());
+
             }
             catch (System.Exception e)
             {
@@ -4356,7 +4366,6 @@ namespace ChurchReport.Controllers
             }
         }
         #endregion
-
         #region Line Id 資訊區
         [HttpPost]
         public IActionResult SetupUserLineId(string UserLineId, string GroupId, string RoomId, string ViewType)

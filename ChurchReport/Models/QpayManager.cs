@@ -95,5 +95,29 @@ namespace ChurchReport.Models
             }
         }
 
+        public QpayModel SetDedicationFeeList()
+        {
+            try
+            {
+                m_QpayModel.DedicationFeeList = new List<DedicationFee>{
+                    new DedicationFee { DedicationDate = new DateTime( 2020, 5, 23), PayDate = new DateTime( 2020, 5, 23), Amount = 6000, PayWay = "信用卡", Category="十一", Others = "" },
+                    new DedicationFee { DedicationDate = new DateTime( 2020, 5, 24), PayDate = new DateTime( 2020, 5, 25), Amount = 5000, PayWay = "ATM轉帳/匯款", Category="十一", Others = "" },
+                    new DedicationFee { DedicationDate = new DateTime( 2020, 5, 25), PayDate = new DateTime( 2020, 5, 25), Amount = 8000, PayWay = "信用卡", Category="十一", Others = "" },
+              };
+
+                m_QpayModel.TotalAmount = 19000;
+
+                return m_QpayModel;
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                //Monitor.Exit(this);
+                throw e;
+            }
+        }
+
+
     }
 }

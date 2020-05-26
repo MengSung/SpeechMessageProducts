@@ -14,6 +14,7 @@
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
     <None Remove="Views\Home\BindingResultView.cshtml" />
+    <None Remove="Views\Home\DedicationFeeView.cshtml" />
     <None Remove="Views\Home\DedicationInofView.cshtml" />
     <None Remove="Views\Home\DedicationView.cshtml" />
     <None Remove="Views\Home\DisplayErrorView.cshtml" />

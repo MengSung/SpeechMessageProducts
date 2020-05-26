@@ -18,7 +18,9 @@ namespace ChurchReport.Models
         public String PayWay { get; set; }                              //付款方式
         public String Others { get; set; }                              //其他奉獻
         public List<String> OtherCategoryArray { get; set; }
-
         public List<CreditCard> CreditCardList { get; set; } // 
+        public List<DedicationFee> DedicationFeeList { get; set; } // 
+        public int TotalAmount { get; set; }                            //奉獻總金額
+
     }
 }
