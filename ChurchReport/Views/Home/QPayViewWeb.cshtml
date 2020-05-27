@@ -322,7 +322,8 @@
             if (data.PayWay == "信用卡") {
                 //alert("成功 3");
                 ShowToast(data.message, "success", 2000);
-                window.open(data.DedicationResult);
+                //window.open(data.DedicationResult);
+                window.open(data.DedicationResult, "_blank");
                 //window.location.href = data.DedicationResult;
             }
             else {
