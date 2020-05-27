@@ -118,10 +118,12 @@
                             }
                             //.DisplayExpr("Name")
                         )
-                        .Value("信用卡")
+                        .OnValueChanged("OnPayWaySelectBoxValueChanged")
+                        //.Value("信用卡")
                     );
 
             items.AddSimple().ColSpan(3)
+               .DataField("CreditCardList")
                .Label(l => l.Text("信用卡清單").Location(FormLabelLocation.Top))
                .Template(@<text>
                             @(Html.DevExtreme().DataGrid<CreditCard>()
@@ -259,6 +261,48 @@
             //alert(e.value + "隱藏");
             //alert(e.value + "隱藏 000:" + GlobalCategory );
             $("#form").dxForm("instance").itemOption("OtherDedication", 'visible', false);
+            //e.component.option('value', e.value);
+
+
+
+            //if (GlobalCategory != e.value) {
+            //    alert(e.value + "隱藏 001:" + GlobalCategory);
+
+            //    GlobalCategory = e.value;
+            //    alert(e.value + "隱藏 002:" + GlobalCategory);
+
+            //    alert(e.value + "隱藏 003" + $("#form").dxForm("instance").getEditor("Category"));
+            //    $("#form").dxForm("instance").getEditor("Category").option("value", e.value);
+            //    alert(e.value + "隱藏 004");
+            //    //$("#form").dxForm("instance").Option("Category", e.value);
+            //    //$("#form").dxForm("instance").itemOption("Category", e.value);
+            //}
+        }
+    }
+    function OnPayWaySelectBoxValueChanged(e) {
+        if (e.value == "信用卡") {
+            //alert(e.value + "顯示");
+            //alert(e.value + "顯示 :" + GlobalCategory);
+            $("#form").dxForm("instance").itemOption("CreditCardList", 'visible', true);
+            //e.component.option('value', e.value);
+
+
+
+            //if (GlobalCategory != e.value) {
+            //    GlobalCategory = e.value;
+
+            //    alert(e.value + "顯示 001");
+            //    alert(e.value + "顯示 001" + $("#form").dxForm("instance").getEditor("Category"));
+            //    $("#form").dxForm("instance").getEditor("Category").option("value", e.value);
+            //    alert(e.value + "顯示 002");
+            //    //$("#form").dxForm("instance").Option("Category", e.value);
+            //    //$("#form").dxForm("instance").itemOption("Category", e.value);
+            //}
+        }
+        else {
+            //alert(e.value + "隱藏");
+            //alert(e.value + "隱藏 000:" + GlobalCategory );
+            $("#form").dxForm("instance").itemOption("CreditCardList", 'visible', false);
             //e.component.option('value', e.value);
 
 

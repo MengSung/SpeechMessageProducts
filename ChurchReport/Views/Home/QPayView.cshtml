@@ -114,10 +114,12 @@
                             }
                         //.DisplayExpr("Name")
                         )
-                        .Value("信用卡")
+                        .OnValueChanged("OnPayWaySelectBoxValueChanged")
+                        //.Value("信用卡")
                     );
 
             items.AddSimple().ColSpan(2)
+               .DataField("CreditCardList")
                .Label(l => l.Text("信用卡清單").Location(FormLabelLocation.Top))
                .Template(@<text>
                             @(Html.DevExtreme().DataGrid<CreditCard>()
@@ -275,6 +277,19 @@
             //}
         }
     }
+    function OnPayWaySelectBoxValueChanged(e) {
+        if (e.value == "信用卡") {
+            //alert(e.value + "顯示");
+            //alert(e.value + "顯示 :" + GlobalCategory);
+            $("#form").dxForm("instance").itemOption("CreditCardList", 'visible', true);
+        }
+        else {
+            //alert(e.value + "隱藏");
+            //alert(e.value + "隱藏 000:" + GlobalCategory );
+            $("#form").dxForm("instance").itemOption("CreditCardList", 'visible', false);
+        }
+    }
+
     function moveEditColumnToLeft(dataGrid) {
         dataGrid.columnOption("command:edit", {
             visibleIndex: -1,

@@ -28,6 +28,7 @@ namespace ChurchReport.Models
             try
             {
                 m_QpayModel.Category = "十一";
+                m_QpayModel.PayWay = "信用卡";
 
                 m_QpayModel.OtherCategoryArray = new List<String>();
                 EntityCollection TaskCollection = m_ToolUtilityClass.RetrieveTaskByFetchXml("宣道支持奉獻(請勿刪除)");
@@ -269,8 +270,8 @@ namespace ChurchReport.Models
                 // 奉獻單編號
                 m_QpayModel.DedicationNumber = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContact, "pager");
 
-
                 m_QpayModel.Category = "十一";
+                m_QpayModel.PayWay = "信用卡";
 
                 m_QpayModel.OtherCategoryArray = new List<String>();
                 EntityCollection TaskCollection = m_ToolUtilityClass.RetrieveTaskByFetchXml("宣道支持奉獻(請勿刪除)");
