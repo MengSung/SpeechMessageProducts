@@ -133,7 +133,7 @@ namespace ChurchReport.Models
                 throw e;
             }
         }
-        public QpayModel SetDedicationFeeList( String UserLineId )
+        public QpayModel SetDedicationFeeList(String UserLineId)
         {
             try
             {
@@ -150,7 +150,7 @@ namespace ChurchReport.Models
                 EntityCollection aDedicationFeeEntityCollection = this.m_ToolUtilityClass.RetrieveDedicationFeeByFetchXml(m_QpayModel.FullName, LineLoginContact.Id.ToString());
 
                 m_QpayModel.TotalAmount = 0;
-                foreach ( Entity aDedicationFeeEntity in aDedicationFeeEntityCollection.Entities)
+                foreach (Entity aDedicationFeeEntity in aDedicationFeeEntityCollection.Entities)
                 {
                     DedicationFee aDedicationFee = new DedicationFee();
 
@@ -158,12 +158,51 @@ namespace ChurchReport.Models
                     aDedicationFee.PayDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(aDedicationFeeEntity, "new_pay_date");
                     aDedicationFee.Amount = Convert.ToInt32(this.m_ToolUtilityClass.GetEntityMoneyAttribute(aDedicationFeeEntity, "new_fee_really_paid").Value);
                     m_QpayModel.TotalAmount += aDedicationFee.Amount;
-                    aDedicationFee.PayWay = ConvertToPayway( aDedicationFeeEntity );
+                    aDedicationFee.PayWay = ConvertToPayway(aDedicationFeeEntity);
                     aDedicationFee.Category = ConvertToCategory(aDedicationFeeEntity);
                     aDedicationFee.Others = this.m_ToolUtilityClass.GetEntityStringAttribute(aDedicationFeeEntity, "new_others");
                     m_QpayModel.DedicationFeeList.Add(aDedicationFee);
                 }
-                
+
+                return m_QpayModel;
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                //Monitor.Exit(this);
+                throw e;
+            }
+        }
+        public QpayModel SetDedicationFeeList(Entity LineLoginContact)
+        {
+            try
+            {
+                // 全名
+                m_QpayModel.FullName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "fullname");
+                // 全名
+                m_QpayModel.Mobile = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "mobilephone");
+                // 奉獻單編號
+                m_QpayModel.DedicationNumber = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "pager");
+
+                m_QpayModel.DedicationFeeList = new List<DedicationFee>();
+                EntityCollection aDedicationFeeEntityCollection = this.m_ToolUtilityClass.RetrieveDedicationFeeByFetchXml(m_QpayModel.FullName, LineLoginContact.Id.ToString());
+
+                m_QpayModel.TotalAmount = 0;
+                foreach (Entity aDedicationFeeEntity in aDedicationFeeEntityCollection.Entities)
+                {
+                    DedicationFee aDedicationFee = new DedicationFee();
+
+                    aDedicationFee.DedicationDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(aDedicationFeeEntity, "createdon");
+                    aDedicationFee.PayDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(aDedicationFeeEntity, "new_pay_date");
+                    aDedicationFee.Amount = Convert.ToInt32(this.m_ToolUtilityClass.GetEntityMoneyAttribute(aDedicationFeeEntity, "new_fee_really_paid").Value);
+                    m_QpayModel.TotalAmount += aDedicationFee.Amount;
+                    aDedicationFee.PayWay = ConvertToPayway(aDedicationFeeEntity);
+                    aDedicationFee.Category = ConvertToCategory(aDedicationFeeEntity);
+                    aDedicationFee.Others = this.m_ToolUtilityClass.GetEntityStringAttribute(aDedicationFeeEntity, "new_others");
+                    m_QpayModel.DedicationFeeList.Add(aDedicationFee);
+                }
+
                 return m_QpayModel;
             }
             catch (System.Exception e)
