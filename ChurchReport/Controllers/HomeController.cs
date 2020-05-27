@@ -111,19 +111,18 @@ namespace ChurchReport.Controllers
                 if (　ContactIdString != "密碼錯誤" && ContactIdString != "系統沒有設定密碼" && ContactIdString != "帳號錯誤"　)
                 {
                     string FullName = "";
+                    Entity aLoginContact;
                     if ( ContactIdString != "透過Line Id 登入" )
                     {
                         #region 使用者透過網頁的帳號密碼登入，所以帳號密碼就依據使用者輸入的為準
-                        Guid aContactGuid = new Guid(ContactIdString);
-
-                        FullName = m_ToolUtilityClass.RetrieveEntityDynamics365("contact", aContactGuid).Attributes["fullname"].ToString();
-
+                        aLoginContact = m_ToolUtilityClass.RetrieveEntityDynamics365("contact", new Guid(ContactIdString));
+                        FullName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aLoginContact, "fullname");
                         #endregion
                     }
                     else
                     {
                         #region 使用者透過 Line Id 登入，所以帳號 Account="LineIdLogin"字串，密碼 Password=LineId
-                        Entity aLoginContact = m_ToolUtilityClass.RetrieveContactEntityByLineUserId(m_InMemoryDataContextSmallGroup.LineBindingViewModel.LineUserId);
+                        aLoginContact = m_ToolUtilityClass.RetrieveContactEntityByLineUserId(m_InMemoryDataContextSmallGroup.LineBindingViewModel.LineUserId);
                         FullName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aLoginContact, "fullname");
                         aGalleryViewModel.Account = "LineIdLogin";
                         aGalleryViewModel.Password = m_InMemoryDataContextSmallGroup.LineBindingViewModel.LineUserId;
@@ -139,6 +138,12 @@ namespace ChurchReport.Controllers
 
                     // 差勤簽核 OR 場地及資源預約
                     m_InMemoryDataContextSmallGroup.AppointmentsListManager.SetupAppointmentList();
+
+                    // 永豐金流奉獻
+                    if ( aLoginContact != null)
+                    {
+                        m_InMemoryDataContextSmallGroup.QpayManager.SetQpayModel(aLoginContact);
+                    }
 
                     #region 控制 Navigation 下拉項目
                     ViewBag.SchedulerView = m_InMemoryDataContextSmallGroup.ListManager.SchedulerView = "不是單純行事曆";
@@ -4256,7 +4261,8 @@ namespace ChurchReport.Controllers
             }
         }
         #endregion
-        #region 永豐金流奉獻
+        #region 永豐金流奉獻 Line 單獨登入
+        #region Line 單獨登入
         [Route("/Home/QPayView/{DedicationViewPatameter}")]
         public ActionResult QPayView(string DedicationViewPatameter)
         {
@@ -4291,7 +4297,6 @@ namespace ChurchReport.Controllers
                 throw e;
             }
         }
-
         [HttpPost]
         public async Task<IActionResult> SaveQPayDedication( QpayModel QpayModel )
         {
@@ -4313,6 +4318,75 @@ namespace ChurchReport.Controllers
                 throw e;
             }
         }
+        #endregion
+        #region 電腦網頁登入
+        [HttpGet]
+        public ActionResult QPayViewWeb()
+        {
+            try
+            {
+                ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType;// 看是小組長還是個人回報
+                ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.ListManager.LoginFullName;
+                ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType;
+                #region 繳費與點名是否顯示在選單中
+                if (m_InMemoryDataContextSmallGroup.FeeList.FeeDataList != null && m_InMemoryDataContextSmallGroup.FeeList.FeeDataList.Count > 0)
+                {
+                    ViewBag.FeeDataListCount = "繳費與點名已有資料";
+                }
+                else
+                {
+                    ViewBag.FeeDataListCount = "繳費與點名尚無資料";
+                }
+                #endregion
+
+                if (m_InMemoryDataContextSmallGroup.HappyGroupDataManager.HappyType == "有幸福小組名單")
+                {
+                    ViewBag.HappyType = "有幸福小組名單";
+                }
+                else
+                {
+                    ViewBag.HappyType = "沒幸福小組名單";
+                }
+
+                SetMultiGroupLayoutParameter();
+
+                return View( m_InMemoryDataContextSmallGroup.QpayManager.m_QpayModel );
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "永和禮拜堂 : 綁定錯誤 => " + ErrorString);
+
+                throw e;
+            }
+        }
+        [HttpPost]
+        public async Task<IActionResult> SaveQPayDedicationWeb(QpayModel QpayModel)
+        {
+            try
+            {
+                return await m_InMemoryDataContextSmallGroup.QpayManager.SaveQPayDedication(QpayModel);
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "永和禮拜堂 : => " + ErrorString);
+
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
+                throw e;
+            }
+        }
+
+        #endregion
 
         #endregion
         #region 奉獻收費清單

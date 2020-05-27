@@ -98,7 +98,38 @@ namespace ChurchReport.WebServiceConnector
                 }
                 else
                 {
-                    return await ProcessAtm( aCreatedFeeId,  aFeeToUpdate,  QpayModel,  LineId,  LineLoginContact);
+                    return await ProcessAtm(aCreatedFeeId, aFeeToUpdate, QpayModel, LineId, LineLoginContact);
+                }
+                #endregion
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                //Monitor.Exit(this);
+                throw e;
+            }
+        }
+        public async Task<string> CreateFeeAsync(Entity LineLoginContact, QpayModel QpayModel)
+        {
+            try
+            {
+                #region 非同步建立收費單
+                Guid aCreatedFeeId = CreateFee(LineLoginContact, QpayModel);
+                Entity aFeeToUpdate = this.m_ToolUtilityClass.RetrieveEntity("new_fee", aCreatedFeeId);
+
+                if (QpayModel.PayWay == "信用卡")
+                {
+                    CreOrder CreatedCardOrder = await CreOrderCard(QpayModel.Amount, QpayModel.Category, DateTime.Now.ToString("yyyyMMddhhmmssfff"), aCreatedFeeId.ToString(), GetLastCCToken(LineLoginContact));
+
+                    // 用剛剛建立的收費單，填寫訂單編號
+                    UpdateFee(ref aFeeToUpdate, CreatedCardOrder.OrderNo, "", "");
+
+                    return CreatedCardOrder.CardParam.CardPayURL;
+                }
+                else
+                {
+                    return await ProcessAtm(aCreatedFeeId, aFeeToUpdate, QpayModel, "", LineLoginContact);
                 }
                 #endregion
             }
@@ -295,7 +326,8 @@ namespace ChurchReport.WebServiceConnector
                         "帳號     : " + CreatedAtmOrder.ATMParam.AtmPayNo + Environment.NewLine +
                         "戶名     : 其他應付款-代收-網路收款";
 
-                m_PushUtility.SendMessage(LineId, AtmInfoToLine);
+                LineId = LineId != ""? LineId: this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "new_lineid");
+                await m_PushUtility.SendMessage(LineId, AtmInfoToLine);
 
                 String AtmInfo =
                         "姓名 : " + this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "fullname") + "<br/>" +
@@ -351,7 +383,6 @@ namespace ChurchReport.WebServiceConnector
                 throw e;
             }
         }
-
         public Guid CreateFee(Entity aContact, QpayModel QpayModel)
         {
             try
