@@ -4306,7 +4306,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "永和禮拜堂 : 綁定錯誤 => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "永和禮拜堂 : => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -4363,6 +4363,78 @@ namespace ChurchReport.Controllers
                 throw e;
             }
         }
+        #endregion
+        #region 行政人員奉獻管理
+        public ActionResult KeyInDedicationFeeView()
+        {
+            try
+            {
+                #region 用小組長回報網頁登入
+                ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType;// 看是小組長還是個人回報
+                ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.ListManager.LoginFullName;
+                ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType;
+
+                if (m_InMemoryDataContextSmallGroup.HappyGroupDataManager.HappyType == "有幸福小組名單")
+                {
+                    ViewBag.HappyType = "有幸福小組名單";
+                }
+                else
+                {
+                    ViewBag.HappyType = "沒幸福小組名單";
+                }
+
+                ViewBag.LoginType = "小組長"; // 看是小組長還是個人回報
+                ViewBag.LoginFullName = "耶穌";
+                ViewBag.FeeType = "有繳費點名";
+                ViewBag.FeeDataListCount = "繳費與點名尚無資料";
+                ViewBag.HappyType = "沒幸福小組名單";
+                ViewBag.MultiGroupIndex = "SingleMultiGroupView";
+                //ViewBag.SchedulerView = m_InMemoryDataContextSmallGroup.ListManager.SchedulerView = "單純行事曆";
+                ViewBag.DisplayNavigation = m_InMemoryDataContextSmallGroup.ListManager.DisplayNavigation = "不顯示牧養回報項目";
+                ViewBag.UserType = m_InMemoryDataContextSmallGroup.ListManager.UserType = "行政同工";
+                ViewBag.DedicationType = m_InMemoryDataContextSmallGroup.ListManager.UserType = "奉獻管理";
+                #endregion
+
+                return View(m_InMemoryDataContextSmallGroup.QpayManager.SetDedicationFeeList(m_InMemoryDataContextSmallGroup.LineBindingViewModel.LineUserId));
+
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "永和禮拜堂 : 綁定錯誤 => " + ErrorString);
+
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
+                throw e;
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SaveKeyInDedication(QpayModel QpayModel)
+        {
+            try
+            {
+                return await m_InMemoryDataContextSmallGroup.QpayManager.SaveKeyInDedication( QpayModel );
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "永和禮拜堂 : 綁定錯誤 => " + ErrorString);
+
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
+                throw e;
+            }
+        }
+
         #endregion
         #region Line Id 資訊區
         [HttpPost]

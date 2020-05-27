@@ -1,0 +1,245 @@
+﻿@using ChurchReport.Models
+@model QpayModel
+@*<div class="long-title"><h3>奉獻資訊</h3></div>*@
+
+<div style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
+    <h5 id="displaynamefield">行政人員奉獻管理</h5>
+</div>
+
+<form data-ajax="true" data-ajax-begin="onBegin" data-ajax-success="onSuccess" asp-action="SaveKeyInDedication" asp-controller="Home" method="post">
+    <div class="dx-field">
+        <div id="buttonContainer" class="dx-button-icon">
+            @(Html.DevExtreme().Button()
+                    .Text("上傳")
+                    .Type(ButtonType.Success)
+                    .ID("save-button")
+                    .UseSubmitBehavior(true)
+                    .OnClick("ShowLoadPanel")
+            )
+        </div>
+        <div id="ToastContainer">
+            @(Html.DevExtreme().Toast()
+                .ID("toast")
+                .Position(p => p
+                    .At(HorizontalAlignment.Center, VerticalAlignment.Center)
+                    .Offset(0, 50))
+                    .Message("上傳成功了!")
+                    .DisplayTime(20000)
+                    .MaxWidth(200)
+            )
+
+        </div>
+        <div id="LoadPanel">
+            @(Html.DevExtreme().LoadPanel()
+                    .ID("loadPanel")
+                    .ShadingColor("rgba(0,0,0,0.4)")
+                    .Position(p => p.Of("#form-container"))
+                    .Visible(false)
+                    .ShowIndicator(true)
+                    .ShowPane(true)
+                    .Shading(true)
+                    .CloseOnOutsideClick(false)
+                    .Message("上傳資料中...")
+                    .Animation(l => l.Show(k => k.Easing(AnimationEasing.Swing)))
+            )
+
+        </div>
+    </div>
+    <div id="form-container">
+        @(Html.DevExtreme().Form<QpayModel>()
+        .ID("form")
+        .ColCount(2)
+        .Items(items =>
+        {
+            items.AddSimpleFor(m=>m.DedicationNumber)
+                //.DataField("LastName")
+                .Label(l => l.Text("奉獻編號"))
+                .Editor(e => e
+                    .TextBox()
+                    .Disabled(false)
+                    .Placeholder("輸入奉獻編號")
+               );
+
+            items.AddSimpleFor(m=>m.FullName)
+                //.DataField("LastName")
+                .Label(l => l.Text("姓名"))
+                .Editor(e => e
+                    .TextBox()
+                    .Disabled(false)
+                    .Placeholder("輸入姓名")
+               );
+
+            items.AddSimpleFor(m=>m.Mobile)
+                .Label(l => l.Text("行動電話"))
+                .Editor(e => e
+                    .TextBox()
+                    .Mask("+886 (X000) 000-000")
+                    .MaskRules(new { X = new JS("/[02-9]/") })
+                    .Placeholder("輸入手機號碼")
+                );
+
+
+            items.AddSimpleFor
+            (m => m.Category)
+                .Label(l => l.Text("類別"))
+                //.Name("Category")
+                .Editor
+                (
+                    e => e
+                    .SelectBox()
+                    .DataSource(new string[]
+                    {
+                       "十一",
+                       "感恩",
+                       "建堂",
+                       "宣教",
+                       "急難救助",
+                       "青年事工",
+                       "萬軍",
+                       "其他",
+                    }
+                //.DisplayExpr("Name")
+                )
+                .Placeholder("請選擇奉獻類別")
+                //.Value(Model.Category)
+                .OnValueChanged("OnCategorySelectBoxValueChanged")
+            );
+
+            items.AddSimpleFor
+            (m => m.Others)
+                .Label(l => l.Text("其他"))
+                .Visible(false)
+                .Name("OtherDedication")
+                .Editor
+                (
+                    e => e
+                    .SelectBox()
+                    .DataSource(Model.OtherCategoryArray)
+                    .Placeholder("請選擇奉獻類別")
+                    //.Value("特別")
+                );
+
+            items.AddSimpleFor(m => m.Amount)
+                    //.DataField("LastName")
+                    .Label(l => l.Text("奉獻金額"))
+                    .Editor(e => e
+                        .NumberBox().Value(null)
+                        .Disabled(false)
+                        .Placeholder("輸入奉獻金額")
+                    );
+
+            items.AddSimpleFor
+                    (m => m.PayWay)
+                        .Label(l => l.Text("付款方式"))
+                        .Editor
+                        (
+                            e => e
+                            .SelectBox()
+                            .DataSource(new string[]
+                            {
+                                           "現金",
+                                           "信用卡",
+                                           "ATM轉帳/匯款",
+                            }
+                        //.DisplayExpr("Name")
+                        )
+                        .Value("現金")
+                    );
+        })
+        .OnContentReady
+        (@<text>
+            function(e)
+            {
+                e.component.validate();
+            }
+        </text>)
+
+        .FormData(Model)
+        )
+
+    </div>
+    <div id="buttonContainer2" class="dx-button-icon">
+        @(Html.DevExtreme().Button()
+                    .Text("上傳")
+                    .Type(ButtonType.Success)
+                    .ID("save-button2")
+                    .UseSubmitBehavior(true)
+                    .OnClick("ShowLoadPanel")
+            )
+    </div>
+</form>
+
+<script>
+    function getLoadPanelInstance() {
+        return $("#loadPanel").dxLoadPanel("instance");
+    }
+    function ShowLoadPanel(arg) {
+
+        getLoadPanelInstance().show();
+    }
+    function ShowToast(LocalToastMessage, Type, DisplayTime) {
+        //debugger;
+        var ToastInstance = $("#toast").dxToast("instance");
+        ToastInstance.option('message', LocalToastMessage);
+        ToastInstance.option('type', Type);
+        ToastInstance.option('displayTime', DisplayTime);
+        ToastInstance.option('white-space', 'pre-line');
+        ToastInstance.option('closeOnClick', true);
+        ToastInstance.show();
+    }
+
+    var GlobalCategory = "";
+
+    function OnCategorySelectBoxValueChanged(e) {
+        if (e.value == "其他")
+        {
+            $("#form").dxForm("instance").itemOption("OtherDedication", 'visible', true);
+        }
+        else
+        {
+            $("#form").dxForm("instance").itemOption("OtherDedication", 'visible', false);
+        }
+    }
+
+</script>
+
+<script type="text/javascript">
+            function onBegin() {
+            }
+
+            function onSuccess(data) {
+
+                getLoadPanelInstance().hide();
+
+                if (data.status == 1) {
+                    if ( data.PayWay == "信用卡" ) {
+                        //alert("成功 3");
+                        ShowToast(data.message, "success", 2000);
+                    }
+                    else
+                    {
+                        ShowToast(data.message, "success", 2000);
+                    }
+                }
+                else
+                {
+                    ShowToast(data.message, "error", 3000);
+                }
+            }
+
+            function onComplete(data)
+            {
+                if (data.status == 1) {
+                }
+                else {
+                }
+            }
+</script>
+
+<link href="~/css/Scheduler.css" rel="stylesheet" />
+<link href="~/css/Site.css" rel="stylesheet" />
+
+<script src="~/lib/jquery-ajax-unobtrusive/jquery.unobtrusive-ajax.js"></script>
+<link href="~/css/Gallery.css" rel="stylesheet" />
+<script src="~/js/devextreme/devextreme-intl.min.js"></script>
+<script src="~/js/devextreme/localization/dx.messages.zh-tw.js"></script>

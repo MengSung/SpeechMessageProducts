@@ -13,11 +13,13 @@ namespace ChurchReport.Models
 {
     public class QpayManager : Controller
     {
+        #region 資料區
         private ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
 
         public QpayModel m_QpayModel { get; set; } = new QpayModel();            
 
         private QPayProcessor m_QPayProcessor = new QPayProcessor();
+        #endregion
 
         public QpayModel SetQpayModel()
         {
@@ -55,14 +57,13 @@ namespace ChurchReport.Models
                 throw e;
             }
         }
-
         public async Task<IActionResult> SaveQPayDedication(QpayModel QpayModel, String LineUserId)
         {
             try
             {
                 if (QpayModel.Amount != null && QpayModel.Amount > 0)
                 {
-                    String DedicationResult = await m_QPayProcessor.CreateFeeAsync( LineUserId, QpayModel);
+                    String DedicationResult = await m_QPayProcessor.CreateFeeAsync(LineUserId, QpayModel);
 
                     String PayWay = "";
                     if (DedicationResult.Contains("*** 請依照訊息付款 ***") != true)
@@ -94,7 +95,42 @@ namespace ChurchReport.Models
                 throw e;
             }
         }
+        public async Task<IActionResult> SaveKeyInDedication( QpayModel QpayModel )
+        {
+            try
+            {
+                if (QpayModel.Amount != null && QpayModel.Amount > 0)
+                {
+                    String DedicationResult = await m_QPayProcessor.SaveKeyInDedication( QpayModel );
 
+                    if (DedicationResult.Contains("錯誤") != true)
+                    {
+                        return Json(new { status = "1", message = DedicationResult, DedicationResult = DedicationResult });
+                    }
+                    else
+                    {
+                        return Json(new { status = "2", message = DedicationResult, DedicationResult = DedicationResult });
+                    }
+                }
+                else
+                {
+                    return Json(new { status = "2", message = "未輸入奉獻金額" });
+                }
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                //m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "永和禮拜堂 : 綁定錯誤 => " + ErrorString);
+
+                //return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
+                throw e;
+            }
+        }
         public QpayModel SetDedicationFeeList( String UserLineId )
         {
             try
@@ -103,6 +139,8 @@ namespace ChurchReport.Models
 
                 // 全名
                 m_QpayModel.FullName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "fullname");
+                // 全名
+                m_QpayModel.Mobile = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "mobilephone");
                 // 奉獻單編號
                 m_QpayModel.DedicationNumber = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "pager");
 
@@ -134,7 +172,6 @@ namespace ChurchReport.Models
                 throw e;
             }
         }
-
         private String ConvertToPayway(Entity aFeeEntity)
         {
             switch (this.m_ToolUtilityClass.GetOptionSetAttribute(aFeeEntity, "new_pay_way"))
@@ -153,7 +190,6 @@ namespace ChurchReport.Models
                     return  "未知";
             }
         }
-
         public String ConvertToCategory( Entity aFeeEntity )
         {
             switch (this.m_ToolUtilityClass.GetOptionSetAttribute(aFeeEntity, "new_category"))
@@ -178,6 +214,5 @@ namespace ChurchReport.Models
                     return "十一";
             }
         }
-
     }
 }

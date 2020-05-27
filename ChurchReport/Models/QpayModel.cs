@@ -11,6 +11,7 @@ namespace ChurchReport.Models
         { }
 
         public String FullName { get; set; }                            //姓名
+        public String Mobile { get; set; }                              //手機
         public String DedicationNumber { get; set; }                    //奉獻編號
         public DateTime DedicationDate { get; set; } = DateTime.Now;    //奉獻日期
         public String BankName { get; set; }                            //銀行名稱

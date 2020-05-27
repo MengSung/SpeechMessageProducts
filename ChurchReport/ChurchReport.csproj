@@ -22,6 +22,7 @@
     <None Remove="Views\Home\FeeView.cshtml" />
     <None Remove="Views\Home\HappyGroupWeeklyReport.cshtml" />
     <None Remove="Views\Home\IntegrateView.cshtml" />
+    <None Remove="Views\Home\KeyInDedicationFeeView.cshtml" />
     <None Remove="Views\Home\LineIdLoginView - 沒有按鈕.cshtml" />
     <None Remove="Views\Home\LineIdLoginView.cshtml" />
     <None Remove="Views\Home\LineLiffView.cshtml" />

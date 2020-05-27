@@ -110,7 +110,6 @@ namespace ChurchReport.WebServiceConnector
                 throw e;
             }
         }
-
         public Guid CreateFee(String LineId, QpayModel QpayModel)
         {
             try
@@ -166,7 +165,7 @@ namespace ChurchReport.WebServiceConnector
                 this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aFeeToCreated, "new_pay_date", QpayModel.DedicationDate.ToLocalTime());
 
                 // 奉獻類別
-                SetFeePayWay(QpayModel.Category, ref aFeeToCreated);
+                SetFeePayCategory(QpayModel.Category, ref aFeeToCreated);
 
                 // 收費單奉獻其他類別
                 if (QpayModel.Category == "其他")
@@ -184,7 +183,7 @@ namespace ChurchReport.WebServiceConnector
                 throw e;
             }
         }
-        public void SetFeePayWay(String Value, ref Entity aFeeEntity)
+        public void SetFeePayCategory(String Value, ref Entity aFeeEntity)
         {
 
             switch (Value)
@@ -320,6 +319,193 @@ namespace ChurchReport.WebServiceConnector
                 throw e;
             }
         }
+
+        public async Task<string> SaveKeyInDedication(QpayModel QpayModel)
+        {
+            try
+            {
+                #region 非同步建立收費單
+                Entity aContact = GetContact(QpayModel);
+                if( aContact == null )
+                {
+                    return "錯誤:找不到會友!";
+                }
+                else
+                {
+                    Guid aCreatedFeeId = CreateFee(aContact, QpayModel);
+
+                    SendGratitudeLineMessage( aContact, QpayModel);
+
+                    String Result = "感謝" + this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContact, "fullname") + "您的奉獻";
+                    return Result;
+                }
+
+                
+                #endregion
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                //Monitor.Exit(this);
+                throw e;
+            }
+        }
+
+        public Guid CreateFee(Entity aContact, QpayModel QpayModel)
+        {
+            try
+            {
+                #region 建立收費單
+
+                Entity aFeeToCreated = new Entity("new_fee");
+
+                SetFeeParameter(aContact, aFeeToCreated, QpayModel);
+
+                return this.m_ToolUtilityClass.CreateEntity(aFeeToCreated);
+                #endregion
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                //Monitor.Exit(this);
+                throw e;
+            }
+        }
+        public void SetFeeParameter(Entity aContact, Entity aFeeToCreated, QpayModel QpayModel)
+        {
+            try
+            {
+                #region 建立收費單所需要的參數
+                // 取得報名者的全名
+                String FullName = "";
+                FullName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContact, "fullname");
+
+                // 收費單名稱
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeToCreated, "new_name", FullName + "奉獻");
+
+                // 收費單姓名關聯 LOOKUP
+                this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aFeeToCreated, "new_contact_new_fee", "contact", aContact.Id);
+
+                // 收費單應收金額
+                this.m_ToolUtilityClass.SetEntityMoneyAttribute(ref aFeeToCreated, "new_fee_shoud_pay", new Money(QpayModel.Amount));
+
+                // 收費單實收金額
+                this.m_ToolUtilityClass.SetEntityMoneyAttribute(ref aFeeToCreated, "new_fee_really_paid", new Money(QpayModel.Amount));
+
+                // 收費單付款狀態:現金已繳費
+                this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeToCreated, "new_pay_status", 100000003);
+
+                // 收費單付款方式，預設是現金
+                SetPayMethod(QpayModel.PayWay, ref aFeeToCreated);
+
+                // 帳戶後六碼
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeToCreated, "new_last_six_digit", QpayModel.SerialNumber);
+
+                // 收費單收費日期
+                this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aFeeToCreated, "new_pay_date", QpayModel.DedicationDate.ToLocalTime());
+
+
+                
+                // 奉獻類別
+                SetFeePayCategory(QpayModel.Category, ref aFeeToCreated);
+
+                // 收費單奉獻其他類別
+                if (QpayModel.Category == "其他")
+                {
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeToCreated, "new_others", QpayModel.Others);
+                }
+
+                #endregion
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                //Monitor.Exit(this);
+                throw e;
+            }
+        }
+        public Entity GetContact(QpayModel QpayModel)
+        {
+            try
+            {
+                #region 非同步建立收費單
+                if (QpayModel.DedicationNumber != "" && QpayModel.DedicationNumber != null)
+                {
+                    return this.m_ToolUtilityClass.RetrieveEntityByField("contact", "pager", QpayModel.DedicationNumber);
+                }
+                else if (QpayModel.FullName != "" && QpayModel.Mobile != "")
+                {
+                    return this.m_ToolUtilityClass.RetrieveContactEntityByFullNameAndMobileNumber( QpayModel.FullName, QpayModel.FullName);
+                }
+                else { return null; }
+                #endregion
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                //Monitor.Exit(this);
+                throw e;
+            }
+        }
+        public void SetPayMethod(String Value, ref Entity aFeeEntity)
+        {
+
+            switch (Value)
+            {
+                case "未知":
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_pay_way", 100000004);
+                    break;
+                case "現金":
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_pay_way", 100000000);
+                    break;
+                case "信用卡":
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_pay_way", 100000001);
+                    break;
+                case "ATM轉帳":
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_pay_way", 100000002);
+                    break;
+                case "超商付款":
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_pay_way", 100000003);
+                    break;
+                default:
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_pay_way", 100000004);
+                    break;
+
+            }
+        }
+        public void SendGratitudeLineMessage(Entity aContact, QpayModel QpayModel)
+        {
+            try
+            {
+                #region 非同步建立收費單
+                String LineId = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContact, "new_lineid");
+
+                if (LineId != "")
+                {
+                    String GratitudeMessage =
+                        "感謝 " + m_ToolUtilityClass.GetEntityStringAttribute(ref aContact, "fullname") + " 奉獻" + Environment.NewLine +
+                        "日期 : " + DateTime.Now.ToShortDateString() +
+                        "類別 : " + QpayModel.Category + "  " + QpayModel.Others +
+                        "金額 : " + QpayModel.Amount;
+
+                    m_PushUtility.SendMessage(LineId, GratitudeMessage);
+                }
+
+                #endregion
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                //Monitor.Exit(this);
+                throw e;
+            }
+        }
+
         #endregion
         #region 永豐金流工具區
         public async Task<CreOrder> CreOrderCard(int Amount, String ProductName, String OrderDate, String FeeId, String CCToken = null)

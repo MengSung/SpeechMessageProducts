@@ -632,6 +632,49 @@ namespace ToolUtilityNameSpace
 
         #endregion
         #region 透過屬性取得實體
+        #region 取得一般實體
+        public Entity RetrieveEntityByField( String EntityName, String FieldName, String FieldValue )
+        {
+            try
+            {
+                //lock (m_RetrieveContactLocker)
+                //{
+                //  Create query using querybyattribute
+                //Console.WriteLine("除錯 001");
+
+                QueryByAttribute querybyexpression = new QueryByAttribute(EntityName);
+                querybyexpression.ColumnSet = new ColumnSet();
+                querybyexpression.ColumnSet.AllColumns = true;
+                //  Attribute to query
+                querybyexpression.Attributes.AddRange(FieldName, "statecode");
+                //  Value of queried attribute to return
+                querybyexpression.Values.AddRange(FieldValue, 0);
+
+                //Console.WriteLine("除錯 002");
+                //  Query passed to the service proxy
+                EntityCollection retrieved;
+                if (CRM_TYPE == "DYNAMICS365")
+                {
+                    retrieved = this.m_OrganizationService.RetrieveMultiple(querybyexpression);
+                }
+                else
+                {
+                    retrieved = this.m_Crm2011OrganizationService.RetrieveMultiple(querybyexpression);
+                }
+
+                if (retrieved.Entities.Count > 0 && retrieved != null)
+                {
+                    return retrieved.Entities[0];
+                }
+                else { return null; }
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                throw e;
+            }
+        }
+        #endregion        
         #region 取得聯絡人
         //private readonly object m_RetrieveContactLocker = new object();
         public String RetrieveContactByContactId(String ContactId)
@@ -873,51 +916,6 @@ namespace ToolUtilityNameSpace
                     if (retrieved.Entities.Count > 0 && retrieved != null)
                     {
                         return retrieved.Entities[0];
-                    }
-                    else
-                    {
-                        return null;
-                    }
-                //}
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                throw e;
-            }
-        }
-        public Entity RetrieveContactByNameAndMobile(ref IOrganizationService aOrganizationService, String ContactFullName, String Mobile)
-        {
-            try
-            {
-                //lock (m_RetrieveContactLocker)
-                //{
-                    //  Create query using querybyattribute
-
-                    QueryByAttribute querybyexpression = new QueryByAttribute("contact");
-                    querybyexpression.ColumnSet = new ColumnSet();
-                    querybyexpression.ColumnSet.AllColumns = true;
-                    //  Attribute to query
-                    querybyexpression.Attributes.AddRange("fullname", "statecode");
-                    //  Value of queried attribute to return
-                    querybyexpression.Values.AddRange(ContactFullName, 0);
-
-                    //  Query passed to the service proxy
-                    EntityCollection retrieved = aOrganizationService.RetrieveMultiple(querybyexpression);
-
-                    Regex DigitsOnly = new Regex(@"[^\d]");
-
-                    if (retrieved.Entities.Count > 0 && retrieved != null)
-                    {
-                        foreach (Entity aContactEntity in retrieved.Entities)
-                        {
-                            String MobilePhone = this.GetEntityStringAttribute(aContactEntity, "mobilephone");
-                            if (DigitsOnly.Replace(MobilePhone, "") == DigitsOnly.Replace(Mobile, ""))
-                            {
-                                return aContactEntity;
-                            }
-                        }
-                        return null;
                     }
                     else
                     {
