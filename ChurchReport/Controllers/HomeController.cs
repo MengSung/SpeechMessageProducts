@@ -4486,6 +4486,28 @@ namespace ChurchReport.Controllers
             }
         }
         #endregion
+
+        public async Task<IActionResult> UpdateDedicationFeeView(QpayModel QpayModel)
+        {
+            try
+            {
+                return Json(new { status = "1", message = "成功上傳了.... !" });
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "永和禮拜堂 : 綁定錯誤 => " + ErrorString);
+
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
+                throw e;
+            }
+        }
+
         #endregion
         #region 行政人員奉獻管理
         #region Line 單獨登入
