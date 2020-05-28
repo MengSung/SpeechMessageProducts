@@ -25,40 +25,6 @@
                         .UseSubmitBehavior(true)
             )
     </div>
-
-    <div id="StartLabel" width:15%; background-color:white;">開始日期</div>
-    <div id="StartDateBoxContainer" class="dx-field-value" width:55%; background-color:white;">
-        @(Html.DevExtreme()
-                    //.DateBox()
-                    .DateBoxFor(m => m.QueryStartDate)
-                    .Type(DateBoxType.Date)
-                    //.Value(Model.QueryStartDate)
-                    .Width(50)
-                    //.DisplayFormat("yyyy/M/d")
-                    .OnChange("OnDateboxChange")
-                    .CalendarOptions( k=>k.FirstDayOfWeek(0))
-                    .PickerType(DateBoxPickerType.Calendar)
-                    .DisplayFormat("yyyy/MM/dd")
-                    //.OnValueChanged("OnValueChanged")
-                    )
-    </div>
-    <div id="EndLabel" width:15%; background-color:white;">結束日期</div>
-    <div id="EndDateBoxContainer" class="dx-field-value" width:55%; background-color:white;">
-        @(Html.DevExtreme()
-                    //.DateBox()
-                    .DateBoxFor(m => m.QueryEndDate)
-                    .Type(DateBoxType.Date)
-                    .Value(Model.QueryEndDate)
-                    .Width(50)
-                    .DisplayFormat("yyyy/M/d")
-                    .OnChange("OnDateboxChange")
-                    .CalendarOptions( k=>k.FirstDayOfWeek(0))
-                    .PickerType(DateBoxPickerType.Calendar)
-                    //.DisplayFormat("yyyy/MM/dd")
-                    //.OnValueChanged("OnValueChanged")
-                    )
-    </div>
-
     <div class="dx-field">
         <div id="LoadPanel">
             @(Html.DevExtreme().LoadPanel()
