@@ -148,7 +148,7 @@ namespace ChurchReport.Models
                 m_QpayModel.DedicationNumber = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "pager");
 
                 m_QpayModel.DedicationFeeList = new List<DedicationFee>();
-                EntityCollection aDedicationFeeEntityCollection = this.m_ToolUtilityClass.RetrieveDedicationFeeByFetchXml(m_QpayModel.FullName, LineLoginContact.Id.ToString());
+                EntityCollection aDedicationFeeEntityCollection = this.m_ToolUtilityClass.RetrieveDedicationFeeByDateFetchXml(m_QpayModel.FullName, LineLoginContact.Id.ToString(), m_QpayModel.QueryStartDate, m_QpayModel.QueryEndDate);
 
                 m_QpayModel.TotalAmount = 0;
                 foreach (Entity aDedicationFeeEntity in aDedicationFeeEntityCollection.Entities)
@@ -187,7 +187,7 @@ namespace ChurchReport.Models
                 m_QpayModel.DedicationNumber = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "pager");
 
                 m_QpayModel.DedicationFeeList = new List<DedicationFee>();
-                EntityCollection aDedicationFeeEntityCollection = this.m_ToolUtilityClass.RetrieveDedicationFeeByFetchXml(m_QpayModel.FullName, LineLoginContact.Id.ToString());
+                EntityCollection aDedicationFeeEntityCollection = this.m_ToolUtilityClass.RetrieveDedicationFeeByDateFetchXml(m_QpayModel.FullName, LineLoginContact.Id.ToString(), m_QpayModel.QueryStartDate, m_QpayModel.QueryEndDate);
 
                 m_QpayModel.TotalAmount = 0;
                 foreach (Entity aDedicationFeeEntity in aDedicationFeeEntityCollection.Entities)

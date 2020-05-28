@@ -2432,6 +2432,70 @@ namespace ToolUtilityNameSpace
                 throw e;
             }
         }
+        public EntityCollection RetrieveDedicationFeeByDateFetchXml(String ContactName, String ContactId, DateTime StartDate, DateTime EndDate)
+        {
+            try
+            {
+                ContactName = @"'" + ContactName + @"'";
+                ContactId = @"'{" + ContactId + @"}'";
+
+                //DateTime StartDate = DateTime.Now.AddDays(-24);
+                string StartDateString = @"'" + StartDate.Year + "-" + StartDate.Month + "-" + StartDate.Day + @"'";
+
+                //DateTime EndDate = DateTime.Now.AddDays(24);
+                string EndDateString = @"'" + EndDate.Year + "-" + EndDate.Month + "-" + EndDate.Day + @"'";
+
+                var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+                                  <entity name='new_fee'>
+                                    <attribute name='new_feeid' />
+                                    <attribute name='new_name' />
+                                    <attribute name='createdon' />
+                                    <attribute name='new_pay_date' />
+                                    <attribute name='new_fee_shoud_pay' />
+                                    <attribute name='new_fee_really_paid' />
+                                    <attribute name='new_pay_way' />
+                                    <attribute name='new_category' />
+                                    <attribute name='new_others' />
+                                    <order attribute='new_name' descending='false' />
+                                    <filter type='and'>
+                                      <condition attribute='new_contact_new_fee' operator='eq' uiname=" + ContactName + @" uitype='contact' value=" + ContactId + @" />
+                                      <condition attribute='new_category' operator='not-null' />
+                                      <condition attribute='new_pay_status' operator='in'>
+                                        <value>100000001</value>
+                                        <value>100000003</value>
+                                        <value>100000002</value>
+                                      </condition>
+                                      <condition attribute='createdon' operator='on-or-after'  value=" + StartDateString + @" />
+                                      <condition attribute='createdon' operator='on-or-before' value=" + EndDateString + @" />
+                                    </filter>
+                                  </entity>
+                                </fetch>";
+
+                RetrieveMultipleRequest fetchRequest = new RetrieveMultipleRequest
+                {
+                    Query = new FetchExpression(fetchXml)
+                };
+
+                EntityCollection retrieved;
+                if (CRM_TYPE == "DYNAMICS365")
+                {
+                    retrieved = ((RetrieveMultipleResponse)this.m_OrganizationService.Execute(fetchRequest)).EntityCollection;
+                }
+                else
+                {
+                    retrieved = ((RetrieveMultipleResponse)this.m_Crm2011OrganizationService.Execute(fetchRequest)).EntityCollection;
+                }
+
+
+                return retrieved;
+                //}
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                throw e;
+            }
+        }
         #endregion
         #endregion
         #region 搜尋 N:1 的集合
