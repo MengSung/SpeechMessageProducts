@@ -4487,10 +4487,13 @@ namespace ChurchReport.Controllers
         }
         #endregion
 
-        public async Task<IActionResult> UpdateDedicationFeeView(QpayModel QpayModel)
+        public async Task<IActionResult> UpdateDedicationFeeView(QpayModel aQpayModel)
         {
             try
             {
+                m_InMemoryDataContextSmallGroup.QpayManager.m_QpayModel.QueryStartDate = aQpayModel.QueryStartDate;
+                m_InMemoryDataContextSmallGroup.QpayManager.m_QpayModel.QueryEndDate = aQpayModel.QueryEndDate;
+
                 return Json(new { status = "1", message = "成功上傳了.... !" });
             }
             catch (System.Exception e)
