@@ -140,7 +140,7 @@
                 //editing.Mode(GridEditMode.Batch);
                 //editing.Mode(GridEditMode.Form);
                 //editing.Mode(GridEditMode.Popup);
-                //editing.AllowUpdating(true);
+                editing.AllowUpdating(true);
                 //editing.AllowAdding(true);
                 //editing.AllowDeleting(true);
                 editing.Texts(a => a.SaveAllChanges("上傳檔案").AddRow("新增").CancelAllChanges("取消變更").SaveRowChanges("儲存").CancelRowChanges("取消").EditRow("編輯").DeleteRow("刪除"));
@@ -153,7 +153,7 @@
                 columns.AddFor(m => m.PayDate).Caption("付款日期").Alignment(HorizontalAlignment.Center).DataType(GridColumnDataType.Date).Format("yyyy/M/d").Width(100).MinWidth(45).AllowEditing(false).AllowSorting(true);
                 columns.AddFor(m => m.PayWay).Caption("付款方式").Width(80).MinWidth(80).AllowEditing(false).AllowSorting(true);
                 columns.AddFor(m => m.Amount).Caption("金額").Width(80).MinWidth(80).AllowEditing(false).AllowSorting(true);
-                columns.AddFor(m => m.Others).Caption("奉獻細項").Width(120).MinWidth(120).AllowEditing(false).AllowSorting(true);
+                columns.AddFor(m => m.Others).Caption("奉獻細項").Width(180).MinWidth(180).AllowEditing(false).AllowSorting(true);
             })
             .DataSource
             (Model.DedicationFeeList)
