@@ -63,7 +63,7 @@ namespace ChurchReport.Models
                 throw e;
             }
         }
-        public async Task<IActionResult> SaveQPayDedication(QpayModel QpayModel, String LineUserId)
+        public async Task<IActionResult> SaveQPayDedication( QpayModel QpayModel, String LineUserId )
         {
             try
             {
@@ -298,6 +298,9 @@ namespace ChurchReport.Models
 
                 m_QpayModel.QueryStartDate = new DateTime(DateTime.Now.Year, 1, 1);
                 m_QpayModel.QueryEndDate = DateTime.Now;
+
+                // 教會職稱是否是會計
+                m_QpayModel.IsAOfficeWorker = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContact, "new_church_jobtitle") == "會計" ? true : false;
 
                 return m_QpayModel;
             }

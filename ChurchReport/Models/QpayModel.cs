@@ -21,12 +21,13 @@ namespace ChurchReport.Models
         public String PayWay { get; set; }                              //付款方式
         public String Others { get; set; }                              //其他奉獻
         public List<String> OtherCategoryArray { get; set; }
-        public List<CreditCard> CreditCardList { get; set; } // 
-        public List<DedicationFee> DedicationFeeList { get; set; } // 
+        public List<CreditCard> CreditCardList { get; set; } 
+        public List<DedicationFee> DedicationFeeList { get; set; } 
         public int TotalAmount { get; set; }                            //奉獻總金額
 
         public DateTime QueryStartDate { get; set; } = DateTime.Now;    //奉獻查詢開始日期
         public DateTime QueryEndDate { get; set; } = DateTime.Now;      //奉獻查詢結束日期
 
+        public bool IsAOfficeWorker { get; set; } = false;              //是否符合輸入奉獻的行政人員
     }
 }

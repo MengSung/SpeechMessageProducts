@@ -27,6 +27,7 @@ using System.Threading.Tasks;
 using ChurchReport.WebServiceConnector;
 using System.Globalization;
 using ChurchReport.Tools;
+using Microsoft.Xrm.Sdk.Discovery;
 
 namespace ChurchReport.Controllers
 {
@@ -3587,6 +3588,8 @@ namespace ChurchReport.Controllers
                 ViewBag.MultiGroupIndex = "IntegrateView";
             }
 
+            // 教會職稱是否是會計
+            ViewBag.IsAOfficeWorker = m_InMemoryDataContextSmallGroup.QpayManager.m_QpayModel.IsAOfficeWorker == true ? "是的" : "否";
         }
 
         #endregion
@@ -4261,7 +4264,7 @@ namespace ChurchReport.Controllers
             }
         }
         #endregion
-        #region 永豐金流奉獻 Line 單獨登入
+        #region 永豐金流奉獻
         #region Line 單獨登入
         [Route("/Home/QPayView/{DedicationViewPatameter}")]
         public ActionResult QPayView(string DedicationViewPatameter)
@@ -4278,11 +4281,10 @@ namespace ChurchReport.Controllers
                 ViewBag.DisplayNavigation = m_InMemoryDataContextSmallGroup.ListManager.DisplayNavigation = "不顯示牧養回報項目";
                 ViewBag.UserType = m_InMemoryDataContextSmallGroup.ListManager.UserType = "行政同工";
                 ViewBag.DedicationType = m_InMemoryDataContextSmallGroup.ListManager.UserType = "奉獻管理";
+                // 教會職稱是否是會計
+                ViewBag.IsAOfficeWorker = m_InMemoryDataContextSmallGroup.QpayManager.m_QpayModel.IsAOfficeWorker == true ? "是的" : "否";
 
                 TempData["Proponent"] = DedicationViewPatameter;
-
-                //m_InMemoryDataContextSmallGroup.QpayManager.SetQpayModel();
-
 
                 return View( m_InMemoryDataContextSmallGroup.QpayManager.SetQpayModel() );
             }
@@ -4418,6 +4420,8 @@ namespace ChurchReport.Controllers
                 ViewBag.DisplayNavigation = m_InMemoryDataContextSmallGroup.ListManager.DisplayNavigation = "不顯示牧養回報項目";
                 ViewBag.UserType = m_InMemoryDataContextSmallGroup.ListManager.UserType = "行政同工";
                 ViewBag.DedicationType = m_InMemoryDataContextSmallGroup.ListManager.UserType = "奉獻管理";
+                // 教會職稱是否是會計
+                ViewBag.IsAOfficeWorker = m_InMemoryDataContextSmallGroup.QpayManager.m_QpayModel.IsAOfficeWorker == true ? "是的" : "否";
                 #endregion
 
                 return View(m_InMemoryDataContextSmallGroup.QpayManager.SetDedicationFeeList(m_InMemoryDataContextSmallGroup.LineBindingViewModel.LineUserId));
@@ -4542,6 +4546,8 @@ namespace ChurchReport.Controllers
                 ViewBag.DisplayNavigation = m_InMemoryDataContextSmallGroup.ListManager.DisplayNavigation = "不顯示牧養回報項目";
                 ViewBag.UserType = m_InMemoryDataContextSmallGroup.ListManager.UserType = "行政同工";
                 ViewBag.DedicationType = m_InMemoryDataContextSmallGroup.ListManager.UserType = "奉獻管理";
+                // 教會職稱是否是會計
+                ViewBag.IsAOfficeWorker = m_InMemoryDataContextSmallGroup.QpayManager.m_QpayModel.IsAOfficeWorker == true ? "是的" : "否";
                 #endregion
 
                 return View(m_InMemoryDataContextSmallGroup.QpayManager.SetDedicationFeeList(m_InMemoryDataContextSmallGroup.LineBindingViewModel.LineUserId));
@@ -4665,6 +4671,9 @@ namespace ChurchReport.Controllers
                 String FullName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "fullname");
                 // 奉獻單編號
                 String DedicationNumber = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "pager");
+
+                // 教會職稱是否是會計
+                m_InMemoryDataContextSmallGroup.QpayManager.m_QpayModel.IsAOfficeWorker = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "new_church_jobtitle") == "會計"?true:false;
 
                 return Json( new { FullName = FullName , DedicationNumber = DedicationNumber } );
 
