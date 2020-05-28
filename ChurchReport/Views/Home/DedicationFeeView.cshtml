@@ -12,203 +12,202 @@
     <title>永和禮拜堂</title>
 </head>
 
+<div style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
+    <h5 id="displaynamefield">@Model.FullName 奉獻編號:@Model.DedicationNumber</h5>
+</div>
+
 <form data-ajax="true" data-ajax-begin="onBegin" data-ajax-success="onSuccess" asp-action="UpdateDedicationFeeView" asp-controller="Home" method="post">
-
-    <div id="StartLabel" class="dx-field-label" style="float: left; width:15%; background-color:white;">開始日期</div>
-    <div id="StartDateBoxContainer" class="dx-field-value" style="float: left; width:55%; background-color:white;">
-        @(Html.DevExtreme()
-                    //.DateBox()
-                    .DateBoxFor(m => m.QueryStartDate)
-                    .Type(DateBoxType.Date)
-                    .Value(Model.QueryStartDate)
-                    .Width(50)
-                    .DisplayFormat("yyyy/M/d")
-                    .OnChange("OnDateboxChange")
-                    .CalendarOptions( k=>k.FirstDayOfWeek(0))
-                    .PickerType(DateBoxPickerType.Calendar)
-                    //.DisplayFormat("yyyy/MM/dd")
-                    //.OnValueChanged("OnValueChanged")
-                    )
-    </div>
-    <div id="EndLabel" class="dx-field-label" style="float: left; width:15%; background-color:white;">結束日期</div>
-    <div id="EndDateBoxContainer" class="dx-field-value" style="float: left; width:55%; background-color:white;">
-        @(Html.DevExtreme()
-                    //.DateBox()
-                    .DateBoxFor(m => m.QueryEndDate)
-                    .Type(DateBoxType.Date)
-                    .Value(Model.QueryEndDate)
-                    .Width(50)
-                    .DisplayFormat("yyyy/M/d")
-                    .OnChange("OnDateboxChange")
-                    .CalendarOptions( k=>k.FirstDayOfWeek(0))
-                    .PickerType(DateBoxPickerType.Calendar)
-                    //.DisplayFormat("yyyy/MM/dd")
-                    //.OnValueChanged("OnValueChanged")
-                    )
-    </div>
-
-    <div id="buttonContainer" class="dx-button-icon" style="float: left; width:30%; text-align: left; background-color:white;">
-        @(Html.DevExtreme().Button()
-                        .Text("上傳").Height(50).Width(80).Icon("check")
-                        .Type(ButtonType.Success)
-                        .ID("save-button")
-                        .UseSubmitBehavior(false)
-                        .OnClick
-                            (@<text>
-                                        function(arg)
-                                        {
-                                        if( true )
-                                        {
-                                                // 顯示旋轉鈕
-                                                $("#loadPanel").dxLoadPanel("instance").show();
-
-                                                // 上傳按鈕反白
-                                                ButtonContainer.option("disabled", true);
-
-                                                // AJAX 區塊
-                                                $.ajax
-                                                (
-                                                    {
-                                                        url: '@Url.Action("UpdateDedicationFeeView", "Home")',
-                                                        data: { WeeklyReportData: "" }, // 整理回傳給 Server 的點名資料
-                                                        type: 'POST', //POST if you want to save, GET if you want to fetch data from server
-
-                                                        success: function (arg)
-                                                        {
-                                                            // 隱藏旋轉鈕
-                                                            $("#loadPanel").dxLoadPanel("instance").hide();
-
-                                                            // 上傳按鈕恢復可運作
-                                                            ButtonContainer.option("disabled", false);
-
-                                                            // 顯示上傳成功
-                                                            if (arg.status == 1)
-                                                            {
-                                                                ShowToast(arg.message, "success", 2000);
-                                                            }
-                                                            else{
-                                                                ShowToast(arg.message, "error", 5000);
-                                                            }
-
-                                                            //$("#toast").dxToast("instance").show();
-                                                        },
-
-                                                        error: function (obj)
-                                                        {
-                                                            //alert('Something happened');
-                                                        }
-                                                    }
-                                                );
-                                                // AJAX 區塊
-                                            }
-                                            else
-                                            {
-
-                                                    // 隱藏旋轉鈕
-                                                    $("#loadPanel").dxLoadPanel("instance").hide();
-                                                    // 顯示再上傳一次
-                                                    var IndividualGrid = $("#IndividualGridContainer").dxDataGrid("instance");
-                                                    IndividualGrid.saveEditData();//是否還殘留尚未回傳的編輯資料
-                                                    $("#ToastReUpload").dxToast("instance").show();
-
-                                            }
-                                        }
-                            </text>)
-            )
-    </div>
     <div class="dx-field">
-        <div id="LoadPanel">
-            @(Html.DevExtreme().LoadPanel()
-            .ID("loadPanel")
-            .ShadingColor("rgba(0,0,0,0.4)")
-            //.Position(p => p.Of("#data-grid").Of("#buttonContainer"))
-            .Position(p => p.Of("#data-grid"))
-            .Visible(false)
-            .ShowIndicator(true)
-            .ShowPane(true)
-            .Shading(true)
-            .CloseOnOutsideClick(false)
-            .Message("更新資料中...")
-            .Animation(l => l.Show(k => k.Easing(AnimationEasing.Swing)))
-            //.OnShown("loadPanel_shown")
-            //.OnHidden("loadPanel_hidden")
-        )
+        <div id="buttonContainer" class="dx-button-icon">
+            @(Html.DevExtreme().Button()
+                    .Text("查詢")
+                    .Visible(false)
+                    .Type(ButtonType.Success)
+                    .ID("save-button")
+                    .UseSubmitBehavior(true)
+                    .OnClick("ShowLoadPanel")
+            )
         </div>
         <div id="ToastContainer">
             @(Html.DevExtreme().Toast()
-            .ID("ToastReUpload")
-            .Position(p => p
-            .At(HorizontalAlignment.Center, VerticalAlignment.Center)
-            .Offset(0, 50))
-            .Message("有尚未更新好的資料，請再按一次上傳!")
-            .DisplayTime(5000)
-            .Type(ToastType.Error)
-            .MaxWidth(500)
-        )
+                .ID("toast")
+                .Position(p => p
+                    .At(HorizontalAlignment.Center, VerticalAlignment.Center)
+                    .Offset(0, 50))
+                    .Message("上傳成功了!")
+                    .DisplayTime(20000)
+                    .MaxWidth(200)
+            )
+
+        </div>
+        <div id="LoadPanel">
+            @(Html.DevExtreme().LoadPanel()
+                    .ID("loadPanel")
+                    .ShadingColor("rgba(0,0,0,0.4)")
+                    .Position(p => p.Of("#form-container"))
+                    .Visible(false)
+                    .ShowIndicator(true)
+                    .ShowPane(true)
+                    .Shading(true)
+                    .CloseOnOutsideClick(false)
+                    .Message("上傳資料中...")
+                    .Animation(l => l.Show(k => k.Easing(AnimationEasing.Swing)))
+            )
 
         </div>
     </div>
-    <div style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
-        <h5 id="displaynamefield">@Model.FullName 奉獻編號:@Model.DedicationNumber</h5>
+    <div id="form-container">
+        @(Html.DevExtreme().Form<QpayModel>()
+        .ID("form")
+        .ColCount(1)
+        .Items
+        (items =>
+        {
+            items.AddSimpleFor
+                (m => m.QueryStartDate)
+                .Label(l => l.Text("開始日期"))
+                .IsRequired(false)
+                .Editor(e => e
+                    .DateBox()
+                    .Width(200)
+                    .DisplayFormat("yyyy/M/d")
+                    .Disabled(false)
+                    .Placeholder("開始日期")
+                    .PickerType(DateBoxPickerType.Calendar)
+                );
+            items.AddSimpleFor
+                (m => m.QueryEndDate)
+                .Label(l => l.Text("結束日期"))
+                .IsRequired(false)
+                .Editor(e => e
+                    .DateBox()
+                    .Width(200)
+                    .DisplayFormat("yyyy/M/d")
+                    .Disabled(false)
+                    .Placeholder("結束日期")
+                    .PickerType(DateBoxPickerType.Calendar)
+                );
+
+        }
+        )
+        .OnContentReady
+        (@<text>
+            function(e)
+            {
+                e.component.validate();
+            }
+        </text>)
+
+        .FormData(Model)
+        )
+
     </div>
+    <div id="buttonContainer3" class="dx-button-icon">
+        @(Html.DevExtreme().Button()
+                    .Text("查詢")
+                    .Visible(true)
+                    .Type(ButtonType.Success)
+                    .ID("save-button3")
+                    .UseSubmitBehavior(true)
+                    .OnClick("ShowLoadPanel")
+            )
+    </div>
+
     <div id="data-grid">
         @(Html.DevExtreme().DataGrid<DedicationFee>()
-                .ID("DedicationFeeGrid")
-                .ShowBorders(true)
-                //.ColumnAutoWidth(true)
-                //.Paging(p => p.PageSize(10))
-                .Paging(paging => paging.Enabled(false))
-                .AllowColumnResizing(true)
-                .ColumnResizingMode(ColumnResizingMode.Widget)
-                .ColumnFixing(c => c.Enabled(true))
-                .LoadPanel(l => l.Text("更新資料中...").Enabled(false))
-                .SearchPanel(s => s.Visible(false).Placeholder("搜尋.."))
-                .Export(e => e.Enabled(true).AllowExportSelectedData(true))
-                .ShowColumnLines(true)
-                .ShowRowLines(true)
-                .RowAlternationEnabled(true)
-                .ShowBorders(true)
-                .RemoteOperations(false)
-                .TwoWayBindingEnabled(true)
-                .Editing(editing =>
-                {
-                    //editing.Mode(GridEditMode.Batch);
-                    //editing.Mode(GridEditMode.Row);
-                    editing.Mode(GridEditMode.Cell);
-                    //editing.Mode(GridEditMode.Batch);
-                    //editing.Mode(GridEditMode.Form);
-                    //editing.Mode(GridEditMode.Popup);
-                    //editing.AllowUpdating(true);
-                    //editing.AllowAdding(true);
-                    //editing.AllowDeleting(true);
-                    editing.Texts(a => a.SaveAllChanges("上傳檔案").AddRow("新增").CancelAllChanges("取消變更").SaveRowChanges("儲存").CancelRowChanges("取消").EditRow("編輯").DeleteRow("刪除"));
-                })
+            .ID("DedicationFeeGrid")
+            .ShowBorders(true)
+            //.ColumnAutoWidth(true)
+            //.Paging(p => p.PageSize(10))
+            .Paging(paging => paging.Enabled(false))
+            .AllowColumnResizing(true)
+            .ColumnResizingMode(ColumnResizingMode.Widget)
+            .ColumnFixing(c => c.Enabled(true))
+            .LoadPanel(l => l.Text("更新資料中...").Enabled(false))
+            .SearchPanel(s => s.Visible(false).Placeholder("搜尋.."))
+            .Export(e => e.Enabled(true).AllowExportSelectedData(true))
+            .ShowColumnLines(true)
+            .ShowRowLines(true)
+            .RowAlternationEnabled(true)
+            .ShowBorders(true)
+            .RemoteOperations(false)
+            .TwoWayBindingEnabled(true)
+            .Editing(editing =>
+            {
+                //editing.Mode(GridEditMode.Batch);
+                //editing.Mode(GridEditMode.Row);
+                editing.Mode(GridEditMode.Cell);
+                //editing.Mode(GridEditMode.Batch);
+                //editing.Mode(GridEditMode.Form);
+                //editing.Mode(GridEditMode.Popup);
+                //editing.AllowUpdating(true);
+                //editing.AllowAdding(true);
+                //editing.AllowDeleting(true);
+                editing.Texts(a => a.SaveAllChanges("上傳檔案").AddRow("新增").CancelAllChanges("取消變更").SaveRowChanges("儲存").CancelRowChanges("取消").EditRow("編輯").DeleteRow("刪除"));
+            })
 
-                .Columns(columns =>
-                {
-                    columns.AddFor(m => m.Category).Caption("奉獻類別").Width(50).MinWidth(50).AllowEditing(false).AllowSorting(true);
-                    columns.AddFor(m => m.DedicationDate).Caption("奉獻日期").Alignment(HorizontalAlignment.Center).DataType(GridColumnDataType.Date).Format("yyyy/M/d").Width(100).MinWidth(45).AllowEditing(false).AllowSorting(true);
-                    columns.AddFor(m => m.PayDate).Caption("付款日期").Alignment(HorizontalAlignment.Center).DataType(GridColumnDataType.Date).Format("yyyy/M/d").Width(100).MinWidth(45).AllowEditing(false).AllowSorting(true);
-                    columns.AddFor(m => m.PayWay).Caption("付款方式").Width(80).MinWidth(80).AllowEditing(false).AllowSorting(true);
-                    columns.AddFor(m => m.Amount).Caption("金額").Width(80).MinWidth(80).AllowEditing(false).AllowSorting(true);
-                    columns.AddFor(m => m.Others).Caption("奉獻細項").Width(60).MinWidth(60).AllowEditing(false).AllowSorting(true);
-                })
-                .DataSource
-                (Model.DedicationFeeList)
+            .Columns(columns =>
+            {
+                columns.AddFor(m => m.Category).Caption("奉獻類別").Width(50).MinWidth(50).AllowEditing(false).AllowSorting(true);
+                columns.AddFor(m => m.DedicationDate).Caption("奉獻日期").Alignment(HorizontalAlignment.Center).DataType(GridColumnDataType.Date).Format("yyyy/M/d").Width(100).MinWidth(45).AllowEditing(false).AllowSorting(true);
+                columns.AddFor(m => m.PayDate).Caption("付款日期").Alignment(HorizontalAlignment.Center).DataType(GridColumnDataType.Date).Format("yyyy/M/d").Width(100).MinWidth(45).AllowEditing(false).AllowSorting(true);
+                columns.AddFor(m => m.PayWay).Caption("付款方式").Width(80).MinWidth(80).AllowEditing(false).AllowSorting(true);
+                columns.AddFor(m => m.Amount).Caption("金額").Width(80).MinWidth(80).AllowEditing(false).AllowSorting(true);
+                columns.AddFor(m => m.Others).Caption("奉獻細項").Width(120).MinWidth(120).AllowEditing(false).AllowSorting(true);
+            })
+            .DataSource
+            (Model.DedicationFeeList)
 
-                )
+            )
     </div>
+
     <div style="font-family:標楷體;font-size:100%; color:darkred; text-align:left;font-weight:bold">
         <h4 id="displaynamefield">總金額 = @Model.TotalAmount 元</h4>
     </div>
+
+    <div id="buttonContainer2" class="dx-button-icon">
+        @(Html.DevExtreme().Button()
+                    .Text("查詢")
+                    .Visible(false)
+                    .Type(ButtonType.Success)
+                    .ID("save-button2")
+                    .UseSubmitBehavior(true)
+                    .OnClick("ShowLoadPanel")
+            )
+    </div>
+
 </form>
 
-<script>var DataUploadStatus = "尚未上傳喔!";</script>
-<script src="~/js/FeeDataGridAjax.js"></script>
-<script src="~/js/SelectDate.js"></script>
-<script src="~/js/DropDownBox.js"></script>
-<script src="~/js/LoadPanel.js"></script>
 <script>
+    function getLoadPanelInstance() {
+        return $("#loadPanel").dxLoadPanel("instance");
+    }
+    function ShowLoadPanel(arg) {
+
+        //debugger;
+        getLoadPanelInstance().show();
+        //$("#toast").dxToast("instance").show();
+        //alert("SaveNewPerson!!!");
+        //alert("OnValueChanged : " + arg.value);
+
+        //alert("OnValueChanged : " + arg.attribute('text'));
+        //alert("OnValueChanged : " + text: arg.attribute("text"));
+
+        //alert( getODataLocalDateFilter(arg.value) );
+    }
+    function ShowToast(LocalToastMessage, Type, DisplayTime) {
+        //debugger;
+        var ToastInstance = $("#toast").dxToast("instance");
+        ToastInstance.option('message', LocalToastMessage);
+        ToastInstance.option('type', Type);
+        ToastInstance.option('displayTime', DisplayTime);
+        ToastInstance.option('white-space', 'pre-line');
+        ToastInstance.option('closeOnClick', true);
+        ToastInstance.show();
+    }
+
+    var GlobalCategory = "";
+
     function moveEditColumnToLeft(dataGrid) {
         dataGrid.columnOption("command:edit", {
             visibleIndex: -1,
@@ -225,98 +224,53 @@
             if (isEditing) {
                 $links.filter(".dx-link-save").addClass("dx-icon-save");
                 $links.filter(".dx-link-cancel").addClass("dx-icon-revert");
-            } else {
+            }
+            else {
                 $links.filter(".dx-link-edit").addClass("dx-icon-edit");
                 $links.filter(".dx-link-delete").addClass("dx-icon-trash");
             }
         }
-    }
-    function ParsingDate(input) {
 
-        //debugger;
-        if (typeof (input) === 'string') {
-            ////alert("ParseDate 001 : " + input);
-            var parts = input.split('-');
-
-            var DaySplitedArray = parts[2].split('T');
-            var ParsedDate = new Date(parts[0], parts[1] - 1, DaySplitedArray[0]);
-            //var ParsedDate = new Date(parts[0], parts[1], DaySplitedArray[0]);
-
-            return ParsedDate;
-        }
-        else {
-            return getODataLocalDateFilter(input);
-        }
-    }
-    function getODataLocalDateFilter(date) {
-
-        //debugger;
-
-        //alert("getODataLocalDateFilter !" + date);
-        //alert("HELLO 我愛嘟嘟妞妞 006!" + date);
-
-        //-- Description: For converting the date object to local time format
-        //-- You can also convert this to UTC Date format
-        //-- UTC Usage: getUTCMonth(), getUTCFullYear(), getUTCHours() ...
-
-        var monthString;
-        var rawMonth = (date.getMonth() + 1).toString();
-        if (rawMonth.length == 1) {
-            monthString = "0" + rawMonth;
-        }
-        else { monthString = rawMonth; }
-
-        var dateString;
-        //var rawDate = date.getUTCDate().toString();
-        var rawDate = date.getDate().toString();
-        if (rawDate.length == 1) {
-            dateString = "0" + rawDate;
-        }
-        else { dateString = rawDate; }
-
-
-        var DateFilter = "";
-        //DateFilter += date.getFullYear() + "-";
-        //DateFilter += monthString + "-";
-        //DateFilter += dateString;
-        //DateFilter += " T" + date.getHours() + ":";
-        //DateFilter += date.getMinutes() + ":";
-        //DateFilter += date.getSeconds() + ":";
-        //DateFilter += date.getMilliseconds();
-
-        //return DateFilter;
-
-        //return date.getFullYear() + "/" + rawMonth + "/" + rawDate;
-
-        return new Date(date.getFullYear(), rawMonth, rawDate);
-    }
-    function customizeItem(item) {
-        //var grid = $("#grid").dxDataGrid("instance");
-        //var validationRules = grid.columnOption(item.dataField, "validationRules");
-        //if (validationRules && validationRules.filter(item => item.type == "required").length > 0)
-        item.isRequired = false;
-    }
-    function OnDateboxChange(e) {
-        debugger;
-
-        //var X = e.component._$validationMessage;
-        //if( $("#SmallGroupDate").dxDateBox("instance")._$validationMessage == null )
-        if (e.component._$validationMessage == null) {
-            UploadDateFormat = "格式正確";
-        }
-        else {
-            UploadDateFormat = "格式錯誤";
-            // 顯示日期格式錯誤
-            $("#SelectDateToast").dxToast("instance").show();
-            return;
-        }
-        //var result = $("#SmallGroupDate").dxDateBox("instance").validate();
-        //var result = e.validationGroup.validate();
-
-        //alert("日期改變001");
     }
 
 </script>
+
+<script type="text/javascript">
+    function onBegin() {
+    }
+
+    function onSuccess(data) {
+
+        getLoadPanelInstance().hide();
+
+        if (data.status == 1) {
+            window.location.href = "/Home/DedicationFeeView/";
+            //ShowToast(data.message, "success", 2000);
+        }
+        else {
+            ShowToast(data.message, "error", 3000);
+        }
+    }
+
+    function onComplete(data) {
+        if (data.status == 1) {
+        }
+        else {
+        }
+    }
+</script>
+
+<link href="~/css/Scheduler.css" rel="stylesheet" />
+<link href="~/css/Site.css" rel="stylesheet" />
+
+<script src="~/lib/jquery-ajax-unobtrusive/jquery.unobtrusive-ajax.js"></script>
+<link href="~/css/Gallery.css" rel="stylesheet" />
+
+<script>var DataUploadStatus = "尚未上傳喔!";</script>
+<script src="~/js/FeeDataGridAjax.js"></script>
+<script src="~/js/SelectDate.js"></script>
+<script src="~/js/DropDownBox.js"></script>
+<script src="~/js/LoadPanel.js"></script>
 
 <script>
     var dictionary = {

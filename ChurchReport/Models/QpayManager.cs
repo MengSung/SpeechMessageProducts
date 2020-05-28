@@ -50,6 +50,9 @@ namespace ChurchReport.Models
                     new CreditCard { CCToken = "2222", CreditCardNumber = "CCCCCCCCCCCCCCCC", ExpireDate = "2020/5/27" },
                 };
 
+                m_QpayModel.QueryStartDate = new DateTime(DateTime.Now.Year, 1, 1);
+                m_QpayModel.QueryEndDate = DateTime.Now;
+
                 return m_QpayModel;
             }
             catch (System.Exception e)
@@ -292,6 +295,9 @@ namespace ChurchReport.Models
                     new CreditCard { CCToken = "1111", CreditCardNumber = "BBBBBBBBBBBBBBBB", ExpireDate = "2020/5/26" },
                     new CreditCard { CCToken = "2222", CreditCardNumber = "CCCCCCCCCCCCCCCC", ExpireDate = "2020/5/27" },
                 };
+
+                m_QpayModel.QueryStartDate = new DateTime(DateTime.Now.Year, 1, 1);
+                m_QpayModel.QueryEndDate = DateTime.Now;
 
                 return m_QpayModel;
             }

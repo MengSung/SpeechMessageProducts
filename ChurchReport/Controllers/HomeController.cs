@@ -142,8 +142,6 @@ namespace ChurchReport.Controllers
                     // ¥ÃÂ×ª÷¬y©^Äm
                     if ( aLoginContact != null)
                     {
-                        m_InMemoryDataContextSmallGroup.QpayManager.m_QpayModel.QueryStartDate = new DateTime(DateTime.Now.Year, 1, 1);
-                        m_InMemoryDataContextSmallGroup.QpayManager.m_QpayModel.QueryEndDate = DateTime.Now;
                         m_InMemoryDataContextSmallGroup.QpayManager.SetQpayModel(aLoginContact);
                     }
 
@@ -4284,6 +4282,7 @@ namespace ChurchReport.Controllers
                 TempData["Proponent"] = DedicationViewPatameter;
 
                 //m_InMemoryDataContextSmallGroup.QpayManager.SetQpayModel();
+
 
                 return View( m_InMemoryDataContextSmallGroup.QpayManager.SetQpayModel() );
             }
