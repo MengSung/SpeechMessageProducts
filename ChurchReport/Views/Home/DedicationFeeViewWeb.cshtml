@@ -17,25 +17,33 @@
 </div>
 
 <form data-ajax="true" data-ajax-begin="onBegin" data-ajax-success="onSuccess" asp-action="UpdateDedicationFeeView" asp-controller="Home" method="post">
+    <div id="buttonContainer" class="dx-button-icon" style="float: left; width:30%; text-align: left; background-color:white;">
+        @(Html.DevExtreme().Button()
+                        .Text("上傳").Height(50).Width(80).Icon("check")
+                        .Type(ButtonType.Success)
+                        .ID("save-button")
+                        .UseSubmitBehavior(true)
+            )
+    </div>
 
-    <div id="StartLabel" class="dx-field-label" style="float: left; width:15%; background-color:white;">開始日期</div>
-    <div id="StartDateBoxContainer" class="dx-field-value" style="float: left; width:55%; background-color:white;">
+    <div id="StartLabel" width:15%; background-color:white;">開始日期</div>
+    <div id="StartDateBoxContainer" class="dx-field-value" width:55%; background-color:white;">
         @(Html.DevExtreme()
                     //.DateBox()
                     .DateBoxFor(m => m.QueryStartDate)
                     .Type(DateBoxType.Date)
-                    .Value(Model.QueryStartDate)
+                    //.Value(Model.QueryStartDate)
                     .Width(50)
-                    .DisplayFormat("yyyy/M/d")
+                    //.DisplayFormat("yyyy/M/d")
                     .OnChange("OnDateboxChange")
                     .CalendarOptions( k=>k.FirstDayOfWeek(0))
                     .PickerType(DateBoxPickerType.Calendar)
-                    //.DisplayFormat("yyyy/MM/dd")
+                    .DisplayFormat("yyyy/MM/dd")
                     //.OnValueChanged("OnValueChanged")
                     )
     </div>
-    <div id="EndLabel" class="dx-field-label" style="float: left; width:15%; background-color:white;">結束日期</div>
-    <div id="EndDateBoxContainer" class="dx-field-value" style="float: left; width:55%; background-color:white;">
+    <div id="EndLabel" width:15%; background-color:white;">結束日期</div>
+    <div id="EndDateBoxContainer" class="dx-field-value" width:55%; background-color:white;">
         @(Html.DevExtreme()
                     //.DateBox()
                     .DateBoxFor(m => m.QueryEndDate)
@@ -51,14 +59,6 @@
                     )
     </div>
 
-    <div id="buttonContainer" class="dx-button-icon" style="float: left; width:30%; text-align: left; background-color:white;">
-        @(Html.DevExtreme().Button()
-                        .Text("上傳").Height(50).Width(80).Icon("check")
-                        .Type(ButtonType.Success)
-                        .ID("save-button")
-                        .UseSubmitBehavior(true)
-            )
-    </div>
     <div class="dx-field">
         <div id="LoadPanel">
             @(Html.DevExtreme().LoadPanel()
@@ -251,7 +251,6 @@
             return getODataLocalDateFilter(input);
         }
     }
-
     function getODataLocalDateFilter(date) {
 
         //debugger;
@@ -294,12 +293,30 @@
 
         return new Date(date.getFullYear(), rawMonth, rawDate);
     }
-
     function customizeItem(item) {
         //var grid = $("#grid").dxDataGrid("instance");
         //var validationRules = grid.columnOption(item.dataField, "validationRules");
         //if (validationRules && validationRules.filter(item => item.type == "required").length > 0)
         item.isRequired = false;
+    }
+    function OnDateboxChange(e) {
+        debugger;
+
+        //var X = e.component._$validationMessage;
+        //if( $("#SmallGroupDate").dxDateBox("instance")._$validationMessage == null )
+        if (e.component._$validationMessage == null) {
+            UploadDateFormat = "格式正確";
+        }
+        else {
+            UploadDateFormat = "格式錯誤";
+            // 顯示日期格式錯誤
+            $("#SelectDateToast").dxToast("instance").show();
+            return;
+        }
+        //var result = $("#SmallGroupDate").dxDateBox("instance").validate();
+        //var result = e.validationGroup.validate();
+
+        //alert("日期改變001");
     }
 
 </script>
