@@ -95,7 +95,7 @@
                     //.DataField("LastName")
                     .Label(l => l.Text("奉獻金額"))
                     .Editor(e => e
-                        .NumberBox().Value(null)
+                        .NumberBox()
                         .Disabled(false)
                         .Placeholder("輸入奉獻金額")
                     );
@@ -279,13 +279,9 @@
     }
     function OnPayWaySelectBoxValueChanged(e) {
         if (e.value == "信用卡") {
-            //alert(e.value + "顯示");
-            //alert(e.value + "顯示 :" + GlobalCategory);
             $("#form").dxForm("instance").itemOption("CreditCardList", 'visible', true);
         }
         else {
-            //alert(e.value + "隱藏");
-            //alert(e.value + "隱藏 000:" + GlobalCategory );
             $("#form").dxForm("instance").itemOption("CreditCardList", 'visible', false);
         }
     }
