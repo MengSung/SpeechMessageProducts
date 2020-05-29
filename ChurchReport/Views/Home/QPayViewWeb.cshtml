@@ -100,6 +100,7 @@
                         .NumberBox()
                         .Disabled(false)
                         .Width(200)
+                        .OnContentReady("OnAmountContentReady")
                         .Placeholder("輸入奉獻金額")
                     );
 
@@ -319,6 +320,19 @@
             //    //$("#form").dxForm("instance").Option("Category", e.value);
             //    //$("#form").dxForm("instance").itemOption("Category", e.value);
             //}
+        }
+    }
+    function OnAmountContentReady(e) {
+
+        //debugger;
+        //alert(e.component._options.value);
+        //alert(e.component.option("value"));
+        //if (e.component._options.value == 0)
+        if (e.component.option("value") == 0)
+        {
+            e.component.option("value", "");  
+            //e.component._options.value = null;
+            //alert(e.component._options.value);
         }
     }
     function moveEditColumnToLeft(dataGrid) {
