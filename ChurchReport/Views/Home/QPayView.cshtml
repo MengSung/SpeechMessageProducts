@@ -97,6 +97,7 @@
                     .Editor(e => e
                         .NumberBox()
                         .Disabled(false)
+                        .OnContentReady("OnAmountContentReady")
                         .Placeholder("輸入奉獻金額")
                     );
 
@@ -285,7 +286,18 @@
             $("#form").dxForm("instance").itemOption("CreditCardList", 'visible', false);
         }
     }
+    function OnAmountContentReady(e) {
 
+        //debugger;
+        //alert(e.component._options.value);
+        //alert(e.component.option("value"));
+        //if (e.component._options.value == 0)
+        if (e.component.option("value") == 0) {
+            e.component.option("value", "");
+            //e.component._options.value = null;
+            //alert(e.component._options.value);
+        }
+    }
     function moveEditColumnToLeft(dataGrid) {
         dataGrid.columnOption("command:edit", {
             visibleIndex: -1,
