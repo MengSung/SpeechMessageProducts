@@ -1,4 +1,4 @@
-// Version: 2.5.1
+// Version: 2.6.1
 // https://github.com/DevExpress/DevExtreme.AspNet.Data
 // Copyright (c) Developer Express Inc.
 
