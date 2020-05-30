@@ -57,6 +57,9 @@ namespace ChurchReport.WebServiceConnector
 
         //private DateTime m_AtmExpireDate;
 
+        // 客製化
+        private const String QPAY_ORGANIZATION = "yhchurchback";
+
         #endregion
         #region 初始化
         public QPayProcessor()
@@ -553,6 +556,7 @@ namespace ChurchReport.WebServiceConnector
                 BackendURL = BACKEND_URL,
                 PayType = "C",
                 Param1 = FeeId,
+                Param2 = QPAY_ORGANIZATION,
                 CardParam = new CreOrderCardParamReq()
                 {
                     AutoBilling = "Y",
@@ -582,6 +586,7 @@ namespace ChurchReport.WebServiceConnector
                 BackendURL = BACKEND_URL,
                 PayType = "A",
                 Param1 = FeeId,
+                Param2 = QPAY_ORGANIZATION,
                 ATMParam = new CreOrderATMParamReq()
                 {
                     ExpireDate = DateTime.Now.AddDays(10).ToLocalTime().ToString("yyyyMMdd")
