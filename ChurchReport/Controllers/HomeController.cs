@@ -4514,7 +4514,6 @@ namespace ChurchReport.Controllers
                 throw e;
             }
         }
-
         #endregion
         #region 行政人員奉獻管理
         #region Line 單獨登入
@@ -4649,10 +4648,10 @@ namespace ChurchReport.Controllers
             {
                 var images = new List<string>();
                 images.Add(Url.Content("~/assets/images/tpehoc-005.jpg"));
-                images.Add(Url.Content("~/assets/images/tpehoc-006.jpg"));
+                //images.Add(Url.Content("~/assets/images/tpehoc-006.jpg"));
                 images.Add(Url.Content("~/assets/images/tpehoc-007.jpg"));
-                images.Add(Url.Content("~/assets/images/tpehoc-008.jpg"));
-                images.Add(Url.Content("~/assets/images/tpehoc-009.jpg"));
+                //images.Add(Url.Content("~/assets/images/tpehoc-008.jpg"));
+                //images.Add(Url.Content("~/assets/images/tpehoc-009.jpg"));
 
                 m_InMemoryDataContextSmallGroup.LineBindingViewModel.Images = images;
 
@@ -4678,7 +4677,6 @@ namespace ChurchReport.Controllers
 
 
         #endregion
-
         #region Line Id 資訊區
         [HttpPost]
         public IActionResult SetupUserLineId(string UserLineId, string GroupId, string RoomId, string ViewType)
