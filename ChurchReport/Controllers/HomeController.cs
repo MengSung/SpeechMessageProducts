@@ -4286,7 +4286,7 @@ namespace ChurchReport.Controllers
 
                 TempData["Proponent"] = DedicationViewPatameter;
 
-                return View( m_InMemoryDataContextSmallGroup.QpayManager.SetQpayModel() );
+                return View( m_InMemoryDataContextSmallGroup.QpayManager.SetQpayModel(m_InMemoryDataContextSmallGroup.LineBindingViewModel.LineUserId) );
             }
             catch (System.Exception e)
             {
@@ -4641,6 +4641,44 @@ namespace ChurchReport.Controllers
         }
 
         #endregion
+        #region 奉獻LineId登入
+        [Route("/Home/DediationLineLoginView/{LineIdLoginViewPatameter}")]
+        public IActionResult DediationLineLoginView(string LineIdLoginViewPatameter)
+        {
+            try
+            {
+                var images = new List<string>();
+                images.Add(Url.Content("~/assets/images/tpehoc-005.jpg"));
+                images.Add(Url.Content("~/assets/images/tpehoc-006.jpg"));
+                images.Add(Url.Content("~/assets/images/tpehoc-007.jpg"));
+                images.Add(Url.Content("~/assets/images/tpehoc-008.jpg"));
+                images.Add(Url.Content("~/assets/images/tpehoc-009.jpg"));
+
+                m_InMemoryDataContextSmallGroup.LineBindingViewModel.Images = images;
+
+                TempData["Proponent"] = LineIdLoginViewPatameter;
+
+                return View(m_InMemoryDataContextSmallGroup.LineBindingViewModel);
+
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "永和禮拜堂 : 綁定錯誤 => " + ErrorString);
+
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
+                throw e;
+            }
+        }
+
+
+        #endregion
+
         #region Line Id 資訊區
         [HttpPost]
         public IActionResult SetupUserLineId(string UserLineId, string GroupId, string RoomId, string ViewType)
@@ -4665,17 +4703,8 @@ namespace ChurchReport.Controllers
                     m_InMemoryDataContextSmallGroup.LineBindingViewModel.DisplayId = UserLineId;
                 }
 
-                Entity LineLoginContact = this.m_ToolUtilityClass.RetrieveContactByLineId(UserLineId);
+                return Json(new { status = "1" });
 
-                // 全名
-                String FullName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "fullname");
-                // 奉獻單編號
-                String DedicationNumber = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "pager");
-
-                // 教會職稱是否是會計
-                m_InMemoryDataContextSmallGroup.QpayManager.m_QpayModel.IsAOfficeWorker = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "new_church_jobtitle") == "會計"?true:false;
-
-                return Json( new { FullName = FullName , DedicationNumber = DedicationNumber } );
 
             }
             catch (System.Exception e)

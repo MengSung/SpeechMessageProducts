@@ -23,10 +23,19 @@ namespace ChurchReport.Models
         public Entity m_Contact;
         #endregion
         #region Line 單獨登入
-        public QpayModel SetQpayModel()
+        public QpayModel SetQpayModel(String UserLineId)
         {
             try
             {
+                Entity LineLoginContact = this.m_ToolUtilityClass.RetrieveContactByLineId(UserLineId);
+
+                // 全名
+                m_QpayModel.FullName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "fullname");
+                // 全名
+                m_QpayModel.Mobile = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "mobilephone");
+                // 奉獻單編號
+                m_QpayModel.DedicationNumber = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "pager");
+
                 m_QpayModel.Category = "十一";
                 m_QpayModel.PayWay = "信用卡";
 

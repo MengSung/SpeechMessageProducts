@@ -3,7 +3,7 @@
 @*<div class="long-title"><h3>奉獻資訊</h3></div>*@
 
 <div style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
-    <h5 id="displaynamefield">正在登入中，請稍待........</h5>
+    <h5 id="displaynamefield">@Model.FullName 奉獻編號:@Model.DedicationNumber</h5>
 </div>
 
 <form data-ajax="true" data-ajax-begin="onBegin" data-ajax-success="onSuccess" asp-action="SaveQPayDedication" asp-controller="Home" method="post">
@@ -235,12 +235,11 @@
     var GlobalCategory = "";
 
     function OnCategorySelectBoxValueChanged(e) {
-        if (e.value == "其他")
-        {
+        if (e.value == "其他") {
             //alert(e.value + "顯示");
             //alert(e.value + "顯示 :" + GlobalCategory);
             $("#form").dxForm("instance").itemOption("OtherDedication", 'visible', true);
-            //e.component.option('value', e.value); 
+            //e.component.option('value', e.value);
 
 
 
@@ -255,12 +254,11 @@
             //    //$("#form").dxForm("instance").itemOption("Category", e.value);
             //}
         }
-        else
-        {
+        else {
             //alert(e.value + "隱藏");
             //alert(e.value + "隱藏 000:" + GlobalCategory );
             $("#form").dxForm("instance").itemOption("OtherDedication", 'visible', false);
-            //e.component.option('value', e.value); 
+            //e.component.option('value', e.value);
 
 
 
@@ -326,114 +324,42 @@
     function onCreditCardGridContentReady(e) {
         var items = e.component.getDataSource().items();
         $("input[name='myHiddenInput']").val(JSON.stringify(items));
-        //myHiddenInput - is the name of your hidden input  
-    }  
+        //myHiddenInput - is the name of your hidden input
+    }
 
 </script>
 
 <script type="text/javascript">
-            function onBegin() {
+    function onBegin() {
+    }
+
+    function onSuccess(data) {
+
+        getLoadPanelInstance().hide();
+
+        if (data.status == 1) {
+            if (data.PayWay == "信用卡") {
+                //alert("成功 3");
+                ShowToast(data.message, "success", 2000);
+                window.location.href = data.DedicationResult;
             }
-
-            function onSuccess(data) {
-
-                getLoadPanelInstance().hide();
-
-                if (data.status == 1) {
-                    if (data.PayWay == "信用卡") {
-                        //alert("成功 3");
-                        ShowToast(data.message, "success", 2000);
-                        window.location.href = data.DedicationResult;
-                    }
-                    else {
-                        ShowToast(data.message, "success", 2000);
-                        document.getElementById('atmfield').innerHTML = data.DedicationResult;
-                    }
-                }
-                else
-                {
-                    ShowToast(data.message, "error", 3000);
-                    document.getElementById('atmfield').innerHTML = data.message;
-                }
+            else {
+                ShowToast(data.message, "success", 2000);
+                document.getElementById('atmfield').innerHTML = data.DedicationResult;
             }
-
-            function onComplete(data)
-            {
-                if (data.status == 1) {
-                }
-                else {
-                }
-            }
-</script>
-
-<script src="~/js/liff-starter.js"></script>
-@*<script src="https://d.line-scdn.net/liff/1.0/sdk.js"></script>*@
-<script src="https://static.line-scdn.net/liff/edge/2.1/sdk.js"></script>
-<script>
-
-        window.onload = function (e) {
-            //var message = '@TempData["Proponent"]';
-            //window.alert( "耶和華" + message);
-            liff.init(
-                { liffId: '@TempData["Proponent"]' },
-                function (data) {
-                    //debugger;
-                    //alert("測試 window.onload 001!");
-                    initializeApp(data);
-                    //alert("測試 window.onload 002!");
-                }
-            );
-        };
-
-        var UserId = "";
-        var GroupId = "";
-        var RoomId = "";
-        var DisplayName = "";
-        var ViewType = "";
-
-        async function initializeApp(data) {
-
-            await liff.getProfile().then(function (profile) {
-                DisplayName = profile.displayName;
-                UserId = profile.userId;
-                //alert("測試 UserId =" + UserId);
-                GroupId= profile.aGroupId;
-                RoomId = profile.aRoomId;
-                ViewType = profile.aViewType;
-                //alert("測試004!" + DisplayName);
-                // 取得 UserId 的Ajax
-                UpdateLineUserId(UserId, GroupId, RoomId, ViewType);
-
-                document.getElementById('displaynamefield').innerHTML = profile.displayName + "正在登入中，請稍待........";
-
-                DisplayName = profile.displayName;
-            });
         }
-
-        function UpdateLineUserId(aUserLineId, aGroupId, aRoomId, aViewType ) {
-                    // AJAX 區塊
-                    $.ajax
-                    (
-                        {
-                            url: '@Url.Action("SetupUserLineId", "Home")',
-                            data: { UserLineId: aUserLineId, GroupId: aGroupId, RoomId: aRoomId, ViewType: aViewType}, // 整理回傳給 Server 的點名資料
-                            type: 'POST', //POST if you want to save, GET if you want to fetch data from server
-
-                            success: function (data)
-                            {
-                                document.getElementById('displaynamefield').innerHTML = data.FullName + "奉獻編號:" + data.DedicationNumber;
-                            },
-
-                            error: function (obj)
-                            {
-                                window.location.href = "/Home/Login";
-                            }
-
-                        }
-                    );
-                    // AJAX 區塊
+        else {
+            ShowToast(data.message, "error", 3000);
+            document.getElementById('atmfield').innerHTML = data.message;
         }
+    }
 
+    function onComplete(data) {
+        if (data.status == 1) {
+        }
+        else {
+        }
+    }
 </script>
 
 <link href="~/css/Scheduler.css" rel="stylesheet" />
