@@ -78,7 +78,6 @@
                                 .OnClick("Binding")
                                 .Width(120)
                 )
-
                 @(Html.DevExtreme().Button()
                                 .Text("帳號密碼登入")
                                 //.Type(ButtonType.Success)
@@ -96,7 +95,7 @@
                 @(Html.DevExtreme().LoadPanel()
                                 .ID("loadPanel")
                                 .ShadingColor("rgba(0,0,0,0.4)")
-                                .Position(p => p.Of("#buttonContainer"))
+                                .Position(p => p.Of("#LoadPanelSection"))
                                 .Visible(false)
                                 .ShowIndicator(true)
                                 .ShowPane(true)
@@ -107,12 +106,8 @@
                                 .Animation(l => l.Show(k => k.Easing(AnimationEasing.Swing)))
                 )
             </div>
-        </div>
-
-    </form>
-
-    <div id="ToastContainer">
-        @(Html.DevExtreme().Toast()
+            <div id="ToastContainer">
+                @(Html.DevExtreme().Toast()
                 .ID("Toast")
                 .Position(p => p
                 .At(HorizontalAlignment.Center, VerticalAlignment.Center)
@@ -124,40 +119,46 @@
                 .MaxWidth(200)
         )
 
-    </div>
+            </div>
+        </div>
+    </form>
+
+    </br>
+
+    <div id="LoadPanelSection"></div>
 
     <script>
-        function getLoadPanelInstance() {
-            return $("#loadPanel").dxLoadPanel("instance");
-        }
+            function getLoadPanelInstance() {
+                return $("#loadPanel").dxLoadPanel("instance");
+            }
 
-        function button_click() {
-            getLoadPanelInstance().show();
-        }
+            function button_click() {
+                getLoadPanelInstance().show();
+            }
 
-        function loadPanel_shown(e) {
-            getLoadPanelInstance().show();
-            //    setTimeout(function () {
-            //        e.component.hide();
-            //    }, 3000);
-        }
+            function loadPanel_shown(e) {
+                getLoadPanelInstance().show();
+                //    setTimeout(function () {
+                //        e.component.hide();
+                //    }, 3000);
+            }
 
-        function loadPanel_hidden() {
-            getLoadPanelInstance().hide();
-        }
+            function loadPanel_hidden() {
+                getLoadPanelInstance().hide();
+            }
 
-        function Binding(arg) {
-            //客製化
-            window.location.href = "/Home/LineLiffView/1653819697-YkPyPkr6";
-        }
+            function Binding(arg) {
+                //客製化
+                window.location.href = "/Home/LineLiffView/1653819697-YkPyPkr6";
+            }
 
-        function Login(arg) {
-            window.location.href = "/Home/Login";
-        }
+            function Login(arg) {
+                window.location.href = "/Home/Login";
+            }
 
-    </script>
+        </script>
 
-    <script type="text/javascript">
+        <script type="text/javascript">
         function onBegin() {
         }
 
@@ -194,18 +195,21 @@
             else {
             }
         }
-    </script>
+        </script>
 
-    <script src="~/lib/jquery-ajax-unobtrusive/jquery.unobtrusive-ajax.js"></script>
-    <link href="~/css/Gallery.css" rel="stylesheet" />
-    <link href="~/css/WeeklyReport.css" rel="stylesheet" />
+        <script src="~/lib/jquery-ajax-unobtrusive/jquery.unobtrusive-ajax.js"></script>
+        <link href="~/css/Gallery.css" rel="stylesheet" />
+        <link href="~/css/WeeklyReport.css" rel="stylesheet" />
 
-    <script src="https://static.line-scdn.net/liff/edge/2.1/sdk.js"></script>
-    <script>
+        <script src="https://static.line-scdn.net/liff/edge/2.1/sdk.js"></script>
+        <script>
 
     window.onload = function (e) {
-            //var message = '@TempData["Proponent"]';           
-            //window.alert( "耶和華" + message);         
+            //var message = '@TempData["Proponent"]';
+
+            // 顯示旋轉鈕
+            //$("#loadPanel").dxLoadPanel("instance").show();
+
             liff.init(
                 { liffId: '@TempData["Proponent"]' },
                 function (data) {
@@ -229,16 +233,20 @@
                 await liff.getProfile().then(function (profile) {
 
                     document.getElementById('displaynamefield').innerHTML = profile.displayName + "<br/> 進行登入奉獻中，請稍待......";
-                DisplayName = profile.displayName;
-                UserId = profile.userId;
-                //alert("測試 UserId =" + UserId);
-                GroupId= profile.aGroupId;
-                RoomId = profile.aRoomId;
-                ViewType = profile.aViewType;
-                //alert("測試004!" + DisplayName);
-                UpdateLineUserId(UserId, GroupId, RoomId, ViewType);
-                //document.getElementById('displaynamefield').innerHTML = profile.displayName + "的行事曆";
-                //alert("測試005!" );
+
+                    // 顯示旋轉鈕
+                    //$("#loadPanel").dxLoadPanel("instance").show();
+
+                    DisplayName = profile.displayName;
+                    UserId = profile.userId;
+                    //alert("測試 UserId =" + UserId);
+                    GroupId= profile.aGroupId;
+                    RoomId = profile.aRoomId;
+                    ViewType = profile.aViewType;
+                    //alert("測試004!" + DisplayName);
+                    UpdateLineUserId(UserId, GroupId, RoomId, ViewType);
+                    //document.getElementById('displaynamefield').innerHTML = profile.displayName + "的行事曆";
+                    //alert("測試005!" );
    });
 
         }
@@ -281,7 +289,7 @@
             ToastInstance.show();
         }
 
-    </script>
+        </script>
 </body>
 
 </html>
