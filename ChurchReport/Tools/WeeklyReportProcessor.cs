@@ -274,6 +274,10 @@ namespace ChurchReport.Tools
                 aListEntityCollection = m_ToolUtilityClass.QueryListByContactId(m_ContactId, "new_contact_list_arealeader");  // 族系族長
                 MergeCollectionSmallGroupAhead(ref aListEntityCollection);
 
+                // 共同區牧 new_contact_list_co_arealeader
+                aListEntityCollection = m_ToolUtilityClass.QueryListByContactId(m_ContactId, "new_contact_list_co_arealeader");  // 共同區牧
+                MergeCollectionSmallGroupAhead(ref aListEntityCollection);
+
                 return;
             }
             catch (System.Exception Exception)
@@ -396,7 +400,7 @@ namespace ChurchReport.Tools
                 // 區長 ID
                 Guid RaceLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_race_leager_list");
 
-                // 上代組長/(原來是:族系族長) ID
+                // 區牧長 ID/(原來是:族系族長) ID
                 Guid ShepherdLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_list_arealeader");
 
                 // 區名

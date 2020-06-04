@@ -388,6 +388,15 @@ namespace ChurchReport.WebServiceConnector
                     aListGraceLeaderLineId = this.m_ToolUtilityClass.GetEntityStringAttribute(aContact, "new_lineid");
                 }
 
+                // 共同區牧 LINE ID
+                String aCoListGraceLeaderLineId = "";
+                Guid aCoListGraceLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_list_co_arealeader");
+                if (aCoListGraceLeaderId != Guid.Empty)
+                {
+                    aContact = this.m_ToolUtilityClass.RetrieveEntity("contact", aCoListGraceLeaderId);
+                    aCoListGraceLeaderLineId = this.m_ToolUtilityClass.GetEntityStringAttribute(aContact, "new_lineid");
+                }
+
                 // 共同區長 LINE ID
                 String aCoAreaLeaderLineId = "";
                 Guid aCoAreaLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_co_race_leager_list");
@@ -443,6 +452,7 @@ namespace ChurchReport.WebServiceConnector
                 {
                     // 小組長個人回報
                     if (aListGraceLeaderLineId != "") aList.Add(aListGraceLeaderLineId);
+                    if (aCoListGraceLeaderLineId != "") aList.Add(aCoListGraceLeaderLineId);
                     if (aAreaLeaderLineId != "") aList.Add(aAreaLeaderLineId);
                     if (aListCoSmallGroupLeaderLineId != "") aList.Add(aListCoSmallGroupLeaderLineId);
                     if (aCoAreaLeaderLineId != "") aList.Add(aCoAreaLeaderLineId);
@@ -463,6 +473,7 @@ namespace ChurchReport.WebServiceConnector
                 {
                     // 個人回報
                     if (aListGraceLeaderLineId != "") aList.Add(aListGraceLeaderLineId);
+                    if (aCoListGraceLeaderLineId != "") aList.Add(aCoListGraceLeaderLineId);
                     if (aAreaLeaderLineId != "") aList.Add(aAreaLeaderLineId);
                     if (aListCoSmallGroupLeaderLineId != "") aList.Add(aListCoSmallGroupLeaderLineId);
                     if (aCoAreaLeaderLineId != "") aList.Add(aCoAreaLeaderLineId);
@@ -512,6 +523,19 @@ namespace ChurchReport.WebServiceConnector
                         // 登入回報者與此人是不一樣的ID
                         aContact = this.m_ToolUtilityClass.RetrieveEntity("contact", aListGraceLeaderId);
                         aListGraceLeaderLineId = this.m_ToolUtilityClass.GetEntityStringAttribute(aContact, "new_lineid");
+                    }
+                }
+
+                // 共同區牧 LINE ID
+                String aCoListGraceLeaderLineId = "";
+                Guid aCoListGraceLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_list_co_arealeader");
+                if (aCoListGraceLeaderId != Guid.Empty)
+                {
+                    if (LoginContact.Id != aCoListGraceLeaderId)
+                    {
+                        // 登入回報者與此人是不一樣的ID
+                        aContact = this.m_ToolUtilityClass.RetrieveEntity("contact", aCoListGraceLeaderId);
+                        aCoListGraceLeaderLineId = this.m_ToolUtilityClass.GetEntityStringAttribute(aContact, "new_lineid");
                     }
                 }
 
@@ -585,6 +609,7 @@ namespace ChurchReport.WebServiceConnector
                 {
                     // 小組長個人回報
                     if (aListGraceLeaderLineId != "") aList.Add(aListGraceLeaderLineId);
+                    if (aCoListGraceLeaderLineId != "") aList.Add(aCoListGraceLeaderLineId);
                     if (aAreaLeaderLineId != "") aList.Add(aAreaLeaderLineId);
                     if (aCoAreaLeaderLineId != "") aList.Add(aCoAreaLeaderLineId);
                     if (aListSmallGroupLeaderLineId != "") aList.Add(aListSmallGroupLeaderLineId);
@@ -606,6 +631,7 @@ namespace ChurchReport.WebServiceConnector
                 {
                     // 個人回報
                     if (aListGraceLeaderLineId != "") aList.Add(aListGraceLeaderLineId);
+                    if (aCoListGraceLeaderLineId != "") aList.Add(aCoListGraceLeaderLineId);
                     if (aAreaLeaderLineId != "") aList.Add(aAreaLeaderLineId);
                     if (aListCoSmallGroupLeaderLineId != "") aList.Add(aListCoSmallGroupLeaderLineId);
                     if (aCoAreaLeaderLineId != "") aList.Add(aCoAreaLeaderLineId);

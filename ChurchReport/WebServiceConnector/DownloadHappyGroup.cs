@@ -215,12 +215,14 @@ namespace ChurchReport.WebServiceConnector
 
                     // 小組長小組名單集合
                     aFamilyLeaderListEntityCollection = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_contact_family_leader_list", "list");
-
                     // 合併小組名單至族系名單，單扣除掉重複的
                     // 然後放在小組名單裡面
                     //EntityCollection aMergeCollection = MergeCollection(ref aListEntityCollection, ref aFamilyLeaderListEntityCollection);
                     aMergeCollection = MergeCollection(ref aMergeCollection, ref aFamilyLeaderListEntityCollection);
 
+                    // 共同區牧 new_contact_list_co_arealeader
+                    aFamilyLeaderListEntityCollection = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_contact_list_co_arealeader", "list");  // 共同區牧
+                    aMergeCollection = MergeCollection(ref aMergeCollection, ref aFamilyLeaderListEntityCollection);
 
                     // 過濾掉需要點名的名單才進來，而且不是幸福小組(因為有時幸福小組也會在APP點名的框框打勾)
                     // 但是過濾的結果會放在 => this.m_Lists

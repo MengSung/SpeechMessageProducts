@@ -101,7 +101,7 @@ namespace ChurchReport.WebServiceConnector
                     // 是否是小組長或是區長，發展到個人版也可以回報
                     FindListCollection(aContact);
 
-                    if (m_Lists.Entities.Count >= 0)
+                    if ( m_Lists.Entities.Count >= 0 )
                     {
                         #region 是小組長或是區長，發展到個人版也可以回報
 
@@ -168,7 +168,6 @@ namespace ChurchReport.WebServiceConnector
                     // 合併小組名單至族系名單，單扣除掉重複的
                     // 然後放在小組名單裡面
                     EntityCollection aMergeCollection = MergeCollection(ref aListEntityCollection, ref aFamilyLeaderListEntityCollection);
-
 
                     // 過濾掉需要點名的名單才進來
                     FilterAppNamedListEntity(aMergeCollection);

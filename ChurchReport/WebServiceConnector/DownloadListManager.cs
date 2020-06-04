@@ -469,6 +469,10 @@ namespace ChurchReport.WebServiceConnector
                 aListEntityCollection = m_ToolUtilityClass.QueryListByContactId(m_ContactId, "new_contact_list_arealeader");  // 族系族長
                 MergeCollectionSmallGroupAhead(ref aListEntityCollection);
 
+                // 共同區牧 new_contact_list_co_arealeader
+                aListEntityCollection = m_ToolUtilityClass.QueryListByContactId(m_ContactId, "new_contact_list_co_arealeader");  // 共同區牧
+                MergeCollectionSmallGroupAhead(ref aListEntityCollection);
+
                 return;
             }
             catch (System.Exception Exception)
