@@ -1611,6 +1611,62 @@ namespace ToolUtilityNameSpace
             EntityCollection dynamicmemberec = service.RetrieveMultiple(new FetchExpression(dynamicQuery));
             return dynamicmemberec;
         }
+        public EntityCollection QueryDediccationContatsByFetchXml(String DedicationNumber, String ContactName, String HomePhone, String Mobile)
+        {
+            try
+            {
+                DedicationNumber = "'" + DedicationNumber + "'";
+                ContactName = "'%" + ContactName + "%'";
+                HomePhone = "'%" + HomePhone + "%'";
+                Mobile = "'%" + Mobile + "%'";
+
+                var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+                              <entity name='contact'>
+                                <attribute name='fullname' />
+                                <attribute name='telephone2' />
+                                <attribute name='address2_line1' />
+                                <attribute name='parentcustomerid' />
+                                <attribute name='new_church_jobtitle' />
+                                <attribute name='mobilephone' />
+                                <attribute name='emailaddress1' />
+                                <attribute name='pager' />
+                                <attribute name='contactid' />
+                                <order attribute='fullname' descending='false' />
+                                <filter type='and'>
+                                  <filter type='or'>
+                                    <condition attribute='pager' operator='eq' value=" + DedicationNumber + @" />
+                                    <condition attribute='fullname' operator='like' value=" + ContactName + @"/>
+                                    <condition attribute='telephone2' operator='like' value=" + HomePhone + @" />
+                                    <condition attribute='mobilephone' operator='like' value=" + Mobile + @" />
+                                  </filter>
+                                </filter>
+                              </entity>
+                            </fetch>";
+
+                RetrieveMultipleRequest fetchRequest1 = new RetrieveMultipleRequest
+                {
+                    Query = new FetchExpression(fetchXml)
+                };
+
+                return ((RetrieveMultipleResponse)this.m_OrganizationService.Execute(fetchRequest1)).EntityCollection;
+
+                //if (CRM_TYPE == "DYNAMICS365")
+                //{
+                //    retrieved = ((RetrieveMultipleResponse)this.m_OrganizationService.Execute(fetchRequest1)).EntityCollection;
+                //}
+                //else
+                //{
+                //    retrieved = ((RetrieveMultipleResponse)this.m_Crm2011OrganizationService.Execute(fetchRequest1)).EntityCollection;
+                //}
+
+                //return retrieved;
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                throw e;
+            }
+        }
         #endregion
         #region 取得客戶(Account)組織
         public Guid RetrieveAccountCollectionByName(String AccountName)

@@ -16,7 +16,7 @@ namespace ChurchReport.Models
         #region 資料區
         private ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
 
-        public QpayModel m_QpayModel { get; set; } = new QpayModel();            
+        public QpayModel m_QpayModel { get; set; } = new QpayModel();
 
         private QPayProcessor m_QPayProcessor = new QPayProcessor();
 
@@ -36,8 +36,12 @@ namespace ChurchReport.Models
                 // 奉獻單編號
                 m_QpayModel.DedicationNumber = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "pager");
 
+                //奉獻類別
                 m_QpayModel.Category = "十一";
+                //付款方式
                 m_QpayModel.PayWay = "信用卡";
+                //奉獻日期
+                m_QpayModel.DedicationDate = DateTime.Now;
 
                 m_QpayModel.OtherCategoryArray = new List<String>();
                 EntityCollection TaskCollection = m_ToolUtilityClass.RetrieveTaskByFetchXml("宣道支持奉獻(請勿刪除)");
@@ -72,7 +76,7 @@ namespace ChurchReport.Models
                 throw e;
             }
         }
-        public async Task<IActionResult> SaveQPayDedication( QpayModel QpayModel, String LineUserId )
+        public async Task<IActionResult> SaveQPayDedication(QpayModel QpayModel, String LineUserId)
         {
             try
             {
@@ -103,33 +107,24 @@ namespace ChurchReport.Models
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "永和禮拜堂 : 綁定錯誤 => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "忠孝路長老教會 : 綁定錯誤 => " + ErrorString);
 
                 //return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
                 throw e;
             }
         }
-        public async Task<IActionResult> SaveKeyInDedication( QpayModel QpayModel )
+        public async Task<IActionResult> SaveKeyInDedication(QpayModel QpayModel)
         {
             try
             {
-                if (QpayModel.Amount != null && QpayModel.Amount > 0)
+                if (QpayModel.ClickType == "查詢")
                 {
-                    String DedicationResult = await m_QPayProcessor.SaveKeyInDedication( QpayModel );
-
-                    if (DedicationResult.Contains("錯誤") != true)
-                    {
-                        return Json(new { status = "1", message = DedicationResult, DedicationResult = DedicationResult });
-                    }
-                    else
-                    {
-                        return Json(new { status = "2", message = DedicationResult, DedicationResult = DedicationResult });
-                    }
+                    return await QueryKeyInDedication(QpayModel);
                 }
                 else
                 {
-                    return Json(new { status = "2", message = "未輸入奉獻金額" });
+                    return await UpdateKeyInDedication(QpayModel);
                 }
             }
             catch (System.Exception e)
@@ -139,7 +134,114 @@ namespace ChurchReport.Models
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "永和禮拜堂 : 綁定錯誤 => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "忠孝路長老教會 : 綁定錯誤 => " + ErrorString);
+
+                //return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
+                throw e;
+            }
+        }
+        public async Task<IActionResult> QueryKeyInDedication(QpayModel QpayModel)
+        {
+            try
+            {
+                String DedicationResult = "";
+
+                String DedicationNumber = QpayModel.DedicationNumber != null ? QpayModel.DedicationNumber : "未填奉獻編號";
+                String FullName = QpayModel.FullName != null ? QpayModel.FullName : "未填姓名";
+                String HomePhone = QpayModel.Mobile != null ? QpayModel.Mobile : "未填手機號碼";
+                String Mobile = QpayModel.Mobile != null ? QpayModel.Mobile : "未填手機號碼";
+
+                EntityCollection DedicationContacts = this.m_ToolUtilityClass.QueryDediccationContatsByFetchXml(DedicationNumber, FullName, HomePhone, Mobile);
+
+                if (DedicationContacts.Entities.Count == 1)
+                {
+                    DedicationNumber = this.m_ToolUtilityClass.GetEntityStringAttribute(DedicationContacts.Entities[0], "pager");
+                    FullName = this.m_ToolUtilityClass.GetEntityStringAttribute(DedicationContacts.Entities[0], "fullname");
+                    HomePhone = this.m_ToolUtilityClass.GetEntityStringAttribute(DedicationContacts.Entities[0], "telephone2");
+                    Mobile = this.m_ToolUtilityClass.GetEntityStringAttribute(DedicationContacts.Entities[0], "mobilephone");
+
+                    String PhoneNumber = "";
+                    if (Mobile != "")
+                    {
+                        PhoneNumber = Mobile;
+                    }
+                    else
+                    {
+                        PhoneNumber = HomePhone;
+                    }
+
+
+                    return Json(new { status = "1", clicktype = "查詢", DedicationNumber = DedicationNumber, FullName = FullName, Mobile = PhoneNumber, message = DedicationResult, DedicationResult = DedicationResult });
+                }
+                else if (DedicationContacts.Entities.Count > 1)
+                {
+                    //m_QpayModel.SameNameList = new List<SameNameElement>();
+
+                    m_QpayModel.SameNameList.Clear();
+                    foreach (Entity aContact in DedicationContacts.Entities)
+                    {
+                        SameNameElement aSameNameElement = new SameNameElement();
+                        aSameNameElement.SameNameElementId = aContact.Id.ToString();
+                        aSameNameElement.DedicationNumber = m_ToolUtilityClass.GetEntityStringAttribute(aContact, "pager");
+                        aSameNameElement.FullName = m_ToolUtilityClass.GetEntityStringAttribute(aContact, "fullname");
+                        aSameNameElement.Mobile = m_ToolUtilityClass.GetEntityStringAttribute(aContact, "telephone2");
+
+                        m_QpayModel.SameNameList.Add(aSameNameElement);
+                    };
+
+                    return Json(new { status = "2", clicktype = "查詢", DedicationNumber = "", FullName = "", Mobile = "", message = "", DedicationResult = "" });
+
+                }
+                else
+                {
+                    return Json(new { status = "2", clicktype = "查詢", message = "沒找到這個連絡人", DedicationResult = "沒找到這個連絡人" });
+                }
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                //m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "忠孝路長老教會 : 綁定錯誤 => " + ErrorString);
+
+                //return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
+                throw e;
+            }
+        }
+        public async Task<IActionResult> UpdateKeyInDedication(QpayModel QpayModel)
+        {
+            try
+            {
+                if (QpayModel.Amount != null && QpayModel.Amount > 0)
+                {
+                    String DedicationResult = await m_QPayProcessor.SaveKeyInDedication(QpayModel);
+
+                    if (DedicationResult.Contains("錯誤") != true)
+                    {
+                        return Json(new { status = "1", clicktype = "上傳", message = DedicationResult, DedicationResult = DedicationResult });
+                    }
+                    else
+                    {
+                        return Json(new { status = "3", clicktype = "上傳", message = DedicationResult, DedicationResult = DedicationResult });
+                    }
+                }
+                else
+                {
+                    return Json(new { status = "3", clicktype = "上傳", message = "未輸入奉獻金額" });
+                }
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                //m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "忠孝路長老教會 : 綁定錯誤 => " + ErrorString);
 
                 //return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -158,6 +260,13 @@ namespace ChurchReport.Models
                 m_QpayModel.Mobile = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "mobilephone");
                 // 奉獻單編號
                 m_QpayModel.DedicationNumber = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "pager");
+
+                //奉獻類別
+                m_QpayModel.Category = "十一";
+                //付款方式
+                m_QpayModel.PayWay = "信用卡";
+                //奉獻日期
+                m_QpayModel.DedicationDate = DateTime.Now;
 
                 m_QpayModel.DedicationFeeList = new List<DedicationFee>();
                 EntityCollection aDedicationFeeEntityCollection = this.m_ToolUtilityClass.RetrieveDedicationFeeByDateFetchXml(m_QpayModel.FullName, LineLoginContact.Id.ToString(), m_QpayModel.QueryStartDate, m_QpayModel.QueryEndDate);
@@ -191,13 +300,17 @@ namespace ChurchReport.Models
         {
             try
             {
-                // 全名
-                m_QpayModel.FullName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "fullname");
-                // 全名
-                m_QpayModel.Mobile = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "mobilephone");
-                // 奉獻單編號
-                m_QpayModel.DedicationNumber = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "pager");
+                if (m_QpayModel.ClickType == null)
+                {
+                    // 全名
+                    m_QpayModel.FullName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "fullname");
+                    // 全名
+                    m_QpayModel.Mobile = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "mobilephone");
+                    // 奉獻單編號
+                    m_QpayModel.DedicationNumber = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "pager");
+                }
 
+                // 收費單清單
                 m_QpayModel.DedicationFeeList = new List<DedicationFee>();
                 EntityCollection aDedicationFeeEntityCollection = this.m_ToolUtilityClass.RetrieveDedicationFeeByDateFetchXml(m_QpayModel.FullName, LineLoginContact.Id.ToString(), m_QpayModel.QueryStartDate, m_QpayModel.QueryEndDate);
 
@@ -231,20 +344,20 @@ namespace ChurchReport.Models
             switch (this.m_ToolUtilityClass.GetOptionSetAttribute(aFeeEntity, "new_pay_way"))
             {
                 case 100000004:
-                    return  "未知";
+                    return "未知";
                 case 100000000:
-                    return  "現金";
+                    return "現金";
                 case 100000001:
-                    return  "信用卡";
+                    return "信用卡";
                 case 100000002:
-                    return  "ATM轉帳";
+                    return "ATM轉帳";
                 case 100000003:
-                    return  "超商付款";
+                    return "超商付款";
                 default:
-                    return  "未知";
+                    return "未知";
             }
         }
-        public String ConvertToCategory( Entity aFeeEntity )
+        public String ConvertToCategory(Entity aFeeEntity)
         {
             switch (this.m_ToolUtilityClass.GetOptionSetAttribute(aFeeEntity, "new_category"))
             {
@@ -270,7 +383,7 @@ namespace ChurchReport.Models
         }
         #endregion
         #region 電腦網頁登入
-        public QpayModel SetQpayModel( Entity aContact )
+        public QpayModel SetQpayModel(Entity aContact)
         {
             try
             {
@@ -284,6 +397,13 @@ namespace ChurchReport.Models
 
                 m_QpayModel.Category = "十一";
                 m_QpayModel.PayWay = "信用卡";
+
+                //m_QpayModel.SameNameList = new List<SameNameElement>
+                //{
+                //    new SameNameElement { SameNameElementId = "0000", FullName = "耶穌", Mobile = "0905632361" },
+                //    new SameNameElement { SameNameElementId = "1111", FullName = "耶和華", Mobile = "0906325469" },
+                //    new SameNameElement { SameNameElementId = "2222", FullName = "以利亞", Mobile = "0921834289" },
+                //};
 
                 m_QpayModel.OtherCategoryArray = new List<String>();
                 EntityCollection TaskCollection = m_ToolUtilityClass.RetrieveTaskByFetchXml("宣道支持奉獻(請勿刪除)");
@@ -321,13 +441,13 @@ namespace ChurchReport.Models
                 throw e;
             }
         }
-        public async Task<IActionResult> SaveQPayDedication( QpayModel QpayModel )
+        public async Task<IActionResult> SaveQPayDedication(QpayModel QpayModel)
         {
             try
             {
                 if (QpayModel.Amount != null && QpayModel.Amount > 0)
                 {
-                    String DedicationResult = await m_QPayProcessor.CreateFeeAsync( m_Contact, QpayModel);
+                    String DedicationResult = await m_QPayProcessor.CreateFeeAsync(m_Contact, QpayModel);
 
                     String PayWay = "";
                     if (DedicationResult.Contains("*** 請依照訊息付款 ***") != true)
@@ -352,9 +472,25 @@ namespace ChurchReport.Models
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "永和禮拜堂 : 綁定錯誤 => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "忠孝路長老教會 : 綁定錯誤 => " + ErrorString);
 
                 //return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
+                throw e;
+            }
+        }
+
+        public void DeleteSameNameContact(SameNameElement aSameNameElement)
+        {
+            try
+            {
+                // 刪除約會
+                m_QpayModel.SameNameList.RemoveAt(1);
+
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
 
                 throw e;
             }

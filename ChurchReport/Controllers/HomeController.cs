@@ -4622,7 +4622,7 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                return await m_InMemoryDataContextSmallGroup.QpayManager.SaveKeyInDedication( QpayModel );
+                return await m_InMemoryDataContextSmallGroup.QpayManager.SaveKeyInDedication(QpayModel);
             }
             catch (System.Exception e)
             {
@@ -4631,14 +4631,47 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "永和禮拜堂 : 綁定錯誤 => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "忠孝路長老教會 : 綁定錯誤 => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
                 throw e;
             }
         }
+        [HttpGet]
+        public object LoadSameNameList(string id, DataSourceLoadOptions loadOptions)
+        {
+            try
+            {
+                var tasks = m_InMemoryDataContextSmallGroup.QpayManager.m_QpayModel.SameNameList;
+                return DataSourceLoader.Load(tasks, loadOptions);
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
 
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "忠孝路長老教會 : 綁定錯誤 => " + ErrorString);
+
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
+                throw e;
+            }
+        }
+        [HttpDelete]
+        public void DeleteSameNameContact(String key)
+        {
+            #region 刪除約會
+            var SameNameCcontact = m_InMemoryDataContextSmallGroup.QpayManager.m_QpayModel.SameNameList.First(a => a.SameNameElementId == key);
+
+            //Task.Run(() => m_InMemoryDataContextSmallGroup.AppointmentsListManager.DeleteAppointment(appointment));
+            m_InMemoryDataContextSmallGroup.QpayManager.DeleteSameNameContact(SameNameCcontact);
+
+            //m_InMemoryDataContextSmallGroup.SaveChanges();
+            #endregion
+        }
         #endregion
         #region 奉獻LineId登入
         [Route("/Home/DediationLineLoginView/{LineIdLoginViewPatameter}")]

@@ -364,7 +364,7 @@ namespace ChurchReport.WebServiceConnector
             {
                 #region 非同步建立收費單
                 Entity aContact = GetContact(QpayModel);
-                if( aContact == null )
+                if (aContact == null)
                 {
                     return "錯誤:找不到會友!";
                 }
@@ -372,13 +372,22 @@ namespace ChurchReport.WebServiceConnector
                 {
                     Guid aCreatedFeeId = CreateFee(aContact, QpayModel);
 
-                    SendGratitudeLineMessage( aContact, QpayModel);
+                    SendGratitudeLineMessage(aContact, QpayModel);
 
-                    String Result = "感謝" + this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContact, "fullname") + "您的奉獻";
+                    //String Result = "感謝" + this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContact, "fullname") + "您的奉獻";
+                    String Result = "上傳成功<br/>" +
+                                    "--------------------" + "<br/>" +
+                                    "日期    : " + QpayModel.DedicationDate.ToShortDateString() + "<br/>" +
+                                    "姓名    : " + QpayModel.FullName + "<br/>" +
+                                    "電話    : " + QpayModel.Mobile + "<br/>" +
+                                    "類別    : " + QpayModel.Category + "<br/>" +
+                                    "付款方式: " + QpayModel.PayWay + "<br/>" +
+                                    "金額    : " + QpayModel.Amount + "<br/>"
+                                    ;
                     return Result;
                 }
 
-                
+
                 #endregion
             }
             catch (System.Exception e)
