@@ -60,7 +60,7 @@
                 .Label(l => l.Text("奉獻編號"))
                 .Editor(e => e
                     .TextBox()
-                    .Width(100)
+                    .Width(120)
                     .Disabled(false)
                     .Placeholder("輸入奉獻編號")
                     .FocusStateEnabled(true)
@@ -68,12 +68,12 @@
 
          items.AddSimpleFor(m => m.NationId)
                //.DataField("LastName")
-               .Label(l => l.Text("身分證字號"))
+               .Label(l => l.Text("身份證字號"))
                .Editor(e => e
                    .TextBox()
-                   .Width(100)
+                   .Width(120)
                    .Disabled(false)
-                   .Placeholder("輸入身分證字號")
+                   .Placeholder("輸入身份證字號")
                    .FocusStateEnabled(true)
               );
 
@@ -82,7 +82,7 @@
             .Label(l => l.Text("姓名"))
             .Editor(e => e
                 .TextBox()
-                .Width(100)
+                .Width(120)
                 .Disabled(false)
                 .Placeholder("輸入姓名")
            );
@@ -91,7 +91,7 @@
                 .Label(l => l.Text("電話號碼"))
                 .Editor(e => e
                     .TextBox()
-                    .Width(100)
+                    .Width(120)
                     //.Mask("(X000) 000-000")
                     .MaskRules(new { X = new JS("/[02-9]/") })
                     .Placeholder("輸入電話號碼")
@@ -214,7 +214,7 @@
                 (
                     e => e
                     .SelectBox()
-                    .Width(100)
+                    .Width(120)
                     .DataSource(new string[]
                     {
                         "永和禮拜堂",
@@ -235,7 +235,7 @@
                 (
                     e => e
                     .SelectBox()
-                    .Width(100)
+                    .Width(120)
                     .DataSource(new string[]
                     {
                        "十一",
@@ -263,7 +263,7 @@
                 (
                     e => e
                     .SelectBox()
-                    .Width(100)
+                    .Width(120)
                     .DataSource(Model.OtherCategoryArray)
                     .Placeholder("請選擇奉獻類別")
                     //.Value("特別")
@@ -274,7 +274,7 @@
                     .Label(l => l.Text("奉獻金額"))
                     .Editor(e => e
                         .NumberBox().Value(null)
-                        .Width(100)
+                        .Width(120)
                         .Disabled(false)
                         .Placeholder("輸入奉獻金額")
                     );
@@ -286,12 +286,12 @@
                         (
                             e => e
                             .SelectBox()
-                            .Width(100)
+                            .Width(120)
                             .DataSource(new string[]
                             {
-                                           "現金",
-                                           "信用卡",
-                                           "ATM轉帳/匯款",
+                                "現金",
+                                "信用卡",
+                                "ATM轉帳/匯款",
                             }
                         //.DisplayExpr("Name")
                         )
@@ -303,7 +303,7 @@
                     .Label(l => l.Text("查詢或上傳").Visible(false))
                     .Editor(e => e
                         .TextBox()
-                        .Width(100).Visible(false)
+                        .Width(120).Visible(false)
                         //.Disabled(true)
                         .Placeholder("查詢或上傳")
                    );

@@ -381,7 +381,6 @@ namespace ChurchReport.WebServiceConnector
                                     "姓名    : " + QpayModel.FullName + "<br/>" +
                                     "奉獻編號: " + this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContact, "pager") + "<br/>" +
                                     "身分證字號: " + this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContact, "new_personal_id") + "<br/>" +
-                                    "姓名    : " + QpayModel.FullName + "<br/>" +
                                     "電話    : " + QpayModel.Mobile + "<br/>" +
                                     "類別    : " + QpayModel.Category + "<br/>" +
                                     "奉獻地點: " + QpayModel.DedicateLocation + "<br/>" +
