@@ -23,6 +23,7 @@ namespace ChurchReport.Models
         public String Others { get; set; }                              //其他奉獻
         public String DedicateLocation { get; set; }                    //奉獻分堂
         public String ClickType { get; set; }                           //查詢或是上傳
+        public String SelectedCreditCard { get; set; }                  //選取的信用卡
         public List<String> OtherCategoryArray { get; set; }
         public List<CreditCard> CreditCardList { get; set; }
         public List<DedicationFee> DedicationFeeList { get; set; }

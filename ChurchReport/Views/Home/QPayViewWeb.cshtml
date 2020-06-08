@@ -6,19 +6,9 @@
     <h5 id="displaynamefield">@Model.FullName 奉獻編號:@Model.DedicationNumber</h5>
 </div>
 
-<form data-ajax="true" data-ajax-begin="onBegin" data-ajax-success="onSuccess" asp-action="SaveQPayDedicationWeb" asp-controller="Home" method="post">
-    <div class="dx-field">
-        <div id="buttonContainer" class="dx-button-icon">
-            @(Html.DevExtreme().Button()
-                    .Text("奉獻")
-                    .Type(ButtonType.Success)
-                    .ID("save-button")
-                    .UseSubmitBehavior(true)
-                    .OnClick("ShowLoadPanel")
-            )
-        </div>
-        <div id="ToastContainer">
-            @(Html.DevExtreme().Toast()
+<div class="dx-field">
+    <div id="ToastContainer">
+        @(Html.DevExtreme().Toast()
                 .ID("toast")
                 .Position(p => p
                     .At(HorizontalAlignment.Center, VerticalAlignment.Center)
@@ -28,9 +18,9 @@
                     .MaxWidth(200)
             )
 
-        </div>
-        <div id="LoadPanel">
-            @(Html.DevExtreme().LoadPanel()
+    </div>
+    <div id="LoadPanel">
+        @(Html.DevExtreme().LoadPanel()
                     .ID("loadPanel")
                     .ShadingColor("rgba(0,0,0,0.4)")
                     .Position(p => p.Of("#form-container"))
@@ -42,8 +32,18 @@
                     .Message("上傳資料中...")
                     .Animation(l => l.Show(k => k.Easing(AnimationEasing.Swing)))
             )
+    </div>
+</div>
 
-        </div>
+<form data-ajax="true" data-ajax-begin="onBegin" data-ajax-success="onSuccess" asp-action="SaveQPayDedicationWeb" asp-controller="Home" method="post">
+    <div id="buttonContainer" class="dx-button-icon">
+        @(Html.DevExtreme().Button()
+                    .Text("奉獻")
+                    .Type(ButtonType.Success)
+                    .ID("save-button")
+                    .UseSubmitBehavior(true)
+                    .OnClick("ShowLoadPanel")
+            )
     </div>
     <div id="form-container">
         @(Html.DevExtreme().Form<QpayModel>()
@@ -51,6 +51,7 @@
         .ColCount(1)
         .Items(items =>
         {
+
             items.AddSimpleFor
             (m => m.Category)
                 .Label(l => l.Text("類別"))
@@ -120,8 +121,20 @@
                             //.DisplayExpr("Name")
                         )
                         .OnValueChanged("OnPayWaySelectBoxValueChanged")
-                        //.Value("信用卡")
+                    //.Value("信用卡")
                     );
+
+
+            items.AddSimpleFor(m => m.SelectedCreditCard)
+                    //.DataField("LastName")
+                    .Label(l => l.Text("選取的信用卡").Visible(false))
+                    .Editor(e => e
+                        .TextBox()
+                        .Width(120).Visible(false)
+                        //.Disabled(true)
+                        .Placeholder("選取的信用卡")
+                   );
+
 
         })
         .OnContentReady
@@ -183,8 +196,16 @@
                                 columns.AddFor(m => m.CreditCardNumber).Caption("卡號").Width(180).MinWidth(180).Fixed(true);
                                 columns.AddFor(m => m.ExpireDate).Caption("過期日").Width(100).MinWidth(100);
                             })
-                            .DataSource
-                            ( Model.CreditCardList)
+                            .DataSource(d => d
+                                .WebApi()
+                                .Controller("Home")
+                                .LoadAction("LoadCreditCardList")
+                                //.InsertAction("InsertPresentRecord")
+                                .DeleteAction("DeleteCreditCard")
+                                //.UpdateAction("UpdatePresentRecord")
+                                .Key("CCToken")
+                                //.LoadParams(new { id = @ViewBag.ListId }))
+                            )
 
                             .OnContentReady("onCreditCardGridContentReady")
                             // 此處設定是讓選項偏左邊一排
@@ -308,10 +329,18 @@
         }
     }
     function OnRowClick(selectedItems) {
-        //alert("選了同名同姓");
+        var data = selectedItems.selectedRowsData[0];
+        if (data) {
+            //alert("信用卡:" + data.CCToken);
+            $("#form").dxForm("instance").updateData('SelectedCreditCard', data.CCToken);
+        }
     }
     function OnRowSelectionChanged(selectedItems) {
-        //alert("更換同名同姓");
+        var data = selectedItems.selectedRowsData[0];
+        if (data) {
+            //alert("信用卡:" + data.CCToken);
+            $("#form").dxForm("instance").updateData('SelectedCreditCard', data.CCToken);
+        }
     }
     function onCreditCardGridContentReady(e) {
         var items = e.component.getDataSource().items();

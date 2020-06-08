@@ -4389,6 +4389,42 @@ namespace ChurchReport.Controllers
             }
         }
         #endregion
+        [HttpGet]
+        public object LoadCreditCardList(string id, DataSourceLoadOptions loadOptions)
+        {
+            try
+            {
+                // 載入信用卡清單
+                var tasks = m_InMemoryDataContextSmallGroup.QpayManager.m_QpayModel.CreditCardList;
+                return DataSourceLoader.Load(tasks, loadOptions);
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "永和禮拜堂 : 綁定錯誤 => " + ErrorString);
+
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
+                throw e;
+            }
+        }
+        [HttpDelete]
+        public void DeleteCreditCard(String key)
+        {
+            #region 刪除同名同姓
+            var aCreditCard = m_InMemoryDataContextSmallGroup.QpayManager.m_QpayModel.CreditCardList.First(a => a.CCToken == key);
+
+            //Task.Run(() => m_InMemoryDataContextSmallGroup.AppointmentsListManager.DeleteAppointment(appointment));
+            m_InMemoryDataContextSmallGroup.QpayManager.DeleteCreditCard(aCreditCard);
+
+            //m_InMemoryDataContextSmallGroup.SaveChanges();
+            #endregion
+        }
+
         #endregion
         #region 奉獻收費清單
         #region Line 單獨登入

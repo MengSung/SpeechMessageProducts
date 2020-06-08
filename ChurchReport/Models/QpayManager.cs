@@ -27,7 +27,7 @@ namespace ChurchReport.Models
         {
             try
             {
-                Entity LineLoginContact = this.m_ToolUtilityClass.RetrieveContactByLineId(UserLineId);
+                Entity LineLoginContact= this.m_Contact = this.m_ToolUtilityClass.RetrieveContactByLineId(UserLineId);
 
                 // 全名
                 m_QpayModel.FullName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "fullname");
@@ -61,11 +61,16 @@ namespace ChurchReport.Models
                     m_QpayModel.OtherCategoryArray.Add(OtherCategory);
                 }
 
-                m_QpayModel.CreditCardList = new List<CreditCard>{
-                    new CreditCard { CCToken = "0000", CreditCardNumber = "AAAAAAAAAAAAAAAA", ExpireDate = "2020/5/25" },
-                    new CreditCard { CCToken = "1111", CreditCardNumber = "BBBBBBBBBBBBBBBB", ExpireDate = "2020/5/26" },
-                    new CreditCard { CCToken = "2222", CreditCardNumber = "CCCCCCCCCCCCCCCC", ExpireDate = "2020/5/27" },
-                };
+                if (m_QpayModel.CreditCardList == null)
+                {
+                    m_QpayModel.CreditCardList = new List<CreditCard>();
+                }
+                else
+                {
+                    m_QpayModel.CreditCardList.Clear();
+                }
+                // 處理信用卡清單
+                ProcessCreditCard();
 
                 m_QpayModel.QueryStartDate = new DateTime(DateTime.Now.Year, 1, 1);
                 m_QpayModel.QueryEndDate = DateTime.Now;
@@ -422,13 +427,6 @@ namespace ChurchReport.Models
                 //奉獻分堂
                 m_QpayModel.DedicateLocation = "永和禮拜堂";
 
-                //m_QpayModel.SameNameList = new List<SameNameElement>
-                //{
-                //    new SameNameElement { SameNameElementId = "0000", FullName = "耶穌", Mobile = "0905632361" },
-                //    new SameNameElement { SameNameElementId = "1111", FullName = "耶和華", Mobile = "0906325469" },
-                //    new SameNameElement { SameNameElementId = "2222", FullName = "以利亞", Mobile = "0921834289" },
-                //};
-
                 m_QpayModel.OtherCategoryArray = new List<String>();
                 EntityCollection TaskCollection = m_ToolUtilityClass.RetrieveTaskByFetchXml("宣道支持奉獻(請勿刪除)");
                 String Description = "";
@@ -437,17 +435,22 @@ namespace ChurchReport.Models
                     Description = this.m_ToolUtilityClass.GetEntityStringAttribute(TaskCollection.Entities[0], "description");
                 }
 
+                if (m_QpayModel.CreditCardList == null)
+                {
+                    m_QpayModel.CreditCardList = new List<CreditCard>();
+                }
+                else
+                {
+                    m_QpayModel.CreditCardList.Clear();
+                }
+                // 處理信用卡清單
+                ProcessCreditCard();
+
                 String[] OtherCategoryArray = Description.Split(',');
                 foreach (String OtherCategory in OtherCategoryArray)
                 {
                     m_QpayModel.OtherCategoryArray.Add(OtherCategory);
                 }
-
-                m_QpayModel.CreditCardList = new List<CreditCard>{
-                    new CreditCard { CCToken = "0000", CreditCardNumber = "AAAAAAAAAAAAAAAA", ExpireDate = "2020/5/25" },
-                    new CreditCard { CCToken = "1111", CreditCardNumber = "BBBBBBBBBBBBBBBB", ExpireDate = "2020/5/26" },
-                    new CreditCard { CCToken = "2222", CreditCardNumber = "CCCCCCCCCCCCCCCC", ExpireDate = "2020/5/27" },
-                };
 
                 m_QpayModel.QueryStartDate = new DateTime(DateTime.Now.Year, 1, 1);
                 m_QpayModel.QueryEndDate = DateTime.Now;
@@ -469,7 +472,7 @@ namespace ChurchReport.Models
         {
             try
             {
-                if (QpayModel.Amount != null && QpayModel.Amount > 0)
+                if ( QpayModel.Amount != null && QpayModel.Amount > 0 )
                 {
                     String DedicationResult = await m_QPayProcessor.CreateFeeAsync(m_Contact, QpayModel);
 
@@ -499,6 +502,99 @@ namespace ChurchReport.Models
                 aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "永和禮拜堂 : 綁定錯誤 => " + ErrorString);
 
                 //return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
+                throw e;
+            }
+        }
+
+        public void ProcessCreditCard()
+        {
+            try
+            {
+                GetCreditCardList(this.m_Contact);
+                //預設信用卡
+                if (m_QpayModel.CreditCardList.Count > 0)
+                {
+                    m_QpayModel.SelectedCreditCard = m_QpayModel.CreditCardList[m_QpayModel.CreditCardList.Count - 1].CCToken;
+                }
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                throw e;
+            }
+        }
+
+        public void GetCreditCardList(Entity aContact)
+        {
+            #region// 取得連絡人信用卡資訊
+
+            String VisaInfo = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContact, "new_visa_info");
+
+            if (VisaInfo != "")
+            {
+                String[] VisaInfoSplit = VisaInfo.Split('|');
+
+                if (VisaInfoSplit.Length > 0)
+                {
+                    foreach( String CreditCard in VisaInfoSplit )
+                    {
+                        String[] VisaCCTokenSplit = CreditCard.Split('，');
+
+                        if (VisaCCTokenSplit.Length == 4)
+                        {
+                            m_QpayModel.CreditCardList.Add(new CreditCard
+                            {
+                                CCToken = VisaCCTokenSplit[0],
+                                LeftCardNumber = VisaCCTokenSplit[1] ,
+                                RightCardNumber =  VisaCCTokenSplit[2],
+                                CreditCardNumber = VisaCCTokenSplit[1] + "XXXX" + VisaCCTokenSplit[2],
+                                ExpireDate = VisaCCTokenSplit[3]
+                            });
+                        }
+                        else
+                        {
+                            //return null;
+                        }
+
+                    }
+                }
+                else
+                {
+                    return;
+                }
+
+            }
+            else
+            {
+                return;
+            }
+            #endregion
+        }
+
+        public void DeleteCreditCard(CreditCard aCreditCardToDelete)
+        {
+            try
+            {
+                // 刪除約會
+                m_QpayModel.CreditCardList.Remove(aCreditCardToDelete);
+
+                String VisaInfo = "";
+
+                foreach(CreditCard aCreditCard in m_QpayModel.CreditCardList)
+                {
+                    VisaInfo += aCreditCard.CCToken + "，"+ aCreditCard.LeftCardNumber + "，"+ aCreditCard.RightCardNumber + "，" + aCreditCard.ExpireDate + "|";
+                }
+
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref m_Contact, "new_visa_info", VisaInfo);
+
+                this.m_ToolUtilityClass.UpdateEntity(ref m_Contact);
+
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
 
                 throw e;
             }
