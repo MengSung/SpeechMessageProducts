@@ -384,6 +384,7 @@ namespace ChurchReport.WebServiceConnector
                                     "姓名    : " + QpayModel.FullName + "<br/>" +
                                     "電話    : " + QpayModel.Mobile + "<br/>" +
                                     "類別    : " + QpayModel.Category + "<br/>" +
+                                    "奉獻地點: " + QpayModel.DedicateLocation + "<br/>" +
                                     "付款方式: " + QpayModel.PayWay + "<br/>" +
                                     "金額    : " + QpayModel.Amount + "<br/>"
                                     ;
@@ -457,8 +458,6 @@ namespace ChurchReport.WebServiceConnector
 
                 // 收費單收費日期
                 this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aFeeToCreated, "new_pay_date", QpayModel.DedicationDate.ToLocalTime());
-
-
                 
                 // 奉獻類別
                 SetFeePayCategory(QpayModel.Category, ref aFeeToCreated);
@@ -468,6 +467,9 @@ namespace ChurchReport.WebServiceConnector
                 {
                     this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeToCreated, "new_others", QpayModel.Others);
                 }
+
+                // 奉獻地點
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeToCreated, "new_dedicate_location", QpayModel.DedicateLocation);
 
                 #endregion
             }

@@ -207,6 +207,27 @@
         {
 
             items.AddSimpleFor
+            (m => m.DedicateLocation)
+                .Label(l => l.Text("奉獻地點"))
+                //.Name("Category")
+                .Editor
+                (
+                    e => e
+                    .SelectBox()
+                    .Width(100)
+                    .DataSource(new string[]
+                    {
+                        "永和禮拜堂",
+                        "南勢角福音中心",
+                        "頂溪福音中心",
+                        "頭份福音中心",
+                        "東引福音中心",
+                        "緬甸福音中心",                    
+                    }
+                )
+                .Placeholder("請選擇奉獻地點")
+            );
+            items.AddSimpleFor
             (m => m.Category)
                 .Label(l => l.Text("類別"))
                 //.Name("Category")

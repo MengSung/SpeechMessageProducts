@@ -4616,7 +4616,6 @@ namespace ChurchReport.Controllers
             }
         }
         #endregion
-
         [HttpPost]
         public async Task<IActionResult> SaveKeyInDedication(QpayModel QpayModel)
         {
@@ -4643,6 +4642,7 @@ namespace ChurchReport.Controllers
         {
             try
             {
+                // 載入同名同姓
                 var tasks = m_InMemoryDataContextSmallGroup.QpayManager.m_QpayModel.SameNameList;
                 return DataSourceLoader.Load(tasks, loadOptions);
             }
@@ -4663,7 +4663,7 @@ namespace ChurchReport.Controllers
         [HttpDelete]
         public void DeleteSameNameContact(String key)
         {
-            #region 刪除約會
+            #region 刪除同名同姓
             var SameNameCcontact = m_InMemoryDataContextSmallGroup.QpayManager.m_QpayModel.SameNameList.First(a => a.SameNameElementId == key);
 
             //Task.Run(() => m_InMemoryDataContextSmallGroup.AppointmentsListManager.DeleteAppointment(appointment));

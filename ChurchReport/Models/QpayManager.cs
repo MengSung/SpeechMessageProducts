@@ -44,6 +44,8 @@ namespace ChurchReport.Models
                 m_QpayModel.PayWay = "信用卡";
                 //奉獻日期
                 m_QpayModel.DedicationDate = DateTime.Now;
+                //奉獻分堂
+                m_QpayModel.DedicateLocation = "永和禮拜堂";
 
                 m_QpayModel.OtherCategoryArray = new List<String>();
                 EntityCollection TaskCollection = m_ToolUtilityClass.RetrieveTaskByFetchXml("宣道支持奉獻(請勿刪除)");
@@ -282,6 +284,8 @@ namespace ChurchReport.Models
                 m_QpayModel.PayWay = "信用卡";
                 //奉獻日期
                 m_QpayModel.DedicationDate = DateTime.Now;
+                //奉獻分堂
+                m_QpayModel.DedicateLocation = "永和禮拜堂";
 
                 m_QpayModel.DedicationFeeList = new List<DedicationFee>();
                 EntityCollection aDedicationFeeEntityCollection = this.m_ToolUtilityClass.RetrieveDedicationFeeByDateFetchXml(m_QpayModel.FullName, LineLoginContact.Id.ToString(), m_QpayModel.QueryStartDate, m_QpayModel.QueryEndDate);
@@ -415,6 +419,8 @@ namespace ChurchReport.Models
 
                 m_QpayModel.Category = "十一";
                 m_QpayModel.PayWay = "信用卡";
+                //奉獻分堂
+                m_QpayModel.DedicateLocation = "永和禮拜堂";
 
                 //m_QpayModel.SameNameList = new List<SameNameElement>
                 //{
