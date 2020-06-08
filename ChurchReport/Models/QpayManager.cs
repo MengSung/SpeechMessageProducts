@@ -208,7 +208,7 @@ namespace ChurchReport.Models
                 }
                 else
                 {
-                    return Json(new { status = "2", clicktype = "查詢", message = "沒找到這個連絡人", DedicationResult = "沒找到這個連絡人" });
+                    return Json(new { status = "3", clicktype = "查詢", message = "沒找到這個連絡人", DedicationResult = "沒找到這個連絡人" });
                 }
             }
             catch (System.Exception e)

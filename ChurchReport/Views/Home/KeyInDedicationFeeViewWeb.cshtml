@@ -466,18 +466,19 @@
                 $("#form2").dxForm("instance").updateData('Amount', "");
                 $("#form1").dxForm("instance").getEditor('DedicationNumber').focus();
 
-                document.getElementById("samenamecontainer").style.display = "none";//隱藏
-                //document.getElementById("samenamecontainer").style.display = "";//顯示
+                //document.getElementById("samenamecontainer").style.display = "none";//隱藏
+                document.getElementById("samenamecontainer").style.display = "";//顯示
 
                 $("#SameNameList").dxDataGrid("instance").refresh();
 
-                document.getElementById('resultfield').innerHTML = data.DedicationResult;
+                //document.getElementById('resultfield').innerHTML = data.DedicationResult;
             }
             else {
                 ShowToast(data.message, "error", 3000);
 
-                document.getElementById('resultfield').innerHTML = "<br/>" + data.DedicationResult;
+                document.getElementById("samenamecontainer").style.display = "none";//隱藏
 
+                document.getElementById('resultfield').innerHTML = data.DedicationResult;
             }
         }
 
