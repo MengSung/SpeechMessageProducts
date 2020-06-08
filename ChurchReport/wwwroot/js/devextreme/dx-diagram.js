@@ -1,7 +1,7 @@
 /*!
  * DevExpress Diagram (dx-diagram)
- * Version: 1.0.0
- * Build date: Fri Apr 24 2020
+ * Version: 1.0.5
+ * Build date: Thu May 28 2020
  * 
  * Copyright (c) 2012 - 2020 Developer Express Inc. ALL RIGHTS RESERVED
  * Read about DevExpress licensing here: https://www.devexpress.com/Support/EULAs
@@ -10128,7 +10128,7 @@ var ShapeDescriptionManager = /** @class */ (function () {
         return this.descriptions[type];
     };
     ShapeDescriptionManager.prototype.getTypesByCategory = function (category) {
-        return this.descriptionTypes[category];
+        return this.descriptionTypes[category] || [];
     };
     ShapeDescriptionManager.prototype.getCategoryByType = function (type) {
         return this.descriptionCategories[type];
@@ -13439,21 +13439,19 @@ var CanvasItemsManager = /** @class */ (function (_super) {
     };
     CanvasItemsManager.prototype.applyPendingChanges = function () {
         var changes = this.getPendingChanges();
-        while (changes.length) {
-            var changesCount = changes.length;
-            this.applyPendingChangesCore(changes);
-            changes = this.getPendingChanges();
-            if (changesCount === changes.length)
-                break;
-        }
+        this.applyChangesCore(changes);
         this.pendingChanges = {};
     };
-    CanvasItemsManager.prototype.applyPendingChangesCore = function (changes) {
+    CanvasItemsManager.prototype.applyChangesCore = function (changes) {
         var _this = this;
+        var changesToReapply = [];
         changes.forEach(function (change) {
-            if (_this.applyChange(change))
-                delete _this.pendingChanges[change.item.key];
+            if (!_this.applyChange(change))
+                changesToReapply.push(change);
         });
+        if (changesToReapply.length && changesToReapply.length !== changes.length) {
+            this.applyChangesCore(changesToReapply);
+        }
     };
     CanvasItemsManager.prototype.applyChange = function (change) {
         var item = change.item;
@@ -13483,11 +13481,8 @@ var CanvasItemsManager = /** @class */ (function (_super) {
     };
     // Notifications
     CanvasItemsManager.prototype.notifyModelChanged = function (changes) {
-        var _this = this;
         if (this.updatesLock === 0) {
-            changes.forEach(function (change) {
-                _this.applyChange(change);
-            });
+            this.applyChangesCore(changes);
         }
         else
             this.postponeChanges(changes);
@@ -14370,6 +14365,7 @@ var MouseHandlerMoveShapeStateBase = /** @class */ (function (_super) {
         _super.prototype.finish.call(this);
     };
     MouseHandlerMoveShapeStateBase.prototype.onMouseDown = function (evt) {
+        var _this = this;
         this.startPoint = evt.modelPoint;
         this.shapes = this.selection.getSelectedShapes(false, true);
         this.connectors = this.selection.getSelectedConnectors(false, true);
@@ -14378,7 +14374,18 @@ var MouseHandlerMoveShapeStateBase = /** @class */ (function (_super) {
             return;
         }
         this.startShapePositions = this.shapes.map(function (shape) { return shape.position.clone(); });
-        this.startConnectorPoints = this.connectors.map(function (c) { return c.points.map(function (p) { return p.clone(); }); });
+        this.movingConnectors = [];
+        if (this.shapes.length === 1) {
+            var firstShape_1 = this.shapes[0];
+            firstShape_1.attachedConnectors.filter(function (c) { return c.beginItem === firstShape_1 && c.endItem === firstShape_1; }).forEach(function (c) { return _this.movingConnectors.push(c); });
+        }
+        this.changingConnectors = [];
+        if (this.shapes.length > 1 || this.connectors.length) {
+            this.shapes.forEach(function (shape) { return shape.attachedConnectors.forEach(function (c) { return _this.addUniqueAttachedConnector(shape, c); }); });
+            this.connectors.filter(function (c) { return !c.beginItem && !c.endItem; }).forEach(function (c) { return _this.movingConnectors.push(c); });
+        }
+        this.startMovingConnectorPoints = this.movingConnectors.map(function (c) { return c.points.map(function (p) { return p.clone(); }); });
+        this.startChangingConnectorPoints = this.changingConnectors.map(function (c) { return c.points.map(function (p) { return p.clone(); }); });
         this.connectorsWithoutBeginItemInfo = ModelUtils_1.ModelUtils.getConnectorsWithoutBeginItemInfo(this.model);
         this.connectorsWithoutEndItemInfo = ModelUtils_1.ModelUtils.getConnectorsWithoutEndItemInfo(this.model);
         _super.prototype.onMouseDown.call(this, evt);
@@ -14394,27 +14401,20 @@ var MouseHandlerMoveShapeStateBase = /** @class */ (function (_super) {
     };
     MouseHandlerMoveShapeStateBase.prototype.onApplyChanges = function (evt) {
         var _this = this;
-        this.shapes.forEach(function (shape, index) {
-            var pos = _this.getPosition(evt, _this.startShapePositions[index]);
-            ModelUtils_1.ModelUtils.setShapePosition(_this.history, _this.model, shape, pos);
-            ModelUtils_1.ModelUtils.updateMovingShapeConnections(_this.history, shape, _this.connectorsWithoutBeginItemInfo, _this.connectorsWithoutEndItemInfo, function () {
-                _this.visualizerManager.resetConnectionTarget();
-                _this.visualizerManager.resetConnectionPoints();
-            }, function (shape, connectionPointIndex) {
-                _this.visualizerManager.setConnectionTarget(shape, Event_1.MouseEventElementType.Shape);
-                _this.visualizerManager.setConnectionPoints(shape, Event_1.MouseEventElementType.Shape, connectionPointIndex, true);
+        this.shapes.forEach(function (shape, index) { return _this.updateShape(shape, _this.getPosition(evt, _this.startShapePositions[index])); });
+        var firstShape = this.shapes[0];
+        var delta = this.startShapePositions[0].offset(-firstShape.position.x, -firstShape.position.y);
+        if (delta.x || delta.y) {
+            this.movingConnectors.forEach(function (connector, index) {
+                _this.setConnectorPoint(connector, _this.startMovingConnectorPoints[index], delta);
+                ModelUtils_1.ModelUtils.updateConnectorAttachedPoints(_this.history, _this.model, connector);
             });
-            ModelUtils_1.ModelUtils.updateShapeAttachedConnectors(_this.history, _this.model, shape);
-        });
-        this.connectors.forEach(function (connector, index) {
-            var delta = _this.startShapePositions[0].offset(-_this.shapes[0].position.x, -_this.shapes[0].position.y);
-            if (delta.x !== 0 || delta.y !== 0) {
-                var startPtIndex = connector.beginItem ? 1 : 0;
-                var endPtIndex = connector.endItem ? (connector.points.length - 2) : (connector.points.length - 1);
-                for (var i = startPtIndex; i <= endPtIndex; i++)
-                    ModelUtils_1.ModelUtils.setConnectorPoint(_this.history, _this.model, connector, i, _this.startConnectorPoints[index][i].offset(-delta.x, -delta.y));
-            }
-        });
+            this.changingConnectors.forEach(function (connector, index) {
+                ModelUtils_1.ModelUtils.removeConnectorIntermediatePoints(_this.history, connector);
+                _this.setConnectorPoint(connector, _this.startChangingConnectorPoints[index], delta);
+                ModelUtils_1.ModelUtils.updateConnectorAttachedPoints(_this.history, _this.model, connector);
+            });
+        }
         var container = ModelUtils_1.ModelUtils.findContainerByEventKey(this.model, this.selection, evt.source.key);
         if (container && ModelUtils_1.ModelUtils.canInsertSelectionToContainer(this.model, this.selection, container))
             ModelUtils_1.ModelUtils.insertSelectionToContainer(this.history, this.model, this.selection, container);
@@ -14442,6 +14442,42 @@ var MouseHandlerMoveShapeStateBase = /** @class */ (function (_super) {
     };
     MouseHandlerMoveShapeStateBase.prototype.getPosition = function (evt, basePoint) {
         return new Utils_1.Point(this.handler.getSnappedPos(evt, this.getXPosition(evt, basePoint.x), true), this.handler.getSnappedPos(evt, this.getYPosition(evt, basePoint.y), false));
+    };
+    MouseHandlerMoveShapeStateBase.prototype.updateShape = function (shape, position) {
+        var _this = this;
+        ModelUtils_1.ModelUtils.setShapePosition(this.history, this.model, shape, position);
+        ModelUtils_1.ModelUtils.updateMovingShapeConnections(this.history, shape, this.connectorsWithoutBeginItemInfo, this.connectorsWithoutEndItemInfo, function () {
+            _this.visualizerManager.resetConnectionTarget();
+            _this.visualizerManager.resetConnectionPoints();
+        }, function (shape, connectionPointIndex) {
+            _this.visualizerManager.setConnectionTarget(shape, Event_1.MouseEventElementType.Shape);
+            _this.visualizerManager.setConnectionPoints(shape, Event_1.MouseEventElementType.Shape, connectionPointIndex, true);
+        });
+        if (!this.movingConnectors.length && !this.changingConnectors.length)
+            ModelUtils_1.ModelUtils.updateShapeAttachedConnectors(this.history, this.model, shape);
+    };
+    MouseHandlerMoveShapeStateBase.prototype.setConnectorPoint = function (connector, points, delta) {
+        var startPtIndex = connector.beginItem ? 1 : 0;
+        var endPtIndex = connector.endItem ? (connector.points.length - 2) : (connector.points.length - 1);
+        for (var i = startPtIndex; i <= endPtIndex; i++)
+            ModelUtils_1.ModelUtils.setConnectorPoint(this.history, this.model, connector, i, points[i].offset(-delta.x, -delta.y));
+        ModelUtils_1.ModelUtils.updateConnectorAttachedPoints(this.history, this.model, connector);
+    };
+    MouseHandlerMoveShapeStateBase.prototype.addUniqueAttachedConnector = function (ownerShape, connector) {
+        var otherShape = this.getOtherSideShape(ownerShape, connector);
+        var collection = !otherShape || this.shapes.indexOf(otherShape) > -1 ? this.movingConnectors : this.changingConnectors;
+        this.addUniqueConnector(collection, connector);
+    };
+    MouseHandlerMoveShapeStateBase.prototype.getOtherSideShape = function (ownerShape, connector) {
+        if (ownerShape === connector.beginItem)
+            return connector.endItem;
+        if (ownerShape === connector.endItem)
+            return connector.beginItem;
+        return undefined;
+    };
+    MouseHandlerMoveShapeStateBase.prototype.addUniqueConnector = function (connectors, connector) {
+        if (connectors.indexOf(connector) === -1)
+            connectors.push(connector);
     };
     return MouseHandlerMoveShapeStateBase;
 }(MouseHandlerDraggingState_1.MouseHandlerDraggingState));
@@ -23595,9 +23631,6 @@ var SwitchAutoZoomCommand = /** @class */ (function (_super) {
     function SwitchAutoZoomCommand() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
-    SwitchAutoZoomCommand.prototype.isEnabled = function () {
-        return _super.prototype.isEnabled.call(this) && !!this.control.render;
-    };
     SwitchAutoZoomCommand.prototype.isEnabledInReadOnlyMode = function () {
         return true;
     };
@@ -23711,12 +23744,14 @@ var BindDocumentCommand = /** @class */ (function (_super) {
     };
     BindDocumentCommand.prototype.performImportData = function (parameter) {
         var dataSource = this.control.createDocumentDataSource(parameter.nodeDataSource, parameter.edgeDataSource, parameter.dataParameters, parameter.nodeDataImporter, parameter.edgeDataImporter);
+        dataSource.beginChangesNotification();
         var layoutParameters = (parameter.layoutParameters) ? new DataLayoutParameters_1.DataLayoutParameters(parameter.layoutParameters) : undefined;
         this.control.history.beginTransaction();
         ModelUtils_1.ModelUtils.deleteAllItems(this.control.history, this.control.model, this.control.selection);
         this.createItems(dataSource, layoutParameters);
         this.control.history.endTransaction();
         this.control.history.clear();
+        dataSource.endChangesNotification(true);
     };
     return BindDocumentCommand;
 }(ImportDataCommandBase_1.ImportDataCommandBase));
@@ -25063,6 +25098,8 @@ var DiagramControl = /** @class */ (function () {
         this.commandManager = new CommandManager_1.CommandManager(this);
         this.barManager = new BarManager_1.BarManager(this);
         this.eventManager = new EventManager_1.EventManager(this);
+        this.settings.onReadOnlyChanged.add(this.eventManager.mouseHandler);
+        this.settings.onReadOnlyChanged.add(this.eventManager.visualizersManager);
         this.selection.onChanged.add(this.barManager);
         this.modelManipulator.onLoad();
         this.history.onChanged.add(this);
@@ -25098,8 +25135,6 @@ var DiagramControl = /** @class */ (function () {
             this.settings.onZoomChanged.add(this.render.view);
             this.settings.onViewChanged.add(this.render.page);
             this.settings.onViewChanged.add(this.render.view);
-            this.settings.onReadOnlyChanged.add(this.eventManager.mouseHandler);
-            this.settings.onReadOnlyChanged.add(this.eventManager.visualizersManager);
             this.settings.onReadOnlyChanged.add(this.render);
             this.settings.onReadOnlyChanged.add(this.render.selection);
             this.eventManager.onTextInputOperation.add(this.render.input);
@@ -30891,9 +30926,9 @@ var DocumentDataSource = /** @class */ (function (_super) {
     DocumentDataSource.prototype.beginChangesNotification = function () {
         this.updateLockCount++;
     };
-    DocumentDataSource.prototype.endChangesNotification = function () {
+    DocumentDataSource.prototype.endChangesNotification = function (preventEvent) {
         this.updateLockCount--;
-        if (!this.isUpdateLocked()) {
+        if (!this.isUpdateLocked() && !preventEvent) {
             setTimeout(function () {
                 this.changesListener.processDataChanges.call(this.changesListener, false);
             }.bind(this), 0);

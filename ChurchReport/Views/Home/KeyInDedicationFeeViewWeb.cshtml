@@ -43,31 +43,41 @@
      .ColCount(1)
      .Items(items =>
      {
-     items.AddSimpleFor(m => m.DedicationDate)
-           //.DataField("LastName")
-           .Label(l => l.Text("奉獻日期"))
-           .Editor(e => e
-               .DateBox()
-               .Width(135)
-               .Disabled(false)
-               .DisplayFormat("yyyy/M/d")
-               .Placeholder("輸入奉獻日期")
-               .FocusStateEnabled(true)
-          );
+         items.AddSimpleFor(m => m.DedicationDate)
+               //.DataField("LastName")
+               .Label(l => l.Text("奉獻日期"))
+               .Editor(e => e
+                   .DateBox()
+                   .Width(135)
+                   .Disabled(false)
+                   .DisplayFormat("yyyy/M/d")
+                   .Placeholder("輸入奉獻日期")
+                   .FocusStateEnabled(true)
+              );
 
-     items.AddSimpleFor(m => m.DedicationNumber)
-            //.DataField("LastName")
-            .Label(l => l.Text("奉獻編號"))
-            .Editor(e => e
-                .TextBox()
-                .Width(100)
-                .Disabled(false)
-                .Placeholder("輸入奉獻編號")
-                .FocusStateEnabled(true)
-           );
+         items.AddSimpleFor(m => m.DedicationNumber)
+                //.DataField("LastName")
+                .Label(l => l.Text("奉獻編號"))
+                .Editor(e => e
+                    .TextBox()
+                    .Width(100)
+                    .Disabled(false)
+                    .Placeholder("輸入奉獻編號")
+                    .FocusStateEnabled(true)
+               );
 
+         items.AddSimpleFor(m => m.NationId)
+               //.DataField("LastName")
+               .Label(l => l.Text("身分證字號"))
+               .Editor(e => e
+                   .TextBox()
+                   .Width(100)
+                   .Disabled(false)
+                   .Placeholder("輸入身分證字號")
+                   .FocusStateEnabled(true)
+              );
 
-     items.AddSimpleFor(m=>m.FullName)
+         items.AddSimpleFor(m=>m.FullName)
             //.DataField("LastName")
             .Label(l => l.Text("姓名"))
             .Editor(e => e
@@ -77,18 +87,18 @@
                 .Placeholder("輸入姓名")
            );
 
-     items.AddSimpleFor(m=>m.Mobile)
-            .Label(l => l.Text("電話號碼"))
-            .Editor(e => e
-                .TextBox()
-                .Width(100)
-                //.Mask("(X000) 000-000")
-                .MaskRules(new { X = new JS("/[02-9]/") })
-                .Placeholder("輸入電話號碼")
-            );
+         items.AddSimpleFor(m=>m.Mobile)
+                .Label(l => l.Text("電話號碼"))
+                .Editor(e => e
+                    .TextBox()
+                    .Width(100)
+                    //.Mask("(X000) 000-000")
+                    .MaskRules(new { X = new JS("/[02-9]/") })
+                    .Placeholder("輸入電話號碼")
+                );
 
 
-        })
+     })
         .OnContentReady
         (@<text>
             function(e)
@@ -147,6 +157,7 @@
                             .Columns(columns =>
                             {
                                 columns.AddFor(m => m.DedicationNumber).Caption("奉獻編號").Width(100).MinWidth(100).Fixed(true);
+                                columns.AddFor(m => m.NationId).Caption("身分證字號").Width(100).MinWidth(100).Fixed(true);
                                 columns.AddFor(m => m.FullName).Caption("姓名").Width(100).MinWidth(100).Fixed(true);
                                 columns.AddFor(m => m.Mobile).Caption("電話").Width(100).MinWidth(100);
                             })
@@ -306,6 +317,7 @@
     <script>
         window.onload = function (e) {
             $("#form1").dxForm("instance").updateData('DedicationNumber', "");
+            $("#form1").dxForm("instance").updateData('NationId', "");
             $("#form1").dxForm("instance").updateData('FullName', "");
             $("#form1").dxForm("instance").updateData('Mobile', "");
             $("#form2").dxForm("instance").updateData('Amount', "");
@@ -333,6 +345,7 @@
             if (data) {
                 //alert("姓名:" + data.FullName + "，電話" + data.Mobile);
                 $("#form1").dxForm("instance").updateData('DedicationNumber', data.DedicationNumber);
+                $("#form1").dxForm("instance").updateData('NationId', data.NationId);
                 $("#form1").dxForm("instance").updateData('FullName', data.FullName);
                 $("#form1").dxForm("instance").updateData('Mobile', data.Mobile);
             }
@@ -343,7 +356,8 @@
             if (data) {
                 //alert("姓名:" + data.FullName + "，電話" + data.Mobile);
                 $("#form1").dxForm("instance").updateData('DedicationNumber', data.DedicationNumber);
-                $("#form1").dxForm("instance").updateData('FullName', data.FullName);
+                $("#form1").dxForm("instance").updateData('NationId', data.NationId);
+               $("#form1").dxForm("instance").updateData('FullName', data.FullName);
                 $("#form1").dxForm("instance").updateData('Mobile', data.Mobile);
             }
         }
@@ -411,6 +425,7 @@
                     // 按上傳
                     //ShowToast(data.message, "success", 2000);
                     $("#form1").dxForm("instance").updateData('DedicationNumber', "");
+                    $("#form1").dxForm("instance").updateData('NationId', "");
                     $("#form1").dxForm("instance").updateData('FullName', "");
                     $("#form1").dxForm("instance").updateData('Mobile', "");
                     $("#form2").dxForm("instance").updateData('Amount', "");
@@ -425,6 +440,7 @@
                     //debugger;
 
                     $("#form1").dxForm("instance").updateData('DedicationNumber', data.DedicationNumber);
+                    $("#form1").dxForm("instance").updateData('NationId', data.NationId);
                     $("#form1").dxForm("instance").updateData('FullName', data.FullName);
                     $("#form1").dxForm("instance").updateData('Mobile', data.Mobile);
 
@@ -444,6 +460,7 @@
             }
             else if (data.status == 2) {
                 $("#form1").dxForm("instance").updateData('DedicationNumber', "");
+                $("#form1").dxForm("instance").updateData('NationId', "");
                 $("#form1").dxForm("instance").updateData('FullName', "");
                 $("#form1").dxForm("instance").updateData('Mobile', "");
                 $("#form2").dxForm("instance").updateData('Amount', "");

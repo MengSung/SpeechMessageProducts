@@ -1611,7 +1611,7 @@ namespace ToolUtilityNameSpace
             EntityCollection dynamicmemberec = service.RetrieveMultiple(new FetchExpression(dynamicQuery));
             return dynamicmemberec;
         }
-        public EntityCollection QueryDediccationContatsByFetchXml(String DedicationNumber, String ContactName, String HomePhone, String Mobile)
+        public EntityCollection QueryDediccationContatsByFetchXml(String DedicationNumber, String ContactName, String HomePhone, String Mobile, String NationId)
         {
             try
             {
@@ -1619,6 +1619,7 @@ namespace ToolUtilityNameSpace
                 ContactName = "'%" + ContactName + "%'";
                 HomePhone = "'%" + HomePhone + "%'";
                 Mobile = "'%" + Mobile + "%'";
+                NationId = "'%" + NationId + "%'";
 
                 var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
                               <entity name='contact'>
@@ -1630,6 +1631,7 @@ namespace ToolUtilityNameSpace
                                 <attribute name='mobilephone' />
                                 <attribute name='emailaddress1' />
                                 <attribute name='pager' />
+                                <attribute name='new_personal_id' />
                                 <attribute name='contactid' />
                                 <order attribute='fullname' descending='false' />
                                 <filter type='and'>
@@ -1638,6 +1640,7 @@ namespace ToolUtilityNameSpace
                                     <condition attribute='fullname' operator='like' value=" + ContactName + @"/>
                                     <condition attribute='telephone2' operator='like' value=" + HomePhone + @" />
                                     <condition attribute='mobilephone' operator='like' value=" + Mobile + @" />
+                                    <condition attribute='new_personal_id' operator='like' value=" + NationId + @" />
                                   </filter>
                                 </filter>
                               </entity>

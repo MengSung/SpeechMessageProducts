@@ -379,6 +379,9 @@ namespace ChurchReport.WebServiceConnector
                                     "--------------------" + "<br/>" +
                                     "日期    : " + QpayModel.DedicationDate.ToShortDateString() + "<br/>" +
                                     "姓名    : " + QpayModel.FullName + "<br/>" +
+                                    "奉獻編號: " + this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContact, "pager") + "<br/>" +
+                                    "身分證字號: " + this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContact, "new_personal_id") + "<br/>" +
+                                    "姓名    : " + QpayModel.FullName + "<br/>" +
                                     "電話    : " + QpayModel.Mobile + "<br/>" +
                                     "類別    : " + QpayModel.Category + "<br/>" +
                                     "付款方式: " + QpayModel.PayWay + "<br/>" +
@@ -537,8 +540,9 @@ namespace ChurchReport.WebServiceConnector
                 {
                     String GratitudeMessage =
                         "感謝 " + m_ToolUtilityClass.GetEntityStringAttribute(ref aContact, "fullname") + " 奉獻" + Environment.NewLine +
-                        "日期 : " + DateTime.Now.ToShortDateString() +
-                        "類別 : " + QpayModel.Category + "  " + QpayModel.Others +
+                        "日期 : " + DateTime.Now.ToShortDateString() + Environment.NewLine +
+                        "類別 : " + QpayModel.Category + "  " + QpayModel.Others + Environment.NewLine +
+                        "付款方式: " + QpayModel.PayWay + Environment.NewLine +
                         "金額 : " + QpayModel.Amount;
 
                     m_PushUtility.SendMessage(LineId, GratitudeMessage);
