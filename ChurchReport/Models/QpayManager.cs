@@ -554,7 +554,7 @@ namespace ChurchReport.Models
                                 LeftCardNumber = VisaCCTokenSplit[1],
                                 RightCardNumber = VisaCCTokenSplit[2],
                                 CreditCardNumber = VisaCCTokenSplit[1] + "-XXXX-" + VisaCCTokenSplit[2],
-                                ExpireDate = VisaCCTokenSplit[3]
+                                ExpireDate = ProcessExpireDate (VisaCCTokenSplit[3])
                             });
                         }
                         else
@@ -574,6 +574,20 @@ namespace ChurchReport.Models
             {
                 return;
             }
+            #endregion
+        }
+        public String ProcessExpireDate(String aExpiredDate )
+        {
+            #region//轉換過期日
+
+            //char[] CharArr = aExpiredDate.ToCharArray();
+            //int Year = Convert.ToInt32(  "20" + new string(new char[] { CharArr[0], CharArr[1] }) );
+            //int Month = Convert.ToInt32( new string(new char[] { CharArr[2], CharArr[3] }) );
+
+            //return new DateTime(Year, Month, 1).ToLocalTime().ToShortDateString();
+
+            char[] CharArr = aExpiredDate.ToCharArray();
+            return new string(new char[] { CharArr[0], CharArr[1] }) + "/" + new string(new char[] { CharArr[2], CharArr[3] });
             #endregion
         }
 
