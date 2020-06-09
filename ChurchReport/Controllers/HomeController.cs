@@ -4332,6 +4332,7 @@ namespace ChurchReport.Controllers
             }
         }
         #endregion
+        #region 信用卡清單
         [HttpGet]
         public object LoadCreditCardList(string id, DataSourceLoadOptions loadOptions)
         {
@@ -4367,7 +4368,7 @@ namespace ChurchReport.Controllers
             //m_InMemoryDataContextSmallGroup.SaveChanges();
             #endregion
         }
-
+        #endregion
         #endregion
         #region 奉獻收費清單
         #region Line 單獨登入
