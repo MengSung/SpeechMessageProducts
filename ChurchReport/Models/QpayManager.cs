@@ -506,7 +506,8 @@ namespace ChurchReport.Models
                 throw e;
             }
         }
-
+        #endregion
+        #region 信用卡管理
         public void ProcessCreditCard()
         {
             try
@@ -515,7 +516,10 @@ namespace ChurchReport.Models
                 //預設信用卡
                 if (m_QpayModel.CreditCardList.Count > 0)
                 {
-                    m_QpayModel.SelectedCreditCard = m_QpayModel.CreditCardList[m_QpayModel.CreditCardList.Count - 1].CCToken;
+                    // 選第1個信用卡
+                    m_QpayModel.SelectedCreditCard = m_QpayModel.CreditCardList[0].CCToken;
+                    // 選最後個信用卡
+                    //m_QpayModel.SelectedCreditCard = m_QpayModel.CreditCardList[m_QpayModel.CreditCardList.Count - 1].CCToken;
                 }
             }
             catch (System.Exception e)
@@ -538,7 +542,7 @@ namespace ChurchReport.Models
 
                 if (VisaInfoSplit.Length > 0)
                 {
-                    foreach( String CreditCard in VisaInfoSplit )
+                    foreach (String CreditCard in VisaInfoSplit)
                     {
                         String[] VisaCCTokenSplit = CreditCard.Split('，');
 
@@ -547,8 +551,8 @@ namespace ChurchReport.Models
                             m_QpayModel.CreditCardList.Add(new CreditCard
                             {
                                 CCToken = VisaCCTokenSplit[0],
-                                LeftCardNumber = VisaCCTokenSplit[1] ,
-                                RightCardNumber =  VisaCCTokenSplit[2],
+                                LeftCardNumber = VisaCCTokenSplit[1],
+                                RightCardNumber = VisaCCTokenSplit[2],
                                 CreditCardNumber = VisaCCTokenSplit[1] + "XXXX" + VisaCCTokenSplit[2],
                                 ExpireDate = VisaCCTokenSplit[3]
                             });
@@ -582,9 +586,9 @@ namespace ChurchReport.Models
 
                 String VisaInfo = "";
 
-                foreach(CreditCard aCreditCard in m_QpayModel.CreditCardList)
+                foreach (CreditCard aCreditCard in m_QpayModel.CreditCardList)
                 {
-                    VisaInfo += aCreditCard.CCToken + "，"+ aCreditCard.LeftCardNumber + "，"+ aCreditCard.RightCardNumber + "，" + aCreditCard.ExpireDate + "|";
+                    VisaInfo += aCreditCard.CCToken + "，" + aCreditCard.LeftCardNumber + "，" + aCreditCard.RightCardNumber + "，" + aCreditCard.ExpireDate + "|";
                 }
 
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref m_Contact, "new_visa_info", VisaInfo);
@@ -615,7 +619,6 @@ namespace ChurchReport.Models
                 throw e;
             }
         }
-
         #endregion
     }
 }

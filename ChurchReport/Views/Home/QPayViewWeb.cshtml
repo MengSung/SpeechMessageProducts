@@ -154,6 +154,9 @@
 
         @(Html.DevExtreme().DataGrid<CreditCard>()
                             .ID("CreditCardGrid")
+                            //.Width("50%")
+                            .Width("auto")
+                            //.Width("inherit")
                             .ShowBorders(true)
                             //.ColumnAutoWidth(true)
                             //.Paging(p => p.PageSize(10))
@@ -204,9 +207,9 @@
                                 .DeleteAction("DeleteCreditCard")
                                 //.UpdateAction("UpdatePresentRecord")
                                 .Key("CCToken")
-                                //.LoadParams(new { id = @ViewBag.ListId }))
+                            //.LoadParams(new { id = @ViewBag.ListId }))
                             )
-
+                            .SelectedRowKeys(new int[] { 1 })
                             .OnContentReady("onCreditCardGridContentReady")
                             // 此處設定是讓選項偏左邊一排
                             //.OnContentReady("moveEditColumnToLeft")
@@ -233,7 +236,7 @@
     //網頁載入
     window.onload = function (e) {
         //document.getElementById("creditcardlistcontainer").style.display = "none";//隱藏
-        document.getElementById("creditcardlistcontainer").style.display = "";//顯示
+        //document.getElementById("creditcardlistcontainer").style.display = "";//顯示
     };
 </script>
 <script>
@@ -342,9 +345,27 @@
             $("#form").dxForm("instance").updateData('SelectedCreditCard', data.CCToken);
         }
     }
-    function onCreditCardGridContentReady(e) {
+    function onCreditCardGridContentReady(e)
+    {
+        //debugger;
         var items = e.component.getDataSource().items();
-        $("input[name='myHiddenInput']").val(JSON.stringify(items));
+        //alert(items.length);
+
+        if (items.length > 0) {
+            document.getElementById("creditcardlistcontainer").style.display = "";//顯示
+
+            //alert('@(Model.SelectedCreditCard)');
+            //用Key來選行，以下語法都是可以的
+            e.component.selectRows( '@(Model.SelectedCreditCard)', true);
+            //e.component.selectRows( ['@(Model.SelectedCreditCard)', '@(Model.SelectedCreditCard)'], true);
+            //用Index來選行，以下語法都是可以的
+            //e.component.selectRowsByIndexes(0);
+            //e.component.selectRowsByIndexes( [0,1]);
+        }
+        else {
+            document.getElementById("creditcardlistcontainer").style.display = "none";//隱藏
+        }
+        //$("input[name='myHiddenInput']").val(JSON.stringify(items));
         //myHiddenInput - is the name of your hidden input
     }
 </script>

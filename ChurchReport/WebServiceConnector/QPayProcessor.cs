@@ -92,7 +92,7 @@ namespace ChurchReport.WebServiceConnector
 
                 if (QpayModel.PayWay == "信用卡")
                 {
-                    CreOrder CreatedCardOrder = await CreOrderCard(QpayModel.Amount, QpayModel.Category, DateTime.Now.ToString("yyyyMMddhhmmssfff"), aCreatedFeeId.ToString(), GetLastCCToken(LineLoginContact));
+                    CreOrder CreatedCardOrder = await CreOrderCard(QpayModel.Amount, QpayModel.Category, DateTime.Now.ToString("yyyyMMddhhmmssfff"), aCreatedFeeId.ToString(), QpayModel.SelectedCreditCard );
 
                     // 用剛剛建立的收費單，填寫訂單編號
                     UpdateFee(ref aFeeToUpdate, CreatedCardOrder.OrderNo, "", "");
@@ -123,7 +123,7 @@ namespace ChurchReport.WebServiceConnector
 
                 if (QpayModel.PayWay == "信用卡")
                 {
-                    CreOrder CreatedCardOrder = await CreOrderCard(QpayModel.Amount, QpayModel.Category, DateTime.Now.ToString("yyyyMMddhhmmssfff"), aCreatedFeeId.ToString(), GetLastCCToken(LineLoginContact));
+                    CreOrder CreatedCardOrder = await CreOrderCard(QpayModel.Amount, QpayModel.Category, DateTime.Now.ToString("yyyyMMddhhmmssfff"), aCreatedFeeId.ToString(), QpayModel.SelectedCreditCard);
 
                     // 用剛剛建立的收費單，填寫訂單編號
                     UpdateFee(ref aFeeToUpdate, CreatedCardOrder.OrderNo, "", "");
