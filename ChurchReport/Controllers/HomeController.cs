@@ -4265,66 +4265,9 @@ namespace ChurchReport.Controllers
         }
         #endregion
         #region 永豐金流奉獻
-        #region Line 單獨登入
-        [Route("/Home/QPayView/{DedicationViewPatameter}")]
-        public ActionResult QPayView(string DedicationViewPatameter)
-        {
-            try
-            {
-                ViewBag.LoginType = "小組長"; // 看是小組長還是個人回報
-                ViewBag.LoginFullName = "耶穌";
-                ViewBag.FeeType = "有繳費點名";
-                ViewBag.FeeDataListCount = "繳費與點名尚無資料";
-                ViewBag.HappyType = "沒幸福小組名單";
-                ViewBag.MultiGroupIndex = "SingleMultiGroupView";
-                //ViewBag.SchedulerView = m_InMemoryDataContextSmallGroup.ListManager.SchedulerView = "單純行事曆";
-                ViewBag.DisplayNavigation = m_InMemoryDataContextSmallGroup.ListManager.DisplayNavigation = "不顯示牧養回報項目";
-                ViewBag.UserType = m_InMemoryDataContextSmallGroup.ListManager.UserType = "行政同工";
-                ViewBag.DedicationType = m_InMemoryDataContextSmallGroup.ListManager.UserType = "奉獻管理";
-                // 教會職稱是否是會計
-                ViewBag.IsAOfficeWorker = m_InMemoryDataContextSmallGroup.QpayManager.m_QpayModel.IsAOfficeWorker == true ? "是的" : "否";
-
-                TempData["Proponent"] = DedicationViewPatameter;
-
-                return View( m_InMemoryDataContextSmallGroup.QpayManager.SetQpayModel(m_InMemoryDataContextSmallGroup.LineBindingViewModel.LineUserId) );
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
-
-                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
-
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "永和禮拜堂 : 綁定錯誤 => " + ErrorString);
-
-                throw e;
-            }
-        }
-        [HttpPost]
-        public async Task<IActionResult> SaveQPayDedication( QpayModel QpayModel )
-        {
-            try
-            {
-                return await m_InMemoryDataContextSmallGroup.QpayManager.SaveQPayDedication(QpayModel, m_InMemoryDataContextSmallGroup.LineBindingViewModel.LineUserId);
-            }
-            catch (System.Exception e)
-            {
-                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
-
-                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
-
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "永和禮拜堂 : => " + ErrorString);
-
-                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
-
-                throw e;
-            }
-        }
-        #endregion
-        #region 電腦網頁登入
+        #region Line 單獨登入 或是 電腦網頁登入
         [HttpGet]
-        public ActionResult QPayViewWeb()
+        public ActionResult QPayView()
         {
             try
             {
@@ -4368,7 +4311,7 @@ namespace ChurchReport.Controllers
             }
         }
         [HttpPost]
-        public async Task<IActionResult> SaveQPayDedicationWeb(QpayModel QpayModel)
+        public async Task<IActionResult> SaveQPayDedication(QpayModel QpayModel)
         {
             try
             {

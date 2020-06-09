@@ -6,19 +6,9 @@
     <h5 id="displaynamefield">@Model.FullName 奉獻編號:@Model.DedicationNumber</h5>
 </div>
 
-<form data-ajax="true" data-ajax-begin="onBegin" data-ajax-success="onSuccess" asp-action="SaveQPayDedication" asp-controller="Home" method="post">
-    <div class="dx-field">
-        <div id="buttonContainer" class="dx-button-icon">
-            @(Html.DevExtreme().Button()
-                    .Text("奉獻")
-                    .Type(ButtonType.Success)
-                    .ID("save-button")
-                    .UseSubmitBehavior(true)
-                    .OnClick("ShowLoadPanel")
-            )
-        </div>
-        <div id="ToastContainer">
-            @(Html.DevExtreme().Toast()
+<div class="dx-field">
+    <div id="ToastContainer">
+        @(Html.DevExtreme().Toast()
                 .ID("toast")
                 .Position(p => p
                     .At(HorizontalAlignment.Center, VerticalAlignment.Center)
@@ -28,9 +18,9 @@
                     .MaxWidth(200)
             )
 
-        </div>
-        <div id="LoadPanel">
-            @(Html.DevExtreme().LoadPanel()
+    </div>
+    <div id="LoadPanel">
+        @(Html.DevExtreme().LoadPanel()
                     .ID("loadPanel")
                     .ShadingColor("rgba(0,0,0,0.4)")
                     .Position(p => p.Of("#form-container"))
@@ -42,15 +32,26 @@
                     .Message("上傳資料中...")
                     .Animation(l => l.Show(k => k.Easing(AnimationEasing.Swing)))
             )
+    </div>
+</div>
 
-        </div>
+<form data-ajax="true" data-ajax-begin="onBegin" data-ajax-success="onSuccess" asp-action="SaveQPayDedication" asp-controller="Home" method="post">
+    <div id="buttonContainer" class="dx-button-icon">
+        @(Html.DevExtreme().Button()
+                    .Text("奉獻")
+                    .Type(ButtonType.Success)
+                    .ID("save-button")
+                    .UseSubmitBehavior(true)
+                    .OnClick("ShowLoadPanel")
+            )
     </div>
     <div id="form-container">
         @(Html.DevExtreme().Form<QpayModel>()
         .ID("form")
-        .ColCount(2)
+        .ColCount(1)
         .Items(items =>
         {
+
             items.AddSimpleFor
             (m => m.Category)
                 .Label(l => l.Text("類別"))
@@ -59,6 +60,7 @@
                 (
                     e => e
                     .SelectBox()
+                    .Width(200)
                     .DataSource(new string[]
                     {
                        "十一",
@@ -70,7 +72,7 @@
                        "萬軍",
                        "其他",
                     }
-                //.DisplayExpr("Name")
+                    //.DisplayExpr("Name")
                 )
                 .Placeholder("請選擇奉獻類別")
                 //.Value(Model.Category)
@@ -86,6 +88,7 @@
                 (
                     e => e
                     .SelectBox()
+                    .Width(200)
                     .DataSource(Model.OtherCategoryArray)
                     .Placeholder("請選擇奉獻類別")
                     //.Value("特別")
@@ -97,6 +100,7 @@
                     .Editor(e => e
                         .NumberBox()
                         .Disabled(false)
+                        .Width(200)
                         .OnContentReady("OnAmountContentReady")
                         .Placeholder("輸入奉獻金額")
                     );
@@ -108,70 +112,28 @@
                         (
                             e => e
                             .SelectBox()
+                            .Width(200)
                             .DataSource(new string[]
                             {
                                            "信用卡",
                                            "ATM轉帳/匯款",
                             }
-                        //.DisplayExpr("Name")
+                            //.DisplayExpr("Name")
                         )
                         .OnValueChanged("OnPayWaySelectBoxValueChanged")
-                        //.Value("信用卡")
+                    //.Value("信用卡")
                     );
 
-            items.AddSimple().ColSpan(2)
-               .DataField("CreditCardList")
-               .Label(l => l.Text("信用卡清單").Location(FormLabelLocation.Top))
-               .Template(@<text>
-                            @(Html.DevExtreme().DataGrid<CreditCard>()
-                            .ID("CreditCardGrid")
-                            .ShowBorders(true)
-                            //.ColumnAutoWidth(true)
-                            //.Paging(p => p.PageSize(10))
-                            .Paging(paging => paging.Enabled(false))
-                            .AllowColumnResizing(true)
-                            .ColumnResizingMode(ColumnResizingMode.Widget)
-                            .ColumnFixing(c => c.Enabled(true))
-                            .LoadPanel(l => l.Text("更新資料中...").Enabled(false))
-                            .SearchPanel(s => s.Visible(false).Placeholder("搜尋.."))
-                            .Export(e=>e.Enabled(false).AllowExportSelectedData(true))
-                            .ShowColumnLines(true)
-                            .ShowRowLines(true)
-                            .RowAlternationEnabled(true)
-                            .ShowBorders(true)
-                            .RemoteOperations(false)
-                            .TwoWayBindingEnabled(true)
-                            .OnContentReady("onCreditCardGridContentReady")
-                            .Editing(editing =>
-                            {
-                                //editing.Mode(GridEditMode.Batch);
-                                //editing.Mode(GridEditMode.Row);
-                                editing.Mode(GridEditMode.Cell);
-                                //editing.Mode(GridEditMode.Batch);
-                                //editing.Mode(GridEditMode.Form);
-                                //editing.Mode(GridEditMode.Popup);
-                                editing.AllowUpdating(true);
-                                //editing.AllowAdding(true);
-                                editing.AllowDeleting(true);
-                                editing.Texts(a => a.SaveAllChanges("上傳檔案").AddRow("新增").CancelAllChanges("取消變更").SaveRowChanges("儲存").CancelRowChanges("取消").EditRow("編輯").DeleteRow("刪除"));
-                            })
 
-                            .Columns(columns =>
-                            {
-                                columns.AddFor(m => m.CreditCardNumber).Caption("卡號").Width(180).MinWidth(180).Fixed(true);
-                                columns.AddFor(m => m.ExpireDate).Caption("過期日").Width(100).MinWidth(100);
-                            })
-                            .DataSource
-                            ( Model.CreditCardList)
-
-                            .OnContentReady("onCreditCardGridContentReady")
-                            // 此處設定是讓選項偏左邊一排
-                            //.OnContentReady("moveEditColumnToLeft")
-                            //此處設定是鉛筆形狀還是"編輯"字樣
-                            //.OnCellPrepared("cell_prepared")
-                            //.OnCellPrepared("cell_prepared_background_color")
-                            )
-                </text>);
+            items.AddSimpleFor(m => m.SelectedCreditCard)
+                    //.DataField("LastName")
+                    .Label(l => l.Text("選取的信用卡").Visible(false))
+                    .Editor(e => e
+                        .TextBox()
+                        .Width(120).Visible(false)
+                        //.Disabled(true)
+                        .Placeholder("選取的信用卡")
+                   );
 
 
         })
@@ -187,7 +149,90 @@
         )
 
     </div>
+    <div id="creditcardlistcontainer" style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
+        <h5 id="creditcardlist">信用卡清單</h5>
+        @(Html.DevExtreme().Button()
+                    .Text("用其他信用卡奉獻")
+                    .Type(ButtonType.Default)
+                    //.Icon("fa fa-envelope-o")
+                    //.Icon(Url.Content("~/images/button/weather.png"))
+                    .Icon("check")
+                    .ID("save-button3")
+                    .UseSubmitBehavior(true)
+                    .StylingMode(ButtonStylingMode.Contained)
+                    .OnClick("UseOtherCreditCard")
+            )
+        <br />
+        <br />
+        @(Html.DevExtreme().DataGrid<CreditCard>()
+                .ID("CreditCardGrid")
+                //.Width("50%")
+                .Width("auto")
+                //.Width("inherit")
+                .ShowBorders(true)
+                //.ColumnAutoWidth(true)
+                .ColumnWidth(20)
+                //.Paging(p => p.PageSize(10))
+                .Paging(paging => paging.Enabled(false))
+                .AllowColumnResizing(true)
+                .ColumnResizingMode(ColumnResizingMode.Widget)
+                .ColumnFixing(c => c.Enabled(true))
+                .LoadPanel(l => l.Text("更新資料中...").Enabled(false))
+                //.SearchPanel(s => s.Visible(false).Placeholder("搜尋.."))
+                //.Export(e=>e.Enabled(false).AllowExportSelectedData(true))
+                .ShowColumnLines(true)
+                .ShowRowLines(true)
+                //.RowAlternationEnabled(true)
+                .ShowBorders(true)
+                //.RemoteOperations(false)
+                //.TwoWayBindingEnabled(true)
+                .Selection(selection => selection.Mode(SelectionMode.Single))
+                //.Selection(selection => selection.Mode(SelectionMode.Multiple))
+                //.Selection(selection => selection.Mode(SelectionMode.None))
+                .OnRowClick("OnRowClick")
+                .OnSelectionChanged("OnRowSelectionChanged")
+                .OnInitialized("DataGridOnInitialized")
+                .HoverStateEnabled(true)
+                //.OnContentReady("onCreditCardGridContentReady")
+                .Editing(editing =>
+                {
+                    //editing.Mode(GridEditMode.Batch);
+                    //editing.Mode(GridEditMode.Row);
+                    //editing.Mode(GridEditMode.Cell);
+                    //editing.Mode(GridEditMode.Batch);
+                    //editing.Mode(GridEditMode.Form);
+                    //editing.Mode(GridEditMode.Popup);
+                    //editing.AllowUpdating(true);
+                    //editing.AllowAdding(true);
+                    editing.AllowDeleting(true);
+                    editing.Texts(a => a.SaveAllChanges("上傳檔案").AddRow("新增").CancelAllChanges("取消變更").SaveRowChanges("儲存").CancelRowChanges("取消").EditRow("選擇").DeleteRow("刪除"));
+                })
 
+                .Columns(columns =>
+                {
+                    columns.AddFor(m => m.CreditCardNumber).Caption("卡號").Width(120).MinWidth(80).Alignment(HorizontalAlignment.Center).Fixed(true);
+                    columns.AddFor(m => m.ExpireDate).Caption("過期日").Width(50).MinWidth(50).Alignment(HorizontalAlignment.Center);
+                })
+                .DataSource(d => d
+                            .WebApi()
+                            .Controller("Home")
+                            .LoadAction("LoadCreditCardList")
+                            //.InsertAction("InsertPresentRecord")
+                            .DeleteAction("DeleteCreditCard")
+                            //.UpdateAction("UpdatePresentRecord")
+                            .Key("CCToken")
+                            //.LoadParams(new { id = @ViewBag.ListId }))
+                    )
+                .SelectedRowKeys(new int[] { 1 })
+                .OnContentReady("onCreditCardGridContentReady")
+                // 此處設定是讓選項偏左邊一排
+                //.OnContentReady("moveEditColumnToLeft")
+                //此處設定是鉛筆形狀還是"編輯"字樣
+                //.OnCellPrepared("cell_prepared")
+                //.OnCellPrepared("cell_prepared_background_color")
+        )
+    </div>
+    <br />
     <div id="buttonContainer2" class="dx-button-icon">
         @(Html.DevExtreme().Button()
                     .Text("奉獻")
@@ -201,9 +246,15 @@
     <div style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
         <h5 id="atmfield"></h5>
     </div>
-
 </form>
 
+<script>
+    //網頁載入
+    window.onload = function (e) {
+        //document.getElementById("creditcardlistcontainer").style.display = "none";//隱藏
+        //document.getElementById("creditcardlistcontainer").style.display = "";//顯示
+    };
+</script>
 <script>
     function getLoadPanelInstance() {
         return $("#loadPanel").dxLoadPanel("instance");
@@ -221,6 +272,23 @@
 
         //alert( getODataLocalDateFilter(arg.value) );
     }
+    function UseOtherCreditCard() {
+
+        //debugger;
+        getLoadPanelInstance().show();
+
+        //alert("UseOtherCreditCard!");
+        $("#form").dxForm("instance").updateData('SelectedCreditCard', "");
+        //$("#toast").dxToast("instance").show();
+        //alert("SaveNewPerson!!!");
+        //alert("OnValueChanged : " + arg.value);
+
+        //alert("OnValueChanged : " + arg.attribute('text'));
+        //alert("OnValueChanged : " + text: arg.attribute("text"));
+
+        //alert( getODataLocalDateFilter(arg.value) );
+    }
+
     function ShowToast(LocalToastMessage, Type, DisplayTime) {
         //debugger;
         var ToastInstance = $("#toast").dxToast("instance");
@@ -230,71 +298,6 @@
         ToastInstance.option('white-space', 'pre-line');
         ToastInstance.option('closeOnClick', true);
         ToastInstance.show();
-    }
-
-    var GlobalCategory = "";
-
-    function OnCategorySelectBoxValueChanged(e) {
-        if (e.value == "其他") {
-            //alert(e.value + "顯示");
-            //alert(e.value + "顯示 :" + GlobalCategory);
-            $("#form").dxForm("instance").itemOption("OtherDedication", 'visible', true);
-            //e.component.option('value', e.value);
-
-
-
-            //if (GlobalCategory != e.value) {
-            //    GlobalCategory = e.value;
-
-            //    alert(e.value + "顯示 001");
-            //    alert(e.value + "顯示 001" + $("#form").dxForm("instance").getEditor("Category"));
-            //    $("#form").dxForm("instance").getEditor("Category").option("value", e.value);
-            //    alert(e.value + "顯示 002");
-            //    //$("#form").dxForm("instance").Option("Category", e.value);
-            //    //$("#form").dxForm("instance").itemOption("Category", e.value);
-            //}
-        }
-        else {
-            //alert(e.value + "隱藏");
-            //alert(e.value + "隱藏 000:" + GlobalCategory );
-            $("#form").dxForm("instance").itemOption("OtherDedication", 'visible', false);
-            //e.component.option('value', e.value);
-
-
-
-            //if (GlobalCategory != e.value) {
-            //    alert(e.value + "隱藏 001:" + GlobalCategory);
-
-            //    GlobalCategory = e.value;
-            //    alert(e.value + "隱藏 002:" + GlobalCategory);
-
-            //    alert(e.value + "隱藏 003" + $("#form").dxForm("instance").getEditor("Category"));
-            //    $("#form").dxForm("instance").getEditor("Category").option("value", e.value);
-            //    alert(e.value + "隱藏 004");
-            //    //$("#form").dxForm("instance").Option("Category", e.value);
-            //    //$("#form").dxForm("instance").itemOption("Category", e.value);
-            //}
-        }
-    }
-    function OnPayWaySelectBoxValueChanged(e) {
-        if (e.value == "信用卡") {
-            $("#form").dxForm("instance").itemOption("CreditCardList", 'visible', true);
-        }
-        else {
-            $("#form").dxForm("instance").itemOption("CreditCardList", 'visible', false);
-        }
-    }
-    function OnAmountContentReady(e) {
-
-        //debugger;
-        //alert(e.component._options.value);
-        //alert(e.component.option("value"));
-        //if (e.component._options.value == 0)
-        if (e.component.option("value") == 0) {
-            e.component.option("value", "");
-            //e.component._options.value = null;
-            //alert(e.component._options.value);
-        }
     }
     function moveEditColumnToLeft(dataGrid) {
         dataGrid.columnOption("command:edit", {
@@ -320,16 +323,191 @@
         }
 
     }
+</script>
+<script>
+    // 觸發事件管理
 
-    function onCreditCardGridContentReady(e) {
-        var items = e.component.getDataSource().items();
-        $("input[name='myHiddenInput']").val(JSON.stringify(items));
-        //myHiddenInput - is the name of your hidden input
+    function OnCategorySelectBoxValueChanged(e) {
+        if (e.value == "其他") {
+            $("#form").dxForm("instance").itemOption("OtherDedication", 'visible', true);
+        }
+        else {
+            $("#form").dxForm("instance").itemOption("OtherDedication", 'visible', false);
+        }
+    }
+    function OnPayWaySelectBoxValueChanged(e) {
+        if (e.value == "信用卡") {
+            //alert(e.value + "顯示");
+            //alert(e.value + "顯示 :" + GlobalCategory);
+            //document.getElementById("creditcardlist").style.display = "none";//隱藏
+            document.getElementById("creditcardlistcontainer").style.display = "";//顯示
+
+            //$("#form").dxForm("instance").itemOption("CreditCardList", 'visible', true);
+        }
+        else {
+            //alert(e.value + "隱藏");
+            //alert(e.value + "隱藏 000:" + GlobalCategory );
+            document.getElementById("creditcardlistcontainer").style.display = "none";//隱藏
+            //document.getElementById("creditcardlist").style.display = "";//顯示
+
+            //$("#form").dxForm("instance").itemOption("CreditCardList", 'visible', false);
+        }
+    }
+    function OnAmountContentReady(e) {
+
+        //debugger;
+        //alert(e.component._options.value);
+        //alert(e.component.option("value"));
+        //if (e.component._options.value == 0)
+        if (e.component.option("value") == 0) {
+            e.component.option("value", "");
+            //e.component._options.value = null;
+            //alert(e.component._options.value);
+        }
     }
 
-</script>
+    function DataGridOnInitialized(e)
+    {
+        e.component.columnOption("command:edit", "width", 50);
+    }
 
+    //var selectionChangedRaised = false;
+    //var FirstLoad = true;
+    function OnRowClick(selectedItems) {
+
+        //alert("OnRowClick!001-0" + selectedItems);
+        var data = selectedItems.selectedRowsData[0];
+        if (data) {
+
+            //alert("OnRowClick!信用卡:" + data.CCToken);
+            $("#form").dxForm("instance").updateData('SelectedCreditCard', data.CCToken);
+            //alert("OnRowSelectionChanged! ， SelectedCreditCardValue =" + $("#form").dxForm("instance").getEditor('SelectedCreditCard').option('value'));
+            //if (FirstLoad == false) {
+            //    selectionChangedRaised = true;
+            //}
+        }
+
+        //alert("OnRowClick!001-0" + selectedItems);
+        //alert("OnRowClick!001-1" + selectedItems.selectedRowsData);
+        //alert("OnRowClick!，SelectedCreditCardValue 0000=" + $("#form").dxForm("instance").getEditor('SelectedCreditCard').option('value'));
+        //alert("OnRowClick!，selectionChangedRaised=" + selectionChangedRaised);
+        //alert("OnRowClick!，FirstLoad = " + FirstLoad);
+
+        //if (FirstLoad == false) {
+        //    if (!selectionChangedRaised) {
+        //        var SelectedCreditCardValue = $("#form").dxForm("instance").getEditor('SelectedCreditCard').option('value');
+        //        //if (!selectionChangedRaised) {
+        //        var dataGrid = selectedItems.component;
+        //        alert("OnRowClick!003" + dataGrid);
+        //        var keys = dataGrid.getSelectedRowKeys();
+        //        alert("OnRowClick!004" + keys);
+        //        alert("SelectedCreditCardValue = " + SelectedCreditCardValue);
+
+        //        if (keys == SelectedCreditCardValue) {
+        //            //alert(keys);
+        //            dataGrid.deselectRows(keys);
+        //        }
+
+        //        selectionChangedRaised = false;
+        //    }
+        //}
+        //else {
+        //    if (selectedItems.selectedRowsData == undefined)
+        //    {
+        //        var SelectedCreditCardValue = $("#form").dxForm("instance").getEditor('SelectedCreditCard').option('value');
+        //        //if (!selectionChangedRaised) {
+        //        var dataGrid = selectedItems.component;
+        //        alert("OnRowClick!003" + dataGrid);
+        //        var keys = dataGrid.getSelectedRowKeys();
+        //        alert("OnRowClick!004" + keys);
+        //        alert("SelectedCreditCardValue = " + SelectedCreditCardValue);
+
+        //        if (keys == SelectedCreditCardValue) {
+        //            //alert(keys);
+        //            dataGrid.deselectRows(keys);
+        //        }
+
+        //        selectionChangedRaised = false;
+        //    }
+
+        //    FirstLoad = false;
+        //}
+
+        //alert("OnRowClick!005" + keys);
+
+
+
+
+        ////alert("OnRowClick!001");
+        ////alert("OnRowClick!001-0" + selectedItems);
+        //alert("OnRowClick!001-1" + selectedItems.selectedRowsData);
+
+        //if (selectedItems.selectedRowsData) {
+        //    var data = selectedItems.selectedRowsData[0];
+        //    alert("OnRowClick!002");
+        //    if (data) {
+        //        alert("信用卡001:" + data.CCToken);
+        //        $("#form").dxForm("instance").updateData('SelectedCreditCard', data.CCToken);
+        //        alert("信用卡002:" + data.CCToken);
+        //    }
+        //}
+        //else {
+
+        //    var SelectedCreditCardValue = $("#form").dxForm("instance").getEditor('SelectedCreditCard').option('value');
+        //    //if (!selectionChangedRaised) {
+        //    var dataGrid = selectedItems.component;
+        //    alert("OnRowClick!003" + dataGrid);
+        //    var keys = dataGrid.getSelectedRowKeys();
+        //    alert("OnRowClick!004" + keys);
+        //    alert("SelectedCreditCardValue = " + SelectedCreditCardValue);
+
+        //    if (keys == SelectedCreditCardValue) {
+        //        //alert(keys);
+        //        dataGrid.deselectRows(keys);
+        //    }
+        //    alert("OnRowClick!005" + keys);
+        //}
+        ////}
+        //selectionChangedRaised = false;
+    }
+    function OnRowSelectionChanged(selectedItems) {
+        //alert("OnRowSelectionChanged!，FirstLoad = " + FirstLoad);
+        var data = selectedItems.selectedRowsData[0];
+        if (data) {
+            //alert("信用卡:" + data.CCToken);
+            $("#form").dxForm("instance").updateData('SelectedCreditCard', data.CCToken);
+            //alert("OnRowSelectionChanged! ， SelectedCreditCardValue =" + $("#form").dxForm("instance").getEditor('SelectedCreditCard').option('value'));
+            //if (FirstLoad == false) {
+            //    selectionChangedRaised = true;
+            //}
+        }
+    }
+    function onCreditCardGridContentReady(e)
+    {
+        //debugger;
+        var items = e.component.getDataSource().items();
+        //alert(items.length);
+
+        if (items.length > 0) {
+            document.getElementById("creditcardlistcontainer").style.display = "";//顯示
+
+            //alert('@(Model.SelectedCreditCard)');
+            //用Key來選行，以下語法都是可以的
+            e.component.selectRows( '@(Model.SelectedCreditCard)', true);
+            //e.component.selectRows( ['@(Model.SelectedCreditCard)', '@(Model.SelectedCreditCard)'], true);
+            //用Index來選行，以下語法都是可以的
+            //e.component.selectRowsByIndexes(0);
+            //e.component.selectRowsByIndexes( [0,1]);
+        }
+        else {
+            document.getElementById("creditcardlistcontainer").style.display = "none";//隱藏
+        }
+        //$("input[name='myHiddenInput']").val(JSON.stringify(items));
+        //myHiddenInput - is the name of your hidden input
+    }
+</script>
 <script type="text/javascript">
+    // Ajax 區塊
     function onBegin() {
     }
 
@@ -341,7 +519,9 @@
             if (data.PayWay == "信用卡") {
                 //alert("成功 3");
                 ShowToast(data.message, "success", 2000);
-                window.location.href = data.DedicationResult;
+                //window.open(data.DedicationResult);
+                window.open(data.DedicationResult, "_blank");
+                //window.location.href = data.DedicationResult;
             }
             else {
                 ShowToast(data.message, "success", 2000);
@@ -361,13 +541,45 @@
         }
     }
 </script>
+<script>
+    //中文化
+    var dictionary = {
+        "zh-tw": {
+            "dxScheduler-switcherAgenda": "會議內容", // 在這裡可以做最後的字典對應
+            "Month": "月",
+            "Subject": "主題",
+            "Company": "Company",
+            "Amount": "Amount",
+            "PaymentDate": "Payment Date",
+            "dxDataGrid-editingConfirmDeleteMessage": "您確定要刪除這個信用卡嗎?",
+        },
+    };
+    DevExpress.localization.loadMessages(dictionary);
+    var formatMessage = DevExpress.localization.formatMessage;
 
+    var locale = getLocale();
+    //DevExpress.localization.locale(navigator.language || navigator.browserLanguage);
+    DevExpress.localization.locale(locale);
+
+    function changeLocale(data) {
+        setLocale(data.value);
+        document.location.reload();
+    }
+
+    function getLocale() {
+        //debugger;
+        //sessionStorage.setItem("locale", 'zh');
+        sessionStorage.setItem("locale", 'zh-tw');
+        var locale = sessionStorage.getItem("locale");
+        return locale != null ? locale : "tw";
+    }
+</script>
+<link href="~/css/Gallery.css" rel="stylesheet" />
+<link href="~/css/WeeklyReport.css" rel="stylesheet" />
 <link href="~/css/Scheduler.css" rel="stylesheet" />
 <link href="~/css/Site.css" rel="stylesheet" />
 
 <script src="~/lib/jquery-ajax-unobtrusive/jquery.unobtrusive-ajax.js"></script>
-<link href="~/css/Gallery.css" rel="stylesheet" />
-<link href="~/css/WeeklyReport.css" rel="stylesheet" />
-
 <script src="~/js/devextreme/devextreme-intl.min.js"></script>
 <script src="~/js/devextreme/localization/dx.messages.zh-tw.js"></script>
+
