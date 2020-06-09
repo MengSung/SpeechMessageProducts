@@ -4770,8 +4770,14 @@ namespace ChurchReport.Controllers
                     m_InMemoryDataContextSmallGroup.LineBindingViewModel.DisplayId = UserLineId;
                 }
 
-                return Json(new { status = "1" });
+                // ¥ÃÂ×ª÷¬y©^Äm
+                Entity aLoginContact = this.m_ToolUtilityClass.RetrieveContactByLineId(UserLineId);
+                if (aLoginContact != null)
+                {
+                    m_InMemoryDataContextSmallGroup.QpayManager.SetQpayModel(aLoginContact);
+                }
 
+                return Json(new { status = "1" });
 
             }
             catch (System.Exception e)

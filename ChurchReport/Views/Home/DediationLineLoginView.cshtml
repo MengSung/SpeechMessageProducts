@@ -158,7 +158,7 @@
 
         </script>
 
-        <script type="text/javascript">
+    <script type="text/javascript">
         function onBegin() {
         }
 
@@ -197,12 +197,12 @@
         }
         </script>
 
-        <script src="~/lib/jquery-ajax-unobtrusive/jquery.unobtrusive-ajax.js"></script>
+    <script src="~/lib/jquery-ajax-unobtrusive/jquery.unobtrusive-ajax.js"></script>
         <link href="~/css/Gallery.css" rel="stylesheet" />
         <link href="~/css/WeeklyReport.css" rel="stylesheet" />
 
         <script src="https://static.line-scdn.net/liff/edge/2.1/sdk.js"></script>
-        <script>
+   <script>
 
     window.onload = function (e) {
             //var message = '@TempData["Proponent"]';
@@ -232,7 +232,7 @@
     async function initializeApp(data) {
                 await liff.getProfile().then(function (profile) {
 
-                    document.getElementById('displaynamefield').innerHTML = profile.displayName + "<br/> 進行登入奉獻中，請稍待......";
+                    document.getElementById('displaynamefield').innerHTML = profile.displayName + "<br/> 登入奉獻中，請稍待......";
 
                     // 顯示旋轉鈕
                     //$("#loadPanel").dxLoadPanel("instance").show();
@@ -263,7 +263,7 @@
 
                             success: function (data)
                             {
-                                window.location.href = "/Home/QPayView/奉獻Line登入";
+                                window.location.href = "/Home/QPayViewWeb/";
                             },
 
                             error: function (obj)
