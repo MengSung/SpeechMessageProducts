@@ -151,7 +151,19 @@
     </div>
     <div id="creditcardlistcontainer" style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
         <h5 id="creditcardlist">信用卡清單</h5>
-
+        @(Html.DevExtreme().Button()
+                    .Text("用其他信用卡奉獻")
+                    .Type(ButtonType.Default)
+                    //.Icon("fa fa-envelope-o")
+                    //.Icon(Url.Content("~/images/button/weather.png"))
+                    .Icon("check")
+                    .ID("save-button3")
+                    .UseSubmitBehavior(true)
+                    .StylingMode(ButtonStylingMode.Contained)
+                    .OnClick("UseOtherCreditCard")
+            )
+        <br />
+        <br />
         @(Html.DevExtreme().DataGrid<CreditCard>()
                             .ID("CreditCardGrid")
                             //.Width("50%")
@@ -218,6 +230,7 @@
                             //.OnCellPrepared("cell_prepared_background_color")
                             )
     </div>
+    <br />
     <div id="buttonContainer2" class="dx-button-icon">
         @(Html.DevExtreme().Button()
                     .Text("奉獻")
@@ -227,6 +240,7 @@
                     .OnClick("ShowLoadPanel")
             )
     </div>
+
     <div style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
         <h5 id="atmfield"></h5>
     </div>
@@ -256,6 +270,23 @@
 
         //alert( getODataLocalDateFilter(arg.value) );
     }
+    function UseOtherCreditCard() {
+
+        //debugger;
+        getLoadPanelInstance().show();
+
+        //alert("UseOtherCreditCard!");
+        $("#form").dxForm("instance").updateData('SelectedCreditCard', "");
+        //$("#toast").dxToast("instance").show();
+        //alert("SaveNewPerson!!!");
+        //alert("OnValueChanged : " + arg.value);
+
+        //alert("OnValueChanged : " + arg.attribute('text'));
+        //alert("OnValueChanged : " + text: arg.attribute("text"));
+
+        //alert( getODataLocalDateFilter(arg.value) );
+    }
+
     function ShowToast(LocalToastMessage, Type, DisplayTime) {
         //debugger;
         var ToastInstance = $("#toast").dxToast("instance");
@@ -333,44 +364,116 @@
         }
     }
 
-    var selectionChangedRaised = false;  
+    //var selectionChangedRaised = false;  
+    //var FirstLoad = true;  
     function OnRowClick(selectedItems) {
-        //alert("OnRowClick!001");
+
+        alert("OnRowClick!001-0" + selectedItems);
+        var data = selectedItems.selectedRowsData[0];
+        if (data) {
+
+            //alert("OnRowClick!信用卡:" + data.CCToken);
+            $("#form").dxForm("instance").updateData('SelectedCreditCard', data.CCToken);
+            //alert("OnRowSelectionChanged! ， SelectedCreditCardValue =" + $("#form").dxForm("instance").getEditor('SelectedCreditCard').option('value'));
+            //if (FirstLoad == false) {
+            //    selectionChangedRaised = true;
+            //}
+        }
+
         //alert("OnRowClick!001-0" + selectedItems);
-        alert("OnRowClick!001-1" + selectedItems.selectedRowsData);
+        //alert("OnRowClick!001-1" + selectedItems.selectedRowsData);
+        //alert("OnRowClick!，SelectedCreditCardValue 0000=" + $("#form").dxForm("instance").getEditor('SelectedCreditCard').option('value'));
+        //alert("OnRowClick!，selectionChangedRaised=" + selectionChangedRaised);
+        //alert("OnRowClick!，FirstLoad = " + FirstLoad);
 
-        if (selectedItems.selectedRowsData) {
-            var data = selectedItems.selectedRowsData[0];
-            alert("OnRowClick!002");
-            if (data) {
-                alert("信用卡001:" + data.CCToken);
-                $("#form").dxForm("instance").updateData('SelectedCreditCard', data.CCToken);
-                alert("信用卡002:" + data.CCToken);
-            }
-        }
-        else {
+        //if (FirstLoad == false) {
+        //    if (!selectionChangedRaised) {
+        //        var SelectedCreditCardValue = $("#form").dxForm("instance").getEditor('SelectedCreditCard').option('value');
+        //        //if (!selectionChangedRaised) {
+        //        var dataGrid = selectedItems.component;
+        //        alert("OnRowClick!003" + dataGrid);
+        //        var keys = dataGrid.getSelectedRowKeys();
+        //        alert("OnRowClick!004" + keys);
+        //        alert("SelectedCreditCardValue = " + SelectedCreditCardValue);
 
-            //if (!selectionChangedRaised) {
-            var dataGrid = selectedItems.component;
-            alert("OnRowClick!003" + dataGrid);
-            var keys = dataGrid.getSelectedRowKeys();
-            alert("OnRowClick!004" + keys);
-            //alert(keys);
-            dataGrid.deselectRows(keys);
-            alert("OnRowClick!005" + keys);
-        }
+        //        if (keys == SelectedCreditCardValue) {
+        //            //alert(keys);
+        //            dataGrid.deselectRows(keys);
+        //        }
+
+        //        selectionChangedRaised = false;
+        //    }
         //}
-        selectionChangedRaised = false;  
+        //else {
+        //    if (selectedItems.selectedRowsData == undefined)
+        //    {
+        //        var SelectedCreditCardValue = $("#form").dxForm("instance").getEditor('SelectedCreditCard').option('value');
+        //        //if (!selectionChangedRaised) {
+        //        var dataGrid = selectedItems.component;
+        //        alert("OnRowClick!003" + dataGrid);
+        //        var keys = dataGrid.getSelectedRowKeys();
+        //        alert("OnRowClick!004" + keys);
+        //        alert("SelectedCreditCardValue = " + SelectedCreditCardValue);
+
+        //        if (keys == SelectedCreditCardValue) {
+        //            //alert(keys);
+        //            dataGrid.deselectRows(keys);
+        //        }
+
+        //        selectionChangedRaised = false;
+        //    }
+
+        //    FirstLoad = false;
+        //}
+    
+        //alert("OnRowClick!005" + keys);
+
+
+
+
+        ////alert("OnRowClick!001");
+        ////alert("OnRowClick!001-0" + selectedItems);
+        //alert("OnRowClick!001-1" + selectedItems.selectedRowsData);
+
+        //if (selectedItems.selectedRowsData) {
+        //    var data = selectedItems.selectedRowsData[0];
+        //    alert("OnRowClick!002");
+        //    if (data) {
+        //        alert("信用卡001:" + data.CCToken);
+        //        $("#form").dxForm("instance").updateData('SelectedCreditCard', data.CCToken);
+        //        alert("信用卡002:" + data.CCToken);
+        //    }
+        //}
+        //else {
+
+        //    var SelectedCreditCardValue = $("#form").dxForm("instance").getEditor('SelectedCreditCard').option('value');
+        //    //if (!selectionChangedRaised) {
+        //    var dataGrid = selectedItems.component;
+        //    alert("OnRowClick!003" + dataGrid);
+        //    var keys = dataGrid.getSelectedRowKeys();
+        //    alert("OnRowClick!004" + keys);
+        //    alert("SelectedCreditCardValue = " + SelectedCreditCardValue);
+
+        //    if (keys == SelectedCreditCardValue) {
+        //        //alert(keys);
+        //        dataGrid.deselectRows(keys);
+        //    }
+        //    alert("OnRowClick!005" + keys);
+        //}
+        ////}
+        //selectionChangedRaised = false;  
     }
     function OnRowSelectionChanged(selectedItems) {
-        alert("OnRowSelectionChanged!");
+        //alert("OnRowSelectionChanged!，FirstLoad = " + FirstLoad);
         var data = selectedItems.selectedRowsData[0];
         if (data) {
             //alert("信用卡:" + data.CCToken);
             $("#form").dxForm("instance").updateData('SelectedCreditCard', data.CCToken);
+            //alert("OnRowSelectionChanged! ， SelectedCreditCardValue =" + $("#form").dxForm("instance").getEditor('SelectedCreditCard').option('value'));
+            //if (FirstLoad == false) {
+            //    selectionChangedRaised = true;
+            //}
         }
-
-        selectionChangedRaised = true; 
     }
     function onCreditCardGridContentReady(e)
     {

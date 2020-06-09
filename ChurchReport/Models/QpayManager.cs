@@ -553,7 +553,7 @@ namespace ChurchReport.Models
                                 CCToken = VisaCCTokenSplit[0],
                                 LeftCardNumber = VisaCCTokenSplit[1],
                                 RightCardNumber = VisaCCTokenSplit[2],
-                                CreditCardNumber = VisaCCTokenSplit[1] + "XXXX" + VisaCCTokenSplit[2],
+                                CreditCardNumber = VisaCCTokenSplit[1] + "-XXXX-" + VisaCCTokenSplit[2],
                                 ExpireDate = VisaCCTokenSplit[3]
                             });
                         }
