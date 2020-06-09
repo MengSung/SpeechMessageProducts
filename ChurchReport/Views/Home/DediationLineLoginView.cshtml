@@ -62,147 +62,40 @@
     </div>
 
     <div class="long-title"><h3 id="displaynamefield"></h3></div>
-
-    <form data-ajax="true" data-ajax-begin="onBegin" data-ajax-success="onSuccess" asp-action="ProcessLineBinding" asp-controller="Home" method="post" style="text-align: center;">
-
-        <div class="dx-field" style="text-align: center;">
-            <div id="buttonContainer" class="dx-button-icon">
-                @(Html.DevExtreme().Button()
-                                .Text("前往綁定")
-                                //.Type(ButtonType.Success)
-                                //.Type(ButtonType.Normal)
-                                .Type(ButtonType.Default)
-                                .Visible(false)
-                                .ID("binding-button")
-                                .UseSubmitBehavior(false)
-                                .OnClick("Binding")
-                                .Width(120)
-                )
-                @(Html.DevExtreme().Button()
-                                .Text("帳號密碼登入")
-                                //.Type(ButtonType.Success)
-                                //.Type(ButtonType.Normal)
-                                .Type(ButtonType.Default)
-                                .Visible(false)
-                                .ID("login-button")
-                                .UseSubmitBehavior(false)
-                                .OnClick("Login")
-                                .Width(120)
-                )
-
-            </div>
-            <div id="LoadPanel">
-                @(Html.DevExtreme().LoadPanel()
-                                .ID("loadPanel")
-                                .ShadingColor("rgba(0,0,0,0.4)")
-                                .Position(p => p.Of("#LoadPanelSection"))
-                                .Visible(false)
-                                .ShowIndicator(true)
-                                .ShowPane(true)
-                                .Shading(true)
-                                .CloseOnOutsideClick(false)
-                                .Message("登入中...")
-                                .Delay(5000)
-                                .Animation(l => l.Show(k => k.Easing(AnimationEasing.Swing)))
-                )
-            </div>
-            <div id="ToastContainer">
-                @(Html.DevExtreme().Toast()
-                .ID("Toast")
-                .Position(p => p
-                .At(HorizontalAlignment.Center, VerticalAlignment.Center)
-                .Offset(0, 50))
-                //.Shading(true)
-                //.ShadingColor("red")
-                .CloseOnOutsideClick(true)
-                .DisplayTime(2000)
-                .MaxWidth(200)
-        )
-
-            </div>
-        </div>
-    </form>
-
-    </br>
-
     <div id="LoadPanelSection"></div>
 
     <script>
-            function getLoadPanelInstance() {
-                return $("#loadPanel").dxLoadPanel("instance");
-            }
-
-            function button_click() {
-                getLoadPanelInstance().show();
-            }
-
-            function loadPanel_shown(e) {
-                getLoadPanelInstance().show();
-                //    setTimeout(function () {
-                //        e.component.hide();
-                //    }, 3000);
-            }
-
-            function loadPanel_hidden() {
-                getLoadPanelInstance().hide();
-            }
-
-            function Binding(arg) {
-                //客製化
-                window.location.href = "/Home/LineLiffView/1653819697-YkPyPkr6";
-            }
-
-            function Login(arg) {
-                window.location.href = "/Home/Login";
-            }
-
-        </script>
-
-    <script type="text/javascript">
-        function onBegin() {
+        function getLoadPanelInstance() {
+            return $("#loadPanel").dxLoadPanel("instance");
         }
 
-        function onSuccess(data) {
+        function button_click() {
+            getLoadPanelInstance().show();
+        }
 
+        function loadPanel_shown(e) {
+            getLoadPanelInstance().show();
+            //    setTimeout(function () {
+            //        e.component.hide();
+            //    }, 3000);
+        }
+
+        function loadPanel_hidden() {
             getLoadPanelInstance().hide();
-
-            if (data.status == 1) {
-
-                //DevExpress.ui.notify( data.message, "success", 15000 );
-
-                DevExpress.ui.notify({
-                    displayTime: 15000,
-                    closeOnClick: true,
-                    message: data.message,
-                    type: 'success',
-                });
-
-                //$("#toast").dxToast("show");
-
-                //window.location.href = "/Home/LineBindingView/" + '@Model.EncodeUrl';
-                window.location.href = "/Home/BindingResultView/" + data.message ;
-            }
-            else {
-                DevExpress.ui.notify(data.message, "error", 5000);
-                //window.location.href = "/Home/LineBindingView/" + '@Model.EncodeUrl';
-                window.location.href = "/Home/BindingResultView/" + data.message ;
-            }
         }
 
-        function onComplete(data) {
-            if (data.status == 1) {
-            }
-            else {
-            }
+        function Binding(arg) {
+            //客製化
+            window.location.href = "/Home/LineLiffView/1653819697-YkPyPkr6";
         }
-        </script>
 
-    <script src="~/lib/jquery-ajax-unobtrusive/jquery.unobtrusive-ajax.js"></script>
-        <link href="~/css/Gallery.css" rel="stylesheet" />
-        <link href="~/css/WeeklyReport.css" rel="stylesheet" />
+        function Login(arg) {
+            window.location.href = "/Home/Login";
+        }
 
-        <script src="https://static.line-scdn.net/liff/edge/2.1/sdk.js"></script>
-   <script>
+    </script>
+
+    <script>
 
     window.onload = function (e) {
             //var message = '@TempData["Proponent"]';
@@ -289,7 +182,10 @@
             ToastInstance.show();
         }
 
-        </script>
+    </script>
+    <link href="~/css/Gallery.css" rel="stylesheet" />
+    <link href="~/css/WeeklyReport.css" rel="stylesheet" />
+    <script src="https://static.line-scdn.net/liff/edge/2.1/sdk.js"></script>
 </body>
 
 </html>
