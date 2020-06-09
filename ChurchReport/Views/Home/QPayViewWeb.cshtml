@@ -293,6 +293,7 @@
 </script>
 <script>
     // 觸發事件管理
+
     function OnCategorySelectBoxValueChanged(e) {
         if (e.value == "其他") {
             $("#form").dxForm("instance").itemOption("OtherDedication", 'visible', true);
@@ -331,19 +332,45 @@
             //alert(e.component._options.value);
         }
     }
+
+    var selectionChangedRaised = false;  
     function OnRowClick(selectedItems) {
-        var data = selectedItems.selectedRowsData[0];
-        if (data) {
-            //alert("信用卡:" + data.CCToken);
-            $("#form").dxForm("instance").updateData('SelectedCreditCard', data.CCToken);
+        //alert("OnRowClick!001");
+        //alert("OnRowClick!001-0" + selectedItems);
+        alert("OnRowClick!001-1" + selectedItems.selectedRowsData);
+
+        if (selectedItems.selectedRowsData) {
+            var data = selectedItems.selectedRowsData[0];
+            alert("OnRowClick!002");
+            if (data) {
+                alert("信用卡001:" + data.CCToken);
+                $("#form").dxForm("instance").updateData('SelectedCreditCard', data.CCToken);
+                alert("信用卡002:" + data.CCToken);
+            }
         }
+        else {
+
+            //if (!selectionChangedRaised) {
+            var dataGrid = selectedItems.component;
+            alert("OnRowClick!003" + dataGrid);
+            var keys = dataGrid.getSelectedRowKeys();
+            alert("OnRowClick!004" + keys);
+            //alert(keys);
+            dataGrid.deselectRows(keys);
+            alert("OnRowClick!005" + keys);
+        }
+        //}
+        selectionChangedRaised = false;  
     }
     function OnRowSelectionChanged(selectedItems) {
+        alert("OnRowSelectionChanged!");
         var data = selectedItems.selectedRowsData[0];
         if (data) {
             //alert("信用卡:" + data.CCToken);
             $("#form").dxForm("instance").updateData('SelectedCreditCard', data.CCToken);
         }
+
+        selectionChangedRaised = true; 
     }
     function onCreditCardGridContentReady(e)
     {
