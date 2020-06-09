@@ -143,6 +143,8 @@ namespace ChurchReport.Controllers
                     // 永豐金流奉獻
                     if ( aLoginContact != null)
                     {
+                        m_InMemoryDataContextSmallGroup.QpayManager.LoginType = "網頁登入";
+
                         m_InMemoryDataContextSmallGroup.QpayManager.SetQpayModel(aLoginContact);
                     }
 
@@ -4271,32 +4273,50 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType;// 看是小組長還是個人回報
-                ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.ListManager.LoginFullName;
-                ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType;
-                #region 繳費與點名是否顯示在選單中
-                if (m_InMemoryDataContextSmallGroup.FeeList.FeeDataList != null && m_InMemoryDataContextSmallGroup.FeeList.FeeDataList.Count > 0)
+                if ( m_InMemoryDataContextSmallGroup.QpayManager.LoginType == "網頁登入" )
                 {
-                    ViewBag.FeeDataListCount = "繳費與點名已有資料";
+                    ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType;// 看是小組長還是個人回報
+                    ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.ListManager.LoginFullName;
+                    ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType;
+                    #region 繳費與點名是否顯示在選單中
+                    if (m_InMemoryDataContextSmallGroup.FeeList.FeeDataList != null && m_InMemoryDataContextSmallGroup.FeeList.FeeDataList.Count > 0)
+                    {
+                        ViewBag.FeeDataListCount = "繳費與點名已有資料";
+                    }
+                    else
+                    {
+                        ViewBag.FeeDataListCount = "繳費與點名尚無資料";
+                    }
+                    #endregion
+
+                    if (m_InMemoryDataContextSmallGroup.HappyGroupDataManager.HappyType == "有幸福小組名單")
+                    {
+                        ViewBag.HappyType = "有幸福小組名單";
+                    }
+                    else
+                    {
+                        ViewBag.HappyType = "沒幸福小組名單";
+                    }
+
+                    SetMultiGroupLayoutParameter();
                 }
                 else
                 {
+                    ViewBag.LoginType = "小組長"; // 看是小組長還是個人回報
+                    ViewBag.LoginFullName = "耶穌";
+                    ViewBag.FeeType = "有繳費點名";
                     ViewBag.FeeDataListCount = "繳費與點名尚無資料";
-                }
-                #endregion
-
-                if (m_InMemoryDataContextSmallGroup.HappyGroupDataManager.HappyType == "有幸福小組名單")
-                {
-                    ViewBag.HappyType = "有幸福小組名單";
-                }
-                else
-                {
                     ViewBag.HappyType = "沒幸福小組名單";
+                    ViewBag.MultiGroupIndex = "SingleMultiGroupView";
+                    //ViewBag.SchedulerView = m_InMemoryDataContextSmallGroup.ListManager.SchedulerView = "單純行事曆";
+                    ViewBag.DisplayNavigation = m_InMemoryDataContextSmallGroup.ListManager.DisplayNavigation = "不顯示牧養回報項目";
+                    ViewBag.UserType = m_InMemoryDataContextSmallGroup.ListManager.UserType = "行政同工";
+                    ViewBag.DedicationType = m_InMemoryDataContextSmallGroup.ListManager.UserType = "奉獻管理";
+                    // 教會職稱是否是會計
+                    ViewBag.IsAOfficeWorker = m_InMemoryDataContextSmallGroup.QpayManager.m_QpayModel.IsAOfficeWorker == true ? "是的" : "否";
                 }
 
-                SetMultiGroupLayoutParameter();
-
-                return View( m_InMemoryDataContextSmallGroup.QpayManager.m_QpayModel );
+                return View(m_InMemoryDataContextSmallGroup.QpayManager.m_QpayModel);
             }
             catch (System.Exception e)
             {
@@ -4713,6 +4733,8 @@ namespace ChurchReport.Controllers
                 {
                     m_InMemoryDataContextSmallGroup.LineBindingViewModel.DisplayId = UserLineId;
                 }
+
+                m_InMemoryDataContextSmallGroup.QpayManager.LoginType = "Line單獨登入";
 
                 // 永豐金流奉獻
                 Entity aLoginContact = this.m_ToolUtilityClass.RetrieveContactByLineId(UserLineId);

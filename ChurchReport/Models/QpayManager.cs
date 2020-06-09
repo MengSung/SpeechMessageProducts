@@ -21,6 +21,8 @@ namespace ChurchReport.Models
         private QPayProcessor m_QPayProcessor = new QPayProcessor();
 
         public Entity m_Contact;
+
+        public String LoginType { get; set; } = "網頁登入";   //登入方式
         #endregion
         #region Line 單獨登入
         public async Task<IActionResult> SaveKeyInDedication(QpayModel QpayModel)
