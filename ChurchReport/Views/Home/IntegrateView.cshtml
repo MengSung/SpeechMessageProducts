@@ -698,7 +698,8 @@ else
                                 //columns.AddFor(m => m.Status).Caption("會員身分").Fixed(false).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Center).AllowSorting(false);
                                 //客製化，委身類型
                                 columns.Add().DataField("Status")
-                                            .Caption("會員身分").Alignment(HorizontalAlignment.Center).AllowEditing(false)
+                                            .Caption("會員身分").Alignment(HorizontalAlignment.Center)
+                                            .AllowEditing(true)
                                             .Width(70).MinWidth(30).DataType(GridColumnDataType.Number)
                                             .Lookup(lookup => lookup
                                             .DataSource(new string[] { "牧師師母", "區長", "區牧", "小組長", "副組長", "小組組員", "幸福BEST", "未入組", "新朋友", "外教會.訪客", "結案", })
@@ -845,7 +846,8 @@ else
 
                                 //客製化，委身類型
                                 columns.Add().DataField("Status")
-                                            .Caption("會員身分").Alignment(HorizontalAlignment.Center).AllowEditing(false)
+                                            .Caption("會員身分").Alignment(HorizontalAlignment.Center)
+                                            .AllowEditing(true)
                                             .Width(70).MinWidth(30).DataType(GridColumnDataType.Number)
                                             .Lookup(lookup => lookup
                                             .DataSource(new string[] { "牧師師母", "區長", "區牧", "小組長", "副組長", "小組組員", "幸福BEST", "未入組", "新朋友", "外教會.訪客", "結案", })
@@ -1068,7 +1070,8 @@ else
                                 //columns.AddFor(m => m.Status).Caption("會員身分").Fixed(false).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Center).AllowSorting(false);
                                 //客製化，委身類型
                                 columns.Add().DataField("Status")
-                                            .Caption("會員身分").Alignment(HorizontalAlignment.Center).AllowEditing(false)
+                                            .Caption("會員身分").Alignment(HorizontalAlignment.Center)
+                                            .AllowEditing(true)
                                             .Width(70).MinWidth(30).DataType(GridColumnDataType.Number)
                                             .Lookup(lookup => lookup
                                             .DataSource(new string[] { "牧師師母", "區長", "區牧", "小組長", "副組長", "小組組員", "幸福BEST", "未入組", "新朋友", "外教會.訪客", "結案", })
