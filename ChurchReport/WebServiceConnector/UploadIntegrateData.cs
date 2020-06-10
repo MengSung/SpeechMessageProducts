@@ -1311,6 +1311,7 @@ namespace ChurchReport.WebServiceConnector
                     // 新增個人聚會與靈修記錄
                     Entity aPresentRecord = CreatePresentRecord(aMemberInfomation, ref aListEntity, ref aWeeklyReportId, ValidNumber, ref aWeeklySundayRate, ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber, ref aGroupWeeklyReportGuid, HappyWeekIndex, HappyWeekTopic, PauseCheckBox);
 
+                    //指派負責人
                     this.m_ToolUtilityClass.AssignOwner("new_present_record", aPresentRecord, this.m_OwnerId);
 
                     if (aPresentRecord != null)
@@ -1335,6 +1336,7 @@ namespace ChurchReport.WebServiceConnector
                     // 新增個人聚會與靈修記錄
                     Entity aPresentRecord = CreatePresentRecord(aMemberInfomation, ref aListEntity, ref aWeeklyReportId, ValidNumber, ref aWeeklySundayRate, ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber, ref aGroupWeeklyReportGuid, HappyWeekIndex, HappyWeekTopic, PauseCheckBox);
 
+                    //指派負責人
                     this.m_ToolUtilityClass.AssignOwner("new_present_record", aPresentRecord, this.m_OwnerId);
 
                     if (aPresentRecord != null)
@@ -1362,6 +1364,7 @@ namespace ChurchReport.WebServiceConnector
 
                     if (aPresentRecord != null)
                     {
+                        //指派負責人
                         this.m_ToolUtilityClass.AssignOwner("new_present_record", aPresentRecord, this.m_OwnerId);
 
                         PresentRecordEntityCollection.Entities.Add(aPresentRecord);

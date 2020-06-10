@@ -698,9 +698,14 @@ namespace ChurchReport.WebServiceConnector
 
                 // 新增個人聚會與靈修記錄
                 Guid aPresentRecordId = this.m_ToolUtilityClass.CreateEntity(aPresentRecord);
+                Entity aRetrievedPresentRecord = this.m_ToolUtilityClass.RetrieveEntity("new_present_record", aPresentRecordId);
+
+                //指派負責人
+                this.m_ToolUtilityClass.AssignOwner("new_present_record", aRetrievedPresentRecord, this.m_ToolUtilityClass.GetOwnerId( aContactEntity ));
 
                 //取得並回傳新建的聚會與靈修記錄
-                return this.m_ToolUtilityClass.RetrieveEntity("new_present_record", aPresentRecordId);
+                return aRetrievedPresentRecord;
+
             }
             else
             {

@@ -154,7 +154,15 @@ namespace ChurchReport.WebServiceConnector
 
                 SetFeeParameter(LineId, aFeeToCreated, QpayModel);
 
-                return this.m_ToolUtilityClass.CreateEntity(aFeeToCreated);
+                // 新增收費單
+                Guid aFeeId = this.m_ToolUtilityClass.CreateEntity(aFeeToCreated);
+                Entity aRetrievedFee = this.m_ToolUtilityClass.RetrieveEntity("new_fee", aFeeId);
+
+                //指派負責人
+                Entity aContact = this.m_ToolUtilityClass.RetrieveContactEntityByLineUserId(LineId);
+                this.m_ToolUtilityClass.AssignOwner("new_fee", aRetrievedFee, this.m_ToolUtilityClass.GetOwnerId(aContact));
+
+                return aFeeId;
                 #endregion
             }
             catch (System.Exception e)
@@ -411,7 +419,14 @@ namespace ChurchReport.WebServiceConnector
 
                 SetFeeParameter(aContact, aFeeToCreated, QpayModel);
 
-                return this.m_ToolUtilityClass.CreateEntity(aFeeToCreated);
+                // 新增收費單
+                Guid aFeeId = this.m_ToolUtilityClass.CreateEntity(aFeeToCreated);
+                Entity aRetrievedFee = this.m_ToolUtilityClass.RetrieveEntity("new_fee", aFeeId);
+
+                //指派負責人
+                this.m_ToolUtilityClass.AssignOwner("new_fee", aRetrievedFee, this.m_ToolUtilityClass.GetOwnerId(aContact));
+
+                return aFeeId;
                 #endregion
             }
             catch (System.Exception e)

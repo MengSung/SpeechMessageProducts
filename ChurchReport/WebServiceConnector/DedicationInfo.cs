@@ -57,6 +57,15 @@ namespace ChurchReport.WebServiceConnector
                 SetFeeParameter( LineId, aFeeToCreated, DedicationInfoModel);
 
                 this.m_ToolUtilityClass.CreateEntity(aFeeToCreated);
+
+                // 新增收費單
+                Guid aFeeId = this.m_ToolUtilityClass.CreateEntity(aFeeToCreated);
+                Entity aRetrievedFee = this.m_ToolUtilityClass.RetrieveEntity("new_fee", aFeeId);
+
+                //指派負責人
+                Entity aContact = this.m_ToolUtilityClass.RetrieveContactEntityByLineUserId(LineId);
+                this.m_ToolUtilityClass.AssignOwner("new_fee", aRetrievedFee, this.m_ToolUtilityClass.GetOwnerId(aContact));
+
                 #endregion
 
             }

@@ -712,7 +712,16 @@ namespace ChurchReport.WebServiceConnector
                 //this.m_ToolUtilityClass.SetOptionSetAttribute(ref aFee, "new_pay_way", 100000004); // 預設繳費是未知
                 this.m_ToolUtilityClass.SetOptionSetAttribute(ref aFee, "new_pay_way", 100000000); // 預設繳費是現金
             }
-            return this.m_ToolUtilityClass.RetrieveEntity("new_fee", this.m_ToolUtilityClass.CreateEntity(aFee));
+
+            // 新增收費單
+            Guid aFeeId = this.m_ToolUtilityClass.CreateEntity(aFee);
+            Entity aRetrievedFee = this.m_ToolUtilityClass.RetrieveEntity("new_fee", aFeeId);
+
+            //指派負責人
+            Entity aContact = this.m_ToolUtilityClass.RetrieveEntity( "contact", this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aStorLessonEntity, "new_contact_new_stor_lessons"));
+            this.m_ToolUtilityClass.AssignOwner("new_fee", aRetrievedFee, this.m_ToolUtilityClass.GetOwnerId(aContact));
+
+            return aRetrievedFee;
 
         }
 

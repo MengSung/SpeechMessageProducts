@@ -5776,7 +5776,6 @@ namespace ToolUtilityNameSpace
                     Target = new EntityReference(EntityName, aEntity.Id)
                 };
 
-
                 // Execute the Request
                 if (CRM_TYPE == "DYNAMICS365")
                 {
