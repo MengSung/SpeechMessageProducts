@@ -398,6 +398,13 @@ namespace ChurchReport.WebServiceConnector
                             aEquipmentStatus = (string)aContactEntity.Attributes["new_equipment_status"];
                         }
 
+                        // 組員的受洗狀態
+                        String aSpiritualIdentity = "";
+                        if (aContactEntity.Attributes.Contains("new_spiriitual_identity"))
+                        {
+                            aSpiritualIdentity = ConvertIndexToSpiritualIdentity(this.m_ToolUtilityClass.GetOptionSetAttribute(this.m_ContactEntity, "new_spiriitual_identity"));
+                        }
+
                         #endregion
                         #region// 委身類型
                         String aIdentity = this.ConvertIndexToIdentity(this.m_ToolUtilityClass.GetOptionSetAttribute(ref aContactEntity, "customertypecode"));
@@ -590,6 +597,7 @@ namespace ChurchReport.WebServiceConnector
                                     BirthDate = aBirthDate,
                                     Industry = aIndustry,
                                     EquipmentStatus = aEquipmentStatus,
+                                    SpiritualIdentity = aSpiritualIdentity,
                                     BestLeader = this.m_ToolUtilityClass.GetEntityLookupDisplayName(aContactEntity, "new_contact_contact_spiritleader"),// 屬靈認領者
                                     BestIntroducer = this.m_ToolUtilityClass.GetEntityStringAttribute(aContactEntity, "new_best_introducer"),
                                     BestRelationship = this.m_ToolUtilityClass.GetEntityStringAttribute(aContactEntity, "new_best_relationship"),
@@ -729,6 +737,7 @@ namespace ChurchReport.WebServiceConnector
                 BirthDate = m_ToolUtilityClass.GetEntityDateTimeAttribute(this.m_ContactEntity, "birthdate"),
                 Industry = this.m_ToolUtilityClass.GetEntityStringAttribute(this.m_ContactEntity, "new_industry"),
                 EquipmentStatus = this.m_ToolUtilityClass.GetEntityStringAttribute(this.m_ContactEntity, "new_equipment_status"),
+                SpiritualIdentity = ConvertIndexToSpiritualIdentity(this.m_ToolUtilityClass.GetOptionSetAttribute(this.m_ContactEntity, "new_spiriitual_identity")),
 
                 #endregion
                 Status = this.ConvertIndexToIdentity(this.m_ToolUtilityClass.GetOptionSetAttribute(ref m_ContactEntity, "customertypecode")), // 委身類型
@@ -1243,6 +1252,13 @@ namespace ChurchReport.WebServiceConnector
                             aEquipmentStatus = (string)ContactEntity.Attributes["new_equipment_status"];
                         }
 
+                        // 組員的受洗狀態
+                        String aSpiritualIdentity = "";
+                        if (ContactEntity.Attributes.Contains("new_spiriitual_identity"))
+                        {
+                            aSpiritualIdentity = ConvertIndexToSpiritualIdentity(this.m_ToolUtilityClass.GetOptionSetAttribute(this.m_ContactEntity, "new_spiriitual_identity"));
+                        }
+
                         #endregion
 
                         #region// 委身類型
@@ -1280,6 +1296,7 @@ namespace ChurchReport.WebServiceConnector
                                     BirthDate = aBirthDate,
                                     Industry = aIndustry,
                                     EquipmentStatus = aEquipmentStatus,
+                                    SpiritualIdentity = aSpiritualIdentity,
                                     BestLeader = this.m_ToolUtilityClass.GetEntityLookupDisplayName(ContactEntity, "new_contact_contact_spiritleader"),// 屬靈認領者
                                     BestIntroducer = this.m_ToolUtilityClass.GetEntityStringAttribute(ContactEntity, "new_best_introducer"),
                                     BestRelationship = this.m_ToolUtilityClass.GetEntityStringAttribute(ContactEntity, "new_best_relationship"),
@@ -1368,6 +1385,13 @@ namespace ChurchReport.WebServiceConnector
                 aEquipmentStatus = (string)m_ContactEntity.Attributes["new_equipment_status"];
             }
 
+            // 組員的受洗狀態
+            String aSpiritualIdentity = "";
+            if (m_ContactEntity.Attributes.Contains("new_spiriitual_identity"))
+            {
+                aSpiritualIdentity = ConvertIndexToSpiritualIdentity(this.m_ToolUtilityClass.GetOptionSetAttribute(this.m_ContactEntity, "new_spiriitual_identity"));
+            }
+
             #endregion
 
             #region// 委身類型
@@ -1405,6 +1429,7 @@ namespace ChurchReport.WebServiceConnector
                         BirthDate = aBirthDate,
                         Industry = aIndustry,
                         EquipmentStatus = aEquipmentStatus,
+                        SpiritualIdentity = aSpiritualIdentity,
                         BestLeader = this.m_ToolUtilityClass.GetEntityLookupDisplayName(m_ContactEntity, "new_contact_contact_spiritleader"),// 屬靈認領者
                         BestIntroducer = this.m_ToolUtilityClass.GetEntityStringAttribute(m_ContactEntity, "new_best_introducer"),
                         BestRelationship = this.m_ToolUtilityClass.GetEntityStringAttribute(m_ContactEntity, "new_best_relationship"),
@@ -2512,6 +2537,30 @@ namespace ChurchReport.WebServiceConnector
                     return "09. 外教會.訪客";
                 case 100000001:
                     return "10. 結案";
+                default:
+                    return ".";
+            }
+        }
+        private String ConvertIndexToSpiritualIdentity(int SpiritualIdentity)
+        {
+            switch (SpiritualIdentity)
+            {
+                case 100000000:
+                    return "已受洗(本教會)";
+                case 100000003:
+                    return "已受洗(其他教會)";
+                case 100000004:
+                    return "-未知-";
+                case 100000001:
+                    return "未信主";
+                case 100000002:
+                    return "已決志";
+                case 100000005:
+                    return "未受洗";
+                case 100000006:
+                    return "於本教會受洗";
+                case 100000007:
+                    return "於其他教會受洗";
                 default:
                     return ".";
             }

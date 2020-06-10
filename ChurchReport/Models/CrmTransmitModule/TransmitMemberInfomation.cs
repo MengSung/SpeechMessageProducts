@@ -145,6 +145,15 @@ namespace ChurchReport.Models.CrmTransmitModule
             get { return m_EquipmentStatus; }
             set { m_EquipmentStatus = value; }
         }
+
+        // 受洗狀態
+        string m_SpiritualIdentity = "";
+        public string SpiritualIdentity
+        {
+            get { return m_SpiritualIdentity; }
+            set { m_SpiritualIdentity = value; }
+        }
+
         #endregion
         string m_Note = "";
         public string Note
@@ -602,6 +611,14 @@ namespace ChurchReport.Models.CrmTransmitModule
         {
             get { return m_EquipmentStatus; }
             set { m_EquipmentStatus = value; }
+        }
+
+        // 受洗狀態
+        string m_SpiritualIdentity = "";
+        public string SpiritualIdentity
+        {
+            get { return m_SpiritualIdentity; }
+            set { m_SpiritualIdentity = value; }
         }
 
         string m_PresentRecordId = "";

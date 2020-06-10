@@ -54,6 +54,13 @@ namespace ChurchReport.Models {
             set;
         }
 
+        // ¨ü¬~ª¬ºA
+        public string SpiritualIdentity
+        {
+            get;
+            set;
+        }
+
         #endregion
 
         public string SmallGroupName { get; set; }

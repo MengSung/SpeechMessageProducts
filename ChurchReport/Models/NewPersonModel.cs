@@ -89,6 +89,7 @@ namespace ChurchReport.Models
             m_PersonFormViewModel.MerrageState = aPersonFormViewModel.MerrageState;
             m_PersonFormViewModel.Industry = aPersonFormViewModel.Industry;
             m_PersonFormViewModel.EquipmentStatus = aPersonFormViewModel.EquipmentStatus;
+            m_PersonFormViewModel.SpiritualIdentity = aPersonFormViewModel.SpiritualIdentity;
         }
         public void MappingPersonFormViewModelToNewContact( PersonFormViewModel aPersonFormViewModel)
         {
@@ -107,7 +108,8 @@ namespace ChurchReport.Models
             m_NewContact.IntroducerGroup    = aPersonFormViewModel.IntroducerGroup;
             m_NewContact.MerrageState       = aPersonFormViewModel.MerrageState;
             m_NewContact.Industry           = aPersonFormViewModel.Industry;
-            m_NewContact.EquipmentStatus    = aPersonFormViewModel.EquipmentStatus;
+            m_NewContact.EquipmentStatus = aPersonFormViewModel.EquipmentStatus;
+            m_NewContact.SpiritualIdentity = aPersonFormViewModel.SpiritualIdentity;
 
             // 性別
             m_NewContact.Gender = aPersonFormViewModel.Gender;

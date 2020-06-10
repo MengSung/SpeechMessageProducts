@@ -86,7 +86,8 @@ namespace ChurchReport.Models
                     aMemberInfomation.Address = aMember.Address;
                     //aMemberInfomation.BirthDate = aMember.BirthDate;
                     aMemberInfomation.Industry = aMember.Industry;
-                    aMemberInfomation.EquipmentStatus = aMember.EquipmentStatus;// 裝備狀態
+                    aMemberInfomation.EquipmentStatus = aMember.EquipmentStatus;    // 裝備狀態
+                    aMemberInfomation.SpiritualIdentity = aMember.SpiritualIdentity;// 受洗狀態
 
                     aMemberInfomation.SundayPresent = aMember.Sunday;
                     aMemberInfomation.SmallGroupPresent = aMember.SmallGroup;
@@ -123,6 +124,7 @@ namespace ChurchReport.Models
                     HomePhone = aPersonFormViewModel.HomePhone,
                     Industry = aPersonFormViewModel.Industry,
                     EquipmentStatus = aPersonFormViewModel.EquipmentStatus,
+                    SpiritualIdentity = aPersonFormViewModel.SpiritualIdentity,// 受洗狀態
 
                     //BirthDate = aPersonFormViewModel.BirthDate,
                     Address = aPersonFormViewModel.Address,
@@ -160,6 +162,7 @@ namespace ChurchReport.Models
                     HomePhone = aPersonFormViewModel.HomePhone,
                     Industry = aPersonFormViewModel.Industry,
                     EquipmentStatus = aPersonFormViewModel.EquipmentStatus,
+                    SpiritualIdentity = aPersonFormViewModel.SpiritualIdentity,// 受洗狀態
 
                     //BirthDate = aPersonFormViewModel.BirthDate,
                     Address = aPersonFormViewModel.Address,
