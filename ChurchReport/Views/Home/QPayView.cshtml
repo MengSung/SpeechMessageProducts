@@ -6,35 +6,6 @@
     <h5 id="displaynamefield">@Model.FullName 奉獻編號:@Model.DedicationNumber</h5>
 </div>
 
-<div class="dx-field">
-    <div id="ToastContainer">
-        @(Html.DevExtreme().Toast()
-                .ID("toast")
-                .Position(p => p
-                    .At(HorizontalAlignment.Center, VerticalAlignment.Center)
-                    .Offset(0, 50))
-                    .Message("上傳成功了!")
-                    .DisplayTime(20000)
-                    .MaxWidth(200)
-            )
-
-    </div>
-    <div id="LoadPanel">
-        @(Html.DevExtreme().LoadPanel()
-                    .ID("loadPanel")
-                    .ShadingColor("rgba(0,0,0,0.4)")
-                    .Position(p => p.Of("#form-container"))
-                    .Visible(false)
-                    .ShowIndicator(true)
-                    .ShowPane(true)
-                    .Shading(true)
-                    .CloseOnOutsideClick(false)
-                    .Message("上傳資料中...")
-                    .Animation(l => l.Show(k => k.Easing(AnimationEasing.Swing)))
-            )
-    </div>
-</div>
-
 <form data-ajax="true" data-ajax-begin="onBegin" data-ajax-success="onSuccess" asp-action="SaveQPayDedication" asp-controller="Home" method="post">
     <div id="form-container">
         @(Html.DevExtreme().Form<QpayModel>()
@@ -241,6 +212,35 @@
         <h5 id="atmfield"></h5>
     </div>
 </form>
+
+<div class="dx-field">
+    <div id="ToastContainer">
+        @(Html.DevExtreme().Toast()
+                .ID("toast")
+                .Position(p => p
+                    .At(HorizontalAlignment.Center, VerticalAlignment.Center)
+                    .Offset(0, 50))
+                    .Message("上傳成功了!")
+                    .DisplayTime(20000)
+                    .MaxWidth(200)
+            )
+
+    </div>
+    <div id="LoadPanel">
+        @(Html.DevExtreme().LoadPanel()
+                    .ID("loadPanel")
+                    .ShadingColor("rgba(0,0,0,0.4)")
+                    .Position(p => p.Of("#form-container"))
+                    .Visible(false)
+                    .ShowIndicator(true)
+                    .ShowPane(true)
+                    .Shading(true)
+                    .CloseOnOutsideClick(false)
+                    .Message("上傳資料中...")
+                    .Animation(l => l.Show(k => k.Easing(AnimationEasing.Swing)))
+            )
+    </div>
+</div>
 
 <script>
     //網頁載入
