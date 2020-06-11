@@ -36,15 +36,6 @@
 </div>
 
 <form data-ajax="true" data-ajax-begin="onBegin" data-ajax-success="onSuccess" asp-action="SaveQPayDedication" asp-controller="Home" method="post">
-    <div id="buttonContainer" class="dx-button-icon">
-        @(Html.DevExtreme().Button()
-                    .Text("奉獻")
-                    .Type(ButtonType.Success)
-                    .ID("save-button")
-                    .UseSubmitBehavior(true)
-                    .OnClick("ShowLoadPanel")
-            )
-    </div>
     <div id="form-container">
         @(Html.DevExtreme().Form<QpayModel>()
         .ID("form")
@@ -151,19 +142,6 @@
     </div>
     <div id="creditcardlistcontainer" style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
         <h5 id="creditcardlist">信用卡清單</h5>
-        @(Html.DevExtreme().Button()
-                    .Text("用其他信用卡奉獻")
-                    .Type(ButtonType.Default)
-                    //.Icon("fa fa-envelope-o")
-                    //.Icon(Url.Content("~/images/button/weather.png"))
-                    .Icon("check")
-                    .ID("save-button3")
-                    .UseSubmitBehavior(true)
-                    .StylingMode(ButtonStylingMode.Contained)
-                    .OnClick("UseOtherCreditCard")
-            )
-        <br />
-        <br />
         @(Html.DevExtreme().DataGrid<CreditCard>()
                 .ID("CreditCardGrid")
                 //.Width("50%")
@@ -233,14 +211,30 @@
         )
     </div>
     <br />
-    <div id="buttonContainer2" class="dx-button-icon">
-        @(Html.DevExtreme().Button()
+    <div class="dx-field" style="text-align: left;">
+        <div id="buttonContainer" class="dx-button-icon">
+            @(Html.DevExtreme().Button()
                     .Text("奉獻")
                     .Type(ButtonType.Success)
                     .ID("save-button2")
                     .UseSubmitBehavior(true)
                     .OnClick("ShowLoadPanel")
             )
+            @(Html.DevExtreme().Button()
+                    .Text("用其他信用卡奉獻")
+                    .Type(ButtonType.Default)
+                    //.Icon("fa fa-envelope-o")
+                    //.Icon(Url.Content("~/images/button/weather.png"))
+                    .Icon("check")
+                    .ID("save-button3")
+                    .UseSubmitBehavior(true)
+                    .StylingMode(ButtonStylingMode.Contained)
+                    .OnClick("UseOtherCreditCard")
+            )
+        </div>
+    </div>
+
+    <div id="buttonContainer2" class="dx-button-icon">
     </div>
 
     <div style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
