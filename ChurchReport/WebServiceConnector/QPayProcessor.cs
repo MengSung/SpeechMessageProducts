@@ -30,7 +30,10 @@ namespace ChurchReport.WebServiceConnector
         #region 資料區
         string m_ShopNo = "NA0149_001";
 
-        private const String RETURN_URL = "https://yhchurchback.speechmessage.com.tw:454/api/QPayCard/QPayReturnUrl";
+        // 使用 LineMessageApi WebHook
+        //private const String RETURN_URL = "https://yhchurchback.speechmessage.com.tw:454/api/QPayCard/QPayReturnUrl";
+        // 使用 ChurchReport 當作 WebHook
+        private const String RETURN_URL = "https://yhchurchback.speechmessage.com.tw:453/api/QPayCard/QPayReturnUrl";
 
         //private const String BACKEND_URL = "http://yhchurchback.speechmessage.com.tw:80/api/QPayAtm/PushSuccess";
         //private const String BACKEND_URL = "http://yhchurchback.speechmessage.com.tw/api/QPayAtm/PushSuccess";
