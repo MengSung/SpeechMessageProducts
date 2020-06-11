@@ -307,25 +307,7 @@
             $("#form").dxForm("instance").itemOption("OtherDedication", 'visible', false);
         }
     }
-    function OnPayWaySelectBoxValueChanged(e) {
-        if (e.value == "信用卡") {
-            //alert(e.value + "顯示");
-            //alert(e.value + "顯示 :" + GlobalCategory);
-            //document.getElementById("creditcardlist").style.display = "none";//隱藏
-            document.getElementById("creditcardlistcontainer").style.display = "";//顯示
-
-            //$("#form").dxForm("instance").itemOption("CreditCardList", 'visible', true);
-        }
-        else {
-            //alert(e.value + "隱藏");
-            //alert(e.value + "隱藏 000:" + GlobalCategory );
-            document.getElementById("creditcardlistcontainer").style.display = "none";//隱藏
-            //document.getElementById("creditcardlist").style.display = "";//顯示
-
-            //$("#form").dxForm("instance").itemOption("CreditCardList", 'visible', false);
-        }
-    }
-    function OnAmountContentReady(e) {
+ㄏ    function OnAmountContentReady(e) {
 
         //debugger;
         //alert(e.component._options.value);
