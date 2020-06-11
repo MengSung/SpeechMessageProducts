@@ -112,7 +112,7 @@
 
     </div>
     <div id="creditcardlistcontainer" style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
-        <h5 id="creditcardlist">信用卡清單</h5>
+        <h5 id="creditcardlist">您可以刪除不想用的信用卡<br />請選擇這次要用哪張信用卡奉獻</h5>
         @(Html.DevExtreme().DataGrid<CreditCard>()
                 .ID("CreditCardGrid")
                 //.Width("50%")
@@ -185,7 +185,7 @@
     <div class="dx-field" style="text-align: left;">
         <div id="buttonContainer" class="dx-button-icon">
             @(Html.DevExtreme().Button()
-                    .Text("奉獻")
+                    .Text("用上面選擇的信用卡奉獻")
                     .Type(ButtonType.Success)
                     .ID("save-button2")
                     .UseSubmitBehavior(true)
@@ -196,7 +196,7 @@
                     .Type(ButtonType.Default)
                     //.Icon("fa fa-envelope-o")
                     //.Icon(Url.Content("~/images/button/weather.png"))
-                    .Icon("check")
+                    //.Icon("check")
                     .ID("save-button3")
                     .UseSubmitBehavior(true)
                     .StylingMode(ButtonStylingMode.Contained)
@@ -385,6 +385,7 @@
             //element.parentNode.removeChild(element);
 
             $("#save-button3").dxButton("instance").option("visible", false);
+            $("#save-button2").dxButton("instance").option("text", "奉獻");
         }
         //$("input[name='myHiddenInput']").val(JSON.stringify(items));
         //myHiddenInput - is the name of your hidden input
