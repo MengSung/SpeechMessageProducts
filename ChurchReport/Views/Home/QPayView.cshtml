@@ -180,8 +180,8 @@
                 //.OnCellPrepared("cell_prepared")
                 //.OnCellPrepared("cell_prepared_background_color")
         )
+        <br />
     </div>
-    <br />
     <div class="dx-field" style="text-align: left;">
         <div id="buttonContainer" class="dx-button-icon">
             @(Html.DevExtreme().Button()
@@ -254,33 +254,12 @@
         return $("#loadPanel").dxLoadPanel("instance");
     }
     function ShowLoadPanel(arg) {
-
-        //debugger;
         getLoadPanelInstance().show();
-        //$("#toast").dxToast("instance").show();
-        //alert("SaveNewPerson!!!");
-        //alert("OnValueChanged : " + arg.value);
-
-        //alert("OnValueChanged : " + arg.attribute('text'));
-        //alert("OnValueChanged : " + text: arg.attribute("text"));
-
-        //alert( getODataLocalDateFilter(arg.value) );
     }
     function UseOtherCreditCard() {
-
-        //debugger;
         getLoadPanelInstance().show();
 
-        //alert("UseOtherCreditCard!");
         $("#form").dxForm("instance").updateData('SelectedCreditCard', "");
-        //$("#toast").dxToast("instance").show();
-        //alert("SaveNewPerson!!!");
-        //alert("OnValueChanged : " + arg.value);
-
-        //alert("OnValueChanged : " + arg.attribute('text'));
-        //alert("OnValueChanged : " + text: arg.attribute("text"));
-
-        //alert( getODataLocalDateFilter(arg.value) );
     }
 
     function ShowToast(LocalToastMessage, Type, DisplayTime) {
@@ -320,7 +299,6 @@
 </script>
 <script>
     // 觸發事件管理
-
     function OnCategorySelectBoxValueChanged(e) {
         if (e.value == "其他") {
             $("#form").dxForm("instance").itemOption("OtherDedication", 'visible', true);
@@ -359,12 +337,10 @@
             //alert(e.component._options.value);
         }
     }
-
     function DataGridOnInitialized(e)
     {
         e.component.columnOption("command:edit", "width", 50);
     }
-
     //var selectionChangedRaised = false;
     //var FirstLoad = true;
     function OnRowClick(selectedItems) {
@@ -375,105 +351,12 @@
 
             //alert("OnRowClick!信用卡:" + data.CCToken);
             $("#form").dxForm("instance").updateData('SelectedCreditCard', data.CCToken);
-            //alert("OnRowSelectionChanged! ， SelectedCreditCardValue =" + $("#form").dxForm("instance").getEditor('SelectedCreditCard').option('value'));
-            //if (FirstLoad == false) {
-            //    selectionChangedRaised = true;
-            //}
         }
-
-        //alert("OnRowClick!001-0" + selectedItems);
-        //alert("OnRowClick!001-1" + selectedItems.selectedRowsData);
-        //alert("OnRowClick!，SelectedCreditCardValue 0000=" + $("#form").dxForm("instance").getEditor('SelectedCreditCard').option('value'));
-        //alert("OnRowClick!，selectionChangedRaised=" + selectionChangedRaised);
-        //alert("OnRowClick!，FirstLoad = " + FirstLoad);
-
-        //if (FirstLoad == false) {
-        //    if (!selectionChangedRaised) {
-        //        var SelectedCreditCardValue = $("#form").dxForm("instance").getEditor('SelectedCreditCard').option('value');
-        //        //if (!selectionChangedRaised) {
-        //        var dataGrid = selectedItems.component;
-        //        alert("OnRowClick!003" + dataGrid);
-        //        var keys = dataGrid.getSelectedRowKeys();
-        //        alert("OnRowClick!004" + keys);
-        //        alert("SelectedCreditCardValue = " + SelectedCreditCardValue);
-
-        //        if (keys == SelectedCreditCardValue) {
-        //            //alert(keys);
-        //            dataGrid.deselectRows(keys);
-        //        }
-
-        //        selectionChangedRaised = false;
-        //    }
-        //}
-        //else {
-        //    if (selectedItems.selectedRowsData == undefined)
-        //    {
-        //        var SelectedCreditCardValue = $("#form").dxForm("instance").getEditor('SelectedCreditCard').option('value');
-        //        //if (!selectionChangedRaised) {
-        //        var dataGrid = selectedItems.component;
-        //        alert("OnRowClick!003" + dataGrid);
-        //        var keys = dataGrid.getSelectedRowKeys();
-        //        alert("OnRowClick!004" + keys);
-        //        alert("SelectedCreditCardValue = " + SelectedCreditCardValue);
-
-        //        if (keys == SelectedCreditCardValue) {
-        //            //alert(keys);
-        //            dataGrid.deselectRows(keys);
-        //        }
-
-        //        selectionChangedRaised = false;
-        //    }
-
-        //    FirstLoad = false;
-        //}
-
-        //alert("OnRowClick!005" + keys);
-
-
-
-
-        ////alert("OnRowClick!001");
-        ////alert("OnRowClick!001-0" + selectedItems);
-        //alert("OnRowClick!001-1" + selectedItems.selectedRowsData);
-
-        //if (selectedItems.selectedRowsData) {
-        //    var data = selectedItems.selectedRowsData[0];
-        //    alert("OnRowClick!002");
-        //    if (data) {
-        //        alert("信用卡001:" + data.CCToken);
-        //        $("#form").dxForm("instance").updateData('SelectedCreditCard', data.CCToken);
-        //        alert("信用卡002:" + data.CCToken);
-        //    }
-        //}
-        //else {
-
-        //    var SelectedCreditCardValue = $("#form").dxForm("instance").getEditor('SelectedCreditCard').option('value');
-        //    //if (!selectionChangedRaised) {
-        //    var dataGrid = selectedItems.component;
-        //    alert("OnRowClick!003" + dataGrid);
-        //    var keys = dataGrid.getSelectedRowKeys();
-        //    alert("OnRowClick!004" + keys);
-        //    alert("SelectedCreditCardValue = " + SelectedCreditCardValue);
-
-        //    if (keys == SelectedCreditCardValue) {
-        //        //alert(keys);
-        //        dataGrid.deselectRows(keys);
-        //    }
-        //    alert("OnRowClick!005" + keys);
-        //}
-        ////}
-        //selectionChangedRaised = false;
     }
     function OnRowSelectionChanged(selectedItems) {
-        //alert("OnRowSelectionChanged!，FirstLoad = " + FirstLoad);
         var data = selectedItems.selectedRowsData[0];
         if (data) {
-            //alert("信用卡:" + data.CCToken);
             $("#form").dxForm("instance").updateData('SelectedCreditCard', data.CCToken);
-            //alert("OnRowSelectionChanged! ， SelectedCreditCardValue =" + $("#form").dxForm("instance").getEditor('SelectedCreditCard').option('value'));
-            //if (FirstLoad == false) {
-            //    selectionChangedRaised = true;
-            //}
         }
     }
     function onCreditCardGridContentReady(e)
@@ -493,8 +376,15 @@
             //e.component.selectRowsByIndexes(0);
             //e.component.selectRowsByIndexes( [0,1]);
         }
-        else {
+        else
+        {
             document.getElementById("creditcardlistcontainer").style.display = "none";//隱藏
+            //document.getElementById("creditcardlistcontainer").remove();//隱藏
+
+            //var element = document.getElementById("creditcardlistcontainer");
+            //element.parentNode.removeChild(element);
+
+            $("#save-button3").dxButton("instance").option("visible", false);
         }
         //$("input[name='myHiddenInput']").val(JSON.stringify(items));
         //myHiddenInput - is the name of your hidden input
