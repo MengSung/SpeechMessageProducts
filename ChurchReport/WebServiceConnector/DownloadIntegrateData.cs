@@ -402,7 +402,7 @@ namespace ChurchReport.WebServiceConnector
                         String aSpiritualIdentity = "";
                         if (aContactEntity.Attributes.Contains("new_spiriitual_identity"))
                         {
-                            aSpiritualIdentity = ConvertIndexToSpiritualIdentity(this.m_ToolUtilityClass.GetOptionSetAttribute(this.m_ContactEntity, "new_spiriitual_identity"));
+                            aSpiritualIdentity = ConvertIndexToSpiritualIdentity(this.m_ToolUtilityClass.GetOptionSetAttribute(aContactEntity, "new_spiriitual_identity"));
                         }
 
                         #endregion
@@ -1256,7 +1256,7 @@ namespace ChurchReport.WebServiceConnector
                         String aSpiritualIdentity = "";
                         if (ContactEntity.Attributes.Contains("new_spiriitual_identity"))
                         {
-                            aSpiritualIdentity = ConvertIndexToSpiritualIdentity(this.m_ToolUtilityClass.GetOptionSetAttribute(this.m_ContactEntity, "new_spiriitual_identity"));
+                            aSpiritualIdentity = ConvertIndexToSpiritualIdentity(this.m_ToolUtilityClass.GetOptionSetAttribute(ContactEntity, "new_spiriitual_identity"));
                         }
 
                         #endregion
