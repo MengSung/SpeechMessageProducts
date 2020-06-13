@@ -307,7 +307,28 @@
             $("#form").dxForm("instance").itemOption("OtherDedication", 'visible', false);
         }
     }
-ㄏ    function OnAmountContentReady(e) {
+    function OnPayWaySelectBoxValueChanged(e) {
+        if (e.value == "信用卡") {
+            document.getElementById("creditcardlistcontainer").style.display = "";//顯示
+
+            $("#save-button3").dxButton("instance").option("visible", true);
+            $("#save-button2").dxButton("instance").option("text", "用上面選擇的信用卡奉獻");
+
+            document.getElementById('atmfield').innerHTML = "";
+        }
+        else {
+            document.getElementById("creditcardlistcontainer").style.display = "none";//隱藏
+            //document.getElementById("creditcardlistcontainer").remove();//隱藏
+            //var element = document.getElementById("creditcardlistcontainer");
+            //element.parentNode.removeChild(element);
+
+            $("#save-button3").dxButton("instance").option("visible", false);
+            $("#save-button2").dxButton("instance").option("text", "奉獻");
+
+            document.getElementById('atmfield').innerHTML = "";
+        }
+    }
+    function OnAmountContentReady(e) {
 
         //debugger;
         //alert(e.component._options.value);
