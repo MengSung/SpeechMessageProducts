@@ -459,13 +459,13 @@ namespace ChurchReport.WebServiceConnector
                 this.m_ToolUtilityClass.SetEntityMoneyAttribute(ref aFeeToCreated, "new_fee_shoud_pay", new Money(QpayModel.Amount));
 
                 // 收費單實收金額
-                this.m_ToolUtilityClass.SetEntityMoneyAttribute(ref aFeeToCreated, "new_fee_really_paid", new Money(QpayModel.Amount));
+                this.m_ToolUtilityClass.SetEntityMoneyAttribute(ref aFeeToCreated, "new_fee_really_paid", new Money(0));
 
                 // 收費單實現阿拉伯數字到大寫中文的轉換，金額轉為大寫金額
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeToCreated, "new_big_chinese_number", MoneyToChinese(QpayModel.Amount.ToString()));
 
-                // 收費單付款狀態:現金已繳費
-                this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeToCreated, "new_pay_status", 100000003);
+                // 收費單付款狀態:新建立
+                this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeToCreated, "new_pay_status", 100000000);
 
                 // 收費單付款方式，預設是現金
                 SetPayMethod(QpayModel.PayWay, ref aFeeToCreated);
