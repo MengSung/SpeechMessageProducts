@@ -33,13 +33,10 @@ namespace ChurchReport.WebServiceConnector
         // 使用 LineMessageApi WebHook
         //private const String RETURN_URL = "https://yhchurchback.speechmessage.com.tw:454/api/QPayCard/QPayReturnUrl";
         // 使用 ChurchReport 當作 WebHook
-        private const String RETURN_URL = "https://yhchurchback.speechmessage.com.tw:453/api/QPayCard/QPayReturnUrl";
+        private const String RETURN_URL = "https://yhchurch.speechmessage.com.tw:385/api/QPayCard/QPayReturnUrl";
 
-        //private const String BACKEND_URL = "http://yhchurchback.speechmessage.com.tw:80/api/QPayAtm/PushSuccess";
-        //private const String BACKEND_URL = "http://yhchurchback.speechmessage.com.tw/api/QPayAtm/PushSuccess";
-        //private const String BACKEND_URL = "http://yhchurchback.speechmessage.com.tw/api/QPayAtm/QPayBackendUrl";
-        //private const String BACKEND_URL = "http://QPaybackend.speechmessage.com.tw/api/QPayAtm/QPayBackendUrl"; // 雲端機房
-        private const String BACKEND_URL = "http://QPbackendback.speechmessage.com.tw/api/QPayAtm/QPayBackendUrl";// 公司內部開發
+        private const String BACKEND_URL = "http://QPaybackend.speechmessage.com.tw/api/QPayAtm/QPayBackendUrl"; // 雲端機房
+        //private const String BACKEND_URL = "http://QPbackendback.speechmessage.com.tw/api/QPayAtm/QPayBackendUrl";// 公司內部開發
 
         // 客製化
         // 永和禮拜堂
@@ -61,7 +58,7 @@ namespace ChurchReport.WebServiceConnector
         //private DateTime m_AtmExpireDate;
 
         // 客製化
-        private const String QPAY_ORGANIZATION = "yhchurchback";
+        private const String QPAY_ORGANIZATION = "yhchurch";
 
         #endregion
         #region 初始化
