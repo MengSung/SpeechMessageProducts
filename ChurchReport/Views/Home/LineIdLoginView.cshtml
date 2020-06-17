@@ -63,55 +63,7 @@
 
     <div class="long-title"><h3 id="displaynamefield"></h3></div>
 
-    <form data-ajax="true" data-ajax-begin="onBegin" data-ajax-success="onSuccess" asp-action="ProcessLineBinding" asp-controller="Home" method="post" style="text-align: center;">
-
-        <div class="dx-field" style="text-align: center;">
-            <div id="buttonContainer" class="dx-button-icon">
-                @(Html.DevExtreme().Button()
-                                .Text("前往綁定")
-                                //.Type(ButtonType.Success)
-                                //.Type(ButtonType.Normal)
-                                .Type(ButtonType.Default)
-                                .Visible(false)
-                                .ID("binding-button")
-                                .UseSubmitBehavior(false)
-                                .OnClick("Binding")
-                                .Width(120)
-                )
-
-                @(Html.DevExtreme().Button()
-                                .Text("帳號密碼登入")
-                                //.Type(ButtonType.Success)
-                                //.Type(ButtonType.Normal)
-                                .Type(ButtonType.Default)
-                                .Visible(false)
-                                .ID("login-button")
-                                .UseSubmitBehavior(false)
-                                .OnClick("Login")
-                                .Width(120)
-                )
-
-            </div>
-            <div id="LoadPanel">
-                @(Html.DevExtreme().LoadPanel()
-                                .ID("loadPanel")
-                                .ShadingColor("rgba(0,0,0,0.4)")
-                                .Position(p => p.Of("#buttonContainer"))
-                                .Visible(false)
-                                .ShowIndicator(true)
-                                .ShowPane(true)
-                                .Shading(true)
-                                .CloseOnOutsideClick(false)
-                                .Message("登入中...")
-                                .Delay(5000)
-                                .Animation(l => l.Show(k => k.Easing(AnimationEasing.Swing)))
-                )
-            </div>
-        </div>
-
-    </form>
-
-    <div id="ToastContainer">
+    <div id="WidgetContainer">
         @(Html.DevExtreme().Toast()
                 .ID("Toast")
                 .Position(p => p
@@ -123,6 +75,19 @@
                 .DisplayTime(2000)
                 .MaxWidth(200)
         )
+        @(Html.DevExtreme().LoadPanel()
+                                .ID("loadPanel")
+                                .ShadingColor("rgba(0,0,0,0.4)")
+                                .Position(p => p.Of("#WidgetContainer"))
+                                .Visible(false)
+                                .ShowIndicator(true)
+                                .ShowPane(true)
+                                .Shading(true)
+                                .CloseOnOutsideClick(false)
+                                .Message("登入中...")
+                                .Delay(5000)
+                                .Animation(l => l.Show(k => k.Easing(AnimationEasing.Swing)))
+                )
 
     </div>
 
@@ -131,18 +96,14 @@
             return $("#loadPanel").dxLoadPanel("instance");
         }
 
-        function button_click() {
-            getLoadPanelInstance().show();
-        }
-
-        function loadPanel_shown(e) {
+        function loadPanel_show() {
             getLoadPanelInstance().show();
             //    setTimeout(function () {
             //        e.component.hide();
             //    }, 3000);
         }
 
-        function loadPanel_hidden() {
+        function loadPanel_hide() {
             getLoadPanelInstance().hide();
         }
 
@@ -157,45 +118,6 @@
 
     </script>
 
-    <script type="text/javascript">
-        function onBegin() {
-        }
-
-        function onSuccess(data) {
-
-            getLoadPanelInstance().hide();
-
-            if (data.status == 1) {
-
-                //DevExpress.ui.notify( data.message, "success", 15000 );
-
-                DevExpress.ui.notify({
-                    displayTime: 15000,
-                    closeOnClick: true,
-                    message: data.message,
-                    type: 'success',
-                });
-
-                //$("#toast").dxToast("show");
-
-                //window.location.href = "/Home/LineBindingView/" + '@Model.EncodeUrl';
-                window.location.href = "/Home/BindingResultView/" + data.message ;
-            }
-            else {
-                DevExpress.ui.notify(data.message, "error", 5000);
-                //window.location.href = "/Home/LineBindingView/" + '@Model.EncodeUrl';
-                window.location.href = "/Home/BindingResultView/" + data.message ;
-            }
-        }
-
-        function onComplete(data) {
-            if (data.status == 1) {
-            }
-            else {
-            }
-        }
-    </script>
-
     <script src="~/lib/jquery-ajax-unobtrusive/jquery.unobtrusive-ajax.js"></script>
     <link href="~/css/Gallery.css" rel="stylesheet" />
     <link href="~/css/WeeklyReport.css" rel="stylesheet" />
@@ -204,8 +126,8 @@
     <script>
 
     window.onload = function (e) {
-            //var message = '@TempData["Proponent"]';           
-            //window.alert( "耶和華" + message);         
+            //var message = '@TempData["Proponent"]';
+            //window.alert( "耶和華" + message);
             liff.init(
                 { liffId: '@TempData["Proponent"]' },
                 function (data) {
@@ -223,24 +145,22 @@
         var DisplayName = "";
         var ViewType = "";
 
-
-
     async function initializeApp(data) {
                 await liff.getProfile().then(function (profile) {
 
-                document.getElementById('displaynamefield').innerHTML = profile.displayName + "進行登入中......";
-                DisplayName = profile.displayName;
-                UserId = profile.userId;
-                //alert("測試 UserId =" + UserId);
-                GroupId= profile.aGroupId;
-                RoomId = profile.aRoomId;
-                ViewType = profile.aViewType;
-                //alert("測試004!" + DisplayName);
-                UpdateLineUserId(UserId, GroupId, RoomId, ViewType);
-                //document.getElementById('displaynamefield').innerHTML = profile.displayName + "的行事曆";
-                //alert("測試005!" );
-   });
-
+                    document.getElementById('displaynamefield').innerHTML = profile.displayName + "進行登入中<br/>約需5~10秒......";
+                    loadPanel_show();
+                    DisplayName = profile.displayName;
+                    UserId = profile.userId;
+                    //alert("測試 UserId =" + UserId);
+                    GroupId= profile.aGroupId;
+                    RoomId = profile.aRoomId;
+                    ViewType = profile.aViewType;
+                    //alert("測試004!" + DisplayName);
+                    UpdateLineUserId(UserId, GroupId, RoomId, ViewType);
+                    //document.getElementById('displaynamefield').innerHTML = profile.displayName + "的行事曆";
+                    //alert("測試005!" );
+                });
         }
 
 
@@ -291,14 +211,7 @@
                                 else {
                                         ShowToast(data.message, "error", 2000);
                                         getLoadPanelInstance().hide();
-                                        document.getElementById('displaynamefield').innerHTML = "您還沒有綁定，請選擇綁定或透過帳號密碼登入!";
-                                        // 取得綁定的按鈕
-                                        var BindingButton= $("#binding-button").dxButton("instance");
-                                        BindingButton.option("visible", true);
-                                        // 取得帳密登入的按鈕
-                                        var LoginButton= $("#login-button").dxButton("instance");
-                                        LoginButton.option("visible", true);
-
+                                        document.getElementById('displaynamefield').innerHTML = "登入錯誤!";
                                 }
                             },
 
