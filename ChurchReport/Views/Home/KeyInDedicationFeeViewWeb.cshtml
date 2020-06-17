@@ -221,7 +221,7 @@
                         "頂溪福音中心",
                         "頭份福音中心",
                         "東引福音中心",
-                        "緬甸福音中心",                    
+                        "緬甸福音中心",
                     }
                 )
                 .Placeholder("請選擇奉獻地點")
@@ -253,20 +253,35 @@
                 .OnValueChanged("OnCategorySelectBoxValueChanged")
             );
 
+            //items.AddSimpleFor
+            //(m => m.Others)
+            //    .Label(l => l.Text("其他"))
+            //    .Visible(false)
+            //    .Name("OtherDedication")
+            //    .Editor
+            //    (
+            //        e => e
+            //        .SelectBox()
+            //        .Width(100)
+            //        .DataSource(Model.OtherCategoryArray)
+            //        .Placeholder("請選擇奉獻類別")
+            //        //.Value("特別")
+            //    );
+
             items.AddSimpleFor
-            (m => m.Others)
-                .Label(l => l.Text("其他"))
-                .Visible(false)
-                .Name("OtherDedication")
-                .Editor
-                (
-                    e => e
-                    .SelectBox()
-                    .Width(120)
-                    .DataSource(Model.OtherCategoryArray)
-                    .Placeholder("請選擇奉獻類別")
+                (m => m.Others)
+                    .Label(l => l.Text("其他"))
+                    .Visible(false)
+                    .Name("OtherDedication")
+                    .Editor
+                    (
+                        e => e
+                        .Autocomplete()
+                        .Width(100)
+                        .DataSource(Model.OtherCategoryArray)
+                        .Placeholder("請選擇奉獻類別")
                     //.Value("特別")
-                );
+                    );
 
             items.AddSimpleFor(m => m.Amount)
                     //.DataField("LastName")
