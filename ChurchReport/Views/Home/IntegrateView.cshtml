@@ -707,7 +707,17 @@ else
                                             //.ValueExpr("ID")
                                             );
                                 columns.AddFor(m => m.EquipmentStatus).Caption("裝備狀態").Alignment(HorizontalAlignment.Center).Width(60).MinWidth(60).AllowSorting(true).AllowEditing(false);
-                                columns.AddFor(m => m.SpiritualIdentity).Caption("受洗狀態").Alignment(HorizontalAlignment.Center).Width(100).MinWidth(60).AllowSorting(true).AllowEditing(true);
+                                //columns.AddFor(m => m.SpiritualIdentity).Caption("受洗狀態").Alignment(HorizontalAlignment.Center).Width(100).MinWidth(60).AllowSorting(true).AllowEditing(true);
+                                columns.AddFor(m => m.SpiritualIdentity)
+                                        .Caption("受洗狀態").Alignment(HorizontalAlignment.Center)
+                                        .AllowEditing(true)
+                                        .Width(110).MinWidth(100).DataType(GridColumnDataType.String)
+                                        .Lookup(lookup => lookup
+                                        .DataSource(new string[] { "已受洗(本教會)", "已受洗(其他教會)", "-未知-", "未信主", "已決志", "未受洗" })
+                                        //.DisplayExpr("Name")
+                                        //.ValueExpr("ID")
+                                        );
+
                                 columns.AddFor(m => m.Sunday).Caption("主日").Width(45).MinWidth(45).AllowSorting(false);
                                 columns.AddFor(m => m.SmallGroup).Caption("小組").Width(45).MinWidth(45).AllowSorting(false);
                                 //columns.AddFor(m => m.SpiritualWork)

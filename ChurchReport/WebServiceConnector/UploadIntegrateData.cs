@@ -2735,6 +2735,11 @@ namespace ChurchReport.WebServiceConnector
             //{
             //    ModifyFlag = SetIdentityByUpload(ref aContactEntity, ref aMember);
             //}
+            if (SetSpiritualIdentityByUpload(ref aContactEntity, ref aMember) == true)
+            {
+                // 有透過手動更改受洗狀態
+                ModifyFlag = true;
+            }
 
             if (SetIdentityByUpload(ref aContactEntity, ref aMember) == true)
             {
@@ -3960,7 +3965,7 @@ namespace ChurchReport.WebServiceConnector
                 // 先找到系統的委身類型指標
                 int aIdentity = this.m_ToolUtilityClass.GetOptionSetAttribute(ref aContact, "customertypecode");
 
-                //// 在轉換回報的委身類型指標
+                //// 在轉換回報的委身類型指標 SpiritualIdentity
                 int CustomerTypeCode = ConvertIdentityToIndex(aMember.Status);
 
                 if (aIdentity != CustomerTypeCode)
@@ -3985,7 +3990,6 @@ namespace ChurchReport.WebServiceConnector
                 throw e;
             }
         }
-
         public bool SetIdentity(Guid aListEntityId, ref Entity aContact)
         {
             try
@@ -4216,7 +4220,6 @@ namespace ChurchReport.WebServiceConnector
                 throw e;
             }
         }
-
         // 永和禮拜堂
         // 委身類型客製化
         private int ConvertIdentityToIndex(String Identity)
@@ -4251,7 +4254,6 @@ namespace ChurchReport.WebServiceConnector
                     return 100000000;
             }
         }
-
         // 永和禮拜堂
         // 委身類型客製化
         private String ConvertIndexToIdentity(int Identity)
@@ -4284,9 +4286,60 @@ namespace ChurchReport.WebServiceConnector
                     return ".";
             }
         }
+        #endregion
+        #region 設定受洗狀態
+        public bool SetSpiritualIdentityByUpload(ref Entity aContact, ref Member aMember)
+        {
+            try
+            {
+                // 先找到系統的受洗狀態指標
+                int aSpiritualIdentity = this.m_ToolUtilityClass.GetOptionSetAttribute(ref aContact, "new_spiriitual_identity");
 
+                //// 在轉換回報的受洗狀態指標 SpiritualIdentity
+                int SpiritualIdentityCode = ConvertSpiritualIdentityToIndex(aMember.SpiritualIdentity);
 
+                if (aSpiritualIdentity != SpiritualIdentityCode)
+                {
+                    // 委身類型系統原來的旱小組長上傳的有不一致
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(ref aContact, "new_spiriitual_identity", SpiritualIdentityCode);
 
+                    return true;
+                }
+                else
+                {
+                    // 委身類型系統原來的和小組長上傳的一致
+                    return false;
+                }
+
+                return true;
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                throw e;
+            }
+        }
+        private int ConvertSpiritualIdentityToIndex(String SpiritualIdentity)
+        {
+            switch (SpiritualIdentity)
+            {
+                case "已受洗(本教會)":
+                    return 100000000;
+                case "已受洗(其他教會)":
+                    return 100000003;
+                case "-未知-":
+                    return 100000004;
+                case "未信主":
+                    return 100000001;
+                case "已決志":
+                    return 100000002;
+                case "未受洗":
+                    return 100000005;
+                default:
+                    return 100000004;
+            }
+        }
         #endregion
         #region 字典處理函式庫
         private void ResetDictionary(DateTime aSunday)

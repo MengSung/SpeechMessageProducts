@@ -287,8 +287,16 @@
                     );
 
     columns.Add().DataField("EquipmentStatus").Caption("裝備狀態").Alignment(HorizontalAlignment.Center).Fixed(false).Width(60).MinWidth(90).AllowEditing(false);
-    columns.Add().DataField("SpiritualIdentity").Caption("受洗狀態").Alignment(HorizontalAlignment.Center).Fixed(false).Width(100).MinWidth(90).AllowEditing(true);
-
+    //columns.Add().DataField("SpiritualIdentity").Caption("受洗狀態").Alignment(HorizontalAlignment.Center).Fixed(false).Width(100).MinWidth(90).AllowEditing(true);
+    columns.Add().DataField("SpiritualIdentity")
+            .Caption("受洗狀態").Alignment(HorizontalAlignment.Center)
+            .AllowEditing(true)
+            .Width(110).MinWidth(100).DataType(GridColumnDataType.String)
+            .Lookup(lookup => lookup
+            .DataSource(new string[] { "已受洗(本教會)", "已受洗(其他教會)", "-未知-", "未信主", "已決志", "未受洗" })
+            //.DisplayExpr("Name")
+            //.ValueExpr("ID")
+            );
     columns.Add().DataField("Phone").Caption("行動電話").Fixed(false).Width(120).MinWidth(90).Alignment(HorizontalAlignment.Left);
     //columns.Add().DataField("HomePhone").Caption("家裡電話").Fixed(false).Width(120).MinWidth(90).Alignment(HorizontalAlignment.Left);
 
