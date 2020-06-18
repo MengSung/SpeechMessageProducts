@@ -148,12 +148,51 @@
 
             .Columns(columns =>
             {
-                columns.AddFor(m => m.Category).Caption("奉獻類別").Width(50).MinWidth(50).AllowEditing(false).AllowSorting(true);
-                columns.AddFor(m => m.DedicationDate).Caption("奉獻日期").Alignment(HorizontalAlignment.Center).DataType(GridColumnDataType.Date).Format("yyyy/M/d").Width(100).MinWidth(45).AllowEditing(false).AllowSorting(true);
-                columns.AddFor(m => m.PayDate).Caption("付款日期").Alignment(HorizontalAlignment.Center).DataType(GridColumnDataType.Date).Format("yyyy/M/d").Width(100).MinWidth(45).AllowEditing(false).AllowSorting(true);
-                columns.AddFor(m => m.PayWay).Caption("付款方式").Width(80).MinWidth(80).AllowEditing(false).AllowSorting(true);
-                columns.AddFor(m => m.Amount).Caption("金額").Width(80).MinWidth(80).AllowEditing(false).AllowSorting(true);
-                columns.AddFor(m => m.Others).Caption("奉獻細項").Width(180).MinWidth(180).AllowEditing(false).AllowSorting(true);
+                columns.AddFor(m => m.Category).Caption("奉獻類別").Width(50).MinWidth(80).AllowEditing(false).AllowSorting(true);
+                columns.AddFor(m => m.DedicationDate).Caption("奉獻日期").Alignment(HorizontalAlignment.Center).DataType(GridColumnDataType.Date).Format("yyyy/M/d").Width(100).MinWidth(45).AllowEditing(false).AllowSorting(true)
+                            .CalculateCellValue(@<text>
+                                        function(row)
+                                        {
+                                            if( row.DedicationDate != null )
+                                            {
+                                                var ParsedDate = ParsingDate( row.DedicationDate );
+                                                if( ParsedDate.getFullYear() == 1901 )
+                                                {
+                                                    return null;
+                                                }
+                                                else
+                                                {
+                                                    return ParsedDate;
+                                                }
+                                            }
+                                            else
+                                            {return null;}
+                                        }
+                             </text> );
+                columns.AddFor(m => m.PayDate).Caption("付款日期").Alignment(HorizontalAlignment.Center).DataType(GridColumnDataType.Date).Format("yyyy/M/d").Width(100).MinWidth(45).AllowEditing(false).AllowSorting(true)
+                                .CalculateCellValue(@<text>
+                                        function(row)
+                                        {
+                                            if( row.PayDate != null )
+                                            {
+                                                var ParsedDate = ParsingDate( row.PayDate );
+                                                if( ParsedDate.getFullYear() == 1901 )
+                                                {
+                                                    return null;
+                                                }
+                                                else
+                                                {
+                                                    return ParsedDate;
+                                                }
+                                            }
+                                            else
+                                            {return null;}
+                                        }
+                             </text> );
+
+                    columns.AddFor(m => m.PayWay).Caption("付款方式").Alignment(HorizontalAlignment.Center).Width(80).MinWidth(80).AllowEditing(false).AllowSorting(true);
+                    columns.AddFor(m => m.Amount).Caption("金額").Width(80).MinWidth(80).AllowEditing(false).AllowSorting(true);
+                    columns.AddFor(m => m.Others).Caption("奉獻細項").Alignment(HorizontalAlignment.Left).Width(180).MinWidth(180).AllowEditing(false).AllowSorting(true);
             })
             .DataSource
             (Model.DedicationFeeList)
@@ -231,6 +270,11 @@
             }
         }
 
+    }
+    function ParsingDate(input) {
+
+        var ParsedDate = new Date(input);
+        return ParsedDate;
     }
 
 </script>
