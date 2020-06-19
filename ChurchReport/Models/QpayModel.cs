@@ -22,6 +22,8 @@ namespace ChurchReport.Models
         public String PayWay { get; set; }                              //付款方式
         public String Others { get; set; }                              //其他奉獻
         public String DedicateLocation { get; set; }                    //奉獻分堂
+        public String Explain { get; set; }                             //備註
+        public DateTime RecieptDate { get; set; } = DateTime.Now;       //收據日期
         public String ClickType { get; set; }                           //查詢或是上傳
         public String SelectedCreditCard { get; set; }                  //選取的信用卡
         public List<String> OtherCategoryArray { get; set; }

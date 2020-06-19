@@ -92,7 +92,7 @@ namespace ChurchReport.WebServiceConnector
 
                 if (QpayModel.PayWay == "信用卡")
                 {
-                    CreOrder CreatedCardOrder = await CreOrderCard(QpayModel.Amount, QpayModel.Category, DateTime.Now.ToString("yyyyMMddhhmmssfff"), aCreatedFeeId.ToString(), QpayModel.SelectedCreditCard );
+                    CreOrder CreatedCardOrder = await CreOrderCard(QpayModel.Amount, QpayModel.Category, DateTime.Now.ToString("yyyyMMddhhmmssfff"), aCreatedFeeId.ToString(), QpayModel.SelectedCreditCard);
 
                     // 用剛剛建立的收費單，填寫訂單編號
                     UpdateFee(ref aFeeToUpdate, CreatedCardOrder.OrderNo, "", "");
@@ -233,37 +233,45 @@ namespace ChurchReport.WebServiceConnector
 
             switch (Value)
             {
-                case "十一":
+                case "月定奉獻":
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000000);
                     break;
-                case "感恩":
+                case "節期奉獻":
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000001);
                     break;
-                case "建堂":
+                case "感恩奉獻":
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000002);
                     break;
-                case "宣教":
+                case "特別奉獻":
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000009);
+                    break;
+                case "對內奉獻":
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000003);
                     break;
-                case "急難救助":
+                case "對外奉獻(長老會體系)":
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000004);
                     break;
-                case "青年事工":
+                case "對外奉獻(非長老教會體系)":
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000005);
                     break;
-                case "萬軍":
+                case "建堂奉獻":
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000006);
                     break;
-                case "其他":
+                case "宣教奉獻":
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000007);
+                    break;
+                case "禮拜現金":
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000010);
+                    break;
+                case "其他":
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000008);
                     break;
                 default:
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000007);
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000000);
                     break;
-
             }
         }
-        public void UpdateFee(ref Entity aFeeToUpdate, String CardOrderNo, String AtmOrderNo, String AtmPayNo )
+        public void UpdateFee(ref Entity aFeeToUpdate, String CardOrderNo, String AtmOrderNo, String AtmPayNo)
         {
             try
             {
@@ -340,7 +348,7 @@ namespace ChurchReport.WebServiceConnector
                         "帳號     : " + CreatedAtmOrder.ATMParam.AtmPayNo + Environment.NewLine +
                         "戶名     : 其他應付款-代收-網路收款";
 
-                LineId = LineId != ""? LineId: this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "new_lineid");
+                LineId = LineId != "" ? LineId : this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "new_lineid");
                 await m_PushUtility.SendMessage(LineId, AtmInfoToLine);
 
                 String AtmInfo =
@@ -393,7 +401,8 @@ namespace ChurchReport.WebServiceConnector
                                     "類別    : " + QpayModel.Category + "<br/>" +
                                     "奉獻地點: " + QpayModel.DedicateLocation + "<br/>" +
                                     "付款方式: " + QpayModel.PayWay + "<br/>" +
-                                    "金額    : " + QpayModel.Amount + "<br/>"
+                                    "金額    : " + QpayModel.Amount + "<br/>" +
+                                    "備註    : " + QpayModel.Explain + "<br/>"
                                     ;
                     return Result;
                 }
@@ -472,18 +481,21 @@ namespace ChurchReport.WebServiceConnector
 
                 // 收費單收費日期
                 this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aFeeToCreated, "new_pay_date", QpayModel.DedicationDate.ToLocalTime());
-                
+
                 // 奉獻類別
                 SetFeePayCategory(QpayModel.Category, ref aFeeToCreated);
 
                 // 收費單奉獻其他類別
-                if (QpayModel.Category == "其他")
+                if (QpayModel.Others != "" && QpayModel.Others != null)
                 {
                     this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeToCreated, "new_others", QpayModel.Others);
                 }
 
                 // 奉獻地點
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeToCreated, "new_dedicate_location", QpayModel.DedicateLocation);
+
+                // 奉獻備註
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeToCreated, "new_explain", QpayModel.Explain);
 
                 #endregion
             }
@@ -506,7 +518,7 @@ namespace ChurchReport.WebServiceConnector
                 }
                 else if (QpayModel.FullName != "" && QpayModel.Mobile != "")
                 {
-                    return this.m_ToolUtilityClass.RetrieveContactEntityByFullNameAndMobileNumber( QpayModel.FullName, QpayModel.FullName);
+                    return this.m_ToolUtilityClass.RetrieveContactEntityByFullNameAndMobileNumber(QpayModel.FullName, QpayModel.FullName);
                 }
                 else { return null; }
                 #endregion

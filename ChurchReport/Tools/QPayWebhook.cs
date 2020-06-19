@@ -105,13 +105,13 @@ namespace ChurchReport.Tools
             String UserLineId = this.m_ToolUtilityClass.GetEntityStringAttribute(aContact, "new_lineid");
 
             // 收費單描述說明
-            String FeeDescription = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aFeeEntity, "new_description");
-            String Description = "姓名     : " + aFullName + Environment.NewLine +
+            String Description =
+                                 "姓名     : " + aFullName + Environment.NewLine +
                                  "訂單編號 : " + aQryOrderPay.TSResultContent.OrderNo + Environment.NewLine +
                                  "日期     : " + DateTime.Now.ToLocalTime().ToString() + Environment.NewLine +
                                  "實收金額 : " + ((int)Convert.ToUInt32(aQryOrderPay.TSResultContent.Amount) / 100).ToString() + Environment.NewLine +
                                  "付款方式 : " + "信用卡" + Environment.NewLine +
-                                 "說明     : " + FeeDescription + aQryOrderPay.Description + Environment.NewLine +
+                                 "說明     : " + aQryOrderPay.Description + Environment.NewLine +
                                  //"這是 ChurcchReport Webhook!!" + Environment.NewLine +
                                  "--------------------" + Environment.NewLine;
 
@@ -119,16 +119,28 @@ namespace ChurchReport.Tools
             {
                 // 收費單付款日期
                 this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aFeeEntity, "new_pay_date", DateTime.Now.ToLocalTime());
-                // 收費單實收金額
-                this.m_ToolUtilityClass.SetEntityMoneyAttribute(ref aFeeEntity, "new_fee_really_paid", new Money((int)Convert.ToUInt32(aQryOrderPay.TSResultContent.Amount) / 100));
+                // 收費單總共實收金額
+                Money aTotalPaid = new Money(Convert.ToUInt32(this.m_ToolUtilityClass.GetEntityMoneyAttribute(ref aFeeEntity, "new_fee_really_paid").Value + new Money((int)Convert.ToUInt32(aQryOrderPay.TSResultContent.Amount) / 100).Value));
+                this.m_ToolUtilityClass.SetEntityMoneyAttribute(ref aFeeEntity, "new_fee_really_paid", aTotalPaid);
                 // 收費單實現阿拉伯數字到大寫中文的轉換，金額轉為大寫金額
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeEntity, "new_big_chinese_number", MoneyToChinese((Convert.ToUInt32(aQryOrderPay.TSResultContent.Amount) / 100).ToString()));
                 // 收費單付款方式
                 this.m_ToolUtilityClass.SetOptionSetAttribute(ref aFeeEntity, "new_pay_way", 100000001); // 100000001 = 信用卡
                 // 收費單付款狀態
                 this.m_ToolUtilityClass.SetOptionSetAttribute(ref aFeeEntity, "new_pay_status", 100000001); // 100000001 = 信用卡已繳費
-                // 收費單說明
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeEntity, "new_description", Description);
+                                                                                                            // 收費單說明
+                String aOriginalDescription = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aFeeEntity, "new_description");
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeEntity, "new_description", aOriginalDescription + Description);
+
+                // 付款紀錄
+                String aPaymentRecords =
+                        this.m_ToolUtilityClass.GetEntityStringAttribute(aFeeEntity, "new_payment_records") +
+                        DateTime.Now.ToString() +
+                        ": 信用卡訂單編號= " + aQryOrderPay.TSResultContent.OrderNo +
+                        "，金額:" + ((int)Convert.ToUInt32(aQryOrderPay.TSResultContent.Amount) / 100).ToString() +
+                        Environment.NewLine;
+
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeEntity, "new_payment_records", aPaymentRecords);
 
                 if (aQryOrderPay.TSResultContent.OrderNo.StartsWith("C"))
                 {
