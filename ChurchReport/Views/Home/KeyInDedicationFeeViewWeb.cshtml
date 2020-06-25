@@ -238,13 +238,7 @@
                     .DataSource(new string[]
                     {
                        "十一",
-                       "感恩",
-                       "建堂",
                        "宣教",
-                       "急難救助",
-                       "青年事工",
-                       "萬軍",
-                       "其他",
                     }
                 //.DisplayExpr("Name")
                 )
@@ -277,7 +271,7 @@
                     (
                         e => e
                         .Autocomplete()
-                        .Width(100)
+                        .Width(120)
                         .DataSource(Model.OtherCategoryArray)
                         .Placeholder("請選擇奉獻類別")
                     //.Value("特別")
@@ -414,7 +408,7 @@
         var GlobalCategory = "";
 
         function OnCategorySelectBoxValueChanged(e) {
-            if (e.value == "其他") {
+            if (e.value == "宣教") {
                 $("#form2").dxForm("instance").itemOption("OtherDedication", 'visible', true);
             }
             else {
