@@ -424,7 +424,7 @@ namespace ChurchReport.WebServiceConnector
                     aListSmallGroupLeaderLineId = this.m_ToolUtilityClass.GetEntityStringAttribute(aContact, "new_lineid");
                 }
 
-                // 共同組長 ID
+                // 小組同工 ID
                 String aListCoSmallGroupLeaderLineId = "";
                 Guid ListCoSmallGroupLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_list_vice_family_leader");
                 if (ListCoSmallGroupLeaderId != Guid.Empty)
@@ -578,7 +578,7 @@ namespace ChurchReport.WebServiceConnector
                     }
                 }
 
-                // 共同組長 ID
+                // 小組同工 ID
                 String aListCoSmallGroupLeaderLineId = "";
                 Guid ListCoSmallGroupLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_list_vice_family_leader");
                 if (ListCoSmallGroupLeaderId != Guid.Empty)

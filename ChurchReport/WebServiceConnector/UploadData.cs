@@ -463,7 +463,7 @@ namespace ChurchReport.WebServiceConnector
                 case 100000008:
                     return "03. 小組長";
                 case 100000012:
-                    return "04. 共同組長";
+                    return "04. 小組同工";
                 case 1:
                     return "05. 小組組員";
                 case 100000005:

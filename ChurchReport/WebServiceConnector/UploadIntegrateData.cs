@@ -682,7 +682,7 @@ namespace ChurchReport.WebServiceConnector
                     // 先找到這個名單的小家長 ID，內壢得勝靈糧堂專用
                     //Guid aThisListFamilyHeadId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref m_ListEntity, "new_familyhead_list");
 
-                    // 找到這個名單的共同組長 ID
+                    // 找到這個名單的小組同工 ID
                     Guid aThisListCoSmallGroupLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref m_ListEntity, "new_contact_list_vice_family_leader");
 
                     // 找到這個名單的小組長 ID
@@ -697,7 +697,7 @@ namespace ChurchReport.WebServiceConnector
                     #endregion
                     if (this.m_ContactId == aThisListSmallGroupLeaderId || this.m_ContactId == aThisListCoSmallGroupLeaderId)
                     {
-                        // 登入者與名單的小組長或是共同組長是同一個人
+                        // 登入者與名單的小組長或是小組同工是同一個人
                         return true;
                     }
                     else
@@ -4234,7 +4234,7 @@ namespace ChurchReport.WebServiceConnector
                     return 100000003;
                 case "小組長":
                     return 100000008;
-                case "共同組長":
+                case "小組同工":
                     return 100000012;
                 case "小組組員":
                     return 1;
@@ -4269,7 +4269,7 @@ namespace ChurchReport.WebServiceConnector
                 case 100000008:
                     return "03. 小組長";
                 case 100000012:
-                    return "04. 共同組長";
+                    return "04. 小組同工";
                 case 1:
                     return "05. 小組組員";
                 case 100000005:
