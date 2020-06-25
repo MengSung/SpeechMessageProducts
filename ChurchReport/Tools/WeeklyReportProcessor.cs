@@ -253,10 +253,10 @@ namespace ChurchReport.Tools
                 EntityCollection aListEntityCollection = m_ToolUtilityClass.QueryListByContactId(m_ContactId, "new_contact_list_vice_family_leader");  // 共同組長
                 MergeCollectionSmallGroupAhead(ref aListEntityCollection);
 
-                // 小組長/副組長 new_contact_family_leader_list
-                //EntityCollection aListEntityCollection = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_contact_family_leader_list", "list");  // 小組長/副組長
-                aListEntityCollection = m_ToolUtilityClass.QueryListByContactId(m_ContactId, "new_contact_family_leader_list");  // 小組長/副組長
-                //aListEntityCollection = m_ToolUtilityClass.QueryListByContactId(m_ContactId, "new_contact_family_leader_list");  // 小組長/副組長
+                // 小組長/共同組長 new_contact_family_leader_list
+                //EntityCollection aListEntityCollection = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_contact_family_leader_list", "list");  // 小組長/共同組長
+                aListEntityCollection = m_ToolUtilityClass.QueryListByContactId(m_ContactId, "new_contact_family_leader_list");  // 小組長/共同組長
+                //aListEntityCollection = m_ToolUtilityClass.QueryListByContactId(m_ContactId, "new_contact_family_leader_list");  // 小組長/共同組長
                 MergeCollectionSmallGroupAhead(ref aListEntityCollection);
 
                 // 共同區長 new_contact_co_race_leager_list
@@ -1223,7 +1223,7 @@ namespace ChurchReport.Tools
                     return 100000003;
                 case "小組長":
                     return 100000008;
-                case "副組長":
+                case "共同組長":
                     return 100000012;
                 case "小組組員":
                     return 1;
@@ -1254,7 +1254,7 @@ namespace ChurchReport.Tools
                 case 100000008:
                     return "03. 小組長";
                 case 100000012:
-                    return "04. 副組長";
+                    return "04. 共同組長";
                 case 1:
                     return "05. 小組組員";
                 case 100000005:
