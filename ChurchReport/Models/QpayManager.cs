@@ -186,7 +186,7 @@ namespace ChurchReport.Models
                 m_QpayModel.NationId = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "new_personal_id");
 
                 //奉獻類別
-                m_QpayModel.Category = "十一";
+                m_QpayModel.Category = "十一奉獻";
                 //付款方式
                 m_QpayModel.PayWay = "信用卡";
                 //奉獻日期
@@ -282,7 +282,7 @@ namespace ChurchReport.Models
                 // 身分證字號
                 m_QpayModel.NationId = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContact, "new_personal_id");
 
-                m_QpayModel.Category = "十一";
+                m_QpayModel.Category = "十一奉獻";
                 m_QpayModel.PayWay = "信用卡";
                 //奉獻分堂
                 m_QpayModel.DedicateLocation = "永和禮拜堂";
@@ -518,23 +518,19 @@ namespace ChurchReport.Models
             switch (this.m_ToolUtilityClass.GetOptionSetAttribute(aFeeEntity, "new_category"))
             {
                 case 100000000:
-                    return "十一";
+                    return "十一奉獻";
                 case 100000001:
-                    return "感恩";
+                    return "感恩奉獻";
                 case 100000002:
-                    return "建堂";
+                    return "愛心奉獻";
                 case 100000003:
-                    return "宣教";
+                    return "五餅二魚";
                 case 100000004:
-                    return "急難救助";
+                    return "代收代轉";
                 case 100000005:
-                    return "青年事工";
-                case 100000006:
-                    return "萬軍";
-                case 100000007:
-                    return "其他";
+                    return "宣教奉獻";
                 default:
-                    return "十一";
+                    return "十一奉獻";
             }
         }
         #endregion

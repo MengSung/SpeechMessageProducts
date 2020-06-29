@@ -233,29 +233,23 @@ namespace ChurchReport.WebServiceConnector
 
             switch (Value)
             {
-                case "十一":
+                case "十一奉獻":
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000000);
                     break;
-                case "感恩":
+                case "感恩奉獻":
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000001);
                     break;
-                case "建堂":
+                case "愛心奉獻":
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000002);
                     break;
-                case "宣教":
+                case "五餅二魚":
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000003);
                     break;
-                case "急難救助":
+                case "代收代轉":
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000004);
                     break;
-                case "青年事工":
+                case "宣教奉獻":
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000005);
-                    break;
-                case "萬軍":
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000006);
-                    break;
-                case "其他":
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000007);
                     break;
                 default:
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000007);
