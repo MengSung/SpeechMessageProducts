@@ -40,19 +40,35 @@
             );
 
             items.AddSimpleFor
-            (m => m.Others)
-                .Label(l => l.Text("其他"))
-                .Visible(false)
-                .Name("OtherDedication")
-                .Editor
-                (
-                    e => e
-                    .SelectBox()
-                    .Width(200)
-                    .DataSource(Model.OtherCategoryArray)
-                    .Placeholder("請選擇奉獻類別")
+                (m => m.Others)
+                    .Label(l => l.Text("宣教對象"))
+                    .Visible(false)
+                    .Name("OtherDedicationSelectionBox")
+                    .Editor
+                    (
+                        e => e
+                        .SelectBox()
+                        .Width(200)
+                        .DataSource(Model.OtherCategoryArray)
+                        .Placeholder("請選擇宣教對象")
                     //.Value("特別")
-                );
+                    );
+
+            items.AddSimpleFor
+                (m => m.Others)
+                    .Label(l => l.Text("代轉對象"))
+                    .Visible(false)
+                    .Name("OtherDedication")
+                    .Editor
+                    (
+                        e => e
+                        .Autocomplete()
+                        .Width(200)
+                        .DataSource(Model.OtherCategoryArray)
+                        .Placeholder("請輸入代轉對象")
+                    //.Value("特別")
+                    );
+
 
             items.AddSimpleFor(m => m.Amount)
                     //.DataField("LastName")
@@ -298,13 +314,20 @@
 <script>
     // 觸發事件管理
     function OnCategorySelectBoxValueChanged(e) {
-        if (e.value == "其他") {
+        if (e.value == "宣教奉獻") {
+            $("#form").dxForm("instance").itemOption("OtherDedicationSelectionBox", 'visible', true);
+        }
+        else {
+            $("#form").dxForm("instance").itemOption("OtherDedicationSelectionBox", 'visible', false);
+        }
+        if (e.value == "代收代轉") {
             $("#form").dxForm("instance").itemOption("OtherDedication", 'visible', true);
         }
         else {
             $("#form").dxForm("instance").itemOption("OtherDedication", 'visible', false);
         }
     }
+
     function OnPayWaySelectBoxValueChanged(e) {
         if (e.value == "信用卡") {
             document.getElementById("creditcardlistcontainer").style.display = "";//顯示
