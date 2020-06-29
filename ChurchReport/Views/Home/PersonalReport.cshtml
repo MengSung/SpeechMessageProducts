@@ -132,21 +132,21 @@
                 {
                     groupItems.AddSimple()
                             .DataField("SpiritualWork")
-                            .Label(l => l.Text("靈修次數"))
+                            .Label(l => l.Text("讀經次數"))
                             .Editor(e => e
                                 .SelectBox()
                                 //.DataSource(new string[] { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", })
                                 .DataSource(new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, })
-                                .Hint("靈修次數!如欲更動請與音訊科技聯繫!")
+                                .Hint("讀經次數!如欲更動請與音訊科技聯繫!")
                             );
                     groupItems.AddSimple()
                             .DataField("MorningPray")
-                            .Label(l => l.Text("晨禱次數"))
+                            .Label(l => l.Text("屬靈書籍"))
                             .Editor(e => e
                                 .SelectBox()
                                 //.DataSource(new string[] { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", })
                                 .DataSource(new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, })
-                                .Hint("晨禱次數!如欲更動請與音訊科技聯繫!")
+                                .Hint("屬靈書籍!如欲更動請與音訊科技聯繫!")
                             );
                     groupItems.AddSimple()
                             .DataField("GeneralCare")

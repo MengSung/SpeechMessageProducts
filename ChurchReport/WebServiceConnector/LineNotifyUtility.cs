@@ -298,8 +298,8 @@ namespace ChurchReport.WebServiceConnector
                         PersonalReply += aMemberInfomation.Sunday == true ? "主日有出席" + Environment.NewLine : "主日沒出席" + Environment.NewLine;
                         PersonalReply += aMemberInfomation.SmallGroup == true ? "小組有出席" + Environment.NewLine : "小組沒出席" + Environment.NewLine;
                         PersonalReply += aMemberInfomation.PrayItem != "" ? "代禱事項: " + aMemberInfomation.PrayItem : "" + Environment.NewLine;
-                        PersonalReply += "靈修次數: " + aMemberInfomation.SpiritualWork + Environment.NewLine;
-                        PersonalReply += "晨禱次數: " + aMemberInfomation.MorningPray + Environment.NewLine;
+                        PersonalReply += "讀經次數: " + aMemberInfomation.SpiritualWork + Environment.NewLine;
+                        PersonalReply += "屬靈書籍: " + aMemberInfomation.MorningPray + Environment.NewLine;
                         PersonalReply += "禱告次數: " + aMemberInfomation.GeneralCare + Environment.NewLine;
                     }
                 }

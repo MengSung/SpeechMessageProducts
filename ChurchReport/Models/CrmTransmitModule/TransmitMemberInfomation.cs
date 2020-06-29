@@ -203,7 +203,7 @@ namespace ChurchReport.Models.CrmTransmitModule
             set { m_PrayNumber = value; }
         }
 
-        // 靈修次數
+        // 讀經次數
         int m_SpiritNumber = 0;
         public int SpiritNumber
         {
@@ -322,7 +322,7 @@ namespace ChurchReport.Models.CrmTransmitModule
 
         #region 靈修、晨、晚禱
 
-        // 靈修次數
+        // 讀經次數
         int m_SpiritualWork = 0;
         public int SpiritualWork
         {

@@ -127,7 +127,7 @@ namespace ChurchReport.Models {
         #endregion
 
         #region 靈修、晨、晚禱
-        public int SpiritualWork { get; set; } // 靈修次數
+        public int SpiritualWork { get; set; } // 讀經次數
         public int MorningPray { get; set; }   // 晨禱(家庭祭壇)
         public int GeneralCare { get; set; }   // 晚禱(禱告會次數)
         #endregion

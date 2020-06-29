@@ -99,7 +99,7 @@ namespace ChurchReport.Models
                     aMemberInfomation.FollowUpNote = aMember.FollowUpNote;
 
                     #region 靈修、晨、晚禱
-                    aMemberInfomation.SpiritualWork = aMember.SpiritualWork; // 靈修次數
+                    aMemberInfomation.SpiritualWork = aMember.SpiritualWork; // 讀經次數
                     aMemberInfomation.MorningPray = aMember.MorningPray;     // 晨禱(家庭祭壇)
                     aMemberInfomation.GeneralCare = aMember.GeneralCare;     // 晚禱(禱告會次數)
                     #endregion

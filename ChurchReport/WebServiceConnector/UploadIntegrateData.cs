@@ -1258,7 +1258,7 @@ namespace ChurchReport.WebServiceConnector
                                     NewComerNote = aNewComerNote,
                                     #endregion
                                     #region 靈修、晨、晚禱
-                                    SpiritualWork = 0, // 靈修次數
+                                    SpiritualWork = 0, // 讀經次數
                                     MorningPray = 0, // 晨禱(家庭祭壇)
                                     GeneralCare = 0, // 晚禱(禱告會次數)
                                     #endregion
@@ -2350,7 +2350,7 @@ namespace ChurchReport.WebServiceConnector
                 AddToDictionaryFollowByIdentity(ref ClearIdentity, ref aContactEntity, aMemberInfomation);
 
                 #endregion
-                #region// 靈修次數
+                #region// 讀經次數
 
                 this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_spiritual_work", aMemberInfomation.SpiritualWork);
                 this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_morning_pray", aMemberInfomation.MorningPray);
@@ -3231,9 +3231,9 @@ namespace ChurchReport.WebServiceConnector
                         #endregion
 
                         #endregion
-                        #region// 靈修次數
+                        #region// 讀經次數
 
-                        this.m_ToolUtilityClass.SetEntityIntAttribute(ref aMachedPresentRecordEntity, "new_spiritual_work", aMember.SpiritualWork); // 靈修次數
+                        this.m_ToolUtilityClass.SetEntityIntAttribute(ref aMachedPresentRecordEntity, "new_spiritual_work", aMember.SpiritualWork); // 讀經次數
                         this.m_ToolUtilityClass.SetEntityIntAttribute(ref aMachedPresentRecordEntity, "new_morning_pray", aMember.MorningPray);
                         this.m_ToolUtilityClass.SetEntityIntAttribute(ref aMachedPresentRecordEntity, "new_general_care", aMember.GeneralCare); // 禱告次數
 
