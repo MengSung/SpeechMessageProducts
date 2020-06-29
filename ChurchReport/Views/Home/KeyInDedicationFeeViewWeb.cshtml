@@ -266,9 +266,25 @@
             //        //.Value("特別")
             //    );
 
+
             items.AddSimpleFor
                 (m => m.Others)
-                    .Label(l => l.Text("其他"))
+                    .Label(l => l.Text("宣教對象"))
+                    .Visible(false)
+                    .Name("OtherDedicationSelectionBox")
+                    .Editor
+                    (
+                        e => e
+                        .SelectBox()
+                        .Width(120)
+                        .DataSource(Model.OtherCategoryArray)
+                        .Placeholder("請選擇宣教對象")
+                    //.Value("特別")
+                    );
+
+            items.AddSimpleFor
+                (m => m.Others)
+                    .Label(l => l.Text("代轉對象"))
                     .Visible(false)
                     .Name("OtherDedication")
                     .Editor
@@ -277,7 +293,7 @@
                         .Autocomplete()
                         .Width(120)
                         .DataSource(Model.OtherCategoryArray)
-                        .Placeholder("請選擇奉獻類別")
+                        .Placeholder("請輸入代轉對象")
                     //.Value("特別")
                     );
 
@@ -412,7 +428,13 @@
         var GlobalCategory = "";
 
         function OnCategorySelectBoxValueChanged(e) {
-            if (e.value == "宣教") {
+            if ( e.value == "宣教奉獻" ) {
+                $("#form2").dxForm("instance").itemOption("OtherDedicationSelectionBox", 'visible', true);
+            }
+            else {
+                $("#form2").dxForm("instance").itemOption("OtherDedicationSelectionBox", 'visible', false);
+            }
+            if ( e.value == "代收代轉" ) {
                 $("#form2").dxForm("instance").itemOption("OtherDedication", 'visible', true);
             }
             else {
