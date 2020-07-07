@@ -84,10 +84,10 @@
         .ID("multigroupchart")
         .Palette(VizPalette.HarmonyLight)
         .Margin(m => m.Left(0).Top(0))
-        .AdaptiveLayout(a => a.Height(200))
-        .Diameter(0.4)
+        .AdaptiveLayout(a => a.Height(20).Width(20).KeepLabels(true))
+        .Diameter(0.3)
         //.Disabled(true)
-        .Size(s => s.Height(400).Width(400))
+        .Size(s => s.Height(300).Width(300))
         //.Size(s => s.Height(0).Width(0))
         //.Animation()
         .CommonSeriesSettings
