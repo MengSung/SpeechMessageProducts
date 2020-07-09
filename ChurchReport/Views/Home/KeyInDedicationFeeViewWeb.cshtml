@@ -243,7 +243,8 @@
                        "五餅二魚",
                        "代收代轉",
                        "宣教奉獻",
-                    }
+                       "其他奉獻",
+                   }
                 //.DisplayExpr("Name")
                 )
                 .Placeholder("請選擇奉獻類別")
@@ -434,7 +435,7 @@
             else {
                 $("#form2").dxForm("instance").itemOption("OtherDedicationSelectionBox", 'visible', false);
             }
-            if ( e.value == "代收代轉" ) {
+            if (e.value == "代收代轉" || e.value == "其他奉獻") {
                 $("#form2").dxForm("instance").itemOption("OtherDedication", 'visible', true);
             }
             else {

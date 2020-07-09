@@ -529,6 +529,8 @@ namespace ChurchReport.Models
                     return "代收代轉";
                 case 100000005:
                     return "宣教奉獻";
+                case 100000006:
+                    return "其他奉獻";
                 default:
                     return "十一奉獻";
             }

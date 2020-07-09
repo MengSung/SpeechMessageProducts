@@ -251,6 +251,9 @@ namespace ChurchReport.WebServiceConnector
                 case "宣教奉獻":
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000005);
                     break;
+                case "其他奉獻":
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000006);
+                    break;
                 default:
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000007);
                     break;
@@ -514,11 +517,28 @@ namespace ChurchReport.WebServiceConnector
                 #region 非同步建立收費單
                 if (QpayModel.DedicationNumber != "" && QpayModel.DedicationNumber != null)
                 {
+                    // 連絡人有奉獻編號
                     return this.m_ToolUtilityClass.RetrieveEntityByField("contact", "pager", QpayModel.DedicationNumber);
                 }
-                else if (QpayModel.FullName != "" && QpayModel.Mobile != "")
+                else if (QpayModel.FullName != "" && QpayModel.Mobile != "" && QpayModel.Mobile != null )
                 {
-                    return this.m_ToolUtilityClass.RetrieveContactEntityByFullNameAndMobileNumber(QpayModel.FullName, QpayModel.FullName);
+                    // 連絡人沒有奉獻編號，但是有姓名及行動電話
+                    return this.m_ToolUtilityClass.RetrieveContactEntityByFullNameAndMobileNumber(QpayModel.FullName, QpayModel.Mobile);
+                }
+                else if (QpayModel.FullName != "" )
+                {
+                    // 連絡人沒有奉獻編號及行動電話，但是有姓名
+                    EntityCollection aContactEntitycollection = this.m_ToolUtilityClass.RetrieveContactEntityByFullNameCollection(QpayModel.FullName);
+
+                    if(aContactEntitycollection.Entities.Count == 1)
+                    {
+                        // 不能有同名同姓
+                        return aContactEntitycollection.Entities[0];
+                    }
+                    else
+                    {
+                        return null;
+                    }
                 }
                 else { return null; }
                 #endregion
