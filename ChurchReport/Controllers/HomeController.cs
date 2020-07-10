@@ -4678,8 +4678,23 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                // 整合式網頁按上傳按鈕
-                return Json(new { status = "1", message = "成功建立了.... !" + FullName });
+                // 建立新人
+                EntityCollection aQueriedContacts = this.m_ToolUtilityClass.RetrieveContactEntityByFullNameCollection(FullName);
+
+                if (aQueriedContacts.Entities.Count == 0)
+                {
+                    Entity aContactToCreate = new Entity("contact");
+
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactToCreate, "lastname", FullName);
+                    this.m_ToolUtilityClass.CreateEntity(aContactToCreate);
+
+                    return Json(new { status = "1", message = "成功建立了" + FullName });
+                }
+                else
+                {
+                    return Json(new { status = "2", message = "錯誤: 有同名同姓的" + FullName });
+
+                }
             }
             catch (System.Exception e)
             {

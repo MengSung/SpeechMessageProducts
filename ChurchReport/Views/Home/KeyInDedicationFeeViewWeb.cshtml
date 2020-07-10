@@ -63,17 +63,18 @@
                             type: 'POST', //POST if you want to save, GET if you want to fetch data from server
 
                             success: function (arg)
-                                        {
+                                {
+                                    if (arg.status == 1)
+                                    {
                                         // 顯示上傳成功
-                                        if (arg.status == 1)
-                                        {
                                         ShowToast(arg.message, "success", 2000);
-                                        }
-                                        else{
-                                        ShowToast(arg.message, "error", 5000);}
+                                    }
+                                    else{
+                                        ShowToast(arg.message, "error", 5000);
+                                    }
 
-                                        //$("#toast").dxToast("instance").show();
-                                        },
+                                    document.getElementById('resultfield').innerHTML = arg.message;
+                                },
 
                             error: function (obj)
                                         {
