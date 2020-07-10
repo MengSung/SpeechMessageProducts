@@ -520,17 +520,26 @@ namespace ChurchReport.WebServiceConnector
                     // 連絡人有奉獻編號
                     return this.m_ToolUtilityClass.RetrieveEntityByField("contact", "pager", QpayModel.DedicationNumber);
                 }
-                else if (QpayModel.FullName != "" && QpayModel.Mobile != "" && QpayModel.Mobile != null )
+                else if (QpayModel.FullName != "" && QpayModel.Mobile != "" && QpayModel.Mobile != null)
                 {
                     // 連絡人沒有奉獻編號，但是有姓名及行動電話
-                    return this.m_ToolUtilityClass.RetrieveContactEntityByFullNameAndMobileNumber(QpayModel.FullName, QpayModel.Mobile);
+                    Entity aRetrievedContact = this.m_ToolUtilityClass.RetrieveContactEntityByFullNameAndMobileNumber(QpayModel.FullName, QpayModel.Mobile);
+
+                    if (aRetrievedContact != null)
+                    {
+                        return aRetrievedContact;
+                    }
+                    else
+                    {
+                        return this.m_ToolUtilityClass.RetrieveEntityByField("contact", "telephone2", QpayModel.Mobile);
+                    }
                 }
-                else if (QpayModel.FullName != "" )
+                else if (QpayModel.FullName != "")
                 {
                     // 連絡人沒有奉獻編號及行動電話，但是有姓名
                     EntityCollection aContactEntitycollection = this.m_ToolUtilityClass.RetrieveContactEntityByFullNameCollection(QpayModel.FullName);
 
-                    if(aContactEntitycollection.Entities.Count == 1)
+                    if (aContactEntitycollection.Entities.Count == 1)
                     {
                         // 不能有同名同姓
                         return aContactEntitycollection.Entities[0];
