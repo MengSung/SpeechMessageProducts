@@ -84,7 +84,6 @@ namespace ChurchReport.Models
                         PhoneNumber = HomePhone;
                     }
 
-
                     return Json(new { status = "1", clicktype = "查詢", DedicationNumber = DedicationNumber, NationId = NationId, FullName = FullName, Mobile = PhoneNumber, message = DedicationResult, DedicationResult = DedicationResult });
                 }
                 else if (DedicationContacts.Entities.Count > 1)
@@ -117,7 +116,7 @@ namespace ChurchReport.Models
                 }
                 else
                 {
-                    return Json(new { status = "3", clicktype = "查詢", message = "沒找到這個連絡人", DedicationResult = "沒找到這個連絡人" });
+                    return Json(new { status = "3", clicktype = "查詢", message = "沒找到這個連絡人", fullname = FullName, DedicationResult = "沒找到這個連絡人" });
                 }
             }
             catch (System.Exception e)

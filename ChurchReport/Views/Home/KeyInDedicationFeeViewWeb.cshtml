@@ -22,20 +22,38 @@
     <div id="PopupContainer">
         @(Html.DevExtreme().Popup()
                 .ID("popup")
-                .Title("彈跳")
+                .Title("是否要新增新人?")
                 .Visible(false)
+                .Height(80)
+                .Width(300)
+                .MaxHeight(80)
+                .MaxWidth(300)
+                .Position(PositionAlignment.Center)
+                .ResizeEnabled(true)
+                //.ShadingColor("blue")
+                .ShowCloseButton(true)
                 .ContentTemplate(@<text>
-                    <p>Static content</p>
+                    @*<p>是否要新增新人?</p>*@
                     @(Html.DevExtreme().Button()
-                        .Text("按我")
-                        .OnClick("button_click")
+                        .Text("確定")
+                        .OnClick("button_ok_click")
+                    )
+                    @*<br/>*@
+                    @(Html.DevExtreme().Button()
+                        .Text("取消")
+                        .OnClick("button_cancel_click")
                     )
                 </text>)
             )
 
         <script type="text/javascript">
-            function button_click(e) {
-                alert("我愛嘟嘟妞妞");
+            function button_ok_click(e) {
+                alert("我要新增新人!");
+                $("#popup").dxPopup("instance").hide();
+            }
+            function button_cancel_click(e) {
+                alert("我不要新增新人!");
+                $("#popup").dxPopup("instance").hide();
             }
         </script>
     </div>
@@ -60,21 +78,21 @@
     <form data-ajax="true" data-ajax-begin="onBegin" data-ajax-success="onSuccess" asp-action="SaveKeyInDedication" asp-controller="Home" method="post">
         <div id="form-container-query">
             @(Html.DevExtreme().Form<QpayModel>()
-     .ID("form1")
-     .ColCount(1)
-     .Items(items =>
-     {
-         items.AddSimpleFor(m => m.DedicationDate)
-               //.DataField("LastName")
-               .Label(l => l.Text("奉獻日期"))
-               .Editor(e => e
-                   .DateBox()
-                   .Width(135)
-                   .Disabled(false)
-                   .DisplayFormat("yyyy/M/d")
-                   .Placeholder("輸入奉獻日期")
-                   .FocusStateEnabled(true)
-              );
+                 .ID("form1")
+                 .ColCount(1)
+                 .Items(items =>
+                 {
+                     items.AddSimpleFor(m => m.DedicationDate)
+                           //.DataField("LastName")
+                           .Label(l => l.Text("奉獻日期"))
+                           .Editor(e => e
+                               .DateBox()
+                               .Width(135)
+                               .Disabled(false)
+                               .DisplayFormat("yyyy/M/d")
+                               .Placeholder("輸入奉獻日期")
+                               .FocusStateEnabled(true)
+                          );
 
          items.AddSimpleFor(m => m.DedicationNumber)
                 //.DataField("LastName")
@@ -508,7 +526,8 @@
                         $("#form1").dxForm("instance").getEditor('DedicationNumber').focus();
                         document.getElementById("samenamecontainer").style.display = "none";//隱藏
 
-                        $("#popup").dxPopup("instance").show();
+                        //$("#popup").dxPopup("instance").show();
+
                         document.getElementById('resultfield').innerHTML = data.DedicationResult;
                     }
                     else {
@@ -550,9 +569,18 @@
 
                     //document.getElementById('resultfield').innerHTML = data.DedicationResult;
                 }
-                else {
-                    ShowToast(data.message, "error", 3000);
+                else
+                {
+                    if (data.message == "沒找到這個連絡人") {
+                        ShowToast(data.message, "error", 3000);
 
+                        if (data.clicktype == "查詢")
+                        {
+                            var PopupInstance = $("#popup").dxPopup("instance");
+                            PopupInstance.option('title', "沒找到" + data.fullname+"，是否要新增?" );
+                            PopupInstance.show();
+                        }
+                    }
                     document.getElementById("samenamecontainer").style.display = "none";//隱藏
 
                     document.getElementById('resultfield').innerHTML = data.DedicationResult;
