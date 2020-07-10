@@ -607,12 +607,13 @@
                 else
                 {
                     if (data.message == "沒找到這個連絡人") {
-                        ShowToast(data.message, "error", 3000);
+
+                        ShowToast("沒找到\"" + data.fullname +"\"!", "error", 3000);
 
                         if (data.clicktype == "查詢")
                         {
                             var PopupInstance = $("#popup").dxPopup("instance");
-                            PopupInstance.option('title', "沒找到" + data.fullname+"，是否要新增?" );
+                            PopupInstance.option('title', "沒找到\"" + data.fullname+"\"，是否要新增?" );
                             PopupInstance.show();
                         }
                     }
