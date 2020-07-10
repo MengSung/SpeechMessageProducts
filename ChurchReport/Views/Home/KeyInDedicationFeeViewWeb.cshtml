@@ -48,8 +48,42 @@
 
         <script type="text/javascript">
             function button_ok_click(e) {
-                alert("我要新增新人!");
+                //alert("我要新增新人!");
                 $("#popup").dxPopup("instance").hide();
+
+                // AJAX 區塊
+                    $.ajax
+                    (
+                        {
+                            url: '@Url.Action("CreateContact", "Home")',
+                            data:
+                            {
+                                FullName: $("#form1").dxForm("instance").getEditor('FullName').option('value'),
+                            }, // 整理回傳給 Server 的點名資料
+                            type: 'POST', //POST if you want to save, GET if you want to fetch data from server
+
+                            success: function (arg)
+                                        {
+                                        // 顯示上傳成功
+                                        if (arg.status == 1)
+                                        {
+                                        ShowToast(arg.message, "success", 2000);
+                                        }
+                                        else{
+                                        ShowToast(arg.message, "error", 5000);}
+
+                                        //$("#toast").dxToast("instance").show();
+                                        },
+
+                            error: function (obj)
+                                        {
+                                        //alert('Something happened');
+                                        }
+
+                        }
+                    );
+                // AJAX 區塊
+
             }
             function button_cancel_click(e) {
                 alert("我不要新增新人!");
