@@ -109,7 +109,6 @@ namespace ChurchReport.Tools
                     // 設定是簽到還是簽退
                     m_OnboardType = arr[2];
 
-
                     // 在上課紀錄單進行簽到退
                     SigningLesson(m_Lesson, ClassName, UserName, m_Contact.Id.ToString(), m_ClassIndex, m_OnboardType);
 

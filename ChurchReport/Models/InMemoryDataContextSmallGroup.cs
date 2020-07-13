@@ -24,6 +24,7 @@ namespace ChurchReport.Models
         public LineBindingViewModel m_LineBindingViewModel;
         public AppointmentsListManager m_AppointmentsListManager;
         public QpayManager m_QpayManager;
+        public PollManager m_PollManager;
 
         #endregion
         #region 初始化
@@ -448,6 +449,50 @@ namespace ChurchReport.Models
                 }
 
                 return _memoryCache.Get<QpayManager>(key);
+            }
+        }
+        #endregion
+        #region 課程問卷調查處理區
+        public PollManager PollManager
+        {
+            get
+            {
+                var session = _contextAccessor.HttpContext.Session;
+                var key = session.Id + "_PollManager";
+
+                if (_memoryCache.Get(key) == null)
+                //if (!_memoryCache.TryGetValue(key, out m_ListManager))
+                {
+                    var options = new MemoryCacheEntryOptions();
+                    options.PostEvictionCallbacks.Add(new PostEvictionCallbackRegistration()
+                    {
+                        EvictionCallback = (subkey, subValue, reason, state) =>
+                        {
+                            // 這裡執行某一個動作
+                            // ....
+                            if (state != null)
+                            {
+                                var localCallbackInvoked = (ManualResetEvent)state;
+
+                                localCallbackInvoked.Set();
+                            }
+
+                            //_memoryCache.Remove(key);
+
+                        },
+                    });
+                    options.SetAbsoluteExpiration(DateTime.Now.AddMinutes(30));
+                    options.SetSlidingExpiration(TimeSpan.FromMinutes(30));
+                    //options.SetSize(1);
+                    //options.Size = 1024;
+
+                    m_PollManager = new PollManager();
+                    _memoryCache.Set<PollManager>(key, m_PollManager, options);
+
+                    session.SetInt32("dirty", 1);
+                }
+
+                return _memoryCache.Get<PollManager>(key);
             }
         }
         #endregion

@@ -1,0 +1,225 @@
+﻿
+@using ChurchReport.Models
+@model QpayModel
+@*<div class="long-title"><h3>奉獻資訊</h3></div>*@
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="generator" content="Mobirise v4.5.2, mobirise.com">
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
+    <link rel="shortcut icon" href="~/assets/images/logo4.png" type="image/x-icon">
+    <meta name="description" content="">
+
+    <link rel="stylesheet" href="~/assets/web/assets/mobirise-icons/mobirise-icons.css">
+    <link rel="stylesheet" href="~/assets/tether/tether.min.css">
+
+    <link rel="stylesheet" href="~/assets/theme/css/style.css">
+    <link rel="stylesheet" href="~/assets/mobirise/css/mbr-additional.css" type="text/css">
+</head>
+
+<div style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
+    <h5 id="displaynamefield"></h5>
+</div>
+
+<form data-ajax="true" data-ajax-begin="onBegin" data-ajax-success="onSuccess" asp-action="SavePoll" asp-controller="Home" method="post">
+    <div id="form-container">
+        @(Html.DevExtreme().Form<PollModel> ()
+        .ID("form")
+        .ColCount(2)
+        .Items(items =>
+        {
+            items.AddSimpleFor(m => m.WorshipPoll)
+                //.DataField("LastName")
+                .Label(l => l.Text("是否參加敬拜團"))
+                .Editor(e => e
+                    .CheckBox()
+                    .Disabled(false)
+                );
+
+            items.AddSimpleFor(m => m.MusicDevice)
+                //.DataField("LastName")
+                .Label(l => l.Text("是否參加音控"))
+                .Editor(e => e
+                    .CheckBox()
+                    .Disabled(false)
+                );
+
+            items.AddSimpleFor(m => m.DisplayPpt)
+                //.DataField("LastName")
+                .Label(l => l.Text("是否參加放印PPT"))
+                .Editor(e => e
+                    .CheckBox()
+                    .Disabled(false)
+                );
+
+            items.AddSimpleFor(m => m.PollContent)
+                //.DataField("LastName")
+                .Label(l => l.Text("意見回饋調查"))
+                .ColSpan(2)
+                .Editor(e => e
+                    .TextArea()
+                    .Disabled(false)
+                    .Width(200)
+                    .Height(200)
+                    .Placeholder("意見回饋調查")
+                );
+
+        })
+        .OnContentReady
+        (@<text>
+            function(e)
+            {
+                e.component.validate();
+            }
+        </text>)
+
+        .FormData(Model)
+        )
+
+    </div>
+
+
+    <div style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
+        <h5 id="atmfield"></h5>
+    </div>
+</form>
+
+<script>
+    function getSchedulerInstance() {
+        return $("#scheduler").dxScheduler("instance");
+    }
+</script>
+
+<script>
+    var dictionary = {
+        "zh-tw": {
+            "dxScheduler-switcherAgenda": "會議內容", // 在這裡可以做最後的字典對應
+            "Month": "月",
+            "Subject": "主題",
+            "Company": "Company",
+            "Amount": "Amount",
+            "PaymentDate": "Payment Date"
+        },
+    };
+    DevExpress.localization.loadMessages(dictionary);
+    var formatMessage = DevExpress.localization.formatMessage;
+
+    var locale = getLocale();
+    //DevExpress.localization.locale(navigator.language || navigator.browserLanguage);
+    DevExpress.localization.locale(locale);
+
+    function changeLocale(data) {
+        setLocale(data.value);
+        document.location.reload();
+    }
+
+    function getLocale() {
+        //debugger;
+        //sessionStorage.setItem("locale", 'zh');
+        sessionStorage.setItem("locale", 'zh-tw');
+        var locale = sessionStorage.getItem("locale");
+        return locale != null ? locale : "tw";
+    }
+
+</script>
+
+<script src="https://static.line-scdn.net/liff/edge/2.1/sdk.js"></script>
+
+<script>
+
+
+    window.onload = function (e) {
+            //var message = '@TempData["Proponent"]';
+            //window.alert( "耶和華" + message);
+            liff.init(
+                { liffId: '@TempData["Proponent"]' },
+                function (data) {
+                    //debugger;
+                    //alert("測試 window.onload 001!");
+                    initializeApp(data);
+                    //alert("測試 window.onload 002!");
+                }
+            );
+        };
+
+        var UserId = "";
+        var GroupId = "";
+        var RoomId = "";
+        var DisplayName = "";
+        var ViewType = "";
+
+        var ClassName = "";
+
+    async function initializeApp(data) {
+                //alert("測試 initializeApp-001 : " + data);
+                //liff.scanCode();
+           await liff.getProfile().then( function (profile) {
+                DisplayName = profile.displayName;
+                UserId = profile.userId;
+                //alert("測試 UserId =" + UserId);
+                GroupId= profile.aGroupId;
+                RoomId = profile.aRoomId;
+                ViewType = profile.aViewType;
+                //alert("測試004!" + DisplayName);
+                // 取得 UserId 的Ajax
+                UpdateLineUserId( DisplayName, UserId, GroupId, RoomId, ViewType);
+
+                document.getElementById('classnamefield').innerHTML = "正在處理中......" ;
+
+            });
+
+        }
+
+    function UpdateLineUserId(aDisplayName, aUserLineId, aGroupId, aRoomId, aViewType)
+    {
+                    // AJAX 區塊
+                    return $.ajax
+                    (
+                        {
+                            url: '@Url.Action("PollQrCodeGetLineId", "Home")',
+                            data: { DisplayName: aDisplayName, UserLineId: aUserLineId, GroupId: aGroupId, RoomId: aRoomId, ViewType: aViewType}, // 整理回傳給 Server 的點名資料
+                            type: 'POST', //POST if you want to save, GET if you want to fetch data from server
+                            //async: false,
+                            success: function (data)
+                            {
+                                if (data.result.includes("錯誤") != true) {
+                                    // 正確掃描
+                                    //document.getElementById('classnamefield').innerHTML = "課程名稱: " + data.classname;
+                                    document.getElementById('displaynamefield').innerHTML = "請 " + data.username + " 完成服事意願及意見回饋調查" + "<br/>願神祝福" + data.username;
+                                    //document.getElementById('classindexfield').innerHTML = "課堂資訊: " + data.classindex;
+                                }
+                                else
+                                {
+                                    document.getElementById('displaynamefield').innerHTML = data.result;
+                                }
+                            },
+
+                            error: function (obj)
+                            {
+                                //getLoadPanelInstance().hide();
+                                window.location.href = "/Home/Login";
+                            }
+                        }
+                    );
+                    // AJAX 區塊
+        }
+
+    function ShowToast(LocalToastMessage, Type, DisplayTime) {
+            //debugger;
+            var ToastInstance = $("#Toast").dxToast("instance");
+            ToastInstance.option('message', LocalToastMessage);
+            ToastInstance.option('type', Type);
+            ToastInstance.option('displayTime', DisplayTime);
+            ToastInstance.option('white-space', 'pre-line');
+            ToastInstance.option('closeOnClick', true);
+            ToastInstance.show();
+        }
+
+</script>
+
+<link href="~/css/Scheduler.css" rel="stylesheet" />
+<link href="~/css/Site.css" rel="stylesheet" />
+
+<script src="~/js/devextreme/devextreme-intl.min.js"></script>
+<script src="~/js/devextreme/localization/dx.messages.zh-tw.js"></script>
