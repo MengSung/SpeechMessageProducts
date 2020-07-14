@@ -452,29 +452,24 @@ namespace ChurchReport.WebServiceConnector
                 // 收費單應收金額
                 this.m_ToolUtilityClass.SetEntityMoneyAttribute(ref aFeeToCreated, "new_fee_shoud_pay", new Money(QpayModel.Amount));
 
-                if (QpayModel.PayWay == "現金")
-                {
-                    // 收費單實收金額，如果付款方式是"現金"，就預設是足額實收，因為程式應該是跑行政人員收奉獻
-                    this.m_ToolUtilityClass.SetEntityMoneyAttribute(ref aFeeToCreated, "new_fee_really_paid", new Money(QpayModel.Amount));
-                }
-                else
-                {
-                    // 收費單實收金額
-                    this.m_ToolUtilityClass.SetEntityMoneyAttribute(ref aFeeToCreated, "new_fee_really_paid", new Money(0));
-                }
+                //if (QpayModel.PayWay == "現金")
+                //{
+                //    // 收費單實收金額，如果付款方式是"現金"，就預設是足額實收，因為程式應該是跑行政人員收奉獻
+                //    this.m_ToolUtilityClass.SetEntityMoneyAttribute(ref aFeeToCreated, "new_fee_really_paid", new Money(QpayModel.Amount));
+                //}
+                //else
+                //{
+                //    // 收費單實收金額
+                //    this.m_ToolUtilityClass.SetEntityMoneyAttribute(ref aFeeToCreated, "new_fee_really_paid", new Money(0));
+                //}
+                // 收費單實收金額，因為程式應該是跑行政人員收奉獻，所以就都表示已付款
+                this.m_ToolUtilityClass.SetEntityMoneyAttribute(ref aFeeToCreated, "new_fee_really_paid", new Money(QpayModel.Amount));
+
                 // 收費單實現阿拉伯數字到大寫中文的轉換，金額轉為大寫金額
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeToCreated, "new_big_chinese_number", MoneyToChinese(QpayModel.Amount.ToString()));
 
-                if (QpayModel.PayWay == "現金")
-                {
-                    // 收費單付款狀態:"現金已繳費"，如果付款方式是"現金"，就預設是"現金已繳費"，因為程式應該是跑行政人員收奉獻
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeToCreated, "new_pay_status", 100000003);
-                }
-                else
-                {
-                    // 收費單付款狀態:新建立
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeToCreated, "new_pay_status", 100000000);
-                }
+                // 收費單付款狀態，預設是新建立
+                SetPayStatus(QpayModel.PayWay, ref aFeeToCreated);
 
                 // 收費單付款方式，預設是現金
                 SetPayMethod(QpayModel.PayWay, ref aFeeToCreated);
@@ -562,7 +557,7 @@ namespace ChurchReport.WebServiceConnector
         }
         public void SetPayMethod(String Value, ref Entity aFeeEntity)
         {
-
+            // 收費單付款狀態
             switch (Value)
             {
                 case "未知":
@@ -574,11 +569,11 @@ namespace ChurchReport.WebServiceConnector
                 case "信用卡":
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_pay_way", 100000001);
                     break;
-                case "ATM轉帳":
+                case "ATM轉帳/匯款":
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_pay_way", 100000002);
                     break;
                 case "超商付款":
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_pay_way", 100000003);
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_pay_way", 100000004);
                     break;
                 default:
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_pay_way", 100000004);
@@ -586,6 +581,33 @@ namespace ChurchReport.WebServiceConnector
 
             }
         }
+        public void SetPayStatus(String Value, ref Entity aFeeEntity)
+        {
+
+            switch (Value)
+            {
+                case "未知":
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_pay_status", 100000000);
+                    break;
+                case "現金":
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_pay_status", 100000003);
+                    break;
+                case "信用卡":
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_pay_status", 100000001);
+                    break;
+                case "ATM轉帳/匯款":
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_pay_status", 100000002);
+                    break;
+                case "超商付款":
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_pay_status", 100000000);
+                    break;
+                default:
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_pay_status", 100000000);
+                    break;
+
+            }
+        }
+
         public void SendGratitudeLineMessage(Entity aContact, QpayModel QpayModel)
         {
             try

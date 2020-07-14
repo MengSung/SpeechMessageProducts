@@ -4031,7 +4031,7 @@ namespace ChurchReport.Controllers
             {
                 PollManager aPollManager = new PollManager();
 
-                return await aPollManager.SavePoll(aPollModel);
+                return await aPollManager.SavePoll(aPollModel , m_InMemoryDataContextSmallGroup.ListManager.QrCodeId, m_InMemoryDataContextSmallGroup.LineBindingViewModel.LineUserId);
             }
             catch (System.Exception e)
             {
