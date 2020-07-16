@@ -1,6 +1,6 @@
 ﻿
 @using ChurchReport.Models
-@model QpayModel
+@model PollModel
 @*<div class="long-title"><h3>奉獻資訊</h3></div>*@
 
 <head>
@@ -22,50 +22,198 @@
     <h5 id="displaynamefield"></h5>
 </div>
 
+<div id="ToastContainer">
+    @(Html.DevExtreme().Toast()
+                            .ID("Toast")
+                            .Position(p => p
+                            .At(HorizontalAlignment.Center, VerticalAlignment.Center)
+                            .Offset(0, 50))
+                            //.Shading(true)
+                            //.ShadingColor("red")
+                            //.CloseOnOutsideClick(true)
+                            //.DisplayTime(2000)
+                            .MaxWidth(350)
+            )
+
+</div>
+<div id="LoadPanel">
+    @(Html.DevExtreme().LoadPanel()
+                    .ID("loadPanel")
+                    .ShadingColor("rgba(0,0,0,0.4)")
+                    .Position(p => p.Of("#form-container"))
+                    .Visible(false)
+                    .ShowIndicator(true)
+                    .ShowPane(true)
+                    .Shading(true)
+                    .CloseOnOutsideClick(false)
+                    .Message("上傳資料中...")
+                    .Animation(l => l.Show(k => k.Easing(AnimationEasing.Swing)))
+            )
+
+</div>
+
 <form data-ajax="true" data-ajax-begin="onBegin" data-ajax-success="onSuccess" asp-action="SavePoll" asp-controller="Home" method="post">
+
     <div id="form-container">
         @(Html.DevExtreme().Form<PollModel> ()
         .ID("form")
-        .ColCount(2)
+        .ColCount(3)
+
         .Items(items =>
         {
-            items.AddSimpleFor(m => m.WorshipPoll)
-                //.DataField("LastName")
-                .Label(l => l.Text("是否參加敬拜團"))
-                .Editor(e => e
-                    .CheckBox()
-                    .Disabled(false)
-                );
 
-            items.AddSimpleFor(m => m.MusicDevice)
-                //.DataField("LastName")
-                .Label(l => l.Text("是否參加音控"))
-                .Editor(e => e
-                    .CheckBox()
-                    .Disabled(false)
-                );
+            items.AddGroup()
+            .Caption("A、成⾧班結業者建議可參與之服事項目")
+            .ColSpan(1)
+            .Visible(Model.DisplayGrowFlag)
+            .Items(groupItems =>
+            {
+                groupItems.AddSimpleFor(m => m.SundayTreat)
+                   //.DataField("LastName")
+                   .Label(l => l.Text("主日招待同工"))
+                   .Editor(e => e
+                       .CheckBox()
+                       .Disabled(false)
+                   );
 
-            items.AddSimpleFor(m => m.DisplayPpt)
-                //.DataField("LastName")
-                .Label(l => l.Text("是否參加放印PPT"))
-                .Editor(e => e
-                    .CheckBox()
-                    .Disabled(false)
-                );
+            });
+
+            items.AddGroup()
+            .Caption("B、門徒班結業者建議可參與之服事項目《可複選》")
+            .ColSpan(1)
+            .Visible(Model.DisplayDecipleFlag)
+            .Items(groupItems =>
+            {
+                groupItems.AddSimpleFor(m => m.SaturdayChild)
+                   //.DataField("LastName")
+                   .Label(l => l.Text("週六兒主服事同工"))
+                   .Editor(e => e
+                       .CheckBox()
+                       .Disabled(false)
+                   );
+
+                groupItems.AddSimpleFor(m => m.SundaydayChild)
+                    //.DataField("LastName")
+                    .Label(l => l.Text("主日兒主幼顧同工"))
+                    .Editor(e => e
+                        .CheckBox()
+                        .Disabled(false)
+                    );
+
+                groupItems.AddSimpleFor(m => m.SundayNewFriend)
+                    //.DataField("LastName")
+                    .Label(l => l.Text("主日新人接待同工").Location(FormLabelLocation.Left))
+                    .Editor(e => e
+                        .CheckBox()
+                        .Disabled(false)
+                    );
+
+                groupItems.AddSimpleFor(m => m.DisplayPpt)
+                    //.DataField("LastName")
+                    .Label(l => l.Text("主日控台同工").Location(FormLabelLocation.Left))
+                    .Editor(e => e
+                        .CheckBox()
+                        .Disabled(false)
+                    );
+
+                groupItems.AddSimpleFor(m => m.WorshipVocal)
+                    //.DataField("LastName")
+                    .Label(l => l.Text("主日敬拜團(人聲)").Location(FormLabelLocation.Left))
+                    .Editor(e => e
+                        .CheckBox()
+                        .Disabled(false)
+                    );
+
+                groupItems.AddSimpleFor(m => m.WorshipInstrument)
+                    //.DataField("LastName")
+                    .Label(l => l.Text("主日敬拜團(樂器)").Location(FormLabelLocation.Left))
+                    .Editor(e => e
+                        .CheckBox()
+                        .Disabled(false)
+                    );
+
+                groupItems.AddSimpleFor(m => m.Instrument)
+                    //.DataField("LastName")
+                    .Label(l => l.Text("樂器名稱").Location(FormLabelLocation.Left))
+                    .Editor(e => e
+                        .TextBox()
+                        .Placeholder("樂器名稱")
+                        .Disabled(false)
+                    );
+
+
+                groupItems.AddSimpleFor(m => m.CommunityProfit)
+                    //.DataField("LastName")
+                    .Label(l => l.Text("社區福音行動(益人學苑)").Location(FormLabelLocation.Left))
+                    .Editor(e => e
+                        .CheckBox()
+                        .Disabled(false)
+                    );
+
+                groupItems.AddSimpleFor(m => m.CommunityFlower)
+                    //.DataField("LastName")
+                    .Label(l => l.Text("社區福音行動(恩朵協會)").Location(FormLabelLocation.Left))
+                    .Editor(e => e
+                        .CheckBox()
+                        .Disabled(false)
+                    );
+
+                groupItems.AddSimpleFor(m => m.IncubateCampaign)
+                    //.DataField("LastName")
+                    .Label(l => l.Text("培育營會行政同工").Location(FormLabelLocation.Left))
+                    .Editor(e => e
+                        .CheckBox()
+                        .Disabled(false)
+                    );
+
+            });
+
+            items.AddGroup()
+            .Caption("C、領袖班結業者建議可參與服事項目《可複選》")
+            .Visible(Model.DisplayLeaderFlag)
+            .ColSpan(1)
+            .Items(groupItems =>
+            {
+                groupItems.AddSimpleFor(m => m.SundayPrayer)
+                   //.DataField("LastName")
+                   .Label(l => l.Text("主日禱告服事"))
+                   .Editor(e => e
+                       .CheckBox()
+                       .Disabled(false)
+                   );
+
+                groupItems.AddSimpleFor(m => m.IncubateCampaignLeader)
+                    //.DataField("LastName")
+                    .Label(l => l.Text("培育營會帶組同工"))
+                    .Editor(e => e
+                        .CheckBox()
+                        .Disabled(false)
+                    );
+
+                groupItems.AddSimpleFor(m => m.Others)
+                    //.DataField("LastName")
+                    .Label(l => l.Text("其他").Location(FormLabelLocation.Top))
+                    .Editor(e => e
+                        .TextBox()
+                        .Placeholder("其他")
+                        .Disabled(false)
+                    );
+            });
 
             items.AddSimpleFor(m => m.PollContent)
-                //.DataField("LastName")
-                .Label(l => l.Text("意見回饋調查"))
-                .ColSpan(2)
+                .Label(l => l.Text("課程意見回饋調查").Location(FormLabelLocation.Top))
+                .ColSpan(3)
                 .Editor(e => e
                     .TextArea()
                     .Disabled(false)
-                    .Width(200)
-                    .Height(200)
-                    .Placeholder("意見回饋調查")
+                    //.Width(400)
+                    .Height(100)
+                    .Placeholder("課程意見回饋調查")
                 );
 
         })
+
+
         .OnContentReady
         (@<text>
             function(e)
@@ -79,15 +227,63 @@
 
     </div>
 
-
-    <div style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
-        <h5 id="atmfield"></h5>
+    <br />
+    <div id="buttonContainer2" class="dx-button-icon">
+        @(Html.DevExtreme().Button()
+                    .Text("上傳")
+                    .Type(ButtonType.Success)
+                    .ID("save-button2")
+                    .UseSubmitBehavior(true)
+                    .OnClick("OnClickQuery")
+            )
     </div>
+
 </form>
 
 <script>
-    function getSchedulerInstance() {
-        return $("#scheduler").dxScheduler("instance");
+    // 觸發事件管理
+    function OnClickQuery(arg) {
+        //alert("查詢");
+        getLoadPanelInstance().show();
+    }
+
+    function getLoadPanelInstance() {
+        return $("#loadPanel").dxLoadPanel("instance");
+    }
+
+    function ShowToast(LocalToastMessage, Type, DisplayTime) {
+        //debugger;
+        var ToastInstance = $("#Toast").dxToast("instance");
+        ToastInstance.option('message', LocalToastMessage);
+        ToastInstance.option('type', Type);
+        ToastInstance.option('displayTime', DisplayTime);
+        ToastInstance.option('white-space', 'pre-line');
+        ToastInstance.option('closeOnClick', true);
+        ToastInstance.show();
+    }
+
+    var GlobalCategory = "";
+</script>
+<script type="text/javascript">
+    function onBegin() {
+    }
+
+    function onSuccess(data) {
+
+        getLoadPanelInstance().hide();
+
+        if (data.status == 1) {
+            ShowToast(data.message, "success", 3000);
+        }
+        else {
+        }
+    }
+
+    function onComplete(data) {
+        if (data.status == 1) {
+        }
+        else {
+        }
     }
 </script>
 
@@ -186,7 +382,8 @@
                                 if (data.result.includes("錯誤") != true) {
                                     // 正確掃描
                                     //document.getElementById('classnamefield').innerHTML = "課程名稱: " + data.classname;
-                                    document.getElementById('displaynamefield').innerHTML = "請 " + data.username + " 完成服事意願及意見回饋調查" + "<br/>願神祝福" + data.username;
+                                    //document.getElementById('displaynamefield').innerHTML = "請 " + data.username + " 完成 <br/>" + data.classname + " 服事意願及意見回饋調查" + "<br/>謝謝" + data.username + "的參與，牧區及事工單位的同工將主動與" + data.username + "接洽！";
+                                    document.getElementById('displaynamefield').innerHTML = "服事意願調查表<br/>" + "請 " + data.username + " 完成 <br/>" + data.classname + " 服事意願及意見回饋調查" ;
                                     //document.getElementById('classindexfield').innerHTML = "課堂資訊: " + data.classindex;
                                 }
                                 else
@@ -220,6 +417,7 @@
 
 <link href="~/css/Scheduler.css" rel="stylesheet" />
 <link href="~/css/Site.css" rel="stylesheet" />
+<script src="~/lib/jquery-ajax-unobtrusive/jquery.unobtrusive-ajax.js"></script>
 
 <script src="~/js/devextreme/devextreme-intl.min.js"></script>
 <script src="~/js/devextreme/localization/dx.messages.zh-tw.js"></script>

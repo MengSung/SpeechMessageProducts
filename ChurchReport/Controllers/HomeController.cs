@@ -3934,7 +3934,8 @@ namespace ChurchReport.Controllers
                 TempData["ClassName"] = " ";
                 #endregion
 
-                return View();
+                PollManager aPollManager = new PollManager();
+                return View(aPollManager.SetDisplayFlag(QrCodeId));
             }
             catch (System.Exception e)
             {
@@ -3985,9 +3986,9 @@ namespace ChurchReport.Controllers
 
                 TempData["ClassName"] = "從相信到堅信";
 
-                QrCodeUtility aQrCodeUtility = new QrCodeUtility();
+                //QrCodeUtility aQrCodeUtility = new QrCodeUtility();
 
-                String ClassName = "";
+                //String ClassName = "";
                 String UserName = "";
                 String ClassIndex = "";
                 String OnboardType = "";
@@ -4000,13 +4001,15 @@ namespace ChurchReport.Controllers
 
                 // 取得掃描者全名
                 Entity aContact = this.m_ToolUtilityClass.RetrieveContactEntityByLineUserId(UserLineId);
-                if (aContact == null)
+                if (aContact != null)
                 {
                     UserName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContact, "fullname");
                 }
 
+                PollManager aPollManager = new PollManager();
+
                 //return Json(new { DisplayViewType = DisplayViewType, ActiveListId = m_InMemoryDataContextSmallGroup.ListManager.ActiveListId, message = "歡迎" + FullName + "登入成功!", fullname = FullName, account = aGalleryViewModel.Account, password = aGalleryViewModel.Password });
-                return Json(new { result = OnboardType, classname = ClassName, username = UserName, classindex = ClassIndex, onboardtype = OnboardType });
+                return Json(new { result = OnboardType, classname = aPollManager.GetClassName(m_InMemoryDataContextSmallGroup.ListManager.QrCodeId), username = UserName, classindex = ClassIndex, onboardtype = OnboardType });
 
             }
             catch (System.Exception e)
@@ -4031,7 +4034,7 @@ namespace ChurchReport.Controllers
             {
                 PollManager aPollManager = new PollManager();
 
-                return await aPollManager.SavePoll(aPollModel , m_InMemoryDataContextSmallGroup.ListManager.QrCodeId, m_InMemoryDataContextSmallGroup.LineBindingViewModel.LineUserId);
+                return await aPollManager.SavePoll(aPollModel, m_InMemoryDataContextSmallGroup.ListManager.QrCodeId, m_InMemoryDataContextSmallGroup.LineBindingViewModel.LineUserId);
             }
             catch (System.Exception e)
             {

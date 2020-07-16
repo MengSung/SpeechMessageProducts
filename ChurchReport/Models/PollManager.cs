@@ -29,14 +29,14 @@ namespace ChurchReport.Models
         private const decimal GOD_STUDENT_FEE = 400;
         #endregion
         #region 電腦網頁登入
-        public async Task<IActionResult> SavePoll(PollModel PollModel, String QrCodeIdString, String LineUserId )
+        public async Task<IActionResult> SavePoll(PollModel PollModel, String QrCodeIdString, String LineUserId)
         {
             try
             {
                 m_UserLineId = LineUserId;
                 // 取得掃描者全名
-                m_Contact = this.m_ToolUtilityClass.RetrieveContactEntityByLineUserId( LineUserId );
-                if (m_Contact == null)
+                m_Contact = this.m_ToolUtilityClass.RetrieveContactEntityByLineUserId(LineUserId);
+                if (m_Contact != null)
                 {
                     m_UserName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref m_Contact, "fullname");
                 }
@@ -48,9 +48,14 @@ namespace ChurchReport.Models
                 m_ClassName = this.m_ToolUtilityClass.GetEntityStringAttribute(m_Lesson, "new_name");
 
                 // 取得上課紀錄單
-                Entity StorLessonEntity = RetrieveStorLesson(m_Lesson, m_ClassName, m_UserName, LineUserId);
+                Entity StorLessonEntity = RetrieveStorLesson(m_Lesson, m_ClassName, m_UserName, m_Contact.Id.ToString());
 
-                return Json(new { status = "1", message = "感謝回答問卷調查"});
+                UpdateStorLesson(PollModel, StorLessonEntity);
+
+                UpdateContactPollResult(PollModel);
+
+                return Json(new { status = "1", message = "謝謝" + m_UserName + "的參與，牧區及事工單位的同工將主動與" + m_UserName + "接洽！" });
+
             }
             catch (System.Exception e)
             {
@@ -93,6 +98,311 @@ namespace ChurchReport.Models
                 String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
 
                 throw Exception;
+            }
+        }
+
+        public PollModel SetDisplayFlag(String QrCodeIdString)
+        {
+            try
+            {
+                // 取得課程
+                string[] arr = QrCodeIdString.Split('_');
+                Guid aGuid = new Guid(arr[0]);
+                m_Lesson = this.m_ToolUtilityClass.RetrieveEntity("new_disciple_lessons", aGuid);
+                m_ClassName = this.m_ToolUtilityClass.GetEntityStringAttribute(m_Lesson, "new_name");
+
+                PollModel aPollModel = new PollModel();
+
+                if (m_ClassName.Contains("成⾧班"))
+                {
+                    aPollModel.DisplayGrowFlag = true;
+                    aPollModel.DisplayDecipleFlag = false;
+                    aPollModel.DisplayLeaderFlag = false;
+                }
+                else if (m_ClassName.Contains("門徒班"))
+                {
+                    aPollModel.DisplayGrowFlag = true;
+                    aPollModel.DisplayDecipleFlag = true;
+                    aPollModel.DisplayLeaderFlag = false;
+                }
+                else if (m_ClassName.Contains("領袖班"))
+                {
+                    aPollModel.DisplayGrowFlag = true;
+                    aPollModel.DisplayDecipleFlag = true;
+                    aPollModel.DisplayLeaderFlag = true;
+                }
+                else
+                {
+                    aPollModel.DisplayGrowFlag = true;
+                    aPollModel.DisplayDecipleFlag = true;
+                    aPollModel.DisplayLeaderFlag = true;
+                }
+                return aPollModel;
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                //m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "永和禮拜堂 : 綁定錯誤 => " + ErrorString);
+
+                //return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
+                throw e;
+            }
+        }
+        public String GetClassName(String QrCodeIdString)
+        {
+            try
+            {
+                // 取得課程
+                string[] arr = QrCodeIdString.Split('_');
+                Guid aGuid = new Guid(arr[0]);
+                m_Lesson = this.m_ToolUtilityClass.RetrieveEntity("new_disciple_lessons", aGuid);
+                return this.m_ToolUtilityClass.GetEntityStringAttribute(m_Lesson, "new_name");
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                //m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "永和禮拜堂 : 綁定錯誤 => " + ErrorString);
+
+                //return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
+                throw e;
+            }
+        }
+        public String GetPollResult(PollModel PollModel)
+        {
+            try
+            {
+
+                String PollResult = "";
+
+                if (PollModel.SundayTreat == true)
+                {
+                    PollResult += "主日招待同工，";
+                }
+                if (PollModel.SaturdayChild == true)
+                {
+                    PollResult += "週六兒主服事同工，";
+                }
+                if (PollModel.SundaydayChild == true)
+                {
+                    PollResult += "主日兒主幼顧同工，";
+                }
+                if (PollModel.SundayNewFriend == true)
+                {
+                    PollResult += "主日新人接待同工，";
+                }
+                if (PollModel.DisplayPpt == true)
+                {
+                    PollResult += "主日控台同工，";
+                }
+                if (PollModel.WorshipVocal == true)
+                {
+                    PollResult += "主日敬拜團(人聲)，";
+                }
+                if (PollModel.WorshipInstrument == true)
+                {
+                    PollResult += "主日敬拜團(樂器)，";
+                }
+                if (PollModel.Instrument != "")
+                {
+                    PollResult += "樂器名稱=" + PollModel.Instrument + "，";
+                }
+                if (PollModel.CommunityProfit == true)
+                {
+                    PollResult += "社區福音行動(益人學苑)，";
+                }
+                if (PollModel.CommunityFlower == true)
+                {
+                    PollResult += "社區福音行動(恩朵協會)，";
+                }
+                if (PollModel.IncubateCampaign == true)
+                {
+                    PollResult += "培育營會行政同工，";
+                }
+                if (PollModel.SundayPrayer == true)
+                {
+                    PollResult += "主日禱告服事，";
+                }
+                if (PollModel.IncubateCampaignLeader == true)
+                {
+                    PollResult += "培育營會帶組同工，";
+                }
+                if (PollModel.Others != "")
+                {
+                    PollResult += "其他=" + PollModel.Others + "，";
+                }
+                return PollResult;
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                //m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "永和禮拜堂 : 綁定錯誤 => " + ErrorString);
+
+                //return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
+                throw e;
+            }
+        }
+        public void UpdateContactPollResult(PollModel PollModel)
+        {
+            try
+            {
+                String OrignalContactPollResult = m_ToolUtilityClass.GetEntityStringAttribute(ref m_Contact, "new_poll_result");
+
+                String PollResult = "";
+                if (PollModel.SundayTreat == true)
+                {
+                    if (!OrignalContactPollResult.Contains("主日招待同工"))
+                    {
+                        PollResult += "主日招待同工，";
+                    }
+                }
+                if (PollModel.SaturdayChild == true)
+                {
+                    if (!OrignalContactPollResult.Contains("週六兒主服事同工"))
+                    {
+                        PollResult += "週六兒主服事同工，";
+                    }
+                }
+                if (PollModel.SundaydayChild == true)
+                {
+                    if (!OrignalContactPollResult.Contains("主日兒主幼顧同工"))
+                    {
+                        PollResult += "主日兒主幼顧同工，";
+                    }
+                }
+                if (PollModel.SundayNewFriend == true)
+                {
+                    if (!OrignalContactPollResult.Contains("主日新人接待同工"))
+                    {
+                        PollResult += "主日新人接待同工，";
+                    }
+                }
+                if (PollModel.DisplayPpt == true)
+                {
+                    if (!OrignalContactPollResult.Contains("主日控台同工"))
+                    {
+                        PollResult += "主日控台同工，";
+                    }
+                }
+                if (PollModel.WorshipVocal == true)
+                {
+                    if (!OrignalContactPollResult.Contains("主日敬拜團(人聲)"))
+                    {
+                        PollResult += "主日敬拜團(人聲)，";
+                    }
+                }
+                if (PollModel.WorshipInstrument == true)
+                {
+                    if (!OrignalContactPollResult.Contains("主日敬拜團(樂器)"))
+                    {
+                        PollResult += "主日敬拜團(樂器)，";
+                    }
+                }
+                if (PollModel.Instrument != "")
+                {
+                    if (!OrignalContactPollResult.Contains("樂器名稱=" + PollModel.Instrument))
+                    {
+                        PollResult += "樂器名稱=" + PollModel.Instrument + "，";
+                    }
+                }
+                if (PollModel.CommunityProfit == true)
+                {
+                    if (!OrignalContactPollResult.Contains("社區福音行動(益人學苑)"))
+                    {
+                        PollResult += "社區福音行動(益人學苑)，";
+                    }
+                }
+                if (PollModel.CommunityFlower == true)
+                {
+                    if (!OrignalContactPollResult.Contains("社區福音行動(恩朵協會)"))
+                    {
+                        PollResult += "社區福音行動(恩朵協會)，";
+                    }
+                }
+                if (PollModel.IncubateCampaign == true)
+                {
+                    if (!OrignalContactPollResult.Contains("培育營會行政同工"))
+                    {
+                        PollResult += "培育營會行政同工，";
+                    }
+                }
+                if (PollModel.SundayPrayer == true)
+                {
+                    if (!OrignalContactPollResult.Contains("主日禱告服事"))
+                    {
+                        PollResult += "主日禱告服事，";
+                    }
+                }
+                if (PollModel.IncubateCampaignLeader == true)
+                {
+                    if (!OrignalContactPollResult.Contains("培育營會帶組同工"))
+                    {
+                        PollResult += "培育營會帶組同工，";
+                    }
+                }
+                if (PollModel.Others != "")
+                {
+                    if (!OrignalContactPollResult.Contains("其他=" + PollModel.Others))
+                    {
+                        PollResult += "其他=" + PollModel.Others + "，";
+                    }
+                }
+
+                m_ToolUtilityClass.SetEntityStringAttribute(ref m_Contact, "new_poll_result", OrignalContactPollResult + PollResult);
+
+                m_ToolUtilityClass.UpdateEntity(ref m_Contact);
+
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                //m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "永和禮拜堂 : 綁定錯誤 => " + ErrorString);
+
+                //return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
+                throw e;
+            }
+        }
+        public void UpdateStorLesson(PollModel PollModel, Entity StorLessonEntity)
+        {
+            try
+            {
+                m_ToolUtilityClass.SetEntityStringAttribute(ref StorLessonEntity, "new_poll_result", GetPollResult(PollModel));
+                m_ToolUtilityClass.SetEntityStringAttribute(ref StorLessonEntity, "new_poll_content", PollModel.PollContent);
+
+                m_ToolUtilityClass.UpdateEntity(ref StorLessonEntity);
+
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                //m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "永和禮拜堂 : 綁定錯誤 => " + ErrorString);
+
+                //return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
+                throw e;
             }
         }
 
