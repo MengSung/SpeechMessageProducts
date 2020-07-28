@@ -143,6 +143,10 @@ namespace ChurchReport.WebServiceConnector
                 SetUserType(ref UserType);
 
                 #region 先尋找帶領族系名單，若找到表示就是族系族長，若沒有則在繼續尋找帶領小組名單
+
+                // 先把名單清乾淨
+                this.m_Lists.Entities.Clear();
+
                 FindListCollection();
                 #endregion
 

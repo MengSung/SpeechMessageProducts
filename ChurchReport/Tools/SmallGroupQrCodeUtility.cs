@@ -272,11 +272,11 @@ namespace ChurchReport.Tools
                 String SigningTypeAndTime = "";
                 if (m_OnboardType == "On" || m_OnboardType == "on")
                 {
-                    SigningTypeAndTime = m_SigningTime.ToLocalTime().ToString() + " 簽到";
+                    SigningTypeAndTime = m_SigningTime.ToLocalTime().ToString() + " 簽到成功";
                 }
                 else
                 {
-                    SigningTypeAndTime = m_SigningTime.ToLocalTime().ToString() + " 簽退";
+                    SigningTypeAndTime = m_SigningTime.ToLocalTime().ToString() + " 簽退成功";
                 }
 
                                 
