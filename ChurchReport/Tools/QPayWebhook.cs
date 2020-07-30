@@ -158,8 +158,8 @@ namespace ChurchReport.Tools
                     Entity aStorLessons = this.m_ToolUtilityClass.RetrieveEntity("new_stor_lessons", aStorLessonsId);
 
                     #region 報名狀態
-                    // 已報名-已繳費
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(ref aStorLessons, "new_enroll_status", 100000001);
+                    // 有審核的教會=>報名成功:永和禮拜堂
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(ref aStorLessons, "new_enroll_status", 100000008);
                     #endregion
 
                     this.m_ToolUtilityClass.UpdateEntity(ref aStorLessons);
