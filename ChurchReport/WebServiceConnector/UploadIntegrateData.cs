@@ -90,7 +90,7 @@ namespace ChurchReport.WebServiceConnector
         Guid m_OwnerId; // 小組長的負責人 Id
 
         private const bool RACE_LEADER_CAN_CREATE_WEEKLYREPORT = true; // 族系組長能否幫小組長建立週報， true是可以
-                                                                       //private const bool RACE_LEADER_CAN_CREATE_WEEKLYREPORT = false; // 族系組長能否幫小組長建立週報，false 不可以
+        static readonly object m_UploadDataLocker = new object();//避免多人同時輸入"小組出席"，會產生2個週報或是改變"委身類型"、"裝備狀態"                                                                 //private const bool RACE_LEADER_CAN_CREATE_WEEKLYREPORT = false; // 族系組長能否幫小組長建立週報，false 不可以
 
         //private const String SET_IDENTITY_METHOD = "透過過去8週出席次數"; // 設定委身類型的方式
         private const String SET_IDENTITY_METHOD = "透過回報網頁手動設定"; // 設定委身類型的方式
@@ -151,74 +151,76 @@ namespace ChurchReport.WebServiceConnector
 
                 if (this.m_ListEntity != null)
                 {
-                    #region 有找到要點名的名單，而且登入的操作者與此名單或是與小組長ID、或是與小家長ID、或是與族系族長/區長一致，或是個人回報也可以上傳
-                    if (aWeeklyReportId == Guid.Empty)
+                    lock (m_UploadDataLocker) //避免多人同時輸入"小組出席"，會產生2個週報或是改變"委身類型"、"裝備狀態"
                     {
-                        #region // 要建立週報
-                        #region // 依據有效的週報的小組組員名單當作週報出席率的分母
-                        this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "依據有效的週報的小組組員名單當作週報出席率的分母");
-                        Double ValidNumber = this.GetEffecttiveSmallGroupNumber(m_ListEntity.Id);
-                        #endregion
-                        #region// 要建立週報
-                        this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "要建立週報");
-                        //if (this.CreateWeeklyReportOrNot(ref m_ListEntity, m_Sunday)) // 判斷是否真要建立週報
-                        //{
-                        // 建立週報
-                        Double aWeeklySundayRate = 0.0;
-                        Double aWeeklySmallGroupRate = 0.0;
-                        int aWeeklySundayNumber = 0;
-                        int aWeeklySmallGroupNumber = 0;
-
-                        GroupWeeklyReportGuid aGroupWeeklyReportGuid = new GroupWeeklyReportGuid
+                        #region 有找到要點名的名單，而且登入的操作者與此名單或是與小組長ID、或是與小家長ID、或是與族系族長/區長一致，或是個人回報也可以上傳
+                        if (aWeeklyReportId == Guid.Empty)
                         {
-                            WeeklyReportGuid = WeeklyReportEntityId != null && WeeklyReportEntityId != "" ? new Guid(WeeklyReportEntityId) : new Guid(),
-                            GroupName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref this.m_ListEntity, "listname"),
-                            SmallGroupLeaderName = this.m_ToolUtilityClass.GetEntityLookupDisplayName(ref this.m_ListEntity, "new_contact_family_leader_list"),
-                            SmallGroupDate = m_Sunday,
-                            SmallGroupRate = 0,
-                            SundayPresentRate = 0,
-                        };
+                            #region // 要建立週報
+                            #region // 依據有效的週報的小組組員名單當作週報出席率的分母
+                            this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "依據有效的週報的小組組員名單當作週報出席率的分母");
+                            Double ValidNumber = this.GetEffecttiveSmallGroupNumber(m_ListEntity.Id);
+                            #endregion
+                            #region// 要建立週報
+                            this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "要建立週報");
+                            //if (this.CreateWeeklyReportOrNot(ref m_ListEntity, m_Sunday)) // 判斷是否真要建立週報
+                            //{
+                            // 建立週報
+                            Double aWeeklySundayRate = 0.0;
+                            Double aWeeklySmallGroupRate = 0.0;
+                            int aWeeklySundayNumber = 0;
+                            int aWeeklySmallGroupNumber = 0;
 
-                        // 由於是新建立的週報，當回傳完成實，回到網頁操作，如果使用者又再繼續操作，就必須設定告知新建立的週報ID =WeeklyReportEntityId ，以免重複建立
-                        aGraceLeaderWeeklyReportEntity = CreateWeeklyReportAndPresentRecord(GroupName, aGroupWeeklyReportGuid, ref WeeklyReportEntityId, ref m_ListEntity, "", ValidNumber, ref aWeeklySundayRate, ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber, aSmallGroupData, WeeklyReportData, HappyWeekIndex, HappyWeekTopic, PauseCheckBox);
+                            GroupWeeklyReportGuid aGroupWeeklyReportGuid = new GroupWeeklyReportGuid
+                            {
+                                WeeklyReportGuid = WeeklyReportEntityId != null && WeeklyReportEntityId != "" ? new Guid(WeeklyReportEntityId) : new Guid(),
+                                GroupName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref this.m_ListEntity, "listname"),
+                                SmallGroupLeaderName = this.m_ToolUtilityClass.GetEntityLookupDisplayName(ref this.m_ListEntity, "new_contact_family_leader_list"),
+                                SmallGroupDate = m_Sunday,
+                                SmallGroupRate = 0,
+                                SundayPresentRate = 0,
+                            };
+
+                            // 由於是新建立的週報，當回傳完成實，回到網頁操作，如果使用者又再繼續操作，就必須設定告知新建立的週報ID =WeeklyReportEntityId ，以免重複建立
+                            aGraceLeaderWeeklyReportEntity = CreateWeeklyReportAndPresentRecord(GroupName, aGroupWeeklyReportGuid, ref WeeklyReportEntityId, ref m_ListEntity, "", ValidNumber, ref aWeeklySundayRate, ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber, aSmallGroupData, WeeklyReportData, HappyWeekIndex, HappyWeekTopic, PauseCheckBox);
+                            //}
+                            #endregion
+                            #endregion
+                        }
+                        else
+                        {
+                            #region// 更新週報
+                            //if (this.UpdateWeeklyReportOrNot(ref m_ListEntity)) // 判斷是否真要更新週報，只有事這組的小組長才能點名回報
+                            //{
+                            GroupWeeklyReportGuid aGroupWeeklyReportGuid = new GroupWeeklyReportGuid
+                            {
+                                WeeklyReportGuid = WeeklyReportEntityId != null && WeeklyReportEntityId != "" ? new Guid(WeeklyReportEntityId) : new Guid(),
+                                GroupName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref this.m_ListEntity, "listname"),
+                                SmallGroupLeaderName = this.m_ToolUtilityClass.GetEntityLookupDisplayName(ref this.m_ListEntity, "new_contact_family_leader_list"),
+                                SmallGroupDate = m_Sunday,
+                                SmallGroupRate = 0,
+                                SundayPresentRate = 0,
+                            };
+
+                            aGraceLeaderWeeklyReportEntity = UpdateWeeklyReportProcess(aGroupWeeklyReportGuid, ref m_ListEntity, ref aWeeklyReportId, aSmallGroupData, WeeklyReportData, HappyWeekIndex, HappyWeekTopic, PauseCheckBox);
+                            //}
+                            #endregion
+                        }
+                        #region 如果登入者是族系族長，則他的週報要留下來，以便寫入他底下的小組長，所有的主日、小組出席紀錄
+                        //if ( this.m_ContactId != aThisListGraceLeaderId )
+                        //{
+                        //    //　不是族系族長，週報設為ＮＵＬＬ
+                        //    aGraceLeaderWeeklyReportEntity = null;
                         //}
                         #endregion
+
                         #endregion
                     }
-                    else
-                    {
-                        #region// 更新週報
-                        //if (this.UpdateWeeklyReportOrNot(ref m_ListEntity)) // 判斷是否真要更新週報，只有事這組的小組長才能點名回報
-                        //{
-                        GroupWeeklyReportGuid aGroupWeeklyReportGuid = new GroupWeeklyReportGuid
-                        {
-                            WeeklyReportGuid = WeeklyReportEntityId != null && WeeklyReportEntityId != "" ? new Guid(WeeklyReportEntityId) : new Guid(),
-                            GroupName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref this.m_ListEntity, "listname"),
-                            SmallGroupLeaderName = this.m_ToolUtilityClass.GetEntityLookupDisplayName(ref this.m_ListEntity, "new_contact_family_leader_list"),
-                            SmallGroupDate = m_Sunday,
-                            SmallGroupRate = 0,
-                            SundayPresentRate = 0,
-                        };
-
-                        aGraceLeaderWeeklyReportEntity = UpdateWeeklyReportProcess(aGroupWeeklyReportGuid, ref m_ListEntity, ref aWeeklyReportId, aSmallGroupData, WeeklyReportData, HappyWeekIndex, HappyWeekTopic, PauseCheckBox);
-                        //}
-                        #endregion
-                    }
-                    #region 如果登入者是族系族長，則他的週報要留下來，以便寫入他底下的小組長，所有的主日、小組出席紀錄
-                    //if ( this.m_ContactId != aThisListGraceLeaderId )
-                    //{
-                    //    //　不是族系族長，週報設為ＮＵＬＬ
-                    //    aGraceLeaderWeeklyReportEntity = null;
-                    //}
-                    #endregion
-
-                    #endregion
                 }
                 else
                 {
                     // 根本找不到這個要被點名的名單，所以就甚麼也不做
                 }
-
                 return;
             }
             catch (System.Exception Exception)
@@ -3968,20 +3970,27 @@ namespace ChurchReport.WebServiceConnector
                 //// 在轉換回報的委身類型指標 SpiritualIdentity
                 int CustomerTypeCode = ConvertIdentityToIndex(aMember.Status);
 
-                if (aIdentity != CustomerTypeCode)
+                if (aIdentity > 0)
                 {
-                    // 委身類型系統原來的旱小組長上傳的有不一致
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(ref aContact, "customertypecode", CustomerTypeCode);
+                    if (aIdentity != CustomerTypeCode)
+                    {
+                        // 委身類型系統原來的旱小組長上傳的有不一致
+                        this.m_ToolUtilityClass.SetOptionSetAttribute(ref aContact, "customertypecode", CustomerTypeCode);
+
+                        return true;
+                    }
+                    else
+                    {
+                        // 委身類型系統原來的和小組長上傳的一致
+                        return false;
+                    }
 
                     return true;
                 }
                 else
                 {
-                    // 委身類型系統原來的和小組長上傳的一致
                     return false;
                 }
-
-                return true;
             }
             catch (System.Exception e)
             {
@@ -4300,7 +4309,7 @@ namespace ChurchReport.WebServiceConnector
 
                 if (aSpiritualIdentity != SpiritualIdentityCode)
                 {
-                    // 委身類型系統原來的旱小組長上傳的有不一致
+                    // 受洗狀態系統原來的與小組長上傳的有不一致
                     this.m_ToolUtilityClass.SetOptionSetAttribute(ref aContact, "new_spiriitual_identity", SpiritualIdentityCode);
 
                     return true;
