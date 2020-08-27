@@ -175,7 +175,9 @@ namespace ChurchReport.Tools
                     {
                         Entity aRetrievedPresentRecord = this.m_ToolUtilityClass.RetrieveEntity("new_present_record", aPresentRecord.Id);
 
-                        // 進行簽到或是簽退
+
+                        // 進行簽到或是簽退 => 整理彈跳網頁訊息 + 送出 LINE 訊息
+                        // 還沒簽到及簽退，設定簽到時間，主日出席設為1，更新個人聚會與靈修記錄
                         SigningProcess(aRetrievedPresentRecord, OnboardType);
 
                         #region 設定聚會統計關聯
