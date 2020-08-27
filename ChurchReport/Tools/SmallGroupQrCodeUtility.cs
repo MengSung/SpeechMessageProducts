@@ -20,6 +20,7 @@ using System.Text.RegularExpressions;
 using ChurchReport.Models;
 using ToolUtility;
 using Line.Messaging;
+using Microsoft.CodeAnalysis;
 #endregion
 
 namespace ChurchReport.Tools
@@ -51,6 +52,7 @@ namespace ChurchReport.Tools
         // 永和禮拜堂
         private const String CHANNEL_ACCESS_TOKEN = @"HeuLkSEF5CX7hdZo4956IPpgJNdb8VqRZeL1Gu37kFFm+1F7DObAGjfeVYaggzwjZ5H4qraesvquODt7Y81jbtspNZkEq5n3oLDG+G32xQsRx1jCobkABL/Z7RKjkSACNT6h72bPQXsVn9aCuI5OogdB04t89/1O/w1cDnyilFU=";
 
+        static readonly object m_UpdateSmallGroupWeeklyReportLocker = new object();//避免多人同時輸入"小組出席"，會產生2個週報或是改變"委身類型"、"裝備狀態"                                                                 //private const bool RACE_LEADER_CAN_CREATE_WEEKLYREPORT = false; // 族系組長能否幫小組長建立週報，false 不可以
 
         // 神學生預設費用
         private const decimal GOD_STUDENT_FEE = 400;
@@ -74,50 +76,52 @@ namespace ChurchReport.Tools
         {
             try
             {
-                #region 設定區域變數
-                m_UserLineId = UserLineId;
-
-                // 取得掃描者全名
-                m_Contact = this.m_ToolUtilityClass.RetrieveContactEntityByLineUserId(UserLineId);
-                if( m_Contact == null )
+                lock (m_UpdateSmallGroupWeeklyReportLocker)
                 {
-                    // 透過 LINE ID 找不到此好友，可能還沒加入官LINE@
-                    //this.AddNewFriend(DisplayName, UserLineId);
+                    #region 設定區域變數
+                    m_UserLineId = UserLineId;
 
-                    OnboardType = "錯誤 : " + DisplayName + "還沒有加入永和禮拜堂的 Line@";
+                    // 取得掃描者全名
+                    m_Contact = this.m_ToolUtilityClass.RetrieveContactEntityByLineUserId(UserLineId);
+                    if (m_Contact == null)
+                    {
+                        // 透過 LINE ID 找不到此好友，可能還沒加入官LINE@
+                        //this.AddNewFriend(DisplayName, UserLineId);
 
-                    return;
+                        OnboardType = "錯誤 : " + DisplayName + "還沒有加入永和禮拜堂的 Line@";
+
+                        return;
+                    }
+                    m_UserName = UserName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref m_Contact, "fullname");
+
+                    // 取得週報
+                    string[] arr = QrCodeIdString.Split('_');
+                    Guid aGuid = new Guid(arr[0]);
+                    m_WeeklyReport = this.m_ToolUtilityClass.RetrieveEntity("new_group_present_weekly_report", aGuid);
+
+                    // 取得小組名稱，並且回傳給網頁去顯示
+                    m_SmallGroupName = SmallGroupName = this.m_ToolUtilityClass.GetEntityLookupDisplayName(m_WeeklyReport, "new_list_group_present_weekly_report");
+
+                    // 設定是簽到還是簽退
+                    m_OnboardType = arr[1];
+
+                    #endregion
+
+                    // 取得週報名稱
+                    String WeeklyReportName = this.m_ToolUtilityClass.GetEntityStringAttribute(m_WeeklyReport, "new_name");
+                    // 個人聚會與靈修記錄進行簽到退 , 同時傳回結果
+                    SigningWeeklyReport(m_WeeklyReport, WeeklyReportName, UserName, m_Contact.Id.ToString(), m_OnboardType);
+
+                    // 傳回給網頁簽到或簽退時間，及是否已簽到過了
+                    OnboardType = m_OnboardTypeInfo;
+
+                    // 計算週報出席人數及出席率
+                    if (m_OnboardTypeInfo.StartsWith("錯誤") != true)
+                    {
+                        this.m_ToolUtilityClass.SetEntityStringAttribute(ref m_WeeklyReport, "new_saved_flag", "計算出席率");
+                        this.m_ToolUtilityClass.UpdateEntity(ref m_WeeklyReport);
+                    }
                 }
-                m_UserName = UserName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref m_Contact, "fullname");
-
-                // 取得週報
-                string[] arr = QrCodeIdString.Split('_');
-                Guid aGuid = new Guid(arr[0]);
-                m_WeeklyReport = this.m_ToolUtilityClass.RetrieveEntity("new_group_present_weekly_report", aGuid);
-
-                // 取得小組名稱，並且回傳給網頁去顯示
-                m_SmallGroupName = SmallGroupName = this.m_ToolUtilityClass.GetEntityLookupDisplayName( m_WeeklyReport, "new_list_group_present_weekly_report");
-
-                // 設定是簽到還是簽退
-                m_OnboardType = arr[1];
-
-                #endregion
-
-                // 取得週報名稱
-                String WeeklyReportName = this.m_ToolUtilityClass.GetEntityStringAttribute(m_WeeklyReport, "new_name");
-                // 個人聚會與靈修記錄進行簽到退 , 同時傳回結果
-                SigningWeeklyReport( m_WeeklyReport, WeeklyReportName, UserName, m_Contact.Id.ToString(), m_OnboardType );
-
-                // 傳回給網頁簽到或簽退時間，及是否已簽到過了
-                OnboardType = m_OnboardTypeInfo;
-
-                // 計算週報出席人數及出席率
-                if (m_OnboardTypeInfo.StartsWith("錯誤") != true)
-                {
-                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref m_WeeklyReport, "new_saved_flag", "計算出席率");
-                    this.m_ToolUtilityClass.UpdateEntity(ref m_WeeklyReport);
-                }
-
             }
             catch (System.Exception Exception)
             {

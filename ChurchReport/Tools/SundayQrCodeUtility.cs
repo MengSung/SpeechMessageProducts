@@ -39,6 +39,9 @@ namespace ChurchReport.Tools
         private String m_OnboardTypeInfo = "";              //簽到還是簽退
 
         private DateTime m_SigningTime;
+
+        static readonly object m_UpdateSundayWeeklyReportLocker = new object();//避免多人同時輸入"小組出席"，會產生2個週報或是改變"委身類型"、"裝備狀態"                                                                 //private const bool RACE_LEADER_CAN_CREATE_WEEKLYREPORT = false; // 族系組長能否幫小組長建立週報，false 不可以
+
         // 客製化
         // 永和禮拜堂
         private const String CHANNEL_ACCESS_TOKEN = @"HeuLkSEF5CX7hdZo4956IPpgJNdb8VqRZeL1Gu37kFFm+1F7DObAGjfeVYaggzwjZ5H4qraesvquODt7Y81jbtspNZkEq5n3oLDG+G32xQsRx1jCobkABL/Z7RKjkSACNT6h72bPQXsVn9aCuI5OogdB04t89/1O/w1cDnyilFU=";
@@ -188,15 +191,18 @@ namespace ChurchReport.Tools
                         this.m_ToolUtilityClass.UpdateEntity(ref aRetrievedPresentRecord);
 
                         #region// 計算週報主日出席人數及出席率
-                        Guid aWeeklyReportId = this.m_ToolUtilityClass.GetEntityLookupAttribute(aRetrievedPresentRecord, "new_group_present_weekly_report_prese");
-
-                        if (aWeeklyReportId != Guid.Empty)
+                        lock (m_UpdateSundayWeeklyReportLocker)//避免多人同時掃描"，會產生2個週報或是改變"委身類型"、"裝備狀態"  
                         {
-                            Entity aWeeklyReportEntity = this.m_ToolUtilityClass.RetrieveEntity("new_group_present_weekly_report", aWeeklyReportId);
-                            if (aWeeklyReportEntity != null)
+                            Guid aWeeklyReportId = this.m_ToolUtilityClass.GetEntityLookupAttribute(aRetrievedPresentRecord, "new_group_present_weekly_report_prese");
+
+                            if (aWeeklyReportId != Guid.Empty)
                             {
-                                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aWeeklyReportEntity, "new_saved_flag", "計算出席率");
-                                this.m_ToolUtilityClass.UpdateEntity(ref aWeeklyReportEntity);
+                                Entity aWeeklyReportEntity = this.m_ToolUtilityClass.RetrieveEntity("new_group_present_weekly_report", aWeeklyReportId);
+                                if (aWeeklyReportEntity != null)
+                                {
+                                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aWeeklyReportEntity, "new_saved_flag", "計算出席率");
+                                    this.m_ToolUtilityClass.UpdateEntity(ref aWeeklyReportEntity);
+                                }
                             }
                         }
                         #endregion
@@ -241,7 +247,7 @@ namespace ChurchReport.Tools
                 DateTime aSigningTime = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aRetrievedPresentRecord, aPresentRecordSigningAttribute);
                 if (aSigningTime.Year <= 1)
                 {
-                    // 還沒簽到及簽退，設定簽到時間，主日出席設為1，更新個人聚會與靈修記錄
+                    // 還沒簽到及簽退，設定簽到時間，主日出席設為1，更新個人聚會與靈修記錄 + 送出 LINE 訊息
                     SetPresentRecordTimeAttribute(aRetrievedPresentRecord, aPresentRecordSigningAttribute, "new_sunday_present_this_week");
                 }
                 else
