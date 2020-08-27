@@ -181,7 +181,7 @@ namespace ChurchReport.WebServiceConnector
                                 SundayPresentRate = 0,
                             };
 
-                            // 由於是新建立的週報，當回傳完成實，回到網頁操作，如果使用者又再繼續操作，就必須設定告知新建立的週報ID =WeeklyReportEntityId ，以免重複建立
+                            // 由於是新建立的週報，當回傳完成時，回到網頁操作，如果使用者又再繼續操作，就必須設定告知新建立的週報ID =WeeklyReportEntityId ，以免重複建立
                             aGraceLeaderWeeklyReportEntity = CreateWeeklyReportAndPresentRecord(GroupName, aGroupWeeklyReportGuid, ref WeeklyReportEntityId, ref m_ListEntity, "", ValidNumber, ref aWeeklySundayRate, ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber, aSmallGroupData, WeeklyReportData, HappyWeekIndex, HappyWeekTopic, PauseCheckBox);
                             //}
                             #endregion
@@ -4304,23 +4304,29 @@ namespace ChurchReport.WebServiceConnector
                 // 先找到系統的受洗狀態指標
                 int aSpiritualIdentity = this.m_ToolUtilityClass.GetOptionSetAttribute(ref aContact, "new_spiriitual_identity");
 
-                //// 在轉換回報的受洗狀態指標 SpiritualIdentity
-                int SpiritualIdentityCode = ConvertSpiritualIdentityToIndex(aMember.SpiritualIdentity);
-
-                if (aSpiritualIdentity != SpiritualIdentityCode)
+                if (aSpiritualIdentity > 0)
                 {
-                    // 受洗狀態系統原來的與小組長上傳的有不一致
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(ref aContact, "new_spiriitual_identity", SpiritualIdentityCode);
+                    //// 在轉換回報的受洗狀態指標 SpiritualIdentity
+                    int SpiritualIdentityCode = ConvertSpiritualIdentityToIndex(aMember.SpiritualIdentity);
 
-                    return true;
+                    if (aSpiritualIdentity != SpiritualIdentityCode)
+                    {
+                        // 受洗狀態系統原來的與小組長上傳的有不一致
+                        this.m_ToolUtilityClass.SetOptionSetAttribute(ref aContact, "new_spiriitual_identity", SpiritualIdentityCode);
+
+                        return true;
+                    }
+                    else
+                    {
+                        // 委身類型系統原來的和小組長上傳的一致
+                        return false;
+                    }
                 }
                 else
                 {
-                    // 委身類型系統原來的和小組長上傳的一致
+                    // 系統的受洗狀態指標值小於0
                     return false;
                 }
-
-                return true;
             }
             catch (System.Exception e)
             {
