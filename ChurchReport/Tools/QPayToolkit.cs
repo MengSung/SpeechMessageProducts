@@ -26,6 +26,10 @@ namespace ChurchReport.Tools
         private static string _site = "https://funbiz.sinopac.com/QPay.WebAPI/api/";
 
         // SANDBOX 測試用
+        //private const String A1 = "5E854757C751413F";
+        //private const String A2 = "D743D0EB06904837";
+        //private const String B1 = "08169D5445644513";
+        //private const String B2 = "8E52B5A180EE4399";
         //private const String HASH_CODE = "5E854757C751413F,D743D0EB06904837,08169D5445644513,8E52B5A180EE4399";
 
         // 永豐金流寄給永和禮拜堂的HASH CODE
@@ -33,6 +37,7 @@ namespace ChurchReport.Tools
         private const String A2 = "7E460E920A184845";
         private const String B1 = "DEA83EFB714943F3";
         private const String B2 = "DC237C5C69914F0C";
+
         private const String HASH_CODE = A1 + "," + A2 +"," + B1 + "," + B2;
 
         #region Public method
@@ -155,9 +160,9 @@ namespace ChurchReport.Tools
 
             //將取得雜湊值以逗號(,)分隔並轉小寫，產生string陣列
             //string[] apiKeys = apiKeyData.ToLower().Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
-            //string[] apiKeys = HASH_CODE.ToLower().Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+            string[] apiKeys = HASH_CODE.ToLower().Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
             //string[] apiKeys = "5E854757C751413F,D743D0EB06904837,08169D5445644513,8E52B5A180EE4399".ToLower().Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
-            string[] apiKeys = "D1695F439A69448F,7E460E920A184845,DEA83EFB714943F3,DC237C5C69914F0C".ToLower().Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+            //string[] apiKeys = "D1695F439A69448F,7E460E920A184845,DEA83EFB714943F3,DC237C5C69914F0C".ToLower().Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
 
             //產生取Nonce Request
             NonceReq nonceReq = new NonceReq(shopNo);

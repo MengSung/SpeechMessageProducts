@@ -28,6 +28,7 @@ namespace ChurchReport.WebServiceConnector
     public class QPayProcessor
     {
         #region 資料區
+        // 商店編號
         //string m_ShopNo = "NA0149_001";
         string m_ShopNo = "DA1626_001";
 
