@@ -28,7 +28,8 @@ namespace ChurchReport.WebServiceConnector
     public class QPayProcessor
     {
         #region 資料區
-        string m_ShopNo = "NA0149_001";
+        //string m_ShopNo = "NA0149_001";
+        string m_ShopNo = "DA1626_001";
 
         // 使用 LineMessageApi WebHook
         //private const String RETURN_URL = "https://yhchurchback.speechmessage.com.tw:454/api/QPayCard/QPayReturnUrl";
