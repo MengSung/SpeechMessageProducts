@@ -10,7 +10,7 @@ using ToolUtilityNameSpace;
 
 namespace ChurchReport.Tools
 {
-    public class QPayCardWebhook : IDisposable
+    public class QPayCardWebhook : Controller, IDisposable
     {
         private LineMessagingClient m_LineMessagingClient { get; }
 
@@ -88,11 +88,13 @@ namespace ChurchReport.Tools
             {
                 if (aQryOrderPay.Status == "S")
                 {
-                    return new OkObjectResult("信用卡付款結果成功!" + Environment.NewLine + aQryOrderPay.Description);
+                    return Json(new Dictionary<string, string>() { { "Status", "S" } });
+                    //return new OkObjectResult("信用卡付款結果成功!" + Environment.NewLine + aQryOrderPay.Description);
                 }
                 else
                 {
-                    return new OkObjectResult("信用卡付款結果失敗!" + Environment.NewLine + aQryOrderPay.Description);
+                    return Json(new Dictionary<string, string>() { { "Status", "S" } });
+                    //return new OkObjectResult("信用卡付款結果失敗!" + Environment.NewLine + aQryOrderPay.Description);
                 }
             }
             else { }
@@ -195,18 +197,21 @@ namespace ChurchReport.Tools
                     // LINE 通知付款人
                     this.m_PushUtility.SendMessage(UserLineId, "信用卡付款結果成功!" + Environment.NewLine + Description);
 
-                    return new OkObjectResult("已經完成了信用卡付款!" + Environment.NewLine + Description + "教會感謝" + aFullName + "您的奉獻!");
+                    return Json(new Dictionary<string, string>() { { "Status", "S" } });
+                    //return new OkObjectResult("已經完成了信用卡付款!" + Environment.NewLine + Description + "教會感謝" + aFullName + "您的奉獻!");
 
                     #endregion
                 }
                 else
                 {
-                    return new OkObjectResult("信用卡付款結果成功!" + Environment.NewLine + Description + "教會感謝" + aFullName + "您的奉獻!");
+                    return Json(new Dictionary<string, string>() { { "Status", "S" } });
+                    //return new OkObjectResult("信用卡付款結果成功!" + Environment.NewLine + Description + "教會感謝" + aFullName + "您的奉獻!");
                 }
             }
             else
             {
-                return new OkObjectResult("信用卡付款結果失敗!" + Environment.NewLine + Description);
+                return Json(new Dictionary<string, string>() { { "Status", "S" } });
+                //return new OkObjectResult("信用卡付款結果失敗!" + Environment.NewLine + Description);
             }
         }
 
