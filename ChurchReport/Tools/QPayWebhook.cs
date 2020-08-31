@@ -117,81 +117,92 @@ namespace ChurchReport.Tools
 
             if (aQryOrderPay.Status == "S")
             {
-                // 收費單付款日期
-                this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aFeeEntity, "new_pay_date", DateTime.Now.ToLocalTime());
-                // 收費單總共實收金額
-                Money aTotalPaid = new Money(Convert.ToUInt32(this.m_ToolUtilityClass.GetEntityMoneyAttribute(ref aFeeEntity, "new_fee_really_paid").Value + new Money((int)Convert.ToUInt32(aQryOrderPay.TSResultContent.Amount) / 100).Value));
-                this.m_ToolUtilityClass.SetEntityMoneyAttribute(ref aFeeEntity, "new_fee_really_paid", aTotalPaid);
-                // 收費單實現阿拉伯數字到大寫中文的轉換，金額轉為大寫金額
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeEntity, "new_big_chinese_number", MoneyToChinese((Convert.ToUInt32(aQryOrderPay.TSResultContent.Amount) / 100).ToString()));
-                // 收費單付款方式
-                this.m_ToolUtilityClass.SetOptionSetAttribute(ref aFeeEntity, "new_pay_way", 100000001); // 100000001 = 信用卡
-                // 收費單付款狀態
-                this.m_ToolUtilityClass.SetOptionSetAttribute(ref aFeeEntity, "new_pay_status", 100000001); // 100000001 = 信用卡已繳費
-                                                                                                            // 收費單說明
-                String aOriginalDescription = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aFeeEntity, "new_description");
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeEntity, "new_description", aOriginalDescription + Description);
-
-                // 付款紀錄
-                String aPaymentRecords =
-                        this.m_ToolUtilityClass.GetEntityStringAttribute(aFeeEntity, "new_payment_records") +
-                        DateTime.Now.ToString() +
-                        ": 信用卡訂單編號= " + aQryOrderPay.TSResultContent.OrderNo +
-                        "，金額:" + ((int)Convert.ToUInt32(aQryOrderPay.TSResultContent.Amount) / 100).ToString() +
-                        Environment.NewLine;
-
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeEntity, "new_payment_records", aPaymentRecords);
-
-                if (aQryOrderPay.TSResultContent.OrderNo.StartsWith("C"))
+                if (this.m_ToolUtilityClass.GetEntityStringAttribute(aFeeEntity, "new_payment_records").Contains(aQryOrderPay.TSResultContent.OrderNo) != true && this.m_ToolUtilityClass.GetOptionSetAttribute( ref aFeeEntity, "new_pay_status") == 100000000 ) 
                 {
-                    // 已付款信用卡訂單編號
-                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeEntity, "new_q_paid_card_order_no", aQryOrderPay.TSResultContent.OrderNo);
-                }
+                    // 付款狀態 等於 "新建立"
+                    #region 信用卡會回傳2次，一次是RETURN_URL、一次是BACKEND_URL，為免收費單紀錄信用卡兩次，所以如果這裡已經有信用卡訂單編號，就不再處理了
+                    // 收費單付款日期
+                    this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aFeeEntity, "new_pay_date", DateTime.Now.ToLocalTime());
+                    // 收費單總共實收金額
+                    Money aTotalPaid = new Money(Convert.ToUInt32(this.m_ToolUtilityClass.GetEntityMoneyAttribute(ref aFeeEntity, "new_fee_really_paid").Value + new Money((int)Convert.ToUInt32(aQryOrderPay.TSResultContent.Amount) / 100).Value));
+                    this.m_ToolUtilityClass.SetEntityMoneyAttribute(ref aFeeEntity, "new_fee_really_paid", aTotalPaid);
+                    // 收費單實現阿拉伯數字到大寫中文的轉換，金額轉為大寫金額
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeEntity, "new_big_chinese_number", MoneyToChinese((Convert.ToUInt32(aQryOrderPay.TSResultContent.Amount) / 100).ToString()));
+                    // 收費單付款方式
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(ref aFeeEntity, "new_pay_way", 100000001); // 100000001 = 信用卡
+                                                                                                             // 收費單付款狀態
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(ref aFeeEntity, "new_pay_status", 100000001); // 100000001 = 信用卡已繳費
+                                                                                                                // 收費單說明
+                    String aOriginalDescription = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aFeeEntity, "new_description");
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeEntity, "new_description", aOriginalDescription + Description);
 
-                // 更新收費單
-                this.m_ToolUtilityClass.UpdateEntity(ref aFeeEntity);
+                    // 付款紀錄
+                    String aPaymentRecords =
+                            this.m_ToolUtilityClass.GetEntityStringAttribute(aFeeEntity, "new_payment_records") +
+                            DateTime.Now.ToString() +
+                            ": ReturnUrl => 信用卡訂單編號= " + aQryOrderPay.TSResultContent.OrderNo +
+                            "，金額:" + ((int)Convert.ToUInt32(aQryOrderPay.TSResultContent.Amount) / 100).ToString() +
+                            Environment.NewLine;
 
-                #region// 取得上課紀錄單，更新報名狀態
-                Guid aStorLessonsId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aFeeEntity, "new_stor_lessons_new_fee");
-                if (aStorLessonsId != Guid.Empty)
-                {
-                    Entity aStorLessons = this.m_ToolUtilityClass.RetrieveEntity("new_stor_lessons", aStorLessonsId);
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeEntity, "new_payment_records", aPaymentRecords);
 
-                    #region 報名狀態
-                    // 有審核的教會=>報名成功:永和禮拜堂
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(ref aStorLessons, "new_enroll_status", 100000008);
+                    if (aQryOrderPay.TSResultContent.OrderNo.StartsWith("C"))
+                    {
+                        // 已付款信用卡訂單編號
+                        this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeEntity, "new_q_paid_card_order_no", aQryOrderPay.TSResultContent.OrderNo);
+                    }
+
+                    // 更新收費單
+                    this.m_ToolUtilityClass.UpdateEntity(ref aFeeEntity);
+
+                    #region// 取得上課紀錄單，更新報名狀態
+                    Guid aStorLessonsId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aFeeEntity, "new_stor_lessons_new_fee");
+                    if (aStorLessonsId != Guid.Empty)
+                    {
+                        Entity aStorLessons = this.m_ToolUtilityClass.RetrieveEntity("new_stor_lessons", aStorLessonsId);
+
+                        #region 報名狀態
+                        // 有審核的教會=>報名成功:永和禮拜堂
+                        this.m_ToolUtilityClass.SetOptionSetAttribute(ref aStorLessons, "new_enroll_status", 100000008);
+                        #endregion
+
+                        this.m_ToolUtilityClass.UpdateEntity(ref aStorLessons);
+                    }
                     #endregion
 
-                    this.m_ToolUtilityClass.UpdateEntity(ref aStorLessons);
-                }
-                #endregion
-
-                #region// 設定連絡人信用卡資訊
-                if (aQryOrderPay.TSResultContent.CCToken != "")
-                {
-                    String VisaInfo = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContact, "new_visa_info");
-
-                    if (IsCreditCardInList(aContact, aQryOrderPay) != true)
+                    #region// 設定連絡人信用卡資訊
+                    if (aQryOrderPay.TSResultContent.CCToken != "")
                     {
-                        VisaInfo =
-                                aQryOrderPay.TSResultContent.CCToken + "，" +
-                                aQryOrderPay.TSResultContent.LeftCCNo + "，" +
-                                aQryOrderPay.TSResultContent.RightCCNo + "，" +
-                                //aQryOrderPay.TSResultContent.AuthCode + "，" +
-                                aQryOrderPay.TSResultContent.CCExpDate +
-                                "|" + VisaInfo;
+                        String VisaInfo = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContact, "new_visa_info");
 
-                        this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContact, "new_visa_info", VisaInfo);
+                        if (IsCreditCardInList(aContact, aQryOrderPay) != true)
+                        {
+                            VisaInfo =
+                                    aQryOrderPay.TSResultContent.CCToken + "，" +
+                                    aQryOrderPay.TSResultContent.LeftCCNo + "，" +
+                                    aQryOrderPay.TSResultContent.RightCCNo + "，" +
+                                    //aQryOrderPay.TSResultContent.AuthCode + "，" +
+                                    aQryOrderPay.TSResultContent.CCExpDate +
+                                    "|" + VisaInfo;
 
-                        this.m_ToolUtilityClass.UpdateEntity(ref aContact);
+                            this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContact, "new_visa_info", VisaInfo);
+
+                            this.m_ToolUtilityClass.UpdateEntity(ref aContact);
+                        }
                     }
+                    #endregion
+
+                    // LINE 通知付款人
+                    this.m_PushUtility.SendMessage(UserLineId, "信用卡付款結果成功!" + Environment.NewLine + Description);
+
+                    return new OkObjectResult("已經完成了信用卡付款!" + Environment.NewLine + Description + "教會感謝" + aFullName + "您的奉獻!");
+
+                    #endregion
                 }
-                #endregion
-
-                // LINE 通知付款人
-                this.m_PushUtility.SendMessage(UserLineId, "信用卡付款結果成功!" + Environment.NewLine + Description);
-
-                return new OkObjectResult("信用卡付款結果成功!" + Environment.NewLine + Description + "教會感謝" + aFullName + "您的奉獻!");
+                else
+                {
+                    return new OkObjectResult("信用卡付款結果成功!" + Environment.NewLine + Description + "教會感謝" + aFullName + "您的奉獻!");
+                }
             }
             else
             {
