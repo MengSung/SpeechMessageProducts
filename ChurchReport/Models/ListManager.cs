@@ -19,6 +19,7 @@ namespace ChurchReport.Models
         public String DisplayNavigation { get; set; } = "";
         public String UserType = "";
         public String DedicationType = "";
+        public String DedicationFlag = "";
 
         public String QrCodeId { get; set; } = "";
         //public String ListName { get; set; } // 小組名稱

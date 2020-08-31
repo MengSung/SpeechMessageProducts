@@ -4460,6 +4460,10 @@ namespace ChurchReport.Controllers
                     ViewBag.DisplayNavigation = m_InMemoryDataContextSmallGroup.ListManager.DisplayNavigation = "不顯示牧養回報項目";
                     ViewBag.UserType = m_InMemoryDataContextSmallGroup.ListManager.UserType = "行政同工";
                     ViewBag.DedicationType = m_InMemoryDataContextSmallGroup.ListManager.UserType = "奉獻管理";
+
+                    // 6個按鈕，點擊奉獻，要加入按鈕"奉獻清單"
+                    ViewBag.DedicationFlag = m_InMemoryDataContextSmallGroup.ListManager.DedicationFlag = "奉獻";
+
                     // 教會職稱是否是會計
                     ViewBag.IsAOfficeWorker = m_InMemoryDataContextSmallGroup.QpayManager.m_QpayModel.IsAOfficeWorker == true ? "是的" : "否";
                 }

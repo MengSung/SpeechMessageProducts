@@ -127,10 +127,17 @@ namespace ChurchReport.WebServiceConnector
                 {
                     CreOrder CreatedCardOrder = await CreOrderCard(QpayModel.Amount, QpayModel.Category, DateTime.Now.ToString("yyyyMMddhhmmssfff"), aCreatedFeeId.ToString(), QpayModel.SelectedCreditCard);
 
-                    // 用剛剛建立的收費單，填寫訂單編號
-                    UpdateFee(ref aFeeToUpdate, CreatedCardOrder.OrderNo, "", "");
+                    if (CreatedCardOrder.CardParam != null && CreatedCardOrder.CardParam.CardPayURL != null)
+                    {
+                        // 用剛剛建立的收費單，填寫訂單編號
+                        UpdateFee(ref aFeeToUpdate, CreatedCardOrder.OrderNo, "", "");
 
-                    return CreatedCardOrder.CardParam.CardPayURL;
+                        return CreatedCardOrder.CardParam.CardPayURL;
+                    }
+                    else
+                    {
+                        return "信用卡繳費失敗!";
+                    }
                 }
                 else
                 {

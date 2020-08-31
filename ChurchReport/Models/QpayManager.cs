@@ -336,15 +336,20 @@ namespace ChurchReport.Models
                     String DedicationResult = await m_QPayProcessor.CreateFeeAsync(m_Contact, QpayModel);
 
                     String PayWay = "";
-                    if (DedicationResult.Contains("*** 請依照訊息付款 ***") != true)
+                    if(DedicationResult == "信用卡繳費失敗!")
+                    {
+                        return Json(new { status = "2", message = "信用卡繳費失敗!" });
+                    }
+                    else if(DedicationResult.Contains("*** 請依照訊息付款 ***") != true)
                     {
                         PayWay = "信用卡";
+                        return Json(new { status = "1", message = "感謝您的奉獻", DedicationResult = DedicationResult, PayWay = PayWay });
                     }
                     else
                     {
                         PayWay = "虛擬帳號";
+                        return Json(new { status = "1", message = "感謝您的奉獻", DedicationResult = DedicationResult, PayWay = PayWay });
                     }
-                    return Json(new { status = "1", message = "感謝您的奉獻", DedicationResult = DedicationResult, PayWay = PayWay });
                 }
                 else
                 {
