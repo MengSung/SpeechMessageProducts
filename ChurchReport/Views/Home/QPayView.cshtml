@@ -573,11 +573,25 @@
             if (data.PayWay == "信用卡") {
                 //alert("成功 3");
                 ShowToast(data.message, "success", 2000);
+
+                // 方法1
                 //window.open(data.DedicationResult);
-                window.open(data.DedicationResult, "_blank");
-                //window.location.href = data.DedicationResult;
+                //window.open(data.DedicationResult, "_blank");
+
+                // 方法2
+                window.location.href = data.DedicationResult;
+
+                // 方法3
+                //setTimeout('window.open(data.DedicationResult, "_blank");', 500); // 延遲時間不能太短 否則也會被攔截
+
+                // 方法4
+                //var mywin = window.open("about:blank", "redirect");
+                //var someCallback = function (url) {
+                //    mywin.open(url, "redirect");
+                //};
             }
-            else {
+            else
+            {
                 ShowToast(data.message, "success", 2000);
                 document.getElementById('atmfield').innerHTML = data.DedicationResult;
             }
