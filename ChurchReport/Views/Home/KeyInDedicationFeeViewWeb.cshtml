@@ -233,6 +233,7 @@
                                 columns.AddFor(m => m.NationId).Caption("身分證字號").Width(100).MinWidth(100).Fixed(true);
                                 columns.AddFor(m => m.FullName).Caption("姓名").Width(100).MinWidth(100).Fixed(true);
                                 columns.AddFor(m => m.Mobile).Caption("電話").Width(100).MinWidth(100);
+                                columns.AddFor(m => m.SmallGroupName).Caption("所屬小組").Width(100).MinWidth(100);
                             })
                             .DataSource(d => d
                             .WebApi()

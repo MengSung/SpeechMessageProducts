@@ -1631,6 +1631,7 @@ namespace ToolUtilityNameSpace
                                 <attribute name='mobilephone' />
                                 <attribute name='emailaddress1' />
                                 <attribute name='pager' />
+                                <attribute name='new_cell_list_contact' />
                                 <attribute name='new_personal_id' />
                                 <attribute name='contactid' />
                                 <order attribute='fullname' descending='false' />

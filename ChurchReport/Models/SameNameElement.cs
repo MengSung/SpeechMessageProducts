@@ -10,5 +10,6 @@ namespace ChurchReport.Models
         public String NationId { get; set; }
         public String FullName { get; set; }
         public string Mobile { get; set; }
+        public string SmallGroupName { get; set; }
     }
 }

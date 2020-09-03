@@ -108,6 +108,8 @@ namespace ChurchReport.Models
                             aSameNameElement.Mobile = m_ToolUtilityClass.GetEntityStringAttribute(aContact, "telephone2");
                         }
 
+                        aSameNameElement.SmallGroupName = this.m_ToolUtilityClass.GetEntityLookupDisplayName(aContact, "new_cell_list_contact");
+
                         m_QpayModel.SameNameList.Add(aSameNameElement);
                     };
 
