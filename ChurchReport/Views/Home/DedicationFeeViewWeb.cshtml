@@ -139,7 +139,7 @@
             .Columns(columns =>
             {
                 columns.AddFor(m => m.Category).Caption("奉獻類別").Width(50).MinWidth(80).AllowEditing(false).AllowSorting(true);
-                columns.AddFor(m => m.DedicationDate).Caption("奉獻日期").Alignment(HorizontalAlignment.Center).DataType(GridColumnDataType.Date).Format("yyyy/M/d").Width(100).MinWidth(45).AllowEditing(false).AllowSorting(true)
+                columns.AddFor(m => m.DedicationDate).Caption("奉獻日期").Alignment(HorizontalAlignment.Center).DataType(GridColumnDataType.Date).Format("yyyy/M/d").Width(100).MinWidth(45).AllowEditing(false).AllowSorting(true).Visible(false)
                             .CalculateCellValue(@<text>
                                         function(row)
                                         {
