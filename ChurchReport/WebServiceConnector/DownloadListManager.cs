@@ -363,7 +363,11 @@ namespace ChurchReport.WebServiceConnector
                 {
                     if (m_ToolUtilityClass.GetEntityBoolAttribute(ListEntity, "new_app_named") == true)
                     {
-                        aLocalEntityCollection.Entities.Add(ListEntity);
+                        if (this.m_ToolUtilityClass.GetEntityStringAttribute(ListEntity, "listname").Contains("幸福") != true)
+                        {
+                            // 個人回報不須回報至幸福小組
+                            aLocalEntityCollection.Entities.Add(ListEntity);
+                        }
                     }
                 }
                 this.m_Lists.Entities.Clear();
