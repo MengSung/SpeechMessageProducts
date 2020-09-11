@@ -470,6 +470,15 @@ namespace ChurchReport.WebServiceConnector
                     SetPayStatus("現金已繳費", ref aFeeToCreated);
 
                 }
+                else if (QpayModel.PayWay == "銀行轉帳")
+                {
+                    // 收費單實收金額，如果付款方式是"現金"，就預設是足額實收，因為程式應該是跑行政人員收奉獻，所以就都表示已付款
+                    this.m_ToolUtilityClass.SetEntityMoneyAttribute(ref aFeeToCreated, "new_fee_really_paid", new Money(QpayModel.Amount));
+
+                    // 收費單付款狀態，預設是現金已繳費
+                    SetPayStatus("銀行轉帳已繳費", ref aFeeToCreated);
+
+                }
                 else
                 {
                     // 收費單實收金額
@@ -597,6 +606,9 @@ namespace ChurchReport.WebServiceConnector
                 case "ATM轉帳/匯款":
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_pay_way", 100000002);
                     break;
+                case "銀行轉帳":
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_pay_way", 100000006);
+                    break;
                 case "超商付款":
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_pay_way", 100000004);
                     break;
@@ -622,6 +634,9 @@ namespace ChurchReport.WebServiceConnector
                     break;
                 case "現金已繳費":
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_pay_status", 100000003);
+                    break;
+                case "銀行轉帳已繳費":
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_pay_status", 100000004);
                     break;
                 default:
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_pay_status", 100000000);

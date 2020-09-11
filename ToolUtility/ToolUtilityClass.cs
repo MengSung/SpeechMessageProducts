@@ -1646,6 +1646,7 @@ namespace ToolUtilityNameSpace
                                     <condition attribute='new_personal_id' operator='like' value=" + NationId + @" />
                                     <condition attribute='new_last_six_digit' operator='like' value=" + LastSixDigit + @" />
                                   </filter>
+                                    <condition attribute='statuscode' operator='eq' value='1' />
                                 </filter>
                               </entity>
                             </fetch>";
