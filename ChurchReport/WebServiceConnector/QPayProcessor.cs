@@ -497,7 +497,7 @@ namespace ChurchReport.WebServiceConnector
                 SetPayMethod(QpayModel.PayWay, ref aFeeToCreated);
 
                 // 帳戶後六碼
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeToCreated, "new_last_six_digit", QpayModel.SerialNumber);
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeToCreated, "new_last_six_digit", QpayModel.LastSixDigit);
 
                 // 收費單收費日期
                 this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aFeeToCreated, "new_pay_date", QpayModel.DedicationDate.ToLocalTime());
