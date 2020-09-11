@@ -129,50 +129,60 @@
                                .FocusStateEnabled(true)
                           );
 
-         items.AddSimpleFor(m => m.DedicationNumber)
-                //.DataField("LastName")
-                .Label(l => l.Text("奉獻編號"))
-                .Editor(e => e
-                    .TextBox()
-                    .Width(120)
-                    .Disabled(false)
-                    .Placeholder("輸入奉獻編號")
-                    .FocusStateEnabled(true)
-               );
+                     items.AddSimpleFor(m => m.DedicationNumber)
+                            //.DataField("LastName")
+                            .Label(l => l.Text("奉獻編號"))
+                            .Editor(e => e
+                                .TextBox()
+                                .Width(120)
+                                .Disabled(false)
+                                .Placeholder("輸入奉獻編號")
+                                .FocusStateEnabled(true)
+                           );
 
-         items.AddSimpleFor(m => m.NationId)
-               //.DataField("LastName")
-               .Label(l => l.Text("身份證字號"))
-               .Editor(e => e
-                   .TextBox()
-                   .Width(120)
-                   .Disabled(false)
-                   .Placeholder("輸入身份證字號")
-                   .FocusStateEnabled(true)
-              );
+                     items.AddSimpleFor(m => m.NationId)
+                           //.DataField("LastName")
+                           .Label(l => l.Text("身份證字號"))
+                           .Editor(e => e
+                               .TextBox()
+                               .Width(120)
+                               .Disabled(false)
+                               .Placeholder("輸入身份證字號")
+                               .FocusStateEnabled(true)
+                          );
 
-         items.AddSimpleFor(m=>m.FullName)
-            //.DataField("LastName")
-            .Label(l => l.Text("姓名"))
-            .Editor(e => e
-                .TextBox()
-                .Width(120)
-                .Disabled(false)
-                .Placeholder("輸入姓名")
-           );
+                     items.AddSimpleFor(m=>m.FullName)
+                        //.DataField("LastName")
+                        .Label(l => l.Text("姓名"))
+                        .Editor(e => e
+                            .TextBox()
+                            .Width(120)
+                            .Disabled(false)
+                            .Placeholder("輸入姓名")
+                       );
 
-         items.AddSimpleFor(m=>m.Mobile)
-                .Label(l => l.Text("電話號碼"))
-                .Editor(e => e
-                    .TextBox()
-                    .Width(120)
-                    //.Mask("(X000) 000-000")
-                    .MaskRules(new { X = new JS("/[02-9]/") })
-                    .Placeholder("輸入電話號碼")
-                );
+                     items.AddSimpleFor(m => m.Mobile)
+                            .Label(l => l.Text("電話號碼"))
+                            .Editor(e => e
+                                .TextBox()
+                                .Width(120)
+                                //.Mask("(X000) 000-000")
+                                .MaskRules(new { X = new JS("/[02-9]/") })
+                                .Placeholder("輸入電話號碼")
+                            );
+
+                     items.AddSimpleFor(m => m.LastSixDigit)
+                            .Label(l => l.Text("帳戶後六碼"))
+                            .Editor(e => e
+                                .TextBox()
+                                .Width(120)
+                                //.Mask("(X000) 000-000")
+                                .MaskRules(new { X = new JS("/[02-9]/") })
+                                .Placeholder("輸入帳戶後六碼")
+                            );
 
 
-     })
+                 })
         .OnContentReady
         (@<text>
             function(e)
@@ -446,6 +456,7 @@
                 $("#form1").dxForm("instance").updateData('FullName', "");
                 $("#form1").dxForm("instance").updateData('Mobile', "");
                 $("#form2").dxForm("instance").updateData('Amount', "");
+                $("#form1").dxForm("instance").updateData('LastSixDigit', "");
                 $("#form1").dxForm("instance").getEditor('DedicationNumber').focus();
 
                 document.getElementById("samenamecontainer").style.display = "none";//隱藏
@@ -559,6 +570,7 @@
                         $("#form1").dxForm("instance").updateData('FullName', "");
                         $("#form1").dxForm("instance").updateData('Mobile', "");
                         $("#form2").dxForm("instance").updateData('Amount', "");
+                        $("#form1").dxForm("instance").updateData('LastSixDigit', "");
                         $("#form1").dxForm("instance").getEditor('DedicationNumber').focus();
                         document.getElementById("samenamecontainer").style.display = "none";//隱藏
 
@@ -575,6 +587,7 @@
                         $("#form1").dxForm("instance").updateData('NationId', data.NationId);
                         $("#form1").dxForm("instance").updateData('FullName', data.FullName);
                         $("#form1").dxForm("instance").updateData('Mobile', data.Mobile);
+                        $("#form1").dxForm("instance").updateData('LastSixDigit', data.LastSixDigit);
 
                         //$("#form1").dxForm("instance").getEditor('SameNameList').reload();
                         //$("#form1").dxForm("instance").getEditor('SameNameList').refresh();
@@ -596,6 +609,7 @@
                     $("#form1").dxForm("instance").updateData('FullName', "");
                     $("#form1").dxForm("instance").updateData('Mobile', "");
                     $("#form2").dxForm("instance").updateData('Amount', "");
+                    $("#form1").dxForm("instance").updateData('LastSixDigit', "");
                     $("#form1").dxForm("instance").getEditor('DedicationNumber').focus();
 
                     //document.getElementById("samenamecontainer").style.display = "none";//隱藏

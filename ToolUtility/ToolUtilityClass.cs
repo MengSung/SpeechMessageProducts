@@ -1611,7 +1611,7 @@ namespace ToolUtilityNameSpace
             EntityCollection dynamicmemberec = service.RetrieveMultiple(new FetchExpression(dynamicQuery));
             return dynamicmemberec;
         }
-        public EntityCollection QueryDediccationContatsByFetchXml(String DedicationNumber, String ContactName, String HomePhone, String Mobile, String NationId)
+        public EntityCollection QueryDediccationContatsByFetchXml(String DedicationNumber, String ContactName, String HomePhone, String Mobile, String NationId, String LastSixDigit)
         {
             try
             {
@@ -1620,6 +1620,7 @@ namespace ToolUtilityNameSpace
                 HomePhone = "'%" + HomePhone + "%'";
                 Mobile = "'%" + Mobile + "%'";
                 NationId = "'%" + NationId + "%'";
+                LastSixDigit = "'%" + LastSixDigit + "%'";
 
                 var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
                               <entity name='contact'>
@@ -1633,6 +1634,7 @@ namespace ToolUtilityNameSpace
                                 <attribute name='pager' />
                                 <attribute name='new_cell_list_contact' />
                                 <attribute name='new_personal_id' />
+                                <attribute name='new_last_six_digit' />
                                 <attribute name='contactid' />
                                 <order attribute='fullname' descending='false' />
                                 <filter type='and'>
@@ -1642,6 +1644,7 @@ namespace ToolUtilityNameSpace
                                     <condition attribute='telephone2' operator='like' value=" + HomePhone + @" />
                                     <condition attribute='mobilephone' operator='like' value=" + Mobile + @" />
                                     <condition attribute='new_personal_id' operator='like' value=" + NationId + @" />
+                                    <condition attribute='new_last_six_digit' operator='like' value=" + LastSixDigit + @" />
                                   </filter>
                                 </filter>
                               </entity>

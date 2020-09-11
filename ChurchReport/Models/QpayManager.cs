@@ -63,8 +63,9 @@ namespace ChurchReport.Models
                 String FullName = QpayModel.FullName != null ? QpayModel.FullName : "未填姓名";
                 String HomePhone = QpayModel.Mobile != null ? QpayModel.Mobile : "未填手機號碼";
                 String Mobile = QpayModel.Mobile != null ? QpayModel.Mobile : "未填手機號碼";
+                String LastSixDigit = QpayModel.LastSixDigit != null ? QpayModel.LastSixDigit : "未填帳戶後六碼";
 
-                EntityCollection DedicationContacts = this.m_ToolUtilityClass.QueryDediccationContatsByFetchXml(DedicationNumber, FullName, HomePhone, Mobile, NationId);
+                EntityCollection DedicationContacts = this.m_ToolUtilityClass.QueryDediccationContatsByFetchXml(DedicationNumber, FullName, HomePhone, Mobile, NationId, LastSixDigit);
 
                 if (DedicationContacts.Entities.Count == 1)
                 {
@@ -73,6 +74,7 @@ namespace ChurchReport.Models
                     FullName = this.m_ToolUtilityClass.GetEntityStringAttribute(DedicationContacts.Entities[0], "fullname");
                     HomePhone = this.m_ToolUtilityClass.GetEntityStringAttribute(DedicationContacts.Entities[0], "telephone2");
                     Mobile = this.m_ToolUtilityClass.GetEntityStringAttribute(DedicationContacts.Entities[0], "mobilephone");
+                    LastSixDigit = this.m_ToolUtilityClass.GetEntityStringAttribute(DedicationContacts.Entities[0], "new_last_six_digit");
 
                     String PhoneNumber = "";
                     if (Mobile != "")
@@ -84,7 +86,7 @@ namespace ChurchReport.Models
                         PhoneNumber = HomePhone;
                     }
 
-                    return Json(new { status = "1", clicktype = "查詢", DedicationNumber = DedicationNumber, NationId = NationId, FullName = FullName, Mobile = PhoneNumber, message = DedicationResult, DedicationResult = DedicationResult });
+                    return Json(new { status = "1", clicktype = "查詢", DedicationNumber = DedicationNumber, NationId = NationId, FullName = FullName, Mobile = PhoneNumber, LastSixDigit = LastSixDigit, message = DedicationResult, DedicationResult = DedicationResult });
                 }
                 else if (DedicationContacts.Entities.Count > 1)
                 {

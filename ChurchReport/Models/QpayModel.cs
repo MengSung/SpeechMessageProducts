@@ -17,6 +17,11 @@ namespace ChurchReport.Models
         public DateTime DedicationDate { get; set; } = DateTime.Now;    //奉獻日期
         public String BankName { get; set; }                            //銀行名稱
         public String SerialNumber { get; set; }                        //奉獻號碼
+        public String LastSixDigit { get; set; }                        //帳戶後六碼
+
+        /// <summary>
+        /// ///////////////////////////////////////////////////////////////////////////
+        /// </summary>
         public int Amount { get; set; }                                 //奉獻金額
         public String Category { get; set; }                            //奉獻類別
         public String PayWay { get; set; }                              //付款方式
