@@ -417,11 +417,11 @@ namespace ChurchReport.Tools
             {
                 if (m_OnboardType == "on" || m_OnboardType == "On")
                 {
-                    return "兒童主日學簽到";
+                    return "僕領之夜簽到";
                 }
                 else
                 {
-                    return "兒童主日學簽退";
+                    return "僕領之夜簽退";
                 }
             }
             else
