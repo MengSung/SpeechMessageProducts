@@ -40,7 +40,9 @@ namespace ChurchReport.Models
 
         public void SetupGroupArray(List<WeeklyReportRecord> aWeeklyReportRecordListData, String ActiveListId)
         {
-            foreach(WeeklyReportRecord aWeeklyReportRecord in aWeeklyReportRecordListData)
+            m_PersonFormViewModel.GroupArray.Clear();
+
+            foreach (WeeklyReportRecord aWeeklyReportRecord in aWeeklyReportRecordListData)
             {
                 m_PersonFormViewModel.GroupArray.Add(aWeeklyReportRecord.Name);
 

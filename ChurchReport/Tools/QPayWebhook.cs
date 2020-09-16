@@ -205,7 +205,7 @@ namespace ChurchReport.Tools
                 else
                 {
                     //return Json(new Dictionary<string, string>() { { "Status", "S" } });
-                    return new OkObjectResult("信用卡付款結果成功!" + Environment.NewLine + Description + "教會感謝" + aFullName + "您的奉獻!");
+                    return new OkObjectResult("信用卡付款結果成功!" + Environment.NewLine + Description + "教會收到" + aFullName + "您的奉獻!");
                 }
             }
             else
