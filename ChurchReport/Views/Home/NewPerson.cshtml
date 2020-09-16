@@ -101,8 +101,8 @@
                     .Placeholder("輸入姓名")
                );
 
-            items.AddSimple()
-                .DataField("Phone")
+            items.AddSimpleFor(m => m.Phone)
+                //.DataField("Phone")
                 .Label(l => l.Text("行動電話"))
                 .Editor(e => e
                     .TextBox()
@@ -111,8 +111,8 @@
                     .Placeholder("輸入手機號碼")
                 );
 
-            items.AddSimple()
-                .DataField("HomePhone")
+            items.AddSimpleFor(m => m.HomePhone)
+                //.DataField("HomePhone")
                 .Label(l => l.Text("一般電話"))
                 .Editor(e => e
                     .TextBox()
@@ -121,13 +121,13 @@
                     .Placeholder("輸入電話號碼")
                 );
 
-            items.AddSimple()
-                .DataField("Address")
+            items.AddSimpleFor(m => m.Address)
+                //.DataField("Address")
                 .Label(l => l.Text("地址"))
                 ;
 
-            items.AddSimple()
-                    .DataField("Gender")
+            items.AddSimpleFor(m => m.Gender)
+                    //.DataField("Gender")
                     .Label(l => l.Text("性別"))
                     .Editor(e => e
                         .SelectBox()
@@ -172,8 +172,8 @@
                         //)
                         ;
 
-            items.AddSimple()
-                .DataField("BirthDate")
+            items.AddSimpleFor(m => m.BirthDate)
+                //.DataField("BirthDate")
                 .Label(l => l.Text("生日"))
                 .IsRequired(false)
                 .Editor(e => e
@@ -183,8 +183,8 @@
                     .PickerType(DateBoxPickerType.Calendar)
                 );
 
-            items.AddSimple()
-                .DataField("HireDate")
+            items.AddSimpleFor(m => m.HireDate)
+                //.DataField("HireDate")
                 .Label(l => l.Text("進教會日期"))
                 .Editor(
                         e => e.DateBox()//.Value(new JS("null"))
@@ -229,16 +229,16 @@
                         //.Value("小組組員")
                         );
 
-            items.AddSimple()
-                .DataField("Introducer")
+            items.AddSimpleFor(m => m.Introducer)
+                //.DataField("Introducer")
                 .Label(l => l.Text("邀請人"))
                 ;
             //items.AddSimple()
             //    .DataField("IntroducerPhone")
             //    .Label(l => l.Text("邀請人電話"))
             //    ;
-            items.AddSimple()
-                .DataField("IntroducerRelation")
+            items.AddSimpleFor(m => m.IntroducerRelation)
+                //.DataField("IntroducerRelation")
                 .Label(l => l.Text("與邀請人關係"))
                 ;
             //items.AddSimple()
@@ -284,21 +284,20 @@
             //       );
 
 
-            items.AddSimple()
-                 .DataField("Industry")
+            items.AddSimpleFor(m => m.Industry)
+                 //.DataField("Industry")
                  //.Visible(false)
                  .Name("OtherDedication")
                  .Label(l => l.Text("職業及專長"))
                  ;
-            items.AddSimple()
-                 .DataField("EquipmentStatus ")
+            items.AddSimpleFor(m => m.EquipmentStatus)
+                 //.DataField("EquipmentStatus ")
                  .Label(l => l.Text("裝備狀態"))
                  ;
 
-            items.AddSimple()
+            items.AddSimpleFor(m => m.Notes)
             .ColSpan(2)
             .Label(l => l.Text("附註"))
-            .DataField("Notes")
             .Editor(e => e
                 .TextArea()
                 .Height(200)
@@ -437,6 +436,20 @@
                     //window.location.href = "/Home/InputReport/" + data.status;
                     DevExpress.ui.notify(data.message, "error", 5000);
                 }
+
+                $("#form").dxForm("instance").updateData('LastName', "");
+                $("#form").dxForm("instance").updateData('Phone', "");
+                $("#form").dxForm("instance").updateData('HomePhone', "");
+                $("#form").dxForm("instance").updateData('Address', "");
+                $("#form").dxForm("instance").updateData('Gender', "");
+                //$("#form").dxForm("instance").updateData('BirthDate', "");
+                $("#form").dxForm("instance").updateData('Introducer', "");
+                $("#form").dxForm("instance").updateData('IntroducerRelation', "");
+                $("#form").dxForm("instance").updateData('Industry', "");
+                $("#form").dxForm("instance").updateData('EquipmentStatus', "");
+                $("#form").dxForm("instance").updateData('Notes', "");
+                $("#form").dxForm("instance").getEditor('DedicationNumber').focus();
+
             }
 
             function onComplete(data) {
