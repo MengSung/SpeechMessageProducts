@@ -262,14 +262,14 @@ columns.Add().DataField("Amount").Caption("繳費金額").DataType(GridColumnDat
 @<text>
     function(row)
     {
-    if( row.Amount <= 0 )
-    {
-    return "";
-    }
-    else
-    {
-    return row.Amount;
-    }
+        if( row.Amount <= 0 )
+        {
+            return "";
+        }
+        else
+        {
+            return row.Amount;
+        }
     }
 </text>
 );

@@ -177,11 +177,12 @@ namespace ChurchReport.WebServiceConnector
         {
             Result = ""; // 上課人數及繳費結果歸零
 
-            // 取得與課程相關的上課紀錄
-            EntityCollection aStorLessonsEntityCollection = m_ToolUtilityClass.QueryEntityList("new_disciple_lessons", "new_disciple_lessonsid", DiscipleLessonsId, "new_new_disciple_lessons_new_stor_les", "new_stor_lessons");
+            // 取得課程
+            Entity aDiscipleLessonsEntity = this.m_ToolUtilityClass.RetrieveEntity("new_disciple_lessons", new Guid(DiscipleLessonsId));
 
-            // 處理一個上課紀錄
-            Entity aDiscipleLessonsEntity = this.m_ToolUtilityClass.RetrieveEntity("new_disciple_lessons", new Guid(DiscipleLessonsId) );
+            // 取得與課程相關的上課紀錄
+            String DiscipleLessonsName = this.m_ToolUtilityClass.GetEntityStringAttribute(aDiscipleLessonsEntity, "new_name");
+            EntityCollection aStorLessonsEntityCollection = m_ToolUtilityClass.RetrieveStorLessonsByDiscipleLessonsFetchXml(m_ToolUtilityClass.GetEntityStringAttribute(ref aDiscipleLessonsEntity, DiscipleLessonsName), DiscipleLessonsId);
 
             // 取得所有上課紀錄單
             ProcesseStorLessons(aDiscipleLessonsEntity, ref aStorLessonsEntityCollection, ref Result);
@@ -189,7 +190,6 @@ namespace ChurchReport.WebServiceConnector
             // 設定課程名稱
             ProcesseClassName(aDiscipleLessonsEntity, ref aClassName);
 
-            String DiscipleLessonsName = this.m_ToolUtilityClass.GetEntityStringAttribute(aDiscipleLessonsEntity, "new_name");
             SetGroupContent(DiscipleLessonsName, Result);
             //Result += Environment.NewLine;
         }
