@@ -32,6 +32,7 @@
     <None Remove="Views\Home\PersonalReport.cshtml" />
     <None Remove="Views\Home\PollQrCodeView.cshtml" />
     <None Remove="Views\Home\PresentView.cshtml" />
+    <None Remove="Views\Home\QPayLogin.cshtml" />
     <None Remove="Views\Home\QPayView.cshtml" />
     <None Remove="Views\Home\QrCodeView.cshtml" />
     <None Remove="Views\Home\QualificationView.cshtml" />

@@ -1,0 +1,270 @@
+﻿<!DOCTYPE html>
+
+@{
+    Layout = null;
+}
+
+
+@model ChurchReport.ViewModel.GalleryViewModel
+
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>永和禮拜堂奉獻系統</title>
+    <link href="~/favicon.ico" rel="shortcut icon" type="image/x-icon" />
+
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.css" />
+    <link rel="stylesheet" href="~/css/site.css" />
+    <link href="~/css/devextreme/dx.common.css" rel="stylesheet" />
+    <link href="~/css/devextreme/dx.light.css" rel="stylesheet" />
+
+    <script src="~/lib/jquery/dist/jquery.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.js"></script>
+
+    <script src="~/js/devextreme/cldr.js"></script>
+    <script src="~/js/devextreme/cldr/event.js"></script>
+    <script src="~/js/devextreme/cldr/supplemental.js"></script>
+    <script src="~/js/devextreme/cldr/unresolved.js"></script>
+
+    <script src="~/js/devextreme/globalize.js"></script>
+    <script src="~/js/devextreme/globalize/message.js"></script>
+    <script src="~/js/devextreme/globalize/number.js"></script>
+    <script src="~/js/devextreme/globalize/currency.js"></script>
+    <script src="~/js/devextreme/globalize/date.js"></script>
+
+    @* JSZip for client side export *@
+    @*<script src="~/js/devextreme/jszip.js"></script>*@
+
+    <script src="~/js/devextreme/dx.all.js"></script>
+    <script src="~/js/devextreme/vectormap-data/world.js"></script>
+    <script src="~/lib/devextreme-aspnet-data/js/dx.aspnet.data.js"></script>
+    <script src="~/js/devextreme/aspnet/dx.aspnet.mvc.js"></script>
+
+</head>
+
+
+<body>
+
+    <div class="widget-container" style="padding: 10px;">
+        @(Html.DevExtreme().Gallery()
+                .ID("gallery")
+                .DataSource(Model.Images)
+                //.Height(250)
+                .Height("250px")
+                //.Height("100%")
+                //.Width(600)
+                //.InitialItemWidth(250)
+                .StretchImages(true)
+                .Loop(true)
+                .SlideshowDelay(1500)
+                .ShowNavButtons(true)
+                .ShowIndicator(true)
+        )
+    </div>
+
+    <div class="long-title"><h3>永和禮拜堂奉獻系統</h3></div>
+
+            <div id="ToastContainer">
+            @(Html.DevExtreme().Toast()
+                            .ID("Toast")
+                            .Position(p => p
+                            .At(HorizontalAlignment.Center, VerticalAlignment.Center)
+                            .Offset(0, 50))
+                            //.Shading(true)
+                            //.ShadingColor("red")
+                            .CloseOnOutsideClick(true)
+                            .DisplayTime(2000)
+                            .MaxWidth(200)
+            )
+
+        </div>
+
+    <form data-ajax="true" data-ajax-begin="onBegin" data-ajax-success="onSuccess" asp-action="ProcessQPayLogin" asp-controller="Home" method="post" style="text-align: center;">
+
+        <div class="dx-field" style="text-align: center;">
+            <div class="form-container-class" id="form-container" style="text-align: center;">
+                @(Html.DevExtreme().Form()
+                        .ID("form")
+                        .Items(items =>
+                        {
+
+                            items.AddSimple()
+                                .DataField("FullName")
+                                .Label(l => l.Text("姓名"))
+                                .Editor(e => e
+                                    .TextBox()
+                                    .Disabled(false)
+                                    .Placeholder("輸入姓名")
+                                    .ShowClearButton(true)
+                               //.Width(200)
+                               );
+
+                            items.AddSimple()
+                                .DataField("Mobile")
+                                .Label(l => l.Text("手機"))
+                                .Editor(e => e
+                                    .TextBox()
+                                    .Disabled(false)
+                                    .Placeholder("輸入手機")
+                                    .ShowClearButton(true)
+                               //.Width(200)
+                               );
+
+                            items.AddSimple()
+                                .DataField("NationId")
+                                .Label(l => l.Text("身分證字號"))
+                                .Editor(e => e
+                                    .TextBox()
+                                    .Disabled(false)
+                                    .Placeholder("輸入身分證字號")
+                                    .ShowClearButton(true)
+                               //.Width(200)
+                               );
+
+                        })
+                )
+            </div>
+        </div>
+        <div class="dx-field" style="text-align: center;">
+            <div id="buttonContainer" class="dx-button-icon">
+                @(Html.DevExtreme().Button()
+                    .Text("登入")
+                    //.Type(ButtonType.Success)
+                    //.Type(ButtonType.Normal)
+                    .Type(ButtonType.Default)
+                    .ID("save-button")
+                    .UseSubmitBehavior(true)
+                    .OnClick("Login")
+                    .Width(100)
+                )
+            </div>
+            <div id="LoadPanel">
+                @(Html.DevExtreme().LoadPanel()
+                            .ID("loadPanel")
+                            .ShadingColor("rgba(0,0,0,0.4)")
+                            .Position(p => p.Of("#form-container"))
+                            .Visible(false)
+                            .ShowIndicator(true)
+                            .ShowPane(true)
+                            .Shading(true)
+                            .CloseOnOutsideClick(false)
+                            .Message("登入中...")
+                            .Animation(l => l.Show(k => k.Easing(AnimationEasing.Swing)))
+                    //.OnShown("loadPanel_shown")
+                    //.OnHidden("loadPanel_hidden")
+                )
+            </div>
+        </div>
+    </form>
+
+    <script>
+        function getLoadPanelInstance() {
+            return $("#loadPanel").dxLoadPanel("instance");
+        }
+
+        function button_click() {
+            getLoadPanelInstance().show();
+        }
+
+        function loadPanel_shown(e) {
+            //    setTimeout(function () {
+            //        e.component.hide();
+            //    }, 3000);
+        }
+
+        function loadPanel_hidden() {
+        }
+
+        function Login(arg) {
+
+            getLoadPanelInstance().show();
+        }
+
+        function Register(arg) {
+
+            window.location.href = "/Home/Register";
+        }
+
+    </script>
+
+    <script type="text/javascript">
+        function onBegin() {
+        }
+
+        function onSuccess(data) {
+
+            //debugger;
+
+            getLoadPanelInstance().hide();
+
+            if ( data.DisplayViewType == "MultiGroupView" ) {
+                // 小組長或是個人回報
+                ShowToast(data.message, "success", 2000);
+
+                //DevExpress.ui.notify(data.message, "success", 2000);
+
+                //window.location.href = "/Home/IntegrateView/AccountPassword";
+                window.location.href = "/Home/MultiGroupView/" + data.ActiveListId;
+                //window.location.href = data.LinePayUrl;
+            }
+            else if ( data.DisplayViewType == "IntegrateView" ) {
+                // 小組長或是個人回報
+                ShowToast(data.message, "success", 2000);
+
+                //DevExpress.ui.notify(data.message, "success", 2000);
+
+                window.location.href = "/Home/IntegrateView/" + data.ActiveListId;
+                //window.location.href = data.LinePayUrl;
+            }
+            else if ( data.DisplayViewType == "HappyGroupView" ) {
+                // 單純幸福小組長回報
+                ShowToast(data.message, "success", 2000);
+
+                //DevExpress.ui.notify(data.message, "success", 2000);
+
+                window.location.href = "/Home/HappyGroup";
+            }
+            else {
+                ShowToast(data.message, "error", 5000);
+
+                //DevExpress.ui.notify(data.message, "error", 3000);
+            }
+        }
+
+        function onComplete(data) {
+            if (data.status == 1) {
+            }
+            else {
+            }
+        }
+    </script>
+
+    <script>
+
+        function ShowToast(LocalToastMessage, Type, DisplayTime) {
+            //debugger;
+            var ToastInstance = $("#Toast").dxToast("instance");
+            ToastInstance.option('message', LocalToastMessage);
+            ToastInstance.option('type', Type);
+            ToastInstance.option('displayTime', DisplayTime);
+            ToastInstance.option('white-space', 'pre-line');
+            ToastInstance.option('closeOnClick', true);
+            ToastInstance.show();
+        }
+
+    </script>
+
+    <script src="~/lib/jquery-ajax-unobtrusive/jquery.unobtrusive-ajax.js"></script>
+    <link href="~/css/Gallery.css" rel="stylesheet" />
+    <link href="~/css/WeeklyReport.css" rel="stylesheet" />
+
+
+</body>
+
+</html>
