@@ -163,18 +163,29 @@ namespace ChurchReport.Tools
                 else
                 {
                     // 沒找到上課紀錄單
-
-                    // 建立一個上課紀錄單
-                    Entity CreatededStorLessons = this.m_ToolUtilityClass.RetrieveEntity("new_stor_lessons", CreateNewStorLesson( m_Contact, ref aLesson ));
-
-                    if( this.m_ToolUtilityClass.GetEntityMoneyAttribute( ref m_Lesson, "new_lessons_fee").Value > 0 )
+                    if (m_ClassIndex.Contains("enroll") == true)
                     {
-                        // 課程有課程費用，就要建立收費單
-                        CreateFee(CreatededStorLessons, "Amount");
-                    }
+                        #region 沒找到上課紀錄單，但是是課程報名所以要建立一個上課紀錄單
+                        // 建立一個上課紀錄單
+                        Entity CreatededStorLessons = this.m_ToolUtilityClass.RetrieveEntity("new_stor_lessons", CreateNewStorLesson(m_Contact, ref aLesson));
 
-                    // 進行簽到或是簽退或是報名
-                    SigningProcess(CreatededStorLessons, ClassIndex, OnboardType);
+                        if (this.m_ToolUtilityClass.GetEntityMoneyAttribute(ref m_Lesson, "new_lessons_fee").Value > 0)
+                        {
+                            // 課程有課程費用，就要建立收費單
+                            CreateFee(CreatededStorLessons, "Amount");
+                        }
+
+                        // 進行簽到或是簽退或是報名
+                        SigningProcess(CreatededStorLessons, ClassIndex, OnboardType);
+
+                        #endregion
+                    }
+                    else
+                    {
+                        m_OnboardTypeInfo = m_UserName + "您還沒有報名" + m_ClassName + Environment.NewLine + "所以無法簽到!";
+
+                        m_PushUtility.SendMessage(m_UserLineId, m_OnboardTypeInfo);
+                    }
 
                     return false;
                 }
