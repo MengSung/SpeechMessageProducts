@@ -2952,8 +2952,10 @@ namespace ChurchReport.WebServiceConnector
                 //this.m_ToolUtilityClass.UpdateEntity(ref this.m_ToolUtilityClass.m_OrganizationService, ref aWeeklyReportEntity);
 
                 // 加入百分比 
-                AddToDictionary(ref this.m_FeedBackReport, "主日出席統計表頭", ValidSundayMemberNumber.ToString() + "/" + ValidNumber.ToString() + "，" + String.Format("{0:0%}", aWeeklySundayRate) + Environment.NewLine);
-                AddToDictionary(ref this.m_FeedBackReport, "小組出席統計表頭", ValidSmallGroupMemberNumber.ToString() + "/" + ValidNumber.ToString() + "，" + String.Format("{0:0%}", aWeeklySmallGroupRate) + Environment.NewLine);
+                //AddToDictionary(ref this.m_FeedBackReport, "主日出席統計表頭", ValidSundayMemberNumber.ToString() + "/" + ValidNumber.ToString() + "，" + String.Format("{0:0%}", aWeeklySundayRate) + Environment.NewLine);
+                //AddToDictionary(ref this.m_FeedBackReport, "小組出席統計表頭", ValidSmallGroupMemberNumber.ToString() + "/" + ValidNumber.ToString() + "，" + String.Format("{0:0%}", aWeeklySmallGroupRate) + Environment.NewLine);
+                AddToDictionary(ref this.m_FeedBackReport, "主日出席統計表頭", "實到" +ValidSundayMemberNumber.ToString() + "人/應到" + ValidNumber.ToString() + "人，出席率" + String.Format("{0:0%}", aWeeklySundayRate) + Environment.NewLine);
+                AddToDictionary(ref this.m_FeedBackReport, "小組出席統計表頭", "實到" +ValidSmallGroupMemberNumber.ToString() + "人/應到" + ValidNumber.ToString() + "人，出席率" + String.Format("{0:0%}", aWeeklySmallGroupRate) + Environment.NewLine);
                 #endregion
 
                 // 建立週報主日出席、小組出席、新人跟進字串內容
@@ -4411,22 +4413,22 @@ namespace ChurchReport.WebServiceConnector
                         {
                             if (Presentflag == true)
                             {
-                                AddToDictionary(ref this.m_FeedBackReport, "主日統計小組組員出席字串", ContactName + "(" + GetPresentNumber(aListEntityId, "主日", ref aContact).ToString() + ") ");
+                                AddToDictionary(ref this.m_FeedBackReport, "主日統計小組組員出席字串", ContactName + "(共出席" + GetPresentNumber(aListEntityId, "主日", ref aContact).ToString() + "次) ");
                             }
                             else
                             {
-                                AddToDictionary(ref this.m_FeedBackReport, "主日統計小組組員未出席字串", ContactName + "(" + GetPresentNumber(aListEntityId, "主日", ref aContact).ToString() + ") ");
+                                AddToDictionary(ref this.m_FeedBackReport, "主日統計小組組員未出席字串", ContactName + "(共出席" + GetPresentNumber(aListEntityId, "主日", ref aContact).ToString() + "次) ");
                             }
                         }
                         else
                         {
                             if (Presentflag == true)
                             {
-                                AddToDictionary(ref this.m_FeedBackReport, "小組統計小組組員出席字串", ContactName + "(" + GetPresentNumber(aListEntityId, "小組", ref aContact).ToString() + ") ");
+                                AddToDictionary(ref this.m_FeedBackReport, "小組統計小組組員出席字串", ContactName + "(共出席" + GetPresentNumber(aListEntityId, "小組", ref aContact).ToString() + "次) ");
                             }
                             else
                             {
-                                AddToDictionary(ref this.m_FeedBackReport, "小組統計小組組員未出席字串", ContactName + "(" + GetPresentNumber(aListEntityId, "小組", ref aContact).ToString() + ") ");
+                                AddToDictionary(ref this.m_FeedBackReport, "小組統計小組組員未出席字串", ContactName + "(共出席" + GetPresentNumber(aListEntityId, "小組", ref aContact).ToString() + "次) ");
                             }
                         }
 
@@ -4437,22 +4439,22 @@ namespace ChurchReport.WebServiceConnector
                         {
                             if (Presentflag == true)
                             {
-                                AddToDictionary(ref this.m_FeedBackReport, "主日統計未入組出席字串", ContactName + "(" + GetPresentNumber(aListEntityId, "主日", ref aContact).ToString() + ") ");
+                                AddToDictionary(ref this.m_FeedBackReport, "主日統計未入組出席字串", ContactName + "(共出席" + GetPresentNumber(aListEntityId, "主日", ref aContact).ToString() + "次) ");
                             }
                             else
                             {
-                                AddToDictionary(ref this.m_FeedBackReport, "主日統計未入組出未席字串", ContactName + "(" + GetPresentNumber(aListEntityId, "主日", ref aContact).ToString() + ") ");
+                                AddToDictionary(ref this.m_FeedBackReport, "主日統計未入組出未席字串", ContactName + "(共出席" + GetPresentNumber(aListEntityId, "主日", ref aContact).ToString() + "次) ");
                             }
                         }
                         else
                         {
                             if (Presentflag == true)
                             {
-                                AddToDictionary(ref this.m_FeedBackReport, "小組統計未入組出席字串", ContactName + "(" + GetPresentNumber(aListEntityId, "小組", ref aContact).ToString() + ") ");
+                                AddToDictionary(ref this.m_FeedBackReport, "小組統計未入組出席字串", ContactName + "(共出席" + GetPresentNumber(aListEntityId, "小組", ref aContact).ToString() + "次) ");
                             }
                             else
                             {
-                                AddToDictionary(ref this.m_FeedBackReport, "小組統計未入組出未席字串", ContactName + "(" + GetPresentNumber(aListEntityId, "小組", ref aContact).ToString() + ") ");
+                                AddToDictionary(ref this.m_FeedBackReport, "小組統計未入組出未席字串", ContactName + "(共出席" + GetPresentNumber(aListEntityId, "小組", ref aContact).ToString() + "次) ");
                             }
                         }
 
@@ -4463,22 +4465,22 @@ namespace ChurchReport.WebServiceConnector
                         {
                             if (Presentflag == true)
                             {
-                                AddToDictionary(ref this.m_FeedBackReport, "主日統計新人出席字串", ContactName + "(" + GetPresentNumber(aListEntityId, "主日", ref aContact).ToString() + ") ");
+                                AddToDictionary(ref this.m_FeedBackReport, "主日統計新人出席字串", ContactName + "(共出席" + GetPresentNumber(aListEntityId, "主日", ref aContact).ToString() + "次) ");
                             }
                             else
                             {
-                                AddToDictionary(ref this.m_FeedBackReport, "主日統計新人未出席字串", ContactName + "(" + GetPresentNumber(aListEntityId, "主日", ref aContact).ToString() + ") ");
+                                AddToDictionary(ref this.m_FeedBackReport, "主日統計新人未出席字串", ContactName + "(共出席" + GetPresentNumber(aListEntityId, "主日", ref aContact).ToString() + "次) ");
                             }
                         }
                         else
                         {
                             if (Presentflag == true)
                             {
-                                AddToDictionary(ref this.m_FeedBackReport, "小組統計新人出席字串", ContactName + "(" + GetPresentNumber(aListEntityId, "小組", ref aContact).ToString() + ") ");
+                                AddToDictionary(ref this.m_FeedBackReport, "小組統計新人出席字串", ContactName + "(共出席" + GetPresentNumber(aListEntityId, "小組", ref aContact).ToString() + "次) ");
                             }
                             else
                             {
-                                AddToDictionary(ref this.m_FeedBackReport, "小組統計新人未出席字串", ContactName + "(" + GetPresentNumber(aListEntityId, "小組", ref aContact).ToString() + ") ");
+                                AddToDictionary(ref this.m_FeedBackReport, "小組統計新人未出席字串", ContactName + "(共出席" + GetPresentNumber(aListEntityId, "小組", ref aContact).ToString() + "次) ");
                             }
                         }
 

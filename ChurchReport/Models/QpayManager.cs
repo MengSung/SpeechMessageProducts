@@ -387,29 +387,38 @@ namespace ChurchReport.Models
                 if (aLoginContactCollection.Entities.Count > 0)
                 {
                     // 有找到奉獻者
-                    if (aLoginContactCollection.Entities.Count == 1)
+
+                    // 透過身分證字號再找一遍
+                    Entity aLoginContact = FilterQpayContactByNationId(aGalleryViewModel, aLoginContactCollection);
+
+                    if( aLoginContact != null )
                     {
-                        // 找到剛好一個奉獻者
-                        Entity aLoginContact = aLoginContactCollection.Entities[0];
+                        // 姓名跟身分證字號一樣的有找到
+                        // 奉獻者的欄位 行動電話、身分證字號、奉獻編號 沒有值才會加上去，所以不會覆蓋原有的
                         UpdateQpayContact(aGalleryViewModel, ref aLoginContact);
 
                         return aLoginContact;
                     }
                     else
                     {
-                        // 找到兩個以上同名同姓的奉獻者
-                        Entity aLoginContact = FilterQpayContact(aGalleryViewModel, aLoginContactCollection);
-                        if(aLoginContact != null )
+                        // 沒找到姓名跟身分證字號一樣的
+                        // 所以用手機再找一輪
+                        aLoginContact = FilterQpayContactByMobile(aGalleryViewModel, aLoginContactCollection);
+
+                        if (aLoginContact != null)
                         {
-                            // 有找到對應的奉獻者:身份證字號相同 或 奉獻編號相同 或 行動電話相同
+                            // 姓名跟手機一樣的有找到
+                            // 奉獻者的欄位 行動電話、身分證字號、奉獻編號 沒有值才會加上去，所以不會覆蓋原有的
                             UpdateQpayContact(aGalleryViewModel, ref aLoginContact);
 
                             return aLoginContact;
                         }
                         else
                         {
+                            // 沒找到奉獻者
                             return CreateQpayContact(aGalleryViewModel);
                         }
+
                     }
                 }
                 else
@@ -452,12 +461,60 @@ namespace ChurchReport.Models
                 throw e;
             }
         }
+        public Entity FilterQpayContactByNationId(GalleryViewModel aGalleryViewModel, EntityCollection aContactEntityCollection)
+        {
+            try
+            {
+                foreach (Entity aContact in aContactEntityCollection.Entities)
+                {
+                    if (this.m_ToolUtilityClass.GetEntityStringAttribute(aContact, "new_personal_id") == aGalleryViewModel.NationId || this.m_ToolUtilityClass.GetEntityStringAttribute(aContact, "pager") == aGalleryViewModel.NationId)
+                    {
+                        // 奉獻者姓名與身分證字號相同或是奉獻者姓名與奉獻編號相同
+                        return aContact;
+                    }
+                }
+
+                return null;
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                //Monitor.Exit(this);
+                throw e;
+            }
+        }
+        public Entity FilterQpayContactByMobile(GalleryViewModel aGalleryViewModel, EntityCollection aContactEntityCollection)
+        {
+            try
+            {
+                foreach (Entity aContact in aContactEntityCollection.Entities)
+                {
+                    if (this.m_ToolUtilityClass.FilterDigit(this.m_ToolUtilityClass.GetEntityStringAttribute(aContact, "mobilephone")) == this.m_ToolUtilityClass.FilterDigit(aGalleryViewModel.Mobile))
+                    {
+                        // 奉獻者姓名與行動電話相同
+                        return aContact;
+                    }
+                }
+
+                return null;
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                //Monitor.Exit(this);
+                throw e;
+            }
+        }
         public void UpdateQpayContact(GalleryViewModel aGalleryViewModel, ref Entity aContact)
         {
             try
             {
                 // 奉獻旗標預設為 FALSE
                 bool Updateflag = false;
+
+                // 奉獻者的欄位 行動電話、身分證字號、奉獻編號 沒有值才會加上去，所以不會覆蓋原有的
                 if (this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContact, "mobilephone") == "")
                 {
                     // 奉獻者沒有行動電話
@@ -482,34 +539,6 @@ namespace ChurchReport.Models
                     // 旗標為TRUE所以要更新奉獻者
                     this.m_ToolUtilityClass.UpdateEntity(ref aContact);
                 }
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-
-                //Monitor.Exit(this);
-                throw e;
-            }
-        }
-        public Entity FilterQpayContact(GalleryViewModel aGalleryViewModel, EntityCollection aContactEntityCollection)
-        {
-            try
-            {
-                foreach( Entity aContact in aContactEntityCollection.Entities )
-                {
-                    if( this.m_ToolUtilityClass.GetEntityStringAttribute( aContact, "new_personal_id") == aGalleryViewModel.NationId || this.m_ToolUtilityClass.GetEntityStringAttribute(aContact, "pager") == aGalleryViewModel.NationId)
-                    {
-                        // 奉獻者姓名與身分證字號相同或是奉獻者姓名與奉獻編號相同
-                        return aContact;
-                    }
-                    else if( this.m_ToolUtilityClass.FilterDigit( this.m_ToolUtilityClass.GetEntityStringAttribute( aContact, "mobilephone")) == this.m_ToolUtilityClass.FilterDigit(aGalleryViewModel.Mobile) )
-                    {
-                        // 奉獻者姓名與行動電話相同
-                        return aContact;
-                    }
-                }
-
-                return null;
             }
             catch (System.Exception e)
             {

@@ -106,7 +106,7 @@
                 .Label(l => l.Text("行動電話"))
                 .Editor(e => e
                     .TextBox()
-                    .Mask("+886 (X000) 000-000")
+                    .Mask("(X000) 000-000")
                     .MaskRules(new { X = new JS("/[02-9]/") })
                     .Placeholder("輸入手機號碼")
                 );
