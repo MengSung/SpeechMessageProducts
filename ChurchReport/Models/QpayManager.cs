@@ -1,4 +1,5 @@
-﻿using ChurchReport.WebServiceConnector;
+﻿using ChurchReport.ViewModel;
+using ChurchReport.WebServiceConnector;
 using LineMessagingProcessor;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Xrm.Sdk;
@@ -335,16 +336,16 @@ namespace ChurchReport.Models
         {
             try
             {
-                if ( QpayModel.Amount != null && QpayModel.Amount > 0 )
+                if (QpayModel.Amount != null && QpayModel.Amount > 0)
                 {
                     String DedicationResult = await m_QPayProcessor.CreateFeeAsync(m_Contact, QpayModel);
 
                     String PayWay = "";
-                    if(DedicationResult == "信用卡繳費失敗!")
+                    if (DedicationResult == "信用卡繳費失敗!")
                     {
                         return Json(new { status = "2", message = "信用卡繳費失敗!" });
                     }
-                    else if(DedicationResult.Contains("*** 請依照訊息付款 ***") != true)
+                    else if (DedicationResult.Contains("*** 請依照訊息付款 ***") != true)
                     {
                         PayWay = "信用卡";
                         return Json(new { status = "1", message = "感謝您的奉獻", DedicationResult = DedicationResult, PayWay = PayWay });
@@ -371,6 +372,54 @@ namespace ChurchReport.Models
 
                 //return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
+                throw e;
+            }
+        }
+        #endregion
+        #region 與官網整合串連，決定登入者
+        public Entity GetLoginContactQpay(GalleryViewModel aGalleryViewModel)
+        {
+            try
+            {
+                // 透過帳號密碼登入畫面進入的
+                EntityCollection aLoginContactCollection = m_ToolUtilityClass.RetrieveContactCollectionByName(aGalleryViewModel.FullName);
+
+                if (aLoginContactCollection.Entities.Count > 0)
+                {
+                    return aLoginContactCollection.Entities[0];
+                }
+                else
+                {
+                    // 沒找到奉獻者
+                    return CreateQpayContact( aGalleryViewModel );
+                }
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                //Monitor.Exit(this);
+                throw e;
+            }
+        }
+        public Entity CreateQpayContact(GalleryViewModel aGalleryViewModel)
+        {
+            try
+            {
+                Entity aContactToCreate = new Entity("contact");
+
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactToCreate, "lastname", aGalleryViewModel.FullName);
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactToCreate, "mobilephone", aGalleryViewModel.Mobile);
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactToCreate, "new_personal_id", aGalleryViewModel.NationId);
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactToCreate, "pager", aGalleryViewModel.NationId);
+
+                return this.m_ToolUtilityClass.RetrieveEntity("contact", this.m_ToolUtilityClass.CreateEntity(aContactToCreate));
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                //Monitor.Exit(this);
                 throw e;
             }
         }

@@ -61,10 +61,10 @@
                 //.Width(600)
                 //.InitialItemWidth(250)
                 .StretchImages(true)
-                .Loop(true)
-                .SlideshowDelay(1500)
-                .ShowNavButtons(true)
-                .ShowIndicator(true)
+                .Loop(false)
+                .SlideshowDelay(9900)
+                .ShowNavButtons(false)
+                .ShowIndicator(false)
         )
     </div>
 
@@ -95,39 +95,40 @@
                         {
 
                             items.AddSimple()
-                                .DataField("FullName")
+                                .DataField("FullName").IsRequired(true)
                                 .Label(l => l.Text("姓名"))
                                 .Editor(e => e
                                     .TextBox()
                                     .Disabled(false)
-                                    .Placeholder("輸入姓名")
+                                    .Placeholder("請輸入姓名")
                                     .ShowClearButton(true)
                                //.Width(200)
                                );
 
                             items.AddSimple()
-                                .DataField("Mobile")
+                                .DataField("Mobile").IsRequired(true)
                                 .Label(l => l.Text("手機"))
                                 .Editor(e => e
-                                    .TextBox()
+                                    .NumberBox()
                                     .Disabled(false)
-                                    .Placeholder("輸入手機")
+                                    .Placeholder("請輸入手機號碼，只能輸入數字!")
                                     .ShowClearButton(true)
                                //.Width(200)
                                );
 
                             items.AddSimple()
-                                .DataField("NationId")
+                                .DataField("NationId").IsRequired(true)
                                 .Label(l => l.Text("身分證字號"))
                                 .Editor(e => e
                                     .TextBox()
                                     .Disabled(false)
-                                    .Placeholder("輸入身分證字號")
+                                    .Placeholder("請輸入身分證字號")
                                     .ShowClearButton(true)
                                //.Width(200)
                                );
 
                         })
+                        //.ValidationGroup("QPay")
                 )
             </div>
         </div>
@@ -142,6 +143,7 @@
                     .UseSubmitBehavior(true)
                     .OnClick("Login")
                     .Width(100)
+                    //.ValidationGroup("QPay")
                 )
             </div>
             <div id="LoadPanel">
@@ -203,37 +205,15 @@
 
             getLoadPanelInstance().hide();
 
-            if ( data.DisplayViewType == "MultiGroupView" ) {
-                // 小組長或是個人回報
+            if (data.status == 1)
+            {
                 ShowToast(data.message, "success", 2000);
 
-                //DevExpress.ui.notify(data.message, "success", 2000);
-
-                //window.location.href = "/Home/IntegrateView/AccountPassword";
-                window.location.href = "/Home/MultiGroupView/" + data.ActiveListId;
-                //window.location.href = data.LinePayUrl;
+                window.location.href = "/Home/QPayView/";
             }
-            else if ( data.DisplayViewType == "IntegrateView" ) {
-                // 小組長或是個人回報
-                ShowToast(data.message, "success", 2000);
-
-                //DevExpress.ui.notify(data.message, "success", 2000);
-
-                window.location.href = "/Home/IntegrateView/" + data.ActiveListId;
-                //window.location.href = data.LinePayUrl;
-            }
-            else if ( data.DisplayViewType == "HappyGroupView" ) {
-                // 單純幸福小組長回報
-                ShowToast(data.message, "success", 2000);
-
-                //DevExpress.ui.notify(data.message, "success", 2000);
-
-                window.location.href = "/Home/HappyGroup";
-            }
-            else {
-                ShowToast(data.message, "error", 5000);
-
-                //DevExpress.ui.notify(data.message, "error", 3000);
+            else
+            {
+                ShowToast(data.message, "error", 3000);
             }
         }
 

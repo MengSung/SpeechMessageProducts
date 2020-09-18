@@ -325,8 +325,7 @@ namespace ChurchReport.Controllers
             try
             {
                 var images = new List<string>();
-                images.Add(Url.Content("~/assets/images/永和堂牧養系統web_banner-01.jpg"));
-                images.Add(Url.Content("~/assets/images/永和堂牧養系統web_banner-02.png"));
+                images.Add(Url.Content("~/assets/images/永和堂奉獻系統web_banner.jpg"));
 
                 return View(new GalleryViewModel
                 {
@@ -352,209 +351,21 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                string ContactIdString = "";
-                if (aGalleryViewModel.Account != "")
+                m_InMemoryDataContextSmallGroup.QpayManager.LoginType = "官網單獨登入";
+
+                // 透過帳號密碼登入畫面進入的
+                Entity aLoginContact = m_InMemoryDataContextSmallGroup.QpayManager.GetLoginContactQpay(aGalleryViewModel);
+
+                if ( aLoginContact != null)
                 {
-                    // 透過帳號密碼登入畫面進入的
-                    ContactIdString = m_ToolUtilityClass.RetrieveContactByAccountNumber(aGalleryViewModel.Account, aGalleryViewModel.Password);
+                    m_InMemoryDataContextSmallGroup.QpayManager.SetQpayModel(aLoginContact);
+                    return Json(new { status = "1", message = "歡迎" + aGalleryViewModel.FullName + "登入成功!" });
                 }
                 else
                 {
-                    ContactIdString = "透過Line Id 登入";
+                    return Json(new { status = "2", message = "喔喔!系統找不到" + aGalleryViewModel.FullName });
                 }
 
-                if (ContactIdString != "密碼錯誤" && ContactIdString != "系統沒有設定密碼" && ContactIdString != "帳號錯誤")
-                {
-                    string FullName = "";
-                    Entity aLoginContact;
-                    if (ContactIdString != "透過Line Id 登入")
-                    {
-                        #region 使用者透過網頁的帳號密碼登入，所以帳號密碼就依據使用者輸入的為準
-                        aLoginContact = m_ToolUtilityClass.RetrieveEntityDynamics365("contact", new Guid(ContactIdString));
-                        FullName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aLoginContact, "fullname");
-                        #endregion
-                    }
-                    else
-                    {
-                        #region 使用者透過 Line Id 登入，所以帳號 Account="LineIdLogin"字串，密碼 Password=LineId
-                        aLoginContact = m_ToolUtilityClass.RetrieveContactEntityByLineUserId(m_InMemoryDataContextSmallGroup.LineBindingViewModel.LineUserId);
-                        FullName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aLoginContact, "fullname");
-                        aGalleryViewModel.Account = "LineIdLogin";
-                        aGalleryViewModel.Password = m_InMemoryDataContextSmallGroup.LineBindingViewModel.LineUserId;
-                        #endregion
-                    }
-
-                    // 依據登入方式設定行事曆的帳密
-                    m_InMemoryDataContextSmallGroup.AppointmentsListManager.m_Account = aGalleryViewModel.Account;
-                    m_InMemoryDataContextSmallGroup.AppointmentsListManager.m_Password = aGalleryViewModel.Password;
-
-                    // 設定多個組長處理需要的資料
-                    m_InMemoryDataContextSmallGroup.ListManager.SetupListManager(aGalleryViewModel.Account, aGalleryViewModel.Password, DateTime.Now);
-
-                    // 差勤簽核 OR 場地及資源預約
-                    m_InMemoryDataContextSmallGroup.AppointmentsListManager.SetupAppointmentList();
-
-                    // 永豐金流奉獻
-                    if (aLoginContact != null)
-                    {
-                        m_InMemoryDataContextSmallGroup.QpayManager.LoginType = "網頁登入";
-
-                        m_InMemoryDataContextSmallGroup.QpayManager.SetQpayModel(aLoginContact);
-                    }
-
-                    #region 控制 Navigation 下拉項目
-                    ViewBag.SchedulerView = m_InMemoryDataContextSmallGroup.ListManager.SchedulerView = "不是單純行事曆";
-                    ViewBag.DisplayNavigation = m_InMemoryDataContextSmallGroup.ListManager.DisplayNavigation = "顯示牧養回報項目";
-                    ViewBag.UserType = m_InMemoryDataContextSmallGroup.ListManager.UserType = m_InMemoryDataContextSmallGroup.AppointmentsListManager.UserType;
-                    #endregion
-
-                    // 透過取得多小組網頁需要的資料之後，判斷這是多小組還是單一小組長的回報
-                    string DisplayViewType = m_InMemoryDataContextSmallGroup.ListManager.GetDisplayViewType();
-                    if (DisplayViewType == "IntegrateView")
-                    {
-                        // 得知這是單一小組長的回報，所以就直接下載整合式網頁所需的資料
-                        m_InMemoryDataContextSmallGroup.ListManager.SetupIntegrateData(m_InMemoryDataContextSmallGroup.ListManager.ActiveListId);
-                    }
-                    else
-                    {
-                        // 得知這是多小組的回報，就不需要下載整合式網頁所需的資料
-                    }
-
-                    // 設定幸福小組資料
-                    //m_InMemoryDataContextSmallGroup.SetupHappyGroupData(aGalleryViewModel.Account, aGalleryViewModel.Password);
-                    //if (m_InMemoryDataContextSmallGroup.m_ListManager.m_ListSmallGroupWeeklyReport.GroupType == "幸福小組")
-                    //{
-                    //    m_InMemoryDataContextSmallGroup.HappyGroupDataManager.HappyType = "有幸福小組名單";
-                    //}
-                    //else
-                    //{
-                    //    m_InMemoryDataContextSmallGroup.HappyGroupDataManager.HappyType = "沒幸福小組名單";
-                    //}
-
-                    // 設定繳費與報名資料
-                    //m_InMemoryDataContextSmallGroup.FeeList.SetupFeeDataList(aGalleryViewModel.Account, aGalleryViewModel.Password);
-
-                    // 設定需要點名的課程清單
-                    m_InMemoryDataContextSmallGroup.FeeList.SetupLessonList(aGalleryViewModel.Account, aGalleryViewModel.Password);
-
-                    if (m_InMemoryDataContextSmallGroup.ListManager.LoginType == "小組長" && m_InMemoryDataContextSmallGroup.HappyGroupDataManager.HappyType == "有幸福小組名單")
-                    {
-                        // 小組長回報，而且有幸福小組
-                        ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType;
-                        ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.ListManager.LoginFullName;
-                        ViewBag.HappyType = "有幸福小組名單";
-                        ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType;
-                        #region 繳費與點名是否顯示在選單中
-                        if (m_InMemoryDataContextSmallGroup.FeeList.FeeDataList != null && m_InMemoryDataContextSmallGroup.FeeList.FeeDataList.Count > 0)
-                        {
-                            ViewBag.FeeDataListCount = "繳費與點名已有資料";
-                        }
-                        else
-                        {
-                            ViewBag.FeeDataListCount = "繳費與點名尚無資料";
-                        }
-                        #endregion
-
-                        SetMultiGroupLayoutParameter();
-
-                        return Json(new { DisplayViewType = DisplayViewType, ActiveListId = m_InMemoryDataContextSmallGroup.ListManager.ActiveListId, message = "歡迎" + FullName + "登入成功!", fullname = FullName, account = aGalleryViewModel.Account, password = aGalleryViewModel.Password });
-                    }
-                    else if (m_InMemoryDataContextSmallGroup.ListManager.LoginType == "小組長" && m_InMemoryDataContextSmallGroup.HappyGroupDataManager.HappyType == "沒幸福小組名單")
-                    {
-                        // 小組長回報，沒有幸福小組
-                        ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType;
-                        ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.ListManager.LoginFullName;
-                        ViewBag.HappyType = "沒幸福小組名單";
-                        ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType;
-                        #region 繳費與點名是否顯示在選單中
-                        if (m_InMemoryDataContextSmallGroup.FeeList.FeeDataList != null && m_InMemoryDataContextSmallGroup.FeeList.FeeDataList.Count > 0)
-                        {
-                            ViewBag.FeeDataListCount = "繳費與點名已有資料";
-                        }
-                        else
-                        {
-                            ViewBag.FeeDataListCount = "繳費與點名尚無資料";
-                        }
-                        #endregion
-
-                        SetMultiGroupLayoutParameter();
-
-                        //return Json(new { DisplayViewType = DisplayViewType, ActiveListId = m_InMemoryDataContextSmallGroup.ListManager.ActiveListId, message = "歡迎" + FullName + "登入成功!", fullname = FullName, account = aGalleryViewModel.Account, password = aGalleryViewModel.Password });
-                        //return Json(new { DisplayViewType = DisplayViewType, ActiveListId = m_InMemoryDataContextSmallGroup.ListManager.ActiveListId, message = "歡迎" + FullName + "登入成功!", fullname = FullName, account = aGalleryViewModel.Account, password = aGalleryViewModel.Password });
-                        return Json(new { DisplayViewType = DisplayViewType, ActiveListId = m_InMemoryDataContextSmallGroup.ListManager.ActiveListId, message = "歡迎" + FullName + "登入成功!", fullname = FullName, account = aGalleryViewModel.Account, password = aGalleryViewModel.Password });
-                    }
-                    else if (m_InMemoryDataContextSmallGroup.ListManager.LoginType != "小組長" && m_InMemoryDataContextSmallGroup.HappyGroupDataManager.HappyType == "沒幸福小組名單")
-                    {
-                        // 個人回報，不是小組長，沒有幸福小組
-                        ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType;
-                        ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.ListManager.LoginFullName;
-                        ViewBag.HappyType = "沒幸福小組名單";
-                        ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType;
-                        #region 繳費與點名是否顯示在選單中
-                        if (m_InMemoryDataContextSmallGroup.FeeList.FeeDataList != null && m_InMemoryDataContextSmallGroup.FeeList.FeeDataList.Count > 0)
-                        {
-                            ViewBag.FeeDataListCount = "繳費與點名已有資料";
-                        }
-                        else
-                        {
-                            ViewBag.FeeDataListCount = "繳費與點名尚無資料";
-                        }
-                        #endregion
-
-                        SetMultiGroupLayoutParameter();
-
-                        return Json(new { DisplayViewType = DisplayViewType, ActiveListId = m_InMemoryDataContextSmallGroup.ListManager.ActiveListId, message = "歡迎" + FullName + "登入成功!", fullname = FullName, account = aGalleryViewModel.Account, password = aGalleryViewModel.Password });
-                    }
-                    else if (m_InMemoryDataContextSmallGroup.ListManager.LoginType != "小組長" && m_InMemoryDataContextSmallGroup.HappyGroupDataManager.HappyType == "有幸福小組名單")
-                    {
-                        // 個人回報 + 單純幸福小組長回報
-                        ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType;
-                        ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.ListManager.LoginFullName;
-                        ViewBag.HappyType = "有幸福小組名單";
-                        ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType;
-                        #region 繳費與點名是否顯示在選單中
-                        if (m_InMemoryDataContextSmallGroup.FeeList.FeeDataList != null && m_InMemoryDataContextSmallGroup.FeeList.FeeDataList.Count > 0)
-                        {
-                            ViewBag.FeeDataListCount = "繳費與點名已有資料";
-                        }
-                        else
-                        {
-                            ViewBag.FeeDataListCount = "繳費與點名尚無資料";
-                        }
-                        #endregion
-
-                        SetMultiGroupLayoutParameter();
-
-                        DisplayViewType = "HappyGroupView";
-                        return Json(new { DisplayViewType = DisplayViewType, ActiveListId = m_InMemoryDataContextSmallGroup.ListManager.ActiveListId, message = "歡迎" + FullName + "登入成功!", fullname = FullName, account = aGalleryViewModel.Account, password = aGalleryViewModel.Password });
-                    }
-                    else
-                    {
-                        ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType;
-                        ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.ListManager.LoginFullName;
-                        ViewBag.HappyType = "沒幸福小組名單";
-                        ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType;
-                        #region 繳費與點名是否顯示在選單中
-                        if (m_InMemoryDataContextSmallGroup.FeeList.FeeDataList != null && m_InMemoryDataContextSmallGroup.FeeList.FeeDataList.Count > 0)
-                        {
-                            ViewBag.FeeDataListCount = "繳費與點名已有資料";
-                        }
-                        else
-                        {
-                            ViewBag.FeeDataListCount = "繳費與點名尚無資料";
-                        }
-                        #endregion
-
-                        SetMultiGroupLayoutParameter();
-
-                        DisplayViewType = "HappyGroupView";
-                        return Json(new { DisplayViewType = DisplayViewType, ActiveListId = m_InMemoryDataContextSmallGroup.ListManager.ActiveListId, message = "歡迎" + FullName + "登入成功!", fullname = FullName, account = aGalleryViewModel.Account, password = aGalleryViewModel.Password });
-                    }
-                }
-                else
-                {
-                    return Json(new { DisplayViewType = "登入錯誤", ActiveListId = m_InMemoryDataContextSmallGroup.ListManager.ActiveListId, message = ContactIdString, fullname = ContactIdString });
-                }
             }
             catch (System.Exception e)
             {
