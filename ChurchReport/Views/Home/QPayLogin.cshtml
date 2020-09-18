@@ -70,8 +70,8 @@
 
     <div class="long-title"><h3>永和禮拜堂奉獻系統</h3></div>
 
-            <div id="ToastContainer">
-            @(Html.DevExtreme().Toast()
+    <div id="ToastContainer">
+        @(Html.DevExtreme().Toast()
                             .ID("Toast")
                             .Position(p => p
                             .At(HorizontalAlignment.Center, VerticalAlignment.Center)
@@ -83,19 +83,20 @@
                             .MaxWidth(200)
             )
 
-        </div>
+    </div>
 
     <form data-ajax="true" data-ajax-begin="onBegin" data-ajax-success="onSuccess" asp-action="ProcessQPayLogin" asp-controller="Home" method="post" style="text-align: center;">
 
         <div class="dx-field" style="text-align: center;">
             <div class="form-container-class" id="form-container" style="text-align: center;">
-                @(Html.DevExtreme().Form()
+                @(Html.DevExtreme().Form<ChurchReport.ViewModel.GalleryViewModel>()
                         .ID("form")
                         .Items(items =>
                         {
 
-                            items.AddSimple()
-                                .DataField("FullName").IsRequired(true)
+                            items.AddSimpleFor(m => m.FullName)
+                                //.DataField("FullName")
+                                .IsRequired(true)
                                 .Label(l => l.Text("姓名"))
                                 .Editor(e => e
                                     .TextBox()
@@ -105,19 +106,9 @@
                                //.Width(200)
                                );
 
-                            items.AddSimple()
-                                .DataField("Mobile").IsRequired(true)
-                                .Label(l => l.Text("手機"))
-                                .Editor(e => e
-                                    .NumberBox()
-                                    .Disabled(false)
-                                    .Placeholder("請輸入手機號碼，只能輸入數字!")
-                                    .ShowClearButton(true)
-                               //.Width(200)
-                               );
-
-                            items.AddSimple()
-                                .DataField("NationId").IsRequired(true)
+                            items.AddSimpleFor(m => m.NationId)
+                                //.DataField("NationId")
+                                .IsRequired(true)
                                 .Label(l => l.Text("身分證字號"))
                                 .Editor(e => e
                                     .TextBox()
@@ -127,8 +118,32 @@
                                //.Width(200)
                                );
 
+                            items.AddSimpleFor(m => m.Mobile)
+                                //.DataField("Phone")
+                                .Label(l => l.Text("行動電話"))
+                                .IsRequired(true)
+                                .Editor(e => e
+                                    .TextBox()
+                                    .Mask("+886 (X000) 000-000")
+                                    .MaskRules(new { X = new JS("/[02-9]/") })
+                                    .Placeholder("請輸入手機號碼，只能輸入數字!")
+                                );
+
+                            //items.AddSimple()
+                            //    .DataField("Mobile")
+                            //    .IsRequired(true)
+                            //    .Label(l => l.Text("手機"))
+                            //    .Editor(e => e
+                            //        .NumberBox()
+                            //        .Disabled(false)
+                            //        .Placeholder("請輸入手機號碼，只能輸入數字!")
+                            //        .ShowClearButton(true)
+                            //   //.Width(200)
+                            //   );
+
+
                         })
-                        //.ValidationGroup("QPay")
+                        .ValidationGroup("QPay")
                 )
             </div>
         </div>
@@ -205,14 +220,12 @@
 
             getLoadPanelInstance().hide();
 
-            if (data.status == 1)
-            {
+            if (data.status == 1) {
                 ShowToast(data.message, "success", 2000);
 
                 window.location.href = "/Home/QPayView/";
             }
-            else
-            {
+            else {
                 ShowToast(data.message, "error", 3000);
             }
         }

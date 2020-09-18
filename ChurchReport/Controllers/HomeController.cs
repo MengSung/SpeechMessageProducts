@@ -351,19 +351,26 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                m_InMemoryDataContextSmallGroup.QpayManager.LoginType = "官網單獨登入";
-
-                // 透過帳號密碼登入畫面進入的
-                Entity aLoginContact = m_InMemoryDataContextSmallGroup.QpayManager.GetLoginContactQpay(aGalleryViewModel);
-
-                if ( aLoginContact != null)
+                if (aGalleryViewModel.FullName != null && aGalleryViewModel.Mobile != null && aGalleryViewModel.NationId != null)
                 {
-                    m_InMemoryDataContextSmallGroup.QpayManager.SetQpayModel(aLoginContact);
-                    return Json(new { status = "1", message = "歡迎" + aGalleryViewModel.FullName + "登入成功!" });
+                    m_InMemoryDataContextSmallGroup.QpayManager.LoginType = "官網單獨登入";
+
+                    // 透過帳號密碼登入畫面進入的
+                    Entity aLoginContact = m_InMemoryDataContextSmallGroup.QpayManager.GetLoginContactQpay(aGalleryViewModel);
+
+                    if (aLoginContact != null)
+                    {
+                        m_InMemoryDataContextSmallGroup.QpayManager.SetQpayModel(aLoginContact);
+                        return Json(new { status = "1", message = "歡迎" + aGalleryViewModel.FullName + "登入成功!" });
+                    }
+                    else
+                    {
+                        return Json(new { status = "2", message = "喔喔!系統找不到" + aGalleryViewModel.FullName });
+                    }
                 }
                 else
                 {
-                    return Json(new { status = "2", message = "喔喔!系統找不到" + aGalleryViewModel.FullName });
+                    return Json(new { status = "2", message = "喔喔!所有欄位都必須填寫喔，感謝您!"  });
                 }
 
             }
