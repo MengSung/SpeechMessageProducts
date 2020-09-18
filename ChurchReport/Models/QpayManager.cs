@@ -386,7 +386,31 @@ namespace ChurchReport.Models
 
                 if (aLoginContactCollection.Entities.Count > 0)
                 {
-                    return aLoginContactCollection.Entities[0];
+                    // 有找到奉獻者
+                    if (aLoginContactCollection.Entities.Count == 1)
+                    {
+                        // 找到剛好一個奉獻者
+                        Entity aLoginContact = aLoginContactCollection.Entities[0];
+                        UpdateQpayContact(aGalleryViewModel, ref aLoginContact);
+
+                        return aLoginContact;
+                    }
+                    else
+                    {
+                        // 找到兩個以上同名同姓的奉獻者
+                        Entity aLoginContact = FilterQpayContact(aGalleryViewModel, aLoginContactCollection);
+                        if(aLoginContact != null )
+                        {
+                            // 有找到對應的奉獻者:身份證字號相同 或 奉獻編號相同 或 行動電話相同
+                            UpdateQpayContact(aGalleryViewModel, ref aLoginContact);
+
+                            return aLoginContact;
+                        }
+                        else
+                        {
+                            return CreateQpayContact(aGalleryViewModel);
+                        }
+                    }
                 }
                 else
                 {
@@ -419,6 +443,73 @@ namespace ChurchReport.Models
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactToCreate, "pager", aGalleryViewModel.NationId);
 
                 return this.m_ToolUtilityClass.RetrieveEntity("contact", this.m_ToolUtilityClass.CreateEntity(aContactToCreate));
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                //Monitor.Exit(this);
+                throw e;
+            }
+        }
+        public void UpdateQpayContact(GalleryViewModel aGalleryViewModel, ref Entity aContact)
+        {
+            try
+            {
+                // 奉獻旗標預設為 FALSE
+                bool Updateflag = false;
+                if (this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContact, "mobilephone") == "")
+                {
+                    // 奉獻者沒有行動電話
+                    m_ToolUtilityClass.SetEntityStringAttribute(ref aContact, "mobilephone", aGalleryViewModel.Mobile);
+                    Updateflag = true;
+                }
+                if (this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContact, "new_personal_id") == "")
+                {
+                    // 奉獻者沒有身分證字號
+                    m_ToolUtilityClass.SetEntityStringAttribute(ref aContact, "new_personal_id", aGalleryViewModel.NationId);
+                    Updateflag = true;
+                }
+                if (this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContact, "pager") == "")
+                {
+                    // 奉獻者沒有奉獻編號
+                    m_ToolUtilityClass.SetEntityStringAttribute(ref aContact, "pager", aGalleryViewModel.NationId);
+                    Updateflag = true;
+                }
+
+                if (Updateflag == true)
+                {
+                    // 旗標為TRUE所以要更新奉獻者
+                    this.m_ToolUtilityClass.UpdateEntity(ref aContact);
+                }
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                //Monitor.Exit(this);
+                throw e;
+            }
+        }
+        public Entity FilterQpayContact(GalleryViewModel aGalleryViewModel, EntityCollection aContactEntityCollection)
+        {
+            try
+            {
+                foreach( Entity aContact in aContactEntityCollection.Entities )
+                {
+                    if( this.m_ToolUtilityClass.GetEntityStringAttribute( aContact, "new_personal_id") == aGalleryViewModel.NationId || this.m_ToolUtilityClass.GetEntityStringAttribute(aContact, "pager") == aGalleryViewModel.NationId)
+                    {
+                        // 奉獻者姓名與身分證字號相同或是奉獻者姓名與奉獻編號相同
+                        return aContact;
+                    }
+                    else if( this.m_ToolUtilityClass.FilterDigit( this.m_ToolUtilityClass.GetEntityStringAttribute( aContact, "mobilephone")) == this.m_ToolUtilityClass.FilterDigit(aGalleryViewModel.Mobile) )
+                    {
+                        // 奉獻者姓名與行動電話相同
+                        return aContact;
+                    }
+                }
+
+                return null;
             }
             catch (System.Exception e)
             {
