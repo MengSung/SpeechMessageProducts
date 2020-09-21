@@ -178,7 +178,19 @@ namespace ChurchReport.Models
         {
             try
             {
-                Entity LineLoginContact = this.m_ToolUtilityClass.RetrieveContactByLineId(UserLineId);
+                Entity LineLoginContact = new Entity("contact");
+                if (UserLineId != null)
+                {
+                    LineLoginContact = this.m_ToolUtilityClass.RetrieveContactByLineId(UserLineId);
+                }
+                else
+                {
+                    if( this.m_Contact != null )
+                    {
+                        // 從官網串接金流那邊進來的，所以在官網登入時就建立了連絡人
+                        LineLoginContact = this.m_Contact;
+                    }
+                }
 
                 // 全名
                 m_QpayModel.FullName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "fullname");

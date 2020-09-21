@@ -355,7 +355,7 @@ namespace ChurchReport.Controllers
                 {
                     m_InMemoryDataContextSmallGroup.QpayManager.LoginType = "官網單獨登入";
 
-                    // 透過帳號密碼登入畫面進入的
+                    // 透過姓名、身分證字號、行動電話登入畫面進入的
                     Entity aLoginContact = m_InMemoryDataContextSmallGroup.QpayManager.GetLoginContactQpay(aGalleryViewModel);
 
                     if (aLoginContact != null)
