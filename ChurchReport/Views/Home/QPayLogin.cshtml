@@ -115,7 +115,7 @@
                                     //.Mask("X-000-0Z0-000")
                                     //.MaskRules(new { X = new JS("/[A-Z]/"), Z = new JS("/[B-D]/") })
                                     .Mask("X-000-000-000")
-                                    .MaskRules(new { X = new JS("/[A-Z]/") })
+                                    .MaskRules(new { X = new JS("/[A-Za-z]/") })
                                     .Placeholder("請輸入身分證字號，只能輸入大寫字母及數字!")
                                     .Disabled(false)
                                     .ShowClearButton(true)

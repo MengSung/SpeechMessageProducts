@@ -353,6 +353,8 @@ namespace ChurchReport.Controllers
             {
                 if (aGalleryViewModel.FullName != null && aGalleryViewModel.Mobile != null && aGalleryViewModel.NationId != null)
                 {
+                    aGalleryViewModel.NationId = aGalleryViewModel.NationId.ToUpper();
+
                     m_InMemoryDataContextSmallGroup.QpayManager.LoginType = "官網單獨登入";
 
                     // 透過姓名、身分證字號、行動電話登入畫面進入的
