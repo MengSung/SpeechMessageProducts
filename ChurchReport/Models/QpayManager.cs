@@ -389,54 +389,59 @@ namespace ChurchReport.Models
         }
         #endregion
         #region 與官網整合串連，決定登入者
-        public Entity GetLoginContactQpay(GalleryViewModel aGalleryViewModel)
+        public Entity GetLoginContactQpay(GalleryViewModel aGalleryViewModel, ref String QueryResult)
         {
             try
             {
-                // 透過帳號密碼登入畫面進入的
-                EntityCollection aLoginContactCollection = m_ToolUtilityClass.RetrieveContactCollectionByName(aGalleryViewModel.FullName);
+                // 透過身分證字號尋找連絡人
+                EntityCollection aLoginContactCollection = m_ToolUtilityClass.RetrieveContactCollectionByNationId(aGalleryViewModel.NationId);
 
                 if (aLoginContactCollection.Entities.Count > 0)
                 {
                     // 有找到奉獻者
 
-                    // 透過身分證字號再找一遍
-                    Entity aLoginContact = FilterQpayContactByNationId(aGalleryViewModel, aLoginContactCollection);
+                    // 透過姓名全名再找一遍
+                    Entity aLoginContact = FilterQpayContactByFullName(aGalleryViewModel, aLoginContactCollection);
 
                     if( aLoginContact != null )
                     {
                         // 姓名跟身分證字號一樣的有找到
                         // 奉獻者的欄位 行動電話、身分證字號、奉獻編號 沒有值才會加上去，所以不會覆蓋原有的
-                        UpdateQpayContact(aGalleryViewModel, ref aLoginContact);
+                        //UpdateQpayContact(aGalleryViewModel, ref aLoginContact);
+
+                        QueryResult = aGalleryViewModel.FullName + "成功登入";
 
                         return aLoginContact;
                     }
                     else
                     {
-                        // 沒找到姓名跟身分證字號一樣的
-                        // 所以用手機再找一輪
-                        aLoginContact = FilterQpayContactByMobile(aGalleryViewModel, aLoginContactCollection);
+                        // 顯示錯誤
+                        // 有找到身分證字號一樣，但是姓名不一樣
+                        QueryResult = aGalleryViewModel.FullName + "登入錯誤" + "有找到身分證字號，但是姓名卻不一樣";
 
-                        if (aLoginContact != null)
-                        {
-                            // 姓名跟手機一樣的有找到
-                            // 奉獻者的欄位 行動電話、身分證字號、奉獻編號 沒有值才會加上去，所以不會覆蓋原有的
-                            UpdateQpayContact(aGalleryViewModel, ref aLoginContact);
-
-                            return aLoginContact;
-                        }
-                        else
-                        {
-                            // 沒找到奉獻者
-                            return CreateQpayContact(aGalleryViewModel);
-                        }
-
+                        return null;
                     }
                 }
                 else
                 {
-                    // 沒找到奉獻者
-                    return CreateQpayContact( aGalleryViewModel );
+                    // 透過姓名全名再找一遍
+                    Entity aLoginContact = FilterQpayContactByFullName(aGalleryViewModel, aLoginContactCollection);
+                    if (aLoginContact != null)
+                    {
+                        // 顯示錯誤
+                        // 有找到身分證字號不一樣，但是姓名卻一樣
+                        QueryResult = aGalleryViewModel.FullName + "登入錯誤" + "有找到姓名，但是身分證字號卻不一樣";
+
+                        return null;
+                    }
+                    else
+                    {
+                        // 沒找到姓名跟身分證字號一樣的
+                        // 沒找到奉獻者，所以新增一個連絡人
+                        QueryResult = aGalleryViewModel.FullName + "成功登入" + "為您在系統中建立了資料";
+                        return CreateQpayContact(aGalleryViewModel);
+
+                    }
                 }
             }
             catch (System.Exception e)
@@ -464,6 +469,29 @@ namespace ChurchReport.Models
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactToCreate, "pager", aGalleryViewModel.NationId);
 
                 return this.m_ToolUtilityClass.RetrieveEntity("contact", this.m_ToolUtilityClass.CreateEntity(aContactToCreate));
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                //Monitor.Exit(this);
+                throw e;
+            }
+        }
+        public Entity FilterQpayContactByFullName(GalleryViewModel aGalleryViewModel, EntityCollection aContactEntityCollection)
+        {
+            try
+            {
+                foreach (Entity aContact in aContactEntityCollection.Entities)
+                {
+                    if (this.m_ToolUtilityClass.GetEntityStringAttribute(aContact, "fullname") == aGalleryViewModel.FullName)
+                    {
+                        // 奉獻者姓名與身分證字號相同
+                        return aContact;
+                    }
+                }
+
+                return null;
             }
             catch (System.Exception e)
             {

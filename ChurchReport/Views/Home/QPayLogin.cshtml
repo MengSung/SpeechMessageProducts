@@ -184,6 +184,12 @@
         </div>
     </form>
 
+    <div class="long-title"><h3 id="displaynamefield"></h3></div>
+
+    <div style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
+        <h4 id="displaynamefield"></h4>
+    </div>
+
     <script>
         function getLoadPanelInstance() {
             return $("#loadPanel").dxLoadPanel("instance");
@@ -229,7 +235,13 @@
 
                 window.location.href = "/Home/QPayView/";
             }
+            else if (data.status == 2) {
+                document.getElementById('displaynamefield').innerHTML = data.message;
+
+                ShowToast(data.message, "error", 3000);
+            }
             else {
+                document.getElementById('displaynamefield').innerHTML = data.message;
                 ShowToast(data.message, "error", 3000);
             }
         }

@@ -1012,6 +1012,41 @@ namespace ToolUtilityNameSpace
                 throw e;
             }
         }
+        public EntityCollection RetrieveContactCollectionByNationId(String ContactFullName)
+        {
+            try
+            {
+                //lock (m_RetrieveContactLocker)
+                //{
+                //  Create query using querybyattribute
+                QueryByAttribute querybyexpression = new QueryByAttribute("contact");
+                querybyexpression.ColumnSet = new ColumnSet();
+                querybyexpression.ColumnSet.AllColumns = true;
+                //  Attribute to query
+                querybyexpression.Attributes.AddRange("new_personal_id", "statecode");
+                //  Value of queried attribute to return
+                querybyexpression.Values.AddRange(ContactFullName, 0);
+
+                EntityCollection retrieved;
+                if (CRM_TYPE == "DYNAMICS365")
+                {
+                    retrieved = this.m_OrganizationService.RetrieveMultiple(querybyexpression);
+                }
+                else
+                {
+                    retrieved = this.m_Crm2011OrganizationService.RetrieveMultiple(querybyexpression);
+                }
+
+
+                return retrieved;
+                //}
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                throw e;
+            }
+        }
         public Entity RetrieveContactByLineId(String LineId)
         {
             try
