@@ -417,7 +417,7 @@ namespace ChurchReport.Models
                     {
                         // 顯示錯誤
                         // 有找到身分證字號一樣，但是姓名不一樣
-                        QueryResult = aGalleryViewModel.FullName + "登入錯誤" + "有找到身分證字號，但是姓名卻不一樣";
+                        QueryResult = aGalleryViewModel.FullName + "登入錯誤:" + "有找到身分證字號，但是姓名卻不一樣";
 
                         return null;
                     }
@@ -425,12 +425,13 @@ namespace ChurchReport.Models
                 else
                 {
                     // 透過姓名全名再找一遍
-                    Entity aLoginContact = FilterQpayContactByFullName(aGalleryViewModel, aLoginContactCollection);
-                    if (aLoginContact != null)
+                    EntityCollection aFullNameContactCollection = m_ToolUtilityClass.RetrieveContactCollectionByName(aGalleryViewModel.FullName);
+
+                    if (aFullNameContactCollection.Entities.Count > 0)
                     {
                         // 顯示錯誤
-                        // 有找到身分證字號不一樣，但是姓名卻一樣
-                        QueryResult = aGalleryViewModel.FullName + "登入錯誤" + "有找到姓名，但是身分證字號卻不一樣";
+                        // 有找到身分證字號不一樣，但是姓名卻有一樣
+                        QueryResult = aGalleryViewModel.FullName + "登入錯誤:" + "有找到姓名，但是身分證字號卻不一樣";
 
                         return null;
                     }
