@@ -264,7 +264,7 @@ namespace ChurchReport.Tools
                         }
                         else
                         {
-                            m_OnboardTypeInfo = "已經在 " + aSigningTime.ToLocalTime().ToString() + " 簽到過了" + Environment.NewLine + "， 可是您尚未綁定過喔!";
+                            m_OnboardTypeInfo = "已經在 " + aSigningTime.ToLocalTime().ToString() + " 簽到過了" + Environment.NewLine + "， 可是您尚未註冊過喔!";
                         }
                     }
                     else
@@ -275,7 +275,7 @@ namespace ChurchReport.Tools
                         }
                         else
                         {
-                            m_OnboardTypeInfo = "已經在 " + aSigningTime.ToLocalTime().ToString() + " 簽退過了" + Environment.NewLine + "， 可是您尚未綁定過喔!";
+                            m_OnboardTypeInfo = "已經在 " + aSigningTime.ToLocalTime().ToString() + " 簽退過了" + Environment.NewLine + "， 可是您尚未註冊過喔!";
                         }
                     }
 
@@ -349,7 +349,7 @@ namespace ChurchReport.Tools
                 else
                 {
                     // 彈跳要用到的簽到退時間資訊
-                    m_OnboardTypeInfo = SigningTypeAndTime + Environment.NewLine + "，可是您尚未綁定過喔!";
+                    m_OnboardTypeInfo = SigningTypeAndTime + Environment.NewLine + "，可是您尚未註冊過喔!";
 
                     // 回傳 LINE 要用到的訊息
                     return
@@ -357,7 +357,7 @@ namespace ChurchReport.Tools
                         "類型: " + m_CategoryName + Environment.NewLine +
                         "姓名: " + m_UserName + Environment.NewLine +
                         SigningTypeAndTime + Environment.NewLine +
-                        "可是您尚未綁定過喔!";
+                        "可是您尚未註冊過喔!";
                 }
             }
             catch (System.Exception Exception)

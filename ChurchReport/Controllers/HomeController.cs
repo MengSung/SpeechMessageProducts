@@ -3365,11 +3365,11 @@ namespace ChurchReport.Controllers
                 if ( BindingResult.Contains("成功")) 
                 {
                     //return Json(new { status = "1", message = "感謝 " + aLineBindingViewModel.FullName + " 完成綁定程序，請回到LINE視窗進行報名或回報，謝謝您!" + Environment.NewLine + BindingResult, encoded = aLineBindingViewModel.DisplayName + "," + aLineBindingViewModel.LineUserId });
-                    return Json(new { status = "1", message = "感謝 " + aLineBindingViewModel.FullName + " 完成綁定程序!" + Environment.NewLine + BindingResult, encoded = aLineBindingViewModel.DisplayName + "," + aLineBindingViewModel.LineUserId });
+                    return Json(new { status = "1", message = "感謝 " + aLineBindingViewModel.FullName + " 完成註冊程序!" + Environment.NewLine + BindingResult, encoded = aLineBindingViewModel.DisplayName + "," + aLineBindingViewModel.LineUserId });
                 }
                 else
                 {
-                    return Json(new { status = "2", message = aLineBindingViewModel.FullName + " 綁定失敗!" + Environment.NewLine + BindingResult });
+                    return Json(new { status = "2", message = aLineBindingViewModel.FullName + " 註冊失敗!" + Environment.NewLine + BindingResult });
                 }
             }
             catch (System.Exception e)

@@ -350,11 +350,11 @@ namespace LineMessagingProcessor
 
                 //string DeCoded = System.Net.WebUtility.UrlDecode(CombineEncodeName);
 
-                //SendMessage(UserId,  "請點擊以下網址進行牧養系統與Line的綁定:");
+                //SendMessage(UserId,  "請點擊以下網址進行牧養系統與Line的註冊:");
 
                 SendMessage(
                     UserId,
-                    "請點擊以下網址進行牧養系統與Line的綁定:" + Environment.NewLine + CombineEncodeName
+                    "請點擊以下網址進行牧養系統與Line的註冊:" + Environment.NewLine + CombineEncodeName
                     );
                 #endregion
 

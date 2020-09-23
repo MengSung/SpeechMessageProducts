@@ -15,7 +15,7 @@
     )
 </div>
 
-<div class="long-title"><h3>註冊系統</h3></div>
+<div class="long-title"><h3>系統帳號密碼設定</h3></div>
 
 <form data-ajax="true" data-ajax-begin="onBegin" data-ajax-success="onSuccess" asp-action="ProcessRegister" asp-controller="Home" method="post" style="text-align: center;">
 
@@ -89,14 +89,14 @@
     <div class="dx-field" style="text-align: center;">
         <div id="buttonContainer" class="dx-button-icon">
             @(Html.DevExtreme().Button()
-            .Text("註冊")
+            .Text("設定帳號密碼")
             //.Type(ButtonType.Success)
             //.Type(ButtonType.Normal)
             .Type(ButtonType.Default)
             .ID("register-button")
             .UseSubmitBehavior(true)
             .OnClick("Register")
-            .Width(100)
+            .Width(140)
             )
         </div>
         <div id="LoadPanel">
@@ -109,7 +109,7 @@
                     .ShowPane(true)
                     .Shading(true)
                     .CloseOnOutsideClick(false)
-                    .Message("註冊中...")
+                    .Message("帳號密碼設定中...")
                     .Animation(l => l.Show(k => k.Easing(AnimationEasing.Swing)))
             //.OnShown("loadPanel_shown")
             //.OnHidden("loadPanel_hidden")

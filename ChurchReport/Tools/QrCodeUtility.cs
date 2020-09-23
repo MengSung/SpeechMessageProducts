@@ -223,7 +223,7 @@ namespace ChurchReport.Tools
                             }
                             else
                             {
-                                m_OnboardTypeInfo = "已經在 " + aSigningTime.ToLocalTime().ToString() + " 簽到過了" + Environment.NewLine + "， 可是您尚未綁定過喔!";
+                                m_OnboardTypeInfo = "已經在 " + aSigningTime.ToLocalTime().ToString() + " 簽到過了" + Environment.NewLine + "， 可是您尚未註冊過喔!";
                             }
                         }
                     }
@@ -251,7 +251,7 @@ namespace ChurchReport.Tools
                             }
                             else
                             {
-                                m_OnboardTypeInfo = "已經在 " + aSigningTime.ToLocalTime().ToString() + " 報名過了" + Environment.NewLine + "， 可是您尚未綁定過喔!";
+                                m_OnboardTypeInfo = "已經在 " + aSigningTime.ToLocalTime().ToString() + " 報名過了" + Environment.NewLine + "， 可是您尚未註冊過喔!";
                             }
                         }
                     #endregion
@@ -1308,7 +1308,7 @@ namespace ChurchReport.Tools
                 else
                 {
                     // 彈跳要用到的簽到退時間資訊
-                    m_OnboardTypeInfo = SigningTypeAndTime + Environment.NewLine + "，可是您尚未綁定過喔!";
+                    m_OnboardTypeInfo = SigningTypeAndTime + Environment.NewLine + "，可是您尚未註冊過喔!";
 
                     // 回傳 LINE 要用到的訊息
                     return
@@ -1316,7 +1316,7 @@ namespace ChurchReport.Tools
                     "姓名: " + m_UserName + Environment.NewLine +
                     "課堂資訊: " + LocalClassIndex + Environment.NewLine +
                     SigningTypeAndTime + Environment.NewLine +
-                    "可是您尚未綁定過喔!";
+                    "可是您尚未註冊過喔!";
                 }
 
             }
@@ -1348,14 +1348,14 @@ namespace ChurchReport.Tools
                 else
                 {
                     // 彈跳要用到的簽到退時間資訊
-                    m_OnboardTypeInfo = SigningTypeAndTime + Environment.NewLine + "，可是您尚未綁定過喔!";
+                    m_OnboardTypeInfo = SigningTypeAndTime + Environment.NewLine + "，可是您尚未註冊過喔!";
 
                     // 回傳 LINE 要用到的訊息
                     return
                     "課程名稱: " + m_ClassName + Environment.NewLine +
                     "姓名: " + m_UserName + Environment.NewLine +
                     SigningTypeAndTime + Environment.NewLine +
-                    "可是您尚未綁定過喔!";
+                    "可是您尚未註冊過喔!";
                 }
 
             }

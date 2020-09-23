@@ -69,7 +69,7 @@ namespace ChurchReport.WebServiceConnector
                 else
                 {
                     #region// 已經綁定註冊過了
-                    return ContactFullName + "已經綁定過了請再次點選要報名的課程/活動!";
+                    return ContactFullName + "已經註冊過了請再次點選要報名的課程/活動!";
                     #endregion
                 }
             }
