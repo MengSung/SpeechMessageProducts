@@ -59,13 +59,15 @@ else
                 @( Html.DevExtreme().Chart()
                     .ID("smallgroupchart")
                     .Export(e => e.Enabled(false))
+                    //.Size( s=>s.Height(250).Width(500))
+                    .Size( s=>s.Height(220))
                     //.Animation()
                     .CommonSeriesSettings
                     (
                         s => s
                         .ArgumentField("SundayDate")
-                        .Type(SeriesType.Bar)
-                        //.Type(SeriesType.Spline)
+                        //.Type(SeriesType.Bar)
+                        .Type(SeriesType.Spline)
                         //.Type(SeriesType.Area)
                         //.Type(SeriesType.Scatter)
                         .HoverMode(ChartSeriesHoverMode.AllArgumentPoints)
@@ -93,6 +95,12 @@ else
                         .Position(Position.Left)
                     )
 
+                    //.Palette(VizPalette.DarkViolet)
+                    .Palette(VizPalette.Violet)
+                    //.Palette(VizPalette.Vintage)
+                    //.Palette(VizPalette.Pastel)
+                    //.Palette(VizPalette.SoftPastel)
+
                     .Tooltip(t => t.Enabled(true))
 
                     .Title
@@ -102,7 +110,7 @@ else
                         .Font
                         (
                             f => f
-                                .Size(25)
+                                .Size(12)
                                 .Weight(300)
                                 //.Color("red")
                                 .Color("darkblue")
