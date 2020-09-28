@@ -131,7 +131,8 @@ namespace ChurchReport.WebServiceConnector
             aListSmallGroupWeeklyReport.LoginType = this.m_LoginType;
             aListSmallGroupWeeklyReport.SmallGroupLeaderFullName = m_ToolUtilityClass.GetEntityLookupDisplayName(ref m_ListEntity, "new_contact_family_leader_list");
             aListSmallGroupWeeklyReport.SundayPrayers = aDownloadDate;
-            aListSmallGroupWeeklyReport.SundayPeriod = "小組日期對應到主日期間是: " + m_Sunday.ToLocalTime().ToShortDateString() + " ~ " + m_Sunday.AddDays(6).ToLocalTime().ToShortDateString();
+            //aListSmallGroupWeeklyReport.SundayPeriod = "小組日期對應到主日期間是: " + m_Sunday.ToLocalTime().ToShortDateString() + " ~ " + m_Sunday.AddDays(6).ToLocalTime().ToShortDateString();
+            aListSmallGroupWeeklyReport.SundayPeriod = "小組日期對應到主日期間是: " + m_Sunday.AddDays(-1).ToLocalTime().ToShortDateString() + " ~ " + m_Sunday.AddDays(5).ToLocalTime().ToShortDateString();
             aListSmallGroupWeeklyReport.SmallGroupLeaderContactId = m_ContactId.ToString();
             aListSmallGroupWeeklyReport.SmallGroupLeaderFullName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref this.m_ContactEntity, "fullname");
 
