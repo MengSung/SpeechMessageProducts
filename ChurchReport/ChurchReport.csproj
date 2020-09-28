@@ -1,6 +1,6 @@
 <Project ToolsVersion="15.0" Sdk="Microsoft.NET.Sdk.Web">
   <PropertyGroup>
-    <TargetFramework>net472</TargetFramework>
+    <TargetFramework>net471</TargetFramework>
     <EnableDefaultContentItems>false</EnableDefaultContentItems>
     <PreserveCompilationContext>true</PreserveCompilationContext>
     <AssemblyName>ChurchReport</AssemblyName>
