@@ -2340,25 +2340,23 @@ namespace ChurchReport.WebServiceConnector
             switch (FollowUpWeekIndex)
             {
                 case 100000000:
-                    return "福音的能力";
+                    return "預備週";
                 case 100000001:
-                    return "幸福小組是符合聖經的佈道小組";
-                case 100000002:
                     return "真幸福";
+                case 100000002:
+                    return "真相大白";
                 case 100000003:
-                    return "欺騙者";
+                    return "萬世巨星";
                 case 100000004:
-                    return "救贖者耶穌";
+                    return "幸福連線";
                 case 100000005:
-                    return "垂聽禱告的上帝";
+                    return "當上帝來敲門";
                 case 100000006:
-                    return "你要遇見神";
+                    return "十字架的勝利";
                 case 100000007:
-                    return "耶穌基督十字架的勝利";
-                case 100000008:
                     return "釋放與自由";
-                case 100000009:
-                    return "帶來幸福的教會";
+                case 100000008:
+                    return "幸福的教會";
                 default:
                     return "";
             }

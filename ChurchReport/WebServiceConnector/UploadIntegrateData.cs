@@ -3563,26 +3563,24 @@ namespace ChurchReport.WebServiceConnector
         {
             switch (Topic)
             {
-                case "福音的能力":
+                case "預備週":
                     return 100000000;
-                case "幸福小組是符合聖經的佈道小組":
-                    return 100000001;
                 case "真幸福":
+                    return 100000001;
+                case "真相大白":
                     return 100000002;
-                case "欺騙者":
+                case "萬世巨星":
                     return 100000003;
-                case "救贖者耶穌":
+                case "幸福連線":
                     return 100000004;
-                case "垂聽禱告的上帝":
+                case "當上帝來敲門":
                     return 100000005;
-                case "你要遇見神":
+                case "十字架的勝利":
                     return 100000006;
-                case "耶穌基督十字架的勝利":
-                    return 100000007;
                 case "釋放與自由":
+                    return 100000007;
+                case "幸福的教會":
                     return 100000008;
-                case "帶來幸福的教會":
-                    return 100000009;
                 default:
                     return 100000000;
             }
