@@ -163,6 +163,10 @@ else
             @*@(Html.DevExtreme().CheckBox().ID("CheckBoxId").Value(Model.PauseCheckBox))*@
         }
 
+        <div style="font-family:標楷體;font-size: 100%; color:crimson; text-align:left;background-color:powderblue;font-weight: bold">
+            @Model.SundayPeriod
+        </div>
+
         <div class="dx-field">
             <div id="the whole thing" style="height:100%; width:100%; overflow: hidden;">
                 @if (Model.LoginType == "小組長")
@@ -436,62 +440,6 @@ else
                             )
                     </div>
                 }
-                <div id="SundayLabel" class="dx-field-label" style="float: left; width:15%; background-color:white;">小組日期</div>
-                <div id="dateBoxContainer" class="dx-field-value" style="float: left; width:55%; background-color:white;">
-
-                    @(Html.DevExtreme()
-                    //.DateBox()
-                    .DateBoxFor(m => m.SundayPrayers)
-                    .Type(DateBoxType.Date)
-                    .Value(Model.SundayPrayers)
-                    .Width(30)
-                    .DisplayFormat("yyyy/M/d")
-                    .OnChange("OnDateboxChange")
-                    .CalendarOptions( k=>k.FirstDayOfWeek(0))
-                    //.PickerType(DateBoxPickerType.Calendar)
-                    //.PickerType(DateBoxPickerType.Rollers)
-                    //.PickerType(DateBoxPickerType.List)
-                    //.PickerType(DateBoxPickerType.Native)
-                    //.DisplayFormat("yyyy/MM/dd")
-                    //.OnValueChanged("OnValueChanged")
-
-
-                    .OnValueChanged(@<text>
-                                function(arg) {
-
-                                $("#loadPanel").dxLoadPanel("instance").show();
-
-                                $.ajax({
-                                url: '@Url.Action("UpdateIntegrateDate", "Home")',
-                                data: { SelectedDate: getODataLocalDateFilter(arg.value) },
-                                type: 'GET', //POST if you want to save, GET if you want to fetch data from server
-
-                                success: function (arg)
-                                {
-                                //alert("001");
-                                $("#loadPanel").dxLoadPanel("instance").hide();
-
-                                //var dataGridInstance = $("#gridContainer").dxDataGrid("instance");
-                                //dataGridInstance.refresh();
-                                //alert("002");
-
-                                //window.location.href = "/Home/IntegrateView/IntegrateView"
-                                window.location.href = "/Home/IntegrateView/" + arg.ActiveListId;
-                                //alert("003");
-
-                                },
-
-                                error: function (obj) {
-                                //alert('Something happened');
-                                }
-
-                                });
-                                }
-                    </text>
-)
-
-                    )
-                </div>
                 <div id="ToastContainer">
                     @(Html.DevExtreme().Toast()
                             .ID("toast")
@@ -559,14 +507,70 @@ else
             </div>
         </div>
 
-        <div style="font-family:標楷體;font-size: 100%; color:crimson; text-align:left;background-color:powderblue;font-weight: bold">
-            @Model.SundayPeriod
+
+        <div id="SundayLabel" class="dx-field-label" style="float: left; width:15%; background-color:white;">小組日期</div>
+        <div id="dateBoxContainer" class="dx-field-value" style="float: left; width:55%; background-color:white;">
+
+            @(Html.DevExtreme()
+                    //.DateBox()
+                    .DateBoxFor(m => m.SundayPrayers)
+                    .Type(DateBoxType.Date)
+                    .Value(Model.SundayPrayers)
+                    .Width(30)
+                    .DisplayFormat("yyyy/M/d")
+                    .OnChange("OnDateboxChange")
+                    .CalendarOptions( k=>k.FirstDayOfWeek(0))
+                    //.PickerType(DateBoxPickerType.Calendar)
+                    //.PickerType(DateBoxPickerType.Rollers)
+                    //.PickerType(DateBoxPickerType.List)
+                    //.PickerType(DateBoxPickerType.Native)
+                    //.DisplayFormat("yyyy/MM/dd")
+                    //.OnValueChanged("OnValueChanged")
+
+
+                    .OnValueChanged(@<text>
+                                function(arg) {
+
+                                $("#loadPanel").dxLoadPanel("instance").show();
+
+                                $.ajax({
+                                url: '@Url.Action("UpdateIntegrateDate", "Home")',
+                                data: { SelectedDate: getODataLocalDateFilter(arg.value) },
+                                type: 'GET', //POST if you want to save, GET if you want to fetch data from server
+
+                                success: function (arg)
+                                {
+                                //alert("001");
+                                $("#loadPanel").dxLoadPanel("instance").hide();
+
+                                //var dataGridInstance = $("#gridContainer").dxDataGrid("instance");
+                                //dataGridInstance.refresh();
+                                //alert("002");
+
+                                //window.location.href = "/Home/IntegrateView/IntegrateView"
+                                window.location.href = "/Home/IntegrateView/" + arg.ActiveListId;
+                                //alert("003");
+
+                                },
+
+                                error: function (obj) {
+                                //alert('Something happened');
+                                }
+
+                                });
+                                }
+                    </text>
+)
+
+                    )
         </div>
+
 
 
         @if (Model.GroupType == "幸福小組")
         {
-            <div style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
+            <br/>
+            <div style="font-family:標楷體;font-size:100%; color:darkcyan; font-weight:bold">
                 <h5>幸福小組週次及主題:</h5>
             </div>
             <div class="ccle">
@@ -637,15 +641,15 @@ else
                     @(Html.DevExtreme().CheckBox().ID("CheckBoxId").Value(Model.PauseCheckBox))
                 </div>
 
-                    @if (Model.m_SmallGroupDataList.m_SmallGroupData.DisplayFlag == true)
-                    {
-                        <div style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
-                            <h5>小組牧養:</h5>
-                        </div>
-                    }
+                @if (Model.m_SmallGroupDataList.m_SmallGroupData.DisplayFlag == true)
+                {
+                    <div style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
+                        <h5>小組牧養:</h5>
+                    </div>
+                }
 
-                    <div id="smallgroup-grid">
-                        @(Html.DevExtreme().DataGrid<Member>()
+                <div id="smallgroup-grid">
+                    @(Html.DevExtreme().DataGrid<Member>()
                             .ID("SmallGroupgridContainer")
                             .ShowBorders(true)
                             .ColumnAutoWidth(true)
@@ -801,17 +805,17 @@ else
                     )
 
 
+                </div>
+
+                @if (Model.m_SmallGroupDataList.m_NewPersonFollowUpData.DisplayFlag == true)
+                {
+                    <div style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
+                        <h5>新人跟進關懷:</h5>
                     </div>
+                }
 
-                    @if (Model.m_SmallGroupDataList.m_NewPersonFollowUpData.DisplayFlag == true)
-                    {
-                        <div style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
-                            <h5>新人跟進關懷:</h5>
-                        </div>
-                    }
-
-                    <div id="newpersonal-data-grid">
-                        @(Html.DevExtreme().DataGrid<Member>()
+                <div id="newpersonal-data-grid">
+                    @(Html.DevExtreme().DataGrid<Member>()
                             .ID("NewPersonGridContainer")
                             .ShowBorders(true)
                             .RemoteOperations(true)
@@ -1025,18 +1029,18 @@ else
 
         //.DataSourceOptions(d => d.Filter("['Id', '<=' , 6]"))
                     )
+                </div>
+            }
+            else
+            {
+                @if (Model.m_SmallGroupDataList.m_HappyGroup.DisplayFlag == true)
+                {
+                    <div style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
+                        <h5>幸福小組:</h5>
                     </div>
-                    }
-                    else
-                    {
-                    @if (Model.m_SmallGroupDataList.m_HappyGroup.DisplayFlag == true)
-                    {
-                        <div style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
-                            <h5>幸福小組:</h5>
-                        </div>
-                    }
-                    <div id="happygroup-grid">
-                        @(Html.DevExtreme().DataGrid<Member>()
+                }
+                <div id="happygroup-grid">
+                    @(Html.DevExtreme().DataGrid<Member>()
                             .ID("HappyGroupGridContainer")
                             .ShowBorders(true)
                             .ColumnAutoWidth(true)
@@ -1105,6 +1109,7 @@ else
                                 columns.AddFor(m => m.FullName).Caption("姓名").Fixed(true).Width(60).MinWidth(20).Alignment(HorizontalAlignment.Left).AllowSorting(false).AllowEditing(false);
                                 columns.AddFor(m => m.Sunday).Caption("主日").Width(45).MinWidth(45).AllowSorting(false);
                                 columns.AddFor(m => m.SmallGroup).Caption("小組").Width(45).MinWidth(45).AllowSorting(false);
+                                columns.AddFor(m => m.Decision).Caption("決志").Width(45).MinWidth(45).AllowSorting(false);
                                 //columns.AddFor(m => m.Status).Caption("會員身分").Fixed(false).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Center).AllowSorting(false);
                                 //客製化，委身類型
                                 columns.Add().DataField("Status")
@@ -1116,11 +1121,11 @@ else
                                             //.DisplayExpr("Name")
                                             //.ValueExpr("ID")
                                             );
-                                columns.AddFor(m => m.EquipmentStatus).Caption("裝備狀態").Alignment(HorizontalAlignment.Center).Width(60).MinWidth(60).AllowSorting(true).AllowEditing(false);
+                                //columns.AddFor(m => m.EquipmentStatus).Caption("裝備狀態").Alignment(HorizontalAlignment.Center).Width(60).MinWidth(60).AllowSorting(true).AllowEditing(false);
                                 columns.AddFor(m => m.SpiritualIdentity).Caption("受洗狀態").Alignment(HorizontalAlignment.Center).Width(100).MinWidth(60).AllowSorting(true).AllowEditing(false);
                                 //columns.AddFor(m => m.Sunday).Caption("主日").Width(45).MinWidth(45).AllowSorting(false);
                                 //columns.AddFor(m => m.SmallGroup).Caption("小組").Width(45).MinWidth(45).AllowSorting(false);
-                                columns.AddFor(m => m.Decision).Caption("決志").Width(45).MinWidth(45).AllowSorting(false);
+                                //columns.AddFor(m => m.Decision).Caption("決志").Width(45).MinWidth(45).AllowSorting(false);
                                 columns.AddFor(m => m.BestLeader)
                                     .Caption("屬靈認領者")
                                     .Width(90)
@@ -1138,7 +1143,7 @@ else
                                 columns.AddFor(m => m.BestIntroducer).Caption("介紹人").Width(90).MinWidth(90).AllowSorting(false);
                                 columns.AddFor(m => m.BestRelationship).Caption("與介紹人關係").Width(90).MinWidth(90).AllowSorting(false);
 
-                                columns.AddFor(m => m.SmallGroup).Caption("小組").Width(45).MinWidth(45).AllowSorting(false);
+                                //columns.AddFor(m => m.SmallGroup).Caption("小組").Width(45).MinWidth(45).AllowSorting(false);
                                 columns.AddFor(m => m.SpiritualWork)
                                  .Caption("讀經次數").Alignment(HorizontalAlignment.Center).Visible(false)
                                  .Width(75).MinWidth(30).DataType(GridColumnDataType.Number)
@@ -1198,14 +1203,14 @@ else
 
                     )
 
-                    </div>
-                    }
-                    }
-                    else
-                    {
-                    <--!> 個人回報 </--!>
-                    <div id="individual-data-grid">
-                        @(
+                </div>
+            }
+        }
+        else
+        {
+            <--!> 個人回報 </--!>
+            <div id="individual-data-grid">
+                @(
                             Html.DevExtreme()
                             .DataGrid<Member>()
                             .ID("IndividualGridContainer")
@@ -1317,33 +1322,33 @@ else
 
                              //.DataSourceOptions(d => d.Filter("['Id', '<=' , 6]"))
              )
-                    </div>
-                    }
+            </div>
+        }
 
-                    @*<--!> 小組日誌 </--!>*@
-                    @if (Model.LoginType == "小組長")
-                    {
-                        <div style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
-                            <h5>小組日誌:</h5>
-                        </div>
+        @*<--!> 小組日誌 </--!>*@
+        @if (Model.LoginType == "小組長")
+        {
+            <div style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
+                <h5>小組日誌:</h5>
+            </div>
 
-                        @(Html.DevExtreme().TextArea()
+            @(Html.DevExtreme().TextArea()
                     .ID("WeeklyReportTextData")
                     .Value(Model.WeeklyReportData)
                     .Height(200)
             )
-                        <div style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
-                            <h5>小組出席紀錄:</h5>
-                        </div>
+            <div style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
+                <h5>小組出席紀錄:</h5>
+            </div>
 
-                        @(Html.DevExtreme().TextArea()
+            @(Html.DevExtreme().TextArea()
                     .ID("WeeklyReportTextAnalysis")
                     .Value(Model.WeeklyReportAnalysis)
                     .Height(350)
                     .Disabled(true)
             )
-                    }
-                </div>
+        }
+    </div>
 
 </form>
 

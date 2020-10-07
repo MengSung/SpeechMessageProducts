@@ -99,7 +99,11 @@
                     .TextBox()
                     .Disabled(false)
                     .Placeholder("輸入姓名")
-               );
+               )
+            .ValidationRules(r => r
+                    .AddRequired()
+                    .Message("姓名必填")
+                );
 
             items.AddSimpleFor(m => m.Phone)
                 //.DataField("Phone")
@@ -109,7 +113,12 @@
                     .Mask("(X000) 000-000")
                     .MaskRules(new { X = new JS("/[02-9]/") })
                     .Placeholder("輸入手機號碼")
+                )
+                .ValidationRules(r => r
+                    .AddRequired()
+                    .Message("行動電話必填")
                 );
+
 
             items.AddSimpleFor(m => m.HomePhone)
                 //.DataField("HomePhone")
@@ -288,11 +297,11 @@
                  //.DataField("Industry")
                  //.Visible(false)
                  .Name("OtherDedication")
-                 .Label(l => l.Text("職業及專長"))
+                 .Label(l => l.Text("職業及專長")).Visible(false)
                  ;
             items.AddSimpleFor(m => m.EquipmentStatus)
                  //.DataField("EquipmentStatus ")
-                 .Label(l => l.Text("裝備狀態"))
+                 .Label(l => l.Text("裝備狀態")).Visible(false)
                  ;
 
             items.AddSimpleFor(m => m.Notes)
