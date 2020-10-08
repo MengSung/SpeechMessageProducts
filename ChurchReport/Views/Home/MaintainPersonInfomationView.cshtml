@@ -275,10 +275,10 @@
                     </text>);*@
 
                 @*columns.Add().DataField("SectionName").Caption("族系").GroupIndex(-1).MinWidth(10);*@
-columns.Add().DataField("SmallGroupName").Caption("小組").GroupIndex(0).MinWidth(10);
+                    columns.Add().DataField("SmallGroupName").Caption("小組").GroupIndex(0).MinWidth(10);
 
-columns.Add().DataField("FullName").Caption("姓名").AllowEditing(false).Fixed(true).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Left).AllowEditing(false);
-columns.Add().DataField("Status")
+                    columns.Add().DataField("FullName").Caption("姓名").AllowEditing(false).Fixed(true).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Left).AllowEditing(false);
+                    columns.Add().DataField("Status")
                     .Caption("會員身分").Alignment(HorizontalAlignment.Center)
                     .AllowEditing(true)
                     .Width(70).MinWidth(30).DataType(GridColumnDataType.Number)
@@ -288,9 +288,9 @@ columns.Add().DataField("Status")
                     //.ValueExpr("ID")
                     );
 
-columns.Add().DataField("EquipmentStatus").Caption("裝備狀態").Alignment(HorizontalAlignment.Center).Fixed(false).Width(60).MinWidth(90).AllowEditing(false);
-    //columns.Add().DataField("SpiritualIdentity").Caption("受洗狀態").Alignment(HorizontalAlignment.Center).Fixed(false).Width(100).MinWidth(90).AllowEditing(true);
-    columns.Add().DataField("SpiritualIdentity")
+                    columns.Add().DataField("EquipmentStatus").Caption("裝備狀態").Alignment(HorizontalAlignment.Center).Fixed(false).Width(60).MinWidth(90).AllowEditing(false);
+                    //columns.Add().DataField("SpiritualIdentity").Caption("受洗狀態").Alignment(HorizontalAlignment.Center).Fixed(false).Width(100).MinWidth(90).AllowEditing(true);
+                    columns.Add().DataField("SpiritualIdentity")
             .Caption("受洗狀態").Alignment(HorizontalAlignment.Center)
             .AllowEditing(true)
             .Width(110).MinWidth(100).DataType(GridColumnDataType.String)
