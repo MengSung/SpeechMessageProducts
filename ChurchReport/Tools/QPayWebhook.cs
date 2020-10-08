@@ -144,6 +144,7 @@ namespace ChurchReport.Tools
                             DateTime.Now.ToString() +
                             ": ReturnUrl => 信用卡訂單編號= " + aQryOrderPay.TSResultContent.OrderNo +
                             "，金額:" + ((int)Convert.ToUInt32(aQryOrderPay.TSResultContent.Amount) / 100).ToString() +
+                            "，PayToken = " + PayToken +
                             Environment.NewLine;
 
                     this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeEntity, "new_payment_records", aPaymentRecords);
@@ -211,6 +212,13 @@ namespace ChurchReport.Tools
             else
             {
                 //return Json(new Dictionary<string, string>() { { "Status", "S" } });
+                // 收費單說明
+                String aOriginalDescription = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aFeeEntity, "new_description");
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeEntity, "new_description", aOriginalDescription + Description);
+
+                // 更新收費單
+                this.m_ToolUtilityClass.UpdateEntity(ref aFeeEntity);
+
                 return new OkObjectResult("信用卡付款結果失敗!" + Environment.NewLine + Description);
             }
         }

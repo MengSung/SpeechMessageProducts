@@ -992,6 +992,10 @@ namespace ChurchReport.Controllers
                 // 刪除小組長牧養主日出席、小組出席、代禱事項
                 m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData.DeleteMember(key);
 
+                // 刪除幸福小組主日出席、小組出席、代禱事項
+                m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_HappyGroup.DeleteMember(key);
+
+
                 return Ok();
             }
             catch (System.Exception e)
