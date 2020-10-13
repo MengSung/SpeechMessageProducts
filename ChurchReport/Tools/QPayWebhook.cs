@@ -86,7 +86,7 @@ namespace ChurchReport.Tools
             Entity aFeeEntity = this.m_ToolUtilityClass.RetrieveEntity("new_fee", new Guid(aQryOrderPay.TSResultContent.Param1));
             if (aFeeEntity == null)
             {
-                if (aQryOrderPay.Status == "S")
+                if (aQryOrderPay.Status == "S" && aQryOrderPay.TSResultContent.Status == "S")
                 {
                     //return Json(new Dictionary<string, string>() { { "Status", "S" } });
                     return new OkObjectResult("信用卡付款結果成功!" + Environment.NewLine + aQryOrderPay.Description);
@@ -113,15 +113,15 @@ namespace ChurchReport.Tools
                                  "日期     : " + DateTime.Now.ToLocalTime().ToString() + Environment.NewLine +
                                  "實收金額 : " + ((int)Convert.ToUInt32(aQryOrderPay.TSResultContent.Amount) / 100).ToString() + Environment.NewLine +
                                  "付款方式 : " + "信用卡" + Environment.NewLine +
-                                 "說明     : " + aQryOrderPay.Description + Environment.NewLine +
+                                 "程式呼叫 : " + aQryOrderPay.Description + Environment.NewLine +
+                                 "交易結果 : " + aQryOrderPay.TSResultContent.Description + Environment.NewLine +
                                  //"這是 ChurcchReport Webhook!!" + Environment.NewLine +
                                  "--------------------" + Environment.NewLine;
 
-            if (aQryOrderPay.Status == "S")
+            if ( aQryOrderPay.Status == "S" &&  aQryOrderPay.TSResultContent.Status == "S")
             {
                 if (this.m_ToolUtilityClass.GetEntityStringAttribute(aFeeEntity, "new_payment_records").Contains(aQryOrderPay.TSResultContent.OrderNo) != true && this.m_ToolUtilityClass.GetOptionSetAttribute( ref aFeeEntity, "new_pay_status") == 100000000 ) 
                 {
-                    // 付款狀態 等於 "新建立"
                     #region 信用卡會回傳2次，一次是RETURN_URL、一次是BACKEND_URL，為免收費單紀錄信用卡兩次，所以如果這裡已經有信用卡訂單編號，就不再處理了
                     // 收費單付款日期
                     this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aFeeEntity, "new_pay_date", DateTime.Now.ToLocalTime());
@@ -136,7 +136,7 @@ namespace ChurchReport.Tools
                     this.m_ToolUtilityClass.SetOptionSetAttribute(ref aFeeEntity, "new_pay_status", 100000001); // 100000001 = 信用卡已繳費
                     // 收費單說明
                     String aOriginalDescription = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aFeeEntity, "new_description");
-                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeEntity, "new_description", aOriginalDescription + Description);
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeEntity, "new_description", aOriginalDescription + "信用卡付款結果成功!" + Environment.NewLine + Description);
 
                     // 付款紀錄
                     String aPaymentRecords =
@@ -214,7 +214,7 @@ namespace ChurchReport.Tools
                 //return Json(new Dictionary<string, string>() { { "Status", "S" } });
                 // 收費單說明
                 String aOriginalDescription = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aFeeEntity, "new_description");
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeEntity, "new_description", aOriginalDescription + Description);
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeEntity, "new_description", aOriginalDescription + "信用卡付款結果失敗!" + Environment.NewLine + Description);
 
                 // 更新收費單
                 this.m_ToolUtilityClass.UpdateEntity(ref aFeeEntity);
