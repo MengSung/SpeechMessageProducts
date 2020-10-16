@@ -594,11 +594,11 @@ namespace ChurchReport.Tools
                         if (VisaCCTokenSplit.Length == 4)
                         {
                             if
-                                (
-                                    VisaCCTokenSplit[1] == aQryOrderPay.TSResultContent.LeftCCNo &&
-                                    VisaCCTokenSplit[2] == aQryOrderPay.TSResultContent.RightCCNo &&
-                                    VisaCCTokenSplit[3] == aQryOrderPay.TSResultContent.CCExpDate
-                                )
+                            (
+                                VisaCCTokenSplit[1] == aQryOrderPay.TSResultContent.LeftCCNo &&
+                                VisaCCTokenSplit[2] == aQryOrderPay.TSResultContent.RightCCNo &&
+                                VisaCCTokenSplit[3] == aQryOrderPay.TSResultContent.CCExpDate
+                            )
                             {
                                 // 有一樣的信用卡
                                 return true;
@@ -610,7 +610,7 @@ namespace ChurchReport.Tools
             else
             {
                 // 還沒有儲存的信用卡
-                return true;
+                return false;
             }
 
             // 每個儲存的信用卡與目前要儲存的信用卡都不一樣
