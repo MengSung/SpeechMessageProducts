@@ -4412,7 +4412,7 @@ namespace ChurchReport.Controllers
 
                 //return Json(new { LinePayUrl = LinePayUrl, DisplayViewType = DisplayViewType, ActiveListId = m_InMemoryDataContextSmallGroup.ListManager.ActiveListId, message = "歡迎" + FullName + "登入成功!", fullname = FullName, account = aGalleryViewModel.Account, password = aGalleryViewModel.Password });
 
-                return Json(new { status = "1", message = "感謝您的奉獻", LinePayUrl = aLinePayUrl });
+                return Json(new { status = "1", message = "敬收您的奉獻", LinePayUrl = aLinePayUrl });
             }
             catch (System.Exception e)
             {
@@ -4475,7 +4475,7 @@ namespace ChurchReport.Controllers
 
                 String FullName = await DedicationInfo.CreateFeeAsync(m_InMemoryDataContextSmallGroup.LineBindingViewModel.LineUserId, DedicationInfoModel);
 
-                return Json(new { status = "1", message = "感謝" + FullName + "的奉獻，願神與" + FullName+ "同在" } ) ;
+                return Json(new { status = "1", message = "敬收" + FullName + "的奉獻，願神與" + FullName+ "同在" } ) ;
             }
             catch (System.Exception e)
             {

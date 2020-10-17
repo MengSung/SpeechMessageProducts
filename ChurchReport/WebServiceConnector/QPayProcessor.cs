@@ -655,7 +655,7 @@ namespace ChurchReport.WebServiceConnector
                 if (LineId != "")
                 {
                     String GratitudeMessage =
-                        "感謝 " + m_ToolUtilityClass.GetEntityStringAttribute(ref aContact, "fullname") + " 奉獻" + Environment.NewLine +
+                        "敬收 " + m_ToolUtilityClass.GetEntityStringAttribute(ref aContact, "fullname") + " 奉獻" + Environment.NewLine +
                         "日期 : " + DateTime.Now.ToShortDateString() + Environment.NewLine +
                         "類別 : " + QpayModel.Category + "  " + QpayModel.Others + Environment.NewLine +
                         "付款方式: " + QpayModel.PayWay + Environment.NewLine +

@@ -199,14 +199,14 @@ namespace ChurchReport.Tools
                     this.m_PushUtility.SendMessage(UserLineId, "信用卡付款結果成功!" + Environment.NewLine + Description);
 
                     //return Json(new Dictionary<string, string>() { { "Status", "S" } });
-                    return new OkObjectResult("已經完成了信用卡付款!" + Environment.NewLine + Description + "教會感謝" + aFullName + "您的奉獻!");
+                    return new OkObjectResult("已經完成了信用卡付款!" + Environment.NewLine + Description + "教會敬收" + aFullName + "您的奉獻!");
 
                     #endregion
                 }
                 else
                 {
                     //return Json(new Dictionary<string, string>() { { "Status", "S" } });
-                    return new OkObjectResult("信用卡付款結果成功!" + Environment.NewLine + Description + "教會收到" + aFullName + "您的奉獻!");
+                    return new OkObjectResult("信用卡付款結果成功!" + Environment.NewLine + Description + "教會敬收" + aFullName + "您的奉獻!");
                 }
             }
             else

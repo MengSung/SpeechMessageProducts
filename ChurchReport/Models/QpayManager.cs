@@ -360,12 +360,12 @@ namespace ChurchReport.Models
                     else if (DedicationResult.Contains("*** 請依照訊息付款 ***") != true)
                     {
                         PayWay = "信用卡";
-                        return Json(new { status = "1", message = "感謝您的奉獻", DedicationResult = DedicationResult, PayWay = PayWay });
+                        return Json(new { status = "1", message = "敬收您的奉獻", DedicationResult = DedicationResult, PayWay = PayWay });
                     }
                     else
                     {
                         PayWay = "虛擬帳號";
-                        return Json(new { status = "1", message = "感謝您的奉獻", DedicationResult = DedicationResult, PayWay = PayWay });
+                        return Json(new { status = "1", message = "敬收您的奉獻", DedicationResult = DedicationResult, PayWay = PayWay });
                     }
                 }
                 else
