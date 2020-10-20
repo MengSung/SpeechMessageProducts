@@ -80,7 +80,7 @@ namespace ChurchReport.WebServiceConnector
         /// <param name="Password"></param>
         /// <param name="aSelectDate"></param>
         /// <returns></returns>
-        public List<Appointment> GetAppointmentList(String Account, String Password, DateTime aSelectDate , ref String UserType, String ScheduleType )
+        public List<Appointment> GetAppointmentList(String Account, String Password, DateTime aSelectDate, ref String UserType, String ScheduleType)
         {
             // 取得登入者
             FindLoginUser(Account, Password);
@@ -277,7 +277,7 @@ namespace ChurchReport.WebServiceConnector
                 //}
                 #endregion
 
-                // 永和禮拜堂版本是只有差勤簽核及場地預約，所以就"全部"都要顯示
+                // 音訊教會版本是只有差勤簽核及場地預約，所以就"全部"都要顯示
                 Appointment aAppointment = SetupAppointment(aAppointmentEntity, AppointmentType, CategoryId, LeaveId, LocationId);
                 aAppointmentsList.Add(aAppointment);
 
@@ -1282,16 +1282,16 @@ namespace ChurchReport.WebServiceConnector
                     Content = "申請人: " + this.m_ToolUtilityClass.GetEntityStringAttribute(ref m_ContactEntity, "fullname") + Environment.NewLine;
 
                     #region //設定代理人
-                    String aReplaceContact = this.m_ToolUtilityClass.GetEntityLookupDisplayName( ref m_ContactEntity, "new_replace_contact");
-                    if (aReplaceContact != "" )
+                    String aReplaceContact = this.m_ToolUtilityClass.GetEntityLookupDisplayName(ref m_ContactEntity, "new_replace_contact");
+                    if (aReplaceContact != "")
                     {
                         Content += "代理人: " + aReplaceContact + Environment.NewLine;
                     }
                     else
                     {
                         //沒有設代理人，但是仍要查看第二順位代理人
-                        aReplaceContact = this.m_ToolUtilityClass.GetEntityLookupDisplayName( ref m_ContactEntity, "new_second_replace_contact");
-                        if ( aReplaceContact != "")
+                        aReplaceContact = this.m_ToolUtilityClass.GetEntityLookupDisplayName(ref m_ContactEntity, "new_second_replace_contact");
+                        if (aReplaceContact != "")
                         {
                             Content += "代理人: " + aReplaceContact + Environment.NewLine;
                         }
@@ -1355,7 +1355,7 @@ namespace ChurchReport.WebServiceConnector
                 {
                     return Content;
                 }
-                
+
                 #endregion
             }
             catch (System.Exception e)
@@ -1454,7 +1454,7 @@ namespace ChurchReport.WebServiceConnector
                     //int LeaveDays = TimeSpanDays - GetHolidayNumber(TimeSpanStartDate.AddDays(1), TimeSpanEndDate.AddDays(-1));
                     int LeaveDays = TimeSpanDays - GetHolidayNumber(TimeSpanStartDate.AddDays(1), TimeSpanEndDate, ref Description);
 
-                    Hours = FirstDateHour +  LeaveDays * 8 + LastDateHour;
+                    Hours = FirstDateHour + LeaveDays * 8 + LastDateHour;
                 }
 
                 Days = (float)Hours / 8.0F;
@@ -1472,17 +1472,17 @@ namespace ChurchReport.WebServiceConnector
             try
             {
                 DateTime TimeSpanStartDate = new DateTime(StartDate.Year, StartDate.Month, StartDate.Day, 0, 0, 0);
-                DateTime TimeSpanEndDate = new DateTime(EndDate.Year, EndDate.Month, EndDate.Day , 0, 0, 0);
+                DateTime TimeSpanEndDate = new DateTime(EndDate.Year, EndDate.Month, EndDate.Day, 0, 0, 0);
                 TimeSpan TimeSpan = new TimeSpan(TimeSpanEndDate.Ticks - TimeSpanStartDate.Ticks);
 
                 int LeaveDays = TimeSpan.Days - GetHolidayNumber(StartDate, EndDate, ref Description);
-                if ( LeaveDays == 1 )
+                if (LeaveDays == 1)
                 {
                     Hours = 8;
                 }
                 else
                 {
-                    Hours = LeaveDays  * 8;
+                    Hours = LeaveDays * 8;
                 }
 
                 Days = (float)Hours / 8.0F;
@@ -1509,7 +1509,7 @@ namespace ChurchReport.WebServiceConnector
                 {
                     //CalculateStartDate = EndDate;
                     //CalculateEndDate = StartDate;
-                    return false ;
+                    return false;
                 }
             }
             catch (System.Exception e)
@@ -1586,7 +1586,7 @@ namespace ChurchReport.WebServiceConnector
 
                 int HolidayNumber = 0;
                 DateTime AuditDate = TimeSpanStartDate;
-                HolidayOpenData aHolidayOpenData = GetNationHoliday();
+                Record[] aNationHolidayArray = GetNationHoliday();
 
                 for (int i = 0; i < TimeSpan.Days; i++)
                 {
@@ -1595,10 +1595,10 @@ namespace ChurchReport.WebServiceConnector
                     String NationHolidayDescription = "";
                     if (AuditDate.DayOfWeek == DayOfWeek.Monday)
                     {
-                        Description += Environment.NewLine + AuditDate.Date.ToShortDateString() + Environment.NewLine +"星期一放假日" + Environment.NewLine;
+                        Description += Environment.NewLine + AuditDate.Date.ToShortDateString() + Environment.NewLine + "星期一放假日" + Environment.NewLine;
                         HolidayNumber++;
                     }
-                    else if(IsAHolidayRecord(AuditDate, aHolidayOpenData, ref NationHolidayDescription) == true)
+                    else if (IsAHolidayRecord(AuditDate, aNationHolidayArray, ref NationHolidayDescription) == true)
                     {
                         Description += NationHolidayDescription;
                         HolidayNumber++;
@@ -1616,19 +1616,19 @@ namespace ChurchReport.WebServiceConnector
                 throw e;
             }
         }
-        private bool IsAHolidayRecord( DateTime AuditDate , HolidayOpenData aHolidayOpenData, ref String Description)
+        private bool IsAHolidayRecord(DateTime AuditDate, Record[] aNationHolidayArray, ref String Description)
         {
             try
             {
                 #region
 
-                foreach( Record aRecord in aHolidayOpenData.result.records )
+                foreach (Record aRecord in aNationHolidayArray)
                 {
                     DateTime aRecordDateTime = DateTime.Parse(aRecord.date);
 
-                    if( AuditDate.Date == aRecordDateTime.Date )
+                    if (AuditDate.Date == aRecordDateTime.Date)
                     {
-                        if ( aRecord.isHoliday == "是" )
+                        if (aRecord.isHoliday == "是")
                         {
                             if (aRecord.holidayCategory == "放假之紀念日及節日" || aRecord.holidayCategory == "調整放假日")
                             {
@@ -1662,12 +1662,18 @@ namespace ChurchReport.WebServiceConnector
                 throw e;
             }
         }
-        private HolidayOpenData GetNationHoliday()
+        private Record[] GetNationHoliday()
         {
             try
             {
                 #region
-                var url = "http://data.ntpc.gov.tw/api/v1/rest/datastore/382000000A-000077-002";
+                //var url = "http://data.ntpc.gov.tw/api/v1/rest/datastore/382000000A-000077-002";
+
+                //api/datasets/308DCD75-6434-45BC-A95F-584DA4FED251/json
+                //var url = "https://data.ntpc.gov.tw/datasets/308DCD75-6434-45BC-A95F-584DA4FED251";
+                //var url = "https://data.ntpc.gov.tw/api/datasets/308DCD75-6434-45BC-A95F-584DA4FED251/json/preview";
+                //var url = "https://data.ntpc.gov.tw/api/datasets/308DCD75-6434-45BC-A95F-584DA4FED251/json";
+                var url = "https://data.ntpc.gov.tw/api/datasets/308DCD75-6434-45BC-A95F-584DA4FED251/json?page=4&size=200";
                 var request = WebRequest.Create(url);
                 // 透過 Chrome 開發者工具可以取得 Method, ContentType
                 request.Method = "GET";
@@ -1675,11 +1681,14 @@ namespace ChurchReport.WebServiceConnector
                 //取得 request 的 response stream
                 var response = request.GetResponse() as HttpWebResponse;
                 var responseStream = response.GetResponseStream();
-                var reader = new StreamReader(responseStream,  Encoding.GetEncoding("utf-8"));
+                var reader = new StreamReader(responseStream, Encoding.GetEncoding("utf-8"));
                 var srcString = reader.ReadToEnd();
-                HolidayOpenData jsonData = Newtonsoft.Json.JsonConvert.DeserializeObject<HolidayOpenData>(srcString);
 
-                return jsonData;
+                Record[] RecordArray = Newtonsoft.Json.JsonConvert.DeserializeObject<Record[]>(srcString);
+
+                //HolidayOpenData jsonData = Newtonsoft.Json.JsonConvert.DeserializeObject<HolidayOpenData>(srcString);
+
+                return RecordArray;
                 #endregion
             }
             catch (System.Exception e)
@@ -1740,31 +1749,31 @@ namespace ChurchReport.WebServiceConnector
                 //this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "GetAllAppointmentAsync-001");
                 Guid aApplierId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aAppointmentEntity, "new_applier_appointment");
                 #region //設定申請人
-                    //this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "GetAllAppointmentAsync-002");
-                    Entity aApplier = this.m_ContactEntity;
-                    //this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "GetAllAppointmentAsync-003");
+                //this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "GetAllAppointmentAsync-002");
+                Entity aApplier = this.m_ContactEntity;
+                //this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "GetAllAppointmentAsync-003");
 
-                    String ContactFullName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aApplier, "fullname");
-                    //this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "GetAllAppointmentAsync-004");
+                String ContactFullName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aApplier, "fullname");
+                //this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "GetAllAppointmentAsync-004");
 
-                    #endregion
+                #endregion
                 #region//取得休假集合
-                    //this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "GetAllAppointmentAsync-005");
-                    EntityCollection aAppointmentEntityCollection = this.m_ToolUtilityClass.RetrieveAppointmentsByFetchXml(ContactFullName, aApplier.Id.ToString());
-                    //this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "GetAllAppointmentAsync-006");
-                    #endregion
+                //this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "GetAllAppointmentAsync-005");
+                EntityCollection aAppointmentEntityCollection = this.m_ToolUtilityClass.RetrieveAppointmentsByFetchXml(ContactFullName, aApplier.Id.ToString());
+                //this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "GetAllAppointmentAsync-006");
+                #endregion
                 if (aAppointmentEntityCollection.Entities.Count > 0)
-                    {
-                        //this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "GetAllAppointmentAsync-007");
-                        //this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, Environment.NewLine + "------------------------ " + Environment.NewLine + ContactFullName + " 今年休假統計:" + Environment.NewLine + GetAllAppointments(aAppointmentEntityCollection));
-                        String aSpecialLeaveDays = "依據年資應得特休日數 = " + this.m_ToolUtilityClass.GetEntityIntAttribute(ref aApplier, "new_special_leave_days").ToString() + "日" + Environment.NewLine + "---------------------";
-                        return Environment.NewLine + "------------------------ " + Environment.NewLine + ContactFullName + " 今年休假統計:" + Environment.NewLine + aSpecialLeaveDays + Environment.NewLine + GetAllAppointments(aAppointmentEntityCollection);
-                    }
+                {
+                    //this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "GetAllAppointmentAsync-007");
+                    //this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, Environment.NewLine + "------------------------ " + Environment.NewLine + ContactFullName + " 今年休假統計:" + Environment.NewLine + GetAllAppointments(aAppointmentEntityCollection));
+                    String aSpecialLeaveDays = "依據年資應得特休日數 = " + this.m_ToolUtilityClass.GetEntityIntAttribute(ref aApplier, "new_special_leave_days").ToString() + "日" + Environment.NewLine + "---------------------";
+                    return Environment.NewLine + "------------------------ " + Environment.NewLine + ContactFullName + " 今年休假統計:" + Environment.NewLine + aSpecialLeaveDays + Environment.NewLine + GetAllAppointments(aAppointmentEntityCollection);
+                }
                 else
-                    {
-                        //this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "GetAllAppointmentAsync-008");
-                        return Environment.NewLine + "------------------------ " + Environment.NewLine + ContactFullName + "您好，您沒有任何休假紀錄。";
-                    }
+                {
+                    //this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "GetAllAppointmentAsync-008");
+                    return Environment.NewLine + "------------------------ " + Environment.NewLine + ContactFullName + "您好，您沒有任何休假紀錄。";
+                }
             }
             catch (System.Exception e)
             {
