@@ -2561,8 +2561,9 @@ namespace ToolUtilityNameSpace
                                       <condition attribute='new_category' operator='not-null' />
                                       <condition attribute='new_pay_status' operator='in'>
                                         <value>100000001</value>
-                                        <value>100000003</value>
                                         <value>100000002</value>
+                                        <value>100000003</value>
+                                        <value>100000004</value>
                                       </condition>
                                       <condition attribute='createdon' operator='on-or-after'  value=" + StartDateString + @" />
                                       <condition attribute='createdon' operator='on-or-before' value=" + EndDateString + @" />
