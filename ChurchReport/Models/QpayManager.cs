@@ -732,6 +732,8 @@ namespace ChurchReport.Models
                     return "ATM轉帳";
                 case 100000003:
                     return "超商付款";
+                case 100000006:
+                    return "銀行轉帳";
                 default:
                     return "未知";
             }
