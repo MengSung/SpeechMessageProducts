@@ -1,7 +1,7 @@
 /*!
 * DevExtreme (dx.messages.nl.js)
-* Version: 20.1.3
-* Build date: Fri Apr 24 2020
+* Version: 20.2.3
+* Build date: Tue Oct 20 2020
 *
 * Copyright (c) 2012 - 2020 Developer Express Inc. ALL RIGHTS RESERVED
 * Read about DevExtreme licensing here: https://js.devexpress.com/Licensing/
@@ -80,6 +80,7 @@
             "dxFileUploader-upload": "Uploaden",
             "dxFileUploader-uploaded": "Ge\xfcpload",
             "dxFileUploader-readyToUpload": "Klaar om te uploaden",
+            "dxFileUploader-uploadAbortedMessage": "TODO",
             "dxFileUploader-uploadFailedMessage": "Uploaden is mislukt",
             "dxFileUploader-invalidFileExtension": "Dit bestandstype is niet toegestaan",
             "dxFileUploader-invalidMaxFileSize": "Het bestand is te groot",
@@ -173,6 +174,7 @@
             "dxTreeList-editingAddRowToNode": "Toevoegen",
             "dxPager-infoText": "Pagina {0} van {1} ({2} items)",
             "dxPager-pagesCountText": "van",
+            "dxPager-pageSizesAllText": "Alle",
             "dxPivotGrid-grandTotal": "Eindtotaal",
             "dxPivotGrid-total": "{0} Totaal",
             "dxPivotGrid-fieldChooserTitle": "Veldenkiezer",
@@ -282,6 +284,9 @@
             "dxHtmlEditor-dialogImageAltField": "Alternatieve tekst",
             "dxHtmlEditor-dialogImageWidthField": "Breedte (px)",
             "dxHtmlEditor-dialogImageHeightField": "Hoogte (px)",
+            "dxHtmlEditor-dialogInsertTableRowsField": "!TODO",
+            "dxHtmlEditor-dialogInsertTableColumnsField": "!TODO",
+            "dxHtmlEditor-dialogInsertTableCaption": "!TODO",
             "dxHtmlEditor-heading": "Titel",
             "dxHtmlEditor-normalText": "Normale tekst",
             "dxFileManager-newDirectoryName": "TODO",
@@ -295,6 +300,7 @@
             "dxFileManager-errorMaxFileSizeExceeded": "TODO",
             "dxFileManager-errorInvalidSymbols": "TODO",
             "dxFileManager-errorDefault": "TODO",
+            "dxFileManager-errorDirectoryOpenFailed": "TODO",
             "dxDiagram-categoryGeneral": "TODO",
             "dxDiagram-categoryFlowchart": "TODO",
             "dxDiagram-categoryOrgChart": "TODO",

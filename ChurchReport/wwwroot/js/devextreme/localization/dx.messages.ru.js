@@ -1,7 +1,7 @@
 /*!
 * DevExtreme (dx.messages.ru.js)
-* Version: 20.1.3
-* Build date: Fri Apr 24 2020
+* Version: 20.2.3
+* Build date: Tue Oct 20 2020
 *
 * Copyright (c) 2012 - 2020 Developer Express Inc. ALL RIGHTS RESERVED
 * Read about DevExtreme licensing here: https://js.devexpress.com/Licensing/
@@ -80,6 +80,7 @@
             "dxFileUploader-upload": "\u0417\u0430\u0433\u0440\u0443\u0437\u0438\u0442\u044c",
             "dxFileUploader-uploaded": "\u0417\u0430\u0433\u0440\u0443\u0436\u0435\u043d\u043e",
             "dxFileUploader-readyToUpload": "\u0413\u043e\u0442\u043e\u0432\u043e \u043a \u0437\u0430\u0433\u0440\u0443\u0437\u043a\u0435",
+            "dxFileUploader-uploadAbortedMessage": "\u0417\u0430\u0433\u0440\u0443\u0437\u043a\u0430 \u043e\u0442\u043c\u0435\u043d\u0435\u043d\u0430",
             "dxFileUploader-uploadFailedMessage": "\u0417\u0430\u0433\u0440\u0443\u0437\u043a\u0430 \u043d\u0435 \u0443\u0434\u0430\u043b\u0430\u0441\u044c",
             "dxFileUploader-invalidFileExtension": "\u041d\u0435\u0434\u043e\u043f\u0443\u0441\u0442\u0438\u043c\u043e\u0435 \u0440\u0430\u0441\u0448\u0438\u0440\u0435\u043d\u0438\u0435 \u0444\u0430\u0439\u043b\u0430",
             "dxFileUploader-invalidMaxFileSize": "\u0424\u0430\u0439\u043b \u0441\u043b\u0438\u0448\u043a\u043e\u043c \u0431\u043e\u043b\u044c\u0448\u043e\u0439",
@@ -173,6 +174,7 @@
             "dxTreeList-editingAddRowToNode": "\u0414\u043e\u0431\u0430\u0432\u0438\u0442\u044c",
             "dxPager-infoText": "\u0421\u0442\u0440\u0430\u043d\u0438\u0446\u0430 {0} \u0438\u0437 {1} (\u0412\u0441\u0435\u0433\u043e \u044d\u043b\u0435\u043c\u0435\u043d\u0442\u043e\u0432: {2})",
             "dxPager-pagesCountText": "\u0438\u0437",
+            "dxPager-pageSizesAllText": "\u0412\u0441\u0435",
             "dxPivotGrid-grandTotal": "\u0418\u0442\u043e\u0433\u043e",
             "dxPivotGrid-total": "{0} \u0412\u0441\u0435\u0433\u043e",
             "dxPivotGrid-fieldChooserTitle": "\u0412\u044b\u0431\u043e\u0440 \u043f\u043e\u043b\u0435\u0439",
@@ -282,6 +284,9 @@
             "dxHtmlEditor-dialogImageAltField": "\u0410\u043b\u044c\u0442\u0435\u0440\u043d\u0430\u0442\u0438\u0432\u043d\u044b\u0439 \u0442\u0435\u043a\u0441\u0442",
             "dxHtmlEditor-dialogImageWidthField": "\u0428\u0438\u0440\u0438\u043d\u0430 (px)",
             "dxHtmlEditor-dialogImageHeightField": "\u0412\u044b\u0441\u043e\u0442\u0430 (px)",
+            "dxHtmlEditor-dialogInsertTableRowsField": "\u0421\u0442\u0440\u043e\u043a\u0438",
+            "dxHtmlEditor-dialogInsertTableColumnsField": "\u041a\u043e\u043b\u043e\u043d\u043a\u0438",
+            "dxHtmlEditor-dialogInsertTableCaption": "\u0412\u0441\u0442\u0430\u0432\u0438\u0442\u044c \u0442\u0430\u0431\u043b\u0438\u0446\u0443",
             "dxHtmlEditor-heading": "\u0417\u0430\u0433\u043e\u043b\u043e\u0432\u043e\u043a",
             "dxHtmlEditor-normalText": "\u041e\u0431\u044b\u0447\u043d\u044b\u0439 \u0442\u0435\u043a\u0441\u0442",
             "dxFileManager-newDirectoryName": "\u0411\u0435\u0437 \u043d\u0430\u0437\u0432\u0430\u043d\u0438\u044f",
@@ -295,6 +300,7 @@
             "dxFileManager-errorMaxFileSizeExceeded": "\u0420\u0430\u0437\u043c\u0435\u0440 \u0444\u0430\u0439\u043b\u0430 \u043f\u0440\u0435\u0432\u044b\u0448\u0430\u0435\u0442 \u0434\u043e\u043f\u0443\u0441\u0442\u0438\u043c\u043e\u0435 \u0437\u043d\u0430\u0447\u0435\u043d\u0438\u0435.",
             "dxFileManager-errorInvalidSymbols": "\u0412\u0432\u0435\u0434\u0451\u043d\u043d\u043e\u0435 \u0438\u043c\u044f \u0441\u043e\u0434\u0435\u0440\u0436\u0438\u0442 \u043d\u0435\u0434\u043e\u043f\u0443\u0441\u0442\u0438\u043c\u044b\u0435 \u0441\u0438\u043c\u0432\u043e\u043b\u044b.",
             "dxFileManager-errorDefault": "\u041d\u0435\u0438\u0437\u0432\u0435\u0441\u0442\u043d\u0430\u044f \u043e\u0448\u0438\u0431\u043a\u0430",
+            "dxFileManager-errorDirectoryOpenFailed": "\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u043e\u0442\u043a\u0440\u044b\u0442\u044c \u043a\u0430\u0442\u0430\u043b\u043e\u0433",
             "dxFileManager-commandCreate": "\u041d\u043e\u0432\u0430\u044f \u043f\u0430\u043f\u043a\u0430",
             "dxFileManager-commandRename": "\u041f\u0435\u0440\u0435\u0438\u043c\u0435\u043d\u043e\u0432\u0430\u0442\u044c",
             "dxFileManager-commandMove": "\u041f\u0435\u0440\u0435\u043c\u0435\u0441\u0442\u0438\u0442\u044c \u0432",
@@ -307,6 +313,7 @@
             "dxFileManager-commandDetails": "\u0420\u0435\u0436\u0438\u043c \u0441\u043f\u0438\u0441\u043a\u0430",
             "dxFileManager-commandClearSelection": "\u041e\u0447\u0438\u0441\u0442\u0438\u0442\u044c \u0432\u044b\u0434\u0435\u043b\u0435\u043d\u0438\u0435",
             "dxFileManager-dialogButtonCancel": "\u041e\u0442\u043c\u0435\u043d\u0430",
+            "dxFileManager-commandShowNavPane": "\u041f\u0435\u0440\u0435\u043a\u043b\u044e\u0447\u0438\u0442\u044c \u043f\u0430\u043d\u0435\u043b\u044c \u043d\u0430\u0432\u0438\u0433\u0430\u0446\u0438\u0438",
             "dxFileManager-dialogDirectoryChooserMoveTitle": "\u041f\u0435\u0440\u0435\u043c\u0435\u0441\u0442\u0438\u0442\u044c \u0432",
             "dxFileManager-dialogDirectoryChooserMoveButtonText": "\u041f\u0435\u0440\u0435\u043c\u0435\u0441\u0442\u0438\u0442\u044c",
             "dxFileManager-dialogDirectoryChooserCopyTitle": "\u041a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u0442\u044c \u0432",
@@ -315,10 +322,10 @@
             "dxFileManager-dialogRenameItemButtonText": "\u0421\u043e\u0445\u0440\u0430\u043d\u0438\u0442\u044c",
             "dxFileManager-dialogCreateDirectoryTitle": "\u041d\u043e\u0432\u0430\u044f \u043f\u0430\u043f\u043a\u0430",
             "dxFileManager-dialogCreateDirectoryButtonText": "\u0421\u043e\u0437\u0434\u0430\u0442\u044c",
-            "dxFileManager-dialogDeleteItemTitle": "TODO",
-            "dxFileManager-dialogDeleteItemButtonText": "TODO",
-            "dxFileManager-dialogDeleteItemSingleItemConfirmation": "TODO",
-            "dxFileManager-dialogDeleteItemMultipleItemsConfirmation": "TODO",
+            "dxFileManager-dialogDeleteItemTitle": "\u0423\u0434\u0430\u043b\u0435\u043d\u0438\u0435 \u044d\u043b\u0435\u043c\u0435\u043d\u0442\u0430",
+            "dxFileManager-dialogDeleteItemButtonText": "\u0423\u0434\u0430\u043b\u0438\u0442\u044c",
+            "dxFileManager-dialogDeleteItemSingleItemConfirmation": "\u0412\u044b \u0434\u0435\u0439\u0441\u0442\u0432\u0438\u0442\u0435\u043b\u044c\u043d\u043e \u0445\u043e\u0442\u0438\u0442\u0435 \u0443\u0434\u0430\u043b\u0438\u0442\u044c {0}?",
+            "dxFileManager-dialogDeleteItemMultipleItemsConfirmation": "\u0412\u044b \u0434\u0435\u0439\u0441\u0442\u0432\u0438\u0442\u0435\u043b\u044c\u043d\u043e \u0445\u043e\u0442\u0438\u0442\u0435 \u0443\u0434\u0430\u043b\u0438\u0442\u044c {0} \u044d\u043b\u0435\u043c\u0435\u043d\u0442\u043e\u0432?",
             "dxFileManager-editingCreateSingleItemProcessingMessage": "\u0421\u043e\u0437\u0434\u0430\u0451\u0442\u0441\u044f \u043f\u0430\u043f\u043a\u0430 \u0432 {0}",
             "dxFileManager-editingCreateSingleItemSuccessMessage": "\u0421\u043e\u0437\u0434\u0430\u043d\u0430 \u043f\u0430\u043f\u043a\u0430 \u0432 {0}",
             "dxFileManager-editingCreateSingleItemErrorMessage": "\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u0441\u043e\u0437\u0434\u0430\u0442\u044c \u043f\u0430\u043f\u043a\u0443",
@@ -519,15 +526,15 @@
             "dxGantt-dialogCancelOperationMessage": "\u041e\u0442\u043c\u0435\u043d\u0438\u0442\u044c \u043e\u043f\u0435\u0440\u0430\u0446\u0438\u044e",
             "dxGantt-dialogDeleteDependencyMessage": "\u0423\u0434\u0430\u043b\u0438\u0442\u044c \u0437\u0430\u0434\u0430\u0447\u0443",
             "dxGantt-dialogMoveTaskAndKeepDependencyMessage": "\u0421\u043e\u0445\u0440\u0430\u043d\u0438\u0442\u044c \u0437\u0430\u0432\u0438\u0441\u0438\u043c\u043e\u0441\u0442\u044c \u0438 \u043f\u0435\u0440\u0435\u0434\u0432\u0438\u043d\u0443\u0442\u044c \u0437\u0430\u0434\u0430\u0447\u0443",
-            "dxGantt-undo": "TODO",
-            "dxGantt-redo": "TODO",
-            "dxGantt-expandAll": "TODO",
-            "dxGantt-collapseAll": "TODO",
-            "dxGantt-addNewTask": "TODO",
-            "dxGantt-deleteSelectedTask": "TODO",
-            "dxGantt-zoomIn": "TODO",
-            "dxGantt-zoomOut": "TODO",
-            "dxGantt-fullScreen": "TODO"
+            "dxGantt-undo": "\u041e\u0442\u043c\u0435\u043d\u0438\u0442\u044c",
+            "dxGantt-redo": "\u041f\u043e\u0432\u0442\u043e\u0440\u0438\u0442\u044c",
+            "dxGantt-expandAll": "\u0420\u0430\u0437\u0432\u0435\u0440\u043d\u0443\u0442\u044c \u0432\u0441\u0435",
+            "dxGantt-collapseAll": "\u0421\u0432\u0435\u0440\u043d\u0443\u0442\u044c \u0432\u0441\u0435",
+            "dxGantt-addNewTask": "\u0414\u043e\u0431\u0430\u0432\u0438\u0442\u044c \u043d\u043e\u0432\u0443\u044e \u0437\u0430\u0434\u0430\u0447\u0443",
+            "dxGantt-deleteSelectedTask": "\u0423\u0434\u0430\u043b\u0438\u0442\u044c \u0432\u044b\u0434\u0435\u043b\u0435\u043d\u043d\u0443\u044e \u0437\u0430\u0434\u0430\u0447\u0443",
+            "dxGantt-zoomIn": "\u0423\u0432\u0435\u043b\u0438\u0447\u0438\u0442\u044c \u043c\u0430\u0441\u0448\u0442\u0430\u0431",
+            "dxGantt-zoomOut": "\u0423\u043c\u0435\u043d\u044c\u0448\u0438\u0442\u044c \u043c\u0430\u0441\u0448\u0442\u0430\u0431",
+            "dxGantt-fullScreen": "\u041f\u043e\u043b\u043d\u043e\u044d\u043a\u0440\u0430\u043d\u043d\u044b\u0439 \u0440\u0435\u0436\u0438\u043c"
         }
     })
 });

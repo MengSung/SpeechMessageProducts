@@ -1,7 +1,7 @@
 /*!
 * DevExtreme (dx.messages.hu.js)
-* Version: 20.1.3
-* Build date: Fri Apr 24 2020
+* Version: 20.2.3
+* Build date: Tue Oct 20 2020
 *
 * Copyright (c) 2012 - 2020 Developer Express Inc. ALL RIGHTS RESERVED
 * Read about DevExtreme licensing here: https://js.devexpress.com/Licensing/
@@ -80,6 +80,7 @@
             "dxFileUploader-upload": "Felt\xf6lt\xe9s",
             "dxFileUploader-uploaded": "Felt\xf6ltve",
             "dxFileUploader-readyToUpload": "Felt\xf6lt\xe9sre k\xe9sz",
+            "dxFileUploader-uploadAbortedMessage": "TODO",
             "dxFileUploader-uploadFailedMessage": "A felt\xf6lt\xe9s sikertelen",
             "dxFileUploader-invalidFileExtension": "Nem enged\xe9lyezett f\xe1jlt\xedpus",
             "dxFileUploader-invalidMaxFileSize": "T\xfal nagy f\xe1jl",
@@ -173,6 +174,7 @@
             "dxTreeList-editingAddRowToNode": "Hozz\xe1ad\xe1s",
             "dxPager-infoText": "Oldal: {0}/{1} ({2} elem)",
             "dxPager-pagesCountText": "/",
+            "dxPager-pageSizesAllText": "Mind",
             "dxPivotGrid-grandTotal": "Teljes \xf6sszeg",
             "dxPivotGrid-total": "{0} \xd6sszeg",
             "dxPivotGrid-fieldChooserTitle": "Mez\u0151v\xe1laszt\xf3",
@@ -282,6 +284,9 @@
             "dxHtmlEditor-dialogImageAltField": "Alternat\xedv sz\xf6veg",
             "dxHtmlEditor-dialogImageWidthField": "Sz\xe9less\xe9g (px)",
             "dxHtmlEditor-dialogImageHeightField": "Magass\xe1g (px)",
+            "dxHtmlEditor-dialogInsertTableRowsField": "!TODO",
+            "dxHtmlEditor-dialogInsertTableColumnsField": "!TODO",
+            "dxHtmlEditor-dialogInsertTableCaption": "!TODO",
             "dxHtmlEditor-heading": "Fejl\xe9c",
             "dxHtmlEditor-normalText": "Norm\xe1l sz\xf6veg",
             "dxFileManager-newDirectoryName": "N\xe9vtelen k\xf6nyvt\xe1r",
@@ -294,6 +299,7 @@
             "dxFileManager-errorWrongFileExtension": "Nem enged\xe9lyezett f\xe1jlt\xedpus",
             "dxFileManager-errorMaxFileSizeExceeded": "A f\xe1jlm\xe9ret meghaladja a megengedett legnagyobb m\xe9retet",
             "dxFileManager-errorDefault": "Ismeretlen hiba.",
+            "dxFileManager-errorDirectoryOpenFailed": "TODO",
             "dxDiagram-categoryGeneral": "\xc1ltal\xe1nos",
             "dxDiagram-categoryFlowchart": "Folyamat\xe1bra",
             "dxDiagram-categoryOrgChart": "Szervezeti \xe1bra",
