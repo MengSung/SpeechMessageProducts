@@ -655,7 +655,9 @@ else
                             .ShowBorders(true)
                             .ColumnAutoWidth(true)
                             .Visible(Model.m_SmallGroupDataList.m_SmallGroupData.DisplayFlag)
-                            .RemoteOperations(true)
+                            .RemoteOperations(false)
+                            .RepaintChangesOnly(true)
+                            .CacheEnabled(true)
                             .Scrolling(s => s
                                 .Mode(GridScrollingMode.Virtual)
                                 .RowRenderingMode(GridRowRenderingMode.Virtual)
@@ -673,7 +675,7 @@ else
                             .RowAlternationEnabled(true)
                             .ShowBorders(true)
                             .Export(e => e.Enabled(false).AllowExportSelectedData(true))
-                            .TwoWayBindingEnabled(true)
+                            //.TwoWayBindingEnabled(true)
 
                             .Grouping
                             (g => g
@@ -707,6 +709,9 @@ else
                                 //editing.
                                 editing.Texts(a => a.SaveAllChanges("上傳檔案").AddRow("新增").CancelAllChanges("取消變更").SaveRowChanges("儲存").CancelRowChanges("取消").EditRow("編輯").DeleteRow("刪除"));
                                 //editing.AllowDeleting(true);
+                                //editing.RefreshMode(GridEditRefreshMode.Repaint);
+                                editing.RefreshMode(GridEditRefreshMode.Reshape);
+                                //editing.RefreshMode(GridEditRefreshMode.Full);
                             })
 
                             .Columns(columns =>
@@ -746,30 +751,31 @@ else
                                         );
 
                                 //columns.AddFor(m => m.Sunday).Caption("主日").Width(45).MinWidth(45).AllowSorting(false);
-                                //columns.AddFor(m => m.SmallGroup).Caption("小組").Width(45).MinWidth(45).AllowSorting(false);
-                                columns.AddFor(m => m.SpiritualWork)
-                                 .Caption("讀經次數").Alignment(HorizontalAlignment.Center).Visible(false)
-                                 .Width(75).MinWidth(30).DataType(GridColumnDataType.Number)
-                                 .Lookup(lookup => lookup
-                                 .DataSource(new string[] { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", })
-                                 //.DisplayExpr("Name")
-                                 //.ValueExpr("ID")
-                                 );
-                                columns.AddFor(m => m.MorningPray)
-                                 .Caption("屬靈書籍").Alignment(HorizontalAlignment.Center).Visible(false)
-                                 .Width(75).MinWidth(30).DataType(GridColumnDataType.Number)
-                                 .Lookup(lookup => lookup
-                                 .DataSource(new string[] { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", })
-                                 //.DisplayExpr("Name")
-                                 //.ValueExpr("ID")
-                                 );
+                                ////columns.AddFor(m => m.SmallGroup).Caption("小組").Width(45).MinWidth(45).AllowSorting(false);
+                                //columns.AddFor(m => m.SpiritualWork)
+                                // .Caption("讀經次數").Alignment(HorizontalAlignment.Center).Visible(false)
+                                // .Width(75).MinWidth(30).DataType(GridColumnDataType.Number)
+                                // .Lookup(lookup => lookup
+                                // .DataSource(new string[] { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", })
+                                // //.DisplayExpr("Name")
+                                // //.ValueExpr("ID")
+                                // );
+                                //columns.AddFor(m => m.MorningPray)
+                                // .Caption("屬靈書籍").Alignment(HorizontalAlignment.Center).Visible(false)
+                                // .Width(75).MinWidth(30).DataType(GridColumnDataType.Number)
+                                // .Lookup(lookup => lookup
+                                // .DataSource(new string[] { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", })
+                                // //.DisplayExpr("Name")
+                                // //.ValueExpr("ID")
+                                // );
 
-                                columns.AddFor(m => m.GeneralCare)
-                                 .Caption("禱告次數").Alignment(HorizontalAlignment.Center).Visible(false)
-                                 .Width(75).MinWidth(30).DataType(GridColumnDataType.Number)
-                                 .Lookup(lookup => lookup
-                                 .DataSource(new string[] { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", })
-                                 );
+                                //columns.AddFor(m => m.GeneralCare)
+                                // .Caption("禱告次數").Alignment(HorizontalAlignment.Center).Visible(false)
+                                // .Width(75).MinWidth(30).DataType(GridColumnDataType.Number)
+                                // .Lookup(lookup => lookup
+                                // .DataSource(new string[] { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", })
+                                // );
+
                                 columns.AddFor(m => m.PrayItem).Caption("代禱事項").MinWidth(90);
                                 //columns.AddFor(m => m.SmallGroupName).SortOrder(SortOrder.Desc).Caption("小組").GroupIndex(0).MinWidth(10);
 
@@ -819,7 +825,9 @@ else
                     @(Html.DevExtreme().DataGrid<Member>()
                             .ID("NewPersonGridContainer")
                             .ShowBorders(true)
-                            .RemoteOperations(true)
+                            .RemoteOperations(false)
+                            .RepaintChangesOnly(true)
+                            .CacheEnabled(true)
                             .Scrolling(s => s
                                 .Mode(GridScrollingMode.Virtual)
                                 .RowRenderingMode(GridRowRenderingMode.Virtual)
@@ -872,6 +880,10 @@ else
                                 //editing.AllowAdding(true);
                                 editing.AllowDeleting(false);
                                 editing.Texts(a => a.SaveAllChanges("上傳檔案").AddRow("新增").CancelAllChanges("取消變更").SaveRowChanges("儲存").CancelRowChanges("取消").EditRow("編輯").DeleteRow("刪除"));
+                                //editing.RefreshMode(GridEditRefreshMode.Repaint);
+                                editing.RefreshMode(GridEditRefreshMode.Reshape);
+                                //editing.RefreshMode(GridEditRefreshMode.Full);
+
                             })
 
                             .Columns(columns =>
@@ -1046,7 +1058,9 @@ else
                             .ShowBorders(true)
                             .ColumnAutoWidth(true)
                             .Visible(Model.m_SmallGroupDataList.m_HappyGroup.DisplayFlag)
-                            .RemoteOperations(true)
+                            .RemoteOperations(false)
+                            .RepaintChangesOnly(true)
+                            .CacheEnabled(true)
                             .Scrolling(s => s
                                 .Mode(GridScrollingMode.Virtual)
                                 .RowRenderingMode(GridRowRenderingMode.Virtual)
@@ -1096,6 +1110,10 @@ else
                                 editing.AllowDeleting(false);
                                 editing.Texts(a => a.SaveAllChanges("上傳檔案").AddRow("新增").CancelAllChanges("取消變更").SaveRowChanges("儲存").CancelRowChanges("取消").EditRow("編輯").DeleteRow("刪除"));
                                 //editing.AllowDeleting(true);
+                                //editing.RefreshMode(GridEditRefreshMode.Repaint);
+                                editing.RefreshMode(GridEditRefreshMode.Reshape);
+                                //editing.RefreshMode(GridEditRefreshMode.Full);
+
                             })
 
                             .Columns(columns =>
@@ -1254,6 +1272,9 @@ else
                                 //editing.AllowAdding(false);
                                 editing.Texts(a => a.SaveAllChanges("上傳檔案").AddRow("新增").CancelAllChanges("取消變更").SaveRowChanges("儲存").CancelRowChanges("取消").EditRow("編輯").DeleteRow("刪除"));
                                 //editing.AllowDeleting(true);
+                                //editing.RefreshMode(GridEditRefreshMode.Repaint);
+                                editing.RefreshMode(GridEditRefreshMode.Reshape);
+                                //editing.RefreshMode(GridEditRefreshMode.Full);
                             })
 
                             .Columns(columns =>
