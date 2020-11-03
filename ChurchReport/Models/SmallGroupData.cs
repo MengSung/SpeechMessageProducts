@@ -25,6 +25,9 @@ namespace ChurchReport.Models
         public String SundayPeriod { get; set; } // 提醒小組長回報的期間
         public List<Member> Members { get ; set ; } // 
         public bool DisplayFlag { get; set; }
+
+        //private readonly object m_MemberDataLocker = new object();
+
         public void InsertMember( string values)
         { 
             var aNewMember = new Member();
@@ -34,28 +37,31 @@ namespace ChurchReport.Models
         }
         public void UpdateMember(string key, string values)
         {
+            //lock (m_MemberDataLocker)
+            //{
 
-            // 修改資料
-            ModifyFlag = true; // 先修改旗標表示有被更新到
+                // 修改資料
+                ModifyFlag = true; // 先修改旗標表示有被更新到
 
-            // 找到該會友的紀錄
-            Member aUpdatedMember = Members.DefaultIfEmpty(null).FirstOrDefault(o => o.PresentRecordId == key);
+                // 找到該會友的紀錄
+                Member aUpdatedMember = Members.DefaultIfEmpty(null).FirstOrDefault(o => o.PresentRecordId == key);
 
-            // 該會友的修改旗標設定唯有被修改過
-            aUpdatedMember.ModifyFlag = true;
+                // 該會友的修改旗標設定唯有被修改過
+                aUpdatedMember.ModifyFlag = true;
 
-            var settings = new JsonSerializerSettings
-            {
-                // 轉換成當地時間
-                DateTimeZoneHandling = DateTimeZoneHandling.Local,
-                //DateTimeZoneHandling = DateTimeZoneHandling.Utc,
+                var settings = new JsonSerializerSettings
+                {
+                    // 轉換成當地時間
+                    DateTimeZoneHandling = DateTimeZoneHandling.Local,
+                    //DateTimeZoneHandling = DateTimeZoneHandling.Utc,
 
-                NullValueHandling = NullValueHandling.Ignore,
-                MissingMemberHandling = MissingMemberHandling.Ignore
-            };
+                    NullValueHandling = NullValueHandling.Ignore,
+                    MissingMemberHandling = MissingMemberHandling.Ignore
+                };
 
-            // 會友資料被修改
-            JsonConvert.PopulateObject(values, aUpdatedMember, settings);
+                // 會友資料被修改
+                JsonConvert.PopulateObject(values, aUpdatedMember, settings);
+            //}
         }
         public void PopulateObjectAndUpdateEntity(string key, string values)
         {
