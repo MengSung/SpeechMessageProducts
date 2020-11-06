@@ -19,21 +19,21 @@
 @model ChurchReport.Models.ListSmallGroupWeeklyReport
 @*@model ChurchReport.ViewModels.WeeklyReportViewModel*@
 
-    <head>
-        <!-- Site made with Mobirise Website Builder v4.0.16, https://mobirise.com -->
-        <title>永和禮拜堂</title>
+<head>
+    <!-- Site made with Mobirise Website Builder v4.0.16, https://mobirise.com -->
+    <title>永和禮拜堂</title>
 
-        <meta charset="UTF-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="generator" content="Mobirise v4.0.16, mobirise.com">
-        @*<a href="~/Views/Home/IntegrateView.cshtml">~/Views/Home/IntegrateView.cshtml</a>*@
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link rel="shortcut icon" href="assets/images/logo.png" type="image/x-icon">
-        <meta name="description" content="">
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="generator" content="Mobirise v4.0.16, mobirise.com">
+    @*<a href="~/Views/Home/IntegrateView.cshtml">~/Views/Home/IntegrateView.cshtml</a>*@
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="shortcut icon" href="assets/images/logo.png" type="image/x-icon">
+    <meta name="description" content="">
 
-        @*<link href="~/css/devextreme/dx.generic.dark-moon-scheme.css" rel="stylesheet" />*@
+    @*<link href="~/css/devextreme/dx.generic.dark-moon-scheme.css" rel="stylesheet" />*@
 
-    </head>
+</head>
 
 @if (Model.SundayPrayers.Year != 2000)
 {
@@ -577,8 +577,8 @@ else
             <div class="ccle">
                 <!-- 可以並排顯示-->
                 @*<div style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
-                    <h5>幸福小組週次:</h5>
-                </div>*@
+                        <h5>幸福小組週次:</h5>
+                    </div>*@
 
                 <div>
                     @(Html.DevExtreme().SelectBox()
@@ -604,8 +604,8 @@ else
                     )
                 </div>
                 @*<div style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
-                    <h5>幸福小組主題:</h5>
-                </div>*@
+                        <h5>幸福小組主題:</h5>
+                    </div>*@
                 <div>
                     @(Html.DevExtreme().SelectBox()
                             .ID("HappyWeekTopic")
@@ -710,7 +710,7 @@ else
                                 editing.Texts(a => a.SaveAllChanges("上傳檔案").AddRow("新增").CancelAllChanges("取消變更").SaveRowChanges("儲存").CancelRowChanges("取消").EditRow("編輯").DeleteRow("刪除"));
                                 //editing.AllowDeleting(true);
                                 //editing.RefreshMode(GridEditRefreshMode.Repaint);
-                                editing.RefreshMode(GridEditRefreshMode.Reshape);
+                                editing.RefreshMode(GridEditRefreshMode.Repaint);
                                 //editing.RefreshMode(GridEditRefreshMode.Full);
                             })
 
@@ -881,7 +881,7 @@ else
                                 editing.AllowDeleting(false);
                                 editing.Texts(a => a.SaveAllChanges("上傳檔案").AddRow("新增").CancelAllChanges("取消變更").SaveRowChanges("儲存").CancelRowChanges("取消").EditRow("編輯").DeleteRow("刪除"));
                                 //editing.RefreshMode(GridEditRefreshMode.Repaint);
-                                editing.RefreshMode(GridEditRefreshMode.Reshape);
+                                editing.RefreshMode(GridEditRefreshMode.Repaint);
                                 //editing.RefreshMode(GridEditRefreshMode.Full);
 
                             })
@@ -1111,7 +1111,7 @@ else
                                 editing.Texts(a => a.SaveAllChanges("上傳檔案").AddRow("新增").CancelAllChanges("取消變更").SaveRowChanges("儲存").CancelRowChanges("取消").EditRow("編輯").DeleteRow("刪除"));
                                 //editing.AllowDeleting(true);
                                 //editing.RefreshMode(GridEditRefreshMode.Repaint);
-                                editing.RefreshMode(GridEditRefreshMode.Reshape);
+                                editing.RefreshMode(GridEditRefreshMode.Repaint);
                                 //editing.RefreshMode(GridEditRefreshMode.Full);
 
                             })
@@ -1126,7 +1126,7 @@ else
                                 //columns.Add().DataField("SmallGroupName").Caption("小組").GroupIndex(0).MinWidth(10);
 
                                 columns.AddFor(m => m.FullName).Caption("姓名").Fixed(true).Width(60).MinWidth(20).Alignment(HorizontalAlignment.Left).AllowSorting(false).AllowEditing(false);
-                                columns.AddFor(m => m.Sunday).Caption("主日").Width(45).MinWidth(45).AllowSorting(false);
+                                //columns.AddFor(m => m.Sunday).Caption("主日").Width(45).MinWidth(45).AllowSorting(false);
                                 columns.AddFor(m => m.SmallGroup).Caption("小組").Width(45).MinWidth(45).AllowSorting(false);
                                 columns.AddFor(m => m.Decision).Caption("決志").Width(45).MinWidth(45).AllowSorting(false);
                                 //columns.AddFor(m => m.Status).Caption("會員身分").Fixed(false).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Center).AllowSorting(false);
@@ -1233,6 +1233,9 @@ else
                             Html.DevExtreme()
                             .DataGrid<Member>()
                             .ID("IndividualGridContainer")
+                            .RemoteOperations(false)
+                            .RepaintChangesOnly(true)
+                            .CacheEnabled(true)
                             .ShowBorders(true)
                             .ColumnAutoWidth(true)
                             .Paging(p => p.PageSize(10))
@@ -1273,7 +1276,7 @@ else
                                 editing.Texts(a => a.SaveAllChanges("上傳檔案").AddRow("新增").CancelAllChanges("取消變更").SaveRowChanges("儲存").CancelRowChanges("取消").EditRow("編輯").DeleteRow("刪除"));
                                 //editing.AllowDeleting(true);
                                 //editing.RefreshMode(GridEditRefreshMode.Repaint);
-                                editing.RefreshMode(GridEditRefreshMode.Reshape);
+                                editing.RefreshMode(GridEditRefreshMode.Repaint);
                                 //editing.RefreshMode(GridEditRefreshMode.Full);
                             })
 
@@ -1515,16 +1518,15 @@ else
         //$("#divLoading").html("");
     }
 
-    function ShowToast(LocalToastMessage, Type, DisplayTime)
-    {
-            //debugger;
-            var ToastInstance = $("#Toast").dxToast("instance");
-            ToastInstance.option('message', LocalToastMessage);
-            ToastInstance.option('type', Type);
-            ToastInstance.option('displayTime', DisplayTime);
-            ToastInstance.option('white-space', 'pre-line');
-            ToastInstance.option('closeOnClick', true);
-            ToastInstance.show();
+    function ShowToast(LocalToastMessage, Type, DisplayTime) {
+        //debugger;
+        var ToastInstance = $("#Toast").dxToast("instance");
+        ToastInstance.option('message', LocalToastMessage);
+        ToastInstance.option('type', Type);
+        ToastInstance.option('displayTime', DisplayTime);
+        ToastInstance.option('white-space', 'pre-line');
+        ToastInstance.option('closeOnClick', true);
+        ToastInstance.show();
     }
 
 </script>
