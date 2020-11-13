@@ -84,17 +84,17 @@ namespace ChurchReport.WebServiceConnector
 
             int DayOfWeek = (int)aDownloadDate.DayOfWeek;
 
-            this.m_Sunday = aDownloadDate.AddDays(-DayOfWeek);
-            //if ( DayOfWeek != 6 )
-            //{
-            //    // 如果不是星期六則是上個星期天
-            //    this.m_Sunday = aDownloadDate.AddDays(-DayOfWeek);
-            //}
-            //else
-            //{
-            //    // 如果是星期六則是下個星期天
-            //    this.m_Sunday = aDownloadDate.AddDays(1);
-            //}
+            //this.m_Sunday = aDownloadDate.AddDays(-DayOfWeek);
+            if (DayOfWeek != 6)
+            {
+                // 如果不是星期六則是上個星期天
+                this.m_Sunday = aDownloadDate.AddDays(-DayOfWeek);
+            }
+            else
+            {
+                // 如果是星期六則是下個星期天
+                this.m_Sunday = aDownloadDate.AddDays(1);
+            }
             #endregion
 
             this.SetupHeaderData( Account, Password, aDownloadDate, ListEntityId, WeeklyReportEntityId, ref aListSmallGroupWeeklyReport);

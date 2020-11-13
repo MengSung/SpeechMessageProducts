@@ -2318,7 +2318,6 @@ namespace ChurchReport.WebServiceConnector
                 }
                 #endregion
                 #region 設定決志
-
                 if (aMemberInfomation.Decision == true)
                 {
                     this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_happy_decision", 1);
@@ -2562,22 +2561,6 @@ namespace ChurchReport.WebServiceConnector
                     ModifyFlag = true;
                 }
             }
-
-            //String aMobilePhone = "";
-            //if (aContactEntity.Attributes.Contains("mobilephone"))
-            //{
-            //    aMobilePhone = (string)aContactEntity.Attributes["mobilephone"];
-            //    aMobilePhone = DigitsOnly.Replace(aMobilePhone, "");
-
-            //    String aMemberInfomationPhone = DigitsOnly.Replace(aMember.Phone, "");
-
-            //    if (aMemberInfomationPhone != aMobilePhone)
-            //    {
-            //        // 系統裡的聯絡人手機跟APP上傳的不一致
-            //        this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactEntity, "mobilephone", aMember.Phone);
-            //        ModifyFlag = true;
-            //    }
-            //}
             // 組員的家裡電話
             if (aMember.HomePhone != null)
             {
@@ -2588,22 +2571,6 @@ namespace ChurchReport.WebServiceConnector
                     ModifyFlag = true;
                 }
             }
-
-            //String aHomePhone = "";
-            //if (aContactEntity.Attributes.Contains("telephone2"))
-            //{
-            //    aHomePhone = (string)aContactEntity.Attributes["telephone2"];
-            //    aHomePhone = DigitsOnly.Replace(aHomePhone, "");
-            //    String aMemberInfomationHomePhone = DigitsOnly.Replace(aMember.HomePhone, "");
-
-            //    if (aMemberInfomationHomePhone != aHomePhone)
-            //    {
-            //        // 系統裡的聯絡人家裡電話跟APP上傳的不一致
-            //        this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactEntity, "telephone2", aMember.HomePhone);
-            //        ModifyFlag = true;
-            //    }
-            //}
-
             // 組員的地址
             if (aMember.Address != null)
             {
@@ -2614,7 +2581,6 @@ namespace ChurchReport.WebServiceConnector
                     ModifyFlag = true;
                 }
             }
-
             //組員的生日
             if (aMember.BirthDate != null)
             {
@@ -2640,7 +2606,6 @@ namespace ChurchReport.WebServiceConnector
                     }
                 }
             }
-
             // 組員的職業及專長(永和禮拜堂)
             if (aMember.Industry != null)
             {
@@ -2651,8 +2616,6 @@ namespace ChurchReport.WebServiceConnector
                     ModifyFlag = true;
                 }
             }
-
-
             // 組員的介紹人
             if (aMember.BestIntroducer != null)
             {
@@ -2663,19 +2626,6 @@ namespace ChurchReport.WebServiceConnector
                     ModifyFlag = true;
                 }
             }
-
-            //String aBestIntroducer = "";
-            //if (aContactEntity.Attributes.Contains("new_best_introducer"))
-            //{
-            //    aBestIntroducer = (string)aContactEntity.Attributes["new_best_introducer"];
-            //    if (aMember.BestIntroducer != aBestIntroducer)
-            //    {
-            //        // 系統裡的連絡人介紹人跟APP上傳的不一致
-            //        this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactEntity, "new_best_introducer", aMember.BestIntroducer);
-            //        ModifyFlag = true;
-            //    }
-            //}
-
             // 組員的介紹人關係
             if (aMember.BestRelationship != null)
             {
@@ -2691,7 +2641,6 @@ namespace ChurchReport.WebServiceConnector
                     }
                 }
             }
-
             if (aMember.BestLeader != null)
             {
                 if (aMember.BestLeader != "" && this.m_GroupType == "幸福小組")
@@ -2741,6 +2690,22 @@ namespace ChurchReport.WebServiceConnector
             {
                 // 有透過手動更改受洗狀態
                 ModifyFlag = true;
+            }
+
+            // 設定 BEST 是否決志
+            if (aMember.Decision == true)
+            {
+                if (this.m_ToolUtilityClass.GetOptionSetAttribute(ref aContactEntity, "new_spiriitual_identity") == 100000004 || this.m_ToolUtilityClass.GetOptionSetAttribute(ref aContactEntity, "new_spiriitual_identity") == 100000001 || this.m_ToolUtilityClass.GetOptionSetAttribute(ref aContactEntity, "new_spiriitual_identity") == 100000005)
+                {
+                    // 如果系統裡的連絡人的原來信仰是: "未知" 或 "未受洗" 或 "未信主"
+                    // 則設定連絡人的信仰是: "已決志" 
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(ref aContactEntity, "new_spiriitual_identity", 100000002);
+
+                    // 則設定連絡人的決志日期是: 現在( DateTime.Now )
+                    this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aContactEntity, "new_decide_date", DateTime.Now);
+
+                    ModifyFlag = true;
+                }
             }
 
             if (SetIdentityByUpload(ref aContactEntity, ref aMember) == true)
