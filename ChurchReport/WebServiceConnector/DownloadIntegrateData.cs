@@ -81,8 +81,19 @@ namespace ChurchReport.WebServiceConnector
 
             #region 先根據日期尋找當週主日日期
             // 其值的範圍從 0 (表示 DayOfWeek.Sunday) 為 6 (表示 DayOfWeek.Saturday)。
+            //aDownloadDate = new DateTime(2020, 11, 14);
+
             int DayOfWeek = (int)aDownloadDate.DayOfWeek;
-            this.m_Sunday = aDownloadDate.AddDays(-DayOfWeek);
+            if ( DayOfWeek != 6 )
+            {
+                // 如果不是星期六則是上個星期天
+                this.m_Sunday = aDownloadDate.AddDays(-DayOfWeek);
+            }
+            else
+            {
+                // 如果是星期六則是下個星期天
+                this.m_Sunday = aDownloadDate.AddDays(1);
+            }
             #endregion
 
             this.SetupHeaderData( Account, Password, aDownloadDate, ListEntityId, WeeklyReportEntityId, ref aListSmallGroupWeeklyReport);
