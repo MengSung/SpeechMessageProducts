@@ -194,7 +194,7 @@ namespace ChurchReport.Models
                 }
                 if (PollModel.SundaydayChild == true)
                 {
-                    PollResult += "主日兒主幼顧同工，";
+                    PollResult += "主日兒主同工，";
                 }
                 if (PollModel.SundayNewFriend == true)
                 {
@@ -279,9 +279,9 @@ namespace ChurchReport.Models
                 }
                 if (PollModel.SundaydayChild == true)
                 {
-                    if (!OrignalContactPollResult.Contains("主日兒主幼顧同工"))
+                    if (!OrignalContactPollResult.Contains("主日兒主同工"))
                     {
-                        PollResult += "主日兒主幼顧同工，";
+                        PollResult += "主日兒主同工，";
                     }
                 }
                 if (PollModel.SundayNewFriend == true)

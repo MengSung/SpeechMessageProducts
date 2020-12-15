@@ -17,7 +17,7 @@ namespace ChurchReport.Models
 
         //B、門徒班結業者建議可參與之服事項目《可複選》
         public bool SaturdayChild { get; set; }                 //週六兒主服事同工
-        public bool SundaydayChild { get; set; }                //主日兒主幼顧同工
+        public bool SundaydayChild { get; set; }                //主日兒主同工
         public bool SundayNewFriend { get; set; }               //主日新人接待同工
         public bool DisplayPpt { get; set; }                    //主日控台同工，放印PPT
         public bool WorshipVocal { get; set; }                  //主日敬拜團(人聲)
