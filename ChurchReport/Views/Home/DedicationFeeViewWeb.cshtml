@@ -3,7 +3,7 @@
 @*<div class="long-title"><h3>奉獻資訊</h3></div>*@
 
 <div style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
-    <h5 id="displaynamefield">@Model.FullName 奉獻編號:@Model.DedicationNumber</h5>
+    <h5 id="displaynamefield">@Model.FullName 奉獻編號:@Model.DedicationNumber @Model.Ntbt</h5>
 </div>
 
 <form data-ajax="true" data-ajax-begin="onBegin" data-ajax-success="onSuccess" asp-action="UpdateDedicationFeeView" asp-controller="Home" method="post">

@@ -194,12 +194,22 @@ namespace ChurchReport.Models
 
                 // 全名
                 m_QpayModel.FullName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "fullname");
-                // 全名
+                // 行動電話
                 m_QpayModel.Mobile = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "mobilephone");
                 // 奉獻單編號
                 m_QpayModel.DedicationNumber = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "pager");
                 // 身分證字號
                 m_QpayModel.NationId = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "new_personal_id");
+
+                //是否上傳國稅局
+                if ( this.m_ToolUtilityClass.GetEntityBoolAttribute(ref LineLoginContact, "new_ntbt_ornot") ==  true )
+                {
+                    m_QpayModel.Ntbt = "願意上傳國稅局";
+                }
+                else
+                {
+                    m_QpayModel.Ntbt = "不願意上傳國稅局";
+                }
 
                 //奉獻類別
                 m_QpayModel.Category = "十一奉獻";
@@ -250,6 +260,17 @@ namespace ChurchReport.Models
                     m_QpayModel.Mobile = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "mobilephone");
                     // 奉獻單編號
                     m_QpayModel.DedicationNumber = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "pager");
+
+                    //是否上傳國稅局
+                    if (this.m_ToolUtilityClass.GetEntityBoolAttribute(ref LineLoginContact, "new_ntbt_ornot") == true)
+                    {
+                        m_QpayModel.Ntbt = "願意上傳國稅局";
+                    }
+                    else
+                    {
+                        m_QpayModel.Ntbt = "不願意上傳國稅局";
+                    }
+
                 }
 
                 // 收費單清單
@@ -297,6 +318,16 @@ namespace ChurchReport.Models
 
                 // 身分證字號
                 m_QpayModel.NationId = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContact, "new_personal_id");
+
+                //是否上傳國稅局
+                if (this.m_ToolUtilityClass.GetEntityBoolAttribute(ref aContact, "new_ntbt_ornot") == true)
+                {
+                    m_QpayModel.Ntbt = "願意上傳國稅局";
+                }
+                else
+                {
+                    m_QpayModel.Ntbt = "不願意上傳國稅局";
+                }
 
                 m_QpayModel.Category = "十一奉獻";
                 m_QpayModel.PayWay = "信用卡";

@@ -18,6 +18,7 @@ namespace ChurchReport.Models
         public String BankName { get; set; }                            //銀行名稱
         public String SerialNumber { get; set; }                        //奉獻號碼
         public String LastSixDigit { get; set; }                        //帳戶後六碼
+        public String Ntbt { get; set; }                                //是否上傳國稅局
 
         /// <summary>
         /// ///////////////////////////////////////////////////////////////////////////
