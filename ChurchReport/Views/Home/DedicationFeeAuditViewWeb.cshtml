@@ -93,6 +93,79 @@
         )
 
     </div>
+    <div id="form-container-query">
+        @(Html.DevExtreme().Form<QpayModel>()
+                 .ID("form1")
+                 .ColCount(1)
+                 .Items(items =>
+                 {
+                     items.AddSimpleFor(m => m.DedicationNumber)
+                            //.DataField("LastName")
+                            .Label(l => l.Text("奉獻編號"))
+                            .Editor(e => e
+                                .TextBox()
+                                .Width(120)
+                                .Disabled(false)
+                                .Placeholder("輸入奉獻編號")
+                                .FocusStateEnabled(true)
+                           );
+
+                     items.AddSimpleFor(m => m.NationId)
+                           //.DataField("LastName")
+                           .Label(l => l.Text("身份證字號"))
+                           .Editor(e => e
+                               .TextBox()
+                               .Width(120)
+                               .Disabled(false)
+                               .Placeholder("輸入身份證字號")
+                               .FocusStateEnabled(true)
+                          );
+
+                     items.AddSimpleFor(m=>m.FullName)
+                        //.DataField("LastName")
+                        .Label(l => l.Text("姓名"))
+                        .Editor(e => e
+                            .TextBox()
+                            .Width(120)
+                            .Disabled(false)
+                            .Placeholder("輸入姓名")
+                       );
+
+                     items.AddSimpleFor(m => m.Mobile)
+                            .Label(l => l.Text("電話號碼"))
+                            .Editor(e => e
+                                .TextBox()
+                                .Width(120)
+                                //.Mask("(X000) 000-000")
+                                .MaskRules(new { X = new JS("/[02-9]/") })
+                                .Placeholder("輸入電話號碼")
+                            );
+
+                     items.AddSimpleFor(m => m.LastSixDigit)
+                            .Label(l => l.Text("帳戶後六碼"))
+                            .Editor(e => e
+                                .TextBox()
+                                .Width(120)
+                                //.Mask("(X000) 000-000")
+                                .MaskRules(new { X = new JS("/[02-9]/") })
+                                .Placeholder("輸入帳戶後六碼")
+                            );
+
+
+                 })
+        .OnContentReady
+        (@<text>
+            function(e)
+            {
+                e.component.validate();
+                $("#form1").dxForm("instance").getEditor('DedicationNumber').focus();
+            }
+        </text>)
+
+        .FormData(Model)
+        )
+    </div>
+
     <div id="buttonContainer3" class="dx-button-icon">
         @(Html.DevExtreme().Button()
                     .Text("查詢")
@@ -102,6 +175,115 @@
                     .UseSubmitBehavior(true)
                     .OnClick("ShowLoadPanel")
             )
+    </div>
+
+    <div id="form-container-upload">
+        @(Html.DevExtreme().Form<QpayModel>()
+        .ID("form2")
+        .ColCount(1)
+        .Items(items =>
+        {
+            items.AddSimpleFor(m => m.ClickType)
+                    //.DataField("LastName")
+                    .Label(l => l.Text("查詢或上傳").Visible(false))
+                    .Editor(e => e
+                        .TextBox()
+                        .Width(120).Visible(false)
+                        //.Disabled(true)
+                        .Placeholder("查詢或上傳")
+                   );
+
+        })
+        .OnContentReady
+        (@<text>
+            function(e)
+            {
+                e.component.validate();
+            }
+        </text>)
+
+        .FormData(Model)
+        )
+    </div>
+
+    <div id="samenamecontainer" style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
+        <h5 id="samenamefield">查詢結果</h5>
+
+        @(Html.DevExtreme().DataGrid<SameNameElement>()
+                            .ID("SameNameList")
+                            .ShowBorders(true)
+                            //.ColumnAutoWidth(true)
+                            //.Paging(p => p.PageSize(10))
+                            .Paging(paging => paging.Enabled(false))
+                            .AllowColumnResizing(true)
+                            .ColumnResizingMode(ColumnResizingMode.Widget)
+                            .ColumnFixing(c => c.Enabled(true))
+                            .LoadPanel(l => l.Text("更新資料中...").Enabled(false))
+                            //.SearchPanel(s => s.Visible(false).Placeholder("搜尋.."))
+                            //.Export(e=>e.Enabled(false).AllowExportSelectedData(true))
+                            .ShowColumnLines(true)
+                            .ShowRowLines(true)
+                            //.RowAlternationEnabled(true)
+                            .ShowBorders(true)
+                            //.RemoteOperations(false)
+                            //.TwoWayBindingEnabled(true)
+                            .Selection(selection => selection.Mode(SelectionMode.Single))
+                            //.Selection(selection => selection.Mode(SelectionMode.Multiple))
+                            //.Selection(selection => selection.Mode(SelectionMode.None))
+                            .OnRowClick("OnRowClick")
+                            .OnSelectionChanged("OnRowSelectionChanged")
+                            .HoverStateEnabled(true)
+                            //.OnContentReady("onCreditCardGridContentReady")
+                            .Editing(editing =>
+                            {
+                                //editing.Mode(GridEditMode.Batch);
+                                //editing.Mode(GridEditMode.Row);
+                                //editing.Mode(GridEditMode.Cell);
+                                //editing.Mode(GridEditMode.Batch);
+                                //editing.Mode(GridEditMode.Form);
+                                //editing.Mode(GridEditMode.Popup);
+                                //editing.AllowUpdating(true);
+                                //editing.AllowAdding(true);
+                                editing.AllowDeleting(true);
+                                editing.Texts(a => a.SaveAllChanges("上傳檔案").AddRow("新增").CancelAllChanges("取消變更").SaveRowChanges("儲存").CancelRowChanges("取消").EditRow("選擇").DeleteRow("刪除"));
+                            })
+
+                            .Columns(columns =>
+                            {
+                                columns.AddFor(m => m.DedicationNumber).Caption("奉獻編號").Width(100).MinWidth(100).Fixed(true);
+                                columns.AddFor(m => m.NationId).Caption("身分證字號").Width(100).MinWidth(100).Fixed(true);
+                                columns.AddFor(m => m.FullName).Caption("姓名").Width(100).MinWidth(100).Fixed(true);
+                                columns.AddFor(m => m.Mobile).Caption("電話").Width(100).MinWidth(100);
+                                columns.AddFor(m => m.SmallGroupName).Caption("所屬小組").Width(100).MinWidth(100);
+                            })
+                            .DataSource(d => d
+                            .WebApi()
+                            .Controller("Home")
+                            .LoadAction("LoadSameNameList")
+                            //.InsertAction("InsertPresentRecord")
+                            .DeleteAction("DeleteSameNameContact")
+                            //.UpdateAction("UpdatePresentRecord")
+                            .Key("SameNameElementId")
+                            //.LoadParams(new { id = @ViewBag.ListId }))
+                            )
+
+                            //.OnContentReady("onCreditCardGridContentReady")
+                            // 此處設定是讓選項偏左邊一排
+                            // 此處設定是讓選項偏左邊一排
+                            .OnContentReady(
+                            @<text>
+                                function(e)
+                                {
+                                    //moveEditColumnToLeft(e.component);
+                                    //ShowToast( ReMindMessage , 'warning' , 20000)
+                                    @*$("#loadPanel").dxLoadPanel("instance").hide();*@
+                                }
+                            </text>
+                            )
+                            //此處設定是鉛筆形狀還是"編輯"字樣
+                            .OnCellPrepared("cell_prepared")
+                            //.OnCellPrepared("cell_prepared_background_color")
+                            )
     </div>
 
     <div id="data-grid">
@@ -195,362 +377,11 @@
         <h4 id="displaynamefield">總金額 = @Model.TotalAmount 元</h4>
     </div>
 
-    <div id="buttonContainer2" class="dx-button-icon">
-        @(Html.DevExtreme().Button()
-                    .Text("查詢")
-                    .Visible(false)
-                    .Type(ButtonType.Success)
-                    .ID("save-button2")
-                    .UseSubmitBehavior(true)
-                    .OnClick("ShowLoadPanel")
-            )
-    </div>
 
 </form>
 
-
-
-
-
-
-<form data-ajax="true" data-ajax-begin="onBegin" data-ajax-success="onSuccess" asp-action="SaveKeyInDedication" asp-controller="Home" method="post">
-    <div id="form-container-query">
-        @(Html.DevExtreme().Form<QpayModel>()
-                 .ID("form1")
-                 .ColCount(1)
-                 .Items(items =>
-                 {
-                     items.AddSimpleFor(m => m.DedicationNumber)
-                            //.DataField("LastName")
-                            .Label(l => l.Text("奉獻編號"))
-                            .Editor(e => e
-                                .TextBox()
-                                .Width(120)
-                                .Disabled(false)
-                                .Placeholder("輸入奉獻編號")
-                                .FocusStateEnabled(true)
-                           );
-
-                     items.AddSimpleFor(m => m.NationId)
-                           //.DataField("LastName")
-                           .Label(l => l.Text("身份證字號"))
-                           .Editor(e => e
-                               .TextBox()
-                               .Width(120)
-                               .Disabled(false)
-                               .Placeholder("輸入身份證字號")
-                               .FocusStateEnabled(true)
-                          );
-
-                     items.AddSimpleFor(m=>m.FullName)
-                        //.DataField("LastName")
-                        .Label(l => l.Text("姓名"))
-                        .Editor(e => e
-                            .TextBox()
-                            .Width(120)
-                            .Disabled(false)
-                            .Placeholder("輸入姓名")
-                       );
-
-                     items.AddSimpleFor(m => m.Mobile)
-                            .Label(l => l.Text("電話號碼"))
-                            .Editor(e => e
-                                .TextBox()
-                                .Width(120)
-                                //.Mask("(X000) 000-000")
-                                .MaskRules(new { X = new JS("/[02-9]/") })
-                                .Placeholder("輸入電話號碼")
-                            );
-
-                     items.AddSimpleFor(m => m.LastSixDigit)
-                            .Label(l => l.Text("帳戶後六碼"))
-                            .Editor(e => e
-                                .TextBox()
-                                .Width(120)
-                                //.Mask("(X000) 000-000")
-                                .MaskRules(new { X = new JS("/[02-9]/") })
-                                .Placeholder("輸入帳戶後六碼")
-                            );
-
-
-                 })
-        .OnContentReady
-        (@<text>
-            function(e)
-            {
-                e.component.validate();
-                $("#form1").dxForm("instance").getEditor('DedicationNumber').focus();
-            }
-        </text>)
-
-        .FormData(Model)
-        )
-    </div>
-    <div id="samenamecontainer" style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
-        <h5 id="samenamefield">查詢結果</h5>
-
-        @(Html.DevExtreme().DataGrid<SameNameElement>()
-                            .ID("SameNameList")
-                            .ShowBorders(true)
-                            //.ColumnAutoWidth(true)
-                            //.Paging(p => p.PageSize(10))
-                            .Paging(paging => paging.Enabled(false))
-                            .AllowColumnResizing(true)
-                            .ColumnResizingMode(ColumnResizingMode.Widget)
-                            .ColumnFixing(c => c.Enabled(true))
-                            .LoadPanel(l => l.Text("更新資料中...").Enabled(false))
-                            //.SearchPanel(s => s.Visible(false).Placeholder("搜尋.."))
-                            //.Export(e=>e.Enabled(false).AllowExportSelectedData(true))
-                            .ShowColumnLines(true)
-                            .ShowRowLines(true)
-                            //.RowAlternationEnabled(true)
-                            .ShowBorders(true)
-                            //.RemoteOperations(false)
-                            //.TwoWayBindingEnabled(true)
-                            .Selection(selection => selection.Mode(SelectionMode.Single))
-                            //.Selection(selection => selection.Mode(SelectionMode.Multiple))
-                            //.Selection(selection => selection.Mode(SelectionMode.None))
-                            .OnRowClick("OnRowClick")
-                            .OnSelectionChanged("OnRowSelectionChanged")
-                            .HoverStateEnabled(true)
-                            //.OnContentReady("onCreditCardGridContentReady")
-                            .Editing(editing =>
-                            {
-                                //editing.Mode(GridEditMode.Batch);
-                                //editing.Mode(GridEditMode.Row);
-                                //editing.Mode(GridEditMode.Cell);
-                                //editing.Mode(GridEditMode.Batch);
-                                //editing.Mode(GridEditMode.Form);
-                                //editing.Mode(GridEditMode.Popup);
-                                //editing.AllowUpdating(true);
-                                //editing.AllowAdding(true);
-                                editing.AllowDeleting(true);
-                                editing.Texts(a => a.SaveAllChanges("上傳檔案").AddRow("新增").CancelAllChanges("取消變更").SaveRowChanges("儲存").CancelRowChanges("取消").EditRow("選擇").DeleteRow("刪除"));
-                            })
-
-                            .Columns(columns =>
-                            {
-                                columns.AddFor(m => m.DedicationNumber).Caption("奉獻編號").Width(100).MinWidth(100).Fixed(true);
-                                columns.AddFor(m => m.NationId).Caption("身分證字號").Width(100).MinWidth(100).Fixed(true);
-                                columns.AddFor(m => m.FullName).Caption("姓名").Width(100).MinWidth(100).Fixed(true);
-                                columns.AddFor(m => m.Mobile).Caption("電話").Width(100).MinWidth(100);
-                                columns.AddFor(m => m.SmallGroupName).Caption("所屬小組").Width(100).MinWidth(100);
-                            })
-                            .DataSource(d => d
-                            .WebApi()
-                            .Controller("Home")
-                            .LoadAction("LoadSameNameList")
-                            //.InsertAction("InsertPresentRecord")
-                            .DeleteAction("DeleteSameNameContact")
-                            //.UpdateAction("UpdatePresentRecord")
-                            .Key("SameNameElementId")
-                            //.LoadParams(new { id = @ViewBag.ListId }))
-                            )
-
-                            //.OnContentReady("onCreditCardGridContentReady")
-                            // 此處設定是讓選項偏左邊一排
-                            // 此處設定是讓選項偏左邊一排
-                            .OnContentReady(
-                            @<text>
-                                function(e)
-                                {
-                                    //moveEditColumnToLeft(e.component);
-                                    //ShowToast( ReMindMessage , 'warning' , 20000)
-                                    @*$("#loadPanel").dxLoadPanel("instance").hide();*@
-                                }
-                            </text>
-                            )
-                            //此處設定是鉛筆形狀還是"編輯"字樣
-                            .OnCellPrepared("cell_prepared")
-                            //.OnCellPrepared("cell_prepared_background_color")
-                            )
-    </div>
-    <div id="buttonContainer2" class="dx-button-icon">
-        @(Html.DevExtreme().Button()
-                    .Text("查詢")
-                    .Type(ButtonType.Success)
-                    .ID("save-button2")
-                    .UseSubmitBehavior(true)
-                    .OnClick("OnClickQuery")
-            )
-    </div>
-    <div id="form-container-upload">
-        @(Html.DevExtreme().Form<QpayModel>()
-        .ID("form2")
-        .ColCount(1)
-        .Items(items =>
-        {
-
-            items.AddSimpleFor
-            (m => m.DedicateLocation)
-                .Label(l => l.Text("奉獻地點"))
-                //.Name("Category")
-                .Editor
-                (
-                    e => e
-                    .SelectBox()
-                    .Width(120)
-                    .DataSource(new string[]
-                    {
-                        "永和禮拜堂",
-                        "南勢角福音中心",
-                        "頂溪福音中心",
-                        "頭份福音中心",
-                        "東引福音中心",
-                        "緬甸福音中心",
-                    }
-                )
-                .Placeholder("請選擇奉獻地點")
-            );
-            items.AddSimpleFor
-            (m => m.Category)
-                .Label(l => l.Text("類別"))
-                //.Name("Category")
-                .Editor
-                (
-                    e => e
-                    .SelectBox()
-                    .Width(120)
-                    .DataSource(new string[]
-                    {
-                       "十一奉獻",
-                       "感恩奉獻",
-                       "愛心奉獻",
-                       "五餅二魚",
-                       "代收代轉",
-                       "宣教奉獻",
-                       "其他奉獻",
-                   }
-                //.DisplayExpr("Name")
-                )
-                .Placeholder("請選擇奉獻類別")
-                //.Value(Model.Category)
-                .OnValueChanged("OnCategorySelectBoxValueChanged")
-            );
-
-            //items.AddSimpleFor
-            //(m => m.Others)
-            //    .Label(l => l.Text("其他"))
-            //    .Visible(false)
-            //    .Name("OtherDedication")
-            //    .Editor
-            //    (
-            //        e => e
-            //        .SelectBox()
-            //        .Width(100)
-            //        .DataSource(Model.OtherCategoryArray)
-            //        .Placeholder("請選擇奉獻類別")
-            //        //.Value("特別")
-            //    );
-
-
-            items.AddSimpleFor
-                (m => m.Others)
-                    .Label(l => l.Text("宣教對象"))
-                    .Visible(false)
-                    .Name("OtherDedicationSelectionBox")
-                    .Editor
-                    (
-                        e => e
-                        .SelectBox()
-                        .Width(120)
-                        .DataSource(Model.OtherCategoryArray)
-                        .Placeholder("請選擇宣教對象")
-                    //.Value("特別")
-                    );
-
-            items.AddSimpleFor
-                (m => m.Others)
-                    .Label(l => l.Text("代轉對象"))
-                    .Visible(false)
-                    .Name("OtherDedication")
-                    .Editor
-                    (
-                        e => e
-                        .Autocomplete()
-                        .Width(120)
-                        .DataSource(Model.OtherCategoryArray)
-                        .Placeholder("請輸入代轉對象")
-                    //.Value("特別")
-                    );
-
-            items.AddSimpleFor(m => m.Amount)
-                    //.DataField("LastName")
-                    .Label(l => l.Text("奉獻金額"))
-                    .Editor(e => e
-                        .NumberBox().Value(null)
-                        .Width(120)
-                        .Disabled(false)
-                        .Placeholder("輸入奉獻金額")
-                    );
-
-            items.AddSimpleFor
-                    (m => m.PayWay)
-                        .Label(l => l.Text("付款方式"))
-                        .Editor
-                        (
-                            e => e
-                            .SelectBox()
-                            .Width(120)
-                            .DataSource(new string[]
-                            {
-                                "現金",
-                                "信用卡",
-                                "ATM轉帳/匯款",
-                                "銀行轉帳",
-                            }
-                        //.DisplayExpr("Name")
-                        )
-                        .Value("現金")
-                    );
-
-            items.AddSimpleFor(m => m.ClickType)
-                    //.DataField("LastName")
-                    .Label(l => l.Text("查詢或上傳").Visible(false))
-                    .Editor(e => e
-                        .TextBox()
-                        .Width(120).Visible(false)
-                        //.Disabled(true)
-                        .Placeholder("查詢或上傳")
-                   );
-
-        })
-        .OnContentReady
-        (@<text>
-            function(e)
-            {
-                e.component.validate();
-            }
-        </text>)
-
-        .FormData(Model)
-        )
-    </div>
-    <div id="buttonContainer3" class="dx-button-icon">
-        @(Html.DevExtreme().Button()
-                    .Text("上傳")
-                    .Type(ButtonType.Success)
-                    .ID("save-button3")
-                    .UseSubmitBehavior(true)
-                    .OnClick("OnClickUpdate")
-            )
-    </div>
-</form>
-
-
-
-
-
-
-
-
-
-
-
-<div id="samenamecontainer" style="font-family:標楷體;font-size:100%; color: darkslateblue; text-align:left;font-weight:bold">
+<div id="samenamecontainer_001" style="font-family:標楷體;font-size:100%; color: darkslateblue; text-align:left;font-weight:bold">
     <h5 id="resultfield"></h5>
-
-
     <script>
         window.onload = function (e) {
             $("#form1").dxForm("instance").updateData('DedicationNumber', "");
@@ -867,7 +698,7 @@
         getLoadPanelInstance().hide();
 
         if (data.status == 1) {
-            window.location.href = "/Home/DedicationFeeViewWeb/";
+            window.location.href = "/Home/DedicationFeeAuditViewWeb/";
             //ShowToast(data.message, "success", 2000);
         }
         else {
