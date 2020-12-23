@@ -92,7 +92,6 @@
             }
         </script>
     </div>
-
     <div id="LoadPanel">
         @(Html.DevExtreme().LoadPanel()
                     .ID("loadPanel")
@@ -110,9 +109,9 @@
     </div>
 </div>
 
-    <form data-ajax="true" data-ajax-begin="onBegin" data-ajax-success="onSuccess" asp-action="SaveKeyInDedication" asp-controller="Home" method="post">
-        <div id="form-container-query">
-            @(Html.DevExtreme().Form<QpayModel>()
+<form data-ajax="true" data-ajax-begin="onBegin" data-ajax-success="onSuccess" asp-action="SaveKeyInDedication" asp-controller="Home" method="post">
+    <div id="form-container-query">
+        @(Html.DevExtreme().Form<QpayModel>()
                  .ID("form1")
                  .ColCount(1)
                  .Items(items =>
@@ -194,11 +193,11 @@
 
         .FormData(Model)
         )
-        </div>
-        <div id="samenamecontainer" style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
-            <h5 id="samenamefield">查詢結果</h5>
+    </div>
+    <div id="samenamecontainer" style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
+        <h5 id="samenamefield">查詢結果</h5>
 
-            @(Html.DevExtreme().DataGrid<SameNameElement>()
+        @(Html.DevExtreme().DataGrid<SameNameElement>()
                             .ID("SameNameList")
                             .ShowBorders(true)
                             //.ColumnAutoWidth(true)
@@ -273,18 +272,18 @@
                             .OnCellPrepared("cell_prepared")
                             //.OnCellPrepared("cell_prepared_background_color")
                             )
-        </div>
-        <div id="buttonContainer2" class="dx-button-icon">
-            @(Html.DevExtreme().Button()
+    </div>
+    <div id="buttonContainer2" class="dx-button-icon">
+        @(Html.DevExtreme().Button()
                     .Text("查詢")
                     .Type(ButtonType.Success)
                     .ID("save-button2")
                     .UseSubmitBehavior(true)
                     .OnClick("OnClickQuery")
             )
-        </div>
-        <div id="form-container-upload">
-            @(Html.DevExtreme().Form<QpayModel>()
+    </div>
+    <div id="form-container-upload">
+        @(Html.DevExtreme().Form<QpayModel>()
         .ID("form2")
         .ColCount(1)
         .Items(items =>
@@ -434,24 +433,177 @@
 
         .FormData(Model)
         )
-        </div>
-        <div id="buttonContainer3" class="dx-button-icon">
-            @(Html.DevExtreme().Button()
+    </div>
+    <div id="buttonContainer3" class="dx-button-icon">
+        @(Html.DevExtreme().Button()
                     .Text("上傳")
                     .Type(ButtonType.Success)
                     .ID("save-button3")
                     .UseSubmitBehavior(true)
                     .OnClick("OnClickUpdate")
             )
-        </div>
-    </form>
+    </div>
+</form>
 
-    <div id="samenamecontainer" style="font-family:標楷體;font-size:100%; color: darkslateblue; text-align:left;font-weight:bold">
-        <h5 id="resultfield"></h5>
+<div id="samenamecontainer" style="font-family:標楷體;font-size:100%; color: darkslateblue; text-align:left;font-weight:bold">
+    <h5 id="resultfield"></h5>
 
 
-        <script>
-            window.onload = function (e) {
+    <script>
+        window.onload = function (e) {
+            $("#form1").dxForm("instance").updateData('DedicationNumber', "");
+            $("#form1").dxForm("instance").updateData('NationId', "");
+            $("#form1").dxForm("instance").updateData('FullName', "");
+            $("#form1").dxForm("instance").updateData('Mobile', "");
+            $("#form2").dxForm("instance").updateData('Amount', "");
+            $("#form1").dxForm("instance").updateData('LastSixDigit', "");
+            $("#form1").dxForm("instance").getEditor('DedicationNumber').focus();
+
+            document.getElementById("samenamecontainer").style.display = "none";//隱藏
+        };
+    </script>
+    <script>
+        // 觸發事件管理
+        function OnClickQuery(arg) {
+            //alert("查詢");
+            $("#form2").dxForm("instance").getEditor("ClickType").option("value", '查詢');
+            getLoadPanelInstance().show();
+        }
+        function OnClickUpdate(arg) {
+            //alert("上傳");
+            $("#form2").dxForm("instance").getEditor("ClickType").option("value", '上傳');
+            getLoadPanelInstance().show();
+        }
+        function OnRowClick(selectedItems) {
+            //alert("選了同名同姓");
+            var data = selectedItems.selectedRowsData[0];
+            if (data) {
+                //alert("姓名:" + data.FullName + "，電話" + data.Mobile);
+                $("#form1").dxForm("instance").updateData('DedicationNumber', data.DedicationNumber);
+                $("#form1").dxForm("instance").updateData('NationId', data.NationId);
+                $("#form1").dxForm("instance").updateData('FullName', data.FullName);
+                $("#form1").dxForm("instance").updateData('Mobile', data.Mobile);
+            }
+        }
+        function OnRowSelectionChanged(selectedItems) {
+            //alert("更換同名同姓");
+            var data = selectedItems.selectedRowsData[0];
+            if (data) {
+                //alert("姓名:" + data.FullName + "，電話" + data.Mobile);
+                $("#form1").dxForm("instance").updateData('DedicationNumber', data.DedicationNumber);
+                $("#form1").dxForm("instance").updateData('NationId', data.NationId);
+                $("#form1").dxForm("instance").updateData('FullName', data.FullName);
+                $("#form1").dxForm("instance").updateData('Mobile', data.Mobile);
+            }
+        }
+    </script>
+    <script>
+        function getLoadPanelInstance() {
+            return $("#loadPanel").dxLoadPanel("instance");
+        }
+        function ShowToast(LocalToastMessage, Type, DisplayTime) {
+            //debugger;
+            var ToastInstance = $("#toast").dxToast("instance");
+            ToastInstance.option('message', LocalToastMessage);
+            ToastInstance.option('type', Type);
+            ToastInstance.option('displayTime', DisplayTime);
+            ToastInstance.option('white-space', 'pre-line');
+            ToastInstance.option('closeOnClick', true);
+            ToastInstance.show();
+        }
+
+        var GlobalCategory = "";
+
+        function OnCategorySelectBoxValueChanged(e) {
+            if (e.value == "宣教奉獻") {
+                $("#form2").dxForm("instance").itemOption("OtherDedicationSelectionBox", 'visible', true);
+            }
+            else {
+                $("#form2").dxForm("instance").itemOption("OtherDedicationSelectionBox", 'visible', false);
+            }
+            if (e.value == "代收代轉" || e.value == "其他奉獻") {
+                $("#form2").dxForm("instance").itemOption("OtherDedication", 'visible', true);
+            }
+            else {
+                $("#form2").dxForm("instance").itemOption("OtherDedication", 'visible', false);
+            }
+        }
+        function moveEditColumnToLeft(dataGrid) {
+            dataGrid.columnOption("command:edit", {
+                visibleIndex: -1,
+                width: 50
+            });
+        }
+        function cell_prepared(e) {
+            if (e.rowType === "data" && e.column.command === "edit") {
+                var isEditing = e.row.isEditing,
+                    $links = e.cellElement.find(".dx-link");
+
+                $links.text("");
+
+                if (isEditing) {
+                    $links.filter(".dx-link-save").addClass("dx-icon-save");
+                    $links.filter(".dx-link-cancel").addClass("dx-icon-revert");
+                }
+                else {
+                    $links.filter(".dx-link-edit").addClass("dx-icon-edit");
+                    $links.filter(".dx-link-delete").addClass("dx-icon-trash");
+                }
+            }
+
+        }
+    </script>
+    <script type="text/javascript">
+        function onBegin() {
+        }
+
+        function onSuccess(data) {
+
+            getLoadPanelInstance().hide();
+
+            if (data.status == 1) {
+                if (data.clicktype == "上傳") {
+                    // 按上傳
+                    //ShowToast(data.message, "success", 2000);
+                    $("#form1").dxForm("instance").updateData('DedicationNumber', "");
+                    $("#form1").dxForm("instance").updateData('NationId', "");
+                    $("#form1").dxForm("instance").updateData('FullName', "");
+                    $("#form1").dxForm("instance").updateData('Mobile', "");
+                    $("#form2").dxForm("instance").updateData('Amount', "");
+                    $("#form1").dxForm("instance").updateData('LastSixDigit', "");
+                    $("#form1").dxForm("instance").getEditor('DedicationNumber').focus();
+                    document.getElementById("samenamecontainer").style.display = "none";//隱藏
+
+                    //$("#popup").dxPopup("instance").show();
+
+                    document.getElementById('resultfield').innerHTML = data.DedicationResult;
+                }
+                else {
+                    // 按查詢
+                    //return Json(new { status = "1", clicktype = "查詢", DedicationNumber = m_QpayModel.DedicationNumber, FullName = m_QpayModel.FullName, Mobile = m_QpayModel.Mobile, message = DedicationResult, DedicationResult = DedicationResult });
+                    //debugger;
+
+                    $("#form1").dxForm("instance").updateData('DedicationNumber', data.DedicationNumber);
+                    $("#form1").dxForm("instance").updateData('NationId', data.NationId);
+                    $("#form1").dxForm("instance").updateData('FullName', data.FullName);
+                    $("#form1").dxForm("instance").updateData('Mobile', data.Mobile);
+                    $("#form1").dxForm("instance").updateData('LastSixDigit', data.LastSixDigit);
+
+                    //$("#form1").dxForm("instance").getEditor('SameNameList').reload();
+                    //$("#form1").dxForm("instance").getEditor('SameNameList').refresh();
+
+                    document.getElementById("samenamecontainer").style.display = "none";//隱藏
+                    //document.getElementById("samenamecontainer").style.display = "";//顯示
+                    //document.getElementById("samenamefield").style.display = "none";//隱藏
+                    //document.getElementById("samenamefield").style.display = "";//顯示
+
+                    //$("#SameNameList").dxDataGrid("instance").reload();
+                    //$("#SameNameList").dxDataGrid("instance").refresh();
+
+                    //window.location.href = "/Home/KeyInDedicationFeeViewWeb/";
+                }
+            }
+            else if (data.status == 2) {
                 $("#form1").dxForm("instance").updateData('DedicationNumber', "");
                 $("#form1").dxForm("instance").updateData('NationId', "");
                 $("#form1").dxForm("instance").updateData('FullName', "");
@@ -460,230 +612,76 @@
                 $("#form1").dxForm("instance").updateData('LastSixDigit', "");
                 $("#form1").dxForm("instance").getEditor('DedicationNumber').focus();
 
+                //document.getElementById("samenamecontainer").style.display = "none";//隱藏
+                document.getElementById("samenamecontainer").style.display = "";//顯示
+
+                $("#SameNameList").dxDataGrid("instance").refresh();
+
+                //document.getElementById('resultfield').innerHTML = data.DedicationResult;
+            }
+            else {
+                if (data.message == "沒找到這個連絡人") {
+
+                    ShowToast("沒找到\"" + data.fullname + "\"!", "error", 3000);
+
+                    if (data.clicktype == "查詢") {
+                        var PopupInstance = $("#popup").dxPopup("instance");
+                        PopupInstance.option('title', "沒找到\"" + data.fullname + "\"，是否要新增?");
+                        PopupInstance.show();
+                    }
+                }
                 document.getElementById("samenamecontainer").style.display = "none";//隱藏
-            };
-        </script>
-        <script>
-            // 觸發事件管理
-            function OnClickQuery(arg) {
-                //alert("查詢");
-                $("#form2").dxForm("instance").getEditor("ClickType").option("value", '查詢');
-                getLoadPanelInstance().show();
+
+                document.getElementById('resultfield').innerHTML = data.DedicationResult;
             }
-            function OnClickUpdate(arg) {
-                //alert("上傳");
-                $("#form2").dxForm("instance").getEditor("ClickType").option("value", '上傳');
-                getLoadPanelInstance().show();
+        }
+
+        function onComplete(data) {
+            if (data.status == 1) {
             }
-            function OnRowClick(selectedItems) {
-                //alert("選了同名同姓");
-                var data = selectedItems.selectedRowsData[0];
-                if (data) {
-                    //alert("姓名:" + data.FullName + "，電話" + data.Mobile);
-                    $("#form1").dxForm("instance").updateData('DedicationNumber', data.DedicationNumber);
-                    $("#form1").dxForm("instance").updateData('NationId', data.NationId);
-                    $("#form1").dxForm("instance").updateData('FullName', data.FullName);
-                    $("#form1").dxForm("instance").updateData('Mobile', data.Mobile);
-                }
+            else {
             }
-            function OnRowSelectionChanged(selectedItems) {
-                //alert("更換同名同姓");
-                var data = selectedItems.selectedRowsData[0];
-                if (data) {
-                    //alert("姓名:" + data.FullName + "，電話" + data.Mobile);
-                    $("#form1").dxForm("instance").updateData('DedicationNumber', data.DedicationNumber);
-                    $("#form1").dxForm("instance").updateData('NationId', data.NationId);
-                    $("#form1").dxForm("instance").updateData('FullName', data.FullName);
-                    $("#form1").dxForm("instance").updateData('Mobile', data.Mobile);
-                }
-            }
-        </script>
-        <script>
-            function getLoadPanelInstance() {
-                return $("#loadPanel").dxLoadPanel("instance");
-            }
-            function ShowToast(LocalToastMessage, Type, DisplayTime) {
-                //debugger;
-                var ToastInstance = $("#toast").dxToast("instance");
-                ToastInstance.option('message', LocalToastMessage);
-                ToastInstance.option('type', Type);
-                ToastInstance.option('displayTime', DisplayTime);
-                ToastInstance.option('white-space', 'pre-line');
-                ToastInstance.option('closeOnClick', true);
-                ToastInstance.show();
-            }
+        }
+    </script>
+    <script>
+        //中文化
+        var dictionary = {
+            "zh-tw": {
+                "dxScheduler-switcherAgenda": "會議內容", // 在這裡可以做最後的字典對應
+                "Month": "月",
+                "Subject": "主題",
+                "Company": "Company",
+                "Amount": "Amount",
+                "PaymentDate": "Payment Date",
+                "dxDataGrid-editingConfirmDeleteMessage": "您確定要刪除這個連絡人嗎?",
+            },
+        };
+        DevExpress.localization.loadMessages(dictionary);
+        var formatMessage = DevExpress.localization.formatMessage;
 
-            var GlobalCategory = "";
+        var locale = getLocale();
+        //DevExpress.localization.locale(navigator.language || navigator.browserLanguage);
+        DevExpress.localization.locale(locale);
 
-            function OnCategorySelectBoxValueChanged(e) {
-                if (e.value == "宣教奉獻") {
-                    $("#form2").dxForm("instance").itemOption("OtherDedicationSelectionBox", 'visible', true);
-                }
-                else {
-                    $("#form2").dxForm("instance").itemOption("OtherDedicationSelectionBox", 'visible', false);
-                }
-                if (e.value == "代收代轉" || e.value == "其他奉獻") {
-                    $("#form2").dxForm("instance").itemOption("OtherDedication", 'visible', true);
-                }
-                else {
-                    $("#form2").dxForm("instance").itemOption("OtherDedication", 'visible', false);
-                }
-            }
-            function moveEditColumnToLeft(dataGrid) {
-                dataGrid.columnOption("command:edit", {
-                    visibleIndex: -1,
-                    width: 50
-                });
-            }
-            function cell_prepared(e) {
-                if (e.rowType === "data" && e.column.command === "edit") {
-                    var isEditing = e.row.isEditing,
-                        $links = e.cellElement.find(".dx-link");
+        function changeLocale(data) {
+            setLocale(data.value);
+            document.location.reload();
+        }
 
-                    $links.text("");
+        function getLocale() {
+            //debugger;
+            //sessionStorage.setItem("locale", 'zh');
+            sessionStorage.setItem("locale", 'zh-tw');
+            var locale = sessionStorage.getItem("locale");
+            return locale != null ? locale : "tw";
+        }
+    </script>
+</div>
 
-                    if (isEditing) {
-                        $links.filter(".dx-link-save").addClass("dx-icon-save");
-                        $links.filter(".dx-link-cancel").addClass("dx-icon-revert");
-                    }
-                    else {
-                        $links.filter(".dx-link-edit").addClass("dx-icon-edit");
-                        $links.filter(".dx-link-delete").addClass("dx-icon-trash");
-                    }
-                }
+<link href="~/css/Scheduler.css" rel="stylesheet" />
+<link href="~/css/Site.css" rel="stylesheet" />
 
-            }
-        </script>
-        <script type="text/javascript">
-            function onBegin() {
-            }
-
-            function onSuccess(data) {
-
-                getLoadPanelInstance().hide();
-
-                if (data.status == 1) {
-                    if (data.clicktype == "上傳") {
-                        // 按上傳
-                        //ShowToast(data.message, "success", 2000);
-                        $("#form1").dxForm("instance").updateData('DedicationNumber', "");
-                        $("#form1").dxForm("instance").updateData('NationId', "");
-                        $("#form1").dxForm("instance").updateData('FullName', "");
-                        $("#form1").dxForm("instance").updateData('Mobile', "");
-                        $("#form2").dxForm("instance").updateData('Amount', "");
-                        $("#form1").dxForm("instance").updateData('LastSixDigit', "");
-                        $("#form1").dxForm("instance").getEditor('DedicationNumber').focus();
-                        document.getElementById("samenamecontainer").style.display = "none";//隱藏
-
-                        //$("#popup").dxPopup("instance").show();
-
-                        document.getElementById('resultfield').innerHTML = data.DedicationResult;
-                    }
-                    else {
-                        // 按查詢
-                        //return Json(new { status = "1", clicktype = "查詢", DedicationNumber = m_QpayModel.DedicationNumber, FullName = m_QpayModel.FullName, Mobile = m_QpayModel.Mobile, message = DedicationResult, DedicationResult = DedicationResult });
-                        //debugger;
-
-                        $("#form1").dxForm("instance").updateData('DedicationNumber', data.DedicationNumber);
-                        $("#form1").dxForm("instance").updateData('NationId', data.NationId);
-                        $("#form1").dxForm("instance").updateData('FullName', data.FullName);
-                        $("#form1").dxForm("instance").updateData('Mobile', data.Mobile);
-                        $("#form1").dxForm("instance").updateData('LastSixDigit', data.LastSixDigit);
-
-                        //$("#form1").dxForm("instance").getEditor('SameNameList').reload();
-                        //$("#form1").dxForm("instance").getEditor('SameNameList').refresh();
-
-                        document.getElementById("samenamecontainer").style.display = "none";//隱藏
-                        //document.getElementById("samenamecontainer").style.display = "";//顯示
-                        //document.getElementById("samenamefield").style.display = "none";//隱藏
-                        //document.getElementById("samenamefield").style.display = "";//顯示
-
-                        //$("#SameNameList").dxDataGrid("instance").reload();
-                        //$("#SameNameList").dxDataGrid("instance").refresh();
-
-                        //window.location.href = "/Home/KeyInDedicationFeeViewWeb/";
-                    }
-                }
-                else if (data.status == 2) {
-                    $("#form1").dxForm("instance").updateData('DedicationNumber', "");
-                    $("#form1").dxForm("instance").updateData('NationId', "");
-                    $("#form1").dxForm("instance").updateData('FullName', "");
-                    $("#form1").dxForm("instance").updateData('Mobile', "");
-                    $("#form2").dxForm("instance").updateData('Amount', "");
-                    $("#form1").dxForm("instance").updateData('LastSixDigit', "");
-                    $("#form1").dxForm("instance").getEditor('DedicationNumber').focus();
-
-                    //document.getElementById("samenamecontainer").style.display = "none";//隱藏
-                    document.getElementById("samenamecontainer").style.display = "";//顯示
-
-                    $("#SameNameList").dxDataGrid("instance").refresh();
-
-                    //document.getElementById('resultfield').innerHTML = data.DedicationResult;
-                }
-                else
-                {
-                    if (data.message == "沒找到這個連絡人") {
-
-                        ShowToast("沒找到\"" + data.fullname +"\"!", "error", 3000);
-
-                        if (data.clicktype == "查詢")
-                        {
-                            var PopupInstance = $("#popup").dxPopup("instance");
-                            PopupInstance.option('title', "沒找到\"" + data.fullname+"\"，是否要新增?" );
-                            PopupInstance.show();
-                        }
-                    }
-                    document.getElementById("samenamecontainer").style.display = "none";//隱藏
-
-                    document.getElementById('resultfield').innerHTML = data.DedicationResult;
-                }
-            }
-
-            function onComplete(data) {
-                if (data.status == 1) {
-                }
-                else {
-                }
-            }
-        </script>
-        <script>
-            //中文化
-            var dictionary = {
-                "zh-tw": {
-                    "dxScheduler-switcherAgenda": "會議內容", // 在這裡可以做最後的字典對應
-                    "Month": "月",
-                    "Subject": "主題",
-                    "Company": "Company",
-                    "Amount": "Amount",
-                    "PaymentDate": "Payment Date",
-                    "dxDataGrid-editingConfirmDeleteMessage": "您確定要刪除這個連絡人嗎?",
-                },
-            };
-            DevExpress.localization.loadMessages(dictionary);
-            var formatMessage = DevExpress.localization.formatMessage;
-
-            var locale = getLocale();
-            //DevExpress.localization.locale(navigator.language || navigator.browserLanguage);
-            DevExpress.localization.locale(locale);
-
-            function changeLocale(data) {
-                setLocale(data.value);
-                document.location.reload();
-            }
-
-            function getLocale() {
-                //debugger;
-                //sessionStorage.setItem("locale", 'zh');
-                sessionStorage.setItem("locale", 'zh-tw');
-                var locale = sessionStorage.getItem("locale");
-                return locale != null ? locale : "tw";
-            }
-        </script>
-
-        <link href="~/css/Scheduler.css" rel="stylesheet" />
-        <link href="~/css/Site.css" rel="stylesheet" />
-
-        <script src="~/lib/jquery-ajax-unobtrusive/jquery.unobtrusive-ajax.js"></script>
-        <link href="~/css/Gallery.css" rel="stylesheet" />
-        <script src="~/js/devextreme/devextreme-intl.min.js"></script>
-        <script src="~/js/devextreme/localization/dx.messages.zh-tw.js"></script>
+<script src="~/lib/jquery-ajax-unobtrusive/jquery.unobtrusive-ajax.js"></script>
+<link href="~/css/Gallery.css" rel="stylesheet" />
+<script src="~/js/devextreme/devextreme-intl.min.js"></script>
+<script src="~/js/devextreme/localization/dx.messages.zh-tw.js"></script>
