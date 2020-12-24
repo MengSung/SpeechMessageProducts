@@ -3638,6 +3638,9 @@ namespace ChurchReport.Controllers
 
         #endregion
         #region Layout 工具區
+        /// <summary>
+        /// 設定瀏覽上方的按鈕，或是手機三條槓下拉後的按鈕
+        /// </summary>
         private void SetMultiGroupLayoutParameter()
         {
             string DisplayViewType = m_InMemoryDataContextSmallGroup.ListManager.GetDisplayViewType();
@@ -4827,11 +4830,12 @@ namespace ChurchReport.Controllers
                 {
                     ViewBag.HappyType = "沒幸福小組名單";
                 }
-
+                // 設定瀏覽上方的按鈕，或是手機三條槓下拉後的按鈕
                 SetMultiGroupLayoutParameter();
                 #endregion
 
-                return View(m_InMemoryDataContextSmallGroup.QpayManager.SetDedicationFeeList(m_InMemoryDataContextSmallGroup.QpayManager.m_Contact));
+                //return View(m_InMemoryDataContextSmallGroup.QpayManager.SetDedicationFeeList(m_InMemoryDataContextSmallGroup.QpayManager.m_Contact));
+                return View(m_InMemoryDataContextSmallGroup.QpayManager.m_QpayModel);
             }
             catch (System.Exception e)
             {

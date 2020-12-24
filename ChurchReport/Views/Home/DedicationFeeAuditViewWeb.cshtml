@@ -7,7 +7,11 @@
     <h4 id="displaynamefield">@Model.Ntbt</h4>
 </div>
 
-<form data-ajax="true" data-ajax-begin="onBegin" data-ajax-success="onSuccess" asp-action="UpdateDedicationFeeView" asp-controller="Home" method="post">
+<div style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
+    <h5 id="displaynamefield">奉獻稽核</h5>
+</div>
+
+<form data-ajax="true" data-ajax-begin="onBegin" data-ajax-success="onSuccess" asp-action="SaveKeyInDedication" asp-controller="Home" method="post">
     <div class="dx-field">
         <div id="buttonContainer" class="dx-button-icon">
             @(Html.DevExtreme().Button()
@@ -173,7 +177,7 @@
                     .Type(ButtonType.Success)
                     .ID("save-button3")
                     .UseSubmitBehavior(true)
-                    .OnClick("ShowLoadPanel")
+                    .OnClick("OnClickQuery")
             )
     </div>
 
@@ -380,7 +384,7 @@
 
 </form>
 
-<div id="samenamecontainer_001" style="font-family:標楷體;font-size:100%; color: darkslateblue; text-align:left;font-weight:bold">
+<div id="samenamecontainer_script" style="font-family:標楷體;font-size:100%; color: darkslateblue; text-align:left;font-weight:bold">
     <h5 id="resultfield"></h5>
     <script>
         window.onload = function (e) {
@@ -388,7 +392,6 @@
             $("#form1").dxForm("instance").updateData('NationId', "");
             $("#form1").dxForm("instance").updateData('FullName', "");
             $("#form1").dxForm("instance").updateData('Mobile', "");
-            $("#form2").dxForm("instance").updateData('Amount', "");
             $("#form1").dxForm("instance").updateData('LastSixDigit', "");
             $("#form1").dxForm("instance").getEditor('DedicationNumber').focus();
 
@@ -398,13 +401,15 @@
     <script>
         // 觸發事件管理
         function OnClickQuery(arg) {
-            //alert("查詢");
+            //alert("查詢001");
             $("#form2").dxForm("instance").getEditor("ClickType").option("value", '查詢');
-            getLoadPanelInstance().show();
+            //alert("查詢002");
+           getLoadPanelInstance().show();
         }
         function OnClickUpdate(arg) {
-            //alert("上傳");
+            //alert("上傳001");
             $("#form2").dxForm("instance").getEditor("ClickType").option("value", '上傳');
+            ///alert("上傳002");
             getLoadPanelInstance().show();
         }
         function OnRowClick(selectedItems) {
