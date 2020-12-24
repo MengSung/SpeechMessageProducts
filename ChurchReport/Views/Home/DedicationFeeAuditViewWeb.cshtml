@@ -5,7 +5,7 @@
     <h4 id="displaynamefield">奉獻稽核</h4>
 </div>
 
-<form data-ajax="true" data-ajax-begin="onBegin" data-ajax-success="onSuccess" asp-action="SaveKeyInDedication" asp-controller="Home" method="post">
+<form data-ajax="true" data-ajax-begin="onBegin" data-ajax-success="onSuccess" asp-action="AuditQueryDedication" asp-controller="Home" method="post">
     <div class="dx-field">
         <div id="buttonContainer" class="dx-button-icon">
             @(Html.DevExtreme().Button()
@@ -333,7 +333,7 @@
     </div>
 
     <div style="font-family:標楷體;font-size:100%; color:darkred; text-align:left;font-weight:bold">
-        <h4 id="displaynamefield">總金額 = @Model.TotalAmount 元</h4>
+        <h4 id="displayamountfield">總金額 = @Model.TotalAmount 元</h4>
     </div>
 
 
@@ -342,6 +342,7 @@
 <div id="samenamecontainer_script" style="font-family:標楷體;font-size:100%; color: darkslateblue; text-align:left;font-weight:bold">
     <h5 id="resultfield"></h5>
     <script>
+        //網頁初始化
         window.onload = function (e) {
             $("#form").dxForm("instance").updateData('DedicationNumber', "");
             $("#form").dxForm("instance").updateData('NationId', "");
@@ -351,6 +352,8 @@
             $("#form").dxForm("instance").getEditor('DedicationNumber').focus();
 
             document.getElementById("samenamecontainer").style.display = "none";//隱藏
+            document.getElementById("data-grid").style.display = "none";//隱藏
+            document.getElementById("displayamountfield").style.display = "none";//隱藏
         };
     </script>
     <script>
@@ -433,9 +436,7 @@
         }
     </script>
     <script type="text/javascript">
-
         // 按下查詢後回傳結果處理區塊
-
         function onBegin() {
         }
 
@@ -470,18 +471,11 @@
                     $("#form").dxForm("instance").updateData('Mobile', data.Mobile);
                     $("#form").dxForm("instance").updateData('LastSixDigit', data.LastSixDigit);
 
-                    //$("#form").dxForm("instance").getEditor('SameNameList').reload();
-                    //$("#form").dxForm("instance").getEditor('SameNameList').refresh();
-
                     document.getElementById("samenamecontainer").style.display = "none";//隱藏
-                    //document.getElementById("samenamecontainer").style.display = "";//顯示
-                    //document.getElementById("samenamefield").style.display = "none";//隱藏
-                    //document.getElementById("samenamefield").style.display = "";//顯示
+                    document.getElementById("data-grid").style.display = "";//顯示
+                    document.getElementById("displayamountfield").style.display = "";//顯示
 
-                    //$("#SameNameList").dxDataGrid("instance").reload();
-                    //$("#SameNameList").dxDataGrid("instance").refresh();
-
-                    //window.location.href = "/Home/KeyInDedicationFeeViewWeb/";
+                    $("#DedicationFeeGrid").dxDataGrid("instance").refresh();
                 }
             }
             else if (data.status == 2) {
@@ -494,6 +488,8 @@
 
                 //document.getElementById("samenamecontainer").style.display = "none";//隱藏
                 document.getElementById("samenamecontainer").style.display = "";//顯示
+                document.getElementById("data-grid").style.display = "none";//隱藏
+                document.getElementById("displayamountfield").style.display = "none";//隱藏
 
                 $("#SameNameList").dxDataGrid("instance").refresh();
 

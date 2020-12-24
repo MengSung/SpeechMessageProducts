@@ -102,7 +102,7 @@ namespace ChurchReport.Models
                         aSameNameElement.NationId = m_ToolUtilityClass.GetEntityStringAttribute(aContact, "new_personal_id");
                         aSameNameElement.FullName = m_ToolUtilityClass.GetEntityStringAttribute(aContact, "fullname");
                         String PhoneNumber;
-                        if ( ( PhoneNumber = m_ToolUtilityClass.GetEntityStringAttribute(aContact, "mobilephone") ) != "" )
+                        if ((PhoneNumber = m_ToolUtilityClass.GetEntityStringAttribute(aContact, "mobilephone")) != "")
                         {
                             aSameNameElement.Mobile = PhoneNumber;
                         }
@@ -138,6 +138,93 @@ namespace ChurchReport.Models
                 throw e;
             }
         }
+
+        public async Task<IActionResult> AuditQueryDedication(QpayModel QpayModel)
+        {
+            try
+            {
+                String DedicationResult = "";
+
+                String DedicationNumber = QpayModel.DedicationNumber != null ? QpayModel.DedicationNumber : "未填奉獻編號";
+                String NationId = QpayModel.NationId != null ? QpayModel.NationId : "未填身分證字號";
+                String FullName = QpayModel.FullName != null ? QpayModel.FullName : "未填姓名";
+                String HomePhone = QpayModel.Mobile != null ? QpayModel.Mobile : "未填手機號碼";
+                String Mobile = QpayModel.Mobile != null ? QpayModel.Mobile : "未填手機號碼";
+                String LastSixDigit = QpayModel.LastSixDigit != null ? QpayModel.LastSixDigit : "未填帳戶後六碼";
+
+                EntityCollection DedicationContacts = this.m_ToolUtilityClass.QueryDediccationContatsByFetchXml(DedicationNumber, FullName, HomePhone, Mobile, NationId, LastSixDigit);
+
+                if (DedicationContacts.Entities.Count == 1)
+                {
+                    DedicationNumber = this.m_ToolUtilityClass.GetEntityStringAttribute(DedicationContacts.Entities[0], "pager");
+                    NationId = this.m_ToolUtilityClass.GetEntityStringAttribute(DedicationContacts.Entities[0], "new_personal_id");
+                    FullName = this.m_ToolUtilityClass.GetEntityStringAttribute(DedicationContacts.Entities[0], "fullname");
+                    HomePhone = this.m_ToolUtilityClass.GetEntityStringAttribute(DedicationContacts.Entities[0], "telephone2");
+                    Mobile = this.m_ToolUtilityClass.GetEntityStringAttribute(DedicationContacts.Entities[0], "mobilephone");
+                    LastSixDigit = this.m_ToolUtilityClass.GetEntityStringAttribute(DedicationContacts.Entities[0], "new_last_six_digit");
+
+                    String PhoneNumber = "";
+                    if (Mobile != "")
+                    {
+                        PhoneNumber = Mobile;
+                    }
+                    else
+                    {
+                        PhoneNumber = HomePhone;
+                    }
+
+                    return Json(new { status = "1", clicktype = "查詢", DedicationNumber = DedicationNumber, NationId = NationId, FullName = FullName, Mobile = PhoneNumber, LastSixDigit = LastSixDigit, message = DedicationResult, DedicationResult = DedicationResult });
+                }
+                else if (DedicationContacts.Entities.Count > 1)
+                {
+                    //m_QpayModel.SameNameList = new List<SameNameElement>();
+
+                    m_QpayModel.SameNameList.Clear();
+                    foreach (Entity aContact in DedicationContacts.Entities)
+                    {
+                        SameNameElement aSameNameElement = new SameNameElement();
+                        aSameNameElement.SameNameElementId = aContact.Id.ToString();
+                        aSameNameElement.DedicationNumber = m_ToolUtilityClass.GetEntityStringAttribute(aContact, "pager");
+                        aSameNameElement.NationId = m_ToolUtilityClass.GetEntityStringAttribute(aContact, "new_personal_id");
+                        aSameNameElement.FullName = m_ToolUtilityClass.GetEntityStringAttribute(aContact, "fullname");
+                        String PhoneNumber;
+                        if ((PhoneNumber = m_ToolUtilityClass.GetEntityStringAttribute(aContact, "mobilephone")) != "")
+                        {
+                            aSameNameElement.Mobile = PhoneNumber;
+                        }
+                        else
+                        {
+                            aSameNameElement.Mobile = m_ToolUtilityClass.GetEntityStringAttribute(aContact, "telephone2");
+                        }
+
+                        aSameNameElement.SmallGroupName = this.m_ToolUtilityClass.GetEntityLookupDisplayName(aContact, "new_cell_list_contact");
+
+                        m_QpayModel.SameNameList.Add(aSameNameElement);
+                    };
+
+                    return Json(new { status = "2", clicktype = "查詢", DedicationNumber = "", NationId = NationId, FullName = "", Mobile = "", message = "", DedicationResult = "" });
+
+                }
+                else
+                {
+                    return Json(new { status = "3", clicktype = "查詢", message = "沒找到這個連絡人", fullname = FullName, DedicationResult = "沒找到這個連絡人" });
+                }
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                //m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "永和禮拜堂 : 綁定錯誤 => " + ErrorString);
+
+                //return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
+                throw e;
+            }
+        }
+
         public async Task<IActionResult> UpdateKeyInDedication(QpayModel QpayModel)
         {
             try

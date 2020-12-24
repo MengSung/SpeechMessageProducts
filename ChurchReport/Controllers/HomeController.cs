@@ -5048,6 +5048,29 @@ namespace ChurchReport.Controllers
             }
         }
         #endregion
+
+        [HttpPost]
+        public async Task<IActionResult> AuditQueryDedication(QpayModel QpayModel)
+        {
+            try
+            {
+                return await m_InMemoryDataContextSmallGroup.QpayManager.AuditQueryDedication(QpayModel);
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "¿ù»~°T®§ : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¥Ã©MÂ§«ô°ó : ¸j©w¿ù»~ => " + ErrorString);
+
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
+                throw e;
+            }
+        }
+
         #endregion
         #region ©^ÄmLineIdµn¤J
         [Route("/Home/DediationLineLoginView/{LineIdLoginViewPatameter}")]
