@@ -326,8 +326,13 @@
                     columns.AddFor(m => m.Amount).Caption("金額").Width(80).MinWidth(80).AllowEditing(false).AllowSorting(true);
                     columns.AddFor(m => m.Others).Caption("奉獻細項").Alignment(HorizontalAlignment.Left).Width(180).MinWidth(180).AllowEditing(false).AllowSorting(true);
             })
-            .DataSource
-            (Model.DedicationFeeList)
+                            .DataSource(d => d
+                            .WebApi()
+                            .Controller("Home")
+                            .LoadAction("LoadDedicationFeeList")
+                            //.Key("SameNameElementId")
+                            //.LoadParams(new { id = @ViewBag.ListId }))
+                            )
 
             )
     </div>
@@ -474,7 +479,7 @@
                     document.getElementById("data-grid").style.display = "";//顯示
                     document.getElementById("displayamountfield").style.display = "";//顯示
 
-                    $("#DedicationFeeGrid").dxDataGrid("instance").reload();
+                    //$("#DedicationFeeGrid").dxDataGrid("instance").reload();
                     $("#DedicationFeeGrid").dxDataGrid("instance").refresh();
                }
             }
