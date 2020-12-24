@@ -462,21 +462,21 @@
                 }
                 else {
                     // 按查詢
-                    //return Json(new { status = "1", clicktype = "查詢", DedicationNumber = m_QpayModel.DedicationNumber, FullName = m_QpayModel.FullName, Mobile = m_QpayModel.Mobile, message = DedicationResult, DedicationResult = DedicationResult });
-                    //debugger;
-
                     $("#form").dxForm("instance").updateData('DedicationNumber', data.DedicationNumber);
                     $("#form").dxForm("instance").updateData('NationId', data.NationId);
                     $("#form").dxForm("instance").updateData('FullName', data.FullName);
                     $("#form").dxForm("instance").updateData('Mobile', data.Mobile);
                     $("#form").dxForm("instance").updateData('LastSixDigit', data.LastSixDigit);
 
+                    //$("#DedicationFeeGrid").dxDataGrid("instance").refresh();
+
                     document.getElementById("samenamecontainer").style.display = "none";//隱藏
                     document.getElementById("data-grid").style.display = "";//顯示
                     document.getElementById("displayamountfield").style.display = "";//顯示
 
+                    $("#DedicationFeeGrid").dxDataGrid("instance").reload();
                     $("#DedicationFeeGrid").dxDataGrid("instance").refresh();
-                }
+               }
             }
             else if (data.status == 2) {
                 $("#form").dxForm("instance").updateData('DedicationNumber', "");
@@ -507,6 +507,8 @@
                     }
                 }
                 document.getElementById("samenamecontainer").style.display = "none";//隱藏
+                document.getElementById("data-grid").style.display = "none";//隱藏
+                document.getElementById("displayamountfield").style.display = "none";//隱藏
 
                 document.getElementById('resultfield').innerHTML = data.DedicationResult;
             }

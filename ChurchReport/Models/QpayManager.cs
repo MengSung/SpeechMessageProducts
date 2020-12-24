@@ -173,6 +173,8 @@ namespace ChurchReport.Models
                         PhoneNumber = HomePhone;
                     }
 
+                    SetDedicationFeeList(DedicationContacts.Entities[0]);
+
                     return Json(new { status = "1", clicktype = "查詢", DedicationNumber = DedicationNumber, NationId = NationId, FullName = FullName, Mobile = PhoneNumber, LastSixDigit = LastSixDigit, message = DedicationResult, DedicationResult = DedicationResult });
                 }
                 else if (DedicationContacts.Entities.Count > 1)
@@ -311,6 +313,7 @@ namespace ChurchReport.Models
                 EntityCollection aDedicationFeeEntityCollection = this.m_ToolUtilityClass.RetrieveDedicationFeeByDateFetchXml(m_QpayModel.FullName, LineLoginContact.Id.ToString(), m_QpayModel.QueryStartDate, m_QpayModel.QueryEndDate);
 
                 m_QpayModel.TotalAmount = 0;
+                m_QpayModel.DedicationFeeList.Clear();
                 foreach (Entity aDedicationFeeEntity in aDedicationFeeEntityCollection.Entities)
                 {
                     DedicationFee aDedicationFee = new DedicationFee();
@@ -365,6 +368,7 @@ namespace ChurchReport.Models
                 EntityCollection aDedicationFeeEntityCollection = this.m_ToolUtilityClass.RetrieveDedicationFeeByDateFetchXml(m_QpayModel.FullName, LineLoginContact.Id.ToString(), m_QpayModel.QueryStartDate, m_QpayModel.QueryEndDate);
 
                 m_QpayModel.TotalAmount = 0;
+                m_QpayModel.DedicationFeeList.Clear();
                 foreach (Entity aDedicationFeeEntity in aDedicationFeeEntityCollection.Entities)
                 {
                     DedicationFee aDedicationFee = new DedicationFee();
