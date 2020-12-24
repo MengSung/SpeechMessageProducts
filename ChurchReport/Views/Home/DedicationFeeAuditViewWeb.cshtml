@@ -1,14 +1,8 @@
 ﻿@using ChurchReport.Models
 @model QpayModel
-@*<div class="long-title"><h3>奉獻資訊</h3></div>*@
 
 <div style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
-    <h4 id="displaynamefield">@Model.FullName 奉獻編號:@Model.DedicationNumber</h4>
-    <h4 id="displaynamefield">@Model.Ntbt</h4>
-</div>
-
-<div style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
-    <h5 id="displaynamefield">奉獻稽核</h5>
+    <h4 id="displaynamefield">奉獻稽核</h4>
 </div>
 
 <form data-ajax="true" data-ajax-begin="onBegin" data-ajax-success="onSuccess" asp-action="SaveKeyInDedication" asp-controller="Home" method="post">
@@ -39,7 +33,7 @@
             @(Html.DevExtreme().LoadPanel()
                     .ID("loadPanel")
                     .ShadingColor("rgba(0,0,0,0.4)")
-                    .Position(p => p.Of("#form-container"))
+                    .Position(p => p.Of("#form-container_Date"))
                     .Visible(false)
                     .ShowIndicator(true)
                     .ShowPane(true)
@@ -51,7 +45,7 @@
 
         </div>
     </div>
-    <div id="form-container">
+    <div id="form-container_Date">
         @(Html.DevExtreme().Form<QpayModel>()
         .ID("form")
         .ColCount(1)
@@ -83,6 +77,68 @@
                     .PickerType(DateBoxPickerType.Calendar)
                 );
 
+            items.AddSimpleFor(m => m.DedicationNumber)
+       //.DataField("LastName")
+       .Label(l => l.Text("奉獻編號"))
+       .Editor(e => e
+           .TextBox()
+           .Width(120)
+           .Disabled(false)
+           .Placeholder("輸入奉獻編號")
+           .FocusStateEnabled(true)
+      );
+
+            items.AddSimpleFor(m => m.NationId)
+                  //.DataField("LastName")
+                  .Label(l => l.Text("身份證字號"))
+                  .Editor(e => e
+                      .TextBox()
+                      .Width(120)
+                      .Disabled(false)
+                      .Placeholder("輸入身份證字號")
+                      .FocusStateEnabled(true)
+                 );
+
+            items.AddSimpleFor(m => m.FullName)
+               //.DataField("LastName")
+               .Label(l => l.Text("姓名"))
+               .Editor(e => e
+                   .TextBox()
+                   .Width(120)
+                   .Disabled(false)
+                   .Placeholder("輸入姓名")
+              );
+
+            items.AddSimpleFor(m => m.Mobile)
+                   .Label(l => l.Text("電話號碼"))
+                   .Editor(e => e
+                       .TextBox()
+                       .Width(120)
+                       //.Mask("(X000) 000-000")
+                       .MaskRules(new { X = new JS("/[02-9]/") })
+                       .Placeholder("輸入電話號碼")
+                   );
+
+            items.AddSimpleFor(m => m.LastSixDigit)
+                   .Label(l => l.Text("帳戶後六碼"))
+                   .Editor(e => e
+                       .TextBox()
+                       .Width(120)
+                       //.Mask("(X000) 000-000")
+                       .MaskRules(new { X = new JS("/[02-9]/") })
+                       .Placeholder("輸入帳戶後六碼")
+                   );
+
+            items.AddSimpleFor(m => m.ClickType)
+               //.DataField("LastName")
+               .Label(l => l.Text("查詢或上傳").Visible(false))
+               .Editor(e => e
+                   .TextBox()
+                   .Width(120).Visible(false)
+                   //.Disabled(true)
+                   .Placeholder("查詢或上傳")
+              );
+
         }
         )
         .OnContentReady
@@ -97,78 +153,6 @@
         )
 
     </div>
-    <div id="form-container-query">
-        @(Html.DevExtreme().Form<QpayModel>()
-                 .ID("form1")
-                 .ColCount(1)
-                 .Items(items =>
-                 {
-                     items.AddSimpleFor(m => m.DedicationNumber)
-                            //.DataField("LastName")
-                            .Label(l => l.Text("奉獻編號"))
-                            .Editor(e => e
-                                .TextBox()
-                                .Width(120)
-                                .Disabled(false)
-                                .Placeholder("輸入奉獻編號")
-                                .FocusStateEnabled(true)
-                           );
-
-                     items.AddSimpleFor(m => m.NationId)
-                           //.DataField("LastName")
-                           .Label(l => l.Text("身份證字號"))
-                           .Editor(e => e
-                               .TextBox()
-                               .Width(120)
-                               .Disabled(false)
-                               .Placeholder("輸入身份證字號")
-                               .FocusStateEnabled(true)
-                          );
-
-                     items.AddSimpleFor(m=>m.FullName)
-                        //.DataField("LastName")
-                        .Label(l => l.Text("姓名"))
-                        .Editor(e => e
-                            .TextBox()
-                            .Width(120)
-                            .Disabled(false)
-                            .Placeholder("輸入姓名")
-                       );
-
-                     items.AddSimpleFor(m => m.Mobile)
-                            .Label(l => l.Text("電話號碼"))
-                            .Editor(e => e
-                                .TextBox()
-                                .Width(120)
-                                //.Mask("(X000) 000-000")
-                                .MaskRules(new { X = new JS("/[02-9]/") })
-                                .Placeholder("輸入電話號碼")
-                            );
-
-                     items.AddSimpleFor(m => m.LastSixDigit)
-                            .Label(l => l.Text("帳戶後六碼"))
-                            .Editor(e => e
-                                .TextBox()
-                                .Width(120)
-                                //.Mask("(X000) 000-000")
-                                .MaskRules(new { X = new JS("/[02-9]/") })
-                                .Placeholder("輸入帳戶後六碼")
-                            );
-
-
-                 })
-        .OnContentReady
-        (@<text>
-            function(e)
-            {
-                e.component.validate();
-                $("#form1").dxForm("instance").getEditor('DedicationNumber').focus();
-            }
-        </text>)
-
-        .FormData(Model)
-        )
-    </div>
 
     <div id="buttonContainer3" class="dx-button-icon">
         @(Html.DevExtreme().Button()
@@ -179,35 +163,6 @@
                     .UseSubmitBehavior(true)
                     .OnClick("OnClickQuery")
             )
-    </div>
-
-    <div id="form-container-upload">
-        @(Html.DevExtreme().Form<QpayModel>()
-        .ID("form2")
-        .ColCount(1)
-        .Items(items =>
-        {
-            items.AddSimpleFor(m => m.ClickType)
-                    //.DataField("LastName")
-                    .Label(l => l.Text("查詢或上傳").Visible(false))
-                    .Editor(e => e
-                        .TextBox()
-                        .Width(120).Visible(false)
-                        //.Disabled(true)
-                        .Placeholder("查詢或上傳")
-                   );
-
-        })
-        .OnContentReady
-        (@<text>
-            function(e)
-            {
-                e.component.validate();
-            }
-        </text>)
-
-        .FormData(Model)
-        )
     </div>
 
     <div id="samenamecontainer" style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
@@ -388,12 +343,12 @@
     <h5 id="resultfield"></h5>
     <script>
         window.onload = function (e) {
-            $("#form1").dxForm("instance").updateData('DedicationNumber', "");
-            $("#form1").dxForm("instance").updateData('NationId', "");
-            $("#form1").dxForm("instance").updateData('FullName', "");
-            $("#form1").dxForm("instance").updateData('Mobile', "");
-            $("#form1").dxForm("instance").updateData('LastSixDigit', "");
-            $("#form1").dxForm("instance").getEditor('DedicationNumber').focus();
+            $("#form").dxForm("instance").updateData('DedicationNumber', "");
+            $("#form").dxForm("instance").updateData('NationId', "");
+            $("#form").dxForm("instance").updateData('FullName', "");
+            $("#form").dxForm("instance").updateData('Mobile', "");
+            $("#form").dxForm("instance").updateData('LastSixDigit', "");
+            $("#form").dxForm("instance").getEditor('DedicationNumber').focus();
 
             document.getElementById("samenamecontainer").style.display = "none";//隱藏
         };
@@ -402,13 +357,13 @@
         // 觸發事件管理
         function OnClickQuery(arg) {
             //alert("查詢001");
-            $("#form2").dxForm("instance").getEditor("ClickType").option("value", '查詢');
+            $("#form").dxForm("instance").getEditor("ClickType").option("value", '查詢');
             //alert("查詢002");
            getLoadPanelInstance().show();
         }
         function OnClickUpdate(arg) {
             //alert("上傳001");
-            $("#form2").dxForm("instance").getEditor("ClickType").option("value", '上傳');
+            $("#form").dxForm("instance").getEditor("ClickType").option("value", '上傳');
             ///alert("上傳002");
             getLoadPanelInstance().show();
         }
@@ -417,10 +372,10 @@
             var data = selectedItems.selectedRowsData[0];
             if (data) {
                 //alert("姓名:" + data.FullName + "，電話" + data.Mobile);
-                $("#form1").dxForm("instance").updateData('DedicationNumber', data.DedicationNumber);
-                $("#form1").dxForm("instance").updateData('NationId', data.NationId);
-                $("#form1").dxForm("instance").updateData('FullName', data.FullName);
-                $("#form1").dxForm("instance").updateData('Mobile', data.Mobile);
+                $("#form").dxForm("instance").updateData('DedicationNumber', data.DedicationNumber);
+                $("#form").dxForm("instance").updateData('NationId', data.NationId);
+                $("#form").dxForm("instance").updateData('FullName', data.FullName);
+                $("#form").dxForm("instance").updateData('Mobile', data.Mobile);
             }
         }
         function OnRowSelectionChanged(selectedItems) {
@@ -428,10 +383,10 @@
             var data = selectedItems.selectedRowsData[0];
             if (data) {
                 //alert("姓名:" + data.FullName + "，電話" + data.Mobile);
-                $("#form1").dxForm("instance").updateData('DedicationNumber', data.DedicationNumber);
-                $("#form1").dxForm("instance").updateData('NationId', data.NationId);
-                $("#form1").dxForm("instance").updateData('FullName', data.FullName);
-                $("#form1").dxForm("instance").updateData('Mobile', data.Mobile);
+                $("#form").dxForm("instance").updateData('DedicationNumber', data.DedicationNumber);
+                $("#form").dxForm("instance").updateData('NationId', data.NationId);
+                $("#form").dxForm("instance").updateData('FullName', data.FullName);
+                $("#form").dxForm("instance").updateData('Mobile', data.Mobile);
             }
         }
     </script>
@@ -452,20 +407,6 @@
 
         var GlobalCategory = "";
 
-        function OnCategorySelectBoxValueChanged(e) {
-            if (e.value == "宣教奉獻") {
-                $("#form2").dxForm("instance").itemOption("OtherDedicationSelectionBox", 'visible', true);
-            }
-            else {
-                $("#form2").dxForm("instance").itemOption("OtherDedicationSelectionBox", 'visible', false);
-            }
-            if (e.value == "代收代轉" || e.value == "其他奉獻") {
-                $("#form2").dxForm("instance").itemOption("OtherDedication", 'visible', true);
-            }
-            else {
-                $("#form2").dxForm("instance").itemOption("OtherDedication", 'visible', false);
-            }
-        }
         function moveEditColumnToLeft(dataGrid) {
             dataGrid.columnOption("command:edit", {
                 visibleIndex: -1,
@@ -492,6 +433,9 @@
         }
     </script>
     <script type="text/javascript">
+
+        // 按下查詢後回傳結果處理區塊
+
         function onBegin() {
         }
 
@@ -503,13 +447,12 @@
                 if (data.clicktype == "上傳") {
                     // 按上傳
                     //ShowToast(data.message, "success", 2000);
-                    $("#form1").dxForm("instance").updateData('DedicationNumber', "");
-                    $("#form1").dxForm("instance").updateData('NationId', "");
-                    $("#form1").dxForm("instance").updateData('FullName', "");
-                    $("#form1").dxForm("instance").updateData('Mobile', "");
-                    $("#form2").dxForm("instance").updateData('Amount', "");
-                    $("#form1").dxForm("instance").updateData('LastSixDigit', "");
-                    $("#form1").dxForm("instance").getEditor('DedicationNumber').focus();
+                    $("#form").dxForm("instance").updateData('DedicationNumber', "");
+                    $("#form").dxForm("instance").updateData('NationId', "");
+                    $("#form").dxForm("instance").updateData('FullName', "");
+                    $("#form").dxForm("instance").updateData('Mobile', "");
+                    $("#form").dxForm("instance").updateData('LastSixDigit', "");
+                    $("#form").dxForm("instance").getEditor('DedicationNumber').focus();
                     document.getElementById("samenamecontainer").style.display = "none";//隱藏
 
                     //$("#popup").dxPopup("instance").show();
@@ -521,14 +464,14 @@
                     //return Json(new { status = "1", clicktype = "查詢", DedicationNumber = m_QpayModel.DedicationNumber, FullName = m_QpayModel.FullName, Mobile = m_QpayModel.Mobile, message = DedicationResult, DedicationResult = DedicationResult });
                     //debugger;
 
-                    $("#form1").dxForm("instance").updateData('DedicationNumber', data.DedicationNumber);
-                    $("#form1").dxForm("instance").updateData('NationId', data.NationId);
-                    $("#form1").dxForm("instance").updateData('FullName', data.FullName);
-                    $("#form1").dxForm("instance").updateData('Mobile', data.Mobile);
-                    $("#form1").dxForm("instance").updateData('LastSixDigit', data.LastSixDigit);
+                    $("#form").dxForm("instance").updateData('DedicationNumber', data.DedicationNumber);
+                    $("#form").dxForm("instance").updateData('NationId', data.NationId);
+                    $("#form").dxForm("instance").updateData('FullName', data.FullName);
+                    $("#form").dxForm("instance").updateData('Mobile', data.Mobile);
+                    $("#form").dxForm("instance").updateData('LastSixDigit', data.LastSixDigit);
 
-                    //$("#form1").dxForm("instance").getEditor('SameNameList').reload();
-                    //$("#form1").dxForm("instance").getEditor('SameNameList').refresh();
+                    //$("#form").dxForm("instance").getEditor('SameNameList').reload();
+                    //$("#form").dxForm("instance").getEditor('SameNameList').refresh();
 
                     document.getElementById("samenamecontainer").style.display = "none";//隱藏
                     //document.getElementById("samenamecontainer").style.display = "";//顯示
@@ -542,13 +485,12 @@
                 }
             }
             else if (data.status == 2) {
-                $("#form1").dxForm("instance").updateData('DedicationNumber', "");
-                $("#form1").dxForm("instance").updateData('NationId', "");
-                $("#form1").dxForm("instance").updateData('FullName', "");
-                $("#form1").dxForm("instance").updateData('Mobile', "");
-                $("#form2").dxForm("instance").updateData('Amount', "");
-                $("#form1").dxForm("instance").updateData('LastSixDigit', "");
-                $("#form1").dxForm("instance").getEditor('DedicationNumber').focus();
+                $("#form").dxForm("instance").updateData('DedicationNumber', "");
+                $("#form").dxForm("instance").updateData('NationId', "");
+                $("#form").dxForm("instance").updateData('FullName', "");
+                $("#form").dxForm("instance").updateData('Mobile', "");
+                $("#form").dxForm("instance").updateData('LastSixDigit', "");
+                $("#form").dxForm("instance").getEditor('DedicationNumber').focus();
 
                 //document.getElementById("samenamecontainer").style.display = "none";//隱藏
                 document.getElementById("samenamecontainer").style.display = "";//顯示
@@ -615,23 +557,6 @@
         }
     </script>
 </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 <script>
     function getLoadPanelInstance() {
         return $("#loadPanel").dxLoadPanel("instance");
@@ -690,32 +615,6 @@
 
         var ParsedDate = new Date(input);
         return ParsedDate;
-    }
-
-</script>
-
-<script type="text/javascript">
-    function onBegin() {
-    }
-
-    function onSuccess(data) {
-
-        getLoadPanelInstance().hide();
-
-        if (data.status == 1) {
-            window.location.href = "/Home/DedicationFeeAuditViewWeb/";
-            //ShowToast(data.message, "success", 2000);
-        }
-        else {
-            ShowToast(data.message, "error", 3000);
-        }
-    }
-
-    function onComplete(data) {
-        if (data.status == 1) {
-        }
-        else {
-        }
     }
 </script>
 
