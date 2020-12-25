@@ -153,7 +153,6 @@
         )
 
     </div>
-
     <div id="buttonContainer3" class="dx-button-icon">
         @(Html.DevExtreme().Button()
                     .Text("查詢")
@@ -164,7 +163,6 @@
                     .OnClick("OnClickQuery")
             )
     </div>
-
     <div id="samenamecontainer" style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
         <h5 id="samenamefield">查詢結果</h5>
 
@@ -244,7 +242,6 @@
                             //.OnCellPrepared("cell_prepared_background_color")
                             )
     </div>
-
     <div id="data-grid">
         @(Html.DevExtreme().DataGrid<DedicationFee>()
             .ID("DedicationFeeGrid")
@@ -336,12 +333,9 @@
 
             )
     </div>
-
     <div style="font-family:標楷體;font-size:100%; color:darkred; text-align:left;font-weight:bold">
-        <h4 id="displayamountfield">總金額 = @Model.TotalAmount 元</h4>
+        <h4 id="displayamountfield"></h4>
     </div>
-
-
 </form>
 
 <div id="samenamecontainer_script" style="font-family:標楷體;font-size:100%; color: darkslateblue; text-align:left;font-weight:bold">
@@ -398,48 +392,6 @@
             }
         }
     </script>
-    <script>
-        function getLoadPanelInstance() {
-            return $("#loadPanel").dxLoadPanel("instance");
-        }
-        function ShowToast(LocalToastMessage, Type, DisplayTime) {
-            //debugger;
-            var ToastInstance = $("#toast").dxToast("instance");
-            ToastInstance.option('message', LocalToastMessage);
-            ToastInstance.option('type', Type);
-            ToastInstance.option('displayTime', DisplayTime);
-            ToastInstance.option('white-space', 'pre-line');
-            ToastInstance.option('closeOnClick', true);
-            ToastInstance.show();
-        }
-
-        var GlobalCategory = "";
-
-        function moveEditColumnToLeft(dataGrid) {
-            dataGrid.columnOption("command:edit", {
-                visibleIndex: -1,
-                width: 50
-            });
-        }
-        function cell_prepared(e) {
-            if (e.rowType === "data" && e.column.command === "edit") {
-                var isEditing = e.row.isEditing,
-                    $links = e.cellElement.find(".dx-link");
-
-                $links.text("");
-
-                if (isEditing) {
-                    $links.filter(".dx-link-save").addClass("dx-icon-save");
-                    $links.filter(".dx-link-cancel").addClass("dx-icon-revert");
-                }
-                else {
-                    $links.filter(".dx-link-edit").addClass("dx-icon-edit");
-                    $links.filter(".dx-link-delete").addClass("dx-icon-trash");
-                }
-            }
-
-        }
-    </script>
     <script type="text/javascript">
         // 按下查詢後回傳結果處理區塊
         function onBegin() {
@@ -467,17 +419,25 @@
                 }
                 else {
                     // 按查詢
-                    $("#form").dxForm("instance").updateData('DedicationNumber', data.DedicationNumber);
-                    $("#form").dxForm("instance").updateData('NationId', data.NationId);
-                    $("#form").dxForm("instance").updateData('FullName', data.FullName);
-                    $("#form").dxForm("instance").updateData('Mobile', data.Mobile);
-                    $("#form").dxForm("instance").updateData('LastSixDigit', data.LastSixDigit);
-
+                    //$("#form").dxForm("instance").updateData('DedicationNumber', data.DedicationNumber);
+                    //$("#form").dxForm("instance").updateData('NationId', data.NationId);
+                    //$("#form").dxForm("instance").updateData('FullName', data.FullName);
+                    //$("#form").dxForm("instance").updateData('Mobile', data.Mobile);
+                    //$("#form").dxForm("instance").updateData('LastSixDigit', data.LastSixDigit);
                     //$("#DedicationFeeGrid").dxDataGrid("instance").refresh();
+
+                    $("#form").dxForm("instance").updateData('DedicationNumber', "");
+                    $("#form").dxForm("instance").updateData('NationId', "");
+                    $("#form").dxForm("instance").updateData('FullName', "");
+                    $("#form").dxForm("instance").updateData('Mobile', "");
+                    $("#form").dxForm("instance").updateData('LastSixDigit', "");
+                    $("#form").dxForm("instance").getEditor('DedicationNumber').focus();
 
                     document.getElementById("samenamecontainer").style.display = "none";//隱藏
                     document.getElementById("data-grid").style.display = "";//顯示
                     document.getElementById("displayamountfield").style.display = "";//顯示
+
+                    document.getElementById('displayamountfield').innerHTML = data.FullName + "  " + data.TotalAmount;
 
                     //$("#DedicationFeeGrid").dxDataGrid("instance").reload();
                     $("#DedicationFeeGrid").dxDataGrid("instance").refresh();

@@ -152,6 +152,9 @@ namespace ChurchReport.Models
                 String Mobile = QpayModel.Mobile != null ? QpayModel.Mobile : "未填手機號碼";
                 String LastSixDigit = QpayModel.LastSixDigit != null ? QpayModel.LastSixDigit : "未填帳戶後六碼";
 
+                m_QpayModel.QueryStartDate = QpayModel.QueryStartDate != null ? QpayModel.QueryStartDate : new DateTime(DateTime.Now.Year, 1, 1);
+                m_QpayModel.QueryEndDate = QpayModel.QueryEndDate != null ? QpayModel.QueryEndDate : DateTime.Now;
+
                 EntityCollection DedicationContacts = this.m_ToolUtilityClass.QueryDediccationContatsByFetchXml(DedicationNumber, FullName, HomePhone, Mobile, NationId, LastSixDigit);
 
                 if (DedicationContacts.Entities.Count == 1)
@@ -175,7 +178,9 @@ namespace ChurchReport.Models
 
                     SetDedicationFeeList(DedicationContacts.Entities[0]);
 
-                    return Json(new { status = "1", clicktype = "查詢", DedicationNumber = DedicationNumber, NationId = NationId, FullName = FullName, Mobile = PhoneNumber, LastSixDigit = LastSixDigit, message = DedicationResult, DedicationResult = DedicationResult });
+                    String TotalAmount = "總金額 = " + m_QpayModel.TotalAmount + "元";
+
+                    return Json(new { status = "1", clicktype = "查詢", DedicationNumber = DedicationNumber, NationId = NationId, FullName = FullName, Mobile = PhoneNumber, LastSixDigit = LastSixDigit, TotalAmount = TotalAmount, message = DedicationResult, DedicationResult = DedicationResult });
                 }
                 else if (DedicationContacts.Entities.Count > 1)
                 {
