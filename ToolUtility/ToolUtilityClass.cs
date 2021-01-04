@@ -3979,7 +3979,6 @@ namespace ToolUtilityNameSpace
             return dynamicmemberec;
         }
         #endregion
-
         #region 透過FetchXml取得實體或是集合
         #region 取得學員上課記錄
         public EntityCollection RetrieveStorLessonsByFetchXml(String ContactName, String ContactId)
@@ -4088,7 +4087,6 @@ namespace ToolUtilityNameSpace
         }
         #endregion
         #endregion
-
         #region 搜尋 N:N( ManyToMany) 的集合
 
         public EntityCollection QueryManyToMany(String ConditionAttributeName, String EntityNameToSearch, String LinkFromEntityName, String LinkFromAttributeName, String LinkToEntityName, String LinkToAttributeName, String AttributeName, Guid EntityIdValue)
@@ -6959,5 +6957,4 @@ namespace ToolUtilityNameSpace
         }
         #endregion
     }
-
 }
