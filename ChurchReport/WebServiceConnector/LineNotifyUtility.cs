@@ -38,7 +38,7 @@ namespace ChurchReport.WebServiceConnector
         private const String CRM_TYPE = "DYNAMICS365";
 
         // 客製化
-        // 永和禮拜堂
+        // iM行動教會
         private const String CHANNEL_ACCESS_TOKEN = @"HeuLkSEF5CX7hdZo4956IPpgJNdb8VqRZeL1Gu37kFFm+1F7DObAGjfeVYaggzwjZ5H4qraesvquODt7Y81jbtspNZkEq5n3oLDG+G32xQsRx1jCobkABL/Z7RKjkSACNT6h72bPQXsVn9aCuI5OogdB04t89/1O/w1cDnyilFU=";
 
         // 胡夢嵩回傳　EXCEPTION　專用的ＩＤ
@@ -50,7 +50,7 @@ namespace ChurchReport.WebServiceConnector
         public LineNotifyUtility()
         {
             // 客製化，請選擇
-            // 永和禮拜堂(免費版)
+            // iM行動教會(免費版)
             this.m_LineMessagingClient = new LineMessagingClient(CHANNEL_ACCESS_TOKEN);
 
             //m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");

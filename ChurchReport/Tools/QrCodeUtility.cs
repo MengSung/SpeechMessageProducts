@@ -49,8 +49,8 @@ namespace ChurchReport.Tools
 
         private DateTime m_SigningTime;
         // 客製化
-        // 永和禮拜堂
-        private const String CHANNEL_ACCESS_TOKEN = @"HeuLkSEF5CX7hdZo4956IPpgJNdb8VqRZeL1Gu37kFFm+1F7DObAGjfeVYaggzwjZ5H4qraesvquODt7Y81jbtspNZkEq5n3oLDG+G32xQsRx1jCobkABL/Z7RKjkSACNT6h72bPQXsVn9aCuI5OogdB04t89/1O/w1cDnyilFU=";
+        // iM行動教會
+        private const String CHANNEL_ACCESS_TOKEN = @"XwSRWX0RxTtTvY/N6QZQ9YElOMH3OAxBf/3DAmWoXbIK3ymBsXEaU54owfdbPTQiQJPd10cWjC+JIWX6EvOCTbBdHmmJNC6xOOaioB91gPJPyDpl0IHQOQAzLA9J21zZ83SgIF6JwJbxC/8tSXv6RgdB04t89/1O/w1cDnyilFU=";
 
 
         // 神學生預設費用
@@ -63,7 +63,7 @@ namespace ChurchReport.Tools
         public QrCodeUtility()
         {
             // 客製化，請選擇
-            // 永和禮拜堂(免費版)
+            // iM行動教會(免費版)
             this.m_LineMessagingClient = new LineMessagingClient(CHANNEL_ACCESS_TOKEN);
 
             // 客製化
@@ -85,7 +85,7 @@ namespace ChurchReport.Tools
                     // 透過 LINE ID 找不到此好友，可能還沒加入官LINE@
                     //this.AddNewFriend( DisplayName, UserLineId );
 
-                    OnboardType = "錯誤 : " + DisplayName + "還沒有加入永和禮拜堂的 Line@" ;
+                    OnboardType = "錯誤 : " + DisplayName + "還沒有加入iM行動教會的 Line@" ;
 
                     return;
                 }

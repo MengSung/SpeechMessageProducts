@@ -436,7 +436,7 @@ namespace ChurchReport.WebServiceConnector
                         #endregion
                         #region// 出席紀錄組員的附註
 
-                        // 永和禮拜堂
+                        // iM行動教會
                         String aNote = "";
                         //if (PresentRecordEntity.Attributes.Contains("new_name"))
                         //{
@@ -988,7 +988,7 @@ namespace ChurchReport.WebServiceConnector
                 #endregion
                 #region 設定附註或是代禱事項
 
-                // 永和禮拜堂
+                // iM行動教會
                 //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_name", aMemberInfomation.Note);
                 //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_explanation", aMemberInfomation.PrayItem);
 
@@ -2521,7 +2521,7 @@ namespace ChurchReport.WebServiceConnector
 
 
         // 委身類型客製化，委身類型客製化
-        //永和禮拜堂
+        //iM行動教會
         private String ConvertIndexToIdentity(int Identity)
         {
             switch (Identity)

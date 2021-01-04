@@ -158,9 +158,14 @@ namespace ChurchReport.Tools
             private const String MUYI_CHANNEL_ACCESS_TOKEN = "WDWmhzbDlQNgqeAP6vuGbQB53Qy9rUwSLKTdtcfAW34HgH5l1oEGBnFJAMx/U2n2/n2Wa9SbUXDx7WIR5g+/HX1goTNMUJvDWmhP8v6fcFijOnqXPQ3VWef87IFN9i5k+RRHET70B0Njkq6CoM7zoAdB04t89/1O/w1cDnyilFU=";
             private const String MUYI_BACK_CHANNEL_ACCESS_TOKEN = "WDWmhzbDlQNgqeAP6vuGbQB53Qy9rUwSLKTdtcfAW34HgH5l1oEGBnFJAMx/U2n2/n2Wa9SbUXDx7WIR5g+/HX1goTNMUJvDWmhP8v6fcFijOnqXPQ3VWef87IFN9i5k+RRHET70B0Njkq6CoM7zoAdB04t89/1O/w1cDnyilFU=";
 
-            #endregion
+            // iM行動教會 Line 2.0
+            //private const String CHURCH_CHANNEL_ACCESS_TOKEN = "7/Q4Iw9Z71fjo5nGtIdsCFtuJLR+2gGOOSKlGEi3rxYI9PsUHKnjjn0D4DtQN6PWfYaRr+/aUIT42Eg3LLFej7sSXopZcuuntN/bCMsDS6Eszbqcv/jodqYCVNX0iWhoqk8nLtTxH+CuWt4kmFgJmAdB04t89/1O/w1cDnyilFU=";
+            private const String IM_CHURCH_CHANNEL_ACCESS_TOKEN = "XwSRWX0RxTtTvY/N6QZQ9YElOMH3OAxBf/3DAmWoXbIK3ymBsXEaU54owfdbPTQiQJPd10cWjC+JIWX6EvOCTbBdHmmJNC6xOOaioB91gPJPyDpl0IHQOQAzLA9J21zZ83SgIF6JwJbxC/8tSXv6RgdB04t89/1O/w1cDnyilFU=";
+            private const String IM_CHURCH_BACK_CHANNEL_ACCESS_TOKEN = "XwSRWX0RxTtTvY/N6QZQ9YElOMH3OAxBf/3DAmWoXbIK3ymBsXEaU54owfdbPTQiQJPd10cWjC+JIWX6EvOCTbBdHmmJNC6xOOaioB91gPJPyDpl0IHQOQAzLA9J21zZ83SgIF6JwJbxC/8tSXv6RgdB04t89/1O/w1cDnyilFU=";
 
-            String m_ChannelAccessToken = LINEMESSAGE_CHANNEL_ACCESS_TOKEN;
+        #endregion
+
+        String m_ChannelAccessToken = LINEMESSAGE_CHANNEL_ACCESS_TOKEN;
 
             LineMessagingClient m_LineMessagingClient;
 
@@ -349,6 +354,14 @@ namespace ChurchReport.Tools
                     else if (this.m_OrganizationName == "yhchurchback")
                     {
                         m_ChannelAccessToken = YH_CHURCH_BACK_CHANNEL_ACCESS_TOKEN;
+                    }
+                    else if (this.m_OrganizationName == "imchurch")
+                    {
+                        m_ChannelAccessToken = IM_CHURCH_CHANNEL_ACCESS_TOKEN;
+                    }
+                    else if (this.m_OrganizationName == "imchurchback")
+                    {
+                        m_ChannelAccessToken = IM_CHURCH_BACK_CHANNEL_ACCESS_TOKEN;
                     }
                     else if (this.m_OrganizationName == "muyi")
                     {
