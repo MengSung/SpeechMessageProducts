@@ -134,7 +134,7 @@ namespace ToolUtilityNameSpace
         #region Dynamics 365 新增組織修改區
 
         // 客製化
-        #region iM行動教會(雲端機房)
+        #region iM行動教會(雲端機房
         //private const String SERVER = "speechmessage.com.tw";
         //private const String PORT = "7777";
         //private const String ORGANIZATION = "imchurch";
