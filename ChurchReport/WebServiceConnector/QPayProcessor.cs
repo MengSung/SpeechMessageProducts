@@ -691,12 +691,19 @@ namespace ChurchReport.WebServiceConnector
                 PrdtName = ProductName,
                 ReturnURL = RETURN_URL,
                 BackendURL = BACKEND_URL,
-                PayType = "C",
+                PayType = "C", //信用卡
+                //PayType = "M", // 行動支付
                 Param1 = FeeId,
                 Param2 = QPAY_ORGANIZATION,
                 CardParam = new CreOrderCardParamReq()
                 {
                     AutoBilling = "Y",
+                    PayTypeSub = "STAGING",
+                    Staging="6",
+                    //PayTypeSub = "REGULAR",
+                    //DeductTotalNum = 6,
+                    //PeriodType ="M",
+                    //DeductFreq =6,
                     CCToken = CCToken
                 }
             };

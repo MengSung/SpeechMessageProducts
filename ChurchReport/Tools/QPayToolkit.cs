@@ -917,9 +917,29 @@ namespace QPay.Domain
 
         /// <summary>
         /// 期數
+        /// 使用此參數時PayTypeSub 必須 為「 STAGING 分期付款 」 。
         /// </summary>
         [DataMember]
+        //public int? Staging { get; set; }
         public string Staging { get; set; }
+
+        /// <summary>
+        /// 總期數
+        /// </summary>
+        [DataMember]
+        public int? DeductTotalNum { get; set; }
+
+        /// <summary>
+        /// 扣款週期
+        /// </summary>
+        [DataMember]
+        public string PeriodType { get; set; }
+
+        /// <summary>
+        /// 扣款頻率
+        /// </summary>
+        [DataMember]
+        public int? DeductFreq { get; set; }
 
         /// <summary>
         /// 快速付款 Token
