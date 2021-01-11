@@ -26,6 +26,7 @@ namespace ChurchReport.Models
         public int Amount { get; set; }                                 //奉獻金額
         public String Category { get; set; }                            //奉獻類別
         public String PayWay { get; set; }                              //付款方式
+        public String DeductTotalNumber { get; set; }                   //定期定額總期數
         public String Others { get; set; }                              //其他奉獻
         public String DedicateLocation { get; set; }                    //奉獻分堂
         public String Explain { get; set; }                             //備註

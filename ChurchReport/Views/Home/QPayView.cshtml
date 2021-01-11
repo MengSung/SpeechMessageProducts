@@ -109,12 +109,36 @@
                             {
                                            "信用卡",
                                            "ATM轉帳/匯款",
-                                           //"銀行轉帳",
+                                           "信用卡定期定額",
                             }
                             //.DisplayExpr("Name")
                         )
                         .OnValueChanged("OnPayWaySelectBoxValueChanged")
                     //.Value("信用卡")
+                    );
+
+            items.AddSimpleFor
+                    (m => m.DeductTotalNumber)
+                        //.Label(l => l.Text("定期定額總期數,每個月自動進行奉獻"))
+                        .Label(l => l.Text("總期數"))
+                        .Visible(false)
+                        .Name("DeductTotalNumberSelectionBox")
+                        .Editor
+                        (
+                            e => e
+                            .SelectBox()
+                            .Width(200)
+                            .DataSource(new string[]
+                            {
+                                "3個月",
+                                "6個月",
+                                "12個月",
+                                "18個月",
+                                "24個月",
+                            }
+                            //.DisplayExpr("Name")
+                        )
+                    .Value("12個月")
                     );
 
 
@@ -477,23 +501,34 @@
     function OnPayWaySelectBoxValueChanged(e) {
         if (e.value == "信用卡") {
             document.getElementById("creditcardlistcontainer").style.display = "";//顯示
+            $("#form").dxForm("instance").itemOption("DeductTotalNumberSelectionBox", 'visible', false);
 
             $("#save-button3").dxButton("instance").option("visible", true);
             $("#save-button2").dxButton("instance").option("text", "用上面選擇的信用卡奉獻");
 
             document.getElementById('atmfield').innerHTML = "";
         }
-        else {
+        else if (e.value == "ATM轉帳/匯款") {
             document.getElementById("creditcardlistcontainer").style.display = "none";//隱藏
-            //document.getElementById("creditcardlistcontainer").remove();//隱藏
-            //var element = document.getElementById("creditcardlistcontainer");
-            //element.parentNode.removeChild(element);
+
+            $("#form").dxForm("instance").itemOption("DeductTotalNumberSelectionBox", 'visible', false);
 
             $("#save-button3").dxButton("instance").option("visible", false);
             $("#save-button2").dxButton("instance").option("text", "奉獻");
 
             document.getElementById('atmfield').innerHTML = "";
         }
+        else if (e.value == "信用卡定期定額") {
+            document.getElementById("creditcardlistcontainer").style.display = "";//顯示
+
+            $("#form").dxForm("instance").itemOption("DeductTotalNumberSelectionBox", 'visible', true);
+
+            $("#save-button3").dxButton("instance").option("visible", true);
+            $("#save-button2").dxButton("instance").option("text", "用上面選擇的信用卡奉獻");
+
+            document.getElementById('atmfield').innerHTML = "";
+        }
+        else {}
     }
     function OnAmountContentReady(e) {
 
