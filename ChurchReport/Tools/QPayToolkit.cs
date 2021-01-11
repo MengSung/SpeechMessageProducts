@@ -1266,6 +1266,12 @@ namespace QPay.Domain
         /// </summary>
         [DataMember]
         public CreOrderCardParamRes CardParam { get; set; }
+
+        /// <summary>
+        /// 信用卡參數
+        /// </summary>
+        [DataMember]
+        public CreOrderMobileParamRes MobileParam { get; set; }
     }
     #endregion
 
@@ -1308,6 +1314,20 @@ namespace QPay.Domain
         /// </summary>
         [DataMember]
         public string CardPayURL { get; set; }
+    }
+    #endregion
+    #region CreOrderCardParamRes
+    /// <summary>
+    /// 訂單建立信用卡參數
+    /// </summary>
+    [DataContract]
+    public class CreOrderMobileParamRes
+    {
+        /// <summary>
+        /// 刷卡頁URL
+        /// </summary>
+        [DataMember]
+        public string MobilePayURL { get; set; }
     }
     #endregion
 

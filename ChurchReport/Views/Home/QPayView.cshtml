@@ -107,9 +107,10 @@
                             .Width(200)
                             .DataSource(new string[]
                             {
-                                           "信用卡",
-                                           "ATM轉帳/匯款",
-                                           "信用卡定期定額",
+                                "信用卡",
+                                "ATM轉帳/匯款",
+                                "信用卡定期定額",
+                                "行動支付",
                             }
                             //.DisplayExpr("Name")
                         )
@@ -498,8 +499,10 @@
         }
     }
 
-    function OnPayWaySelectBoxValueChanged(e) {
-        if (e.value == "信用卡") {
+    function OnPayWaySelectBoxValueChanged(e)
+    {
+        if (e.value == "信用卡")
+        {
             document.getElementById("creditcardlistcontainer").style.display = "";//顯示
             $("#form").dxForm("instance").itemOption("DeductTotalNumberSelectionBox", 'visible', false);
 
@@ -508,7 +511,8 @@
 
             document.getElementById('atmfield').innerHTML = "";
         }
-        else if (e.value == "ATM轉帳/匯款") {
+        else if (e.value == "ATM轉帳/匯款")
+        {
             document.getElementById("creditcardlistcontainer").style.display = "none";//隱藏
 
             $("#form").dxForm("instance").itemOption("DeductTotalNumberSelectionBox", 'visible', false);
@@ -518,13 +522,24 @@
 
             document.getElementById('atmfield').innerHTML = "";
         }
-        else if (e.value == "信用卡定期定額") {
+        else if (e.value == "信用卡定期定額")
+        {
             document.getElementById("creditcardlistcontainer").style.display = "";//顯示
 
             $("#form").dxForm("instance").itemOption("DeductTotalNumberSelectionBox", 'visible', true);
 
             $("#save-button3").dxButton("instance").option("visible", true);
             $("#save-button2").dxButton("instance").option("text", "用上面選擇的信用卡奉獻");
+
+            document.getElementById('atmfield').innerHTML = "";
+        }
+        else if (e.value == "行動支付")
+        {
+            document.getElementById("creditcardlistcontainer").style.display = "none";//隱藏
+            $("#form").dxForm("instance").itemOption("DeductTotalNumberSelectionBox", 'visible', false);
+
+            $("#save-button3").dxButton("instance").option("visible", false);
+            $("#save-button2").dxButton("instance").option("text", "奉獻");
 
             document.getElementById('atmfield').innerHTML = "";
         }

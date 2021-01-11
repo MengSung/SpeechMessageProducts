@@ -84,39 +84,6 @@ namespace ChurchReport.WebServiceConnector
         }
         #endregion
         #region 建立收費單
-        public async Task<string> CreateFeeAsync(String LineId, QpayModel QpayModel)
-        {
-            try
-            {
-                #region 非同步建立收費單
-                Entity LineLoginContact = this.m_ToolUtilityClass.RetrieveContactByLineId(LineId);
-
-                Guid aCreatedFeeId = CreateFee(LineId, QpayModel);
-                Entity aFeeToUpdate = this.m_ToolUtilityClass.RetrieveEntity("new_fee", aCreatedFeeId);
-
-                if (QpayModel.PayWay == "信用卡")
-                {
-                    CreOrder CreatedCardOrder = await CreOrderCard(QpayModel.Amount, QpayModel.Category, DateTime.Now.ToString("yyyyMMddhhmmssfff"), aCreatedFeeId.ToString(), QpayModel.SelectedCreditCard);
-
-                    // 用剛剛建立的收費單，填寫訂單編號
-                    UpdateFee(ref aFeeToUpdate, CreatedCardOrder.OrderNo, "", "");
-
-                    return CreatedCardOrder.CardParam.CardPayURL;
-                }
-                else
-                {
-                    return await ProcessAtm(aCreatedFeeId, aFeeToUpdate, QpayModel, LineId, LineLoginContact);
-                }
-                #endregion
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-
-                //Monitor.Exit(this);
-                throw e;
-            }
-        }
         public async Task<string> CreateFeeAsync(Entity LineLoginContact, QpayModel QpayModel)
         {
             try
@@ -127,7 +94,7 @@ namespace ChurchReport.WebServiceConnector
 
                 if (QpayModel.PayWay == "信用卡")
                 {
-                    CreOrder CreatedCardOrder = await CreOrderCard(QpayModel.Amount, QpayModel.Category, DateTime.Now.ToString("yyyyMMddhhmmssfff"), aCreatedFeeId.ToString(), QpayModel.SelectedCreditCard);
+                    CreOrder CreatedCardOrder = await CreOrderCard(QpayModel.Amount, QpayModel.Category, DateTime.Now.ToString("yyyyMMddhhmmssfff"), aCreatedFeeId.ToString(), "C", "ONE", "", 0, "M", 1, QpayModel.SelectedCreditCard);
 
                     if (CreatedCardOrder.CardParam != null && CreatedCardOrder.CardParam.CardPayURL != null)
                     {
@@ -141,10 +108,43 @@ namespace ChurchReport.WebServiceConnector
                         return "信用卡繳費失敗!";
                     }
                 }
-                else
+                else if (QpayModel.PayWay == "信用卡定期定額")
+                {
+                    //ONE 一次付清
+                    //STAGING 分期付款
+                    //BONUS 紅利折抵
+                    //CUP 銀聯卡一次付清
+                    //REGULAR 定期定額扣款
+                    CreOrder CreatedCardOrder = await CreOrderCard(QpayModel.Amount, QpayModel.Category, DateTime.Now.ToString("yyyyMMddhhmmssfff"), aCreatedFeeId.ToString(), "C", "REGULAR", "", TransferToDeductTotalNum(QpayModel.DeductTotalNumber), "M", 1, QpayModel.SelectedCreditCard);
+
+                    // 用剛剛建立的收費單，填寫訂單編號
+                    UpdateFee(ref aFeeToUpdate, CreatedCardOrder.OrderNo, "", "");
+
+                    return CreatedCardOrder.CardParam.CardPayURL;
+                }
+                else if (QpayModel.PayWay == "行動支付")
+                {
+                    //ONE 一次付清
+                    //STAGING 分期付款
+                    //BONUS 紅利折抵
+                    //CUP 銀聯卡一次付清
+                    //REGULAR 定期定額扣款
+                    CreOrder CreatedCardOrder = await CreOrderCard(QpayModel.Amount, QpayModel.Category, DateTime.Now.ToString("yyyyMMddhhmmssfff"), aCreatedFeeId.ToString(), "M", "ONE", "", 0, "M", 1, QpayModel.SelectedCreditCard);
+
+                    // 用剛剛建立的收費單，填寫訂單編號
+                    UpdateFee(ref aFeeToUpdate, CreatedCardOrder.OrderNo, "", "");
+
+                    return CreatedCardOrder.MobileParam.MobilePayURL;
+                }
+                else if (QpayModel.PayWay == "ATM轉帳/匯款")
                 {
                     return await ProcessAtm(aCreatedFeeId, aFeeToUpdate, QpayModel, "", LineLoginContact);
                 }
+                else
+                {
+                    return "信用卡繳費失敗!";
+                }
+
                 #endregion
             }
             catch (System.Exception e)
@@ -372,7 +372,6 @@ namespace ChurchReport.WebServiceConnector
                 throw e;
             }
         }
-
         public async Task<string> SaveKeyInDedication(QpayModel QpayModel)
         {
             try
@@ -646,7 +645,6 @@ namespace ChurchReport.WebServiceConnector
 
             }
         }
-
         public void SendGratitudeLineMessage(Entity aContact, QpayModel QpayModel)
         {
             try
@@ -679,31 +677,29 @@ namespace ChurchReport.WebServiceConnector
 
         #endregion
         #region 永豐金流工具區
-        public async Task<CreOrder> CreOrderCard(int Amount, String ProductName, String OrderDate, String FeeId, String CCToken = null)
+        public async Task<CreOrder> CreOrderCard(int Amount, String ProductName, String OrderDate, String FeeId, String PayType, String PayTypeSub, String Staging, int DeductTotalNum, String PeriodType, int DeductFreq, String CCToken = null)
         {
             //設定參數
             CreOrderReq creOrderReq = new CreOrderReq()
             {
                 ShopNo = m_ShopNo,
-                OrderNo = "C" + OrderDate,
+                OrderNo = PayType + OrderDate,
                 Amount = Amount * 100,
                 CurrencyID = "TWD",
                 PrdtName = ProductName,
                 ReturnURL = RETURN_URL,
                 BackendURL = BACKEND_URL,
-                PayType = "C", //信用卡
-                //PayType = "M", // 行動支付
+                PayType = PayType, //支付方式
                 Param1 = FeeId,
                 Param2 = QPAY_ORGANIZATION,
                 CardParam = new CreOrderCardParamReq()
                 {
                     AutoBilling = "Y",
-                    PayTypeSub = "STAGING",
-                    Staging="6",
-                    //PayTypeSub = "REGULAR",
-                    //DeductTotalNum = 6,
-                    //PeriodType ="M",
-                    //DeductFreq =6,
+                    PayTypeSub = PayTypeSub,
+                    Staging = Staging,
+                    DeductTotalNum = DeductTotalNum,
+                    PeriodType = PeriodType,
+                    DeductFreq = DeductFreq,
                     CCToken = CCToken
                 }
             };
@@ -853,7 +849,6 @@ namespace ChurchReport.WebServiceConnector
             }
             #endregion
         }
-
         #endregion
         #region 工具區
         /// <summary>
@@ -1204,6 +1199,26 @@ namespace ChurchReport.WebServiceConnector
             }
 
         }
+
+        private int TransferToDeductTotalNum(string DeductTotalNumber)
+        {
+            switch (DeductTotalNumber)
+            {
+                case "3個月":
+                    return 3;
+                case "6個月":
+                    return 6;
+                case "12個月":
+                    return 12;
+                case "18個月":
+                    return 18;
+                case "24個月":
+                    return 24;
+                default:
+                    return 0;
+            }
+        }
+
         #endregion
     }
 }
