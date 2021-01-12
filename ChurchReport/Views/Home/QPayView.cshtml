@@ -111,6 +111,7 @@
                                 "ATM轉帳/匯款",
                                 "信用卡定期定額",
                                 "行動支付",
+                                "銀聯卡",
                             }
                             //.DisplayExpr("Name")
                         )
@@ -501,7 +502,7 @@
 
     function OnPayWaySelectBoxValueChanged(e)
     {
-        if (e.value == "信用卡")
+        if (e.value == "信用卡" )
         {
             document.getElementById("creditcardlistcontainer").style.display = "";//顯示
             $("#form").dxForm("instance").itemOption("DeductTotalNumberSelectionBox", 'visible', false);
@@ -533,13 +534,22 @@
 
             document.getElementById('atmfield').innerHTML = "";
         }
-        else if (e.value == "行動支付")
-        {
+        else if (e.value == "行動支付") {
             document.getElementById("creditcardlistcontainer").style.display = "none";//隱藏
             $("#form").dxForm("instance").itemOption("DeductTotalNumberSelectionBox", 'visible', false);
 
             $("#save-button3").dxButton("instance").option("visible", false);
             $("#save-button2").dxButton("instance").option("text", "奉獻");
+
+            document.getElementById('atmfield').innerHTML = "";
+        }
+        else if (e.value == "銀聯卡") {
+            document.getElementById("creditcardlistcontainer").style.display = "none";//隱藏
+            $("#form").dxForm("instance").itemOption("DeductTotalNumberSelectionBox", 'visible', false);
+
+            $("#save-button2").dxButton("instance").option("visible", false);
+            $("#save-button3").dxButton("instance").option("text", "奉獻");
+            $("#save-button3").dxButton("instance").option("visible", true);
 
             document.getElementById('atmfield').innerHTML = "";
         }

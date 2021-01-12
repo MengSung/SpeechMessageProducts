@@ -92,10 +92,19 @@ namespace ChurchReport.WebServiceConnector
                 Guid aCreatedFeeId = CreateFee(LineLoginContact, QpayModel);
                 Entity aFeeToUpdate = this.m_ToolUtilityClass.RetrieveEntity("new_fee", aCreatedFeeId);
 
-                if (QpayModel.PayWay == "信用卡")
+                if (QpayModel.PayWay == "信用卡" || QpayModel.PayWay == "銀聯卡")
                 {
-                    CreOrder CreatedCardOrder = await CreOrderCard(QpayModel.Amount, QpayModel.Category, DateTime.Now.ToString("yyyyMMddhhmmssfff"), aCreatedFeeId.ToString(), "C", "ONE", "", 0, "M", 1, QpayModel.SelectedCreditCard);
-
+                    CreOrder CreatedCardOrder;
+                    if (QpayModel.PayWay == "信用卡")
+                    {
+                        // 信用卡
+                        CreatedCardOrder = await CreOrderCard(QpayModel.Amount, QpayModel.Category, DateTime.Now.ToString("yyyyMMddhhmmssfff"), aCreatedFeeId.ToString(), "C", "ONE", "", 0, "M", 1, QpayModel.SelectedCreditCard);
+                    }
+                    else
+                    {
+                        // 銀聯卡
+                        CreatedCardOrder = await CreOrderCard(QpayModel.Amount, QpayModel.Category, DateTime.Now.ToString("yyyyMMddhhmmssfff"), aCreatedFeeId.ToString(), "C", "CUP", "", 0, "M", 1, QpayModel.SelectedCreditCard);
+                    }
                     if (CreatedCardOrder.CardParam != null && CreatedCardOrder.CardParam.CardPayURL != null)
                     {
                         // 用剛剛建立的收費單，填寫訂單編號
@@ -298,7 +307,7 @@ namespace ChurchReport.WebServiceConnector
                 if (CardOrderNo != "")
                 {
                     // 收費單付款方式
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(ref aFeeToCreated, "new_pay_way", 100000001); // 100000001 = 信用卡
+                    //this.m_ToolUtilityClass.SetOptionSetAttribute(ref aFeeToCreated, "new_pay_way", 100000001); // 100000001 = 信用卡
 
                     // 信用卡訂單編號
                     this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeToCreated, "new_q_pay_card_order_no", CardOrderNo);
@@ -306,7 +315,7 @@ namespace ChurchReport.WebServiceConnector
                 if (AtmOrderNo != "")
                 {
                     // 收費單付款方式
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(ref aFeeToCreated, "new_pay_way", 100000002); // 100000002 = ATM轉帳/匯款
+                    //this.m_ToolUtilityClass.SetOptionSetAttribute(ref aFeeToCreated, "new_pay_way", 100000002); // 100000002 = ATM轉帳/匯款
 
                     // 虛擬帳號訂單編號
                     this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeToCreated, "new_q_pay_order_atm_no", AtmOrderNo);
@@ -612,6 +621,12 @@ namespace ChurchReport.WebServiceConnector
                     break;
                 case "超商付款":
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_pay_way", 100000004);
+                    break;
+                case "行動支付":
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_pay_way", 100000007);
+                    break;
+                case "銀聯卡":
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_pay_way", 100000008);
                     break;
                 default:
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_pay_way", 100000004);
