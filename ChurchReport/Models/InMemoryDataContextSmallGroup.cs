@@ -79,7 +79,7 @@ namespace ChurchReport.Models
             }
         }
         #endregion
-        #region 小組長處理區
+        #region 領袖處理區
 
         public void SetupSmallGroupData(String FullName, String Account, String Password, DateTime aSelectDate, bool DisplayDateFlag)
         {

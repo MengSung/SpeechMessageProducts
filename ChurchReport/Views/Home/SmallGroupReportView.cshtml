@@ -169,7 +169,7 @@ else
     <div style="font-family:標楷體;font-size: 100%; color:crimson; text-align:left;background-color:powderblue;font-weight: bold">@Model.SundayPeriod</div>
 
 
-    @if (Model.LoginType == "小組長")
+    @if (Model.LoginType == "領袖")
     {
         <div id="smallgroup-grid">
             @(Html.DevExtreme().DataGrid<Member>()

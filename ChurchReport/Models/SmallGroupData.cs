@@ -22,7 +22,7 @@ namespace ChurchReport.Models
         public String SundayPrayersString { get; set; }
         public String DataStatus { get; set; }
         public bool ModifyFlag { get; set; }
-        public String SundayPeriod { get; set; } // 提醒小組長回報的期間
+        public String SundayPeriod { get; set; } // 提醒領袖回報的期間
         public List<Member> Members { get ; set ; } // 
         public bool DisplayFlag { get; set; }
 

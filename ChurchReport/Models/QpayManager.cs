@@ -590,9 +590,9 @@ namespace ChurchReport.Models
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactToCreate, "mobilephone", aGalleryViewModel.Mobile);
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactToCreate, "new_personal_id", aGalleryViewModel.NationId);
 
-                // 一般小組新增的新人，委身類型設為"新朋友"
+                // 一般小組新增的新人，委身類型設為"訪客"
                 this.m_ToolUtilityClass.SetOptionSetAttribute(ref aContactToCreate, "customertypecode", 100000000);
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactToCreate, "description", "透過官網建立的奉獻新朋友");
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactToCreate, "description", "透過官網建立的奉獻訪客");
 
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactToCreate, "pager", aGalleryViewModel.NationId);
 

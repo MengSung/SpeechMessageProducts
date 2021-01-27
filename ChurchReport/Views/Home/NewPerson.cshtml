@@ -229,13 +229,13 @@
                     .Editor(e => e
                         .SelectBox()
                         .DataSource(new string[] {
-                                        "新朋友",
-                                        "小組組員",
+                                        "訪客",
+                                        "家人",
                             }
                         //.DisplayExpr("Name")
                         )
-                        .Value("新朋友")
-                        //.Value("小組組員")
+                        .Value("訪客")
+                        //.Value("家人")
                         );
 
             items.AddSimpleFor(m => m.Introducer)

@@ -56,16 +56,16 @@ namespace ChurchReport.Tools
         //EntityCollection m_PresentLists = new EntityCollection(); // 需要回報給族系族長/區長的名單
 
         Guid m_DecipleGroupListId;
-        //Guid m_GroupLeaderId; // 小組長
+        //Guid m_GroupLeaderId; // 領袖
         //Guid m_RaceLeaderId; // 族系族長/區長
         //Guid m_ShepherdLeaderId; // 區牧
         String m_SmallGroupPlace;
         String m_SmallGroupTime;
 
-        Guid m_OwnerId; // 小組長的負責人 Id
+        Guid m_OwnerId; // 領袖的負責人 Id
 
-        private const bool RACE_LEADER_CAN_CREATE_WEEKLYREPORT = true; // 族系組長能否幫小組長建立週報， true是可以
-                                                                       //private const bool RACE_LEADER_CAN_CREATE_WEEKLYREPORT = false; // 族系組長能否幫小組長建立週報，false 不可以
+        private const bool RACE_LEADER_CAN_CREATE_WEEKLYREPORT = true; // 族系組長能否幫領袖建立週報， true是可以
+                                                                       //private const bool RACE_LEADER_CAN_CREATE_WEEKLYREPORT = false; // 族系組長能否幫領袖建立週報，false 不可以
 
         //private const String SET_IDENTITY_METHOD = "透過過去8週出席次數"; // 設定委身類型的方式
         private const String SET_IDENTITY_METHOD = "透過回報網頁手動設定"; // 設定委身類型的方式
@@ -101,7 +101,7 @@ namespace ChurchReport.Tools
                 #region 處理小組名單
                 if (m_Lists.Entities.Count != 0)
                 {
-                    #region// 有找到要點名的名單，所以是小組長以上回報
+                    #region// 有找到要點名的名單，所以是領袖以上回報
                     #region 處理每個要點名的名單
                     ProcessListEntity(ref WeeklyReportDictionary);
                     #endregion
@@ -152,7 +152,7 @@ namespace ChurchReport.Tools
                     //String GroupName = this.m_ToolUtilityClass.GetEntityStringAttribute(ListEntity, "listname");
 
                     // 取得週報資料
-                    // 小組長的負責人 Id
+                    // 領袖的負責人 Id
                     m_OwnerId = this.m_ToolUtilityClass.GetOwnerId(m_ContactEntity);
 
                     SetupWeeklyReportRecord(ref WeeklyReportDictionary, ListEntity, GroupWeeklyReportEntity);
@@ -246,17 +246,17 @@ namespace ChurchReport.Tools
             try
             {
                 // 初始化 m_Lists
-                // 小組同工 new_contact_list_vice_family_leader
-                //this.m_Lists = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_contact_list_vice_family_leader", "list");  // 小組同工
-                //this.m_Lists = m_ToolUtilityClass.QueryListByContactId(m_ContactId, "new_contact_list_vice_family_leader");  // 小組同工
+                // 門徒 new_contact_list_vice_family_leader
+                //this.m_Lists = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_contact_list_vice_family_leader", "list");  // 門徒
+                //this.m_Lists = m_ToolUtilityClass.QueryListByContactId(m_ContactId, "new_contact_list_vice_family_leader");  // 門徒
                 //MergeCollectionSmallGroupAhead(ref this.m_Lists);
-                EntityCollection aListEntityCollection = m_ToolUtilityClass.QueryListByContactId(m_ContactId, "new_contact_list_vice_family_leader");  // 小組同工
+                EntityCollection aListEntityCollection = m_ToolUtilityClass.QueryListByContactId(m_ContactId, "new_contact_list_vice_family_leader");  // 門徒
                 MergeCollectionSmallGroupAhead(ref aListEntityCollection);
 
-                // 小組長/小組同工 new_contact_family_leader_list
-                //EntityCollection aListEntityCollection = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_contact_family_leader_list", "list");  // 小組長/小組同工
-                aListEntityCollection = m_ToolUtilityClass.QueryListByContactId(m_ContactId, "new_contact_family_leader_list");  // 小組長/小組同工
-                //aListEntityCollection = m_ToolUtilityClass.QueryListByContactId(m_ContactId, "new_contact_family_leader_list");  // 小組長/小組同工
+                // 領袖/門徒 new_contact_family_leader_list
+                //EntityCollection aListEntityCollection = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_contact_family_leader_list", "list");  // 領袖/門徒
+                aListEntityCollection = m_ToolUtilityClass.QueryListByContactId(m_ContactId, "new_contact_family_leader_list");  // 領袖/門徒
+                //aListEntityCollection = m_ToolUtilityClass.QueryListByContactId(m_ContactId, "new_contact_family_leader_list");  // 領袖/門徒
                 MergeCollectionSmallGroupAhead(ref aListEntityCollection);
 
                 // 共同區長 new_contact_co_race_leager_list
@@ -291,7 +291,7 @@ namespace ChurchReport.Tools
         {
             try
             {
-                // 族系族長或是區長的名單若是與小組長名單重疊，則要過濾出僅有族長/區長的名單
+                // 族系族長或是區長的名單若是與領袖名單重疊，則要過濾出僅有族長/區長的名單
                 // 合併小組名單至族系名單，單扣除掉重複的
                 // 然後放在小組名單裡面
                 // 一個一個處理族系名單
@@ -304,7 +304,7 @@ namespace ChurchReport.Tools
                         // 比對每一個小組名單
                         if (aListEntity.Id == m_ListEntity.Id)
                         {
-                            // 族系族長的名單與小組長的名單有相同的了
+                            // 族系族長的名單與領袖的名單有相同的了
                             SearchedFlag = true;
                             break;
                         }
@@ -312,7 +312,7 @@ namespace ChurchReport.Tools
 
                     if (SearchedFlag == false)
                     {
-                        // 族系族長的名單沒有與小組長名單相同的
+                        // 族系族長的名單沒有與領袖名單相同的
                         if (this.m_ToolUtilityClass.GetEntityBoolAttribute(aListEntity, "new_app_named") == true)
                         {
                             // 點名有打勾
@@ -394,7 +394,7 @@ namespace ChurchReport.Tools
                 // 小家長 ID
                 Guid FamilyLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_familyhead_list");
 
-                // 小組長 ID
+                // 領袖 ID
                 Guid GroupLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_family_leader_list");
 
                 // 區長 ID
@@ -452,7 +452,7 @@ namespace ChurchReport.Tools
                 if (aFamilyLeaderId != Guid.Empty)
                 { this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aWeeklyReportEntity, "new_contact_weekly_report_parents", "contact", aFamilyLeaderId); }
                 #endregion
-                #region 關聯小組長屬性
+                #region 關聯領袖屬性
                 if (aGroupLeaderId != Guid.Empty)
                 { this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aWeeklyReportEntity, "new_groupleader_group_present_weekly_", "contact", aGroupLeaderId); }
                 #endregion
@@ -693,7 +693,7 @@ namespace ChurchReport.Tools
                 if (aIdentityNumber == 100000000 || aIdentityNumber == 100000004)
                 {
                     //    case 100000000:
-                    //        return "8. 新朋友";
+                    //        return "8. 訪客";
                     //    case 100000004:
                     //        return "7. 未入組";
 
@@ -706,11 +706,11 @@ namespace ChurchReport.Tools
                 //switch (Identity)
                 //{
                 //    case 100000000:
-                //        return "8. 新朋友";
+                //        return "8. 訪客";
                 //    case 100000001:
                 //        return "5. 神學生";
                 //    case 100000002:
-                //        return "4. 小組長";
+                //        return "4. 領袖";
                 //    case 100000003:
                 //        return "3. 全職同工";
                 //    case 100000004:
@@ -724,7 +724,7 @@ namespace ChurchReport.Tools
                 //    case 100000008:
                 //        return "10. 未入組結案";
                 //    case 1:
-                //        return "6. 小組組員";
+                //        return "6. 家人";
                 //    default:
                 //        return ".";
                 //}
@@ -922,11 +922,11 @@ namespace ChurchReport.Tools
                 if (aWeeklyReportId != Guid.Empty)
                 { this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aPresentRecord, "new_group_present_weekly_report_prese", "new_group_present_weekly_report", aWeeklyReportId); }
                 #endregion
-                #region 從名單取得 區名、小家長 ID、小組長 ID、區長、區牧長 ID
+                #region 從名單取得 區名、小家長 ID、領袖 ID、區長、區牧長 ID
                 // 小家長 ID
                 Guid aFamilyLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_familyhead_list");
 
-                // 小組長 ID
+                // 領袖 ID
                 Guid aGroupLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_family_leader_list");
 
                 // 區長 ID
@@ -946,7 +946,7 @@ namespace ChurchReport.Tools
                 if (aFamilyLeaderId != Guid.Empty)
                 { this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aPresentRecord, "new_familyhead_present_record", "contact", aFamilyLeaderId); }
                 #endregion
-                #region 關聯小組長屬性
+                #region 關聯領袖屬性
                 if (aGroupLeaderId != Guid.Empty)
                 { this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aPresentRecord, "new_groupleader_present_record", "contact", aGroupLeaderId); }
                 #endregion
@@ -1031,15 +1031,15 @@ namespace ChurchReport.Tools
             switch (Identity)
             {
                 case 100000000:
-                    return "新朋友";
+                    return "訪客";
                 case 100000004:
                     return "未入組";
                 case 100000007://其實是外教會，不過我把他歸類為未入組
                     return "未入組";
                 case 1:
-                    return "小組組員";
+                    return "家人";
                 default:
-                    return "小組組員";
+                    return "家人";
             }
         }
         public Double GetValidMemberNumber(EntityCollection aPresentRecordCollection)
@@ -1105,7 +1105,7 @@ namespace ChurchReport.Tools
                                 ClearIdentity = this.ConvertIndexToClearIdentity(aCustomerTypeCode.Value);
 
                                 // 版本轉換
-                                //// 如果是新朋友、未入組、外教會則不列入累積，iM行動教會
+                                //// 如果是訪客、未入組、外教會則不列入累積，iM行動教會
                                 if (aCustomerTypeCode.Value != 100000004 && aCustomerTypeCode.Value != 100000000 && aCustomerTypeCode.Value != 100000007)
                                 {
                                     return true;
@@ -1115,9 +1115,9 @@ namespace ChurchReport.Tools
                                     return false;
                                 }
 
-                                // 如果是新朋友或是未入組則不列入累積，內壢得勝靈糧堂
+                                // 如果是訪客或是未入組則不列入累積，內壢得勝靈糧堂
                                 // 10.不穩定組員   =   100,000,008
-                                // 11.新朋友       =   100,000,009
+                                // 11.訪客       =   100,000,009
                                 // 12.未入組       =   100,000,010
                                 // 13.暫不入組     =   100,000,012
                                 // 14.結案         =   100,000,011
@@ -1172,7 +1172,7 @@ namespace ChurchReport.Tools
                 int aCustomerTypeCodeValue = this.m_ToolUtilityClass.GetOptionSetAttribute(ref aContactEntity, "customertypecode");
                 //OptionSetValue aCustomerTypeCode = aContactEntity.Attributes["customertypecode"] as OptionSetValue;
 
-                // 如果是新朋友或是未入組則不列入累積，iM行動教會
+                // 如果是訪客或是未入組則不列入累積，iM行動教會
                 if (aCustomerTypeCodeValue != 100000004 && aCustomerTypeCodeValue != 100000000 && aCustomerTypeCodeValue != 100000007 && aCustomerTypeCodeValue != EMPTY_VALUE)
                 {
                     return true;
@@ -1183,9 +1183,9 @@ namespace ChurchReport.Tools
                 }
 
 
-                // 如果是新朋友或是未入組則不列入累積，內壢得勝靈糧堂
+                // 如果是訪客或是未入組則不列入累積，內壢得勝靈糧堂
                 // 10.不穩定組員   =   100,000,008
-                // 11.新朋友       =   100,000,009
+                // 11.訪客       =   100,000,009
                 // 12.未入組       =   100,000,010
                 // 13.暫不入組     =   100,000,012
                 // 14.結案         =   100,000,011
@@ -1221,19 +1221,19 @@ namespace ChurchReport.Tools
                     return 100000006;
                 case "區長":
                     return 100000003;
-                case "小組長":
+                case "領袖":
                     return 100000008;
-                case "小組同工":
+                case "門徒":
                     return 100000012;
-                case "小組組員":
+                case "家人":
                     return 1;
                 case "幸福BEST":
                     return 100000005;
                 case "未入組":
                     return 100000004;
-                case "新朋友":
+                case "訪客":
                     return 100000000;
-                case "外教會.訪客":
+                case "外教會":
                     return 100000007;
                 case "結案":
                     return 100000001;
@@ -1252,19 +1252,19 @@ namespace ChurchReport.Tools
                 case 100000003:
                     return "02. 區長";
                 case 100000008:
-                    return "03. 小組長";
+                    return "03. 領袖";
                 case 100000012:
-                    return "04. 小組同工";
+                    return "04. 門徒";
                 case 1:
-                    return "05. 小組組員";
+                    return "05. 家人";
                 case 100000005:
                     return "06. 幸福BEST";
                 case 100000004:
                     return "07. 未入組";
                 case 100000000:
-                    return "08. 新朋友";
+                    return "08. 訪客";
                 case 100000007:
-                    return "09. 外教會.訪客";
+                    return "09. 外教會";
                 case 100000001:
                     return "10. 結案";
                 default:

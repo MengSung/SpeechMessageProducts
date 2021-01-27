@@ -25,7 +25,7 @@ namespace ChurchReport.Models.CrmTransmitModule
             set { m_GroupName = value; }
         }
 
-        String m_SmallGroupLeaderName; //小組長姓名
+        String m_SmallGroupLeaderName; //領袖姓名
         public String SmallGroupLeaderName
         {
             get { return m_SmallGroupLeaderName; }
@@ -358,7 +358,7 @@ namespace ChurchReport.Models.CrmTransmitModule
         private const int LEVEL_5 = 5; // 比較不會被看到的，可能是比較細節的部分
         #endregion
 
-        public String m_LoginType = "小組長";
+        public String m_LoginType = "領袖";
 
         public MemberInfomationPackage()
         {
@@ -510,7 +510,7 @@ namespace ChurchReport.Models.CrmTransmitModule
         }
 
         // 委身類型
-        String m_CustomerTypeCode = "小組組員";
+        String m_CustomerTypeCode = "家人";
         public String CustomerTypeCode
         {
             get { return m_CustomerTypeCode; }

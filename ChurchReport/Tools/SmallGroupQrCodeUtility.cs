@@ -347,8 +347,8 @@ namespace ChurchReport.Tools
                 //this.m_ToolUtilityClass.SetEntityStringAttribute(ref m_Contact, "new_line_status_message", aUserProfile.StatusMessage);
                 this.m_ToolUtilityClass.SetEntityBoolAttribute(ref m_Contact, "new_line_register", false);
 
-                // 委身類型客製化，客製委身類型欄位，每間教會委身類型都不一樣，台中思恩堂豐富教會豐富教會=>"新朋友" = 100000000
-                // 設定成為 新朋友 的委身類型
+                // 委身類型客製化，客製委身類型欄位，每間教會委身類型都不一樣，台中思恩堂豐富教會豐富教會=>"訪客" = 100000000
+                // 設定成為 訪客 的委身類型
                 this.m_ToolUtilityClass.SetOptionSetAttribute(ref m_Contact, "customertypecode", 100000000);
 
                 // 設定在CRM 2011 的初始連絡人姓名

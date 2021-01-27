@@ -42,9 +42,9 @@ namespace ChurchReport.WebServiceConnector
 
         private const bool TRANSFER_IDENTITY_FLAG = false;
 
-        //private const int MONTH_PERIOD = 2;      //幾個月內出席超過這次數就會改變委身類型=>小組組員
-        private const int WEEK_PERIOD = 8;      //過去幾　WEEK_PERIOD　周內出席超過這次數就會改變委身類型=>小組組員
-        private const int MINIMUM_THRESHOLD = 4;      //2個月內出席超過這次數就會改變委身類型=>小組組員
+        //private const int MONTH_PERIOD = 2;      //幾個月內出席超過這次數就會改變委身類型=>家人
+        private const int WEEK_PERIOD = 8;      //過去幾　WEEK_PERIOD　周內出席超過這次數就會改變委身類型=>家人
+        private const int MINIMUM_THRESHOLD = 4;      //2個月內出席超過這次數就會改變委身類型=>家人
 
         #region 除錯用參數
         private const int TOTAL_LEVEL = 1;//改變這個值，就會改追蹤的階層，值越小越不會追蹤，若是 TOTAL_LEVEL = 3 ，則大於 3 的 LEVEL，例如 : LEVEL_4、LEVEL_5 就不會被追蹤
@@ -76,14 +76,14 @@ namespace ChurchReport.WebServiceConnector
         EntityCollection m_PresentLists = new EntityCollection(); // 需要回報給族系族長/區長的名單
 
         Guid m_DecipleGroupListId;
-        //Guid m_GroupLeaderId; // 小組長
+        //Guid m_GroupLeaderId; // 領袖
         Guid m_RaceLeaderId; // 族系族長/區長
         Guid m_ShepherdLeaderId; // 區牧
         String m_SmallGroupPlace;
         String m_SmallGroupTime;
 
-        private const bool RACE_LEADER_CAN_CREATE_WEEKLYREPORT = true; // 族系組長能否幫小組長建立週報， true是可以
-        //private const bool RACE_LEADER_CAN_CREATE_WEEKLYREPORT = false; // 族系組長能否幫小組長建立週報，false 不可以
+        private const bool RACE_LEADER_CAN_CREATE_WEEKLYREPORT = true; // 族系組長能否幫領袖建立週報， true是可以
+        //private const bool RACE_LEADER_CAN_CREATE_WEEKLYREPORT = false; // 族系組長能否幫領袖建立週報，false 不可以
 
         //List<Place2> m_GroupNamePlaces = new List<Place2>(); // 依據群組名稱過濾出來的會眾集合
         List<MemberInfomation> m_GroupNamedListMemberInfomation = new List<MemberInfomation>(); // 依據群組名稱過濾出來的會眾集合
@@ -108,15 +108,15 @@ namespace ChurchReport.WebServiceConnector
             switch (Identity)
             {
                 case 100000000:
-                    return "新朋友";
+                    return "訪客";
                 case 100000004:
                     return "未入組";
                 case 100000007://其實是外教會，不過我把他歸類為未入組
                     return "未入組";
                 case 1:
-                    return "小組組員";
+                    return "家人";
                 default:
-                    return "小組組員";
+                    return "家人";
             }
         }
         public Double GetValidMemberNumber(EntityCollection aPresentRecordCollection)
@@ -182,7 +182,7 @@ namespace ChurchReport.WebServiceConnector
                                 ClearIdentity = this.ConvertIndexToClearIdentity(aCustomerTypeCode.Value);
 
                                 // 版本轉換
-                                //// 如果是新朋友、未入組、外教會則不列入累積，iM行動教會
+                                //// 如果是訪客、未入組、外教會則不列入累積，iM行動教會
                                 if (aCustomerTypeCode.Value != 100000004 && aCustomerTypeCode.Value != 100000000 && aCustomerTypeCode.Value != 100000007)
                                 {
                                     return true;
@@ -192,9 +192,9 @@ namespace ChurchReport.WebServiceConnector
                                     return false;
                                 }
 
-                                // 如果是新朋友或是未入組則不列入累積，內壢得勝靈糧堂
+                                // 如果是訪客或是未入組則不列入累積，內壢得勝靈糧堂
                                 // 10.不穩定組員   =   100,000,008
-                                // 11.新朋友       =   100,000,009
+                                // 11.訪客       =   100,000,009
                                 // 12.未入組       =   100,000,010
                                 // 13.暫不入組     =   100,000,012
                                 // 14.結案         =   100,000,011
@@ -249,7 +249,7 @@ namespace ChurchReport.WebServiceConnector
                 int aCustomerTypeCodeValue = this.m_ToolUtilityClass.GetOptionSetAttribute(ref aContactEntity, "customertypecode");
                 //OptionSetValue aCustomerTypeCode = aContactEntity.Attributes["customertypecode"] as OptionSetValue;
 
-                // 如果是新朋友或是未入組則不列入累積，iM行動教會
+                // 如果是訪客或是未入組則不列入累積，iM行動教會
                 if (aCustomerTypeCodeValue != 100000004 && aCustomerTypeCodeValue != 100000000 && aCustomerTypeCodeValue != 100000007 && aCustomerTypeCodeValue != EMPTY_VALUE)
                 {
                     return true;
@@ -260,9 +260,9 @@ namespace ChurchReport.WebServiceConnector
                 }
 
 
-                // 如果是新朋友或是未入組則不列入累積，內壢得勝靈糧堂
+                // 如果是訪客或是未入組則不列入累積，內壢得勝靈糧堂
                 // 10.不穩定組員   =   100,000,008
-                // 11.新朋友       =   100,000,009
+                // 11.訪客       =   100,000,009
                 // 12.未入組       =   100,000,010
                 // 13.暫不入組     =   100,000,012
                 // 14.結案         =   100,000,011
@@ -301,14 +301,14 @@ namespace ChurchReport.WebServiceConnector
 
                 //if (aIdentity != CustomerTypeCode)
                 //{
-                //    // 委身類型系統原來的旱小組長上傳的有不一致
+                //    // 委身類型系統原來的旱領袖上傳的有不一致
                 //    this.m_ToolUtilityClass.SetOptionSetAttribute(ref aContact, "customertypecode", CustomerTypeCode);
 
                 //    return true;
                 //}
                 //else
                 //{
-                //    // 委身類型系統原來的旱小組長上傳的一致
+                //    // 委身類型系統原來的旱領袖上傳的一致
                 //    return false;
                 //}
 
@@ -331,11 +331,11 @@ namespace ChurchReport.WebServiceConnector
 
                 String aIdentityType = ConvertIndexToIdentity(aIdentity);
 
-                if (aIdentityType == "07. 未入組" || aIdentityType == "08. 新朋友")
+                if (aIdentityType == "07. 未入組" || aIdentityType == "08. 訪客")
                 {
-                    // 如果委身型態是"未入組"或是"新朋友"
+                    // 如果委身型態是"未入組"或是"訪客"
                     // 先搜尋過去2個月的靈修出席紀錄
-                    // 如果主日次數+小組次數 大於等於 8 次，則委身類型設定為"小組組員"
+                    // 如果主日次數+小組次數 大於等於 8 次，則委身類型設定為"家人"
                     if (PassOrFail(aListEntityId, ref aContact) == true)
                     {
                         this.m_ToolUtilityClass.SetOptionSetAttribute(ref aContact, "customertypecode", 1);
@@ -350,7 +350,7 @@ namespace ChurchReport.WebServiceConnector
                         }
                     }
                 }
-                else if (aIdentityType == "06. 小組組員")
+                else if (aIdentityType == "06. 家人")
                 {
                     // 如果主日次數+小組次數 小於 8 次，則委身類型設定為"未入組"
                     if (PassOrFail(aListEntityId, ref aContact) == false)
@@ -429,7 +429,7 @@ namespace ChurchReport.WebServiceConnector
             {
                 int TotalNumber = GetPresentNumber(aListEntityId, "小組", ref aContact);
 
-                // 如果主日次數+小組次數 大於等於 MINIMUM_THRESHOLD 次，則委身類型設定為"小組組員"
+                // 如果主日次數+小組次數 大於等於 MINIMUM_THRESHOLD 次，則委身類型設定為"家人"
                 if (TotalNumber >= MINIMUM_THRESHOLD)
                 {
                     return true;
@@ -461,19 +461,19 @@ namespace ChurchReport.WebServiceConnector
                 case 100000003:
                     return "02. 區長";
                 case 100000008:
-                    return "03. 小組長";
+                    return "03. 領袖";
                 case 100000012:
-                    return "04. 小組同工";
+                    return "04. 門徒";
                 case 1:
-                    return "05. 小組組員";
+                    return "05. 家人";
                 case 100000005:
                     return "06. 幸福BEST";
                 case 100000004:
                     return "07. 未入組";
                 case 100000000:
-                    return "08. 新朋友";
+                    return "08. 訪客";
                 case 100000007:
-                    return "09. 外教會.訪客";
+                    return "09. 外教會";
                 case 100000001:
                     return "10. 結案";
                 default:

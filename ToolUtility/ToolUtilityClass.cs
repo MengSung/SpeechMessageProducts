@@ -1103,7 +1103,7 @@ namespace ToolUtilityNameSpace
                     querybyexpression.ColumnSet.AllColumns = true;
                     //  Attribute to query
                     //querybyexpression.Attributes.AddRange("new_account", "statecode");
-                    //iM行動教會小組長帳號
+                    //iM行動教會領袖帳號
                     querybyexpression.Attributes.AddRange("new_app_acount", "statecode");
                     //  Value of queried attribute to return
                     querybyexpression.Values.AddRange(AccountNumber, 0);
@@ -1132,7 +1132,7 @@ namespace ToolUtilityNameSpace
                             String aContactPassword = retrieved.Entities[0].Attributes["new_app_pass"].ToString();
                             if (aContactPassword == aPassword)
                             {
-                                this.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "小組長:" + retrieved.Entities[0].Attributes["fullname"].ToString());
+                                this.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "領袖:" + retrieved.Entities[0].Attributes["fullname"].ToString());
                                 //return retrieved.Entities[0].Attributes["fullname"].ToString();
                                 return retrieved.Entities[0].Attributes["contactid"].ToString();
                             }
@@ -1175,7 +1175,7 @@ namespace ToolUtilityNameSpace
                     querybyexpression.ColumnSet.AllColumns = true;
                     //  Attribute to query
                     //querybyexpression.Attributes.AddRange("new_account", "statecode");
-                    //iM行動教會小組長帳號
+                    //iM行動教會領袖帳號
                     querybyexpression.Attributes.AddRange("new_app_acount", "statecode");
                     //  Value of queried attribute to return
                     querybyexpression.Values.AddRange(AccountNumber, 0);
@@ -1225,7 +1225,7 @@ namespace ToolUtilityNameSpace
                     querybyexpression.ColumnSet.AllColumns = true;
                     //  Attribute to query
                     //querybyexpression.Attributes.AddRange("new_account", "statecode");
-                    //iM行動教會小組長帳號
+                    //iM行動教會領袖帳號
                     querybyexpression.Attributes.AddRange("new_app_acount", "statecode");
                     //  Value of queried attribute to return
                     querybyexpression.Values.AddRange(AccountNumber, 0);
@@ -1292,7 +1292,7 @@ namespace ToolUtilityNameSpace
                     querybyexpression.ColumnSet.AllColumns = true;
                     //  Attribute to query
                     //querybyexpression.Attributes.AddRange("new_account", "statecode");
-                    //iM行動教會小組長帳號
+                    //iM行動教會領袖帳號
                     querybyexpression.Attributes.AddRange("new_lineid", "statecode");
                     //  Value of queried attribute to return
                     querybyexpression.Values.AddRange(LineUserId, 0);

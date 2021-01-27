@@ -154,11 +154,11 @@ namespace ChurchReport.Controllers
                     ViewBag.UserType = m_InMemoryDataContextSmallGroup.ListManager.UserType = m_InMemoryDataContextSmallGroup.AppointmentsListManager.UserType;
                     #endregion
 
-                    // 透過取得多小組網頁需要的資料之後，判斷這是多小組還是單一小組長的回報
+                    // 透過取得多小組網頁需要的資料之後，判斷這是多小組還是單一領袖的回報
                     string DisplayViewType = m_InMemoryDataContextSmallGroup.ListManager.GetDisplayViewType();
                     if (DisplayViewType == "IntegrateView")
                     {
-                        // 得知這是單一小組長的回報，所以就直接下載整合式網頁所需的資料
+                        // 得知這是單一領袖的回報，所以就直接下載整合式網頁所需的資料
                         m_InMemoryDataContextSmallGroup.ListManager.SetupIntegrateData( m_InMemoryDataContextSmallGroup.ListManager.ActiveListId );
                     }
                     else
@@ -183,9 +183,9 @@ namespace ChurchReport.Controllers
                     // 設定需要點名的課程清單
                     m_InMemoryDataContextSmallGroup.FeeList.SetupLessonList(aGalleryViewModel.Account, aGalleryViewModel.Password);
 
-                    if (m_InMemoryDataContextSmallGroup.ListManager.LoginType == "小組長" && m_InMemoryDataContextSmallGroup.HappyGroupDataManager.HappyType == "有幸福小組名單")
+                    if (m_InMemoryDataContextSmallGroup.ListManager.LoginType == "領袖" && m_InMemoryDataContextSmallGroup.HappyGroupDataManager.HappyType == "有幸福小組名單")
                     {
-                        // 小組長回報，而且有幸福小組
+                        // 領袖回報，而且有幸福小組
                         ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType;
                         ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.ListManager.LoginFullName;
                         ViewBag.HappyType = "有幸福小組名單";
@@ -205,9 +205,9 @@ namespace ChurchReport.Controllers
 
                         return Json(new { DisplayViewType = DisplayViewType, ActiveListId = m_InMemoryDataContextSmallGroup.ListManager.ActiveListId, message = "歡迎" + FullName + "登入成功!", fullname = FullName, account = aGalleryViewModel.Account, password = aGalleryViewModel.Password });
                     }
-                    else if (m_InMemoryDataContextSmallGroup.ListManager.LoginType == "小組長" && m_InMemoryDataContextSmallGroup.HappyGroupDataManager.HappyType == "沒幸福小組名單")
+                    else if (m_InMemoryDataContextSmallGroup.ListManager.LoginType == "領袖" && m_InMemoryDataContextSmallGroup.HappyGroupDataManager.HappyType == "沒幸福小組名單")
                     {
-                        // 小組長回報，沒有幸福小組
+                        // 領袖回報，沒有幸福小組
                         ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType;
                         ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.ListManager.LoginFullName;
                         ViewBag.HappyType = "沒幸福小組名單";
@@ -229,9 +229,9 @@ namespace ChurchReport.Controllers
                         //return Json(new { DisplayViewType = DisplayViewType, ActiveListId = m_InMemoryDataContextSmallGroup.ListManager.ActiveListId, message = "歡迎" + FullName + "登入成功!", fullname = FullName, account = aGalleryViewModel.Account, password = aGalleryViewModel.Password });
                         return Json(new { DisplayViewType = DisplayViewType, ActiveListId = m_InMemoryDataContextSmallGroup.ListManager.ActiveListId, message = "歡迎" + FullName + "登入成功!", fullname = FullName, account = aGalleryViewModel.Account, password = aGalleryViewModel.Password });
                     }
-                    else if (m_InMemoryDataContextSmallGroup.ListManager.LoginType != "小組長" && m_InMemoryDataContextSmallGroup.HappyGroupDataManager.HappyType == "沒幸福小組名單")
+                    else if (m_InMemoryDataContextSmallGroup.ListManager.LoginType != "領袖" && m_InMemoryDataContextSmallGroup.HappyGroupDataManager.HappyType == "沒幸福小組名單")
                     {
-                        // 個人回報，不是小組長，沒有幸福小組
+                        // 個人回報，不是領袖，沒有幸福小組
                         ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType;
                         ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.ListManager.LoginFullName;
                         ViewBag.HappyType = "沒幸福小組名單";
@@ -251,9 +251,9 @@ namespace ChurchReport.Controllers
 
                         return Json(new { DisplayViewType = DisplayViewType, ActiveListId = m_InMemoryDataContextSmallGroup.ListManager.ActiveListId, message = "歡迎" + FullName + "登入成功!", fullname = FullName, account = aGalleryViewModel.Account, password = aGalleryViewModel.Password });
                     }
-                    else if (m_InMemoryDataContextSmallGroup.ListManager.LoginType != "小組長" && m_InMemoryDataContextSmallGroup.HappyGroupDataManager.HappyType == "有幸福小組名單")
+                    else if (m_InMemoryDataContextSmallGroup.ListManager.LoginType != "領袖" && m_InMemoryDataContextSmallGroup.HappyGroupDataManager.HappyType == "有幸福小組名單")
                     {
-                        // 個人回報 + 單純幸福小組長回報
+                        // 個人回報 + 單純幸福領袖回報
                         ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType;
                         ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.ListManager.LoginFullName;
                         ViewBag.HappyType = "有幸福小組名單";
@@ -564,7 +564,7 @@ namespace ChurchReport.Controllers
                     string DisplayViewType = m_InMemoryDataContextSmallGroup.ListManager.GetDisplayViewType();
                     if (DisplayViewType == "MultiGroupView")
                     {
-                        #region 用小組長回報網頁登入
+                        #region 用領袖回報網頁登入
                         if (m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport != null)
                         {
                             // 登入到多小組回報，整合是頁面要先歸零
@@ -580,7 +580,7 @@ namespace ChurchReport.Controllers
                         ViewBag.UserType = m_InMemoryDataContextSmallGroup.ListManager.UserType;
                         #endregion
 
-                        ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType; // 看是小組長還是個人回報
+                        ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType; // 看是領袖還是個人回報
                         ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.ListManager.LoginFullName;
 
                         ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType; // 繳費點名
@@ -649,7 +649,7 @@ namespace ChurchReport.Controllers
                 }
                 else
                 {
-                    #region 小組長 Line 登入
+                    #region 領袖 Line 登入
                     string FullName = m_ToolUtilityClass.RetrieveContactEntityByLineUserId(LoginParameter).Attributes["fullname"].ToString();
 
                     LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
@@ -665,7 +665,7 @@ namespace ChurchReport.Controllers
                     {
                         m_InMemoryDataContextSmallGroup.SetupSmallGroupData(FullName, "LineIdLogin", LoginParameter, DateTime.Now, true);
 
-                        ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType; // 看是小組長還是個人回報
+                        ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType; // 看是領袖還是個人回報
                         ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.ListManager.LoginFullName;
                         ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType;
                         #region 繳費與點名是否顯示在選單中
@@ -710,7 +710,7 @@ namespace ChurchReport.Controllers
             }
         }
         #endregion
-        #region 整合式小組長點名
+        #region 整合式領袖點名
         [Route("/Home/IntegrateView/{LoginParameter}")]
         //[CheckSessionOut]
         public ActionResult IntegrateView(string LoginParameter)
@@ -769,8 +769,8 @@ namespace ChurchReport.Controllers
                         }
                     }
 
-                    #region 用小組長回報網頁登入
-                    ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType; // 看是小組長還是個人回報
+                    #region 用領袖回報網頁登入
+                    ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType; // 看是領袖還是個人回報
                     ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.ListManager.LoginFullName;
 
                     ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType;
@@ -813,7 +813,7 @@ namespace ChurchReport.Controllers
                 }
                 else
                 {
-                    #region 小組長 Line 登入
+                    #region 領袖 Line 登入
                     string FullName = m_ToolUtilityClass.RetrieveContactEntityByLineUserId(LoginParameter).Attributes["fullname"].ToString();
 
                     LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
@@ -829,7 +829,7 @@ namespace ChurchReport.Controllers
                     {
                         m_InMemoryDataContextSmallGroup.SetupSmallGroupData(FullName, "LineIdLogin", LoginParameter, DateTime.Now, true);
 
-                        ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType; // 看是小組長還是個人回報
+                        ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType; // 看是領袖還是個人回報
                         ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.ListManager.LoginFullName;
                         ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType;
                         #region 繳費與點名是否顯示在選單中
@@ -943,7 +943,7 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                // 修改小組長牧養主日出席、小組出席、代禱事項
+                // 修改領袖牧養主日出席、小組出席、代禱事項
                 //Task.Run(() => m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.UpdateMember(key, values));
                 //m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.UpdateMember(key, values);
                 Task.Factory.StartNew(() => m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.UpdateMember(key, values), TaskCreationOptions.LongRunning);
@@ -988,10 +988,10 @@ namespace ChurchReport.Controllers
                     );
                 }
 
-                // 刪除小組長牧養主日出席、小組出席、代禱事項
+                // 刪除領袖牧養主日出席、小組出席、代禱事項
                 m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.DeleteMember(key);
 
-                // 刪除小組長牧養主日出席、小組出席、代禱事項
+                // 刪除領袖牧養主日出席、小組出席、代禱事項
                 m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData.DeleteMember(key);
 
                 // 刪除幸福小組主日出席、小組出席、代禱事項
@@ -1019,7 +1019,7 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                // 小組長點名按上傳
+                // 領袖點名按上傳
                 //m_InMemoryDataContextSmallGroup.SmallGroupDataList.UploadIntegrateData();
 
                 return Json(new { status = "1", message = "成功上傳了...." });
@@ -1126,7 +1126,7 @@ namespace ChurchReport.Controllers
             try
             {
                 #region 個人回報網頁選項設定
-                ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType;// 看是小組長還是個人回報
+                ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType;// 看是領袖還是個人回報
                 ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.ListManager.LoginFullName;
                 ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType;
                 ViewBag.HappyType = m_InMemoryDataContextSmallGroup.HappyGroupDataManager.HappyType;
@@ -1376,7 +1376,7 @@ namespace ChurchReport.Controllers
 
 
         #endregion
-        #region 小組長點名及個人回報
+        #region 領袖點名及個人回報
         [Route("/Home/SmallGroupReportView/{LoginParameter}")]
         public ActionResult SmallGroupReportView(string LoginParameter)
         {
@@ -1391,8 +1391,8 @@ namespace ChurchReport.Controllers
 
                 if (LoginParameter == "AccountPassword")
                 {
-                    #region 用小組長回報網頁登入
-                    ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType;// 看是小組長還是個人回報
+                    #region 用領袖回報網頁登入
+                    ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType;// 看是領袖還是個人回報
                     ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.ListManager.LoginFullName;
                     ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType;
                     #region 繳費與點名是否顯示在選單中
@@ -1429,7 +1429,7 @@ namespace ChurchReport.Controllers
                 }
                 else
                 {
-                    #region 小組長 Line 登入
+                    #region 領袖 Line 登入
                     string FullName = m_ToolUtilityClass.RetrieveContactEntityByLineUserId(LoginParameter).Attributes["fullname"].ToString();
 
                     LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
@@ -1445,7 +1445,7 @@ namespace ChurchReport.Controllers
                     {
                         m_InMemoryDataContextSmallGroup.SetupSmallGroupData(FullName, "LineIdLogin", LoginParameter, DateTime.Now, true);
 
-                        ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType;// 看是小組長還是個人回報
+                        ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType;// 看是領袖還是個人回報
                         ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.ListManager.LoginFullName;
                         ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType;
                         #region 繳費與點名是否顯示在選單中
@@ -1548,7 +1548,7 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType;// 看是小組長還是個人回報
+                ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType;// 看是領袖還是個人回報
                 ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.ListManager.LoginFullName;
                 ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType;
                 #region 繳費與點名是否顯示在選單中
@@ -1689,10 +1689,10 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                // 刪除小組長牧養主日出席、小組出席、代禱事項
+                // 刪除領袖牧養主日出席、小組出席、代禱事項
                 m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.DeleteMember(key);
 
-                // 刪除小組長牧養主日出席、小組出席、代禱事項
+                // 刪除領袖牧養主日出席、小組出席、代禱事項
                 m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData.DeleteMember(key);
 
                 // 刪除全部的(也就是維護基本)資料
@@ -1745,7 +1745,7 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType;// 看是小組長還是個人回報
+                ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType;// 看是領袖還是個人回報
                 ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.ListManager.LoginFullName;
                 ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType;
                 #region 繳費與點名是否顯示在選單中
@@ -1893,11 +1893,11 @@ namespace ChurchReport.Controllers
                 // 設定多個組長處理需要的資料
                 m_InMemoryDataContextSmallGroup.ListManager.SetupListManager(m_InMemoryDataContextSmallGroup.ListManager.m_Account, m_InMemoryDataContextSmallGroup.ListManager.m_Password, aSelectDate);
 
-                // 透過取得多小組網頁需要的資料之後，判斷這是多小組還是單一小組長的回報
+                // 透過取得多小組網頁需要的資料之後，判斷這是多小組還是單一領袖的回報
                 string DisplayViewType = m_InMemoryDataContextSmallGroup.ListManager.GetDisplayViewType();
                 if (DisplayViewType == "IntegrateView")
                 {
-                    // 得知這是單一小組長的回報，所以就直接下載整合式網頁所需的資料
+                    // 得知這是單一領袖的回報，所以就直接下載整合式網頁所需的資料
                     m_InMemoryDataContextSmallGroup.ListManager.SetupIntegrateData(m_InMemoryDataContextSmallGroup.ListManager.ActiveListId);
                 }
                 else
@@ -1908,7 +1908,7 @@ namespace ChurchReport.Controllers
                 #endregion
 
                 #region 個人回報網頁選項設定
-                ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType;// 看是小組長還是個人回報
+                ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType;// 看是領袖還是個人回報
                 ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.ListManager.LoginFullName;
                 ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType;
                 #region 繳費與點名是否顯示在選單中
@@ -2025,7 +2025,7 @@ namespace ChurchReport.Controllers
 
                 //if (DisplayViewType == "IntegrateView")
                 //{
-                //    // 得知這是單一小組長的回報，所以就直接下載整合式網頁所需的資料
+                //    // 得知這是單一領袖的回報，所以就直接下載整合式網頁所需的資料
                 //    m_InMemoryDataContextSmallGroup.ListManager.SetupIntegrateData(m_InMemoryDataContextSmallGroup.ListManager.ActiveListId);
                 //}
                 //else
@@ -2064,7 +2064,7 @@ namespace ChurchReport.Controllers
                 {
                     m_InMemoryDataContextSmallGroup.WeeklyReportData.SetupWeeklyReport(m_InMemoryDataContextSmallGroup.m_ListManager.m_Account, m_InMemoryDataContextSmallGroup.m_ListManager.m_Password, m_InMemoryDataContextSmallGroup.SmallGroupDataList.m_SundayDate);
 
-                    ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType;// 看是小組長還是個人回報
+                    ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType;// 看是領袖還是個人回報
                     ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.ListManager.LoginFullName;
                     ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType;
                     #region 繳費與點名是否顯示在選單中
@@ -2093,7 +2093,7 @@ namespace ChurchReport.Controllers
                 else
                 {
 
-                    ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType;// 看是小組長還是個人回報
+                    ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType;// 看是領袖還是個人回報
                     ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.ListManager.LoginFullName;
 
                     if (m_InMemoryDataContextSmallGroup.HappyGroupDataManager.HappyType == "有幸福小組名單")
@@ -2423,7 +2423,7 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                // 修改小組長牧養主日出席、小組出席、代禱事項
+                // 修改領袖牧養主日出席、小組出席、代禱事項
                 //Task.Run(() => m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_HappyGroup.UpdateMember(key, values));
                 m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_HappyGroup.UpdateMember(key, values);
 
@@ -2466,7 +2466,7 @@ namespace ChurchReport.Controllers
                     );
                 }
 
-                // 刪除小組長牧養主日出席、小組出席、代禱事項
+                // 刪除領袖牧養主日出席、小組出席、代禱事項
                 m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_HappyGroup.DeleteMember(key);
 
                 return Ok();
@@ -2579,8 +2579,8 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                #region 用小組長回報網頁登入
-                ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType;// 看是小組長還是個人回報
+                #region 用領袖回報網頁登入
+                ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType;// 看是領袖還是個人回報
                 ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.ListManager.LoginFullName;
                 ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType;
                 #region 繳費與點名是否顯示在選單中
@@ -2634,8 +2634,8 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                #region 用小組長回報網頁登入
-                ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType;// 看是小組長還是個人回報
+                #region 用領袖回報網頁登入
+                ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType;// 看是領袖還是個人回報
                 ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.ListManager.LoginFullName;
                 ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType;
 
@@ -2690,8 +2690,8 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                #region 用小組長回報網頁登入
-                ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType;// 看是小組長還是個人回報
+                #region 用領袖回報網頁登入
+                ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType;// 看是領袖還是個人回報
                 ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.ListManager.LoginFullName;
                 ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType;
                 if (m_InMemoryDataContextSmallGroup.HappyGroupDataManager.HappyType == "有幸福小組名單")
@@ -2747,8 +2747,8 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                #region 用小組長回報網頁登入
-                ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType;// 看是小組長還是個人回報
+                #region 用領袖回報網頁登入
+                ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType;// 看是領袖還是個人回報
                 ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.ListManager.LoginFullName;
                 ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType;
 
@@ -2998,7 +2998,7 @@ namespace ChurchReport.Controllers
             {
                 if ( ScheduleType == "差勤簽核" )
                 {
-                    ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType; // 看是小組長還是個人回報
+                    ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType; // 看是領袖還是個人回報
                     ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.ListManager.LoginFullName;
                     ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType;
                     #region 繳費與點名是否顯示在選單中
@@ -3029,7 +3029,7 @@ namespace ChurchReport.Controllers
                 }
                 else 
                 {
-                    ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType; // 看是小組長還是個人回報
+                    ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType; // 看是領袖還是個人回報
                     ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.ListManager.LoginFullName;
                     ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType;
                     #region 繳費與點名是否顯示在選單中
@@ -3081,7 +3081,7 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType;// 看是小組長還是個人回報
+                ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType;// 看是領袖還是個人回報
                 ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.ListManager.LoginFullName;
                 ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType;
                 #region 繳費與點名是否顯示在選單中
@@ -3211,7 +3211,7 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType;// 看是小組長還是個人回報
+                ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType;// 看是領袖還是個人回報
                 ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.ListManager.LoginFullName;
                 ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType;
                 ViewBag.HappyType = m_InMemoryDataContextSmallGroup.HappyGroupDataManager.HappyType;
@@ -3686,7 +3686,7 @@ namespace ChurchReport.Controllers
             try
             {
                 #region 控制 Navigation 下拉項目
-                ViewBag.LoginType = "小組長"; // 看是小組長還是個人回報
+                ViewBag.LoginType = "領袖"; // 看是領袖還是個人回報
                 ViewBag.LoginFullName = "耶穌";
                 ViewBag.FeeType = "有繳費點名";
                 ViewBag.FeeDataListCount = "繳費與點名尚無資料";
@@ -3884,7 +3884,7 @@ namespace ChurchReport.Controllers
             try
             {
                 #region 控制 Navigation 下拉項目
-                ViewBag.LoginType = "小組長"; // 看是小組長還是個人回報
+                ViewBag.LoginType = "領袖"; // 看是領袖還是個人回報
                 ViewBag.LoginFullName = "耶穌";
                 ViewBag.FeeType = "有繳費點名";
                 ViewBag.FeeDataListCount = "繳費與點名尚無資料";
@@ -3995,7 +3995,7 @@ namespace ChurchReport.Controllers
             try
             {
                 #region 控制 Navigation 下拉項目
-                ViewBag.LoginType = "小組長"; // 看是小組長還是個人回報
+                ViewBag.LoginType = "領袖"; // 看是領袖還是個人回報
                 ViewBag.LoginFullName = "耶穌";
                 ViewBag.FeeType = "有繳費點名";
                 ViewBag.FeeDataListCount = "繳費與點名尚無資料";
@@ -4142,7 +4142,7 @@ namespace ChurchReport.Controllers
             try
             {
                 #region 控制 Navigation 下拉項目
-                ViewBag.LoginType = "小組長"; // 看是小組長還是個人回報
+                ViewBag.LoginType = "領袖"; // 看是領袖還是個人回報
                 ViewBag.LoginFullName = "耶穌";
                 ViewBag.FeeType = "有繳費點名";
                 ViewBag.FeeDataListCount = "繳費與點名尚無資料";
@@ -4252,7 +4252,7 @@ namespace ChurchReport.Controllers
             try
             {
                 #region 控制 Navigation 下拉項目
-                ViewBag.LoginType = "小組長"; // 看是小組長還是個人回報
+                ViewBag.LoginType = "領袖"; // 看是領袖還是個人回報
                 ViewBag.LoginFullName = "耶穌";
                 ViewBag.FeeType = "有繳費點名";
                 ViewBag.FeeDataListCount = "繳費與點名尚無資料";
@@ -4365,7 +4365,7 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                ViewBag.LoginType = "小組長"; // 看是小組長還是個人回報
+                ViewBag.LoginType = "領袖"; // 看是領袖還是個人回報
                 ViewBag.LoginFullName = "耶穌";
                 ViewBag.FeeType = "有繳費點名";
                 ViewBag.FeeDataListCount = "繳費與點名尚無資料";
@@ -4442,7 +4442,7 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                ViewBag.LoginType = "小組長"; // 看是小組長還是個人回報
+                ViewBag.LoginType = "領袖"; // 看是領袖還是個人回報
                 ViewBag.LoginFullName = "耶穌";
                 ViewBag.FeeType = "有繳費點名";
                 ViewBag.FeeDataListCount = "繳費與點名尚無資料";
@@ -4506,7 +4506,7 @@ namespace ChurchReport.Controllers
             {
                 if ( m_InMemoryDataContextSmallGroup.QpayManager.LoginType == "網頁登入" )
                 {
-                    ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType;// 看是小組長還是個人回報
+                    ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType;// 看是領袖還是個人回報
                     ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.ListManager.LoginFullName;
                     ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType;
                     #region 繳費與點名是否顯示在選單中
@@ -4533,7 +4533,7 @@ namespace ChurchReport.Controllers
                 }
                 else
                 {
-                    ViewBag.LoginType = "小組長"; // 看是小組長還是個人回報
+                    ViewBag.LoginType = "領袖"; // 看是領袖還是個人回報
                     ViewBag.LoginFullName = "耶穌";
                     ViewBag.FeeType = "有繳費點名";
                     ViewBag.FeeDataListCount = "繳費與點名尚無資料";
@@ -4631,8 +4631,8 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                #region 用小組長回報網頁登入
-                ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType;// 看是小組長還是個人回報
+                #region 用領袖回報網頁登入
+                ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType;// 看是領袖還是個人回報
                 ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.ListManager.LoginFullName;
                 ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType;
 
@@ -4645,7 +4645,7 @@ namespace ChurchReport.Controllers
                     ViewBag.HappyType = "沒幸福小組名單";
                 }
 
-                ViewBag.LoginType = "小組長"; // 看是小組長還是個人回報
+                ViewBag.LoginType = "領袖"; // 看是領袖還是個人回報
                 ViewBag.LoginFullName = "耶穌";
                 ViewBag.FeeType = "有繳費點名";
                 ViewBag.FeeDataListCount = "繳費與點名尚無資料";
@@ -4682,8 +4682,8 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                #region 用小組長回報網頁登入
-                ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType;// 看是小組長還是個人回報
+                #region 用領袖回報網頁登入
+                ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType;// 看是領袖還是個人回報
                 ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.ListManager.LoginFullName;
                 ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType;
                 #region 繳費與點名是否顯示在選單中
@@ -4756,8 +4756,8 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                #region 用小組長回報網頁登入
-                ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType;// 看是小組長還是個人回報
+                #region 用領袖回報網頁登入
+                ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType;// 看是領袖還是個人回報
                 ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.ListManager.LoginFullName;
                 ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType;
 
@@ -4770,7 +4770,7 @@ namespace ChurchReport.Controllers
                     ViewBag.HappyType = "沒幸福小組名單";
                 }
 
-                ViewBag.LoginType = "小組長"; // 看是小組長還是個人回報
+                ViewBag.LoginType = "領袖"; // 看是領袖還是個人回報
                 ViewBag.LoginFullName = "耶穌";
                 ViewBag.FeeType = "有繳費點名";
                 ViewBag.FeeDataListCount = "繳費與點名尚無資料";
@@ -4807,8 +4807,8 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                #region 用小組長回報網頁登入
-                ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType;// 看是小組長還是個人回報
+                #region 用領袖回報網頁登入
+                ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType;// 看是領袖還是個人回報
                 ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.ListManager.LoginFullName;
                 ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType;
                 #region 繳費與點名是否顯示在選單中
@@ -4953,8 +4953,8 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                #region 用小組長回報網頁登入
-                ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType;// 看是小組長還是個人回報
+                #region 用領袖回報網頁登入
+                ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType;// 看是領袖還是個人回報
                 ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.ListManager.LoginFullName;
                 ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType;
 
@@ -4967,7 +4967,7 @@ namespace ChurchReport.Controllers
                     ViewBag.HappyType = "沒幸福小組名單";
                 }
 
-                ViewBag.LoginType = "小組長"; // 看是小組長還是個人回報
+                ViewBag.LoginType = "領袖"; // 看是領袖還是個人回報
                 ViewBag.LoginFullName = "耶穌";
                 ViewBag.FeeType = "有繳費點名";
                 ViewBag.FeeDataListCount = "繳費與點名尚無資料";
@@ -5004,8 +5004,8 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                #region 用小組長回報網頁登入
-                ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType;// 看是小組長還是個人回報
+                #region 用領袖回報網頁登入
+                ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType;// 看是領袖還是個人回報
                 ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.ListManager.LoginFullName;
                 ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType;
                 #region 繳費與點名是否顯示在選單中
