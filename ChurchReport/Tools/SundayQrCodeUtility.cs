@@ -413,15 +413,59 @@ namespace ChurchReport.Tools
                     return "青年崇拜簽退";
                 }
             }
+            else if (MeetingStatisticsAttribute.Contains("new_prayer_meeting_qr"))
+            {
+                if (m_OnboardType == "on" || m_OnboardType == "On")
+                {
+                    return "禱告會簽到";
+                }
+                else
+                {
+                    return "禱告會簽退";
+                }
+            }
             else if (MeetingStatisticsAttribute.Contains("new_child"))
             {
                 if (m_OnboardType == "on" || m_OnboardType == "On")
                 {
-                    return "僕領之夜簽到";
+                    return "門徒禱告訓練班簽到";
                 }
                 else
                 {
-                    return "僕領之夜簽退";
+                    return "門徒禱告訓練班簽退";
+                }
+            }
+            else if (MeetingStatisticsAttribute.Contains("new_big_disciple_qr"))
+            {
+                if (m_OnboardType == "on" || m_OnboardType == "On")
+                {
+                    return "門徒大聚簽到";
+                }
+                else
+                {
+                    return "門徒大聚簽退";
+                }
+            }
+            else if (MeetingStatisticsAttribute.Contains("new_leadership_small_lecture_qr"))
+            {
+                if (m_OnboardType == "on" || m_OnboardType == "On")
+                {
+                    return "領袖小講堂簽到";
+                }
+                else
+                {
+                    return "領袖小講堂簽退";
+                }
+            }
+            else if (MeetingStatisticsAttribute.Contains("new_leaders_gather_qr"))
+            {
+                if (m_OnboardType == "on" || m_OnboardType == "On")
+                {
+                    return "領袖大聚簽到";
+                }
+                else
+                {
+                    return "領袖大聚簽退";
                 }
             }
             else
@@ -488,8 +532,21 @@ namespace ChurchReport.Tools
                     return "new_yongmen_off_time";
                 }
             }
+            else if (MeetingStatisticsAttribute.Contains("new_prayer_meeting"))
+            {
+                // 禱告會
+                if (m_OnboardType == "on" || m_OnboardType == "On")
+                {
+                    return "new_prayer_meeting_on_time";
+                }
+                else
+                {
+                    return "new_prayer_meeting_off_time";
+                }
+            }
             else if (MeetingStatisticsAttribute.Contains("new_child"))
             {
+                // 門徒訓練班
                 if (m_OnboardType == "on" || m_OnboardType == "On")
                 {
                     return "new_child_on_time";
@@ -497,6 +554,42 @@ namespace ChurchReport.Tools
                 else
                 {
                     return "new_child_off_time";
+                }
+            }
+            else if (MeetingStatisticsAttribute.Contains("new_big_disciple"))
+            {
+                // 門徒大聚
+                if (m_OnboardType == "on" || m_OnboardType == "On")
+                {
+                    return "new_big_disciple_on_time";
+                }
+                else
+                {
+                    return "new_big_disciple_off_time";
+                }
+            }
+            else if (MeetingStatisticsAttribute.Contains("new_leadership_small_lecture"))
+            {
+                // 領袖小講堂
+                if (m_OnboardType == "on" || m_OnboardType == "On")
+                {
+                    return "new_leadership_small_lecture_on_time";
+                }
+                else
+                {
+                    return "new_leadership_small_lecture_off_time";
+                }
+            }
+            else if (MeetingStatisticsAttribute.Contains("new_leaders_gather"))
+            {
+                // 領袖大聚
+                if (m_OnboardType == "on" || m_OnboardType == "On")
+                {
+                    return "new_leaders_gather_on_time";
+                }
+                else
+                {
+                    return "new_leaders_gather_off_time";
                 }
             }
             else
