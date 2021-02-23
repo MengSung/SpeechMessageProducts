@@ -236,12 +236,15 @@ namespace ChurchReport.Tools
             {
                 // 依據掃描網址取得個人聚會與靈修記錄簽到或簽退時間的欄位屬性
                 String aPresentRecordSigningAttribute = "";
+                String aPresentRecordSigningNumberAttribute = ""; // 簽到或簽退的次數欄位屬性
                 if ( m_QrCodeIdString.Contains("@") )
                 {
-                    aPresentRecordSigningAttribute = this.ConvertMeetingStatisticsToPresentRecordAttribute(this.m_MeetingStatisticsAttribute);
+                    // 取得固定的QR Code掃描時間欄位
+                    aPresentRecordSigningAttribute = this.ConvertMeetingStatisticsToPresentRecordAttribute(this.m_MeetingStatisticsAttribute, ref aPresentRecordSigningNumberAttribute);
                 }
                 else
                 {
+                    // 取得自定義的QR Code掃描時間欄位
                     aPresentRecordSigningAttribute = this.GetDynamicPresentRecordAttribute();
                 }
 
@@ -250,7 +253,7 @@ namespace ChurchReport.Tools
                 if (aSigningTime.Year <= 1)
                 {
                     // 還沒簽到及簽退，設定簽到時間，主日出席設為1，更新個人聚會與靈修記錄 + 送出 LINE 訊息
-                    SetPresentRecordTimeAttribute(aRetrievedPresentRecord, aPresentRecordSigningAttribute, "new_sunday_present_this_week");
+                    SetPresentRecordTimeAttribute(aRetrievedPresentRecord, aPresentRecordSigningAttribute, aPresentRecordSigningNumberAttribute, "new_sunday_present_this_week");
                 }
                 else
                 {
@@ -288,19 +291,35 @@ namespace ChurchReport.Tools
                 throw Exception;
             }
         }
-        private void SetPresentRecordTimeAttribute(Entity aRetrievedPresentRecord, String SigningTimeAttribute, String SigningPresentAttribute)
+        private void SetPresentRecordTimeAttribute(Entity aRetrievedPresentRecord, String SigningTimeAttribute, String aPresentRecordSigningNumberAttribute, String SigningPresentAttribute)
         {
             try
             {
                 // 簽到或簽退
                 // 設定簽到或簽退時間
                 m_SigningTime = DateTime.Now;
+
                 // 填寫簽到時間
                 this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aRetrievedPresentRecord, SigningTimeAttribute, m_SigningTime);
-                // 一般小組出席設定為整數1
-                this.m_ToolUtilityClass.SetEntityIntAttribute( ref aRetrievedPresentRecord, SigningPresentAttribute, 1 );
-                // 幸福小組出席設定為整數1
-                this.m_ToolUtilityClass.SetEntityIntAttribute( ref aRetrievedPresentRecord, "new_happy_present", 1 );
+
+                if (SigningTimeAttribute.Contains("sunday") || SigningTimeAttribute.Contains("saturday") || SigningTimeAttribute.Contains("yongmen"))
+                {
+                    // 掃描 : 主日第一堂、主日第二堂、週六崇拜、青年崇拜
+                    // 主日出席設定為整數1
+                    this.m_ToolUtilityClass.SetEntityIntAttribute(ref aRetrievedPresentRecord, SigningPresentAttribute, 1);
+
+                    // 幸福小組出席設定為整數1
+                    this.m_ToolUtilityClass.SetEntityIntAttribute(ref aRetrievedPresentRecord, "new_happy_present", 1);
+                }
+                else
+                {
+                    // 掃描 : 禱告會、門徒訓練班、門徒大聚、領袖小講堂、領袖大聚
+                    if ( aPresentRecordSigningNumberAttribute != "" )
+                    {
+                        // 禱告會、門徒訓練班、門徒大聚、領袖小講堂、領袖大聚出席設定為整數1
+                        this.m_ToolUtilityClass.SetEntityIntAttribute(ref aRetrievedPresentRecord, aPresentRecordSigningNumberAttribute, 1);
+                    }
+                }
 
                 // 更新個人聚會與靈修記錄
                 this.m_ToolUtilityClass.UpdateEntity(ref aRetrievedPresentRecord);
@@ -486,32 +505,37 @@ namespace ChurchReport.Tools
         }
         #endregion
         #region 個人聚會與靈修記錄
-        private String ConvertMeetingStatisticsToPresentRecordAttribute(String MeetingStatisticsAttribute)
+        private String ConvertMeetingStatisticsToPresentRecordAttribute(String MeetingStatisticsAttribute, ref String aPresentRecordSigningNumberAttribute)
         {
             if (MeetingStatisticsAttribute.Contains("new_sunday_first_qr"))
             {
                 if (m_OnboardType == "on" || m_OnboardType == "On")
                 {
+                    // 主日第一堂簽到時間
                     return "new_sunday_first_qr_on_time";
                 }
                 else
                 {
-                    return "new_sunday_first_qr_off";
+                    return "new_sunday_first_qr_off_time";
                 }
             }
             else if (MeetingStatisticsAttribute.Contains("new_sunday_second_qr"))
             {
+                
                 if (m_OnboardType == "on" || m_OnboardType == "On")
                 {
+                    // 主日第二堂簽到時間
                     return "new_sunday_second_qr_on_time";
                 }
                 else
                 {
+                    // 主日第二堂簽退時間
                     return "new_sunday_second_qr_off_time";
                 }
             }
             else if (MeetingStatisticsAttribute.Contains("new_saturday_worship"))
             {
+                // 週六崇拜簽到時間
                 if (m_OnboardType == "on" || m_OnboardType == "On")
                 {
                     return "new_saturday_worship_on_time";
@@ -523,6 +547,7 @@ namespace ChurchReport.Tools
             }
             else if (MeetingStatisticsAttribute.Contains("new_yongmen"))
             {
+                // 青年崇拜簽到時間
                 if (m_OnboardType == "on" || m_OnboardType == "On")
                 {
                     return "new_yongmen_on_time";
@@ -537,10 +562,12 @@ namespace ChurchReport.Tools
                 // 禱告會
                 if (m_OnboardType == "on" || m_OnboardType == "On")
                 {
+                    aPresentRecordSigningNumberAttribute = "new_prayer_meeting_number";
                     return "new_prayer_meeting_on_time";
                 }
                 else
                 {
+                    aPresentRecordSigningNumberAttribute = "new_prayer_meeting_number";
                     return "new_prayer_meeting_off_time";
                 }
             }
@@ -549,10 +576,12 @@ namespace ChurchReport.Tools
                 // 門徒訓練班
                 if (m_OnboardType == "on" || m_OnboardType == "On")
                 {
+                    aPresentRecordSigningNumberAttribute = "new_child_number";
                     return "new_child_on_time";
                 }
                 else
                 {
+                    aPresentRecordSigningNumberAttribute = "new_child_number";
                     return "new_child_off_time";
                 }
             }
@@ -561,10 +590,12 @@ namespace ChurchReport.Tools
                 // 門徒大聚
                 if (m_OnboardType == "on" || m_OnboardType == "On")
                 {
+                    aPresentRecordSigningNumberAttribute = "new_big_disciple_number";
                     return "new_big_disciple_on_time";
                 }
                 else
                 {
+                    aPresentRecordSigningNumberAttribute = "new_big_disciple_number";
                     return "new_big_disciple_off_time";
                 }
             }
@@ -573,10 +604,12 @@ namespace ChurchReport.Tools
                 // 領袖小講堂
                 if (m_OnboardType == "on" || m_OnboardType == "On")
                 {
+                    aPresentRecordSigningNumberAttribute = "new_leadership_small_lecture_number";
                     return "new_leadership_small_lecture_on_time";
                 }
                 else
                 {
+                    aPresentRecordSigningNumberAttribute = "new_leadership_small_lecture_number";
                     return "new_leadership_small_lecture_off_time";
                 }
             }
@@ -585,10 +618,12 @@ namespace ChurchReport.Tools
                 // 領袖大聚
                 if (m_OnboardType == "on" || m_OnboardType == "On")
                 {
+                    aPresentRecordSigningNumberAttribute = "new_leaders_gather_number";
                     return "new_leaders_gather_on_time";
                 }
                 else
                 {
+                    aPresentRecordSigningNumberAttribute = "new_leaders_gather_number";
                     return "new_leaders_gather_off_time";
                 }
             }
