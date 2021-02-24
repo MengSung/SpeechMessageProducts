@@ -126,11 +126,11 @@
 
                 });
             items.AddGroup()
-                .Caption("靈修情況")
+                .Caption("靈修情況").Visible(false)
                 .ColSpan(1)
                 .Items(groupItems =>
                 {
-                    groupItems.AddSimple()
+                    groupItems.AddSimple().Visible(false)
                             .DataField("SpiritualWork")
                             .Label(l => l.Text("讀經次數"))
                             .Editor(e => e
@@ -139,7 +139,7 @@
                                 .DataSource(new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, })
                                 .Hint("讀經次數!如欲更動請與音訊科技聯繫!")
                             );
-                    groupItems.AddSimple()
+                    groupItems.AddSimple().Visible(false)
                             .DataField("MorningPray")
                             .Label(l => l.Text("屬靈書籍"))
                             .Editor(e => e
@@ -148,7 +148,7 @@
                                 .DataSource(new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, })
                                 .Hint("屬靈書籍!如欲更動請與音訊科技聯繫!")
                             );
-                    groupItems.AddSimple()
+                    groupItems.AddSimple().Visible(false)
                             .DataField("GeneralCare")
                             .Label(l => l.Text("禱告次數"))
                             .Editor(e => e
