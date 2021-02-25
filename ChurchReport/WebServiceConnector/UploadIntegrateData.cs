@@ -4202,27 +4202,47 @@ namespace ChurchReport.WebServiceConnector
             {
                 case "牧師師母":
                     return 100000006;
+                case "01. 牧師師母":
+                    return 100000006;
                 case "區牧":
+                    return 100000002;
+                case "011. 區牧":
                     return 100000002;
                 case "區長":
                     return 100000003;
+                case "02. 區長":
+                    return 100000003;
                 case "領袖":
+                    return 100000008;
+                case "03. 領袖":
                     return 100000008;
                 case "門徒":
                     return 100000012;
+                case "04. 門徒":
+                    return 100000012;
                 case "家人":
+                    return 1;
+                case "05. 家人":
                     return 1;
                 case "幸福BEST":
                     return 100000005;
+                case "06. 幸福BEST":
+                    return 100000005;
                 case "未入組":
+                    return 100000004;
+                case "07. 未入組":
                     return 100000004;
                 case "訪客":
                     return 100000000;
+                case "08. 訪客":
+                    return 100000000;
                 case "外教會":
                     return 100000007;
-                case "外教會訪客":
+                case "09. 外教會":
                     return 100000007;
                 case "結案":
+                    return 100000001;
+                case "10. 結案":
                     return 100000001;
                 default:
                     return 100000000;
