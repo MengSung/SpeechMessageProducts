@@ -159,9 +159,8 @@ namespace ChurchReport.Tools
             private const String MUYI_BACK_CHANNEL_ACCESS_TOKEN = "WDWmhzbDlQNgqeAP6vuGbQB53Qy9rUwSLKTdtcfAW34HgH5l1oEGBnFJAMx/U2n2/n2Wa9SbUXDx7WIR5g+/HX1goTNMUJvDWmhP8v6fcFijOnqXPQ3VWef87IFN9i5k+RRHET70B0Njkq6CoM7zoAdB04t89/1O/w1cDnyilFU=";
 
             // iM行動教會 Line 2.0
-            //private const String CHURCH_CHANNEL_ACCESS_TOKEN = "7/Q4Iw9Z71fjo5nGtIdsCFtuJLR+2gGOOSKlGEi3rxYI9PsUHKnjjn0D4DtQN6PWfYaRr+/aUIT42Eg3LLFej7sSXopZcuuntN/bCMsDS6Eszbqcv/jodqYCVNX0iWhoqk8nLtTxH+CuWt4kmFgJmAdB04t89/1O/w1cDnyilFU=";
             private const String IM_CHURCH_CHANNEL_ACCESS_TOKEN = "XwSRWX0RxTtTvY/N6QZQ9YElOMH3OAxBf/3DAmWoXbIK3ymBsXEaU54owfdbPTQiQJPd10cWjC+JIWX6EvOCTbBdHmmJNC6xOOaioB91gPJPyDpl0IHQOQAzLA9J21zZ83SgIF6JwJbxC/8tSXv6RgdB04t89/1O/w1cDnyilFU=";
-            private const String IM_CHURCH_BACK_CHANNEL_ACCESS_TOKEN = "XwSRWX0RxTtTvY/N6QZQ9YElOMH3OAxBf/3DAmWoXbIK3ymBsXEaU54owfdbPTQiQJPd10cWjC+JIWX6EvOCTbBdHmmJNC6xOOaioB91gPJPyDpl0IHQOQAzLA9J21zZ83SgIF6JwJbxC/8tSXv6RgdB04t89/1O/w1cDnyilFU=";
+            private const String IM_CHURCH_BACK_CHANNEL_ACCESS_TOKEN = "YJ1LKtDZyfHwfkbqeHAk+pxNJNZBpOvI446h3brWHDqquFc2ElUCYaseqiW+pAKhwJspguAgGbOlKDymSjSTMydJn7JeY6CRmeyC2Am7urM3CNVNq/2JzAuQ2Vqc7lhPWx8qX5YxS3ve4NjcDceymQdB04t89/1O/w1cDnyilFU=";
 
         #endregion
 
@@ -413,10 +412,11 @@ namespace ChurchReport.Tools
             }
             public async Task SendMessageAsync(string UserId, string Message)
             {
+                this.m_ToolUtilityClass.CreatePushLineMessage(UserId, "Line推播統計:文字", Message);
                 List<ISendMessage> MessageToSend = new List<ISendMessage>
-            {
-                new TextMessage(Message)
-            };
+                {
+                    new TextMessage(Message)
+                };
 
                 await this.m_LineMessagingClient.PushMessageAsync(UserId, MessageToSend);
 
@@ -429,9 +429,9 @@ namespace ChurchReport.Tools
                 try
                 {
                     List<ISendMessage> MessageToSend = new List<ISendMessage>
-                {
-                    new TextMessage(Message)
-                };
+                    {
+                        new TextMessage(Message)
+                    };
 
                     await this.m_LineMessagingClient.MultiCastMessageAsync(To, MessageToSend);
 
@@ -447,10 +447,11 @@ namespace ChurchReport.Tools
             }
             public void SendMessage(string UserId, string Message)
             {
+                this.m_ToolUtilityClass.CreatePushLineMessage(UserId, "Line推播統計:文字", Message);
                 List<ISendMessage> MessageToSend = new List<ISendMessage>
-            {
-                new TextMessage(Message)
-            };
+                {
+                    new TextMessage(Message)
+                };
 
                 this.m_LineMessagingClient.PushMessageAsync(UserId, MessageToSend);
 
@@ -458,10 +459,11 @@ namespace ChurchReport.Tools
             }
             public async Task SendImage(string UserId, string OriginalContenUrl, string PreviewImageUrl)
             {
+                this.m_ToolUtilityClass.CreatePushLineMessage(UserId, "Line推播統計:圖片", "");
                 List<ISendMessage> MessageToSend = new List<ISendMessage>
-            {
-                new ImageMessage(OriginalContenUrl, PreviewImageUrl)
-            };
+                {
+                    new ImageMessage(OriginalContenUrl, PreviewImageUrl)
+                };
 
                 await this.m_LineMessagingClient.PushMessageAsync(UserId, MessageToSend);
 
@@ -470,9 +472,9 @@ namespace ChurchReport.Tools
             public async Task ReplyImage(string ReplyToken, string OriginalContenUrl, string PreviewImageUrl)
             {
                 List<ISendMessage> MessageToSend = new List<ISendMessage>
-            {
-                new ImageMessage(OriginalContenUrl, PreviewImageUrl)
-            };
+                {
+                    new ImageMessage(OriginalContenUrl, PreviewImageUrl)
+                };
 
                 await this.m_LineMessagingClient.ReplyMessageAsync(ReplyToken, MessageToSend);
 
@@ -480,10 +482,11 @@ namespace ChurchReport.Tools
             }
             public async Task SendVideo(string UserId, string OriginalContenUrl, string PreviewImageUrl)
             {
+                this.m_ToolUtilityClass.CreatePushLineMessage(UserId, "Line推播統計:影片", "");
                 List<ISendMessage> MessageToSend = new List<ISendMessage>
-            {
-                new VideoMessage(OriginalContenUrl, PreviewImageUrl)
-            };
+                {
+                    new VideoMessage(OriginalContenUrl, PreviewImageUrl)
+                };
 
                 await this.m_LineMessagingClient.PushMessageAsync(UserId, MessageToSend);
 
@@ -491,10 +494,11 @@ namespace ChurchReport.Tools
             }
             public async Task SendAudeo(string UserId, string OriginalContenUrl, long Duration)
             {
+                this.m_ToolUtilityClass.CreatePushLineMessage(UserId, "Line推播統計:聲音", "");
                 List<ISendMessage> MessageToSend = new List<ISendMessage>
-            {
-                new AudioMessage(OriginalContenUrl, Duration)
-            };
+                {
+                    new AudioMessage(OriginalContenUrl, Duration)
+                };
 
                 await this.m_LineMessagingClient.PushMessageAsync(UserId, MessageToSend);
 
@@ -502,10 +506,11 @@ namespace ChurchReport.Tools
             }
             public async Task SendLocation(string UserId, string Title, string Address, decimal Latitude, decimal Longitude)
             {
+                this.m_ToolUtilityClass.CreatePushLineMessage(UserId, "Line推播統計:座標", "");
                 List<ISendMessage> MessageToSend = new List<ISendMessage>
-            {
-                new LocationMessage(Title, Address, Latitude, Longitude)
-            };
+                {
+                    new LocationMessage(Title, Address, Latitude, Longitude)
+                };
 
                 await this.m_LineMessagingClient.PushMessageAsync(UserId, MessageToSend);
 
@@ -513,10 +518,11 @@ namespace ChurchReport.Tools
             }
             public async Task SendSticker(string UserId, int PackageId, int StickerId)
             {
+                this.m_ToolUtilityClass.CreatePushLineMessage(UserId, "Line推播統計:貼圖", "");
                 List<ISendMessage> MessageToSend = new List<ISendMessage>
-            {
-                new StickerMessage(PackageId.ToString(), StickerId.ToString())
-            };
+                {
+                    new StickerMessage(PackageId.ToString(), StickerId.ToString())
+                };
 
                 await this.m_LineMessagingClient.PushMessageAsync(UserId, MessageToSend);
 
@@ -524,6 +530,7 @@ namespace ChurchReport.Tools
             }
             public async Task PostSerializedTemplate(Entity aLetterEntity, string UserId, String AltText, String ThumbnailImageUrl, String Title, String Text, List<ITemplateAction> aITemplateAction)
             {
+                this.m_ToolUtilityClass.CreatePushLineMessage(UserId, "Line推播統計:Template", "");
                 ISendMessage ButtonsTemplateMessage = new TemplateMessage
                     (
                         AltText,
@@ -550,6 +557,7 @@ namespace ChurchReport.Tools
             {
                 try
                 {
+                    this.m_ToolUtilityClass.CreatePushLineMessage(UserId, "Line推播統計:Template", "");
                     ISendMessage ButtonsTemplateMessage = new TemplateMessage
                     (
                         AltText,
@@ -564,9 +572,9 @@ namespace ChurchReport.Tools
                      );
 
                     List<ISendMessage> MessageToSend = new List<ISendMessage>
-                {
-                    ButtonsTemplateMessage,
-                };
+                    {
+                        ButtonsTemplateMessage,
+                    };
 
                     await this.m_LineMessagingClient.PushMessageAsync(UserId, MessageToSend);
 
@@ -581,14 +589,12 @@ namespace ChurchReport.Tools
 
             public async Task PostSerializedFlex(string UserId, FlexMessage aFlexMessage)
             {
+            this.m_ToolUtilityClass.CreatePushLineMessage(UserId, "Line推播統計:Flex", "");
                 await this.m_LineMessagingClient.PushMessageAsync(UserId, new List<ISendMessage> { aFlexMessage });
             }
-
-
-
-
             public async Task PostSerializedConfirm(string UserId, String AltText, String Text, List<ITemplateAction> aITemplateAction)
             {
+                this.m_ToolUtilityClass.CreatePushLineMessage(UserId, "Line推播統計:Confirm", "");
                 ISendMessage ConfirmTemplateMessage = new TemplateMessage
                     (
                         AltText,
@@ -596,14 +602,15 @@ namespace ChurchReport.Tools
                     );
 
                 List<ISendMessage> MessageToSend = new List<ISendMessage>
-            {
-                ConfirmTemplateMessage,
-            };
+                {
+                    ConfirmTemplateMessage,
+                };
 
                 await this.m_LineMessagingClient.PushMessageAsync(UserId, MessageToSend);
             }
             public async Task PostSerializedImageMap(string UserId, string AltText, string ImageUrl, int BaseWidth, int Basehight, List<IImagemapAction> aImagemapAction)
             {
+                this.m_ToolUtilityClass.CreatePushLineMessage(UserId, "Line推播統計:ImageMap", "");
                 ISendMessage ImageMapTemplateMessage = new ImagemapMessage
                         (
                             ImageUrl, AltText,
@@ -612,9 +619,9 @@ namespace ChurchReport.Tools
                         );
 
                 List<ISendMessage> MessageToSend = new List<ISendMessage>
-            {
-                ImageMapTemplateMessage,
-            };
+                {
+                    ImageMapTemplateMessage,
+                };
 
                 await this.m_LineMessagingClient.PushMessageAsync(UserId, MessageToSend);
 

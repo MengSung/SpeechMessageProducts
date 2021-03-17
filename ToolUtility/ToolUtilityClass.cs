@@ -179,7 +179,8 @@ namespace ToolUtilityNameSpace
 
         // 是否真的執行 CRM 2011 的 新增、修改、刪除
         private const bool EXCUTION_FLAG = true;
-        //private const bool EXCUTION_FLAG = false;
+        // 是否真的執行 追蹤Line訊息量
+        private const bool EXCUTION_TRACE_LINE = true;
 
         #endregion
         #region 除錯用參數
@@ -3902,34 +3903,35 @@ namespace ToolUtilityNameSpace
                 throw e;
             }
         }
-        public EntityCollection RetrieveContactCollectionByLineId(String LineId)
+        public Entity RetrieveContactCollectionByLineId(String LineId)
         {
             try
             {
                 //lock (m_RetrieveContactLocker)
+                //{
+                //  Create query using querybyattribute
+                QueryByAttribute querybyexpression = new QueryByAttribute("contact");
+                querybyexpression.ColumnSet = new ColumnSet();
+                querybyexpression.ColumnSet.AllColumns = true;
+                //  Attribute to query
+                querybyexpression.Attributes.AddRange("new_lineid", "statecode");
+                //  Value of queried attribute to return
+                querybyexpression.Values.AddRange(LineId, 0);
+
+                //  Query passed to the service proxy
+                EntityCollection retrieved;
+
+                retrieved = this.m_OrganizationService.RetrieveMultiple(querybyexpression);
+
+                if (retrieved.Entities.Count > 0)
                 {
-                    //  Create query using querybyattribute
-                    QueryByAttribute querybyexpression = new QueryByAttribute("contact");
-                    querybyexpression.ColumnSet = new ColumnSet();
-                    querybyexpression.ColumnSet.AllColumns = true;
-                    //  Attribute to query
-                    querybyexpression.Attributes.AddRange("new_lineid", "statecode");
-                    //  Value of queried attribute to return
-                    querybyexpression.Values.AddRange(LineId, 0);
-
-                    //  Query passed to the service proxy
-                    //EntityCollection retrieved = aOrganizationService.RetrieveMultiple(querybyexpression);
-
-                    if (CRM_TYPE == "DYNAMICS365")
-                    {
-                        return this.m_OrganizationService.RetrieveMultiple(querybyexpression);
-                    }
-                    else
-                    {
-                        return this.m_Crm2011OrganizationService.RetrieveMultiple(querybyexpression);
-                    }
-
+                    return retrieved.Entities[0];
                 }
+                else
+                {
+                    return null;
+                }
+                //}
             }
             catch (System.Exception e)
             {
@@ -5952,6 +5954,59 @@ namespace ToolUtilityNameSpace
             {
                 String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
 
+                throw e;
+            }
+        }
+        #endregion
+        #region 追蹤及統計用的Line訊息
+        public void CreatePushLineMessage(string UserId, string Subject, string Message)
+        {
+            try
+            {
+                if (EXCUTION_TRACE_LINE == true)
+                {
+                    Entity aContact = RetrieveContactCollectionByLineId(UserId);
+
+                    if (aContact != null)
+                    {
+                        Entity aEntity = new Entity("letter");
+                        SetEntityStringAttribute(ref aEntity, "subject", Subject);
+                        SetEntityStringAttribute(ref aEntity, "description", Message);
+                        SetEntityStringAttribute(ref aEntity, "new_displayed_lineid", UserId);
+                        SetEntityLookUpAttribute(ref aEntity, "regardingobjectid", "contact", aContact.Id);
+
+                        SetEntityDateTimeAttribute(ref aEntity, "scheduledend", DateTime.Now);
+
+                        //方向=>撥出
+                        SetEntityBoolAttribute(ref aEntity, "directioncode", true);
+
+                        //計數=>1
+                        SetEntityIntAttribute(ref aEntity, "new_count", 1);
+
+                        //設定訊息種類為文字 
+                        SetOptionSetAttribute(ref aEntity, "new_message_category", 100000000);
+
+                        Entity Fromparty = new Entity("activityparty");
+
+                        Fromparty["partyid"] = new EntityReference("contact", aContact.Id);
+
+                        aEntity["from"] = new Entity[] { Fromparty };
+                        aEntity["to"] = new Entity[] { Fromparty };
+
+                        // 新增Line訊息
+                        this.CreateEntity(aEntity);
+
+                        return;
+                    }
+                    else
+                    {
+                        return;
+                    }
+                }
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
                 throw e;
             }
         }
