@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using Line.Messaging;
+using ToolUtilityNameSpace;
 
 namespace ToolUtility
 {
@@ -12,6 +13,8 @@ namespace ToolUtility
     {
         #region 初始化設定
         private LineMessagingClient m_LineMessagingClient { get; }
+
+        ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
 
         public PushUtility(LineMessagingClient LineMessagingClient)
         {
@@ -38,6 +41,7 @@ namespace ToolUtility
         {
             try
             {
+                this.m_ToolUtilityClass.CreatePushLineMessage(UserId, "Line推播統計:文字", Message);
                 List<ISendMessage> MessageToSend = new List<ISendMessage>
                 {
                     new TextMessage(Message)
@@ -59,6 +63,8 @@ namespace ToolUtility
         {
             try
             {
+                this.m_ToolUtilityClass.CreatePushLineMessage(To, "Line推播統計:文字", Message);
+
                 List<ISendMessage> MessageToSend = new List<ISendMessage>
                 {
                     new TextMessage(Message)
@@ -80,6 +86,7 @@ namespace ToolUtility
         {
             try
             {
+                this.m_ToolUtilityClass.CreatePushLineMessage(UserId, "Line推播統計:圖片", "");
                 List<ISendMessage> MessageToSend = new List<ISendMessage>
                 {
                     new ImageMessage(OriginalContenUrl, PreviewImageUrl)
@@ -93,14 +100,14 @@ namespace ToolUtility
             {
                 String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
 
-                throw e;
+                //throw e;
             }
         }
         public async Task SendVideo(string UserId, string OriginalContenUrl, string PreviewImageUrl)
         {
             try
             {
-                List<ISendMessage> MessageToSend = new List<ISendMessage>
+                this.m_ToolUtilityClass.CreatePushLineMessage(UserId, "Line推播統計:影片", ""); List<ISendMessage> MessageToSend = new List<ISendMessage>
                 {
                     new VideoMessage(OriginalContenUrl, PreviewImageUrl)
                 };
@@ -113,14 +120,14 @@ namespace ToolUtility
             {
                 String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
 
-                throw e;
+                //throw e;
             }
         }
         public async Task SendAudeo(string UserId, string OriginalContenUrl, long Duration)
         {
             try
             {
-                List<ISendMessage> MessageToSend = new List<ISendMessage>
+                this.m_ToolUtilityClass.CreatePushLineMessage(UserId, "Line推播統計:聲音", ""); List<ISendMessage> MessageToSend = new List<ISendMessage>
                 {
                     new AudioMessage(OriginalContenUrl, Duration)
                 };
@@ -133,13 +140,14 @@ namespace ToolUtility
             {
                 String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
 
-                throw e;
+                //throw e;
             }
         }
         public async Task SendLocation(string UserId, string Title, string Address, decimal Latitude, decimal Longitude)
         {
             try
             {
+                this.m_ToolUtilityClass.CreatePushLineMessage(UserId, "Line推播統計:座標", "");
                 List<ISendMessage> MessageToSend = new List<ISendMessage>
                 {
                     new LocationMessage(Title, Address, Latitude, Longitude)
@@ -153,13 +161,14 @@ namespace ToolUtility
             {
                 String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
 
-                throw e;
+                //throw e;
             }
         }
         public async Task SendSticker(string UserId, int PackageId, int StickerId)
         {
             try
             {
+                this.m_ToolUtilityClass.CreatePushLineMessage(UserId, "Line推播統計:貼圖", "");
                 List<ISendMessage> MessageToSend = new List<ISendMessage>
                 {
                     new StickerMessage(PackageId.ToString(), StickerId.ToString())
@@ -173,13 +182,14 @@ namespace ToolUtility
             {
                 String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
 
-                throw e;
+                //throw e;
             }
         }
         public async Task PostSerializedTemplate(string UserId, String AltText, String ThumbnailImageUrl, String Title, String Text, List<ITemplateAction> aITemplateAction)
         {
             try
             {
+                this.m_ToolUtilityClass.CreatePushLineMessage(UserId, "Line推播統計:Template", "");
                 ISendMessage ButtonsTemplateMessage = new TemplateMessage
                 (
                     AltText,
@@ -205,13 +215,14 @@ namespace ToolUtility
             {
                 String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
 
-                throw e;
+                //throw e;
             }
         }
         public async Task PostSerializedConfirm(string UserId, String AltText, String Text, List<ITemplateAction> aITemplateAction)
         {
             try
             {
+                this.m_ToolUtilityClass.CreatePushLineMessage(UserId, "Line推播統計:Confirm", "");
                 ISendMessage ConfirmTemplateMessage = new TemplateMessage
                 (
                     AltText,
@@ -229,13 +240,14 @@ namespace ToolUtility
             {
                 String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
 
-                throw e;
+                //throw e;
             }
         }
         public async Task PostSerializedImageMap(string UserId, string AltText, string ImageUrl, int BaseWidth, int Basehight, List<IImagemapAction> aImagemapAction)
         {
             try
             {
+                this.m_ToolUtilityClass.CreatePushLineMessage(UserId, "Line推播統計:ImageMap", "");
                 ISendMessage ImageMapTemplateMessage = new ImagemapMessage
                     (
                         ImageUrl, AltText,
@@ -255,7 +267,7 @@ namespace ToolUtility
             {
                 String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
 
-                throw e;
+                //throw e;
             }
         }
         public async Task<String> AddRichMenuMessage(string UserId)

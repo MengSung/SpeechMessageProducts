@@ -6010,6 +6010,60 @@ namespace ToolUtilityNameSpace
                 throw e;
             }
         }
+        public void CreatePushLineMessage(IList<string> To, string Subject, string Message)
+        {
+            try
+            {
+                if (EXCUTION_TRACE_LINE == true)
+                {
+                    foreach (String UserId in To)
+                    {
+                        Entity aContact = RetrieveContactCollectionByLineId(UserId);
+
+                        if (aContact != null)
+                        {
+                            Entity aEntity = new Entity("letter");
+                            SetEntityStringAttribute(ref aEntity, "subject", Subject);
+                            SetEntityStringAttribute(ref aEntity, "description", Message);
+                            SetEntityStringAttribute(ref aEntity, "new_displayed_lineid", UserId);
+                            SetEntityLookUpAttribute(ref aEntity, "regardingobjectid", "contact", aContact.Id);
+
+                            SetEntityDateTimeAttribute(ref aEntity, "scheduledend", DateTime.Now);
+
+                            //方向=>撥出
+                            SetEntityBoolAttribute(ref aEntity, "directioncode", true);
+
+                            //計數=>1
+                            SetEntityIntAttribute(ref aEntity, "new_count", 1);
+
+                            //設定訊息種類為文字 
+                            SetOptionSetAttribute(ref aEntity, "new_message_category", 100000000);
+
+                            Entity Fromparty = new Entity("activityparty");
+
+                            Fromparty["partyid"] = new EntityReference("contact", aContact.Id);
+
+                            aEntity["from"] = new Entity[] { Fromparty };
+                            aEntity["to"] = new Entity[] { Fromparty };
+
+                            // 新增Line訊息
+                            this.CreateEntity(aEntity);
+
+                            return;
+                        }
+                        else
+                        {
+                            return;
+                        }
+                    }
+                }
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                throw e;
+            }
+        }
         #endregion
         #region 將連絡人加入或移除至名單
 
