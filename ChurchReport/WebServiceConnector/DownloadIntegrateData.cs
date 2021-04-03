@@ -459,6 +459,21 @@ namespace ChurchReport.WebServiceConnector
                         #region// 小組點名
                         bool aSmallGroupPresent = this.m_ToolUtilityClass.GetEntityIntAttribute(PresentRecordEntity, "new_group_present_this_week") > 0 ? true : false;
                         #endregion
+                        #region// 禱告會次數
+                        bool aPrayerMeeting = this.m_ToolUtilityClass.GetEntityIntAttribute(PresentRecordEntity, "new_prayer_meeting_number") > 0 ? true : false;
+                        #endregion
+                        #region// 門徒訓練班次數
+                        bool aChild = this.m_ToolUtilityClass.GetEntityIntAttribute(PresentRecordEntity, "new_child_number") > 0 ? true : false;
+                        #endregion
+                        #region// 門徒大聚次數
+                        bool aBigDisciple = this.m_ToolUtilityClass.GetEntityIntAttribute(PresentRecordEntity, "new_big_disciple_number") > 0 ? true : false;
+                        #endregion
+                        #region// 領袖小講堂次數
+                        bool aLeadershipSmallLecture = this.m_ToolUtilityClass.GetEntityIntAttribute(PresentRecordEntity, "new_leadership_small_lecture_number") > 0 ? true : false;
+                        #endregion
+                        #region// 領袖大聚次數
+                        bool aLeadersGather = this.m_ToolUtilityClass.GetEntityIntAttribute(PresentRecordEntity, "new_leaders_gather_number") > 0 ? true : false;
+                        #endregion
                         #region// 決志
                         bool aDecision = this.m_ToolUtilityClass.GetEntityIntAttribute(PresentRecordEntity, "new_happy_decision") > 0 ? true : false;
                         #endregion
@@ -621,6 +636,11 @@ namespace ChurchReport.WebServiceConnector
                                     PrayItem = aNote,
                                     Sunday = aSundayPresent, //主日出席
                                     SmallGroup = aSmallGroupPresent,//小組出席
+                                    PrayerMeeting = aPrayerMeeting,// 禱告會次數
+                                    Child = aChild,// 門徒訓練班次數
+                                    BigDisciple = aBigDisciple,// 門徒大聚次數
+                                    LeadershipSmallLecture = aLeadershipSmallLecture,// 領袖小講堂次數
+                                    LeadersGather = aLeadersGather,// 領袖大聚次數
                                     Decision = aDecision, //決志
                                     #region 新人跟進關懷
                                     FollowUpWeek = aFollowUpWeek,
@@ -986,6 +1006,66 @@ namespace ChurchReport.WebServiceConnector
                     this.m_ToolUtilityClass.SetEntityDoubleAttribute(ref aPresentRecord, "new_small_group_rate", 0);
                 }
                 #endregion
+
+
+
+
+
+                #region 禱告會次數
+                if (aMemberInfomation.PrayerMeeting == true)
+                {
+                    this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_prayer_meeting_number", 1);
+                }
+                else
+                {
+                    this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_prayer_meeting_number", 0);
+                }
+                #endregion
+
+                #region 門徒訓練班次數
+                if (aMemberInfomation.Child == true)
+                {
+                    this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_child_number", 1);
+                }
+                else
+                {
+                    this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_child_number", 0);
+                }
+                #endregion
+
+                #region 門徒大聚次數
+                if (aMemberInfomation.BigDisciple == true)
+                {
+                    this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_big_disciple_number", 1);
+                }
+                else
+                {
+                    this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_big_disciple_number", 0);
+                }
+                #endregion
+
+                #region 領袖小講堂次數
+                if (aMemberInfomation.LeadershipSmallLecture == true)
+                {
+                    this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_leadership_small_lecture_number", 1);
+                }
+                else
+                {
+                    this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_leadership_small_lecture_number", 0);
+                }
+                #endregion
+
+                #region 領袖大聚次數
+                if (aMemberInfomation.Sunday == true)
+                {
+                    this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_leaders_gather_number", 1);
+                }
+                else
+                {
+                    this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_leaders_gather_number", 0);
+                }
+                #endregion
+
                 #region 設定附註或是代禱事項
 
                 // iM行動教會

@@ -66,8 +66,13 @@ namespace ChurchReport.Models {
         public string SmallGroupName { get; set; }
         public string SectionName { get; set; }
         public string PrayItem { get; set; }
-        public bool Sunday { get; set; } // 主日出席
-        public bool SmallGroup { get; set; } // 小組出席
+        public bool Sunday { get; set; }                    // 主日出席
+        public bool SmallGroup { get; set; }                // 小組出席
+        public bool PrayerMeeting { get; set; }             // 禱告會
+        public bool Child { get; set; }                     // 門徒禱告訓練班
+        public bool BigDisciple { get; set; }               // 門徒大聚
+        public bool LeadershipSmallLecture { get; set; }    // 領袖小講堂
+        public bool LeadersGather { get; set; }             // 領袖大聚
         public bool Decision { get; set; } // 決志
 
         public int StateID1 { get; set; }
