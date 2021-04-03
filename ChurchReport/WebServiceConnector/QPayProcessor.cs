@@ -92,18 +92,21 @@ namespace ChurchReport.WebServiceConnector
                 Guid aCreatedFeeId = CreateFee(LineLoginContact, QpayModel);
                 Entity aFeeToUpdate = this.m_ToolUtilityClass.RetrieveEntity("new_fee", aCreatedFeeId);
 
+                // 產品名稱加入姓名
+                QpayModel.FullName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "fullname");
+
                 if (QpayModel.PayWay == "信用卡" || QpayModel.PayWay == "銀聯卡")
                 {
                     CreOrder CreatedCardOrder;
                     if (QpayModel.PayWay == "信用卡")
                     {
                         // 信用卡
-                        CreatedCardOrder = await CreOrderCard(QpayModel.Amount, QpayModel.Category, DateTime.Now.ToString("yyyyMMddhhmmssfff"), aCreatedFeeId.ToString(), "C", "ONE", "", 0, "M", 1, QpayModel.SelectedCreditCard);
+                        CreatedCardOrder = await CreOrderCard(QpayModel.Amount, QpayModel.Category + "-" + QpayModel.FullName, DateTime.Now.ToString("yyyyMMddhhmmssfff"), aCreatedFeeId.ToString(), "C", "ONE", "", 0, "M", 1, QpayModel.SelectedCreditCard);
                     }
                     else
                     {
                         // 銀聯卡
-                        CreatedCardOrder = await CreOrderCard(QpayModel.Amount, QpayModel.Category, DateTime.Now.ToString("yyyyMMddhhmmssfff"), aCreatedFeeId.ToString(), "C", "CUP", "", 0, "M", 1, QpayModel.SelectedCreditCard);
+                        CreatedCardOrder = await CreOrderCard(QpayModel.Amount, QpayModel.Category + "-" + QpayModel.FullName, DateTime.Now.ToString("yyyyMMddhhmmssfff"), aCreatedFeeId.ToString(), "C", "CUP", "", 0, "M", 1, QpayModel.SelectedCreditCard);
                     }
                     if (CreatedCardOrder.CardParam != null && CreatedCardOrder.CardParam.CardPayURL != null)
                     {
@@ -124,7 +127,7 @@ namespace ChurchReport.WebServiceConnector
                     //BONUS 紅利折抵
                     //CUP 銀聯卡一次付清
                     //REGULAR 定期定額扣款
-                    CreOrder CreatedCardOrder = await CreOrderCard(QpayModel.Amount, QpayModel.Category, DateTime.Now.ToString("yyyyMMddhhmmssfff"), aCreatedFeeId.ToString(), "C", "REGULAR", "", TransferToDeductTotalNum(QpayModel.DeductTotalNumber), "M", 1, QpayModel.SelectedCreditCard);
+                    CreOrder CreatedCardOrder = await CreOrderCard(QpayModel.Amount, QpayModel.Category + "-" + QpayModel.FullName, DateTime.Now.ToString("yyyyMMddhhmmssfff"), aCreatedFeeId.ToString(), "C", "REGULAR", "", TransferToDeductTotalNum(QpayModel.DeductTotalNumber), "M", 1, QpayModel.SelectedCreditCard);
 
                     // 用剛剛建立的收費單，填寫訂單編號
                     UpdateFee(ref aFeeToUpdate, CreatedCardOrder.OrderNo, "", "");
@@ -138,7 +141,7 @@ namespace ChurchReport.WebServiceConnector
                     //BONUS 紅利折抵
                     //CUP 銀聯卡一次付清
                     //REGULAR 定期定額扣款
-                    CreOrder CreatedCardOrder = await CreOrderCard(QpayModel.Amount, QpayModel.Category, DateTime.Now.ToString("yyyyMMddhhmmssfff"), aCreatedFeeId.ToString(), "M", "ONE", "", 0, "M", 1, QpayModel.SelectedCreditCard);
+                    CreOrder CreatedCardOrder = await CreOrderCard(QpayModel.Amount, QpayModel.Category + "-" + QpayModel.FullName, DateTime.Now.ToString("yyyyMMddhhmmssfff"), aCreatedFeeId.ToString(), "M", "ONE", "", 0, "M", 1, QpayModel.SelectedCreditCard);
 
                     // 用剛剛建立的收費單，填寫訂單編號
                     UpdateFee(ref aFeeToUpdate, CreatedCardOrder.OrderNo, "", "");
@@ -339,8 +342,9 @@ namespace ChurchReport.WebServiceConnector
             try
             {
                 #region 建立收費單
+                QpayModel.FullName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "fullname");
 
-                CreOrder CreatedAtmOrder = await CreateOrderATM(QpayModel.Amount, QpayModel.Category, DateTime.Now.ToString("yyyyMMddhhmmssfff"), aCreatedFeeId.ToString());
+                CreOrder CreatedAtmOrder = await CreateOrderATM(QpayModel.Amount, QpayModel.Category + "-" + QpayModel.FullName, DateTime.Now.ToString("yyyyMMddhhmmssfff"), aCreatedFeeId.ToString());
 
                 // 用剛剛建立的收費單，填寫訂單編號
                 UpdateFee(ref aFeeToUpdate, "", CreatedAtmOrder.OrderNo, CreatedAtmOrder.ATMParam.AtmPayNo);
