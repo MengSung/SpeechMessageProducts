@@ -30,21 +30,27 @@ namespace ChurchReport.WebServiceConnector
         #region 資料區
         // 商店編號
         // SANDBOX 測試用
-        //string m_ShopNo = "NA0149_001";
+        string m_ShopNo = "NA0149_001";
         // 永豐金流正式環境
-        string m_ShopNo = "DA2424_001";
+        //string m_ShopNo = "DA2424_001";
 
         // 使用 LineMessageApi WebHook
         //private const String RETURN_URL = "https://yhchurchback.speechmessage.com.tw:454/api/QPayCard/QPayReturnUrl";
-        // 使用 ChurchReport 當作 WebHook
-        private const String RETURN_URL = "https://imchurch.speechmessage.com.tw:220/api/QPayCard/QPayReturnUrl";
 
-        private const String BACKEND_URL = "http://QPaybackend.speechmessage.com.tw/api/QPayAtm/QPayBackendUrl"; // 雲端機房
-        //private const String BACKEND_URL = "http://QPbackendback.speechmessage.com.tw/api/QPayAtm/QPayBackendUrl";// 公司內部開發
+        // 使用 ChurchReport 當作 WebHook
+        #region 公司內部開發
+        // 使用 ChurchReport 當作 WebHook
+        private const String RETURN_URL = "https://imchurchback.speechmessage.com.tw:463/api/QPayCard/QPayReturnUrl";
+        private const String BACKEND_URL = "http://QPbackendback.speechmessage.com.tw/api/QPayAtm/QPayBackendUrl";// 公司內部開發
+        #endregion
+        #region 雲端機房
+        //private const String RETURN_URL = "https://imchurch.speechmessage.com.tw:220/api/QPayCard/QPayReturnUrl";
+        //private const String BACKEND_URL = "http://QPaybackend.speechmessage.com.tw/api/QPayAtm/QPayBackendUrl"; // 雲端機房
+        #endregion
 
         // 客製化
         // iM行動教會
-        private const String CHANNEL_ACCESS_TOKEN = @"XwSRWX0RxTtTvY/N6QZQ9YElOMH3OAxBf/3DAmWoXbIK3ymBsXEaU54owfdbPTQiQJPd10cWjC+JIWX6EvOCTbBdHmmJNC6xOOaioB91gPJPyDpl0IHQOQAzLA9J21zZ83SgIF6JwJbxC/8tSXv6RgdB04t89/1O/w1cDnyilFU=";
+        private const String CHANNEL_ACCESS_TOKEN = @"YJ1LKtDZyfHwfkbqeHAk+pxNJNZBpOvI446h3brWHDqquFc2ElUCYaseqiW+pAKhwJspguAgGbOlKDymSjSTMydJn7JeY6CRmeyC2Am7urM3CNVNq/2JzAuQ2Vqc7lhPWx8qX5YxS3ve4NjcDceymQdB04t89/1O/w1cDnyilFU=";
 
         //private LinePayClient m_LinePayClient { get; }
 
