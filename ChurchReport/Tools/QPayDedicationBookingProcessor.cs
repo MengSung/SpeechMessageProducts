@@ -241,7 +241,7 @@ namespace ChurchReport.Tools
                 this.m_ToolUtilityClass.SetEntityMoneyAttribute(ref aFeeToCreated, "new_fee_shoud_pay", this.m_ToolUtilityClass.GetEntityMoneyAttribute( aDedicationBookingEntity, "new_amount_per_stage"));
 
                 // 收費單實現阿拉伯數字到大寫中文的轉換，金額轉為大寫金額
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeToCreated, "new_big_chinese_number", MoneyToChinese(this.m_ToolUtilityClass.GetEntityMoneyAttribute(aDedicationBookingEntity, "new_amount_per_stage").ToString()));
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeToCreated, "new_big_chinese_number", MoneyToChinese(this.m_ToolUtilityClass.GetEntityMoneyAttribute(aDedicationBookingEntity, "new_amount_per_stage").Value.ToString()));
 
                 // 收費單付款方式，預設是信用卡
                 this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeToCreated, "new_pay_way", 100000001);
