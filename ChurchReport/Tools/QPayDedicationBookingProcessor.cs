@@ -12,6 +12,7 @@ namespace ChurchReport.Tools
 {
     public class QPayDedicationBookingProcessor : Controller, IDisposable
     {
+        #region 資料區
         private LineMessagingClient m_LineMessagingClient { get; }
 
         private PushUtility m_PushUtility { get; }
@@ -28,7 +29,8 @@ namespace ChurchReport.Tools
 
         // 胡夢嵩回傳　EXCEPTION　專用的ＩＤ
         private const String MENGSUNG_LINE_ID = @"U7638e4ed509708a3573ba6d69970583d";
-
+        #endregion
+        #region 初始化
         public QPayDedicationBookingProcessor()
         {
             this.m_LineMessagingClient = new LineMessagingClient(SPEECHMESSAGE_CHANNEL_ACCESS_TOKEN);
@@ -73,21 +75,17 @@ namespace ChurchReport.Tools
         }
         #endregion
 
-        //[HttpGet]
-        //[Route("QPayReturnUrl")]
-        //public async Task<IActionResult> QPayReturnUrl(int? id = 0)
-        //{
-        //    return new OkObjectResult("付款結果可能成功");
-        //}
-
+        #endregion
+        #region 主程式
         public ActionResult QPayDedicationBookingProcessorReturnUrl(string ShopNo, String PayToken, QryOrderPay aQryOrderPay)
         {
             try
             {
                 //m_PushUtility.SendMessage(MENGSUNG_LINE_ID, "QPayReturnUrl_001");
 
-                Entity aFeeEntity = this.m_ToolUtilityClass.RetrieveEntity("new_dedication_booking", new Guid(aQryOrderPay.TSResultContent.Param1));
-                if (aFeeEntity == null)
+                Entity aDedicationBookingEntity = this.m_ToolUtilityClass.RetrieveEntity("new_dedication_booking", new Guid(aQryOrderPay.TSResultContent.Param1));
+
+                if (aDedicationBookingEntity == null)
                 {
                     if (aQryOrderPay.Status == "S" && aQryOrderPay.TSResultContent.Status == "S")
                     {
@@ -102,8 +100,12 @@ namespace ChurchReport.Tools
                 }
                 else { }
 
+                //處理認獻單定期定額的第幾期字串
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aDedicationBookingEntity, "new_paid_period", ProcessStageNumber(aQryOrderPay.TSResultContent.OrderNo));
+                this.m_ToolUtilityClass.UpdateEntity(ref aDedicationBookingEntity);
+
                 // 取得付款人
-                Entity aContact = this.m_ToolUtilityClass.RetrieveEntity("contact", this.m_ToolUtilityClass.GetEntityLookupAttribute(aFeeEntity, "new_contact_new_fee"));
+                Entity aContact = this.m_ToolUtilityClass.RetrieveEntity("contact", this.m_ToolUtilityClass.GetEntityLookupAttribute(aDedicationBookingEntity, "new_contact_new_dedication_booking"));
                 // 取得付款人姓名
                 String aFullName = this.m_ToolUtilityClass.GetEntityStringAttribute(aContact, "fullname");
                 // 取得付款人 Line Id
@@ -121,82 +123,37 @@ namespace ChurchReport.Tools
                                      //"這是 ChurcchReport Webhook!!" + Environment.NewLine +
                                      "--------------------" + Environment.NewLine;
 
+
+                CreateFee(aContact, aDedicationBookingEntity, aQryOrderPay, Description);
+
+                #region// 設定連絡人信用卡資訊
+                if (aQryOrderPay.TSResultContent.CCToken != "")
+                {
+                    String VisaInfo = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContact, "new_visa_info");
+
+                    if (IsCreditCardInList(aContact, aQryOrderPay) != true)
+                    {
+                        VisaInfo =
+                                aQryOrderPay.TSResultContent.CCToken + "，" +
+                                aQryOrderPay.TSResultContent.LeftCCNo + "，" +
+                                aQryOrderPay.TSResultContent.RightCCNo + "，" +
+                                //aQryOrderPay.TSResultContent.AuthCode + "，" +
+                                aQryOrderPay.TSResultContent.CCExpDate +
+                                "|" + VisaInfo;
+
+                        this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContact, "new_visa_info", VisaInfo);
+
+                        this.m_ToolUtilityClass.UpdateEntity(ref aContact);
+                    }
+                }
+                #endregion
+
                 if (aQryOrderPay.Status == "S" && aQryOrderPay.TSResultContent.Status == "S")
                 {
-                    if (this.m_ToolUtilityClass.GetEntityStringAttribute(aFeeEntity, "new_payment_records").Contains(aQryOrderPay.TSResultContent.OrderNo) != true && this.m_ToolUtilityClass.GetOptionSetAttribute(ref aFeeEntity, "new_pay_status") == 100000000)
+                    //if (this.m_ToolUtilityClass.GetEntityStringAttribute(aDedicationBookingEntity, "new_payment_records").Contains(aQryOrderPay.TSResultContent.OrderNo) != true && this.m_ToolUtilityClass.GetOptionSetAttribute(ref aFeeEntity, "new_pay_status") == 100000000)
+                    if ( aQryOrderPay.TSResultContent.OrderNo != "" )
                     {
                         #region 信用卡會回傳2次，一次是RETURN_URL、一次是BACKEND_URL，為免收費單紀錄信用卡兩次，所以如果這裡已經有信用卡訂單編號，就不再處理了
-                        // 收費單付款日期
-                        this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aFeeEntity, "new_pay_date", DateTime.Now.ToLocalTime());
-                        // 收費單總共實收金額
-                        Money aTotalPaid = new Money(Convert.ToUInt32(this.m_ToolUtilityClass.GetEntityMoneyAttribute(ref aFeeEntity, "new_fee_really_paid").Value + new Money((int)Convert.ToUInt32(aQryOrderPay.TSResultContent.Amount) / 100).Value));
-                        this.m_ToolUtilityClass.SetEntityMoneyAttribute(ref aFeeEntity, "new_fee_really_paid", aTotalPaid);
-                        // 收費單實現阿拉伯數字到大寫中文的轉換，金額轉為大寫金額
-                        this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeEntity, "new_big_chinese_number", MoneyToChinese((Convert.ToUInt32(aQryOrderPay.TSResultContent.Amount) / 100).ToString()));
-                        // 收費單付款方式
-                        this.m_ToolUtilityClass.SetOptionSetAttribute(ref aFeeEntity, "new_pay_way", 100000001); // 100000001 = 信用卡
-                                                                                                                 // 收費單付款狀態
-                        this.m_ToolUtilityClass.SetOptionSetAttribute(ref aFeeEntity, "new_pay_status", 100000001); // 100000001 = 信用卡已繳費
-                                                                                                                    // 收費單說明
-                        String aOriginalDescription = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aFeeEntity, "new_description");
-                        this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeEntity, "new_description", aOriginalDescription + "信用卡付款結果成功!" + Environment.NewLine + Description);
-
-                        // 付款紀錄
-                        String aPaymentRecords =
-                                this.m_ToolUtilityClass.GetEntityStringAttribute(aFeeEntity, "new_payment_records") +
-                                DateTime.Now.ToString() +
-                                ": ReturnUrl => 信用卡訂單編號= " + aQryOrderPay.TSResultContent.OrderNo +
-                                "，金額:" + ((int)Convert.ToUInt32(aQryOrderPay.TSResultContent.Amount) / 100).ToString() +
-                                "，PayToken = " + PayToken +
-                                Environment.NewLine;
-
-                        this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeEntity, "new_payment_records", aPaymentRecords);
-
-                        if (aQryOrderPay.TSResultContent.OrderNo.StartsWith("C"))
-                        {
-                            // 已付款信用卡訂單編號
-                            this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeEntity, "new_q_paid_card_order_no", aQryOrderPay.TSResultContent.OrderNo);
-                        }
-
-                        // 更新收費單
-                        this.m_ToolUtilityClass.UpdateEntity(ref aFeeEntity);
-
-                        #region// 取得上課紀錄單，更新報名狀態
-                        Guid aStorLessonsId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aFeeEntity, "new_stor_lessons_new_fee");
-                        if (aStorLessonsId != Guid.Empty)
-                        {
-                            Entity aStorLessons = this.m_ToolUtilityClass.RetrieveEntity("new_stor_lessons", aStorLessonsId);
-
-                            #region 報名狀態
-                            // 有審核的教會=>報名成功:iM行動教會
-                            this.m_ToolUtilityClass.SetOptionSetAttribute(ref aStorLessons, "new_enroll_status", 100000008);
-                            #endregion
-
-                            this.m_ToolUtilityClass.UpdateEntity(ref aStorLessons);
-                        }
-                        #endregion
-
-                        #region// 設定連絡人信用卡資訊
-                        if (aQryOrderPay.TSResultContent.CCToken != "")
-                        {
-                            String VisaInfo = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContact, "new_visa_info");
-
-                            if (IsCreditCardInList(aContact, aQryOrderPay) != true)
-                            {
-                                VisaInfo =
-                                        aQryOrderPay.TSResultContent.CCToken + "，" +
-                                        aQryOrderPay.TSResultContent.LeftCCNo + "，" +
-                                        aQryOrderPay.TSResultContent.RightCCNo + "，" +
-                                        //aQryOrderPay.TSResultContent.AuthCode + "，" +
-                                        aQryOrderPay.TSResultContent.CCExpDate +
-                                        "|" + VisaInfo;
-
-                                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContact, "new_visa_info", VisaInfo);
-
-                                this.m_ToolUtilityClass.UpdateEntity(ref aContact);
-                            }
-                        }
-                        #endregion
 
                         // LINE 通知付款人
                         this.m_PushUtility.SendMessage(UserLineId, "信用卡付款結果成功!" + Environment.NewLine + Description);
@@ -214,14 +171,6 @@ namespace ChurchReport.Tools
                 }
                 else
                 {
-                    //return Json(new Dictionary<string, string>() { { "Status", "S" } });
-                    // 收費單說明
-                    String aOriginalDescription = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aFeeEntity, "new_description");
-                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeEntity, "new_description", aOriginalDescription + "信用卡付款結果失敗!" + Environment.NewLine + Description);
-
-                    // 更新收費單
-                    this.m_ToolUtilityClass.UpdateEntity(ref aFeeEntity);
-
                     return new OkObjectResult("信用卡付款結果失敗!" + Environment.NewLine + Description);
                 }
             }
@@ -234,7 +183,148 @@ namespace ChurchReport.Tools
                 throw e;
             }
         }
+        #endregion
+        #region 建立收費單
+        public Guid CreateFee(Entity aContact, Entity aDedicationBookingEntity, QryOrderPay aQryOrderPay, String Description)
+        {
+            try
+            {
+                #region 建立收費單
 
+                Entity aFeeToCreated = new Entity("new_fee");
+
+                SetFeeParameter(aContact, aFeeToCreated, aDedicationBookingEntity, aQryOrderPay, Description );
+
+                // 新增收費單
+                Guid aFeeId = this.m_ToolUtilityClass.CreateEntity(aFeeToCreated);
+                Entity aRetrievedFee = this.m_ToolUtilityClass.RetrieveEntity("new_fee", aFeeId);
+
+                //指派負責人
+                if (aRetrievedFee != null && aContact != null)
+                {
+                    this.m_ToolUtilityClass.AssignOwner("new_fee", aRetrievedFee, this.m_ToolUtilityClass.GetOwnerId(aContact));
+                }
+
+                return aFeeId;
+                #endregion
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                //Monitor.Exit(this);
+                throw e;
+            }
+        }
+        public void SetFeeParameter(Entity aContact, Entity aFeeToCreated, Entity aDedicationBookingEntity, QryOrderPay aQryOrderPay, String Description)
+        {
+            try
+            {
+                #region 建立收費單所需要的參數
+                // 取得報名者的全名
+                String FullName = "";
+                FullName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContact, "fullname");
+
+                // 收費單名稱
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeToCreated, "new_name", FullName + "奉獻");
+
+                // 收費單姓名關聯 LOOKUP
+                this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aFeeToCreated, "new_contact_new_fee", "contact", aContact.Id);
+
+                // 收費單姓認獻名關聯 LOOKUP
+                this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aFeeToCreated, "new_dedication_booking_new_fee", "new_dedication_booking", aDedicationBookingEntity.Id);
+
+                // 收費單定期定額期數
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeToCreated, "new_paid_period", ProcessStageNumber(aQryOrderPay.TSResultContent.OrderNo));
+
+                // 收費單應收金額
+                this.m_ToolUtilityClass.SetEntityMoneyAttribute(ref aFeeToCreated, "new_fee_shoud_pay", this.m_ToolUtilityClass.GetEntityMoneyAttribute( aDedicationBookingEntity, "new_amount_per_stage"));
+
+                // 收費單實現阿拉伯數字到大寫中文的轉換，金額轉為大寫金額
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeToCreated, "new_big_chinese_number", MoneyToChinese(this.m_ToolUtilityClass.GetEntityMoneyAttribute(aDedicationBookingEntity, "new_amount_per_stage").ToString()));
+
+                // 收費單付款方式，預設是信用卡
+                this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeToCreated, "new_pay_way", 100000001);
+
+                // 收費單收費日期
+                this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aFeeToCreated, "new_pay_date", DateTime.Now.ToLocalTime());
+
+                // 奉獻類別
+                this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeToCreated, "new_category", this.m_ToolUtilityClass.GetOptionSetAttribute(ref aDedicationBookingEntity, "new_dedication_category"));
+
+                // 付款紀錄
+                String aPaymentRecords =
+                        this.m_ToolUtilityClass.GetEntityStringAttribute(aFeeToCreated, "new_payment_records") +
+                        DateTime.Now.ToString() +
+                        ": ReturnUrl => 信用卡訂單編號= " + aQryOrderPay.TSResultContent.OrderNo +
+                        "，金額:" + ((int)Convert.ToUInt32(aQryOrderPay.TSResultContent.Amount) / 100).ToString() +
+                        Environment.NewLine;
+
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeToCreated, "new_payment_records", aPaymentRecords);
+
+                if (aQryOrderPay.TSResultContent.OrderNo.StartsWith("C"))
+                {
+                    // 已付款信用卡訂單編號
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeToCreated, "new_q_paid_card_order_no", aQryOrderPay.TSResultContent.OrderNo);
+                }
+
+                if ( aQryOrderPay.Status == "S" && aQryOrderPay.TSResultContent.Status == "S")
+                {
+                    // 收費單付款狀態，是信用卡已繳費
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(ref aFeeToCreated, "new_pay_status", 100000001); // 100000001 = 信用卡已繳費
+                    // 收費單實收金額
+                    this.m_ToolUtilityClass.SetEntityMoneyAttribute(ref aFeeToCreated, "new_fee_really_paid", new Money((int)Convert.ToUInt32(aQryOrderPay.TSResultContent.Amount) / 100));
+                    // 收費單說明
+                    String aOriginalDescription = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aFeeToCreated, "new_description");
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeToCreated, "new_description", aOriginalDescription + "信用卡付款結果成功!" + Environment.NewLine + Description);
+                }
+                else
+                {
+                    // 收費單付款狀態，是新建立
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(ref aFeeToCreated, "new_pay_status", 100000000); // 100000000 = 信用卡新建立
+                    // 收費單實收金額
+                    this.m_ToolUtilityClass.SetEntityMoneyAttribute(ref aFeeToCreated, "new_fee_really_paid", new Money(0));
+                    // 收費單說明
+                    String aOriginalDescription = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aFeeToCreated, "new_description");
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeToCreated, "new_description", aOriginalDescription + "信用卡付款結果失敗!" + Environment.NewLine + Description);
+                }
+
+
+                // 收費單奉獻其他類別
+                //if (QpayModel.Others != "" && QpayModel.Others != null)
+                //{
+                //    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeToCreated, "new_others", QpayModel.Others);
+                //}
+
+                // 奉獻地點
+                //if (QpayModel.DedicateLocation != null)
+                //{
+                //    // 奉獻地點值不為NULL，所以應該是行政人員輸入而來的 parentcustomerid
+
+                //    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeToCreated, "new_dedicate_location", QpayModel.DedicateLocation);
+                //}
+                //else
+                //{
+                //    // 奉獻地點值為NULL，所以應該是信用卡或ATM、匯款而來的
+                //    // 奉獻地點就要依據連絡人所屬教會設定
+                //    // 取得連絡人所屬教會
+                //    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeToCreated, "new_dedicate_location", this.m_ToolUtilityClass.GetEntityLookupDisplayName(ref aContact, "parentcustomerid"));
+                //}
+
+                // 奉獻備註
+                //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeToCreated, "new_explain", QpayModel.Explain);
+
+                #endregion
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                //Monitor.Exit(this);
+                throw e;
+            }
+        }
+        #endregion
         #region 工具區
         /// <summary>
         /// 實現阿拉伯數字到大寫中文的轉換，金額轉為大寫金額
@@ -629,6 +719,31 @@ namespace ChurchReport.Tools
             return false;
 
             #endregion
+        }
+
+        public string ProcessStageNumber(string OrderNo)
+        {
+            //處理定期定額的第幾期字串
+            if(OrderNo.Contains("_") == true)
+            {
+                //第二期以後開始有底線
+                string[] OrderNoArray = OrderNo.Split('_');
+
+                if( OrderNoArray.Length >=2 )
+                {
+                    return OrderNoArray[1];
+                }
+                else
+                {
+                    return "000";
+                }
+            }
+            else
+            {
+                //沒有底線，所以是第一期
+                return "001";
+            }
+
         }
 
         #endregion

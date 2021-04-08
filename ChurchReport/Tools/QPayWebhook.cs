@@ -90,12 +90,12 @@ namespace ChurchReport.Tools
 
                 if (aQryOrderPay != null)
                 {
-                    if (aQryOrderPay.TSResultContent.Param1 == "收費單")
+                    if (aQryOrderPay.TSResultContent.Param3 == "收費單")
                     {
                         QPayFeeProcessor aQPayFeeProcessor = new QPayFeeProcessor();
                         return aQPayFeeProcessor.QPayFeeProcessorReturnUrl(ShopNo, PayToken, aQryOrderPay);
                     }
-                    else if (aQryOrderPay.TSResultContent.Param1 == "認獻單")
+                    else if (aQryOrderPay.TSResultContent.Param3 == "認獻單")
                     {
                         QPayDedicationBookingProcessor aQPayDedicationBookingProcessor = new QPayDedicationBookingProcessor();
                         return aQPayDedicationBookingProcessor.QPayDedicationBookingProcessorReturnUrl(ShopNo, PayToken, aQryOrderPay);
