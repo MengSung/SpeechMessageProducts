@@ -108,12 +108,12 @@ namespace ChurchReport.WebServiceConnector
                     if (QpayModel.PayWay == "信用卡")
                     {
                         // 信用卡
-                        CreatedCardOrder = await CreOrderCard(QpayModel.Amount, QpayModel.Category + "-" + QpayModel.FullName, DateTime.Now.ToString("yyyyMMddhhmmssfff"), aCreatedFeeId.ToString(), "C", "ONE", "", 0, "M", 1, QpayModel.SelectedCreditCard);
+                        CreatedCardOrder = await CreOrderCard(QpayModel.Amount, QpayModel.Category + "-" + QpayModel.FullName, DateTime.Now.ToString("yyyyMMddhhmmssfff"), aCreatedFeeId.ToString(), "C", "ONE", "", 0, "M", 1, "收費單",QpayModel.SelectedCreditCard);
                     }
                     else
                     {
                         // 銀聯卡
-                        CreatedCardOrder = await CreOrderCard(QpayModel.Amount, QpayModel.Category + "-" + QpayModel.FullName, DateTime.Now.ToString("yyyyMMddhhmmssfff"), aCreatedFeeId.ToString(), "C", "CUP", "", 0, "M", 1, QpayModel.SelectedCreditCard);
+                        CreatedCardOrder = await CreOrderCard(QpayModel.Amount, QpayModel.Category + "-" + QpayModel.FullName, DateTime.Now.ToString("yyyyMMddhhmmssfff"), aCreatedFeeId.ToString(), "C", "CUP", "", 0, "M", 1, "收費單", QpayModel.SelectedCreditCard);
                     }
                     if (CreatedCardOrder.CardParam != null && CreatedCardOrder.CardParam.CardPayURL != null)
                     {
@@ -134,13 +134,24 @@ namespace ChurchReport.WebServiceConnector
                     //BONUS 紅利折抵
                     //CUP 銀聯卡一次付清
                     //REGULAR 定期定額扣款
-                    //CreOrder CreatedCardOrder = await CreOrderCard(QpayModel.Amount, QpayModel.Category + "-" + QpayModel.FullName, DateTime.Now.ToString("yyyyMMddhhmmssfff"), aCreatedFeeId.ToString(), "C", "REGULAR", "", TransferToDeductTotalNum(QpayModel.DeductTotalNumber), "M", 1, QpayModel.SelectedCreditCard);
 
-                    // 用剛剛建立的收費單，填寫訂單編號
-                    //UpdateFee(ref aFeeToUpdate, CreatedCardOrder.OrderNo, "", "");
+                    // 建立認獻單
+                    Guid aCreatedDedicationBookingId = CreateDedicationBooking(LineLoginContact, QpayModel);
+                    Entity aDedicationBookingToUpdate = this.m_ToolUtilityClass.RetrieveEntity("new_dedication_booking", aCreatedDedicationBookingId);
 
-                    //return CreatedCardOrder.CardParam.CardPayURL;
-                    return "";
+                    CreOrder CreatedCardOrder = await CreOrderCard(QpayModel.Amount, QpayModel.Category + "-" + QpayModel.FullName, DateTime.Now.ToString("yyyyMMddhhmmssfff"), aCreatedDedicationBookingId.ToString(), "C", "REGULAR", "", TransferToDeductTotalNum(QpayModel.DeductTotalNumber), "M", 1, "認獻單", QpayModel.SelectedCreditCard);
+
+                    if (CreatedCardOrder.CardParam != null && CreatedCardOrder.CardParam.CardPayURL != null)
+                    {
+                        // 用剛剛建立的認獻單，填寫訂單編號， 更新收費單或是認獻單(因為欄位名稱一致)
+                        UpdateFee(ref aDedicationBookingToUpdate, CreatedCardOrder.OrderNo, "", "");
+
+                        return CreatedCardOrder.CardParam.CardPayURL;
+                    }
+                    else
+                    {
+                        return "信用卡繳費失敗!";
+                    }
                 }
                 else if (QpayModel.PayWay == "行動支付")
                 {
@@ -153,7 +164,7 @@ namespace ChurchReport.WebServiceConnector
                     Guid aCreatedFeeId = CreateFee(LineLoginContact, QpayModel);
                     Entity aFeeToUpdate = this.m_ToolUtilityClass.RetrieveEntity("new_fee", aCreatedFeeId);
 
-                    CreOrder CreatedCardOrder = await CreOrderCard(QpayModel.Amount, QpayModel.Category + "-" + QpayModel.FullName, DateTime.Now.ToString("yyyyMMddhhmmssfff"), aCreatedFeeId.ToString(), "M", "ONE", "", 0, "M", 1, QpayModel.SelectedCreditCard);
+                    CreOrder CreatedCardOrder = await CreOrderCard(QpayModel.Amount, QpayModel.Category + "-" + QpayModel.FullName, DateTime.Now.ToString("yyyyMMddhhmmssfff"), aCreatedFeeId.ToString(), "M", "ONE", "", 0, "M", 1, "收費單",QpayModel.SelectedCreditCard);
 
                     // 用剛剛建立的收費單，填寫訂單編號
                     UpdateFee(ref aFeeToUpdate, CreatedCardOrder.OrderNo, "", "");
@@ -293,7 +304,38 @@ namespace ChurchReport.WebServiceConnector
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000006);
                     break;
                 default:
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000007);
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000000);
+                    break;
+            }
+        }
+        public void SetPayCategory(String Value, String EntityName, ref Entity aFeeEntity)
+        {
+
+            switch (Value)
+            {
+                case "十一奉獻":
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, EntityName, 100000000);
+                    break;
+                case "感恩奉獻":
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, EntityName, 100000001);
+                    break;
+                case "愛心奉獻":
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, EntityName, 100000002);
+                    break;
+                case "五餅二魚":
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, EntityName, 100000003);
+                    break;
+                case "代收代轉":
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, EntityName, 100000004);
+                    break;
+                case "宣教奉獻":
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, EntityName, 100000005);
+                    break;
+                case "其他奉獻":
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, EntityName, 100000006);
+                    break;
+                default:
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, EntityName, 100000000);
                     break;
             }
         }
@@ -301,7 +343,7 @@ namespace ChurchReport.WebServiceConnector
         {
             try
             {
-                #region 更新收費單
+                #region 更新收費單或是認獻單(因為欄位名稱一致)
                 SetFeeParameter(aFeeToUpdate, CardOrderNo, AtmOrderNo, AtmPayNo);
 
                 this.m_ToolUtilityClass.UpdateEntity(aFeeToUpdate);
@@ -459,7 +501,10 @@ namespace ChurchReport.WebServiceConnector
                 Entity aRetrievedFee = this.m_ToolUtilityClass.RetrieveEntity("new_fee", aFeeId);
 
                 //指派負責人
-                this.m_ToolUtilityClass.AssignOwner("new_fee", aRetrievedFee, this.m_ToolUtilityClass.GetOwnerId(aContact));
+                if ( aRetrievedFee != null && aContact != null)
+                {
+                    this.m_ToolUtilityClass.AssignOwner("new_fee", aRetrievedFee, this.m_ToolUtilityClass.GetOwnerId(aContact));
+                }
 
                 return aFeeId;
                 #endregion
@@ -574,18 +619,21 @@ namespace ChurchReport.WebServiceConnector
             {
                 #region 建立認獻單
 
-                Entity aDedicationBookingToCreated = new Entity("new_fee");
+                Entity aDedicationBookingToCreated = new Entity("new_dedication_booking");
 
-                SetFeeParameter(aContact, aDedicationBookingToCreated, QpayModel);
+                SetDedicationBookingParameter(aContact, aDedicationBookingToCreated, QpayModel);
 
-                // 新增收費單
-                Guid aFeeId = this.m_ToolUtilityClass.CreateEntity(aDedicationBookingToCreated);
-                Entity aRetrievedFee = this.m_ToolUtilityClass.RetrieveEntity("new_fee", aFeeId);
+                // 新增認獻單
+                Guid aDedicationBookingId = this.m_ToolUtilityClass.CreateEntity(aDedicationBookingToCreated);
+                Entity aRetrievedDedicationBooking = this.m_ToolUtilityClass.RetrieveEntity("new_dedication_booking", aDedicationBookingId);
 
                 //指派負責人
-                this.m_ToolUtilityClass.AssignOwner("new_fee", aRetrievedFee, this.m_ToolUtilityClass.GetOwnerId(aContact));
+                if (aRetrievedDedicationBooking != null && aContact != null)
+                {
+                    this.m_ToolUtilityClass.AssignOwner("new_dedication_booking", aRetrievedDedicationBooking, this.m_ToolUtilityClass.GetOwnerId(aContact));
+                }
 
-                return aFeeId;
+                return aDedicationBookingId;
                 #endregion
             }
             catch (System.Exception e)
@@ -605,79 +653,23 @@ namespace ChurchReport.WebServiceConnector
                 String FullName = "";
                 FullName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContact, "fullname");
 
-                // 收費單名稱
+                // 認獻單名稱
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aDedicationBookingToCreated, "new_name", FullName + "奉獻");
 
-                // 收費單姓名關聯 LOOKUP
-                this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aDedicationBookingToCreated, "new_contact_new_fee", "contact", aContact.Id);
+                // 認獻單姓名關聯 LOOKUP
+                this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aDedicationBookingToCreated, "new_contact_new_dedication_booking", "contact", aContact.Id);
 
-                // 收費單應收金額
-                this.m_ToolUtilityClass.SetEntityMoneyAttribute(ref aDedicationBookingToCreated, "new_fee_shoud_pay", new Money(QpayModel.Amount));
+                // 認獻單應收金額
+                this.m_ToolUtilityClass.SetEntityMoneyAttribute(ref aDedicationBookingToCreated, "new_dedication_amount", new Money( QpayModel.Amount * TransferToDeductTotalNum( QpayModel.DeductTotalNumber) ));
 
-                if (QpayModel.PayWay == "現金")
-                {
-                    // 收費單實收金額，如果付款方式是"現金"，就預設是足額實收，因為程式應該是跑行政人員收奉獻，所以就都表示已付款
-                    this.m_ToolUtilityClass.SetEntityMoneyAttribute(ref aDedicationBookingToCreated, "new_fee_really_paid", new Money(QpayModel.Amount));
-
-                    // 收費單付款狀態，預設是現金已繳費
-                    SetPayStatus("現金已繳費", ref aDedicationBookingToCreated);
-
-                }
-                else if (QpayModel.PayWay == "銀行轉帳")
-                {
-                    // 收費單實收金額，如果付款方式是"現金"，就預設是足額實收，因為程式應該是跑行政人員收奉獻，所以就都表示已付款
-                    this.m_ToolUtilityClass.SetEntityMoneyAttribute(ref aDedicationBookingToCreated, "new_fee_really_paid", new Money(QpayModel.Amount));
-
-                    // 收費單付款狀態，預設是現金已繳費
-                    SetPayStatus("銀行轉帳已繳費", ref aDedicationBookingToCreated);
-
-                }
-                else
-                {
-                    // 收費單實收金額
-                    this.m_ToolUtilityClass.SetEntityMoneyAttribute(ref aDedicationBookingToCreated, "new_fee_really_paid", new Money(0));
-
-                    // 收費單付款狀態，預設是新建立
-                    SetPayStatus("新建立", ref aDedicationBookingToCreated);
-                }
-                // 收費單實收金額，因為程式應該是跑行政人員收奉獻，所以就都表示已付款
-                //this.m_ToolUtilityClass.SetEntityMoneyAttribute(ref aFeeToCreated, "new_fee_really_paid", new Money(QpayModel.Amount));
-
-                // 收費單實現阿拉伯數字到大寫中文的轉換，金額轉為大寫金額
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aDedicationBookingToCreated, "new_big_chinese_number", MoneyToChinese(QpayModel.Amount.ToString()));
-
-                // 收費單付款方式，預設是現金
-                SetPayMethod(QpayModel.PayWay, ref aDedicationBookingToCreated);
-
-                // 帳戶後六碼
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aDedicationBookingToCreated, "new_last_six_digit", QpayModel.LastSixDigit);
-
-                // 收費單收費日期
-                this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aDedicationBookingToCreated, "new_pay_date", QpayModel.DedicationDate.ToLocalTime());
+                // 認獻單開始日期
+                this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aDedicationBookingToCreated, "new_dedication_start_date", DateTime.Now );
+                
+                // 認獻單結束日期
+                this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aDedicationBookingToCreated, "new_dedication_end_date", DateTime.Now.AddMonths(TransferToDeductTotalNum(QpayModel.DeductTotalNumber)));
 
                 // 奉獻類別
-                SetFeePayCategory(QpayModel.Category, ref aDedicationBookingToCreated);
-
-                // 收費單奉獻其他類別
-                if (QpayModel.Others != "" && QpayModel.Others != null)
-                {
-                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aDedicationBookingToCreated, "new_others", QpayModel.Others);
-                }
-
-                // 奉獻地點
-                if (QpayModel.DedicateLocation != null)
-                {
-                    // 奉獻地點值不為NULL，所以應該是行政人員輸入而來的 parentcustomerid
-
-                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aDedicationBookingToCreated, "new_dedicate_location", QpayModel.DedicateLocation);
-                }
-                else
-                {
-                    // 奉獻地點值為NULL，所以應該是信用卡或ATM、匯款而來的
-                    // 奉獻地點就要依據連絡人所屬教會設定
-                    // 取得連絡人所屬教會
-                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aDedicationBookingToCreated, "new_dedicate_location", this.m_ToolUtilityClass.GetEntityLookupDisplayName(ref aContact, "parentcustomerid"));
-                }
+                SetPayCategory(QpayModel.Category, "new_dedication_category", ref aDedicationBookingToCreated);
 
                 // 奉獻備註
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aDedicationBookingToCreated, "new_explain", QpayModel.Explain);
@@ -850,6 +842,41 @@ namespace ChurchReport.WebServiceConnector
                 PayType = PayType, //支付方式
                 Param1 = FeeId,
                 Param2 = QPAY_ORGANIZATION,
+                CardParam = new CreOrderCardParamReq()
+                {
+                    AutoBilling = "Y",
+                    PayTypeSub = PayTypeSub,
+                    Staging = Staging,
+                    DeductTotalNum = DeductTotalNum,
+                    PeriodType = PeriodType,
+                    DeductFreq = DeductFreq,
+                    CCToken = CCToken
+                }
+            };
+
+            CreOrder retObj = QPayToolkit.OrderCreate(creOrderReq);
+
+            var Result = QPayCommon.SerializeToJson(retObj);
+
+            return retObj;
+
+        }
+        public async Task<CreOrder> CreOrderCard(int Amount, String ProductName, String OrderDate, String FeeId, String PayType, String PayTypeSub, String Staging, int DeductTotalNum, String PeriodType, int DeductFreq, String CreditCategory, String CCToken = null)
+        {
+            //設定參數
+            CreOrderReq creOrderReq = new CreOrderReq()
+            {
+                ShopNo = m_ShopNo,
+                OrderNo = PayType + OrderDate,
+                Amount = Amount * 100,
+                CurrencyID = "TWD",
+                PrdtName = ProductName,
+                ReturnURL = RETURN_URL,
+                BackendURL = BACKEND_URL,
+                PayType = PayType, //支付方式
+                Param1 = FeeId,
+                Param2 = QPAY_ORGANIZATION,
+                Param3 = CreditCategory,
                 CardParam = new CreOrderCardParamReq()
                 {
                     AutoBilling = "Y",
