@@ -127,7 +127,7 @@ namespace ChurchReport.WebServiceConnector
                         return "信用卡繳費失敗!";
                     }
                 }
-                else if (QpayModel.PayWay == "信用卡定期定額")
+                else if (QpayModel.PayWay == "信用卡定期定額(每個月)")
                 {
                     //ONE 一次付清
                     //STAGING 分期付款
@@ -169,7 +169,14 @@ namespace ChurchReport.WebServiceConnector
                     // 用剛剛建立的收費單，填寫訂單編號
                     UpdateFee(ref aFeeToUpdate, CreatedCardOrder.OrderNo, "", "");
 
-                    return CreatedCardOrder.MobileParam.MobilePayURL;
+                    if ( CreatedCardOrder.MobileParam != null && CreatedCardOrder.MobileParam.MobilePayURL != null)
+                    {
+                        return CreatedCardOrder.MobileParam.MobilePayURL;
+                    }
+                    else
+                    {
+                        return "行動支付失敗:" + CreatedCardOrder.Description;
+                    }
                 }
                 else if (QpayModel.PayWay == "ATM轉帳/匯款")
                 {
