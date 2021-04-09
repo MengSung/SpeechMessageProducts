@@ -81,11 +81,12 @@ namespace ChurchReport.Tools
         {
             try
             {
-                //m_PushUtility.SendMessage(MENGSUNG_LINE_ID, "QPayReturnUrl_001");
-
+                #region 處理認獻單
+                // 取得認獻
                 Entity aDedicationBookingEntity = this.m_ToolUtilityClass.RetrieveEntity("new_dedication_booking", new Guid(aQryOrderPay.TSResultContent.Param1));
 
-                if (aDedicationBookingEntity == null)
+                #region 沒找到認獻的例外處理
+                if ( aDedicationBookingEntity == null )
                 {
                     if (aQryOrderPay.Status == "S" && aQryOrderPay.TSResultContent.Status == "S")
                     {
@@ -99,33 +100,20 @@ namespace ChurchReport.Tools
                     }
                 }
                 else { }
+                #endregion
 
                 //處理認獻單定期定額的第幾期字串
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aDedicationBookingEntity, "new_paid_period", ProcessStageNumber(aQryOrderPay.TSResultContent.OrderNo));
                 this.m_ToolUtilityClass.UpdateEntity(ref aDedicationBookingEntity);
 
+                #endregion
+                #region 處理付款人
                 // 取得付款人
                 Entity aContact = this.m_ToolUtilityClass.RetrieveEntity("contact", this.m_ToolUtilityClass.GetEntityLookupAttribute(aDedicationBookingEntity, "new_contact_new_dedication_booking"));
                 // 取得付款人姓名
                 String aFullName = this.m_ToolUtilityClass.GetEntityStringAttribute(aContact, "fullname");
                 // 取得付款人 Line Id
                 String UserLineId = this.m_ToolUtilityClass.GetEntityStringAttribute(aContact, "new_lineid");
-
-                // 收費單描述說明
-                String Description =
-                                     "姓名     : " + aFullName + Environment.NewLine +
-                                     "訂單編號 : " + aQryOrderPay.TSResultContent.OrderNo + Environment.NewLine +
-                                     "日期     : " + DateTime.Now.ToLocalTime().ToString() + Environment.NewLine +
-                                     "實收金額 : " + ((int)Convert.ToUInt32(aQryOrderPay.TSResultContent.Amount) / 100).ToString() + Environment.NewLine +
-                                     "付款方式 : " + "信用卡" + Environment.NewLine +
-                                     "程式呼叫 : " + aQryOrderPay.Description + Environment.NewLine +
-                                     "交易結果 : " + aQryOrderPay.TSResultContent.Description + Environment.NewLine +
-                                     //"這是 ChurcchReport Webhook!!" + Environment.NewLine +
-                                     "--------------------" + Environment.NewLine;
-
-
-                CreateFee(aContact, aDedicationBookingEntity, aQryOrderPay, Description);
-
                 #region// 設定連絡人信用卡資訊
                 if (aQryOrderPay.TSResultContent.CCToken != "")
                 {
@@ -147,6 +135,21 @@ namespace ChurchReport.Tools
                     }
                 }
                 #endregion
+                #endregion
+                // 收費單描述說明
+                String Description =
+                                     "姓名     : " + aFullName + Environment.NewLine +
+                                     "訂單編號 : " + aQryOrderPay.TSResultContent.OrderNo + Environment.NewLine +
+                                     "日期     : " + DateTime.Now.ToLocalTime().ToString() + Environment.NewLine +
+                                     "實收金額 : " + ((int)Convert.ToUInt32(aQryOrderPay.TSResultContent.Amount) / 100).ToString() + Environment.NewLine +
+                                     "付款方式 : " + "信用卡" + Environment.NewLine +
+                                     "程式呼叫 : " + aQryOrderPay.Description + Environment.NewLine +
+                                     "交易結果 : " + aQryOrderPay.TSResultContent.Description + Environment.NewLine +
+                                     //"這是 ChurcchReport Webhook!!" + Environment.NewLine +
+                                     "--------------------" + Environment.NewLine;
+
+                // 建立收費單
+                CreateFee(aContact, aDedicationBookingEntity, aQryOrderPay, Description);
 
                 if (aQryOrderPay.Status == "S" && aQryOrderPay.TSResultContent.Status == "S")
                 {
@@ -171,6 +174,9 @@ namespace ChurchReport.Tools
                 }
                 else
                 {
+                    // LINE 通知付款人
+                    this.m_PushUtility.SendMessage(UserLineId, "信用卡付款結果失敗!" + Environment.NewLine + Description );
+
                     return new OkObjectResult("信用卡付款結果失敗!" + Environment.NewLine + Description);
                 }
             }
@@ -270,6 +276,7 @@ namespace ChurchReport.Tools
 
                 if ( aQryOrderPay.Status == "S" && aQryOrderPay.TSResultContent.Status == "S")
                 {
+                    // 信用卡付款結果成功
                     // 收費單付款狀態，是信用卡已繳費
                     this.m_ToolUtilityClass.SetOptionSetAttribute(ref aFeeToCreated, "new_pay_status", 100000001); // 100000001 = 信用卡已繳費
                     // 收費單實收金額
@@ -280,9 +287,10 @@ namespace ChurchReport.Tools
                 }
                 else
                 {
+                    // 信用卡付款結果失敗
                     // 收費單付款狀態，是新建立
                     this.m_ToolUtilityClass.SetOptionSetAttribute(ref aFeeToCreated, "new_pay_status", 100000000); // 100000000 = 信用卡新建立
-                    // 收費單實收金額
+                    // 收費單實收金額為0
                     this.m_ToolUtilityClass.SetEntityMoneyAttribute(ref aFeeToCreated, "new_fee_really_paid", new Money(0));
                     // 收費單說明
                     String aOriginalDescription = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aFeeToCreated, "new_description");

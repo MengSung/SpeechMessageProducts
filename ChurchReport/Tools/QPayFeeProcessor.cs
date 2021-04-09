@@ -222,6 +222,9 @@ namespace ChurchReport.Tools
                     // 更新收費單
                     this.m_ToolUtilityClass.UpdateEntity(ref aFeeEntity);
 
+                    // LINE 通知付款人
+                    this.m_PushUtility.SendMessage(UserLineId, "信用卡付款結果失敗!" + Environment.NewLine + Description);
+
                     return new OkObjectResult("信用卡付款結果失敗!" + Environment.NewLine + Description);
                 }
             }
