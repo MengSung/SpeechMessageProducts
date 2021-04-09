@@ -89,6 +89,7 @@
             items.AddSimpleFor(m => m.Amount)
                     //.DataField("LastName")
                     .Label(l => l.Text("奉獻金額"))
+                    .Name("DedicationAmount")
                     .Editor(e => e
                         .NumberBox()
                         .Disabled(false)
@@ -109,7 +110,7 @@
                             {
                                 "信用卡",
                                 "ATM轉帳/匯款",
-                                "信用卡定期定額",
+                                "信用卡定期定額(每個月)",
                                 "行動支付",
                                 "銀聯卡",
                             }
@@ -482,7 +483,10 @@
         if (e.value == "信用卡" )
         {
             document.getElementById("creditcardlistcontainer").style.display = "";//顯示
+            // 隱藏總期數
             $("#form").dxForm("instance").itemOption("DeductTotalNumberSelectionBox", 'visible', false);
+            $("#form").dxForm("instance").itemOption("DedicationAmount", "label", { text: "奉獻金額" });
+            $("#form").dxForm("instance").itemOption("DedicationAmount", "editorOptions", { placeholder: "輸入奉獻金額" });
 
             $("#save-button3").dxButton("instance").option("visible", true);
             $("#save-button2").dxButton("instance").option("text", "用上面選擇的信用卡奉獻");
@@ -493,19 +497,25 @@
         {
             document.getElementById("creditcardlistcontainer").style.display = "none";//隱藏
 
+            // 隱藏總期數
             $("#form").dxForm("instance").itemOption("DeductTotalNumberSelectionBox", 'visible', false);
+            $("#form").dxForm("instance").itemOption("DedicationAmount", "label", { text: "奉獻金額" });
+            $("#form").dxForm("instance").itemOption("DedicationAmount", "editorOptions", { placeholder: "輸入奉獻金額" });
 
             $("#save-button3").dxButton("instance").option("visible", false);
             $("#save-button2").dxButton("instance").option("text", "奉獻");
 
             document.getElementById('atmfield').innerHTML = "";
         }
-        else if (e.value == "信用卡定期定額")
+        else if (e.value == "信用卡定期定額(每個月)")
         {
             document.getElementById("creditcardlistcontainer").style.display = "";//顯示
 
+            // 顯示總期數
             $("#form").dxForm("instance").itemOption("DeductTotalNumberSelectionBox", 'visible', true);
-
+            $("#form").dxForm("instance").itemOption("DedicationAmount", "label", { text: "每月金額" });
+            $("#form").dxForm("instance").itemOption("DedicationAmount", "editorOptions", { placeholder: "每月的奉獻金額" });
+            
             $("#save-button3").dxButton("instance").option("visible", true);
             $("#save-button2").dxButton("instance").option("text", "用上面選擇的信用卡奉獻");
 
@@ -513,7 +523,10 @@
         }
         else if (e.value == "行動支付") {
             document.getElementById("creditcardlistcontainer").style.display = "none";//隱藏
+            // 隱藏總期數
             $("#form").dxForm("instance").itemOption("DeductTotalNumberSelectionBox", 'visible', false);
+            $("#form").dxForm("instance").itemOption("DedicationAmount", "label", { text: "奉獻金額" });
+            $("#form").dxForm("instance").itemOption("DedicationAmount", "editorOptions", { placeholder: "輸入奉獻金額" });
 
             $("#save-button3").dxButton("instance").option("visible", false);
             $("#save-button2").dxButton("instance").option("text", "奉獻");
@@ -522,7 +535,10 @@
         }
         else if (e.value == "銀聯卡") {
             document.getElementById("creditcardlistcontainer").style.display = "none";//隱藏
+            // 隱藏總期數
             $("#form").dxForm("instance").itemOption("DeductTotalNumberSelectionBox", 'visible', false);
+            $("#form").dxForm("instance").itemOption("DedicationAmount", "label", { text: "奉獻金額" });
+            $("#form").dxForm("instance").itemOption("DedicationAmount", "editorOptions", { placeholder: "輸入奉獻金額" });
 
             $("#save-button2").dxButton("instance").option("visible", false);
             $("#save-button3").dxButton("instance").option("text", "奉獻");
