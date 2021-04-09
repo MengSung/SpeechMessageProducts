@@ -68,7 +68,7 @@ namespace ChurchReport.WebServiceConnector
         //private DateTime m_AtmExpireDate;
 
         // 客製化
-        private const String QPAY_ORGANIZATION = "imchurch";
+        private const String QPAY_ORGANIZATION = "imchurchback";
 
         #endregion
         #region 初始化
@@ -918,6 +918,7 @@ namespace ChurchReport.WebServiceConnector
                 PayType = "A",
                 Param1 = FeeId,
                 Param2 = QPAY_ORGANIZATION,
+                Param3 = "收費單",
                 ATMParam = new CreOrderATMParamReq()
                 {
                     ExpireDate = DateTime.Now.AddDays(10).ToLocalTime().ToString("yyyyMMdd")
