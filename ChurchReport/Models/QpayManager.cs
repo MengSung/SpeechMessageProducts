@@ -876,7 +876,7 @@ namespace ChurchReport.Models
                 case 100000002:
                     return "愛心奉獻";
                 case 100000003:
-                    return "五餅二魚";
+                    return "擴堂奉獻";
                 case 100000004:
                     return "代收代轉";
                 case 100000005:

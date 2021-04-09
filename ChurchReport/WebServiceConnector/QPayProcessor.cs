@@ -291,7 +291,7 @@ namespace ChurchReport.WebServiceConnector
                 case "愛心奉獻":
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000002);
                     break;
-                case "五餅二魚":
+                case "擴堂奉獻":
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000003);
                     break;
                 case "代收代轉":
@@ -322,7 +322,7 @@ namespace ChurchReport.WebServiceConnector
                 case "愛心奉獻":
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, EntityName, 100000002);
                     break;
-                case "五餅二魚":
+                case "擴堂奉獻":
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, EntityName, 100000003);
                     break;
                 case "代收代轉":
