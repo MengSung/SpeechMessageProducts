@@ -86,7 +86,7 @@ namespace ChurchReport.Tools
                 Entity aDedicationBookingEntity = this.m_ToolUtilityClass.RetrieveEntity("new_dedication_booking", new Guid(aQryOrderPay.TSResultContent.Param1));
 
                 #region 沒找到認獻的例外處理
-                if ( aDedicationBookingEntity == null )
+                if (aDedicationBookingEntity == null)
                 {
                     if (aQryOrderPay.Status == "S" && aQryOrderPay.TSResultContent.Status == "S")
                     {
@@ -101,11 +101,6 @@ namespace ChurchReport.Tools
                 }
                 else { }
                 #endregion
-
-                //處理認獻單定期定額的第幾期字串
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aDedicationBookingEntity, "new_paid_period", ProcessStageNumber(aQryOrderPay.TSResultContent.OrderNo));
-                this.m_ToolUtilityClass.UpdateEntity(ref aDedicationBookingEntity);
-
                 #endregion
                 #region 處理付款人
                 // 取得付款人
@@ -136,25 +131,52 @@ namespace ChurchReport.Tools
                 }
                 #endregion
                 #endregion
-                // 收費單描述說明
+                #region 收費單描述說明
                 String Description =
                                      "姓名     : " + aFullName + Environment.NewLine +
                                      "訂單編號 : " + aQryOrderPay.TSResultContent.OrderNo + Environment.NewLine +
                                      "日期     : " + DateTime.Now.ToLocalTime().ToString() + Environment.NewLine +
                                      "實收金額 : " + ((int)Convert.ToUInt32(aQryOrderPay.TSResultContent.Amount) / 100).ToString() + Environment.NewLine +
-                                     "付款方式 : " + "信用卡" + Environment.NewLine +
+                                     "付款方式 : " + "信用卡定期定額" + Environment.NewLine +
+                                     "總期數   : " + this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDedicationBookingEntity, "new_total_stages") + Environment.NewLine +
+                                     "目前期數 : " + ProcessStageNumber(aQryOrderPay.TSResultContent.OrderNo) + Environment.NewLine +
                                      "程式呼叫 : " + aQryOrderPay.Description + Environment.NewLine +
                                      "交易結果 : " + aQryOrderPay.TSResultContent.Description + Environment.NewLine +
                                      //"這是 ChurcchReport Webhook!!" + Environment.NewLine +
                                      "--------------------" + Environment.NewLine;
 
+                #endregion
                 // 建立收費單
                 CreateFee(aContact, aDedicationBookingEntity, aQryOrderPay, Description);
 
+                #region 處理認獻單定期定額的第幾期字串
+                String StageNumber = ProcessStageNumber(aQryOrderPay.TSResultContent.OrderNo);
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aDedicationBookingEntity, "new_paid_period", StageNumber);
+
+                if (TransferToDeductTotalNum(this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDedicationBookingEntity, "new_total_stages")) > Convert.ToUInt32(StageNumber.Replace("0", "")))
+                {
+                    // 總期數大於目前期數
+                    // 認獻單狀態 = 進行中
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(ref aDedicationBookingEntity, "new_dedication_booking_status", 100000001);
+                }
+                else
+                {
+                    // 總期數小於或等於目前期數
+                    // 認獻單狀態 = 已結束
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(ref aDedicationBookingEntity, "new_dedication_booking_status", 100000002);
+                }
+                #endregion
+
                 if (aQryOrderPay.Status == "S" && aQryOrderPay.TSResultContent.Status == "S")
                 {
+                    // 認獻單備註 = 寫入成功的原因
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aDedicationBookingEntity, "new_explain", "信用卡定期定額付款結果成功!" + Environment.NewLine + this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDedicationBookingEntity, "new_explain") + Environment.NewLine + "--------------------------------------" + Environment.NewLine + Description);
+
+                    // 更新認獻單
+                    this.m_ToolUtilityClass.UpdateEntity(ref aDedicationBookingEntity);
+
                     //if (this.m_ToolUtilityClass.GetEntityStringAttribute(aDedicationBookingEntity, "new_payment_records").Contains(aQryOrderPay.TSResultContent.OrderNo) != true && this.m_ToolUtilityClass.GetOptionSetAttribute(ref aFeeEntity, "new_pay_status") == 100000000)
-                    if ( aQryOrderPay.TSResultContent.OrderNo != "" )
+                    if (aQryOrderPay.TSResultContent.OrderNo != "")
                     {
                         #region 信用卡會回傳2次，一次是RETURN_URL、一次是BACKEND_URL，為免收費單紀錄信用卡兩次，所以如果這裡已經有信用卡訂單編號，就不再處理了
 
@@ -168,14 +190,22 @@ namespace ChurchReport.Tools
                     }
                     else
                     {
-                        //return Json(new Dictionary<string, string>() { { "Status", "S" } });
                         return new OkObjectResult("信用卡付款結果成功!" + Environment.NewLine + Description + "收到" + aFullName + "的費用!");
                     }
                 }
                 else
                 {
+                    // 認獻單狀態 = 啟動失敗
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(ref aDedicationBookingEntity, "new_dedication_booking_status", 100000003);
+
+                    // 認獻單備註 = 寫入失敗的原因
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aDedicationBookingEntity, "new_explain", "信用卡定期定額付款結果失敗!" + Environment.NewLine + this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDedicationBookingEntity, "new_explain") + Environment.NewLine + "--------------------------------------" + Environment.NewLine + Description);
+
+                    // 更新認獻單
+                    this.m_ToolUtilityClass.UpdateEntity(aDedicationBookingEntity);
+
                     // LINE 通知付款人
-                    this.m_PushUtility.SendMessage(UserLineId, "信用卡付款結果失敗!" + Environment.NewLine + Description );
+                    this.m_PushUtility.SendMessage(UserLineId, "信用卡付款結果失敗!" + Environment.NewLine + Description);
 
                     return new OkObjectResult("信用卡付款結果失敗!" + Environment.NewLine + Description);
                 }
@@ -199,7 +229,7 @@ namespace ChurchReport.Tools
 
                 Entity aFeeToCreated = new Entity("new_fee");
 
-                SetFeeParameter(aContact, aFeeToCreated, aDedicationBookingEntity, aQryOrderPay, Description );
+                SetFeeParameter(aContact, aFeeToCreated, aDedicationBookingEntity, aQryOrderPay, Description);
 
                 // 新增收費單
                 Guid aFeeId = this.m_ToolUtilityClass.CreateEntity(aFeeToCreated);
@@ -244,7 +274,7 @@ namespace ChurchReport.Tools
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeToCreated, "new_paid_period", ProcessStageNumber(aQryOrderPay.TSResultContent.OrderNo));
 
                 // 收費單應收金額
-                this.m_ToolUtilityClass.SetEntityMoneyAttribute(ref aFeeToCreated, "new_fee_shoud_pay", this.m_ToolUtilityClass.GetEntityMoneyAttribute( aDedicationBookingEntity, "new_amount_per_stage"));
+                this.m_ToolUtilityClass.SetEntityMoneyAttribute(ref aFeeToCreated, "new_fee_shoud_pay", this.m_ToolUtilityClass.GetEntityMoneyAttribute(aDedicationBookingEntity, "new_amount_per_stage"));
 
                 // 收費單實現阿拉伯數字到大寫中文的轉換，金額轉為大寫金額
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeToCreated, "new_big_chinese_number", MoneyToChinese(this.m_ToolUtilityClass.GetEntityMoneyAttribute(aDedicationBookingEntity, "new_amount_per_stage").Value.ToString()));
@@ -274,7 +304,7 @@ namespace ChurchReport.Tools
                     this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeToCreated, "new_q_paid_card_order_no", aQryOrderPay.TSResultContent.OrderNo);
                 }
 
-                if ( aQryOrderPay.Status == "S" && aQryOrderPay.TSResultContent.Status == "S")
+                if (aQryOrderPay.Status == "S" && aQryOrderPay.TSResultContent.Status == "S")
                 {
                     // 信用卡付款結果成功
                     // 收費單付款狀態，是信用卡已繳費
@@ -732,12 +762,12 @@ namespace ChurchReport.Tools
         public string ProcessStageNumber(string OrderNo)
         {
             //處理定期定額的第幾期字串
-            if(OrderNo.Contains("_") == true)
+            if (OrderNo.Contains("_") == true)
             {
                 //第二期以後開始有底線
                 string[] OrderNoArray = OrderNo.Split('_');
 
-                if( OrderNoArray.Length >=2 )
+                if (OrderNoArray.Length >= 2)
                 {
                     return OrderNoArray[1];
                 }
@@ -753,6 +783,25 @@ namespace ChurchReport.Tools
             }
 
         }
+        private int TransferToDeductTotalNum(string DeductTotalNumber)
+        {
+            switch (DeductTotalNumber)
+            {
+                case "3個月":
+                    return 3;
+                case "6個月":
+                    return 6;
+                case "12個月":
+                    return 12;
+                case "18個月":
+                    return 18;
+                case "24個月":
+                    return 24;
+                default:
+                    return 0;
+            }
+        }
+
 
         #endregion
     }
