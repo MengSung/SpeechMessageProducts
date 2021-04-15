@@ -2,21 +2,21 @@
 @model QpayModel
 @*<div class="long-title"><h3>奉獻資訊</h3></div>*@
 
-    <head>
-        <meta charset="UTF-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="generator" content="Mobirise v4.5.2, mobirise.com">
-        <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
-        <link rel="shortcut icon" href="~/assets/images/logo4.png" type="image/x-icon">
-        <meta name="description" content="">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="generator" content="Mobirise v4.5.2, mobirise.com">
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
+    <link rel="shortcut icon" href="~/assets/images/logo4.png" type="image/x-icon">
+    <meta name="description" content="">
 
-        <link rel="stylesheet" href="~/assets/web/assets/mobirise-icons/mobirise-icons.css">
-        <link rel="stylesheet" href="~/assets/tether/tether.min.css">
+    <link rel="stylesheet" href="~/assets/web/assets/mobirise-icons/mobirise-icons.css">
+    <link rel="stylesheet" href="~/assets/tether/tether.min.css">
 
-        <link rel="stylesheet" href="~/assets/theme/css/style.css">
-        <link rel="stylesheet" href="~/assets/mobirise/css/mbr-additional.css" type="text/css">
-        <link href="~/css/devextreme/dx.generic.custom-scheme.css" rel="stylesheet" />
-    </head>
+    <link rel="stylesheet" href="~/assets/theme/css/style.css">
+    <link rel="stylesheet" href="~/assets/mobirise/css/mbr-additional.css" type="text/css">
+    <link href="~/css/devextreme/dx.generic.custom-scheme.css" rel="stylesheet" />
+</head>
 
 <div style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
     <h4 id="displaynamefield">@Model.FullName 奉獻編號:@Model.DedicationNumber</h4>
@@ -261,14 +261,91 @@
                     .OnClick("UseOtherCreditCard")
             )
         </div>
+        <br />
     </div>
-
-    <div id="buttonContainer2" class="dx-button-icon">
-    </div>
-
     <div style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
         <h5 id="atmfield"></h5>
     </div>
+    <div id="dedicationbookinglistcontainer" style="font-family:標楷體;font-size:100%; color:chocolate; text-align:left;font-weight:bold">
+        <h5 id="creditcardlist">定期定額清單</h5>
+        @(Html.DevExtreme().DataGrid<DedicationBooking>()
+                .ID("DedicationBookingGrid")
+                //.Width("60%")
+                .Width("auto")
+                //.Width("inherit")
+                //.ColumnAutoWidth(true)
+                .ColumnWidth(5)
+                //.Paging(p => p.PageSize(10))
+                //.Paging(paging => paging.Enabled(false))
+                //.AllowColumnResizing(true)
+                //.ColumnResizingMode(ColumnResizingMode.Widget)
+                //.ColumnFixing(c => c.Enabled(true))
+                .LoadPanel(l => l.Text("更新資料中...").Enabled(false))
+                //.SearchPanel(s => s.Visible(false).Placeholder("搜尋.."))
+                //.Export(e=>e.Enabled(false).AllowExportSelectedData(true))
+                .ShowColumnLines(true)
+                .ShowRowLines(true)
+                //.RowAlternationEnabled(true)
+                .ShowBorders(true)
+                //.RemoteOperations(false)
+                //.TwoWayBindingEnabled(true)
+                .Selection(selection => selection.Mode(SelectionMode.Single))
+                //.Selection(selection => selection.Mode(SelectionMode.Multiple))
+                //.Selection(selection => selection.Mode(SelectionMode.None))
+                //.OnRowClick("OnRowClick")
+                .OnSelectionChanged("OnRowSelectionChanged")
+                //.OnInitialized("DataGridOnInitialized")
+                //.HoverStateEnabled(true)
+                //.OnContentReady("onCreditCardGridContentReady")
+                .Editing(editing =>
+                {
+                    //editing.Mode(GridEditMode.Batch);
+                    //editing.Mode(GridEditMode.Row);
+                    editing.Mode(GridEditMode.Cell);
+                    //editing.Mode(GridEditMode.Batch);
+                    //editing.Mode(GridEditMode.Form);
+                    //editing.Mode(GridEditMode.Popup);
+                    //editing.AllowUpdating(true);
+                    //editing.AllowAdding(true);
+                    editing.RefreshMode(GridEditRefreshMode.Reshape);
+                    editing.AllowDeleting(true);
+                    editing.Texts(a => a.SaveAllChanges("上傳檔案").AddRow("新增").CancelAllChanges("取消變更").SaveRowChanges("儲存").CancelRowChanges("取消").EditRow("選擇").DeleteRow("取消").ConfirmDeleteMessage("您是否確定取消這個定期定額?").ConfirmDeleteTitle("取消定期定額"));
+                })
+
+                .Columns(columns =>
+                {
+                    columns.AddFor(m => m.DedicationCategory).Caption("奉獻類別").Width(70).MinWidth(75).Alignment(HorizontalAlignment.Center).Fixed(true);
+                    columns.AddFor(m => m.DedicationBookingStatus).Caption("狀態").Width(70).MinWidth(50).Alignment(HorizontalAlignment.Center);
+                    columns.AddFor(m => m.AmountPerStage).Caption("每期金額").Width(75).MinWidth(50).Alignment(HorizontalAlignment.Center);
+                    columns.AddFor(m => m.TotalStages).Caption("總期數").Width(70).MinWidth(50).Alignment(HorizontalAlignment.Center);
+                    columns.AddFor(m => m.DedicationAmount).Caption("應付總金額").Width(85).MinWidth(50).Alignment(HorizontalAlignment.Center);
+                    columns.AddFor(m => m.PaidPeriod).Caption("目前期數").Width(75).MinWidth(50).Alignment(HorizontalAlignment.Center);
+                    columns.AddFor(m => m.RollupPaidFee).Caption("已付金額").Width(80).MinWidth(50).Alignment(HorizontalAlignment.Center);
+                    columns.AddFor(m => m.StartDate).Caption("開始日期").Width(80).MinWidth(50).Alignment(HorizontalAlignment.Center);
+                    columns.AddFor(m => m.EndDate).Caption("結束日期").Width(80).MinWidth(50).Alignment(HorizontalAlignment.Center);
+                })
+                .DataSource(d => d
+                            .WebApi()
+                            .Controller("Home")
+                            .LoadAction("LoadDedicationBookingList")
+                            //.InsertAction("InsertPresentRecord")
+                            .DeleteAction("DeleteDedicationBooking")
+                            //.UpdateAction("UpdatePresentRecord")
+                            .Key("EntityId")
+                            //.LoadParams(new { id = @ViewBag.ListId }))
+                    )
+                .SelectedRowKeys(new int[] { 1 })
+                .OnContentReady("onDedicationBookingGridContentReady")
+                //.OnRowPrepared("onDedicationBookingRowPrepared")
+                // 此處設定是讓選項偏左邊一排
+                //.OnContentReady("moveEditColumnToLeft")
+                //此處設定是鉛筆形狀還是"編輯"字樣
+                //.OnCellPrepared("cell_prepared")
+                //.OnCellPrepared("cell_prepared_background_color")
+                )
+        <br />
+    </div>
+
 </form>
 <div class="dx-field">
     <div id="ToastContainer">
@@ -477,12 +554,13 @@
             $("#form").dxForm("instance").itemOption("OtherDedication", 'visible', false);
         }
     }
-
     function OnPayWaySelectBoxValueChanged(e)
     {
         if (e.value == "信用卡" )
         {
-            document.getElementById("creditcardlistcontainer").style.display = "";//顯示
+            document.getElementById("creditcardlistcontainer").style.display = "";//顯示信用卡
+            document.getElementById("dedicationbookinglistcontainer").style.display = "none";//隱藏定期定額
+
             // 隱藏總期數
             $("#form").dxForm("instance").itemOption("DeductTotalNumberSelectionBox", 'visible', false);
             $("#form").dxForm("instance").itemOption("DedicationAmount", "label", { text: "奉獻金額" });
@@ -495,8 +573,8 @@
         }
         else if (e.value == "ATM轉帳/匯款")
         {
-            document.getElementById("creditcardlistcontainer").style.display = "none";//隱藏
-
+            document.getElementById("creditcardlistcontainer").style.display = "none";//隱藏信用卡
+            document.getElementById("dedicationbookinglistcontainer").style.display = "none";//隱藏定期定額
             // 隱藏總期數
             $("#form").dxForm("instance").itemOption("DeductTotalNumberSelectionBox", 'visible', false);
             $("#form").dxForm("instance").itemOption("DedicationAmount", "label", { text: "奉獻金額" });
@@ -509,21 +587,37 @@
         }
         else if (e.value == "信用卡定期定額(每個月)")
         {
-            document.getElementById("creditcardlistcontainer").style.display = "";//顯示
+            document.getElementById("creditcardlistcontainer").style.display = "";//顯示信用卡
+
+            //信用卡清單網格
+            var creditcarditems = $("#CreditCardGrid").dxDataGrid("instance").getDataSource().items();
+            if (creditcarditems.length > 0)
+            {
+                $("#CreditCardGrid").dxDataGrid("instance").selectRows('@(Model.SelectedCreditCard)', true);
+            }
+
+            //信用卡定期定額網格
+            var items = $("#DedicationBookingGrid").dxDataGrid("instance").getDataSource().items();
+            if (items.length > 0)
+            {
+                document.getElementById("dedicationbookinglistcontainer").style.display = "";//顯示定期定額
+                //$("#DedicationBookingGrid").dxDataGrid("instance").selectRows( '@(Model.SelectedDedicationBooking)', true);
+            }
 
             // 顯示總期數
             $("#form").dxForm("instance").itemOption("DeductTotalNumberSelectionBox", 'visible', true);
             $("#form").dxForm("instance").itemOption("DedicationAmount", "label", { text: "每月金額" });
             $("#form").dxForm("instance").itemOption("DedicationAmount", "editorOptions", { placeholder: "每月的奉獻金額" });
-            
+
             $("#save-button3").dxButton("instance").option("visible", true);
             $("#save-button2").dxButton("instance").option("text", "用上面選擇的信用卡奉獻");
 
             document.getElementById('atmfield').innerHTML = "";
         }
         else if (e.value == "行動支付") {
-            document.getElementById("creditcardlistcontainer").style.display = "none";//隱藏
-            // 隱藏總期數
+            document.getElementById("creditcardlistcontainer").style.display = "none";//隱藏信用卡
+            document.getElementById("dedicationbookinglistcontainer").style.display = "none";//隱藏定期定額
+           // 隱藏總期數
             $("#form").dxForm("instance").itemOption("DeductTotalNumberSelectionBox", 'visible', false);
             $("#form").dxForm("instance").itemOption("DedicationAmount", "label", { text: "奉獻金額" });
             $("#form").dxForm("instance").itemOption("DedicationAmount", "editorOptions", { placeholder: "輸入奉獻金額" });
@@ -534,7 +628,8 @@
             document.getElementById('atmfield').innerHTML = "";
         }
         else if (e.value == "銀聯卡") {
-            document.getElementById("creditcardlistcontainer").style.display = "none";//隱藏
+            document.getElementById("creditcardlistcontainer").style.display = "none";//隱藏信用卡
+            document.getElementById("dedicationbookinglistcontainer").style.display = "none";//隱藏定期定額
             // 隱藏總期數
             $("#form").dxForm("instance").itemOption("DeductTotalNumberSelectionBox", 'visible', false);
             $("#form").dxForm("instance").itemOption("DedicationAmount", "label", { text: "奉獻金額" });
@@ -589,11 +684,12 @@
         //alert(items.length);
 
         if (items.length > 0) {
-            document.getElementById("creditcardlistcontainer").style.display = "";//顯示
+            document.getElementById("creditcardlistcontainer").style.display = "";//顯示信用卡
+            document.getElementById("dedicationbookinglistcontainer").style.display = "none";//隱藏定期定額
 
             //alert('@(Model.SelectedCreditCard)');
             //用Key來選行，以下語法都是可以的
-            e.component.selectRows( '@(Model.SelectedCreditCard)', true);
+            e.component.selectRows('@(Model.SelectedCreditCard)', true);
             //e.component.selectRows( ['@(Model.SelectedCreditCard)', '@(Model.SelectedCreditCard)'], true);
             //用Index來選行，以下語法都是可以的
             //e.component.selectRowsByIndexes(0);
@@ -601,7 +697,7 @@
         }
         else
         {
-            document.getElementById("creditcardlistcontainer").style.display = "none";//隱藏
+            document.getElementById("creditcardlistcontainer").style.display = "none";//隱藏信用卡
             //document.getElementById("creditcardlistcontainer").remove();//隱藏
 
             //var element = document.getElementById("creditcardlistcontainer");
@@ -612,6 +708,33 @@
         }
         //$("input[name='myHiddenInput']").val(JSON.stringify(items));
         //myHiddenInput - is the name of your hidden input
+    }
+    function onDedicationBookingGridContentReady(e)
+    {
+        e.component.columnOption("command:edit", {
+            visibleIndex: -1,
+            width: 50
+        });
+
+        //debugger;
+        @*var items = e.component.getDataSource().items();
+        //alert(items.length);
+
+        if ( items.length > 0 ) {
+            //document.getElementById("creditcardlistcontainer").style.display = "";//顯示信用卡
+            //document.getElementById("dedicationbookinglistcontainer").style.display = "";//顯示定期定額
+
+            //用Key來選行，以下語法都是可以的
+            //e.component.selectRows( '@(Model.SelectedDedicationBooking)', true);
+        }
+        else
+        {
+            //document.getElementById("dedicationbookinglistcontainer").style.display = "none";//隱藏
+        }*@
+    }
+    function onDedicationBookingRowPrepared(e)
+    {
+        e.component.rowElement.style.height = "50px";
     }
 </script>
 <script type="text/javascript">

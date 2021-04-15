@@ -4088,6 +4088,43 @@ namespace ToolUtilityNameSpace
             }
         }
         #endregion
+        #region 取得認獻
+        public EntityCollection RetrieveDedicationBookingByFetchXml(String ContactName, String ContactId)
+        {
+            try
+            {
+                ContactName = @"'" + ContactName + @"'";
+                ContactId = @"'{" + ContactId + @"}'";
+
+
+                var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+                          <entity name='new_dedication_booking'>
+                            <attribute name='new_dedication_bookingid' />
+                            <attribute name='new_name' />
+                            <attribute name='createdon' />
+                            <order attribute='new_name' descending='false' />
+                            <filter type='and'>
+                              <condition attribute='new_contact_new_dedication_booking' operator='eq' uiname=" + ContactName + @" uitype='contact' value=" + ContactId + @" />
+                              <condition attribute='new_dedication_booking_status' operator='eq' value='100000001' />
+                            </filter>
+                          </entity>
+                        </fetch>";
+
+
+                RetrieveMultipleRequest fetchRequest1 = new RetrieveMultipleRequest
+                {
+                    Query = new FetchExpression(fetchXml)
+                };
+
+                return ((RetrieveMultipleResponse)this.m_OrganizationService.Execute(fetchRequest1)).EntityCollection;
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                throw e;
+            }
+        }
+        #endregion
         #endregion
         #region 搜尋 N:N( ManyToMany) 的集合
 

@@ -4624,6 +4624,43 @@ namespace ChurchReport.Controllers
             #endregion
         }
         #endregion
+        #region 認獻清單
+        [HttpGet]
+        public object LoadDedicationBookingList(string id, DataSourceLoadOptions loadOptions)
+        {
+            try
+            {
+                // 載入認獻清單
+                var tasks = m_InMemoryDataContextSmallGroup.QpayManager.m_QpayModel.DedicationBookingList;
+                return DataSourceLoader.Load(tasks, loadOptions);
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "iM行動教會: 錯誤 => " + ErrorString);
+
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
+                throw e;
+            }
+        }
+        [HttpDelete]
+        public void DeleteDedicationBooking(String key)
+        {
+            #region 取消認獻
+            var aDedicationBookingEntity = m_InMemoryDataContextSmallGroup.QpayManager.m_QpayModel.DedicationBookingList.First(a => a.EntityId == key);
+
+            //Task.Run(() => m_InMemoryDataContextSmallGroup.AppointmentsListManager.DeleteAppointment(appointment));
+            m_InMemoryDataContextSmallGroup.QpayManager.DeleteDedicationBooking(aDedicationBookingEntity);
+
+            //m_InMemoryDataContextSmallGroup.SaveChanges();
+            #endregion
+        }
+        #endregion
         #endregion
         #region 奉獻收費清單
         #region Line 單獨登入

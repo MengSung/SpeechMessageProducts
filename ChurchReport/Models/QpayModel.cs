@@ -38,6 +38,9 @@ namespace ChurchReport.Models
         public List<DedicationFee> DedicationFeeList { get; set; }
         public int TotalAmount { get; set; }                            //奉獻總金額
 
+        public List<DedicationBooking> DedicationBookingList { get; set; }//認獻清單
+        public String SelectedDedicationBooking { get; set; }             //選取的認獻
+
         public DateTime QueryStartDate { get; set; } = DateTime.Now;    //奉獻查詢開始日期
         public DateTime QueryEndDate { get; set; } = DateTime.Now;      //奉獻查詢結束日期
 

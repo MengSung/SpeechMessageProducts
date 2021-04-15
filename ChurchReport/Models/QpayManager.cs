@@ -1,8 +1,10 @@
-﻿using ChurchReport.ViewModel;
+﻿using ChurchReport.Tools;
+using ChurchReport.ViewModel;
 using ChurchReport.WebServiceConnector;
 using LineMessagingProcessor;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Xrm.Sdk;
+using QPay.Domain;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -15,6 +17,12 @@ namespace ChurchReport.Models
     public class QpayManager : Controller
     {
         #region 資料區
+        // 商店編號
+        // SANDBOX 測試用
+        //string m_ShopNo = "NA0149_001";
+        // 永豐金流正式環境
+        string m_ShopNo = "DA2424_001";
+
         private ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
 
         public QpayModel m_QpayModel { get; set; } = new QpayModel();
@@ -279,7 +287,7 @@ namespace ChurchReport.Models
                 }
                 else
                 {
-                    if( this.m_Contact != null )
+                    if (this.m_Contact != null)
                     {
                         // 從官網串接金流那邊進來的，所以在官網登入時就建立了連絡人
                         LineLoginContact = this.m_Contact;
@@ -296,7 +304,7 @@ namespace ChurchReport.Models
                 m_QpayModel.NationId = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "new_personal_id");
 
                 //是否上傳國稅局
-                if ( this.m_ToolUtilityClass.GetEntityBoolAttribute(ref LineLoginContact, "new_ntbt_ornot") ==  true )
+                if (this.m_ToolUtilityClass.GetEntityBoolAttribute(ref LineLoginContact, "new_ntbt_ornot") == true)
                 {
                     m_QpayModel.Ntbt = "願意上傳國稅局";
                 }
@@ -399,7 +407,7 @@ namespace ChurchReport.Models
             }
         }
         #endregion
-        #region 電腦網頁登入
+        #region 電腦網頁或是LINE登入
         public QpayModel SetQpayModel(Entity aContact)
         {
             try
@@ -449,6 +457,17 @@ namespace ChurchReport.Models
                 // 處理信用卡清單
                 ProcessCreditCard();
 
+                if (m_QpayModel.DedicationBookingList == null)
+                {
+                    m_QpayModel.DedicationBookingList = new List<DedicationBooking>();
+                }
+                else
+                {
+                    m_QpayModel.DedicationBookingList.Clear();
+                }
+                // 處理認獻清單
+                ProcessDedicationBooking();
+
                 String[] OtherCategoryArray = Description.Split(',');
                 foreach (String OtherCategory in OtherCategoryArray)
                 {
@@ -484,19 +503,15 @@ namespace ChurchReport.Models
                     {
                         return Json(new { status = "2", message = "信用卡繳費失敗!" });
                     }
-                    else if ( DedicationResult.Contains("失敗") )
-                    {
-                        return Json(new { status = "2", message = DedicationResult });
-                    }
                     else if (DedicationResult.Contains("*** 請依照訊息付款 ***") != true)
                     {
                         PayWay = "信用卡";
-                        return Json(new { status = "1", message = "敬收您的奉獻", DedicationResult = DedicationResult, PayWay = PayWay });
+                        return Json(new { status = "1", message = "正在處理您的奉獻中.....", DedicationResult = DedicationResult, PayWay = PayWay });
                     }
                     else
                     {
                         PayWay = "虛擬帳號";
-                        return Json(new { status = "1", message = "敬收您的奉獻", DedicationResult = DedicationResult, PayWay = PayWay });
+                        return Json(new { status = "1", message = "正在處理您的奉獻中.....", DedicationResult = DedicationResult, PayWay = PayWay });
                     }
                 }
                 else
@@ -534,7 +549,7 @@ namespace ChurchReport.Models
                     // 透過姓名全名再找一遍
                     Entity aLoginContact = FilterQpayContactByFullName(aGalleryViewModel, aLoginContactCollection);
 
-                    if( aLoginContact != null )
+                    if (aLoginContact != null)
                     {
                         // 姓名跟身分證字號一樣的有找到
                         // 奉獻者的欄位 行動電話、身分證字號、奉獻編號 沒有值才會加上去，所以不會覆蓋原有的
@@ -743,7 +758,6 @@ namespace ChurchReport.Models
                 throw e;
             }
         }
-
         public void GetCreditCardList(Entity aContact)
         {
             #region// 取得連絡人信用卡資訊
@@ -768,7 +782,7 @@ namespace ChurchReport.Models
                                 LeftCardNumber = VisaCCTokenSplit[1],
                                 RightCardNumber = VisaCCTokenSplit[2],
                                 CreditCardNumber = VisaCCTokenSplit[1] + "-XXXX-" + VisaCCTokenSplit[2],
-                                ExpireDate = ProcessExpireDate (VisaCCTokenSplit[3])
+                                ExpireDate = ProcessExpireDate(VisaCCTokenSplit[3])
                             });
                         }
                         else
@@ -790,7 +804,7 @@ namespace ChurchReport.Models
             }
             #endregion
         }
-        public String ProcessExpireDate(String aExpiredDate )
+        public String ProcessExpireDate(String aExpiredDate)
         {
             #region//轉換過期日
 
@@ -804,12 +818,11 @@ namespace ChurchReport.Models
             return new string(new char[] { CharArr[0], CharArr[1] }) + "/" + new string(new char[] { CharArr[2], CharArr[3] });
             #endregion
         }
-
         public void DeleteCreditCard(CreditCard aCreditCardToDelete)
         {
             try
             {
-                // 刪除約會
+                // 刪除信用卡
                 m_QpayModel.CreditCardList.Remove(aCreditCardToDelete);
 
                 String VisaInfo = "";
@@ -831,7 +844,6 @@ namespace ChurchReport.Models
                 throw e;
             }
         }
-
         public void DeleteSameNameContact(SameNameElement aSameNameElement)
         {
             try
@@ -839,6 +851,160 @@ namespace ChurchReport.Models
                 // 刪除約會
                 m_QpayModel.SameNameList.RemoveAt(1);
 
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                throw e;
+            }
+        }
+        #endregion
+        #region 認獻管理
+        public void ProcessDedicationBooking()
+        {
+            try
+            {
+                GetDedicationBookingList(this.m_Contact);
+
+                //預設認獻
+                if (m_QpayModel.DedicationBookingList.Count > 0)
+                {
+                    // 選第1個認獻
+                    m_QpayModel.SelectedDedicationBooking = m_QpayModel.DedicationBookingList[0].EntityId;
+                    // 選最後個認獻
+                    //m_QpayModel.SelectedDedicationBooking = m_QpayModel.CreditCardList[m_QpayModel.DedicationBookingList.Count - 1].EntityId;
+                }
+
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                throw e;
+            }
+        }
+        public void GetDedicationBookingList(Entity aContact)
+        {
+            #region// 取得連絡人認獻資訊
+            EntityCollection aDedicationBookingEntityCollection = this.m_ToolUtilityClass.RetrieveDedicationBookingByFetchXml(this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContact, "fullname"), aContact.Id.ToString());
+
+            m_QpayModel.DedicationBookingList.Clear();
+
+            foreach (Entity aDedicationBookingEntity in aDedicationBookingEntityCollection.Entities)
+            {
+                Entity aRetrievedDedicationBookingEntity = this.m_ToolUtilityClass.RetrieveEntity("new_dedication_booking", aDedicationBookingEntity.Id);
+
+                DedicationBooking aDedicationBooking = new DedicationBooking();
+
+                // 實體 ID
+                aDedicationBooking.EntityId = aRetrievedDedicationBookingEntity.Id.ToString();
+                // 類別
+                aDedicationBooking.DedicationCategory = ConvertToCategory(this.m_ToolUtilityClass.GetOptionSetAttribute(aRetrievedDedicationBookingEntity, "new_dedication_category"));
+                // 認獻單狀態
+                aDedicationBooking.DedicationBookingStatus = ConvertToDedicationBookingStatus(this.m_ToolUtilityClass.GetOptionSetAttribute(aRetrievedDedicationBookingEntity, "new_dedication_booking_status"));
+                // 每期金額
+                aDedicationBooking.AmountPerStage = Decimal.Truncate(this.m_ToolUtilityClass.GetEntityMoneyAttribute(ref aRetrievedDedicationBookingEntity, "new_amount_per_stage").Value).ToString();
+                // 總期數
+                aDedicationBooking.TotalStages = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aRetrievedDedicationBookingEntity, "new_total_stages");
+                // 應付總金額
+                aDedicationBooking.DedicationAmount = Decimal.Truncate(this.m_ToolUtilityClass.GetEntityMoneyAttribute(ref aRetrievedDedicationBookingEntity, "new_dedication_amount").Value).ToString();
+                // 目前期數
+                aDedicationBooking.PaidPeriod = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aRetrievedDedicationBookingEntity, "new_paid_period");
+                // 已付金額
+                aDedicationBooking.RollupPaidFee = Decimal.Truncate(this.m_ToolUtilityClass.GetEntityMoneyAttribute(ref aRetrievedDedicationBookingEntity, "new_rollup_paid_fee").Value).ToString();
+                // 認獻開始日期
+                aDedicationBooking.StartDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aRetrievedDedicationBookingEntity, "new_dedication_start_date").ToLocalTime().ToShortDateString();
+                // 認獻結束日期
+                aDedicationBooking.EndDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aRetrievedDedicationBookingEntity, "new_dedication_end_date").ToLocalTime().ToShortDateString();
+
+                m_QpayModel.DedicationBookingList.Add(aDedicationBooking);
+            }
+            #endregion
+            #region// 取得連絡人認獻資訊 (開發用的虛擬資料)
+            //m_QpayModel.DedicationBookingList.Clear();
+
+            //m_QpayModel.DedicationBookingList.Add(new DedicationBooking
+            //{
+            //    EntityId = "001",
+            //    DedicationCategory = "十一奉獻",
+            //    DedicationBookingStatus = "進行中",
+            //    AmountPerStage = "5000",                    // 每期金額
+            //    TotalStages = "12期",
+            //    DedicationAmount = "60000",                 //應付總金額
+            //    PaidPeriod = "第2期",
+            //    RollupPaidFee = "10000",
+            //    StartDate = "2021/4/13",
+            //    EndDate = "2022/4/13"
+            //});
+            //m_QpayModel.DedicationBookingList.Add(new DedicationBooking
+            //{
+            //    EntityId = "002",
+            //    DedicationCategory = "感恩奉獻",
+            //    DedicationBookingStatus = "進行中",
+            //    AmountPerStage = "6000",                    // 每期金額
+            //    TotalStages = "12期",
+            //    DedicationAmount = "72000",                 //應付總金額
+            //    PaidPeriod = "第2期",
+            //    RollupPaidFee = "12000",
+            //    StartDate = "2021/5/13",
+            //    EndDate = "2022/5/13"
+            //});
+            #endregion
+        }
+        public async Task<string> DeleteDedicationBooking(DedicationBooking aDedicationBookingToDelete)
+        {
+            try
+            {
+                Entity aDedicationBookingToDeleteEntity = this.m_ToolUtilityClass.RetrieveEntity("new_dedication_booking", new Guid(aDedicationBookingToDelete.EntityId));
+
+                if (aDedicationBookingToDeleteEntity != null)
+                {
+                    //"P"請款要求
+                    //"C"取消授權
+                    //"R"退款要求
+                    //"E" 中止定期定額 要求
+                    OrderMaintain aOrderMaintain = await OrderMaintain(this.m_ToolUtilityClass.GetEntityStringAttribute(aDedicationBookingToDeleteEntity, "new_q_pay_card_order_no"), "E");
+
+                    if (aOrderMaintain != null && aOrderMaintain.Status == "S")
+                    {
+                        // 取消認獻
+                        m_QpayModel.DedicationBookingList.Remove(aDedicationBookingToDelete);
+                        // 設定認獻狀態: 已取消
+                        this.m_ToolUtilityClass.SetOptionSetAttribute(ref aDedicationBookingToDeleteEntity, "new_dedication_booking_status", 100000004);
+
+                        // 認獻單備註 = 寫入中止定期定額成功的原因
+                        this.m_ToolUtilityClass.SetEntityStringAttribute
+                            (ref aDedicationBookingToDeleteEntity, "new_explain",
+                                this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDedicationBookingToDeleteEntity, "new_explain") + Environment.NewLine +
+                                "中止定期定額成功!" + Environment.NewLine +
+                                "中止時間:" + DateTime.Now.ToLocalTime() + Environment.NewLine +
+                                aOrderMaintain.Description + Environment.NewLine +
+                                "--------------------------------------" + Environment.NewLine
+                            );
+
+                        this.m_ToolUtilityClass.UpdateEntity(ref aDedicationBookingToDeleteEntity);
+                    }
+                    else
+                    {
+                        // 認獻單備註 = 寫入中止定期定額失敗的原因
+                        this.m_ToolUtilityClass.SetEntityStringAttribute
+                            (ref aDedicationBookingToDeleteEntity, "new_explain",
+                                this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDedicationBookingToDeleteEntity, "new_explain") + Environment.NewLine +
+                                "中止定期定額失敗!" + Environment.NewLine +
+                                "中止時間:" + DateTime.Now.ToLocalTime() + Environment.NewLine +
+                                aOrderMaintain.Description + Environment.NewLine +
+                                "--------------------------------------" + Environment.NewLine
+                            );
+                        this.m_ToolUtilityClass.UpdateEntity(ref aDedicationBookingToDeleteEntity);
+                    }
+
+                    return aOrderMaintain.Description;
+                }
+                else
+                {
+                    return "";
+                }
             }
             catch (System.Exception e)
             {
@@ -890,6 +1056,62 @@ namespace ChurchReport.Models
                 default:
                     return "十一奉獻";
             }
+        }
+        public String ConvertToCategory(int OptionSetValue)
+        {
+            switch (OptionSetValue)
+            {
+                case 100000000:
+                    return "十一奉獻";
+                case 100000001:
+                    return "感恩奉獻";
+                case 100000002:
+                    return "愛心奉獻";
+                case 100000003:
+                    return "擴堂奉獻";
+                case 100000004:
+                    return "代收代轉";
+                case 100000005:
+                    return "宣教奉獻";
+                case 100000006:
+                    return "其他奉獻";
+                default:
+                    return "十一奉獻";
+            }
+        }
+        public String ConvertToDedicationBookingStatus(int OptionSetValue)
+        {
+            switch (OptionSetValue)
+            {
+                case 100000000:
+                    return "尚未啟動";
+                case 100000001:
+                    return "進行中";
+                case 100000002:
+                    return "已結案";
+                case 100000003:
+                    return "啟動失敗";
+                case 100000004:
+                    return "已取消";
+                default:
+                    return "十一奉獻";
+            }
+        }
+        #endregion
+        #region 永豐金流工具區
+        public async Task<OrderMaintain> OrderMaintain(String aOrderNo, String aCommand)
+        {
+            OrderMaintainReq orderMaintainReq = new OrderMaintainReq()
+            {
+                ShopNo = m_ShopNo,
+                OrderNo = aOrderNo,
+                Command = aCommand
+            };
+
+            OrderMaintain retObj = QPayToolkit.OrderMaintain(orderMaintainReq);
+
+            //ltResponse.Text = QPayCommon.SerializeToJson(retObj);
+            return retObj;
         }
         #endregion
     }
