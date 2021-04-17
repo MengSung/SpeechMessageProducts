@@ -1,6 +1,7 @@
 ﻿using ChurchReport.Tools;
 using ChurchReport.ViewModel;
 using ChurchReport.WebServiceConnector;
+using Line.Messaging;
 using LineMessagingProcessor;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Xrm.Sdk;
@@ -32,7 +33,26 @@ namespace ChurchReport.Models
         public Entity m_Contact;
 
         public String LoginType { get; set; } = "網頁登入";   //登入方式
+
+        // 客製化
+        // 音訊教會
+        private const String CHANNEL_ACCESS_TOKEN = @"g1jtWWNkjbH3OCh1cKoRvPBUkCJIygNuvV/neHXR9I4J5GBgVE85inaIaTcT4AAZ1qCuqrqJXDawrUweyBqLcX97GGokXnTRQ6MxjXAutd5Yr2FkPsZnq6kMelc/C+mqNUHaVUKFAuvTD8JvXbNmpAdB04t89/1O/w1cDnyilFU=";
+        private LineMessagingClient m_LineMessagingClient { get; set; }
+        private PushUtility m_PushUtility { get; set; }
+
         #endregion
+        #region 初始化
+        public QpayManager()
+        {
+            // 客製化，請選擇
+            // 音訊教會(免費版)
+            this.m_LineMessagingClient = new LineMessagingClient(CHANNEL_ACCESS_TOKEN);
+
+            // 客製化
+            m_PushUtility = new PushUtility(m_LineMessagingClient);
+        }
+        #endregion
+
         #region Line 單獨登入
         public async Task<IActionResult> SaveKeyInDedication(QpayModel QpayModel)
         {
@@ -974,29 +994,55 @@ namespace ChurchReport.Models
                         this.m_ToolUtilityClass.SetOptionSetAttribute(ref aDedicationBookingToDeleteEntity, "new_dedication_booking_status", 100000004);
 
                         // 認獻單備註 = 寫入中止定期定額成功的原因
-                        this.m_ToolUtilityClass.SetEntityStringAttribute
-                            (ref aDedicationBookingToDeleteEntity, "new_explain",
-                                this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDedicationBookingToDeleteEntity, "new_explain") + Environment.NewLine +
-                                "中止定期定額成功!" + Environment.NewLine +
-                                "中止時間:" + DateTime.Now.ToLocalTime() + Environment.NewLine +
+                        String Result =
+                                this.m_ToolUtilityClass.GetEntityStringAttribute(m_Contact, "fullname") + ":中止定期定額成功!" + Environment.NewLine +
+                                "類別:" + aDedicationBookingToDelete.DedicationCategory + Environment.NewLine +
+                                "每期金額:" + aDedicationBookingToDelete.AmountPerStage + Environment.NewLine +
+                                "總期數:" + aDedicationBookingToDelete.TotalStages + Environment.NewLine +
+                                "應付總金額:" + aDedicationBookingToDelete.DedicationAmount + Environment.NewLine +
+                                "目前期數:" + aDedicationBookingToDelete.PaidPeriod + Environment.NewLine +
+                                "已付金額:" + aDedicationBookingToDelete.RollupPaidFee + Environment.NewLine +
+                                "開始日期:" + aDedicationBookingToDelete.StartDate + Environment.NewLine +
+                                "結束日期:" + aDedicationBookingToDelete.EndDate + Environment.NewLine +
                                 aOrderMaintain.Description + Environment.NewLine +
-                                "--------------------------------------" + Environment.NewLine
-                            );
+                                "--------------------------------------" + Environment.NewLine;
 
+                        this.m_ToolUtilityClass.SetEntityStringAttribute(ref aDedicationBookingToDeleteEntity, "new_explain", this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDedicationBookingToDeleteEntity, "new_explain") + Environment.NewLine + Result);
                         this.m_ToolUtilityClass.UpdateEntity(ref aDedicationBookingToDeleteEntity);
+
+                        // 送出 LINE 訊息
+                        String aContactLineId = this.m_ToolUtilityClass.GetEntityStringAttribute(m_Contact, "new_lineid");
+                        if (aContactLineId != "")
+                        {
+                            m_PushUtility.SendMessage(aContactLineId, Result);
+                        }
+
                     }
                     else
                     {
-                        // 認獻單備註 = 寫入中止定期定額失敗的原因
-                        this.m_ToolUtilityClass.SetEntityStringAttribute
-                            (ref aDedicationBookingToDeleteEntity, "new_explain",
-                                this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDedicationBookingToDeleteEntity, "new_explain") + Environment.NewLine +
-                                "中止定期定額失敗!" + Environment.NewLine +
-                                "中止時間:" + DateTime.Now.ToLocalTime() + Environment.NewLine +
+                        // 認獻單備註 = 寫入中止定期定額成功的原因
+                        String Result =
+                                this.m_ToolUtilityClass.GetEntityStringAttribute(m_Contact, "fullname") + ":中止定期定額失敗!" + Environment.NewLine +
+                                "類別:" + aDedicationBookingToDelete.DedicationCategory + Environment.NewLine +
+                                "每期金額:" + aDedicationBookingToDelete.AmountPerStage + Environment.NewLine +
+                                "總期數:" + aDedicationBookingToDelete.TotalStages + Environment.NewLine +
+                                "應付總金額:" + aDedicationBookingToDelete.DedicationAmount + Environment.NewLine +
+                                "目前期數:" + aDedicationBookingToDelete.PaidPeriod + Environment.NewLine +
+                                "已付金額:" + aDedicationBookingToDelete.RollupPaidFee + Environment.NewLine +
+                                "開始日期:" + aDedicationBookingToDelete.StartDate + Environment.NewLine +
+                                "結束日期:" + aDedicationBookingToDelete.EndDate + Environment.NewLine +
                                 aOrderMaintain.Description + Environment.NewLine +
-                                "--------------------------------------" + Environment.NewLine
-                            );
+                                "--------------------------------------" + Environment.NewLine;
+
+                        this.m_ToolUtilityClass.SetEntityStringAttribute(ref aDedicationBookingToDeleteEntity, "new_explain", this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDedicationBookingToDeleteEntity, "new_explain") + Environment.NewLine + Result);
                         this.m_ToolUtilityClass.UpdateEntity(ref aDedicationBookingToDeleteEntity);
+
+                        // 送出 LINE 訊息
+                        String aContactLineId = this.m_ToolUtilityClass.GetEntityStringAttribute(m_Contact, "new_lineid");
+                        if (aContactLineId != "")
+                        {
+                            m_PushUtility.SendMessage(aContactLineId, Result);
+                        }
                     }
 
                     return aOrderMaintain.Description;
