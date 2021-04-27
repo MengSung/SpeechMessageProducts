@@ -34,7 +34,6 @@ namespace ChurchReport.WebServiceConnector
         // 永豐金流正式環境
         //string m_ShopNo = "DA2424_001";
 
-        // 使用 ChurchReport 當作 WebHook
         #region 公司內部開發
         // 使用 ChurchReport 當作 WebHook
         private const String RETURN_URL = "https://thevictoryback.speechmessage.com.tw:467/api/QPayCard/QPayReturnUrl";
