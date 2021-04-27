@@ -49,8 +49,8 @@ namespace ChurchReport.Tools
 
         private DateTime m_SigningTime;
         // 客製化
-        // iM行動教會
-        private const String CHANNEL_ACCESS_TOKEN = @"XwSRWX0RxTtTvY/N6QZQ9YElOMH3OAxBf/3DAmWoXbIK3ymBsXEaU54owfdbPTQiQJPd10cWjC+JIWX6EvOCTbBdHmmJNC6xOOaioB91gPJPyDpl0IHQOQAzLA9J21zZ83SgIF6JwJbxC/8tSXv6RgdB04t89/1O/w1cDnyilFU=";
+        // 台北得勝靈糧堂
+        private const String CHANNEL_ACCESS_TOKEN = @"dhWNUj4LOTQFl10j0nvn+7/O3ffZkqfBz5+H6WKGoktwTpu32T+rdJYUfDSvT8HRz+VNkRcbttdJ74d81MecfD/q8AuUK5fhi8/eL9xFnDZBCCqLGP6q9lcZjvleoUXxN/OVfd2kcU3C4jk7sUP8pwdB04t89/1O/w1cDnyilFU=";
 
 
         // 神學生預設費用
@@ -63,7 +63,7 @@ namespace ChurchReport.Tools
         public QrCodeUtility()
         {
             // 客製化，請選擇
-            // iM行動教會(免費版)
+            // 台北得勝靈糧堂(免費版)
             this.m_LineMessagingClient = new LineMessagingClient(CHANNEL_ACCESS_TOKEN);
 
             // 客製化
@@ -85,7 +85,7 @@ namespace ChurchReport.Tools
                     // 透過 LINE ID 找不到此好友，可能還沒加入官LINE@
                     //this.AddNewFriend( DisplayName, UserLineId );
 
-                    OnboardType = "錯誤 : " + DisplayName + "還沒有加入iM行動教會的 Line@" ;
+                    OnboardType = "錯誤 : " + DisplayName + "還沒有加入台北得勝靈糧堂的 Line@" ;
 
                     return;
                 }

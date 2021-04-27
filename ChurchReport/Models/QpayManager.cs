@@ -35,8 +35,8 @@ namespace ChurchReport.Models
         public String LoginType { get; set; } = "網頁登入";   //登入方式
 
         // 客製化
-        // 音訊教會
-        private const String CHANNEL_ACCESS_TOKEN = @"g1jtWWNkjbH3OCh1cKoRvPBUkCJIygNuvV/neHXR9I4J5GBgVE85inaIaTcT4AAZ1qCuqrqJXDawrUweyBqLcX97GGokXnTRQ6MxjXAutd5Yr2FkPsZnq6kMelc/C+mqNUHaVUKFAuvTD8JvXbNmpAdB04t89/1O/w1cDnyilFU=";
+        // 台北得勝靈糧堂
+        private const String CHANNEL_ACCESS_TOKEN = @"dhWNUj4LOTQFl10j0nvn+7/O3ffZkqfBz5+H6WKGoktwTpu32T+rdJYUfDSvT8HRz+VNkRcbttdJ74d81MecfD/q8AuUK5fhi8/eL9xFnDZBCCqLGP6q9lcZjvleoUXxN/OVfd2kcU3C4jk7sUP8pwdB04t89/1O/w1cDnyilFU=";
         private LineMessagingClient m_LineMessagingClient { get; set; }
         private PushUtility m_PushUtility { get; set; }
 
@@ -45,7 +45,7 @@ namespace ChurchReport.Models
         public QpayManager()
         {
             // 客製化，請選擇
-            // 音訊教會(免費版)
+            // 台北得勝靈糧堂(免費版)
             this.m_LineMessagingClient = new LineMessagingClient(CHANNEL_ACCESS_TOKEN);
 
             // 客製化
@@ -74,7 +74,7 @@ namespace ChurchReport.Models
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "iM行動教會: 錯誤 => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台北得勝靈糧堂: 錯誤 => " + ErrorString);
 
                 //return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -159,7 +159,7 @@ namespace ChurchReport.Models
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "iM行動教會: 錯誤 => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台北得勝靈糧堂: 錯誤 => " + ErrorString);
 
                 //return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -252,7 +252,7 @@ namespace ChurchReport.Models
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "iM行動教會: 錯誤 => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台北得勝靈糧堂: 錯誤 => " + ErrorString);
 
                 //return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -289,7 +289,7 @@ namespace ChurchReport.Models
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "iM行動教會: 錯誤 => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台北得勝靈糧堂: 錯誤 => " + ErrorString);
 
                 //return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -340,7 +340,7 @@ namespace ChurchReport.Models
                 //奉獻日期
                 m_QpayModel.DedicationDate = DateTime.Now;
                 //奉獻分堂
-                m_QpayModel.DedicateLocation = "iM行動教會";
+                m_QpayModel.DedicateLocation = "台北得勝靈糧堂";
 
                 m_QpayModel.DedicationFeeList = new List<DedicationFee>();
                 EntityCollection aDedicationFeeEntityCollection = this.m_ToolUtilityClass.RetrieveDedicationFeeByDateFetchXml(m_QpayModel.FullName, LineLoginContact.Id.ToString(), m_QpayModel.QueryStartDate, m_QpayModel.QueryEndDate);
@@ -456,7 +456,7 @@ namespace ChurchReport.Models
                 m_QpayModel.Category = "十一奉獻";
                 m_QpayModel.PayWay = "信用卡";
                 //奉獻分堂
-                m_QpayModel.DedicateLocation = "iM行動教會";
+                m_QpayModel.DedicateLocation = "台北得勝靈糧堂";
 
                 m_QpayModel.OtherCategoryArray = new List<String>();
                 EntityCollection TaskCollection = m_ToolUtilityClass.RetrieveTaskByFetchXml("宣道支持奉獻(請勿刪除)");
@@ -546,7 +546,7 @@ namespace ChurchReport.Models
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "iM行動教會: 錯誤 => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "台北得勝靈糧堂: 錯誤 => " + ErrorString);
 
                 //return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 

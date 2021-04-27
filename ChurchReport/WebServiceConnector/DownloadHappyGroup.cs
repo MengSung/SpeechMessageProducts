@@ -1451,7 +1451,7 @@ namespace ChurchReport.WebServiceConnector
 
                         // 內壢得勝靈糧堂
                         //this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aNewContactEntity, "new_cell_list_contact", ref aListEntityReference);
-                        // iM行動教會
+                        // 台北得勝靈糧堂
                         this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref NewBestContactEntity, "new_list_contact", ref aListEntityReference);
 
                         this.m_ToolUtilityClass.UpdateEntity(ref NewBestContactEntity);
@@ -1527,7 +1527,7 @@ namespace ChurchReport.WebServiceConnector
 
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aQueryBestContactEntity, "mobilephone", aBestRecord.MobilePhone);
 
-                // 委身類型客製化，客製委身類型欄位，每間教會委身類型都不一樣，iM行動教會=>"幸福小組BEST" = 100000005
+                // 委身類型客製化，客製委身類型欄位，每間教會委身類型都不一樣，台北得勝靈糧堂=>"幸福小組BEST" = 100000005
                 // 設定成為 BEST 的委身類型
                 this.m_ToolUtilityClass.SetOptionSetAttribute(ref aQueryBestContactEntity, "customertypecode", 100000005);
 
@@ -1928,7 +1928,7 @@ namespace ChurchReport.WebServiceConnector
                 #region 設定附註或是代禱事項
 
                 // 轉換版本
-                // iM行動教會
+                // 台北得勝靈糧堂
 
 
                 //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_name", Note);
@@ -2077,7 +2077,7 @@ namespace ChurchReport.WebServiceConnector
                 #region 設定附註或是代禱事項
 
                 // 轉換版本
-                // iM行動教會
+                // 台北得勝靈糧堂
                 //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_name", aBestRecord.Note);
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_explanation", Note);
 
@@ -2448,7 +2448,7 @@ namespace ChurchReport.WebServiceConnector
                 #region 設定附註或是代禱事項
 
                 // 轉換版本
-                // iM行動教會
+                // 台北得勝靈糧堂
                 if (aBestRecord.Note != null)
                 {
                     //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecordEntity, "new_name", aBestRecord.Note);
@@ -2596,7 +2596,7 @@ namespace ChurchReport.WebServiceConnector
                 #region 設定附註或是代禱事項
 
                 // 轉換版本
-                // iM行動教會
+                // 台北得勝靈糧堂
                 if (aBestRecord.Note != null)
                 {
                     //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecordEntity, "new_name", aBestRecord.Note);
@@ -2688,7 +2688,7 @@ namespace ChurchReport.WebServiceConnector
         #endregion
         #region 轉換下拉選項
 
-        // 客製化，iM行動教會幸福小組專屬主題
+        // 客製化，台北得勝靈糧堂幸福小組專屬主題
         private String ConvertIndexToTopic(int FollowUpWeekIndex)
         {
             switch (FollowUpWeekIndex)

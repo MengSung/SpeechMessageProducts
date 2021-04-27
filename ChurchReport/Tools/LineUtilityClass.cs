@@ -109,10 +109,6 @@ namespace ChurchReport.Tools
             // 高雄基督之家-雲端(進階付費版)
             private const String KHHOC_CHANNEL_ACCESS_TOKEN = "a5bB4sunKwoZGjbf0HvFnenCpiABmzIT6rGU4rQ25QAqDhxj8Wa+RwXKQN2CZVC3lSk2sZ2n5bqzCcvaa8J/DIOzUdLUUgq1wF6SIvcd0sL0uFWn0+XyaQXdii1QHvA4Lm+NU5wehU4zIhdxZaMMsAdB04t89/1O/w1cDnyilFU=";
 
-            // 音訊教會-公司內部展示(50人版)
-            //private const String CHURCH_CHANNEL_ACCESS_TOKEN = "7/Q4Iw9Z71fjo5nGtIdsCFtuJLR+2gGOOSKlGEi3rxYI9PsUHKnjjn0D4DtQN6PWfYaRr+/aUIT42Eg3LLFej7sSXopZcuuntN/bCMsDS6Eszbqcv/jodqYCVNX0iWhoqk8nLtTxH+CuWt4kmFgJmAdB04t89/1O/w1cDnyilFU=";
-            //private const String CHURCH_CHANNEL_ACCESS_TOKEN = "olB/lJ55plRTngOA8I2h6U6zAXyS6xOVAM/xX0NvY/8BDYLujS0rqaPaBnRyGFyLUVAbIullsxEFN86CYVzUHCqQyMiF2wlmnPx7znO46yYUByEjL0mVXlaYHeYHD8WDYzW39NLr2UBHIS9q1q1gSwdB04t89/1O/w1cDnyilFU=";
-
             // 我自己的音訊靈糧堂展示用
             private const String CHURCH_CHANNEL_ACCESS_TOKEN = "olB/lJ55plRTngOA8I2h6U6zAXyS6xOVAM/xX0NvY/8BDYLujS0rqaPaBnRyGFyLUVAbIullsxEFN86CYVzUHCqQyMiF2wlmnPx7znO46yYUByEjL0mVXlaYHeYHD8WDYzW39NLr2UBHIS9q1q1gSwdB04t89/1O/w1cDnyilFU=";
 
@@ -161,6 +157,10 @@ namespace ChurchReport.Tools
             // iM行動教會 Line 2.0
             private const String IM_CHURCH_CHANNEL_ACCESS_TOKEN = "XwSRWX0RxTtTvY/N6QZQ9YElOMH3OAxBf/3DAmWoXbIK3ymBsXEaU54owfdbPTQiQJPd10cWjC+JIWX6EvOCTbBdHmmJNC6xOOaioB91gPJPyDpl0IHQOQAzLA9J21zZ83SgIF6JwJbxC/8tSXv6RgdB04t89/1O/w1cDnyilFU=";
             private const String IM_CHURCH_BACK_CHANNEL_ACCESS_TOKEN = "YJ1LKtDZyfHwfkbqeHAk+pxNJNZBpOvI446h3brWHDqquFc2ElUCYaseqiW+pAKhwJspguAgGbOlKDymSjSTMydJn7JeY6CRmeyC2Am7urM3CNVNq/2JzAuQ2Vqc7lhPWx8qX5YxS3ve4NjcDceymQdB04t89/1O/w1cDnyilFU=";
+
+            // 台北得勝靈糧堂 Line 2.0
+            private const String THE_VICTORY_CHANNEL_ACCESS_TOKEN = "XwSRWX0RxTtTvY/N6QZQ9YElOMH3OAxBf/3DAmWoXbIK3ymBsXEaU54owfdbPTQiQJPd10cWjC+JIWX6EvOCTbBdHmmJNC6xOOaioB91gPJPyDpl0IHQOQAzLA9J21zZ83SgIF6JwJbxC/8tSXv6RgdB04t89/1O/w1cDnyilFU=";
+            private const String THE_VICTORY_BACK_CHANNEL_ACCESS_TOKEN = "YJ1LKtDZyfHwfkbqeHAk+pxNJNZBpOvI446h3brWHDqquFc2ElUCYaseqiW+pAKhwJspguAgGbOlKDymSjSTMydJn7JeY6CRmeyC2Am7urM3CNVNq/2JzAuQ2Vqc7lhPWx8qX5YxS3ve4NjcDceymQdB04t89/1O/w1cDnyilFU=";
 
         #endregion
 
@@ -369,6 +369,14 @@ namespace ChurchReport.Tools
                     else if (this.m_OrganizationName == "muyiback")
                     {
                         m_ChannelAccessToken = MUYI_BACK_CHANNEL_ACCESS_TOKEN;
+                    }
+                    else if (this.m_OrganizationName == "thevictory")
+                    {
+                        m_ChannelAccessToken = THE_VICTORY_CHANNEL_ACCESS_TOKEN;
+                    }
+                    else if (this.m_OrganizationName == "thevictoryback")
+                    {
+                        m_ChannelAccessToken = THE_VICTORY_BACK_CHANNEL_ACCESS_TOKEN;
                     }
                     else
                     {

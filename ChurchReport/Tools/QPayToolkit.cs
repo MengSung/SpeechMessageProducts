@@ -38,7 +38,7 @@ namespace ChurchReport.Tools
         //private const String HASH_CODE = "5E854757C751413F,D743D0EB06904837,08169D5445644513,8E52B5A180EE4399";
 
         // 永豐金流正式環境
-        // 永豐金流寄給iM行動教會的HASH CODE
+        // 永豐金流寄給台北得勝靈糧堂的HASH CODE
         private const String A1 = "9825732578154B95";
         private const String A2 = "C89A75CD59D0430F";
         private const String B1 = "DAB73CB2A41E47FF";
