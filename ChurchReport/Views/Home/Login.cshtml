@@ -70,8 +70,8 @@
 
     <div class="long-title"><h3>台北得勝靈糧堂牧養系統</h3></div>
 
-            <div id="ToastContainer">
-            @(Html.DevExtreme().Toast()
+    <div id="ToastContainer">
+        @(Html.DevExtreme().Toast()
                             .ID("Toast")
                             .Position(p => p
                             .At(HorizontalAlignment.Center, VerticalAlignment.Center)
@@ -83,7 +83,7 @@
                             .MaxWidth(200)
             )
 
-        </div>
+    </div>
 
     <form data-ajax="true" data-ajax-begin="onBegin" data-ajax-success="onSuccess" asp-action="ProcessLogin" asp-controller="Home" method="post" style="text-align: center;">
 
@@ -203,7 +203,7 @@
 
             getLoadPanelInstance().hide();
 
-            if ( data.DisplayViewType == "MultiGroupView" ) {
+            if (data.DisplayViewType == "MultiGroupView") {
                 // 領袖或是個人回報
                 ShowToast(data.message, "success", 2000);
 
@@ -213,7 +213,7 @@
                 window.location.href = "/Home/MultiGroupView/" + data.ActiveListId;
                 //window.location.href = data.LinePayUrl;
             }
-            else if ( data.DisplayViewType == "IntegrateView" ) {
+            else if (data.DisplayViewType == "IntegrateView") {
                 // 領袖或是個人回報
                 ShowToast(data.message, "success", 2000);
 
@@ -222,7 +222,7 @@
                 window.location.href = "/Home/IntegrateView/" + data.ActiveListId;
                 //window.location.href = data.LinePayUrl;
             }
-            else if ( data.DisplayViewType == "HappyGroupView" ) {
+            else if (data.DisplayViewType == "HappyGroupView") {
                 // 單純幸福領袖回報
                 ShowToast(data.message, "success", 2000);
 
