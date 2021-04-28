@@ -1,6 +1,8 @@
 using ChurchReport.Models;
+using ChurchReport.Tools;
 using ChurchReport.ViewModel;
 using ChurchReport.ViewModels;
+using ChurchReport.WebServiceConnector;
 using DevExtreme.AspNet.Data;
 using DevExtreme.AspNet.Mvc;
 using LineMessagingProcessor;
@@ -15,19 +17,11 @@ using Microsoft.Xrm.Sdk;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
-using ToolUtilityNameSpace;
-
-using Line.Pay;
-using Line.Pay.Models;
-using Microsoft.Extensions.Configuration;
-using System.IO;
 using System.Threading.Tasks;
-using ChurchReport.WebServiceConnector;
-using System.Globalization;
-using ChurchReport.Tools;
-using Microsoft.Xrm.Sdk.Discovery;
+using ToolUtilityNameSpace;
 
 namespace ChurchReport.Controllers
 {
