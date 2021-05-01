@@ -71,8 +71,8 @@ namespace ChurchReport.Models {
         public bool PrayerMeeting { get; set; }             // 禱告會
         public bool Child { get; set; }                     // 門徒禱告訓練班
         public bool BigDisciple { get; set; }               // 門徒大聚
-        public bool LeadershipSmallLecture { get; set; }    // 領袖小講堂
-        public bool LeadersGather { get; set; }             // 領袖大聚
+        public bool LeadershipSmallLecture { get; set; }    // 小組長小講堂
+        public bool LeadersGather { get; set; }             // 小組長大聚
         public bool Decision { get; set; } // 決志
 
         public int StateID1 { get; set; }

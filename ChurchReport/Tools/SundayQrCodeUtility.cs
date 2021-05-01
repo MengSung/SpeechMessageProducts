@@ -40,7 +40,7 @@ namespace ChurchReport.Tools
 
         private DateTime m_SigningTime;
 
-        static readonly object m_UpdateSundayWeeklyReportLocker = new object();//避免多人同時輸入"小組出席"，會產生2個週報或是改變"委身類型"、"裝備狀態"                                                                 //private const bool RACE_LEADER_CAN_CREATE_WEEKLYREPORT = false; // 族系組長能否幫領袖建立週報，false 不可以
+        static readonly object m_UpdateSundayWeeklyReportLocker = new object();//避免多人同時輸入"小組出席"，會產生2個週報或是改變"委身類型"、"裝備狀態"                                                                 //private const bool RACE_LEADER_CAN_CREATE_WEEKLYREPORT = false; // 族系組長能否幫小組長建立週報，false 不可以
 
         // 客製化
         // 台北得勝靈糧堂
@@ -313,10 +313,10 @@ namespace ChurchReport.Tools
                 }
                 else
                 {
-                    // 掃描 : 禱告會、門徒訓練班、門徒大聚、領袖小講堂、領袖大聚
+                    // 掃描 : 禱告會、門徒訓練班、門徒大聚、小組長小講堂、小組長大聚
                     if ( aPresentRecordSigningNumberAttribute != "" )
                     {
-                        // 禱告會、門徒訓練班、門徒大聚、領袖小講堂、領袖大聚出席設定為整數1
+                        // 禱告會、門徒訓練班、門徒大聚、小組長小講堂、小組長大聚出席設定為整數1
                         this.m_ToolUtilityClass.SetEntityIntAttribute(ref aRetrievedPresentRecord, aPresentRecordSigningNumberAttribute, 1);
                     }
                 }
@@ -469,22 +469,22 @@ namespace ChurchReport.Tools
             {
                 if (m_OnboardType == "on" || m_OnboardType == "On")
                 {
-                    return "領袖小講堂簽到";
+                    return "小組長小講堂簽到";
                 }
                 else
                 {
-                    return "領袖小講堂簽退";
+                    return "小組長小講堂簽退";
                 }
             }
             else if (MeetingStatisticsAttribute.Contains("new_leaders_gather_qr"))
             {
                 if (m_OnboardType == "on" || m_OnboardType == "On")
                 {
-                    return "領袖大聚簽到";
+                    return "小組長大聚簽到";
                 }
                 else
                 {
-                    return "領袖大聚簽退";
+                    return "小組長大聚簽退";
                 }
             }
             else
@@ -601,7 +601,7 @@ namespace ChurchReport.Tools
             }
             else if (MeetingStatisticsAttribute.Contains("new_leadership_small_lecture"))
             {
-                // 領袖小講堂
+                // 小組長小講堂
                 if (m_OnboardType == "on" || m_OnboardType == "On")
                 {
                     aPresentRecordSigningNumberAttribute = "new_leadership_small_lecture_number";
@@ -615,7 +615,7 @@ namespace ChurchReport.Tools
             }
             else if (MeetingStatisticsAttribute.Contains("new_leaders_gather"))
             {
-                // 領袖大聚
+                // 小組長大聚
                 if (m_OnboardType == "on" || m_OnboardType == "On")
                 {
                     aPresentRecordSigningNumberAttribute = "new_leaders_gather_number";
@@ -741,7 +741,7 @@ namespace ChurchReport.Tools
                         // 取得小組名單實體
                         Entity aRetrievedListEntity = this.m_ToolUtilityClass.RetrieveEntity("list", aListEntity.Id);
 
-                        // 取得領袖紀錄
+                        // 取得小組長紀錄
                         Guid aSmallGroupLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(aRetrievedListEntity, "new_contact_family_leader_list");
                         Entity aSmallGroupLeaderEntity = this.m_ToolUtilityClass.RetrieveEntity("contact", aSmallGroupLeaderId);
 

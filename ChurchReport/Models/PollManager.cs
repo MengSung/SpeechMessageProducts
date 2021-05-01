@@ -125,7 +125,7 @@ namespace ChurchReport.Models
                     aPollModel.DisplayDecipleFlag = true;
                     aPollModel.DisplayLeaderFlag = false;
                 }
-                else if (m_ClassName.Contains("領袖班"))
+                else if (m_ClassName.Contains("小組長班"))
                 {
                     aPollModel.DisplayGrowFlag = true;
                     aPollModel.DisplayDecipleFlag = true;

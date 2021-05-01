@@ -178,7 +178,7 @@
         )
     </div>
 
-    @if (Model.LoginType == "領袖")
+    @if (Model.LoginType == "小組長")
     {
         <div id="data-grid">
             @(Html.DevExtreme().DataGrid()
@@ -283,7 +283,7 @@
                     .AllowEditing(true)
                     .Width(70).MinWidth(30).DataType(GridColumnDataType.Number)
                     .Lookup(lookup => lookup
-                    .DataSource(new string[] { "牧師師母", "區長", "區牧", "領袖", "門徒", "家人", "未入組", "訪客", "外教會", "結案", })
+                    .DataSource(new string[] { "牧師師母", "區長", "區牧", "小組長", "門徒", "小組組員", "未入組", "新朋友", "外教會", "結案", })
                     //.DisplayExpr("Name")
                     //.ValueExpr("ID")
                     );
@@ -471,7 +471,7 @@ columns.Add().DataField("Status")
                     .AllowEditing(true)
                     .Width(70).MinWidth(30).DataType(GridColumnDataType.Number)
                     .Lookup(lookup => lookup
-                    .DataSource(new string[] { "牧師師母", "區長", "區牧", "領袖", "門徒", "家人", "未入組", "訪客", "外教會", "結案", })
+                    .DataSource(new string[] { "牧師師母", "區長", "區牧", "小組長", "門徒", "小組組員", "未入組", "新朋友", "外教會", "結案", })
                     //.DisplayExpr("Name")
                     //.ValueExpr("ID")
                     );

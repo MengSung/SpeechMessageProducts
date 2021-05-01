@@ -41,9 +41,9 @@ namespace ChurchReport.WebServiceConnector
 
         private const bool TRANSFER_IDENTITY_FLAG = false;
 
-        //private const int MONTH_PERIOD = 2;      //幾個月內出席超過這次數就會改變委身類型=>家人
-        private const int WEEK_PERIOD = 8;      //過去幾　WEEK_PERIOD　周內出席超過這次數就會改變委身類型=>家人
-        private const int MINIMUM_THRESHOLD = 4;      //2個月內出席超過這次數就會改變委身類型=>家人
+        //private const int MONTH_PERIOD = 2;      //幾個月內出席超過這次數就會改變委身類型=>小組組員
+        private const int WEEK_PERIOD = 8;      //過去幾　WEEK_PERIOD　周內出席超過這次數就會改變委身類型=>小組組員
+        private const int MINIMUM_THRESHOLD = 4;      //2個月內出席超過這次數就會改變委身類型=>小組組員
 
         #region 除錯用參數
         private const int TOTAL_LEVEL = 1;//改變這個值，就會改追蹤的階層，值越小越不會追蹤，若是 TOTAL_LEVEL = 3 ，則大於 3 的 LEVEL，例如 : LEVEL_4、LEVEL_5 就不會被追蹤
@@ -82,11 +82,11 @@ namespace ChurchReport.WebServiceConnector
             //switch (Identity)
             //{
             //    case 100000000:
-            //        return "8. 訪客";
+            //        return "8. 新朋友";
             //    case 100000001:
             //        return "5. 神學生";
             //    case 100000002:
-            //        return "4. 領袖";
+            //        return "4. 小組長";
             //    case 100000003:
             //        return "3. 全職同工";
             //    case 100000004:
@@ -100,7 +100,7 @@ namespace ChurchReport.WebServiceConnector
             //    case 100000008:
             //        return "10. 未入組結案";
             //    case 1:
-            //        return "6. 家人";
+            //        return "6. 小組組員";
             //    default:
             //        return ".";
             //}
@@ -109,11 +109,11 @@ namespace ChurchReport.WebServiceConnector
             // 確認是否是新人或是未入組
             int aIdentityNumber = this.m_ToolUtilityClass.GetOptionSetAttribute(aContact, "customertypecode");
 
-            // 因為訪客、未入組會變更委身類型，旗標防止設定太多次，false表示尚未設定
+            // 因為新朋友、未入組會變更委身類型，旗標防止設定太多次，false表示尚未設定
             if (aIdentityNumber == 100000000)
             {
-                //m_SetIdentityFlag = false; // 因為訪客、未入組會變更委身類型，旗標防止設定太多次，false表示尚未設定
-                // 訪客
+                //m_SetIdentityFlag = false; // 因為新朋友、未入組會變更委身類型，旗標防止設定太多次，false表示尚未設定
+                // 新朋友
                 if (Counter >= NewComeMaxiNumber && m_SetIdentityFlag == false)
                 {
                     // 只要設定一次就好
@@ -121,7 +121,7 @@ namespace ChurchReport.WebServiceConnector
 
                     if (TRANSFER_IDENTITY_FLAG == true)
                     {
-                        // 訪客變為未入組
+                        // 新朋友變為未入組
                         this.m_ToolUtilityClass.SetOptionSetAttribute(ref aContact, "customertypecode", 100000004);
                         if (CRM_TYPE == "DYNAMICS365")
                         {

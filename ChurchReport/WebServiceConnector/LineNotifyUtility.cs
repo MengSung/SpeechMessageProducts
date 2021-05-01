@@ -72,7 +72,7 @@ namespace ChurchReport.WebServiceConnector
             {
                 #region 設定週報狀態，設定為已點名、週報主日出席率、小組出席率
 
-                //if ( aSmallGroupData.LoginType == "領袖" )
+                //if ( aSmallGroupData.LoginType == "小組長" )
                 {
                     SmallGroupResult = ProcessLineMessage(LoginContact, SmallGroupResult, ref aListEntity, ref aSmallGroupData, WeeklyReportData, PauseCheckBox);
 
@@ -95,7 +95,7 @@ namespace ChurchReport.WebServiceConnector
             {
                 #region 傳送LINE 訊息關於加入新人的結果給權柄
 
-                m_PushUtility.MultiCastTextMessageAsync(GetLineRecieverList(ref aListEntity, "領袖"), AddNewPersonResult);
+                m_PushUtility.MultiCastTextMessageAsync(GetLineRecieverList(ref aListEntity, "小組長"), AddNewPersonResult);
 
                 #endregion
             }
@@ -112,7 +112,7 @@ namespace ChurchReport.WebServiceConnector
             {
                 #region 傳送LINE 訊息關於加入新人的結果給權柄
 
-                m_PushUtility.MultiCastTextMessageAsync(GetLineRecieverList(ref aListEntity, "領袖"), Result);
+                m_PushUtility.MultiCastTextMessageAsync(GetLineRecieverList(ref aListEntity, "小組長"), Result);
 
                 #endregion
             }
@@ -144,7 +144,7 @@ namespace ChurchReport.WebServiceConnector
 
                 TotalNumber += TotalMemberNumber + Environment.NewLine;
 
-                m_PushUtility.MultiCastTextMessageAsync(GetLineRecieverList(ref aListEntity, "領袖"), GroupName + TotalNumber + MemberList);
+                m_PushUtility.MultiCastTextMessageAsync(GetLineRecieverList(ref aListEntity, "小組長"), GroupName + TotalNumber + MemberList);
 
                 #endregion
             }
@@ -241,7 +241,7 @@ namespace ChurchReport.WebServiceConnector
             {
                 #region 設定週報狀態，設定為已點名、週報主日出席率、小組出席率
 
-                if (aSmallGroupData.LoginType == "領袖")
+                if (aSmallGroupData.LoginType == "小組長")
                 {
                     // 取得小組名稱
                     String GroupName = "小組名稱: " + m_ToolUtilityClass.GetEntityStringAttribute(ref aListEntity, "listname") + Environment.NewLine;
@@ -361,7 +361,7 @@ namespace ChurchReport.WebServiceConnector
 
                 //m_PushUtility.SendMessage(MENGSUNG_LINE_ID, SmallGroupResult);
 
-                m_PushUtility.MultiCastTextMessageAsync(GetLineRecieverList(ref aListEntity, "領袖"), WeeklyReportContent);
+                m_PushUtility.MultiCastTextMessageAsync(GetLineRecieverList(ref aListEntity, "小組長"), WeeklyReportContent);
 
                 #endregion
             }
@@ -376,7 +376,7 @@ namespace ChurchReport.WebServiceConnector
         {
             try
             {
-                #region 先找到"小家長"、"領袖"、族系族長/區長"
+                #region 先找到"小家長"、"小組長"、族系族長/區長"
                 Entity aContact;
 
                 // 區牧 LINE ID
@@ -415,7 +415,7 @@ namespace ChurchReport.WebServiceConnector
                     aAreaLeaderLineId = this.m_ToolUtilityClass.GetEntityStringAttribute(aContact, "new_lineid");
                 }
 
-                // 領袖 ID
+                // 小組長 ID
                 String aListSmallGroupLeaderLineId = "";
                 Guid aListSmallGroupLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_family_leader_list");
                 if (aListSmallGroupLeaderId != Guid.Empty)
@@ -448,9 +448,9 @@ namespace ChurchReport.WebServiceConnector
                 List<String> aList = new List<String>();
 
 
-                if (LoginType == "領袖")
+                if (LoginType == "小組長")
                 {
-                    // 領袖個人回報
+                    // 小組長個人回報
                     if (aListGraceLeaderLineId != "") aList.Add(aListGraceLeaderLineId);
                     if (aCoListGraceLeaderLineId != "") aList.Add(aCoListGraceLeaderLineId);
                     if (aAreaLeaderLineId != "") aList.Add(aAreaLeaderLineId);
@@ -510,7 +510,7 @@ namespace ChurchReport.WebServiceConnector
         {
             try
             {
-                #region 先找到"小家長"、"領袖"、族系族長/區長"
+                #region 先找到"小家長"、"小組長"、族系族長/區長"
                 Entity aContact;
 
                 // 區牧 LINE ID
@@ -565,7 +565,7 @@ namespace ChurchReport.WebServiceConnector
                     }
                 }
 
-                // 領袖 ID
+                // 小組長 ID
                 String aListSmallGroupLeaderLineId = "";
                 Guid aListSmallGroupLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_family_leader_list");
                 if (aListSmallGroupLeaderId != Guid.Empty)
@@ -605,9 +605,9 @@ namespace ChurchReport.WebServiceConnector
                 List<String> aList = new List<String>();
 
 
-                if (LoginType == "領袖")
+                if (LoginType == "小組長")
                 {
-                    // 領袖個人回報
+                    // 小組長個人回報
                     if (aListGraceLeaderLineId != "") aList.Add(aListGraceLeaderLineId);
                     if (aCoListGraceLeaderLineId != "") aList.Add(aCoListGraceLeaderLineId);
                     if (aAreaLeaderLineId != "") aList.Add(aAreaLeaderLineId);

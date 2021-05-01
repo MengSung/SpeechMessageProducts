@@ -44,9 +44,9 @@ namespace ChurchReport.WebServiceConnector
 
         private const bool TRANSFER_IDENTITY_FLAG = false;
 
-        //private const int MONTH_PERIOD = 2;      //幾個月內出席超過這次數就會改變委身類型=>家人
-        private const int WEEK_PERIOD = 8;      //過去幾　WEEK_PERIOD　周內出席超過這次數就會改變委身類型=>家人
-        private const int MINIMUM_THRESHOLD = 4;      //2個月內出席超過這次數就會改變委身類型=>家人
+        //private const int MONTH_PERIOD = 2;      //幾個月內出席超過這次數就會改變委身類型=>小組組員
+        private const int WEEK_PERIOD = 8;      //過去幾　WEEK_PERIOD　周內出席超過這次數就會改變委身類型=>小組組員
+        private const int MINIMUM_THRESHOLD = 4;      //2個月內出席超過這次數就會改變委身類型=>小組組員
 
         #region 除錯用參數
         private const int TOTAL_LEVEL = 1;//改變這個值，就會改追蹤的階層，值越小越不會追蹤，若是 TOTAL_LEVEL = 3 ，則大於 3 的 LEVEL，例如 : LEVEL_4、LEVEL_5 就不會被追蹤
@@ -76,15 +76,15 @@ namespace ChurchReport.WebServiceConnector
         EntityCollection m_PresentLists = new EntityCollection(); // 需要回報給族系族長/區長的名單
 
         Guid m_DecipleGroupListId;
-        //Guid m_GroupLeaderId; // 領袖
+        //Guid m_GroupLeaderId; // 小組長
         Guid m_RaceLeaderId; // 族系族長
         String m_SmallGroupPlace;
         String m_SmallGroupTime;
 
-        Guid m_OwnerId; // 領袖的負責人 Id
+        Guid m_OwnerId; // 小組長的負責人 Id
 
-        private const bool RACE_LEADER_CAN_CREATE_WEEKLYREPORT = true; // 族系組長能否幫領袖建立週報， true是可以
-        //private const bool RACE_LEADER_CAN_CREATE_WEEKLYREPORT = false; // 族系組長能否幫領袖建立週報，false 不可以
+        private const bool RACE_LEADER_CAN_CREATE_WEEKLYREPORT = true; // 族系組長能否幫小組長建立週報， true是可以
+        //private const bool RACE_LEADER_CAN_CREATE_WEEKLYREPORT = false; // 族系組長能否幫小組長建立週報，false 不可以
 
         //List<Place2> m_GroupNamePlaces = new List<Place2>(); // 依據群組名稱過濾出來的會眾集合
         List<MemberInfomation> m_GroupNamedListMemberInfomation = new List<MemberInfomation>(); // 依據群組名稱過濾出來的會眾集合
@@ -419,7 +419,7 @@ namespace ChurchReport.WebServiceConnector
 
         private void SetupNewContactParameter(ref Entity aNewContactEntity, AccountPasswordData aAccountPasswordData, ref NewContact aNewContact, Guid aListEntityId)
         {
-            #region 關聯領袖屬性 找到領袖ID
+            #region 關聯小組長屬性 找到小組長ID
             if (aAccountPasswordData.Account != "LineIdLogin")
             {
                 this.m_ContactEntity = this.m_ToolUtilityClass.RetrieveContactEntityByAccountNumber(aAccountPasswordData.Account, aAccountPasswordData.Password);
@@ -430,21 +430,21 @@ namespace ChurchReport.WebServiceConnector
             }
             m_ContactId = m_ContactEntity.Id;
 
-            // 領袖的負責人 Id
+            // 小組長的負責人 Id
             m_OwnerId = this.m_ToolUtilityClass.GetOwnerId(m_ContactEntity);
 
             #endregion
             #region 蒐集建立新人所需要的屬性
 
-            // 搜尋領袖的門徒小組名單Lookup Id
+            // 搜尋小組長的門徒小組名單Lookup Id
             m_DecipleGroupListId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref m_ContactEntity, "new_deciple_group_list_contact");
-            // 搜尋領袖的族系組長 Lookup Id
+            // 搜尋小組長的族系組長 Lookup Id
             m_RaceLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref m_ContactEntity, "new_race_leader_contact");
 
             #endregion
             #region 建立關聯
             #region 關聯所屬教會
-            //取得領袖的所屬教會
+            //取得小組長的所屬教會
             Guid AccountId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref m_ContactEntity, "parentcustomerid");
             if (AccountId != Guid.Empty)
             { this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aNewContactEntity, "parentcustomerid", "account", AccountId); }
@@ -474,10 +474,10 @@ namespace ChurchReport.WebServiceConnector
             this.m_ToolUtilityClass.SetEntityStringAttribute(ref aNewContactEntity, "telephone2", aNewContact.HomePhone);
             this.m_ToolUtilityClass.SetEntityStringAttribute(ref aNewContactEntity, "address2_line1", aNewContact.Address);
 
-            // 委身類型設定為訪客
+            // 委身類型設定為新朋友
 
 
-            // 內壢得勝靈糧堂牧養訪客稱呼代碼，跟台中思恩堂不一樣
+            // 內壢得勝靈糧堂牧養新朋友稱呼代碼，跟台中思恩堂不一樣
             //台中思恩堂
             if (aListEntityId != Guid.Empty)
             {
@@ -488,38 +488,38 @@ namespace ChurchReport.WebServiceConnector
                 }
                 else
                 {
-                    if (aNewContact.CustomerTypeCode == "家人")
+                    if (aNewContact.CustomerTypeCode == "小組組員")
                     {
-                        // 一般小組新增的新人，委身類型設為"家人"
+                        // 一般小組新增的新人，委身類型設為"小組組員"
                         this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "customertypecode", 1);
                     }
-                    else if (aNewContact.CustomerTypeCode == "訪客")
+                    else if (aNewContact.CustomerTypeCode == "新朋友")
                     {
-                        // 一般小組新增的新人，委身類型設為"訪客"
+                        // 一般小組新增的新人，委身類型設為"新朋友"
                         this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "customertypecode", 100000000);
                     }
                     else
                     {
-                        // 一般小組新增的新人，委身類型設為"訪客"
+                        // 一般小組新增的新人，委身類型設為"新朋友"
                         this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "customertypecode", 100000000);
                     }
                 }
             }
             else
             {
-                if (aNewContact.CustomerTypeCode == "家人")
+                if (aNewContact.CustomerTypeCode == "小組組員")
                 {
-                    // 一般小組新增的新人，委身類型設為"家人"
+                    // 一般小組新增的新人，委身類型設為"小組組員"
                     this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "customertypecode", 1);
                 }
-                else if (aNewContact.CustomerTypeCode == "訪客")
+                else if (aNewContact.CustomerTypeCode == "新朋友")
                 {
-                    // 一般小組新增的新人，委身類型設為"訪客"
+                    // 一般小組新增的新人，委身類型設為"新朋友"
                     this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "customertypecode", 100000000);
                 }
                 else
                 {
-                    // 一般小組新增的新人，委身類型設為"訪客"
+                    // 一般小組新增的新人，委身類型設為"新朋友"
                     this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "customertypecode", 100000000);
                 }
             }
@@ -609,8 +609,8 @@ namespace ChurchReport.WebServiceConnector
         {
             try
             {
-                #region 關聯領袖屬性 找到領袖ID
-                // 找領袖及其ID
+                #region 關聯小組長屬性 找到小組長ID
+                // 找小組長及其ID
                 if (aAccountPasswordData.Account != "LineIdLogin")
                 {
                     this.m_ContactEntity = this.m_ToolUtilityClass.RetrieveContactEntityByAccountNumber(aAccountPasswordData.Account, aAccountPasswordData.Password);
@@ -625,14 +625,14 @@ namespace ChurchReport.WebServiceConnector
 
                 #region 蒐集建立新人所需要的屬性
 
-                // 搜尋領袖的門徒小組名單Lookup Id
+                // 搜尋小組長的門徒小組名單Lookup Id
                 m_DecipleGroupListId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref m_ContactEntity, "new_deciple_group_list_contact");
-                // 搜尋領袖的族系組長 Lookup Id
+                // 搜尋小組長的族系組長 Lookup Id
                 m_RaceLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref m_ContactEntity, "new_race_leader_contact");
 
                 #endregion
 
-                // 根據是否是族系族長還是領袖會設定不同的要上傳的名單集合
+                // 根據是否是族系族長還是小組長會設定不同的要上傳的名單集合
                 // 並且該名單是有勾選APP點名的才被允許進來
                 this.FindListCollection();
 
@@ -891,10 +891,10 @@ namespace ChurchReport.WebServiceConnector
                 this.m_Lists = m_ToolUtilityClass.QueryListByContactId(m_ContactId, "new_contact_list_vice_family_leader");  // 門徒
                 MergeCollectionSmallGroupAhead(ref this.m_Lists);
 
-                // 領袖/門徒 new_contact_family_leader_list
-                //EntityCollection aListEntityCollection = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_contact_family_leader_list", "list");  // 領袖/門徒
-                EntityCollection aListEntityCollection = m_ToolUtilityClass.QueryListByContactId(m_ContactId, "new_contact_family_leader_list");  // 領袖/門徒
-                //aListEntityCollection = m_ToolUtilityClass.QueryListByContactId(m_ContactId, "new_contact_family_leader_list");  // 領袖/門徒
+                // 小組長/門徒 new_contact_family_leader_list
+                //EntityCollection aListEntityCollection = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_contact_family_leader_list", "list");  // 小組長/門徒
+                EntityCollection aListEntityCollection = m_ToolUtilityClass.QueryListByContactId(m_ContactId, "new_contact_family_leader_list");  // 小組長/門徒
+                //aListEntityCollection = m_ToolUtilityClass.QueryListByContactId(m_ContactId, "new_contact_family_leader_list");  // 小組長/門徒
                 MergeCollectionSmallGroupAhead(ref aListEntityCollection);
 
                 // 共同區長 new_contact_co_race_leager_list
@@ -930,7 +930,7 @@ namespace ChurchReport.WebServiceConnector
         {
             try
             {
-                // 族系族長或是區長的名單若是與領袖名單重疊，則要過濾出僅有族長/區長的名單
+                // 族系族長或是區長的名單若是與小組長名單重疊，則要過濾出僅有族長/區長的名單
                 // 合併小組名單至族系名單，單扣除掉重複的
                 // 然後放在小組名單裡面
                 // 一個一個處理族系名單
@@ -943,7 +943,7 @@ namespace ChurchReport.WebServiceConnector
                         // 比對每一個小組名單
                         if (aListEntity.Id == m_ListEntity.Id)
                         {
-                            // 族系族長的名單與領袖的名單有相同的了
+                            // 族系族長的名單與小組長的名單有相同的了
                             SearchedFlag = true;
                             break;
                         }
@@ -951,7 +951,7 @@ namespace ChurchReport.WebServiceConnector
 
                     if (SearchedFlag == false)
                     {
-                        // 族系族長的名單沒有與領袖名單相同的
+                        // 族系族長的名單沒有與小組長名單相同的
                         if (this.m_ToolUtilityClass.GetEntityBoolAttribute(aListEntity, "new_app_named") == true)
                         {
                             // 點名有打勾
@@ -1063,9 +1063,9 @@ namespace ChurchReport.WebServiceConnector
                     }
                     else
                     {
-                        #region// 訪客
+                        #region// 新朋友
 
-                        // 如果是訪客就按正常程序來關懷，不會有死灰復燃的問題，因為根本就是新人
+                        // 如果是新朋友就按正常程序來關懷，不會有死灰復燃的問題，因為根本就是新人
                         // 處理對應的週次及歡迎紀錄和每週跟進歷程
                         aFollowUpHistoryReport = GetFollowUpWeek(aContact, ref aFollowUpWeek);
                         #endregion
@@ -1095,7 +1095,7 @@ namespace ChurchReport.WebServiceConnector
                 if (aIdentityNumber == 100000000 || aIdentityNumber == 100000004)
                 {
                     //    case 100000000:
-                    //        return "8. 訪客";
+                    //        return "8. 新朋友";
                     //    case 100000004:
                     //        return "7. 未入組";
 
@@ -1108,11 +1108,11 @@ namespace ChurchReport.WebServiceConnector
                 //switch (Identity)
                 //{
                 //    case 100000000:
-                //        return "8. 訪客";
+                //        return "8. 新朋友";
                 //    case 100000001:
                 //        return "5. 神學生";
                 //    case 100000002:
-                //        return "4. 領袖";
+                //        return "4. 小組長";
                 //    case 100000003:
                 //        return "3. 全職同工";
                 //    case 100000004:
@@ -1126,7 +1126,7 @@ namespace ChurchReport.WebServiceConnector
                 //    case 100000008:
                 //        return "10. 未入組結案";
                 //    case 1:
-                //        return "6. 家人";
+                //        return "6. 小組組員";
                 //    default:
                 //        return ".";
                 //}
@@ -1228,7 +1228,7 @@ namespace ChurchReport.WebServiceConnector
                     #region 新人跟進相關資訊
                     //aFollowUpHistoryReport += aSundayDate.Date.ToShortDateString() + "， 第" + ConvertNumberToFollowUpWeekPicker(WeekCounter) + "週，";
                     aFollowUpHistoryReport += "第" + ConvertNumberToFollowUpWeekPicker(WeekCounter) + "週，" + aSundayDate.Date.ToShortDateString() + "，";
-                    aFollowUpHistoryReport += "領袖:" + this.m_ToolUtilityClass.GetEntityLookupDisplayName(PresentRecordEntity, "new_groupleader_present_record") + "，";
+                    aFollowUpHistoryReport += "小組長:" + this.m_ToolUtilityClass.GetEntityLookupDisplayName(PresentRecordEntity, "new_groupleader_present_record") + "，";
 
                     //if (aSundayDate != DateTime.Now)
                     //{
@@ -1295,7 +1295,7 @@ namespace ChurchReport.WebServiceConnector
                     }
                     #endregion
 
-                    // 自動把訪客若是超過10週的關懷則設為未入組，把未入組若是超過或等於18週的關懷則設為未入組結案
+                    // 自動把新朋友若是超過10週的關懷則設為未入組，把未入組若是超過或等於18週的關懷則設為未入組結案
                     TransferIdentity(aContact, WeekCounter, 10, 18);
 
                     WeekCounter++;
@@ -1417,7 +1417,7 @@ namespace ChurchReport.WebServiceConnector
                     #region 新人跟進相關資訊
                     //aFollowUpHistoryReport += aSundayDate.Date.ToShortDateString() + "， 第" + ConvertNumberToFollowUpWeekPicker(WeekCounter) + "週，";
                     aFollowUpHistoryReport += "第" + ConvertNumberToFollowUpWeekPicker(WeekCounter) + "週，" + aSundayDate.Date.ToShortDateString() + "，";
-                    aFollowUpHistoryReport += "領袖:" + this.m_ToolUtilityClass.GetEntityLookupDisplayName(PresentRecordEntity, "new_groupleader_present_record") + "，";
+                    aFollowUpHistoryReport += "小組長:" + this.m_ToolUtilityClass.GetEntityLookupDisplayName(PresentRecordEntity, "new_groupleader_present_record") + "，";
 
                     //if (aSundayDate != DateTime.Now)
                     //{
@@ -1704,11 +1704,11 @@ namespace ChurchReport.WebServiceConnector
                 if (aWeeklyReportId != Guid.Empty)
                 { this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aPresentRecord, "new_group_present_weekly_report_prese", "new_group_present_weekly_report", aWeeklyReportId); }
                 #endregion
-                #region 從名單取得 小家長 ID、領袖 ID、區長 ID
+                #region 從名單取得 小家長 ID、小組長 ID、區長 ID
                 // 小家長 ID
                 Guid aFamilyLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_familyhead_list");
 
-                // 領袖 ID
+                // 小組長 ID
                 Guid aGroupLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_family_leader_list");
 
                 // 區長 ID
@@ -1718,7 +1718,7 @@ namespace ChurchReport.WebServiceConnector
                 if (aFamilyLeaderId != Guid.Empty)
                 { this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aPresentRecord, "new_familyhead_present_record", "contact", aFamilyLeaderId); }
                 #endregion
-                #region 關聯領袖屬性
+                #region 關聯小組長屬性
                 if (aGroupLeaderId != Guid.Empty)
                 { this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aPresentRecord, "new_groupleader_present_record", "contact", aGroupLeaderId); }
                 #endregion
@@ -1851,11 +1851,11 @@ namespace ChurchReport.WebServiceConnector
             //switch (Identity)
             //{
             //    case 100000000:
-            //        return "8. 訪客";
+            //        return "8. 新朋友";
             //    case 100000001:
             //        return "5. 神學生";
             //    case 100000002:
-            //        return "4. 領袖";
+            //        return "4. 小組長";
             //    case 100000003:
             //        return "3. 全職同工";
             //    case 100000004:
@@ -1869,7 +1869,7 @@ namespace ChurchReport.WebServiceConnector
             //    case 100000008:
             //        return "10. 未入組結案";
             //    case 1:
-            //        return "6. 家人";
+            //        return "6. 小組組員";
             //    default:
             //        return ".";
             //}
@@ -1878,20 +1878,20 @@ namespace ChurchReport.WebServiceConnector
             // 確認是否是新人或是未入組
             int aIdentityNumber = this.m_ToolUtilityClass.GetOptionSetAttribute(aContact, "customertypecode");
 
-            // 因為訪客、未入組會變更委身類型，旗標防止設定太多次，false表示尚未設定
+            // 因為新朋友、未入組會變更委身類型，旗標防止設定太多次，false表示尚未設定
             if (aIdentityNumber == 100000000)
             {
 
-                //m_SetIdentityFlag = false; // 因為訪客、未入組會變更委身類型，旗標防止設定太多次，false表示尚未設定
+                //m_SetIdentityFlag = false; // 因為新朋友、未入組會變更委身類型，旗標防止設定太多次，false表示尚未設定
                 if (TRANSFER_IDENTITY_FLAG == true)
                 {
-                    // 訪客
+                    // 新朋友
                     if (Counter >= NewComeMaxiNumber && m_SetIdentityFlag == false)
                     {
                         // 只要設定一次就好
                         m_SetIdentityFlag = true;
 
-                        // 訪客變為未入組
+                        // 新朋友變為未入組
                         this.m_ToolUtilityClass.SetOptionSetAttribute(ref aContact, "customertypecode", 100000004);
                         this.m_ToolUtilityClass.UpdateEntity(ref aContact);
                     }
@@ -1929,15 +1929,15 @@ namespace ChurchReport.WebServiceConnector
             switch (Identity)
             {
                 case 100000000:
-                    return "訪客";
+                    return "新朋友";
                 case 100000004:
                     return "未入組";
                 case 100000007://其實是外教會，不過我把他歸類為未入組
                     return "未入組";
                 case 1:
-                    return "家人";
+                    return "小組組員";
                 default:
-                    return "家人";
+                    return "小組組員";
             }
         }
 
@@ -1949,27 +1949,27 @@ namespace ChurchReport.WebServiceConnector
 
                 switch (Identity)
                 {
-                    case "家人":
+                    case "小組組員":
                         if (Type == "主日")
                         {
                             if (Presentflag == true)
                             {
-                                AddToDictionary(ref this.m_FeedBackReport, "主日統計家人出席字串", ContactName + "(共出席" + GetPresentNumber(aListEntityId, "主日", ref aContact).ToString() + "次) ");
+                                AddToDictionary(ref this.m_FeedBackReport, "主日統計小組組員出席字串", ContactName + "(共出席" + GetPresentNumber(aListEntityId, "主日", ref aContact).ToString() + "次) ");
                             }
                             else
                             {
-                                AddToDictionary(ref this.m_FeedBackReport, "主日統計家人未出席字串", ContactName + "(共出席" + GetPresentNumber(aListEntityId, "主日", ref aContact).ToString() + "次) ");
+                                AddToDictionary(ref this.m_FeedBackReport, "主日統計小組組員未出席字串", ContactName + "(共出席" + GetPresentNumber(aListEntityId, "主日", ref aContact).ToString() + "次) ");
                             }
                         }
                         else
                         {
                             if (Presentflag == true)
                             {
-                                AddToDictionary(ref this.m_FeedBackReport, "小組統計家人出席字串", ContactName + "(共出席" + GetPresentNumber(aListEntityId, "小組", ref aContact).ToString() + "次) ");
+                                AddToDictionary(ref this.m_FeedBackReport, "小組統計小組組員出席字串", ContactName + "(共出席" + GetPresentNumber(aListEntityId, "小組", ref aContact).ToString() + "次) ");
                             }
                             else
                             {
-                                AddToDictionary(ref this.m_FeedBackReport, "小組統計家人未出席字串", ContactName + "(共出席" + GetPresentNumber(aListEntityId, "小組", ref aContact).ToString() + "次) ");
+                                AddToDictionary(ref this.m_FeedBackReport, "小組統計小組組員未出席字串", ContactName + "(共出席" + GetPresentNumber(aListEntityId, "小組", ref aContact).ToString() + "次) ");
                             }
                         }
 
@@ -2000,7 +2000,7 @@ namespace ChurchReport.WebServiceConnector
                         }
 
                         return;
-                    case "訪客":
+                    case "新朋友":
 
                         if (Type == "主日")
                         {
@@ -2075,7 +2075,7 @@ namespace ChurchReport.WebServiceConnector
                 int aCustomerTypeCodeValue = this.m_ToolUtilityClass.GetOptionSetAttribute(ref aContactEntity, "customertypecode");
                 //OptionSetValue aCustomerTypeCode = aContactEntity.Attributes["customertypecode"] as OptionSetValue;
 
-                // 如果是訪客或是未入組則不列入累積，台北得勝靈糧堂
+                // 如果是新朋友或是未入組則不列入累積，台北得勝靈糧堂
                 if (aCustomerTypeCodeValue != 100000004 && aCustomerTypeCodeValue != 100000000 && aCustomerTypeCodeValue != 100000007 && aCustomerTypeCodeValue != EMPTY_VALUE)
                 {
                     return true;
@@ -2086,9 +2086,9 @@ namespace ChurchReport.WebServiceConnector
                 }
 
 
-                // 如果是訪客或是未入組則不列入累積，內壢得勝靈糧堂
+                // 如果是新朋友或是未入組則不列入累積，內壢得勝靈糧堂
                 // 10.不穩定組員   =   100,000,008
-                // 11.訪客       =   100,000,009
+                // 11.新朋友       =   100,000,009
                 // 12.未入組       =   100,000,010
                 // 13.暫不入組     =   100,000,012
                 // 14.結案         =   100,000,011
@@ -2133,9 +2133,9 @@ namespace ChurchReport.WebServiceConnector
                         AddToDictionary(ref this.m_FeedBackReport, "未入組跟進統計內容", FollowUp);
 
                         return;
-                    case "訪客":
+                    case "新朋友":
 
-                        AddToDictionary(ref this.m_FeedBackReport, "訪客跟進統計內容", FollowUp);
+                        AddToDictionary(ref this.m_FeedBackReport, "新朋友跟進統計內容", FollowUp);
 
                         return;
                     default:
@@ -2325,7 +2325,7 @@ namespace ChurchReport.WebServiceConnector
             {
                 int TotalNumber = GetPresentNumber(aListEntityId, "小組", ref aContact);
 
-                // 如果主日次數+小組次數 大於等於 MINIMUM_THRESHOLD 次，則委身類型設定為"家人"
+                // 如果主日次數+小組次數 大於等於 MINIMUM_THRESHOLD 次，則委身類型設定為"小組組員"
                 if (TotalNumber >= MINIMUM_THRESHOLD)
                 {
                     return true;

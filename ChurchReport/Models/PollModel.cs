@@ -28,11 +28,11 @@ namespace ChurchReport.Models
         public bool IncubateCampaign { get; set; }              //培育營會行政同工
         public bool DisplayDecipleFlag { get; set; }            //顯示門徒班旗標
 
-        //C、領袖班結業者建議可參與服事項目《可複選》
+        //C、小組長班結業者建議可參與服事項目《可複選》
         public bool SundayPrayer { get; set; }                  //主日禱告服事
         public bool IncubateCampaignLeader { get; set; }        //培育營會帶組同工
         public String Others { get; set; }                      //其他
-        public bool DisplayLeaderFlag { get; set; }             //顯示領袖班旗標
+        public bool DisplayLeaderFlag { get; set; }             //顯示小組長班旗標
 
         //意見回饋調查
         public String PollContent { get; set; }                 //意見回饋調查

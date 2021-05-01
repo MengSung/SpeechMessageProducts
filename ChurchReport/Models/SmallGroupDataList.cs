@@ -34,7 +34,7 @@ namespace ChurchReport.Models
         public DateTime m_SundayDate;
         private bool m_FirstLoginFlag;
 
-        // 領袖點名
+        // 小組長點名
         public SmallGroupData m_SmallGroupData = new SmallGroupData();
 
         // 新人跟進關懷
@@ -183,15 +183,15 @@ namespace ChurchReport.Models
 
                 };
 
-                if (aPersonFormViewModel.CustomerTypeCode == "家人")
+                if (aPersonFormViewModel.CustomerTypeCode == "小組組員")
                 {
-                    // 新增訪客時，導入階段希望先設定為"家人"
+                    // 新增新朋友時，導入階段希望先設定為"小組組員"
                     m_SmallGroupData.DisplayFlag = true;
                     m_SmallGroupData.Members.Add(aMember);
                 }
                 else
                 {
-                    // 新增訪客時，導入成功後設定為"訪客"
+                    // 新增新朋友時，導入成功後設定為"新朋友"
                     m_NewPersonFollowUpData.DisplayFlag = true;
                     m_NewPersonFollowUpData.Members.Add(aMember);
                 }

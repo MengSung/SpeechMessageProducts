@@ -35,7 +35,7 @@ namespace ChurchReport.Models
         // 新增新人時，選擇進入哪一個小組的清單 + 區長或一人帶多個小組時，提供選擇點選進入觀看的Grid
         public MultiGroupList m_MultiGroupList = new MultiGroupList();
 
-        // 個別領袖點名的畫面所需要的資料，就是整合型頁面所需的資料
+        // 個別小組長點名的畫面所需要的資料，就是整合型頁面所需的資料
         public ListSmallGroupWeeklyReport m_ListSmallGroupWeeklyReport = new ListSmallGroupWeeklyReport();// { get; set; }
 
         // 圓餅圖
@@ -71,7 +71,7 @@ namespace ChurchReport.Models
 
         public void SetupListManager()
         {
-            LoginType = "領袖";
+            LoginType = "小組長";
             LoginFullName = "跟隨者";
             m_SelectDate = DateTime.Now;
             ActiveListId = "001";
@@ -163,7 +163,7 @@ namespace ChurchReport.Models
         }
         public void SetupOnlyOneListManager()
         {
-            LoginType = "領袖";
+            LoginType = "小組長";
             LoginFullName = "跟隨者";
             m_SelectDate = DateTime.Now;
             ActiveListId = "001";
@@ -235,7 +235,7 @@ namespace ChurchReport.Models
                             LoadFlag = true,
                             ListEntityId = "001",
                             ListEntityName = "夢嵩連碧小組",
-                            LoginType = "領袖",
+                            LoginType = "小組長",
                             SmallGroupLeaderFullName = "以利亞",
                             SundayPrayers = DateTime.Now,
                             SundayPeriod = "不斷地來愛主耶穌",
@@ -341,7 +341,7 @@ namespace ChurchReport.Models
                             LoadFlag = true,
                             ListEntityId = "002",
                             ListEntityName = "逸凡小組",
-                            LoginType = "領袖",
+                            LoginType = "小組長",
                             SmallGroupLeaderFullName = "胡逸凡",
                             SundayPrayers = DateTime.Now,
                             SundayPeriod = "主耶穌永遠與我們同在",
@@ -355,7 +355,7 @@ namespace ChurchReport.Models
                                         {
                                              PresentRecordId = "EEE",
                                              FullName = "約書亞",
-                                             Status= "領袖",
+                                             Status= "小組長",
                                              Phone = "0910391931",
                                              Address = "桃園市楊梅區三民路",
                                              Sunday = true,
@@ -365,7 +365,7 @@ namespace ChurchReport.Models
                                         {
                                              PresentRecordId = "FFF",
                                              FullName = "跟隨者",
-                                             Status= "領袖",
+                                             Status= "小組長",
                                              Phone = "0921834289",
                                              Address = "台北市大安區敦化北路",
                                              Sunday = true,
@@ -448,7 +448,7 @@ namespace ChurchReport.Models
                             LoadFlag = true,
                             ListEntityId = "001",
                             ListEntityName = "夢嵩連碧小組",
-                            LoginType = "領袖",
+                            LoginType = "小組長",
                             SmallGroupLeaderFullName = "以利亞",
                             SundayPrayers = DateTime.Now,
                             SundayPeriod = "不斷地來愛主耶穌",

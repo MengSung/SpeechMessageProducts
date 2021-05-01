@@ -53,7 +53,7 @@ else
 <form data-ajax="true" data-ajax-begin="onBegin" data-ajax-success="onSuccess" asp-action="SaveIntegrate" asp-controller="Home" method="post">
 
     <div id="all-section" style="height:100%; width:100%; overflow: hidden;">
-        @if (Model.LoginType == "領袖")
+        @if (Model.LoginType == "小組長")
         {
             <div id="smallgroupchart">
                 @( Html.DevExtreme().Chart()
@@ -226,7 +226,7 @@ else
                     )
                 </div>
 
-                @if (Model.LoginType == "領袖")
+                @if (Model.LoginType == "小組長")
                 {
                     @if (Model.GroupType == "一般小組")
                     {
@@ -628,7 +628,7 @@ else
             </div>
         }
 
-        @if (Model.LoginType == "領袖")
+        @if (Model.LoginType == "小組長")
         {
             @if (Model.GroupType == "一般小組")
             {
@@ -725,8 +725,8 @@ else
                                 //columns.AddFor(m => m.PrayerMeeting).Caption("禱告會").Width(45).MinWidth(50).AllowSorting(false);
                                 //columns.AddFor(m => m.Child).Caption("門徒訓練班").Width(75).MinWidth(45).AllowSorting(false);
                                 //columns.AddFor(m => m.BigDisciple).Caption("門徒大聚").Width(60).MinWidth(45).AllowSorting(false);
-                                //columns.AddFor(m => m.LeadershipSmallLecture).Caption("領袖小講堂").Width(75).MinWidth(45).AllowSorting(false);
-                                //columns.AddFor(m => m.LeadersGather).Caption("領袖大聚").Width(45).MinWidth(60).AllowSorting(false);
+                                //columns.AddFor(m => m.LeadershipSmallLecture).Caption("小組長小講堂").Width(75).MinWidth(45).AllowSorting(false);
+                                //columns.AddFor(m => m.LeadersGather).Caption("小組長大聚").Width(45).MinWidth(60).AllowSorting(false);
 
 
                                 //columns.AddFor(m => m.Status).Caption("會員身分").Fixed(false).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Center).AllowSorting(false);
@@ -736,7 +736,7 @@ else
                                                         .AllowEditing(true)
                                                         .Width(70).MinWidth(30).DataType(GridColumnDataType.Number)
                                                         .Lookup(lookup => lookup
-                                                        .DataSource(new string[] { "牧師師母", "區長", "區牧", "領袖", "門徒", "家人", "未入組", "訪客", "外教會", "結案", })
+                                                        .DataSource(new string[] { "牧師師母", "區長", "區牧", "小組長", "門徒", "小組組員", "未入組", "新朋友", "外教會", "結案", })
                                                         //.DisplayExpr("Name")
                                                         //.ValueExpr("ID")
                                                         );
@@ -904,7 +904,7 @@ else
                                             .AllowEditing(true)
                                             .Width(70).MinWidth(30).DataType(GridColumnDataType.Number)
                                             .Lookup(lookup => lookup
-                                            .DataSource(new string[] { "牧師師母", "區長", "區牧", "領袖", "門徒", "家人", "未入組", "訪客", "外教會", "結案", })
+                                            .DataSource(new string[] { "牧師師母", "區長", "區牧", "小組長", "門徒", "小組組員", "未入組", "新朋友", "外教會", "結案", })
                                             //.DisplayExpr("Name")
                                             //.ValueExpr("ID")
                                             );
@@ -1138,7 +1138,7 @@ else
                                             .AllowEditing(true)
                                             .Width(70).MinWidth(30).DataType(GridColumnDataType.Number)
                                             .Lookup(lookup => lookup
-                                            .DataSource(new string[] { "牧師師母", "區長", "區牧", "領袖", "門徒", "家人", "未入組", "訪客", "外教會", "結案", })
+                                            .DataSource(new string[] { "牧師師母", "區長", "區牧", "小組長", "門徒", "小組組員", "未入組", "新朋友", "外教會", "結案", })
                                             //.DisplayExpr("Name")
                                             //.ValueExpr("ID")
                                             );
@@ -1353,7 +1353,7 @@ else
         }
 
         @*<--!> 小組日誌 </--!>*@
-        @if (Model.LoginType == "領袖")
+        @if (Model.LoginType == "小組長")
         {
             <div style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
                 <h5>小組日誌:</h5>

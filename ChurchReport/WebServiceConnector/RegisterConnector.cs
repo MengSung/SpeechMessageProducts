@@ -61,12 +61,12 @@ namespace ChurchReport.WebServiceConnector
         EntityCollection m_PresentLists = new EntityCollection(); // 需要回報給族系族長/區長的名單
 
         Guid m_DecipleGroupListId;
-        //Guid m_GroupLeaderId; // 領袖
+        //Guid m_GroupLeaderId; // 小組長
         Guid m_RaceLeaderId; // 族系族長
         String m_SmallGroupPlace;
         String m_SmallGroupTime;
 
-        private const bool RACE_LEADER_CAN_CREATE_WEEKLYREPORT = true; // 族系組長能否幫領袖建立週報， true是可以
+        private const bool RACE_LEADER_CAN_CREATE_WEEKLYREPORT = true; // 族系組長能否幫小組長建立週報， true是可以
         #endregion
         #region 處理註冊區
         public String Register(String FullName, String Mobile, String Account, String Password, String ConfirmPassword)
@@ -98,12 +98,12 @@ namespace ChurchReport.WebServiceConnector
                 {
                     // 找到姓名相同且行動相同的人
 
-                    // 是否是領袖或是區長，發展到個人版也可以回報
+                    // 是否是小組長或是區長，發展到個人版也可以回報
                     FindListCollection(aContact);
 
                     if ( m_Lists.Entities.Count >= 0 )
                     {
-                        #region 是領袖或是區長，發展到個人版也可以回報
+                        #region 是小組長或是區長，發展到個人版也可以回報
 
                         // 是否有相同帳號
                         Entity Contact = this.m_ToolUtilityClass.DoesAccountExist(Account);
@@ -162,7 +162,7 @@ namespace ChurchReport.WebServiceConnector
                 EntityCollection aListEntityCollection = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", aContact.Id.ToString(), "new_contact_race_leager_list", "list");
                 if (aListEntityCollection.Entities.Count > 0)
                 {
-                    // 領袖小組名單集合
+                    // 小組長小組名單集合
                     EntityCollection aFamilyLeaderListEntityCollection = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", aContact.Id.ToString(), "new_contact_family_leader_list", "list");
 
                     // 合併小組名單至族系名單，單扣除掉重複的
@@ -172,17 +172,17 @@ namespace ChurchReport.WebServiceConnector
                     // 過濾掉需要點名的名單才進來
                     FilterAppNamedListEntity(aMergeCollection);
 
-                    // 帶領族系裡有名單，所以是族系組長，就不用在往下找看是不是領袖了 
+                    // 帶領族系裡有名單，所以是族系組長，就不用在往下找看是不是小組長了 
                     return;
                 }
 
-                // 找到領袖小組名單集合 
+                // 找到小組長小組名單集合 
                 aListEntityCollection = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", aContact.Id.ToString(), "new_contact_family_leader_list", "list");
                 if (aListEntityCollection.Entities.Count > 0)
                 {
                     // 過濾掉需要點名的名單才進來
                     FilterAppNamedListEntity(aListEntityCollection);
-                    // 帶領族系裡有名單，所以是族系組長，就不用在往下找看是不是領袖了 
+                    // 帶領族系裡有名單，所以是族系組長，就不用在往下找看是不是小組長了 
                     return;
                 }
 
@@ -296,14 +296,14 @@ namespace ChurchReport.WebServiceConnector
                             if (aIdentity == "族長")
                             {
                                 //  族長   = new_contact_race_leager_list
-                                //  領袖 = new_contact_family_leader_list
+                                //  小組長 = new_contact_family_leader_list
                                 //  台北得勝靈糧堂，因為台北得勝靈糧堂沒有小家長
                                 //Guid FamilyLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ListEntity, "new_familyhead_list");
                                 Guid GroupLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ListEntity, "new_contact_family_leader_list");
 
                                 String ListName = this.m_ToolUtilityClass.GetEntityStringAttribute(ListEntity, "listname");
 
-                                // 過濾掉需要點名的名單才進來，若是族長則名單裡就應該沒有"小家長"、"領袖"
+                                // 過濾掉需要點名的名單才進來，若是族長則名單裡就應該沒有"小家長"、"小組長"
                                 //if (FamilyLeaderId == Guid.Empty && GroupLeaderId == Guid.Empty)
                                 if (GroupLeaderId == Guid.Empty || GroupLeaderId == m_ContactId)
                                 {
@@ -320,11 +320,11 @@ namespace ChurchReport.WebServiceConnector
                                 }
 
                             }
-                            else if (aIdentity == "領袖")
+                            else if (aIdentity == "小組長")
                             {
                                 //Guid FamilyLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ListEntity, "new_familyhead_list");
                                 //
-                                //// 過濾掉需要點名的名單才進來，若是領袖則名單裡就應該沒有"小家長"
+                                //// 過濾掉需要點名的名單才進來，若是小組長則名單裡就應該沒有"小家長"
                                 //if (FamilyLeaderId == Guid.Empty )
                                 //{
                                 //    this.m_Lists.Entities.Add(ListEntity);

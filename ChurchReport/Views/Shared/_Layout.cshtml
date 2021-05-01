@@ -225,9 +225,9 @@
                         else
                         {
                             <!--單一牧養回報項目-->
-                            @if (@ViewBag.LoginType == "領袖")
+                            @if (@ViewBag.LoginType == "小組長")
                             {
-                                <!--領袖回報-->
+                                <!--小組長回報-->
                                 if (@ViewBag.MultiGroupIndex == "IntegrateView")
                                 {
                                     <li><a href="/Home/IntegrateView/IntegrateView">小組回報</a></li>
@@ -239,11 +239,11 @@
                                 }
                                 @if (@ViewBag.HappyType == "有幸福小組名單")
                                 {
-                                    <!--領袖回報，有幸福小組名單-->
+                                    <!--小組長回報，有幸福小組名單-->
                                     @if (@ViewBag.FeeType == "有繳費點名")
                                     {
-                                        <!--領袖回報，有幸福小組名單，有繳費點名-->
-                                        // 領袖，有幸福小組名單，有繳費點名
+                                        <!--小組長回報，有幸福小組名單，有繳費點名-->
+                                        // 小組長，有幸福小組名單，有繳費點名
                                         <li>@*<a href="/Home/SmallGroupReportView/AccountPassword">小組牧養</a>*@</li>
                                         @*<li><a href="/Home/IntegrateView/AccountPassword">牧養回報</a></li>*@
                                         @*<li><a href="/Home/MultiGroupView/MultiGroup">牧養回報</a></li>*@
@@ -260,7 +260,7 @@
                                     }
                                     else
                                     {
-                                        // 領袖，有幸福小組名單，無繳費點名
+                                        // 小組長，有幸福小組名單，無繳費點名
                                         <li>@*<a href="/Home/SmallGroupReportView/AccountPassword">小組牧養</a>*@</li>
                                         @*<li><a href="/Home/IntegrateView/AccountPassword">牧養回報</a></li>*@
                                         @*<li><a href="/Home/MultiGroupView/MultiGroup">牧養回報</a></li>*@
@@ -286,10 +286,10 @@
                                 }
                                 else
                                 {
-                                    <!--領袖，無幸福小組名單-->
+                                    <!--小組長，無幸福小組名單-->
                                     @if (@ViewBag.FeeType == "有繳費點名")
                                     {
-                                        // 領袖，無幸福小組名單，有繳費點名
+                                        // 小組長，無幸福小組名單，有繳費點名
                                         <li>@*<a href="/Home/SmallGroupReportView/AccountPassword">小組牧養</a>*@</li>
                                         @*<li><a href="/Home/IntegrateView/AccountPassword">牧養回報</a></li>*@
                                         @*<li><a href="/Home/MultiGroupView/MultiGroup">牧養回報</a></li>*@
@@ -307,7 +307,7 @@
                                     }
                                     else
                                     {
-                                        // 領袖，無幸福小組名單，無繳費點名
+                                        // 小組長，無幸福小組名單，無繳費點名
                                         <li>@*<a href="/Home/SmallGroupReportView/AccountPassword">小組牧養</a>*@</li>
                                         @*<li><a href="/Home/IntegrateView/AccountPassword">牧養回報</a></li>*@
                                         @*<li><a href="/Home/MultiGroupView/MultiGroup">牧養回報</a></li>*@
@@ -341,7 +341,7 @@
 
                                     @if (@ViewBag.FeeType == "有繳費點名")
                                     {
-                                        // 不是領袖，有幸福小組名單，有繳費點名
+                                        // 不是小組長，有幸福小組名單，有繳費點名
                                         @*<li><a href="/Home/IntegrateView/Personal">個人回報</a></li>*@
                                         <li><a href="/Home/PersonalReport">個人回報</a></li>
                                         <li><a href="/Home/MaintainPersonInfomationView">個人資料</a></li>
@@ -356,7 +356,7 @@
                                     }
                                     else
                                     {
-                                        // 不是領袖，有幸福小組名單，無繳費點名
+                                        // 不是小組長，有幸福小組名單，無繳費點名
                                         @*<li><a href="/Home/IntegrateView/Personal">個人回報</a></li>*@
                                         <li><a href="/Home/PersonalReport">個人回報</a></li>
                                         <li><a href="/Home/MaintainPersonInfomationView">個人資料</a></li>
@@ -370,7 +370,7 @@
                                 {
                                     @if (@ViewBag.FeeType == "有繳費點名")
                                     {
-                                        // 不是領袖，無幸福小組名單，有繳費點名
+                                        // 不是小組長，無幸福小組名單，有繳費點名
                                         @*<li><a href="/Home/IntegrateView/Personal">個人回報</a></li>*@
                                         <li><a href="/Home/PersonalReport">個人回報</a></li>
                                         <li><a href="/Home/MaintainPersonInfomationView">個人資料</a></li>
@@ -386,7 +386,7 @@
                                     }
                                     else
                                     {
-                                        // 不是領袖，無幸福小組名單，無繳費點名
+                                        // 不是小組長，無幸福小組名單，無繳費點名
                                         @*<li><a href="/Home/IntegrateView/Personal">個人回報</a></li>*@
                                         <li><a href="/Home/PersonalReport">個人回報</a></li>
                                         <li><a href="/Home/MaintainPersonInfomationView">個人資料</a></li>
