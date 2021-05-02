@@ -1711,6 +1711,44 @@ namespace ToolUtilityNameSpace
                 throw e;
             }
         }
+        public EntityCollection QueryContatsByStartedDedicationNumber(String DedicationStartNumber)
+        {
+            try
+            {
+                DedicationStartNumber = "'" + DedicationStartNumber + "%'";
+
+                var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false' top='3'>
+                              <entity name='contact'>
+                                <attribute name='fullname' />
+                                <attribute name='pager' />
+                                <attribute name='telephone2' />
+                                <attribute name='address2_line1' />
+                                <attribute name='parentcustomerid' />
+                                <attribute name='new_church_jobtitle' />
+                                <attribute name='mobilephone' />
+                                <attribute name='emailaddress1' />
+                                <attribute name='contactid' />
+                                <order attribute='pager' descending='true' />
+                                <filter type='and'>
+                                  <condition attribute='pager' operator='like' value=" + DedicationStartNumber + @" />
+                                </filter>
+                              </entity>
+                            </fetch>";
+
+                RetrieveMultipleRequest fetchRequest1 = new RetrieveMultipleRequest
+                {
+                    Query = new FetchExpression(fetchXml)
+                };
+
+                return ((RetrieveMultipleResponse)this.m_OrganizationService.Execute(fetchRequest1)).EntityCollection;
+
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                throw e;
+            }
+        }
         #endregion
         #region 取得客戶(Account)組織
         public Guid RetrieveAccountCollectionByName(String AccountName)

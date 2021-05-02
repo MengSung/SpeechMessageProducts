@@ -1060,6 +1060,82 @@ namespace ChurchReport.Models
             }
         }
         #endregion
+
+        #region 查詢找不到時新增新人
+        public async Task<IActionResult> CreateContact(string FullName)
+        {
+            try
+            {
+                // 建立新人
+                EntityCollection aQueriedContacts = this.m_ToolUtilityClass.RetrieveContactEntityByFullNameCollection(FullName);
+
+                if (aQueriedContacts.Entities.Count == 0)
+                {
+                    Entity aContactToCreate = new Entity("contact");
+
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactToCreate, "lastname", FullName);
+                    Guid aContactToCreateId = this.m_ToolUtilityClass.CreateEntity(aContactToCreate);
+
+                    Entity aContactCreated = this.m_ToolUtilityClass.RetrieveEntity("contact", aContactToCreateId);
+
+                    // 自動奉獻編號
+                    AutoDedicationNumbering(FullName, aContactCreated);
+
+                    return Json(new { status = "1", message = "成功建立了" + FullName });
+                }
+                else
+                {
+                    return Json(new { status = "2", message = "錯誤: 有同名同姓的" + FullName });
+
+                }
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "永和禮拜堂 : 註冊錯誤 => " + ErrorString);
+
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
+                throw e;
+            }
+        }
+        /// <summary>
+        /// 自動奉獻編號
+        /// </summary>
+        /// <param name="aContactCreated"></param>
+        private void AutoDedicationNumbering(String FullName, Entity aContactCreated)
+        {
+            //Entity aRetrievedContact = this.m_ToolUtilityClass.RetrieveEntity("contact", aContactCreated.Id);
+
+            if (FullName.Length <= 5)
+            {
+                //新增的是聯絡人
+                SetDedicationNumber("0", aContactCreated);
+            }
+            else
+            {
+                //新增的是公司組織
+                SetDedicationNumber("9", aContactCreated);
+            }
+        }
+        private void SetDedicationNumber(String StartNumber, Entity aContactCreated)
+        {
+            EntityCollection aContactEntityCollection = this.m_ToolUtilityClass.QueryContatsByStartedDedicationNumber(StartNumber);
+            if (aContactEntityCollection.Entities.Count > 0)
+            {
+                int NewNumber = Convert.ToInt32(this.m_ToolUtilityClass.GetEntityStringAttribute(aContactEntityCollection.Entities[0], "pager")) + 1;
+
+                this.m_ToolUtilityClass.SetEntityStringAttribute(aContactCreated, "pager", StartNumber + NewNumber.ToString());
+
+                this.m_ToolUtilityClass.UpdateEntity(aContactCreated);
+            }
+        }
+
+        #endregion
+
         #region 工具區
         private String ConvertToPayway(Entity aFeeEntity)
         {

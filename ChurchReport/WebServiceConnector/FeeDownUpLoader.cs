@@ -719,7 +719,17 @@ namespace ChurchReport.WebServiceConnector
 
             //指派負責人
             Entity aContact = this.m_ToolUtilityClass.RetrieveEntity( "contact", this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aStorLessonEntity, "new_contact_new_stor_lessons"));
-            this.m_ToolUtilityClass.AssignOwner("new_fee", aRetrievedFee, this.m_ToolUtilityClass.GetOwnerId(aContact));
+
+            //指派負責人
+            if (aContact != null)
+            {
+                Guid aContactId = this.m_ToolUtilityClass.GetOwnerId(aContact);
+
+                if (aContactId != null && aContactId != Guid.Empty)
+                {
+                    this.m_ToolUtilityClass.AssignOwner("new_fee", aRetrievedFee, aContactId);
+                }
+            }
 
             return aRetrievedFee;
 

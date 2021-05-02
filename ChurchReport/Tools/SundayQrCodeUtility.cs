@@ -714,7 +714,15 @@ namespace ChurchReport.Tools
                 Entity aRetrievedPresentRecord = this.m_ToolUtilityClass.RetrieveEntity("new_present_record", aPresentRecordId);
 
                 //指派負責人
-                this.m_ToolUtilityClass.AssignOwner("new_present_record", aRetrievedPresentRecord, this.m_ToolUtilityClass.GetOwnerId(m_Contact));
+                if (m_Contact != null)
+                {
+                    Guid aContactId = this.m_ToolUtilityClass.GetOwnerId(m_Contact);
+
+                    if (aContactId != null && aContactId != Guid.Empty)
+                    {
+                        this.m_ToolUtilityClass.AssignOwner("new_present_record", aRetrievedPresentRecord, aContactId);
+                    }
+                }
 
                 //取得並回傳新建的聚會與靈修記錄
                 return aRetrievedPresentRecord;

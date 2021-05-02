@@ -4945,22 +4945,7 @@ namespace ChurchReport.Controllers
             try
             {
                 // 建立新人
-                EntityCollection aQueriedContacts = this.m_ToolUtilityClass.RetrieveContactEntityByFullNameCollection(FullName);
-
-                if (aQueriedContacts.Entities.Count == 0)
-                {
-                    Entity aContactToCreate = new Entity("contact");
-
-                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactToCreate, "lastname", FullName);
-                    this.m_ToolUtilityClass.CreateEntity(aContactToCreate);
-
-                    return Json(new { status = "1", message = "成功建立了" + FullName });
-                }
-                else
-                {
-                    return Json(new { status = "2", message = "錯誤: 有同名同姓的" + FullName });
-
-                }
+                return await m_InMemoryDataContextSmallGroup.QpayManager.CreateContact(FullName);
             }
             catch (System.Exception e)
             {
