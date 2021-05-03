@@ -4163,6 +4163,57 @@ namespace ToolUtilityNameSpace
             }
         }
         #endregion
+        #region 取得聚會統計紀錄
+        /// <summary>
+        /// 特定連絡人已報名的課程
+        /// </summary>
+        /// <param name="StartDate"></param>
+        /// <param name="EndDate"></param>
+        /// <returns></returns>
+        public EntityCollection RetrieveMeetingStatisticsByFetchXml(DateTime SundayDate)
+        {
+            try
+            {
+                string SundayDateString = @"'" + SundayDate.Year + "-" + SundayDate.Month + "-" + SundayDate.Day + @"'";
+
+                var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+                          <entity name='new_meeting_statistics'>
+                            <attribute name='new_meeting_statisticsid' />
+                            <attribute name='new_name' />
+                            <attribute name='createdon' />
+                            <order attribute='new_name' descending='false' />
+                            <filter type='and'>
+                              <condition attribute='statuscode' operator='eq' value='1' />
+                             <condition attribute='new_sunday_date' operator='on' value=" + SundayDateString + @" />
+                            </filter>
+                          </entity>
+                        </fetch>";
+
+                RetrieveMultipleRequest fetchRequest = new RetrieveMultipleRequest
+                {
+                    Query = new FetchExpression(fetchXml)
+                };
+
+                EntityCollection retrieved;
+                if (CRM_TYPE == "DYNAMICS365")
+                {
+                    retrieved = ((RetrieveMultipleResponse)this.m_OrganizationService.Execute(fetchRequest)).EntityCollection;
+                }
+                else
+                {
+                    retrieved = ((RetrieveMultipleResponse)this.m_Crm2011OrganizationService.Execute(fetchRequest)).EntityCollection;
+                }
+
+
+                return retrieved;
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                throw e;
+            }
+        }
+        #endregion
         #endregion
         #region 搜尋 N:N( ManyToMany) 的集合
 
