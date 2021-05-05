@@ -587,13 +587,23 @@
         }
         else if (e.value == "信用卡定期定額(每個月)")
         {
-            document.getElementById("creditcardlistcontainer").style.display = "";//顯示信用卡
-
             //信用卡清單網格
             var creditcarditems = $("#CreditCardGrid").dxDataGrid("instance").getDataSource().items();
-            if (creditcarditems.length > 0)
-            {
+            if (creditcarditems.length > 0) {
+                document.getElementById("creditcardlistcontainer").style.display = "";//顯示信用卡
+
                 $("#CreditCardGrid").dxDataGrid("instance").selectRows('@(Model.SelectedCreditCard)', true);
+
+                $("#save-button3").dxButton("instance").option("visible", true);
+                $("#save-button2").dxButton("instance").option("text", "用上面選擇的信用卡奉獻");
+
+            }
+            else {
+                document.getElementById("creditcardlistcontainer").style.display = "none";//隱藏信用卡
+
+                $("#save-button3").dxButton("instance").option("visible", false);
+                $("#save-button2").dxButton("instance").option("text", "奉獻");
+
             }
 
             //信用卡定期定額網格
@@ -609,8 +619,6 @@
             $("#form").dxForm("instance").itemOption("DedicationAmount", "label", { text: "每月金額" });
             $("#form").dxForm("instance").itemOption("DedicationAmount", "editorOptions", { placeholder: "每月的奉獻金額" });
 
-            $("#save-button3").dxButton("instance").option("visible", true);
-            $("#save-button2").dxButton("instance").option("text", "用上面選擇的信用卡奉獻");
 
             document.getElementById('atmfield').innerHTML = "";
         }
@@ -698,6 +706,8 @@
         else
         {
             document.getElementById("creditcardlistcontainer").style.display = "none";//隱藏信用卡
+            document.getElementById("dedicationbookinglistcontainer").style.display = "none";//隱藏定期定額
+
             //document.getElementById("creditcardlistcontainer").remove();//隱藏
 
             //var element = document.getElementById("creditcardlistcontainer");
