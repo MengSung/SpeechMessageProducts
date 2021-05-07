@@ -820,7 +820,7 @@ namespace ChurchReport.WebServiceConnector
                 {
                     String GratitudeMessage =
                         "敬收 " + m_ToolUtilityClass.GetEntityStringAttribute(ref aContact, "fullname") + " 奉獻" + Environment.NewLine +
-                        "日期 : " + DateTime.Now.ToShortDateString() + Environment.NewLine +
+                        "日期 : " + QpayModel.DedicationDate.ToShortDateString() + Environment.NewLine +
                         "類別 : " + QpayModel.Category + "  " + QpayModel.Others + Environment.NewLine +
                         "付款方式: " + QpayModel.PayWay + Environment.NewLine +
                         "金額 : " + QpayModel.Amount;

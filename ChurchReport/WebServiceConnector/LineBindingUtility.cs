@@ -52,7 +52,7 @@ namespace ChurchReport.WebServiceConnector
         }
 
 
-        public String RegisterContact(String UserLineId, string EnteredFullName, String EnteredMobilePhone)
+        public String RegisterContact(String UserLineId, string EnteredFullName, string EnteredOtherName, String EnteredMobilePhone)
         {
             try
             {
@@ -63,7 +63,7 @@ namespace ChurchReport.WebServiceConnector
                 if (IsBindingAlready(ref UserLineId, ref ContactFullName) != true)
                 {
                     #region // 還沒有綁定註冊過!
-                    return ProcessNotYetBinding(ContactFullName, UserLineId, "", EnteredFullName, EnteredMobilePhone);
+                    return ProcessNotYetBinding(ContactFullName, UserLineId, "", EnteredFullName, EnteredOtherName, EnteredMobilePhone);
                     #endregion
                 }
                 else
@@ -80,7 +80,7 @@ namespace ChurchReport.WebServiceConnector
                 throw e;
             }
         }
-        private String ProcessNotYetBinding(String ContactFullName, String LineId, String DisplayId, string EnteredFullName, String EnteredMobilePhone)
+        private String ProcessNotYetBinding(String ContactFullName, String LineId, String DisplayId, string EnteredFullName, string EnteredOtherName, String EnteredMobilePhone)
         {
             try
             {
@@ -114,7 +114,7 @@ namespace ChurchReport.WebServiceConnector
                 {
                     #region 在系統裡有相同名字的連絡人，如果有 LineId 表示綁定過過，但是如果是換手機，則目前假設LineId仍然要被更新
                     String Result = "";
-                    if (ProcessEachContactWithSameName(aContactCollection, LineId, DisplayId, EnteredFullName, EnteredMobilePhone, ref Result) == true)
+                    if (ProcessEachContactWithSameName(aContactCollection, LineId, DisplayId, EnteredFullName, EnteredOtherName, EnteredMobilePhone, ref Result) == true)
                     {
                         // 已經成功綁定了
                         //return "成功綁定了";
@@ -129,7 +129,7 @@ namespace ChurchReport.WebServiceConnector
                 else
                 {
                     #region 在系統裡完全還沒有這個人，因為 aContactCollection.Entities.Count <= 0
-                    UpdateRegisteredContact( LineId, EnteredFullName, EnteredMobilePhone);
+                    UpdateRegisteredContact( LineId, EnteredFullName, EnteredOtherName, EnteredMobilePhone);
                     return "綁定成功"; // 綁定成功，並返回
                     #endregion
                 }
@@ -141,7 +141,7 @@ namespace ChurchReport.WebServiceConnector
                 if (aContactNoMobile != null)
                 {
                     #region 找到一個在系統裡已經有同名同姓，但是卻沒有手機號碼
-                    CopyLineInfomation(aContactNoMobile, LineId, DisplayId, EnteredFullName, EnteredMobilePhone);
+                    CopyLineInfomation(aContactNoMobile, LineId, DisplayId, EnteredFullName, EnteredOtherName, EnteredMobilePhone);
                     //SendSimpleMessage(LineId, RegisterContactFullName + "註冊已經完成了!");
                     //this.m_LineUtilityClass.ReplyTextMessage(ReplyToken, RegisterContactFullName + "註冊已經完成了!");
                     #endregion
@@ -204,7 +204,7 @@ namespace ChurchReport.WebServiceConnector
             }
         }
 
-        private bool ProcessEachContactWithSameName(EntityCollection aContactCollection, String LineId, String DisplayId ,String RegisterContactFullName, String RegisterContactMobilePhone, ref String Result )
+        private bool ProcessEachContactWithSameName(EntityCollection aContactCollection, String LineId, String DisplayId ,String RegisterContactFullName, string RegisterContactOtherName, String RegisterContactMobilePhone, ref String Result )
         {
             try
             {
@@ -218,7 +218,7 @@ namespace ChurchReport.WebServiceConnector
                     if (RegisterContactMobilePhone == MobilePhone)
                     {
                         #region 在系統裡已經有同名同姓而且手機相同的人，就認定是相同的連絡人，而且是還沒被綁定的連絡人
-                        CopyLineInfomation(aContactEntity, LineId, DisplayId, RegisterContactFullName, RegisterContactMobilePhone);
+                        CopyLineInfomation(aContactEntity, LineId, DisplayId, RegisterContactFullName, RegisterContactOtherName, RegisterContactMobilePhone);
                         Result = "綁定成功，並返回";
                         return true; // 綁定完成，並返回
                         #endregion
@@ -252,7 +252,7 @@ namespace ChurchReport.WebServiceConnector
             }
         }
 
-        private void CopyLineInfomation(Entity aContactNoMobile, String LineId, String DisplayId, String RegisterContactFullName, String RegisterContactMobilePhone)
+        private void CopyLineInfomation(Entity aContactNoMobile, String LineId, String DisplayId, String RegisterContactFullName, string RegisteredOtherName, String RegisterContactMobilePhone)
         {
             try
             {
@@ -266,6 +266,10 @@ namespace ChurchReport.WebServiceConnector
                 // 取得寄件人的 LINE 相關訊息並複製給系統中的連絡人
                 CopyLineInfomation(EnteredLineContactEntity, aContactNoMobile);
 
+                // 填入其他姓名
+                CopyOtherName(RegisteredOtherName, aContactNoMobile);
+
+                // 填入行動電話
                 CopyMobilePhoneNumber(RegisterContactMobilePhone, aContactNoMobile);
 
                 // 更新系統中的連絡人
@@ -405,9 +409,33 @@ namespace ChurchReport.WebServiceConnector
                 throw e;
             }
         }
+        private void CopyOtherName(String RegisteredOtherName, Entity ToContact)
+        {
+            try
+            {
+                if (this.m_ToolUtilityClass.GetEntityStringAttribute(ref ToContact, "new_other_name") == "")
+                {
+                    // 設定行動電話
+                    this.m_ToolUtilityClass.SetEntityStringAttribute
+                    (
+                        ref ToContact,
+                        "new_other_name",
+                        RegisteredOtherName
+                    );
+
+                }
+                return;
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                throw e;
+            }
+        }
 
 
-        private void UpdateRegisteredContact(String LineId, String RegisterContactFullName, String RegisterContactMobilePhone)
+        private void UpdateRegisteredContact(String LineId, String RegisterContactFullName, string RegisterContactOtherName, String RegisterContactMobilePhone)
         {
             try
             {
@@ -417,6 +445,9 @@ namespace ChurchReport.WebServiceConnector
 
                 // 更新寄件人的姓名
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aEnteredContactEntity, "lastname", RegisterContactFullName);
+
+                // 更新寄件人的其他姓名
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aEnteredContactEntity, "new_other_name", RegisterContactOtherName);
 
                 // 更新寄件人的行動電話
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aEnteredContactEntity, "mobilephone", RegisterContactMobilePhone);

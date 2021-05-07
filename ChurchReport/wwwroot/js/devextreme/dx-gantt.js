@@ -1,7 +1,7 @@
 /*!
  * DevExpress Gantt (dx-gantt)
- * Version: 2.0.24
- * Build date: Wed Mar 10 2021
+ * Version: 2.0.29
+ * Build date: Tue Apr 20 2021
  * 
  * Copyright (c) 2012 - 2021 Developer Express Inc. ALL RIGHTS RESERVED
  * Read about DevExpress licensing here: https://www.devexpress.com/Support/EULAs
@@ -1798,11 +1798,14 @@ var TaskAreaManager = (function () {
             this.preventSelect = true;
         }
     };
+    TaskAreaManager.prototype.getDependencyKeyFromSource = function (source) {
+        return this.ganttView.viewModel.convertInternalToPublicKey("dependency", source.getAttribute("dependency-id"));
+    };
     TaskAreaManager.prototype.onContextMenu = function (evt) {
         var source = evt_1.EvtUtils.getEventSource(evt);
         var isDependency = this.isConnectorLine(evt);
         var type = isDependency ? "dependency" : "task";
-        var key = isDependency ? source.getAttribute("dependency-id") : this.getClickedTaskKey(this.getClickedTaskIndex(evt));
+        var key = isDependency ? this.getDependencyKeyFromSource(source) : this.getClickedTaskKey(this.getClickedTaskIndex(evt));
         if (evt.stopPropagation)
             evt.stopPropagation();
         if (evt.preventDefault)
@@ -2036,7 +2039,7 @@ var CollectionBase = (function () {
             return;
         if (this.getItemById(element.internalId))
             throw "The collection item with id ='" + element.internalId + "' already exists.";
-        this._items.push(element);
+        this._addItem(element);
     };
     CollectionBase.prototype.addRange = function (range) {
         for (var i = 0; i < range.length; i++)
@@ -2045,10 +2048,18 @@ var CollectionBase = (function () {
     CollectionBase.prototype.remove = function (element) {
         var index = this._items.indexOf(element);
         if (index > -1 && index < this._items.length)
-            this._items.splice(index, 1);
+            this._removeItems(index, 1);
     };
     CollectionBase.prototype.clear = function () {
-        this._items.splice(0, this._items.length);
+        this._removeItems(0, this._items.length);
+    };
+    CollectionBase.prototype._addItem = function (element) {
+        this._items.push(element);
+        delete this._invertedItems;
+    };
+    CollectionBase.prototype._removeItems = function (start, count) {
+        this._items.splice(start, count);
+        delete this._invertedItems;
     };
     Object.defineProperty(CollectionBase.prototype, "items", {
         get: function () {
@@ -2073,8 +2084,25 @@ var CollectionBase = (function () {
             return this._items[index];
         return null;
     };
+    Object.defineProperty(CollectionBase.prototype, "invertedItems", {
+        get: function () {
+            var _a;
+            (_a = this._invertedItems) !== null && _a !== void 0 ? _a : (this._invertedItems = this._createInvertedItems());
+            return this._invertedItems;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    CollectionBase.prototype._createInvertedItems = function () {
+        var result = {};
+        for (var i = 0; i < this._items.length; i++) {
+            var item = this._items[i];
+            result[item.internalId] = item;
+        }
+        return result;
+    };
     CollectionBase.prototype.getItemById = function (id) {
-        return this._items.filter(function (val) { return val.internalId === id; })[0];
+        return this.invertedItems[id];
     };
     CollectionBase.prototype.getItemByPublicId = function (id) {
         return this._items.filter(function (val) { return val.id === id || val.id.toString() === id; })[0];
@@ -6074,15 +6102,9 @@ var tslib_1 = __webpack_require__(0);
 var BaseArguments_1 = __webpack_require__(20);
 var TaskInsertingArguments = (function (_super) {
     tslib_1.__extends(TaskInsertingArguments, _super);
-    function TaskInsertingArguments(key, start, end, title, progress, parentId) {
+    function TaskInsertingArguments(key, data) {
         var _this = _super.call(this, key) || this;
-        _this.values = {
-            start: start,
-            end: end,
-            title: title,
-            progress: progress,
-            parentId: parentId
-        };
+        _this.values = data !== null && data !== void 0 ? data : {};
         return _this;
     }
     Object.defineProperty(TaskInsertingArguments.prototype, "start", {
@@ -6705,11 +6727,44 @@ var GanttView = (function () {
         }
     };
     GanttView.prototype.updateView = function () {
-        this.timeScaleContainer.scrollLeft = this.taskAreaContainer.scrollLeft;
+        this.onBeginUpdateView();
+        this.timeScaleContainer.scrollLeft = this.taskAreaContainerScrollLeft;
         this.processScroll(false);
         this.processScroll(true);
-        this.ganttOwner.onGanttScroll(this.taskAreaContainer.scrollTop);
+        this.ganttOwner.onGanttScroll(this.taskAreaContainerScrollTop);
+        this.onEndUpdateView();
     };
+    GanttView.prototype.onBeginUpdateView = function () {
+        this[GanttView.taskAreaScrollTopKey] = this.taskAreaContainer.scrollTop;
+        this[GanttView.taskAreaScrollLeftKey] = this.taskAreaContainer.scrollLeft;
+    };
+    GanttView.prototype.onEndUpdateView = function () {
+        delete this[GanttView.taskAreaScrollTopKey];
+        delete this[GanttView.taskAreaScrollLeftKey];
+        delete this[GanttView.taskTextHeightKey];
+    };
+    GanttView.prototype.getTaskTextHeight = function (textElement) {
+        textElement.innerText = "WWW";
+        var height = getComputedStyle(textElement).height;
+        textElement.innerText = "";
+        return height;
+    };
+    Object.defineProperty(GanttView.prototype, "taskAreaContainerScrollTop", {
+        get: function () {
+            var _a;
+            return (_a = this[GanttView.taskAreaScrollTopKey]) !== null && _a !== void 0 ? _a : this.taskAreaContainer.scrollTop;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(GanttView.prototype, "taskAreaContainerScrollLeft", {
+        get: function () {
+            var _a;
+            return (_a = this[GanttView.taskAreaScrollLeftKey]) !== null && _a !== void 0 ? _a : this.taskAreaContainer.scrollLeft;
+        },
+        enumerable: false,
+        configurable: true
+    });
     GanttView.prototype.processScroll = function (isVertical) {
         this.taskEditController.tooltip.hide();
         this.recreateTaskAreaBordersAndTaskElements(isVertical);
@@ -6723,7 +6778,7 @@ var GanttView = (function () {
     };
     GanttView.prototype.recreateTaskAreaBordersAndTaskElements = function (isVertical) {
         var _this = this;
-        var scrollPos = isVertical ? this.taskAreaContainer.scrollTop : this.taskAreaContainer.scrollLeft;
+        var scrollPos = isVertical ? this.taskAreaContainerScrollTop : this.taskAreaContainerScrollLeft;
         var newRenderedIndices = this.gridLayoutCalculator.getRenderedRowColumnIndices(scrollPos, isVertical);
         var renderedIndices = isVertical ? this.renderedRowIndices : this.renderedColIndices;
         this.recreateElements(renderedIndices, newRenderedIndices, function (index) { _this.removeTaskAreaBorderAndTaskElement(index, isVertical); }, function (index) { _this.createTaskAreaBorderAndTaskElement(index, isVertical); });
@@ -6734,7 +6789,7 @@ var GanttView = (function () {
     };
     GanttView.prototype.recreateNoWorkingIntervalElements = function () {
         var _this = this;
-        var newRenderedNoWorkingIntervals = this.gridLayoutCalculator.getRenderedNoWorkingIntervals(this.taskAreaContainer.scrollLeft);
+        var newRenderedNoWorkingIntervals = this.gridLayoutCalculator.getRenderedNoWorkingIntervals(this.taskAreaContainerScrollLeft);
         this.recreateElements(this.renderedNoWorkingIntervals, newRenderedNoWorkingIntervals, function (info) { _this.removeNoWorkingIntervalElement(info); }, function (info) { _this.createNoWorkingIntervalElement(info); });
         this.renderedNoWorkingIntervals = newRenderedNoWorkingIntervals;
     };
@@ -6746,7 +6801,7 @@ var GanttView = (function () {
     };
     GanttView.prototype.recreateConnectorLineElements = function () {
         var _this = this;
-        var newRenderedConnectorLines = this.gridLayoutCalculator.getRenderedConnectorLines(this.taskAreaContainer.scrollTop);
+        var newRenderedConnectorLines = this.gridLayoutCalculator.getRenderedConnectorLines(this.taskAreaContainerScrollTop);
         this.recreateElements(this.renderedConnectorLines, newRenderedConnectorLines, function (info) { _this.removeConnectorLineElement(info); }, function (info) { _this.createConnectorLineElement(info); });
         this.renderedConnectorLines = newRenderedConnectorLines;
     };
@@ -6905,15 +6960,16 @@ var GanttView = (function () {
         this.createElement(taskProgressInfo, index, parent);
     };
     GanttView.prototype.createTaskTextElement = function (index, parent) {
+        var _a;
+        var _b;
         var taskTextInfo = this.gridLayoutCalculator.getTaskTextElementInfo(index, this.settings.taskTitlePosition == Enums_1.TaskTitlePosition.Inside);
         var taskTextElement = this.createElement(taskTextInfo, index, parent);
-        taskTextElement.innerText = this.elementTextHelper.getTaskText(index);
-        if (!taskTextElement.innerText) {
-            taskTextElement.innerText = "WWW";
-            var height = getComputedStyle(taskTextElement).height;
-            taskTextElement.innerText = "";
-            taskTextElement.style.height = height;
+        var text = this.elementTextHelper.getTaskText(index);
+        if (!text) {
+            (_a = this[_b = GanttView.taskTextHeightKey]) !== null && _a !== void 0 ? _a : (this[_b] = this.getTaskTextHeight(taskTextElement));
+            taskTextElement.style.height = this[GanttView.taskTextHeightKey];
         }
+        taskTextElement.innerText = text;
     };
     GanttView.prototype.createResourceElement = function (index, resource) {
         var resourceElementInfo = this.gridLayoutCalculator.getTaskResourceElementInfo();
@@ -7150,11 +7206,17 @@ var GanttView = (function () {
         if (data) {
             var parentId = data.parentId != null ? String(data.parentId) : null;
             var parent_1 = this.getTaskByPublicId(parentId);
-            var title = data.title ? String(data.title) : "";
             var start = typeof data.start === "string" ? new Date(data.start) : data.start;
             var end = typeof data.end === "string" ? new Date(data.end) : data.end;
-            var progress = common_1.isDefined(data.progress) ? parseInt(data.progress) : 0;
-            if (this.commandManager.createTaskCommand.execute(start, end, title, progress, parent_1 && parent_1.internalId))
+            var taskData = {
+                parentId: parent_1 === null || parent_1 === void 0 ? void 0 : parent_1.internalId,
+                title: data.title,
+                start: start,
+                end: end,
+                progress: parseInt(data.progress) || 0,
+                color: data.color
+            };
+            if (this.commandManager.createTaskCommand.execute(taskData))
                 return this.getLastInsertedTaskId();
         }
         return "";
@@ -7348,6 +7410,10 @@ var GanttView = (function () {
     GanttView.prototype.destroyTemplate = function (container) {
         this.ganttOwner.destroyTemplate ? this.ganttOwner.destroyTemplate(container) : container.innerHTML = "";
     };
+    GanttView.cachedPrefix = "cached_";
+    GanttView.taskAreaScrollTopKey = GanttView.cachedPrefix + "taskAreaScrollTop";
+    GanttView.taskAreaScrollLeftKey = GanttView.cachedPrefix + "taskAreaScrollLeft";
+    GanttView.taskTextHeightKey = GanttView.cachedPrefix + "taskTextHeight";
     return GanttView;
 }());
 exports.GanttView = GanttView;
@@ -7406,15 +7472,22 @@ var ViewVisualModel = (function () {
         var _this = this;
         this.root = new ViewVisualModelItem_1.ViewVisualModelItem(null, null);
         var list = this._itemList;
+        var inverted = list.reduce(function (previous, item) {
+            var _a;
+            var key = (_a = item.task) === null || _a === void 0 ? void 0 : _a.internalId;
+            if (common_1.isDefined(key))
+                previous[key] = item;
+            return previous;
+        }, {});
         var recalculateParentRequired = this.requireFirstLoadParentAutoCalc;
-        var _loop_1 = function (i) {
+        for (var i = 0; i < list.length; i++) {
             var item = list[i];
             var parentId = item.task.parentId;
-            var parentItem = list.filter(function (value) { return value.task && value.task.internalId === parentId || value.task.internalId.toString() === parentId; })[0] || this_1.root;
+            var parentItem = inverted[parentId] || this.root;
             item.parent = parentItem;
             parentItem.addChild(item);
             if (recalculateParentRequired)
-                this_1.owner.validationController.recalculateParents(item, function (data) {
+                this.owner.validationController.recalculateParents(item, function (data) {
                     if (!common_1.isDefined(data.id))
                         return;
                     var task = _this.tasks.getItemById(data.id);
@@ -7425,10 +7498,6 @@ var ViewVisualModel = (function () {
                     if (common_1.isDefined(data.progress))
                         task.progress = data.progress;
                 });
-        };
-        var this_1 = this;
-        for (var i = 0; i < list.length; i++) {
-            _loop_1(i);
         }
         if (recalculateParentRequired)
             this.owner.dispatcher.notifyParentDataRecalculated(this.getCurrentTaskData());
@@ -7578,7 +7647,7 @@ var ViewVisualModel = (function () {
         return this._viewItemList.filter(function (value) { return value.task && value.task.internalId === taskId; })[0];
     };
     Object.defineProperty(ViewVisualModel.prototype, "items", {
-        get: function () { return this._viewItemList.slice(); },
+        get: function () { return this._viewItemList; },
         enumerable: false,
         configurable: true
     });
@@ -11228,24 +11297,26 @@ var CreateTaskCommand = (function (_super) {
     function CreateTaskCommand() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
-    CreateTaskCommand.prototype.execute = function (start, end, title, progress, parentId) {
-        return _super.prototype.execute.call(this, start, end, title, progress, parentId);
+    CreateTaskCommand.prototype.execute = function (data) {
+        return _super.prototype.execute.call(this, data);
     };
-    CreateTaskCommand.prototype.executeInternal = function (start, end, title, progress, parentId) {
-        if (!parentId) {
+    CreateTaskCommand.prototype.executeInternal = function (data) {
+        var _a;
+        data !== null && data !== void 0 ? data : (data = {});
+        if (!data.parentId) {
             var item = this.control.viewModel.findItem(this.control.currentSelectedTaskID);
             var selectedTask = item && item.task;
             if (selectedTask)
-                parentId = selectedTask.parentId;
+                data.parentId = selectedTask.parentId;
         }
-        var referenceItem = this.control.viewModel.findItem(parentId) || this.control.viewModel.items[0];
+        var referenceItem = this.control.viewModel.findItem(data.parentId) || this.control.viewModel.items[0];
         var referenceTask = referenceItem && referenceItem.task;
-        if (!start)
-            start = referenceTask ? new Date(referenceTask.start.getTime()) : new Date(this.control.range.start.getTime());
-        if (!end)
-            end = referenceTask ? new Date(referenceTask.end.getTime()) : new Date(this.control.range.end.getTime());
-        title = title || "New task";
-        var args = new TaskArguments_1.TaskInsertingArguments(null, start, end, title, progress, parentId);
+        if (!data.start)
+            data.start = referenceTask ? new Date(referenceTask.start.getTime()) : new Date(this.control.range.start.getTime());
+        if (!data.end)
+            data.end = referenceTask ? new Date(referenceTask.end.getTime()) : new Date(this.control.range.end.getTime());
+        (_a = data.title) !== null && _a !== void 0 ? _a : (data.title = "New task");
+        var args = new TaskArguments_1.TaskInsertingArguments(null, data);
         this.modelManipulator.dispatcher.notifyTaskCreating(args);
         if (!args.cancel)
             this.history.addAndRedo(new TaskHistoryItem_1.CreateTaskHistoryItem(this.modelManipulator, args));
@@ -11271,7 +11342,14 @@ var CreateSubTaskCommand = (function (_super) {
         parentId = parentId || this.control.currentSelectedTaskID;
         var selectedItem = this.control.viewModel.findItem(parentId);
         if (selectedItem.selected) {
-            var args = new TaskArguments_1.TaskInsertingArguments(null, new Date(selectedItem.task.start.getTime()), new Date(selectedItem.task.end.getTime()), "New task", 0, parentId);
+            var data = {
+                start: new Date(selectedItem.task.start.getTime()),
+                end: new Date(selectedItem.task.end.getTime()),
+                title: "New task",
+                progress: 0,
+                parentId: parentId
+            };
+            var args = new TaskArguments_1.TaskInsertingArguments(null, data);
             this.modelManipulator.dispatcher.notifyTaskCreating(args);
             if (!args.cancel)
                 this.history.addAndRedo(new TaskHistoryItem_1.CreateTaskHistoryItem(this.modelManipulator, args));
@@ -11590,6 +11668,10 @@ var TaskStartCommand = (function (_super) {
         this.validationController.updateParentsIfRequired(id);
         this.control.history.endTransaction();
         var minStartTask = this.control.viewModel.tasks.items.reduce(function (prev, curr) {
+            if (!curr.isValid())
+                return prev;
+            if (!prev.isValid())
+                return curr;
             return prev.start.getTime() < curr.start.getTime() ? prev : curr;
         });
         if (minStartTask.start < this.control.dataRange.start) {
@@ -11627,6 +11709,8 @@ var TaskEndCommand = (function (_super) {
         this.validationController.updateParentsIfRequired(id);
         this.control.history.endTransaction();
         var maxEndTask = this.control.viewModel.tasks.items.reduce(function (prev, curr) {
+            if (!curr.isValid())
+                return prev;
             return prev.end.getTime() > curr.end.getTime() ? prev : curr;
         });
         if (maxEndTask.end > this.control.dataRange.end) {
@@ -11668,6 +11752,8 @@ var TaskMoveCommand = (function (_super) {
         }
         this.control.history.endTransaction();
         var maxEndTask = this.control.viewModel.tasks.items.reduce(function (prev, curr) {
+            if (!curr.isValid())
+                return prev;
             return prev.end.getTime() > curr.end.getTime() ? prev : curr;
         });
         if (maxEndTask.end > this.control.dataRange.end) {
@@ -11675,6 +11761,10 @@ var TaskMoveCommand = (function (_super) {
             this.control.resetAndUpdate();
         }
         var minStartTask = this.control.viewModel.tasks.items.reduce(function (prev, curr) {
+            if (!curr.isValid())
+                return prev;
+            if (!prev.isValid())
+                return curr;
             return prev.start.getTime() < curr.start.getTime() ? prev : curr;
         });
         if (minStartTask.start < this.control.dataRange.start) {
@@ -12818,6 +12908,8 @@ var ValidationController = (function () {
             var data = { id: parent.task.internalId };
             for (var i = 0; i < children.length; i++) {
                 var childTask = children[i].task;
+                if (!childTask.isValid())
+                    continue;
                 start = DateTimeUtils_1.DateTimeUtils.getMinDate(start, childTask.start);
                 end = DateTimeUtils_1.DateTimeUtils.getMaxDate(end, childTask.end);
                 var duration = childTask.getDuration();
@@ -12955,7 +13047,7 @@ var FullScreenModeHelper = (function () {
         this.fullScreenTempVars.bodyMargin = document.body.style.margin;
         document.body.style.margin = "0";
         this.fullScreenTempVars.width = mainElement.style.width;
-        this.fullScreenTempVars.height = mainElement.style.height;
+        this.fullScreenTempVars.height = mainElement.style.height || mainElement.clientHeight;
         if (window.self !== window.top)
             this.requestFullScreen(document.body);
     };

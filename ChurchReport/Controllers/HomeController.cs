@@ -3360,7 +3360,7 @@ namespace ChurchReport.Controllers
                 //Guid aLineEntityId = CreateLineMessage(m_InMemoryDataContextSmallGroup.LineBindingViewModel.DisplayId, m_InMemoryDataContextSmallGroup.LineBindingViewModel.LineUserId, BindingString, 100000000);
                 //Guid aLineEntityId = CreateLineMessage(aLineBindingViewModel.DisplayId, BindingString, 100000000);
 
-                String BindingResult = BindingContactLineId(m_InMemoryDataContextSmallGroup.LineBindingViewModel.DisplayId, m_InMemoryDataContextSmallGroup.LineBindingViewModel.LineUserId, aLineBindingViewModel.FullName, aLineBindingViewModel.Mobile);
+                String BindingResult = BindingContactLineId(m_InMemoryDataContextSmallGroup.LineBindingViewModel.DisplayId, m_InMemoryDataContextSmallGroup.LineBindingViewModel.LineUserId, aLineBindingViewModel.FullName, aLineBindingViewModel.OtherName, aLineBindingViewModel.Mobile);
 
                 if ( BindingResult.Contains("жие\")) 
                 {
@@ -3442,13 +3442,13 @@ namespace ChurchReport.Controllers
                 throw e;
             }
         }
-        public String BindingContactLineId(string DisplayId, string UserLineId, string EnteredFullName, String EnteredMobilePhone)
+        public String BindingContactLineId(string DisplayId, string UserLineId, string EnteredFullName, string EnteredOtherName, String EnteredMobilePhone)
         {
             try
             {
                 WebServiceConnector.LineBindingUtility aLineBindingUtility = new WebServiceConnector.LineBindingUtility();
 
-                return aLineBindingUtility.RegisterContact(UserLineId, EnteredFullName, EnteredMobilePhone);
+                return aLineBindingUtility.RegisterContact(UserLineId, EnteredFullName, EnteredOtherName, EnteredMobilePhone);
             }
             catch (System.Exception e)
             {

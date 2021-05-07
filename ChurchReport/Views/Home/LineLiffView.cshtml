@@ -5,7 +5,9 @@
 }
 <html>
 
-@model ChurchReport.ViewModel.LineBindingViewModel
+@using ChurchReport.ViewModel
+
+@model LineBindingViewModel
 
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -66,41 +68,58 @@
     @*<p id="displaynamefield"></p>*@
 
     <div class="long-title"><h3 id="displaynamefield"></h3></div>
-    <div class="long-title"><h3 id="remind">請輸入真實中文姓名</h3></div>
+    <div class="long-title"><h3 id="remind">請輸入真實姓名</h3></div>
 
     <form data-ajax="true" data-ajax-begin="onBegin" data-ajax-success="onSuccess" asp-action="ProcessLineBinding" asp-controller="Home" method="post" style="text-align: center;">
 
         <div class="dx-field" style="text-align: center;">
             <div class="form-container-class" id="form-container" style="text-align: center;">
-                @(Html.DevExtreme().Form()
+                @(Html.DevExtreme().Form<LineBindingViewModel>()
                                .ID("form")
                                .Items(items =>
                                {
-                                   items.AddSimple()
-                                       .DataField("FullName")
-                                       .Label(l => l.Text("姓名"))
+                                   items.AddSimpleFor(m => m.FullName)
+                                       .Label(l => l.Text("主要姓名"))
                                        .Editor(e => e
                                            .TextBox()
                                            .Mode(TextBoxMode.Text)
                                            .Disabled(false)
-                                           .Placeholder("輸入姓名")
+                                           .Placeholder("輸入姓名(必填)")
                                            .ShowClearButton(true)
                                       //.Width(200)
+                                      )
+                                        .ValidationRules(r => r
+                                                .AddRequired()
+                                                .Message("主要姓名必填")
+                                            );
+                                   items.AddSimpleFor(m => m.OtherName)
+                                       .Label(l => l.Text("其他姓名"))
+                                       .Editor(e => e
+                                           .TextBox()
+                                           .Mode(TextBoxMode.Text)
+                                           .Disabled(false)
+                                           .Placeholder("輸入其他姓名(選填)")
+                                           .ShowClearButton(true).
+                                      //.Width(200)
                                       );
-                                   items.AddSimple()
-                                       .DataField("Mobile")
+
+                                   items.AddSimpleFor(m => m.Mobile)
                                        .Label(l => l.Text("行動電話"))
                                        .Editor(e => e
                                            .TextBox()
                                            .Mode(TextBoxMode.Text)
                                            .Disabled(false)
-                                           .Placeholder("輸入行動電話")
+                                           .Placeholder("輸入行動電話(必填)")
                                            .ShowClearButton(true)
                                       //.Width(200)
-                                      );
+                                      )
+                                      .ValidationRules(r => r
+                                                .AddRequired()
+                                                .Message("行動電話必填")
+                                            );
 
-                                   items.AddSimple()
-                                       .DataField("LineUserId")
+
+                                   items.AddSimpleFor(m => m.LineUserId)
                                        .Label(l => l.Text("Line Id").Visible(false))
                                        .Editor(e => e
                                            .TextBox()

@@ -41,6 +41,7 @@ namespace ChurchReport.ViewModel
         public string ViewType { get; set; }
         public string UserDisplayName { get; set; }
         public string FullName { get; set; }
+        public string OtherName { get; set; }
         public string Mobile { get; set; }
         public string EncodeUrl { get; set; }
         public string BindingResult { get; set; }
