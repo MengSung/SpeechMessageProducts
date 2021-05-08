@@ -3369,7 +3369,7 @@ namespace ChurchReport.Controllers
                 }
                 else
                 {
-                    return Json(new { status = "2", message = aLineBindingViewModel.FullName + " µù¥U¥¢±Ñ!" + Environment.NewLine + BindingResult });
+                    return Json(new { status = "2", message = aLineBindingViewModel.FullName + Environment.NewLine + BindingResult });
                 }
             }
             catch (System.Exception e)
