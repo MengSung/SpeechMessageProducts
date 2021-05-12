@@ -373,7 +373,7 @@ namespace ChurchReport.WebServiceConnector
             int TotalFeeAmount = 0;
             foreach (Entity aStorLessons in aStorLessonsEntityCollection.Entities)
             {
-
+                Entity aRetrievedStorLessons = this.m_ToolUtilityClass.RetrieveEntity("new_stor_lessons", aStorLessons.Id);
                 Fee aFee = new Fee
                 {
                     DiscipleLessonsId = aDiscipleLessons.Id.ToString(),
@@ -381,19 +381,18 @@ namespace ChurchReport.WebServiceConnector
                 };
 
                 // 處理一個一個的的上課紀錄
-                ProcesseStorLessonsParameter(aStorLessons, ref aFee);
+                ProcesseStorLessonsParameter(aRetrievedStorLessons, ref aFee);
 
                 // 取得與上課紀錄相關的收費單
-                EntityCollection aFeeEntityCollection = m_ToolUtilityClass.QueryEntityList("new_stor_lessons", "new_stor_lessonsid", aStorLessons.Id.ToString(), "new_stor_lessons_new_fee", "new_fee");
+                EntityCollection aFeeEntityCollection = m_ToolUtilityClass.QueryEntityList("new_stor_lessons", "new_stor_lessonsid", aRetrievedStorLessons.Id.ToString(), "new_stor_lessons_new_fee", "new_fee");
 
                 // 處理一個一個的收費單
-                TotalFeeAmount += ProcesseFee(aStorLessons, ref aFee, ref aFeeEntityCollection);
+                TotalFeeAmount += ProcesseFee(aRetrievedStorLessons, ref aFee, ref aFeeEntityCollection);
             }
 
             // 取得與登入者需要收費的課程
             Result += "報名人數: " + aStorLessonsEntityCollection.Entities.Count.ToString() + " 人，";
             Result += "已繳費金額: " + TotalFeeAmount.ToString() + " 元";
-
         }
         public void ProcesseStorLessonsParameter(Entity aStorLessons, ref Fee aFee)
         {

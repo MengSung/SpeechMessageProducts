@@ -142,6 +142,11 @@
         .ColumnResizingMode(ColumnResizingMode.Widget)
         .ColumnFixing(c => c.Enabled(true))
         .LoadPanel(l => l.Text("更新資料中...").Enabled(false))
+        .RemoteOperations(false)
+        .RepaintChangesOnly(true)
+        .CacheEnabled(true)
+
+
         .SearchPanel(s => s.Visible(true).Placeholder("搜尋.."))
 
         .Scrolling( scrolling => scrolling.Mode(GridScrollingMode.Virtual))
@@ -188,29 +193,31 @@
 /**/
 .Editing(editing =>
 {
- //editing.Mode(GridEditMode.Batch);
- //editing.Mode(GridEditMode.Row);
- //editing.Mode(GridEditMode.Cell).Form(f => f.ShowRequiredMark(false).CustomizeItem("customizeItem"));
- editing.Mode(GridEditMode.Cell);
- //editing.Mode(GridEditMode.Batch);
- //editing.Mode(GridEditMode.Form).Form(f => f.CustomizeItem("customizeItem"));
- //editing.Mode(GridEditMode.Popup);
- editing.AllowUpdating(true);
-             editing.AllowDeleting(false);
- //editing.AllowAdding(false);
- editing.Texts(a => a.SaveAllChanges("上傳檔案").AddRow("新增").CancelAllChanges("取消變更").SaveRowChanges("儲存").CancelRowChanges("取消").EditRow("編輯").DeleteRow("刪除"));
- //editing.AllowDeleting(true);
+    //editing.Mode(GridEditMode.Batch);
+    //editing.Mode(GridEditMode.Row);
+    //editing.Mode(GridEditMode.Cell).Form(f => f.ShowRequiredMark(false).CustomizeItem("customizeItem"));
+    editing.Mode(GridEditMode.Cell);
+    //editing.Mode(GridEditMode.Batch);
+    //editing.Mode(GridEditMode.Form).Form(f => f.CustomizeItem("customizeItem"));
+    //editing.Mode(GridEditMode.Popup);
+    editing.AllowUpdating(true);
+   editing.AllowDeleting(false);
+    //editing.AllowAdding(false);
+    editing.Texts(a => a.SaveAllChanges("上傳檔案").AddRow("新增").CancelAllChanges("取消變更").SaveRowChanges("儲存").CancelRowChanges("取消").EditRow("編輯").DeleteRow("刪除"));
+   editing.RefreshMode(GridEditRefreshMode.Repaint);
+
+    //editing.AllowDeleting(true);
 })
 
 .CustomizeColumns("onCustomizeColumns")
 
 .Columns(columns =>
 {
- columns.Add().DataField("DiscipleLessonsName").Caption("課程名稱").Fixed(true).GroupIndex(0).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Left).AllowSorting(false);
- columns.Add().DataField("FullName").Caption("姓名").Fixed(true).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Left).AllowSorting(true).AllowEditing(false);
- columns.Add().DataField("Gender").Caption("性別").Width(80).MinWidth(20).Alignment(HorizontalAlignment.Left).AllowSorting(true).AllowEditing(false);
- columns.Add().DataField("Birthday").Caption("生日").Alignment(HorizontalAlignment.Center).DataType(GridColumnDataType.Date).Format("yyyy/M/d").Width(100).MinWidth(45).AllowSorting(true).AllowEditing(false)
- .CalculateCellValue(@<text>
+columns.Add().DataField("DiscipleLessonsName").Caption("課程名稱").Fixed(true).GroupIndex(0).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Left).AllowSorting(false);
+columns.Add().DataField("FullName").Caption("姓名").Fixed(true).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Left).AllowSorting(true).AllowEditing(false);
+columns.Add().DataField("Gender").Caption("性別").Width(80).MinWidth(20).Alignment(HorizontalAlignment.Left).AllowSorting(true).AllowEditing(false);
+columns.Add().DataField("Birthday").Caption("生日").Alignment(HorizontalAlignment.Center).DataType(GridColumnDataType.Date).Format("yyyy/M/d").Width(100).MinWidth(45).AllowSorting(true).AllowEditing(false)
+.CalculateCellValue(@<text>
             function(row)
             {
             if( row.Birthday != null )

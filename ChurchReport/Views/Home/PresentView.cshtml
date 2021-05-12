@@ -143,6 +143,9 @@
         .ColumnFixing(c => c.Enabled(true))
         .LoadPanel(l => l.Text("更新資料中...").Enabled(false))
         .SearchPanel(s => s.Visible(false).Placeholder("搜尋.."))
+        .RemoteOperations(false)
+        .RepaintChangesOnly(true)
+        .CacheEnabled(true)
 
         .Scrolling( scrolling => scrolling.Mode(GridScrollingMode.Virtual))
 
@@ -152,6 +155,7 @@
         .ShowBorders(true)
         .Height(600)
 
+        .SearchPanel(s => s.Visible(true).Placeholder("搜尋.."))
 
         //.TwoWayBindingEnabled(true)
 
@@ -196,9 +200,11 @@
             //editing.Mode(GridEditMode.Form).Form(f => f.CustomizeItem("customizeItem"));
             //editing.Mode(GridEditMode.Popup);
             editing.AllowUpdating(true);
-                        editing.AllowDeleting(false);
+            editing.AllowDeleting(false);
             //editing.AllowAdding(false);
             editing.Texts(a => a.SaveAllChanges("上傳檔案").AddRow("新增").CancelAllChanges("取消變更").SaveRowChanges("儲存").CancelRowChanges("取消").EditRow("編輯").DeleteRow("刪除"));
+            editing.RefreshMode(GridEditRefreshMode.Repaint);
+
             //editing.AllowDeleting(true);
         })
 
