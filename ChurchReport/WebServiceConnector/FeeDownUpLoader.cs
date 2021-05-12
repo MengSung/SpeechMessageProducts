@@ -144,11 +144,14 @@ namespace ChurchReport.WebServiceConnector
             // 初始化收費與點名紀錄
             m_LessonList = new List<Lesson>();
 
-            // 取得與登入者需要收費的課程，課程結束後7日還會出現讚點名繳費網站
-            EntityCollection aDiscipleLessonsEntityCollection = m_ToolUtilityClass.QueryEntityListByDate("contact", "contactid", this.m_ContactEntity.Id.ToString(), "new_contact_new_disciple_lessons_fee", "new_disciple_lessons");
+            // 取得與登入者需要收費的課程，課程結束後7日還會出現讚點名繳費網站:講員、收費點名人員、收費點名助理=>都可以點名及收費
+            EntityCollection aDiscipleLessonsEntityCollection = GetDiscipleLessonsEntityCollection();
 
-            //處理一個一個的課程
-            ProcesseLessonsList(ref aDiscipleLessonsEntityCollection, ref Result, ref aClassName);
+            if (aDiscipleLessonsEntityCollection != null)
+            {
+                //處理一個一個的課程
+                ProcesseLessonsList(ref aDiscipleLessonsEntityCollection, ref Result, ref aClassName);
+            }
 
         }
 
@@ -164,6 +167,34 @@ namespace ChurchReport.WebServiceConnector
             ProcesseDiscipleLessons(ref aDiscipleLessonsEntityCollection, ref Result, ref aClassName);
 
         }
+
+        public EntityCollection GetDiscipleLessonsEntityCollection()
+        {
+            // 是否是講員
+            EntityCollection aDiscipleLessonsEntityCollection = m_ToolUtilityClass.QueryEntityListByDate("contact", "contactid", this.m_ContactEntity.Id.ToString(), "new_contact_teacher_new_disciple_less", "new_disciple_lessons");
+            if (aDiscipleLessonsEntityCollection.Entities.Count > 0)
+            {
+                return aDiscipleLessonsEntityCollection;
+            }
+            // 是否是收費點名人員
+            aDiscipleLessonsEntityCollection = m_ToolUtilityClass.QueryEntityListByDate("contact", "contactid", this.m_ContactEntity.Id.ToString(), "new_contact_new_disciple_lessons_fee", "new_disciple_lessons");
+            if (aDiscipleLessonsEntityCollection.Entities.Count > 0)
+            {
+                return aDiscipleLessonsEntityCollection;
+            }
+            // 是否是收費點名助理
+            aDiscipleLessonsEntityCollection = m_ToolUtilityClass.QueryEntityListByDate("contact", "contactid", this.m_ContactEntity.Id.ToString(), "new_contact_new_disciple_lessons_assi", "new_disciple_lessons");
+            if (aDiscipleLessonsEntityCollection.Entities.Count > 0)
+            {
+                return aDiscipleLessonsEntityCollection;
+            }
+
+
+            return null;
+            // 取得與登入者需要收費的課程，課程結束後7日還會出現讚點名繳費網站
+
+        }
+
         public void SetPresentFeeList(String DiscipleLessonsId, ref String Result, ref ClassName aClassName)
         {
             // 初始化收費與點名紀錄
