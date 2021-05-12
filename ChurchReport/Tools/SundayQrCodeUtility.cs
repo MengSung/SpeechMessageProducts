@@ -46,6 +46,9 @@ namespace ChurchReport.Tools
         // 台北得勝靈糧堂
         private const String CHANNEL_ACCESS_TOKEN = @"dhWNUj4LOTQFl10j0nvn+7/O3ffZkqfBz5+H6WKGoktwTpu32T+rdJYUfDSvT8HRz+VNkRcbttdJ74d81MecfD/q8AuUK5fhi8/eL9xFnDZBCCqLGP6q9lcZjvleoUXxN/OVfd2kcU3C4jk7sUP8pwdB04t89/1O/w1cDnyilFU=";
 
+        // 掃描 QR CODE之後是否發送 LINE通知
+        private const bool SEND_LINE_NOTIFICATION = false;
+
         #endregion
         #endregion
         #region 初始化
@@ -141,6 +144,13 @@ namespace ChurchReport.Tools
 
                 #region// 傳回給網頁簽到或簽退時間，及是否已簽到過了
                 OnboardType = m_OnboardTypeInfo;
+                #endregion
+
+                #region //如果是週間的聚會，就只顯示類別名稱，而不顯示主日聚會主旨
+                if (this.m_SundayName == "")
+                {
+                    SundayName = m_SundayName;
+                }
                 #endregion
 
                 #region// 計算週報主日出席人數及出席率
@@ -246,6 +256,9 @@ namespace ChurchReport.Tools
                 {
                     // 取得自定義的QR Code掃描時間欄位
                     aPresentRecordSigningAttribute = this.GetDynamicPresentRecordAttribute();
+
+                    // 因為是週間的聚會，所以只顯示類別名稱，而不顯示主日聚會主旨
+                    this.m_SundayName = "";
                 }
 
                 // 取得個人聚會與靈修記錄簽的到或簽退時間
@@ -326,8 +339,12 @@ namespace ChurchReport.Tools
 
                 // 送出 LINE 訊息
                 String NotifyMessage = GetNotifyMessageString();
-                //m_LineMessagingClient.PushMessageAsync(UserLineId, NotifyMessage);
-                m_PushUtility.SendMessage(m_UserLineId, NotifyMessage);
+
+                if (SEND_LINE_NOTIFICATION == true)
+                {
+                    //m_LineMessagingClient.PushMessageAsync(UserLineId, NotifyMessage);
+                    m_PushUtility.SendMessage(m_UserLineId, NotifyMessage);
+                }
             }
             catch (System.Exception Exception)
             {

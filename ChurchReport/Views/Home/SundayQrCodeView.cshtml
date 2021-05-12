@@ -107,7 +107,12 @@
                                 if (data.result.includes("錯誤") != true)
                                 {
                                     // 正確掃描
-                                    document.getElementById('sundayfield').innerHTML = "主日: " + data.sundayname;
+                                    if (data.sundayname != "") {
+                                        document.getElementById('sundayfield').innerHTML = "主日: " + data.sundayname;
+                                    }
+                                    else {
+                                        document.getElementById('sundayfield').innerHTML = "";
+                                    }
                                     document.getElementById('categoryfield').innerHTML = "類型: " + data.categoryname;
                                     document.getElementById('usernamefield').innerHTML = "姓名: " + data.username;
                                     //document.getElementById('classindexfield').innerHTML    = "課堂資訊: "    + data.classindex;
