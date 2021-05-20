@@ -22,7 +22,7 @@ namespace ChurchReport.Models
         // SANDBOX 測試用
         //string m_ShopNo = "NA0149_001";
         // 永豐金流正式環境
-        string m_ShopNo = "DA2424_001";
+        string m_ShopNo = "DA2659_001";
 
         private ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
 
