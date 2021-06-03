@@ -297,7 +297,7 @@ namespace ChurchReport.WebServiceConnector
                             {
                                 //  族長   = new_contact_race_leager_list
                                 //  小組長 = new_contact_family_leader_list
-                                //  台北得勝靈糧堂，因為台北得勝靈糧堂沒有小家長
+                                //  RPG復興禱告，因為RPG復興禱告沒有小家長
                                 //Guid FamilyLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ListEntity, "new_familyhead_list");
                                 Guid GroupLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ListEntity, "new_contact_family_leader_list");
 

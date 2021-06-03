@@ -210,7 +210,7 @@ namespace ChurchReport.WebServiceConnector
                     //    沒有: 建立GroupName及WeeklyReportId = Guid.Empty();
                     if (GroupWeeklyReportEntity != null)
                     {
-                        #region 台北得勝靈糧堂
+                        #region RPG復興禱告
 
                         // 出席紀錄
                         //aWeeklyReport.PresentContent = this.m_ToolUtilityClass.GetEntityStringAttribute(ref GroupWeeklyReportEntity, "new_sunday_present_report");
@@ -395,7 +395,7 @@ namespace ChurchReport.WebServiceConnector
                     return;
                 }
 
-                // 找到小家長小組名單集合 ，內壢得勝靈糧堂才有，因為是三層，台北得勝靈糧堂並沒有
+                // 找到小家長小組名單集合 ，內壢得勝靈糧堂才有，因為是三層，RPG復興禱告並沒有
                 //aListEntityCollection = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_familyhead_list", "list");
                 //if (aListEntityCollection.Entities.Count > 0)
                 //{
@@ -564,7 +564,7 @@ namespace ChurchReport.WebServiceConnector
                             {
                                 //  族長   = new_contact_race_leager_list
                                 //  小組長 = new_contact_family_leader_list
-                                //  台北得勝靈糧堂，因為台北得勝靈糧堂沒有小家長
+                                //  RPG復興禱告，因為RPG復興禱告沒有小家長
                                 //Guid FamilyLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ListEntity, "new_familyhead_list");
                                 Guid GroupLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ListEntity, "new_contact_family_leader_list");
 

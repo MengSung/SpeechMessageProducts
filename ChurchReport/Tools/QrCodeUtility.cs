@@ -49,8 +49,8 @@ namespace ChurchReport.Tools
 
         private DateTime m_SigningTime;
         // 客製化
-        // 台北得勝靈糧堂
-        private const String CHANNEL_ACCESS_TOKEN = @"dhWNUj4LOTQFl10j0nvn+7/O3ffZkqfBz5+H6WKGoktwTpu32T+rdJYUfDSvT8HRz+VNkRcbttdJ74d81MecfD/q8AuUK5fhi8/eL9xFnDZBCCqLGP6q9lcZjvleoUXxN/OVfd2kcU3C4jk7sUP8pwdB04t89/1O/w1cDnyilFU=";
+        // RPG復興禱告
+        private const String CHANNEL_ACCESS_TOKEN = @"z9/Jcbkvfm24ZogW0nHlaqONQjFYB6A10y2EPp07kWmw6vXSQSrTYrno3OuzCfM+ewEFWlahpjSOYa4HzyYxhZuAFbvoTQVPI/gjkE2PYMx5BESvuwJLJRZ86u3my9lD7zzvDNdZwStZzJh+IHmPFwdB04t89/1O/w1cDnyilFU=";
 
 
         // 神學生預設費用
@@ -63,7 +63,7 @@ namespace ChurchReport.Tools
         public QrCodeUtility()
         {
             // 客製化，請選擇
-            // 台北得勝靈糧堂(免費版)
+            // RPG復興禱告(免費版)
             this.m_LineMessagingClient = new LineMessagingClient(CHANNEL_ACCESS_TOKEN);
 
             // 客製化
@@ -85,7 +85,7 @@ namespace ChurchReport.Tools
                     // 透過 LINE ID 找不到此好友，可能還沒加入官LINE@
                     //this.AddNewFriend( DisplayName, UserLineId );
 
-                    OnboardType = "錯誤 : " + DisplayName + "還沒有加入台北得勝靈糧堂的 Line@" ;
+                    OnboardType = "錯誤 : " + DisplayName + "還沒有加入RPG復興禱告的 Line@" ;
 
                     return;
                 }

@@ -158,9 +158,9 @@ namespace ChurchReport.Tools
             private const String IM_CHURCH_CHANNEL_ACCESS_TOKEN = "XwSRWX0RxTtTvY/N6QZQ9YElOMH3OAxBf/3DAmWoXbIK3ymBsXEaU54owfdbPTQiQJPd10cWjC+JIWX6EvOCTbBdHmmJNC6xOOaioB91gPJPyDpl0IHQOQAzLA9J21zZ83SgIF6JwJbxC/8tSXv6RgdB04t89/1O/w1cDnyilFU=";
             private const String IM_CHURCH_BACK_CHANNEL_ACCESS_TOKEN = "YJ1LKtDZyfHwfkbqeHAk+pxNJNZBpOvI446h3brWHDqquFc2ElUCYaseqiW+pAKhwJspguAgGbOlKDymSjSTMydJn7JeY6CRmeyC2Am7urM3CNVNq/2JzAuQ2Vqc7lhPWx8qX5YxS3ve4NjcDceymQdB04t89/1O/w1cDnyilFU=";
 
-            // 台北得勝靈糧堂 Line 2.0
-            private const String THE_VICTORY_CHANNEL_ACCESS_TOKEN = "XwSRWX0RxTtTvY/N6QZQ9YElOMH3OAxBf/3DAmWoXbIK3ymBsXEaU54owfdbPTQiQJPd10cWjC+JIWX6EvOCTbBdHmmJNC6xOOaioB91gPJPyDpl0IHQOQAzLA9J21zZ83SgIF6JwJbxC/8tSXv6RgdB04t89/1O/w1cDnyilFU=";
-            private const String THE_VICTORY_BACK_CHANNEL_ACCESS_TOKEN = "YJ1LKtDZyfHwfkbqeHAk+pxNJNZBpOvI446h3brWHDqquFc2ElUCYaseqiW+pAKhwJspguAgGbOlKDymSjSTMydJn7JeY6CRmeyC2Am7urM3CNVNq/2JzAuQ2Vqc7lhPWx8qX5YxS3ve4NjcDceymQdB04t89/1O/w1cDnyilFU=";
+            // RPG復興禱告 Line 2.0
+            private const String RPG_CHANNEL_ACCESS_TOKEN = "z9/Jcbkvfm24ZogW0nHlaqONQjFYB6A10y2EPp07kWmw6vXSQSrTYrno3OuzCfM+ewEFWlahpjSOYa4HzyYxhZuAFbvoTQVPI/gjkE2PYMx5BESvuwJLJRZ86u3my9lD7zzvDNdZwStZzJh+IHmPFwdB04t89/1O/w1cDnyilFU=";
+            private const String RPG_BACK_CHANNEL_ACCESS_TOKEN = "z9/Jcbkvfm24ZogW0nHlaqONQjFYB6A10y2EPp07kWmw6vXSQSrTYrno3OuzCfM+ewEFWlahpjSOYa4HzyYxhZuAFbvoTQVPI/gjkE2PYMx5BESvuwJLJRZ86u3my9lD7zzvDNdZwStZzJh+IHmPFwdB04t89/1O/w1cDnyilFU=";
 
         #endregion
 
@@ -370,13 +370,13 @@ namespace ChurchReport.Tools
                     {
                         m_ChannelAccessToken = MUYI_BACK_CHANNEL_ACCESS_TOKEN;
                     }
-                    else if (this.m_OrganizationName == "thevictory")
+                    else if (this.m_OrganizationName == "rpg")
                     {
-                        m_ChannelAccessToken = THE_VICTORY_CHANNEL_ACCESS_TOKEN;
+                        m_ChannelAccessToken = RPG_CHANNEL_ACCESS_TOKEN;
                     }
-                    else if (this.m_OrganizationName == "thevictoryback")
+                    else if (this.m_OrganizationName == "rpgback")
                     {
-                        m_ChannelAccessToken = THE_VICTORY_BACK_CHANNEL_ACCESS_TOKEN;
+                        m_ChannelAccessToken = RPG_BACK_CHANNEL_ACCESS_TOKEN;
                     }
                     else
                     {

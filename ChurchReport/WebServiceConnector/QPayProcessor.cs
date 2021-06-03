@@ -30,23 +30,23 @@ namespace ChurchReport.WebServiceConnector
         #region 資料區
         // 商店編號
         // SANDBOX 測試用
-        //string m_ShopNo = "NA0149_001";
+        string m_ShopNo = "NA0149_001";
         // 永豐金流正式環境
-        string m_ShopNo = "DA2659_001";
+        //string m_ShopNo = "DA2659_001";
 
         #region 公司內部開發
         // 使用 ChurchReport 當作 WebHook
-        //private const String RETURN_URL = "https://thevictoryback.speechmessage.com.tw:467/api/QPayCard/QPayReturnUrl";
-        //private const String BACKEND_URL = "http://QPbackendback.speechmessage.com.tw/api/QPayAtm/QPayBackendUrl";// 公司內部開發
+        private const String RETURN_URL = "https://thevictoryback.speechmessage.com.tw:467/api/QPayCard/QPayReturnUrl";
+        private const String BACKEND_URL = "http://QPbackendback.speechmessage.com.tw/api/QPayAtm/QPayBackendUrl";// 公司內部開發
         #endregion
         #region 雲端機房
-        private const String RETURN_URL = "https://thevictory.speechmessage.com.tw:330/api/QPayCard/QPayReturnUrl";
-        private const String BACKEND_URL = "http://QPaybackend.speechmessage.com.tw/api/QPayAtm/QPayBackendUrl"; // 雲端機房
+        //private const String RETURN_URL = "https://thevictory.speechmessage.com.tw:330/api/QPayCard/QPayReturnUrl";
+        //private const String BACKEND_URL = "http://QPaybackend.speechmessage.com.tw/api/QPayAtm/QPayBackendUrl"; // 雲端機房
         #endregion
 
         // 客製化
-        // 台北得勝靈糧堂
-        private const String CHANNEL_ACCESS_TOKEN = @"dhWNUj4LOTQFl10j0nvn+7/O3ffZkqfBz5+H6WKGoktwTpu32T+rdJYUfDSvT8HRz+VNkRcbttdJ74d81MecfD/q8AuUK5fhi8/eL9xFnDZBCCqLGP6q9lcZjvleoUXxN/OVfd2kcU3C4jk7sUP8pwdB04t89/1O/w1cDnyilFU=";
+        // RPG復興禱告
+        private const String CHANNEL_ACCESS_TOKEN = @"z9/Jcbkvfm24ZogW0nHlaqONQjFYB6A10y2EPp07kWmw6vXSQSrTYrno3OuzCfM+ewEFWlahpjSOYa4HzyYxhZuAFbvoTQVPI/gjkE2PYMx5BESvuwJLJRZ86u3my9lD7zzvDNdZwStZzJh+IHmPFwdB04t89/1O/w1cDnyilFU=";
 
         //private LinePayClient m_LinePayClient { get; }
 
@@ -64,7 +64,7 @@ namespace ChurchReport.WebServiceConnector
         //private DateTime m_AtmExpireDate;
 
         // 客製化
-        private const String QPAY_ORGANIZATION = "thevictory";
+        private const String QPAY_ORGANIZATION = "rpgback";
 
         #endregion
         #region 初始化

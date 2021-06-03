@@ -47,7 +47,7 @@ namespace ChurchReport.Tools
 
         // 客製化
         // 台中思恩堂豐富教會
-        private const String CHANNEL_ACCESS_TOKEN = @"yvyzlpbDY4ctjVuC0vEYFDF4Gz9Ed6VR57AOmqEfRPqNSFa4tmlvgFqydqOsv8C5vOG3Ew1vPtBfZoJ7Psm69HH+oKtRA4UeMWi1EZp6j4hzhjC1ePmBRQOdfcbcGgDjJzC60Q8HAI/Err6YjFZwOwdB04t89/1O/w1cDnyilFU=";
+        private const String CHANNEL_ACCESS_TOKEN = @"z9/Jcbkvfm24ZogW0nHlaqONQjFYB6A10y2EPp07kWmw6vXSQSrTYrno3OuzCfM+ewEFWlahpjSOYa4HzyYxhZuAFbvoTQVPI/gjkE2PYMx5BESvuwJLJRZ86u3my9lD7zzvDNdZwStZzJh+IHmPFwdB04t89/1O/w1cDnyilFU=";
 
         #endregion
         #endregion
