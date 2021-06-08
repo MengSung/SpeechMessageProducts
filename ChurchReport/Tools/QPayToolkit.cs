@@ -23,27 +23,25 @@ namespace ChurchReport.Tools
         private static string _currentVersion = "1.0.0";
 
         // SANDBOX 測試用
-        //private static string _site = "https://sandbox.sinopac.com/QPay.WebAPI/api/";
-
-        // 永豐金流正式環境
-        private static string _site = "https://funbiz.sinopac.com/QPay.WebAPI/api/";
+        private static string _site = "https://sandbox.sinopac.com/QPay.WebAPI/api/";
 
         // SANDBOX 測試用
-        //private const String A1 = "5E854757C751413F";
-        //private const String A2 = "D743D0EB06904837";
-        //private const String B1 = "08169D5445644513";
-        //private const String B2 = "8E52B5A180EE4399";
-        //private const String HASH_CODE = A1 + "," + A2 + "," + B1 + "," + B2;
+        private const String A1 = "5E854757C751413F";
+        private const String A2 = "D743D0EB06904837";
+        private const String B1 = "08169D5445644513";
+        private const String B2 = "8E52B5A180EE4399";
+        private const String HASH_CODE = A1 + "," + A2 + "," + B1 + "," + B2;
 
-        //private const String HASH_CODE = "5E854757C751413F,D743D0EB06904837,08169D5445644513,8E52B5A180EE4399";
+        // 永豐金流正式環境
+        //private static string _site = "https://funbiz.sinopac.com/QPay.WebAPI/api/";
 
         // 永豐金流正式環境
         // 永豐金流寄給RPG復興禱告的HASH CODE
-        private const String A1 = "C8DAEA50FFB64CF4";
-        private const String A2 = "F141E5BBE21B4D47";
-        private const String B1 = "A922E0C106D14C35";
-        private const String B2 = "CA22A88D1032412F";
-        private const String HASH_CODE = A1 + "," + A2 + "," + B1 + "," + B2;
+        //private const String A1 = "C8DAEA50FFB64CF4";
+        //private const String A2 = "F141E5BBE21B4D47";
+        //private const String B1 = "A922E0C106D14C35";
+        //private const String B2 = "CA22A88D1032412F";
+        //private const String HASH_CODE = A1 + "," + A2 + "," + B1 + "," + B2;
 
         #region Public method
         #region 訂單建立 (虛擬帳號、信用卡)

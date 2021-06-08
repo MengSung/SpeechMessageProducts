@@ -135,21 +135,21 @@ namespace ToolUtilityNameSpace
 
         // 客製化
         #region RPG復興禱告(雲端機房)
-        //private const String SERVER = "speechmessage.com.tw";
-        //private const String PORT = "7777";
-        //private const String ORGANIZATION = "thevictory";
-        //private const String USERNAME = "Administrator@speechmessage.com.tw";
-        //private const String PASSWORD = "hu9840";
-        //private const String DOMAIN = "DYNAMICS-365";
+        private const String SERVER = "speechmessage.com.tw";
+        private const String PORT = "7777";
+        private const String ORGANIZATION = "rpg";
+        private const String USERNAME = "Administrator@speechmessage.com.tw";
+        private const String PASSWORD = "hu9840";
+        private const String DOMAIN = "DYNAMICS-365";
         #endregion
 
         #region RPG復興禱告(公司內部發展)
-        private const String SERVER = "speechmessage.com.tw";
-        private const String PORT = "7777";
-        private const String ORGANIZATION = "rpgback";
-        private const String USERNAME = "Administrator@speechmessage.com.tw";
-        private const String PASSWORD = "hu9840";
-        private const String DOMAIN = "SPEECHMESSAGE";
+        //private const String SERVER = "speechmessage.com.tw";
+        //private const String PORT = "7777";
+        //private const String ORGANIZATION = "rpgback";
+        //private const String USERNAME = "Administrator@speechmessage.com.tw";
+        //private const String PASSWORD = "hu9840";
+        //private const String DOMAIN = "SPEECHMESSAGE";
         #endregion
 
         #region 僅供參考區塊
