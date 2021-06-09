@@ -40,7 +40,7 @@ namespace ChurchReport.WebServiceConnector
         //private const String BACKEND_URL = "http://QPbackendback.speechmessage.com.tw/api/QPayAtm/QPayBackendUrl";// 公司內部開發
         #endregion
         #region 雲端機房
-        private const String RETURN_URL = "https://rpg.speechmessage.com.tw:330/api/QPayCard/QPayReturnUrl";
+        private const String RETURN_URL = "https://rpg.speechmessage.com.tw:222/api/QPayCard/QPayReturnUrl";
         private const String BACKEND_URL = "http://QPaybackend.speechmessage.com.tw/api/QPayAtm/QPayBackendUrl"; // 雲端機房
         #endregion
 
