@@ -4658,7 +4658,7 @@ namespace ChurchReport.Controllers
                     ViewBag.IsAOfficeWorker = m_InMemoryDataContextSmallGroup.QpayManager.m_QpayModel.IsAOfficeWorker == true ? "是的" : "否";
                 }
 
-                if (LineId != "")
+                if ( LineId != "" && LineId != "網頁登入")
                 {
                     SetupUserLineId(LineId, "", "", "");
                 }
