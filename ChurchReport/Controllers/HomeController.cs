@@ -4606,8 +4606,8 @@ namespace ChurchReport.Controllers
         #endregion
         #region 永豐金流奉獻
         #region Line 單獨登入 或是 電腦網頁登入
-        [HttpGet]
-        public ActionResult QPayView()
+        [Route("/Home/QPayView/{LineId}")]
+        public ActionResult QPayView(string LineId)
         {
             try
             {
@@ -4656,6 +4656,11 @@ namespace ChurchReport.Controllers
 
                     // 教會職稱是否是會計
                     ViewBag.IsAOfficeWorker = m_InMemoryDataContextSmallGroup.QpayManager.m_QpayModel.IsAOfficeWorker == true ? "是的" : "否";
+                }
+
+                if (LineId != "")
+                {
+                    SetupUserLineId(LineId, "", "", "");
                 }
 
                 return View(m_InMemoryDataContextSmallGroup.QpayManager.m_QpayModel);
@@ -5259,8 +5264,6 @@ namespace ChurchReport.Controllers
                 throw e;
             }
         }
-
-
         #endregion
         #region Line Id 資訊區
         [HttpPost]
