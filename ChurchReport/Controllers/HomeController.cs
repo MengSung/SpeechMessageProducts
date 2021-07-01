@@ -142,6 +142,9 @@ namespace ChurchReport.Controllers
                         m_InMemoryDataContextSmallGroup.QpayManager.SetQpayModel(aLoginContact);
                     }
 
+                    // 個人相關資料:儲存登入者實體紀錄
+                    m_InMemoryDataContextSmallGroup.PersonalInfomationModel.m_LoginContact = aLoginContact;
+
                     #region 控制 Navigation 下拉項目
                     ViewBag.SchedulerView = m_InMemoryDataContextSmallGroup.ListManager.SchedulerView = "不是單純行事曆";
                     ViewBag.DisplayNavigation = m_InMemoryDataContextSmallGroup.ListManager.DisplayNavigation = "顯示牧養回報項目";
@@ -1156,8 +1159,8 @@ namespace ChurchReport.Controllers
                 }
                 #endregion
 
-                m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.SetPersonalReportViewModel();
-
+                m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.SetPersonalReportViewModel(ref this.m_ToolUtilityClass, m_InMemoryDataContextSmallGroup.PersonalInfomationModel.m_LoginContact);
+               
                 return View(m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_PersonalReportViewModel);
             }
             catch (System.Exception e)
@@ -1330,26 +1333,25 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.GetPersonalReportViewModelResult( aPersonalReportViewModel );
+                if (m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members != null)
+                {
+                    // 個人回報但是已經有加入小組
+                    m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.GetPersonalReportViewModelResult(aPersonalReportViewModel);
 
-                // 整合式網頁按上傳按鈕
-                //Task.Run(() => m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.UploadIntegrateData
-                //(
-                //    m_InMemoryDataContextSmallGroup.ListManager.m_Account,
-                //    m_InMemoryDataContextSmallGroup.ListManager.m_Password,
-                //    m_InMemoryDataContextSmallGroup.ListManager.LoginType,
-                //    m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData,
-                //    "不需更新小組日誌", "", "",false
-                //));
-
-                Task.Factory.StartNew(() => m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.UploadIntegrateData
-                (
-                    m_InMemoryDataContextSmallGroup.ListManager.m_Account,
-                    m_InMemoryDataContextSmallGroup.ListManager.m_Password,
-                    m_InMemoryDataContextSmallGroup.ListManager.LoginType,
-                    m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData,
-                    "不需更新小組日誌", "", "", false
-                ), TaskCreationOptions.LongRunning);
+                    Task.Factory.StartNew(() => m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.UploadIntegrateData
+                    (
+                        m_InMemoryDataContextSmallGroup.ListManager.m_Account,
+                        m_InMemoryDataContextSmallGroup.ListManager.m_Password,
+                        m_InMemoryDataContextSmallGroup.ListManager.LoginType,
+                        m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData,
+                        "不需更新小組日誌", "", "", false
+                    ), TaskCreationOptions.LongRunning);
+                }
+                else
+                {
+                    // 個人回報但是沒有加入小組
+                    m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.SavePersonalReportForm(ref this.m_ToolUtilityClass, aPersonalReportViewModel);
+                }
 
                 return Json(new { status = "1", message = "成功上傳了...." });
             }
@@ -3197,6 +3199,90 @@ namespace ChurchReport.Controllers
                 throw e;
             }
 
+        }
+        #endregion
+        #region 個人相關資料
+        public IActionResult PersonalInfomationView()
+        {
+            try
+            {
+                ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType;// 看是小組長還是個人回報
+                ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.ListManager.LoginFullName;
+                ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType;
+                #region 繳費與點名是否顯示在選單中
+                if (m_InMemoryDataContextSmallGroup.FeeList.FeeDataList != null && m_InMemoryDataContextSmallGroup.FeeList.FeeDataList.Count > 0)
+                {
+                    ViewBag.FeeDataListCount = "繳費與點名已有資料";
+                }
+                else
+                {
+                    ViewBag.FeeDataListCount = "繳費與點名尚無資料";
+                }
+                #endregion
+
+                ViewBag.HappyType = m_InMemoryDataContextSmallGroup.HappyGroupDataManager.HappyType;
+
+                SetMultiGroupLayoutParameter();
+
+                if (m_InMemoryDataContextSmallGroup.ListManager.m_MultiGroupList.m_WeeklyReportRecordListData.Count == 1)
+                {
+                    //m_InMemoryDataContextSmallGroup.NewPersonModel.m_PersonFormViewModel.Position = m_InMemoryDataContextSmallGroup.ListManager.m_MultiGroupList.m_WeeklyReportRecordListData.First().ListEntityId;
+                    //m_InMemoryDataContextSmallGroup.NewPersonModel.m_PersonFormViewModel.GroupName = m_InMemoryDataContextSmallGroup.ListManager.m_MultiGroupList.m_WeeklyReportRecordListData.First().Name;
+                }
+                else if (ViewBag.MultiGroupIndex == "HybridView")
+                {
+                    m_InMemoryDataContextSmallGroup.NewPersonModel.m_PersonFormViewModel.Position = m_InMemoryDataContextSmallGroup.ListManager.ActiveListId;
+                }
+                else if (ViewBag.MultiGroupIndex == "SingleMultiGroupView")
+                {
+                    m_InMemoryDataContextSmallGroup.NewPersonModel.m_PersonFormViewModel.Position = "";
+                }
+                else
+                {
+                    m_InMemoryDataContextSmallGroup.NewPersonModel.m_PersonFormViewModel.Position = "";
+                }
+
+                m_InMemoryDataContextSmallGroup.PersonalInfomationModel.SetPersonalInfomationViewModel();
+
+                return View(m_InMemoryDataContextSmallGroup.PersonalInfomationModel.m_PersonalInfomationViewModel);
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "音訊教會 : 綁定錯誤 => " + ErrorString);
+
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
+                throw e;
+            }
+        }
+
+        [HttpPost]
+        public IActionResult SavePersonalInfomation(PersonalInfomationViewModel aPersonalInfomationViewModel)
+        {
+            try
+            {
+                string Result = m_InMemoryDataContextSmallGroup.PersonalInfomationModel.UploadPersonalInfomation(m_InMemoryDataContextSmallGroup.ListManager.m_Account, m_InMemoryDataContextSmallGroup.ListManager.m_Password, aPersonalInfomationViewModel);
+
+                return Json(new { status = "1", message = Result });
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "音訊教會 : 綁定錯誤 => " + ErrorString);
+
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
+                throw e;
+            }
         }
         #endregion
         #region 顯示錯誤訊息

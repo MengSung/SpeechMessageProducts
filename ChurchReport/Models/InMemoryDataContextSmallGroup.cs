@@ -19,6 +19,7 @@ namespace ChurchReport.Models
         public SmallGroupDataList m_SmallGroupDataList;
         public WeeklyReportData m_WeeklyReportData;
         public NewPersonModel m_NewPersonModel;
+        public PersonalInfomationModel m_PersonalInfomationModel;
         public HappyGroupDataManager m_HappyGroupDataManager;
         public FeeList m_FeeList;
         public LineBindingViewModel m_LineBindingViewModel;
@@ -227,6 +228,50 @@ namespace ChurchReport.Models
                     session.SetInt32("dirty", 1);
                 }
                 return _memoryCache.Get<NewPersonModel>(key);
+            }
+        }
+
+        #endregion
+        #region 個人相關資料處理區
+        public PersonalInfomationModel PersonalInfomationModel
+        {
+            get
+            {
+                var session = _contextAccessor.HttpContext.Session;
+                var key = session.Id + "_PersonalInfomationModel";
+
+                if (_memoryCache.Get(key) == null)
+                //if (!_memoryCache.TryGetValue(key, out m_NewPersonModel))
+                {
+                    var options = new MemoryCacheEntryOptions();
+                    options.PostEvictionCallbacks.Add(new PostEvictionCallbackRegistration()
+                    {
+                        EvictionCallback = (subkey, subValue, reason, state) =>
+                        {
+                            // 這裡執行某一個動作
+                            // ....
+                            if (state != null)
+                            {
+                                var localCallbackInvoked = (ManualResetEvent)state;
+
+                                localCallbackInvoked.Set();
+                            }
+
+                            //_memoryCache.Remove(key);
+
+                        },
+                    });
+                    options.SetAbsoluteExpiration(DateTime.Now.AddMinutes(30));
+                    options.SetSlidingExpiration(TimeSpan.FromMinutes(30));
+                    //options.SetSize(1);
+                    //options.Size = 1024;
+
+                    m_PersonalInfomationModel = new PersonalInfomationModel();
+                    _memoryCache.Set<PersonalInfomationModel>(key, m_PersonalInfomationModel, options);
+
+                    session.SetInt32("dirty", 1);
+                }
+                return _memoryCache.Get<PersonalInfomationModel>(key);
             }
         }
 
@@ -496,7 +541,6 @@ namespace ChurchReport.Models
             }
         }
         #endregion
-
         #region 工具區
 
         public ToolUtilityClass ToolUtilityClass
