@@ -347,15 +347,15 @@
                  .Name("Industry")
                  .Label(l => l.Text("職業及專長"))
                  ;
+
             items.AddSimpleFor(m => m.EquipmentStatus)
                  .Name("EquipmentStatus")
                  //.DataField("EquipmentStatus ")
                  .Label(l => l.Text("裝備狀態"))
                  .Editor(e => e
-                    .TagBox()
+                    .TextBox()
                     .Disabled(true))
                  ;
-
             items.AddSimpleFor(m => m.Notes)
             .Name("Notes")
             .ColSpan(2)

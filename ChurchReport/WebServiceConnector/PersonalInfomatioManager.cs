@@ -653,6 +653,9 @@ namespace ChurchReport.WebServiceConnector
             // 職業及專長 Industry
             aPersonalInfomationViewModel.Industry = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContactEntity, "new_industry");
 
+            // 裝備狀態
+            aPersonalInfomationViewModel.EquipmentStatus = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContactEntity, "new_equipment_status");
+
             // 設定描述
             aPersonalInfomationViewModel.Notes = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContactEntity, "description");
 
