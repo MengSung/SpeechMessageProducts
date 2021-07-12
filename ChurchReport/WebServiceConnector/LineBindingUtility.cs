@@ -50,8 +50,6 @@ namespace ChurchReport.WebServiceConnector
         public LineBindingUtility()
         {
         }
-
-
         public String RegisterContact(String UserLineId, string EnteredFullName, string EnteredOtherName, String EnteredMobilePhone)
         {
             try
@@ -60,17 +58,31 @@ namespace ChurchReport.WebServiceConnector
                 //String LineId = "";
                 String ContactFullName = "";
 
-                if (IsBindingAlready(ref UserLineId, ref ContactFullName) != true)
+                if (UserLineId != "" && UserLineId != null)
                 {
-                    #region // 還沒有綁定註冊過!
-                    return ProcessNotYetBinding(ContactFullName, UserLineId, "", EnteredFullName, EnteredOtherName, EnteredMobilePhone);
-                    #endregion
+                    if (IsBindingAlready(ref UserLineId, ref ContactFullName) != true)
+                    {
+                        #region // 還沒有綁定註冊過!
+                        return ProcessNotYetBinding(ContactFullName, UserLineId, "", EnteredFullName, EnteredOtherName, EnteredMobilePhone);
+                        #endregion
+                    }
+                    else
+                    {
+                        #region// 已經註冊註冊過了
+                        return ContactFullName + "已經註冊過了!";
+                        #endregion
+                    }
                 }
                 else
                 {
-                    #region// 已經綁定註冊過了
-                    return "已經註冊過了!";
-                    #endregion
+                    if (UserLineId != null)
+                    {
+                        return "您的 Line Id=" + UserLineId + " ，無法辨識請洽辦公室行政人員為您服務喔!或許您是否在加入時沒有同意授權呢?";
+                    }
+                    else
+                    {
+                        return "您的 Line Id= null，無法辨識請洽辦公室行政人員為您服務喔!或許您是否在加入時沒有同意授權呢?";
+                    }
                 }
             }
             catch (System.Exception e)
@@ -80,6 +92,7 @@ namespace ChurchReport.WebServiceConnector
                 throw e;
             }
         }
+
         private String ProcessNotYetBinding(String ContactFullName, String LineId, String DisplayId, string EnteredFullName, string EnteredOtherName, String EnteredMobilePhone)
         {
             try

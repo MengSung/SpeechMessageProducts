@@ -101,6 +101,18 @@ namespace ChurchReport.Tools
                 }
                 else { }
                 #endregion
+                #region 是否已經有關連到此認獻的第001期收費單
+                String aDedicationBookingName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDedicationBookingEntity, "new_name");
+                //取得認獻單目前的期數
+                String aPaidPeriod = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDedicationBookingEntity, "new_paid_period");
+
+                if (this.m_ToolUtilityClass.RetrieveFeeByFetchXml(aDedicationBookingName, aDedicationBookingEntity.Id.ToString(), "001").Entities.Count > 0 || aPaidPeriod == "001")
+                {
+                    // 認獻單目前期數已經是 001
+                    // 或是:已經有001期的收費單了，就不再往下繼續執行了
+                    return new OkObjectResult("已經有收費單了!" + Environment.NewLine + aQryOrderPay.Description);
+                }
+                #endregion
                 #endregion
                 #region 處理付款人
                 // 取得付款人
