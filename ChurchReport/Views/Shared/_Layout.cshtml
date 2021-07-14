@@ -450,7 +450,7 @@
                             {
                                 <!--教會職稱是:會計，所以有-->
                                 <li><a href="/Home/QPayView/網頁登入">奉獻</a></li>
-                                @*<li><a href="/Home/DedicationFeeView">奉獻收費清單</a></li>*@
+                                <li><a href="/Home/DedicationFeeView">奉獻收費清單</a></li>
                                 @if (@ViewBag.IsAOfficeWorker == "是的")
                                 {
                                     <li><a href="/Home/KeyInDedicationFeeView">奉獻管理</a></li>
@@ -460,8 +460,8 @@
                             }
                             else if (@ViewBag.DedicationFlag == "奉獻")
                             {
-                                @*<li><a href="/Home/QPayView">奉獻</a></li>
-                    <li><a href="/Home/DedicationFeeViewWeb">奉獻收費清單</a></li>*@
+                                <li><a href="/Home/QPayView">奉獻</a></li>
+                                <li><a href="/Home/DedicationFeeViewWeb">奉獻收費清單</a></li>
                             }
                             else
                             {
