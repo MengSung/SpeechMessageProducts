@@ -139,10 +139,21 @@ namespace ChurchReport.WebServiceConnector
 
                     if (CreatedCardOrder.CardParam != null && CreatedCardOrder.CardParam.CardPayURL != null)
                     {
-                        // 用剛剛建立的認獻單，填寫訂單編號， 更新收費單或是認獻單(因為欄位名稱一致)
-                        UpdateFee(ref aDedicationBookingToUpdate, CreatedCardOrder.OrderNo, "", "");
+                        if (CreatedCardOrder.Status == "S")
+                        {
+                            // 用剛剛建立的認獻單，填寫訂單編號， 更新收費單或是認獻單(因為欄位名稱一致)
+                            UpdateFee(ref aDedicationBookingToUpdate, CreatedCardOrder.OrderNo, "", "");
 
-                        return CreatedCardOrder.CardParam.CardPayURL;
+                            return CreatedCardOrder.CardParam.CardPayURL;
+                        }
+                        else
+                        {
+                            // 信用卡繳費失敗!
+                            // 用剛剛建立的認獻單，填寫訂單編號， 更新收費單或是認獻單(因為欄位名稱一致)
+                            UpdateFee(ref aDedicationBookingToUpdate, CreatedCardOrder.Description, "", "");
+
+                            return "信用卡繳費失敗!";
+                        }
                     }
                     else
                     {
