@@ -645,7 +645,14 @@ namespace ChurchReport.WebServiceConnector
                 #region //指派約會的負責人
                 //m_OwnerId = this.m_ToolUtilityClass.GetOwnerId(m_ContactEntity);
 
-                this.m_ToolUtilityClass.AssignOwner("appointment", this.m_ToolUtilityClass.RetrieveEntity("appointment", CreatedAppointmentEntityId), this.m_OwnerId);
+                try
+                {
+                    this.m_ToolUtilityClass.AssignOwner("appointment", this.m_ToolUtilityClass.RetrieveEntity("appointment", CreatedAppointmentEntityId), this.m_OwnerId);
+                }
+                catch (System.Exception e)
+                {
+                    String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                }
                 #endregion
 
                 this.m_ToolUtilityClass.SetAppointmentStatusToScheduled(CreatedAppointmentEntityId);

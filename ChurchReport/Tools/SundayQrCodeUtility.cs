@@ -737,7 +737,14 @@ namespace ChurchReport.Tools
 
                     if (aContactId != null && aContactId != Guid.Empty)
                     {
-                        this.m_ToolUtilityClass.AssignOwner("new_present_record", aRetrievedPresentRecord, aContactId);
+                        try
+                        {
+                            this.m_ToolUtilityClass.AssignOwner("new_present_record", aRetrievedPresentRecord, aContactId);
+                        }
+                        catch (System.Exception e)
+                        {
+                            String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                        }
                     }
                 }
 

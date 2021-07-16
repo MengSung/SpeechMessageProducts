@@ -225,8 +225,14 @@ namespace ChurchReport.WebServiceConnector
 
                 //指派負責人
                 Entity aContact = this.m_ToolUtilityClass.RetrieveContactEntityByLineUserId(LineId);
-                this.m_ToolUtilityClass.AssignOwner("new_fee", aRetrievedFee, this.m_ToolUtilityClass.GetOwnerId(aContact));
-
+                try
+                {
+                    this.m_ToolUtilityClass.AssignOwner("new_fee", aRetrievedFee, this.m_ToolUtilityClass.GetOwnerId(aContact));
+                }
+                catch (System.Exception e)
+                {
+                    String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                }
                 return aFeeId;
                 #endregion
             }
@@ -519,7 +525,14 @@ namespace ChurchReport.WebServiceConnector
                 //指派負責人
                 if (aRetrievedFee != null && aContact != null)
                 {
-                    this.m_ToolUtilityClass.AssignOwner("new_fee", aRetrievedFee, this.m_ToolUtilityClass.GetOwnerId(aContact));
+                    try
+                    {
+                        this.m_ToolUtilityClass.AssignOwner("new_fee", aRetrievedFee, this.m_ToolUtilityClass.GetOwnerId(aContact));
+                    }
+                    catch (System.Exception e)
+                    {
+                        String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                    }
                 }
 
                 return aFeeId;
@@ -646,7 +659,14 @@ namespace ChurchReport.WebServiceConnector
                 //指派負責人
                 if (aRetrievedDedicationBooking != null && aContact != null)
                 {
-                    this.m_ToolUtilityClass.AssignOwner("new_dedication_booking", aRetrievedDedicationBooking, this.m_ToolUtilityClass.GetOwnerId(aContact));
+                    try
+                    {
+                        this.m_ToolUtilityClass.AssignOwner("new_dedication_booking", aRetrievedDedicationBooking, this.m_ToolUtilityClass.GetOwnerId(aContact));
+                    }
+                    catch (System.Exception e)
+                    {
+                        String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                    }
                 }
 
                 return aDedicationBookingId;

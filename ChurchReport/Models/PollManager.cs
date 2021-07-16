@@ -426,7 +426,14 @@ namespace ChurchReport.Models
                 Guid aNewStorLessonsEntityId = this.m_ToolUtilityClass.CreateEntity(aNewStorLessonsEntity);
 
                 //指派負責人
-                this.m_ToolUtilityClass.AssignOwner("new_stor_lessons", this.m_ToolUtilityClass.RetrieveEntity("new_stor_lessons", aNewStorLessonsEntityId), this.m_ToolUtilityClass.GetOwnerId(aContact));
+                try
+                {
+                    this.m_ToolUtilityClass.AssignOwner("new_stor_lessons", this.m_ToolUtilityClass.RetrieveEntity("new_stor_lessons", aNewStorLessonsEntityId), this.m_ToolUtilityClass.GetOwnerId(aContact));
+                }
+                catch (System.Exception e)
+                {
+                    String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                }
 
                 return aNewStorLessonsEntityId;
             }

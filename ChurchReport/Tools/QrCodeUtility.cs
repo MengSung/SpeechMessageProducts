@@ -395,7 +395,14 @@ namespace ChurchReport.Tools
                 Guid aNewStorLessonsEntityId = this.m_ToolUtilityClass.CreateEntity(aNewStorLessonsEntity);
 
                 //指派負責人
-                this.m_ToolUtilityClass.AssignOwner("new_stor_lessons", this.m_ToolUtilityClass.RetrieveEntity("new_stor_lessons", aNewStorLessonsEntityId), this.m_ToolUtilityClass.GetOwnerId(aContact) );
+                try
+                {
+                    this.m_ToolUtilityClass.AssignOwner("new_stor_lessons", this.m_ToolUtilityClass.RetrieveEntity("new_stor_lessons", aNewStorLessonsEntityId), this.m_ToolUtilityClass.GetOwnerId(aContact));
+                }
+                catch (System.Exception e)
+                {
+                    String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                }
 
                 return aNewStorLessonsEntityId;
             }
@@ -1232,7 +1239,14 @@ namespace ChurchReport.Tools
 
             //指派負責人
             Entity aRetrievedContact = this.m_ToolUtilityClass.RetrieveEntity( "contacct",this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aStorLessonEntity, "new_contact_new_stor_lessons"));
-            this.m_ToolUtilityClass.AssignOwner("new_fee", aRetrievedFee, this.m_ToolUtilityClass.GetOwnerId(aRetrievedContact));
+            try
+            {
+                this.m_ToolUtilityClass.AssignOwner("new_fee", aRetrievedFee, this.m_ToolUtilityClass.GetOwnerId(aRetrievedContact));
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+            }
 
             return aRetrievedFee;
         }

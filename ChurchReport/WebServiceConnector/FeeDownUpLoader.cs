@@ -757,7 +757,14 @@ namespace ChurchReport.WebServiceConnector
 
                 if (aContactId != null && aContactId != Guid.Empty)
                 {
-                    this.m_ToolUtilityClass.AssignOwner("new_fee", aRetrievedFee, aContactId);
+                    try
+                    {
+                        this.m_ToolUtilityClass.AssignOwner("new_fee", aRetrievedFee, aContactId);
+                    }
+                    catch (System.Exception e)
+                    {
+                        String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                    }
                 }
             }
 

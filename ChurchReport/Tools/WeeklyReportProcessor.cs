@@ -416,8 +416,14 @@ namespace ChurchReport.Tools
                 Guid CreatedWeeklyReportEntityId = this.m_ToolUtilityClass.CreateEntity(aWeeklyReportEntity);
 
                 // 指派週報的負責人
-                this.m_ToolUtilityClass.AssignOwner("new_group_present_weekly_report", this.m_ToolUtilityClass.RetrieveEntity("new_group_present_weekly_report", CreatedWeeklyReportEntityId), this.m_OwnerId);
-
+                try
+                {
+                    this.m_ToolUtilityClass.AssignOwner("new_group_present_weekly_report", this.m_ToolUtilityClass.RetrieveEntity("new_group_present_weekly_report", CreatedWeeklyReportEntityId), this.m_OwnerId);
+                }
+                catch (System.Exception e)
+                {
+                    String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                }
                 // 建立此小組的出席紀錄單
                 String GroupName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aListEntity, "listname");
                 EntityCollection aPresentRecordCollection = CreatePresentRecordList(GroupName, ref aListEntity, ref CreatedWeeklyReportEntityId, 0, 0.0, 0.0, 0, 0, "", "", false);
@@ -536,8 +542,14 @@ namespace ChurchReport.Tools
                 Entity aPresentRecord = CreatePresentRecord(aMemberInfomation, ref aListEntity, ref aWeeklyReportId, ValidNumber, ref aWeeklySundayRate, ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber, HappyWeekIndex, HappyWeekTopic, PauseCheckBox);
 
                 //指派負責人
-                this.m_ToolUtilityClass.AssignOwner("new_present_record", aPresentRecord, this.m_OwnerId);
-
+                try
+                {
+                    this.m_ToolUtilityClass.AssignOwner("new_present_record", aPresentRecord, this.m_OwnerId);
+                }
+                catch (System.Exception e)
+                {
+                    String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                }
                 if (aPresentRecord != null)
                 {
                     PresentRecordEntityCollection.Entities.Add(aPresentRecord);
@@ -559,7 +571,14 @@ namespace ChurchReport.Tools
                 Entity aPresentRecord = CreatePresentRecord(aMemberInfomation, ref aListEntity, ref aWeeklyReportId, ValidNumber, ref aWeeklySundayRate, ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber, HappyWeekIndex, HappyWeekTopic, PauseCheckBox);
 
                 //指派負責人
-                this.m_ToolUtilityClass.AssignOwner("new_present_record", aPresentRecord, this.m_OwnerId);
+                try
+                {
+                    this.m_ToolUtilityClass.AssignOwner("new_present_record", aPresentRecord, this.m_OwnerId);
+                }
+                catch (System.Exception e)
+                {
+                    String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                }
 
                 if (aPresentRecord != null)
                 {
