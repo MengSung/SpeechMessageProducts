@@ -31,7 +31,7 @@ namespace ChurchReport.Models
         public String Result { get; set; }
 
         public String m_FullName = "";
-        public String m_Account  = "";
+        public String m_Account = "";
         public String m_Password = "";
 
         public String SmallGroupLeaderContactId { get; set; }
@@ -45,11 +45,11 @@ namespace ChurchReport.Models
         #endregion
 
         #region 初始化繳費與點名
-        public void SetupLoginUserInfo( String FullName , String Account, String Password)
+        public void SetupLoginUserInfo(String FullName, String Account, String Password)
         {
-             m_FullName = FullName;
-             m_Account = Account;
-             m_Password = Password;
+            m_FullName = FullName;
+            m_Account = Account;
+            m_Password = Password;
         }
 
         public void SetupLessonList(String Account, String Password)
@@ -72,7 +72,7 @@ namespace ChurchReport.Models
             }
             Result = LocalResult;
         }
-        public void SetupPresentFeeList( String DiscipleLessonsId )
+        public void SetupPresentFeeList(String DiscipleLessonsId)
         {
             String LocalResult = "";
 
@@ -105,7 +105,7 @@ namespace ChurchReport.Models
             String LocalResult = "";
 
 
-            FeeDataList = m_FeeDownUpLoader.GetFeeList( m_Account, m_Password, ref LocalResult, ref m_ClassName );
+            FeeDataList = m_FeeDownUpLoader.GetFeeList(m_Account, m_Password, ref LocalResult, ref m_ClassName);
             if (FeeDataList.Count > 0)
             {
                 FeeType = "有繳費點名";
@@ -141,11 +141,12 @@ namespace ChurchReport.Models
             List<string> KeyList = new List<string>(aDictionary.Keys);
             List<string> ValueList = new List<string>(aDictionary.Values);
 
-            if ( KeyList.Count > 0 )
+            if (KeyList.Count > 0)
             {
                 String Key = KeyList[0];
 
-                bool CreateFlag = false; 
+                bool CreateFlag = false;
+
                 m_FeeDownUpLoader.UpdateFeeDataList(KeyList[0], ValueList[0], aFee.StorLessonsId, ref CreateFlag);
 
                 //String DATE = DateTime.Now.ToLocalTime().ToLongTimeString();
@@ -159,17 +160,43 @@ namespace ChurchReport.Models
                     JsonConvert.PopulateObject(PayWayValue, aFee, settings);
                 }
 
-                if (Key == "Amount" && ValueList[0] == null)
-                {
-                    String AmountValue = "{\"Amount\":\"" + "0" + "\"}";
-                    JsonConvert.PopulateObject(AmountValue, aFee, settings);
-                }
                 if (Key == "PayDate" && ValueList[0] == null)
                 {
+                    // 繳費日期
                     String PayDateValue = "{\"PayDate\":\"" + DateTime.MinValue.ToUniversalTime().ToString("u") + "\"}";
                     JsonConvert.PopulateObject(PayDateValue, aFee, settings);
                 }
+                //else if(Key == "PayDate" && ValueList[1] != null)
+                //{
+                //    //DateTime aPayDate = new DateTime(ValueList[1])
+                //    //String PayDateValue = "{\"PayDate\":\"" + new Datetime.ToUniversalTime().ToString("u") + "\"}";
+                //    //JsonConvert.PopulateObject(PayDateValue, aFee, settings);
+                //}
 
+
+                if (Key == "Amount" && ValueList[0] == null)
+                {
+                    // 實收金額
+                    String AmountValue = "{\"Amount\":\"" + "0" + "\"}";
+                    JsonConvert.PopulateObject(AmountValue, aFee, settings);
+                }
+                if (Key == "RefundDate" && ValueList[0] == null)
+                {
+                    // 退費日期
+                    String RefundDateValue = "{\"RefundDate\":\"" + DateTime.MinValue.ToUniversalTime().ToString("u") + "\"}";
+                    JsonConvert.PopulateObject(RefundDateValue, aFee, settings);
+                }
+
+                if (Key == "RefundAmount" && ValueList[0] == null)
+                {
+                    // 退費金額
+                    String RefundAmountValue = "{\"RefundAmount\":\"" + "0" + "\"}";
+                    JsonConvert.PopulateObject(RefundAmountValue, aFee, settings);
+                }
+                //else if(Key == "RefundAmount" && ValueList[0] != null)
+                //{
+                //    aFee.Amount = aFee.Amount - aFee.RefundAmount;
+                //}
             }
 
         }

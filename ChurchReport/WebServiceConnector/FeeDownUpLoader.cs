@@ -61,7 +61,7 @@ namespace ChurchReport.WebServiceConnector
         #endregion
         #region 下載資料時所需要的參數
 
-        List<Lesson> m_LessonList ; // 需要點名的上課紀錄單名單
+        List<Lesson> m_LessonList; // 需要點名的上課紀錄單名單
         List<Fee> m_FeeDataList = new List<Fee>(); // 需要點名的上課紀錄單名單
 
         Entity m_ContactEntity; //登入者在系統裡的實體
@@ -100,7 +100,7 @@ namespace ChurchReport.WebServiceConnector
 
             return m_FeeDataList;
         }
-        public List<Fee> GetPresentFeeList( String DiscipleLessonsId , ref String Result, ref ClassName aClassName)
+        public List<Fee> GetPresentFeeList(String DiscipleLessonsId, ref String Result, ref ClassName aClassName)
         {
             //實際要回傳，不是模擬
             SetPresentFeeList(DiscipleLessonsId, ref Result, ref aClassName);
@@ -144,7 +144,7 @@ namespace ChurchReport.WebServiceConnector
             // 初始化收費與點名紀錄
             m_LessonList = new List<Lesson>();
 
-            // 取得與登入者需要收費的課程，課程結束後7日還會出現讚點名繳費網站:講員、收費點名人員、收費點名助理=>都可以點名及收費
+            // 取得與登入者需要收費的課程，課程結束後7日還會出現讚點名繳費網站
             EntityCollection aDiscipleLessonsEntityCollection = GetDiscipleLessonsEntityCollection();
 
             if (aDiscipleLessonsEntityCollection != null)
@@ -152,7 +152,6 @@ namespace ChurchReport.WebServiceConnector
                 //處理一個一個的課程
                 ProcesseLessonsList(ref aDiscipleLessonsEntityCollection, ref Result, ref aClassName);
             }
-
         }
 
         public void SetFeeDataList(ref String Result, ref ClassName aClassName)
@@ -167,7 +166,6 @@ namespace ChurchReport.WebServiceConnector
             ProcesseDiscipleLessons(ref aDiscipleLessonsEntityCollection, ref Result, ref aClassName);
 
         }
-
         public EntityCollection GetDiscipleLessonsEntityCollection()
         {
             // 是否是講員
@@ -182,7 +180,7 @@ namespace ChurchReport.WebServiceConnector
             {
                 return aDiscipleLessonsEntityCollection;
             }
-            // 是否是收費點名助理
+            // 是否是收費點名人員助理
             aDiscipleLessonsEntityCollection = m_ToolUtilityClass.QueryEntityListByDate("contact", "contactid", this.m_ContactEntity.Id.ToString(), "new_contact_new_disciple_lessons_assi", "new_disciple_lessons");
             if (aDiscipleLessonsEntityCollection.Entities.Count > 0)
             {
@@ -194,7 +192,6 @@ namespace ChurchReport.WebServiceConnector
             // 取得與登入者需要收費的課程，課程結束後7日還會出現讚點名繳費網站
 
         }
-
         public void SetPresentFeeList(String DiscipleLessonsId, ref String Result, ref ClassName aClassName)
         {
             // 初始化收費與點名紀錄
@@ -227,7 +224,7 @@ namespace ChurchReport.WebServiceConnector
 
         public void ProcesseLessonsList(ref EntityCollection aDiscipleLessonsEntityCollection, ref String Result, ref ClassName aClassName)
         {
-            foreach ( Entity aDiscipleLessons in aDiscipleLessonsEntityCollection.Entities)
+            foreach (Entity aDiscipleLessons in aDiscipleLessonsEntityCollection.Entities)
             {
                 Lesson aLesson = new Lesson();
 
@@ -284,7 +281,7 @@ namespace ChurchReport.WebServiceConnector
             DateTime LessonDate;
 
             aClassName.Lesson1 = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDiscipleLessons, "new_l1_name");
-            if ( aClassName.Lesson1 == "" )
+            if (aClassName.Lesson1 == "")
             {
                 aClassName.Lesson1 = "第一課";
             }
@@ -373,7 +370,7 @@ namespace ChurchReport.WebServiceConnector
             int TotalFeeAmount = 0;
             foreach (Entity aStorLessons in aStorLessonsEntityCollection.Entities)
             {
-                Entity aRetrievedStorLessons = this.m_ToolUtilityClass.RetrieveEntity("new_stor_lessons", aStorLessons.Id);
+                Entity aRetruevedStorLessons = this.m_ToolUtilityClass.RetrieveEntity("new_stor_lessons", aStorLessons.Id);
                 Fee aFee = new Fee
                 {
                     DiscipleLessonsId = aDiscipleLessons.Id.ToString(),
@@ -381,18 +378,19 @@ namespace ChurchReport.WebServiceConnector
                 };
 
                 // 處理一個一個的的上課紀錄
-                ProcesseStorLessonsParameter(aRetrievedStorLessons, ref aFee);
+                ProcesseStorLessonsParameter(aRetruevedStorLessons, ref aFee);
 
                 // 取得與上課紀錄相關的收費單
-                EntityCollection aFeeEntityCollection = m_ToolUtilityClass.QueryEntityList("new_stor_lessons", "new_stor_lessonsid", aRetrievedStorLessons.Id.ToString(), "new_stor_lessons_new_fee", "new_fee");
+                EntityCollection aFeeEntityCollection = m_ToolUtilityClass.QueryEntityList("new_stor_lessons", "new_stor_lessonsid", aRetruevedStorLessons.Id.ToString(), "new_stor_lessons_new_fee", "new_fee");
 
                 // 處理一個一個的收費單
-                TotalFeeAmount += ProcesseFee(aRetrievedStorLessons, ref aFee, ref aFeeEntityCollection);
+                TotalFeeAmount += ProcesseFee(aRetruevedStorLessons, ref aFee, ref aFeeEntityCollection);
             }
 
             // 取得與登入者需要收費的課程
             Result += "報名人數: " + aStorLessonsEntityCollection.Entities.Count.ToString() + " 人，";
             Result += "已繳費金額: " + TotalFeeAmount.ToString() + " 元";
+
         }
         public void ProcesseStorLessonsParameter(Entity aStorLessons, ref Fee aFee)
         {
@@ -447,10 +445,16 @@ namespace ChurchReport.WebServiceConnector
         }
         public int ProcesseFee(Entity aStorLessons, ref Fee aFee, ref EntityCollection aFeeEntityCollection)
         {
+            // 取得與上課紀錄相關的收費單
             Money aTotalAmountPaid = new Money(0);
+            aFee.RefundAmount = 0;
             foreach (Entity aFeeEntity in aFeeEntityCollection.Entities)
             {
-                // 處理一個一個的收費單
+                // 處理一個一個與上課紀錄相關的收費單
+
+                // 應收金額
+                Money aShouldMoney = this.m_ToolUtilityClass.GetEntityMoneyAttribute(aFeeEntity, "new_fee_shoud_pay");
+                aFee.ShouldPayAmount = (int)aShouldMoney.Value > 0 ? (int)aShouldMoney.Value : 0; // 傳回負值就歸零
 
                 // 繳費日期
                 aFee.PayDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(aFeeEntity, "new_pay_date").ToLocalTime();
@@ -458,6 +462,15 @@ namespace ChurchReport.WebServiceConnector
                 // 繳費金額
                 Money aMoney = this.m_ToolUtilityClass.GetEntityMoneyAttribute(aFeeEntity, "new_fee_really_paid");
                 aMoney.Value = aMoney.Value > 0 ? aMoney.Value : 0; // 傳回負值就歸零
+
+                // 退費日期
+                aFee.RefundDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(aFeeEntity, "new_refund_date").ToLocalTime();
+
+                // 退費金額
+                Money aRefundMoney = this.m_ToolUtilityClass.GetEntityMoneyAttribute(aFeeEntity, "new_refund_amount");
+                aRefundMoney.Value = aRefundMoney.Value > 0 ? aRefundMoney.Value : 0; // 傳回負值就歸零
+                aFee.RefundAmount = aFee.RefundAmount + (int)aRefundMoney.Value;
+
 
                 aTotalAmountPaid.Value = aTotalAmountPaid.Value + aMoney.Value;
 
@@ -601,6 +614,45 @@ namespace ChurchReport.WebServiceConnector
                     Fee = GetFeeOfStorLesson(StorLessonsId, Key, ref CreateFlag);
                     this.m_ToolUtilityClass.SetEntityMoneyAttribute(ref Fee, "new_fee_really_paid", new Money(Convert.ToDecimal(Value)));
                     this.m_ToolUtilityClass.UpdateEntity(ref Fee);
+                    break;
+                case "RefundDate":
+                    // 上課紀錄單也要記錄繳費日期，目前就只填入最後一次繳費為主，因為操作簡單，先假設不讓他多次繳費，或是分期
+                    // 但是 LINE 那邊顯示的繳費情況是以此欄位為準的
+                    Fee = GetFeeOfStorLesson(StorLessonsId, Key, ref CreateFlag);
+                    if (Value != null)
+                    {
+                        this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref Fee, "new_refund_date", DateTime.Parse(Value));
+                    }
+                    else
+                    {
+                        this.m_ToolUtilityClass.SetEntityDateTimeAttributeToNull(ref Fee, "new_refund_date");
+                    }
+
+                    this.m_ToolUtilityClass.UpdateEntity(ref Fee);
+                    break;
+                case "RefundAmount":
+                    Fee = GetFeeOfStorLesson(StorLessonsId, Key, ref CreateFlag);
+                    // 取得目前的實收金額
+                    Money ReallyPaidMoney = this.m_ToolUtilityClass.GetEntityMoneyAttribute(ref Fee, "new_fee_really_paid");
+
+                    // 設定實收金額 = 目前的實收金額 - 退費金額
+                    this.m_ToolUtilityClass.SetEntityMoneyAttribute(ref Fee, "new_fee_really_paid", new Money(ReallyPaidMoney.Value - Convert.ToDecimal(Value)));
+
+                    // 設定退費金額
+                    this.m_ToolUtilityClass.SetEntityMoneyAttribute(ref Fee, "new_refund_amount", new Money(Convert.ToDecimal(Value)));
+
+                    // 設定收費單付款狀態=已退費
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(ref Fee, "new_pay_status", 100000005);
+
+                    // 更新收費單
+                    this.m_ToolUtilityClass.UpdateEntity(ref Fee);
+
+                    // 設定上課紀錄單報名狀態=取消報名（已退費）
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(ref aStorLessonEntity, "new_enroll_status", 100000012);
+
+                    // 更新上課紀錄單
+                    this.m_ToolUtilityClass.UpdateEntity(ref aStorLessonEntity);
+
                     break;
                 case "PayWay":
                     Fee = GetFeeOfStorLesson(StorLessonsId, Key, ref CreateFlag);
@@ -748,25 +800,8 @@ namespace ChurchReport.WebServiceConnector
             Entity aRetrievedFee = this.m_ToolUtilityClass.RetrieveEntity("new_fee", aFeeId);
 
             //指派負責人
-            Entity aContact = this.m_ToolUtilityClass.RetrieveEntity( "contact", this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aStorLessonEntity, "new_contact_new_stor_lessons"));
-
-            //指派負責人
-            if (aContact != null)
-            {
-                Guid aContactId = this.m_ToolUtilityClass.GetOwnerId(aContact);
-
-                if (aContactId != null && aContactId != Guid.Empty)
-                {
-                    try
-                    {
-                        this.m_ToolUtilityClass.AssignOwner("new_fee", aRetrievedFee, aContactId);
-                    }
-                    catch (System.Exception e)
-                    {
-                        String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                    }
-                }
-            }
+            Entity aContact = this.m_ToolUtilityClass.RetrieveEntity("contact", this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aStorLessonEntity, "new_contact_new_stor_lessons"));
+            this.m_ToolUtilityClass.AssignOwner("new_fee", aRetrievedFee, this.m_ToolUtilityClass.GetOwnerId(aContact));
 
             return aRetrievedFee;
 

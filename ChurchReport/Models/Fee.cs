@@ -5,7 +5,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ChurchReport.Models {
+namespace ChurchReport.Models
+{
     public class Fee
     {
         public Fee()
@@ -19,12 +20,15 @@ namespace ChurchReport.Models {
         public String Gender { get; set; }                     // 性別
         public String SmallGroupName { get; set; }             // 小組名稱
 
-        public string MobilePhone { get; set; }             // 行動電話
-        public DateTime PayDate { get; set; }               // 繳費日期
-        public int Amount { get; set; }                     // 繳費金額
+        public string MobilePhone { get; set; }                // 行動電話
+        public DateTime PayDate { get; set; }                  // 繳費日期
+        public int Amount { get; set; }                        // 繳費金額
+        public DateTime RefundDate { get; set; }               // 退費日期
+        public int RefundAmount { get; set; }                  // 退費金額
+        public int ShouldPayAmount { get; set; }               // 應收金額
         public String PayWay { get; set; }                     // 付款方式
 
-        public String SubClass { get; set; }                     // 班別
+        public String SubClass { get; set; }                   // 班別
 
         #region 課程點名
         public bool Lesson1 { get; set; }       // 第一課點名
