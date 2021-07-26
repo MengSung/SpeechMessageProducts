@@ -24,7 +24,7 @@ namespace ChurchReport.Tools
         ToolUtilityClass m_ToolUtilityClass;
 
         // 客製化
-        // RPG復興禱告 2.0
+        // 東湖禮拜堂 2.0
         private const String SPEECHMESSAGE_CHANNEL_ACCESS_TOKEN = @"z9/Jcbkvfm24ZogW0nHlaqONQjFYB6A10y2EPp07kWmw6vXSQSrTYrno3OuzCfM+ewEFWlahpjSOYa4HzyYxhZuAFbvoTQVPI/gjkE2PYMx5BESvuwJLJRZ86u3my9lD7zzvDNdZwStZzJh+IHmPFwdB04t89/1O/w1cDnyilFU=";
 
         // 胡夢嵩回傳　EXCEPTION　專用的ＩＤ

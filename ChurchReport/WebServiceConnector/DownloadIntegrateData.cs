@@ -436,7 +436,7 @@ namespace ChurchReport.WebServiceConnector
                         #endregion
                         #region// 出席紀錄組員的附註
 
-                        // RPG復興禱告
+                        // 東湖禮拜堂
                         String aNote = "";
                         //if (PresentRecordEntity.Attributes.Contains("new_name"))
                         //{
@@ -1068,7 +1068,7 @@ namespace ChurchReport.WebServiceConnector
 
                 #region 設定附註或是代禱事項
 
-                // RPG復興禱告
+                // 東湖禮拜堂
                 //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_name", aMemberInfomation.Note);
                 //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_explanation", aMemberInfomation.PrayItem);
 
@@ -2601,7 +2601,7 @@ namespace ChurchReport.WebServiceConnector
 
 
         // 委身類型客製化，委身類型客製化
-        //RPG復興禱告
+        //東湖禮拜堂
         private String ConvertIndexToIdentity(int Identity)
         {
             switch (Identity)

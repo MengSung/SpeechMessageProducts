@@ -43,7 +43,7 @@ namespace ChurchReport.Tools
         static readonly object m_UpdateSundayWeeklyReportLocker = new object();//避免多人同時輸入"小組出席"，會產生2個週報或是改變"委身類型"、"裝備狀態"                                                                 //private const bool RACE_LEADER_CAN_CREATE_WEEKLYREPORT = false; // 族系組長能否幫小組長建立週報，false 不可以
 
         // 客製化
-        // RPG復興禱告
+        // 東湖禮拜堂
         private const String CHANNEL_ACCESS_TOKEN = @"z9/Jcbkvfm24ZogW0nHlaqONQjFYB6A10y2EPp07kWmw6vXSQSrTYrno3OuzCfM+ewEFWlahpjSOYa4HzyYxhZuAFbvoTQVPI/gjkE2PYMx5BESvuwJLJRZ86u3my9lD7zzvDNdZwStZzJh+IHmPFwdB04t89/1O/w1cDnyilFU=";
 
         // 掃描 QR CODE之後是否發送 LINE通知
@@ -55,7 +55,7 @@ namespace ChurchReport.Tools
         public SundayQrCodeUtility()
         {
             // 客製化，請選擇
-            // RPG復興禱告(免費版)
+            // 東湖禮拜堂(免費版)
             this.m_LineMessagingClient = new LineMessagingClient(CHANNEL_ACCESS_TOKEN);
 
             // 客製化
@@ -79,7 +79,7 @@ namespace ChurchReport.Tools
                     // 透過 LINE ID 找不到此好友，可能還沒加入官LINE@
                     //this.AddNewFriend(DisplayName, UserLineId);
 
-                    OnboardType = "錯誤 : " + DisplayName + "還沒有加入RPG復興禱告的 Line@";
+                    OnboardType = "錯誤 : " + DisplayName + "還沒有加入東湖禮拜堂的 Line@";
 
                     return;
                 }

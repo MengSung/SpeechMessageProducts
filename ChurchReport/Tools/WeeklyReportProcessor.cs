@@ -1018,7 +1018,7 @@ namespace ChurchReport.Tools
                 #endregion
                 #region 設定附註或是代禱事項
 
-                // RPG復興禱告
+                // 東湖禮拜堂
                 //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_name", aMemberInfomation.Note);
                 //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_explanation", aMemberInfomation.PrayItem);
 
@@ -1124,7 +1124,7 @@ namespace ChurchReport.Tools
                                 ClearIdentity = this.ConvertIndexToClearIdentity(aCustomerTypeCode.Value);
 
                                 // 版本轉換
-                                //// 如果是新朋友、未入組、外教會則不列入累積，RPG復興禱告
+                                //// 如果是新朋友、未入組、外教會則不列入累積，東湖禮拜堂
                                 if (aCustomerTypeCode.Value != 100000004 && aCustomerTypeCode.Value != 100000000 && aCustomerTypeCode.Value != 100000007)
                                 {
                                     return true;
@@ -1191,7 +1191,7 @@ namespace ChurchReport.Tools
                 int aCustomerTypeCodeValue = this.m_ToolUtilityClass.GetOptionSetAttribute(ref aContactEntity, "customertypecode");
                 //OptionSetValue aCustomerTypeCode = aContactEntity.Attributes["customertypecode"] as OptionSetValue;
 
-                // 如果是新朋友或是未入組則不列入累積，RPG復興禱告
+                // 如果是新朋友或是未入組則不列入累積，東湖禮拜堂
                 if (aCustomerTypeCodeValue != 100000004 && aCustomerTypeCodeValue != 100000000 && aCustomerTypeCodeValue != 100000007 && aCustomerTypeCodeValue != EMPTY_VALUE)
                 {
                     return true;
@@ -1230,7 +1230,7 @@ namespace ChurchReport.Tools
         #endregion
         #endregion
         #region 設定委身類型
-        // RPG復興禱告
+        // 東湖禮拜堂
         // 委身類型客製化
         private int ConvertIdentityToIndex(String Identity)
         {
@@ -1260,7 +1260,7 @@ namespace ChurchReport.Tools
                     return 100000000;
             }
         }
-        // RPG復興禱告
+        // 東湖禮拜堂
         // 委身類型客製化
         private String ConvertIndexToIdentity(int Identity)
         {
