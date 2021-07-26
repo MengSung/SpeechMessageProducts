@@ -708,7 +708,57 @@ $@"{{
             return JsonConvert.DeserializeObject<NumberOfSentMessages>(response);
         }
         #endregion
-        
+
+        #region 取得驗證帳號裡所有的LINE ID
+        // https://developers.line.me/en/docs/messaging-api/reference/#profile
+
+        /// <summary>
+        /// Get user profile information.
+        /// https://developers.line.me/en/docs/messaging-api/reference/#get-profile
+        /// </summary>
+        /// <param name="userId">User ID</param>
+        /// <returns></returns>
+
+        public async Task<List<String>> GetFollowersIdAsync()
+        {
+            try
+            {
+
+                var response = await _client.GetAsync($"{_uri}/bot/followers/ids").ConfigureAwait(false);
+                var UserLineIdList = new List<String>();
+                if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                {
+                    return UserLineIdList;
+                }
+                await response.EnsureSuccessStatusCodeAsync().ConfigureAwait(false);
+
+                var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+
+                dynamic result = JsonConvert.DeserializeObject(json);
+
+                UserIdList aUserIdList = JsonConvert.DeserializeObject<UserIdList>(json);
+
+                //if (result == null) { return menus; }
+
+                String UserId = "";
+                foreach ( String LineId in aUserIdList.userIds)
+                {
+                    UserLineIdList.Add(LineId);
+                    //menus.Add(ResponseRichMenu.CreateFrom(dynamicObject));
+                }
+                return UserLineIdList;
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                throw e;
+            }
+
+        }
+
+        #endregion
+
         public void Dispose()
         {
             _client?.Dispose();

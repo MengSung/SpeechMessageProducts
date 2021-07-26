@@ -21,7 +21,6 @@ namespace ToolUtility
             this.m_LineMessagingClient = LineMessagingClient;
         }
         #endregion
-
         #region Line Messagin Api Push SDK傳送
         public async Task SendMessage(string UserId, List<ISendMessage> MessageToSend)
         {
@@ -347,7 +346,6 @@ namespace ToolUtility
         }
 
         #endregion
-
         #region 工具區
         private string GetFileExtension(string mediaType)
         {
