@@ -734,19 +734,21 @@ $@"{{
 
                 var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 
-                dynamic result = JsonConvert.DeserializeObject(json);
-
                 UserIdList aUserIdList = JsonConvert.DeserializeObject<UserIdList>(json);
 
-                //if (result == null) { return menus; }
-
-                String UserId = "";
-                foreach ( String LineId in aUserIdList.userIds)
+                if (aUserIdList != null)
                 {
-                    UserLineIdList.Add(LineId);
-                    //menus.Add(ResponseRichMenu.CreateFrom(dynamicObject));
+                    String UserId = "";
+                    foreach (String LineId in aUserIdList.userIds)
+                    {
+                        UserLineIdList.Add(LineId);
+                    }
+                    return UserLineIdList;
                 }
-                return UserLineIdList;
+                else
+                {
+                    return null;
+                }
             }
             catch (System.Exception e)
             {
