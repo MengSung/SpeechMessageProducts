@@ -719,7 +719,36 @@ $@"{{
         /// <param name="userId">User ID</param>
         /// <returns></returns>
 
-        public async Task<List<String>> GetFollowersIdAsync()
+        public async Task<UserIdList> GetFollowersIdAsync()
+        {
+            try
+            {
+
+                var response = await _client.GetAsync($"{_uri}/bot/followers/ids").ConfigureAwait(false);
+                var UserLineIdList = new List<String>();
+                if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                {
+                    return null;
+                }
+
+                await response.EnsureSuccessStatusCodeAsync().ConfigureAwait(false);
+
+                var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+
+                UserIdList aUserIdList = JsonConvert.DeserializeObject<UserIdList>(json);
+
+                return aUserIdList;
+
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                throw e;
+            }
+
+        }
+        public async Task<List<String>> GetFollowersIdAsync_BACK()
         {
             try
             {
@@ -730,6 +759,7 @@ $@"{{
                 {
                     return UserLineIdList;
                 }
+
                 await response.EnsureSuccessStatusCodeAsync().ConfigureAwait(false);
 
                 var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
@@ -739,7 +769,7 @@ $@"{{
                 if (aUserIdList != null)
                 {
                     String UserId = "";
-                    foreach (String LineId in aUserIdList.userIds)
+                    foreach (String LineId in aUserIdList.UserIds)
                     {
                         UserLineIdList.Add(LineId);
                     }

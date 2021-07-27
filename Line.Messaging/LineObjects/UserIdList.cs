@@ -8,6 +8,9 @@ namespace Line.Messaging
         public UserIdList()
         { }
 
-        public List<String> userIds { get; set; }
+        public List<String> UserIds { get; set; }
+
+        public string Next { get; set; }
+
     }
 }
