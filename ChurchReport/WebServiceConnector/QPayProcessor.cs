@@ -91,43 +91,6 @@ namespace ChurchReport.WebServiceConnector
         {
             try
             {
-                UserIdList aUserIdList = await m_LineMessagingClient.GetFollowersIdAsync();
-                //Task<UserIdList> aUserIdList = m_LineMessagingClient.GetFollowersIdAsync();
-
-                //Task<UserProfile> aUserProfileTask = m_LineMessagingClient.GetUserProfileAsync(UserId);
-
-                // 企業客戶 LINE Profile+ 可以得到真實姓名、手機
-                // https://developers.line.biz/en/docs/partner-docs/line-profile-plus/#page-title
-                foreach (String UserId in aUserIdList.UserIds)
-                {
-                    UserProfile aUserProfileTask = await m_LineMessagingClient.GetUserProfileAsync(UserId);
-
-                    Entity m_Contact = new Entity("contact");
-
-                    // 寫入LINE的個人基本資料
-                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref m_Contact, "new_lineid", UserId);
-                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref m_Contact, "new_lineid_backup", UserId);
-                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref m_Contact, "new_line_displayname", aUserProfileTask.DisplayName);
-                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref m_Contact, "new_line_picture_url", aUserProfileTask.PictureUrl);
-                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref m_Contact, "new_line_status_message", aUserProfileTask.StatusMessage);
-                    this.m_ToolUtilityClass.SetEntityBoolAttribute(ref m_Contact, "new_line_register", false);
-                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref m_Contact, "new_line_type", "個人");
-
-                    // 委身類型客製化，客製委身類型欄位，每間教會委身類型都不一樣，台中思恩堂豐富教會豐富教會=>"新朋友" = 100000000
-                    // 設定成為 新朋友 的委身類型
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(ref m_Contact, "customertypecode", 100000000);
-
-                    String LastName = aUserProfileTask.DisplayName + "(Line)";
-                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref m_Contact, "lastname", LastName);
-
-                    //設定LINE狀態為"新加入"
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(ref m_Contact, "new_line_status", 100000001);
-
-                    //await m_ToolUtilityClass.CreateEntityAsync(m_ToolUtilityClass.m_OrganizationService, m_Contact);
-                    m_ToolUtilityClass.CreateEntity(m_Contact);
-
-                }
-
                 #region 非同步建立收費單
 
                 // 產品名稱加入姓名
