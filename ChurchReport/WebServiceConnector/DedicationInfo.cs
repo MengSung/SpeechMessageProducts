@@ -17,7 +17,7 @@ namespace ChurchReport.WebServiceConnector
         ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
 
         // 客製化
-        private const String CONFIRM_URL = "https://rpg.speechmessage.com.tw:223/api/callback/Confirm";
+        private const String CONFIRM_URL = "https://dhchurchback.speechmessage.com.tw:473/api/callback/Confirm";
 
         private String m_FullName = "";
 
