@@ -3759,7 +3759,7 @@ namespace ChurchReport.Controllers
         }
 
         #endregion
-        #region Line Tiff 行事曆
+        #region Line Liff 行事曆
         [Route("/Home/SchedulerView/{SchedulerViewPatameter}")]
         public ActionResult SchedulerView( String ScheduleId, string SchedulerViewPatameter)
         {
