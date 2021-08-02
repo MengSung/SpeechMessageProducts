@@ -162,6 +162,9 @@ namespace ChurchReport.Tools
             private const String RPG_CHANNEL_ACCESS_TOKEN = "r+RzvGNqCqcPo4LOF2LFjvvjfVmQBR+pQH6i7RkyWHB/n0v2xCwgXbZRO3UeT+Ut0JleZ3L9NKVvd2sgblcUoVeuC3VKyiC5aQR++2p7aqV2B5RGxc6RV7A5k34Q57KOeqN8mAlYd9TOY6xs06pbIwdB04t89/1O/w1cDnyilFU=";
             private const String RPG_BACK_CHANNEL_ACCESS_TOKEN = "r+RzvGNqCqcPo4LOF2LFjvvjfVmQBR+pQH6i7RkyWHB/n0v2xCwgXbZRO3UeT+Ut0JleZ3L9NKVvd2sgblcUoVeuC3VKyiC5aQR++2p7aqV2B5RGxc6RV7A5k34Q57KOeqN8mAlYd9TOY6xs06pbIwdB04t89/1O/w1cDnyilFU=";
 
+            // 東湖禮拜堂 Line 2.0
+            private const String DHCHURCH_CHANNEL_ACCESS_TOKEN = "r+RzvGNqCqcPo4LOF2LFjvvjfVmQBR+pQH6i7RkyWHB/n0v2xCwgXbZRO3UeT+Ut0JleZ3L9NKVvd2sgblcUoVeuC3VKyiC5aQR++2p7aqV2B5RGxc6RV7A5k34Q57KOeqN8mAlYd9TOY6xs06pbIwdB04t89/1O/w1cDnyilFU=";
+            private const String DHCHURCH_BACK_CHANNEL_ACCESS_TOKEN = "r+RzvGNqCqcPo4LOF2LFjvvjfVmQBR+pQH6i7RkyWHB/n0v2xCwgXbZRO3UeT+Ut0JleZ3L9NKVvd2sgblcUoVeuC3VKyiC5aQR++2p7aqV2B5RGxc6RV7A5k34Q57KOeqN8mAlYd9TOY6xs06pbIwdB04t89/1O/w1cDnyilFU=";
         #endregion
 
         String m_ChannelAccessToken = LINEMESSAGE_CHANNEL_ACCESS_TOKEN;
@@ -378,9 +381,17 @@ namespace ChurchReport.Tools
                     {
                         m_ChannelAccessToken = RPG_BACK_CHANNEL_ACCESS_TOKEN;
                     }
+                    else if (this.m_OrganizationName == "dhchurch")
+                    {
+                        m_ChannelAccessToken = DHCHURCH_CHANNEL_ACCESS_TOKEN;
+                    }
+                    else if (this.m_OrganizationName == "dhchurchback")
+                    {
+                        m_ChannelAccessToken = DHCHURCH_BACK_CHANNEL_ACCESS_TOKEN;
+                    }
                     else
                     {
-                        m_ChannelAccessToken = MUYI_CHANNEL_ACCESS_TOKEN;
+                    m_ChannelAccessToken = MUYI_CHANNEL_ACCESS_TOKEN;
                     }
                 }
                 catch (System.Exception e)
