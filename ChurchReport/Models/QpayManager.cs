@@ -358,6 +358,7 @@ namespace ChurchReport.Models
                     aDedicationFee.PayWay = ConvertToPayway(aDedicationFeeEntity);
                     aDedicationFee.Category = ConvertToCategory(aDedicationFeeEntity);
                     aDedicationFee.Others = this.m_ToolUtilityClass.GetEntityStringAttribute(aDedicationFeeEntity, "new_others");
+                    aDedicationFee.PaidPeriod = this.m_ToolUtilityClass.GetEntityStringAttribute(aDedicationFeeEntity, "new_paid_period");
                     m_QpayModel.DedicationFeeList.Add(aDedicationFee);
                 }
 
@@ -413,6 +414,7 @@ namespace ChurchReport.Models
                     aDedicationFee.PayWay = ConvertToPayway(aDedicationFeeEntity);
                     aDedicationFee.Category = ConvertToCategory(aDedicationFeeEntity);
                     aDedicationFee.Others = this.m_ToolUtilityClass.GetEntityStringAttribute(aDedicationFeeEntity, "new_others");
+                    aDedicationFee.PaidPeriod = this.m_ToolUtilityClass.GetEntityStringAttribute(aDedicationFeeEntity, "new_paid_period");
                     m_QpayModel.DedicationFeeList.Add(aDedicationFee);
                 }
 

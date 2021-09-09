@@ -2500,6 +2500,7 @@ namespace ToolUtilityNameSpace
                                     <attribute name='new_pay_way' />
                                     <attribute name='new_category' />
                                     <attribute name='new_others' />
+                                    <attribute name='new_paid_period' />
                                     <order attribute='new_name' descending='false' />
                                     <filter type='and'>
                                       <condition attribute='new_contact_new_fee' operator='eq' uiname=" + ContactName + @" uitype='contact' value=" + ContactId + @" />

@@ -19,5 +19,6 @@ namespace ChurchReport.Models {
         public String PayWay { get; set; }                  // 付款方式
         public String Category { get; set; }                // 奉獻類別
         public String Others { get; set; }                  // 其他奉獻
+        public String PaidPeriod { get; set; }              // 定期定額期數
     }
 }

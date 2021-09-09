@@ -191,9 +191,10 @@
                                         }
                              </text> );
 
-                    columns.AddFor(m => m.PayWay).Caption("付款方式").Alignment(HorizontalAlignment.Center).Width(80).MinWidth(80).AllowEditing(false).AllowSorting(true);
-                    columns.AddFor(m => m.Amount).Caption("金額").Width(80).MinWidth(80).AllowEditing(false).AllowSorting(true);
-                    columns.AddFor(m => m.Others).Caption("奉獻細項").Alignment(HorizontalAlignment.Left).Width(180).MinWidth(180).AllowEditing(false).AllowSorting(true);
+                columns.AddFor(m => m.PayWay).Caption("付款方式").Alignment(HorizontalAlignment.Center).Width(80).MinWidth(80).AllowEditing(false).AllowSorting(true);
+                columns.AddFor(m => m.Amount).Caption("金額").Width(80).MinWidth(80).AllowEditing(false).AllowSorting(true);
+                columns.AddFor(m => m.PaidPeriod).Caption("定期定額期數").Alignment(HorizontalAlignment.Center).Width(100).MinWidth(80).AllowEditing(false).AllowSorting(true);
+                columns.AddFor(m => m.Others).Caption("奉獻細項").Alignment(HorizontalAlignment.Left).Width(180).MinWidth(180).AllowEditing(false).AllowSorting(true);
             })
             .DataSource
             (Model.DedicationFeeList)
