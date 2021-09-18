@@ -31,9 +31,9 @@ namespace ChurchReport.WebServiceConnector
         #region 資料區
         // 商店編號
         // SANDBOX 測試用
-        string m_ShopNo = "NA0149_001";
+        //string m_ShopNo = "NA0149_001";
         // 永豐金流正式環境
-        //string m_ShopNo = "DA2659_001";
+        string m_ShopNo = "DA3033_001";
 
         #region 公司內部開發
         // 使用 ChurchReport 當作 WebHook
