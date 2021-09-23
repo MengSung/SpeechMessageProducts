@@ -156,20 +156,17 @@
 
                             success: function (data)
                             {
-                                //liff.closeWindow();
+                                // 客製化
+                                // 為了能夠符合Apple Pay所以iPhone要能夠在Safari 瀏覽器開啟
+                                //liff.openWindow({
+                                //    url: "https://apbolcback.speechmessage.com.tw:456/Home/QPayView/" + aUserLineId, // URL for another LIFF app
+                                //    external: true
+                                //});
 
-                                //this.window.close();
+                                //window.close();
 
-                                liff.openWindow({
-                                    url: "https://dhchurch.speechmessage.com.tw:390/Home/QPayView/" + aUserLineId, // URL for another LIFF app
-                                    external: true
-                                });
-
-                                //liff.closeWindow();
-
-                                window.close();
-                                
-                                //window.location.href = "/Home/QPayView/";
+                                // 用Line自己的網頁瀏覽器，比較快，但是Apple Pay不成功
+                                window.location.href = "/Home/QPayView/" + aUserLineId;
                             },
 
                             error: function (obj)
