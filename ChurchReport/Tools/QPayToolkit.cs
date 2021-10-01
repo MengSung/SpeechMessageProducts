@@ -36,7 +36,7 @@ namespace ChurchReport.Tools
         //private static string _site = "https://funbiz.sinopac.com/QPay.WebAPI/api/";
 
         // 永豐金流正式環境
-        // 永豐金流寄給安平禮拜堂的HASH CODE
+        // 永豐金流寄給安平靈糧堂的HASH CODE
         //private const String A1 = "4B1657DE6F3547A3";
         //private const String A2 = "3AB478872D0A49C7";
         //private const String B1 = "0748F400DD834C07";

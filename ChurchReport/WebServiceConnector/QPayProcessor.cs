@@ -46,7 +46,7 @@ namespace ChurchReport.WebServiceConnector
         #endregion
 
         // 客製化
-        // 安平禮拜堂
+        // 安平靈糧堂
         private const String CHANNEL_ACCESS_TOKEN = @"MwTnnrBtGgUaj+ZfbiKx7dxYxIuJKBmX9PLwKcRQU+VG4u0Gvyv2VeIjmNOr3pVGfH4JizB2wNbT0K0c4pT/XXCoBpK3lMQGaRAfS0FMoy05WDFQJgTL7etz9BHrzzWL6j0aFfutv6F4sMvcAdkTPgdB04t89/1O/w1cDnyilFU=";
 
         //private LinePayClient m_LinePayClient { get; }

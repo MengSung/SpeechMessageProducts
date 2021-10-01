@@ -125,7 +125,7 @@ namespace ChurchReport.Tools
             // 城市之光聖教會(Line 2.0)
             private const String CLHC_CHANNEL_ACCESS_TOKEN = "zUGKNYbCG42sZUwSVv9l2m4T0Mcb8oIK4n9O+gMPUl1kpEGoUNFCrR4A4YKVFwgFFvhKFwi47HMQpIiwI6GC4rm+Nk2wa7dnvNnPoRL5/oqCgRgWUBBwzv7r/8WL1PsBe/ZHjTnhDmodvAEBBydXjgdB04t89/1O/w1cDnyilFU=";
 
-            // 音訊教會-雲端展示 (50人版)
+            // 安平靈糧堂-雲端展示 (50人版)
             //private const String CHURCH_CHANNEL_ACCESS_TOKEN = "7/Q4Iw9Z71fjo5nGtIdsCFtuJLR+2gGOOSKlGEi3rxYI9PsUHKnjjn0D4DtQN6PWfYaRr+/aUIT42Eg3LLFej7sSXopZcuuntN/bCMsDS6Eszbqcv/jodqYCVNX0iWhoqk8nLtTxH+CuWt4kmFgJmAdB04t89/1O/w1cDnyilFU=";
             private const String JESUS_CHANNEL_ACCESS_TOKEN = "g1jtWWNkjbH3OCh1cKoRvPBUkCJIygNuvV/neHXR9I4J5GBgVE85inaIaTcT4AAZ1qCuqrqJXDawrUweyBqLcX97GGokXnTRQ6MxjXAutd5Yr2FkPsZnq6kMelc/C+mqNUHaVUKFAuvTD8JvXbNmpAdB04t89/1O/w1cDnyilFU=";
 
@@ -139,12 +139,12 @@ namespace ChurchReport.Tools
             private const String GRACEBACK_CHANNEL_ACCESS_TOKEN = "qlTCgzJwvW5GUOlbLxyE5+KPTErEinaMI82mhUWmEzb76MHFDTMWCMrK28LpYRAl8tQH/ygaOWJ7ZaG+bEVlSv8iP4L4qPcrZ/2j85bb2uc5H37/0Ikm070LpWcJqgScfTr3ANWlqq3Us2rTUF6gvwdB04t89/1O/w1cDnyilFU=";
             private const String GRACE_CHANNEL_ACCESS_TOKEN = "qlTCgzJwvW5GUOlbLxyE5+KPTErEinaMI82mhUWmEzb76MHFDTMWCMrK28LpYRAl8tQH/ygaOWJ7ZaG+bEVlSv8iP4L4qPcrZ/2j85bb2uc5H37/0Ikm070LpWcJqgScfTr3ANWlqq3Us2rTUF6gvwdB04t89/1O/w1cDnyilFU=";
 
-            // 台中忠孝路長老教會 Line 2.0
+            // 台中安平靈糧堂 Line 2.0
             //private const String CHURCH_CHANNEL_ACCESS_TOKEN = "7/Q4Iw9Z71fjo5nGtIdsCFtuJLR+2gGOOSKlGEi3rxYI9PsUHKnjjn0D4DtQN6PWfYaRr+/aUIT42Eg3LLFej7sSXopZcuuntN/bCMsDS6Eszbqcv/jodqYCVNX0iWhoqk8nLtTxH+CuWt4kmFgJmAdB04t89/1O/w1cDnyilFU=";
             private const String CHUNG_HSIAO_BACK_CHANNEL_ACCESS_TOKEN = "aKS4zYeq2ZpqlLd4gslkWAyYuiC+B2f1noatF1VylPvkR2+mrvJ7mwnIIXtn2Pi117NBmNTmRZL5DO5ZMYaGCj/v9+fB6Zn9sel42Jr55PlegJdrtoSvPgm4fBso1tY/7H65+cOFDQxjqhdOU69qQAdB04t89/1O/w1cDnyilFU=";
             private const String CHUNG_HSIAO_CHANNEL_ACCESS_TOKEN = "aKS4zYeq2ZpqlLd4gslkWAyYuiC+B2f1noatF1VylPvkR2+mrvJ7mwnIIXtn2Pi117NBmNTmRZL5DO5ZMYaGCj/v9+fB6Zn9sel42Jr55PlegJdrtoSvPgm4fBso1tY/7H65+cOFDQxjqhdOU69qQAdB04t89/1O/w1cDnyilFU=";
 
-            // 永和禮拜堂 Line 2.0
+            // 安平靈糧堂 Line 2.0
             //private const String CHURCH_CHANNEL_ACCESS_TOKEN = "7/Q4Iw9Z71fjo5nGtIdsCFtuJLR+2gGOOSKlGEi3rxYI9PsUHKnjjn0D4DtQN6PWfYaRr+/aUIT42Eg3LLFej7sSXopZcuuntN/bCMsDS6Eszbqcv/jodqYCVNX0iWhoqk8nLtTxH+CuWt4kmFgJmAdB04t89/1O/w1cDnyilFU=";
             private const String YH_CHURCH_CHANNEL_ACCESS_TOKEN = "HeuLkSEF5CX7hdZo4956IPpgJNdb8VqRZeL1Gu37kFFm+1F7DObAGjfeVYaggzwjZ5H4qraesvquODt7Y81jbtspNZkEq5n3oLDG+G32xQsRx1jCobkABL/Z7RKjkSACNT6h72bPQXsVn9aCuI5OogdB04t89/1O/w1cDnyilFU=";
             private const String YH_CHURCH_BACK_CHANNEL_ACCESS_TOKEN = "HeuLkSEF5CX7hdZo4956IPpgJNdb8VqRZeL1Gu37kFFm+1F7DObAGjfeVYaggzwjZ5H4qraesvquODt7Y81jbtspNZkEq5n3oLDG+G32xQsRx1jCobkABL/Z7RKjkSACNT6h72bPQXsVn9aCuI5OogdB04t89/1O/w1cDnyilFU=";
@@ -154,15 +154,15 @@ namespace ChurchReport.Tools
             private const String MUYI_CHANNEL_ACCESS_TOKEN = "WDWmhzbDlQNgqeAP6vuGbQB53Qy9rUwSLKTdtcfAW34HgH5l1oEGBnFJAMx/U2n2/n2Wa9SbUXDx7WIR5g+/HX1goTNMUJvDWmhP8v6fcFijOnqXPQ3VWef87IFN9i5k+RRHET70B0Njkq6CoM7zoAdB04t89/1O/w1cDnyilFU=";
             private const String MUYI_BACK_CHANNEL_ACCESS_TOKEN = "WDWmhzbDlQNgqeAP6vuGbQB53Qy9rUwSLKTdtcfAW34HgH5l1oEGBnFJAMx/U2n2/n2Wa9SbUXDx7WIR5g+/HX1goTNMUJvDWmhP8v6fcFijOnqXPQ3VWef87IFN9i5k+RRHET70B0Njkq6CoM7zoAdB04t89/1O/w1cDnyilFU=";
 
-            // iM行動教會 Line 2.0
+            // 安平靈糧堂 Line 2.0
             private const String IM_CHURCH_CHANNEL_ACCESS_TOKEN = "XwSRWX0RxTtTvY/N6QZQ9YElOMH3OAxBf/3DAmWoXbIK3ymBsXEaU54owfdbPTQiQJPd10cWjC+JIWX6EvOCTbBdHmmJNC6xOOaioB91gPJPyDpl0IHQOQAzLA9J21zZ83SgIF6JwJbxC/8tSXv6RgdB04t89/1O/w1cDnyilFU=";
             private const String IM_CHURCH_BACK_CHANNEL_ACCESS_TOKEN = "YJ1LKtDZyfHwfkbqeHAk+pxNJNZBpOvI446h3brWHDqquFc2ElUCYaseqiW+pAKhwJspguAgGbOlKDymSjSTMydJn7JeY6CRmeyC2Am7urM3CNVNq/2JzAuQ2Vqc7lhPWx8qX5YxS3ve4NjcDceymQdB04t89/1O/w1cDnyilFU=";
 
-            // 安平禮拜堂 Line 2.0
+            // 安平靈糧堂 Line 2.0
             private const String RPG_CHANNEL_ACCESS_TOKEN = "MwTnnrBtGgUaj+ZfbiKx7dxYxIuJKBmX9PLwKcRQU+VG4u0Gvyv2VeIjmNOr3pVGfH4JizB2wNbT0K0c4pT/XXCoBpK3lMQGaRAfS0FMoy05WDFQJgTL7etz9BHrzzWL6j0aFfutv6F4sMvcAdkTPgdB04t89/1O/w1cDnyilFU=";
             private const String RPG_BACK_CHANNEL_ACCESS_TOKEN = "MwTnnrBtGgUaj+ZfbiKx7dxYxIuJKBmX9PLwKcRQU+VG4u0Gvyv2VeIjmNOr3pVGfH4JizB2wNbT0K0c4pT/XXCoBpK3lMQGaRAfS0FMoy05WDFQJgTL7etz9BHrzzWL6j0aFfutv6F4sMvcAdkTPgdB04t89/1O/w1cDnyilFU=";
 
-            // 安平禮拜堂 Line 2.0
+            // 安平靈糧堂 Line 2.0
             private const String DHCHURCH_CHANNEL_ACCESS_TOKEN = "MwTnnrBtGgUaj+ZfbiKx7dxYxIuJKBmX9PLwKcRQU+VG4u0Gvyv2VeIjmNOr3pVGfH4JizB2wNbT0K0c4pT/XXCoBpK3lMQGaRAfS0FMoy05WDFQJgTL7etz9BHrzzWL6j0aFfutv6F4sMvcAdkTPgdB04t89/1O/w1cDnyilFU=";
             private const String DHCHURCH_BACK_CHANNEL_ACCESS_TOKEN = "MwTnnrBtGgUaj+ZfbiKx7dxYxIuJKBmX9PLwKcRQU+VG4u0Gvyv2VeIjmNOr3pVGfH4JizB2wNbT0K0c4pT/XXCoBpK3lMQGaRAfS0FMoy05WDFQJgTL7etz9BHrzzWL6j0aFfutv6F4sMvcAdkTPgdB04t89/1O/w1cDnyilFU=";
         #endregion

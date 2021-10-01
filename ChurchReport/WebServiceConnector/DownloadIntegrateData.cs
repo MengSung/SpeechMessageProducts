@@ -436,7 +436,7 @@ namespace ChurchReport.WebServiceConnector
                         #endregion
                         #region// 出席紀錄組員的附註
 
-                        // 安平禮拜堂
+                        // 安平靈糧堂
                         String aNote = "";
                         //if (PresentRecordEntity.Attributes.Contains("new_name"))
                         //{
@@ -446,7 +446,7 @@ namespace ChurchReport.WebServiceConnector
                         {
                             aNote = (string)PresentRecordEntity.Attributes["new_explanation"];
                         }
-                        // 內壢得勝靈糧堂
+                        // 內壢安平靈糧堂
                         //String aNote = "";
                         //if (PresentRecordEntity.Attributes.Contains("new_memo"))
                         //{
@@ -504,26 +504,26 @@ namespace ChurchReport.WebServiceConnector
                         }
                         #endregion
                         #region// 本週牧養狀態
-                        // 本週牧養狀態(內壢得勝靈糧堂專用)
+                        // 本週牧養狀態(內壢安平靈糧堂專用)
                         String aShepherdStatus = "";
                         if (PresentRecordEntity.Attributes.Contains("new_shepherd_situation"))
                         {
                             aShepherdStatus = (String)PresentRecordEntity.Attributes["new_shepherd_situation"];
                         }
-                        //一對一牧養材料(內壢得勝靈糧堂專用)
+                        //一對一牧養材料(內壢安平靈糧堂專用)
                         String aOneOnOne = "";
                         if (PresentRecordEntity.Attributes.Contains("new_onebyone_situation"))
                         {
                             aOneOnOne = (String)PresentRecordEntity.Attributes["new_onebyone_situation"];
                         }
-                        // 培訓系統選項(內壢得勝靈糧堂專用)
+                        // 培訓系統選項(內壢安平靈糧堂專用)
                         String aTraining = "";
                         if (PresentRecordEntity.Attributes.Contains("new_training_system"))
                         {
                             aTraining = (String)PresentRecordEntity.Attributes["new_training_system"];
                         }
                         // 裝備課程的英文名字可能是有點取錯了可是因為表單已經取了，就先將錯就錯先了
-                        // 裝備課程(內壢得勝靈糧堂專用)
+                        // 裝備課程(內壢安平靈糧堂專用)
                         String aIncubate = "";
                         if (PresentRecordEntity.Attributes.Contains("new_equipment_class"))
                         {
@@ -1068,11 +1068,11 @@ namespace ChurchReport.WebServiceConnector
 
                 #region 設定附註或是代禱事項
 
-                // 安平禮拜堂
+                // 安平靈糧堂
                 //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_name", aMemberInfomation.Note);
                 //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_explanation", aMemberInfomation.PrayItem);
 
-                // 內壢得勝靈糧堂
+                // 內壢安平靈糧堂
                 //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_memo", aMemberInfomation.Note);
                 #endregion
                 #region// 新人跟進
@@ -2601,7 +2601,7 @@ namespace ChurchReport.WebServiceConnector
 
 
         // 委身類型客製化，委身類型客製化
-        //安平禮拜堂
+        //安平靈糧堂
         private String ConvertIndexToIdentity(int Identity)
         {
             switch (Identity)
