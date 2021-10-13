@@ -73,11 +73,11 @@ namespace ChurchReport.WebServiceConnector
         Entity m_ContactEntity; //登入者在系統裡的實體
         Guid m_ContactId; //登入者在系統裡的ID
         EntityCollection m_Lists = new EntityCollection(); // 需要點名的名單
-        EntityCollection m_PresentLists = new EntityCollection(); // 需要回報給族系族長/區長的名單
+        EntityCollection m_PresentLists = new EntityCollection(); // 需要回報給族系族長/小家長的名單
 
         Guid m_DecipleGroupListId;
         //Guid m_GroupLeaderId; // 小組長
-        Guid m_RaceLeaderId; // 族系族長/區長
+        Guid m_RaceLeaderId; // 族系族長/小家長
         Guid m_ShepherdLeaderId; // 區牧
         String m_SmallGroupPlace;
         String m_SmallGroupTime;
@@ -459,7 +459,7 @@ namespace ChurchReport.WebServiceConnector
                 case 100000002:
                     return "011. 區牧";
                 case 100000003:
-                    return "02. 區長";
+                    return "02. 小家長";
                 case 100000008:
                     return "03. 小組長";
                 case 100000012:

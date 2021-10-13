@@ -65,7 +65,7 @@ namespace ChurchReport.WebServiceConnector
         Entity m_ContactEntity; //登入者在系統裡的實體
         Guid m_ContactId; //登入者在系統裡的ID
         EntityCollection m_Lists = new EntityCollection(); // 需要點名的名單
-        EntityCollection m_PresentLists = new EntityCollection(); // 需要回報給族系族長/區長的名單
+        EntityCollection m_PresentLists = new EntityCollection(); // 需要回報給族系族長/小家長的名單
 
         private const bool RACE_LEADER_CAN_CREATE_WEEKLYREPORT = true; // 族系組長能否幫小組長建立週報， true是可以
         //private const bool RACE_LEADER_CAN_CREATE_WEEKLYREPORT = false; // 族系組長能否幫小組長建立週報，false 不可以
@@ -173,14 +173,14 @@ namespace ChurchReport.WebServiceConnector
                             #region 楊梅安平靈糧堂
                             // 小組日誌
                             //aWeeklyReport.WeeklyReportContent = "還沒有點過名，所以沒有小組日誌，請先點過名之後，才能上傳小組日誌";
-                            //aWeeklyReport.WeeklyReportContent = "沒有週報資料，您可能是區長，但不是小組長，所以沒有小組長日誌需要回報";
+                            //aWeeklyReport.WeeklyReportContent = "沒有週報資料，您可能是小家長，但不是小組長，所以沒有小組長日誌需要回報";
                             #endregion
                         }
                     }
                 }
                 else
                 {
-                    //aWeeklyReport.WeeklyReportContent = "沒有週報資料，您可能是區長，但不是小組長，所以沒有小組長日誌需要回報";
+                    //aWeeklyReport.WeeklyReportContent = "沒有週報資料，您可能是小家長，但不是小組長，所以沒有小組長日誌需要回報";
                 }
                 return;
             }
@@ -328,7 +328,7 @@ namespace ChurchReport.WebServiceConnector
                         // 回報情況
                         this.m_ToolUtilityClass.SetEntityStringAttribute(ref GroupWeeklyReportEntity, "new_memo", aWeeklyReport.WeeklyReportContent);
 
-                        // 小組日誌傳 LINE 給區長、區牧
+                        // 小組日誌傳 LINE 給小家長、區牧
                         m_LineNotifyUtility.SendWeeklyReportLine(aWeeklyReport.WeeklyReportContent, ListEntity);
 
                         this.m_ToolUtilityClass.UpdateEntity(ref GroupWeeklyReportEntity);
@@ -560,7 +560,7 @@ namespace ChurchReport.WebServiceConnector
 
                         if (AppNamed == true)
                         {
-                            if (aIdentity == "族長") // 一般教會稱為區長
+                            if (aIdentity == "族長") // 一般教會稱為小家長
                             {
                                 //  族長   = new_contact_race_leager_list
                                 //  小組長 = new_contact_family_leader_list
@@ -580,7 +580,7 @@ namespace ChurchReport.WebServiceConnector
                                     }
                                 }
 
-                                // 需要回報給族系族長/區長的名單
+                                // 需要回報給族系族長/小家長的名單
                                 if (!ListName.Contains("門徒")) // 不包含"門徒"名單
                                 {
                                     this.m_PresentLists.Entities.Add(ListEntity);
@@ -599,13 +599,13 @@ namespace ChurchReport.WebServiceConnector
 
 
                                 this.m_Lists.Entities.Add(ListEntity);
-                                // 需要回報給族系族長/區長的名單
+                                // 需要回報給族系族長/小家長的名單
                                 this.m_PresentLists.Entities.Add(ListEntity);
                             }
                             else if (aIdentity == "小家長")
                             {
                                 this.m_Lists.Entities.Add(ListEntity);
-                                // 需要回報給族系族長/區長的名單
+                                // 需要回報給族系族長/小家長的名單
                                 this.m_PresentLists.Entities.Add(ListEntity);
                             }
                             else { }

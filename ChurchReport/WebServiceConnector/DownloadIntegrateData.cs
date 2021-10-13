@@ -900,14 +900,14 @@ namespace ChurchReport.WebServiceConnector
                 if (aWeeklyReportId != Guid.Empty)
                 { this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aPresentRecord, "new_group_present_weekly_report_prese", "new_group_present_weekly_report", aWeeklyReportId); }
                 #endregion
-                #region 從名單取得 區名、小家長 ID、小組長 ID、區長、區牧長 ID
+                #region 從名單取得 區名、小家長 ID、小組長 ID、小家長、區牧長 ID
                 // 小家長 ID
                 Guid aFamilyLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_familyhead_list");
 
                 // 小組長 ID
                 Guid aGroupLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_family_leader_list");
 
-                // 區長 ID
+                // 小家長 ID
                 Guid aRaceLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_race_leager_list");
 
                 // 區牧長 ID
@@ -1563,7 +1563,7 @@ namespace ChurchReport.WebServiceConnector
 
             foreach (Member aMember in aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members)
             {
-                if (aMember.Status.Contains("牧師師母") || aMember.Status.Contains("區長") || aMember.Status.Contains("區牧") || aMember.Status.Contains("小組長") || aMember.Status.Contains("門徒") || aMember.Status.Contains("小組組員"))
+                if (aMember.Status.Contains("牧師師母") || aMember.Status.Contains("小家長") || aMember.Status.Contains("區牧") || aMember.Status.Contains("小組長") || aMember.Status.Contains("門徒") || aMember.Status.Contains("小組組員"))
                 {
                     aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.Members.Add(aMember);
                 }
@@ -1683,7 +1683,7 @@ namespace ChurchReport.WebServiceConnector
                 //case 100000009:
                 //    return "02. 區牧";
                 //case 100000003:
-                //    return "03. 區長";
+                //    return "03. 小家長";
                 //case 100000008:
                 //    return "04. 小組長";
                 //case 100000002:
@@ -2611,7 +2611,7 @@ namespace ChurchReport.WebServiceConnector
                 case 100000002:
                     return "011. 區牧";
                 case 100000003:
-                    return "02. 區長";
+                    return "02. 小家長";
                 case 100000008:
                     return "03. 小組長";
                 case 100000012:

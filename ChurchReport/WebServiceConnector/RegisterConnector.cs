@@ -58,7 +58,7 @@ namespace ChurchReport.WebServiceConnector
         Entity m_ContactEntity; //登入者在系統裡的實體
         Guid m_ContactId; //登入者在系統裡的ID
         EntityCollection m_Lists = new EntityCollection(); // 需要點名的名單
-        EntityCollection m_PresentLists = new EntityCollection(); // 需要回報給族系族長/區長的名單
+        EntityCollection m_PresentLists = new EntityCollection(); // 需要回報給族系族長/小家長的名單
 
         Guid m_DecipleGroupListId;
         //Guid m_GroupLeaderId; // 小組長
@@ -98,12 +98,12 @@ namespace ChurchReport.WebServiceConnector
                 {
                     // 找到姓名相同且行動相同的人
 
-                    // 是否是小組長或是區長，發展到個人版也可以回報
+                    // 是否是小組長或是小家長，發展到個人版也可以回報
                     FindListCollection(aContact);
 
                     if ( m_Lists.Entities.Count >= 0 )
                     {
-                        #region 是小組長或是區長，發展到個人版也可以回報
+                        #region 是小組長或是小家長，發展到個人版也可以回報
 
                         // 是否有相同帳號
                         Entity Contact = this.m_ToolUtilityClass.DoesAccountExist(Account);
@@ -313,7 +313,7 @@ namespace ChurchReport.WebServiceConnector
                                     }
                                 }
 
-                                // 需要回報給族系族長/區長的名單
+                                // 需要回報給族系族長/小家長的名單
                                 if (!ListName.Contains("門徒")) // 不包含"門徒"名單
                                 {
                                     this.m_PresentLists.Entities.Add(ListEntity);
@@ -332,13 +332,13 @@ namespace ChurchReport.WebServiceConnector
 
 
                                 this.m_Lists.Entities.Add(ListEntity);
-                                // 需要回報給族系族長/區長的名單
+                                // 需要回報給族系族長/小家長的名單
                                 this.m_PresentLists.Entities.Add(ListEntity);
                             }
                             else if (aIdentity == "小家長")
                             {
                                 this.m_Lists.Entities.Add(ListEntity);
-                                // 需要回報給族系族長/區長的名單
+                                // 需要回報給族系族長/小家長的名單
                                 this.m_PresentLists.Entities.Add(ListEntity);
                             }
                             else { }

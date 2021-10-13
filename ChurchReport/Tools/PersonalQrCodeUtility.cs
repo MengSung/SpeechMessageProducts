@@ -842,7 +842,7 @@ namespace ChurchReport.Tools
                     this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aPresentRecord, "new_contact_arealeader_present_record", "list", aGuid);
                 }
 
-                // 區長
+                // 小家長
                 aGuid = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aWeeklyReportEntity, "new_group_head_group_present_weekly_r");
                 if (aGuid != null && aGuid != Guid.Empty)
                 {

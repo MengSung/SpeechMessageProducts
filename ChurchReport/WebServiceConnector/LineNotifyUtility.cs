@@ -376,7 +376,7 @@ namespace ChurchReport.WebServiceConnector
         {
             try
             {
-                #region 先找到"小家長"、"小組長"、族系族長/區長"
+                #region 先找到"小家長"、"小組長"、族系族長/小家長"
                 Entity aContact;
 
                 // 區牧 LINE ID
@@ -397,7 +397,7 @@ namespace ChurchReport.WebServiceConnector
                     aCoListGraceLeaderLineId = this.m_ToolUtilityClass.GetEntityStringAttribute(aContact, "new_lineid");
                 }
 
-                // 共同區長 LINE ID
+                // 共同小家長 LINE ID
                 String aCoAreaLeaderLineId = "";
                 Guid aCoAreaLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_co_race_leager_list");
                 if (aCoAreaLeaderId != Guid.Empty)
@@ -406,7 +406,7 @@ namespace ChurchReport.WebServiceConnector
                     aCoAreaLeaderLineId = this.m_ToolUtilityClass.GetEntityStringAttribute(aContact, "new_lineid");
                 }
 
-                // 區長 LINE ID
+                // 小家長 LINE ID
                 String aAreaLeaderLineId = "";
                 Guid aAreaLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_race_leager_list");
                 if (aAreaLeaderId != Guid.Empty)
@@ -510,7 +510,7 @@ namespace ChurchReport.WebServiceConnector
         {
             try
             {
-                #region 先找到"小家長"、"小組長"、族系族長/區長"
+                #region 先找到"小家長"、"小組長"、族系族長/小家長"
                 Entity aContact;
 
                 // 區牧 LINE ID
@@ -539,7 +539,7 @@ namespace ChurchReport.WebServiceConnector
                     }
                 }
 
-                // 共同區長 LINE ID
+                // 共同小家長 LINE ID
                 String aCoAreaLeaderLineId = "";
                 Guid aCoAreaLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_co_race_leager_list");
                 if (aCoAreaLeaderId != Guid.Empty)
@@ -552,7 +552,7 @@ namespace ChurchReport.WebServiceConnector
                     }
                 }
 
-                // 區長 LINE ID
+                // 小家長 LINE ID
                 String aAreaLeaderLineId = "";
                 Guid aAreaLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_race_leager_list");
                 if (aAreaLeaderId != Guid.Empty)

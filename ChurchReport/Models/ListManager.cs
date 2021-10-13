@@ -32,7 +32,7 @@ namespace ChurchReport.Models
         // 地圖需要的資料
         public List<MapData> m_Markers;
 
-        // 新增新人時，選擇進入哪一個小組的清單 + 區長或一人帶多個小組時，提供選擇點選進入觀看的Grid
+        // 新增新人時，選擇進入哪一個小組的清單 + 小家長或一人帶多個小組時，提供選擇點選進入觀看的Grid
         public MultiGroupList m_MultiGroupList = new MultiGroupList();
 
         // 個別小組長點名的畫面所需要的資料，就是整合型頁面所需的資料

@@ -198,8 +198,46 @@ namespace ChurchReport.Tools
                         }
                         #endregion
 
-                        // LINE 通知付款人
-                        this.m_PushUtility.SendMessage(UserLineId, "信用卡付款結果成功!" + Environment.NewLine + Description);
+                        #region LINE 通知付款人
+                        // 取得收費單的課程Lookup是否有值
+                        Guid aDiscipleLessonsId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aFeeEntity, "new_disciple_lessons_new_fee");
+
+                        if (aDiscipleLessonsId == Guid.Empty)
+                        {
+                            // 收費單的課程Lookup沒有值
+                            this.m_PushUtility.SendMessage(UserLineId, "信用卡付款結果成功!" + Environment.NewLine + Description);
+                        }
+                        else
+                        {
+                            // 收費單的課程Lookup有值
+                            // 取得該課程
+                            Entity aDiscipleLessonsEntity = this.m_ToolUtilityClass.RetrieveEntity("new_disciple_lessons", aDiscipleLessonsId);
+
+                            if (aDiscipleLessonsEntity != null)
+                            {
+                                // 有取得該課程
+
+                                // 取得Line群組邀請網址
+                                String LineGroupInviteAddress = this.m_ToolUtilityClass.GetEntityStringAttribute(aDiscipleLessonsEntity, "new_line_group_invite_address");
+
+                                if (LineGroupInviteAddress == "")
+                                {
+                                    // 沒有Line群組邀請網址
+                                    this.m_PushUtility.SendMessage(UserLineId, "信用卡付款結果成功!" + Environment.NewLine + Description);
+                                }
+                                else
+                                {
+                                    // 有Line群組邀請網址
+                                    this.m_PushUtility.SendMessage(UserLineId, "信用卡付款結果成功!" + Environment.NewLine + Description + Environment.NewLine + "並且請點擊連結，加入Line群組" + Environment.NewLine + LineGroupInviteAddress);
+                                }
+                            }
+                            else
+                            {
+                                // 沒有取得該課程
+                                this.m_PushUtility.SendMessage(UserLineId, "信用卡付款結果成功!" + Environment.NewLine + Description);
+                            }
+                        }
+                        #endregion
 
                         //return Json(new Dictionary<string, string>() { { "Status", "S" } });
                         return new OkObjectResult("已經完成了信用卡付款!" + Environment.NewLine + Description + "收到" + aFullName + "的費用!");

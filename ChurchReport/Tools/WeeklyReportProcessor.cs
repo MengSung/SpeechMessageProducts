@@ -53,11 +53,11 @@ namespace ChurchReport.Tools
         //Entity m_ListEntity; // 小組名單實體紀錄
         //Entity m_WeeklyReportEntity; // 週報實體紀錄
         EntityCollection m_Lists = new EntityCollection(); // 需要點名的名單
-        //EntityCollection m_PresentLists = new EntityCollection(); // 需要回報給族系族長/區長的名單
+        //EntityCollection m_PresentLists = new EntityCollection(); // 需要回報給族系族長/小家長的名單
 
         Guid m_DecipleGroupListId;
         //Guid m_GroupLeaderId; // 小組長
-        //Guid m_RaceLeaderId; // 族系族長/區長
+        //Guid m_RaceLeaderId; // 族系族長/小家長
         //Guid m_ShepherdLeaderId; // 區牧
         String m_SmallGroupPlace;
         String m_SmallGroupTime;
@@ -259,9 +259,9 @@ namespace ChurchReport.Tools
                 //aListEntityCollection = m_ToolUtilityClass.QueryListByContactId(m_ContactId, "new_contact_family_leader_list");  // 小組長/門徒
                 MergeCollectionSmallGroupAhead(ref aListEntityCollection);
 
-                // 共同區長 new_contact_co_race_leager_list
-                //aListEntityCollection = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_contact_co_race_leager_list", "list");  // 共同區長
-                aListEntityCollection = m_ToolUtilityClass.QueryListByContactId(m_ContactId, "new_contact_co_race_leager_list");  // 共同區長
+                // 共同小家長 new_contact_co_race_leager_list
+                //aListEntityCollection = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_contact_co_race_leager_list", "list");  // 共同小家長
+                aListEntityCollection = m_ToolUtilityClass.QueryListByContactId(m_ContactId, "new_contact_co_race_leager_list");  // 共同小家長
                 MergeCollectionSmallGroupAhead(ref aListEntityCollection);
 
                 // 上代組長 new_contact_race_leager_list
@@ -291,7 +291,7 @@ namespace ChurchReport.Tools
         {
             try
             {
-                // 族系族長或是區長的名單若是與小組長名單重疊，則要過濾出僅有族長/區長的名單
+                // 族系族長或是小家長的名單若是與小組長名單重疊，則要過濾出僅有族長/小家長的名單
                 // 合併小組名單至族系名單，單扣除掉重複的
                 // 然後放在小組名單裡面
                 // 一個一個處理族系名單
@@ -397,7 +397,7 @@ namespace ChurchReport.Tools
                 // 小組長 ID
                 Guid GroupLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_family_leader_list");
 
-                // 區長 ID
+                // 小家長 ID
                 Guid RaceLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_race_leager_list");
 
                 // 區牧長 ID/(原來是:族系族長) ID
@@ -462,7 +462,7 @@ namespace ChurchReport.Tools
                 if (aGroupLeaderId != Guid.Empty)
                 { this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aWeeklyReportEntity, "new_groupleader_group_present_weekly_", "contact", aGroupLeaderId); }
                 #endregion
-                #region 關聯族系族長/區長屬性
+                #region 關聯族系族長/小家長屬性
                 if (aRaceLeaderId != Guid.Empty)
                 { this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aWeeklyReportEntity, "new_group_head_group_present_weekly_r", "contact", aRaceLeaderId); }
                 #endregion
@@ -941,14 +941,14 @@ namespace ChurchReport.Tools
                 if (aWeeklyReportId != Guid.Empty)
                 { this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aPresentRecord, "new_group_present_weekly_report_prese", "new_group_present_weekly_report", aWeeklyReportId); }
                 #endregion
-                #region 從名單取得 區名、小家長 ID、小組長 ID、區長、區牧長 ID
+                #region 從名單取得 區名、小家長 ID、小組長 ID、小家長、區牧長 ID
                 // 小家長 ID
                 Guid aFamilyLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_familyhead_list");
 
                 // 小組長 ID
                 Guid aGroupLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_family_leader_list");
 
-                // 區長 ID
+                // 小家長 ID
                 Guid aRaceLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_race_leager_list");
 
                 // 區牧長 ID
@@ -1238,7 +1238,7 @@ namespace ChurchReport.Tools
             {
                 case "牧師師母":
                     return 100000006;
-                case "區長":
+                case "小家長":
                     return 100000003;
                 case "小組長":
                     return 100000008;
@@ -1269,7 +1269,7 @@ namespace ChurchReport.Tools
                 case 100000006:
                     return "01. 牧師師母";
                 case 100000003:
-                    return "02. 區長";
+                    return "02. 小家長";
                 case 100000008:
                     return "03. 小組長";
                 case 100000012:

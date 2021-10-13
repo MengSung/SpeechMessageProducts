@@ -58,7 +58,7 @@ namespace ChurchReport.Models
             {
                 if (aGroupWeeklyReportGuid.SmallGroupLeaderName != null && aGroupWeeklyReportGuid.SmallGroupLeaderName.Contains(FullName))
                 {
-                    // 找到登入者的小組，因為登入者有可能是區長，所以要確定登入者的小組聚會日期
+                    // 找到登入者的小組，因為登入者有可能是小家長，所以要確定登入者的小組聚會日期
                     aGroupWeeklyReportGuid.SmallGroupDate = SmallGroupDate;
 
                     return;
