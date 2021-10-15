@@ -112,92 +112,99 @@ namespace ChurchReport.Models
         public void AddNewPersonToMember(PersonFormViewModel aPersonFormViewModel)
         {
             String aGroupName = aPersonFormViewModel.Position;
-            if (aGroupName.Contains("幸福"))
+            if (aGroupName != null)
             {
-                Member aMember = new Member
+                if (aGroupName.Contains("幸福"))
                 {
-                    PresentRecordId = aPersonFormViewModel.PresentRecordId,
-                    Id = m_HappyGroup.Members.Count,
-                    Group = aGroupName,
-                    FullName = aPersonFormViewModel.LastName,
-                    Phone = aPersonFormViewModel.Phone,
-                    HomePhone = aPersonFormViewModel.HomePhone,
-                    Industry = aPersonFormViewModel.Industry,
-                    EquipmentStatus = aPersonFormViewModel.EquipmentStatus,
-                    SpiritualIdentity = aPersonFormViewModel.SpiritualIdentity,// 受洗狀態
+                    Member aMember = new Member
+                    {
+                        PresentRecordId = aPersonFormViewModel.PresentRecordId,
+                        Id = m_HappyGroup.Members.Count,
+                        Group = aGroupName,
+                        FullName = aPersonFormViewModel.LastName,
+                        Phone = aPersonFormViewModel.Phone,
+                        HomePhone = aPersonFormViewModel.HomePhone,
+                        Industry = aPersonFormViewModel.Industry,
+                        EquipmentStatus = aPersonFormViewModel.EquipmentStatus,
+                        SpiritualIdentity = aPersonFormViewModel.SpiritualIdentity,// 受洗狀態
 
-                    //BirthDate = aPersonFormViewModel.BirthDate,
-                    Address = aPersonFormViewModel.Address,
-                    //Gender = aPersonFormViewModel.Gender,
-                    Status = "幸福BEST",
-                    SmallGroupName = aGroupName,
-                    SectionName = aGroupName,
-                    PrayItem = aPersonFormViewModel.Notes,
-                    Sunday = false,
-                    SmallGroup = false,
-                    StateID1 = 2,
-                    Number1 = 4,
-                    StateID2 = 1,
-                    Number2 = 2,
-                    //Picture = "../../images/employees/01.png" //D:\暫存區\ASP.NET CORE 練習區\DevExtremeAspNetCoreApp1\DevExtremeAspNetCoreApp1\wwwroot\images\employees
-                    Picture = "../../images/employees/01.png" //D:\暫存區\ASP.NET CORE 練習區\DevExtremeAspNetCoreApp1\DevExtremeAspNetCoreApp1\wwwroot\images\employees
-                                                              //Picture = "https://tpehoc.speechmessage.com.tw/image/download.aspx?attribute=entityimage&entity=contact&id=66cd8034-953f-e711-80d9-00155d00640b" //D:\暫存區\ASP.NET CORE 練習區\DevExtremeAspNetCoreApp1\DevExtremeAspNetCoreApp1\wwwroot\images\employees
+                        //BirthDate = aPersonFormViewModel.BirthDate,
+                        Address = aPersonFormViewModel.Address,
+                        //Gender = aPersonFormViewModel.Gender,
+                        Status = "幸福BEST",
+                        SmallGroupName = aGroupName,
+                        SectionName = aGroupName,
+                        PrayItem = aPersonFormViewModel.Notes,
+                        Sunday = false,
+                        SmallGroup = false,
+                        StateID1 = 2,
+                        Number1 = 4,
+                        StateID2 = 1,
+                        Number2 = 2,
+                        //Picture = "../../images/employees/01.png" //D:\暫存區\ASP.NET CORE 練習區\DevExtremeAspNetCoreApp1\DevExtremeAspNetCoreApp1\wwwroot\images\employees
+                        Picture = "../../images/employees/01.png" //D:\暫存區\ASP.NET CORE 練習區\DevExtremeAspNetCoreApp1\DevExtremeAspNetCoreApp1\wwwroot\images\employees
+                                                                  //Picture = "https://tpehoc.speechmessage.com.tw/image/download.aspx?attribute=entityimage&entity=contact&id=66cd8034-953f-e711-80d9-00155d00640b" //D:\暫存區\ASP.NET CORE 練習區\DevExtremeAspNetCoreApp1\DevExtremeAspNetCoreApp1\wwwroot\images\employees
 
-                };
+                    };
 
-                //m_SmallGroupData.Members.Add(aMember);
-                m_HappyGroup.DisplayFlag = true;
-                m_HappyGroup.Members.Add(aMember);
-                m_AllMemeberData.Members.Add(aMember);
-            }
-            else
-            {
-                Member aMember = new Member
-                {
-                    PresentRecordId = aPersonFormViewModel.PresentRecordId,
-                    Id = m_SmallGroupData.Members.Count,
-                    Group = aGroupName,
-                    FullName = aPersonFormViewModel.LastName,
-                    Phone = aPersonFormViewModel.Phone,
-                    HomePhone = aPersonFormViewModel.HomePhone,
-                    Industry = aPersonFormViewModel.Industry,
-                    EquipmentStatus = aPersonFormViewModel.EquipmentStatus,
-                    SpiritualIdentity = aPersonFormViewModel.SpiritualIdentity,// 受洗狀態
-
-                    //BirthDate = aPersonFormViewModel.BirthDate,
-                    Address = aPersonFormViewModel.Address,
-                    //Gender = aPersonFormViewModel.Gender,
-                    Status = aPersonFormViewModel.CustomerTypeCode,
-                    SmallGroupName = aGroupName,
-                    SectionName = aGroupName,
-                    PrayItem = aPersonFormViewModel.Notes,
-                    Sunday = false,
-                    SmallGroup = false,
-                    StateID1 = 2,
-                    Number1 = 4,
-                    StateID2 = 1,
-                    Number2 = 2,
-                    //Picture = "../../images/employees/01.png" //D:\暫存區\ASP.NET CORE 練習區\DevExtremeAspNetCoreApp1\DevExtremeAspNetCoreApp1\wwwroot\images\employees
-                    Picture = "../../images/employees/01.png" //D:\暫存區\ASP.NET CORE 練習區\DevExtremeAspNetCoreApp1\DevExtremeAspNetCoreApp1\wwwroot\images\employees
-                    //Picture = "https://tpehoc.speechmessage.com.tw/image/download.aspx?attribute=entityimage&entity=contact&id=66cd8034-953f-e711-80d9-00155d00640b" //D:\暫存區\ASP.NET CORE 練習區\DevExtremeAspNetCoreApp1\DevExtremeAspNetCoreApp1\wwwroot\images\employees
-
-                };
-
-                if (aPersonFormViewModel.CustomerTypeCode == "小組組員")
-                {
-                    // 新增新朋友時，導入階段希望先設定為"小組組員"
-                    m_SmallGroupData.DisplayFlag = true;
-                    m_SmallGroupData.Members.Add(aMember);
+                    //m_SmallGroupData.Members.Add(aMember);
+                    m_HappyGroup.DisplayFlag = true;
+                    m_HappyGroup.Members.Add(aMember);
+                    m_AllMemeberData.Members.Add(aMember);
                 }
                 else
                 {
-                    // 新增新朋友時，導入成功後設定為"新朋友"
-                    m_NewPersonFollowUpData.DisplayFlag = true;
-                    m_NewPersonFollowUpData.Members.Add(aMember);
-                }
-                // 加入至"維護基本資料"用
-                m_AllMemeberData.Members.Add(aMember);
+                    Member aMember = new Member
+                    {
+                        PresentRecordId = aPersonFormViewModel.PresentRecordId,
+                        Id = m_SmallGroupData.Members.Count,
+                        Group = aGroupName,
+                        FullName = aPersonFormViewModel.LastName,
+                        Phone = aPersonFormViewModel.Phone,
+                        HomePhone = aPersonFormViewModel.HomePhone,
+                        Industry = aPersonFormViewModel.Industry,
+                        EquipmentStatus = aPersonFormViewModel.EquipmentStatus,
+                        SpiritualIdentity = aPersonFormViewModel.SpiritualIdentity,// 受洗狀態
 
+                        //BirthDate = aPersonFormViewModel.BirthDate,
+                        Address = aPersonFormViewModel.Address,
+                        //Gender = aPersonFormViewModel.Gender,
+                        Status = aPersonFormViewModel.CustomerTypeCode,
+                        SmallGroupName = aGroupName,
+                        SectionName = aGroupName,
+                        PrayItem = aPersonFormViewModel.Notes,
+                        Sunday = false,
+                        SmallGroup = false,
+                        StateID1 = 2,
+                        Number1 = 4,
+                        StateID2 = 1,
+                        Number2 = 2,
+                        //Picture = "../../images/employees/01.png" //D:\暫存區\ASP.NET CORE 練習區\DevExtremeAspNetCoreApp1\DevExtremeAspNetCoreApp1\wwwroot\images\employees
+                        Picture = "../../images/employees/01.png" //D:\暫存區\ASP.NET CORE 練習區\DevExtremeAspNetCoreApp1\DevExtremeAspNetCoreApp1\wwwroot\images\employees
+                                                                  //Picture = "https://tpehoc.speechmessage.com.tw/image/download.aspx?attribute=entityimage&entity=contact&id=66cd8034-953f-e711-80d9-00155d00640b" //D:\暫存區\ASP.NET CORE 練習區\DevExtremeAspNetCoreApp1\DevExtremeAspNetCoreApp1\wwwroot\images\employees
+
+                    };
+
+                    if (aPersonFormViewModel.CustomerTypeCode == "小組組員")
+                    {
+                        // 新增新朋友時，導入階段希望先設定為"小組組員"
+                        m_SmallGroupData.DisplayFlag = true;
+                        m_SmallGroupData.Members.Add(aMember);
+                    }
+                    else
+                    {
+                        // 新增新朋友時，導入成功後設定為"新朋友"
+                        m_NewPersonFollowUpData.DisplayFlag = true;
+                        m_NewPersonFollowUpData.Members.Add(aMember);
+                    }
+                    // 加入至"維護基本資料"用
+                    m_AllMemeberData.Members.Add(aMember);
+
+                }
+            }
+            else
+            {
+                // 個人回報，而且沒加入小組
             }
         }
     }
