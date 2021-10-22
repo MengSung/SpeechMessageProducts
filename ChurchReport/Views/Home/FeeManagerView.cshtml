@@ -262,7 +262,7 @@
     @<text>
         function(row)
         {
-        if( row.Amount <= 0 )
+        if( row.Amount @Html.Raw("<=") 0 )
         {
         return "";
         }

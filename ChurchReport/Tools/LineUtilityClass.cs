@@ -165,6 +165,9 @@ namespace ChurchReport.Tools
             // 安平靈糧堂 Line 2.0
             private const String DHCHURCH_CHANNEL_ACCESS_TOKEN = "MwTnnrBtGgUaj+ZfbiKx7dxYxIuJKBmX9PLwKcRQU+VG4u0Gvyv2VeIjmNOr3pVGfH4JizB2wNbT0K0c4pT/XXCoBpK3lMQGaRAfS0FMoy05WDFQJgTL7etz9BHrzzWL6j0aFfutv6F4sMvcAdkTPgdB04t89/1O/w1cDnyilFU=";
             private const String DHCHURCH_BACK_CHANNEL_ACCESS_TOKEN = "MwTnnrBtGgUaj+ZfbiKx7dxYxIuJKBmX9PLwKcRQU+VG4u0Gvyv2VeIjmNOr3pVGfH4JizB2wNbT0K0c4pT/XXCoBpK3lMQGaRAfS0FMoy05WDFQJgTL7etz9BHrzzWL6j0aFfutv6F4sMvcAdkTPgdB04t89/1O/w1cDnyilFU=";
+            // 安平靈糧堂 Line 2.0
+            private const String APBOLC_CHANNEL_ACCESS_TOKEN = "MwTnnrBtGgUaj+ZfbiKx7dxYxIuJKBmX9PLwKcRQU+VG4u0Gvyv2VeIjmNOr3pVGfH4JizB2wNbT0K0c4pT/XXCoBpK3lMQGaRAfS0FMoy05WDFQJgTL7etz9BHrzzWL6j0aFfutv6F4sMvcAdkTPgdB04t89/1O/w1cDnyilFU=";
+            private const String APBOLC_BACK_CHANNEL_ACCESS_TOKEN = "MwTnnrBtGgUaj+ZfbiKx7dxYxIuJKBmX9PLwKcRQU+VG4u0Gvyv2VeIjmNOr3pVGfH4JizB2wNbT0K0c4pT/XXCoBpK3lMQGaRAfS0FMoy05WDFQJgTL7etz9BHrzzWL6j0aFfutv6F4sMvcAdkTPgdB04t89/1O/w1cDnyilFU=";
         #endregion
 
         String m_ChannelAccessToken = LINEMESSAGE_CHANNEL_ACCESS_TOKEN;
@@ -389,9 +392,17 @@ namespace ChurchReport.Tools
                     {
                         m_ChannelAccessToken = DHCHURCH_BACK_CHANNEL_ACCESS_TOKEN;
                     }
+                    else if (this.m_OrganizationName == "apbolc")
+                    {
+                        m_ChannelAccessToken = APBOLC_CHANNEL_ACCESS_TOKEN;
+                    }
+                    else if (this.m_OrganizationName == "apbolcback")
+                    {
+                        m_ChannelAccessToken = APBOLC_BACK_CHANNEL_ACCESS_TOKEN;
+                    }
                     else
                     {
-                    m_ChannelAccessToken = MUYI_CHANNEL_ACCESS_TOKEN;
+                        m_ChannelAccessToken = MUYI_CHANNEL_ACCESS_TOKEN;
                     }
                 }
                 catch (System.Exception e)

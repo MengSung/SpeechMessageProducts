@@ -244,7 +244,7 @@
                 @<text>
                     function(row)
                     {
-                        if( row.ShouldPayAmount <= 0 )
+                        if( row.ShouldPayAmount @Html.Raw("<=") 0 )
                         {
                             return "";
                         }
@@ -285,7 +285,7 @@
         @<text>
             function(row)
             {
-                if( row.Amount <= 0 )
+                if( row.Amount @Html.Raw("<=") 0 )
                 {
                     return "";
                 }
@@ -326,7 +326,7 @@
         @<text>
             function(row)
             {
-                if( row.RefundAmount <= 0 )
+                if( row.RefundAmount @Html.Raw("<=") 0 )
                 {
                     return "";
                 }
