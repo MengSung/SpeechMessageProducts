@@ -602,6 +602,14 @@ namespace ChurchReport.WebServiceConnector
             String aFullName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref m_ContactEntity, "fullname");
             this.m_ToolUtilityClass.SetEntityStringAttribute(ref aNewContactEntity, "description", aFullName + " 透過網頁回報建立的新人" + Environment.NewLine + aNewContact.Note);
 
+            // 裝備狀態設定"尚未裝備"
+            String EquipmentStatus = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aNewContactEntity, "new_equipment_status");
+            if (EquipmentStatus == "")
+            {
+                // 如果已經有資料，表示應該是換小組，尚未裝備如果有值，就不能動它
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aNewContactEntity, "new_equipment_status", "尚未裝備");
+            }
+
             #endregion
         }
 
