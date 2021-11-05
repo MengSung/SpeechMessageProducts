@@ -180,14 +180,14 @@ namespace ChurchReport.WebServiceConnector
                 if (aExistList == null)
                 {
                     #region //還沒有在其他小組中
-                    if (aListEntity != null)
-                    {
-                        SetupNewContactParameter(ref aExistContact, aAccountPasswordData, ref aNewContact, aListEntity.Id);
-                    }
-                    else
-                    {
-                        SetupNewContactParameter(ref aExistContact, aAccountPasswordData, ref aNewContact, Guid.Empty);
-                    }
+                    //if (aListEntity != null)
+                    //{
+                    //    SetupNewContactParameter(ref aExistContact, aAccountPasswordData, ref aNewContact, aListEntity.Id);
+                    //}
+                    //else
+                    //{
+                    //    SetupNewContactParameter(ref aExistContact, aAccountPasswordData, ref aNewContact, Guid.Empty);
+                    //}
 
                     // 將剛剛新增的聯絡人加入至成員名單
                     ConnectNewContactInMemberList(aExistContact.Id, aNewContact.GroupName, aListEntity);
@@ -203,14 +203,19 @@ namespace ChurchReport.WebServiceConnector
                     #endregion
                     #region 更新新建立的連絡人
                     //aNewContactEntity = this.m_ToolUtilityClass.RetrieveEntity("contact", NewContactEntityId);
-                    this.m_ToolUtilityClass.UpdateEntity(ref aExistContact);
+                    //this.m_ToolUtilityClass.UpdateEntity(ref aExistContact);
                     #endregion
 
                     String LoginContactFullName = this.m_ToolUtilityClass.GetEntityStringAttribute(this.m_ContactEntity, "fullname");
                     String ExistContactFullName = this.m_ToolUtilityClass.GetEntityStringAttribute(aExistContact, "fullname");
 
                     // 指派新增連絡人的負責人
-                    this.m_ToolUtilityClass.AssignOwner("contact", aExistContact, this.m_OwnerId);
+                    // 領袖的負責人 Id
+                    m_OwnerId = this.m_ToolUtilityClass.GetOwnerId(m_ContactEntity);
+                    if (m_OwnerId != Guid.Empty)
+                    {
+                        this.m_ToolUtilityClass.AssignOwner("contact", aExistContact, this.m_OwnerId);
+                    }
 
                     //String AddedGroupName = m_ToolUtilityClass.GetEntityStringAttribute(ListEntity, "listname");
                     //String DestinyGroupName = m_ToolUtilityClass.GetEntityStringAttribute(aExistList, "listname");
@@ -231,14 +236,14 @@ namespace ChurchReport.WebServiceConnector
                     if ( aExistListName.Contains("新人") || aExistListName.Contains("關懷") )
                     {
                         #region 要加的新人是在"新人關懷"小組裡
-                        if (aListEntity != null)
-                        {
-                            SetupNewContactParameter(ref aExistContact, aAccountPasswordData, ref aNewContact, aListEntity.Id);
-                        }
-                        else
-                        {
-                            SetupNewContactParameter(ref aExistContact, aAccountPasswordData, ref aNewContact, Guid.Empty);
-                        }
+                        //if (aListEntity != null)
+                        //{
+                        //    SetupNewContactParameter(ref aExistContact, aAccountPasswordData, ref aNewContact, aListEntity.Id);
+                        //}
+                        //else
+                        //{
+                        //    SetupNewContactParameter(ref aExistContact, aAccountPasswordData, ref aNewContact, Guid.Empty);
+                        //}
 
                         // 將剛剛新增的聯絡人加入至成員名單
                         ConnectNewContactInMemberList(aExistContact.Id, aNewContact.GroupName, aListEntity);
@@ -257,14 +262,19 @@ namespace ChurchReport.WebServiceConnector
                         #endregion
                         #region 更新新建立的連絡人
                         //aNewContactEntity = this.m_ToolUtilityClass.RetrieveEntity("contact", NewContactEntityId);
-                        this.m_ToolUtilityClass.UpdateEntity(ref aExistContact);
+                        //this.m_ToolUtilityClass.UpdateEntity(ref aExistContact);
                         #endregion
 
                         String LoginContactFullName = this.m_ToolUtilityClass.GetEntityStringAttribute(this.m_ContactEntity, "fullname");
                         String ExistContactFullName = this.m_ToolUtilityClass.GetEntityStringAttribute(aExistContact, "fullname");
 
                         // 指派新增連絡人的負責人
-                        this.m_ToolUtilityClass.AssignOwner("contact", aExistContact, this.m_OwnerId);
+                        // 領袖的負責人 Id
+                        m_OwnerId = this.m_ToolUtilityClass.GetOwnerId(m_ContactEntity);
+                        if (m_OwnerId != Guid.Empty)
+                        {
+                            this.m_ToolUtilityClass.AssignOwner("contact", aExistContact, this.m_OwnerId);
+                        }
 
                         //String AddedGroupName = m_ToolUtilityClass.GetEntityStringAttribute(ListEntity, "listname");
                         //String DestinyGroupName = m_ToolUtilityClass.GetEntityStringAttribute(aExistList, "listname");
