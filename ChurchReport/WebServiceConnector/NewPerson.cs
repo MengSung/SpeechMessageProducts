@@ -203,7 +203,7 @@ namespace ChurchReport.WebServiceConnector
                     #endregion
                     #region 更新新建立的連絡人
                     //aNewContactEntity = this.m_ToolUtilityClass.RetrieveEntity("contact", NewContactEntityId);
-                    //this.m_ToolUtilityClass.UpdateEntity(ref aExistContact);
+                    this.m_ToolUtilityClass.UpdateEntity(ref aExistContact);
                     #endregion
 
                     String LoginContactFullName = this.m_ToolUtilityClass.GetEntityStringAttribute(this.m_ContactEntity, "fullname");
@@ -262,7 +262,7 @@ namespace ChurchReport.WebServiceConnector
                         #endregion
                         #region 更新新建立的連絡人
                         //aNewContactEntity = this.m_ToolUtilityClass.RetrieveEntity("contact", NewContactEntityId);
-                        //this.m_ToolUtilityClass.UpdateEntity(ref aExistContact);
+                        this.m_ToolUtilityClass.UpdateEntity(ref aExistContact);
                         #endregion
 
                         String LoginContactFullName = this.m_ToolUtilityClass.GetEntityStringAttribute(this.m_ContactEntity, "fullname");
