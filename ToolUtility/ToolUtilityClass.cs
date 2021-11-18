@@ -4156,6 +4156,41 @@ namespace ToolUtilityNameSpace
             }
         }
         #endregion
+        #region 取得各類名單
+        public EntityCollection RetrieveListByFetchXml()
+        {
+            try
+            {
+                var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+                      <entity name='list'>
+                        <attribute name='listname' />
+                        <attribute name='createdfromcode' />
+                        <attribute name='lastusedon' />
+                        <attribute name='purpose' />
+                        <attribute name='listid' />
+                        <order attribute='listname' descending='true' />
+                        <filter type='and'>
+                          <condition attribute='statuscode' operator='eq' value='0' />
+                          <condition attribute='purpose' operator='eq' value='小組名單' />
+                          <condition attribute='new_app_named' operator='eq' value='1' />
+                        </filter>
+                      </entity>
+                    </fetch>";
+
+                RetrieveMultipleRequest fetchRequest1 = new RetrieveMultipleRequest
+                {
+                    Query = new FetchExpression(fetchXml)
+                };
+
+                return ((RetrieveMultipleResponse)this.m_OrganizationService.Execute(fetchRequest1)).EntityCollection;
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                throw e;
+            }
+        }
+        #endregion
         #endregion
         #region 搜尋 N:N( ManyToMany) 的集合
 

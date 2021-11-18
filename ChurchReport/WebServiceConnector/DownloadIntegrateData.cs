@@ -173,24 +173,31 @@ namespace ChurchReport.WebServiceConnector
             }
             //this.SetHappyGroupData(ref aListSmallGroupWeeklyReport);
 
-            // }
-            // 待完成....
-            // 
-            // if( 小組名稱不包含 "幸福" )
-            // {
-            //this.SetSmallGroupData(ref aListSmallGroupWeeklyReport);
+            EntityCollection aListEntityCollection = m_ToolUtilityClass.RetrieveListByFetchXml();
 
-            //this.SetNewPersonFollowUpData(ref aListSmallGroupWeeklyReport);
-            // }
-            // else "幸福小組"
-            // {
+            aListSmallGroupWeeklyReport.GroupArray.Clear();
+            foreach (Entity aList in aListEntityCollection.Entities)
+            {
+                aListSmallGroupWeeklyReport.GroupArray.Add(m_ToolUtilityClass.GetEntityStringAttribute(aList, "listname")); 
+            }
+                // }
+                // 待完成....
+                // 
+                // if( 小組名稱不包含 "幸福" )
+                // {
+                //this.SetSmallGroupData(ref aListSmallGroupWeeklyReport);
 
-            //this.SetHappyGroupData(ref aListSmallGroupWeeklyReport);
+                //this.SetNewPersonFollowUpData(ref aListSmallGroupWeeklyReport);
+                // }
+                // else "幸福小組"
+                // {
 
-            // }
-            #region 排序委身類型、並且去除掉數字、空白、逗號
-            // 排序委身類型
-            aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members = aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members !=null ? aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members.OrderBy(o => o.Status).ToList() : null;
+                //this.SetHappyGroupData(ref aListSmallGroupWeeklyReport);
+
+                // }
+                #region 排序委身類型、並且去除掉數字、空白、逗號
+                // 排序委身類型
+                aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members = aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members !=null ? aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members.OrderBy(o => o.Status).ToList() : null;
             aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.Members = aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.Members != null ? aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.Members.OrderBy(o => o.Status).ToList():null;
             aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData.Members = aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData.Members != null ? aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData.Members.OrderBy(o => o.Status).ToList() : null;
             aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_HappyGroup.Members = aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_HappyGroup.Members != null ? aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_HappyGroup.Members.OrderBy(o => o.Status).ToList() : null;

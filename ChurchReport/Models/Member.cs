@@ -73,7 +73,7 @@ namespace ChurchReport.Models {
         public bool BigDisciple { get; set; }               // 門徒大聚
         public bool LeadershipSmallLecture { get; set; }    // 小組長小講堂
         public bool LeadersGather { get; set; }             // 小組長大聚
-        public bool Decision { get; set; } // 決志
+        public bool Decision { get; set; }                  // 決志
 
         public int StateID1 { get; set; }
         public int Number1 { get; set; }
@@ -129,7 +129,14 @@ namespace ChurchReport.Models {
             get;
             set;
         }
+        // 換小組要用到的小組
+        public string AssignedGroup
+        {
+            get;
+            set;
+        }
         #endregion
+
 
         #region 靈修、晨、晚禱
         public int SpiritualWork { get; set; } // 讀經次數

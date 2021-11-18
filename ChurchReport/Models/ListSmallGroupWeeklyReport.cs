@@ -16,6 +16,9 @@ namespace ChurchReport.Models
         {
             ModifyFlag = false;
 
+            //GroupArray.Add("以利亞");
+            //GroupArray.Add("耶穌基督");
+            //GroupArray.Add("耶和華");
             //m_WeeklyReportViewModel = new WeeklyReportViewModel
             // {
             //     WeeklyReportData = "AAAAA",
@@ -64,6 +67,8 @@ namespace ChurchReport.Models
         // 個人回報但是沒有加入小組聚會統計主日日期相關的個人聚會與靈修記錄
         public Guid m_PresentRecordWithNoSmallGroupId = new Guid();
         public Entity m_PresentRecordWithNoSmallGroupEntity = new Entity();
+
+        public List<String> GroupArray { get; set; } = new List<string>();     //換小組要用到的小組清單
 
         #endregion
         #endregion
