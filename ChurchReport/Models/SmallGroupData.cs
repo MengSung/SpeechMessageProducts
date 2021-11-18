@@ -40,29 +40,44 @@ namespace ChurchReport.Models
             //lock (m_MemberDataLocker)
             //{
 
-                // 修改資料
-                ModifyFlag = true; // 先修改旗標表示有被更新到
+            // 修改資料
+            ModifyFlag = true; // 先修改旗標表示有被更新到
 
-                // 找到該會友的紀錄
-                Member aUpdatedMember = Members.DefaultIfEmpty(null).FirstOrDefault(o => o.PresentRecordId == key);
+            // 找到該會友的紀錄
+            Member aUpdatedMember = Members.DefaultIfEmpty(null).FirstOrDefault(o => o.PresentRecordId == key);
 
-                // 該會友的修改旗標設定唯有被修改過
-                aUpdatedMember.ModifyFlag = true;
+            // 該會友的修改旗標設定唯有被修改過
+            aUpdatedMember.ModifyFlag = true;
 
-                var settings = new JsonSerializerSettings
-                {
-                    // 轉換成當地時間
-                    DateTimeZoneHandling = DateTimeZoneHandling.Local,
-                    //DateTimeZoneHandling = DateTimeZoneHandling.Utc,
+            var settings = new JsonSerializerSettings
+            {
+                // 轉換成當地時間
+                DateTimeZoneHandling = DateTimeZoneHandling.Local,
+                //DateTimeZoneHandling = DateTimeZoneHandling.Utc,
 
-                    NullValueHandling = NullValueHandling.Ignore,
-                    MissingMemberHandling = MissingMemberHandling.Ignore
-                };
+                NullValueHandling = NullValueHandling.Ignore,
+                MissingMemberHandling = MissingMemberHandling.Ignore
+            };
 
-                // 會友資料被修改
-                JsonConvert.PopulateObject(values, aUpdatedMember, settings);
-            //}
+            // 會友資料被修改
+            JsonConvert.PopulateObject(values, aUpdatedMember, settings);
+
         }
+        public void AssignNewSmallGroup( ref string key, ref string values)
+        {
+            Dictionary<string, string> aDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(values);
+
+            List<string> KeyList = new List<string>(aDictionary.Keys);
+            List<string> ValueList = new List<string>(aDictionary.Values);
+
+            if (KeyList.Count > 0)
+            {
+                key = KeyList[0];
+                values = ValueList[0];
+
+            }
+        }
+
         public void PopulateObjectAndUpdateEntity(string key, string values)
         {
             // 修改資料

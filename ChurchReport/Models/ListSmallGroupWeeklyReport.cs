@@ -235,7 +235,6 @@ namespace ChurchReport.Models
                 throw e;
             }
         }
-
         private Entity CreatePresentRecordWithNoSmallGroup(ref ToolUtilityClass m_ToolUtilityClass, ref Entity aLoginContact)
         {
             try
@@ -262,7 +261,6 @@ namespace ChurchReport.Models
                 throw e;
             }
         }
-
         private void SetupPresentRecordEntityAttributes(Entity aPresentRecord, ref Entity aContactEntity, ref ToolUtilityClass m_ToolUtilityClass)
         {
             try
@@ -305,7 +303,6 @@ namespace ChurchReport.Models
                 throw e;
             }
         }
-
         public void GetPersonalReportViewModelResult(PersonalReportViewModel aPersonalReportViewModel)
         {
             if (m_SmallGroupDataList.m_AllMemeberData.Members[0] != null && m_SmallGroupDataList.m_AllMemeberData.Members != null)
@@ -325,6 +322,20 @@ namespace ChurchReport.Models
                 m_PersonalReportViewModel.MorningPray = m_PersonalReportViewModel.MorningPray = aPersonalReportViewModel.MorningPray;
                 m_PersonalReportViewModel.GeneralCare = m_PersonalReportViewModel.GeneralCare = aPersonalReportViewModel.GeneralCare;
                 m_PersonalReportViewModel.PrayItem = m_PersonalReportViewModel.PrayItem = aPersonalReportViewModel.PrayItem;
+            }
+        }
+        public String FilterNewContact(String Account, String Password)
+        {
+            try
+            {
+                return m_UploadIntegrateData.FilterNewContact(Account, Password);
+
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                throw e;
             }
         }
     }

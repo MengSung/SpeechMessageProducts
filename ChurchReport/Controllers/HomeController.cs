@@ -1665,6 +1665,19 @@ namespace ChurchReport.Controllers
                 //Task.Run(() => m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.UpdateMember(key, values));
                 m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.UpdateMember(key, values);
 
+                // 專門指針對換小組處理
+                m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData.AssignNewSmallGroup( ref key, ref values);
+
+                if (key == "AssignedGroup")
+                {
+                    Task.Factory.StartNew(() => m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.FilterNewContact
+                    (
+                        m_InMemoryDataContextSmallGroup.ListManager.m_Account,
+                        m_InMemoryDataContextSmallGroup.ListManager.m_Password
+                    ), TaskCreationOptions.LongRunning);
+
+                }
+
                 return Ok();
             }
             catch (System.Exception e)
