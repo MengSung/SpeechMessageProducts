@@ -898,6 +898,13 @@ namespace ChurchReport.WebServiceConnector
         #endregion
         #endregion
 
+        #region 指派小組
+        public String AssignNewSmallGroup(String Account, String Password, String PresentRecordId, String AssignedSmallGroupName)
+        {
+            return "指派小組";
+        }
+        #endregion
+
         #region 所需要的工具
         private void FindListCollection()
         {
@@ -1158,7 +1165,6 @@ namespace ChurchReport.WebServiceConnector
                 throw e;
             }
         }
-
         private String GetFollowUpWeek(Entity aContact, ref String MatchedWeekDay)
         {
             try
@@ -1202,7 +1208,6 @@ namespace ChurchReport.WebServiceConnector
                 {
                     aFollowUpHistoryReport += "歡迎紀錄:" + Environment.NewLine + WelcomeRecord + Environment.NewLine + Environment.NewLine;
                 }
-                #endregion
                 #endregion
 
                 // 取得與此新人相關的出席紀錄單
@@ -1336,7 +1341,7 @@ namespace ChurchReport.WebServiceConnector
             {
                 String aFollowUpHistoryReport = "";
 
-                #region 歷程記錄的表頭
+                //#region 歷程記錄的表頭
                 #region// 性別
                 int Gender = this.m_ToolUtilityClass.GetOptionSetAttribute(ref aContact, "gendercode");
                 if (Gender == 200000)
@@ -1519,8 +1524,6 @@ namespace ChurchReport.WebServiceConnector
                 throw e;
             }
         }
-
-
         private String ConvertNumberToFollowUpWeekPicker(int FollowUpWeekIndex)
         {
             switch (FollowUpWeekIndex)
@@ -1569,7 +1572,6 @@ namespace ChurchReport.WebServiceConnector
                     return "二十";
             }
         }
-
         private int ConvertNumberToWeekIndex(int FollowUpWeekIndex)
         {
             switch (FollowUpWeekIndex)
@@ -1708,7 +1710,6 @@ namespace ChurchReport.WebServiceConnector
                     return "";
             }
         }
-
         private void SetupPresentRecordEntityAttributes(Entity aPresentRecord, MemberInfomation aMemberInfomation, ref Entity aContactEntity, ref Entity aListEntity, ref Guid aWeeklyReportId, Double ValidNumber, ref Double aWeeklySundayRate, ref Double aWeeklySmallGroupRate, ref int aWeeklySundayNumber, ref int aWeeklySmallGroupNumber, ref int ValidSundayMemberNumber, ref int ValidSmallGroupMemberNumber)
         {
             try
@@ -1863,7 +1864,6 @@ namespace ChurchReport.WebServiceConnector
                 throw e;
             }
         }
-
         private void TransferIdentity(Entity aContact, int Counter, int NewComeMaxiNumber, int UnGroupMaxiNumber)
         {
             //switch (Identity)
@@ -1940,7 +1940,6 @@ namespace ChurchReport.WebServiceConnector
             }
 
         }
-
         private String ConvertIndexToClearIdentity(int Identity)
         {
             // 取得比較易懂的委身類型
@@ -1958,7 +1957,6 @@ namespace ChurchReport.WebServiceConnector
                     return "小組組員";
             }
         }
-
         private void AddToDictionaryByIdentity(Guid aListEntityId, String Type, ref String Identity, ref Entity aContact, bool Presentflag)
         {
             try
@@ -2252,7 +2250,6 @@ namespace ChurchReport.WebServiceConnector
                 throw e;
             }
         }
-
         private int ConvertFollowUpResultPickerToIndex(String FollowUpResult)
         {
             switch (FollowUpResult)
@@ -2360,7 +2357,6 @@ namespace ChurchReport.WebServiceConnector
                 throw e;
             }
         }
-
         #endregion
     }
 }

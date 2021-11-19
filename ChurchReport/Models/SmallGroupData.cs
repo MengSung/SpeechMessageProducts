@@ -63,21 +63,6 @@ namespace ChurchReport.Models
             JsonConvert.PopulateObject(values, aUpdatedMember, settings);
 
         }
-        public void AssignNewSmallGroup( ref string key, ref string values)
-        {
-            Dictionary<string, string> aDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(values);
-
-            List<string> KeyList = new List<string>(aDictionary.Keys);
-            List<string> ValueList = new List<string>(aDictionary.Values);
-
-            if (KeyList.Count > 0)
-            {
-                key = KeyList[0];
-                values = ValueList[0];
-
-            }
-        }
-
         public void PopulateObjectAndUpdateEntity(string key, string values)
         {
             // ­×§ï¸ê®Æ

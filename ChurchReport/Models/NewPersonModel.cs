@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using ChurchReport.ViewModels;
 using ChurchReport.Models.CrmTransmitModule;
 using ChurchReport.WebServiceConnector;
+using Newtonsoft.Json;
 
 namespace ChurchReport.Models
 {
@@ -159,6 +160,36 @@ namespace ChurchReport.Models
             m_NewContact.FaithStatus = aPersonFormViewModel.Status;
 
         }
+
+        #region 指派小組
+
+        public void ProcessKeyValue( ref string Operation, ref string values )
+        {
+            Dictionary<string, string> aDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(values);
+
+            List<string> OperationList = new List<string>(aDictionary.Keys);
+            List<string> ValueList = new List<string>(aDictionary.Values);
+
+            if (OperationList.Count > 0)
+            {
+                Operation = OperationList[0];
+                values = ValueList[0];
+            }
+        }
+
+        public String AssignNewSmallGroup(String Account, String Password, String PresentRecordId , String AssignedSmallGroupName)
+        {
+            AccountPasswordData aAccountPasswordData = new AccountPasswordData
+            {
+                Account = Account,
+                Password = Password
+            };
+
+            NewPerson aNewPersonManager = new NewPerson();
+
+            return aNewPersonManager.AssignNewSmallGroup(Account, Password, PresentRecordId, AssignedSmallGroupName);
+        }
+        #endregion
 
     }
 }

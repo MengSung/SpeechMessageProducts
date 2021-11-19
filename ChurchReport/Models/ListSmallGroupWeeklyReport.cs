@@ -324,20 +324,6 @@ namespace ChurchReport.Models
                 m_PersonalReportViewModel.PrayItem = m_PersonalReportViewModel.PrayItem = aPersonalReportViewModel.PrayItem;
             }
         }
-        public String FilterNewContact(String Account, String Password)
-        {
-            try
-            {
-                return m_UploadIntegrateData.FilterNewContact(Account, Password);
-
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-
-                throw e;
-            }
-        }
     }
 
 }
