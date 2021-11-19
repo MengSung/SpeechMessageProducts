@@ -899,10 +899,245 @@ namespace ChurchReport.WebServiceConnector
         #endregion
 
         #region 指派小組
-        public String AssignNewSmallGroup(String Account, String Password, String PresentRecordId, String AssignedSmallGroupName)
+        public String AssignNewSmallGroup( String PresentRecordId, String AssignedSmallGroupName, Entity aLoginContact, String ActiveListId)
         {
+            this.m_ContactEntity = aLoginContact;
+
+            // 取得被指派會友紀錄
+            Entity aAssignedContact = GetAssignedContact(PresentRecordId);
+
+            // 取得目前要被轉移的小組(目前所在的小組)
+            Entity aActiveListEntity = this.m_ToolUtilityClass.RetrieveEntity("list", new Guid(ActiveListId));
+
+            // 取得要轉移的小組
+            Entity aAssingedSmallGroupEntity = this.m_ToolUtilityClass.RetrieveListEntityByName(AssignedSmallGroupName);
+
+            AssignContactToList(AssignedSmallGroupName, aAssignedContact, aActiveListEntity, aAssingedSmallGroupEntity);
+            
             return "指派小組";
         }
+        public Entity GetAssignedContact(String PresentRecordId)
+        {
+            // 取得出席紀錄單
+            Entity aPresentRecordEntity = this.m_ToolUtilityClass.RetrieveEntity("new_present_record", new Guid(PresentRecordId));
+
+            // 取得出席紀錄單姓名的LookUp 的Guid
+            Guid AssignedContactId = this.m_ToolUtilityClass.GetEntityLookupAttribute(aPresentRecordEntity, "new_contact_new_present_record");
+
+            // 回傳被指派會友紀錄
+            return this.m_ToolUtilityClass.RetrieveEntity("contact", AssignedContactId);
+        }
+
+        public String AssignContactToList( String AssignedSmallGroupName, Entity aAssignedContact, Entity aActiveListEntity, Entity aAssignedListEntity)
+        {
+            try
+            {
+                #region 要加的新人是在"新人關懷"小組裡
+                // 將剛剛新增的聯絡人加入至成員名單
+                ConnectNewContactInMemberList( aAssignedContact.Id, AssignedSmallGroupName, aAssignedListEntity);
+
+                // 將連絡人從舊的名單中移除
+                try
+                {
+                    m_ToolUtilityClass.RemoveMembersToMarketingList(aActiveListEntity.Id, aAssignedContact.Id);
+                }
+                catch (System.Exception e)
+                {
+                    String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                }
+
+
+                if (aAssignedListEntity != null)
+                {
+                    // 有找到被關聯的小組名單，建立出席紀錄單
+                    CreateAssignedContactPresentRecord(aAssignedListEntity, aAssignedContact.Id, AssignedSmallGroupName);
+                }
+                #region 關聯主要小組
+                //Entity aExistedContact = this.m_ToolUtilityClass.RetrieveEntity("contact", aAssignedContact.Id);
+                this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aAssignedContact, "new_cell_list_contact", "list", aAssignedListEntity.Id);
+                #endregion
+
+                // 設定被指派會友，被指派小組的日期
+                this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aAssignedContact, "new_assigne_group_date", DateTime.Now);
+
+                #region 更新新建立的連絡人
+                //aNewContactEntity = this.m_ToolUtilityClass.RetrieveEntity("contact", NewContactEntityId);
+                this.m_ToolUtilityClass.UpdateEntity(ref aAssignedContact);
+                #endregion
+
+                String LoginContactFullName = this.m_ToolUtilityClass.GetEntityStringAttribute(this.m_ContactEntity, "fullname");
+                String ExistContactFullName = this.m_ToolUtilityClass.GetEntityStringAttribute(aAssignedContact, "fullname");
+
+                // 指派新增連絡人的負責人
+                // 領袖的負責人 Id
+                m_OwnerId = this.m_ToolUtilityClass.GetOwnerId(m_ContactEntity);
+                if (m_OwnerId != Guid.Empty)
+                {
+                    this.m_ToolUtilityClass.AssignOwner("contact", aAssignedContact, this.m_OwnerId);
+                }
+
+                //String AddedGroupName = m_ToolUtilityClass.GetEntityStringAttribute(ListEntity, "listname");
+                //String DestinyGroupName = m_ToolUtilityClass.GetEntityStringAttribute(aExistList, "listname");
+
+                String Result = LoginContactFullName + " 成功的加入 " + ExistContactFullName + " 到 " + AssignedSmallGroupName + "小組中";
+
+                this.m_LineNotifyUtility.SendAddNewPersonResultLine(Result, aAssignedListEntity);
+                this.m_LineNotifyUtility.SendListMemberLine(aAssignedListEntity);
+
+                return Result;
+
+                #endregion
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                throw e;
+            }
+        }
+
+        private void CreateAssignedContactPresentRecord(Entity aListEntity, Guid NewContactEntityId, String GroupName )
+        {
+            try
+            {
+                #region 建立個人聚會與靈修記錄
+
+                if (aListEntity == null || NewContactEntityId == null || NewContactEntityId == Guid.Empty)
+                { return; }
+
+                //// 取得每個需要點名的名單裡的每個週報
+                //EntityCollection GroupWeeklyReportEntityCollection = m_ToolUtilityClass.RetrieveManyToOneRelationship("list", "listid", aListEntity.Id.ToString(), "new_list_group_present_weekly_report", "new_group_present_weekly_report");
+                //if (GroupWeeklyReportEntityCollection == null || GroupWeeklyReportEntityCollection.Entities.Count <= 0)
+                //{ return; }
+
+                // 根據日期看有沒有那個週報
+                #region 先根據日期尋找當週主日日期
+                // 其值的範圍從 0 (表示 DayOfWeek.Sunday) 為 6 (表示 DayOfWeek.Saturday)。
+                int DayOfWeek = (int)DateTime.Now.DayOfWeek;
+                this.m_Sunday = DateTime.Now.AddDays(-DayOfWeek);
+                #endregion
+                //Entity GroupWeeklyReportEntity = FilterWeeklyReportByDate(ref GroupWeeklyReportEntityCollection);
+                //if (GroupWeeklyReportEntity == null)
+                //{ return; }
+
+                // 尋找此小組的某一個主日的週報集合
+                EntityCollection GroupWeeklyReportEntityCollection = m_ToolUtilityClass.QueryWeeklyReportBySunday(this.m_Sunday, aListEntity.Id);
+
+                // 此小組的某一個主日的週報集合，應該僅有一個，也就是第0個的週報
+                //Entity GroupWeeklyReportEntity = GroupWeeklyReportEntityCollection.Entities.Count == 1 ? GroupWeeklyReportEntityCollection.Entities[0] : null;
+                if (GroupWeeklyReportEntityCollection.Entities.Count == 1)
+                {
+                    EntityCollection PresentRecordEntityCollection = m_ToolUtilityClass.QueryPresentRecordInWeeklyReportByContactId(NewContactEntityId, GroupWeeklyReportEntityCollection.Entities[0].Id);
+
+                    if (PresentRecordEntityCollection.Entities.Count == 0)
+                    {
+                        // 還沒有出席紀錄單才要建立
+                        // 這是新建立的個人聚會與靈修記錄
+                        Entity aPresentRecord = new Entity("new_present_record");
+
+                        // 設定個人聚會與靈修記錄相關屬性
+                        #region 準備所需要的參數
+
+                        #region 個人資料
+                        if (NewContactEntityId == null || NewContactEntityId == Guid.Empty)
+                        { return; }
+                        Entity aNewContactEntity = this.m_ToolUtilityClass.RetrieveEntity("contact", NewContactEntityId);
+                        if (aNewContactEntity == null)
+                        { return; }
+                        Guid aWeeklyReportId = GroupWeeklyReportEntityCollection.Entities[0].Id;
+
+                        // 組員的全名
+                        String FullName = "";
+                        if (aNewContactEntity.Attributes.Contains("fullname"))
+                        {
+                            FullName = (string)aNewContactEntity.Attributes["fullname"];
+                        }
+                        // 組員的手機
+                        String aMobilePhone = "";
+                        if (aNewContactEntity.Attributes.Contains("mobilephone"))
+                        {
+                            aMobilePhone = (string)aNewContactEntity.Attributes["mobilephone"];
+                        }
+                        // 組員的家裡電話
+                        String aHomePhone = "";
+                        if (aNewContactEntity.Attributes.Contains("telephone2"))
+                        {
+                            aHomePhone = (string)aNewContactEntity.Attributes["telephone2"];
+                        }
+                        // 組員的地址
+                        String aAddress = "";
+                        if (aNewContactEntity.Attributes.Contains("address2_line1"))
+                        {
+                            aAddress = (string)aNewContactEntity.Attributes["address2_line1"];
+                        }
+                        #endregion
+
+                        // 取得新人跟進週次，及跟進歷程記錄
+                        String aFollowUpWeek = "";
+                        String aNewComerNote = GetNewComerFollowupInfo(NewContactEntityId, ref aFollowUpWeek);
+
+                        MemberInfomation aMemberInfomation = new MemberInfomation()
+                        {
+                            Group = GroupName,
+                            Name = FullName,
+                            Phone = DigitsOnly.Replace(aMobilePhone, ""),
+                            HomePhone = DigitsOnly.Replace(aHomePhone, ""),
+                            Address = aAddress,
+                            Note = "",
+                            Date = "2015/10/6",
+                            Number = 5,
+                            SundayPresent = false,
+                            SmallGroupPresent = false,
+
+                            PrayNumber = 0,
+                            SpiritNumber = 0,
+                            FamilyNumber = 0,
+                            WorkAndCampusNumber = 0,
+                            ShepherdStatus = "",
+                            OneOnOne = "",
+                            Training = "",
+                            Incubate = "",
+                            FollowUpWeek = ".",
+                            FollowUpResult = ".",
+                            FollowUpNextStep = ".",
+                            FollowUp = "",
+                            FollowUpNote = "",
+                            NewComerNote = aNewComerNote,
+                            #region 靈修、晨、晚禱
+                            SpiritualWork = 0,
+                            MorningPray = 0,
+                            GeneralCare = 0,
+                            #endregion
+
+                        };
+
+                        Double DUM_DOUBLE = 0;
+                        int DUM_INT = 0;
+                        #endregion
+
+                        this.SetupPresentRecordEntityAttributes(aPresentRecord, aMemberInfomation, ref aNewContactEntity, ref aListEntity, ref aWeeklyReportId, DUM_DOUBLE, ref DUM_DOUBLE, ref DUM_DOUBLE, ref DUM_INT, ref DUM_INT, ref DUM_INT, ref DUM_INT);
+
+                        // 新增個人聚會與靈修記錄
+                        Guid aPresentRecordId = this.m_ToolUtilityClass.CreateEntity(aPresentRecord);
+                        Entity aRetrievedPresentRecord = this.m_ToolUtilityClass.RetrieveEntity("new_present_record", aPresentRecordId);
+
+                        //指派負責人
+                        this.m_ToolUtilityClass.AssignOwner("new_present_record", aRetrievedPresentRecord, this.m_ToolUtilityClass.GetOwnerId(aNewContactEntity));
+
+                    }
+                }
+                #endregion
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                throw e;
+            }
+        }
+
         #endregion
 
         #region 所需要的工具

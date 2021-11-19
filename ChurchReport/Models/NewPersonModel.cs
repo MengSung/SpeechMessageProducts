@@ -7,6 +7,7 @@ using ChurchReport.ViewModels;
 using ChurchReport.Models.CrmTransmitModule;
 using ChurchReport.WebServiceConnector;
 using Newtonsoft.Json;
+using Microsoft.Xrm.Sdk;
 
 namespace ChurchReport.Models
 {
@@ -177,17 +178,11 @@ namespace ChurchReport.Models
             }
         }
 
-        public String AssignNewSmallGroup(String Account, String Password, String PresentRecordId , String AssignedSmallGroupName)
+        public String AssignNewSmallGroup( String PresentRecordId , String AssignedSmallGroupName, Entity aLoginContact, String ActiveListId)
         {
-            AccountPasswordData aAccountPasswordData = new AccountPasswordData
-            {
-                Account = Account,
-                Password = Password
-            };
-
             NewPerson aNewPersonManager = new NewPerson();
 
-            return aNewPersonManager.AssignNewSmallGroup(Account, Password, PresentRecordId, AssignedSmallGroupName);
+            return aNewPersonManager.AssignNewSmallGroup( PresentRecordId, AssignedSmallGroupName, aLoginContact, ActiveListId);
         }
         #endregion
 

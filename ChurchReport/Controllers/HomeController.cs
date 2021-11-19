@@ -1671,10 +1671,9 @@ namespace ChurchReport.Controllers
 
                 if ( Operation == "AssignedGroup")
                 {
-
                     //string Result = m_InMemoryDataContextSmallGroup.NewPersonModel.AssignNewSmallGroup(m_InMemoryDataContextSmallGroup.ListManager.m_Account, m_InMemoryDataContextSmallGroup.ListManager.m_Password);
 
-                    Task.Factory.StartNew(() => m_InMemoryDataContextSmallGroup.NewPersonModel.AssignNewSmallGroup(m_InMemoryDataContextSmallGroup.ListManager.m_Account, m_InMemoryDataContextSmallGroup.ListManager.m_Password, key , values ), TaskCreationOptions.LongRunning);
+                    Task.Factory.StartNew(() => m_InMemoryDataContextSmallGroup.NewPersonModel.AssignNewSmallGroup( key , values , m_InMemoryDataContextSmallGroup.PersonalInfomationModel.m_LoginContact, m_InMemoryDataContextSmallGroup.ListManager.ActiveListId ), TaskCreationOptions.LongRunning);
                 }
 
                 return Ok();
