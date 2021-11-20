@@ -957,8 +957,9 @@ namespace ChurchReport.WebServiceConnector
                 this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aAssignedContact, "new_cell_list_contact", "list", aAssignedListEntity.Id);
                 #endregion
 
-                // 設定被指派會友，被指派小組的日期
+                #region 更新新建立的連絡人// 設定被指派會友，被指派小組的日期
                 this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aAssignedContact, "new_assigne_group_date", DateTime.Now);
+                #endregion
 
                 #region 更新新建立的連絡人
                 //aNewContactEntity = this.m_ToolUtilityClass.RetrieveEntity("contact", NewContactEntityId);
@@ -1949,6 +1950,9 @@ namespace ChurchReport.WebServiceConnector
         {
             try
             {
+                //設定名稱
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_name", this.m_ToolUtilityClass.GetEntityStringAttribute(ref  aContactEntity, "fullname") + "-" +m_Sunday.ToShortDateString() + " 出席紀錄");
+
                 #region 設定姓名
                 // 找到組員ID
                 Guid aContactEntityId = aContactEntity.Id;

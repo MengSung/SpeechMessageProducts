@@ -182,7 +182,7 @@ namespace ChurchReport.Models
         {
             NewPerson aNewPersonManager = new NewPerson();
 
-            return aNewPersonManager.AssignNewSmallGroup( PresentRecordId, AssignedSmallGroupName, aLoginContact, ActiveListId);
+            return aNewPersonManager.AssignNewSmallGroup( PresentRecordId, AssignedSmallGroupName, aLoginContact, ActiveListId );
         }
         #endregion
 
