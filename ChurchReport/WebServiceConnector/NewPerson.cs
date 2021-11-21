@@ -901,31 +901,55 @@ namespace ChurchReport.WebServiceConnector
         #region 指派小組
         public String AssignNewSmallGroup( String PresentRecordId, String AssignedSmallGroupName, Entity aLoginContact, String ActiveListId)
         {
-            this.m_ContactEntity = aLoginContact;
+            try
+            {
+                this.m_ContactEntity = aLoginContact;
 
-            // 取得被指派會友紀錄
-            Entity aAssignedContact = GetAssignedContact(PresentRecordId);
+                // 取得被指派會友紀錄
+                Entity aAssignedContact = GetAssignedContact(PresentRecordId);
 
-            // 取得目前要被轉移的小組(目前所在的小組)
-            Entity aActiveListEntity = this.m_ToolUtilityClass.RetrieveEntity("list", new Guid(ActiveListId));
+                // 取得目前要被轉移的小組(目前所在的小組)
+                Entity aActiveListEntity = this.m_ToolUtilityClass.RetrieveEntity("list", new Guid(ActiveListId));
 
-            // 取得要轉移的小組
-            Entity aAssingedSmallGroupEntity = this.m_ToolUtilityClass.RetrieveListEntityByName(AssignedSmallGroupName);
+                // 取得要轉移的小組
+                Entity aAssingedSmallGroupEntity = this.m_ToolUtilityClass.RetrieveListEntityByName(AssignedSmallGroupName);
 
-            AssignContactToList(AssignedSmallGroupName, aAssignedContact, aActiveListEntity, aAssingedSmallGroupEntity);
-            
-            return "指派小組";
+                AssignContactToList(AssignedSmallGroupName, aAssignedContact, aActiveListEntity, aAssingedSmallGroupEntity);
+
+                // 設定個人聚會與靈修記錄"停止提醒"為"是"
+                SetNotRemindFlag(aAssignedContact);
+
+                return "指派小組";
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                throw e;
+            }
+
         }
         public Entity GetAssignedContact(String PresentRecordId)
         {
-            // 取得出席紀錄單
-            Entity aPresentRecordEntity = this.m_ToolUtilityClass.RetrieveEntity("new_present_record", new Guid(PresentRecordId));
+            try
+            {
+                // 取得出席紀錄單
+                Entity aPresentRecordEntity = this.m_ToolUtilityClass.RetrieveEntity("new_present_record", new Guid(PresentRecordId));
 
-            // 取得出席紀錄單姓名的LookUp 的Guid
-            Guid AssignedContactId = this.m_ToolUtilityClass.GetEntityLookupAttribute(aPresentRecordEntity, "new_contact_new_present_record");
+                // 取得出席紀錄單姓名的LookUp 的Guid
+                Guid AssignedContactId = this.m_ToolUtilityClass.GetEntityLookupAttribute(aPresentRecordEntity, "new_contact_new_present_record");
 
-            // 回傳被指派會友紀錄
-            return this.m_ToolUtilityClass.RetrieveEntity("contact", AssignedContactId);
+                // 回傳被指派會友紀錄
+                return this.m_ToolUtilityClass.RetrieveEntity("contact", AssignedContactId);
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                throw e;
+            }
         }
 
         public String AssignContactToList( String AssignedSmallGroupName, Entity aAssignedContact, Entity aActiveListEntity, Entity aAssignedListEntity)
@@ -1139,6 +1163,47 @@ namespace ChurchReport.WebServiceConnector
             }
         }
 
+        #endregion
+
+        #region 設定個人聚會與靈修記錄"停止提醒"為"是"
+        public void SetNotRemindFlag( Entity aAssignedContact )
+        {
+            try
+            {
+                // 取得與聯絡人相關的出席紀錄單並且有"關懷期限"
+                EntityCollection aPresentRecordCollection = m_ToolUtilityClass.RetrievePresentRecordByFetchXmlAndContainEpiredDate(this.m_ToolUtilityClass.GetEntityStringAttribute(aAssignedContact,"fullname"), aAssignedContact.Id.ToString());
+
+                if (aPresentRecordCollection.Entities.Count > 0)
+                {
+                    #region// 有找到個人聚會與靈修記錄
+                    foreach (Entity aPresentRecord in aPresentRecordCollection.Entities)
+                    {
+                        // 取得個人聚會與靈修記錄
+                        Entity aRetrievedPresentRecord = this.m_ToolUtilityClass.RetrieveEntity("new_present_record",aPresentRecord.Id);
+
+                        //設定個人聚會與靈修記錄"停止提醒"為"是"
+                        m_ToolUtilityClass.SetEntityBoolAttribute(ref aRetrievedPresentRecord, "new_stop_notify", true);
+
+                        // 更新個人聚會與靈修記錄
+                        this.m_ToolUtilityClass.UpdateEntity(ref aRetrievedPresentRecord);
+                    }
+                    #endregion
+                }
+                else
+                {
+                    #region// 沒找到個人聚會與靈修記錄
+                    #endregion
+                }
+
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                throw e;
+            }
+        }
         #endregion
 
         #region 所需要的工具
