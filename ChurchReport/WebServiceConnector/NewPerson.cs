@@ -1175,6 +1175,22 @@ namespace ChurchReport.WebServiceConnector
                 this.m_ToolUtilityClass.SetEntityDateTimeAttribute( ref aAssignedContact, "new_closed_date", DateTime.Now);
                 this.m_ToolUtilityClass.UpdateEntity(ref aAssignedContact);
 
+                // 取得目前要被轉移的小組(目前所在的小組)
+                Entity aActiveListEntity = this.m_ToolUtilityClass.RetrieveEntity("list", new Guid(ActiveListId));
+
+                // 將連絡人從舊的名單中移除
+                try
+                {
+                    m_ToolUtilityClass.RemoveMembersToMarketingList(aActiveListEntity.Id, aAssignedContact.Id);
+                }
+                catch (System.Exception e)
+                {
+                    String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                }
+
+                String Result = this.m_ToolUtilityClass.GetEntityStringAttribute(aAssignedContact,"fullname") + "從" + this.m_ToolUtilityClass.GetEntityStringAttribute(aActiveListEntity , "listname") + " 被結案了";
+                this.m_LineNotifyUtility.SendAddNewPersonResultLine(Result, aActiveListEntity);
+
                 return "指派小組";
             }
             catch (System.Exception e)
