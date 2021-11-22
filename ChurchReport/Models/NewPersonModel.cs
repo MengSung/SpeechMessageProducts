@@ -15,6 +15,8 @@ namespace ChurchReport.Models
     {
         NewPerson m_NewPersonManager = new NewPerson();
 
+        public NewContact m_NewContact = new NewContact();
+
         public PersonFormViewModel m_PersonFormViewModel = new PersonFormViewModel
         {
             ID = 1,
@@ -39,9 +41,6 @@ namespace ChurchReport.Models
             IntroducerGroup ="",
             IntroducerRelation = ""
         };
-
-        public NewContact m_NewContact = new NewContact();
-
         public void SetupGroupArray(List<WeeklyReportRecord> aWeeklyReportRecordListData, String ActiveListId)
         {
             m_PersonFormViewModel.GroupArray.Clear();
@@ -56,7 +55,6 @@ namespace ChurchReport.Models
                 }
             }
         }
-
         public String UploadNewPerson( String Account, String Password, PersonFormViewModel aPersonFormViewModel)
         {
             CopyPersonFormViewModel(aPersonFormViewModel);
@@ -165,7 +163,6 @@ namespace ChurchReport.Models
         }
 
         #region 指派小組
-
         public void ProcessKeyValue( ref string Operation, ref string values )
         {
             Dictionary<string, string> aDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(values);
@@ -179,7 +176,6 @@ namespace ChurchReport.Models
                 values = ValueList[0];
             }
         }
-
         public String AssignNewSmallGroup(String PresentRecordId, String AssignedSmallGroupName, Entity aLoginContact, String ActiveListId)
         {
             // 指派小組

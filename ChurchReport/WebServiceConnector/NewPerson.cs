@@ -1203,7 +1203,7 @@ namespace ChurchReport.WebServiceConnector
 
         }
         #endregion
-        #region 結案處理
+        #region 有關懷到，停止關懷期限到期工作流程
         public void TerminateNewPersonCareWorkflow(String PresentRecordId, String AssignedSmallGroupName, Entity aLoginContact, String ActiveListId)
         {
             try
@@ -1249,6 +1249,9 @@ namespace ChurchReport.WebServiceConnector
 
                         //設定個人聚會與靈修記錄"停止提醒"為"是"
                         m_ToolUtilityClass.SetEntityBoolAttribute(ref aRetrievedPresentRecord, "new_stop_notify", true);
+
+                        //設定個人聚會與靈修記錄"不要顯示在回報網頁"為"是"
+                        m_ToolUtilityClass.SetEntityBoolAttribute(ref aRetrievedPresentRecord, "new_not_display", true);
 
                         // 更新個人聚會與靈修記錄
                         this.m_ToolUtilityClass.UpdateEntity(ref aRetrievedPresentRecord);

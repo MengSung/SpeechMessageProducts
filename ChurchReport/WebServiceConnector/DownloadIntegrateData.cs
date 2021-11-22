@@ -362,7 +362,7 @@ namespace ChurchReport.WebServiceConnector
                 {
                     OptionSetValue aOptionState = PresentRecordEntity.Attributes["statecode"] as OptionSetValue;
 
-                    if (aOptionState.Value == 0)
+                    if ( aOptionState.Value == 0 && this.m_ToolUtilityClass.GetEntityBoolAttribute(PresentRecordEntity, "new_not_display") == false )
                     {
                         #region 只回傳使用中的每個出席紀錄
                         #region 填寫 MemberInfomation 所需要的每個欄位
