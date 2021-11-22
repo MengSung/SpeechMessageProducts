@@ -1172,7 +1172,7 @@ namespace ChurchReport.WebServiceConnector
                 SetNotRemindFlag(aAssignedContact);
 
                 // 設定結案日期
-                this.m_ToolUtilityClass.SetEntityDateTimeAttribute( ref aAssignedContact, "new_closed_date", DateTime.Now);
+                this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aAssignedContact, "new_closed_date", DateTime.Now);
                 this.m_ToolUtilityClass.UpdateEntity(ref aAssignedContact);
 
                 // 取得目前要被轉移的小組(目前所在的小組)
@@ -1188,10 +1188,38 @@ namespace ChurchReport.WebServiceConnector
                     String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
                 }
 
-                String Result = this.m_ToolUtilityClass.GetEntityStringAttribute(aAssignedContact,"fullname") + "從" + this.m_ToolUtilityClass.GetEntityStringAttribute(aActiveListEntity , "listname") + " 被結案了";
+                String Result = this.m_ToolUtilityClass.GetEntityStringAttribute(aAssignedContact, "fullname") + "從" + this.m_ToolUtilityClass.GetEntityStringAttribute(aActiveListEntity, "listname") + " 被結案了";
                 this.m_LineNotifyUtility.SendAddNewPersonResultLine(Result, aActiveListEntity);
 
                 return "指派小組";
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                throw e;
+            }
+
+        }
+        #endregion
+        #region 結案處理
+        public void TerminateNewPersonCareWorkflow(String PresentRecordId, String AssignedSmallGroupName, Entity aLoginContact, String ActiveListId)
+        {
+            try
+            {
+                this.m_ContactEntity = aLoginContact;
+
+                // 取得出席紀錄單
+                Entity aPresentRecordEntity = this.m_ToolUtilityClass.RetrieveEntity("new_present_record", new Guid(PresentRecordId));
+
+                //設定個人聚會與靈修記錄"停止提醒"為"是"
+                m_ToolUtilityClass.SetEntityBoolAttribute(ref aPresentRecordEntity, "new_stop_notify", true);
+
+                // 更新個人聚會與靈修記錄
+                this.m_ToolUtilityClass.UpdateEntity(ref aPresentRecordEntity);
+
+                return ;
             }
             catch (System.Exception e)
             {

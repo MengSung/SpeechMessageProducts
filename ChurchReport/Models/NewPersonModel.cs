@@ -13,6 +13,8 @@ namespace ChurchReport.Models
 {
     public class NewPersonModel
     {
+        NewPerson m_NewPersonManager = new NewPerson();
+
         public PersonFormViewModel m_PersonFormViewModel = new PersonFormViewModel
         {
             ID = 1,
@@ -65,11 +67,11 @@ namespace ChurchReport.Models
                 Password = Password
             };
 
-            NewPerson aNewPersonManager = new NewPerson();
+            //NewPerson aNewPersonManager = new NewPerson();
 
             MappingPersonFormViewModelToNewContact( aPersonFormViewModel );
 
-            return aNewPersonManager.CreateNewContactFromView(aAccountPasswordData, ref m_NewContact);
+            return m_NewPersonManager.CreateNewContactFromView(aAccountPasswordData, ref m_NewContact);
         }
         public void CopyPersonFormViewModel(PersonFormViewModel aPersonFormViewModel)
         {
@@ -180,15 +182,18 @@ namespace ChurchReport.Models
 
         public String AssignNewSmallGroup(String PresentRecordId, String AssignedSmallGroupName, Entity aLoginContact, String ActiveListId)
         {
-            NewPerson aNewPersonManager = new NewPerson();
-
-            return aNewPersonManager.AssignNewSmallGroup(PresentRecordId, AssignedSmallGroupName, aLoginContact, ActiveListId);
+            // 指派小組
+            return m_NewPersonManager.AssignNewSmallGroup(PresentRecordId, AssignedSmallGroupName, aLoginContact, ActiveListId);
         }
         public String TerminateNewPersonFollowUp(String PresentRecordId, String AssignedSmallGroupName, Entity aLoginContact, String ActiveListId)
         {
-            NewPerson aNewPersonManager = new NewPerson();
-
-            return aNewPersonManager.TerminateNewPersonFollowUp(PresentRecordId, AssignedSmallGroupName, aLoginContact, ActiveListId);
+            // 結案處理
+            return m_NewPersonManager.TerminateNewPersonFollowUp(PresentRecordId, AssignedSmallGroupName, aLoginContact, ActiveListId);
+        }
+        public void TerminateNewPersonCareWorkflow(String PresentRecordId, String AssignedSmallGroupName, Entity aLoginContact, String ActiveListId)
+        {
+            // 有關懷到，停止關懷期限到期工作流程
+            m_NewPersonManager.TerminateNewPersonCareWorkflow(PresentRecordId, AssignedSmallGroupName, aLoginContact, ActiveListId);
         }
         #endregion
 
