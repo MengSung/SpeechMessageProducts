@@ -64,7 +64,6 @@ namespace ChurchReport.WebServiceConnector
 
         #endregion
         #endregion
-
         #region 上傳資料時所需要的參數
         private LineNotifyUtility m_LineNotifyUtility = new LineNotifyUtility();
 
@@ -89,7 +88,6 @@ namespace ChurchReport.WebServiceConnector
         //List<Place2> m_GroupNamePlaces = new List<Place2>(); // 依據群組名稱過濾出來的會眾集合
         List<MemberInfomation> m_GroupNamedListMemberInfomation = new List<MemberInfomation>(); // 依據群組名稱過濾出來的會眾集合
         #endregion
-
         #region 建立新人
         #region WCF Service端
 
@@ -897,7 +895,6 @@ namespace ChurchReport.WebServiceConnector
 
         #endregion
         #endregion
-
         #region 指派小組
         public String AssignNewSmallGroup( String PresentRecordId, String AssignedSmallGroupName, Entity aLoginContact, String ActiveListId)
         {
@@ -951,7 +948,6 @@ namespace ChurchReport.WebServiceConnector
                 throw e;
             }
         }
-
         public String AssignContactToList( String AssignedSmallGroupName, Entity aAssignedContact, Entity aActiveListEntity, Entity aAssignedListEntity)
         {
             try
@@ -1021,7 +1017,6 @@ namespace ChurchReport.WebServiceConnector
                 throw e;
             }
         }
-
         private void CreateAssignedContactPresentRecord(Entity aListEntity, Guid NewContactEntityId, String GroupName )
         {
             try
@@ -1162,16 +1157,43 @@ namespace ChurchReport.WebServiceConnector
                 throw e;
             }
         }
-
         #endregion
+        #region 結案處理
+        public String TerminateNewPersonFollowUp(String PresentRecordId, String AssignedSmallGroupName, Entity aLoginContact, String ActiveListId)
+        {
+            try
+            {
+                this.m_ContactEntity = aLoginContact;
 
+                // 取得被指派會友紀錄
+                Entity aAssignedContact = GetAssignedContact(PresentRecordId);
+
+                // 設定個人聚會與靈修記錄"停止提醒"為"是"
+                SetNotRemindFlag(aAssignedContact);
+
+                // 設定結案日期
+                this.m_ToolUtilityClass.SetEntityDateTimeAttribute( ref aAssignedContact, "new_closed_date", DateTime.Now);
+                this.m_ToolUtilityClass.UpdateEntity(ref aAssignedContact);
+
+                return "指派小組";
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                throw e;
+            }
+
+        }
+        #endregion
         #region 設定個人聚會與靈修記錄"停止提醒"為"是"
-        public void SetNotRemindFlag( Entity aAssignedContact )
+        public void SetNotRemindFlag(Entity aAssignedContact)
         {
             try
             {
                 // 取得與聯絡人相關的出席紀錄單並且有"關懷期限"
-                EntityCollection aPresentRecordCollection = m_ToolUtilityClass.RetrievePresentRecordByFetchXmlAndContainEpiredDate(this.m_ToolUtilityClass.GetEntityStringAttribute(aAssignedContact,"fullname"), aAssignedContact.Id.ToString());
+                EntityCollection aPresentRecordCollection = m_ToolUtilityClass.RetrievePresentRecordByFetchXmlAndContainEpiredDate(this.m_ToolUtilityClass.GetEntityStringAttribute(aAssignedContact, "fullname"), aAssignedContact.Id.ToString());
 
                 if (aPresentRecordCollection.Entities.Count > 0)
                 {
@@ -1179,7 +1201,7 @@ namespace ChurchReport.WebServiceConnector
                     foreach (Entity aPresentRecord in aPresentRecordCollection.Entities)
                     {
                         // 取得個人聚會與靈修記錄
-                        Entity aRetrievedPresentRecord = this.m_ToolUtilityClass.RetrieveEntity("new_present_record",aPresentRecord.Id);
+                        Entity aRetrievedPresentRecord = this.m_ToolUtilityClass.RetrieveEntity("new_present_record", aPresentRecord.Id);
 
                         //設定個人聚會與靈修記錄"停止提醒"為"是"
                         m_ToolUtilityClass.SetEntityBoolAttribute(ref aRetrievedPresentRecord, "new_stop_notify", true);
@@ -1205,7 +1227,6 @@ namespace ChurchReport.WebServiceConnector
             }
         }
         #endregion
-
         #region 所需要的工具
         private void FindListCollection()
         {

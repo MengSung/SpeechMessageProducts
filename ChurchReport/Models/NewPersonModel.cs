@@ -178,11 +178,17 @@ namespace ChurchReport.Models
             }
         }
 
-        public String AssignNewSmallGroup( String PresentRecordId , String AssignedSmallGroupName, Entity aLoginContact, String ActiveListId)
+        public String AssignNewSmallGroup(String PresentRecordId, String AssignedSmallGroupName, Entity aLoginContact, String ActiveListId)
         {
             NewPerson aNewPersonManager = new NewPerson();
 
-            return aNewPersonManager.AssignNewSmallGroup( PresentRecordId, AssignedSmallGroupName, aLoginContact, ActiveListId );
+            return aNewPersonManager.AssignNewSmallGroup(PresentRecordId, AssignedSmallGroupName, aLoginContact, ActiveListId);
+        }
+        public String TerminateNewPersonFollowUp(String PresentRecordId, String AssignedSmallGroupName, Entity aLoginContact, String ActiveListId)
+        {
+            NewPerson aNewPersonManager = new NewPerson();
+
+            return aNewPersonManager.TerminateNewPersonFollowUp(PresentRecordId, AssignedSmallGroupName, aLoginContact, ActiveListId);
         }
         #endregion
 

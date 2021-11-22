@@ -1675,6 +1675,13 @@ namespace ChurchReport.Controllers
 
                     Task.Factory.StartNew(() => m_InMemoryDataContextSmallGroup.NewPersonModel.AssignNewSmallGroup( key , values , m_InMemoryDataContextSmallGroup.PersonalInfomationModel.m_LoginContact, m_InMemoryDataContextSmallGroup.ListManager.ActiveListId ), TaskCreationOptions.LongRunning);
                 }
+                else if( Operation == "FollowUpNextStep")
+                {
+                    if( values == "ТрЄЖ")
+                    {
+                        Task.Factory.StartNew(() => m_InMemoryDataContextSmallGroup.NewPersonModel.TerminateNewPersonFollowUp(key, values, m_InMemoryDataContextSmallGroup.PersonalInfomationModel.m_LoginContact, m_InMemoryDataContextSmallGroup.ListManager.ActiveListId), TaskCreationOptions.LongRunning);
+                    }
+                }
 
                 return Ok();
             }
