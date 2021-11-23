@@ -1099,8 +1099,11 @@ namespace ChurchReport.Controllers
                 //                    );             
                 // });
 
+                //m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData.Members[0].PrayItem = DateTime.Now.ToString();
+                m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData.Members.Clear();
+
                 //return Json(new { status = "1", message = "成功上傳了.... : " + "Status = " + AsyncTask.Status + " IsFaulted = " + AsyncTask.IsFaulted + " IsCanceled=" + AsyncTask.IsCanceled });
-                return Json(new { status = "1", message = "成功上傳了.... !"  });
+                return Json(new { status = "1", message = "成功上傳了.... !太棒了!"  });
             }
             catch (System.Exception e)
             {

@@ -230,8 +230,8 @@ else
                 {
                     @if (Model.GroupType == "一般小組")
                     {
-                        <div id="buttonContainer" class="dx-button-icon" style="float: left; width:30%; text-align: left; background-color:white;">
-                            @(Html.DevExtreme().Button()
+            <div id="buttonContainer" class="dx-button-icon" style="float: left; width:30%; text-align: left; background-color:white;">
+                @(Html.DevExtreme().Button()
                         .Text("上傳").Height(50).Width(80).Icon("check")
                         .Type(ButtonType.Success)
                         .ID("save-button")
@@ -280,27 +280,47 @@ else
 
                                     success: function (arg)
                                     {
-                                    // 隱藏旋轉鈕
-                                    $("#loadPanel").dxLoadPanel("instance").hide();
+                                        var SmallGroupDataGrid = $("#SmallGroupgridContainer").dxDataGrid("instance");
+                                        var NewPersonDataGrid = $("#NewPersonGridContainer").dxDataGrid("instance");
 
-                                    // 上傳按鈕恢復可運作
-                                    ButtonContainer.option("disabled", false);
+                                        SmallGroupDataGrid.refresh();
+                                        NewPersonDataGrid.refresh();
 
-                                    // 顯示上傳成功
-                                    if (arg.status == 1)
-                                    {
-                                    ShowToast(arg.message, "success", 2000);
-                                    }
-                                    else{
-                                    ShowToast(arg.message, "error", 5000);}
 
-                                    //$("#toast").dxToast("instance").show();
-                                    },
+                                        // 隱藏旋轉鈕
+                                        $("#loadPanel").dxLoadPanel("instance").hide();
 
-                                    error: function (obj)
-                                    {
-                                    //alert('Something happened');
-                                    }
+                                        //alert("成功 005");
+
+                                        // 上傳按鈕恢復可運作
+                                        ButtonContainer.option("disabled", false);
+
+                                        //alert("成功 001");
+                                        @*var SmallGroupDataGrid = $("#SmallGroupgridContainer").dxDataGrid("instance");
+                                        var NewPersonDataGrid = $("#NewPersonGridContainer").dxDataGrid("instance");
+
+                                        SmallGroupDataGrid.refresh();
+                                        NewPersonDataGrid.refresh();*@
+
+                                        //SmallGroupDataGrid.repaint();
+                                        //NewPersonDataGrid.repaint();
+
+
+                                        // 顯示上傳成功
+                                        if (arg.status == 1)
+                                        {
+                                            ShowToast(arg.message, "success", 2000);
+                                        }
+                                        else{
+                                            ShowToast(arg.message, "error", 5000);}
+
+                                            //$("#toast").dxToast("instance").show();
+                                        },
+
+                                        error: function (obj)
+                                        {
+                                            //alert('Something happened');
+                                        }
 
                                     }
                                     );
@@ -321,12 +341,12 @@ else
                                     }
                         </text>)
                 )
-                        </div>
+            </div>
                     }
                     else
                     {
-                        <div id="buttonContainer" class="dx-button-icon" style="float: left; width:30%; text-align: left; background-color:white;">
-                            @(Html.DevExtreme().Button()
+            <div id="buttonContainer" class="dx-button-icon" style="float: left; width:30%; text-align: left; background-color:white;">
+                @(Html.DevExtreme().Button()
                         .Text("上傳").Height(50).Width(80).Icon("check")
                         .Type(ButtonType.Success)
                         .ID("save-button")
@@ -409,13 +429,13 @@ else
                                     }
                         </text>)
                 )
-                        </div>
+            </div>
                     }
                 }
                 else
                 {
-                    <div id="buttonContainer" class="dx-button-icon" style="float: left; width:30%; text-align: left; background-color:white;">
-                        @(Html.DevExtreme().Button()
+            <div id="buttonContainer" class="dx-button-icon" style="float: left; width:30%; text-align: left; background-color:white;">
+                @(Html.DevExtreme().Button()
                                             .Text("上傳").Height(50).Width(80).Icon("check")
                                             .Type(ButtonType.Success)
                                             .ID("save-button")
@@ -457,6 +477,7 @@ else
                                                         {
                                                         // 隱藏旋轉鈕
                                                         $("#loadPanel").dxLoadPanel("instance").hide();
+                                                            alert("成功 002");
 
                                                         // 上傳按鈕恢復可運作
                                                         ButtonContainer.option("disabled", false);
@@ -495,7 +516,7 @@ else
                                                         }
                                             </text>)
                             )
-                    </div>
+            </div>
                 }
                 <div id="ToastContainer">
                     @(Html.DevExtreme().Toast()
@@ -870,6 +891,8 @@ else
                             //.GroupPanel(p => p.(false))
                             //.Grouping(g => g.AutoExpandAll(true))
 
+                            .OnSelectionChanged("OnRowSelectionChanged")
+                            .OnEditorPrepared("OnEditorPrepared")
 
                             .Editing(editing =>
                             {
@@ -1450,8 +1473,30 @@ else
         //$("#spinner-img").hide();
         //alert("成功 001");
 
+        //var SmallGroupDataGrid = $("#SmallGroupgridContainer").dxDataGrid("instance");
+        //var NewPersonDataGrid = $("#NewPersonGridContainer").dxDataGrid("instance");
+
+        //SmallGroupDataGrid.reload();
+        //NewPersonDataGrid.reload();
+
+        //SmallGroupDataGrid.refresh();
+        //NewPersonDataGrid.refresh();
+
+        //SmallGroupDataGrid.repaint();
+        //NewPersonDataGrid.repaint();
+        
+        //SmallGroupDataGrid.refresh();
+        //NewPersonDataGrid.refresh();
+
         getLoadPanelInstance().hide();
 
+        //alert("成功 001");
+        //SmallGroupDataGrid.refresh();
+        //NewPersonDataGrid.refresh();
+        //alert("成功 002");
+        //SmallGroupDataGrid.repaint();
+        //NewPersonDataGrid.repaint();
+        //alert("成功 003");
         //DevExpress.ui.notify("新增新人已完成...", "info", 2000);
         //alert("成功 1" + status);
         //alert("成功 1" + data);
@@ -1465,7 +1510,7 @@ else
         //$("#toast").dxToast("instance").show();
 
         if (data.status == 1) {
-            //alert("成功 3" + status);
+            alert("成功 3");
 
             //DevExpress.ui.notify(data.message, "info", 2000);
             DevExpress.ui.notify(data.message, "success", 2000);
@@ -1505,6 +1550,69 @@ else
         ToastInstance.option('white-space', 'pre-line');
         ToastInstance.option('closeOnClick', true);
         ToastInstance.show();
+    }
+
+    function OnRowSelectionChanged(selectedItems) {
+        //var data = selectedItems.selectedRowsData[0];
+        //    if (data) {
+        //        $("#form").dxForm("instance").updateData('SelectedCreditCard', data.CCToken);
+        //    }
+    }
+
+    function OnEditorPrepared(options) {
+
+        //debugger;
+        //alert("OnEditorPrepared 001" + options.parentType);
+        //alert("OnEditorPrepared 002" + options.dataField);
+        //if (options.parentType == 'dataRow' && options.dataField == 'AssignedGroup') {
+
+            //alert("OnEditorPrepared 002-001" + options.row.data.AssignedGroup)
+            //alert("OnEditorPrepared 002-001" + options.row.data)
+            //options.editorElement.dxSelectBox('instance').option('onValueChanged', function (arg) {
+                //your actions here 
+                //alert("OnEditorPrepared 003" + args.value);
+                //alert("OnEditorPrepared 003" + args);
+                //alert("OnEditorPrepared 003" );
+            //});  
+
+            //e.editorOptions.onValueChanged = function (args) {
+            //    //let p = e.dataField
+
+            //    alert("OnEditorPrepared 002" + args);
+            //};
+
+            //e.editorElement.dxTextBox('instance').option('onValueChanged', args => {
+            //    alert("OnEditorPrepared 002");
+            //    //        alert("OnEditorPrepared 002" + args.value);
+            //    //        e.setValue(args.value);
+            //})
+
+
+
+            //var onValueChanged = e.editorOptions.onValueChanged;
+            //alert("OnEditorPrepared 001" + onValueChanged);
+            //alert("OnEditorPrepared 001" + onValueChanged);
+
+            //e.editorOptions.onValueChanged = function (args) {
+            //onValueChanged.apply(this, arguments);
+            //alert("OnEditorPrepared 002" + args.value);
+            // your custom code here
+            //}
+
+
+        //}
+
+        //    if (event.parentType !== 'dataRow') {
+        //        return;
+        //    }
+
+        //    alert("OnEditorPrepared 001");
+        //    e.editorElement.dxTextBox('instance').option('onValueChanged', args => {
+
+        //        alert("OnEditorPrepared 002");
+        //        //        alert("OnEditorPrepared 002" + args.value);
+        //        //        e.setValue(args.value);
+        //    })
     }
 
 </script>
