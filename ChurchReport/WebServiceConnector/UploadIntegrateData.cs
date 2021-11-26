@@ -3297,8 +3297,14 @@ namespace ChurchReport.WebServiceConnector
 
                         this.m_ToolUtilityClass.SetOptionSetAttribute(ref aMachedPresentRecordEntity, "new_weeks", ConvertFollowUpWeekPickerToIndex(aMember.FollowUpWeek));
                         this.m_ToolUtilityClass.SetOptionSetAttribute(ref aMachedPresentRecordEntity, "new_conclusion_choise", ConvertFollowUpResultPickerToIndex(aMember.FollowUpResult));
-                        this.m_ToolUtilityClass.SetOptionSetAttribute(ref aMachedPresentRecordEntity, "new_next_step", ConvertFollowUpNextStepPickerToIndex(aMember.FollowUpNextStep));
-                        this.m_ToolUtilityClass.SetOptionSetAttribute(ref aMachedPresentRecordEntity, "new_followup_ways", ConvertFollowUpOptionToIndex(aMember.FollowUpOption));
+                        if (aMember.FollowUpNextStep != "")
+                        {
+                            this.m_ToolUtilityClass.SetOptionSetAttribute(ref aMachedPresentRecordEntity, "new_next_step", ConvertFollowUpNextStepPickerToIndex(aMember.FollowUpNextStep));
+                        }
+                        if (aMember.FollowUpOption != "")
+                        {
+                            this.m_ToolUtilityClass.SetOptionSetAttribute(ref aMachedPresentRecordEntity, "new_followup_ways", ConvertFollowUpOptionToIndex(aMember.FollowUpOption));
+                        }
                         this.m_ToolUtilityClass.SetEntityStringAttribute(ref aMachedPresentRecordEntity, "new_follow_up", aMember.FollowUp);
 
                         // 因為之前APP無法直接把代禱事項和新人跟進關懷用在表單中
@@ -3325,6 +3331,12 @@ namespace ChurchReport.WebServiceConnector
                         #region 設定小組是否暫停
                         this.m_ToolUtilityClass.SetEntityBoolAttribute(ref aMachedPresentRecordEntity, "new_pause", PauseCheckBox);
                         #endregion
+                        #region//設定個人聚會與靈修記錄"停止提醒"為"是"
+                        if (m_ToolUtilityClass.GetEntityDateTimeAttribute(aMachedPresentRecordEntity, "new_care_expire_date") != null)
+                        {
+                            m_ToolUtilityClass.SetEntityBoolAttribute(ref aMachedPresentRecordEntity, "new_stop_notify", true);
+                        }
+                        #endregion
                         #region 更新個人聚會與靈修記錄
                         this.m_ToolUtilityClass.UpdateEntity(ref aMachedPresentRecordEntity);
                         #endregion
@@ -3334,7 +3346,7 @@ namespace ChurchReport.WebServiceConnector
 
                         #endregion
 
-                        if (aMember.AssignedGroup != "")
+                        if (aMember.AssignedGroup != "" && aMember.AssignedGroup != null)
                         {
                             AssignNewSmallGroup(aMachedPresentRecordEntity, aMember.AssignedGroup, aListEntity);
                         }
@@ -3344,10 +3356,10 @@ namespace ChurchReport.WebServiceConnector
                         }
                         else
                         {
-                            if ( m_ToolUtilityClass.GetEntityDateTimeAttribute(aMachedPresentRecordEntity, "new_care_expire_date") != null )
-                            {
-                                TerminateNewPersonCareWorkflow(aMachedPresentRecordEntity, aMember.AssignedGroup);
-                            }
+                            //if ( m_ToolUtilityClass.GetEntityDateTimeAttribute(aMachedPresentRecordEntity, "new_care_expire_date") != null )
+                            //{
+                            //    TerminateNewPersonCareWorkflow(aMachedPresentRecordEntity, aMember.AssignedGroup);
+                            //}
                         }
 
                     }
@@ -4150,8 +4162,13 @@ namespace ChurchReport.WebServiceConnector
 
                 String Result = LoginContactFullName + " 成功的加入 " + ExistContactFullName + " 到 " + AssignedSmallGroupName + "小組中";
 
+                // LINE通知心的小組的權柄
                 this.m_LineNotifyUtility.SendAddNewPersonResultLine(Result, aAssignedListEntity);
                 this.m_LineNotifyUtility.SendListMemberLine(aAssignedListEntity);
+
+                // LINE通知原來小組的權柄
+                this.m_LineNotifyUtility.SendAddNewPersonResultLine(Result, aActiveListEntity);
+                this.m_LineNotifyUtility.SendListMemberLine(aActiveListEntity);
 
                 return Result;
 
@@ -4514,6 +4531,10 @@ namespace ChurchReport.WebServiceConnector
                 // 設定個人聚會與靈修記錄"停止提醒"為"是"
                 SetNotRemindFlag(aAssignedContact);
 
+                #region 設定主要小組為空白
+                this.m_ToolUtilityClass.SetEntityLookUpToNull(ref aAssignedContact, "new_cell_list_contact");
+                #endregion
+
                 // 設定結案日期
                 this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aAssignedContact, "new_closed_date", DateTime.Now);
                 this.m_ToolUtilityClass.UpdateEntity(ref aAssignedContact);
@@ -4530,6 +4551,7 @@ namespace ChurchReport.WebServiceConnector
                 {
                     String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
                 }
+
 
                 String Result = this.m_ToolUtilityClass.GetEntityStringAttribute(aAssignedContact, "fullname") + "從" + this.m_ToolUtilityClass.GetEntityStringAttribute(aActiveListEntity, "listname") + " 被結案了";
                 this.m_LineNotifyUtility.SendAddNewPersonResultLine(Result, aActiveListEntity);

@@ -338,7 +338,7 @@ else
                     }
                     else
                     {
-                            <div id="buttonContainer" class="dx-button-icon" style="float: left; width:30%; text-align: left; background-color:white;">
+            <div id="buttonContainer" class="dx-button-icon" style="float: left; width:30%; text-align: left; background-color:white;">
                 @(Html.DevExtreme().Button()
                         .Text("上傳").Height(50).Width(80).Icon("check")
                         .Type(ButtonType.Success)
@@ -383,6 +383,12 @@ else
 
                                     success: function (arg)
                                     {
+                                        var SmallGroupDataGrid = $("#SmallGroupgridContainer").dxDataGrid("instance");
+                                        var NewPersonDataGrid = $("#NewPersonGridContainer").dxDataGrid("instance");
+
+                                        SmallGroupDataGrid.refresh();
+                                        NewPersonDataGrid.refresh();
+
                                     // 隱藏旋轉鈕
                                     $("#loadPanel").dxLoadPanel("instance").hide();
 
@@ -470,7 +476,6 @@ else
                                                                 {
                                                                 // 隱藏旋轉鈕
                                                                 $("#loadPanel").dxLoadPanel("instance").hide();
-                                                                    alert("成功 002");
 
                                                                 // 上傳按鈕恢復可運作
                                                                 ButtonContainer.option("disabled", false);
