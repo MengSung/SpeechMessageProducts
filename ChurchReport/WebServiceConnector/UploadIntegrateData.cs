@@ -3336,17 +3336,17 @@ namespace ChurchReport.WebServiceConnector
 
                         if (aMember.AssignedGroup != "")
                         {
-                            AssignNewSmallGroup(aMachedPresentRecordEntity.Id.ToString(), aMember.AssignedGroup, this.m_ContactEntity, aListEntity.Id.ToString());
+                            AssignNewSmallGroup(aMachedPresentRecordEntity, aMember.AssignedGroup, aListEntity);
                         }
                         else if (aMember.FollowUpNextStep == "轉介")
                         {
-                            TerminateNewPersonFollowUp(aMachedPresentRecordEntity.Id.ToString(), aMember.AssignedGroup, this.m_ContactEntity, aListEntity.Id.ToString());
+                            TerminateNewPersonFollowUp(aMachedPresentRecordEntity, aMember.AssignedGroup, aListEntity);
                         }
                         else
                         {
                             if ( m_ToolUtilityClass.GetEntityDateTimeAttribute(aMachedPresentRecordEntity, "new_care_expire_date") != null )
                             {
-                                TerminateNewPersonCareWorkflow(aMachedPresentRecordEntity.Id.ToString(), aMember.AssignedGroup, this.m_ContactEntity, aListEntity.Id.ToString());
+                                TerminateNewPersonCareWorkflow(aMachedPresentRecordEntity, aMember.AssignedGroup);
                             }
                         }
 
@@ -4052,17 +4052,12 @@ namespace ChurchReport.WebServiceConnector
         #endregion
         #endregion
         #region 指派小組
-        public String AssignNewSmallGroup(String PresentRecordId, String AssignedSmallGroupName, Entity aLoginContact, String ActiveListId)
+        public String AssignNewSmallGroup(Entity aPresentRecordEntity, String AssignedSmallGroupName, Entity aActiveListEntity)
         {
             try
             {
-                this.m_ContactEntity = aLoginContact;
-
                 // 取得被指派會友紀錄
-                Entity aAssignedContact = GetAssignedContact(PresentRecordId);
-
-                // 取得目前要被轉移的小組(目前所在的小組)
-                Entity aActiveListEntity = this.m_ToolUtilityClass.RetrieveEntity("list", new Guid(ActiveListId));
+                Entity aAssignedContact = GetAssignedContact(aPresentRecordEntity);
 
                 // 取得要轉移的小組
                 Entity aAssingedSmallGroupEntity = this.m_ToolUtilityClass.RetrieveListEntityByName(AssignedSmallGroupName);
@@ -4083,13 +4078,10 @@ namespace ChurchReport.WebServiceConnector
             }
 
         }
-        public Entity GetAssignedContact(String PresentRecordId)
+        public Entity GetAssignedContact(Entity aPresentRecordEntity)
         {
             try
             {
-                // 取得出席紀錄單
-                Entity aPresentRecordEntity = this.m_ToolUtilityClass.RetrieveEntity("new_present_record", new Guid(PresentRecordId));
-
                 // 取得出席紀錄單姓名的LookUp 的Guid
                 Guid AssignedContactId = this.m_ToolUtilityClass.GetEntityLookupAttribute(aPresentRecordEntity, "new_contact_new_present_record");
 
@@ -4512,14 +4504,12 @@ namespace ChurchReport.WebServiceConnector
         }
         #endregion
         #region 結案處理
-        public String TerminateNewPersonFollowUp(String PresentRecordId, String AssignedSmallGroupName, Entity aLoginContact, String ActiveListId)
+        public String TerminateNewPersonFollowUp(Entity aPresentRecordEntity, String AssignedSmallGroupName, Entity aActiveListEntity)
         {
             try
             {
-                this.m_ContactEntity = aLoginContact;
-
                 // 取得被指派會友紀錄
-                Entity aAssignedContact = GetAssignedContact(PresentRecordId);
+                Entity aAssignedContact = GetAssignedContact(aPresentRecordEntity);
 
                 // 設定個人聚會與靈修記錄"停止提醒"為"是"
                 SetNotRemindFlag(aAssignedContact);
@@ -4529,7 +4519,7 @@ namespace ChurchReport.WebServiceConnector
                 this.m_ToolUtilityClass.UpdateEntity(ref aAssignedContact);
 
                 // 取得目前要被轉移的小組(目前所在的小組)
-                Entity aActiveListEntity = this.m_ToolUtilityClass.RetrieveEntity("list", new Guid(ActiveListId));
+                //Entity aActiveListEntity = this.m_ToolUtilityClass.RetrieveEntity("list", new Guid(ActiveListId));
 
                 // 將連絡人從舊的名單中移除
                 try
@@ -4600,14 +4590,11 @@ namespace ChurchReport.WebServiceConnector
         }
         #endregion
         #region 有關懷到，停止關懷期限到期工作流程
-        public void TerminateNewPersonCareWorkflow(String PresentRecordId, String AssignedSmallGroupName, Entity aLoginContact, String ActiveListId)
+        public void TerminateNewPersonCareWorkflow(Entity aPresentRecordEntity, String AssignedSmallGroupName)
         {
             try
             {
-                this.m_ContactEntity = aLoginContact;
-
-                // 取得出席紀錄單
-                Entity aPresentRecordEntity = this.m_ToolUtilityClass.RetrieveEntity("new_present_record", new Guid(PresentRecordId));
+                //this.m_ContactEntity = aLoginContact;
 
                 //設定個人聚會與靈修記錄"停止提醒"為"是"
                 m_ToolUtilityClass.SetEntityBoolAttribute(ref aPresentRecordEntity, "new_stop_notify", true);
