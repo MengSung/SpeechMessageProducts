@@ -796,6 +796,14 @@ else
                                 columns.AddFor(m => m.PrayItem).Caption("代禱事項").MinWidth(90);
                                 //columns.AddFor(m => m.SmallGroupName).SortOrder(SortOrder.Desc).Caption("小組").GroupIndex(0).MinWidth(10);
 
+                                columns.AddFor(m => m.AssignedGroup)
+                                        .Caption("指派小組")
+                                        .Width(120).MinWidth(30)
+                                        .Lookup(lookup => lookup
+                                        .DataSource(Model.GroupArray)
+                                    //.DisplayExpr("Name")
+                                    //.ValueExpr("ID")
+                                    );
 
                             })
                             .DataSource

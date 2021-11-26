@@ -3334,6 +3334,22 @@ namespace ChurchReport.WebServiceConnector
 
                         #endregion
 
+                        if (aMember.AssignedGroup != "")
+                        {
+                            AssignNewSmallGroup(aMachedPresentRecordEntity.Id.ToString(), aMember.AssignedGroup, this.m_ContactEntity, aListEntity.Id.ToString());
+                        }
+                        else if (aMember.FollowUpNextStep == "轉介")
+                        {
+                            TerminateNewPersonFollowUp(aMachedPresentRecordEntity.Id.ToString(), aMember.AssignedGroup, this.m_ContactEntity, aListEntity.Id.ToString());
+                        }
+                        else
+                        {
+                            if ( m_ToolUtilityClass.GetEntityDateTimeAttribute(aMachedPresentRecordEntity, "new_care_expire_date") != null )
+                            {
+                                TerminateNewPersonCareWorkflow(aMachedPresentRecordEntity.Id.ToString(), aMember.AssignedGroup, this.m_ContactEntity, aListEntity.Id.ToString());
+                            }
+                        }
+
                     }
                     else
                     {
@@ -4581,6 +4597,34 @@ namespace ChurchReport.WebServiceConnector
 
                 throw e;
             }
+        }
+        #endregion
+        #region 有關懷到，停止關懷期限到期工作流程
+        public void TerminateNewPersonCareWorkflow(String PresentRecordId, String AssignedSmallGroupName, Entity aLoginContact, String ActiveListId)
+        {
+            try
+            {
+                this.m_ContactEntity = aLoginContact;
+
+                // 取得出席紀錄單
+                Entity aPresentRecordEntity = this.m_ToolUtilityClass.RetrieveEntity("new_present_record", new Guid(PresentRecordId));
+
+                //設定個人聚會與靈修記錄"停止提醒"為"是"
+                m_ToolUtilityClass.SetEntityBoolAttribute(ref aPresentRecordEntity, "new_stop_notify", true);
+
+                // 更新個人聚會與靈修記錄
+                this.m_ToolUtilityClass.UpdateEntity(ref aPresentRecordEntity);
+
+                return;
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                throw e;
+            }
+
         }
         #endregion
         #region 設定委身類型

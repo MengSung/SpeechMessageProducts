@@ -1669,28 +1669,28 @@ namespace ChurchReport.Controllers
                 m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.UpdateMember(key, values);
 
                 // 專門指針對換小組處理
-                String Operation = "";
-                m_InMemoryDataContextSmallGroup.NewPersonModel.ProcessKeyValue( ref Operation, ref values);
+                //String Operation = "";
+                //m_InMemoryDataContextSmallGroup.NewPersonModel.ProcessKeyValue( ref Operation, ref values);
 
-                if ( Operation == "AssignedGroup")
-                {
-                    //string Result = m_InMemoryDataContextSmallGroup.NewPersonModel.AssignNewSmallGroup(m_InMemoryDataContextSmallGroup.ListManager.m_Account, m_InMemoryDataContextSmallGroup.ListManager.m_Password);
-                    // 指派小組
-                    Task.Factory.StartNew(() => m_InMemoryDataContextSmallGroup.NewPersonModel.AssignNewSmallGroup( key , values , m_InMemoryDataContextSmallGroup.PersonalInfomationModel.m_LoginContact, m_InMemoryDataContextSmallGroup.ListManager.ActiveListId ), TaskCreationOptions.LongRunning);
-                }
-                else if( Operation == "FollowUpNextStep")
-                {
-                    if( values == "轉介")
-                    {
-                        // 結案處理
-                        Task.Factory.StartNew(() => m_InMemoryDataContextSmallGroup.NewPersonModel.TerminateNewPersonFollowUp(key, values, m_InMemoryDataContextSmallGroup.PersonalInfomationModel.m_LoginContact, m_InMemoryDataContextSmallGroup.ListManager.ActiveListId), TaskCreationOptions.LongRunning);
-                    }
-                }
-                else
-                {
-                    // 有關懷到，停止關懷期限到期工作流程
-                    Task.Factory.StartNew(() => m_InMemoryDataContextSmallGroup.NewPersonModel.TerminateNewPersonCareWorkflow(key, values, m_InMemoryDataContextSmallGroup.PersonalInfomationModel.m_LoginContact, m_InMemoryDataContextSmallGroup.ListManager.ActiveListId), TaskCreationOptions.LongRunning);
-                }
+                //if ( Operation == "AssignedGroup")
+                //{
+                //    //string Result = m_InMemoryDataContextSmallGroup.NewPersonModel.AssignNewSmallGroup(m_InMemoryDataContextSmallGroup.ListManager.m_Account, m_InMemoryDataContextSmallGroup.ListManager.m_Password);
+                //    // 指派小組
+                //    Task.Factory.StartNew(() => m_InMemoryDataContextSmallGroup.NewPersonModel.AssignNewSmallGroup( key , values , m_InMemoryDataContextSmallGroup.PersonalInfomationModel.m_LoginContact, m_InMemoryDataContextSmallGroup.ListManager.ActiveListId ), TaskCreationOptions.LongRunning);
+                //}
+                //else if( Operation == "FollowUpNextStep")
+                //{
+                //    if( values == "轉介")
+                //    {
+                //        // 結案處理
+                //        Task.Factory.StartNew(() => m_InMemoryDataContextSmallGroup.NewPersonModel.TerminateNewPersonFollowUp(key, values, m_InMemoryDataContextSmallGroup.PersonalInfomationModel.m_LoginContact, m_InMemoryDataContextSmallGroup.ListManager.ActiveListId), TaskCreationOptions.LongRunning);
+                //    }
+                //}
+                //else
+                //{
+                //    // 有關懷到，停止關懷期限到期工作流程
+                //    Task.Factory.StartNew(() => m_InMemoryDataContextSmallGroup.NewPersonModel.TerminateNewPersonCareWorkflow(key, values, m_InMemoryDataContextSmallGroup.PersonalInfomationModel.m_LoginContact, m_InMemoryDataContextSmallGroup.ListManager.ActiveListId), TaskCreationOptions.LongRunning);
+                //}
 
                 return Ok();
             }
