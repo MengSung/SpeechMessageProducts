@@ -3332,7 +3332,7 @@ namespace ChurchReport.WebServiceConnector
                         this.m_ToolUtilityClass.SetEntityBoolAttribute(ref aMachedPresentRecordEntity, "new_pause", PauseCheckBox);
                         #endregion
                         #region//設定個人聚會與靈修記錄"停止提醒"為"是"
-                        if (m_ToolUtilityClass.GetEntityDateTimeAttribute(aMachedPresentRecordEntity, "new_care_expire_date") != null)
+                        if (aMember.AssignedGroup != "")
                         {
                             m_ToolUtilityClass.SetEntityBoolAttribute(ref aMachedPresentRecordEntity, "new_stop_notify", true);
                         }
@@ -3349,10 +3349,14 @@ namespace ChurchReport.WebServiceConnector
                         if (aMember.AssignedGroup != "" && aMember.AssignedGroup != null)
                         {
                             AssignNewSmallGroup(aMachedPresentRecordEntity, aMember.AssignedGroup, aListEntity);
+
+                            //aSmallGroupData.Members.Remove(aMember);
                         }
                         else if (aMember.FollowUpNextStep == "轉介")
                         {
                             TerminateNewPersonFollowUp(aMachedPresentRecordEntity, aMember.AssignedGroup, aListEntity);
+
+                            //aSmallGroupData.Members.Remove(aMember);
                         }
                         else
                         {
@@ -3370,6 +3374,32 @@ namespace ChurchReport.WebServiceConnector
                     }
                 }
 
+                for (int i = 0; i < aSmallGroupData.Members.Count; i++)
+                {
+                    if (aSmallGroupData.Members[i].AssignedGroup != "" && aSmallGroupData.Members[i].AssignedGroup != null)
+                    {
+                        aSmallGroupData.Members.RemoveAt(i);
+                    }
+                    else if (aSmallGroupData.Members[i].FollowUpNextStep == "轉介")
+                    {
+                        aSmallGroupData.Members.RemoveAt(i);
+                    }
+                    else { }
+                }
+                //foreach (Member aMember in aSmallGroupData.Members)
+                //{
+                //    if (aMember.AssignedGroup != "" && aMember.AssignedGroup != null)
+                //    {
+                //        aSmallGroupData.Members.Remove(aMember);
+                //    }
+                //    else if (aMember.FollowUpNextStep == "轉介")
+                //    {
+                //        aSmallGroupData.Members.Remove(aMember);
+                //    }
+                //    else
+                //    {
+                //    }
+                //}
                 #endregion
             }
             catch (System.Exception Exception)
