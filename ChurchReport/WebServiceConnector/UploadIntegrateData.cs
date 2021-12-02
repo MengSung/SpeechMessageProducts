@@ -4570,10 +4570,12 @@ namespace ChurchReport.WebServiceConnector
 
                 // 設定結案日期
                 this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aAssignedContact, "new_closed_date", DateTime.Now);
-                this.m_ToolUtilityClass.UpdateEntity(ref aAssignedContact);
 
                 // 設定委身類型=>結案
                 this.m_ToolUtilityClass.SetOptionSetAttribute(ref aAssignedContact, "customertypecode", 100000001);
+
+                // 更新聯絡人
+                this.m_ToolUtilityClass.UpdateEntity(ref aAssignedContact);
 
                 // 取得目前要被轉移的小組(目前所在的小組)
                 //Entity aActiveListEntity = this.m_ToolUtilityClass.RetrieveEntity("list", new Guid(ActiveListId));
