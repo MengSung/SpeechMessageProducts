@@ -3331,10 +3331,13 @@ namespace ChurchReport.WebServiceConnector
                         #region 設定小組是否暫停
                         this.m_ToolUtilityClass.SetEntityBoolAttribute(ref aMachedPresentRecordEntity, "new_pause", PauseCheckBox);
                         #endregion
-                        #region//設定個人聚會與靈修記錄"停止提醒"為"是"
-                        if (aMember.AssignedGroup != "")
+                        #region//設定個人聚會與靈修記錄"停止提醒"為"是" + 設定個人聚會與靈修記錄"不要顯示在回報網頁"為"是"
+                        if ( aMember.AssignedGroup != "" && aMember.AssignedGroup != null )
                         {
+                            //設定個人聚會與靈修記錄"停止提醒"為"是"
                             m_ToolUtilityClass.SetEntityBoolAttribute(ref aMachedPresentRecordEntity, "new_stop_notify", true);
+                            //設定個人聚會與靈修記錄"不要顯示在回報網頁"為"是"
+                            m_ToolUtilityClass.SetEntityBoolAttribute(ref aMachedPresentRecordEntity, "new_not_display", true);
                         }
                         #endregion
                         #region 更新個人聚會與靈修記錄
@@ -4569,6 +4572,9 @@ namespace ChurchReport.WebServiceConnector
                 this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aAssignedContact, "new_closed_date", DateTime.Now);
                 this.m_ToolUtilityClass.UpdateEntity(ref aAssignedContact);
 
+                // 設定委身類型=>結案
+                this.m_ToolUtilityClass.SetOptionSetAttribute(ref aAssignedContact, "customertypecode", 100000001);
+
                 // 取得目前要被轉移的小組(目前所在的小組)
                 //Entity aActiveListEntity = this.m_ToolUtilityClass.RetrieveEntity("list", new Guid(ActiveListId));
 
@@ -4650,6 +4656,9 @@ namespace ChurchReport.WebServiceConnector
 
                 //設定個人聚會與靈修記錄"停止提醒"為"是"
                 m_ToolUtilityClass.SetEntityBoolAttribute(ref aPresentRecordEntity, "new_stop_notify", true);
+
+                //設定個人聚會與靈修記錄"不要顯示在回報網頁"為"是"
+                m_ToolUtilityClass.SetEntityBoolAttribute(ref aPresentRecordEntity, "new_not_display", true);
 
                 // 更新個人聚會與靈修記錄
                 this.m_ToolUtilityClass.UpdateEntity(ref aPresentRecordEntity);
