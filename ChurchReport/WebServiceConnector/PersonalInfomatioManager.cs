@@ -298,6 +298,8 @@ namespace ChurchReport.WebServiceConnector
             { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "familystatuscode", 4); }
             else if (aNewContact.MerrageState == "單身")
             { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "familystatuscode", 100000000); }
+            else if (aNewContact.MerrageState == "單親")
+            { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "familystatuscode", 100000003); }
             else if (aNewContact.MerrageState == "未知")
             { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "familystatuscode", 100000001); }
             else { }
@@ -626,6 +628,8 @@ namespace ChurchReport.WebServiceConnector
             { aPersonalInfomationViewModel.MerrageState = "喪偶"; }
             else if (MerrageState == 100000000)
             { aPersonalInfomationViewModel.MerrageState = "單身"; }
+            else if (MerrageState == 100000003)
+            { aPersonalInfomationViewModel.MerrageState = "單親"; }
             else if (MerrageState == 100000001)
             { aPersonalInfomationViewModel.MerrageState = "未知"; }
             else { }
@@ -753,6 +757,8 @@ namespace ChurchReport.WebServiceConnector
             { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aContactEntity, "familystatuscode", 4); }
             else if (aPersonalInfomationViewModel.MerrageState == "單身")
             { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aContactEntity, "familystatuscode", 100000000); }
+            else if (aPersonalInfomationViewModel.MerrageState == "單親")
+            { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aContactEntity, "familystatuscode", 100000003); }
             else if (aPersonalInfomationViewModel.MerrageState == "未知")
             { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aContactEntity, "familystatuscode", 100000001); }
             else { }

@@ -569,6 +569,8 @@ namespace ChurchReport.WebServiceConnector
             { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "familystatuscode", 4); }
             else if (aNewContact.MerrageState == "單身")
             { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "familystatuscode", 100000000); }
+            else if (aNewContact.MerrageState == "單親")
+            { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "familystatuscode", 100000003); }
             else if (aNewContact.MerrageState == "未知")
             { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "familystatuscode", 100000001); }
             else { }

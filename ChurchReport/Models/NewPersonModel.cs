@@ -161,6 +161,30 @@ namespace ChurchReport.Models
             m_NewContact.FaithStatus = aPersonFormViewModel.Status;
 
         }
+        public void ResetPersonFormViewModel(PersonFormViewModel aPersonFormViewModel)
+        {
+            aPersonFormViewModel.FirstName ="";
+            aPersonFormViewModel.LastName= "";
+            aPersonFormViewModel.CustomerTypeCode="新朋友";
+            //aPersonFormViewModel.Gender;
+            aPersonFormViewModel.Phone ="";
+            aPersonFormViewModel.HomePhone ="";
+            //aPersonFormViewModel.Position;
+            //aPersonFormViewModel.BirthDate;
+            //aPersonFormViewModel.HireDate;
+            aPersonFormViewModel.Notes ="";
+            aPersonFormViewModel.Address="";
+            aPersonFormViewModel.ReadBibleNumber=0;
+            aPersonFormViewModel.Status= "未信主";
+            aPersonFormViewModel.Introducer="";
+            aPersonFormViewModel.IntroducerPhone="";
+            aPersonFormViewModel.IntroducerRelation="";
+            aPersonFormViewModel.IntroducerGroup="";
+            aPersonFormViewModel.MerrageState= "未知";
+            aPersonFormViewModel.Industry="";
+            //aPersonFormViewModel.EquipmentStatus;
+            //aPersonFormViewModel.SpiritualIdentity;
+        }
 
         #region 指派小組
         public void ProcessKeyValue( ref string Operation, ref string values )

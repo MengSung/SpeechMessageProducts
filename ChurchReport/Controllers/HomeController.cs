@@ -3242,10 +3242,14 @@ namespace ChurchReport.Controllers
                         //m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.AddNewPersonToMember(aPersonFormViewModel);
                     }
 
+                    m_InMemoryDataContextSmallGroup.NewPersonModel.ResetPersonFormViewModel(m_InMemoryDataContextSmallGroup.NewPersonModel.m_PersonFormViewModel);
+
                     return Json(new { status = "1", message = Result });
                 }
                 else
                 {
+                    m_InMemoryDataContextSmallGroup.NewPersonModel.ResetPersonFormViewModel(m_InMemoryDataContextSmallGroup.NewPersonModel.m_PersonFormViewModel);
+
                     return Json(new { status = "2", message = Result });
                 }
             }
