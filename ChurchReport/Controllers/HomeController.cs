@@ -3242,12 +3242,14 @@ namespace ChurchReport.Controllers
                         //m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.AddNewPersonToMember(aPersonFormViewModel);
                     }
 
+                    // 重設新增新人之後的資料
                     m_InMemoryDataContextSmallGroup.NewPersonModel.ResetPersonFormViewModel(m_InMemoryDataContextSmallGroup.NewPersonModel.m_PersonFormViewModel);
 
                     return Json(new { status = "1", message = Result });
                 }
                 else
                 {
+                    // 重設新增新人之後的資料
                     m_InMemoryDataContextSmallGroup.NewPersonModel.ResetPersonFormViewModel(m_InMemoryDataContextSmallGroup.NewPersonModel.m_PersonFormViewModel);
 
                     return Json(new { status = "2", message = Result });

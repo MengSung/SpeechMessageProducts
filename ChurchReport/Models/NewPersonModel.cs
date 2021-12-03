@@ -161,6 +161,8 @@ namespace ChurchReport.Models
             m_NewContact.FaithStatus = aPersonFormViewModel.Status;
 
         }
+
+        // 重設新增新人之後的資料
         public void ResetPersonFormViewModel(PersonFormViewModel aPersonFormViewModel)
         {
             aPersonFormViewModel.FirstName ="";
