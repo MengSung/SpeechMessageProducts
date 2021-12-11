@@ -46,7 +46,7 @@ namespace ChurchReport.Tools
         bool m_NotifyLineFlag = false;
 
         // 客製化
-        // 台中思恩堂豐富教會
+        // 安平靈糧堂
         private const String CHANNEL_ACCESS_TOKEN = @"MwTnnrBtGgUaj+ZfbiKx7dxYxIuJKBmX9PLwKcRQU+VG4u0Gvyv2VeIjmNOr3pVGfH4JizB2wNbT0K0c4pT/XXCoBpK3lMQGaRAfS0FMoy05WDFQJgTL7etz9BHrzzWL6j0aFfutv6F4sMvcAdkTPgdB04t89/1O/w1cDnyilFU=";
 
         #endregion
@@ -55,7 +55,7 @@ namespace ChurchReport.Tools
         public PersonalQrCodeUtility()
         {
             // 客製化，請選擇
-            // 台中思恩堂豐富教會(免費版)
+            // 安平靈糧堂(免費版)
             this.m_LineMessagingClient = new LineMessagingClient(CHANNEL_ACCESS_TOKEN);
 
             // 客製化

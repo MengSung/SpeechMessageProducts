@@ -41,21 +41,21 @@ namespace ToolUtilityNameSpace
 
         // 客製化
         #region 安平靈糧堂(雲端機房)
-        //private const String SERVER = "speechmessage.com.tw";
-        //private const String PORT = "7777";
-        //private const String ORGANIZATION = "dhchurch";
-        //private const String USERNAME = "Administrator@speechmessage.com.tw";
-        //private const String PASSWORD = "hu9840";
-        //private const String DOMAIN = "DYNAMICS-365";
+        private const String SERVER = "speechmessage.com.tw";
+        private const String PORT = "7777";
+        private const String ORGANIZATION = "apbolc";
+        private const String USERNAME = "Administrator@speechmessage.com.tw";
+        private const String PASSWORD = "hu9840";
+        private const String DOMAIN = "DYNAMICS-365";
         #endregion
 
         #region 安平靈糧堂(公司內部發展)
-        private const String SERVER = "speechmessage.com.tw";
-        private const String PORT = "7777";
-        private const String ORGANIZATION = "apbolcback";
-        private const String USERNAME = "Administrator@speechmessage.com.tw";
-        private const String PASSWORD = "hu9840";
-        private const String DOMAIN = "SPEECHMESSAGE";
+        //private const String SERVER = "speechmessage.com.tw";
+        //private const String PORT = "7777";
+        //private const String ORGANIZATION = "apbolcback";
+        //private const String USERNAME = "Administrator@speechmessage.com.tw";
+        //private const String PASSWORD = "hu9840";
+        //private const String DOMAIN = "SPEECHMESSAGE";
         #endregion
 
         #region 僅供參考區塊
