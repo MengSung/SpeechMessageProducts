@@ -2763,19 +2763,24 @@ namespace ChurchReport.WebServiceConnector
                 }
             }
 
-            if (SetIdentityByUpload(ref aContactEntity, ref aMember) == true)
+            if (ModifyFlag != true)
             {
-                // 有透過手動更改委身類型
-                ModifyFlag = true;
-            }
-            else
-            {
-                if (SET_IDENTITY_METHOD == "透過過去8週出席次數")
+                #region 之前的人基本資料就已經有改過了
+                if (SetIdentityByUpload(ref aContactEntity, ref aMember) == true)
                 {
-                    // 沒透過手動更改委身類型，就改為由系統判斷
-                    // 透過過去8週出席次數，自動計算委身類型
-                    ModifyFlag = SetIdentity(aListEntityId, ref aContactEntity);
+                    // 有透過手動更改委身類型
+                    ModifyFlag = true;
                 }
+                else
+                {
+                    if (SET_IDENTITY_METHOD == "透過過去8週出席次數")
+                    {
+                        // 沒透過手動更改委身類型，就改為由系統判斷
+                        // 透過過去8週出席次數，自動計算委身類型
+                        ModifyFlag = SetIdentity(aListEntityId, ref aContactEntity);
+                    }
+                }
+                #endregion
             }
 
             if (ModifyFlag == true)
@@ -2783,7 +2788,6 @@ namespace ChurchReport.WebServiceConnector
                 // 更新聯絡人
                 this.m_ToolUtilityClass.UpdateEntity(ref aContactEntity);
             }
-
         }
 
         private Guid GetContactSpiritLeaderId(Guid ListEntityId, String BestLeaderName)
@@ -3027,9 +3031,9 @@ namespace ChurchReport.WebServiceConnector
                 }
 
                 // 透過 LINE 回報權柄
-                if (aSmallGroupData.LoginType == "小組長")
+                if (aSmallGroupData.LoginType == "小組長" && WeeklyReportData != "不需更新小組日誌")
                 {
-                    // 個人回報就不LINE給權柄了
+                    // 個人回報就不LINE給權柄了，如果是上傳組員基本資料也不必回報LINE給權柄了
                     this.m_LineNotifyUtility.SendSmallGroupResultLine(this.m_ContactEntity, SmallGroupResult, aGroupWeeklyReportGuid, aWeeklyReportId, ref aListEntity, ref aSmallGroupData, WeeklyReportData, PauseCheckBox);
                 }
 
