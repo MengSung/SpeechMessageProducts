@@ -535,7 +535,8 @@ namespace ChurchReport.WebServiceConnector
             //this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "customertypecode", 100000009);
 
             // 生日
-            if (aNewContact.BirthDate.Year != 1919)
+            if (aNewContact.BirthDate != new DateTime(1919, 1, 1))
+            //if (aNewContact.BirthDate.Year != 1919)
             {
                 this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aNewContactEntity, "birthdate", aNewContact.BirthDate);
             }
