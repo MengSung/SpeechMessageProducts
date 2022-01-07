@@ -204,17 +204,37 @@
 
         function Register(arg) {
 
+            // 取得註冊的按鈕
+            var ButtonContainer = $("#register-button").dxButton("instance");
+
+            // 註冊按鈕反白
+            ButtonContainer.option("disabled", true);
+
+            // 顯示旋轉鈕
             getLoadPanelInstance().show();
         }
 
     </script>
 
     <script type="text/javascript">
-        function onBegin() {
+        function onBegin()
+        {
+            // 取得註冊的按鈕
+            var ButtonContainer = $("#register-button").dxButton("instance");
+
+            // 註冊按鈕反白
+            ButtonContainer.option("disabled", true);
+
+            // 顯示旋轉鈕
+            getLoadPanelInstance().show();
         }
 
         function onSuccess(data) {
 
+            // 註冊按鈕恢復可運作
+            ButtonContainer.option("disabled", false);
+
+            // 隱藏旋轉鈕
             getLoadPanelInstance().hide();
 
             if (data.status == 1) {
