@@ -231,6 +231,9 @@
 
         function onSuccess(data) {
 
+            // 取得註冊的按鈕
+            var ButtonContainer = $("#register-button").dxButton("instance");
+
             // 註冊按鈕恢復可運作
             ButtonContainer.option("disabled", false);
 
