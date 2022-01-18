@@ -404,14 +404,23 @@
                             .DataSource(new string[]
                             {
                                 "現金",
-                                "信用卡",
-                                "ATM轉帳/匯款",
+                                //"信用卡",
+                                //"ATM轉帳/匯款",
                                 "銀行轉帳",
                             }
                         //.DisplayExpr("Name")
                         )
                         .Value("現金")
                     );
+            items.AddSimpleFor(m => m.Explain)
+                //.DataField("LastName")
+                .Label(l => l.Text("備註").Visible(true))
+                .Editor(e => e
+                    .TextBox()
+                    .Width(150).Visible(true)
+                    //.Disabled(true)
+                    .Placeholder("請輸入備註")
+               );
 
             items.AddSimpleFor(m => m.ClickType)
                     //.DataField("LastName")

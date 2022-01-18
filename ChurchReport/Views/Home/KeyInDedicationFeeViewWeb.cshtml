@@ -412,6 +412,16 @@
                         .Value("現金")
                     );
 
+            items.AddSimpleFor(m => m.Explain)
+                //.DataField("LastName")
+                .Label(l => l.Text("備註").Visible(true))
+                .Editor(e => e
+                    .TextBox()
+                    .Width(150).Visible(true)
+                    //.Disabled(true)
+                    .Placeholder("請輸入備註")
+               );
+
             items.AddSimpleFor(m => m.ClickType)
                     //.DataField("LastName")
                     .Label(l => l.Text("查詢或上傳").Visible(false))
@@ -454,6 +464,7 @@
             $("#form1").dxForm("instance").updateData('FullName', "");
             $("#form1").dxForm("instance").updateData('Mobile', "");
             $("#form2").dxForm("instance").updateData('Amount', "");
+            $("#form2").dxForm("instance").updateData('Explain', "");
             $("#form1").dxForm("instance").updateData('LastSixDigit', "");
             $("#form1").dxForm("instance").getEditor('DedicationNumber').focus();
 
@@ -568,6 +579,7 @@
                     $("#form1").dxForm("instance").updateData('FullName', "");
                     $("#form1").dxForm("instance").updateData('Mobile', "");
                     $("#form2").dxForm("instance").updateData('Amount', "");
+                    $("#form2").dxForm("instance").updateData('Explain', "");
                     $("#form1").dxForm("instance").updateData('LastSixDigit', "");
                     $("#form1").dxForm("instance").getEditor('DedicationNumber').focus();
                     document.getElementById("samenamecontainer").style.display = "none";//隱藏
