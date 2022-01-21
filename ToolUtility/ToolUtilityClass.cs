@@ -540,7 +540,7 @@ namespace ToolUtilityNameSpace
         #endregion
         #region 透過屬性取得實體
         #region 取得一般實體
-        public Entity RetrieveEntityByField( String EntityName, String FieldName, String FieldValue )
+        public Entity RetrieveEntityByField(String EntityName, String FieldName, String FieldValue)
         {
             try
             {
@@ -572,6 +572,47 @@ namespace ToolUtilityNameSpace
                 if (retrieved.Entities.Count > 0 && retrieved != null)
                 {
                     return retrieved.Entities[0];
+                }
+                else { return null; }
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                throw e;
+            }
+        }
+        public EntityCollection RetrieveEntityCollectionByField(String EntityName, String FieldName, String FieldValue)
+        {
+            try
+            {
+                //lock (m_RetrieveContactLocker)
+                //{
+                //  Create query using querybyattribute
+                //Console.WriteLine("除錯 001");
+
+                QueryByAttribute querybyexpression = new QueryByAttribute(EntityName);
+                querybyexpression.ColumnSet = new ColumnSet();
+                querybyexpression.ColumnSet.AllColumns = true;
+                //  Attribute to query
+                querybyexpression.Attributes.AddRange(FieldName, "statecode");
+                //  Value of queried attribute to return
+                querybyexpression.Values.AddRange(FieldValue, 0);
+
+                //Console.WriteLine("除錯 002");
+                //  Query passed to the service proxy
+                EntityCollection retrieved;
+                if (CRM_TYPE == "DYNAMICS365")
+                {
+                    retrieved = this.m_OrganizationService.RetrieveMultiple(querybyexpression);
+                }
+                else
+                {
+                    retrieved = this.m_Crm2011OrganizationService.RetrieveMultiple(querybyexpression);
+                }
+
+                if (retrieved.Entities.Count > 0 && retrieved != null)
+                {
+                    return retrieved;
                 }
                 else { return null; }
             }

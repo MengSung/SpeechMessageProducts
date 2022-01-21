@@ -493,6 +493,8 @@
                 $("#form1").dxForm("instance").updateData('NationId', data.NationId);
                 $("#form1").dxForm("instance").updateData('FullName', data.FullName);
                 $("#form1").dxForm("instance").updateData('Mobile', data.Mobile);
+
+                $("#SameNameList").dxDataGrid("instance").deselectAll();
             }
         }
         function OnRowSelectionChanged(selectedItems) {
@@ -504,6 +506,8 @@
                 $("#form1").dxForm("instance").updateData('NationId', data.NationId);
                 $("#form1").dxForm("instance").updateData('FullName', data.FullName);
                 $("#form1").dxForm("instance").updateData('Mobile', data.Mobile);
+
+                $("#SameNameList").dxDataGrid("instance").deselectAll();
             }
         }
     </script>

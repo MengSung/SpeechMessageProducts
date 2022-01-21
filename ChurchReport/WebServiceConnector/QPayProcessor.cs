@@ -738,7 +738,17 @@ namespace ChurchReport.WebServiceConnector
                 if (QpayModel.DedicationNumber != "" && QpayModel.DedicationNumber != null)
                 {
                     // 連絡人有奉獻編號
-                    return this.m_ToolUtilityClass.RetrieveEntityByField("contact", "pager", QpayModel.DedicationNumber);
+                    EntityCollection aContactEntityCollection = this.m_ToolUtilityClass.RetrieveEntityCollectionByField("contact", "pager", QpayModel.DedicationNumber);
+
+                    foreach( Entity aContact in aContactEntityCollection.Entities)
+                    {
+                        if(QpayModel.FullName == this.m_ToolUtilityClass.GetEntityStringAttribute(aContact, "fullname") )
+                        {
+                            return aContact;
+                        }
+                    }
+
+                    return null;
                 }
                 else if (QpayModel.FullName != "" && QpayModel.Mobile != "" && QpayModel.Mobile != null)
                 {
