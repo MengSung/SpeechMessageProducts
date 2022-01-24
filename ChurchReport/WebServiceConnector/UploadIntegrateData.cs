@@ -107,6 +107,7 @@ namespace ChurchReport.WebServiceConnector
         /// <param name="Password"></param>
         /// <param name="ListEntityId"></param>
         /// <param name="WeeklyReportEntityId"></param>
+        //
         /// <param name="aSmallGroupDate"></param>
         /// <param name="UploadCategory"> "主日點名"、"小組點名"</param>
         /// <param name="aSmallGroupData"></param>
@@ -4236,8 +4237,22 @@ namespace ChurchReport.WebServiceConnector
                 // 根據日期看有沒有那個週報
                 #region 先根據日期尋找當週主日日期
                 // 其值的範圍從 0 (表示 DayOfWeek.Sunday) 為 6 (表示 DayOfWeek.Saturday)。
+                //int DayOfWeek = (int)DateTime.Now.DayOfWeek;
+                //this.m_Sunday = DateTime.Now.AddDays(-DayOfWeek);
+
                 int DayOfWeek = (int)DateTime.Now.DayOfWeek;
-                this.m_Sunday = DateTime.Now.AddDays(-DayOfWeek);
+
+                if (DayOfWeek < 6)
+                {
+                    // 小於 6 表示星期日到星期五=>當週的星期日為認定的主日
+                    this.m_Sunday = DateTime.Now.AddDays(-DayOfWeek);
+                }
+                else
+                {
+                    // 為 6 = 星期六 (表示 DayOfWeek.Saturday)表示要加1到下一個星期日為認定的主日
+                    this.m_Sunday = DateTime.Now.AddDays(1);
+                }
+
                 #endregion
                 //Entity GroupWeeklyReportEntity = FilterWeeklyReportByDate(ref GroupWeeklyReportEntityCollection);
                 //if (GroupWeeklyReportEntity == null)
