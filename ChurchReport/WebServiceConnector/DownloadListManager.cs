@@ -481,6 +481,23 @@ namespace ChurchReport.WebServiceConnector
                 aListEntityCollection = m_ToolUtilityClass.QueryListByContactId(m_ContactId, "new_contact_list_co_arealeader");  // 共同區牧
                 MergeCollectionSmallGroupAhead(ref aListEntityCollection);
 
+                #region 按照名單名字排序
+                if (m_Lists.Entities.Count > 0)
+                {
+                    EntityCollection aLists = new EntityCollection();
+                    foreach (Entity aEntity in m_Lists.Entities.OrderBy(o => o.Attributes["listname"]).ToList())
+                    {
+                        aLists.Entities.Add(aEntity);
+                    }
+
+                    m_Lists.Entities.Clear();
+                    foreach (Entity aEntity in aLists.Entities)
+                    {
+                        m_Lists.Entities.Add(aEntity);
+                    }
+                }
+                #endregion
+
                 return;
             }
             catch (System.Exception Exception)
