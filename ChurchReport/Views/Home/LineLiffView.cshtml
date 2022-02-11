@@ -170,7 +170,7 @@
 
     <div id="ToastContainer">
         @(Html.DevExtreme().Toast()
-                        .ID("toast")
+                        .ID("Toast")
                         .Position(p => p
                         .At(HorizontalAlignment.Center, VerticalAlignment.Center)
                         .Offset(0, 50))
@@ -210,6 +210,15 @@
             // 註冊按鈕反白
             ButtonContainer.option("disabled", true);
 
+            ShowToast("正在處理中，請稍待...", "success", 3000);
+
+            DevExpress.ui.notify({
+                displayTime: 3000,
+                closeOnClick: true,
+                message: "正在處理中，請稍待喔...",
+                type: 'success',
+            });
+
             // 顯示旋轉鈕
             getLoadPanelInstance().show();
         }
@@ -224,6 +233,15 @@
 
             // 註冊按鈕反白
             ButtonContainer.option("disabled", true);
+
+            //ShowToast("正在處理中，請稍待...", "success", 2000);
+
+            //DevExpress.ui.notify({
+            //    displayTime: 15000,
+            //    closeOnClick: true,
+            //    message: "正在處理中，請稍待喔...",
+            //    type: 'success',
+            //});
 
             // 顯示旋轉鈕
             getLoadPanelInstance().show();
