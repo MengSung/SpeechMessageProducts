@@ -314,7 +314,7 @@ namespace ChurchReport.WebServiceConnector
                 case "愛心奉獻":
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000002);
                     break;
-                case "擴堂奉獻":
+                case "建堂奉獻":
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000003);
                     break;
                 case "代收代轉":
@@ -325,6 +325,9 @@ namespace ChurchReport.WebServiceConnector
                     break;
                 case "其他奉獻":
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000006);
+                    break;
+                case "紓困奉獻":
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000007);
                     break;
                 default:
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000000);
@@ -345,7 +348,7 @@ namespace ChurchReport.WebServiceConnector
                 case "愛心奉獻":
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, EntityName, 100000002);
                     break;
-                case "擴堂奉獻":
+                case "建堂奉獻":
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, EntityName, 100000003);
                     break;
                 case "代收代轉":
@@ -356,6 +359,9 @@ namespace ChurchReport.WebServiceConnector
                     break;
                 case "其他奉獻":
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, EntityName, 100000006);
+                    break;
+                case "紓困奉獻":
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, EntityName, 100000007);
                     break;
                 default:
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, EntityName, 100000000);

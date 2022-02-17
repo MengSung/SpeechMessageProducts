@@ -323,7 +323,9 @@ namespace ChurchReport.Controllers
             try
             {
                 var images = new List<string>();
-                images.Add(Url.Content("~/assets/images/永和堂奉獻系統web_banner.jpg"));
+
+                // 官網整合串連金流奉獻跑馬燈
+                images.Add(Url.Content("~/assets/images/apbolc-003.jpg"));
 
                 return View(new GalleryViewModel
                 {

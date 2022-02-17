@@ -772,6 +772,11 @@ namespace ChurchReport.Models
                     // 選最後個信用卡
                     //m_QpayModel.SelectedCreditCard = m_QpayModel.CreditCardList[m_QpayModel.CreditCardList.Count - 1].CCToken;
                 }
+                else
+                {
+                    // 沒有預存信用卡
+                    m_QpayModel.SelectedCreditCard = null;
+                }
             }
             catch (System.Exception e)
             {
@@ -1170,13 +1175,15 @@ namespace ChurchReport.Models
                 case 100000002:
                     return "愛心奉獻";
                 case 100000003:
-                    return "擴堂奉獻";
+                    return "建堂奉獻";
                 case 100000004:
                     return "代收代轉";
                 case 100000005:
                     return "宣教奉獻";
                 case 100000006:
                     return "其他奉獻";
+                case 100000007:
+                    return "紓困奉獻";
                 default:
                     return "十一奉獻";
             }
@@ -1192,13 +1199,15 @@ namespace ChurchReport.Models
                 case 100000002:
                     return "愛心奉獻";
                 case 100000003:
-                    return "擴堂奉獻";
+                    return "建堂奉獻";
                 case 100000004:
                     return "代收代轉";
                 case 100000005:
                     return "宣教奉獻";
                 case 100000006:
                     return "其他奉獻";
+                case 100000007:
+                    return "紓困奉獻";
                 default:
                     return "十一奉獻";
             }
