@@ -48,6 +48,7 @@
                        //"代收代轉",
                        "宣教奉獻",
                        "紓困奉獻",
+                       "特別奉獻",
                     }
                     //.DisplayExpr("Name")
                 )
@@ -70,6 +71,21 @@
                         .Placeholder("請選擇宣教對象")
                     //.Value("特別")
                     );
+
+            items.AddSimpleFor
+                    (m => m.Others)
+                        .Label(l => l.Text("特別奉獻項目"))
+                        .Visible(false)
+                        .Name("SpecialDedicationSelectionBox")
+                        .Editor
+                        (
+                            e => e
+                            .SelectBox()
+                            .Width(200)
+                            .DataSource(Model.SpecialCategoryArray)
+                            .Placeholder("請選擇特別奉獻項目")
+                        //.Value("特別")
+                        );
 
             items.AddSimpleFor
                 (m => m.Others)
@@ -545,16 +561,30 @@
 <script>
     // 觸發事件管理
     function OnCategorySelectBoxValueChanged(e) {
+
         if (e.value == "宣教奉獻") {
             $("#form").dxForm("instance").itemOption("OtherDedicationSelectionBox", 'visible', true);
+            $("#form").dxForm("instance").itemOption("SpecialDedicationSelectionBox", 'visible', false);
+            $("#form").dxForm("instance").itemOption("OtherDedication", 'visible', false);
+        }
+        else if (e.value == "代收代轉") {
+            $("#form").dxForm("instance").itemOption("OtherDedication", 'visible', true);
+            $("#form").dxForm("instance").itemOption("SpecialDedicationSelectionBox", 'visible', false);
+            $("#form").dxForm("instance").itemOption("OtherDedicationSelectionBox", 'visible', false);
+        }
+        else if (e.value == "其他奉獻") {
+            $("#form").dxForm("instance").itemOption("OtherDedication", 'visible', true);
+            $("#form").dxForm("instance").itemOption("SpecialDedicationSelectionBox", 'visible', false);
+            $("#form").dxForm("instance").itemOption("OtherDedicationSelectionBox", 'visible', false);
+        }
+        else if (e.value == "特別奉獻") {
+            $("#form").dxForm("instance").itemOption("SpecialDedicationSelectionBox", 'visible', true);
+            $("#form").dxForm("instance").itemOption("OtherDedication", 'visible', false);
+            $("#form").dxForm("instance").itemOption("OtherDedicationSelectionBox", 'visible', false);
         }
         else {
             $("#form").dxForm("instance").itemOption("OtherDedicationSelectionBox", 'visible', false);
-        }
-        if (e.value == "代收代轉") {
-            $("#form").dxForm("instance").itemOption("OtherDedication", 'visible', true);
-        }
-        else {
+            $("#form").dxForm("instance").itemOption("SpecialDedicationSelectionBox", 'visible', false);
             $("#form").dxForm("instance").itemOption("OtherDedication", 'visible', false);
         }
     }

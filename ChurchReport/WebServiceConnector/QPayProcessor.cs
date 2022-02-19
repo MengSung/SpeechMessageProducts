@@ -329,6 +329,9 @@ namespace ChurchReport.WebServiceConnector
                 case "紓困奉獻":
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000007);
                     break;
+                case "特別奉獻":
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000008);
+                    break;
                 default:
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000000);
                     break;
@@ -362,6 +365,9 @@ namespace ChurchReport.WebServiceConnector
                     break;
                 case "紓困奉獻":
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, EntityName, 100000007);
+                    break;
+                case "特別奉獻":
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, EntityName, 100000008);
                     break;
                 default:
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, EntityName, 100000000);

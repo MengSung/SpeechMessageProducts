@@ -8,6 +8,7 @@ using Microsoft.Xrm.Sdk;
 using QPay.Domain;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Threading.Tasks;
 using ToolUtilityNameSpace;
 // These namespaces are found in the Microsoft.Xrm.Sdk.dll assembly
@@ -52,7 +53,6 @@ namespace ChurchReport.Models
             m_PushUtility = new PushUtility(m_LineMessagingClient);
         }
         #endregion
-
         #region Line 單獨登入
         public async Task<IActionResult> SaveKeyInDedication(QpayModel QpayModel)
         {
@@ -460,6 +460,8 @@ namespace ChurchReport.Models
                 //奉獻分堂
                 m_QpayModel.DedicateLocation = "安平靈糧堂";
 
+
+                #region 宣道支持奉獻
                 m_QpayModel.OtherCategoryArray = new List<String>();
                 EntityCollection TaskCollection = m_ToolUtilityClass.RetrieveTaskByFetchXml("宣道支持奉獻(請勿刪除)");
                 String Description = "";
@@ -467,7 +469,38 @@ namespace ChurchReport.Models
                 {
                     Description = this.m_ToolUtilityClass.GetEntityStringAttribute(TaskCollection.Entities[0], "description");
                 }
+                //String[] OtherCategoryArray = Description.Split(',');
+                String[] OtherCategoryArray = Description.Split(Environment.NewLine.ToCharArray());
+                m_QpayModel.OtherCategoryArray.Clear();
+                foreach (String OtherCategory in OtherCategoryArray)
+                {
+                    m_QpayModel.OtherCategoryArray.Add(OtherCategory);
+                }
+                #endregion
 
+                #region 特別奉獻清單項目
+                m_QpayModel.SpecialCategoryArray = new List<String>();
+                TaskCollection = m_ToolUtilityClass.RetrieveTaskByFetchXml("特別奉獻清單(不可刪除)");
+                Description = "";
+                if (TaskCollection.Entities.Count > 0)
+                {
+                    Description = this.m_ToolUtilityClass.GetEntityStringAttribute(TaskCollection.Entities[0], "description");
+                }
+                //String[] OtherCategoryArray = Description.Split(',');
+                String[] SpecialCategoryArray = Description.Split(Environment.NewLine.ToCharArray());
+                m_QpayModel.SpecialCategoryArray.Clear();
+                foreach (String SpecialCategory in SpecialCategoryArray)
+                {
+                    String SpecialCategoryString = ProcessSpecialCategoryString(SpecialCategory);
+
+                    if (SpecialCategoryString != "")
+                    {
+                        m_QpayModel.SpecialCategoryArray.Add(SpecialCategoryString);
+                    }
+                }
+                #endregion
+
+                #region// 處理信用卡清單
                 if (m_QpayModel.CreditCardList == null)
                 {
                     m_QpayModel.CreditCardList = new List<CreditCard>();
@@ -476,8 +509,9 @@ namespace ChurchReport.Models
                 {
                     m_QpayModel.CreditCardList.Clear();
                 }
-                // 處理信用卡清單
+
                 ProcessCreditCard();
+                #endregion
 
                 if (m_QpayModel.DedicationBookingList == null)
                 {
@@ -489,12 +523,6 @@ namespace ChurchReport.Models
                 }
                 // 處理認獻清單
                 ProcessDedicationBooking();
-
-                String[] OtherCategoryArray = Description.Split(',');
-                foreach (String OtherCategory in OtherCategoryArray)
-                {
-                    m_QpayModel.OtherCategoryArray.Add(OtherCategory);
-                }
 
                 m_QpayModel.QueryStartDate = new DateTime(DateTime.Now.Year, 1, 1);
                 m_QpayModel.QueryEndDate = DateTime.Now;
@@ -1067,7 +1095,6 @@ namespace ChurchReport.Models
             }
         }
         #endregion
-
         #region 查詢找不到時新增新人
         public async Task<IActionResult> CreateContact(string FullName)
         {
@@ -1142,7 +1169,6 @@ namespace ChurchReport.Models
         }
 
         #endregion
-
         #region 工具區
         private String ConvertToPayway(Entity aFeeEntity)
         {
@@ -1228,6 +1254,56 @@ namespace ChurchReport.Models
                     return "已取消";
                 default:
                     return "十一奉獻";
+            }
+        }
+        public String ProcessSpecialCategoryString(String SpecialCategory)
+        {
+            String[] OtherCategoryArray = SpecialCategory.Split(',');
+            if (OtherCategoryArray.Length == 2)
+            {
+                String[] StartAndEndDateArray = OtherCategoryArray[0].Split('~');
+                if (StartAndEndDateArray.Length == 2)
+                {
+                    DateTime aStartDate = ParseDateTime(StartAndEndDateArray[0]).ToLocalTime();
+                    DateTime aEndDate = ParseDateTime(StartAndEndDateArray[1]).ToLocalTime().AddDays(1);
+
+                    if (aStartDate.Date < DateTime.Now && DateTime.Now < aEndDate.Date)
+                    {
+                        return OtherCategoryArray[1];
+                    }
+                    else
+                    {
+                        return "";
+                    }
+                }
+                else
+                {
+                    return "";
+                }
+
+            }
+            else
+            {
+                return "";
+            }
+        }
+        #endregion
+        #region 副程式
+        private DateTime ParseDateTime(String strDateOrTime)
+        {
+            try
+            {
+                CultureInfo provider = CultureInfo.InvariantCulture;
+                DateTimeStyles style = DateTimeStyles.None;  //default is None
+
+                //return DateTime.ParseExact(strDateOrTime, "yyyy/MM/dd", provider, style);
+                return DateTime.Parse(strDateOrTime);
+            }
+            catch (Exception e)  //ParseException
+            {
+                Console.WriteLine("*** ERROR in _GetDateTime(" + strDateOrTime + ") => 改為現在時間 [" + e.Message + "]");
+
+                return DateTime.Now;
             }
         }
         #endregion

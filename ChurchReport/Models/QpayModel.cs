@@ -34,6 +34,7 @@ namespace ChurchReport.Models
         public String ClickType { get; set; }                           //查詢或是上傳
         public String SelectedCreditCard { get; set; }                  //選取的信用卡
         public List<String> OtherCategoryArray { get; set; }
+        public List<String> SpecialCategoryArray { get; set; }
         public List<CreditCard> CreditCardList { get; set; }
         public List<DedicationFee> DedicationFeeList { get; set; }
         public int TotalAmount { get; set; }                            //奉獻總金額
