@@ -75,7 +75,7 @@
         @(Html.DevExtreme().Map()
         .ID("map")
         .Provider(GeoMapProvider.Google)
-        .Center("桃園市楊梅區")
+        .Center("台南市")
         .Zoom(11)
         .Visible(false)
         //.Width(750)
@@ -96,7 +96,7 @@
 .Controls(true)
 .Type(GeoMapType.Roadmap)
 // NOTE: Specify your map API keys for every used provider
-.Key(k => k
+.ApiKey(k => k
 //.Bing("YOUR_BING_MAPS_API_KEY")
 .Google("AIzaSyBNogx0Ziqd3OIEW5b6b9BTJHXHW_YKDlM")
 //.GoogleStatic("YOUR_GOOGLE_STATIC_MAPS_API_KEY")

@@ -1,26 +1,24 @@
 /*!
 * DevExtreme (dx.messages.sv.js)
-* Version: 20.2.4
-* Build date: Tue Dec 01 2020
+* Version: 21.2.6
+* Build date: Tue Mar 01 2022
 *
-* Copyright (c) 2012 - 2020 Developer Express Inc. ALL RIGHTS RESERVED
+* Copyright (c) 2012 - 2022 Developer Express Inc. ALL RIGHTS RESERVED
 * Read about DevExtreme licensing here: https://js.devexpress.com/Licensing/
 */
 "use strict";
 
 ! function(root, factory) {
     if ("function" === typeof define && define.amd) {
-        define(function(require) {
+        define((function(require) {
             factory(require("devextreme/localization"))
-        })
+        }))
+    } else if ("object" === typeof module && module.exports) {
+        factory(require("devextreme/localization"))
     } else {
-        if ("object" === typeof module && module.exports) {
-            factory(require("devextreme/localization"))
-        } else {
-            factory(DevExpress.localization)
-        }
+        factory(DevExpress.localization)
     }
-}(this, function(localization) {
+}(0, (function(localization) {
     localization.loadMessages({
         sv: {
             Yes: "Ja",
@@ -33,7 +31,7 @@
             Search: "S\xf6k",
             Back: "Tillbaka",
             OK: "OK",
-            "dxCollectionWidget-noDataText": "Ingen data att visa",
+            "dxCollectionWidget-noDataText": "Inget data att visa",
             "dxDropDownEditor-selectLabel": "V\xe4lj",
             "validation-required": "Kr\xe4vs",
             "validation-required-formatted": "{0} kr\xe4vs",
@@ -42,7 +40,7 @@
             "validation-range": "V\xe4rdet utanf\xf6r till\xe5tet intervall",
             "validation-range-formatted": "{0} utanf\xf6r till\xe5tet intervall",
             "validation-stringLength": "L\xe4ngden p\xe5 v\xe4rdet \xe4r inte korrekt",
-            "validation-stringLength-formatted": "L\xe4ngden p\xe5 {0} \xe4r inte korrekt",
+            "validation-stringLength-formatted": "L\xe4ngden p\xe5  {0} \xe4r inte korrekt",
             "validation-custom": "Ogiltigt v\xe4rde",
             "validation-custom-formatted": "{0} \xe4r ogiltigt",
             "validation-async": "Ogiltigt v\xe4rde",
@@ -92,7 +90,7 @@
             "dxForm-optionalMark": "valfri",
             "dxForm-requiredMessage": "{0} \xe4r n\xf6dv\xe4ndigt",
             "dxNumberBox-invalidValueMessage": "V\xe4rdet m\xe5ste vara ett nummer",
-            "dxNumberBox-noDataText": "Ingen data",
+            "dxNumberBox-noDataText": "Inget data",
             "dxDataGrid-columnChooserTitle": "Kolumnv\xe4ljare",
             "dxDataGrid-columnChooserEmptyText": "Dra en kolumn hit f\xf6r att d\xf6lja den",
             "dxDataGrid-groupContinuesMessage": "Forts\xe4tter p\xe5 n\xe4sta sida",
@@ -106,9 +104,9 @@
             "dxDataGrid-editingDeleteRow": "Radera",
             "dxDataGrid-editingUndeleteRow": "\xc5ngra radering",
             "dxDataGrid-editingConfirmDeleteMessage": "\xc4r du s\xe4ker p\xe5 att du vill radera denna post?",
-            "dxDataGrid-validationCancelChanges": "Avbryt \xe4ndringar",
+            "dxDataGrid-validationCancelChanges": "Avbryt \xe4ndringarna",
             "dxDataGrid-groupPanelEmptyText": "Dra en kolumnrubrik hit f\xf6r att gruppera enligt den kolumnen",
-            "dxDataGrid-noDataText": "Ingen data",
+            "dxDataGrid-noDataText": "Inget data",
             "dxDataGrid-searchPanelPlaceholder": "S\xf6k...",
             "dxDataGrid-filterRowShowAllText": "(Allt)",
             "dxDataGrid-filterRowResetOperationText": "\xc5terst\xe4ll",
@@ -148,9 +146,9 @@
             "dxDataGrid-columnFixingLeftPosition": "Till v\xe4nster",
             "dxDataGrid-columnFixingRightPosition": "Till h\xf6ger",
             "dxDataGrid-exportTo": "Exportera",
-            "dxDataGrid-exportToExcel": "Exportera till Excelfil",
+            "dxDataGrid-exportToExcel": "Exportera till Excel fil",
             "dxDataGrid-exporting": "Exportera...",
-            "dxDataGrid-excelFormat": "Excelfil",
+            "dxDataGrid-excelFormat": "Excel fil",
             "dxDataGrid-selectedRows": "Valda rader",
             "dxDataGrid-exportSelectedRows": "Exportera valda rader",
             "dxDataGrid-exportAll": "Exportera allt",
@@ -201,19 +199,19 @@
             "dxScheduler-editorLabelRecurrence": "Upprepa",
             "dxScheduler-openAppointment": "\xd6ppna avtalad tid",
             "dxScheduler-recurrenceNever": "Aldrig",
-            "dxScheduler-recurrenceMinutely": "Varje minut",
-            "dxScheduler-recurrenceHourly": "Varje timme",
+            "dxScheduler-recurrenceMinutely": "Minutely",
+            "dxScheduler-recurrenceHourly": "Hourly",
             "dxScheduler-recurrenceDaily": "Varje dag",
             "dxScheduler-recurrenceWeekly": "Varje vecka",
             "dxScheduler-recurrenceMonthly": "Varje m\xe5nad",
             "dxScheduler-recurrenceYearly": "Varje \xe5r",
             "dxScheduler-recurrenceRepeatEvery": "Varje",
-            "dxScheduler-recurrenceRepeatOn": "Upprepa p\xe5",
+            "dxScheduler-recurrenceRepeatOn": "Repeat On",
             "dxScheduler-recurrenceEnd": "Upprepning slutar",
             "dxScheduler-recurrenceAfter": "Efter",
             "dxScheduler-recurrenceOn": "P\xe5",
-            "dxScheduler-recurrenceRepeatMinutely": "minuter",
-            "dxScheduler-recurrenceRepeatHourly": "timmar",
+            "dxScheduler-recurrenceRepeatMinutely": "minute(s)",
+            "dxScheduler-recurrenceRepeatHourly": "hour(s)",
             "dxScheduler-recurrenceRepeatDaily": "dagar",
             "dxScheduler-recurrenceRepeatWeekly": "veckor",
             "dxScheduler-recurrenceRepeatMonthly": "m\xe5nader",
@@ -230,15 +228,15 @@
             "dxScheduler-recurrenceRepeatOnDate": "p\xe5 datumet",
             "dxScheduler-recurrenceRepeatCount": "upprepning(ar)",
             "dxScheduler-allDay": "Hela dagen",
-            "dxScheduler-confirmRecurrenceEditMessage": "Vill du endast redigera denna avtalade tid eller hela serien?",
-            "dxScheduler-confirmRecurrenceDeleteMessage": "Vill du endast radera denna avtalade tid eller hela serien?",
+            "dxScheduler-confirmRecurrenceEditMessage": "Vill du redigera bara denna avtalade tid eller hela serien?",
+            "dxScheduler-confirmRecurrenceDeleteMessage": "Vill du radera bara denna avtalade tid eller hela serien?",
             "dxScheduler-confirmRecurrenceEditSeries": "Redigera serien",
             "dxScheduler-confirmRecurrenceDeleteSeries": "Radera serien",
             "dxScheduler-confirmRecurrenceEditOccurrence": "Redigera avtalad tid",
             "dxScheduler-confirmRecurrenceDeleteOccurrence": "Radera avtalad tid",
             "dxScheduler-noTimezoneTitle": "Ingen tidszon",
-            "dxScheduler-moreAppointments": "{0} fler",
-            "dxCalendar-todayButtonText": "Idag",
+            "dxScheduler-moreAppointments": "{0} mer",
+            "dxCalendar-todayButtonText": "I dag",
             "dxCalendar-ariaWidgetName": "Kalender",
             "dxColorView-ariaRed": "R\xf6d",
             "dxColorView-ariaGreen": "Gr\xf6n",
@@ -289,6 +287,68 @@
             "dxHtmlEditor-dialogInsertTableCaption": "!TODO",
             "dxHtmlEditor-heading": "!TODO!",
             "dxHtmlEditor-normalText": "!TODO!",
+            "dxHtmlEditor-background": "TODO",
+            "dxHtmlEditor-bold": "TODO",
+            "dxHtmlEditor-color": "TODO",
+            "dxHtmlEditor-font": "TODO",
+            "dxHtmlEditor-italic": "TODO",
+            "dxHtmlEditor-link": "TODO",
+            "dxHtmlEditor-image": "TODO",
+            "dxHtmlEditor-size": "TODO",
+            "dxHtmlEditor-strike": "TODO",
+            "dxHtmlEditor-subscript": "TODO",
+            "dxHtmlEditor-superscript": "TODO",
+            "dxHtmlEditor-underline": "TODO",
+            "dxHtmlEditor-blockquote": "TODO",
+            "dxHtmlEditor-header": "TODO",
+            "dxHtmlEditor-increaseIndent": "TODO",
+            "dxHtmlEditor-decreaseIndent": "TODO",
+            "dxHtmlEditor-orderedList": "TODO",
+            "dxHtmlEditor-bulletList": "TODO",
+            "dxHtmlEditor-alignLeft": "TODO",
+            "dxHtmlEditor-alignCenter": "TODO",
+            "dxHtmlEditor-alignRight": "TODO",
+            "dxHtmlEditor-alignJustify": "TODO",
+            "dxHtmlEditor-codeBlock": "TODO",
+            "dxHtmlEditor-variable": "TODO",
+            "dxHtmlEditor-undo": "TODO",
+            "dxHtmlEditor-redo": "TODO",
+            "dxHtmlEditor-clear": "TODO",
+            "dxHtmlEditor-insertTable": "TODO",
+            "dxHtmlEditor-insertHeaderRow": "TODO",
+            "dxHtmlEditor-insertRowAbove": "TODO",
+            "dxHtmlEditor-insertRowBelow": "TODO",
+            "dxHtmlEditor-insertColumnLeft": "TODO",
+            "dxHtmlEditor-insertColumnRight": "TODO",
+            "dxHtmlEditor-deleteColumn": "TODO",
+            "dxHtmlEditor-deleteRow": "TODO",
+            "dxHtmlEditor-deleteTable": "TODO",
+            "dxHtmlEditor-cellProperties": "TODO",
+            "dxHtmlEditor-tableProperties": "TODO",
+            "dxHtmlEditor-insert": "TODO",
+            "dxHtmlEditor-delete": "TODO",
+            "dxHtmlEditor-border": "TODO",
+            "dxHtmlEditor-style": "TODO",
+            "dxHtmlEditor-width": "TODO",
+            "dxHtmlEditor-height": "TODO",
+            "dxHtmlEditor-borderColor": "TODO",
+            "dxHtmlEditor-tableBackground": "TODO",
+            "dxHtmlEditor-dimensions": "TODO",
+            "dxHtmlEditor-alignment": "TODO",
+            "dxHtmlEditor-horizontal": "TODO",
+            "dxHtmlEditor-vertical": "TODO",
+            "dxHtmlEditor-paddingVertical": "TODO",
+            "dxHtmlEditor-paddingHorizontal": "TODO",
+            "dxHtmlEditor-pixels": "TODO",
+            "dxHtmlEditor-list": "TODO",
+            "dxHtmlEditor-ordered": "TODO",
+            "dxHtmlEditor-bullet": "TODO",
+            "dxHtmlEditor-align": "TODO",
+            "dxHtmlEditor-center": "TODO",
+            "dxHtmlEditor-left": "TODO",
+            "dxHtmlEditor-right": "TODO",
+            "dxHtmlEditor-indent": "TODO",
+            "dxHtmlEditor-justify": "TODO",
             "dxFileManager-newDirectoryName": "TODO",
             "dxFileManager-rootDirectoryName": "TODO",
             "dxFileManager-errorNoAccess": "TODO",
@@ -465,7 +525,12 @@
             "dxGantt-deleteSelectedTask": "TODO",
             "dxGantt-zoomIn": "TODO",
             "dxGantt-zoomOut": "TODO",
-            "dxGantt-fullScreen": "TODO"
+            "dxGantt-fullScreen": "TODO",
+            "dxGantt-quarter": "TODO",
+            "dxGantt-showResources": "TODO",
+            "dxGantt-showDependencies": "TODO",
+            "dxGantt-dialogStartDateValidation": "TODO",
+            "dxGantt-dialogEndDateValidation": "TODO"
         }
     })
-});
+}));

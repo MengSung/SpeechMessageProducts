@@ -1,26 +1,24 @@
 /*!
 * DevExtreme (dx.messages.fr.js)
-* Version: 20.2.4
-* Build date: Tue Dec 01 2020
+* Version: 21.2.6
+* Build date: Tue Mar 01 2022
 *
-* Copyright (c) 2012 - 2020 Developer Express Inc. ALL RIGHTS RESERVED
+* Copyright (c) 2012 - 2022 Developer Express Inc. ALL RIGHTS RESERVED
 * Read about DevExtreme licensing here: https://js.devexpress.com/Licensing/
 */
 "use strict";
 
 ! function(root, factory) {
     if ("function" === typeof define && define.amd) {
-        define(function(require) {
+        define((function(require) {
             factory(require("devextreme/localization"))
-        })
+        }))
+    } else if ("object" === typeof module && module.exports) {
+        factory(require("devextreme/localization"))
     } else {
-        if ("object" === typeof module && module.exports) {
-            factory(require("devextreme/localization"))
-        } else {
-            factory(DevExpress.localization)
-        }
+        factory(DevExpress.localization)
     }
-}(this, function(localization) {
+}(0, (function(localization) {
     localization.loadMessages({
         fr: {
             Yes: "Oui",
@@ -80,7 +78,7 @@
             "dxFileUploader-upload": "T\xe9l\xe9charger",
             "dxFileUploader-uploaded": "T\xe9l\xe9charg\xe9",
             "dxFileUploader-readyToUpload": "Pr\xeat \xe0 t\xe9l\xe9charger",
-            "dxFileUploader-uploadAbortedMessage": "Importation annul\xe9e",
+            "dxFileUploader-uploadAbortedMessage": "TODO",
             "dxFileUploader-uploadFailedMessage": "\xc9chec du t\xe9l\xe9chargement",
             "dxFileUploader-invalidFileExtension": "Type de fichier non autoris\xe9",
             "dxFileUploader-invalidMaxFileSize": "Fichier trop volumineux",
@@ -284,11 +282,73 @@
             "dxHtmlEditor-dialogImageAltField": "Texte alternatif",
             "dxHtmlEditor-dialogImageWidthField": "Largeur (px)",
             "dxHtmlEditor-dialogImageHeightField": "Hauteur (px)",
-            "dxHtmlEditor-dialogInsertTableRowsField": "Lignes",
-            "dxHtmlEditor-dialogInsertTableColumnsField": "Colonnes",
-            "dxHtmlEditor-dialogInsertTableCaption": "Ins\xe9rer un tableau",
+            "dxHtmlEditor-dialogInsertTableRowsField": "!TODO",
+            "dxHtmlEditor-dialogInsertTableColumnsField": "!TODO",
+            "dxHtmlEditor-dialogInsertTableCaption": "!TODO",
             "dxHtmlEditor-heading": "Titre",
             "dxHtmlEditor-normalText": "Texte normal",
+            "dxHtmlEditor-background": "TODO",
+            "dxHtmlEditor-bold": "TODO",
+            "dxHtmlEditor-color": "TODO",
+            "dxHtmlEditor-font": "TODO",
+            "dxHtmlEditor-italic": "TODO",
+            "dxHtmlEditor-link": "TODO",
+            "dxHtmlEditor-image": "TODO",
+            "dxHtmlEditor-size": "TODO",
+            "dxHtmlEditor-strike": "TODO",
+            "dxHtmlEditor-subscript": "TODO",
+            "dxHtmlEditor-superscript": "TODO",
+            "dxHtmlEditor-underline": "TODO",
+            "dxHtmlEditor-blockquote": "TODO",
+            "dxHtmlEditor-header": "TODO",
+            "dxHtmlEditor-increaseIndent": "TODO",
+            "dxHtmlEditor-decreaseIndent": "TODO",
+            "dxHtmlEditor-orderedList": "TODO",
+            "dxHtmlEditor-bulletList": "TODO",
+            "dxHtmlEditor-alignLeft": "TODO",
+            "dxHtmlEditor-alignCenter": "TODO",
+            "dxHtmlEditor-alignRight": "TODO",
+            "dxHtmlEditor-alignJustify": "TODO",
+            "dxHtmlEditor-codeBlock": "TODO",
+            "dxHtmlEditor-variable": "TODO",
+            "dxHtmlEditor-undo": "TODO",
+            "dxHtmlEditor-redo": "TODO",
+            "dxHtmlEditor-clear": "TODO",
+            "dxHtmlEditor-insertTable": "TODO",
+            "dxHtmlEditor-insertHeaderRow": "TODO",
+            "dxHtmlEditor-insertRowAbove": "TODO",
+            "dxHtmlEditor-insertRowBelow": "TODO",
+            "dxHtmlEditor-insertColumnLeft": "TODO",
+            "dxHtmlEditor-insertColumnRight": "TODO",
+            "dxHtmlEditor-deleteColumn": "TODO",
+            "dxHtmlEditor-deleteRow": "TODO",
+            "dxHtmlEditor-deleteTable": "TODO",
+            "dxHtmlEditor-cellProperties": "TODO",
+            "dxHtmlEditor-tableProperties": "TODO",
+            "dxHtmlEditor-insert": "TODO",
+            "dxHtmlEditor-delete": "TODO",
+            "dxHtmlEditor-border": "TODO",
+            "dxHtmlEditor-style": "TODO",
+            "dxHtmlEditor-width": "TODO",
+            "dxHtmlEditor-height": "TODO",
+            "dxHtmlEditor-borderColor": "TODO",
+            "dxHtmlEditor-tableBackground": "TODO",
+            "dxHtmlEditor-dimensions": "TODO",
+            "dxHtmlEditor-alignment": "TODO",
+            "dxHtmlEditor-horizontal": "TODO",
+            "dxHtmlEditor-vertical": "TODO",
+            "dxHtmlEditor-paddingVertical": "TODO",
+            "dxHtmlEditor-paddingHorizontal": "TODO",
+            "dxHtmlEditor-pixels": "TODO",
+            "dxHtmlEditor-list": "TODO",
+            "dxHtmlEditor-ordered": "TODO",
+            "dxHtmlEditor-bullet": "TODO",
+            "dxHtmlEditor-align": "TODO",
+            "dxHtmlEditor-center": "TODO",
+            "dxHtmlEditor-left": "TODO",
+            "dxHtmlEditor-right": "TODO",
+            "dxHtmlEditor-indent": "TODO",
+            "dxHtmlEditor-justify": "TODO",
             "dxFileManager-newDirectoryName": "R\xe9pertoire sans titre",
             "dxFileManager-rootDirectoryName": "Fichiers",
             "dxFileManager-errorNoAccess": "Acc\xe8s interdit. L'op\xe9ration ne peut se terminer.",
@@ -300,7 +360,7 @@
             "dxFileManager-errorMaxFileSizeExceeded": "Taille du fichier d\xe9passe la limite maximum permise.",
             "dxFileManager-errorInvalidSymbols": "Ce nom contient des caract\xe8res invalides.",
             "dxFileManager-errorDefault": "Erreur non sp\xe9cifi\xe9.",
-            "dxFileManager-errorDirectoryOpenFailed": "Le r\xe9pertoire ne peut pas \xeatre ouvert",
+            "dxFileManager-errorDirectoryOpenFailed": "TODO",
             "dxFileManager-commandCreate": "Nouveau r\xe9pertoire",
             "dxFileManager-commandRename": "Renommer",
             "dxFileManager-commandMove": "D\xe9placer",
@@ -312,20 +372,17 @@
             "dxFileManager-commandThumbnails": "Mode vignette",
             "dxFileManager-commandDetails": "Mode d\xe9tails",
             "dxFileManager-commandClearSelection": "Vider s\xe9lection",
-            "dxFileManager-commandShowNavPane": "Basculer le volet de navigation",
-            "dxFileManager-dialogDirectoryChooserMoveTitle": "D\xe9placer",
-            "dxFileManager-dialogDirectoryChooserMoveButtonText": "D\xe9placer",
-            "dxFileManager-dialogDirectoryChooserCopyTitle": "Copier",
-            "dxFileManager-dialogDirectoryChooserCopyButtonText": "Copier",
+            "dxFileManager-commandShowNavPane": "TODO",
+            "dxFileManager-dialogDirectoryChooserTitle": "S\xe9lectionner r\xe9pertoire de destination",
+            "dxFileManager-dialogDirectoryChooserButtonText": "S\xe9lectionner",
             "dxFileManager-dialogRenameItemTitle": "Renommer",
             "dxFileManager-dialogRenameItemButtonText": "Sauvegarder",
             "dxFileManager-dialogCreateDirectoryTitle": "Nouveau r\xe9pertoire",
             "dxFileManager-dialogCreateDirectoryButtonText": "Cr\xe9er",
-            "dxFileManager-dialogDeleteItemTitle": "Supprimer",
-            "dxFileManager-dialogDeleteItemButtonText": "Supprimer",
-            "dxFileManager-dialogDeleteItemSingleItemConfirmation": "Voulez-vous vraiment supprimer {0}?",
-            "dxFileManager-dialogDeleteItemMultipleItemsConfirmation": "Voulez-vous vraiment supprimer {0} \xe9l\xe9ments?",
-            "dxFileManager-dialogButtonCancel": "Annuler",
+            "dxFileManager-dialogDeleteItemTitle": "TODO",
+            "dxFileManager-dialogDeleteItemButtonText": "TODO",
+            "dxFileManager-dialogDeleteItemSingleItemConfirmation": "TODO",
+            "dxFileManager-dialogDeleteItemMultipleItemsConfirmation": "TODO",
             "dxFileManager-editingCreateSingleItemProcessingMessage": "Cr\xe9er un r\xe9pertoire dans {0}",
             "dxFileManager-editingCreateSingleItemSuccessMessage": "R\xe9pertoire cr\xe9\xe9 dans {0}",
             "dxFileManager-editingCreateSingleItemErrorMessage": "R\xe9pertoire n'est pas cr\xe9\xe9",
@@ -387,11 +444,11 @@
             "dxDiagram-commandUnderline": "Souligner",
             "dxDiagram-commandTextColor": "Couleur texte",
             "dxDiagram-commandLineColor": "Couleur ligne",
-            "dxDiagram-commandLineWidth": "Largeur de ligne",
-            "dxDiagram-commandLineStyle": "Style de ligne",
-            "dxDiagram-commandLineStyleSolid": "Solide",
-            "dxDiagram-commandLineStyleDotted": "Point\xe9e",
-            "dxDiagram-commandLineStyleDashed": "Pointill\xe9",
+            "dxDiagram-commandLineWidth": "TODO",
+            "dxDiagram-commandLineStyle": "TODO",
+            "dxDiagram-commandLineStyleSolid": "TODO",
+            "dxDiagram-commandLineStyleDotted": "TODO",
+            "dxDiagram-commandLineStyleDashed": "TODO",
             "dxDiagram-commandFillColor": "Couleur remplissage",
             "dxDiagram-commandAlignLeft": "Aligner \xe0 gauche",
             "dxDiagram-commandAlignCenter": "Centrer",
@@ -415,10 +472,10 @@
             "dxDiagram-commandGridSize": "Taille de la grille",
             "dxDiagram-commandZoomLevel": "Niveau de zoom",
             "dxDiagram-commandAutoZoom": "Zoom automatique",
-            "dxDiagram-commandFitToContent": "Adapter au contenu",
-            "dxDiagram-commandFitToWidth": "Ajuster \xe0 la largeur",
-            "dxDiagram-commandAutoZoomByContent": "Zoom automatique par contenu",
-            "dxDiagram-commandAutoZoomByWidth": "Zoom automatique par largeur",
+            "dxDiagram-commandFitToContent": "TODO",
+            "dxDiagram-commandFitToWidth": "TODO",
+            "dxDiagram-commandAutoZoomByContent": "TODO",
+            "dxDiagram-commandAutoZoomByWidth": "TODO",
             "dxDiagram-commandSimpleView": "Vue simple",
             "dxDiagram-commandCut": "Couper",
             "dxDiagram-commandCopy": "Copier",
@@ -432,10 +489,10 @@
             "dxDiagram-commandInsertShapeImage": "Ins\xe9rer une image...",
             "dxDiagram-commandEditShapeImage": "Changer image...",
             "dxDiagram-commandDeleteShapeImage": "Supprimer image",
-            "dxDiagram-commandLayoutLeftToRight": "De gauche \xe0 droite",
-            "dxDiagram-commandLayoutRightToLeft": "De droite \xe0 gauche",
-            "dxDiagram-commandLayoutTopToBottom": "De haut en bas",
-            "dxDiagram-commandLayoutBottomToTop": "De bas en haut",
+            "dxDiagram-commandLayoutLeftToRight": "TODO",
+            "dxDiagram-commandLayoutRightToLeft": "TODO",
+            "dxDiagram-commandLayoutTopToBottom": "TODO",
+            "dxDiagram-commandLayoutBottomToTop": "TODO",
             "dxDiagram-unitIn": "po",
             "dxDiagram-unitCm": "cm",
             "dxDiagram-unitPx": "px",
@@ -447,18 +504,18 @@
             "dxDiagram-dialogEditShapeImageLabelText": "ou d\xe9poser le fichier ici",
             "dxDiagram-uiExport": "Exporter",
             "dxDiagram-uiProperties": "Propri\xe9t\xe9s",
-            "dxDiagram-uiSettings": "R\xe9glages",
-            "dxDiagram-uiShowToolbox": "Afficher la bo\xeete \xe0 outils",
-            "dxDiagram-uiSearch": "Chercher",
-            "dxDiagram-uiStyle": "Style",
-            "dxDiagram-uiLayout": "Disposition",
+            "dxDiagram-uiSettings": "TODO",
+            "dxDiagram-uiShowToolbox": "TODO",
+            "dxDiagram-uiSearch": "TODO",
+            "dxDiagram-uiStyle": "TODO",
+            "dxDiagram-uiLayout": "TODO",
             "dxDiagram-uiLayoutTree": "Arbre",
             "dxDiagram-uiLayoutLayered": "Par couches",
-            "dxDiagram-uiDiagram": "Diagramme",
-            "dxDiagram-uiText": "Texte",
-            "dxDiagram-uiObject": "Objet",
-            "dxDiagram-uiConnector": "Connecteur",
-            "dxDiagram-uiPage": "Page",
+            "dxDiagram-uiDiagram": "TODO",
+            "dxDiagram-uiText": "TODO",
+            "dxDiagram-uiObject": "TODO",
+            "dxDiagram-uiConnector": "TODO",
+            "dxDiagram-uiPage": "TODO",
             "dxDiagram-shapeText": "Texte",
             "dxDiagram-shapeRectangle": "Rectangle",
             "dxDiagram-shapeEllipse": "Ellipse",
@@ -534,7 +591,15 @@
             "dxGantt-deleteSelectedTask": "Supprimer t\xe2che s\xe9lectionn\xe9e",
             "dxGantt-zoomIn": "Agrandir",
             "dxGantt-zoomOut": "D\xe9zoomer",
-            "dxGantt-fullScreen": "Plein \xe9cran"
+            "dxGantt-fullScreen": "Plein \xe9cran",
+            "dxGantt-quarter": "TODO",
+            "dxGantt-sortingAscendingText": "Tri croissant",
+            "dxGantt-sortingDescendingText": "Tri d\xe9croissant",
+            "dxGantt-sortingClearText": "Supprimer le tri",
+            "dxGantt-showResources": "TODO",
+            "dxGantt-showDependencies": "TODO",
+            "dxGantt-dialogStartDateValidation": "TODO",
+            "dxGantt-dialogEndDateValidation": "TODO"
         }
     })
-});
+}));

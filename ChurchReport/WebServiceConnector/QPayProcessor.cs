@@ -752,10 +752,12 @@ namespace ChurchReport.WebServiceConnector
                     // 連絡人有奉獻編號
                     EntityCollection aContactEntityCollection = this.m_ToolUtilityClass.RetrieveEntityCollectionByField("contact", "pager", QpayModel.DedicationNumber);
 
-                    foreach( Entity aContact in aContactEntityCollection.Entities)
+                    foreach (Entity aContact in aContactEntityCollection.Entities)
                     {
-                        if(QpayModel.FullName == this.m_ToolUtilityClass.GetEntityStringAttribute(aContact, "fullname") )
+                        // 有相同的奉獻編號
+                        if (QpayModel.FullName == this.m_ToolUtilityClass.GetEntityStringAttribute(aContact, "fullname"))
                         {
+                            // 透過姓名篩選出來
                             return aContact;
                         }
                     }
