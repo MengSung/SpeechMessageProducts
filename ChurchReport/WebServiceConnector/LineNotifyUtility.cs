@@ -578,7 +578,7 @@ namespace ChurchReport.WebServiceConnector
                     }
                 }
 
-                // 門徒 ID
+                // 共同小組長 ID
                 String aListCoSmallGroupLeaderLineId = "";
                 Guid ListCoSmallGroupLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_list_vice_family_leader");
                 if (ListCoSmallGroupLeaderId != Guid.Empty)
@@ -604,16 +604,29 @@ namespace ChurchReport.WebServiceConnector
 
                 List<String> aList = new List<String>();
 
-
                 if (LoginType == "小組長")
                 {
                     // 小組長個人回報
+                    // 區牧=> aListGraceLeaderLineId
                     if (aListGraceLeaderLineId != "") aList.Add(aListGraceLeaderLineId);
+
+                    // 共同區牧=> aCoListGraceLeaderLineId
                     if (aCoListGraceLeaderLineId != "") aList.Add(aCoListGraceLeaderLineId);
+
+                    // 小家長(區長)=> aAreaLeaderLineId
                     if (aAreaLeaderLineId != "") aList.Add(aAreaLeaderLineId);
+
+                    // 共同小家長(共同區長)=> aCoAreaLeaderLineId
                     if (aCoAreaLeaderLineId != "") aList.Add(aCoAreaLeaderLineId);
+
+                    // 小組長=> aListSmallGroupLeaderLineId
                     if (aListSmallGroupLeaderLineId != "") aList.Add(aListSmallGroupLeaderLineId);
+
+                    // 共同小組長=> aListCoSmallGroupLeaderLineId
                     if (aListCoSmallGroupLeaderLineId != "") aList.Add(aListCoSmallGroupLeaderLineId);
+
+                    // 回報通知窗口=> aReportNotifyWindowLineId
+                    if (aReportNotifyWindowLineId != "") aList.Add(aReportNotifyWindowLineId);
 
                     //if (aListGraceLeaderLineId != aAreaLeaderLineId)
                     //{
@@ -630,12 +643,26 @@ namespace ChurchReport.WebServiceConnector
                 else
                 {
                     // 個人回報
-                    if (aListGraceLeaderLineId != "") aList.Add(aListGraceLeaderLineId);
-                    if (aCoListGraceLeaderLineId != "") aList.Add(aCoListGraceLeaderLineId);
+                    // 區牧=> aListGraceLeaderLineId
+                    //if (aListGraceLeaderLineId != "") aList.Add(aListGraceLeaderLineId);
+
+                    // 共同區牧=> aCoListGraceLeaderLineId
+                    //if (aCoListGraceLeaderLineId != "") aList.Add(aCoListGraceLeaderLineId);
+
+                    // 小家長=> aAreaLeaderLineId
                     if (aAreaLeaderLineId != "") aList.Add(aAreaLeaderLineId);
-                    if (aListCoSmallGroupLeaderLineId != "") aList.Add(aListCoSmallGroupLeaderLineId);
+
+                    // 共同小家長=> aCoAreaLeaderLineId
                     if (aCoAreaLeaderLineId != "") aList.Add(aCoAreaLeaderLineId);
 
+                    // 小組長=> aListSmallGroupLeaderLineId
+                    if (aListSmallGroupLeaderLineId != "") aList.Add(aListSmallGroupLeaderLineId);
+
+                    // 共同小組長=> aListCoSmallGroupLeaderLineId
+                    if (aListCoSmallGroupLeaderLineId != "") aList.Add(aListCoSmallGroupLeaderLineId);
+
+                    // 回報通知窗口=> aReportNotifyWindowLineId
+                    //if (aReportNotifyWindowLineId != "") aList.Add(aReportNotifyWindowLineId);
 
                     //if (aListGraceLeaderLineId != aAreaLeaderLineId)
                     //{
