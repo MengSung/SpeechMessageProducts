@@ -84,16 +84,16 @@ namespace ChurchReport.WebServiceConnector
 
             int DayOfWeek = (int)aDownloadDate.DayOfWeek;
 
-            //this.m_Sunday = aDownloadDate.AddDays(-DayOfWeek);
-            if (DayOfWeek != 6)
+            // 每周以星期六為第一日
+            if (DayOfWeek < 6)
             {
-                // 如果不是星期六則是上個星期天
-                this.m_Sunday = aDownloadDate.AddDays(-DayOfWeek);
+                // 小於 6 表示星期日到星期五=>當週的星期日為認定的主日
+                this.m_Sunday = DateTime.Now.AddDays(-DayOfWeek);
             }
             else
             {
-                // 如果是星期六則是下個星期天
-                this.m_Sunday = aDownloadDate.AddDays(1);
+                // 為 6 = 星期六 (表示 DayOfWeek.Saturday)表示要加1到下一個星期日為認定的主日
+                this.m_Sunday = DateTime.Now.AddDays(1);
             }
             #endregion
 
@@ -1641,7 +1641,18 @@ namespace ChurchReport.WebServiceConnector
                             #region 先根據日期尋找開始關懷日期的那週主日日期
                             // 其值的範圍從 0 (表示 DayOfWeek.Sunday) 為 6 (表示 DayOfWeek.Saturday)。
                             int DayOfWeek = (int)aStartTrackingDate.DayOfWeek;
-                            DateTime aSunday = aStartTrackingDate.AddDays(-DayOfWeek);
+                            DateTime aSunday = new DateTime();
+                            // 每周以星期六為第一日
+                            if (DayOfWeek < 6)
+                            {
+                                // 小於 6 表示星期日到星期五=>當週的星期日為認定的主日
+                                aSunday = DateTime.Now.AddDays(-DayOfWeek);
+                            }
+                            else
+                            {
+                                // 為 6 = 星期六 (表示 DayOfWeek.Saturday)表示要加1到下一個星期日為認定的主日
+                                aSunday = DateTime.Now.AddDays(1);
+                            }
                             #endregion
 
                             aFollowUpHistoryReport = GetFollowUpWeekForUnGroup(aContact, ref aFollowUpWeek, aSunday);

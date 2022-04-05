@@ -86,7 +86,18 @@ namespace ChurchReport.Tools
                 #region 先根據日期尋找當週主日日期
                 // 其值的範圍從 0 (表示 DayOfWeek.Sunday) 為 6 (表示 DayOfWeek.Saturday)。
                 int DayOfWeek = (int)aDownloadDate.DayOfWeek;
-                this.m_Sunday = aDownloadDate.AddDays(-DayOfWeek);
+                DateTime aSunday = new DateTime();
+                // 每周以星期六為第一日
+                if (DayOfWeek < 6)
+                {
+                    // 小於 6 表示星期日到星期五=>當週的星期日為認定的主日
+                    aSunday = DateTime.Now.AddDays(-DayOfWeek);
+                }
+                else
+                {
+                    // 為 6 = 星期六 (表示 DayOfWeek.Saturday)表示要加1到下一個星期日為認定的主日
+                    aSunday = DateTime.Now.AddDays(1);
+                }
                 #endregion
 
                 #region 找登入使用者及其ID

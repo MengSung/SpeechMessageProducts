@@ -509,7 +509,17 @@ namespace ChurchReport.WebServiceConnector
                 #region 先根據日期尋找當週主日日期
                 // 其值的範圍從 0 (表示 DayOfWeek.Sunday) 為 6 (表示 DayOfWeek.Saturday)。
                 int DayOfWeek = (int)aSmallGroupDate.DayOfWeek;
-                this.m_Sunday = aSmallGroupDate.AddDays(-DayOfWeek);
+                // 每周以星期六為第一日
+                if (DayOfWeek < 6)
+                {
+                    // 小於 6 表示星期日到星期五=>當週的星期日為認定的主日
+                    this.m_Sunday = DateTime.Now.AddDays(-DayOfWeek);
+                }
+                else
+                {
+                    // 為 6 = 星期六 (表示 DayOfWeek.Saturday)表示要加1到下一個星期日為認定的主日
+                    this.m_Sunday = DateTime.Now.AddDays(1);
+                }
                 #endregion
 
                 // 找到操作使用者登入的小組長ID
@@ -1444,7 +1454,18 @@ namespace ChurchReport.WebServiceConnector
                             #region 先根據日期尋找開始關懷日期的那週主日日期
                             // 其值的範圍從 0 (表示 DayOfWeek.Sunday) 為 6 (表示 DayOfWeek.Saturday)。
                             int DayOfWeek = (int)aStartTrackingDate.DayOfWeek;
-                            DateTime aSunday = aStartTrackingDate.AddDays(-DayOfWeek);
+                            DateTime aSunday = new DateTime();
+                            // 每周以星期六為第一日
+                            if (DayOfWeek < 6)
+                            {
+                                // 小於 6 表示星期日到星期五=>當週的星期日為認定的主日
+                                aSunday = DateTime.Now.AddDays(-DayOfWeek);
+                            }
+                            else
+                            {
+                                // 為 6 = 星期六 (表示 DayOfWeek.Saturday)表示要加1到下一個星期日為認定的主日
+                                aSunday = DateTime.Now.AddDays(1);
+                            }
                             #endregion
 
                             aFollowUpHistoryReport = GetFollowUpWeekForUnGroup(aContact, ref aFollowUpWeek, aSunday);
@@ -4242,6 +4263,7 @@ namespace ChurchReport.WebServiceConnector
 
                 int DayOfWeek = (int)DateTime.Now.DayOfWeek;
 
+                // 每周以星期六為第一日
                 if (DayOfWeek < 6)
                 {
                     // 小於 6 表示星期日到星期五=>當週的星期日為認定的主日
