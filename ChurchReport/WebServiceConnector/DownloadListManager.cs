@@ -130,12 +130,12 @@ namespace ChurchReport.WebServiceConnector
                 if (DayOfWeek < 6)
                 {
                     // 小於 6 表示星期日到星期五=>當週的星期日為認定的主日
-                    this.m_Sunday = DateTime.Now.AddDays(-DayOfWeek);
+                    this.m_Sunday = aDownloadDate.AddDays(-DayOfWeek);
                 }
                 else
                 {
                     // 為 6 = 星期六 (表示 DayOfWeek.Saturday)表示要加1到下一個星期日為認定的主日
-                    this.m_Sunday = DateTime.Now.AddDays(1);
+                    this.m_Sunday = aDownloadDate.AddDays(1);
                 }
                 #endregion
 
