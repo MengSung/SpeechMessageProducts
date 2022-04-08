@@ -275,6 +275,8 @@ namespace ChurchReport.WebServiceConnector
                              SmallGroupNumber = m_ToolUtilityClass.GetEntityIntAttribute(GroupWeeklyReportEntity, "new_small_group_number").ToString(),
                              // 小組出席率
                              SmallGroupRate = m_ToolUtilityClass.GetEntityDoubleAttribute(GroupWeeklyReportEntity, "new_small_group_rate").ToString(),
+                             // 週報狀態
+                             ReportStatus = GetReportStatus(GroupWeeklyReportEntity),
                              // 小組日誌
                              ReportContent = m_ToolUtilityClass.GetEntityStringAttribute(GroupWeeklyReportEntity, "new_memo"),
                          }
@@ -601,7 +603,6 @@ namespace ChurchReport.WebServiceConnector
                 throw Exception;
             }
         }
-
         private void SetUserType( ref String UserType)
         {
             // 找登入使用者及其ID
@@ -614,7 +615,24 @@ namespace ChurchReport.WebServiceConnector
                 UserType = "非行政同工";
             }
         }
-
+        private String GetReportStatus(Entity GroupWeeklyReportEntity)
+        {
+            switch (m_ToolUtilityClass.GetOptionSetAttribute(GroupWeeklyReportEntity, "new_weekly_report_status"))
+            {
+                case 100000000:
+                    return "均未點名";
+                case 100000001:
+                    return "均已點名";
+                case 100000003:
+                    return "主日點名，小組未點名";
+                case 100000004:
+                    return "小組點名，主日未點名";
+                case 100000002:
+                    return "暫停";
+                default:
+                    return "均未點名";
+            }
+        }
         #endregion
         #endregion
     }

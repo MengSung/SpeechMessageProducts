@@ -46,6 +46,7 @@ namespace ChurchReport.Models
         public string SmallGroupNumber { get; set; } // 小組人數
         public string SundayRate { get; set; } // 主日出席率
         public string SmallGroupRate { get; set; } // 小組出席率
+        public string ReportStatus { get; set; } // 週報狀態
         public string ReportContent { get; set; } // 小組日誌
         #endregion
         #endregion

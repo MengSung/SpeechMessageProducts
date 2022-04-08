@@ -259,6 +259,7 @@ m => m
                 columns.AddFor(m => m.SmallGroupNumber).Caption("小組人數").Width(120).MinWidth(45).Alignment(HorizontalAlignment.Center).AllowSorting(false);
                 columns.AddFor(m => m.SundayRate).Caption("主日出席率").Width(120).MinWidth(80).Alignment(HorizontalAlignment.Center);
                 columns.AddFor(m => m.SmallGroupRate).Caption("小組出席率").Width(120).MinWidth(120).Alignment(HorizontalAlignment.Center);
+                columns.AddFor(m => m.ReportStatus).Caption("週報狀態").Width(120).MinWidth(120).Alignment(HorizontalAlignment.Center);
                 columns.AddFor(m => m.ReportContent).Caption("日誌內容").Width(1200).MinWidth(1200).Alignment(HorizontalAlignment.Left);
             })
             .DataSource(d => d
