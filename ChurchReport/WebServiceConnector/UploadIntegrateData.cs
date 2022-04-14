@@ -3377,6 +3377,7 @@ namespace ChurchReport.WebServiceConnector
 
                         if (aMember.AssignedGroup != "" && aMember.AssignedGroup != null)
                         {
+                            // 有重新指派小組
                             AssignNewSmallGroup(aMachedPresentRecordEntity, aMember.AssignedGroup, aListEntity);
 
                             //aSmallGroupData.Members.Remove(aMember);
@@ -4138,6 +4139,12 @@ namespace ChurchReport.WebServiceConnector
                 // 設定個人聚會與靈修記錄"停止提醒"為"是"
                 SetNotRemindFlag(aAssignedContact);
 
+                // 原來小組的出席紀錄單要被刪除
+                if (aPresentRecordEntity != null)
+                {
+                    this.m_ToolUtilityClass.DeleteEntity("new_present_record", aPresentRecordEntity.Id);
+                }
+
                 return "指派小組";
             }
             catch (System.Exception e)
@@ -4185,11 +4192,18 @@ namespace ChurchReport.WebServiceConnector
                     String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
                 }
 
-
                 if (aAssignedListEntity != null)
                 {
-                    // 有找到被關聯的小組名單，建立出席紀錄單
-                    CreateAssignedContactPresentRecord(aAssignedListEntity, aAssignedContact.Id, AssignedSmallGroupName);
+                    if (AssignedSmallGroupName.Contains("關懷") != true)
+                    {
+                        // 有找到被關聯的小組名單，建立出席紀錄單
+                        CreateAssignedContactPresentRecord(aAssignedListEntity, aAssignedContact.Id, AssignedSmallGroupName);
+                    }
+                    else
+                    {
+                        // 由於是指派到關懷小組，所以就不產生關懷小組的出席紀錄單
+                        // 關懷小組的出席單會由工作流程產生有截止日期的N個出席單
+                    }
                 }
                 #region 關聯主要小組
                 //Entity aExistedContact = this.m_ToolUtilityClass.RetrieveEntity("contact", aAssignedContact.Id);
@@ -4197,8 +4211,8 @@ namespace ChurchReport.WebServiceConnector
                 #endregion
 
                 #region 更新新建立的連絡人// 設定被指派會友，被指派小組的日期
-                this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aAssignedContact, "new_assigne_group_date", DateTime.Now);
-                #endregion
+                    this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aAssignedContact, "new_assigne_group_date", DateTime.Now);
+                    #endregion
 
                 #region 更新新建立的連絡人
                 //aNewContactEntity = this.m_ToolUtilityClass.RetrieveEntity("contact", NewContactEntityId);
@@ -4230,7 +4244,6 @@ namespace ChurchReport.WebServiceConnector
                 this.m_LineNotifyUtility.SendListMemberLine(aActiveListEntity);
 
                 return Result;
-
                 #endregion
             }
             catch (System.Exception e)
