@@ -821,7 +821,7 @@ namespace ChurchReport.WebServiceConnector
                     "\t" + "A.小組組員" + Environment.NewLine +
                     this.GetDictionaryValue(ref this.m_FeedBackReport, "\t\t" + "出席　：", "主日統計小組組員出席字串") +
                     this.GetDictionaryValue(ref this.m_FeedBackReport, "\t\t" + "未出席：", "主日統計小組組員未出席字串") +
-                    "\t" + "B.未入組小組組員" + Environment.NewLine +
+                    "\t" + "B.不穩定組員" + Environment.NewLine +
                     this.GetDictionaryValue(ref this.m_FeedBackReport, "\t\t" + "出席　：", "主日統計未入組出席字串") +
                     this.GetDictionaryValue(ref this.m_FeedBackReport, "\t\t" + "未出席：", "主日統計未入組出未席字串") +
                     "\t" + "C.新朋友" + Environment.NewLine +
@@ -835,7 +835,7 @@ namespace ChurchReport.WebServiceConnector
                 //    "\t" + "A.小組組員" + Environment.NewLine +
                 //    "\t\t" + "出席　：" + this.GetDictionaryValue(ref this.m_FeedBackReport, "主日統計小組組員出席字串") + Environment.NewLine +
                 //    "\t\t" + "未出席：" + this.GetDictionaryValue(ref this.m_FeedBackReport, "主日統計小組組員未出席字串") + Environment.NewLine +
-                //    "\t" + "B.未入組小組組員" + Environment.NewLine +
+                //    "\t" + "B.不穩定組員" + Environment.NewLine +
                 //    "\t\t" + "出席　：" + this.GetDictionaryValue(ref this.m_FeedBackReport, "主日統計未入組出席字串") + Environment.NewLine +
                 //    "\t\t" + "未出席：" + this.GetDictionaryValue(ref this.m_FeedBackReport, "主日統計未入組出未席字串") + Environment.NewLine +
                 //    "\t" + "C.新朋友" + Environment.NewLine +
@@ -850,7 +850,7 @@ namespace ChurchReport.WebServiceConnector
                     "\t" + "A.小組組員" + Environment.NewLine +
                     this.GetDictionaryValue(ref this.m_FeedBackReport, "\t\t" + "出席　：", "小組統計小組組員出席字串") +
                     this.GetDictionaryValue(ref this.m_FeedBackReport, "\t\t" + "未出席：", "小組統計小組組員未出席字串") +
-                    "\t" + "B.未入組小組組員" + Environment.NewLine +
+                    "\t" + "B.不穩定組員" + Environment.NewLine +
                     this.GetDictionaryValue(ref this.m_FeedBackReport, "\t\t" + "出席　：", "小組統計未入組出席字串") +
                     this.GetDictionaryValue(ref this.m_FeedBackReport, "\t\t" + "未出席：", "小組統計未入組出未席字串") +
                     "\t" + "C.新朋友" + Environment.NewLine +
@@ -862,7 +862,7 @@ namespace ChurchReport.WebServiceConnector
                 //    "\t" + "A.小組組員" + Environment.NewLine +
                 //    "\t\t" + "出席　：" + this.GetDictionaryValue(ref this.m_FeedBackReport, "小組統計小組組員出席字串") + Environment.NewLine +
                 //    "\t\t" + "未出席：" + this.GetDictionaryValue(ref this.m_FeedBackReport, "小組統計小組組員未出席字串") + Environment.NewLine +
-                //    "\t" + "B.未入組小組組員" + Environment.NewLine +
+                //    "\t" + "B.不穩定組員" + Environment.NewLine +
                 //    "\t\t" + "出席　：" + this.GetDictionaryValue(ref this.m_FeedBackReport, "小組統計未入組出席字串") + Environment.NewLine +
                 //    "\t\t" + "未出席：" + this.GetDictionaryValue(ref this.m_FeedBackReport, "小組統計未入組出未席字串") + Environment.NewLine +
                 //    "\t" + "C.新朋友" + Environment.NewLine +
