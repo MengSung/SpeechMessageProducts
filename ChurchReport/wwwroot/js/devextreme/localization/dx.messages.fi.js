@@ -1,7 +1,7 @@
 /*!
 * DevExtreme (dx.messages.fi.js)
-* Version: 21.2.6
-* Build date: Tue Mar 01 2022
+* Version: 21.2.7
+* Build date: Mon Apr 11 2022
 *
 * Copyright (c) 2012 - 2022 Developer Express Inc. ALL RIGHTS RESERVED
 * Read about DevExtreme licensing here: https://js.devexpress.com/Licensing/
@@ -80,9 +80,9 @@
             "dxFileUploader-readyToUpload": "Valmis l\xe4hetett\xe4v\xe4ksi",
             "dxFileUploader-uploadAbortedMessage": "TODO",
             "dxFileUploader-uploadFailedMessage": "L\xe4hetys ep\xe4onnistui",
-            "dxFileUploader-invalidFileExtension": "",
-            "dxFileUploader-invalidMaxFileSize": "",
-            "dxFileUploader-invalidMinFileSize": "",
+            "dxFileUploader-invalidFileExtension": "TODO",
+            "dxFileUploader-invalidMaxFileSize": "TODO",
+            "dxFileUploader-invalidMinFileSize": "TODO",
             "dxRangeSlider-ariaFrom": "Alkaen",
             "dxRangeSlider-ariaTill": "Asti",
             "dxSwitch-switchedOnText": "P\xc4\xc4LLE",

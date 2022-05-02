@@ -1,7 +1,7 @@
 /*!
  * DevExtreme (dx.viz.debug.js)
- * Version: 21.2.6
- * Build date: Tue Mar 01 2022
+ * Version: 21.2.7
+ * Build date: Mon Apr 11 2022
  *
  * Copyright (c) 2012 - 2022 Developer Express Inc. ALL RIGHTS RESERVED
  * Read about DevExtreme licensing here: https://js.devexpress.com/Licensing/
@@ -10992,7 +10992,7 @@
               \*************************************************************/
             function(__unused_webpack_module, exports) {
                 exports.version = void 0;
-                exports.version = "21.2.6"
+                exports.version = "21.2.7"
             },
         67403:
             /*!********************************************************************!*\
@@ -30431,9 +30431,10 @@
                     _proto._optionChanged = function(option) {
                         var fullName = option.fullName,
                             name = option.name,
+                            previousValue = option.previousValue,
                             value = option.value;
                         (0, _update_props_immutable.updatePropsImmutable)(this._props, this.option(), name, fullName);
-                        if (this._propsInfo.templates.includes(name)) {
+                        if (this._propsInfo.templates.includes(name) && value !== previousValue) {
                             this._componentTemplates[name] = this._createTemplateComponent(value)
                         }
                         if (name && this._getActionConfigsFull()[name]) {
@@ -32813,7 +32814,7 @@
                         return !!this._scrollSpeed
                     };
                     _proto.isScrollable = function($element) {
-                        return ("auto" === $element.css(this._overFlowAttr) || $element.hasClass("dx-scrollable-container")) && $element.prop(this._scrollSizeProp) > ("width" === this._sizeAttr ? (0, _size.getWidth)($element) : (0, _size.getHeight)($element))
+                        return ("auto" === $element.css(this._overFlowAttr) || $element.hasClass("dx-scrollable-container")) && $element.prop(this._scrollSizeProp) > Math.ceil("width" === this._sizeAttr ? (0, _size.getWidth)($element) : (0, _size.getHeight)($element))
                     };
                     _proto._trySetScrollable = function(element, mousePosition) {
                         var $element = (0, _renderer.default)(element);
@@ -35460,7 +35461,7 @@
                         this._initHideTopOverlayHandler(this.option("hideTopOverlayHandler"));
                         this._parentsScrollSubscriptionInfo = {
                             handler: function(e) {
-                                _this3._targetParentsScrollHandler(e)
+                                _this3._hideOnParentsScrollHandler(e)
                             }
                         };
                         this._updateResizeCallbackSkipCondition();
@@ -35918,7 +35919,7 @@
                     _toggleSubscriptions: function(enabled) {
                         if ((0, _window.hasWindow)()) {
                             this._toggleHideTopOverlayCallback(enabled);
-                            this._toggleParentsScrollSubscription(enabled)
+                            this._toggleHideOnParentsScrollSubscription(enabled)
                         }
                     },
                     _toggleHideTopOverlayCallback: function(subscribe) {
@@ -35931,7 +35932,7 @@
                             _hide_callback.hideCallback.remove(this._hideTopOverlayHandler)
                         }
                     },
-                    _toggleParentsScrollSubscription: function(needSubscribe) {
+                    _toggleHideOnParentsScrollSubscription: function(needSubscribe) {
                         var _this$_parentsScrollS;
                         var scrollEvent = (0, _index.addNamespace)("scroll", this.NAME);
                         var _ref = null !== (_this$_parentsScrollS = this._parentsScrollSubscriptionInfo) && void 0 !== _this$_parentsScrollS ? _this$_parentsScrollS : {},
@@ -35940,7 +35941,7 @@
                         _events_engine.default.off(prevTargets, scrollEvent, handler);
                         var closeOnScroll = this.option("hideOnParentScroll");
                         if (needSubscribe && closeOnScroll) {
-                            var $parents = this._$wrapper.parents();
+                            var $parents = this._hideOnParentScrollTarget().parents();
                             if ("desktop" === _devices.default.real().deviceType) {
                                 $parents = $parents.add(window)
                             }
@@ -35948,7 +35949,7 @@
                             this._parentsScrollSubscriptionInfo.prevTargets = $parents
                         }
                     },
-                    _targetParentsScrollHandler: function(e) {
+                    _hideOnParentsScrollHandler: function(e) {
                         var closeHandled = false;
                         var closeOnScroll = this.option("hideOnParentScroll");
                         if ((0, _type.isFunction)(closeOnScroll)) {
@@ -35957,6 +35958,9 @@
                         if (!closeHandled && !this._showAnimationProcessing) {
                             this.hide()
                         }
+                    },
+                    _hideOnParentScrollTarget: function() {
+                        return this._$wrapper
                     },
                     _render: function() {
                         this.callBase();
@@ -36304,7 +36308,7 @@
                         this._parentsScrollSubscriptionInfo = null;
                         this.callBase();
                         this._toggleSafariScrolling();
-                        zIndexPool.remove(this._zIndex);
+                        this.option("visible") && zIndexPool.remove(this._zIndex);
                         this._$wrapper.remove();
                         this._$content.remove()
                     },
@@ -36388,7 +36392,7 @@
                                 this._toggleHideTopOverlayCallback(this.option("visible"));
                                 break;
                             case "hideOnParentScroll":
-                                this._toggleParentsScrollSubscription(this.option("visible"));
+                                this._toggleHideOnParentsScrollSubscription(this.option("visible"));
                                 break;
                             case "closeOnOutsideClick":
                             case "propagateOutsideClick":
@@ -36528,7 +36532,7 @@
                 var _window = __webpack_require__( /*! ../core/utils/window */ 58201);
                 var _events_engine = _interopRequireDefault(__webpack_require__( /*! ../events/core/events_engine */ 55994));
                 var _drag = __webpack_require__( /*! ../events/drag */ 23174);
-                var _utils = __webpack_require__( /*! ../events/utils */ 39611);
+                var _index = __webpack_require__( /*! ../events/utils/index */ 39611);
                 var _visibility_change = __webpack_require__( /*! ../events/visibility_change */ 80506);
 
                 function _interopRequireDefault(obj) {
@@ -36551,9 +36555,9 @@
                     };
                     return _extends.apply(this, arguments)
                 }
-                var DRAGSTART_START_EVENT_NAME = (0, _utils.addNamespace)(_drag.start, "dxResizable");
-                var DRAGSTART_EVENT_NAME = (0, _utils.addNamespace)(_drag.move, "dxResizable");
-                var DRAGSTART_END_EVENT_NAME = (0, _utils.addNamespace)(_drag.end, "dxResizable");
+                var DRAGSTART_START_EVENT_NAME = (0, _index.addNamespace)(_drag.start, "dxResizable");
+                var DRAGSTART_EVENT_NAME = (0, _index.addNamespace)(_drag.move, "dxResizable");
+                var DRAGSTART_END_EVENT_NAME = (0, _index.addNamespace)(_drag.end, "dxResizable");
                 var SIDE_BORDER_WIDTH_STYLES = {
                     left: "borderLeftWidth",
                     top: "borderTopWidth",
@@ -40702,7 +40706,7 @@
                     onSelectionChanged: function() {
                         this._selectionStrategy.onSelectionChanged()
                     },
-                    changeItemSelection: function(itemIndex, keys) {
+                    changeItemSelection: function(itemIndex, keys, setFocusOnly) {
                         var _this$options$allowLo, _this$options, _this = this;
                         var isSelectedItemsChanged;
                         var items = this.options.plainItems();
@@ -40735,14 +40739,16 @@
                             }
                         } else if (keys.control) {
                             this._resetItemSelectionWhenShiftKeyPressed();
-                            var isSelected = this._selectionStrategy.isItemDataSelected(itemData);
-                            if ("single" === this.options.mode) {
-                                this.clearSelectedItems()
-                            }
-                            if (isSelected) {
-                                this._removeSelectedItem(itemKey)
-                            } else {
-                                this._addSelectedItem(itemData, itemKey)
+                            if (!setFocusOnly) {
+                                var isSelected = this._selectionStrategy.isItemDataSelected(itemData);
+                                if ("single" === this.options.mode) {
+                                    this.clearSelectedItems()
+                                }
+                                if (isSelected) {
+                                    this._removeSelectedItem(itemKey)
+                                } else {
+                                    this._addSelectedItem(itemData, itemKey)
+                                }
                             }
                             isSelectedItemsChanged = true
                         } else {
@@ -40756,7 +40762,7 @@
                         if (isSelectedItemsChanged) {
                             (0, _deferred.when)(deferred).done((function() {
                                 _this._focusedItemIndex = itemIndex;
-                                _this.onSelectionChanged()
+                                !setFocusOnly && _this.onSelectionChanged()
                             }));
                             return true
                         }
@@ -41421,14 +41427,13 @@
                         this._initSelectedItemKeyHash();
                         this.updateSelectedItemKeyHash(this.options.selectedItemKeys)
                     },
-                    _loadSelectedItemsCore: function(keys, isDeselect, isSelectAll) {
+                    _loadSelectedItemsCore: function(keys, isDeselect, isSelectAll, filter) {
                         var deferred = new _deferred.Deferred;
                         var key = this.options.key();
                         if (!keys.length && !isSelectAll) {
                             deferred.resolve([]);
                             return deferred
                         }
-                        var filter = this.options.filter();
                         if (isSelectAll && isDeselect && !filter) {
                             deferred.resolve(this.getSelectedItems());
                             return deferred
@@ -41531,12 +41536,13 @@
                     _loadSelectedItems: function(keys, isDeselect, isSelectAll, updatedKeys) {
                         var that = this;
                         var deferred = new _deferred.Deferred;
+                        var filter = that.options.filter();
                         this._shouldMergeWithLastRequest = this._requestInProgress();
                         this._lastRequestData = this._collectLastRequestData(keys, isDeselect, isSelectAll, updatedKeys);
                         (0, _deferred.when)(that._lastLoadDeferred).always((function() {
                             var currentKeys = that._updateKeysByLastRequestData(keys, isDeselect, isSelectAll);
                             that._shouldMergeWithLastRequest = false;
-                            that._loadSelectedItemsCore(currentKeys, isDeselect, isSelectAll).done(deferred.resolve).fail(deferred.reject)
+                            that._loadSelectedItemsCore(currentKeys, isDeselect, isSelectAll, filter).done(deferred.resolve).fail(deferred.reject)
                         }));
                         that._lastLoadDeferred = deferred;
                         return deferred
@@ -41870,7 +41876,7 @@
                             return getFilterExpressionForDate.apply(column, arguments)
                         } else if ("number" === dataType) {
                             return getFilterExpressionForNumber.apply(column, arguments)
-                        } else if ("object" !== dataType) {
+                        } else {
                             filter = [selector, selectedFilterOperation || "=", filterValue]
                         }
                         return filter
@@ -44837,6 +44843,9 @@
                         var options = this._options;
                         var discreteAxisDivisionMode = options.discreteAxisDivisionMode;
                         this._tickOffset = +("crossLabels" !== discreteAxisDivisionMode || !discreteAxisDivisionMode)
+                    },
+                    aggregatedPointBetweenTicks: function() {
+                        return "crossTicks" === this._options.aggregatedPointsPosition
                     },
                     resetApplyingAnimation: function(isFirstDrawing) {
                         this._resetApplyingAnimation = true;
@@ -52824,7 +52833,10 @@
                             name: "pointHoverChanged"
                         },
                         onDone: {
-                            name: "done"
+                            name: "done",
+                            actionSettings: {
+                                excludeValidators: ["disabled"]
+                            }
                         },
                         onZoomStart: {
                             name: "zoomStart"
@@ -53443,7 +53455,7 @@
                         customizeLabel: "REFRESH_SERIES_REINIT",
                         scrollBar: "SCROLL_BAR"
                     },
-                    _optionChangesOrder: ["ROTATED", "PALETTE", "REFRESH_SERIES_REINIT", "AXES_AND_PANES", "INIT", "REINIT", "DATA_SOURCE", "REFRESH_SERIES_DATA_INIT", "DATA_INIT", "FORCE_DATA_INIT", "REFRESH_AXES", "CORRECT_AXIS"],
+                    _optionChangesOrder: ["ROTATED", "PALETTE", "REFRESH_SERIES_REINIT", "USE_SPIDER_WEB", "AXES_AND_PANES", "INIT", "REINIT", "DATA_SOURCE", "REFRESH_SERIES_DATA_INIT", "DATA_INIT", "FORCE_DATA_INIT", "REFRESH_AXES", "CORRECT_AXIS"],
                     _customChangesOrder: ["ANIMATION", "REFRESH_SERIES_FAMILIES", "FORCE_FIRST_DRAWING", "FORCE_DRAWING", "FORCE_RENDER", "VISUAL_RANGE", "SCROLL_BAR", "REINIT", "REFRESH", "FULL_RENDER"],
                     _change_ANIMATION: function() {
                         this._renderer.updateAnimationOptions(this._getAnimationOptions())
@@ -58942,10 +58954,16 @@
                 }() : _dom_component.default.inherit({
                     _eventsMap: {
                         onIncidentOccurred: {
-                            name: "incidentOccurred"
+                            name: "incidentOccurred",
+                            actionSettings: {
+                                excludeValidators: ["disabled"]
+                            }
                         },
                         onDrawn: {
-                            name: "drawn"
+                            name: "drawn",
+                            actionSettings: {
+                                excludeValidators: ["disabled"]
+                            }
                         }
                     },
                     _getDefaultOptions: function() {
@@ -59216,8 +59234,8 @@
                     },
                     _initEventTrigger: function() {
                         var that = this;
-                        that._eventTrigger = (0, _base_widget.createEventTrigger)(that._eventsMap, (function(name) {
-                            return that._createActionByOption(name)
+                        that._eventTrigger = (0, _base_widget.createEventTrigger)(that._eventsMap, (function(name, actionSettings) {
+                            return that._createActionByOption(name, actionSettings)
                         }))
                     },
                     _calculateCanvas: function() {
@@ -59507,7 +59525,7 @@
 
                     function createEvent(name) {
                         var eventInfo = eventsMap[name];
-                        triggers[eventInfo.name] = callbackGetter(name)
+                        triggers[eventInfo.name] = callbackGetter(name, eventInfo.actionSettings)
                     }
 
                     function triggerEvent(name, arg, complete) {
@@ -60233,9 +60251,15 @@
                         margin: exportOptions.margin,
                         svgToCanvas: exportOptions.svgToCanvas,
                         forceProxy: exportOptions.forceProxy,
-                        exportingAction: widget._createActionByOption("onExporting"),
-                        exportedAction: widget._createActionByOption("onExported"),
-                        fileSavingAction: widget._createActionByOption("onFileSaving")
+                        exportingAction: widget._createActionByOption("onExporting", {
+                            excludeValidators: ["disabled"]
+                        }),
+                        exportedAction: widget._createActionByOption("onExported", {
+                            excludeValidators: ["disabled"]
+                        }),
+                        fileSavingAction: widget._createActionByOption("onFileSaving", {
+                            excludeValidators: ["disabled"]
+                        })
                     }
                 }
                 var plugin = {
@@ -65755,6 +65779,7 @@
                             placeholderSize: null,
                             logarithmBase: 10,
                             discreteAxisDivisionMode: "betweenLabels",
+                            aggregatedPointsPosition: "betweenTicks",
                             width: 1,
                             label: {
                                 visible: true
@@ -75426,7 +75451,11 @@
                         }
                     },
                     _optionChangesMap: {
-                        useSpiderWeb: "AXES_AND_PANES"
+                        useSpiderWeb: "USE_SPIDER_WEB"
+                    },
+                    _change_USE_SPIDER_WEB: function() {
+                        this._disposeAxes();
+                        this._requestChange(["AXES_AND_PANES"])
                     },
                     _getExtraOptions: function() {
                         return {
@@ -79536,7 +79565,8 @@
                     },
                     getValueRangeInitialValue: areaSeries.getValueRangeInitialValue,
                     _patchMarginOptions: function(options) {
-                        options.checkInterval = !this.useAggregation();
+                        var _this$getArgumentAxis;
+                        options.checkInterval = !this.useAggregation() || (null === (_this$getArgumentAxis = this.getArgumentAxis()) || void 0 === _this$getArgumentAxis ? void 0 : _this$getArgumentAxis.aggregatedPointBetweenTicks());
                         return options
                     },
                     _defaultAggregator: "sum",
@@ -81355,7 +81385,8 @@
                     getRangeData: function(series) {
                         var points = series.getPoints();
                         var useAggregation = series.useAggregation();
-                        var argumentCalculator = getRangeCalculator(series.argumentAxisType, points.length > 1 && series.getArgumentAxis(), createGetLogFunction(series.argumentAxisType, series.getArgumentAxis()));
+                        var argumentAxis = series.getArgumentAxis();
+                        var argumentCalculator = getRangeCalculator(series.argumentAxisType, points.length > 1 && argumentAxis, createGetLogFunction(series.argumentAxisType, argumentAxis));
                         var valueRangeCalculator = getRangeCalculator(series.valueAxisType, null, createGetLogFunction(series.valueAxisType, series.getValueAxis()));
                         var viewportReducer = getViewportReducer(series);
                         var range = points.reduce((function(range, point, index, points) {
@@ -81370,7 +81401,7 @@
                             }
                             return range
                         }), {
-                            arg: getInitialRange(series.argumentAxisType, series.argumentType, series.getArgumentRangeInitialValue()),
+                            arg: getInitialRange(series.argumentAxisType, series.argumentType, null !== argumentAxis && void 0 !== argumentAxis && argumentAxis.aggregatedPointBetweenTicks() ? void 0 : series.getArgumentRangeInitialValue()),
                             val: getInitialRange(series.valueAxisType, series.valueType, points.length ? series.getValueRangeInitialValue() : void 0),
                             viewport: getInitialRange(series.valueAxisType, series.valueType, points.length ? series.getValueRangeInitialValue() : void 0)
                         });
@@ -81379,7 +81410,7 @@
                             if ("discrete" === series.argumentAxisType) {
                                 range.arg = argumentRange
                             } else {
-                                var viewport = series.getArgumentAxis().getViewport();
+                                var viewport = argumentAxis.getViewport();
                                 if ((0, _type.isDefined)(viewport.startValue) || (0, _type.isDefined)(viewport.length)) {
                                     argumentCalculator(range.arg, argumentRange.min, argumentRange.min)
                                 }
@@ -86280,7 +86311,11 @@
                     },
                     _getIntervalCenter: function(intervalStart, intervalEnd) {
                         var argAxis = this.getArgumentAxis();
-                        return "discrete" !== argAxis.getOptions().type ? argAxis.getVisualRangeCenter({
+                        var axisOptions = argAxis.getOptions();
+                        if (argAxis.aggregatedPointBetweenTicks()) {
+                            return intervalStart
+                        }
+                        return "discrete" !== axisOptions.type ? argAxis.getVisualRangeCenter({
                             minVisible: intervalStart,
                             maxVisible: intervalEnd
                         }, true) : intervalStart
@@ -86917,6 +86952,9 @@
                         calculateInterval: _common.noop,
                         getMarginOptions: function() {
                             return {}
+                        },
+                        aggregatedPointBetweenTicks: function() {
+                            return false
                         }
                     }
                 }

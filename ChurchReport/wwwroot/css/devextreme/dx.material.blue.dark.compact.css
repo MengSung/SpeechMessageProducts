@@ -1,8 +1,8 @@
 @charset "UTF-8";
 /**
 * DevExtreme (dx.material.blue.dark.compact.css)
-* Version: 21.2.6
-* Build date: Tue Mar 01 2022
+* Version: 21.2.7
+* Build date: Mon Apr 11 2022
 *
 * Copyright (c) 2012 - 2022 Developer Express Inc. ALL RIGHTS RESERVED
 * Read about DevExtreme licensing here: https://js.devexpress.com/Licensing/
@@ -3487,13 +3487,9 @@
   -webkit-box-sizing: border-box;
   box-sizing: border-box;
 }
-.dx-scrollable-content::after,
-.dx-scrollable-content::before {
-  display: table;
-  content: "";
-  line-height: 0;
-}
 .dx-scrollable-content::after {
+  display: block;
+  content: "";
   clear: both;
 }
 .dx-scrollable-both .dx-scrollable-content,
@@ -11092,7 +11088,8 @@
   display: none;
 }
 .dx-dropdownmenu-popup-wrapper .dx-toolbar-menu-custom > .dx-list-item-content,
-.dx-toolbar-menu-section .dx-toolbar-hidden-button > .dx-list-item-content {
+.dx-toolbar-menu-section .dx-toolbar-hidden-button > .dx-list-item-content,
+.dx-toolbar-menu-section .dx-toolbar-hidden-button-group > .dx-list-item-content {
   padding: 0;
 }
 .dx-toolbar-menu-section.dx-toolbar-menu-last-section {
@@ -11349,10 +11346,7 @@
   margin-left: 11px;
 }
 .dx-toolbar-menu-section .dx-toolbar-item-auto-hide {
-  padding: 0 11px;
-}
-.dx-toolbar-menu-section .dx-toolbar-item-auto-hide .dx-checkbox {
-  padding: 10px 0;
+  padding: 10px 11px 9px;
 }
 .dx-toolbar-button .dx-button-has-text .dx-button-content .dx-icon {
   width: 18px;
@@ -11944,19 +11938,14 @@
 .dx-dropdownbutton {
   height: 28px;
 }
-.dx-dropdownbutton .dx-button-has-icon,
-.dx-dropdownbutton .dx-button-has-icon.dx-button-has-text,
-.dx-dropdownbutton .dx-button-has-text {
-  min-width: 0;
-}
-.dx-dropdownbutton .dx-button-has-icon.dx-button-has-text.dx-buttongroup-last-item .dx-button-content,
-.dx-dropdownbutton .dx-button-has-icon.dx-buttongroup-last-item .dx-button-content,
-.dx-dropdownbutton .dx-button-has-text.dx-buttongroup-last-item .dx-button-content {
+.dx-dropdownbutton.dx-dropdownbutton-has-arrow .dx-button-has-icon.dx-button-has-text.dx-buttongroup-last-item .dx-button-content,
+.dx-dropdownbutton.dx-dropdownbutton-has-arrow .dx-button-has-icon.dx-buttongroup-last-item .dx-button-content,
+.dx-dropdownbutton.dx-dropdownbutton-has-arrow .dx-button-has-text.dx-buttongroup-last-item .dx-button-content {
   padding-right: 0;
 }
-.dx-dropdownbutton .dx-button-has-icon.dx-button-has-text.dx-buttongroup-last-item .dx-button-content .dx-icon-spindown,
-.dx-dropdownbutton .dx-button-has-icon.dx-buttongroup-last-item .dx-button-content .dx-icon-spindown,
-.dx-dropdownbutton .dx-button-has-text.dx-buttongroup-last-item .dx-button-content .dx-icon-spindown {
+.dx-dropdownbutton.dx-dropdownbutton-has-arrow .dx-button-has-icon.dx-button-has-text.dx-buttongroup-last-item .dx-button-content .dx-icon-spindown,
+.dx-dropdownbutton.dx-dropdownbutton-has-arrow .dx-button-has-icon.dx-buttongroup-last-item .dx-button-content .dx-icon-spindown,
+.dx-dropdownbutton.dx-dropdownbutton-has-arrow .dx-button-has-text.dx-buttongroup-last-item .dx-button-content .dx-icon-spindown {
   height: 18px;
   background-position: 0 0;
   background-size: 18px 18px;
@@ -11966,10 +11955,15 @@
   line-height: 18px;
   width: 26px;
 }
-.dx-dropdownbutton .dx-button-has-icon.dx-button-has-text.dx-buttongroup-last-item .dx-button-content .dx-icon-spindown.dx-icon-right,
-.dx-dropdownbutton .dx-button-has-icon.dx-buttongroup-last-item .dx-button-content .dx-icon-spindown.dx-icon-right,
-.dx-dropdownbutton .dx-button-has-text.dx-buttongroup-last-item .dx-button-content .dx-icon-spindown.dx-icon-right {
+.dx-dropdownbutton.dx-dropdownbutton-has-arrow .dx-button-has-icon.dx-button-has-text.dx-buttongroup-last-item .dx-button-content .dx-icon-spindown.dx-icon-right,
+.dx-dropdownbutton.dx-dropdownbutton-has-arrow .dx-button-has-icon.dx-buttongroup-last-item .dx-button-content .dx-icon-spindown.dx-icon-right,
+.dx-dropdownbutton.dx-dropdownbutton-has-arrow .dx-button-has-text.dx-buttongroup-last-item .dx-button-content .dx-icon-spindown.dx-icon-right {
   margin-left: 4px;
+}
+.dx-dropdownbutton .dx-button-has-icon,
+.dx-dropdownbutton .dx-button-has-icon.dx-button-has-text,
+.dx-dropdownbutton .dx-button-has-text {
+  min-width: 0;
 }
 .dx-dropdownbutton .dx-button-has-icon .dx-button-content,
 .dx-dropdownbutton .dx-button-has-icon.dx-button-has-text .dx-button-content,
@@ -13463,6 +13457,9 @@
   display: -webkit-flex;
   display: -ms-flexbox;
   display: flex;
+  -webkit-flex-wrap: wrap;
+  -ms-flex-wrap: wrap;
+  flex-wrap: wrap;
 }
 .dx-radiogroup-horizontal .dx-radiobutton:last-of-type {
   margin-right: 0;
@@ -15445,9 +15442,20 @@
 .dx-datagrid.dx-filter-menu .dx-menu-item-content .dx-icon.dx-icon-filter-operation-default {
   margin-top: 2px;
 }
-.dx-datagrid .dx-editor-with-menu,
-.dx-datagrid-container .dx-editor-with-menu {
-  height: 36px;
+.dx-datagrid .dx-editor-with-menu .dx-menu-item-content,
+.dx-datagrid-container .dx-editor-with-menu .dx-menu-item-content {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: center;
+  -webkit-justify-content: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  -webkit-box-align: center;
+  -webkit-align-items: center;
+  -ms-flex-align: center;
+  align-items: center;
 }
 .dx-datagrid .dx-editor-with-menu .dx-menu-item-content .dx-icon,
 .dx-datagrid-container .dx-editor-with-menu .dx-menu-item-content .dx-icon {
@@ -17779,9 +17787,20 @@ input.dx-hidden {
 .dx-treelist.dx-filter-menu .dx-menu-item-content .dx-icon.dx-icon-filter-operation-default {
   margin-top: 2px;
 }
-.dx-treelist .dx-editor-with-menu,
-.dx-treelist-container .dx-editor-with-menu {
-  height: 36px;
+.dx-treelist .dx-editor-with-menu .dx-menu-item-content,
+.dx-treelist-container .dx-editor-with-menu .dx-menu-item-content {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: center;
+  -webkit-justify-content: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  -webkit-box-align: center;
+  -webkit-align-items: center;
+  -ms-flex-align: center;
+  align-items: center;
 }
 .dx-treelist .dx-editor-with-menu .dx-menu-item-content .dx-icon,
 .dx-treelist-container .dx-editor-with-menu .dx-menu-item-content .dx-icon {
@@ -24103,6 +24122,9 @@ input.dx-hidden {
   content: attr(data-placeholder);
   z-index: -1;
   visibility: hidden;
+}
+.dx-htmleditor-content.ql-blank[data-placeholder] > p {
+  height: .1px;
 }
 .dx-htmleditor-content blockquote {
   padding-left: 12px;

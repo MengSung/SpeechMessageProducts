@@ -1,7 +1,7 @@
 /*!
  * DevExpress Gantt (dx-gantt)
- * Version: 4.0.12
- * Build date: Fri Feb 25 2022
+ * Version: 4.0.13
+ * Build date: Mon Apr 04 2022
  * 
  * Copyright (c) 2012 - 2022 Developer Express Inc. ALL RIGHTS RESERVED
  * Read about DevExpress licensing here: https://www.devexpress.com/Support/EULAs
@@ -1942,7 +1942,7 @@ exports.TaskPropertiesHistoryItemBase = void 0;
 var tslib_1 = __webpack_require__(0);
 var HistoryItem_1 = __webpack_require__(13);
 var TaskPropertiesHistoryItemBase = (function (_super) {
-    (0, tslib_1.__extends)(TaskPropertiesHistoryItemBase, _super);
+    tslib_1.__extends(TaskPropertiesHistoryItemBase, _super);
     function TaskPropertiesHistoryItemBase(modelManipulator, taskId, newValue) {
         var _this = _super.call(this, modelManipulator) || this;
         _this.taskId = taskId;
@@ -2332,7 +2332,7 @@ var tslib_1 = __webpack_require__(0);
 var HistoryItemState_1 = __webpack_require__(74);
 var BaseManipulator_1 = __webpack_require__(19);
 var TaskPropertyManipulator = (function (_super) {
-    (0, tslib_1.__extends)(TaskPropertyManipulator, _super);
+    tslib_1.__extends(TaskPropertyManipulator, _super);
     function TaskPropertyManipulator() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
@@ -2398,7 +2398,7 @@ var tslib_1 = __webpack_require__(0);
 var CollectionBase_1 = __webpack_require__(23);
 var Resource_1 = __webpack_require__(55);
 var ResourceCollection = (function (_super) {
-    (0, tslib_1.__extends)(ResourceCollection, _super);
+    tslib_1.__extends(ResourceCollection, _super);
     function ResourceCollection() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
@@ -2566,7 +2566,7 @@ var tslib_1 = __webpack_require__(0);
 var CommandBase_1 = __webpack_require__(5);
 var SimpleCommandState_1 = __webpack_require__(6);
 var TaskCommandBase = (function (_super) {
-    (0, tslib_1.__extends)(TaskCommandBase, _super);
+    tslib_1.__extends(TaskCommandBase, _super);
     function TaskCommandBase() {
         var _this = _super !== null && _super.apply(this, arguments) || this;
         _this.isApiCall = false;
@@ -2599,7 +2599,7 @@ var tslib_1 = __webpack_require__(0);
 var CommandBase_1 = __webpack_require__(5);
 var SimpleCommandState_1 = __webpack_require__(6);
 var TaskPropertyCommandBase = (function (_super) {
-    (0, tslib_1.__extends)(TaskPropertyCommandBase, _super);
+    tslib_1.__extends(TaskPropertyCommandBase, _super);
     function TaskPropertyCommandBase() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
@@ -2916,8 +2916,12 @@ var GridLayoutCalculator = (function () {
         if (!isInsideText) {
             var taskX = this.getTaskPoint(index).x;
             if (taskX < this.elementSizeValues.outsideTaskTextDefaultWidth) {
-                result.size.width = taskX;
-                result.margins.left = -taskX;
+                var width = Math.max(taskX, 0);
+                result.size.width = width;
+                if (width > 0)
+                    result.margins.left = -width;
+                else
+                    result.additionalInfo["hidden"] = true;
             }
         }
         return result;
@@ -4025,7 +4029,7 @@ var tslib_1 = __webpack_require__(0);
 var CommandBase_1 = __webpack_require__(5);
 var SimpleCommandState_1 = __webpack_require__(6);
 var DialogBase = (function (_super) {
-    (0, tslib_1.__extends)(DialogBase, _super);
+    tslib_1.__extends(DialogBase, _super);
     function DialogBase() {
         var _this = _super !== null && _super.apply(this, arguments) || this;
         _this.isApiCall = false;
@@ -4077,7 +4081,7 @@ exports.RemoveDependencyHistoryItem = void 0;
 var tslib_1 = __webpack_require__(0);
 var HistoryItem_1 = __webpack_require__(13);
 var RemoveDependencyHistoryItem = (function (_super) {
-    (0, tslib_1.__extends)(RemoveDependencyHistoryItem, _super);
+    tslib_1.__extends(RemoveDependencyHistoryItem, _super);
     function RemoveDependencyHistoryItem(modelManipulator, dependencyId) {
         var _this = _super.call(this, modelManipulator) || this;
         _this.dependencyId = dependencyId;
@@ -4143,7 +4147,7 @@ exports.DeassignResourceHistoryItem = void 0;
 var tslib_1 = __webpack_require__(0);
 var HistoryItem_1 = __webpack_require__(13);
 var DeassignResourceHistoryItem = (function (_super) {
-    (0, tslib_1.__extends)(DeassignResourceHistoryItem, _super);
+    tslib_1.__extends(DeassignResourceHistoryItem, _super);
     function DeassignResourceHistoryItem(modelManipulator, assignmentId) {
         var _this = _super.call(this, modelManipulator) || this;
         _this.assignmentId = assignmentId;
@@ -4171,7 +4175,7 @@ exports.TaskEndHistoryItem = void 0;
 var tslib_1 = __webpack_require__(0);
 var TaskPropertiesHistoryItemBase_1 = __webpack_require__(16);
 var TaskEndHistoryItem = (function (_super) {
-    (0, tslib_1.__extends)(TaskEndHistoryItem, _super);
+    tslib_1.__extends(TaskEndHistoryItem, _super);
     function TaskEndHistoryItem() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
@@ -4194,7 +4198,7 @@ exports.TaskProgressHistoryItem = void 0;
 var tslib_1 = __webpack_require__(0);
 var TaskPropertiesHistoryItemBase_1 = __webpack_require__(16);
 var TaskProgressHistoryItem = (function (_super) {
-    (0, tslib_1.__extends)(TaskProgressHistoryItem, _super);
+    tslib_1.__extends(TaskProgressHistoryItem, _super);
     function TaskProgressHistoryItem() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
@@ -4217,7 +4221,7 @@ exports.TaskStartHistoryItem = void 0;
 var tslib_1 = __webpack_require__(0);
 var TaskPropertiesHistoryItemBase_1 = __webpack_require__(16);
 var TaskStartHistoryItem = (function (_super) {
-    (0, tslib_1.__extends)(TaskStartHistoryItem, _super);
+    tslib_1.__extends(TaskStartHistoryItem, _super);
     function TaskStartHistoryItem() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
@@ -4241,7 +4245,7 @@ var tslib_1 = __webpack_require__(0);
 var CommandBase_1 = __webpack_require__(5);
 var SimpleCommandState_1 = __webpack_require__(6);
 var ResourceCommandBase = (function (_super) {
-    (0, tslib_1.__extends)(ResourceCommandBase, _super);
+    tslib_1.__extends(ResourceCommandBase, _super);
     function ResourceCommandBase() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
@@ -4366,7 +4370,7 @@ var DateTimeUtils_1 = __webpack_require__(7);
 var RecurrenceFactory_1 = __webpack_require__(82);
 var DataObject_1 = __webpack_require__(21);
 var RecurrenceBase = (function (_super) {
-    (0, tslib_1.__extends)(RecurrenceBase, _super);
+    tslib_1.__extends(RecurrenceBase, _super);
     function RecurrenceBase(start, end, interval, occurrenceCount) {
         if (start === void 0) { start = null; }
         if (end === void 0) { end = null; }
@@ -4694,7 +4698,7 @@ exports.ConfirmationDialogParameters = void 0;
 var tslib_1 = __webpack_require__(0);
 var DialogParametersBase_1 = __webpack_require__(35);
 var ConfirmationDialogParameters = (function (_super) {
-    (0, tslib_1.__extends)(ConfirmationDialogParameters, _super);
+    tslib_1.__extends(ConfirmationDialogParameters, _super);
     function ConfirmationDialogParameters(type, callback) {
         var _this = _super.call(this) || this;
         _this.type = type;
@@ -4722,7 +4726,7 @@ exports.TaskTitleHistoryItem = void 0;
 var tslib_1 = __webpack_require__(0);
 var TaskPropertiesHistoryItemBase_1 = __webpack_require__(16);
 var TaskTitleHistoryItem = (function (_super) {
-    (0, tslib_1.__extends)(TaskTitleHistoryItem, _super);
+    tslib_1.__extends(TaskTitleHistoryItem, _super);
     function TaskTitleHistoryItem() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
@@ -4745,7 +4749,7 @@ exports.CompositionHistoryItem = void 0;
 var tslib_1 = __webpack_require__(0);
 var HistoryItem_1 = __webpack_require__(13);
 var CompositionHistoryItem = (function (_super) {
-    (0, tslib_1.__extends)(CompositionHistoryItem, _super);
+    tslib_1.__extends(CompositionHistoryItem, _super);
     function CompositionHistoryItem() {
         var _this = _super.call(this, null) || this;
         _this.historyItems = [];
@@ -4790,7 +4794,7 @@ exports.CreateTaskHistoryItem = void 0;
 var tslib_1 = __webpack_require__(0);
 var HistoryItem_1 = __webpack_require__(13);
 var CreateTaskHistoryItem = (function (_super) {
-    (0, tslib_1.__extends)(CreateTaskHistoryItem, _super);
+    tslib_1.__extends(CreateTaskHistoryItem, _super);
     function CreateTaskHistoryItem(modelManipulator, data) {
         var _this = _super.call(this, modelManipulator) || this;
         _this.data = data;
@@ -4819,7 +4823,7 @@ var tslib_1 = __webpack_require__(0);
 var ConstraintViolationDialogParameters_1 = __webpack_require__(133);
 var TaskPropertyCommandBase_1 = __webpack_require__(26);
 var TaskPropertyCommandValidation = (function (_super) {
-    (0, tslib_1.__extends)(TaskPropertyCommandValidation, _super);
+    tslib_1.__extends(TaskPropertyCommandValidation, _super);
     function TaskPropertyCommandValidation() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
@@ -6468,7 +6472,7 @@ var tslib_1 = __webpack_require__(0);
 var common_1 = __webpack_require__(1);
 var DataObject_1 = __webpack_require__(21);
 var Resource = (function (_super) {
-    (0, tslib_1.__extends)(Resource, _super);
+    tslib_1.__extends(Resource, _super);
     function Resource() {
         var _this = _super.call(this) || this;
         _this.text = "";
@@ -6817,7 +6821,7 @@ exports.ResourceAssigningArguments = void 0;
 var tslib_1 = __webpack_require__(0);
 var BaseArguments_1 = __webpack_require__(10);
 var ResourceAssigningArguments = (function (_super) {
-    (0, tslib_1.__extends)(ResourceAssigningArguments, _super);
+    tslib_1.__extends(ResourceAssigningArguments, _super);
     function ResourceAssigningArguments(resourceId, taskId) {
         var _this = _super.call(this, null) || this;
         _this.values = {
@@ -6852,7 +6856,7 @@ exports.AssignResourceHistoryItem = void 0;
 var tslib_1 = __webpack_require__(0);
 var HistoryItem_1 = __webpack_require__(13);
 var AssignResourceHistoryItem = (function (_super) {
-    (0, tslib_1.__extends)(AssignResourceHistoryItem, _super);
+    tslib_1.__extends(AssignResourceHistoryItem, _super);
     function AssignResourceHistoryItem(modelManipulator, resourceId, taskId) {
         var _this = _super.call(this, modelManipulator) || this;
         _this.resourceId = resourceId;
@@ -6882,7 +6886,7 @@ var tslib_1 = __webpack_require__(0);
 var CommandBase_1 = __webpack_require__(5);
 var SimpleCommandState_1 = __webpack_require__(6);
 var DependencyCommandBase = (function (_super) {
-    (0, tslib_1.__extends)(DependencyCommandBase, _super);
+    tslib_1.__extends(DependencyCommandBase, _super);
     function DependencyCommandBase() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
@@ -6905,7 +6909,7 @@ exports.CreateResourceHistoryItem = void 0;
 var tslib_1 = __webpack_require__(0);
 var HistoryItem_1 = __webpack_require__(13);
 var CreateResourceHistoryItem = (function (_super) {
-    (0, tslib_1.__extends)(CreateResourceHistoryItem, _super);
+    tslib_1.__extends(CreateResourceHistoryItem, _super);
     function CreateResourceHistoryItem(modelManipulator, text, color, callback) {
         if (color === void 0) { color = ""; }
         var _this = _super.call(this, modelManipulator) || this;
@@ -6936,7 +6940,7 @@ exports.TaskInsertingArguments = void 0;
 var tslib_1 = __webpack_require__(0);
 var BaseArguments_1 = __webpack_require__(10);
 var TaskInsertingArguments = (function (_super) {
-    (0, tslib_1.__extends)(TaskInsertingArguments, _super);
+    tslib_1.__extends(TaskInsertingArguments, _super);
     function TaskInsertingArguments(key, data) {
         var _this = _super.call(this, key) || this;
         _this.values = data !== null && data !== void 0 ? data : {};
@@ -6988,7 +6992,7 @@ exports.TaskColorHistoryItem = void 0;
 var tslib_1 = __webpack_require__(0);
 var TaskPropertiesHistoryItemBase_1 = __webpack_require__(16);
 var TaskColorHistoryItem = (function (_super) {
-    (0, tslib_1.__extends)(TaskColorHistoryItem, _super);
+    tslib_1.__extends(TaskColorHistoryItem, _super);
     function TaskColorHistoryItem() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
@@ -7011,7 +7015,7 @@ exports.TaskMoveHistoryItem = void 0;
 var tslib_1 = __webpack_require__(0);
 var TaskPropertiesHistoryItemBase_1 = __webpack_require__(16);
 var TaskMoveHistoryItem = (function (_super) {
-    (0, tslib_1.__extends)(TaskMoveHistoryItem, _super);
+    tslib_1.__extends(TaskMoveHistoryItem, _super);
     function TaskMoveHistoryItem() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
@@ -7828,7 +7832,7 @@ var evt_1 = __webpack_require__(8);
 var TaskAreaStateBase_1 = __webpack_require__(31);
 var TaskAreaStateEventNames_1 = __webpack_require__(12);
 var TaskDragBaseState = (function (_super) {
-    (0, tslib_1.__extends)(TaskDragBaseState, _super);
+    tslib_1.__extends(TaskDragBaseState, _super);
     function TaskDragBaseState() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
@@ -7932,7 +7936,7 @@ var common_1 = __webpack_require__(1);
 var DataObject_1 = __webpack_require__(21);
 var Enums_1 = __webpack_require__(24);
 var Dependency = (function (_super) {
-    (0, tslib_1.__extends)(Dependency, _super);
+    tslib_1.__extends(Dependency, _super);
     function Dependency() {
         var _this = _super.call(this) || this;
         _this.predecessorId = "";
@@ -7992,7 +7996,7 @@ var tslib_1 = __webpack_require__(0);
 var common_1 = __webpack_require__(1);
 var DataObject_1 = __webpack_require__(21);
 var ResourceAssignment = (function (_super) {
-    (0, tslib_1.__extends)(ResourceAssignment, _super);
+    tslib_1.__extends(ResourceAssignment, _super);
     function ResourceAssignment() {
         var _this = _super.call(this) || this;
         _this.taskId = "";
@@ -8076,7 +8080,7 @@ var tslib_1 = __webpack_require__(0);
 var RecurrenceBase_1 = __webpack_require__(42);
 var DateTimeUtils_1 = __webpack_require__(7);
 var Daily = (function (_super) {
-    (0, tslib_1.__extends)(Daily, _super);
+    tslib_1.__extends(Daily, _super);
     function Daily() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
@@ -8381,7 +8385,7 @@ exports.ConfirmationDialog = void 0;
 var tslib_1 = __webpack_require__(0);
 var DialogBase_1 = __webpack_require__(32);
 var ConfirmationDialog = (function (_super) {
-    (0, tslib_1.__extends)(ConfirmationDialog, _super);
+    tslib_1.__extends(ConfirmationDialog, _super);
     function ConfirmationDialog() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
@@ -8416,7 +8420,7 @@ var RemoveDependencyHistoryItem_1 = __webpack_require__(33);
 var DialogBase_1 = __webpack_require__(32);
 var DialogEnums_1 = __webpack_require__(34);
 var ConstraintViolationDialogCommand = (function (_super) {
-    (0, tslib_1.__extends)(ConstraintViolationDialogCommand, _super);
+    tslib_1.__extends(ConstraintViolationDialogCommand, _super);
     function ConstraintViolationDialogCommand() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
@@ -8467,7 +8471,7 @@ var DialogEnums_1 = __webpack_require__(34);
 var ConfirmationDialogParameters_1 = __webpack_require__(44);
 var ResourcesDialogParameters_1 = __webpack_require__(96);
 var ResourcesDialogCommand = (function (_super) {
-    (0, tslib_1.__extends)(ResourcesDialogCommand, _super);
+    tslib_1.__extends(ResourcesDialogCommand, _super);
     function ResourcesDialogCommand() {
         var _this = _super !== null && _super.apply(this, arguments) || this;
         _this.resourcesForDelete = [];
@@ -8510,7 +8514,7 @@ var ResourcesDialogCommand = (function (_super) {
                     _this.control.commandManager.removeResourceCommand.execute(_this.resourcesForDelete[i].internalId);
                 _this.history.endTransaction();
             });
-            confirmationDialogParameters.message = this.resourcesForDelete.reduce(function (a, b) { return (0, tslib_1.__spreadArray)((0, tslib_1.__spreadArray)([], a, true), [b.text], false); }, []).join(", ");
+            confirmationDialogParameters.message = this.resourcesForDelete.reduce(function (a, b) { return tslib_1.__spreadArray(tslib_1.__spreadArray([], a, true), [b.text], false); }, []).join(", ");
             if (this.callBack)
                 confirmationDialog.afterClosing = function () { return _this.callBack(); };
             confirmationDialog.execute(confirmationDialogParameters);
@@ -9128,7 +9132,7 @@ var tslib_1 = __webpack_require__(0);
 var ResourceCollection_1 = __webpack_require__(22);
 var DialogParametersBase_1 = __webpack_require__(35);
 var ResourcesDialogParameters = (function (_super) {
-    (0, tslib_1.__extends)(ResourcesDialogParameters, _super);
+    tslib_1.__extends(ResourcesDialogParameters, _super);
     function ResourcesDialogParameters() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
@@ -9163,7 +9167,7 @@ var TaskTitleHistoryItem_1 = __webpack_require__(45);
 var DialogBase_1 = __webpack_require__(32);
 var TaskEditParameters_1 = __webpack_require__(98);
 var TaskEditDialogCommand = (function (_super) {
-    (0, tslib_1.__extends)(TaskEditDialogCommand, _super);
+    tslib_1.__extends(TaskEditDialogCommand, _super);
     function TaskEditDialogCommand() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
@@ -9291,7 +9295,7 @@ var tslib_1 = __webpack_require__(0);
 var ResourceCollection_1 = __webpack_require__(22);
 var DialogParametersBase_1 = __webpack_require__(35);
 var TaskEditParameters = (function (_super) {
-    (0, tslib_1.__extends)(TaskEditParameters, _super);
+    tslib_1.__extends(TaskEditParameters, _super);
     function TaskEditParameters() {
         var _this = _super !== null && _super.apply(this, arguments) || this;
         _this.enableEdit = true;
@@ -9368,7 +9372,7 @@ var tslib_1 = __webpack_require__(0);
 var CommandBase_1 = __webpack_require__(5);
 var SimpleCommandState_1 = __webpack_require__(6);
 var CollapseAllCommand = (function (_super) {
-    (0, tslib_1.__extends)(CollapseAllCommand, _super);
+    tslib_1.__extends(CollapseAllCommand, _super);
     function CollapseAllCommand() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
@@ -9402,7 +9406,7 @@ var tslib_1 = __webpack_require__(0);
 var CommandBase_1 = __webpack_require__(5);
 var SimpleCommandState_1 = __webpack_require__(6);
 var ExpandAllCommand = (function (_super) {
-    (0, tslib_1.__extends)(ExpandAllCommand, _super);
+    tslib_1.__extends(ExpandAllCommand, _super);
     function ExpandAllCommand() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
@@ -9438,7 +9442,7 @@ var DependencyInsertingArguments_1 = __webpack_require__(103);
 var InsertDependencyHistoryItem_1 = __webpack_require__(104);
 var DependencyCommandBase_1 = __webpack_require__(60);
 var CreateDependencyCommand = (function (_super) {
-    (0, tslib_1.__extends)(CreateDependencyCommand, _super);
+    tslib_1.__extends(CreateDependencyCommand, _super);
     function CreateDependencyCommand() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
@@ -9487,7 +9491,7 @@ exports.DependencyInsertingArguments = void 0;
 var tslib_1 = __webpack_require__(0);
 var BaseArguments_1 = __webpack_require__(10);
 var DependencyInsertingArguments = (function (_super) {
-    (0, tslib_1.__extends)(DependencyInsertingArguments, _super);
+    tslib_1.__extends(DependencyInsertingArguments, _super);
     function DependencyInsertingArguments(predecessorId, successorId, type) {
         var _this = _super.call(this, null) || this;
         _this.values = {
@@ -9528,7 +9532,7 @@ exports.InsertDependencyHistoryItem = void 0;
 var tslib_1 = __webpack_require__(0);
 var HistoryItem_1 = __webpack_require__(13);
 var InsertDependencyHistoryItem = (function (_super) {
-    (0, tslib_1.__extends)(InsertDependencyHistoryItem, _super);
+    tslib_1.__extends(InsertDependencyHistoryItem, _super);
     function InsertDependencyHistoryItem(modelManipulator, predecessorId, successorId, type) {
         var _this = _super.call(this, modelManipulator) || this;
         _this.predecessorId = predecessorId;
@@ -9562,7 +9566,7 @@ var DependencyRemovingArguments_1 = __webpack_require__(106);
 var RemoveDependencyHistoryItem_1 = __webpack_require__(33);
 var DependencyCommandBase_1 = __webpack_require__(60);
 var RemoveDependencyCommand = (function (_super) {
-    (0, tslib_1.__extends)(RemoveDependencyCommand, _super);
+    tslib_1.__extends(RemoveDependencyCommand, _super);
     function RemoveDependencyCommand() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
@@ -9617,7 +9621,7 @@ exports.DependencyRemovingArguments = void 0;
 var tslib_1 = __webpack_require__(0);
 var BaseArguments_1 = __webpack_require__(10);
 var DependencyRemovingArguments = (function (_super) {
-    (0, tslib_1.__extends)(DependencyRemovingArguments, _super);
+    tslib_1.__extends(DependencyRemovingArguments, _super);
     function DependencyRemovingArguments(dependency) {
         var _this = _super.call(this, dependency.id) || this;
         _this.values = dependency;
@@ -9640,7 +9644,7 @@ var tslib_1 = __webpack_require__(0);
 var CommandBase_1 = __webpack_require__(5);
 var SimpleCommandState_1 = __webpack_require__(6);
 var ToggleDependenciesCommand = (function (_super) {
-    (0, tslib_1.__extends)(ToggleDependenciesCommand, _super);
+    tslib_1.__extends(ToggleDependenciesCommand, _super);
     function ToggleDependenciesCommand() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
@@ -9671,7 +9675,7 @@ var tslib_1 = __webpack_require__(0);
 var CommandBase_1 = __webpack_require__(5);
 var SimpleCommandState_1 = __webpack_require__(6);
 var ToggleFullScreenCommand = (function (_super) {
-    (0, tslib_1.__extends)(ToggleFullScreenCommand, _super);
+    tslib_1.__extends(ToggleFullScreenCommand, _super);
     function ToggleFullScreenCommand() {
         var _this = _super !== null && _super.apply(this, arguments) || this;
         _this.isInFullScreenMode = false;
@@ -9707,7 +9711,7 @@ var tslib_1 = __webpack_require__(0);
 var CommandBase_1 = __webpack_require__(5);
 var SimpleCommandState_1 = __webpack_require__(6);
 var RedoCommand = (function (_super) {
-    (0, tslib_1.__extends)(RedoCommand, _super);
+    tslib_1.__extends(RedoCommand, _super);
     function RedoCommand() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
@@ -9743,7 +9747,7 @@ var tslib_1 = __webpack_require__(0);
 var CommandBase_1 = __webpack_require__(5);
 var SimpleCommandState_1 = __webpack_require__(6);
 var UndoCommand = (function (_super) {
-    (0, tslib_1.__extends)(UndoCommand, _super);
+    tslib_1.__extends(UndoCommand, _super);
     function UndoCommand() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
@@ -9780,7 +9784,7 @@ var ResourceAssigningArguments_1 = __webpack_require__(58);
 var AssignResourceHistoryItem_1 = __webpack_require__(59);
 var ResourceCommandBase_1 = __webpack_require__(40);
 var AssignResourceCommand = (function (_super) {
-    (0, tslib_1.__extends)(AssignResourceCommand, _super);
+    tslib_1.__extends(AssignResourceCommand, _super);
     function AssignResourceCommand() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
@@ -9821,7 +9825,7 @@ var ResourceInsertingArguments_1 = __webpack_require__(113);
 var CreateResourceHistoryItem_1 = __webpack_require__(61);
 var ResourceCommandBase_1 = __webpack_require__(40);
 var CreateResourceCommand = (function (_super) {
-    (0, tslib_1.__extends)(CreateResourceCommand, _super);
+    tslib_1.__extends(CreateResourceCommand, _super);
     function CreateResourceCommand() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
@@ -9856,7 +9860,7 @@ exports.ResourceInsertingArguments = void 0;
 var tslib_1 = __webpack_require__(0);
 var BaseArguments_1 = __webpack_require__(10);
 var ResourceInsertingArguments = (function (_super) {
-    (0, tslib_1.__extends)(ResourceInsertingArguments, _super);
+    tslib_1.__extends(ResourceInsertingArguments, _super);
     function ResourceInsertingArguments(text, color) {
         if (color === void 0) { color = ""; }
         var _this = _super.call(this, null) || this;
@@ -9893,7 +9897,7 @@ var tslib_1 = __webpack_require__(0);
 var DeassignResourceHistoryItem_1 = __webpack_require__(36);
 var ResourceCommandBase_1 = __webpack_require__(40);
 var DeassignResourceCommand = (function (_super) {
-    (0, tslib_1.__extends)(DeassignResourceCommand, _super);
+    tslib_1.__extends(DeassignResourceCommand, _super);
     function DeassignResourceCommand() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
@@ -9928,7 +9932,7 @@ var tslib_1 = __webpack_require__(0);
 var ResourceColorHistoryItem_1 = __webpack_require__(116);
 var ResourcePropertyCommandBase_1 = __webpack_require__(118);
 var ResourceColorCommand = (function (_super) {
-    (0, tslib_1.__extends)(ResourceColorCommand, _super);
+    tslib_1.__extends(ResourceColorCommand, _super);
     function ResourceColorCommand() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
@@ -9958,7 +9962,7 @@ exports.ResourceColorHistoryItem = void 0;
 var tslib_1 = __webpack_require__(0);
 var ResourcePropertiesHistoryItemBase_1 = __webpack_require__(117);
 var ResourceColorHistoryItem = (function (_super) {
-    (0, tslib_1.__extends)(ResourceColorHistoryItem, _super);
+    tslib_1.__extends(ResourceColorHistoryItem, _super);
     function ResourceColorHistoryItem() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
@@ -9981,7 +9985,7 @@ exports.ResourcePropertiesHistoryItemBase = void 0;
 var tslib_1 = __webpack_require__(0);
 var HistoryItem_1 = __webpack_require__(13);
 var ResourcePropertiesHistoryItemBase = (function (_super) {
-    (0, tslib_1.__extends)(ResourcePropertiesHistoryItemBase, _super);
+    tslib_1.__extends(ResourcePropertiesHistoryItemBase, _super);
     function ResourcePropertiesHistoryItemBase(modelManipulator, resourceId, newValue) {
         var _this = _super.call(this, modelManipulator) || this;
         _this.resourceId = resourceId;
@@ -10014,7 +10018,7 @@ var tslib_1 = __webpack_require__(0);
 var CommandBase_1 = __webpack_require__(5);
 var SimpleCommandState_1 = __webpack_require__(6);
 var ResourcePropertyCommandBase = (function (_super) {
-    (0, tslib_1.__extends)(ResourcePropertyCommandBase, _super);
+    tslib_1.__extends(ResourcePropertyCommandBase, _super);
     function ResourcePropertyCommandBase() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
@@ -10043,7 +10047,7 @@ var RemoveResourceHistoryItem_1 = __webpack_require__(121);
 var DeassignResourceHistoryItem_1 = __webpack_require__(36);
 var ResourceCommandBase_1 = __webpack_require__(40);
 var RemoveResourceCommand = (function (_super) {
-    (0, tslib_1.__extends)(RemoveResourceCommand, _super);
+    tslib_1.__extends(RemoveResourceCommand, _super);
     function RemoveResourceCommand() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
@@ -10088,7 +10092,7 @@ exports.ResourceRemovingArguments = void 0;
 var tslib_1 = __webpack_require__(0);
 var BaseArguments_1 = __webpack_require__(10);
 var ResourceRemovingArguments = (function (_super) {
-    (0, tslib_1.__extends)(ResourceRemovingArguments, _super);
+    tslib_1.__extends(ResourceRemovingArguments, _super);
     function ResourceRemovingArguments(resource) {
         var _this = _super.call(this, resource.id) || this;
         _this.values = resource;
@@ -10110,7 +10114,7 @@ exports.RemoveResourceHistoryItem = void 0;
 var tslib_1 = __webpack_require__(0);
 var CompositionHistoryItem_1 = __webpack_require__(46);
 var RemoveResourceHistoryItem = (function (_super) {
-    (0, tslib_1.__extends)(RemoveResourceHistoryItem, _super);
+    tslib_1.__extends(RemoveResourceHistoryItem, _super);
     function RemoveResourceHistoryItem(modelManipulator, resourceId) {
         var _this = _super.call(this) || this;
         _this.modelManipulator = modelManipulator;
@@ -10152,7 +10156,7 @@ var tslib_1 = __webpack_require__(0);
 var CommandBase_1 = __webpack_require__(5);
 var SimpleCommandState_1 = __webpack_require__(6);
 var ToggleResourceCommand = (function (_super) {
-    (0, tslib_1.__extends)(ToggleResourceCommand, _super);
+    tslib_1.__extends(ToggleResourceCommand, _super);
     function ToggleResourceCommand() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
@@ -10184,7 +10188,7 @@ var TaskInsertingArguments_1 = __webpack_require__(62);
 var CreateTaskHistoryItem_1 = __webpack_require__(47);
 var TaskCommandBase_1 = __webpack_require__(25);
 var CreateSubTaskCommand = (function (_super) {
-    (0, tslib_1.__extends)(CreateSubTaskCommand, _super);
+    tslib_1.__extends(CreateSubTaskCommand, _super);
     function CreateSubTaskCommand() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
@@ -10242,7 +10246,7 @@ var TaskInsertingArguments_1 = __webpack_require__(62);
 var CreateTaskHistoryItem_1 = __webpack_require__(47);
 var TaskCommandBase_1 = __webpack_require__(25);
 var CreateTaskCommand = (function (_super) {
-    (0, tslib_1.__extends)(CreateTaskCommand, _super);
+    tslib_1.__extends(CreateTaskCommand, _super);
     function CreateTaskCommand() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
@@ -10302,7 +10306,7 @@ var DeassignResourceHistoryItem_1 = __webpack_require__(36);
 var RemoveTaskHistoryItem_1 = __webpack_require__(127);
 var TaskCommandBase_1 = __webpack_require__(25);
 var RemoveTaskCommand = (function (_super) {
-    (0, tslib_1.__extends)(RemoveTaskCommand, _super);
+    tslib_1.__extends(RemoveTaskCommand, _super);
     function RemoveTaskCommand() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
@@ -10384,7 +10388,7 @@ exports.TaskRemovingArguments = void 0;
 var tslib_1 = __webpack_require__(0);
 var BaseArguments_1 = __webpack_require__(10);
 var TaskRemovingArguments = (function (_super) {
-    (0, tslib_1.__extends)(TaskRemovingArguments, _super);
+    tslib_1.__extends(TaskRemovingArguments, _super);
     function TaskRemovingArguments(task) {
         var _this = _super.call(this, task.id) || this;
         _this.values = task;
@@ -10407,7 +10411,7 @@ var tslib_1 = __webpack_require__(0);
 var CompositionHistoryItem_1 = __webpack_require__(46);
 var RemoveDependencyHistoryItem_1 = __webpack_require__(33);
 var RemoveTaskHistoryItem = (function (_super) {
-    (0, tslib_1.__extends)(RemoveTaskHistoryItem, _super);
+    tslib_1.__extends(RemoveTaskHistoryItem, _super);
     function RemoveTaskHistoryItem(modelManipulator) {
         var _this = _super.call(this) || this;
         _this.taskIds = [];
@@ -10480,7 +10484,7 @@ exports.TaskAddContextItemCommand = void 0;
 var tslib_1 = __webpack_require__(0);
 var TaskCommandBase_1 = __webpack_require__(25);
 var TaskAddContextItemCommand = (function (_super) {
-    (0, tslib_1.__extends)(TaskAddContextItemCommand, _super);
+    tslib_1.__extends(TaskAddContextItemCommand, _super);
     function TaskAddContextItemCommand() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
@@ -10509,7 +10513,7 @@ var tslib_1 = __webpack_require__(0);
 var TaskColorHistoryItem_1 = __webpack_require__(63);
 var TaskPropertyCommandBase_1 = __webpack_require__(26);
 var TaskColorCommand = (function (_super) {
-    (0, tslib_1.__extends)(TaskColorCommand, _super);
+    tslib_1.__extends(TaskColorCommand, _super);
     function TaskColorCommand() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
@@ -10537,7 +10541,7 @@ var tslib_1 = __webpack_require__(0);
 var TaskDescriptionHistoryItem_1 = __webpack_require__(131);
 var TaskPropertyCommandBase_1 = __webpack_require__(26);
 var TaskDescriptionCommand = (function (_super) {
-    (0, tslib_1.__extends)(TaskDescriptionCommand, _super);
+    tslib_1.__extends(TaskDescriptionCommand, _super);
     function TaskDescriptionCommand() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
@@ -10564,7 +10568,7 @@ exports.TaskDescriptionHistoryItem = void 0;
 var tslib_1 = __webpack_require__(0);
 var TaskPropertiesHistoryItemBase_1 = __webpack_require__(16);
 var TaskDescriptionHistoryItem = (function (_super) {
-    (0, tslib_1.__extends)(TaskDescriptionHistoryItem, _super);
+    tslib_1.__extends(TaskDescriptionHistoryItem, _super);
     function TaskDescriptionHistoryItem() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
@@ -10588,7 +10592,7 @@ var tslib_1 = __webpack_require__(0);
 var TaskEndHistoryItem_1 = __webpack_require__(37);
 var TaskPropertyCommandValidation_1 = __webpack_require__(48);
 var TaskEndCommand = (function (_super) {
-    (0, tslib_1.__extends)(TaskEndCommand, _super);
+    tslib_1.__extends(TaskEndCommand, _super);
     function TaskEndCommand() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
@@ -10639,7 +10643,7 @@ exports.ConstraintViolationDialogParameters = void 0;
 var tslib_1 = __webpack_require__(0);
 var DialogParametersBase_1 = __webpack_require__(35);
 var ConstraintViolationDialogParameters = (function (_super) {
-    (0, tslib_1.__extends)(ConstraintViolationDialogParameters, _super);
+    tslib_1.__extends(ConstraintViolationDialogParameters, _super);
     function ConstraintViolationDialogParameters(validationError, callback) {
         var _this = _super.call(this) || this;
         _this.validationError = validationError;
@@ -10669,7 +10673,7 @@ var TaskMoveHistoryItem_1 = __webpack_require__(64);
 var DateRange_1 = __webpack_require__(15);
 var TaskPropertyCommandValidation_1 = __webpack_require__(48);
 var TaskMoveCommand = (function (_super) {
-    (0, tslib_1.__extends)(TaskMoveCommand, _super);
+    tslib_1.__extends(TaskMoveCommand, _super);
     function TaskMoveCommand() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
@@ -10720,7 +10724,7 @@ var TaskMoveCommand = (function (_super) {
     TaskMoveCommand.prototype.validate = function (id, start, end) {
         var startErrors = this.control.validationController.checkStartDependencies(id, start);
         var endErrors = this.control.validationController.checkEndDependencies(id, end);
-        return (0, tslib_1.__spreadArray)((0, tslib_1.__spreadArray)([], startErrors, true), endErrors, true);
+        return tslib_1.__spreadArray(tslib_1.__spreadArray([], startErrors, true), endErrors, true);
     };
     return TaskMoveCommand;
 }(TaskPropertyCommandValidation_1.TaskPropertyCommandValidation));
@@ -10739,7 +10743,7 @@ var tslib_1 = __webpack_require__(0);
 var TaskProgressHistoryItem_1 = __webpack_require__(38);
 var TaskPropertyCommandBase_1 = __webpack_require__(26);
 var TaskProgressCommand = (function (_super) {
-    (0, tslib_1.__extends)(TaskProgressCommand, _super);
+    tslib_1.__extends(TaskProgressCommand, _super);
     function TaskProgressCommand() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
@@ -10772,7 +10776,7 @@ var tslib_1 = __webpack_require__(0);
 var TaskStartHistoryItem_1 = __webpack_require__(39);
 var TaskPropertyCommandValidation_1 = __webpack_require__(48);
 var TaskStartCommand = (function (_super) {
-    (0, tslib_1.__extends)(TaskStartCommand, _super);
+    tslib_1.__extends(TaskStartCommand, _super);
     function TaskStartCommand() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
@@ -10826,7 +10830,7 @@ var tslib_1 = __webpack_require__(0);
 var TaskTitleHistoryItem_1 = __webpack_require__(45);
 var TaskPropertyCommandBase_1 = __webpack_require__(26);
 var TaskTitleCommand = (function (_super) {
-    (0, tslib_1.__extends)(TaskTitleCommand, _super);
+    tslib_1.__extends(TaskTitleCommand, _super);
     function TaskTitleCommand() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
@@ -10859,7 +10863,7 @@ var TaskStartHistoryItem_1 = __webpack_require__(39);
 var TaskTitleHistoryItem_1 = __webpack_require__(45);
 var TaskCommandBase_1 = __webpack_require__(25);
 var UpdateTaskCommand = (function (_super) {
-    (0, tslib_1.__extends)(UpdateTaskCommand, _super);
+    tslib_1.__extends(UpdateTaskCommand, _super);
     function UpdateTaskCommand() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
@@ -10930,7 +10934,7 @@ var tslib_1 = __webpack_require__(0);
 var CommandBase_1 = __webpack_require__(5);
 var SimpleCommandState_1 = __webpack_require__(6);
 var ZoomInCommand = (function (_super) {
-    (0, tslib_1.__extends)(ZoomInCommand, _super);
+    tslib_1.__extends(ZoomInCommand, _super);
     function ZoomInCommand() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
@@ -10961,7 +10965,7 @@ var tslib_1 = __webpack_require__(0);
 var CommandBase_1 = __webpack_require__(5);
 var SimpleCommandState_1 = __webpack_require__(6);
 var ZoomOutCommand = (function (_super) {
-    (0, tslib_1.__extends)(ZoomOutCommand, _super);
+    tslib_1.__extends(ZoomOutCommand, _super);
     function ZoomOutCommand() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
@@ -14280,7 +14284,7 @@ exports.ResourceManagerDialogShowingArguments = void 0;
 var tslib_1 = __webpack_require__(0);
 var BaseArguments_1 = __webpack_require__(10);
 var ResourceManagerDialogShowingArguments = (function (_super) {
-    (0, tslib_1.__extends)(ResourceManagerDialogShowingArguments, _super);
+    tslib_1.__extends(ResourceManagerDialogShowingArguments, _super);
     function ResourceManagerDialogShowingArguments(params) {
         var _this = _super.call(this, undefined) || this;
         _this.values.resources = params.resources;
@@ -14302,7 +14306,7 @@ exports.TaskEditDialogShowingArguments = void 0;
 var tslib_1 = __webpack_require__(0);
 var BaseArguments_1 = __webpack_require__(10);
 var TaskEditDialogShowingArguments = (function (_super) {
-    (0, tslib_1.__extends)(TaskEditDialogShowingArguments, _super);
+    tslib_1.__extends(TaskEditDialogShowingArguments, _super);
     function TaskEditDialogShowingArguments(params) {
         var _this = _super.call(this, params.id) || this;
         _this.values = {
@@ -14331,7 +14335,7 @@ exports.ResourceUnassigningArguments = void 0;
 var tslib_1 = __webpack_require__(0);
 var BaseArguments_1 = __webpack_require__(10);
 var ResourceUnassigningArguments = (function (_super) {
-    (0, tslib_1.__extends)(ResourceUnassigningArguments, _super);
+    tslib_1.__extends(ResourceUnassigningArguments, _super);
     function ResourceUnassigningArguments(assignment) {
         var _this = _super.call(this, assignment.internalId) || this;
         _this.values = assignment;
@@ -14353,7 +14357,7 @@ exports.TaskUpdatingArguments = void 0;
 var tslib_1 = __webpack_require__(0);
 var BaseArguments_1 = __webpack_require__(10);
 var TaskUpdatingArguments = (function (_super) {
-    (0, tslib_1.__extends)(TaskUpdatingArguments, _super);
+    tslib_1.__extends(TaskUpdatingArguments, _super);
     function TaskUpdatingArguments(task, fieldNames, newValues) {
         var _this = _super.call(this, task.id) || this;
         _this.values = task;
@@ -14460,7 +14464,7 @@ exports.TaskDependencyManipulator = void 0;
 var tslib_1 = __webpack_require__(0);
 var BaseManipulator_1 = __webpack_require__(19);
 var TaskDependencyManipulator = (function (_super) {
-    (0, tslib_1.__extends)(TaskDependencyManipulator, _super);
+    tslib_1.__extends(TaskDependencyManipulator, _super);
     function TaskDependencyManipulator() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
@@ -14514,7 +14518,7 @@ var tslib_1 = __webpack_require__(0);
 var BaseManipulator_1 = __webpack_require__(19);
 var ResourcePropertiesManipulator_1 = __webpack_require__(163);
 var ResourcesManipulator = (function (_super) {
-    (0, tslib_1.__extends)(ResourcesManipulator, _super);
+    tslib_1.__extends(ResourcesManipulator, _super);
     function ResourcesManipulator(viewModel, dispatcher) {
         var _this = _super.call(this, viewModel, dispatcher) || this;
         _this.properties = new ResourcePropertiesManipulator_1.ResourcePropertiesManipulator(viewModel, dispatcher);
@@ -14598,7 +14602,7 @@ var tslib_1 = __webpack_require__(0);
 var BaseManipulator_1 = __webpack_require__(19);
 var ResourceColorManipulator_1 = __webpack_require__(164);
 var ResourcePropertiesManipulator = (function (_super) {
-    (0, tslib_1.__extends)(ResourcePropertiesManipulator, _super);
+    tslib_1.__extends(ResourcePropertiesManipulator, _super);
     function ResourcePropertiesManipulator(viewModel, dispatcher) {
         var _this = _super.call(this, viewModel, dispatcher) || this;
         _this.color = new ResourceColorManipulator_1.ResourceColorManipulator(viewModel, dispatcher);
@@ -14620,7 +14624,7 @@ exports.ResourceColorManipulator = void 0;
 var tslib_1 = __webpack_require__(0);
 var ResourcePropertyManipulator_1 = __webpack_require__(165);
 var ResourceColorManipulator = (function (_super) {
-    (0, tslib_1.__extends)(ResourceColorManipulator, _super);
+    tslib_1.__extends(ResourceColorManipulator, _super);
     function ResourceColorManipulator() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
@@ -14648,7 +14652,7 @@ var tslib_1 = __webpack_require__(0);
 var HistoryItemState_1 = __webpack_require__(74);
 var BaseManipulator_1 = __webpack_require__(19);
 var ResourcePropertyManipulator = (function (_super) {
-    (0, tslib_1.__extends)(ResourcePropertyManipulator, _super);
+    tslib_1.__extends(ResourcePropertyManipulator, _super);
     function ResourcePropertyManipulator() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
@@ -14696,7 +14700,7 @@ var tslib_1 = __webpack_require__(0);
 var BaseManipulator_1 = __webpack_require__(19);
 var TaskPropertiesManipulator_1 = __webpack_require__(167);
 var TaskManipulator = (function (_super) {
-    (0, tslib_1.__extends)(TaskManipulator, _super);
+    tslib_1.__extends(TaskManipulator, _super);
     function TaskManipulator(viewModel, dispatcher) {
         var _this = _super.call(this, viewModel, dispatcher) || this;
         _this.properties = new TaskPropertiesManipulator_1.TaskPropertiesManipulator(viewModel, dispatcher);
@@ -14778,7 +14782,7 @@ var TaskProgressManipulator_1 = __webpack_require__(172);
 var TaskStartDateManipulator_1 = __webpack_require__(173);
 var TaskTitleManipulator_1 = __webpack_require__(174);
 var TaskPropertiesManipulator = (function (_super) {
-    (0, tslib_1.__extends)(TaskPropertiesManipulator, _super);
+    tslib_1.__extends(TaskPropertiesManipulator, _super);
     function TaskPropertiesManipulator(viewModel, dispatcher) {
         var _this = _super.call(this, viewModel, dispatcher) || this;
         _this.title = new TaskTitleManipulator_1.TaskTitleManipulator(viewModel, dispatcher);
@@ -14806,7 +14810,7 @@ exports.TaskColorManipulator = void 0;
 var tslib_1 = __webpack_require__(0);
 var TaskPropertyManipulator_1 = __webpack_require__(20);
 var TaskColorManipulator = (function (_super) {
-    (0, tslib_1.__extends)(TaskColorManipulator, _super);
+    tslib_1.__extends(TaskColorManipulator, _super);
     function TaskColorManipulator() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
@@ -14833,7 +14837,7 @@ exports.TaskDescriptionManipulator = void 0;
 var tslib_1 = __webpack_require__(0);
 var TaskPropertyManipulator_1 = __webpack_require__(20);
 var TaskDescriptionManipulator = (function (_super) {
-    (0, tslib_1.__extends)(TaskDescriptionManipulator, _super);
+    tslib_1.__extends(TaskDescriptionManipulator, _super);
     function TaskDescriptionManipulator() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
@@ -14860,7 +14864,7 @@ exports.TaskEndDateManipulator = void 0;
 var tslib_1 = __webpack_require__(0);
 var TaskPropertyManipulator_1 = __webpack_require__(20);
 var TaskEndDateManipulator = (function (_super) {
-    (0, tslib_1.__extends)(TaskEndDateManipulator, _super);
+    tslib_1.__extends(TaskEndDateManipulator, _super);
     function TaskEndDateManipulator() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
@@ -14888,7 +14892,7 @@ var tslib_1 = __webpack_require__(0);
 var DateRange_1 = __webpack_require__(15);
 var TaskPropertyManipulator_1 = __webpack_require__(20);
 var TaskMoveManipulator = (function (_super) {
-    (0, tslib_1.__extends)(TaskMoveManipulator, _super);
+    tslib_1.__extends(TaskMoveManipulator, _super);
     function TaskMoveManipulator() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
@@ -14917,7 +14921,7 @@ exports.TaskProgressManipulator = void 0;
 var tslib_1 = __webpack_require__(0);
 var TaskPropertyManipulator_1 = __webpack_require__(20);
 var TaskProgressManipulator = (function (_super) {
-    (0, tslib_1.__extends)(TaskProgressManipulator, _super);
+    tslib_1.__extends(TaskProgressManipulator, _super);
     function TaskProgressManipulator() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
@@ -14945,7 +14949,7 @@ exports.TaskStartDateManipulator = void 0;
 var tslib_1 = __webpack_require__(0);
 var TaskPropertyManipulator_1 = __webpack_require__(20);
 var TaskStartDateManipulator = (function (_super) {
-    (0, tslib_1.__extends)(TaskStartDateManipulator, _super);
+    tslib_1.__extends(TaskStartDateManipulator, _super);
     function TaskStartDateManipulator() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
@@ -14972,7 +14976,7 @@ exports.TaskTitleManipulator = void 0;
 var tslib_1 = __webpack_require__(0);
 var TaskPropertyManipulator_1 = __webpack_require__(20);
 var TaskTitleManipulator = (function (_super) {
-    (0, tslib_1.__extends)(TaskTitleManipulator, _super);
+    tslib_1.__extends(TaskTitleManipulator, _super);
     function TaskTitleManipulator() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
@@ -17352,12 +17356,12 @@ var TaskAreaStateController = (function () {
         return processed;
     };
     TaskAreaStateController.prototype.checkEventInTaskEditFrameArea = function (evt) {
-        var _a, _b, _c, _d, _e, _f;
+        var _a, _b;
         var frame = this.getTaskEditFrameElement();
         if (!frame)
             return false;
-        var eventX = ((_a = evt) === null || _a === void 0 ? void 0 : _a.clientX) || ((_c = (_b = evt) === null || _b === void 0 ? void 0 : _b.touches[0]) === null || _c === void 0 ? void 0 : _c.clientX);
-        var eventY = ((_d = evt) === null || _d === void 0 ? void 0 : _d.clientY) || ((_f = (_e = evt) === null || _e === void 0 ? void 0 : _e.touches[0]) === null || _f === void 0 ? void 0 : _f.clientY);
+        var eventX = (evt === null || evt === void 0 ? void 0 : evt.clientX) || ((_a = evt === null || evt === void 0 ? void 0 : evt.touches[0]) === null || _a === void 0 ? void 0 : _a.clientX);
+        var eventY = (evt === null || evt === void 0 ? void 0 : evt.clientY) || ((_b = evt === null || evt === void 0 ? void 0 : evt.touches[0]) === null || _b === void 0 ? void 0 : _b.clientY);
         var rect = frame.getBoundingClientRect();
         return eventX >= rect.left && eventX <= rect.left + rect.width && eventY >= rect.top && eventY <= rect.top + rect.height;
     };
@@ -17640,7 +17644,7 @@ var TaskAreaDomHelper_1 = __webpack_require__(30);
 var TaskAreaStateBase_1 = __webpack_require__(31);
 var TaskAreaStateEventNames_1 = __webpack_require__(12);
 var TaskAreaDefaultState = (function (_super) {
-    (0, tslib_1.__extends)(TaskAreaDefaultState, _super);
+    tslib_1.__extends(TaskAreaDefaultState, _super);
     function TaskAreaDefaultState() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
@@ -17823,7 +17827,7 @@ exports.dependencyMap[Enums_2.TaskAreaEventSource.TaskEdit_DependencyStart][Enum
 exports.dependencyMap[Enums_2.TaskAreaEventSource.TaskEdit_DependencyFinish][Enums_2.TaskAreaEventSource.Successor_DependencyStart] = Enums_1.DependencyType.FS;
 exports.dependencyMap[Enums_2.TaskAreaEventSource.TaskEdit_DependencyFinish][Enums_2.TaskAreaEventSource.Successor_DependencyFinish] = Enums_1.DependencyType.FF;
 var TaskAreaDependencyState = (function (_super) {
-    (0, tslib_1.__extends)(TaskAreaDependencyState, _super);
+    tslib_1.__extends(TaskAreaDependencyState, _super);
     function TaskAreaDependencyState() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
@@ -17893,7 +17897,7 @@ var tslib_1 = __webpack_require__(0);
 var TaskAreaStateBase_1 = __webpack_require__(31);
 var TaskAreaStateEventNames_1 = __webpack_require__(12);
 var TaskAreaScrollState = (function (_super) {
-    (0, tslib_1.__extends)(TaskAreaScrollState, _super);
+    tslib_1.__extends(TaskAreaScrollState, _super);
     function TaskAreaScrollState() {
         var _this = _super !== null && _super.apply(this, arguments) || this;
         _this._isStarted = false;
@@ -17953,7 +17957,7 @@ var PINCH_CHANGE_DISTANCE = 3;
 var MOUSE_ZOOM_LOCK_TIMEOUT = 50;
 var TOUCH_ZOOM_LOCK_TIMEOUT = 1000;
 var TaskAreaZoomState = (function (_super) {
-    (0, tslib_1.__extends)(TaskAreaZoomState, _super);
+    tslib_1.__extends(TaskAreaZoomState, _super);
     function TaskAreaZoomState() {
         var _this = _super !== null && _super.apply(this, arguments) || this;
         _this._isInZooming = false;
@@ -18081,7 +18085,7 @@ var TaskAreaDomHelper_1 = __webpack_require__(30);
 var TaskAreaStateEventNames_1 = __webpack_require__(12);
 var TaskDragBaseState_1 = __webpack_require__(78);
 var TaskEditState = (function (_super) {
-    (0, tslib_1.__extends)(TaskEditState, _super);
+    tslib_1.__extends(TaskEditState, _super);
     function TaskEditState() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
@@ -18137,7 +18141,7 @@ var tslib_1 = __webpack_require__(0);
 var TaskAreaStateEventNames_1 = __webpack_require__(12);
 var TaskDragBaseState_1 = __webpack_require__(78);
 var TaskMoveState = (function (_super) {
-    (0, tslib_1.__extends)(TaskMoveState, _super);
+    tslib_1.__extends(TaskMoveState, _super);
     function TaskMoveState() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
@@ -18639,6 +18643,8 @@ var TaskRender = (function () {
         var _a;
         var _b;
         var taskTextInfo = this.gridLayoutCalculator.getTaskTextElementInfo(index, this.taskTitlePosition === Enums_1.TaskTitlePosition.Inside);
+        if (taskTextInfo.additionalInfo["hidden"])
+            return;
         var taskTextElement = RenderElementUtils_1.RenderElementUtils.create(taskTextInfo, index, parent);
         var text = this.getTaskText(index);
         if (!text) {
@@ -19401,7 +19407,7 @@ var tslib_1 = __webpack_require__(0);
 var common_1 = __webpack_require__(1);
 var TooltipSettings_1 = __webpack_require__(76);
 var TaskEditSettings = (function (_super) {
-    (0, tslib_1.__extends)(TaskEditSettings, _super);
+    tslib_1.__extends(TaskEditSettings, _super);
     function TaskEditSettings() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
@@ -19631,7 +19637,7 @@ var ValidationController = (function () {
     ValidationController.prototype.getCorrectDateRange = function (taskId, startDate, endDate) {
         var _this = this;
         var dateRange = new DateRange_1.DateRange(new Date(startDate), new Date(endDate));
-        var validationErrors = (0, tslib_1.__spreadArray)((0, tslib_1.__spreadArray)([], this.checkStartDependencies(taskId, dateRange.start), true), this.checkEndDependencies(taskId, dateRange.end), true);
+        var validationErrors = tslib_1.__spreadArray(tslib_1.__spreadArray([], this.checkStartDependencies(taskId, dateRange.start), true), this.checkEndDependencies(taskId, dateRange.end), true);
         var criticalErrors = validationErrors.filter(function (e) { return e.critical; });
         criticalErrors.forEach(function (error) {
             var dependency = _this.viewModel.dependencies.getItemById(error.dependencyId);
@@ -19654,7 +19660,7 @@ var ValidationController = (function () {
     ValidationController.prototype.correctMoving = function (taskId, dateRange) {
         var _this = this;
         var deltaDate = dateRange.end.getTime() - dateRange.start.getTime();
-        var validationErrors = (0, tslib_1.__spreadArray)((0, tslib_1.__spreadArray)([], this.checkStartDependencies(taskId, dateRange.start), true), this.checkEndDependencies(taskId, dateRange.end), true);
+        var validationErrors = tslib_1.__spreadArray(tslib_1.__spreadArray([], this.checkStartDependencies(taskId, dateRange.start), true), this.checkEndDependencies(taskId, dateRange.end), true);
         var criticalErrors = validationErrors.filter(function (e) { return e.critical; });
         criticalErrors.forEach(function (error) {
             var dependency = _this.viewModel.dependencies.getItemById(error.dependencyId);
@@ -20319,7 +20325,7 @@ var tslib_1 = __webpack_require__(0);
 var Task_1 = __webpack_require__(217);
 var CollectionBase_1 = __webpack_require__(23);
 var TaskCollection = (function (_super) {
-    (0, tslib_1.__extends)(TaskCollection, _super);
+    tslib_1.__extends(TaskCollection, _super);
     function TaskCollection() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
@@ -20341,7 +20347,7 @@ var tslib_1 = __webpack_require__(0);
 var common_1 = __webpack_require__(1);
 var DataObject_1 = __webpack_require__(21);
 var Task = (function (_super) {
-    (0, tslib_1.__extends)(Task, _super);
+    tslib_1.__extends(Task, _super);
     function Task() {
         var _this = _super.call(this) || this;
         _this.start = null;
@@ -20419,7 +20425,7 @@ var tslib_1 = __webpack_require__(0);
 var CollectionBase_1 = __webpack_require__(23);
 var Dependency_1 = __webpack_require__(80);
 var DependencyCollection = (function (_super) {
-    (0, tslib_1.__extends)(DependencyCollection, _super);
+    tslib_1.__extends(DependencyCollection, _super);
     function DependencyCollection() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
@@ -20441,7 +20447,7 @@ var tslib_1 = __webpack_require__(0);
 var CollectionBase_1 = __webpack_require__(23);
 var ResourceAssignment_1 = __webpack_require__(81);
 var ResourceAssignmentCollection = (function (_super) {
-    (0, tslib_1.__extends)(ResourceAssignmentCollection, _super);
+    tslib_1.__extends(ResourceAssignmentCollection, _super);
     function ResourceAssignmentCollection() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
@@ -20648,7 +20654,7 @@ var tslib_1 = __webpack_require__(0);
 var CollectionBase_1 = __webpack_require__(23);
 var WorkingTimeRule_1 = __webpack_require__(224);
 var WorkingDayRuleCollection = (function (_super) {
-    (0, tslib_1.__extends)(WorkingDayRuleCollection, _super);
+    tslib_1.__extends(WorkingDayRuleCollection, _super);
     function WorkingDayRuleCollection() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
@@ -20673,7 +20679,7 @@ var DateTimeUtils_1 = __webpack_require__(7);
 var RecurrenceFactory_1 = __webpack_require__(82);
 var Daily_1 = __webpack_require__(83);
 var WorkingTimeRule = (function (_super) {
-    (0, tslib_1.__extends)(WorkingTimeRule, _super);
+    tslib_1.__extends(WorkingTimeRule, _super);
     function WorkingTimeRule(recurrence, isWorkDay, workTimeRanges) {
         if (recurrence === void 0) { recurrence = null; }
         if (isWorkDay === void 0) { isWorkDay = true; }
@@ -20762,7 +20768,7 @@ var tslib_1 = __webpack_require__(0);
 var RecurrenceBase_1 = __webpack_require__(42);
 var DateTimeUtils_1 = __webpack_require__(7);
 var Weekly = (function (_super) {
-    (0, tslib_1.__extends)(Weekly, _super);
+    tslib_1.__extends(Weekly, _super);
     function Weekly() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
@@ -20817,7 +20823,7 @@ var RecurrenceBase_1 = __webpack_require__(42);
 var DateTimeUtils_1 = __webpack_require__(7);
 var MonthInfo_1 = __webpack_require__(229);
 var Monthly = (function (_super) {
-    (0, tslib_1.__extends)(Monthly, _super);
+    tslib_1.__extends(Monthly, _super);
     function Monthly() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
@@ -20921,7 +20927,7 @@ var tslib_1 = __webpack_require__(0);
 var RecurrenceBase_1 = __webpack_require__(42);
 var DateTimeUtils_1 = __webpack_require__(7);
 var Yearly = (function (_super) {
-    (0, tslib_1.__extends)(Yearly, _super);
+    tslib_1.__extends(Yearly, _super);
     function Yearly() {
         return _super !== null && _super.apply(this, arguments) || this;
     }

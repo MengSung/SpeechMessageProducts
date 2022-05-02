@@ -1,7 +1,7 @@
 /*!
 * DevExtreme (dx.messages.it.js)
-* Version: 21.2.6
-* Build date: Tue Mar 01 2022
+* Version: 21.2.7
+* Build date: Mon Apr 11 2022
 *
 * Copyright (c) 2012 - 2022 Developer Express Inc. ALL RIGHTS RESERVED
 * Read about DevExtreme licensing here: https://js.devexpress.com/Licensing/
@@ -80,9 +80,9 @@
             "dxFileUploader-readyToUpload": "Pronto per caricare",
             "dxFileUploader-uploadAbortedMessage": "TODO",
             "dxFileUploader-uploadFailedMessage": "Caricamento fallito",
-            "dxFileUploader-invalidFileExtension": "",
-            "dxFileUploader-invalidMaxFileSize": "",
-            "dxFileUploader-invalidMinFileSize": "",
+            "dxFileUploader-invalidFileExtension": "TODO",
+            "dxFileUploader-invalidMaxFileSize": "TODO",
+            "dxFileUploader-invalidMinFileSize": "TODO",
             "dxRangeSlider-ariaFrom": "Da",
             "dxRangeSlider-ariaTill": "fino a",
             "dxSwitch-switchedOnText": "ON",
