@@ -180,6 +180,14 @@
                                 .Placeholder("輸入帳戶後六碼")
                             );
 
+                     items.AddSimpleFor(m => m.ChurchName)
+                           .Label(l => l.Text("所屬教會"))
+                           .Editor(e => e
+                               .TextBox()
+                               .Width(120)
+                               .Placeholder("所屬教會")
+                               .Disabled(true)
+                     );
 
                  })
         .OnContentReady
@@ -243,6 +251,7 @@
                                 columns.AddFor(m => m.FullName).Caption("姓名").Width(100).MinWidth(100).Fixed(true);
                                 columns.AddFor(m => m.Mobile).Caption("電話").Width(100).MinWidth(100);
                                 columns.AddFor(m => m.SmallGroupName).Caption("所屬小組").Width(100).MinWidth(100);
+                                columns.AddFor(m => m.ChurchName).Caption("所屬教會").Width(100).MinWidth(100);
                             })
                             .DataSource(d => d
                             .WebApi()
@@ -504,6 +513,7 @@
                 $("#form1").dxForm("instance").updateData('NationId', data.NationId);
                 $("#form1").dxForm("instance").updateData('FullName', data.FullName);
                 $("#form1").dxForm("instance").updateData('Mobile', data.Mobile);
+                $("#form1").dxForm("instance").updateData('ChurchName', data.ChurchName);
 
                 $("#SameNameList").dxDataGrid("instance").deselectAll();
             }
@@ -517,6 +527,7 @@
                 $("#form1").dxForm("instance").updateData('NationId', data.NationId);
                 $("#form1").dxForm("instance").updateData('FullName', data.FullName);
                 $("#form1").dxForm("instance").updateData('Mobile', data.Mobile);
+                $("#form1").dxForm("instance").updateData('ChurchName', data.ChurchName);
 
                 $("#SameNameList").dxDataGrid("instance").deselectAll();
          }
@@ -627,6 +638,7 @@
                     $("#form1").dxForm("instance").updateData('FullName', data.FullName);
                     $("#form1").dxForm("instance").updateData('Mobile', data.Mobile);
                     $("#form1").dxForm("instance").updateData('LastSixDigit', data.LastSixDigit);
+                    $("#form1").dxForm("instance").updateData('ChurchName', data.ChurchName);
 
                     //$("#form1").dxForm("instance").getEditor('SameNameList').reload();
                     //$("#form1").dxForm("instance").getEditor('SameNameList').refresh();

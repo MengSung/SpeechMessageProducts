@@ -19,6 +19,7 @@ namespace ChurchReport.Models
         public String SerialNumber { get; set; }                        //奉獻號碼
         public String LastSixDigit { get; set; }                        //帳戶後六碼
         public String Ntbt { get; set; }                                //是否上傳國稅局
+        public String ChurchName { get; set; }                          //所屬教會
 
         /// <summary>
         /// ///////////////////////////////////////////////////////////////////////////
