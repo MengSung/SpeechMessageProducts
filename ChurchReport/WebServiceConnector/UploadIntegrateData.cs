@@ -4236,12 +4236,12 @@ namespace ChurchReport.WebServiceConnector
                 String Result = LoginContactFullName + " 成功的加入 " + ExistContactFullName + " 到 " + AssignedSmallGroupName + "小組中";
 
                 // LINE通知心的小組的權柄
-                this.m_LineNotifyUtility.SendAddNewPersonResultLine(Result, aAssignedListEntity);
-                this.m_LineNotifyUtility.SendListMemberLine(aAssignedListEntity);
+                this.m_LineNotifyUtility.SendAddNewPersonResultLine(Result, aAssignedListEntity, "指派");
+                this.m_LineNotifyUtility.SendListMemberLine(aAssignedListEntity, "指派");
 
                 // LINE通知原來小組的權柄
-                this.m_LineNotifyUtility.SendAddNewPersonResultLine(Result, aActiveListEntity);
-                this.m_LineNotifyUtility.SendListMemberLine(aActiveListEntity);
+                this.m_LineNotifyUtility.SendAddNewPersonResultLine(Result, aActiveListEntity, "指派");
+                this.m_LineNotifyUtility.SendListMemberLine(aActiveListEntity, "指派");
 
                 return Result;
                 #endregion
