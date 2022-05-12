@@ -631,11 +631,12 @@ namespace ChurchReport.Models
 
                     if (aFullNameContactCollection.Entities.Count > 0)
                     {
-                        // 顯示錯誤
                         // 有找到身分證字號不一樣，但是姓名卻有一樣
-                        QueryResult = aGalleryViewModel.FullName + "登入錯誤:" + "有找到姓名，但是身分證字號卻不一樣";
+                        // 仍然新增一個連絡人
+                        //QueryResult = aGalleryViewModel.FullName + "登入錯誤:" + "有找到姓名，但是身分證字號卻不一樣";
 
-                        return null;
+                        QueryResult = aGalleryViewModel.FullName + "成功登入" + "為您在系統中建立了資料";
+                        return CreateQpayContact(aGalleryViewModel);
                     }
                     else
                     {
