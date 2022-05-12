@@ -2654,34 +2654,6 @@ namespace ChurchReport.WebServiceConnector
         {
             switch (SpiritualIdentity)
             {
-                case 100000000:
-                    return "已受洗(本教會)";
-                case 100000003:
-                    return "已受洗(其他教會)";
-                case 100000004:
-                    return "-未知-";
-                case 100000001:
-                    return "未信主";
-                case 100000002:
-                    return "已決志";
-                case 100000005:
-                    return "未受洗";
-                case 100000006:
-                    return "於本教會受洗";
-                case 100000007:
-                    return "於其他教會受洗";
-                default:
-                    return ".";
-            }
-        }
-        private String ConvertIndexToSpiritualIdentity(int SpiritualIdentity)
-        {
-            switch (SpiritualIdentity)
-            {
-                case 100000000:
-                    return "未信者";
-                case 100000003:
-                    return "已受洗(其他教會)";
                 case 100000004:
                     return "-未知-";
                 case 100000001:
@@ -2690,10 +2662,26 @@ namespace ChurchReport.WebServiceConnector
                     return "已決志";
                 case 100000005:
                     return "慕道友";
-                case 100000006:
-                    return "於本教會受洗";
-                case 100000007:
-                    return "於其他教會受洗";
+                case 100000000:
+                    return "未信者";
+                default:
+                    return ".";
+            }
+        }
+        private String ConvertIndexToSpiritualIdentity(int SpiritualIdentity)
+        {
+            switch (SpiritualIdentity)
+            {
+                case 100000004:
+                    return "-未知-";
+                case 100000001:
+                    return "基督徒";
+                case 100000002:
+                    return "已決志";
+                case 100000005:
+                    return "慕道友";
+                case 100000000:
+                    return "未信者";
                 default:
                     return ".";
             }

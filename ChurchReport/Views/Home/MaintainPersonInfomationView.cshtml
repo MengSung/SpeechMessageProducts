@@ -295,7 +295,7 @@
             .AllowEditing(true)
             .Width(110).MinWidth(100).DataType(GridColumnDataType.String)
             .Lookup(lookup => lookup
-            .DataSource(new string[] { "已受洗(本教會)", "已受洗(其他教會)", "-未知-", "未信主", "已決志", "未受洗" })
+            .DataSource(new string[] { "-未知-", "基督徒", "已決志", "慕道友", "未信者" })
             //.DisplayExpr("Name")
             //.ValueExpr("ID")
             );
@@ -484,7 +484,7 @@ columns.Add().DataField("Status")
             .AllowEditing(true)
             .Width(110).MinWidth(100).DataType(GridColumnDataType.String)
             .Lookup(lookup => lookup
-            .DataSource(new string[] { "已受洗(本教會)", "已受洗(其他教會)", "-未知-", "未信主", "已決志", "未受洗" })
+            .DataSource(new string[] { "-未知-", "基督徒", "已決志", "慕道友", "未信者" })
             //.DisplayExpr("Name")
             //.ValueExpr("ID")
             );
