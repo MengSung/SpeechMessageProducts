@@ -664,6 +664,7 @@ namespace ChurchReport.Models
 
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactToCreate, "lastname", aGalleryViewModel.FullName);
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactToCreate, "mobilephone", aGalleryViewModel.Mobile);
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactToCreate, "address2_line1", aGalleryViewModel.Address);//設定住家地址
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactToCreate, "new_personal_id", aGalleryViewModel.NationId);
 
                 // 一般小組新增的新人，委身類型設為"新朋友"

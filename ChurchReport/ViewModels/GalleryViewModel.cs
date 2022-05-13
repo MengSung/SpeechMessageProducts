@@ -13,6 +13,7 @@ namespace ChurchReport.ViewModel
         public string Password { get; set; } = "";
         public string FullName { get; set; } = ""; // 姓名
         public string Mobile { get; set; } = "";   // 手機
+        public string Address { get; set; } = "";   // 地址
         public string NationId { get; set; } = ""; // 身分證字號
     }
     public class RegisterViewModel

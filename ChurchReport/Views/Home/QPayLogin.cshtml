@@ -145,6 +145,14 @@
                             //   //.Width(200)
                             //   );
 
+                            items.AddSimpleFor(m => m.Address)
+                                //.DataField("Phone")
+                                .Label(l => l.Text("地址"))
+                                .IsRequired(false)
+                                .Editor(e => e
+                                    .TextBox()
+                                    .Placeholder("請輸入地址")
+                                );
 
                         })
                         .ValidationGroup("QPay")
