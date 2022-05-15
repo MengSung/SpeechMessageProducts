@@ -1179,7 +1179,7 @@ namespace ChurchReport.WebServiceConnector
                     return 100000003;
                 case "反應冷淡":
                     return 100000004;
-                case "考慮中":
+                case "考慮中，繼續跟進":
                     return 100000005;
                 case "入小組":
                     return 100000006;
@@ -2393,7 +2393,7 @@ namespace ChurchReport.WebServiceConnector
                 case 100000004:
                     return "反應冷淡";
                 case 100000005:
-                    return "考慮中";
+                    return "考慮中，繼續跟進";
                 case 100000006:
                     return "入小組";
                 case 100000007:
