@@ -62,15 +62,17 @@ namespace ToolUtility
         {
             try
             {
-                this.m_ToolUtilityClass.CreatePushLineMessage(To, "Line推播統計:文字", Message);
-
-                List<ISendMessage> MessageToSend = new List<ISendMessage>
+                if (To.Count > 0)
                 {
-                    new TextMessage(Message)
-                };
+                    this.m_ToolUtilityClass.CreatePushLineMessage(To, "Line推播統計:文字", Message);
 
-                await this.m_LineMessagingClient.MultiCastMessageAsync(To, MessageToSend);
+                    List<ISendMessage> MessageToSend = new List<ISendMessage>
+                    {
+                        new TextMessage(Message)
+                    };
 
+                    await this.m_LineMessagingClient.MultiCastMessageAsync(To, MessageToSend);
+                }
                 return;
             }
             catch (System.Exception e)

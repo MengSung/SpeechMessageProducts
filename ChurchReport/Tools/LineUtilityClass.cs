@@ -306,13 +306,15 @@ namespace ChurchReport.Tools
             {
                 try
                 {
-                    List<ISendMessage> MessageToSend = new List<ISendMessage>
+                    if (To.Count > 0)
                     {
-                        new TextMessage(Message)
-                    };
+                        List<ISendMessage> MessageToSend = new List<ISendMessage>
+                        {
+                            new TextMessage(Message)
+                        };
 
-                    await this.m_LineMessagingClient.MultiCastMessageAsync(To, MessageToSend);
-
+                        await this.m_LineMessagingClient.MultiCastMessageAsync(To, MessageToSend);
+                    }
                     return;
                 }
                 catch (System.Exception e)
