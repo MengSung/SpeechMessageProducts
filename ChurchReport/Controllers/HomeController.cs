@@ -2657,6 +2657,143 @@ namespace ChurchReport.Controllers
         }
 
         #endregion
+        #region 顯示裝備情形
+        public ActionResult EquipmentView()
+        {
+            try
+            {
+                ViewBag.LoginType = m_InMemoryDataContextSmallGroup.ListManager.LoginType;
+                ViewBag.LoginFullName = m_InMemoryDataContextSmallGroup.ListManager.LoginFullName;
+                ViewBag.FeeType = m_InMemoryDataContextSmallGroup.FeeList.FeeType;
+                #region 繳費與點名是否顯示在選單中
+                if (m_InMemoryDataContextSmallGroup.FeeList.FeeDataList != null && m_InMemoryDataContextSmallGroup.FeeList.FeeDataList.Count > 0)
+                {
+                    ViewBag.FeeDataListCount = "繳費與點名已有資料";
+                }
+                else
+                {
+                    ViewBag.FeeDataListCount = "繳費與點名尚無資料";
+                }
+                #endregion
+
+                if (m_InMemoryDataContextSmallGroup.HappyGroupDataManager.HappyType == "有幸福小組名單")
+                {
+                    ViewBag.HappyType = "有幸福小組名單";
+                }
+                else
+                {
+                    ViewBag.HappyType = "沒幸福小組名單";
+                }
+
+                SetMultiGroupLayoutParameter();
+
+                // 設定裝備清單資料
+                m_InMemoryDataContextSmallGroup.EquipmentDataManager.SetupEquipmentData(m_InMemoryDataContextSmallGroup.AppointmentsListManager.m_Account, m_InMemoryDataContextSmallGroup.AppointmentsListManager.m_Password);
+
+                return View();
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "永和禮拜堂 : 綁定錯誤 => " + ErrorString);
+
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
+                throw e;
+            }
+        }
+        [HttpGet]
+        public object LoadEquipmentList(DataSourceLoadOptions loadOptions)
+        {
+            try
+            {
+                if (m_InMemoryDataContextSmallGroup.EquipmentDataManager.m_EquipmenRoot != null)
+                {
+                    return DataSourceLoader.Load(m_InMemoryDataContextSmallGroup.EquipmentDataManager.m_EquipmenRoot.EquipmenSmallGroupList, loadOptions);
+                }
+                else { return null; }
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "永和禮拜堂 : 綁定錯誤 => " + ErrorString);
+
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
+                throw e;
+            }
+        }
+        [HttpGet]
+        public object LoadEquipmentContact(string id, DataSourceLoadOptions loadOptions)
+        {
+            try
+            {
+                if (m_InMemoryDataContextSmallGroup.EquipmentDataManager.m_EquipmenRoot.EquipmenSmallGroupList != null)
+                {
+                    //var tasks = m_InMemoryDataContextSmallGroup.HappyGroupDataManager.m_ActiveHappyGroupListClass.HappyGroupWeeklyReportListClass.Where(e => e.ListEntityId == id).Select(e => e.HappyGroupWeeklyReportList).FirstOrDefault();
+                    var tasks = m_InMemoryDataContextSmallGroup.EquipmentDataManager.m_EquipmenRoot.EquipmenSmallGroupList.Where(e => e.SmallGroupListEntityId == id).Select(e => e.EquipmentContactList).FirstOrDefault();
+
+                    return DataSourceLoader.Load(tasks, loadOptions);
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "永和禮拜堂 : 綁定錯誤 => " + ErrorString);
+
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
+                throw e;
+            }
+        }
+        [HttpGet]
+        public object LoadEquipmentStorLessons(string id, DataSourceLoadOptions loadOptions)
+        {
+            try
+            {
+
+                EquipmenSmallGroup aEquipmenSmallGroup = m_InMemoryDataContextSmallGroup.EquipmentDataManager.GetEquipmenSmallGroupByContactId(id);
+
+                if (aEquipmenSmallGroup != null)
+                {
+                    var tasks = aEquipmenSmallGroup.EquipmentContactList.Where(e => e.EquipmentContactId == id).Select(e => e.StorLessonsList).FirstOrDefault();
+
+                    return DataSourceLoader.Load(tasks, loadOptions);
+                }
+                else { return null; }
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "永和禮拜堂 : 綁定錯誤 => " + ErrorString);
+
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
+                throw e;
+            }
+        }
+
+        #endregion
         #region 課程繳費與點名
         public ActionResult PresentFeeListView()
         {

@@ -1,0 +1,133 @@
+﻿@using ChurchReport.Models
+
+@model ChurchReport.Models.EquipmenSmallGroup
+
+<head>
+    <!-- Site made with Mobirise Website Builder v4.0.16, https://mobirise.com -->
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="generator" content="Mobirise v4.0.16, mobirise.com">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="shortcut icon" href="assets/images/logo.png" type="image/x-icon">
+    <meta name="description" content="">
+    <title>永和禮拜堂</title>
+    @*<title>永和禮拜堂</title>*@
+
+</head>
+
+@*<h3>@ViewBag.HappyGroupName</h3>*@
+
+<br />
+<br />
+<br />
+<br />
+
+
+<div id="data-grid">
+    @(Html.DevExtreme().DataGrid<EquipmenSmallGroup>()
+        .ID("EquipmentGridContainer")
+        .Grouping(g=>g.AutoExpandAll(true))
+        .AllowColumnResizing(false)
+        //.Width(1500)
+        //.AllowColumnReordering(true)
+        .ColumnAutoWidth(false)
+        .ColumnMinWidth(80)
+        //.ColumnFixing(c => c.Enabled(true))
+        .NoDataText("沒有資料")
+        .ShowBorders(true)
+        .ShowRowLines(true)
+        .ShowColumnLines(true)
+
+        .Sorting(sorting => sorting.Mode(GridSortingMode.Multiple).ShowSortIndexes(true) )
+        
+        .DataSource(d => d
+            .WebApi()
+            .Controller("Home")
+            .LoadAction("LoadEquipmentList")
+            //.InsertAction("PostBest")
+            //.DeleteAction("DeleteBest")
+            //.UpdateAction("PutBest")
+            .Key("SmallGroupListEntityId")
+        )
+
+        .Editing(editing =>
+        {
+            //editing.Mode(GridEditMode.Row);
+            editing.Mode(GridEditMode.Cell);
+            //editing.Mode(GridEditMode.Batch);
+            //editing.Mode(GridEditMode.Form);
+            //editing.Mode(GridEditMode.Popup);
+            //editing.AllowUpdating(true);
+            //editing.AllowDeleting(true);
+            //editing.AllowAdding(true);
+            editing.Texts(a => a.SaveAllChanges("上傳檔案").AddRow("新增").CancelAllChanges("取消變更").SaveRowChanges("確定").CancelRowChanges("取消").EditRow("編輯").DeleteRow("刪除").ConfirmDeleteTitle("確定要刪除嗎?").ConfirmDeleteMessage("刪除幸福小組週報"));
+            //editing.AllowDeleting(true);
+        })
+
+
+        .OnContentReady(
+                @<text>
+                    function(e)
+                    {
+                        moveEditColumnToLeft(e.component);
+                    }
+                    </text>
+                )
+
+        .Columns(columns =>
+        {
+            columns.AddFor(m => m.SmallGroupName)
+            .Caption("小組")
+            .Width(800)
+            .MinWidth(10);
+        })
+        .MasterDetail(md =>
+        {
+            //md.Enabled(true);
+            //md.AutoExpandAll(true);
+            //md.Template(new TemplateName("EquipmentContact"));
+
+            md.Enabled(true);
+            md.AutoExpandAll(false);
+            md.Template(@<text>
+                @(Html.Partial("EquipmentContactView"))
+            </text>);
+        })
+    )
+</div>
+
+@using (Html.DevExtreme().NamedTemplate("EquipmentContact"))
+{
+    @(Html.Partial("EquipmentContactView"))
+}
+
+<script>
+    function moveEditColumnToLeft(dataGrid) {
+        dataGrid.columnOption("command:edit", {
+            visibleIndex: -1,
+            width: 50
+        });
+    }
+
+    function cell_prepared(e) {
+        if (e.rowType === "data" && e.column.command === "edit") {
+            var isEditing = e.row.isEditing,
+                $links = e.cellElement.find(".dx-link");
+
+            $links.text("");
+
+            if (isEditing) {
+                $links.filter(".dx-link-save").addClass("dx-icon-save");
+                $links.filter(".dx-link-cancel").addClass("dx-icon-revert");
+            } else {
+                $links.filter(".dx-link-edit").addClass("dx-icon-edit");
+                $links.filter(".dx-link-delete").addClass("dx-icon-trash");
+            }
+        }
+    }
+
+
+</script>
+
+<link href="~/css/MasterDetail.css" rel="stylesheet" />
+<script src="~/js/SelectTime.js"></script>
