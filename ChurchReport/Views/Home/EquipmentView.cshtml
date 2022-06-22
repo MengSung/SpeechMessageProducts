@@ -10,7 +10,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="shortcut icon" href="assets/images/logo.png" type="image/x-icon">
     <meta name="description" content="">
-    <title>永和禮拜堂</title>
+    <title>安平靈糧堂</title>
     @*<title>永和禮拜堂</title>*@
 
 </head>
@@ -19,8 +19,11 @@
 
 <br />
 <br />
-<br />
-<br />
+
+<div style="font-family:標楷體;font-size:100%; color:cadetblue; text-align:left;font-weight:bold">
+    <h4>裝備狀態</h4>
+</div>
+
 
 
 <div id="data-grid">
@@ -39,7 +42,8 @@
         .ShowColumnLines(true)
 
         .Sorting(sorting => sorting.Mode(GridSortingMode.Multiple).ShowSortIndexes(true) )
-        
+        .OnRowPrepared("OnRowPrepared")
+
         .DataSource(d => d
             .WebApi()
             .Controller("Home")
@@ -126,6 +130,24 @@
         }
     }
 
+    function OnRowPrepared(e) {
+        e.rowElement.css({ height: 25 });
+        e.rowElement.css('font-size', '18px');
+        e.rowElement.css('font-family', '標楷體');
+        e.rowElement.css('color', 'rgb(0, 0, 255)');
+        e.rowElement.css('background', 'rgb(255, 251, 255)');
+
+        if (e.rowType == 'data') {
+            //e.rowElement.css('background', '#fff2a8');
+            e.rowElement[0].addEventListener("mouseover", function () {
+                e.rowElement.css('background', '#fff2a8');
+                e.rowElement.css("transition", "background-color 0.5s");
+            });
+            e.rowElement[0].addEventListener("mouseleave", function () {
+                e.rowElement[0].style.background = ""
+            });
+        }
+    }
 
 </script>
 
