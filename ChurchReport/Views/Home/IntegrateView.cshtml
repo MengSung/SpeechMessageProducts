@@ -1006,6 +1006,9 @@ else
                                 columns.AddFor(m => m.PrayItem).Caption("跟進關懷說明").Fixed(false).MinWidth(150);
                                 //columns.AddFor(m => m.NewComerNote).Caption("跟進關懷歷程").Fixed(false).MinWidth(90);
 
+                                columns.AddFor(m => m.Description).Caption("附註說明").Fixed(false).MinWidth(300);
+                                //columns.AddFor(m => m.NewComerNote).Caption("跟進關懷歷程").Fixed(false).MinWidth(90);
+
                                 columns.AddFor(m => m.AssignedGroup)
                                     .Caption("指派小組")
                                     .Width(120).MinWidth(30)

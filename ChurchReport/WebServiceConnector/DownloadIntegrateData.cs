@@ -425,6 +425,12 @@ namespace ChurchReport.WebServiceConnector
                             aSpiritualIdentity = ConvertIndexToSpiritualIdentity(this.m_ToolUtilityClass.GetOptionSetAttribute(aContactEntity, "new_spiriitual_identity"));
                         }
 
+                        // 組員的個人附註
+                        String aDescription = "";
+                        if (aContactEntity.Attributes.Contains("description"))
+                        {
+                            aDescription = (string)aContactEntity.Attributes["description"];
+                        }
                         #endregion
                         #region// 委身類型
                         String aIdentity = this.ConvertIndexToIdentity(this.m_ToolUtilityClass.GetOptionSetAttribute(ref aContactEntity, "customertypecode"));
@@ -649,6 +655,7 @@ namespace ChurchReport.WebServiceConnector
                                     LeadershipSmallLecture = aLeadershipSmallLecture,// 小組長小講堂次數
                                     LeadersGather = aLeadersGather,// 小組長大聚次數
                                     Decision = aDecision, //決志
+                                    Description = aDescription,
                                     #region 新人跟進關懷
                                     FollowUpWeek = aFollowUpWeek,
                                     FollowUpResult = aFollowUpResult,
@@ -1359,6 +1366,12 @@ namespace ChurchReport.WebServiceConnector
                             aSpiritualIdentity = ConvertIndexToSpiritualIdentity(this.m_ToolUtilityClass.GetOptionSetAttribute(ContactEntity, "new_spiriitual_identity"));
                         }
 
+                        // 組員的個人附註
+                        String aDescription = "";
+                        if ( ContactEntity.Attributes.Contains("description"))
+                        {
+                            aDescription = (string) ContactEntity.Attributes["description"];
+                        }
                         #endregion
 
                         #region// 委身類型
@@ -1408,6 +1421,7 @@ namespace ChurchReport.WebServiceConnector
                                     Sunday = false, //主日出席
                                     SmallGroup = false,//小組出席
                                     Decision = false, //決志
+                                    Description = aDescription,
                                     #region 新人跟進關懷
                                     FollowUpWeek = aFollowUpWeek,
                                     FollowUpResult = "",
@@ -1492,6 +1506,12 @@ namespace ChurchReport.WebServiceConnector
                 aSpiritualIdentity = ConvertIndexToSpiritualIdentity(this.m_ToolUtilityClass.GetOptionSetAttribute(this.m_ContactEntity, "new_spiriitual_identity"));
             }
 
+            // 組員的個人附註
+            String aDescription = "";
+            if ( m_ContactEntity.Attributes.Contains("description"))
+            {
+                aDescription = (string)m_ContactEntity.Attributes["description"];
+            }
             #endregion
 
             #region// 委身類型
@@ -1542,6 +1562,7 @@ namespace ChurchReport.WebServiceConnector
                         Sunday = false, //主日出席
                         SmallGroup = false,//小組出席
                         Decision = false, //決志
+                        Description = aDescription,
                         #region 新人跟進關懷
                         FollowUpWeek = aFollowUpWeek,
                         FollowUpResult = "",
