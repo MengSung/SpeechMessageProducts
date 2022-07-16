@@ -1113,43 +1113,45 @@ namespace ChurchReport.Controllers
                 // });
 
                 //return Json(new { status = "1", message = "成功上傳了.... : " + "Status = " + AsyncTask.Status + " IsFaulted = " + AsyncTask.IsFaulted + " IsCanceled=" + AsyncTask.IsCanceled });
-                int Count = m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.Members.Count;
-                int Index = 0;
-                for (int i = 0; i < Count; i++)
+                if (m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.Members != null)
                 {
-                    if (m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.Members[Index].AssignedGroup != "" && m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.Members[Index].AssignedGroup != null)
+                    int Count = m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.Members.Count;
+                    int Index = 0;
+                    for (int i = 0; i < Count; i++)
                     {
-                        m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.Members.RemoveAt(Index);
+                        if (m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.Members[Index].AssignedGroup != "" && m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.Members[Index].AssignedGroup != null)
+                        {
+                            m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.Members.RemoveAt(Index);
+                        }
+                        else if (m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.Members[Index].FollowUpNextStep == "轉介")
+                        {
+                            m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.Members.RemoveAt(Index);
+                        }
+                        else
+                        {
+                            Index++;
+                        }
                     }
-                    else if (m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.Members[Index].FollowUpNextStep == "轉介")
+
+
+                    Count = m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData.Members.Count;
+                    Index = 0;
+                    for (int i = 0; i < Count; i++)
                     {
-                        m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.Members.RemoveAt(Index);
-                    }
-                    else
-                    {
-                        Index++;
+                        if (m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData.Members[Index].AssignedGroup != "" && m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData.Members[Index].AssignedGroup != null)
+                        {
+                            m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData.Members.RemoveAt(Index);
+                        }
+                        else if (m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData.Members[Index].FollowUpNextStep == "轉介")
+                        {
+                            m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData.Members.RemoveAt(Index);
+                        }
+                        else
+                        {
+                            Index++;
+                        }
                     }
                 }
-
-
-                Count = m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData.Members.Count;
-                Index = 0;
-                for (int i = 0; i < Count; i++)
-                {
-                    if (m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData.Members[Index].AssignedGroup != "" && m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData.Members[Index].AssignedGroup != null)
-                    {
-                        m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData.Members.RemoveAt(Index);
-                    }
-                    else if (m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData.Members[Index].FollowUpNextStep == "轉介")
-                    {
-                        m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData.Members.RemoveAt(Index);
-                    }
-                    else 
-                    {
-                        Index++;
-                    }
-                }
-
                 return Json(new { status = "1", message = "成功上傳了.... !太棒了!"  });
             }
             catch (System.Exception e)

@@ -230,205 +230,213 @@ else
                 {
                     @if (Model.GroupType == "一般小組")
                     {
-                            <div id="buttonContainer" class="dx-button-icon" style="float: left; width:30%; text-align: left; background-color:white;">
-                @(Html.DevExtreme().Button()
-                        .Text("上傳").Height(50).Width(80).Icon("check")
-                        .Type(ButtonType.Success)
-                        .ID("save-button")
-                        .UseSubmitBehavior(false)
+                        <div id="buttonContainer" class="dx-button-icon" style="float: left; width:30%; text-align: left; background-color:white;">
+                            @(Html.DevExtreme().Button()
+                                        .Text("上傳").Height(50).Width(80).Icon("check")
+                                        .Type(ButtonType.Success)
+                                        .ID("save-button")
+                                        .UseSubmitBehavior(false)
 
-                        .OnClick
-                        (@<text>
-                                    function(arg)
-                                    {
-                                    var SmallGroupDataGrid = $("#SmallGroupgridContainer").dxDataGrid("instance");
-                                    var NewPersonDataGrid = $("#NewPersonGridContainer").dxDataGrid("instance");
+                                        .OnClick
+                                        (@<text>
+                                                    function(arg)
+                                                    {
+                                                    var SmallGroupDataGrid = $("#SmallGroupgridContainer").dxDataGrid("instance");
+                                                    var NewPersonDataGrid = $("#NewPersonGridContainer").dxDataGrid("instance");
 
-                                    // 取得上傳的按鈕
-                                    var ButtonContainer= $("#save-button").dxButton("instance");
+                                                    // 取得上傳的按鈕
+                                                    var ButtonContainer= $("#save-button").dxButton("instance");
 
-                                    //debugger;
-                                    //var SmallGroupDataGridFlag = SmallGroupDataGrid.hasEditData();//是否還殘留尚未回傳的編輯資料
-                                    //var NewPersonDataGridFlag = NewPersonDataGrid.hasEditData();//是否還殘留尚未回傳的編輯資料
+                                                    //debugger;
+                                                    //var SmallGroupDataGridFlag = SmallGroupDataGrid.hasEditData();//是否還殘留尚未回傳的編輯資料
+                                                    //var NewPersonDataGridFlag = NewPersonDataGrid.hasEditData();//是否還殘留尚未回傳的編輯資料
 
-                                    $("#SmallGroupgridContainer").dxDataGrid("instance").saveEditData();
-                                    $("#NewPersonGridContainer").dxDataGrid("instance").saveEditData();
-
-
-                                    //if( SmallGroupDataGridFlag == false && NewPersonDataGridFlag == false)
-                                    if( true)
-                                    {
-                                    // 顯示旋轉鈕
-                                    $("#loadPanel").dxLoadPanel("instance").show();
-
-                                    // 上傳按鈕反白
-                                    ButtonContainer.option("disabled", true);
+                                                    $("#SmallGroupgridContainer").dxDataGrid("instance").saveEditData();
+                                                    $("#NewPersonGridContainer").dxDataGrid("instance").saveEditData();
 
 
-                                    // AJAX 區塊
-                                    $.ajax
-                                    (
-                                    {
-                                    url: '@Url.Action("SaveIntegrate", "Home")',
-                                    data:
-                                    {
+                                                    //if( SmallGroupDataGridFlag == false && NewPersonDataGridFlag == false)
+                                                    if( true)
+                                                    {
+                                                    // 顯示旋轉鈕
+                                                    $("#loadPanel").dxLoadPanel("instance").show();
 
-                                    WeeklyReportData: $("#WeeklyReportTextData").dxTextArea("instance").option('text') ,
-                                    CheckBox:$("#CheckBoxId").dxCheckBox("instance").option("value")
-                                    }, // 整理回傳給 Server 的點名資料
-                                    type: 'POST', //POST if you want to save, GET if you want to fetch data from server
-
-                                    success: function (arg)
-                                    {
-                                        var SmallGroupDataGrid = $("#SmallGroupgridContainer").dxDataGrid("instance");
-                                        var NewPersonDataGrid = $("#NewPersonGridContainer").dxDataGrid("instance");
-
-                                        SmallGroupDataGrid.refresh();
-                                        NewPersonDataGrid.refresh();
+                                                    // 上傳按鈕反白
+                                                    ButtonContainer.option("disabled", true);
 
 
-                                        // 隱藏旋轉鈕
-                                        $("#loadPanel").dxLoadPanel("instance").hide();
+                                                    // AJAX 區塊
+                                                    $.ajax
+                                                    (
+                                                    {
+                                                    url: '@Url.Action("SaveIntegrate", "Home")',
+                                                    data:
+                                                    {
 
-                                        //alert("成功 005");
+                                                    WeeklyReportData: $("#WeeklyReportTextData").dxTextArea("instance").option('text') ,
+                                                    CheckBox:$("#CheckBoxId").dxCheckBox("instance").option("value")
+                                                    }, // 整理回傳給 Server 的點名資料
+                                                    type: 'POST', //POST if you want to save, GET if you want to fetch data from server
 
-                                        // 上傳按鈕恢復可運作
-                                        ButtonContainer.option("disabled", false);
+                                                    success: function (arg)
+                                                    {
+                                                        var SmallGroupDataGrid = $("#SmallGroupgridContainer").dxDataGrid("instance");
+                                                        var NewPersonDataGrid = $("#NewPersonGridContainer").dxDataGrid("instance");
 
-                                        //SmallGroupDataGrid.repaint();
-                                        //NewPersonDataGrid.repaint();
+                                                        SmallGroupDataGrid.refresh();
+                                                        NewPersonDataGrid.refresh();
 
 
-                                        // 顯示上傳成功
-                                        if (arg.status == 1)
-                                        {
-                                            ShowToast(arg.message, "success", 2000);
-                                        }
-                                        else{
-                                            ShowToast(arg.message, "error", 5000);}
+                                                        // 隱藏旋轉鈕
+                                                        $("#loadPanel").dxLoadPanel("instance").hide();
 
-                                            //$("#toast").dxToast("instance").show();
-                                        },
+                                                        //alert("成功 005");
 
-                                        error: function (obj)
-                                        {
-                                            //alert('Something happened');
-                                        }
+                                                        // 上傳按鈕恢復可運作
+                                                        ButtonContainer.option("disabled", false);
 
-                                    }
-                                    );
-                                    // AJAX 區塊
-                                    }
-                                    else
-                                    {
+                                                        //SmallGroupDataGrid.repaint();
+                                                        //NewPersonDataGrid.repaint();
 
-                                    // 隱藏旋轉鈕
-                                    $("#loadPanel").dxLoadPanel("instance").hide();
-                                    $("#SmallGroupgridContainer").dxDataGrid("instance").saveEditData();
-                                    $("#NewPersonGridContainer").dxDataGrid("instance").saveEditData();
 
-                                    // 顯示再上傳一次
-                                    $("#ToastReUpload").dxToast("instance").show();
+                                                        // 顯示上傳成功
+                                                        if (arg.status == 1)
+                                                        {
+                                                            ShowToast(arg.message, "success", 2000);
+                                                        }
+                                                        else{
+                                                            ShowToast(arg.message, "error", 5000);}
 
-                                    }
-                                    }
-                        </text>)
-                )
-            </div>
+                                                            //$("#toast").dxToast("instance").show();
+                                                        },
+
+                                                        error: function (obj)
+                                                        {
+                                                            //alert('Something happened');
+                                                        }
+
+                                                    }
+                                                    );
+                                                    // AJAX 區塊
+                                                    }
+                                                    else
+                                                    {
+
+                                                    // 隱藏旋轉鈕
+                                                    $("#loadPanel").dxLoadPanel("instance").hide();
+                                                    $("#SmallGroupgridContainer").dxDataGrid("instance").saveEditData();
+                                                    $("#NewPersonGridContainer").dxDataGrid("instance").saveEditData();
+
+                                                    // 顯示再上傳一次
+                                                    $("#ToastReUpload").dxToast("instance").show();
+
+                                                    }
+                                                    }
+                                        </text>)
+                                )
+                        </div>
                     }
                     else
                     {
-            <div id="buttonContainer" class="dx-button-icon" style="float: left; width:30%; text-align: left; background-color:white;">
-                @(Html.DevExtreme().Button()
-                        .Text("上傳").Height(50).Width(80).Icon("check")
-                        .Type(ButtonType.Success)
-                        .ID("save-button")
-                        .UseSubmitBehavior(false)
 
-                        .OnClick
-                        (@<text>
-                                    function(arg)
-                                    {
 
-                                    var HappyGroupDataGrid = $("#HappyGroupGridContainer").dxDataGrid("instance");
+                        <div id="buttonContainer" class="dx-button-icon" style="float: left; width:30%; text-align: left; background-color:white;">
+                            @(Html.DevExtreme().Button()
+                                            .Text("上傳").Height(50).Width(80).Icon("check")
+                                            .Type(ButtonType.Success)
+                                            .ID("save-button")
+                                            .UseSubmitBehavior(false)
 
-                                    // 取得上傳的按鈕
-                                    var ButtonContainer= $("#save-button").dxButton("instance");
+                                            .OnClick
+                                            (@<text>
+                                                        function(arg)
+                                                        {
+                                                            //alert("按鈕 000");
+                                                            var HappyGroupDataGrid = $("#HappyGroupGridContainer").dxDataGrid("instance");
 
-                                    //debugger;
-                                    //var HappyGroupDataGridFlag = HappyGroupDataGrid.hasEditData();//是否還殘留尚未回傳的編輯資料
+                                                            //alert("按鈕 001");
+                                                            // 取得上傳的按鈕
+                                                            var ButtonContainer= $("#save-button").dxButton("instance");
 
-                                    $("#HappyGroupGridContainer").dxDataGrid("instance").saveEditData();
-                                    //if( HappyGroupDataGridFlag == false )
-                                    if( true )
-                                    {
-                                    // 顯示旋轉鈕
-                                    $("#loadPanel").dxLoadPanel("instance").show();
+                                                            //debugger;
+                                                            //var HappyGroupDataGridFlag = HappyGroupDataGrid.hasEditData();//是否還殘留尚未回傳的編輯資料
 
-                                    // 上傳按鈕反白
-                                    ButtonContainer.option("disabled", true);
+                                                            //alert("按鈕 002");
+                                                            $("#HappyGroupGridContainer").dxDataGrid("instance").saveEditData();
 
-                                    // AJAX 區塊
-                                    $.ajax
-                                    (
-                                    {
-                                    url: '@Url.Action("SaveIntegrate", "Home")',
-                                    data: {
-                                    WeeklyReportData: $("#WeeklyReportTextData").dxTextArea("instance").option('text'),
-                                    HappyWeekIndex: $("#HappyWeekIndex").dxSelectBox("instance").option('text'),
-                                    HappyWeekTopic: $("#HappyWeekTopic").dxSelectBox("instance").option('text'),
-                                    @*CheckBox:$("#CheckBoxId").dxCheckBox("instance").option("value")*@
-                                    }, // 整理回傳給 Server 的點名資料
-                                    type: 'POST', //POST if you want to save, GET if you want to fetch data from server
+                                                            //alert("按鈕 003");
+                                                            //if( HappyGroupDataGridFlag == false )
+                                                            if( true )
+                                                            {
+                                                            // 顯示旋轉鈕
+                                                            $("#loadPanel").dxLoadPanel("instance").show();
 
-                                    success: function (arg)
-                                    {
-                                        var SmallGroupDataGrid = $("#SmallGroupgridContainer").dxDataGrid("instance");
-                                        var NewPersonDataGrid = $("#NewPersonGridContainer").dxDataGrid("instance");
+                                                            // 上傳按鈕反白
+                                                            ButtonContainer.option("disabled", true);
 
-                                        SmallGroupDataGrid.refresh();
-                                        NewPersonDataGrid.refresh();
+                                                            // AJAX 區塊
+                                                            $.ajax
+                                                            (
+                                                                {
+                                                                                url: '@Url.Action("SaveIntegrate", "Home")',
+                                                                                data: {
+                                                                                WeeklyReportData: $("#WeeklyReportTextData").dxTextArea("instance").option('text'),
+                                                                                HappyWeekIndex: $("#HappyWeekIndex").dxSelectBox("instance").option('text'),
+                                                                                HappyWeekTopic: $("#HappyWeekTopic").dxSelectBox("instance").option('text'),
+                                                                                @*CheckBox:$("#CheckBoxId").dxCheckBox("instance").option("value")*@
+                                                                                }, // 整理回傳給 Server 的點名資料
+                                                                                type: 'POST', //POST if you want to save, GET if you want to fetch data from server
 
-                                    // 隱藏旋轉鈕
-                                    $("#loadPanel").dxLoadPanel("instance").hide();
+                                                                                success: function (arg)
+                                                                                {
+                                                                                    //alert("成功 003");
+                                                                                    HappyGroupDataGrid.refresh();
+                                                                                    //alert("成功 004");
 
-                                    // 上傳按鈕恢復可運作
-                                    ButtonContainer.option("disabled", false);
+                                                                                    // 隱藏旋轉鈕
+                                                                                    $("#loadPanel").dxLoadPanel("instance").hide();
+                                                                                    //alert("成功 006");
 
-                                    // 顯示上傳成功
-                                    if (arg.status == 1)
-                                    {
-                                    ShowToast(arg.message, "success", 2000);
-                                    }
-                                    else{
-                                    ShowToast(arg.message, "error", 5000);}
+                                                                                    // 上傳按鈕恢復可運作
+                                                                                    ButtonContainer.option("disabled", false);
+                                                                                    //alert("成功 007");
 
-                                    //$("#toast").dxToast("instance").show();
-                                    },
+                                                                                    // 顯示上傳成功
+                                                                                    if (arg.status == 1)
+                                                                                    {
+                                                                                        ShowToast(arg.message, "success", 2000);
+                                                                                    }
+                                                                                    else
+                                                                                    {
+                                                                                        ShowToast(arg.message, "error", 5000);
+                                                                                    }
 
-                                    error: function (obj)
-                                    {
-                                    //alert('Something happened');
-                                    }
+                                                                                    //$("#toast").dxToast("instance").show();
+                                                                                },
 
-                                    }
-                                    );
-                                    // AJAX 區塊
-                                    }
-                                    else
-                                    {
+                                                                                error: function (obj)
+                                                                                {
+                                                                                    alert('Something happened');
+                                                                                }
 
-                                    // 隱藏旋轉鈕
-                                    $("#loadPanel").dxLoadPanel("instance").hide();
-                                    $("#HappyGroupGridContainer").dxDataGrid("instance").saveEditData();
-                                    // 顯示再上傳一次
-                                    $("#ToastReUpload").dxToast("instance").show();
+                                                                }
+                                                            );
+                                                            // AJAX 區塊
+                                                            }
+                                                            else
+                                                            {
 
-                                    }
-                                    }
-                        </text>)
-                )
-            </div>
+                                                            // 隱藏旋轉鈕
+                                                            $("#loadPanel").dxLoadPanel("instance").hide();
+                                                            $("#HappyGroupGridContainer").dxDataGrid("instance").saveEditData();
+                                                            // 顯示再上傳一次
+                                                            $("#ToastReUpload").dxToast("instance").show();
+
+                                                            }
+                                                        }
+                                            </text>)
+                                    )
+                        </div>
                     }
                 }
                 else
