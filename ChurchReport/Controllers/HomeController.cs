@@ -1168,6 +1168,56 @@ namespace ChurchReport.Controllers
                 throw e;
             }
         }
+        public IActionResult UpdateHappyWeekIndex(string HappyWeekIndex)
+        {
+            try
+            {
+                #region 下載資料
+                m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.HappyWeekIndex = HappyWeekIndex;
+                #endregion
+
+                //return Json(new { ActiveListId = m_InMemoryDataContextSmallGroup.ListManager.ActiveListId });
+
+                return Ok();
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "安平靈糧堂: 錯誤 => " + ErrorString);
+
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
+                throw e;
+            }
+        }
+        public IActionResult UpdateHappyWeekTopic(string HappyWeekTopic)
+        {
+            try
+            {
+                #region 下載資料
+                m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.HappyWeekTopic = HappyWeekTopic;
+                #endregion
+
+                return Ok();
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "安平靈糧堂: 錯誤 => " + ErrorString);
+
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
+                throw e;
+            }
+        }
         #endregion
         #region 個人回報
         [HttpGet]

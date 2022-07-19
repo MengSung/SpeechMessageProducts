@@ -192,44 +192,48 @@ else
                     .OnValueChanged(@<text>
                                 function(arg) {
 
-                                $("#loadPanel").dxLoadPanel("instance").show();
+                                    $("#loadPanel").dxLoadPanel("instance").show();
 
-                                $.ajax({
-                                url: '@Url.Action("UpdateIntegrateDate", "Home")',
-                                data: { SelectedDate: getODataLocalDateFilter(arg.value) },
-                                type: 'GET', //POST if you want to save, GET if you want to fetch data from server
+                                    $.ajax(
+                                       {
+                                            url: '@Url.Action("UpdateIntegrateDate", "Home")',
+                                            data: { SelectedDate: getODataLocalDateFilter(arg.value) },
+                                            type: 'GET', //POST if you want to save, GET if you want to fetch data from server
 
-                                success: function (arg)
-                                {
-                                //alert("001");
-                                $("#loadPanel").dxLoadPanel("instance").hide();
+                                            success: function (arg)
+                                            {
+                                                //alert("001");
+                                                $("#loadPanel").dxLoadPanel("instance").hide();
 
-                                //var dataGridInstance = $("#gridContainer").dxDataGrid("instance");
-                                //dataGridInstance.refresh();
-                                //alert("002");
+                                                //var dataGridInstance = $("#gridContainer").dxDataGrid("instance");
+                                                //dataGridInstance.refresh();
+                                                //alert("002");
 
-                                //window.location.href = "/Home/IntegrateView/IntegrateView"
-                                window.location.href = "/Home/IntegrateView/" + arg.ActiveListId;
-                                //alert("003");
+                                                //window.location.href = "/Home/IntegrateView/IntegrateView"
+                                                window.location.href = "/Home/IntegrateView/" + arg.ActiveListId;
+                                                //alert("003");
 
-                                },
+                                            },
 
-                                error: function (obj) {
-                                //alert('Something happened');
-                                }
-
-                                });
-                                }
-                    </text>
-)
+                                            error: function (obj)
+                                            {
+                                                //alert('Something happened');
+                                            }
+                                        }
+                                    );
+                                    }
+                                    </text>
+                                )
 
                     )
                 </div>
 
                 @if (Model.LoginType == "小組長")
                 {
+                    // 按鈕的Ajax
                     @if (Model.GroupType == "一般小組")
                     {
+                        // 一般小組按鈕的Ajax
                         <div id="buttonContainer" class="dx-button-icon" style="float: left; width:30%; text-align: left; background-color:white;">
                             @(Html.DevExtreme().Button()
                                         .Text("上傳").Height(50).Width(80).Icon("check")
@@ -338,8 +342,7 @@ else
                     }
                     else
                     {
-
-
+                        // 幸福小組按鈕的Ajax
                         <div id="buttonContainer" class="dx-button-icon" style="float: left; width:30%; text-align: left; background-color:white;">
                             @(Html.DevExtreme().Button()
                                             .Text("上傳").Height(50).Width(80).Icon("check")
@@ -624,6 +627,35 @@ else
                                 }
                             )
                             .Width(150)
+                            .OnValueChanged
+                             (@<text>
+                                function(arg)
+                                {
+
+                                    $("#loadPanel").dxLoadPanel("instance").show();
+
+                                    $.ajax(
+                                       {
+                                            url: '@Url.Action("UpdateHappyWeekIndex", "Home")',
+                                            data: { HappyWeekIndex: arg.value },
+                                            type: 'GET', //POST if you want to save, GET if you want to fetch data from server
+
+                                            success: function (arg)
+                                            {
+                                                //alert("001");
+                                                $("#loadPanel").dxLoadPanel("instance").hide();
+                                            },
+
+                                            error: function (obj)
+                                            {
+                                                alert('Something happened');
+                                            }
+                                        }
+                                    );
+                                }
+                                </text>
+                             )
+
                     )
                 </div>
                 @*<div style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
@@ -650,6 +682,35 @@ else
                                 }
                             )
                             .Width(150)
+                            .OnValueChanged
+                            (@<text>
+                                function(arg)
+                                {
+                                    $("#loadPanel").dxLoadPanel("instance").show();
+
+                                    $.ajax
+                                    (
+                                       {
+                                            url: '@Url.Action("UpdateHappyWeekTopic", "Home")',
+                                            data: { HappyWeekTopic: arg.value },
+                                            type: 'GET', //POST if you want to save, GET if you want to fetch data from server
+
+                                            success: function (arg)
+                                            {
+                                                //alert("001");
+                                                $("#loadPanel").dxLoadPanel("instance").hide();
+                                            },
+
+                                            error: function (obj)
+                                            {
+                                                alert('Something happened');
+                                            }
+                                        }
+                                    );
+                                }
+                            </text>
+                            )
+
                     )
                 </div>
             </div>
@@ -659,6 +720,7 @@ else
         {
             @if (Model.GroupType == "一般小組")
             {
+                //一般小組網格 DataGrid
                 <div id="PauseOrNot" style="height:100%; width:100%; overflow: hidden;">
 
                     <div style="font-family:標楷體;font-size:100%; color:mediumslateblue; text-align:left;font-weight:bold"><h5>小組是否暫停</h5></div>
@@ -1019,7 +1081,7 @@ else
 
                                 columns.AddFor(m => m.AssignedGroup)
                                     .Caption("指派小組")
-                                    .Width(120).MinWidth(30)
+                                    .Width(150).MinWidth(30)
                                     .Lookup(lookup => lookup
                                     .DataSource(Model.GroupArray)
                                 //.DisplayExpr("Name")
@@ -1064,6 +1126,7 @@ else
             }
             else
             {
+                //幸福小組網格
                 @if (Model.m_SmallGroupDataList.m_HappyGroup.DisplayFlag == true)
                 {
                     <div style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
@@ -1501,7 +1564,7 @@ else
 
         //SmallGroupDataGrid.repaint();
         //NewPersonDataGrid.repaint();
-        
+
         //SmallGroupDataGrid.refresh();
         //NewPersonDataGrid.refresh();
 
@@ -1583,38 +1646,38 @@ else
         //alert("OnEditorPrepared 002" + options.dataField);
         //if (options.parentType == 'dataRow' && options.dataField == 'AssignedGroup') {
 
-            //alert("OnEditorPrepared 002-001" + options.row.data.AssignedGroup)
-            //alert("OnEditorPrepared 002-001" + options.row.data)
-            //options.editorElement.dxSelectBox('instance').option('onValueChanged', function (arg) {
-                //your actions here 
-                //alert("OnEditorPrepared 003" + args.value);
-                //alert("OnEditorPrepared 003" + args);
-                //alert("OnEditorPrepared 003" );
-            //});  
+        //alert("OnEditorPrepared 002-001" + options.row.data.AssignedGroup)
+        //alert("OnEditorPrepared 002-001" + options.row.data)
+        //options.editorElement.dxSelectBox('instance').option('onValueChanged', function (arg) {
+        //your actions here
+        //alert("OnEditorPrepared 003" + args.value);
+        //alert("OnEditorPrepared 003" + args);
+        //alert("OnEditorPrepared 003" );
+        //});
 
-            //e.editorOptions.onValueChanged = function (args) {
-            //    //let p = e.dataField
+        //e.editorOptions.onValueChanged = function (args) {
+        //    //let p = e.dataField
 
-            //    alert("OnEditorPrepared 002" + args);
-            //};
+        //    alert("OnEditorPrepared 002" + args);
+        //};
 
-            //e.editorElement.dxTextBox('instance').option('onValueChanged', args => {
-            //    alert("OnEditorPrepared 002");
-            //    //        alert("OnEditorPrepared 002" + args.value);
-            //    //        e.setValue(args.value);
-            //})
+        //e.editorElement.dxTextBox('instance').option('onValueChanged', args => {
+        //    alert("OnEditorPrepared 002");
+        //    //        alert("OnEditorPrepared 002" + args.value);
+        //    //        e.setValue(args.value);
+        //})
 
 
 
-            //var onValueChanged = e.editorOptions.onValueChanged;
-            //alert("OnEditorPrepared 001" + onValueChanged);
-            //alert("OnEditorPrepared 001" + onValueChanged);
+        //var onValueChanged = e.editorOptions.onValueChanged;
+        //alert("OnEditorPrepared 001" + onValueChanged);
+        //alert("OnEditorPrepared 001" + onValueChanged);
 
-            //e.editorOptions.onValueChanged = function (args) {
-            //onValueChanged.apply(this, arguments);
-            //alert("OnEditorPrepared 002" + args.value);
-            // your custom code here
-            //}
+        //e.editorOptions.onValueChanged = function (args) {
+        //onValueChanged.apply(this, arguments);
+        //alert("OnEditorPrepared 002" + args.value);
+        // your custom code here
+        //}
 
 
         //}
