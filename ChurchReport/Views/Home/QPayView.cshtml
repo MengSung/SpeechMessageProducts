@@ -49,6 +49,7 @@
                        "宣教奉獻",
                        "紓困奉獻",
                        "特別奉獻",
+                       "其他奉獻",
                     }
                     //.DisplayExpr("Name")
                 )
@@ -590,25 +591,67 @@
     // 觸發事件管理
     function OnCategorySelectBoxValueChanged(e) {
 
-        if (e.value == "宣教奉獻") {
-            $("#form").dxForm("instance").itemOption("OtherDedicationSelectionBox", 'visible', true);
+        if (e.value == "十一奉獻") {
+            $("#form").dxForm("instance").itemOption("OtherDedicationSelectionBox", 'visible', false);
             $("#form").dxForm("instance").itemOption("SpecialDedicationSelectionBox", 'visible', false);
             $("#form").dxForm("instance").itemOption("OtherDedication", 'visible', false);
 
-            document.getElementById("creditcardlistcontainer").style.display = "";//顯示信用卡
-            $("#form").dxForm("instance").itemOption('PayWaySelectBox', {
-                editorOptions: {
-                    dataSource: DefaultPayWay,
-                    value: "信用卡",
-                    width: 200
-                },
-            });
+            //document.getElementById("creditcardlistcontainer").style.display = "";//顯示信用卡
+            //$("#form").dxForm("instance").itemOption('PayWaySelectBox', {
+            //    editorOptions: {
+            //        dataSource: DefaultPayWay,
+            //        value: "信用卡",
+            //        width: 200
+            //    },
+            //});
 
             $("#form").dxForm("instance").itemOption('DedicationAmount', {
                 editorOptions: {
                     width: 200
                 },
             });
+        }
+        else if (e.value == "感恩奉獻") {
+            $("#form").dxForm("instance").itemOption("OtherDedication", 'visible', false);
+            $("#form").dxForm("instance").itemOption("SpecialDedicationSelectionBox", 'visible', false);
+            $("#form").dxForm("instance").itemOption("OtherDedicationSelectionBox", 'visible', false);
+
+            //document.getElementById("creditcardlistcontainer").style.display = "";//顯示信用卡
+            //$("#form").dxForm("instance").itemOption('PayWaySelectBox', {
+            //    editorOptions: {
+            //        dataSource: DefaultPayWay,
+            //        value: "信用卡",
+            //        width: 200
+            //    },
+            //});
+
+            $("#form").dxForm("instance").itemOption('DedicationAmount', {
+                editorOptions: {
+                    width: 200
+                },
+            });
+
+        }
+        else if (e.value == "建堂奉獻") {
+            $("#form").dxForm("instance").itemOption("OtherDedication", 'visible', false);
+            $("#form").dxForm("instance").itemOption("SpecialDedicationSelectionBox", 'visible', false);
+            $("#form").dxForm("instance").itemOption("OtherDedicationSelectionBox", 'visible', false);
+
+            //document.getElementById("creditcardlistcontainer").style.display = "";//顯示信用卡
+            //$("#form").dxForm("instance").itemOption('PayWaySelectBox', {
+            //    editorOptions: {
+            //        dataSource: DefaultPayWay,
+            //        value: "信用卡",
+            //        width: 200
+            //    },
+            //});
+
+            $("#form").dxForm("instance").itemOption('DedicationAmount', {
+                editorOptions: {
+                    width: 200
+                },
+            });
+
         }
         else if (e.value == "代收代轉") {
             $("#form").dxForm("instance").itemOption("OtherDedication", 'visible', true);
@@ -630,19 +673,40 @@
                 },
             });
         }
-        else if (e.value == "其他奉獻") {
-            $("#form").dxForm("instance").itemOption("OtherDedication", 'visible', true);
+        else if (e.value == "宣教奉獻") {
+            $("#form").dxForm("instance").itemOption("OtherDedication", 'visible', false);
             $("#form").dxForm("instance").itemOption("SpecialDedicationSelectionBox", 'visible', false);
-            $("#form").dxForm("instance").itemOption("OtherDedicationSelectionBox", 'visible', false);
+            $("#form").dxForm("instance").itemOption("OtherDedicationSelectionBox", 'visible', true);
 
-            document.getElementById("creditcardlistcontainer").style.display = "";//顯示信用卡
-            $("#form").dxForm("instance").itemOption('PayWaySelectBox', {
+            //document.getElementById("creditcardlistcontainer").style.display = "";//顯示信用卡
+            //$("#form").dxForm("instance").itemOption('PayWaySelectBox', {
+            //    editorOptions: {
+            //        dataSource: DefaultPayWay,
+            //        value: "信用卡",
+            //        width: 200
+            //    },
+            //});
+
+            $("#form").dxForm("instance").itemOption('DedicationAmount', {
                 editorOptions: {
-                    dataSource: DefaultPayWay,
-                    value: "信用卡",
                     width: 200
                 },
             });
+
+        }
+        else if (e.value == "紓困奉獻") {
+            $("#form").dxForm("instance").itemOption("OtherDedication", 'visible', false);
+            $("#form").dxForm("instance").itemOption("SpecialDedicationSelectionBox", 'visible', false);
+            $("#form").dxForm("instance").itemOption("OtherDedicationSelectionBox", 'visible', false);
+
+            //document.getElementById("creditcardlistcontainer").style.display = "";//顯示信用卡
+            //$("#form").dxForm("instance").itemOption('PayWaySelectBox', {
+            //    editorOptions: {
+            //        dataSource: DefaultPayWay,
+            //        value: "信用卡",
+            //        width: 200
+            //    },
+            //});
 
             $("#form").dxForm("instance").itemOption('DedicationAmount', {
                 editorOptions: {
@@ -656,14 +720,14 @@
             $("#form").dxForm("instance").itemOption("OtherDedication", 'visible', false);
             $("#form").dxForm("instance").itemOption("OtherDedicationSelectionBox", 'visible', false);
 
-            document.getElementById("creditcardlistcontainer").style.display = "";//顯示信用卡
-            $("#form").dxForm("instance").itemOption('PayWaySelectBox', {
-                editorOptions: {
-                    dataSource: DefaultPayWay,
-                    value: "信用卡",
-                    width: 200
-                },
-            });
+            //document.getElementById("creditcardlistcontainer").style.display = "";//顯示信用卡
+            //$("#form").dxForm("instance").itemOption('PayWaySelectBox', {
+            //    editorOptions: {
+            //        dataSource: DefaultPayWay,
+            //        value: "信用卡",
+            //        width: 200
+            //    },
+            //});
 
             $("#form").dxForm("instance").itemOption('DedicationAmount', {
                 editorOptions: {
@@ -671,19 +735,40 @@
                 },
             });
         }
+        else if (e.value == "其他奉獻") {
+            $("#form").dxForm("instance").itemOption("OtherDedication", 'visible', true);
+            $("#form").dxForm("instance").itemOption("SpecialDedicationSelectionBox", 'visible', false);
+            $("#form").dxForm("instance").itemOption("OtherDedicationSelectionBox", 'visible', false);
+
+            //document.getElementById("creditcardlistcontainer").style.display = "";//顯示信用卡
+            //$("#form").dxForm("instance").itemOption('PayWaySelectBox', {
+            //    editorOptions: {
+            //        dataSource: DefaultPayWay,
+            //        value: "信用卡",
+            //        width: 200
+            //    },
+            //});
+
+            $("#form").dxForm("instance").itemOption('DedicationAmount', {
+                editorOptions: {
+                    width: 200
+                },
+            });
+
+        }
         else {
             $("#form").dxForm("instance").itemOption("OtherDedicationSelectionBox", 'visible', false);
             $("#form").dxForm("instance").itemOption("SpecialDedicationSelectionBox", 'visible', false);
             $("#form").dxForm("instance").itemOption("OtherDedication", 'visible', false);
 
-            document.getElementById("creditcardlistcontainer").style.display = "";//顯示信用卡
-            $("#form").dxForm("instance").itemOption('PayWaySelectBox', {
-                editorOptions: {
-                    dataSource: DefaultPayWay,
-                    value: "信用卡",
-                    width: 200
-                },
-            });
+            //document.getElementById("creditcardlistcontainer").style.display = "";//顯示信用卡
+            //$("#form").dxForm("instance").itemOption('PayWaySelectBox', {
+            //    editorOptions: {
+            //        dataSource: DefaultPayWay,
+            //        value: "信用卡",
+            //        width: 200
+            //    },
+            //});
 
             $("#form").dxForm("instance").itemOption('DedicationAmount', {
                 editorOptions: {
@@ -708,6 +793,13 @@
             $("#save-button2").dxButton("instance").option("text", "用上面選擇的信用卡奉獻");
 
             document.getElementById('atmfield').innerHTML = "";
+
+            $("#form").dxForm("instance").itemOption('DedicationAmount', {
+                editorOptions: {
+                    width: 200
+                },
+            });
+
         }
         else if (e.value == "ATM轉帳/匯款")
         {
@@ -722,6 +814,13 @@
             $("#save-button2").dxButton("instance").option("text", "奉獻");
 
             document.getElementById('atmfield').innerHTML = "";
+
+            $("#form").dxForm("instance").itemOption('DedicationAmount', {
+                editorOptions: {
+                    width: 200
+                },
+            });
+
         }
         else if (e.value == "信用卡定期定額(每個月)")
         {
@@ -759,6 +858,13 @@
 
 
             document.getElementById('atmfield').innerHTML = "";
+
+            $("#form").dxForm("instance").itemOption('DedicationAmount', {
+                editorOptions: {
+                    width: 200
+                },
+            });
+
         }
         else if (e.value == "行動支付") {
             document.getElementById("creditcardlistcontainer").style.display = "none";//隱藏信用卡
@@ -772,6 +878,13 @@
             $("#save-button2").dxButton("instance").option("text", "奉獻");
 
             document.getElementById('atmfield').innerHTML = "";
+
+            $("#form").dxForm("instance").itemOption('DedicationAmount', {
+                editorOptions: {
+                    width: 200
+                },
+            });
+
         }
         else if (e.value == "銀聯卡") {
             document.getElementById("creditcardlistcontainer").style.display = "none";//隱藏信用卡
@@ -786,6 +899,13 @@
             $("#save-button3").dxButton("instance").option("visible", true);
 
             document.getElementById('atmfield').innerHTML = "";
+
+            $("#form").dxForm("instance").itemOption('DedicationAmount', {
+                editorOptions: {
+                    width: 200
+                },
+            });
+
         }
         else {}
     }
