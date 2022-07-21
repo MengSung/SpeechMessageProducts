@@ -519,7 +519,7 @@
                     </div>
                 </div>
             </div>
-        </div
+        </div>
     </div>
 </section>
 <script>
@@ -781,16 +781,32 @@
     {
         if (e.value == "信用卡" )
         {
-            document.getElementById("creditcardlistcontainer").style.display = "";//顯示信用卡
+            //處理信用卡清單網格，奉獻按鈕顯示管制
+            var creditcarditems = $("#CreditCardGrid").dxDataGrid("instance").getDataSource().items();
+            if (creditcarditems.length > 0) {
+                // 有信用卡清單
+                document.getElementById("creditcardlistcontainer").style.display = "";//顯示信用卡清單網格
+
+                $("#CreditCardGrid").dxDataGrid("instance").selectRows('@(Model.SelectedCreditCard)', true);
+
+                $("#save-button3").dxButton("instance").option("visible", true);
+                $("#save-button2").dxButton("instance").option("text", "用上面選擇的信用卡奉獻");
+
+            }
+            else {
+                document.getElementById("creditcardlistcontainer").style.display = "none";//隱藏信用卡
+
+                $("#save-button3").dxButton("instance").option("visible", false);
+                $("#save-button2").dxButton("instance").option("text", "奉獻");
+
+            }
+
             document.getElementById("dedicationbookinglistcontainer").style.display = "none";//隱藏定期定額
 
             // 隱藏總期數
             $("#form").dxForm("instance").itemOption("DeductTotalNumberSelectionBox", 'visible', false);
             $("#form").dxForm("instance").itemOption("DedicationAmount", "label", { text: "奉獻金額" });
             $("#form").dxForm("instance").itemOption("DedicationAmount", "editorOptions", { placeholder: "輸入奉獻金額" });
-
-            $("#save-button3").dxButton("instance").option("visible", true);
-            $("#save-button2").dxButton("instance").option("text", "用上面選擇的信用卡奉獻");
 
             document.getElementById('atmfield').innerHTML = "";
 
@@ -824,10 +840,11 @@
         }
         else if (e.value == "信用卡定期定額(每個月)")
         {
-            //信用卡清單網格
+            //處理信用卡清單網格，奉獻按鈕顯示管制
             var creditcarditems = $("#CreditCardGrid").dxDataGrid("instance").getDataSource().items();
             if (creditcarditems.length > 0) {
-                document.getElementById("creditcardlistcontainer").style.display = "";//顯示信用卡
+                // 有信用卡清單
+                document.getElementById("creditcardlistcontainer").style.display = "";//顯示信用卡清單網格
 
                 $("#CreditCardGrid").dxDataGrid("instance").selectRows('@(Model.SelectedCreditCard)', true);
 
@@ -1040,8 +1057,7 @@
                 //tempwindow.location = data.DedicationResult; // 後更改頁面地址
 
             }
-            else
-            {
+            else {
                 ShowToast(data.message, "success", 2000);
                 document.getElementById('atmfield').innerHTML = data.DedicationResult;
             }
