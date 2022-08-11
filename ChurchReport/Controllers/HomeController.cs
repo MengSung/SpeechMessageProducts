@@ -65,9 +65,9 @@ namespace ChurchReport.Controllers
             try
             {
                 var images = new List<string>();
-                images.Add(Url.Content("~/assets/images/apbolc-001.jpg"));
-                images.Add(Url.Content("~/assets/images/apbolc-002.jpg"));
-                images.Add(Url.Content("~/assets/images/apbolc-003.jpg"));
+                images.Add(Url.Content("~/assets/images/frenchhorn-001.jpg"));
+                images.Add(Url.Content("~/assets/images/frenchhorn-002.jpg"));
+                images.Add(Url.Content("~/assets/images/frenchhorn-003.jpg"));
 
                 return View(new GalleryViewModel
                 {
@@ -325,7 +325,7 @@ namespace ChurchReport.Controllers
                 var images = new List<string>();
 
                 // 官網整合串連金流奉獻跑馬燈
-                images.Add(Url.Content("~/assets/images/apbolc-003.jpg"));
+                images.Add(Url.Content("~/assets/images/frenchhorn-003.jpg"));
 
                 return View(new GalleryViewModel
                 {
@@ -400,9 +400,9 @@ namespace ChurchReport.Controllers
             try
             {
                 var images = new List<string>();
-                images.Add(Url.Content("~/assets/images/apbolc-001.jpg"));
-                images.Add(Url.Content("~/assets/images/apbolc-002.jpg"));
-                images.Add(Url.Content("~/assets/images/apbolc-003.jpg"));
+                images.Add(Url.Content("~/assets/images/frenchhorn-001.jpg"));
+                images.Add(Url.Content("~/assets/images/frenchhorn-002.jpg"));
+                images.Add(Url.Content("~/assets/images/frenchhorn-003.jpg"));
 
                 m_InMemoryDataContextSmallGroup.LineBindingViewModel.Images = images;
 
@@ -3677,9 +3677,9 @@ namespace ChurchReport.Controllers
             {
                 //真正註冊在 Line Developer
                 var images = new List<string>();
-                images.Add(Url.Content("~/assets/images/apbolc-001.jpg"));
-                images.Add(Url.Content("~/assets/images/apbolc-002.jpg"));
-                images.Add(Url.Content("~/assets/images/apbolc-003.jpg"));
+                images.Add(Url.Content("~/assets/images/frenchhorn-001.jpg"));
+                images.Add(Url.Content("~/assets/images/frenchhorn-002.jpg"));
+                images.Add(Url.Content("~/assets/images/frenchhorn-003.jpg"));
 
                 m_InMemoryDataContextSmallGroup.LineBindingViewModel.Images = images;
 
@@ -3834,9 +3834,9 @@ namespace ChurchReport.Controllers
         public IActionResult BindingResultView(string LineBindingResult)
         {
             var images = new List<string>();
-            images.Add(Url.Content("~/assets/images/apbolc-001.jpg"));
-            images.Add(Url.Content("~/assets/images/apbolc-002.jpg"));
-            images.Add(Url.Content("~/assets/images/apbolc-003.jpg"));
+            images.Add(Url.Content("~/assets/images/frenchhorn-001.jpg"));
+            images.Add(Url.Content("~/assets/images/frenchhorn-002.jpg"));
+            images.Add(Url.Content("~/assets/images/frenchhorn-003.jpg"));
 
             m_InMemoryDataContextSmallGroup.LineBindingViewModel.Images = images;
 
@@ -3892,9 +3892,9 @@ namespace ChurchReport.Controllers
             try
             {
                 var images = new List<string>();
-                images.Add(Url.Content("~/assets/images/apbolc-001.jpg"));
-                images.Add(Url.Content("~/assets/images/apbolc-002.jpg"));
-                images.Add(Url.Content("~/assets/images/apbolc-003.jpg"));
+                images.Add(Url.Content("~/assets/images/frenchhorn-001.jpg"));
+                images.Add(Url.Content("~/assets/images/frenchhorn-002.jpg"));
+                images.Add(Url.Content("~/assets/images/frenchhorn-003.jpg"));
 
                 m_InMemoryDataContextSmallGroup.LineBindingViewModel.Images = images;
 
@@ -5599,9 +5599,9 @@ namespace ChurchReport.Controllers
             try
             {
                 var images = new List<string>();
-                images.Add(Url.Content("~/assets/images/apbolc-001.jpg"));
-                images.Add(Url.Content("~/assets/images/apbolc-002.jpg"));
-                images.Add(Url.Content("~/assets/images/apbolc-003.jpg"));
+                images.Add(Url.Content("~/assets/images/frenchhorn-001.jpg"));
+                images.Add(Url.Content("~/assets/images/frenchhorn-002.jpg"));
+                images.Add(Url.Content("~/assets/images/frenchhorn-003.jpg"));
 
                 m_InMemoryDataContextSmallGroup.LineBindingViewModel.Images = images;
 
