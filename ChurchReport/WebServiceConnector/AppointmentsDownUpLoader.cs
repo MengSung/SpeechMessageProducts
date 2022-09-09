@@ -277,7 +277,7 @@ namespace ChurchReport.WebServiceConnector
                 //}
                 #endregion
 
-                // 法國號靈糧堂版本是只有差勤簽核及場地預約，所以就"全部"都要顯示
+                // 台北基督之家版本是只有差勤簽核及場地預約，所以就"全部"都要顯示
                 Appointment aAppointment = SetupAppointment(aAppointmentEntity, AppointmentType, CategoryId, LeaveId, LocationId);
                 aAppointmentsList.Add(aAppointment);
 

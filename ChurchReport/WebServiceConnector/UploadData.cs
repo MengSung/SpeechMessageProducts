@@ -182,7 +182,7 @@ namespace ChurchReport.WebServiceConnector
                                 ClearIdentity = this.ConvertIndexToClearIdentity(aCustomerTypeCode.Value);
 
                                 // 版本轉換
-                                //// 如果是新朋友、未入組、外教會則不列入累積，法國號靈糧堂
+                                //// 如果是新朋友、未入組、外教會則不列入累積，台北基督之家
                                 if (aCustomerTypeCode.Value != 100000004 && aCustomerTypeCode.Value != 100000000 && aCustomerTypeCode.Value != 100000007)
                                 {
                                     return true;
@@ -192,7 +192,7 @@ namespace ChurchReport.WebServiceConnector
                                     return false;
                                 }
 
-                                // 如果是新朋友或是未入組則不列入累積，內壢法國號靈糧堂
+                                // 如果是新朋友或是未入組則不列入累積，內壢台北基督之家
                                 // 10.不穩定組員   =   100,000,008
                                 // 11.新朋友       =   100,000,009
                                 // 12.未入組       =   100,000,010
@@ -249,7 +249,7 @@ namespace ChurchReport.WebServiceConnector
                 int aCustomerTypeCodeValue = this.m_ToolUtilityClass.GetOptionSetAttribute(ref aContactEntity, "customertypecode");
                 //OptionSetValue aCustomerTypeCode = aContactEntity.Attributes["customertypecode"] as OptionSetValue;
 
-                // 如果是新朋友或是未入組則不列入累積，法國號靈糧堂
+                // 如果是新朋友或是未入組則不列入累積，台北基督之家
                 if (aCustomerTypeCodeValue != 100000004 && aCustomerTypeCodeValue != 100000000 && aCustomerTypeCodeValue != 100000007 && aCustomerTypeCodeValue != EMPTY_VALUE)
                 {
                     return true;
@@ -260,7 +260,7 @@ namespace ChurchReport.WebServiceConnector
                 }
 
 
-                // 如果是新朋友或是未入組則不列入累積，內壢法國號靈糧堂
+                // 如果是新朋友或是未入組則不列入累積，內壢台北基督之家
                 // 10.不穩定組員   =   100,000,008
                 // 11.新朋友       =   100,000,009
                 // 12.未入組       =   100,000,010
@@ -449,7 +449,7 @@ namespace ChurchReport.WebServiceConnector
 
 
         // 委身類型客製化
-        // 法國號靈糧堂
+        // 台北基督之家
         private String ConvertIndexToIdentity(int Identity)
         {
             switch (Identity)
