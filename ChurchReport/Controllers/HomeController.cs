@@ -791,8 +791,11 @@ namespace ChurchReport.Controllers
 
                     if(m_InMemoryDataContextSmallGroup.ListManager.LoginType == "個人回報" )
                     {
-                        return RedirectToAction("PersonalReport");
-                        //return RedirectToAction("DisplayErrorView", new { ErrorMessage = "您沒有點名的權限" });
+                        // 轉到個人點名、代禱
+                        //return RedirectToAction("PersonalReport");
+
+                        // 轉到個人相關資訊
+                        return RedirectToAction("PersonalInfomationView");
                     }
                     else
                     {
