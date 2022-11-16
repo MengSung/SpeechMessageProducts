@@ -1,7 +1,7 @@
 /*!
 * DevExtreme (dx.messages.hu.js)
-* Version: 21.2.7
-* Build date: Mon Apr 11 2022
+* Version: 22.1.6
+* Build date: Tue Oct 18 2022
 *
 * Copyright (c) 2012 - 2022 Developer Express Inc. ALL RIGHTS RESERVED
 * Read about DevExtreme licensing here: https://js.devexpress.com/Licensing/
@@ -24,6 +24,7 @@
             Yes: "Igen",
             No: "Nem",
             Cancel: "M\xe9gse",
+            Close: "Bez\xe1r\xe1s",
             Clear: "T\xf6rl\xe9s",
             Done: "K\xe9sz",
             Loading: "Bet\xf6lt\xe9s...",
@@ -285,6 +286,13 @@
             "dxHtmlEditor-dialogInsertTableRowsField": "!TODO",
             "dxHtmlEditor-dialogInsertTableColumnsField": "!TODO",
             "dxHtmlEditor-dialogInsertTableCaption": "!TODO",
+            "dxHtmlEditor-dialogUpdateImageCaption": "!TODO",
+            "dxHtmlEditor-dialogImageUpdateButton": "!TODO",
+            "dxHtmlEditor-dialogImageAddButton": "!TODO",
+            "dxHtmlEditor-dialogImageSpecifyUrl": "!TODO",
+            "dxHtmlEditor-dialogImageSelectFile": "!TODO",
+            "dxHtmlEditor-dialogImageKeepAspectRatio": "!TODO",
+            "dxHtmlEditor-dialogImageEncodeToBase64": "!TODO",
             "dxHtmlEditor-heading": "Fejl\xe9c",
             "dxHtmlEditor-normalText": "Norm\xe1l sz\xf6veg",
             "dxHtmlEditor-background": "TODO",
@@ -516,6 +524,10 @@
             "dxGantt-dialogCancelOperationMessage": "TODO",
             "dxGantt-dialogDeleteDependencyMessage": "TODO",
             "dxGantt-dialogMoveTaskAndKeepDependencyMessage": "TODO",
+            "dxGantt-dialogConstraintCriticalViolationSeveralTasksMessage": "TODO",
+            "dxGantt-dialogConstraintViolationSeveralTasksMessage": "TODO",
+            "dxGantt-dialogDeleteDependenciesMessage": "TODO",
+            "dxGantt-dialogMoveTaskAndKeepDependenciesMessage": "TODO",
             "dxGantt-undo": "TODO",
             "dxGantt-redo": "TODO",
             "dxGantt-expandAll": "TODO",

@@ -1,7 +1,7 @@
 /*!
 * DevExtreme (dx.messages.es.js)
-* Version: 21.2.7
-* Build date: Mon Apr 11 2022
+* Version: 22.1.6
+* Build date: Tue Oct 18 2022
 *
 * Copyright (c) 2012 - 2022 Developer Express Inc. ALL RIGHTS RESERVED
 * Read about DevExtreme licensing here: https://js.devexpress.com/Licensing/
@@ -24,6 +24,7 @@
             Yes: "S\xed",
             No: "No",
             Cancel: "Cancelar",
+            Close: "Cerca",
             Clear: "Limpiar",
             Done: "Hecho",
             Loading: "Cargando...",
@@ -150,8 +151,8 @@
             "dxDataGrid-exporting": "Exportar...",
             "dxDataGrid-excelFormat": "Archivo Excel",
             "dxDataGrid-selectedRows": "Filas seleccionadas",
-            "dxDataGrid-exportSelectedRows": "Exportar filas seleccionadas",
-            "dxDataGrid-exportAll": "Exportar todo",
+            "dxDataGrid-exportSelectedRows": "Exportar filas seleccionadas a {0}",
+            "dxDataGrid-exportAll": "Exportar todo a {0}",
             "dxDataGrid-headerFilterEmptyValue": "(Vacio)",
             "dxDataGrid-headerFilterOK": "Aceptar",
             "dxDataGrid-headerFilterCancel": "Cancelar",
@@ -285,6 +286,13 @@
             "dxHtmlEditor-dialogInsertTableRowsField": "!TODO",
             "dxHtmlEditor-dialogInsertTableColumnsField": "!TODO",
             "dxHtmlEditor-dialogInsertTableCaption": "!TODO",
+            "dxHtmlEditor-dialogUpdateImageCaption": "!TODO",
+            "dxHtmlEditor-dialogImageUpdateButton": "!TODO",
+            "dxHtmlEditor-dialogImageAddButton": "!TODO",
+            "dxHtmlEditor-dialogImageSpecifyUrl": "!TODO",
+            "dxHtmlEditor-dialogImageSelectFile": "!TODO",
+            "dxHtmlEditor-dialogImageKeepAspectRatio": "!TODO",
+            "dxHtmlEditor-dialogImageEncodeToBase64": "!TODO",
             "dxHtmlEditor-heading": "Encabezamiento",
             "dxHtmlEditor-normalText": "Texto normal",
             "dxHtmlEditor-background": "TODO",
@@ -419,6 +427,8 @@
             "dxFileManager-editingUploadSingleItemErrorMessage": "TODO",
             "dxFileManager-editingUploadMultipleItemsErrorMessage": "TODO",
             "dxFileManager-editingUploadCanceledMessage": "TODO",
+            "dxFileManager-editingDownloadSingleItemErrorMessage": "TODO",
+            "dxFileManager-editingDownloadMultipleItemsErrorMessage": "TODO",
             "dxFileManager-listDetailsColumnCaptionName": "TODO",
             "dxFileManager-listDetailsColumnCaptionDateModified": "TODO",
             "dxFileManager-listDetailsColumnCaptionFileSize": "TODO",
@@ -583,6 +593,10 @@
             "dxGantt-dialogCancelOperationMessage": "TODO",
             "dxGantt-dialogDeleteDependencyMessage": "TODO",
             "dxGantt-dialogMoveTaskAndKeepDependencyMessage": "TODO",
+            "dxGantt-dialogConstraintCriticalViolationSeveralTasksMessage": "TODO",
+            "dxGantt-dialogConstraintViolationSeveralTasksMessage": "TODO",
+            "dxGantt-dialogDeleteDependenciesMessage": "TODO",
+            "dxGantt-dialogMoveTaskAndKeepDependenciesMessage": "TODO",
             "dxGantt-undo": "TODO",
             "dxGantt-redo": "TODO",
             "dxGantt-expandAll": "TODO",

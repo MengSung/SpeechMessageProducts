@@ -1,7 +1,7 @@
 /*!
 * DevExtreme (dx.messages.zh.js)
-* Version: 21.2.7
-* Build date: Mon Apr 11 2022
+* Version: 22.1.6
+* Build date: Tue Oct 18 2022
 *
 * Copyright (c) 2012 - 2022 Developer Express Inc. ALL RIGHTS RESERVED
 * Read about DevExtreme licensing here: https://js.devexpress.com/Licensing/
@@ -24,6 +24,7 @@
             Yes: "\u662f",
             No: "\u5426",
             Cancel: "\u53d6\u6d88",
+            Close: "\u95dc\u9589",
             Clear: "\u6e05\u9664",
             Done: "\u5b8c\u6210",
             Loading: "\u6b63\u5728\u52a0\u8f7d...",
@@ -78,7 +79,7 @@
             "dxFileUploader-upload": "\u4e0a\u4f20",
             "dxFileUploader-uploaded": "\u5df2\u4e0a\u4f20",
             "dxFileUploader-readyToUpload": "\u51c6\u5907\u4e0a\u4f20",
-            "dxFileUploader-uploadAbortedMessage": "TODO",
+            "dxFileUploader-uploadAbortedMessage": "\u4e0a\u4f20\u4e2d\u6b62",
             "dxFileUploader-uploadFailedMessage": "\u4e0a\u4f20\u5931\u8d25",
             "dxFileUploader-invalidFileExtension": "\u6587\u4ef6\u7c7b\u578b\u9519\u8bef",
             "dxFileUploader-invalidMaxFileSize": "\u6587\u4ef6\u8fc7\u5927",
@@ -153,7 +154,7 @@
             "dxDataGrid-exportSelectedRows": "\u5bfc\u51fa\u5df2\u9009\u884c",
             "dxDataGrid-exportAll": "\u5bfc\u51fa\u6240\u6709\u6570\u636e",
             "dxDataGrid-headerFilterEmptyValue": "(\u7a7a\u767d)",
-            "dxDataGrid-headerFilterOK": "\u597d",
+            "dxDataGrid-headerFilterOK": "\u786e\u5b9a",
             "dxDataGrid-headerFilterCancel": "\u53d6\u6d88",
             "dxDataGrid-ariaColumn": "\u5217",
             "dxDataGrid-ariaValue": "\u503c",
@@ -199,9 +200,9 @@
             "dxScheduler-editorLabelRecurrence": "\u91cd\u590d",
             "dxScheduler-openAppointment": "\u6253\u5f00\u65e5\u7a0b",
             "dxScheduler-recurrenceNever": "\u6c38\u4e0d",
-            "dxScheduler-recurrenceMinutely": "Minutely",
-            "dxScheduler-recurrenceHourly": "Hourly",
-            "dxScheduler-recurrenceDaily": "\u65e5\u5e38",
+            "dxScheduler-recurrenceMinutely": "\u6bcf\u5206\u949f",
+            "dxScheduler-recurrenceHourly": "\u6bcf\u5c0f\u65f6",
+            "dxScheduler-recurrenceDaily": "\u6bcf\u65e5",
             "dxScheduler-recurrenceWeekly": "\u6bcf\u5468",
             "dxScheduler-recurrenceMonthly": "\u6bcf\u6708",
             "dxScheduler-recurrenceYearly": "\u6bcf\u5e74",
@@ -210,8 +211,8 @@
             "dxScheduler-recurrenceEnd": "\u505c\u6b62\u91cd\u590d",
             "dxScheduler-recurrenceAfter": "\u4e4b\u540e",
             "dxScheduler-recurrenceOn": "\u5728",
-            "dxScheduler-recurrenceRepeatMinutely": "minute(s)",
-            "dxScheduler-recurrenceRepeatHourly": "hour(s)",
+            "dxScheduler-recurrenceRepeatMinutely": "\u5206\u949f",
+            "dxScheduler-recurrenceRepeatHourly": "\u5c0f\u65f6",
             "dxScheduler-recurrenceRepeatDaily": "\u65e5",
             "dxScheduler-recurrenceRepeatWeekly": "\u5468",
             "dxScheduler-recurrenceRepeatMonthly": "\u6708",
@@ -285,6 +286,13 @@
             "dxHtmlEditor-dialogInsertTableRowsField": "!TODO",
             "dxHtmlEditor-dialogInsertTableColumnsField": "!TODO",
             "dxHtmlEditor-dialogInsertTableCaption": "!TODO",
+            "dxHtmlEditor-dialogUpdateImageCaption": "!TODO",
+            "dxHtmlEditor-dialogImageUpdateButton": "!TODO",
+            "dxHtmlEditor-dialogImageAddButton": "!TODO",
+            "dxHtmlEditor-dialogImageSpecifyUrl": "!TODO",
+            "dxHtmlEditor-dialogImageSelectFile": "!TODO",
+            "dxHtmlEditor-dialogImageKeepAspectRatio": "!TODO",
+            "dxHtmlEditor-dialogImageEncodeToBase64": "!TODO",
             "dxHtmlEditor-heading": "\u6807\u9898",
             "dxHtmlEditor-normalText": "\u6b63\u6587",
             "dxHtmlEditor-background": "TODO",
@@ -517,6 +525,10 @@
             "dxGantt-dialogCancelOperationMessage": "TODO",
             "dxGantt-dialogDeleteDependencyMessage": "TODO",
             "dxGantt-dialogMoveTaskAndKeepDependencyMessage": "TODO",
+            "dxGantt-dialogConstraintCriticalViolationSeveralTasksMessage": "TODO",
+            "dxGantt-dialogConstraintViolationSeveralTasksMessage": "TODO",
+            "dxGantt-dialogDeleteDependenciesMessage": "TODO",
+            "dxGantt-dialogMoveTaskAndKeepDependenciesMessage": "TODO",
             "dxGantt-undo": "TODO",
             "dxGantt-redo": "TODO",
             "dxGantt-expandAll": "TODO",

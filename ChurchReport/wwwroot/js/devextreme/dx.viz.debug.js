@@ -1,7 +1,7 @@
 /*!
  * DevExtreme (dx.viz.debug.js)
- * Version: 21.2.7
- * Build date: Mon Apr 11 2022
+ * Version: 22.1.6
+ * Build date: Tue Oct 18 2022
  *
  * Copyright (c) 2012 - 2022 Developer Express Inc. ALL RIGHTS RESERVED
  * Read about DevExtreme licensing here: https://js.devexpress.com/Licensing/
@@ -116,25 +116,6 @@
                     if (nativeRequest && nativeCancel) {
                         request = nativeRequest;
                         cancel = nativeCancel
-                    }
-                    if (nativeRequest && !nativeCancel) {
-                        var canceledRequests = {};
-                        request = function(callback) {
-                            var requestId = nativeRequest.call(window, (function() {
-                                try {
-                                    if (requestId in canceledRequests) {
-                                        return
-                                    }
-                                    callback.apply(this, arguments)
-                                } finally {
-                                    delete canceledRequests[requestId]
-                                }
-                            }));
-                            return requestId
-                        };
-                        cancel = function(requestId) {
-                            canceledRequests[requestId] = true
-                        }
                     }
                 }))
             },
@@ -1613,6 +1594,7 @@
                         this.reset()
                     },
                     _createAnimations: function($elements, initialConfig, configModifier, type) {
+                        $elements = (0, _renderer.default)($elements);
                         var that = this;
                         var result = [];
                         configModifier = configModifier || {};
@@ -3142,7 +3124,7 @@
                                 if (0 === optionName.indexOf("on")) {
                                     eventName = getEventName(optionName)
                                 }
-                                actionFunc = _this4.option()[optionName]
+                                actionFunc = _this4.option(optionName)
                             }
                             if (!action && !actionFunc && !config.beforeExecute && !config.afterExecute && !_this4._eventsStrategy.hasEvent(eventName)) {
                                 return
@@ -3301,6 +3283,7 @@
                 var config = {
                     rtlEnabled: false,
                     defaultCurrency: "USD",
+                    defaultUseCurrencyAccountingStyle: true,
                     oDataFilterToLower: true,
                     serverDecimalSeparator: ".",
                     decimalSeparator: ".",
@@ -3766,8 +3749,10 @@
                     getDocument: function() {
                         return this._document
                     },
-                    getActiveElement: function() {
-                        return this._document.activeElement
+                    getActiveElement: function(element) {
+                        var _element$getRootNode, _element$getRootNode2;
+                        var activeElementHolder = null !== (_element$getRootNode = null === element || void 0 === element ? void 0 : null === (_element$getRootNode2 = element.getRootNode) || void 0 === _element$getRootNode2 ? void 0 : _element$getRootNode2.call(element)) && void 0 !== _element$getRootNode ? _element$getRootNode : this._document;
+                        return activeElementHolder.activeElement
                     },
                     getBody: function() {
                         return this._document.body
@@ -3829,7 +3814,6 @@
                 var _extend = __webpack_require__( /*! ./utils/extend */ 13306);
                 var _element = __webpack_require__( /*! ../core/element */ 6415);
                 var _common = __webpack_require__( /*! ./utils/common */ 20576);
-                var _array = __webpack_require__( /*! ./utils/array */ 89386);
                 var _type = __webpack_require__( /*! ./utils/type */ 35922);
                 var _window = __webpack_require__( /*! ../core/utils/window */ 58201);
                 var _short = __webpack_require__( /*! ../events/short */ 72918);
@@ -4061,7 +4045,7 @@
                             var optionChangedHandler = function(_ref3) {
                                 var name = _ref3.name,
                                     value = _ref3.value;
-                                if ((0, _array.inArray)(name, synchronizableOptions) >= 0) {
+                                if (synchronizableOptions.includes(name)) {
                                     instance.option(name, value)
                                 }
                             };
@@ -4273,7 +4257,6 @@
                     return strategy.removeData.call(this, element, key)
                 };
                 exports.strategyChanging = exports.setDataStrategy = void 0;
-                var _weak_map = _interopRequireDefault(__webpack_require__( /*! ./polyfills/weak_map */ 10126));
                 var _dom_adapter = _interopRequireDefault(__webpack_require__( /*! ./dom_adapter */ 73349));
                 var _events_engine = _interopRequireDefault(__webpack_require__( /*! ../events/core/events_engine */ 55994));
                 var _memorized_callbacks = _interopRequireDefault(__webpack_require__( /*! ./memorized_callbacks */ 83358));
@@ -4283,7 +4266,7 @@
                         default: obj
                     }
                 }
-                var dataMap = new _weak_map.default;
+                var dataMap = new WeakMap;
                 var strategy;
                 var strategyChanging = new _memorized_callbacks.default;
                 exports.strategyChanging = strategyChanging;
@@ -4384,7 +4367,7 @@
                     E0103: "validationCallback of an asynchronous rule should return a jQuery or a native promise",
                     E0110: "Unknown validation group is detected",
                     E0120: "Adapter for a DevExpressValidator component cannot be configured",
-                    E0121: "The 'customItem' field of the 'onCustomItemCreating' function's parameter should contain a custom item or Promise that is resolved after the item is created.",
+                    E0121: "The 'customItem' parameter of the 'onCustomItemCreating' function is empty or contains invalid data. Assign a custom object or a Promise that is resolved after the item is created.",
                     W0000: "'{0}' is deprecated in {1}. {2}",
                     W0001: "{0} - '{1}' option is deprecated in {2}. {3}",
                     W0002: "{0} - '{1}' method is deprecated in {2}. {3}",
@@ -4669,7 +4652,7 @@
                 var _extend = __webpack_require__( /*! ../utils/extend */ 13306);
 
                 function _extends() {
-                    _extends = Object.assign || function(target) {
+                    _extends = Object.assign ? Object.assign.bind() : function(target) {
                         for (var i = 1; i < arguments.length; i++) {
                             var source = arguments[i];
                             for (var key in source) {
@@ -5036,105 +5019,6 @@
                     var options = arguments.length > 0 && void 0 !== arguments[0] ? arguments[0] : [];
                     return options
                 }
-            },
-        27050:
-            /*!**********************************************************************!*\
-              !*** ./artifacts/transpiled-renovation-npm/core/polyfills/number.js ***!
-              \**********************************************************************/
-            function(module, exports, __webpack_require__) {
-                exports.default = void 0;
-                var _window = __webpack_require__( /*! ../../core/utils/window */ 58201);
-                var number = (0, _window.hasWindow)() ? (0, _window.getWindow)().Number : Number;
-                number.isFinite = number.isFinite || function(value) {
-                    return "number" === typeof value && isFinite(value)
-                };
-                var _default = number;
-                exports.default = _default;
-                module.exports = exports.default;
-                module.exports.default = exports.default
-            },
-        48136:
-            /*!***********************************************************************!*\
-              !*** ./artifacts/transpiled-renovation-npm/core/polyfills/promise.js ***!
-              \***********************************************************************/
-            function(module, exports, __webpack_require__) {
-                exports.default = void 0;
-                var _deferred = __webpack_require__( /*! ../../core/utils/deferred */ 62754);
-                var _window = __webpack_require__( /*! ../../core/utils/window */ 58201);
-                var promise = (0, _window.hasWindow)() ? (0, _window.getWindow)().Promise : Promise;
-                if (!promise) {
-                    promise = function(resolver) {
-                        var d = new _deferred.Deferred;
-                        resolver(d.resolve.bind(this), d.reject.bind(this));
-                        return d.promise()
-                    };
-                    promise.resolve = function(val) {
-                        return (new _deferred.Deferred).resolve(val).promise()
-                    };
-                    promise.reject = function(val) {
-                        return (new _deferred.Deferred).reject(val).promise()
-                    };
-                    promise.all = function(promises) {
-                        return _deferred.when.apply(this, promises).then((function() {
-                            return [].slice.call(arguments)
-                        }))
-                    }
-                }
-                var _default = promise;
-                exports.default = _default;
-                module.exports = exports.default;
-                module.exports.default = exports.default
-            },
-        10126:
-            /*!************************************************************************!*\
-              !*** ./artifacts/transpiled-renovation-npm/core/polyfills/weak_map.js ***!
-              \************************************************************************/
-            function(module, exports, __webpack_require__) {
-                exports.default = void 0;
-                var _array = __webpack_require__( /*! ../utils/array */ 89386);
-                var _window = __webpack_require__( /*! ../utils/window */ 58201);
-                var weakMap = (0, _window.hasWindow)() ? (0, _window.getWindow)().WeakMap : WeakMap;
-                if (!weakMap) {
-                    weakMap = function() {
-                        var keys = [];
-                        var values = [];
-                        this.set = function(key, value) {
-                            var index = (0, _array.inArray)(key, keys);
-                            if (-1 === index) {
-                                keys.push(key);
-                                values.push(value)
-                            } else {
-                                values[index] = value
-                            }
-                        };
-                        this.get = function(key) {
-                            var index = (0, _array.inArray)(key, keys);
-                            if (-1 === index) {
-                                return
-                            }
-                            return values[index]
-                        };
-                        this.has = function(key) {
-                            var index = (0, _array.inArray)(key, keys);
-                            if (-1 === index) {
-                                return false
-                            }
-                            return true
-                        };
-                        this.delete = function(key) {
-                            var index = (0, _array.inArray)(key, keys);
-                            if (-1 === index) {
-                                return
-                            }
-                            keys.splice(index, 1);
-                            values.splice(index, 1)
-                        }
-                    }
-                }
-                var _default = weakMap;
-                exports.default = _default;
-                module.exports = exports.default;
-                module.exports.default = exports.default
             },
         90889:
             /*!**************************************************************************!*\
@@ -5644,6 +5528,8 @@
                     return result.add(nodes)
                 };
                 var isVisible = function(_, element) {
+                    var _element$host;
+                    element = null !== (_element$host = element.host) && void 0 !== _element$host ? _element$host : element;
                     if (!element.nodeType) {
                         return true
                     }
@@ -5939,55 +5825,6 @@
                 module.exports = exports.default;
                 module.exports.default = exports.default
             },
-        91784:
-            /*!*********************************************************************!*\
-              !*** ./artifacts/transpiled-renovation-npm/core/resize_observer.js ***!
-              \*********************************************************************/
-            function(module, exports, __webpack_require__) {
-                exports.default = void 0;
-                var _common = __webpack_require__( /*! ./utils/common */ 20576);
-                var _window = __webpack_require__( /*! ./utils/window */ 58201);
-                var window = (0, _window.getWindow)();
-                var ResizeObserverMock = {
-                    observe: _common.noop,
-                    unobserve: _common.noop,
-                    disconnect: _common.noop
-                };
-                var ResizeObserverSingleton = function() {
-                    function ResizeObserverSingleton() {
-                        var _this = this;
-                        if (!(0, _window.hasWindow)() || !window.ResizeObserver) {
-                            return ResizeObserverMock
-                        }
-                        this._callbacksMap = new Map;
-                        this._observer = new window.ResizeObserver((function(entries) {
-                            entries.forEach((function(entry) {
-                                var _this$_callbacksMap$g;
-                                null === (_this$_callbacksMap$g = _this._callbacksMap.get(entry.target)) || void 0 === _this$_callbacksMap$g ? void 0 : _this$_callbacksMap$g(entry)
-                            }))
-                        }))
-                    }
-                    var _proto = ResizeObserverSingleton.prototype;
-                    _proto.observe = function(element, callback) {
-                        this._callbacksMap.set(element, callback);
-                        this._observer.observe(element)
-                    };
-                    _proto.unobserve = function(element) {
-                        this._callbacksMap.delete(element);
-                        this._observer.unobserve(element)
-                    };
-                    _proto.disconnect = function() {
-                        this._callbacksMap.clear();
-                        this._observer.disconnect()
-                    };
-                    return ResizeObserverSingleton
-                }();
-                var resizeObserverSingleton = new ResizeObserverSingleton;
-                var _default = resizeObserverSingleton;
-                exports.default = _default;
-                module.exports = exports.default;
-                module.exports.default = exports.default
-            },
         14192:
             /*!**********************************************************************!*\
               !*** ./artifacts/transpiled-renovation-npm/core/template_manager.js ***!
@@ -6191,7 +6028,7 @@
                 }
 
                 function _setPrototypeOf(o, p) {
-                    _setPrototypeOf = Object.setPrototypeOf || function(o, p) {
+                    _setPrototypeOf = Object.setPrototypeOf ? Object.setPrototypeOf.bind() : function(o, p) {
                         o.__proto__ = p;
                         return o
                     };
@@ -6283,7 +6120,7 @@
                 var _template_base = __webpack_require__( /*! ./template_base */ 81033);
 
                 function _setPrototypeOf(o, p) {
-                    _setPrototypeOf = Object.setPrototypeOf || function(o, p) {
+                    _setPrototypeOf = Object.setPrototypeOf ? Object.setPrototypeOf.bind() : function(o, p) {
                         o.__proto__ = p;
                         return o
                     };
@@ -6319,7 +6156,7 @@
                 var _template_base = __webpack_require__( /*! ./template_base */ 81033);
 
                 function _setPrototypeOf(o, p) {
-                    _setPrototypeOf = Object.setPrototypeOf || function(o, p) {
+                    _setPrototypeOf = Object.setPrototypeOf ? Object.setPrototypeOf.bind() : function(o, p) {
                         o.__proto__ = p;
                         return o
                     };
@@ -6353,7 +6190,7 @@
                 var _dom = __webpack_require__( /*! ../utils/dom */ 3532);
 
                 function _setPrototypeOf(o, p) {
-                    _setPrototypeOf = Object.setPrototypeOf || function(o, p) {
+                    _setPrototypeOf = Object.setPrototypeOf ? Object.setPrototypeOf.bind() : function(o, p) {
                         o.__proto__ = p;
                         return o
                     };
@@ -6396,7 +6233,7 @@
                 __webpack_require__( /*! ./template_engines */ 32468);
 
                 function _setPrototypeOf(o, p) {
-                    _setPrototypeOf = Object.setPrototypeOf || function(o, p) {
+                    _setPrototypeOf = Object.setPrototypeOf ? Object.setPrototypeOf.bind() : function(o, p) {
                         o.__proto__ = p;
                         return o
                     };
@@ -6467,7 +6304,12 @@
                         options = options || {};
                         var onRendered = options.onRendered;
                         delete options.onRendered;
-                        var $result = this._renderCore(options);
+                        var $result;
+                        if (options.renovated && options.transclude && this._element) {
+                            $result = (0, _renderer.default)("<div>").append(this._element).contents()
+                        } else {
+                            $result = this._renderCore(options)
+                        }
                         this._ensureResultInContainer($result, options.container);
                         renderedCallbacks.fire($result, options.container);
                         onRendered && onRendered();
@@ -6600,7 +6442,6 @@
                 var _window = __webpack_require__( /*! ../../core/utils/window */ 58201);
                 var _extend = __webpack_require__( /*! ./extend */ 13306);
                 var _type = __webpack_require__( /*! ./type */ 35922);
-                var _promise = _interopRequireDefault(__webpack_require__( /*! ../polyfills/promise */ 48136));
                 var _dependency_injector = _interopRequireDefault(__webpack_require__( /*! ./dependency_injector */ 20476));
 
                 function _interopRequireDefault(obj) {
@@ -6758,7 +6599,7 @@
                                 var script = createScript({
                                     src: url
                                 });
-                                return new _promise.default((function(resolve, reject) {
+                                return new Promise((function(resolve, reject) {
                                     var events = {
                                         load: resolve,
                                         error: reject
@@ -6872,29 +6713,13 @@
               !*** ./artifacts/transpiled-renovation-npm/core/utils/array.js ***!
               \*****************************************************************/
             function(__unused_webpack_module, exports, __webpack_require__) {
-                exports.wrapToArray = exports.uniqueValues = exports.removeDuplicates = exports.normalizeIndexes = exports.merge = exports.isEmpty = exports.intersection = exports.inArray = exports.groupBy = exports.find = void 0;
+                exports.wrapToArray = exports.removeDuplicates = exports.normalizeIndexes = exports.groupBy = exports.getUniqueValues = exports.getIntersection = void 0;
                 var _type = __webpack_require__( /*! ./type */ 35922);
-                var _iterator = __webpack_require__( /*! ./iterator */ 95479);
                 var _object = __webpack_require__( /*! ./object */ 48013);
-                var _config = (obj = __webpack_require__( /*! ../config */ 80209), obj && obj.__esModule ? obj : {
+                var _config2 = (obj = __webpack_require__( /*! ../config */ 80209), obj && obj.__esModule ? obj : {
                     default: obj
                 });
                 var obj;
-
-                function _extends() {
-                    _extends = Object.assign || function(target) {
-                        for (var i = 1; i < arguments.length; i++) {
-                            var source = arguments[i];
-                            for (var key in source) {
-                                if (Object.prototype.hasOwnProperty.call(source, key)) {
-                                    target[key] = source[key]
-                                }
-                            }
-                        }
-                        return target
-                    };
-                    return _extends.apply(this, arguments)
-                }
 
                 function _toConsumableArray(arr) {
                     return function(arr) {
@@ -6936,55 +6761,44 @@
                     }
                     return arr2
                 }
-                exports.isEmpty = function(entity) {
-                    return Array.isArray(entity) && !entity.length
+
+                function createOccurrenceMap(array) {
+                    return array.reduce((function(map, value) {
+                        var _map$value;
+                        map[value] = (null !== (_map$value = map[value]) && void 0 !== _map$value ? _map$value : 0) + 1;
+                        return map
+                    }), {})
+                }
+                exports.wrapToArray = function(item) {
+                    return Array.isArray(item) ? item : [item]
                 };
-                exports.wrapToArray = function(entity) {
-                    return Array.isArray(entity) ? entity : [entity]
+                exports.getUniqueValues = function(values) {
+                    return _toConsumableArray(new Set(values))
                 };
-                var inArray = function(value, object) {
-                    if (!object) {
-                        return -1
-                    }
-                    var array = Array.isArray(object) ? object : object.toArray();
-                    return array.indexOf(value)
+                exports.getIntersection = function(firstArray, secondArray) {
+                    var secondArrayMap = createOccurrenceMap(secondArray);
+                    return firstArray.filter((function(value) {
+                        return secondArrayMap[value]--
+                    }))
                 };
-                exports.inArray = inArray;
-                exports.intersection = function(a, b) {
-                    if (!Array.isArray(a) || 0 === a.length || !Array.isArray(b) || 0 === b.length) {
-                        return []
-                    }
-                    var result = [];
-                    (0, _iterator.each)(a, (function(_, value) {
-                        var index = inArray(value, b);
-                        if (-1 !== index) {
-                            result.push(value)
-                        }
-                    }));
-                    return result
+                exports.removeDuplicates = function() {
+                    var from = arguments.length > 0 && void 0 !== arguments[0] ? arguments[0] : [];
+                    var toRemove = arguments.length > 1 && void 0 !== arguments[1] ? arguments[1] : [];
+                    var toRemoveMap = createOccurrenceMap(toRemove);
+                    return from.filter((function(value) {
+                        return !toRemoveMap[value]--
+                    }))
                 };
-                exports.uniqueValues = function(data) {
-                    return _toConsumableArray(new Set(data))
-                };
-                exports.removeDuplicates = function(from, what) {
-                    if (!Array.isArray(from) || 0 === from.length) {
-                        return []
-                    }
-                    var result = from.slice();
-                    if (!Array.isArray(what) || 0 === what.length) {
-                        return result
-                    }(0, _iterator.each)(what, (function(_, value) {
-                        var index = inArray(value, result);
-                        result.splice(index, 1)
-                    }));
-                    return result
-                };
-                exports.normalizeIndexes = function(items, indexParameterName, currentItem, needIndexCallback) {
+                exports.normalizeIndexes = function(items, indexPropName, currentItem, needIndexCallback) {
                     var indexedItems = {};
-                    var parameterIndex = 0;
-                    var useLegacyVisibleIndex = (0, _config.default)().useLegacyVisibleIndex;
-                    (0, _iterator.each)(items, (function(index, item) {
-                        index = item[indexParameterName];
+                    var _config = (0, _config2.default)(),
+                        useLegacyVisibleIndex = _config.useLegacyVisibleIndex;
+                    var currentIndex = 0;
+                    var shouldUpdateIndex = function(item) {
+                        return !(0, _type.isDefined)(item[indexPropName]) && (!needIndexCallback || needIndexCallback(item))
+                    };
+                    items.forEach((function(item) {
+                        var index = item[indexPropName];
                         if (index >= 0) {
                             indexedItems[index] = indexedItems[index] || [];
                             if (item === currentItem) {
@@ -6993,65 +6807,43 @@
                                 indexedItems[index].push(item)
                             }
                         } else {
-                            item[indexParameterName] = void 0
+                            item[indexPropName] = void 0
                         }
                     }));
                     if (!useLegacyVisibleIndex) {
-                        (0, _iterator.each)(items, (function() {
-                            if (!(0, _type.isDefined)(this[indexParameterName]) && (!needIndexCallback || needIndexCallback(this))) {
-                                while (indexedItems[parameterIndex]) {
-                                    parameterIndex++
+                        items.forEach((function(item) {
+                            if (shouldUpdateIndex(item)) {
+                                while (indexedItems[currentIndex]) {
+                                    currentIndex++
                                 }
-                                indexedItems[parameterIndex] = [this];
-                                parameterIndex++
+                                indexedItems[currentIndex] = [item];
+                                currentIndex++
                             }
                         }))
                     }
-                    parameterIndex = 0;
+                    currentIndex = 0;
                     (0, _object.orderEach)(indexedItems, (function(index, items) {
-                        (0, _iterator.each)(items, (function() {
+                        items.forEach((function(item) {
                             if (index >= 0) {
-                                this[indexParameterName] = parameterIndex++
+                                item[indexPropName] = currentIndex++
                             }
                         }))
                     }));
                     if (useLegacyVisibleIndex) {
-                        (0, _iterator.each)(items, (function() {
-                            if (!(0, _type.isDefined)(this[indexParameterName]) && (!needIndexCallback || needIndexCallback(this))) {
-                                this[indexParameterName] = parameterIndex++
+                        items.forEach((function(item) {
+                            if (shouldUpdateIndex(item)) {
+                                item[indexPropName] = currentIndex++
                             }
                         }))
                     }
-                    return parameterIndex
                 };
-                exports.merge = function(array1, array2) {
-                    for (var i = 0; i < array2.length; i++) {
-                        array1[array1.length] = array2[i]
-                    }
-                    return array1
-                };
-                exports.find = function(array, condition) {
-                    for (var i = 0; i < array.length; i++) {
-                        if (condition(array[i])) {
-                            return array[i]
-                        }
-                    }
-                };
-                exports.groupBy = function(array, cb) {
-                    return array.reduce((function(result, item) {
-                        return _extends({}, result, function(obj, key, value) {
-                            if (key in obj) {
-                                Object.defineProperty(obj, key, {
-                                    value: value,
-                                    enumerable: true,
-                                    configurable: true,
-                                    writable: true
-                                })
-                            } else {
-                                obj[key] = value
-                            }
-                            return obj
-                        }({}, cb(item), [].concat(_toConsumableArray(result[cb(item)] || []), [item])))
+                exports.groupBy = function(array, getGroupName) {
+                    return array.reduce((function(groupedResult, item) {
+                        var _groupedResult$groupN;
+                        var groupName = getGroupName(item);
+                        groupedResult[groupName] = null !== (_groupedResult$groupN = groupedResult[groupName]) && void 0 !== _groupedResult$groupN ? _groupedResult$groupN : [];
+                        groupedResult[groupName].push(item);
+                        return groupedResult
                     }), {})
                 }
             },
@@ -7854,7 +7646,7 @@
 
                 function _construct(Parent, args, Class) {
                     if (_isNativeReflectConstruct()) {
-                        _construct = Reflect.construct
+                        _construct = Reflect.construct.bind()
                     } else {
                         _construct = function(Parent, args, Class) {
                             var a = [null];
@@ -7889,7 +7681,7 @@
                 }
 
                 function _setPrototypeOf(o, p) {
-                    _setPrototypeOf = Object.setPrototypeOf || function(o, p) {
+                    _setPrototypeOf = Object.setPrototypeOf ? Object.setPrototypeOf.bind() : function(o, p) {
                         o.__proto__ = p;
                         return o
                     };
@@ -8262,6 +8054,9 @@
                         return intervals
                     },
                     getDateIntervalByString: getDateIntervalByString,
+                    sameHoursAndMinutes: function(date1, date2) {
+                        return date1 && date2 && date1.getHours() === date2.getHours() && date1.getMinutes() === date2.getMinutes()
+                    },
                     sameDate: function(date1, date2) {
                         return sameMonthAndYear(date1, date2) && date1.getDate() === date2.getDate()
                     },
@@ -9101,11 +8896,51 @@
               \***********************************************************************/
             function(__unused_webpack_module, exports, __webpack_require__) {
                 exports.parseHTML = exports.isTablePart = void 0;
-                var _array = __webpack_require__( /*! ./array */ 89386);
                 var _dom_adapter = (obj = __webpack_require__( /*! ../dom_adapter */ 73349), obj && obj.__esModule ? obj : {
                     default: obj
                 });
                 var obj;
+
+                function _toConsumableArray(arr) {
+                    return function(arr) {
+                        if (Array.isArray(arr)) {
+                            return _arrayLikeToArray(arr)
+                        }
+                    }(arr) || function(iter) {
+                        if ("undefined" !== typeof Symbol && null != iter[Symbol.iterator] || null != iter["@@iterator"]) {
+                            return Array.from(iter)
+                        }
+                    }(arr) || function(o, minLen) {
+                        if (!o) {
+                            return
+                        }
+                        if ("string" === typeof o) {
+                            return _arrayLikeToArray(o, minLen)
+                        }
+                        var n = Object.prototype.toString.call(o).slice(8, -1);
+                        if ("Object" === n && o.constructor) {
+                            n = o.constructor.name
+                        }
+                        if ("Map" === n || "Set" === n) {
+                            return Array.from(o)
+                        }
+                        if ("Arguments" === n || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) {
+                            return _arrayLikeToArray(o, minLen)
+                        }
+                    }(arr) || function() {
+                        throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.")
+                    }()
+                }
+
+                function _arrayLikeToArray(arr, len) {
+                    if (null == len || len > arr.length) {
+                        len = arr.length
+                    }
+                    for (var i = 0, arr2 = new Array(len); i < len; i++) {
+                        arr2[i] = arr[i]
+                    }
+                    return arr2
+                }
                 var isTagName = /<([a-z][^/\0>\x20\t\r\n\f]+)/i;
                 var tagWrappers = {
                     default: {
@@ -9149,7 +8984,7 @@
                     for (var i = 0; i < tagWrapper.tagsCount; i++) {
                         container = container.lastChild
                     }
-                    return (0, _array.merge)([], container.childNodes)
+                    return _toConsumableArray(container.childNodes)
                 };
                 exports.isTablePart = function(html) {
                     var tags = isTagName.exec(html);
@@ -9173,7 +9008,7 @@
                     if (/^\s*<svg[^>]*>(.|\r?\n)*?<\/svg>\s*$/i.test(source)) {
                         return "svg"
                     }
-                    if (/data:.*base64|\.|[^<\s]\//.test(source)) {
+                    if (/data:.*base64|\.|[^<\s]\/{1,1}/.test(source)) {
                         return "image"
                     }
                     if (/^[\w-_]+$/.test(source)) {
@@ -9406,6 +9241,18 @@
                 };
                 exports.getRoot = getRoot;
                 exports.inRange = void 0;
+                exports.multiplyInExponentialForm = function(value, exponentShift) {
+                    var exponentialNotation = function(value) {
+                        var parts = value.toExponential().split("e");
+                        var mantissa = parseFloat(parts[0]);
+                        var exponent = parseInt(parts[1]);
+                        return {
+                            exponent: exponent,
+                            mantissa: mantissa
+                        }
+                    }(value);
+                    return parseFloat("".concat(exponentialNotation.mantissa, "e").concat(exponentialNotation.exponent + exponentShift))
+                };
                 exports.roundFloatPart = roundFloatPart;
                 exports.sign = void 0;
                 exports.solveCubicEquation = function(a, b, c, d) {
@@ -9634,17 +9481,13 @@
                 };
                 exports.name = void 0;
                 var _element_data = __webpack_require__( /*! ../../core/element_data */ 97906);
-                var _events_engine = _interopRequireDefault(__webpack_require__( /*! ../../events/core/events_engine */ 55994));
-                var _weak_map = _interopRequireDefault(__webpack_require__( /*! ../polyfills/weak_map */ 10126));
+                var _events_engine = (obj = __webpack_require__( /*! ../../events/core/events_engine */ 55994), obj && obj.__esModule ? obj : {
+                    default: obj
+                });
+                var obj;
                 var _type = __webpack_require__( /*! ./type */ 35922);
                 var _remove = __webpack_require__( /*! ../../events/remove */ 29007);
-
-                function _interopRequireDefault(obj) {
-                    return obj && obj.__esModule ? obj : {
-                        default: obj
-                    }
-                }
-                var componentNames = new _weak_map.default;
+                var componentNames = new WeakMap;
                 var nextAnonymousComponent = 0;
                 var getName = function(componentClass, newName) {
                     if ((0, _type.isDefined)(newName)) {
@@ -10511,7 +10354,6 @@
                     }
                 });
                 exports.transitionEndEventName = exports.transition = exports.touchEvents = exports.touch = exports.supportProp = void 0;
-                var _array = __webpack_require__( /*! ./array */ 89386);
                 var _dom_adapter = _interopRequireDefault(__webpack_require__( /*! ../dom_adapter */ 73349));
                 var _call_once = _interopRequireDefault(__webpack_require__( /*! ./call_once */ 39618));
                 var _window = __webpack_require__( /*! ./window */ 58201);
@@ -10570,8 +10412,8 @@
                     return supportProp("animation")
                 }));
                 exports.animation = animation;
-                var nativeScrolling = (_devices$real = _devices.default.real(), platform = _devices$real.platform, version = _devices$real.version, isMac = _devices$real.mac, isObsoleteAndroid = version && version[0] < 4 && "android" === platform, isNativeScrollDevice = !isObsoleteAndroid && (0, _array.inArray)(platform, ["ios", "android"]) > -1 || isMac, isNativeScrollDevice);
-                var _devices$real, platform, version, isMac, isObsoleteAndroid, isNativeScrollDevice;
+                var nativeScrolling = (_devices$real = _devices.default.real(), platform = _devices$real.platform, isMac = _devices$real.mac, isNativeScrollDevice = "ios" === platform || "android" === platform || isMac, isNativeScrollDevice);
+                var _devices$real, platform, isMac, isNativeScrollDevice;
                 exports.nativeScrolling = nativeScrolling
             },
         19155:
@@ -10992,7 +10834,7 @@
               \*************************************************************/
             function(__unused_webpack_module, exports) {
                 exports.version = void 0;
-                exports.version = "21.2.7"
+                exports.version = "22.1.6"
             },
         67403:
             /*!********************************************************************!*\
@@ -11474,6 +11316,10 @@
                             var op = crit[1];
                             var value = crit[2];
                             value = (0, _data.toComparable)(value);
+                            var compare = function(obj, operatorFn) {
+                                obj = (0, _data.toComparable)(getter(obj));
+                                return (null == value || null == obj) && value !== obj ? false : operatorFn(obj, value)
+                            };
                             switch (op.toLowerCase()) {
                                 case "=":
                                     return compileEquals(getter, value);
@@ -11481,19 +11327,27 @@
                                     return compileEquals(getter, value, true);
                                 case ">":
                                     return function(obj) {
-                                        return (0, _data.toComparable)(getter(obj)) > value
+                                        return compare(obj, (function(a, b) {
+                                            return a > b
+                                        }))
                                     };
                                 case "<":
                                     return function(obj) {
-                                        return (0, _data.toComparable)(getter(obj)) < value
+                                        return compare(obj, (function(a, b) {
+                                            return a < b
+                                        }))
                                     };
                                 case ">=":
                                     return function(obj) {
-                                        return (0, _data.toComparable)(getter(obj)) >= value
+                                        return compare(obj, (function(a, b) {
+                                            return a >= b
+                                        }))
                                     };
                                 case "<=":
                                     return function(obj) {
-                                        return (0, _data.toComparable)(getter(obj)) <= value
+                                        return compare(obj, (function(a, b) {
+                                            return a <= b
+                                        }))
                                     };
                                 case "startswith":
                                     return function(obj) {
@@ -11940,6 +11794,21 @@
                     return arr2
                 }
 
+                function _extends() {
+                    _extends = Object.assign ? Object.assign.bind() : function(target) {
+                        for (var i = 1; i < arguments.length; i++) {
+                            var source = arguments[i];
+                            for (var key in source) {
+                                if (Object.prototype.hasOwnProperty.call(source, key)) {
+                                    target[key] = source[key]
+                                }
+                            }
+                        }
+                        return target
+                    };
+                    return _extends.apply(this, arguments)
+                }
+
                 function getItems(keyInfo, items, key, groupCount) {
                     if (groupCount) {
                         return function findItems(keyInfo, items, key, groupCount) {
@@ -11969,27 +11838,29 @@
                 }
 
                 function createObjectWithChanges(target, changes) {
-                    var result = function cloneInstance(instance, clonedInstances) {
+                    var result = function cloneInstanceWithChangedPaths(instance, changes, clonedInstances) {
                         clonedInstances = clonedInstances || new WeakMap;
                         var result = instance ? Object.create(Object.getPrototypeOf(instance)) : {};
                         if (instance) {
                             clonedInstances.set(instance, result)
                         }
-                        var instanceWithoutPrototype = (0, _extend.extendFromObject)({}, instance);
+                        var instanceWithoutPrototype = _extends({}, instance);
+                        (0, _object.deepExtendArraySafe)(result, instanceWithoutPrototype, true, true);
                         for (var name in instanceWithoutPrototype) {
-                            var prop = instanceWithoutPrototype[name];
-                            if ((0, _type.isObject)(prop) && !(0, _type.isPlainObject)(prop) && !clonedInstances.has(prop)) {
-                                instanceWithoutPrototype[name] = cloneInstance(prop, clonedInstances)
+                            var value = instanceWithoutPrototype[name];
+                            var change = null === changes || void 0 === changes ? void 0 : changes[name];
+                            if ((0, _type.isObject)(value) && !(0, _type.isPlainObject)(value) && (0, _type.isObject)(change) && !clonedInstances.has(value)) {
+                                result[name] = cloneInstanceWithChangedPaths(value, change, clonedInstances)
                             }
-                        }(0, _object.deepExtendArraySafe)(result, instanceWithoutPrototype, true, true);
+                        }
                         for (var _name in result) {
-                            var _prop = result[_name];
-                            if ((0, _type.isObject)(_prop) && clonedInstances.has(_prop)) {
-                                result[_name] = clonedInstances.get(_prop)
+                            var prop = result[_name];
+                            if ((0, _type.isObject)(prop) && clonedInstances.has(prop)) {
+                                result[_name] = clonedInstances.get(prop)
                             }
                         }
                         return result
-                    }(target);
+                    }(target, changes);
                     return (0, _object.deepExtendArraySafe)(result, changes, true, true)
                 }
 
@@ -12473,7 +12344,6 @@
                 var _custom_store = _interopRequireDefault(__webpack_require__( /*! ../custom_store */ 88036));
                 var _events_strategy = __webpack_require__( /*! ../../core/events_strategy */ 80566);
                 var _errors = __webpack_require__( /*! ../errors */ 18438);
-                var _array = __webpack_require__( /*! ../../core/utils/array */ 89386);
                 var _queue = __webpack_require__( /*! ../../core/utils/queue */ 59504);
                 var _deferred = __webpack_require__( /*! ../../core/utils/deferred */ 62754);
                 var _operation_manager = _interopRequireDefault(__webpack_require__( /*! ./operation_manager */ 88665));
@@ -12787,7 +12657,8 @@
                         var store = this._store;
                         var options = this._createStoreLoadOptions();
                         var handleDone = function(data) {
-                            if (!(0, _type.isDefined)(data) || (0, _array.isEmpty)(data)) {
+                            var isEmptyArray = Array.isArray(data) && !data.length;
+                            if (!(0, _type.isDefined)(data) || isEmptyArray) {
                                 d.reject(new _errors.errors.Error("E4009"))
                             } else {
                                 if (!Array.isArray(data)) {
@@ -12853,9 +12724,10 @@
                         if (this._reshapeOnPush) {
                             this.load()
                         } else {
-                            this._eventsStrategy.fireEvent("changing", [{
+                            var changingArgs = {
                                 changes: changes
-                            }]);
+                            };
+                            this._eventsStrategy.fireEvent("changing", [changingArgs]);
                             var group = this.group();
                             var items = this.items();
                             var groupLevel = 0;
@@ -12871,6 +12743,9 @@
                                         item.data = _this8._mapFunc(item.data)
                                     }
                                 }))
+                            }
+                            if (changingArgs.postProcessChanges) {
+                                dataSourceChanges = changingArgs.postProcessChanges(dataSourceChanges)
                             }(0, _array_utils.applyBatch)({
                                 keyInfo: this.store(),
                                 data: items,
@@ -12993,7 +12868,7 @@
                             return
                         }
                         data = this._applyPostProcessFunction(this._applyMapFunction(data));
-                        if (!(0, _type.isPlainObject)(extra)) {
+                        if (!(0, _type.isObject)(extra)) {
                             extra = {}
                         }
                         this._items = data;
@@ -13095,7 +12970,7 @@
                 }
 
                 function _extends() {
-                    _extends = Object.assign || function(target) {
+                    _extends = Object.assign ? Object.assign.bind() : function(target) {
                         for (var i = 1; i < arguments.length; i++) {
                             var source = arguments[i];
                             for (var key in source) {
@@ -13352,6 +13227,7 @@
                 var _class = _interopRequireDefault(__webpack_require__( /*! ../core/class */ 38377));
                 var _errors = __webpack_require__( /*! ./errors */ 18438);
                 var _array_store = _interopRequireDefault(__webpack_require__( /*! ./array_store */ 26562));
+                var _query = _interopRequireDefault(__webpack_require__( /*! ./query */ 96687));
 
                 function _interopRequireDefault(obj) {
                     return obj && obj.__esModule ? obj : {
@@ -13439,6 +13315,11 @@
                     clear: function() {
                         this.callBase();
                         this._backend.notifyChanged()
+                    },
+                    createQuery: function() {
+                        return (0, _query.default)(this._backend._loadImpl(), {
+                            errorHandler: this._errorHandler
+                        })
                     },
                     _insertImpl: function(values) {
                         var b = this._backend;
@@ -14257,7 +14138,7 @@
                                 d.reject(new _errors.errors.Error("E4018"))
                             }
                         } else if (nextUrl && !isPaged) {
-                            if (!(url = nextUrl, /^(?:[a-z]+:)?\/\//i.test(url))) {
+                            if (!(url = nextUrl, /^(?:[a-z]+:)?\/{2,2}/i.test(url))) {
                                 nextUrl = function(basePath, relativePath) {
                                     var part;
                                     var baseParts = function(url) {
@@ -14320,13 +14201,16 @@
                         if (errorObj) {
                             message = function(errorObj) {
                                 var message;
+                                var currentMessage;
                                 var currentError = errorObj;
                                 if ("message" in errorObj) {
                                     var _errorObj$message;
                                     message = (null === (_errorObj$message = errorObj.message) || void 0 === _errorObj$message ? void 0 : _errorObj$message.value) || errorObj.message
                                 }
                                 while (currentError = currentError.innererror || currentError.internalexception) {
-                                    message = currentError.message;
+                                    var _currentMessage;
+                                    currentMessage = currentError.message;
+                                    message = null !== (_currentMessage = currentMessage) && void 0 !== _currentMessage ? _currentMessage : message;
                                     if (currentError.internalexception && -1 === message.indexOf("inner exception")) {
                                         break
                                     }
@@ -15296,7 +15180,6 @@
                 var _pointer = _interopRequireDefault(__webpack_require__( /*! ./pointer */ 93786));
                 var _emitter = _interopRequireDefault(__webpack_require__( /*! ./core/emitter */ 31391));
                 var _emitter_registrator = _interopRequireDefault(__webpack_require__( /*! ./core/emitter_registrator */ 82495));
-                var _version = __webpack_require__( /*! ../core/utils/version */ 58020);
 
                 function _interopRequireDefault(obj) {
                     return obj && obj.__esModule ? obj : {
@@ -15304,119 +15187,43 @@
                     }
                 }
                 exports.name = "dxclick";
-                var abs = Math.abs;
-                var isInput = function(element) {
-                    return (0, _renderer.default)(element).is("input, textarea, select, button ,:focus, :focus *")
+                _frame.requestAnimationFrame, _frame.cancelAnimationFrame;
+                var prevented = null;
+                var lastFiredEvent = null;
+                var onNodeRemove = function() {
+                    lastFiredEvent = null
                 };
-                var misc = {
-                    requestAnimationFrame: _frame.requestAnimationFrame,
-                    cancelAnimationFrame: _frame.cancelAnimationFrame
+                var clickHandler = function(e) {
+                    var originalEvent = e.originalEvent;
+                    var eventAlreadyFired = lastFiredEvent === originalEvent || originalEvent && originalEvent.DXCLICK_FIRED;
+                    var leftButton = !e.which || 1 === e.which;
+                    if (leftButton && !prevented && !eventAlreadyFired) {
+                        if (originalEvent) {
+                            originalEvent.DXCLICK_FIRED = true
+                        }(0, _event_nodes_disposing.unsubscribeNodesDisposing)(lastFiredEvent, onNodeRemove);
+                        lastFiredEvent = originalEvent;
+                        (0, _event_nodes_disposing.subscribeNodesDisposing)(lastFiredEvent, onNodeRemove);
+                        (0, _index.fireEvent)({
+                            type: "dxclick",
+                            originalEvent: e
+                        })
+                    }
                 };
                 var ClickEmitter = _emitter.default.inherit({
                     ctor: function(element) {
                         this.callBase(element);
-                        this._makeElementClickable((0, _renderer.default)(element))
-                    },
-                    _makeElementClickable: function($element) {
-                        if (!$element.attr("onclick")) {
-                            $element.attr("onclick", "void(0)")
-                        }
+                        _events_engine.default.on(this.getElement(), "click", clickHandler)
                     },
                     start: function(e) {
-                        this._blurPrevented = e.isDefaultPrevented();
-                        this._startTarget = e.target;
-                        this._startEventData = (0, _index.eventData)(e)
+                        prevented = null
                     },
-                    end: function(e) {
-                        if (this._eventOutOfElement(e, this.getElement().get(0)) || e.type === _pointer.default.cancel) {
-                            this._cancel(e);
-                            return
-                        }
-                        if (!isInput(e.target) && !this._blurPrevented) {
-                            (0, _dom.resetActiveElement)()
-                        }
-                        this._accept(e);
-                        this._clickAnimationFrame = misc.requestAnimationFrame(function() {
-                            this._fireClickEvent(e)
-                        }.bind(this))
-                    },
-                    _eventOutOfElement: function(e, element) {
-                        var target = e.target;
-                        var targetChanged = !(0, _dom.contains)(element, target) && element !== target;
-                        var gestureDelta = (0, _index.eventDelta)((0, _index.eventData)(e), this._startEventData);
-                        var boundsExceeded = abs(gestureDelta.x) > 10 || abs(gestureDelta.y) > 10;
-                        return targetChanged || boundsExceeded
-                    },
-                    _fireClickEvent: function(e) {
-                        this._fireEvent("dxclick", e, {
-                            target: (0, _dom.closestCommonParent)(this._startTarget, e.target)
-                        })
+                    cancel: function() {
+                        prevented = true
                     },
                     dispose: function() {
-                        misc.cancelAnimationFrame(this._clickAnimationFrame)
+                        _events_engine.default.off(this.getElement(), "click", clickHandler)
                     }
                 });
-                var realDevice = _devices.default.real();
-                var useNativeClick = realDevice.generic || realDevice.ios && (0, _version.compare)(realDevice.version, [9, 3]) >= 0 || realDevice.android && (0, _version.compare)(realDevice.version, [5]) >= 0;
-                ! function() {
-                    var isNativeClickEvent = function(target) {
-                        return useNativeClick || (0, _renderer.default)(target).closest(".dx-native-click").length
-                    };
-                    var prevented = null;
-                    var lastFiredEvent = null;
-
-                    function onNodeRemove() {
-                        lastFiredEvent = null
-                    }
-                    var clickHandler = function(e) {
-                        var originalEvent = e.originalEvent;
-                        var eventAlreadyFired = lastFiredEvent === originalEvent || originalEvent && originalEvent.DXCLICK_FIRED;
-                        var leftButton = !e.which || 1 === e.which;
-                        if (leftButton && !prevented && isNativeClickEvent(e.target) && !eventAlreadyFired) {
-                            if (originalEvent) {
-                                originalEvent.DXCLICK_FIRED = true
-                            }(0, _event_nodes_disposing.unsubscribeNodesDisposing)(lastFiredEvent, onNodeRemove);
-                            lastFiredEvent = originalEvent;
-                            (0, _event_nodes_disposing.subscribeNodesDisposing)(lastFiredEvent, onNodeRemove);
-                            (0, _index.fireEvent)({
-                                type: "dxclick",
-                                originalEvent: e
-                            })
-                        }
-                    };
-                    ClickEmitter = ClickEmitter.inherit({
-                        _makeElementClickable: function($element) {
-                            if (!isNativeClickEvent($element)) {
-                                this.callBase($element)
-                            }
-                            _events_engine.default.on($element, "click", clickHandler)
-                        },
-                        configure: function(data) {
-                            this.callBase(data);
-                            if (data.useNative) {
-                                this.getElement().addClass("dx-native-click")
-                            }
-                        },
-                        start: function(e) {
-                            prevented = null;
-                            if (!isNativeClickEvent(e.target)) {
-                                this.callBase(e)
-                            }
-                        },
-                        end: function(e) {
-                            if (!isNativeClickEvent(e.target)) {
-                                this.callBase(e)
-                            }
-                        },
-                        cancel: function() {
-                            prevented = true
-                        },
-                        dispose: function() {
-                            this.callBase();
-                            _events_engine.default.off(this.getElement(), "click", clickHandler)
-                        }
-                    })
-                }();
                 ! function() {
                     var desktopDevice = _devices.default.real().generic;
                     if (!desktopDevice) {
@@ -15429,9 +15236,10 @@
                         }));
                         _events_engine.default.subscribeGlobal(document, (0, _index.addNamespace)("click", "NATIVE_CLICK_FIXER"), (function(e) {
                             var $target = (0, _renderer.default)(e.target);
-                            if (!blurPrevented && startTarget && !$target.is(startTarget) && !(0, _renderer.default)(startTarget).is("label") && isInput($target)) {
+                            if (!blurPrevented && startTarget && !$target.is(startTarget) && !(0, _renderer.default)(startTarget).is("label") && (element = $target, (0, _renderer.default)(element).is("input, textarea, select, button ,:focus, :focus *"))) {
                                 (0, _dom.resetActiveElement)()
                             }
+                            var element;
                             startTarget = null;
                             blurPrevented = false
                         }))
@@ -15749,7 +15557,6 @@
                 var _element_data = __webpack_require__( /*! ../../core/element_data */ 97906);
                 var _class = _interopRequireDefault(__webpack_require__( /*! ../../core/class */ 38377));
                 var _extend = __webpack_require__( /*! ../../core/utils/extend */ 13306);
-                var _array = __webpack_require__( /*! ../../core/utils/array */ 89386);
                 var _iterator = __webpack_require__( /*! ../../core/utils/iterator */ 95479);
                 var _event_registrator = _interopRequireDefault(__webpack_require__( /*! ./event_registrator */ 85788));
                 var _index = __webpack_require__( /*! ../utils/index */ 39611);
@@ -15865,7 +15672,7 @@
                         }
                         emitter.removeCancelCallback();
                         emitter.removeAcceptCallback();
-                        var emitterIndex = (0, _array.inArray)(emitter, activeEmitters);
+                        var emitterIndex = activeEmitters.indexOf(emitter);
                         if (emitterIndex > -1) {
                             activeEmitters.splice(emitterIndex, 1)
                         }
@@ -16048,7 +15855,6 @@
                 var _type = __webpack_require__( /*! ../../core/utils/type */ 35922);
                 var _callbacks = _interopRequireDefault(__webpack_require__( /*! ../../core/utils/callbacks */ 44504));
                 var _errors = _interopRequireDefault(__webpack_require__( /*! ../../core/errors */ 17381));
-                var _weak_map = _interopRequireDefault(__webpack_require__( /*! ../../core/polyfills/weak_map */ 10126));
                 var _hook_touch_props = _interopRequireDefault(__webpack_require__( /*! ../../events/core/hook_touch_props */ 2418));
                 var _call_once = _interopRequireDefault(__webpack_require__( /*! ../../core/utils/call_once */ 39618));
 
@@ -16067,7 +15873,7 @@
                 }
 
                 function _extends() {
-                    _extends = Object.assign || function(target) {
+                    _extends = Object.assign ? Object.assign.bind() : function(target) {
                         for (var i = 1; i < arguments.length; i++) {
                             var source = arguments[i];
                             for (var key in source) {
@@ -16097,7 +15903,7 @@
                 function matchesSafe(target, selector) {
                     return !(0, _type.isWindow)(target) && "#document" !== target.nodeName && _dom_adapter.default.elementMatches(target, selector)
                 }
-                var elementDataMap = new _weak_map.default;
+                var elementDataMap = new WeakMap;
                 var guid = 0;
                 var skipEvent;
                 var special = function() {
@@ -16144,7 +15950,8 @@
                         if (!noBubble) {
                             var parents = [];
                             ! function getParents(element) {
-                                var parent = element.parentNode;
+                                var _element$parentNode;
+                                var parent = null !== (_element$parentNode = element.parentNode) && void 0 !== _element$parentNode ? _element$parentNode : element.host;
                                 if (parent) {
                                     parents.push(parent);
                                     getParents(parent)
@@ -16630,7 +16437,6 @@
                 var _renderer = _interopRequireDefault(__webpack_require__( /*! ../../core/renderer */ 68374));
                 var _events_engine = _interopRequireDefault(__webpack_require__( /*! ../../events/core/events_engine */ 55994));
                 var _class = _interopRequireDefault(__webpack_require__( /*! ../../core/class */ 38377));
-                var _array = __webpack_require__( /*! ../../core/utils/array */ 89386);
                 var _index = __webpack_require__( /*! ../../events/utils/index */ 39611);
 
                 function _interopRequireDefault(obj) {
@@ -16668,7 +16474,8 @@
                         this._handler = options.handler;
                         if (this._element) {
                             this._processFunction = function(e) {
-                                var isNotFocusTarget = _this._focusTarget && _this._focusTarget !== e.target && (0, _array.inArray)(e.target, (0, _renderer.default)(_this._focusTarget)) < 0;
+                                var focusTargets = (0, _renderer.default)(_this._focusTarget).toArray();
+                                var isNotFocusTarget = _this._focusTarget && _this._focusTarget !== e.target && !focusTargets.includes(e.target);
                                 var shouldSkipProcessing = _this._isComposingJustFinished && 229 === e.which || _this._isComposing || isNotFocusTarget;
                                 _this._isComposingJustFinished = false;
                                 if (!shouldSkipProcessing) {
@@ -16905,7 +16712,7 @@
                 var knownDropTargetConfigs = [];
                 var dropTargetRegistration = {
                     setup: function(element, data) {
-                        var knownDropTarget = -1 !== (0, _array.inArray)(element, knownDropTargets);
+                        var knownDropTarget = knownDropTargets.includes(element);
                         if (!knownDropTarget) {
                             knownDropTargets.push(element);
                             knownDropTargetSelectors.push([]);
@@ -16913,10 +16720,10 @@
                         }
                     },
                     add: function(element, handleObj) {
-                        var index = (0, _array.inArray)(element, knownDropTargets);
+                        var index = knownDropTargets.indexOf(element);
                         this.updateEventsCounter(element, handleObj.type, 1);
                         var selector = handleObj.selector;
-                        if (-1 === (0, _array.inArray)(selector, knownDropTargetSelectors[index])) {
+                        if (!knownDropTargetSelectors[index].includes(selector)) {
                             knownDropTargetSelectors[index].push(selector)
                         }
                     },
@@ -16932,7 +16739,7 @@
                     teardown: function(element) {
                         var handlersCount = (0, _element_data.data)(element, "dxDragEventsCount");
                         if (!handlersCount) {
-                            var index = (0, _array.inArray)(element, knownDropTargets);
+                            var index = knownDropTargets.indexOf(element);
                             knownDropTargets.splice(index, 1);
                             knownDropTargetSelectors.splice(index, 1);
                             knownDropTargetConfigs.splice(index, 1);
@@ -16957,10 +16764,14 @@
                         this._maxRightOffset = e.maxRightOffset;
                         this._maxTopOffset = e.maxTopOffset;
                         this._maxBottomOffset = e.maxBottomOffset;
-                        var dropTargets = (0, _array.wrapToArray)(e.targetElements || (null === e.targetElements ? [] : knownDropTargets));
-                        this._dropTargets = iteratorUtils.map(dropTargets, (function(element) {
-                            return (0, _renderer.default)(element).get(0)
-                        }))
+                        if (e.targetElements || null === e.targetElements) {
+                            var dropTargets = (0, _array.wrapToArray)(e.targetElements || []);
+                            this._dropTargets = iteratorUtils.map(dropTargets, (function(element) {
+                                return (0, _renderer.default)(element).get(0)
+                            }))
+                        } else {
+                            this._dropTargets = knownDropTargets
+                        }
                     },
                     _move: function(e) {
                         var eventData = (0, _index.eventData)(e);
@@ -17032,18 +16843,18 @@
                             }
                             var $target = (0, _renderer.default)(target);
                             iteratorUtils.each(function($element) {
-                                var dropTargetIndex = (0, _array.inArray)($element.get(0), knownDropTargets);
+                                var dropTargetIndex = knownDropTargets.indexOf($element.get(0));
                                 var dropTargetSelectors = knownDropTargetSelectors[dropTargetIndex].filter((function(selector) {
                                     return selector
                                 }));
                                 var $delegatedTargets = $element.find(dropTargetSelectors.join(", "));
-                                if (-1 !== (0, _array.inArray)(void 0, knownDropTargetSelectors[dropTargetIndex])) {
+                                if (knownDropTargetSelectors[dropTargetIndex].includes(void 0)) {
                                     $delegatedTargets = $delegatedTargets.add($element)
                                 }
                                 return $delegatedTargets
                             }($target), (function(_, delegatedTarget) {
                                 var $delegatedTarget = (0, _renderer.default)(delegatedTarget);
-                                if (that._checkDropTarget(($element = $target, dropTargetIndex = (0, _array.inArray)($element.get(0), knownDropTargets), knownDropTargetConfigs[dropTargetIndex]), $delegatedTarget, (0, _renderer.default)(result), e)) {
+                                if (that._checkDropTarget(($element = $target, dropTargetIndex = knownDropTargets.indexOf($element.get(0)), knownDropTargetConfigs[dropTargetIndex]), $delegatedTarget, (0, _renderer.default)(result), e)) {
                                     result = delegatedTarget
                                 }
                                 var $element, dropTargetIndex
@@ -17588,14 +17399,22 @@
                         return "dxpointerenter" === eventName || "dxpointerleave" === eventName
                     },
                     _handler: function(e) {
+                        var _originalEvent$target;
                         var delegateTarget = this._getDelegateTarget(e);
-                        return this._fireEvent({
+                        var event = {
                             type: this._eventName,
                             pointerType: e.pointerType || (0, _index.eventSource)(e),
                             originalEvent: e,
                             delegateTarget: delegateTarget,
                             timeStamp: _browser.default.mozilla ? (new Date).getTime() : e.timeStamp
-                        })
+                        };
+                        var originalEvent = e.originalEvent;
+                        if (null !== originalEvent && void 0 !== originalEvent && null !== (_originalEvent$target = originalEvent.target) && void 0 !== _originalEvent$target && _originalEvent$target.shadowRoot) {
+                            var _originalEvent$path, _originalEvent$compos;
+                            var path = null !== (_originalEvent$path = originalEvent.path) && void 0 !== _originalEvent$path ? _originalEvent$path : null === (_originalEvent$compos = originalEvent.composedPath) || void 0 === _originalEvent$compos ? void 0 : _originalEvent$compos.call(originalEvent);
+                            event.target = path[0]
+                        }
+                        return this._fireEvent(event)
                     },
                     _getDelegateTarget: function(e) {
                         var delegateTarget;
@@ -18697,12 +18516,8 @@
                     }
                     var target = e.target;
                     var $target = (0, _renderer.default)(target);
-                    var isDropDown = $target.is(".dx-dropdownlist-popup-wrapper *, .dx-dropdownlist-popup-wrapper");
                     var isContentEditable = (null === target || void 0 === target ? void 0 : target.isContentEditable) || (null === target || void 0 === target ? void 0 : target.hasAttribute("contenteditable"));
                     var touchInEditable = $target.is("input, textarea, select") || isContentEditable;
-                    if ($target.is(".dx-skip-gesture-event *, .dx-skip-gesture-event") && !isDropDown) {
-                        return true
-                    }
                     if (isDxMouseWheelEvent(e)) {
                         var isTextArea = $target.is("textarea") && $target.hasClass("dx-texteditor-input");
                         if (isTextArea || isContentEditable) {
@@ -18739,17 +18554,14 @@
                 exports.normalizeKeyName = function(_ref4) {
                     var key = _ref4.key,
                         which = _ref4.which;
-                    var originalKey = key;
-                    var isKeySupported = !!key;
-                    if (key || which) {
-                        if (isKeySupported) {
-                            key = KEY_MAP[key.toLowerCase()]
-                        }
-                        if (!isKeySupported || !key && which) {
-                            key = LEGACY_KEY_CODES[which] || String.fromCharCode(which)
-                        }
-                        return key || originalKey
+                    var normalizedKey = KEY_MAP[null === key || void 0 === key ? void 0 : key.toLowerCase()] || key;
+                    var normalizedKeyFromWhich = LEGACY_KEY_CODES[which];
+                    if (normalizedKeyFromWhich && normalizedKey === key) {
+                        return normalizedKeyFromWhich
+                    } else if (!normalizedKey && which) {
+                        return String.fromCharCode(which)
                     }
+                    return normalizedKey
                 };
                 exports.getChar = function(_ref5) {
                     var key = _ref5.key,
@@ -18832,7 +18644,9 @@
                         format: options.format,
                         cancel: false
                     };
-                    (0, _type.isFunction)(exportingAction) && exportingAction(eventArgs);
+                    if ((0, _type.isBoolean)(options.selectedRowsOnly)) {
+                        eventArgs.selectedRowsOnly = options.selectedRowsOnly
+                    }(0, _type.isFunction)(exportingAction) && exportingAction(eventArgs);
                     if (!eventArgs.cancel) {
                         return getData(data, options).then((function(blob) {
                             (0, _type.isFunction)(exportedAction) && exportedAction();
@@ -18841,7 +18655,8 @@
                                 fileSavingAction(eventArgs)
                             }
                             if (!eventArgs.cancel) {
-                                _file_saver.fileSaver.saveAs(eventArgs.fileName, options.format, blob, options.proxyUrl, options.forceProxy)
+                                var format = "xlsx" === options.format ? "EXCEL" : options.format;
+                                _file_saver.fileSaver.saveAs(eventArgs.fileName, format, blob, options.proxyUrl, options.forceProxy)
                             }
                         }))
                     }
@@ -20889,7 +20704,7 @@
                 exports.MergedRangesManager = void 0;
 
                 function _extends() {
-                    _extends = Object.assign || function(target) {
+                    _extends = Object.assign ? Object.assign.bind() : function(target) {
                         for (var i = 1; i < arguments.length; i++) {
                             var source = arguments[i];
                             for (var key in source) {
@@ -21910,19 +21725,19 @@
                     }
                 }
             },
-        39458:
-            /*!**********************************************************************!*\
-              !*** ./artifacts/transpiled-renovation-npm/exporter/jspdf/export.js ***!
-              \**********************************************************************/
+        18577:
+            /*!********************************************************************************!*\
+              !*** ./artifacts/transpiled-renovation-npm/exporter/jspdf/autotable/export.js ***!
+              \********************************************************************************/
             function(__unused_webpack_module, exports, __webpack_require__) {
                 exports.Export = void 0;
-                var _type = __webpack_require__( /*! ../../core/utils/type */ 35922);
-                var _extend = __webpack_require__( /*! ../../core/utils/extend */ 13306);
-                var _date = _interopRequireDefault(__webpack_require__( /*! ../../localization/date */ 91500));
-                var _number = _interopRequireDefault(__webpack_require__( /*! ../../localization/number */ 18016));
-                var _message = _interopRequireDefault(__webpack_require__( /*! ../../localization/message */ 28109));
-                var _export_load_panel = __webpack_require__( /*! ../common/export_load_panel */ 5332);
-                var _window = __webpack_require__( /*! ../../core/utils/window */ 58201);
+                var _type = __webpack_require__( /*! ../../../core/utils/type */ 35922);
+                var _extend = __webpack_require__( /*! ../../../core/utils/extend */ 13306);
+                var _date = _interopRequireDefault(__webpack_require__( /*! ../../../localization/date */ 91500));
+                var _number = _interopRequireDefault(__webpack_require__( /*! ../../../localization/number */ 18016));
+                var _message = _interopRequireDefault(__webpack_require__( /*! ../../../localization/message */ 28109));
+                var _export_load_panel = __webpack_require__( /*! ../../common/export_load_panel */ 5332);
+                var _window = __webpack_require__( /*! ../../../core/utils/window */ 58201);
 
                 function _interopRequireDefault(obj) {
                     return obj && obj.__esModule ? obj : {
@@ -22148,10 +21963,10 @@
                 };
                 exports.Export = Export
             },
-        654:
-            /*!********************************************************************************!*\
-              !*** ./artifacts/transpiled-renovation-npm/exporter/jspdf/export_data_grid.js ***!
-              \********************************************************************************/
+        83152:
+            /*!******************************************************************************************!*\
+              !*** ./artifacts/transpiled-renovation-npm/exporter/jspdf/autotable/export_data_grid.js ***!
+              \******************************************************************************************/
             function(__unused_webpack_module, exports, __webpack_require__) {
                 exports.exportDataGrid = function(options) {
                     return _export.Export.export(function(options) {
@@ -22167,8 +21982,1484 @@
                         return _export.Export.getFullOptions(options)
                     }(options))
                 };
+                var _type = __webpack_require__( /*! ../../../core/utils/type */ 35922);
+                var _export = __webpack_require__( /*! ./export */ 18577)
+            },
+        66867:
+            /*!*********************************************************************************!*\
+              !*** ./artifacts/transpiled-renovation-npm/exporter/jspdf/common/draw_utils.js ***!
+              \*********************************************************************************/
+            function(__unused_webpack_module, exports, __webpack_require__) {
+                exports.addNewPage = function(doc) {
+                    doc.addPage();
+                    ! function(doc) {
+                        if (!(0, _type.isDefined)(doc.getLineWidth)) {
+                            doc.__borderWidth = null
+                        }
+                    }(doc)
+                };
+                exports.drawCellsContent = function(doc, customDrawCell, cellsArray, docStyles) {
+                    cellsArray.forEach((function(cell) {
+                        var _rect = cell._rect,
+                            gridCell = cell.gridCell,
+                            pdfCell = function(source, excluded) {
+                                if (null == source) {
+                                    return {}
+                                }
+                                var target = function(source, excluded) {
+                                    if (null == source) {
+                                        return {}
+                                    }
+                                    var target = {};
+                                    var sourceKeys = Object.keys(source);
+                                    var key, i;
+                                    for (i = 0; i < sourceKeys.length; i++) {
+                                        key = sourceKeys[i];
+                                        if (excluded.indexOf(key) >= 0) {
+                                            continue
+                                        }
+                                        target[key] = source[key]
+                                    }
+                                    return target
+                                }(source, excluded);
+                                var key, i;
+                                if (Object.getOwnPropertySymbols) {
+                                    var sourceSymbolKeys = Object.getOwnPropertySymbols(source);
+                                    for (i = 0; i < sourceSymbolKeys.length; i++) {
+                                        key = sourceSymbolKeys[i];
+                                        if (excluded.indexOf(key) >= 0) {
+                                            continue
+                                        }
+                                        if (!Object.prototype.propertyIsEnumerable.call(source, key)) {
+                                            continue
+                                        }
+                                        target[key] = source[key]
+                                    }
+                                }
+                                return target
+                            }(cell, _excluded);
+                        var x = _rect.x,
+                            y = _rect.y,
+                            w = _rect.w,
+                            h = _rect.h;
+                        var rect = {
+                            x: x,
+                            y: y,
+                            w: w,
+                            h: h
+                        };
+                        var eventArg = {
+                            doc: doc,
+                            rect: rect,
+                            pdfCell: pdfCell,
+                            gridCell: gridCell,
+                            cancel: false
+                        };
+                        null === customDrawCell || void 0 === customDrawCell ? void 0 : customDrawCell(eventArg);
+                        if (!eventArg.cancel) {
+                            ! function(doc, cell) {
+                                if ((0, _type.isDefined)(cell.backgroundColor)) {
+                                    trySetColor(doc, "fill", cell.backgroundColor);
+                                    drawRect(doc, cell._rect.x, cell._rect.y, cell._rect.w, cell._rect.h, "F")
+                                }
+                            }(doc, cell);
+                            ! function(doc, cell, docStyles) {
+                                if ((0, _type.isDefined)(cell.text) && "" !== cell.text) {
+                                    var textColor = cell.textColor,
+                                        font = cell.font,
+                                        _rect = cell._rect,
+                                        padding = cell.padding;
+                                    ! function(doc, _ref2, docStyles) {
+                                        var textColor = _ref2.textColor,
+                                            font = _ref2.font;
+                                        trySetColor(doc, "text", (0, _type.isDefined)(textColor) ? textColor : docStyles.textColor);
+                                        var currentFont = (0, _type.isDefined)(font) ? (0, _extend.extend)({}, docStyles.font, font) : docStyles.font;
+                                        var docFont = doc.getFont();
+                                        if (currentFont.name !== docFont.fontName || currentFont.style !== docFont.fontStyle || (0, _type.isDefined)(currentFont.weight)) {
+                                            doc.setFont(currentFont.name, currentFont.style, currentFont.weight)
+                                        }
+                                        if (currentFont.size !== doc.getFontSize()) {
+                                            doc.setFontSize(currentFont.size)
+                                        }
+                                    }(doc, {
+                                        textColor: textColor,
+                                        font: font
+                                    }, docStyles);
+                                    var textRect = {
+                                        x: _rect.x + padding.left,
+                                        y: _rect.y + padding.top,
+                                        w: _rect.w - (padding.left + padding.right),
+                                        h: _rect.h - (padding.top + padding.bottom)
+                                    };
+                                    if ((0, _type.isDefined)(cell._textLeftOffset) || (0, _type.isDefined)(cell._textTopOffset)) {
+                                        var _cell$_textLeftOffset, _cell$_textTopOffset;
+                                        textRect.x = textRect.x + (null !== (_cell$_textLeftOffset = cell._textLeftOffset) && void 0 !== _cell$_textLeftOffset ? _cell$_textLeftOffset : 0);
+                                        textRect.y = textRect.y + (null !== (_cell$_textTopOffset = cell._textTopOffset) && void 0 !== _cell$_textTopOffset ? _cell$_textTopOffset : 0);
+                                        doc.saveGraphicsState();
+                                        ! function(doc, x, y, w, h) {
+                                            doc.moveTo(roundToThreeDecimals(x), roundToThreeDecimals(y));
+                                            doc.lineTo(roundToThreeDecimals(x + w), roundToThreeDecimals(y));
+                                            doc.lineTo(roundToThreeDecimals(x + w), roundToThreeDecimals(y + h));
+                                            doc.lineTo(roundToThreeDecimals(x), roundToThreeDecimals(y + h));
+                                            doc.clip();
+                                            doc.discardPath()
+                                        }(doc, cell._rect.x, cell._rect.y, cell._rect.w, cell._rect.h)
+                                    }
+                                    drawTextInRect(doc, cell.text, textRect, cell.verticalAlign, cell.horizontalAlign, cell._internalTextOptions);
+                                    if ((0, _type.isDefined)(cell._textLeftOffset) || (0, _type.isDefined)(cell._textTopOffset)) {
+                                        doc.restoreGraphicsState()
+                                    }
+                                }
+                            }(doc, cell, docStyles)
+                        }
+                    }))
+                };
+                exports.drawCellsLines = function(doc, cellsArray, docStyles) {
+                    cellsArray.filter((function(cell) {
+                        return !(0, _type.isDefined)(cell.borderColor)
+                    })).forEach((function(cell) {
+                        drawBorders(doc, cell._rect, cell, docStyles)
+                    }));
+                    cellsArray.filter((function(cell) {
+                        return (0, _type.isDefined)(cell.borderColor)
+                    })).forEach((function(cell) {
+                        drawBorders(doc, cell._rect, cell, docStyles)
+                    }))
+                };
+                exports.drawGridLines = function(doc, rect, options, docStyles) {
+                    drawBorders(doc, rect, options, docStyles)
+                };
+                exports.drawLine = drawLine;
+                exports.drawRect = drawRect;
+                exports.drawTextInRect = drawTextInRect;
+                exports.getDocumentStyles = function(doc) {
+                    var docFont = doc.getFont();
+                    return {
+                        borderWidth: getDocBorderWidth(doc),
+                        borderColor: doc.getDrawColor(),
+                        font: {
+                            name: docFont.fontName,
+                            style: docFont.fontStyle,
+                            size: doc.getFontSize()
+                        },
+                        textColor: doc.getTextColor()
+                    }
+                };
+                exports.roundToThreeDecimals = roundToThreeDecimals;
+                exports.setDocumentStyles = function(doc, styles) {
+                    var borderWidth = styles.borderWidth,
+                        borderColor = styles.borderColor,
+                        font = styles.font,
+                        textColor = styles.textColor;
+                    var docFont = doc.getFont();
+                    if (docFont.fontName !== font.name || docFont.fontStyle !== font.style) {
+                        doc.setFont(font.name, font.style, void 0)
+                    }
+                    var docFontSize = doc.getFontSize();
+                    if (docFontSize !== font.size) {
+                        doc.setFontSize(font.size)
+                    }
+                    if (getDocBorderWidth(doc) !== borderWidth) {
+                        setDocBorderWidth(doc, borderWidth)
+                    }
+                    if (doc.getDrawColor() !== borderColor) {
+                        doc.setDrawColor(borderColor)
+                    }
+                    if (doc.getTextColor() !== textColor) {
+                        doc.setTextColor(textColor)
+                    }
+                };
+                var _type = __webpack_require__( /*! ../../../core/utils/type */ 35922);
+                var _extend = __webpack_require__( /*! ../../../core/utils/extend */ 13306);
+                var _pdf_utils = __webpack_require__( /*! ./pdf_utils */ 79262);
+                var _uiPivot_grid = __webpack_require__( /*! ../../../ui/pivot_grid/ui.pivot_grid.utils */ 87280);
+                var _excluded = ["_rect", "gridCell"];
+
+                function roundToThreeDecimals(value) {
+                    return Math.round(1e3 * value) / 1e3
+                }
+
+                function drawLine(doc, startX, startY, endX, endY) {
+                    doc.line(roundToThreeDecimals(startX), roundToThreeDecimals(startY), roundToThreeDecimals(endX), roundToThreeDecimals(endY))
+                }
+
+                function drawRect(doc, x, y, width, height, style) {
+                    if ((0, _type.isDefined)(style)) {
+                        doc.rect(roundToThreeDecimals(x), roundToThreeDecimals(y), roundToThreeDecimals(width), roundToThreeDecimals(height), style)
+                    } else {
+                        doc.rect(roundToThreeDecimals(x), roundToThreeDecimals(y), roundToThreeDecimals(width), roundToThreeDecimals(height))
+                    }
+                }
+
+                function drawTextInRect(doc, text, rect, verticalAlign, horizontalAlign, jsPDFTextOptions) {
+                    var textArray = text.split("\n");
+                    var linesCount = textArray.length;
+                    var heightOfOneLine = (0, _pdf_utils.calculateTextHeight)(doc, textArray[0], doc.getFont(), {
+                        wordWrapEnabled: false,
+                        targetRectWidth: 1e9
+                    });
+                    var vAlign = null !== verticalAlign && void 0 !== verticalAlign ? verticalAlign : "middle";
+                    var hAlign = null !== horizontalAlign && void 0 !== horizontalAlign ? horizontalAlign : "left";
+                    var verticalAlignCoefficientsMap = {
+                        top: 0,
+                        middle: .5,
+                        bottom: 1
+                    };
+                    var y = rect.y + rect.h * verticalAlignCoefficientsMap[vAlign] - heightOfOneLine * (linesCount - 1) * verticalAlignCoefficientsMap[vAlign] + function(doc) {
+                        return (doc.getLineHeightFactor() - 1.15) * doc.getFontSize()
+                    }(doc);
+                    var x = rect.x + rect.w * {
+                        left: 0,
+                        center: .5,
+                        right: 1
+                    } [hAlign];
+                    var textOptions = (0, _extend.extend)({
+                        baseline: vAlign,
+                        align: hAlign
+                    }, jsPDFTextOptions);
+                    doc.text(textArray.join("\n"), roundToThreeDecimals(x), roundToThreeDecimals(y), textOptions)
+                }
+
+                function drawBorders(doc, rect, _ref, docStyles) {
+                    var borderWidth = _ref.borderWidth,
+                        borderColor = _ref.borderColor,
+                        _ref$drawLeftBorder = _ref.drawLeftBorder,
+                        drawLeftBorder = void 0 === _ref$drawLeftBorder ? true : _ref$drawLeftBorder,
+                        _ref$drawRightBorder = _ref.drawRightBorder,
+                        drawRightBorder = void 0 === _ref$drawRightBorder ? true : _ref$drawRightBorder,
+                        _ref$drawTopBorder = _ref.drawTopBorder,
+                        drawTopBorder = void 0 === _ref$drawTopBorder ? true : _ref$drawTopBorder,
+                        _ref$drawBottomBorder = _ref.drawBottomBorder,
+                        drawBottomBorder = void 0 === _ref$drawBottomBorder ? true : _ref$drawBottomBorder;
+                    if (!(0, _type.isDefined)(rect)) {
+                        throw "rect is required"
+                    }
+                    if (!drawLeftBorder && !drawRightBorder && !drawTopBorder && !drawBottomBorder) {
+                        return
+                    } else if (drawLeftBorder && drawRightBorder && drawTopBorder && drawBottomBorder) {
+                        setLinesStyles(doc, {
+                            borderWidth: borderWidth,
+                            borderColor: borderColor
+                        }, docStyles);
+                        drawRect(doc, rect.x, rect.y, rect.w, rect.h)
+                    } else {
+                        setLinesStyles(doc, {
+                            borderWidth: borderWidth,
+                            borderColor: borderColor
+                        }, docStyles);
+                        if (drawTopBorder) {
+                            drawLine(doc, rect.x, rect.y, rect.x + rect.w, rect.y)
+                        }
+                        if (drawLeftBorder) {
+                            drawLine(doc, rect.x, rect.y, rect.x, rect.y + rect.h)
+                        }
+                        if (drawRightBorder) {
+                            drawLine(doc, rect.x + rect.w, rect.y, rect.x + rect.w, rect.y + rect.h)
+                        }
+                        if (drawBottomBorder) {
+                            drawLine(doc, rect.x, rect.y + rect.h, rect.x + rect.w, rect.y + rect.h)
+                        }
+                    }
+                }
+
+                function setLinesStyles(doc, _ref3, docStyles) {
+                    var borderWidth = _ref3.borderWidth,
+                        borderColor = _ref3.borderColor;
+                    var currentBorderWidth = (0, _type.isDefined)(borderWidth) ? borderWidth : docStyles.borderWidth;
+                    if (currentBorderWidth !== getDocBorderWidth(doc)) {
+                        setDocBorderWidth(doc, (0, _pdf_utils.toPdfUnit)(doc, currentBorderWidth))
+                    }
+                    trySetColor(doc, "draw", (0, _type.isDefined)(borderColor) ? borderColor : docStyles.borderColor)
+                }
+
+                function trySetColor(doc, target, color) {
+                    var getterName = "get".concat((0, _uiPivot_grid.capitalizeFirstLetter)(target), "Color");
+                    var setterName = "set".concat((0, _uiPivot_grid.capitalizeFirstLetter)(target), "Color");
+                    var _color$ch = color.ch1,
+                        ch1 = void 0 === _color$ch ? color : _color$ch,
+                        ch2 = color.ch2,
+                        ch3 = color.ch3,
+                        ch4 = color.ch4;
+                    var normalizedColor = doc.__private__.decodeColorString(doc.__private__.encodeColorString({
+                        ch1: ch1,
+                        ch2: ch2,
+                        ch3: ch3,
+                        ch4: ch4,
+                        precision: "text" === target ? 3 : 2
+                    }));
+                    if (normalizedColor !== doc[getterName]() || "fill" === target) {
+                        doc[setterName].apply(doc, [ch1, ch2, ch3, ch4].filter((function(item) {
+                            return void 0 !== item
+                        })))
+                    }
+                }
+
+                function getDocBorderWidth(doc) {
+                    var _doc$__borderWidth;
+                    if ((0, _type.isDefined)(doc.getLineWidth)) {
+                        return doc.getLineWidth()
+                    }
+                    return null !== (_doc$__borderWidth = doc.__borderWidth) && void 0 !== _doc$__borderWidth ? _doc$__borderWidth : .200025
+                }
+
+                function setDocBorderWidth(doc, width) {
+                    doc.setLineWidth(width);
+                    if (!(0, _type.isDefined)(doc.getLineWidth)) {
+                        doc.__borderWidth = width
+                    }
+                }
+            },
+        17195:
+            /*!*****************************************************************************!*\
+              !*** ./artifacts/transpiled-renovation-npm/exporter/jspdf/common/export.js ***!
+              \*****************************************************************************/
+            function(__unused_webpack_module, exports, __webpack_require__) {
+                exports.Export = void 0;
+                var _type = __webpack_require__( /*! ../../../core/utils/type */ 35922);
+                var _extend = __webpack_require__( /*! ../../../core/utils/extend */ 13306);
+                var _normalizeOptions = __webpack_require__( /*! ./normalizeOptions */ 30646);
+                var _row_utils = __webpack_require__( /*! ./row_utils */ 65322);
+                var _height_updater = __webpack_require__( /*! ./height_updater */ 41269);
+                var _rows_generator = __webpack_require__( /*! ./rows_generator */ 27504);
+                var _rows_splitting = __webpack_require__( /*! ./rows_splitting */ 22775);
+                var _draw_utils = __webpack_require__( /*! ./draw_utils */ 66867);
+                var _pdf_utils = __webpack_require__( /*! ./pdf_utils */ 79262);
+                var _message = (obj = __webpack_require__( /*! ../../../localization/message */ 28109), obj && obj.__esModule ? obj : {
+                    default: obj
+                });
+                var obj;
+                var _export_load_panel = __webpack_require__( /*! ../../common/export_load_panel */ 5332);
+                var _window = __webpack_require__( /*! ../../../core/utils/window */ 58201);
+
+                function _extends() {
+                    _extends = Object.assign ? Object.assign.bind() : function(target) {
+                        for (var i = 1; i < arguments.length; i++) {
+                            var source = arguments[i];
+                            for (var key in source) {
+                                if (Object.prototype.hasOwnProperty.call(source, key)) {
+                                    target[key] = source[key]
+                                }
+                            }
+                        }
+                        return target
+                    };
+                    return _extends.apply(this, arguments)
+                }
+                var Export = {
+                    getFullOptions: function(options) {
+                        var jsPDFDocument = options.jsPDFDocument;
+                        var fullOptions = (0, _extend.extend)({}, options);
+                        if (!(0, _type.isDefined)(fullOptions.topLeft)) {
+                            fullOptions.topLeft = {
+                                x: 0,
+                                y: 0
+                            }
+                        }
+                        if (!(0, _type.isDefined)(fullOptions.indent)) {
+                            fullOptions.indent = 0
+                        }
+                        if (!(0, _type.isDefined)(fullOptions.repeatHeaders)) {
+                            fullOptions.repeatHeaders = true
+                        }
+                        if (!(0, _type.isDefined)(fullOptions.margin)) {
+                            fullOptions.margin = (0, _pdf_utils.toPdfUnit)(jsPDFDocument, 40)
+                        }
+                        fullOptions.margin = (0, _normalizeOptions.normalizeBoundaryValue)(fullOptions.margin);
+                        if (!Array.isArray(fullOptions.columnWidths)) {
+                            fullOptions.columnWidths = []
+                        }
+                        if (!(0, _type.isDefined)(fullOptions.loadPanel)) {
+                            fullOptions.loadPanel = {}
+                        }
+                        if (!(0, _type.isDefined)(fullOptions.loadPanel.enabled)) {
+                            fullOptions.loadPanel.enabled = true
+                        }
+                        if (!(0, _type.isDefined)(fullOptions.loadPanel.text)) {
+                            fullOptions.loadPanel.text = _message.default.format("dxDataGrid-exporting")
+                        }
+                        return fullOptions
+                    },
+                    export: function(options) {
+                        var _component$_getIntern;
+                        var jsPDFDocument = options.jsPDFDocument,
+                            component = options.component,
+                            selectedRowsOnly = options.selectedRowsOnly,
+                            loadPanel = options.loadPanel;
+                        var internalComponent = (null === (_component$_getIntern = component._getInternalInstance) || void 0 === _component$_getIntern ? void 0 : _component$_getIntern.call(component)) || component;
+                        var initialLoadPanelEnabledOption = internalComponent.option("loadPanel") && internalComponent.option("loadPanel").enabled;
+                        if (initialLoadPanelEnabledOption) {
+                            component.option("loadPanel.enabled", false)
+                        }
+                        var exportLoadPanel;
+                        if (loadPanel.enabled && (0, _window.hasWindow)()) {
+                            var rowsView = component.getView("rowsView");
+                            exportLoadPanel = new _export_load_panel.ExportLoadPanel(component, rowsView.element(), rowsView.element().parent(), loadPanel);
+                            exportLoadPanel.show()
+                        }
+                        var dataProvider = component.getDataProvider(selectedRowsOnly);
+                        return new Promise((function(resolve) {
+                            dataProvider.ready().done((function() {
+                                var _options$rowOptions, _options$rowOptions$h;
+                                var rowsInfo = (0, _rows_generator.generateRowsInfo)(jsPDFDocument, dataProvider, component, null === (_options$rowOptions = options.rowOptions) || void 0 === _options$rowOptions ? void 0 : null === (_options$rowOptions$h = _options$rowOptions.headerStyles) || void 0 === _options$rowOptions$h ? void 0 : _options$rowOptions$h.backgroundColor);
+                                if (options.customizeCell) {
+                                    rowsInfo.forEach((function(rowInfo) {
+                                        return rowInfo.cells.forEach((function(cellInfo) {
+                                            return options.customizeCell(cellInfo)
+                                        }))
+                                    }))
+                                }(0, _normalizeOptions.normalizeRowsInfo)(rowsInfo);
+                                (0, _row_utils.initializeCellsWidth)(jsPDFDocument, dataProvider, rowsInfo, options);
+                                (0, _row_utils.resizeFirstColumnByIndentLevel)(rowsInfo, options);
+                                (0, _row_utils.applyColSpans)(rowsInfo);
+                                (0, _row_utils.calculateHeights)(jsPDFDocument, rowsInfo, options);
+                                (0, _row_utils.applyRowSpans)(rowsInfo);
+                                (0, _height_updater.updateRowsAndCellsHeights)(jsPDFDocument, rowsInfo);
+                                (0, _row_utils.calculateCoordinates)(jsPDFDocument, rowsInfo, options);
+                                (0, _row_utils.applyBordersConfig)(rowsInfo);
+                                (0, _pdf_utils.applyWordWrap)(jsPDFDocument, rowsInfo);
+                                var docStyles = (0, _draw_utils.getDocumentStyles)(jsPDFDocument);
+                                var rtlEnabled = !!component.option("rtlEnabled");
+                                var rectsByPages = (0, _rows_splitting.splitByPages)(jsPDFDocument, rowsInfo, options, (function(_ref) {
+                                    var _sourceRect$sourceCel;
+                                    var sourceRect = _ref.sourceRect,
+                                        leftRect = _ref.leftRect,
+                                        rightRect = _ref.rightRect;
+                                    var leftRectTextOptions = {};
+                                    var rightRectTextOptions = {};
+                                    var isTextNotEmpty = (null === (_sourceRect$sourceCel = sourceRect.sourceCellInfo.text) || void 0 === _sourceRect$sourceCel ? void 0 : _sourceRect$sourceCel.length) > 0;
+                                    if (isTextNotEmpty) {
+                                        if (rtlEnabled) {
+                                            var isTextWidthGreaterThanRect = jsPDFDocument.getTextWidth(sourceRect.sourceCellInfo.text) > leftRect.w;
+                                            var isTextRightAlignment = !(0, _type.isDefined)(sourceRect.sourceCellInfo.horizontalAlign) || "right" === sourceRect.sourceCellInfo.horizontalAlign;
+                                            if (isTextWidthGreaterThanRect || !isTextRightAlignment) {
+                                                var _sourceRect$sourceCel2, _sourceRect$sourceCel4, _sourceRect$sourceCel5;
+                                                var rightRectTextOffset;
+                                                var leftRectTextOffset;
+                                                if ("right" === (null === (_sourceRect$sourceCel2 = sourceRect.sourceCellInfo) || void 0 === _sourceRect$sourceCel2 ? void 0 : _sourceRect$sourceCel2.horizontalAlign)) {
+                                                    var _sourceRect$sourceCel3;
+                                                    rightRectTextOffset = null !== (_sourceRect$sourceCel3 = sourceRect.sourceCellInfo._textLeftOffset) && void 0 !== _sourceRect$sourceCel3 ? _sourceRect$sourceCel3 : 0;
+                                                    leftRectTextOffset = rightRectTextOffset + leftRect.w
+                                                } else if ("center" === (null === (_sourceRect$sourceCel4 = sourceRect.sourceCellInfo) || void 0 === _sourceRect$sourceCel4 ? void 0 : _sourceRect$sourceCel4.horizontalAlign)) {
+                                                    leftRectTextOffset = sourceRect.x + sourceRect.w - (rightRect.x + rightRect.w) + sourceRect.sourceCellInfo._rect.w / 2 - leftRect.w / 2;
+                                                    rightRectTextOffset = leftRectTextOffset - rightRect.w
+                                                } else if ("left" === (null === (_sourceRect$sourceCel5 = sourceRect.sourceCellInfo) || void 0 === _sourceRect$sourceCel5 ? void 0 : _sourceRect$sourceCel5.horizontalAlign)) {
+                                                    leftRectTextOffset = sourceRect.x + sourceRect.w - (rightRect.x + rightRect.w);
+                                                    rightRectTextOffset = leftRectTextOffset - rightRect.w
+                                                }
+                                                leftRectTextOptions = _extends({}, {
+                                                    _textLeftOffset: rightRectTextOffset
+                                                });
+                                                rightRectTextOptions = _extends({}, {
+                                                    _textLeftOffset: leftRectTextOffset
+                                                })
+                                            } else {
+                                                rightRectTextOptions = _extends({}, {
+                                                    text: ""
+                                                })
+                                            }
+                                        } else {
+                                            var _isTextWidthGreaterThanRect = jsPDFDocument.getTextWidth(sourceRect.sourceCellInfo.text) > leftRect.w;
+                                            var isTextLeftAlignment = !(0, _type.isDefined)(sourceRect.sourceCellInfo.horizontalAlign) || "left" === sourceRect.sourceCellInfo.horizontalAlign;
+                                            if (_isTextWidthGreaterThanRect || !isTextLeftAlignment) {
+                                                var _sourceRect$sourceCel6, _sourceRect$sourceCel8, _sourceRect$sourceCel10;
+                                                var leftTextLeftOffset;
+                                                var rightTextLeftOffset;
+                                                if ("left" === (null === (_sourceRect$sourceCel6 = sourceRect.sourceCellInfo) || void 0 === _sourceRect$sourceCel6 ? void 0 : _sourceRect$sourceCel6.horizontalAlign)) {
+                                                    var _sourceRect$sourceCel7;
+                                                    leftTextLeftOffset = null !== (_sourceRect$sourceCel7 = sourceRect.sourceCellInfo._textLeftOffset) && void 0 !== _sourceRect$sourceCel7 ? _sourceRect$sourceCel7 : 0;
+                                                    rightTextLeftOffset = leftTextLeftOffset - leftRect.w
+                                                } else if ("center" === (null === (_sourceRect$sourceCel8 = sourceRect.sourceCellInfo) || void 0 === _sourceRect$sourceCel8 ? void 0 : _sourceRect$sourceCel8.horizontalAlign)) {
+                                                    var _sourceRect$sourceCel9;
+                                                    var offset = null !== (_sourceRect$sourceCel9 = sourceRect.sourceCellInfo._textLeftOffset) && void 0 !== _sourceRect$sourceCel9 ? _sourceRect$sourceCel9 : 0;
+                                                    leftTextLeftOffset = offset + (sourceRect.x + sourceRect.w / 2) - (leftRect.x + leftRect.w / 2);
+                                                    rightTextLeftOffset = offset + (sourceRect.x + sourceRect.w / 2) - (rightRect.x + rightRect.w / 2)
+                                                } else if ("right" === (null === (_sourceRect$sourceCel10 = sourceRect.sourceCellInfo) || void 0 === _sourceRect$sourceCel10 ? void 0 : _sourceRect$sourceCel10.horizontalAlign)) {
+                                                    leftTextLeftOffset = sourceRect.x + sourceRect.w - (leftRect.x + leftRect.w);
+                                                    rightTextLeftOffset = sourceRect.x + sourceRect.w - (rightRect.x + rightRect.w)
+                                                }
+                                                leftRectTextOptions = _extends({}, {
+                                                    _textLeftOffset: leftTextLeftOffset
+                                                });
+                                                rightRectTextOptions = _extends({}, {
+                                                    _textLeftOffset: rightTextLeftOffset
+                                                })
+                                            } else {
+                                                rightRectTextOptions = _extends({}, {
+                                                    text: ""
+                                                })
+                                            }
+                                        }
+                                    }
+                                    leftRect.sourceCellInfo = _extends({}, sourceRect.sourceCellInfo, {
+                                        debugSourceCellInfo: sourceRect.sourceCellInfo
+                                    }, leftRectTextOptions);
+                                    rightRect.sourceCellInfo = _extends({}, sourceRect.sourceCellInfo, {
+                                        debugSourceCellInfo: sourceRect.sourceCellInfo
+                                    }, rightRectTextOptions)
+                                }), (function(_ref2) {
+                                    var _sourceRect$sourceCel11;
+                                    var sourceRect = _ref2.sourceRect,
+                                        topRect = _ref2.topRect,
+                                        bottomRect = _ref2.bottomRect;
+                                    var topRectTextOptions = {};
+                                    var bottomRectTextOptions = {};
+                                    var isTextNotEmpty = (null === (_sourceRect$sourceCel11 = sourceRect.sourceCellInfo.text) || void 0 === _sourceRect$sourceCel11 ? void 0 : _sourceRect$sourceCel11.length) > 0;
+                                    if (isTextNotEmpty) {
+                                        var _sourceRect$sourceCel12;
+                                        var isTextHeightGreaterThanRect = jsPDFDocument.getTextDimensions(sourceRect.sourceCellInfo.text).h > topRect.h;
+                                        var isTextTopAlignment = "top" === (null === (_sourceRect$sourceCel12 = sourceRect.sourceCellInfo) || void 0 === _sourceRect$sourceCel12 ? void 0 : _sourceRect$sourceCel12.verticalAlign);
+                                        if (isTextHeightGreaterThanRect || !isTextTopAlignment) {
+                                            var _sourceRect$sourceCel13, _sourceRect$sourceCel15, _sourceRect$sourceCel17;
+                                            var topTextTopOffset;
+                                            var bottomTextTopOffset;
+                                            if ("top" === (null === (_sourceRect$sourceCel13 = sourceRect.sourceCellInfo) || void 0 === _sourceRect$sourceCel13 ? void 0 : _sourceRect$sourceCel13.verticalAlign)) {
+                                                var _sourceRect$sourceCel14;
+                                                topTextTopOffset = null !== (_sourceRect$sourceCel14 = sourceRect.sourceCellInfo._textTopOffset) && void 0 !== _sourceRect$sourceCel14 ? _sourceRect$sourceCel14 : 0;
+                                                bottomTextTopOffset = topTextTopOffset - topRect.h
+                                            } else if ("middle" === (null === (_sourceRect$sourceCel15 = sourceRect.sourceCellInfo) || void 0 === _sourceRect$sourceCel15 ? void 0 : _sourceRect$sourceCel15.verticalAlign)) {
+                                                var _sourceRect$sourceCel16;
+                                                var offset = null !== (_sourceRect$sourceCel16 = sourceRect.sourceCellInfo._textTopOffset) && void 0 !== _sourceRect$sourceCel16 ? _sourceRect$sourceCel16 : 0;
+                                                topTextTopOffset = offset + (sourceRect.y + sourceRect.h / 2) - (topRect.y + topRect.h / 2);
+                                                bottomTextTopOffset = offset + (sourceRect.y + sourceRect.h / 2) - (bottomRect.y + bottomRect.h / 2)
+                                            } else if ("bottom" === (null === (_sourceRect$sourceCel17 = sourceRect.sourceCellInfo) || void 0 === _sourceRect$sourceCel17 ? void 0 : _sourceRect$sourceCel17.verticalAlign)) {
+                                                topTextTopOffset = sourceRect.y + sourceRect.h - (topRect.y + topRect.h);
+                                                bottomTextTopOffset = sourceRect.y + sourceRect.h - (bottomRect.y + bottomRect.h)
+                                            }
+                                            topRectTextOptions = _extends({}, {
+                                                _textTopOffset: topTextTopOffset
+                                            });
+                                            bottomRectTextOptions = _extends({}, {
+                                                _textTopOffset: bottomTextTopOffset
+                                            })
+                                        } else {
+                                            bottomRectTextOptions = _extends({}, {
+                                                text: ""
+                                            })
+                                        }
+                                    }
+                                    topRect.sourceCellInfo = _extends({}, sourceRect.sourceCellInfo, {
+                                        debugSourceCellInfo: sourceRect.sourceCellInfo
+                                    }, topRectTextOptions);
+                                    bottomRect.sourceCellInfo = _extends({}, sourceRect.sourceCellInfo, {
+                                        debugSourceCellInfo: sourceRect.sourceCellInfo
+                                    }, bottomRectTextOptions)
+                                }));
+                                if (rtlEnabled) {
+                                    (0, _pdf_utils.applyRtl)(jsPDFDocument, rectsByPages, options)
+                                }
+                                rectsByPages.forEach((function(pdfCellsInfo, index) {
+                                    if (index > 0) {
+                                        (0, _draw_utils.addNewPage)(jsPDFDocument)
+                                    }(0, _draw_utils.drawCellsContent)(jsPDFDocument, options.customDrawCell, pdfCellsInfo, docStyles);
+                                    (0, _draw_utils.drawCellsLines)(jsPDFDocument, pdfCellsInfo, docStyles);
+                                    var isEmptyPdfCellsInfoSpecified = (0, _type.isDefined)(pdfCellsInfo) && 0 === pdfCellsInfo.length;
+                                    if (isEmptyPdfCellsInfoSpecified) {
+                                        var tableRect = (0, _row_utils.calculateTableSize)(jsPDFDocument, pdfCellsInfo, options);
+                                        var baseStyle = (0, _rows_generator.getBaseTableStyle)();
+                                        (0, _draw_utils.drawGridLines)(jsPDFDocument, tableRect, baseStyle, docStyles)
+                                    }
+                                }));
+                                (0, _draw_utils.setDocumentStyles)(jsPDFDocument, docStyles);
+                                resolve()
+                            })).always((function() {
+                                if (initialLoadPanelEnabledOption) {
+                                    component.option("loadPanel.enabled", initialLoadPanelEnabledOption)
+                                }
+                                if (loadPanel.enabled && (0, _window.hasWindow)()) {
+                                    exportLoadPanel.dispose()
+                                }
+                            }))
+                        }))
+                    }
+                };
+                exports.Export = Export
+            },
+        41269:
+            /*!*************************************************************************************!*\
+              !*** ./artifacts/transpiled-renovation-npm/exporter/jspdf/common/height_updater.js ***!
+              \*************************************************************************************/
+            function(__unused_webpack_module, exports, __webpack_require__) {
+                exports.updateRowsAndCellsHeights = function(doc, rows) {
+                    var rowsAdditionalHeights = function(doc, rows) {
+                        var rowsAdditionalHeights = Array.from({
+                            length: rows.length
+                        }, (function() {
+                            return 0
+                        }));
+                        var sortedRows = function(rows) {
+                            var getMaxRowSpan = function(row) {
+                                var spansArray = row.cells.map((function(cell) {
+                                    var _cell$rowSpan2;
+                                    return null !== (_cell$rowSpan2 = cell.rowSpan) && void 0 !== _cell$rowSpan2 ? _cell$rowSpan2 : 0
+                                }));
+                                return Math.max.apply(Math, _toConsumableArray(spansArray))
+                            };
+                            return _toConsumableArray(rows).sort((function(row1, row2) {
+                                var row1RowSpan = getMaxRowSpan(row1);
+                                var row2RowSpan = getMaxRowSpan(row2);
+                                if (row1RowSpan > row2RowSpan) {
+                                    return 1
+                                }
+                                if (row2RowSpan > row1RowSpan) {
+                                    return -1
+                                }
+                                return 0
+                            }))
+                        }(rows);
+                        sortedRows.forEach((function(row) {
+                            var cellsWithRowSpan = row.cells.filter((function(cell) {
+                                return (0, _type.isDefined)(cell.rowSpan)
+                            }));
+                            cellsWithRowSpan.forEach((function(cell) {
+                                var targetRectWidth = (0, _pdf_utils.calculateTargetRectWidth)(cell.pdfCell._rect.w, cell.pdfCell.padding);
+                                var textHeight = (0, _pdf_utils.calculateTextHeight)(doc, cell.pdfCell.text, cell.pdfCell.font, {
+                                    wordWrapEnabled: cell.pdfCell.wordWrapEnabled,
+                                    targetRectWidth: targetRectWidth
+                                });
+                                var cellHeight = textHeight + cell.pdfCell.padding.top + cell.pdfCell.padding.bottom;
+                                var rowsCount = cell.rowSpan + 1;
+                                var currentRowSpanRowsHeight = rows.slice(row.rowIndex, row.rowIndex + rowsCount).reduce((function(accumulator, rowInfo) {
+                                    return accumulator + rowInfo.height + rowsAdditionalHeights[rowInfo.rowIndex]
+                                }), 0);
+                                if (cellHeight > currentRowSpanRowsHeight) {
+                                    var delta = (cellHeight - currentRowSpanRowsHeight) / rowsCount;
+                                    for (var spanIndex = row.rowIndex; spanIndex < row.rowIndex + rowsCount; spanIndex++) {
+                                        rowsAdditionalHeights[spanIndex] += delta
+                                    }
+                                }
+                            }))
+                        }));
+                        return rowsAdditionalHeights
+                    }(doc, rows);
+                    rows.forEach((function(row) {
+                        row.height += rowsAdditionalHeights[row.rowIndex]
+                    }));
+                    rows.forEach((function(row) {
+                        row.cells.forEach((function(cell) {
+                            var _cell$rowSpan;
+                            var rowsCount = (null !== (_cell$rowSpan = cell.rowSpan) && void 0 !== _cell$rowSpan ? _cell$rowSpan : 0) + 1;
+                            cell.pdfCell._rect.h = rows.slice(row.rowIndex, row.rowIndex + rowsCount).reduce((function(accumulator, rowInfo) {
+                                return accumulator + rowInfo.height
+                            }), 0)
+                        }))
+                    }))
+                };
+                var _type = __webpack_require__( /*! ../../../core/utils/type */ 35922);
+                var _pdf_utils = __webpack_require__( /*! ./pdf_utils */ 79262);
+
+                function _toConsumableArray(arr) {
+                    return function(arr) {
+                        if (Array.isArray(arr)) {
+                            return _arrayLikeToArray(arr)
+                        }
+                    }(arr) || function(iter) {
+                        if ("undefined" !== typeof Symbol && null != iter[Symbol.iterator] || null != iter["@@iterator"]) {
+                            return Array.from(iter)
+                        }
+                    }(arr) || function(o, minLen) {
+                        if (!o) {
+                            return
+                        }
+                        if ("string" === typeof o) {
+                            return _arrayLikeToArray(o, minLen)
+                        }
+                        var n = Object.prototype.toString.call(o).slice(8, -1);
+                        if ("Object" === n && o.constructor) {
+                            n = o.constructor.name
+                        }
+                        if ("Map" === n || "Set" === n) {
+                            return Array.from(o)
+                        }
+                        if ("Arguments" === n || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) {
+                            return _arrayLikeToArray(o, minLen)
+                        }
+                    }(arr) || function() {
+                        throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.")
+                    }()
+                }
+
+                function _arrayLikeToArray(arr, len) {
+                    if (null == len || len > arr.length) {
+                        len = arr.length
+                    }
+                    for (var i = 0, arr2 = new Array(len); i < len; i++) {
+                        arr2[i] = arr[i]
+                    }
+                    return arr2
+                }
+            },
+        30646:
+            /*!***************************************************************************************!*\
+              !*** ./artifacts/transpiled-renovation-npm/exporter/jspdf/common/normalizeOptions.js ***!
+              \***************************************************************************************/
+            function(__unused_webpack_module, exports, __webpack_require__) {
+                exports.normalizeBoundaryValue = normalizeBoundaryValue;
+                exports.normalizeRowsInfo = function(rowsInfo) {
+                    rowsInfo.forEach((function(row) {
+                        row.cells.forEach((function(_ref) {
+                            var pdfCell = _ref.pdfCell;
+                            pdfCell.padding = normalizeBoundaryValue(pdfCell.padding)
+                        }))
+                    }))
+                };
+                var _type = __webpack_require__( /*! ../../../core/utils/type */ 35922);
+
+                function normalizeBoundaryValue(value) {
+                    var _value$top, _value$right, _value$bottom, _value$left;
+                    if ((0, _type.isNumeric)(value)) {
+                        return {
+                            top: value,
+                            right: value,
+                            bottom: value,
+                            left: value
+                        }
+                    }
+                    return {
+                        top: null !== (_value$top = null === value || void 0 === value ? void 0 : value.top) && void 0 !== _value$top ? _value$top : 0,
+                        right: null !== (_value$right = null === value || void 0 === value ? void 0 : value.right) && void 0 !== _value$right ? _value$right : 0,
+                        bottom: null !== (_value$bottom = null === value || void 0 === value ? void 0 : value.bottom) && void 0 !== _value$bottom ? _value$bottom : 0,
+                        left: null !== (_value$left = null === value || void 0 === value ? void 0 : value.left) && void 0 !== _value$left ? _value$left : 0
+                    }
+                }
+            },
+        79262:
+            /*!********************************************************************************!*\
+              !*** ./artifacts/transpiled-renovation-npm/exporter/jspdf/common/pdf_utils.js ***!
+              \********************************************************************************/
+            function(__unused_webpack_module, exports, __webpack_require__) {
+                exports.applyRtl = function(doc, rectsByPages, options) {
+                    rectsByPages.forEach((function(pageRects) {
+                        pageRects.forEach((function(pdfCell) {
+                            var mirroredX = getPageWidth(doc) - (pdfCell._rect.x + pdfCell._rect.w);
+                            var marginDiff = options.margin.left - options.margin.right;
+                            pdfCell._rect.x = mirroredX + marginDiff
+                        }))
+                    }))
+                };
+                exports.applyWordWrap = function(doc, rowsInfo) {
+                    rowsInfo.forEach((function(row) {
+                        row.cells.forEach((function(_ref3) {
+                            var pdfCell = _ref3.pdfCell;
+                            if ((0, _type.isDefined)(pdfCell.text)) {
+                                var lines = getTextLines(doc, pdfCell.text, pdfCell.font, {
+                                    wordWrapEnabled: pdfCell.wordWrapEnabled,
+                                    targetRectWidth: calculateTargetRectWidth(pdfCell._rect.w, pdfCell.padding)
+                                });
+                                pdfCell.text = lines.join("\n")
+                            }
+                        }))
+                    }))
+                };
+                exports.calculateRowHeight = function(doc, cells, columnWidths) {
+                    if (cells.length !== columnWidths.length) {
+                        throw "the cells count must be equal to the count of the columns"
+                    }
+                    var rowHeight = 0;
+                    for (var cellIndex = 0; cellIndex < cells.length; cellIndex++) {
+                        if ((0, _type.isDefined)(cells[cellIndex].rowSpan)) {
+                            continue
+                        }
+                        var cellText = cells[cellIndex].pdfCell.text;
+                        var cellPadding = cells[cellIndex].pdfCell.padding;
+                        var font = cells[cellIndex].pdfCell.font;
+                        var wordWrapEnabled = cells[cellIndex].pdfCell.wordWrapEnabled;
+                        var columnWidth = columnWidths[cellIndex];
+                        var targetRectWidth = calculateTargetRectWidth(columnWidth, cellPadding);
+                        if ((0, _type.isDefined)(cellText)) {
+                            var textHeight = "" !== cellText ? calculateTextHeight(doc, cellText, font, {
+                                wordWrapEnabled: wordWrapEnabled,
+                                targetRectWidth: targetRectWidth
+                            }) : 0;
+                            var cellHeight = textHeight + cellPadding.top + cellPadding.bottom;
+                            if (rowHeight < cellHeight) {
+                                rowHeight = cellHeight
+                            }
+                        }
+                    }
+                    return rowHeight
+                };
+                exports.calculateTargetRectWidth = calculateTargetRectWidth;
+                exports.calculateTextHeight = calculateTextHeight;
+                exports.getPageHeight = function(doc) {
+                    return doc.internal.pageSize.getHeight()
+                };
+                exports.getPageWidth = getPageWidth;
+                exports.getTextLines = getTextLines;
+                exports.toPdfUnit = function(doc, value) {
+                    var coefficient = 1 / doc.internal.scaleFactor;
+                    return value * coefficient
+                };
+                var _type = __webpack_require__( /*! ../../../core/utils/type */ 35922);
+
+                function getPageWidth(doc) {
+                    return doc.internal.pageSize.getWidth()
+                }
+
+                function getTextLines(doc, text, font, _ref) {
+                    var wordWrapEnabled = _ref.wordWrapEnabled,
+                        targetRectWidth = _ref.targetRectWidth;
+                    if (wordWrapEnabled) {
+                        var usedFont = doc.getFont(null === font || void 0 === font ? void 0 : font.name, null === font || void 0 === font ? void 0 : font.style);
+                        return doc.splitTextToSize(text, targetRectWidth, {
+                            fontSize: (null === font || void 0 === font ? void 0 : font.size) || doc.getFontSize(),
+                            fontName: usedFont.fontName,
+                            fontStyle: usedFont.fontStyle
+                        })
+                    }
+                    var textWithoutLineBreak = text.split("\n").filter((function(ch) {
+                        return "" !== ch
+                    })).join(" ");
+                    if (getTextDimensions(doc, textWithoutLineBreak, font).w <= targetRectWidth) {
+                        return [textWithoutLineBreak]
+                    }
+                    var textWidth = getTextDimensions(doc, textWithoutLineBreak + "...", font).w;
+                    while (textWithoutLineBreak.length > 0 && textWidth > targetRectWidth) {
+                        var symbolsCountToRemove = 0;
+                        if (textWidth >= 2 * targetRectWidth) {
+                            symbolsCountToRemove = textWithoutLineBreak.length / 2
+                        }
+                        if (symbolsCountToRemove < 1) {
+                            symbolsCountToRemove = 1
+                        }
+                        textWithoutLineBreak = textWithoutLineBreak.substring(0, textWithoutLineBreak.length - symbolsCountToRemove);
+                        textWidth = getTextDimensions(doc, textWithoutLineBreak + "...", font).w
+                    }
+                    return [textWithoutLineBreak + "..."]
+                }
+
+                function calculateTargetRectWidth(columnWidth, padding) {
+                    var width = columnWidth - (padding.left + padding.right);
+                    return width >= 0 ? width : 0
+                }
+
+                function getTextDimensions(doc, text, font) {
+                    return doc.getTextDimensions(text, {
+                        font: doc.getFont(null === font || void 0 === font ? void 0 : font.name, null === font || void 0 === font ? void 0 : font.style),
+                        fontSize: (null === font || void 0 === font ? void 0 : font.size) || doc.getFontSize()
+                    })
+                }
+
+                function calculateTextHeight(doc, text, font, _ref2) {
+                    var wordWrapEnabled = _ref2.wordWrapEnabled,
+                        targetRectWidth = _ref2.targetRectWidth;
+                    var heightOfOneLine = getTextDimensions(doc, text, font).h;
+                    var linesCount = getTextLines(doc, text, font, {
+                        wordWrapEnabled: wordWrapEnabled,
+                        targetRectWidth: targetRectWidth
+                    }).length;
+                    return heightOfOneLine * linesCount * doc.getLineHeightFactor()
+                }
+            },
+        65322:
+            /*!********************************************************************************!*\
+              !*** ./artifacts/transpiled-renovation-npm/exporter/jspdf/common/row_utils.js ***!
+              \********************************************************************************/
+            function(__unused_webpack_module, exports, __webpack_require__) {
+                exports.applyBordersConfig = function(rows) {
+                    for (var rowIndex = 0; rowIndex < rows.length; rowIndex++) {
+                        var cells = rows[rowIndex].cells;
+                        for (var columnIndex = 0; columnIndex < cells.length; columnIndex++) {
+                            var pdfCell = cells[columnIndex].pdfCell;
+                            var leftPdfCell = columnIndex >= 1 ? cells[columnIndex - 1].pdfCell : null;
+                            var topPdfCell = rowIndex >= 1 ? rows[rowIndex - 1].cells[columnIndex].pdfCell : null;
+                            if (false === pdfCell.drawLeftBorder && !(0, _type.isDefined)(cells[columnIndex].colSpan)) {
+                                if ((0, _type.isDefined)(leftPdfCell)) {
+                                    leftPdfCell.drawRightBorder = false
+                                }
+                            } else if (!(0, _type.isDefined)(pdfCell.drawLeftBorder)) {
+                                if ((0, _type.isDefined)(leftPdfCell) && false === leftPdfCell.drawRightBorder) {
+                                    pdfCell.drawLeftBorder = false
+                                }
+                            }
+                            if (false === pdfCell.drawTopBorder) {
+                                if ((0, _type.isDefined)(topPdfCell)) {
+                                    topPdfCell.drawBottomBorder = false
+                                }
+                            } else if (!(0, _type.isDefined)(pdfCell.drawTopBorder)) {
+                                if ((0, _type.isDefined)(topPdfCell) && false === topPdfCell.drawBottomBorder) {
+                                    pdfCell.drawTopBorder = false
+                                }
+                            }
+                        }
+                    }
+                };
+                exports.applyColSpans = function(rows) {
+                    for (var rowIndex = 0; rowIndex < rows.length; rowIndex++) {
+                        var row = rows[rowIndex];
+                        for (var cellIndex = 0; cellIndex < row.cells.length; cellIndex++) {
+                            var cell = row.cells[cellIndex];
+                            if ((0, _type.isDefined)(cell.colSpan) && !(0, _type.isDefined)(cell.pdfCell.isMerged)) {
+                                for (var spanIndex = 1; spanIndex <= cell.colSpan; spanIndex++) {
+                                    var mergedCell = rows[rowIndex].cells[cellIndex + spanIndex];
+                                    cell.pdfCell._rect.w += mergedCell.pdfCell._rect.w;
+                                    mergedCell.pdfCell._rect.w = 0;
+                                    mergedCell.pdfCell.isMerged = true
+                                }
+                            }
+                        }
+                    }
+                };
+                exports.applyRowSpans = function(rows) {
+                    for (var rowIndex = 0; rowIndex < rows.length; rowIndex++) {
+                        var row = rows[rowIndex];
+                        for (var cellIndex = 0; cellIndex < row.cells.length; cellIndex++) {
+                            var cell = row.cells[cellIndex];
+                            if ((0, _type.isDefined)(cell.rowSpan) && !(0, _type.isDefined)(cell.pdfCell.isMerged)) {
+                                for (var spanIndex = 1; spanIndex <= cell.rowSpan; spanIndex++) {
+                                    var mergedCell = rows[rowIndex + spanIndex].cells[cellIndex];
+                                    cell.pdfCell._rect.h += mergedCell.pdfCell._rect.h;
+                                    mergedCell.pdfCell._rect.h = 0;
+                                    mergedCell.pdfCell.isMerged = true
+                                }
+                            }
+                        }
+                    }
+                };
+                exports.calculateCoordinates = function(doc, rows, options) {
+                    var _topLeft$y;
+                    var topLeft = null === options || void 0 === options ? void 0 : options.topLeft;
+                    var margin = null === options || void 0 === options ? void 0 : options.margin;
+                    var y = (null !== (_topLeft$y = null === topLeft || void 0 === topLeft ? void 0 : topLeft.y) && void 0 !== _topLeft$y ? _topLeft$y : 0) + margin.top;
+                    rows.forEach((function(row) {
+                        var _topLeft$x;
+                        var x = (null !== (_topLeft$x = null === topLeft || void 0 === topLeft ? void 0 : topLeft.x) && void 0 !== _topLeft$x ? _topLeft$x : 0) + margin.left;
+                        var intend = row.indentLevel * options.indent;
+                        row.cells.forEach((function(cell) {
+                            cell.pdfCell._rect.x = x + intend;
+                            cell.pdfCell._rect.y = y;
+                            x += cell.pdfCell._rect.w
+                        }));
+                        y += row.height
+                    }))
+                };
+                exports.calculateHeights = function(doc, rows, options) {
+                    rows.forEach((function(row) {
+                        var pdfCells = row.cells.map((function(c) {
+                            return c.pdfCell
+                        }));
+                        var customerHeight;
+                        if (options.onRowExporting) {
+                            var args = {
+                                rowCells: pdfCells
+                            };
+                            options.onRowExporting(args);
+                            if ((0, _type.isDefined)(args.rowHeight)) {
+                                customerHeight = args.rowHeight
+                            }
+                        }
+                        row.height = (0, _type.isDefined)(customerHeight) ? customerHeight : (0, _pdf_utils.calculateRowHeight)(doc, row.cells, pdfCells.map((function(c) {
+                            return c._rect.w
+                        })));
+                        pdfCells.forEach((function(cell) {
+                            cell._rect.h = row.height
+                        }))
+                    }))
+                };
+                exports.calculateTableSize = function(doc, cells, options) {
+                    var _ref2, _leftPos, _options$topLeft, _ref3, _topPos, _options$topLeft2;
+                    var leftPos;
+                    var topPos;
+                    var rightPos;
+                    var bottomPos;
+                    cells.forEach((function(cell) {
+                        if (!(0, _type.isDefined)(leftPos) || leftPos > cell._rect.x) {
+                            leftPos = cell._rect.x
+                        }
+                        if (!(0, _type.isDefined)(topPos) || topPos > cell._rect.y) {
+                            topPos = cell._rect.y
+                        }
+                        if (!(0, _type.isDefined)(rightPos) || rightPos < cell._rect.x + cell._rect.w) {
+                            rightPos = cell._rect.x + cell._rect.w
+                        }
+                        if (!(0, _type.isDefined)(bottomPos) || bottomPos < cell._rect.y + cell._rect.h) {
+                            bottomPos = cell._rect.y + cell._rect.h
+                        }
+                    }));
+                    var x = null !== (_ref2 = null !== (_leftPos = leftPos) && void 0 !== _leftPos ? _leftPos : null === options || void 0 === options ? void 0 : null === (_options$topLeft = options.topLeft) || void 0 === _options$topLeft ? void 0 : _options$topLeft.x) && void 0 !== _ref2 ? _ref2 : 0;
+                    var y = null !== (_ref3 = null !== (_topPos = topPos) && void 0 !== _topPos ? _topPos : null === options || void 0 === options ? void 0 : null === (_options$topLeft2 = options.topLeft) || void 0 === _options$topLeft2 ? void 0 : _options$topLeft2.y) && void 0 !== _ref3 ? _ref3 : 0;
+                    var w = (0, _type.isDefined)(rightPos) ? rightPos - x : 0;
+                    var h = (0, _type.isDefined)(bottomPos) ? bottomPos - y : 0;
+                    return {
+                        x: x,
+                        y: y,
+                        w: w,
+                        h: h
+                    }
+                };
+                exports.initializeCellsWidth = function(doc, dataProvider, rows, options) {
+                    var columnWidths = function(doc, dataProvider, topLeftX, margin, customerColumnWidths) {
+                        var resultWidths = dataProvider.getColumnsWidths().map((function(width) {
+                            return (0, _pdf_utils.toPdfUnit)(doc, null !== width && void 0 !== width ? width : 150)
+                        }));
+                        var totalAutoColumnsWidth = resultWidths.filter((function(width, index) {
+                            return !(0, _type.isDefined)(customerColumnWidths[index])
+                        })).reduce(getSum, 0);
+                        var totalCustomerColumnsWidth = customerColumnWidths.filter((function(width) {
+                            return (0, _type.isNumeric)(width)
+                        })).reduce(getSum, 0);
+                        var availablePageWidth = function(doc, topLeftX, margin) {
+                            return (0, _pdf_utils.getPageWidth)(doc) - topLeftX - margin.left - margin.right
+                        }(doc, topLeftX, margin);
+                        var ratio = totalCustomerColumnsWidth < availablePageWidth ? (availablePageWidth - totalCustomerColumnsWidth) / totalAutoColumnsWidth : 1;
+                        return resultWidths.map((function(width, index) {
+                            var _customerColumnWidths;
+                            return null !== (_customerColumnWidths = customerColumnWidths[index]) && void 0 !== _customerColumnWidths ? _customerColumnWidths : width * ratio
+                        }))
+                    }(doc, dataProvider, options.topLeft.x, options.margin, options.columnWidths);
+                    rows.forEach((function(row) {
+                        row.cells.forEach((function(_ref, index) {
+                            _ref.gridCell;
+                            var pdfCell = _ref.pdfCell;
+                            pdfCell._rect.w = columnWidths[index]
+                        }))
+                    }))
+                };
+                exports.resizeFirstColumnByIndentLevel = function(rows, options) {
+                    rows.forEach((function(row) {
+                        row.cells[0].pdfCell._rect.w -= row.indentLevel * options.indent
+                    }))
+                };
+                var _type = __webpack_require__( /*! ../../../core/utils/type */ 35922);
+                var _pdf_utils = __webpack_require__( /*! ./pdf_utils */ 79262);
+                var getSum = function(a, b) {
+                    return a + b
+                }
+            },
+        27504:
+            /*!*************************************************************************************!*\
+              !*** ./artifacts/transpiled-renovation-npm/exporter/jspdf/common/rows_generator.js ***!
+              \*************************************************************************************/
+            function(__unused_webpack_module, exports, __webpack_require__) {
+                exports.generateRowsInfo = function(doc, dataProvider, dataGrid, headerBackgroundColor) {
+                    var result = [];
+                    var rowsCount = dataProvider.getRowsCount();
+                    var wordWrapEnabled = !!dataGrid.option("wordWrapEnabled");
+                    var rtlEnabled = !!dataGrid.option("rtlEnabled");
+                    var columns = dataProvider.getColumns();
+                    var styles = dataProvider.getStyles();
+                    for (var rowIndex = 0; rowIndex < rowsCount; rowIndex++) {
+                        var rowType = dataProvider.getCellData(rowIndex, 0, true).cellSourceData.rowType;
+                        var indentLevel = "header" !== rowType ? dataProvider.getGroupLevel(rowIndex) : 0;
+                        var previousRow = result[rowIndex - 1];
+                        if ("groupFooter" === rowType && "groupFooter" === (null === previousRow || void 0 === previousRow ? void 0 : previousRow.rowType)) {
+                            indentLevel = previousRow.indentLevel - 1
+                        }
+                        result.push({
+                            rowType: rowType,
+                            indentLevel: indentLevel,
+                            cells: generateRowCells({
+                                doc: doc,
+                                dataProvider: dataProvider,
+                                rowIndex: rowIndex,
+                                wordWrapEnabled: wordWrapEnabled,
+                                columns: columns,
+                                styles: styles,
+                                rowType: rowType,
+                                backgroundColor: "header" === rowType ? headerBackgroundColor : void 0,
+                                rtlEnabled: rtlEnabled
+                            }),
+                            rowIndex: rowIndex
+                        })
+                    }
+                    return result
+                };
+                exports.getBaseTableStyle = function() {
+                    return defaultStyles.base
+                };
+                var _type = __webpack_require__( /*! ../../../core/utils/type */ 35922);
+                var _date = _interopRequireDefault(__webpack_require__( /*! ../../../localization/date */ 91500));
+                var _number = _interopRequireDefault(__webpack_require__( /*! ../../../localization/number */ 18016));
+                var _pdf_utils = __webpack_require__( /*! ./pdf_utils */ 79262);
+
+                function _interopRequireDefault(obj) {
+                    return obj && obj.__esModule ? obj : {
+                        default: obj
+                    }
+                }
+
+                function _extends() {
+                    _extends = Object.assign ? Object.assign.bind() : function(target) {
+                        for (var i = 1; i < arguments.length; i++) {
+                            var source = arguments[i];
+                            for (var key in source) {
+                                if (Object.prototype.hasOwnProperty.call(source, key)) {
+                                    target[key] = source[key]
+                                }
+                            }
+                        }
+                        return target
+                    };
+                    return _extends.apply(this, arguments)
+                }
+                var defaultStyles = {
+                    base: {
+                        font: {
+                            size: 10
+                        },
+                        borderWidth: .5,
+                        borderColor: "#979797"
+                    },
+                    header: {
+                        textColor: "#979797"
+                    },
+                    group: {},
+                    data: {},
+                    groupFooter: {},
+                    totalFooter: {}
+                };
+
+                function generateRowCells(_ref) {
+                    var doc = _ref.doc,
+                        dataProvider = _ref.dataProvider,
+                        rowIndex = _ref.rowIndex,
+                        wordWrapEnabled = _ref.wordWrapEnabled,
+                        columns = _ref.columns,
+                        styles = _ref.styles,
+                        rowType = _ref.rowType,
+                        backgroundColor = _ref.backgroundColor,
+                        rtlEnabled = _ref.rtlEnabled;
+                    var result = [];
+                    for (var cellIndex = 0; cellIndex < columns.length; cellIndex++) {
+                        var _style$alignment;
+                        var cellData = dataProvider.getCellData(rowIndex, cellIndex, true);
+                        var cellStyle = styles[dataProvider.getStyleId(rowIndex, cellIndex)];
+                        var style = getPdfCellStyle(columns[cellIndex], rowType, cellStyle);
+                        var defaultAlignment = rtlEnabled ? "right" : "left";
+                        var paddingValue = (0, _pdf_utils.toPdfUnit)(doc, 5);
+                        var pdfCell = {
+                            text: getFormattedValue(cellData.value, cellStyle.format),
+                            verticalAlign: "middle",
+                            horizontalAlign: null !== (_style$alignment = style.alignment) && void 0 !== _style$alignment ? _style$alignment : defaultAlignment,
+                            wordWrapEnabled: wordWrapEnabled,
+                            backgroundColor: backgroundColor,
+                            padding: {
+                                top: paddingValue,
+                                right: paddingValue,
+                                bottom: paddingValue,
+                                left: paddingValue
+                            },
+                            _rect: {},
+                            _internalTextOptions: {}
+                        };
+                        if (rtlEnabled) {
+                            pdfCell._internalTextOptions.isInputVisual = false;
+                            pdfCell._internalTextOptions.isOutputVisual = true;
+                            pdfCell._internalTextOptions.isInputRtl = true;
+                            pdfCell._internalTextOptions.isOutputRtl = false
+                        }
+                        var cellInfo = {
+                            gridCell: cellData.cellSourceData,
+                            pdfCell: _extends({}, pdfCell, style)
+                        };
+                        if ("header" === rowType) {
+                            var cellMerging = dataProvider.getCellMerging(rowIndex, cellIndex);
+                            if (cellMerging && cellMerging.rowspan > 0) {
+                                cellInfo.rowSpan = cellMerging.rowspan
+                            }
+                            if (cellMerging && cellMerging.colspan > 0) {
+                                cellInfo.colSpan = cellMerging.colspan
+                            }
+                        } else if ("group" === rowType) {
+                            var drawLeftBorderField = rtlEnabled ? "drawRightBorder" : "drawLeftBorder";
+                            var drawRightBorderField = rtlEnabled ? "drawLeftBorder" : "drawRightBorder";
+                            cellInfo.pdfCell[drawLeftBorderField] = 0 === cellIndex;
+                            cellInfo.pdfCell[drawRightBorderField] = cellIndex === columns.length - 1;
+                            if (cellIndex > 0) {
+                                var isEmptyCellsExceptFirst = result.slice(1).reduce((function(accumulate, cellInfo) {
+                                    return accumulate && !(0, _type.isDefined)(cellInfo.pdfCell.text)
+                                }), true);
+                                if (!(0, _type.isDefined)(cellInfo.pdfCell.text) && isEmptyCellsExceptFirst) {
+                                    result[0].pdfCell[drawRightBorderField] = true;
+                                    for (var i = 0; i < result.length; i++) {
+                                        result[i].colSpan = result.length
+                                    }
+                                    cellInfo.colSpan = result.length
+                                }
+                            }
+                        }
+                        result.push(cellInfo)
+                    }
+                    return result
+                }
+
+                function getPdfCellStyle(column, rowType, cellStyle) {
+                    var styles = _extends({}, defaultStyles.base, defaultStyles[rowType]);
+                    var alignment = "header" === rowType ? column.alignment : cellStyle.alignment;
+                    if (alignment) {
+                        styles.alignment = alignment
+                    }
+                    if (cellStyle.bold && "header" !== rowType) {
+                        styles.font = _extends({}, styles.font, {
+                            style: "bold"
+                        })
+                    }
+                    return styles
+                }
+
+                function getFormattedValue(value, format) {
+                    if ((0, _type.isDefined)(format)) {
+                        if ((0, _type.isDate)(value)) {
+                            return _date.default.format(value, format)
+                        }
+                        if ((0, _type.isNumeric)(value)) {
+                            return _number.default.format(value, format)
+                        }
+                    }
+                    return null === value || void 0 === value ? void 0 : value.toString()
+                }
+            },
+        22775:
+            /*!*************************************************************************************!*\
+              !*** ./artifacts/transpiled-renovation-npm/exporter/jspdf/common/rows_splitting.js ***!
+              \*************************************************************************************/
+            function(__unused_webpack_module, exports, __webpack_require__) {
+                exports.splitByPages = function(doc, rowsInfo, options, onSeparateRectHorizontally, onSeparateRectVertically) {
+                    if (0 === rowsInfo.length) {
+                        return [
+                            []
+                        ]
+                    }
+                    var maxBottomRight = {
+                        x: (0, _pdf_utils.getPageWidth)(doc) - options.margin.right,
+                        y: (0, _pdf_utils.getPageHeight)(doc) - options.margin.bottom
+                    };
+                    var headerRows = rowsInfo.filter((function(r) {
+                        return "header" === r.rowType
+                    }));
+                    var headerHeight = headerRows.reduce((function(accumulator, row) {
+                        return accumulator + row.height
+                    }), 0);
+                    var verticallyPages = splitRectsByPages(convertToCellsArray(rowsInfo), options.margin.top, "y", "h", (function(pagesLength, currentCoordinate) {
+                        var additionalHeight = pagesLength > 0 && options.repeatHeaders ? headerHeight : 0;
+                        return (0, _draw_utils.roundToThreeDecimals)(currentCoordinate + additionalHeight) <= (0, _draw_utils.roundToThreeDecimals)(maxBottomRight.y)
+                    }), (function(rect, currentPageMaxRectCoordinate, currentPageRects, rectsToSplit) {
+                        var args = {
+                            sourceRect: rect,
+                            topRect: {
+                                x: rect.x,
+                                y: rect.y,
+                                w: rect.w,
+                                h: currentPageMaxRectCoordinate - rect.y
+                            },
+                            bottomRect: {
+                                x: rect.x,
+                                y: currentPageMaxRectCoordinate,
+                                w: rect.w,
+                                h: rect.h - (currentPageMaxRectCoordinate - rect.y)
+                            }
+                        };
+                        onSeparateRectVertically(args);
+                        currentPageRects.push(args.topRect);
+                        rectsToSplit.push(args.bottomRect)
+                    }));
+                    if (options.repeatHeaders) {
+                        for (var i = 1; i < verticallyPages.length; i++) {
+                            verticallyPages[i].forEach((function(rect) {
+                                return rect.y += headerHeight
+                            }));
+                            var headerCells = convertToCellsArray(headerRows);
+                            headerCells.forEach((function(cell) {
+                                cell.y -= options.topLeft.y
+                            }));
+                            verticallyPages[i] = [].concat(_toConsumableArray(headerCells), _toConsumableArray(verticallyPages[i]))
+                        }
+                    }
+                    var pageIndex = 0;
+                    while (pageIndex < verticallyPages.length) {
+                        var horizontallyPages = splitRectsByPages(verticallyPages[pageIndex], options.margin.left, "x", "w", (function(pagesLength, currentCoordinate) {
+                            return (0, _draw_utils.roundToThreeDecimals)(currentCoordinate) <= (0, _draw_utils.roundToThreeDecimals)(maxBottomRight.x)
+                        }), (function(rect, currentPageMaxRectCoordinate, currentPageRects, rectsToSplit) {
+                            var args = {
+                                sourceRect: rect,
+                                leftRect: {
+                                    x: rect.x,
+                                    y: rect.y,
+                                    w: currentPageMaxRectCoordinate - rect.x,
+                                    h: rect.h
+                                },
+                                rightRect: {
+                                    x: currentPageMaxRectCoordinate,
+                                    y: rect.y,
+                                    w: rect.w - (currentPageMaxRectCoordinate - rect.x),
+                                    h: rect.h
+                                }
+                            };
+                            onSeparateRectHorizontally(args);
+                            currentPageRects.push(args.leftRect);
+                            rectsToSplit.push(args.rightRect)
+                        }));
+                        if (horizontallyPages.length > 1) {
+                            verticallyPages.splice.apply(verticallyPages, [pageIndex, 1].concat(_toConsumableArray(horizontallyPages)));
+                            pageIndex += horizontallyPages.length
+                        } else {
+                            pageIndex += 1
+                        }
+                    }
+                    return verticallyPages.map((function(rects) {
+                        return rects.map((function(rect) {
+                            return _extends({}, rect.sourceCellInfo, {
+                                _rect: rect
+                            })
+                        }))
+                    }))
+                };
+                var _type = __webpack_require__( /*! ../../../core/utils/type */ 35922);
+                var _pdf_utils = __webpack_require__( /*! ./pdf_utils */ 79262);
+                var _draw_utils = __webpack_require__( /*! ./draw_utils */ 66867);
+
+                function _toConsumableArray(arr) {
+                    return function(arr) {
+                        if (Array.isArray(arr)) {
+                            return _arrayLikeToArray(arr)
+                        }
+                    }(arr) || function(iter) {
+                        if ("undefined" !== typeof Symbol && null != iter[Symbol.iterator] || null != iter["@@iterator"]) {
+                            return Array.from(iter)
+                        }
+                    }(arr) || function(o, minLen) {
+                        if (!o) {
+                            return
+                        }
+                        if ("string" === typeof o) {
+                            return _arrayLikeToArray(o, minLen)
+                        }
+                        var n = Object.prototype.toString.call(o).slice(8, -1);
+                        if ("Object" === n && o.constructor) {
+                            n = o.constructor.name
+                        }
+                        if ("Map" === n || "Set" === n) {
+                            return Array.from(o)
+                        }
+                        if ("Arguments" === n || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) {
+                            return _arrayLikeToArray(o, minLen)
+                        }
+                    }(arr) || function() {
+                        throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.")
+                    }()
+                }
+
+                function _arrayLikeToArray(arr, len) {
+                    if (null == len || len > arr.length) {
+                        len = arr.length
+                    }
+                    for (var i = 0, arr2 = new Array(len); i < len; i++) {
+                        arr2[i] = arr[i]
+                    }
+                    return arr2
+                }
+
+                function _extends() {
+                    _extends = Object.assign ? Object.assign.bind() : function(target) {
+                        for (var i = 1; i < arguments.length; i++) {
+                            var source = arguments[i];
+                            for (var key in source) {
+                                if (Object.prototype.hasOwnProperty.call(source, key)) {
+                                    target[key] = source[key]
+                                }
+                            }
+                        }
+                        return target
+                    };
+                    return _extends.apply(this, arguments)
+                }
+
+                function convertToCellsArray(rows) {
+                    return [].concat.apply([], rows.map((function(rowInfo) {
+                        return rowInfo.cells.filter((function(cell) {
+                            return !(0, _type.isDefined)(cell.pdfCell.isMerged)
+                        })).map((function(cellInfo) {
+                            return _extends({}, cellInfo.pdfCell._rect, {
+                                sourceCellInfo: _extends({}, cellInfo.pdfCell, {
+                                    gridCell: cellInfo.gridCell
+                                })
+                            })
+                        }))
+                    })))
+                }
+
+                function splitRectsByPages(rects, marginValue, coordinate, dimension, checkPredicate, onSeparateCallback) {
+                    var pages = [];
+                    var rectsToSplit = _toConsumableArray(rects);
+                    var _loop = function() {
+                        var currentPageMaxRectCoordinate = 0;
+                        var currentPageRects = rectsToSplit.filter((function(rect) {
+                            var currentRectCoordinate = rect[coordinate] + rect[dimension];
+                            if (checkPredicate(pages.length, currentRectCoordinate)) {
+                                if (currentPageMaxRectCoordinate <= currentRectCoordinate) {
+                                    currentPageMaxRectCoordinate = currentRectCoordinate
+                                }
+                                return true
+                            } else {
+                                return false
+                            }
+                        }));
+                        var rectsToSeparate = rectsToSplit.filter((function(rect) {
+                            var currentRectLeft = rect[coordinate];
+                            var currentRectRight = rect[coordinate] + rect[dimension];
+                            if (currentRectLeft < currentPageMaxRectCoordinate && currentPageMaxRectCoordinate < currentRectRight) {
+                                return true
+                            }
+                        }));
+                        rectsToSeparate.forEach((function(rect) {
+                            onSeparateCallback(rect, currentPageMaxRectCoordinate, currentPageRects, rectsToSplit);
+                            var index = rectsToSplit.indexOf(rect);
+                            if (-1 !== index) {
+                                rectsToSplit.splice(index, 1)
+                            }
+                        }));
+                        currentPageRects.forEach((function(rect) {
+                            var index = rectsToSplit.indexOf(rect);
+                            if (-1 !== index) {
+                                rectsToSplit.splice(index, 1)
+                            }
+                        }));
+                        rectsToSplit.forEach((function(rect) {
+                            rect[coordinate] = (0, _type.isDefined)(currentPageMaxRectCoordinate) ? rect[coordinate] - currentPageMaxRectCoordinate + marginValue : rect[coordinate]
+                        }));
+                        if (currentPageRects.length > 0) {
+                            pages.push(currentPageRects)
+                        } else {
+                            pages.push(rectsToSplit);
+                            return "break"
+                        }
+                    };
+                    while (rectsToSplit.length > 0) {
+                        var _ret = _loop();
+                        if ("break" === _ret) {
+                            break
+                        }
+                    }
+                    return pages
+                }
+            },
+        654:
+            /*!********************************************************************************!*\
+              !*** ./artifacts/transpiled-renovation-npm/exporter/jspdf/export_data_grid.js ***!
+              \********************************************************************************/
+            function(__unused_webpack_module, exports, __webpack_require__) {
+                exports.exportDataGrid = function(options) {
+                    return _export.Export.export(function(options) {
+                        if (!((0, _type.isDefined)(options) && (0, _type.isObject)(options))) {
+                            throw Error('The "exportDataGrid" method requires a configuration object.')
+                        }
+                        if (!((0, _type.isDefined)(options.component) && (0, _type.isObject)(options.component) && "dxDataGrid" === options.component.NAME)) {
+                            throw Error('The "component" field must contain a DataGrid instance.')
+                        }
+                        if (!((0, _type.isDefined)(options.jsPDFDocument) && (0, _type.isObject)(options.jsPDFDocument))) {
+                            throw Error('The "jsPDFDocument" field must contain a jsPDF instance.')
+                        }
+                        if ((0, _type.isDefined)(options.autoTableOptions)) {
+                            _errors.default.log("W0001", "Export", "autoTableOptions", "22.1", "You can migrate from exporting to PDF with the AutoTable plugin to a new export system. See the following topic for more information: ".concat("https://supportcenter.devexpress.com/ticket/details/t1077554"))
+                        }
+                        return _export.Export.getFullOptions(options)
+                    }(options))
+                };
                 var _type = __webpack_require__( /*! ../../core/utils/type */ 35922);
-                var _export = __webpack_require__( /*! ./export */ 39458)
+                var _errors = (obj = __webpack_require__( /*! ../../core/errors */ 17381), obj && obj.__esModule ? obj : {
+                    default: obj
+                });
+                var obj;
+                var _export = __webpack_require__( /*! ./common/export */ 17195)
             },
         29982:
             /*!****************************************************************************!*\
@@ -22597,7 +23888,6 @@
                 var _callbacks = _interopRequireDefault(__webpack_require__( /*! ../../core/utils/callbacks */ 44504));
                 var _type = __webpack_require__( /*! ../../core/utils/type */ 35922);
                 var _iterator = __webpack_require__( /*! ../../core/utils/iterator */ 95479);
-                var _array = __webpack_require__( /*! ../../core/utils/array */ 89386);
                 var _locker = _interopRequireDefault(__webpack_require__( /*! ../../core/utils/locker */ 88933));
                 var _editor = _interopRequireDefault(__webpack_require__( /*! ../../ui/editor/editor */ 96452));
                 var _template = __webpack_require__( /*! ./template */ 76165);
@@ -22621,7 +23911,6 @@
                         return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj
                     }, _typeof(obj)
                 }
-                var SKIP_APPLY_ACTION_CATEGORIES = ["rendering"];
                 if (_angular.default) {
                     var safeApply = function(func, scope) {
                         if (scope.$root.$$phase) {
@@ -22920,7 +24209,7 @@
                             result._optionChangedCallbacks = this._optionChangedCallbacks;
                             result._disposingCallbacks = this._componentDisposing;
                             result.onActionCreated = function(component, action, config) {
-                                if (config && (0, _array.inArray)(config.category, SKIP_APPLY_ACTION_CATEGORIES) > -1) {
+                                if (config && "rendering" === config.category) {
                                     return action
                                 }
                                 return function() {
@@ -23247,7 +24536,7 @@
                 var _dom = __webpack_require__( /*! ../../core/utils/dom */ 3532);
 
                 function _setPrototypeOf(o, p) {
-                    _setPrototypeOf = Object.setPrototypeOf || function(o, p) {
+                    _setPrototypeOf = Object.setPrototypeOf ? Object.setPrototypeOf.bind() : function(o, p) {
                         o.__proto__ = p;
                         return o
                     };
@@ -23699,6 +24988,7 @@
                 });
                 var obj;
                 var _version = __webpack_require__( /*! ../../core/utils/version */ 58020);
+                var _utils = __webpack_require__( /*! ./utils */ 45994);
                 if (_knockout.default) {
                     var originalKOCleanExternalData = _knockout.default.utils.domNodeDisposal.cleanExternalData;
                     ! function() {
@@ -23719,8 +25009,10 @@
                         }));
                         _knockout.default.utils.domNodeDisposal.cleanExternalData = function(node) {
                             node.cleanedByKo = true;
-                            if (!node.cleanedByJquery) {
-                                (0, _element_data.cleanData)([node])
+                            if ((0, _utils.getClosestNodeWithKoCreation)(node)) {
+                                if (!node.cleanedByJquery) {
+                                    (0, _element_data.cleanData)([node])
+                                }
                             }
                         }
                     }();
@@ -24090,7 +25382,7 @@
                 }
 
                 function _setPrototypeOf(o, p) {
-                    _setPrototypeOf = Object.setPrototypeOf || function(o, p) {
+                    _setPrototypeOf = Object.setPrototypeOf ? Object.setPrototypeOf.bind() : function(o, p) {
                         o.__proto__ = p;
                         return o
                     };
@@ -24162,17 +25454,33 @@
               !*** ./artifacts/transpiled-renovation-npm/integration/knockout/utils.js ***!
               \***************************************************************************/
             function(__unused_webpack_module, exports, __webpack_require__) {
-                exports.getClosestNodeWithContext = void 0;
-                var _knockout = (obj = __webpack_require__( /*! knockout */ 76130), obj && obj.__esModule ? obj : {
-                    default: obj
-                });
-                var obj;
+                exports.getClosestNodeWithKoCreation = exports.getClosestNodeWithContext = void 0;
+                var _knockout = _interopRequireDefault(__webpack_require__( /*! knockout */ 76130));
+                var _renderer = _interopRequireDefault(__webpack_require__( /*! ../../core/renderer */ 68374));
+
+                function _interopRequireDefault(obj) {
+                    return obj && obj.__esModule ? obj : {
+                        default: obj
+                    }
+                }
                 exports.getClosestNodeWithContext = function getClosestNodeWithContext(node) {
                     var context = _knockout.default.contextFor(node);
                     if (!context && node.parentNode) {
                         return getClosestNodeWithContext(node.parentNode)
                     }
                     return node
+                };
+                exports.getClosestNodeWithKoCreation = function getClosestNodeWithKoCreation(node) {
+                    var $el = (0, _renderer.default)(node);
+                    var data = $el.data();
+                    var hasFlag = data && data.dxKoCreation;
+                    if (hasFlag) {
+                        return node
+                    }
+                    if (node.parentNode) {
+                        return getClosestNodeWithKoCreation(node.parentNode)
+                    }
+                    return null
                 }
             },
         24935:
@@ -24994,6 +26302,1461 @@
                 module.exports = exports.default;
                 module.exports.default = exports.default
             },
+        35608:
+            /*!**************************************************************************!*\
+              !*** ./artifacts/transpiled-renovation-npm/localization/cldr-data/en.js ***!
+              \**************************************************************************/
+            function(__unused_webpack_module, exports) {
+                exports.enCldr = void 0;
+                exports.enCldr = {
+                    main: {
+                        en: {
+                            identity: {
+                                version: {
+                                    _cldrVersion: "36"
+                                }
+                            },
+                            dates: {
+                                calendars: {
+                                    gregorian: {
+                                        months: {
+                                            format: {
+                                                abbreviated: {
+                                                    1: "Jan",
+                                                    2: "Feb",
+                                                    3: "Mar",
+                                                    4: "Apr",
+                                                    5: "May",
+                                                    6: "Jun",
+                                                    7: "Jul",
+                                                    8: "Aug",
+                                                    9: "Sep",
+                                                    10: "Oct",
+                                                    11: "Nov",
+                                                    12: "Dec"
+                                                },
+                                                narrow: {
+                                                    1: "J",
+                                                    2: "F",
+                                                    3: "M",
+                                                    4: "A",
+                                                    5: "M",
+                                                    6: "J",
+                                                    7: "J",
+                                                    8: "A",
+                                                    9: "S",
+                                                    10: "O",
+                                                    11: "N",
+                                                    12: "D"
+                                                },
+                                                wide: {
+                                                    1: "January",
+                                                    2: "February",
+                                                    3: "March",
+                                                    4: "April",
+                                                    5: "May",
+                                                    6: "June",
+                                                    7: "July",
+                                                    8: "August",
+                                                    9: "September",
+                                                    10: "October",
+                                                    11: "November",
+                                                    12: "December"
+                                                }
+                                            },
+                                            "stand-alone": {
+                                                abbreviated: {
+                                                    1: "Jan",
+                                                    2: "Feb",
+                                                    3: "Mar",
+                                                    4: "Apr",
+                                                    5: "May",
+                                                    6: "Jun",
+                                                    7: "Jul",
+                                                    8: "Aug",
+                                                    9: "Sep",
+                                                    10: "Oct",
+                                                    11: "Nov",
+                                                    12: "Dec"
+                                                },
+                                                narrow: {
+                                                    1: "J",
+                                                    2: "F",
+                                                    3: "M",
+                                                    4: "A",
+                                                    5: "M",
+                                                    6: "J",
+                                                    7: "J",
+                                                    8: "A",
+                                                    9: "S",
+                                                    10: "O",
+                                                    11: "N",
+                                                    12: "D"
+                                                },
+                                                wide: {
+                                                    1: "January",
+                                                    2: "February",
+                                                    3: "March",
+                                                    4: "April",
+                                                    5: "May",
+                                                    6: "June",
+                                                    7: "July",
+                                                    8: "August",
+                                                    9: "September",
+                                                    10: "October",
+                                                    11: "November",
+                                                    12: "December"
+                                                }
+                                            }
+                                        },
+                                        days: {
+                                            format: {
+                                                abbreviated: {
+                                                    sun: "Sun",
+                                                    mon: "Mon",
+                                                    tue: "Tue",
+                                                    wed: "Wed",
+                                                    thu: "Thu",
+                                                    fri: "Fri",
+                                                    sat: "Sat"
+                                                },
+                                                narrow: {
+                                                    sun: "S",
+                                                    mon: "M",
+                                                    tue: "T",
+                                                    wed: "W",
+                                                    thu: "T",
+                                                    fri: "F",
+                                                    sat: "S"
+                                                },
+                                                short: {
+                                                    sun: "Su",
+                                                    mon: "Mo",
+                                                    tue: "Tu",
+                                                    wed: "We",
+                                                    thu: "Th",
+                                                    fri: "Fr",
+                                                    sat: "Sa"
+                                                },
+                                                wide: {
+                                                    sun: "Sunday",
+                                                    mon: "Monday",
+                                                    tue: "Tuesday",
+                                                    wed: "Wednesday",
+                                                    thu: "Thursday",
+                                                    fri: "Friday",
+                                                    sat: "Saturday"
+                                                }
+                                            },
+                                            "stand-alone": {
+                                                abbreviated: {
+                                                    sun: "Sun",
+                                                    mon: "Mon",
+                                                    tue: "Tue",
+                                                    wed: "Wed",
+                                                    thu: "Thu",
+                                                    fri: "Fri",
+                                                    sat: "Sat"
+                                                },
+                                                narrow: {
+                                                    sun: "S",
+                                                    mon: "M",
+                                                    tue: "T",
+                                                    wed: "W",
+                                                    thu: "T",
+                                                    fri: "F",
+                                                    sat: "S"
+                                                },
+                                                short: {
+                                                    sun: "Su",
+                                                    mon: "Mo",
+                                                    tue: "Tu",
+                                                    wed: "We",
+                                                    thu: "Th",
+                                                    fri: "Fr",
+                                                    sat: "Sa"
+                                                },
+                                                wide: {
+                                                    sun: "Sunday",
+                                                    mon: "Monday",
+                                                    tue: "Tuesday",
+                                                    wed: "Wednesday",
+                                                    thu: "Thursday",
+                                                    fri: "Friday",
+                                                    sat: "Saturday"
+                                                }
+                                            }
+                                        },
+                                        quarters: {
+                                            format: {
+                                                abbreviated: {
+                                                    1: "Q1",
+                                                    2: "Q2",
+                                                    3: "Q3",
+                                                    4: "Q4"
+                                                },
+                                                narrow: {
+                                                    1: "1",
+                                                    2: "2",
+                                                    3: "3",
+                                                    4: "4"
+                                                },
+                                                wide: {
+                                                    1: "1st quarter",
+                                                    2: "2nd quarter",
+                                                    3: "3rd quarter",
+                                                    4: "4th quarter"
+                                                }
+                                            },
+                                            "stand-alone": {
+                                                abbreviated: {
+                                                    1: "Q1",
+                                                    2: "Q2",
+                                                    3: "Q3",
+                                                    4: "Q4"
+                                                },
+                                                narrow: {
+                                                    1: "1",
+                                                    2: "2",
+                                                    3: "3",
+                                                    4: "4"
+                                                },
+                                                wide: {
+                                                    1: "1st quarter",
+                                                    2: "2nd quarter",
+                                                    3: "3rd quarter",
+                                                    4: "4th quarter"
+                                                }
+                                            }
+                                        },
+                                        dayPeriods: {
+                                            format: {
+                                                abbreviated: {
+                                                    midnight: "midnight",
+                                                    am: "AM",
+                                                    "am-alt-variant": "am",
+                                                    noon: "noon",
+                                                    pm: "PM",
+                                                    "pm-alt-variant": "pm",
+                                                    morning1: "in the morning",
+                                                    afternoon1: "in the afternoon",
+                                                    evening1: "in the evening",
+                                                    night1: "at night"
+                                                },
+                                                narrow: {
+                                                    midnight: "mi",
+                                                    am: "a",
+                                                    "am-alt-variant": "am",
+                                                    noon: "n",
+                                                    pm: "p",
+                                                    "pm-alt-variant": "pm",
+                                                    morning1: "in the morning",
+                                                    afternoon1: "in the afternoon",
+                                                    evening1: "in the evening",
+                                                    night1: "at night"
+                                                },
+                                                wide: {
+                                                    midnight: "midnight",
+                                                    am: "AM",
+                                                    "am-alt-variant": "am",
+                                                    noon: "noon",
+                                                    pm: "PM",
+                                                    "pm-alt-variant": "pm",
+                                                    morning1: "in the morning",
+                                                    afternoon1: "in the afternoon",
+                                                    evening1: "in the evening",
+                                                    night1: "at night"
+                                                }
+                                            },
+                                            "stand-alone": {
+                                                abbreviated: {
+                                                    midnight: "midnight",
+                                                    am: "AM",
+                                                    "am-alt-variant": "am",
+                                                    noon: "noon",
+                                                    pm: "PM",
+                                                    "pm-alt-variant": "pm",
+                                                    morning1: "morning",
+                                                    afternoon1: "afternoon",
+                                                    evening1: "evening",
+                                                    night1: "night"
+                                                },
+                                                narrow: {
+                                                    midnight: "midnight",
+                                                    am: "AM",
+                                                    "am-alt-variant": "am",
+                                                    noon: "noon",
+                                                    pm: "PM",
+                                                    "pm-alt-variant": "pm",
+                                                    morning1: "morning",
+                                                    afternoon1: "afternoon",
+                                                    evening1: "evening",
+                                                    night1: "night"
+                                                },
+                                                wide: {
+                                                    midnight: "midnight",
+                                                    am: "AM",
+                                                    "am-alt-variant": "am",
+                                                    noon: "noon",
+                                                    pm: "PM",
+                                                    "pm-alt-variant": "pm",
+                                                    morning1: "morning",
+                                                    afternoon1: "afternoon",
+                                                    evening1: "evening",
+                                                    night1: "night"
+                                                }
+                                            }
+                                        },
+                                        eras: {
+                                            eraNames: {
+                                                0: "Before Christ",
+                                                1: "Anno Domini",
+                                                "0-alt-variant": "Before Common Era",
+                                                "1-alt-variant": "Common Era"
+                                            },
+                                            eraAbbr: {
+                                                0: "BC",
+                                                1: "AD",
+                                                "0-alt-variant": "BCE",
+                                                "1-alt-variant": "CE"
+                                            },
+                                            eraNarrow: {
+                                                0: "B",
+                                                1: "A",
+                                                "0-alt-variant": "BCE",
+                                                "1-alt-variant": "CE"
+                                            }
+                                        },
+                                        dateFormats: {
+                                            full: "EEEE, MMMM d, y",
+                                            long: "MMMM d, y",
+                                            medium: "MMM d, y",
+                                            short: "M/d/yy"
+                                        },
+                                        timeFormats: {
+                                            full: "h:mm:ss a zzzz",
+                                            long: "h:mm:ss a z",
+                                            medium: "h:mm:ss a",
+                                            short: "h:mm a"
+                                        },
+                                        dateTimeFormats: {
+                                            full: "{1} 'at' {0}",
+                                            long: "{1} 'at' {0}",
+                                            medium: "{1}, {0}",
+                                            short: "{1}, {0}",
+                                            availableFormats: {
+                                                Bh: "h B",
+                                                Bhm: "h:mm B",
+                                                Bhms: "h:mm:ss B",
+                                                d: "d",
+                                                E: "ccc",
+                                                EBhm: "E h:mm B",
+                                                EBhms: "E h:mm:ss B",
+                                                Ed: "d E",
+                                                Ehm: "E h:mm a",
+                                                EHm: "E HH:mm",
+                                                Ehms: "E h:mm:ss a",
+                                                EHms: "E HH:mm:ss",
+                                                Gy: "y G",
+                                                GyMMM: "MMM y G",
+                                                GyMMMd: "MMM d, y G",
+                                                GyMMMEd: "E, MMM d, y G",
+                                                h: "h a",
+                                                H: "HH",
+                                                hm: "h:mm a",
+                                                Hm: "HH:mm",
+                                                hms: "h:mm:ss a",
+                                                Hms: "HH:mm:ss",
+                                                hmsv: "h:mm:ss a v",
+                                                Hmsv: "HH:mm:ss v",
+                                                hmv: "h:mm a v",
+                                                Hmv: "HH:mm v",
+                                                M: "L",
+                                                Md: "M/d",
+                                                MEd: "E, M/d",
+                                                MMM: "LLL",
+                                                MMMd: "MMM d",
+                                                MMMEd: "E, MMM d",
+                                                MMMMd: "MMMM d",
+                                                "MMMMW-count-one": "'week' W 'of' MMMM",
+                                                "MMMMW-count-other": "'week' W 'of' MMMM",
+                                                ms: "mm:ss",
+                                                y: "y",
+                                                yM: "M/y",
+                                                yMd: "M/d/y",
+                                                yMEd: "E, M/d/y",
+                                                yMMM: "MMM y",
+                                                yMMMd: "MMM d, y",
+                                                yMMMEd: "E, MMM d, y",
+                                                yMMMM: "MMMM y",
+                                                yQQQ: "QQQ y",
+                                                yQQQQ: "QQQQ y",
+                                                "yw-count-one": "'week' w 'of' Y",
+                                                "yw-count-other": "'week' w 'of' Y"
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            numbers: {
+                                defaultNumberingSystem: "latn",
+                                otherNumberingSystems: {
+                                    native: "latn"
+                                },
+                                minimumGroupingDigits: "1",
+                                "symbols-numberSystem-latn": {
+                                    decimal: ".",
+                                    group: ",",
+                                    list: ";",
+                                    percentSign: "%",
+                                    plusSign: "+",
+                                    minusSign: "-",
+                                    exponential: "E",
+                                    superscriptingExponent: "\xd7",
+                                    perMille: "\u2030",
+                                    infinity: "\u221e",
+                                    nan: "NaN",
+                                    timeSeparator: ":"
+                                },
+                                "decimalFormats-numberSystem-latn": {
+                                    standard: "#,##0.###"
+                                },
+                                "scientificFormats-numberSystem-latn": {
+                                    standard: "#E0"
+                                },
+                                "percentFormats-numberSystem-latn": {
+                                    standard: "#,##0%"
+                                },
+                                "currencyFormats-numberSystem-latn": {
+                                    currencySpacing: {
+                                        beforeCurrency: {
+                                            currencyMatch: "[:^S:]",
+                                            surroundingMatch: "[:digit:]",
+                                            insertBetween: "\xa0"
+                                        },
+                                        afterCurrency: {
+                                            currencyMatch: "[:^S:]",
+                                            surroundingMatch: "[:digit:]",
+                                            insertBetween: "\xa0"
+                                        }
+                                    },
+                                    standard: "\xa4#,##0.00",
+                                    accounting: "\xa4#,##0.00;(\xa4#,##0.00)"
+                                },
+                                currencies: {
+                                    ADP: {
+                                        symbol: "ADP"
+                                    },
+                                    AED: {
+                                        symbol: "AED"
+                                    },
+                                    AFA: {
+                                        symbol: "AFA"
+                                    },
+                                    AFN: {
+                                        symbol: "AFN"
+                                    },
+                                    ALK: {
+                                        symbol: "ALK"
+                                    },
+                                    ALL: {
+                                        symbol: "ALL"
+                                    },
+                                    AMD: {
+                                        symbol: "AMD"
+                                    },
+                                    ANG: {
+                                        symbol: "ANG"
+                                    },
+                                    AOA: {
+                                        symbol: "AOA",
+                                        "symbol-alt-narrow": "Kz"
+                                    },
+                                    AOK: {
+                                        symbol: "AOK"
+                                    },
+                                    AON: {
+                                        symbol: "AON"
+                                    },
+                                    AOR: {
+                                        symbol: "AOR"
+                                    },
+                                    ARA: {
+                                        symbol: "ARA"
+                                    },
+                                    ARL: {
+                                        symbol: "ARL"
+                                    },
+                                    ARM: {
+                                        symbol: "ARM"
+                                    },
+                                    ARP: {
+                                        symbol: "ARP"
+                                    },
+                                    ARS: {
+                                        symbol: "ARS",
+                                        "symbol-alt-narrow": "$"
+                                    },
+                                    ATS: {
+                                        symbol: "ATS"
+                                    },
+                                    AUD: {
+                                        symbol: "A$",
+                                        "symbol-alt-narrow": "$"
+                                    },
+                                    AWG: {
+                                        symbol: "AWG"
+                                    },
+                                    AZM: {
+                                        symbol: "AZM"
+                                    },
+                                    AZN: {
+                                        symbol: "AZN"
+                                    },
+                                    BAD: {
+                                        symbol: "BAD"
+                                    },
+                                    BAM: {
+                                        symbol: "BAM",
+                                        "symbol-alt-narrow": "KM"
+                                    },
+                                    BAN: {
+                                        symbol: "BAN"
+                                    },
+                                    BBD: {
+                                        symbol: "BBD",
+                                        "symbol-alt-narrow": "$"
+                                    },
+                                    BDT: {
+                                        symbol: "BDT",
+                                        "symbol-alt-narrow": "\u09f3"
+                                    },
+                                    BEC: {
+                                        symbol: "BEC"
+                                    },
+                                    BEF: {
+                                        symbol: "BEF"
+                                    },
+                                    BEL: {
+                                        symbol: "BEL"
+                                    },
+                                    BGL: {
+                                        symbol: "BGL"
+                                    },
+                                    BGM: {
+                                        symbol: "BGM"
+                                    },
+                                    BGN: {
+                                        symbol: "BGN"
+                                    },
+                                    BGO: {
+                                        symbol: "BGO"
+                                    },
+                                    BHD: {
+                                        symbol: "BHD"
+                                    },
+                                    BIF: {
+                                        symbol: "BIF"
+                                    },
+                                    BMD: {
+                                        symbol: "BMD",
+                                        "symbol-alt-narrow": "$"
+                                    },
+                                    BND: {
+                                        symbol: "BND",
+                                        "symbol-alt-narrow": "$"
+                                    },
+                                    BOB: {
+                                        symbol: "BOB",
+                                        "symbol-alt-narrow": "Bs"
+                                    },
+                                    BOL: {
+                                        symbol: "BOL"
+                                    },
+                                    BOP: {
+                                        symbol: "BOP"
+                                    },
+                                    BOV: {
+                                        symbol: "BOV"
+                                    },
+                                    BRB: {
+                                        symbol: "BRB"
+                                    },
+                                    BRC: {
+                                        symbol: "BRC"
+                                    },
+                                    BRE: {
+                                        symbol: "BRE"
+                                    },
+                                    BRL: {
+                                        symbol: "R$",
+                                        "symbol-alt-narrow": "R$"
+                                    },
+                                    BRN: {
+                                        symbol: "BRN"
+                                    },
+                                    BRR: {
+                                        symbol: "BRR"
+                                    },
+                                    BRZ: {
+                                        symbol: "BRZ"
+                                    },
+                                    BSD: {
+                                        symbol: "BSD",
+                                        "symbol-alt-narrow": "$"
+                                    },
+                                    BTN: {
+                                        symbol: "BTN"
+                                    },
+                                    BUK: {
+                                        symbol: "BUK"
+                                    },
+                                    BWP: {
+                                        symbol: "BWP",
+                                        "symbol-alt-narrow": "P"
+                                    },
+                                    BYB: {
+                                        symbol: "BYB"
+                                    },
+                                    BYN: {
+                                        symbol: "BYN",
+                                        "symbol-alt-narrow": "\u0440."
+                                    },
+                                    BYR: {
+                                        symbol: "BYR"
+                                    },
+                                    BZD: {
+                                        symbol: "BZD",
+                                        "symbol-alt-narrow": "$"
+                                    },
+                                    CAD: {
+                                        symbol: "CA$",
+                                        "symbol-alt-narrow": "$"
+                                    },
+                                    CDF: {
+                                        symbol: "CDF"
+                                    },
+                                    CHE: {
+                                        symbol: "CHE"
+                                    },
+                                    CHF: {
+                                        symbol: "CHF"
+                                    },
+                                    CHW: {
+                                        symbol: "CHW"
+                                    },
+                                    CLE: {
+                                        symbol: "CLE"
+                                    },
+                                    CLF: {
+                                        symbol: "CLF"
+                                    },
+                                    CLP: {
+                                        symbol: "CLP",
+                                        "symbol-alt-narrow": "$"
+                                    },
+                                    CNH: {
+                                        symbol: "CNH"
+                                    },
+                                    CNX: {
+                                        symbol: "CNX"
+                                    },
+                                    CNY: {
+                                        symbol: "CN\xa5",
+                                        "symbol-alt-narrow": "\xa5"
+                                    },
+                                    COP: {
+                                        symbol: "COP",
+                                        "symbol-alt-narrow": "$"
+                                    },
+                                    COU: {
+                                        symbol: "COU"
+                                    },
+                                    CRC: {
+                                        symbol: "CRC",
+                                        "symbol-alt-narrow": "\u20a1"
+                                    },
+                                    CSD: {
+                                        symbol: "CSD"
+                                    },
+                                    CSK: {
+                                        symbol: "CSK"
+                                    },
+                                    CUC: {
+                                        symbol: "CUC",
+                                        "symbol-alt-narrow": "$"
+                                    },
+                                    CUP: {
+                                        symbol: "CUP",
+                                        "symbol-alt-narrow": "$"
+                                    },
+                                    CVE: {
+                                        symbol: "CVE"
+                                    },
+                                    CYP: {
+                                        symbol: "CYP"
+                                    },
+                                    CZK: {
+                                        symbol: "CZK",
+                                        "symbol-alt-narrow": "K\u010d"
+                                    },
+                                    DDM: {
+                                        symbol: "DDM"
+                                    },
+                                    DEM: {
+                                        symbol: "DEM"
+                                    },
+                                    DJF: {
+                                        symbol: "DJF"
+                                    },
+                                    DKK: {
+                                        symbol: "DKK",
+                                        "symbol-alt-narrow": "kr"
+                                    },
+                                    DOP: {
+                                        symbol: "DOP",
+                                        "symbol-alt-narrow": "$"
+                                    },
+                                    DZD: {
+                                        symbol: "DZD"
+                                    },
+                                    ECS: {
+                                        symbol: "ECS"
+                                    },
+                                    ECV: {
+                                        symbol: "ECV"
+                                    },
+                                    EEK: {
+                                        symbol: "EEK"
+                                    },
+                                    EGP: {
+                                        symbol: "EGP",
+                                        "symbol-alt-narrow": "E\xa3"
+                                    },
+                                    ERN: {
+                                        symbol: "ERN"
+                                    },
+                                    ESA: {
+                                        symbol: "ESA"
+                                    },
+                                    ESB: {
+                                        symbol: "ESB"
+                                    },
+                                    ESP: {
+                                        symbol: "ESP",
+                                        "symbol-alt-narrow": "\u20a7"
+                                    },
+                                    ETB: {
+                                        symbol: "ETB"
+                                    },
+                                    EUR: {
+                                        symbol: "\u20ac",
+                                        "symbol-alt-narrow": "\u20ac"
+                                    },
+                                    FIM: {
+                                        symbol: "FIM"
+                                    },
+                                    FJD: {
+                                        symbol: "FJD",
+                                        "symbol-alt-narrow": "$"
+                                    },
+                                    FKP: {
+                                        symbol: "FKP",
+                                        "symbol-alt-narrow": "\xa3"
+                                    },
+                                    FRF: {
+                                        symbol: "FRF"
+                                    },
+                                    GBP: {
+                                        symbol: "\xa3",
+                                        "symbol-alt-narrow": "\xa3"
+                                    },
+                                    GEK: {
+                                        symbol: "GEK"
+                                    },
+                                    GEL: {
+                                        symbol: "GEL",
+                                        "symbol-alt-narrow": "\u20be"
+                                    },
+                                    GHC: {
+                                        symbol: "GHC"
+                                    },
+                                    GHS: {
+                                        symbol: "GHS"
+                                    },
+                                    GIP: {
+                                        symbol: "GIP",
+                                        "symbol-alt-narrow": "\xa3"
+                                    },
+                                    GMD: {
+                                        symbol: "GMD"
+                                    },
+                                    GNF: {
+                                        symbol: "GNF",
+                                        "symbol-alt-narrow": "FG"
+                                    },
+                                    GNS: {
+                                        symbol: "GNS"
+                                    },
+                                    GQE: {
+                                        symbol: "GQE"
+                                    },
+                                    GRD: {
+                                        symbol: "GRD"
+                                    },
+                                    GTQ: {
+                                        symbol: "GTQ",
+                                        "symbol-alt-narrow": "Q"
+                                    },
+                                    GWE: {
+                                        symbol: "GWE"
+                                    },
+                                    GWP: {
+                                        symbol: "GWP"
+                                    },
+                                    GYD: {
+                                        symbol: "GYD",
+                                        "symbol-alt-narrow": "$"
+                                    },
+                                    HKD: {
+                                        symbol: "HK$",
+                                        "symbol-alt-narrow": "$"
+                                    },
+                                    HNL: {
+                                        symbol: "HNL",
+                                        "symbol-alt-narrow": "L"
+                                    },
+                                    HRD: {
+                                        symbol: "HRD"
+                                    },
+                                    HRK: {
+                                        symbol: "HRK",
+                                        "symbol-alt-narrow": "kn"
+                                    },
+                                    HTG: {
+                                        symbol: "HTG"
+                                    },
+                                    HUF: {
+                                        symbol: "HUF",
+                                        "symbol-alt-narrow": "Ft"
+                                    },
+                                    IDR: {
+                                        symbol: "IDR",
+                                        "symbol-alt-narrow": "Rp"
+                                    },
+                                    IEP: {
+                                        symbol: "IEP"
+                                    },
+                                    ILP: {
+                                        symbol: "ILP"
+                                    },
+                                    ILR: {
+                                        symbol: "ILR"
+                                    },
+                                    ILS: {
+                                        symbol: "\u20aa",
+                                        "symbol-alt-narrow": "\u20aa"
+                                    },
+                                    INR: {
+                                        symbol: "\u20b9",
+                                        "symbol-alt-narrow": "\u20b9"
+                                    },
+                                    IQD: {
+                                        symbol: "IQD"
+                                    },
+                                    IRR: {
+                                        symbol: "IRR"
+                                    },
+                                    ISJ: {
+                                        symbol: "ISJ"
+                                    },
+                                    ISK: {
+                                        symbol: "ISK",
+                                        "symbol-alt-narrow": "kr"
+                                    },
+                                    ITL: {
+                                        symbol: "ITL"
+                                    },
+                                    JMD: {
+                                        symbol: "JMD",
+                                        "symbol-alt-narrow": "$"
+                                    },
+                                    JOD: {
+                                        symbol: "JOD"
+                                    },
+                                    JPY: {
+                                        symbol: "\xa5",
+                                        "symbol-alt-narrow": "\xa5"
+                                    },
+                                    KES: {
+                                        symbol: "KES"
+                                    },
+                                    KGS: {
+                                        symbol: "KGS"
+                                    },
+                                    KHR: {
+                                        symbol: "KHR",
+                                        "symbol-alt-narrow": "\u17db"
+                                    },
+                                    KMF: {
+                                        symbol: "KMF",
+                                        "symbol-alt-narrow": "CF"
+                                    },
+                                    KPW: {
+                                        symbol: "KPW",
+                                        "symbol-alt-narrow": "\u20a9"
+                                    },
+                                    KRH: {
+                                        symbol: "KRH"
+                                    },
+                                    KRO: {
+                                        symbol: "KRO"
+                                    },
+                                    KRW: {
+                                        symbol: "\u20a9",
+                                        "symbol-alt-narrow": "\u20a9"
+                                    },
+                                    KWD: {
+                                        symbol: "KWD"
+                                    },
+                                    KYD: {
+                                        symbol: "KYD",
+                                        "symbol-alt-narrow": "$"
+                                    },
+                                    KZT: {
+                                        symbol: "KZT",
+                                        "symbol-alt-narrow": "\u20b8"
+                                    },
+                                    LAK: {
+                                        symbol: "LAK",
+                                        "symbol-alt-narrow": "\u20ad"
+                                    },
+                                    LBP: {
+                                        symbol: "LBP",
+                                        "symbol-alt-narrow": "L\xa3"
+                                    },
+                                    LKR: {
+                                        symbol: "LKR",
+                                        "symbol-alt-narrow": "Rs"
+                                    },
+                                    LRD: {
+                                        symbol: "LRD",
+                                        "symbol-alt-narrow": "$"
+                                    },
+                                    LSL: {
+                                        symbol: "LSL"
+                                    },
+                                    LTL: {
+                                        symbol: "LTL",
+                                        "symbol-alt-narrow": "Lt"
+                                    },
+                                    LTT: {
+                                        symbol: "LTT"
+                                    },
+                                    LUC: {
+                                        symbol: "LUC"
+                                    },
+                                    LUF: {
+                                        symbol: "LUF"
+                                    },
+                                    LUL: {
+                                        symbol: "LUL"
+                                    },
+                                    LVL: {
+                                        symbol: "LVL",
+                                        "symbol-alt-narrow": "Ls"
+                                    },
+                                    LVR: {
+                                        symbol: "LVR"
+                                    },
+                                    LYD: {
+                                        symbol: "LYD"
+                                    },
+                                    MAD: {
+                                        symbol: "MAD"
+                                    },
+                                    MAF: {
+                                        symbol: "MAF"
+                                    },
+                                    MCF: {
+                                        symbol: "MCF"
+                                    },
+                                    MDC: {
+                                        symbol: "MDC"
+                                    },
+                                    MDL: {
+                                        symbol: "MDL"
+                                    },
+                                    MGA: {
+                                        symbol: "MGA",
+                                        "symbol-alt-narrow": "Ar"
+                                    },
+                                    MGF: {
+                                        symbol: "MGF"
+                                    },
+                                    MKD: {
+                                        symbol: "MKD"
+                                    },
+                                    MKN: {
+                                        symbol: "MKN"
+                                    },
+                                    MLF: {
+                                        symbol: "MLF"
+                                    },
+                                    MMK: {
+                                        symbol: "MMK",
+                                        "symbol-alt-narrow": "K"
+                                    },
+                                    MNT: {
+                                        symbol: "MNT",
+                                        "symbol-alt-narrow": "\u20ae"
+                                    },
+                                    MOP: {
+                                        symbol: "MOP"
+                                    },
+                                    MRO: {
+                                        symbol: "MRO"
+                                    },
+                                    MRU: {
+                                        symbol: "MRU"
+                                    },
+                                    MTL: {
+                                        symbol: "MTL"
+                                    },
+                                    MTP: {
+                                        symbol: "MTP"
+                                    },
+                                    MUR: {
+                                        symbol: "MUR",
+                                        "symbol-alt-narrow": "Rs"
+                                    },
+                                    MVP: {
+                                        symbol: "MVP"
+                                    },
+                                    MVR: {
+                                        symbol: "MVR"
+                                    },
+                                    MWK: {
+                                        symbol: "MWK"
+                                    },
+                                    MXN: {
+                                        symbol: "MX$",
+                                        "symbol-alt-narrow": "$"
+                                    },
+                                    MXP: {
+                                        symbol: "MXP"
+                                    },
+                                    MXV: {
+                                        symbol: "MXV"
+                                    },
+                                    MYR: {
+                                        symbol: "MYR",
+                                        "symbol-alt-narrow": "RM"
+                                    },
+                                    MZE: {
+                                        symbol: "MZE"
+                                    },
+                                    MZM: {
+                                        symbol: "MZM"
+                                    },
+                                    MZN: {
+                                        symbol: "MZN"
+                                    },
+                                    NAD: {
+                                        symbol: "NAD",
+                                        "symbol-alt-narrow": "$"
+                                    },
+                                    NGN: {
+                                        symbol: "NGN",
+                                        "symbol-alt-narrow": "\u20a6"
+                                    },
+                                    NIC: {
+                                        symbol: "NIC"
+                                    },
+                                    NIO: {
+                                        symbol: "NIO",
+                                        "symbol-alt-narrow": "C$"
+                                    },
+                                    NLG: {
+                                        symbol: "NLG"
+                                    },
+                                    NOK: {
+                                        symbol: "NOK",
+                                        "symbol-alt-narrow": "kr"
+                                    },
+                                    NPR: {
+                                        symbol: "NPR",
+                                        "symbol-alt-narrow": "Rs"
+                                    },
+                                    NZD: {
+                                        symbol: "NZ$",
+                                        "symbol-alt-narrow": "$"
+                                    },
+                                    OMR: {
+                                        symbol: "OMR"
+                                    },
+                                    PAB: {
+                                        symbol: "PAB"
+                                    },
+                                    PEI: {
+                                        symbol: "PEI"
+                                    },
+                                    PEN: {
+                                        symbol: "PEN"
+                                    },
+                                    PES: {
+                                        symbol: "PES"
+                                    },
+                                    PGK: {
+                                        symbol: "PGK"
+                                    },
+                                    PHP: {
+                                        symbol: "PHP",
+                                        "symbol-alt-narrow": "\u20b1"
+                                    },
+                                    PKR: {
+                                        symbol: "PKR",
+                                        "symbol-alt-narrow": "Rs"
+                                    },
+                                    PLN: {
+                                        symbol: "PLN",
+                                        "symbol-alt-narrow": "z\u0142"
+                                    },
+                                    PLZ: {
+                                        symbol: "PLZ"
+                                    },
+                                    PTE: {
+                                        symbol: "PTE"
+                                    },
+                                    PYG: {
+                                        symbol: "PYG",
+                                        "symbol-alt-narrow": "\u20b2"
+                                    },
+                                    QAR: {
+                                        symbol: "QAR"
+                                    },
+                                    RHD: {
+                                        symbol: "RHD"
+                                    },
+                                    ROL: {
+                                        symbol: "ROL"
+                                    },
+                                    RON: {
+                                        symbol: "RON",
+                                        "symbol-alt-narrow": "lei"
+                                    },
+                                    RSD: {
+                                        symbol: "RSD"
+                                    },
+                                    RUB: {
+                                        symbol: "RUB",
+                                        "symbol-alt-narrow": "\u20bd"
+                                    },
+                                    RUR: {
+                                        symbol: "RUR",
+                                        "symbol-alt-narrow": "\u0440."
+                                    },
+                                    RWF: {
+                                        symbol: "RWF",
+                                        "symbol-alt-narrow": "RF"
+                                    },
+                                    SAR: {
+                                        symbol: "SAR"
+                                    },
+                                    SBD: {
+                                        symbol: "SBD",
+                                        "symbol-alt-narrow": "$"
+                                    },
+                                    SCR: {
+                                        symbol: "SCR"
+                                    },
+                                    SDD: {
+                                        symbol: "SDD"
+                                    },
+                                    SDG: {
+                                        symbol: "SDG"
+                                    },
+                                    SDP: {
+                                        symbol: "SDP"
+                                    },
+                                    SEK: {
+                                        symbol: "SEK",
+                                        "symbol-alt-narrow": "kr"
+                                    },
+                                    SGD: {
+                                        symbol: "SGD",
+                                        "symbol-alt-narrow": "$"
+                                    },
+                                    SHP: {
+                                        symbol: "SHP",
+                                        "symbol-alt-narrow": "\xa3"
+                                    },
+                                    SIT: {
+                                        symbol: "SIT"
+                                    },
+                                    SKK: {
+                                        symbol: "SKK"
+                                    },
+                                    SLL: {
+                                        symbol: "SLL"
+                                    },
+                                    SOS: {
+                                        symbol: "SOS"
+                                    },
+                                    SRD: {
+                                        symbol: "SRD",
+                                        "symbol-alt-narrow": "$"
+                                    },
+                                    SRG: {
+                                        symbol: "SRG"
+                                    },
+                                    SSP: {
+                                        symbol: "SSP",
+                                        "symbol-alt-narrow": "\xa3"
+                                    },
+                                    STD: {
+                                        symbol: "STD"
+                                    },
+                                    STN: {
+                                        symbol: "STN",
+                                        "symbol-alt-narrow": "Db"
+                                    },
+                                    SUR: {
+                                        symbol: "SUR"
+                                    },
+                                    SVC: {
+                                        symbol: "SVC"
+                                    },
+                                    SYP: {
+                                        symbol: "SYP",
+                                        "symbol-alt-narrow": "\xa3"
+                                    },
+                                    SZL: {
+                                        symbol: "SZL"
+                                    },
+                                    THB: {
+                                        symbol: "THB",
+                                        "symbol-alt-narrow": "\u0e3f"
+                                    },
+                                    TJR: {
+                                        symbol: "TJR"
+                                    },
+                                    TJS: {
+                                        symbol: "TJS"
+                                    },
+                                    TMM: {
+                                        symbol: "TMM"
+                                    },
+                                    TMT: {
+                                        symbol: "TMT"
+                                    },
+                                    TND: {
+                                        symbol: "TND"
+                                    },
+                                    TOP: {
+                                        symbol: "TOP",
+                                        "symbol-alt-narrow": "T$"
+                                    },
+                                    TPE: {
+                                        symbol: "TPE"
+                                    },
+                                    TRL: {
+                                        symbol: "TRL"
+                                    },
+                                    TRY: {
+                                        symbol: "TRY",
+                                        "symbol-alt-narrow": "\u20ba"
+                                    },
+                                    TTD: {
+                                        symbol: "TTD",
+                                        "symbol-alt-narrow": "$"
+                                    },
+                                    TWD: {
+                                        symbol: "NT$",
+                                        "symbol-alt-narrow": "$"
+                                    },
+                                    TZS: {
+                                        symbol: "TZS"
+                                    },
+                                    UAH: {
+                                        symbol: "UAH",
+                                        "symbol-alt-narrow": "\u20b4"
+                                    },
+                                    UAK: {
+                                        symbol: "UAK"
+                                    },
+                                    UGS: {
+                                        symbol: "UGS"
+                                    },
+                                    UGX: {
+                                        symbol: "UGX"
+                                    },
+                                    USD: {
+                                        symbol: "$",
+                                        "symbol-alt-narrow": "$"
+                                    },
+                                    USN: {
+                                        symbol: "USN"
+                                    },
+                                    USS: {
+                                        symbol: "USS"
+                                    },
+                                    UYI: {
+                                        symbol: "UYI"
+                                    },
+                                    UYP: {
+                                        symbol: "UYP"
+                                    },
+                                    UYU: {
+                                        symbol: "UYU",
+                                        "symbol-alt-narrow": "$"
+                                    },
+                                    UYW: {
+                                        symbol: "UYW"
+                                    },
+                                    UZS: {
+                                        symbol: "UZS"
+                                    },
+                                    VEB: {
+                                        symbol: "VEB"
+                                    },
+                                    VEF: {
+                                        symbol: "VEF",
+                                        "symbol-alt-narrow": "Bs"
+                                    },
+                                    VES: {
+                                        symbol: "VES"
+                                    },
+                                    VND: {
+                                        symbol: "\u20ab",
+                                        "symbol-alt-narrow": "\u20ab"
+                                    },
+                                    VNN: {
+                                        symbol: "VNN"
+                                    },
+                                    VUV: {
+                                        symbol: "VUV"
+                                    },
+                                    WST: {
+                                        symbol: "WST"
+                                    },
+                                    XAF: {
+                                        symbol: "FCFA"
+                                    },
+                                    XAG: {
+                                        symbol: "XAG"
+                                    },
+                                    XAU: {
+                                        symbol: "XAU"
+                                    },
+                                    XBA: {
+                                        symbol: "XBA"
+                                    },
+                                    XBB: {
+                                        symbol: "XBB"
+                                    },
+                                    XBC: {
+                                        symbol: "XBC"
+                                    },
+                                    XBD: {
+                                        symbol: "XBD"
+                                    },
+                                    XCD: {
+                                        symbol: "EC$",
+                                        "symbol-alt-narrow": "$"
+                                    },
+                                    XDR: {
+                                        symbol: "XDR"
+                                    },
+                                    XEU: {
+                                        symbol: "XEU"
+                                    },
+                                    XFO: {
+                                        symbol: "XFO"
+                                    },
+                                    XFU: {
+                                        symbol: "XFU"
+                                    },
+                                    XOF: {
+                                        symbol: "CFA"
+                                    },
+                                    XPD: {
+                                        symbol: "XPD"
+                                    },
+                                    XPF: {
+                                        symbol: "CFPF"
+                                    },
+                                    XPT: {
+                                        symbol: "XPT"
+                                    },
+                                    XRE: {
+                                        symbol: "XRE"
+                                    },
+                                    XSU: {
+                                        symbol: "XSU"
+                                    },
+                                    XTS: {
+                                        symbol: "XTS"
+                                    },
+                                    XUA: {
+                                        symbol: "XUA"
+                                    },
+                                    XXX: {
+                                        symbol: "\xa4"
+                                    },
+                                    YDD: {
+                                        symbol: "YDD"
+                                    },
+                                    YER: {
+                                        symbol: "YER"
+                                    },
+                                    YUD: {
+                                        symbol: "YUD"
+                                    },
+                                    YUM: {
+                                        symbol: "YUM"
+                                    },
+                                    YUN: {
+                                        symbol: "YUN"
+                                    },
+                                    YUR: {
+                                        symbol: "YUR"
+                                    },
+                                    ZAL: {
+                                        symbol: "ZAL"
+                                    },
+                                    ZAR: {
+                                        symbol: "ZAR",
+                                        "symbol-alt-narrow": "R"
+                                    },
+                                    ZMK: {
+                                        symbol: "ZMK"
+                                    },
+                                    ZMW: {
+                                        symbol: "ZMW",
+                                        "symbol-alt-narrow": "ZK"
+                                    },
+                                    ZRN: {
+                                        symbol: "ZRN"
+                                    },
+                                    ZRZ: {
+                                        symbol: "ZRZ"
+                                    },
+                                    ZWD: {
+                                        symbol: "ZWD"
+                                    },
+                                    ZWL: {
+                                        symbol: "ZWL"
+                                    },
+                                    ZWR: {
+                                        symbol: "ZWR"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
         92286:
             /*!**********************************************************************************************!*\
               !*** ./artifacts/transpiled-renovation-npm/localization/cldr-data/first_day_of_week_data.js ***!
@@ -25376,6 +28139,6348 @@
                 module.exports = exports.default;
                 module.exports.default = exports.default
             },
+        57421:
+            /*!************************************************************************************!*\
+              !*** ./artifacts/transpiled-renovation-npm/localization/cldr-data/supplemental.js ***!
+              \************************************************************************************/
+            function(__unused_webpack_module, exports) {
+                exports.supplementalCldr = void 0;
+                exports.supplementalCldr = {
+                    supplemental: {
+                        version: {
+                            _unicodeVersion: "12.1.0",
+                            _cldrVersion: "36"
+                        },
+                        likelySubtags: {
+                            aa: "aa-Latn-ET",
+                            aai: "aai-Latn-ZZ",
+                            aak: "aak-Latn-ZZ",
+                            aau: "aau-Latn-ZZ",
+                            ab: "ab-Cyrl-GE",
+                            abi: "abi-Latn-ZZ",
+                            abq: "abq-Cyrl-ZZ",
+                            abr: "abr-Latn-GH",
+                            abt: "abt-Latn-ZZ",
+                            aby: "aby-Latn-ZZ",
+                            acd: "acd-Latn-ZZ",
+                            ace: "ace-Latn-ID",
+                            ach: "ach-Latn-UG",
+                            ada: "ada-Latn-GH",
+                            ade: "ade-Latn-ZZ",
+                            adj: "adj-Latn-ZZ",
+                            adp: "adp-Tibt-BT",
+                            ady: "ady-Cyrl-RU",
+                            adz: "adz-Latn-ZZ",
+                            ae: "ae-Avst-IR",
+                            aeb: "aeb-Arab-TN",
+                            aey: "aey-Latn-ZZ",
+                            af: "af-Latn-ZA",
+                            agc: "agc-Latn-ZZ",
+                            agd: "agd-Latn-ZZ",
+                            agg: "agg-Latn-ZZ",
+                            agm: "agm-Latn-ZZ",
+                            ago: "ago-Latn-ZZ",
+                            agq: "agq-Latn-CM",
+                            aha: "aha-Latn-ZZ",
+                            ahl: "ahl-Latn-ZZ",
+                            aho: "aho-Ahom-IN",
+                            ajg: "ajg-Latn-ZZ",
+                            ak: "ak-Latn-GH",
+                            akk: "akk-Xsux-IQ",
+                            ala: "ala-Latn-ZZ",
+                            ali: "ali-Latn-ZZ",
+                            aln: "aln-Latn-XK",
+                            alt: "alt-Cyrl-RU",
+                            am: "am-Ethi-ET",
+                            amm: "amm-Latn-ZZ",
+                            amn: "amn-Latn-ZZ",
+                            amo: "amo-Latn-NG",
+                            amp: "amp-Latn-ZZ",
+                            an: "an-Latn-ES",
+                            anc: "anc-Latn-ZZ",
+                            ank: "ank-Latn-ZZ",
+                            ann: "ann-Latn-ZZ",
+                            any: "any-Latn-ZZ",
+                            aoj: "aoj-Latn-ZZ",
+                            aom: "aom-Latn-ZZ",
+                            aoz: "aoz-Latn-ID",
+                            apc: "apc-Arab-ZZ",
+                            apd: "apd-Arab-TG",
+                            ape: "ape-Latn-ZZ",
+                            apr: "apr-Latn-ZZ",
+                            aps: "aps-Latn-ZZ",
+                            apz: "apz-Latn-ZZ",
+                            ar: "ar-Arab-EG",
+                            arc: "arc-Armi-IR",
+                            "arc-Nbat": "arc-Nbat-JO",
+                            "arc-Palm": "arc-Palm-SY",
+                            arh: "arh-Latn-ZZ",
+                            arn: "arn-Latn-CL",
+                            aro: "aro-Latn-BO",
+                            arq: "arq-Arab-DZ",
+                            ars: "ars-Arab-SA",
+                            ary: "ary-Arab-MA",
+                            arz: "arz-Arab-EG",
+                            as: "as-Beng-IN",
+                            asa: "asa-Latn-TZ",
+                            ase: "ase-Sgnw-US",
+                            asg: "asg-Latn-ZZ",
+                            aso: "aso-Latn-ZZ",
+                            ast: "ast-Latn-ES",
+                            ata: "ata-Latn-ZZ",
+                            atg: "atg-Latn-ZZ",
+                            atj: "atj-Latn-CA",
+                            auy: "auy-Latn-ZZ",
+                            av: "av-Cyrl-RU",
+                            avl: "avl-Arab-ZZ",
+                            avn: "avn-Latn-ZZ",
+                            avt: "avt-Latn-ZZ",
+                            avu: "avu-Latn-ZZ",
+                            awa: "awa-Deva-IN",
+                            awb: "awb-Latn-ZZ",
+                            awo: "awo-Latn-ZZ",
+                            awx: "awx-Latn-ZZ",
+                            ay: "ay-Latn-BO",
+                            ayb: "ayb-Latn-ZZ",
+                            az: "az-Latn-AZ",
+                            "az-Arab": "az-Arab-IR",
+                            "az-IQ": "az-Arab-IQ",
+                            "az-IR": "az-Arab-IR",
+                            "az-RU": "az-Cyrl-RU",
+                            ba: "ba-Cyrl-RU",
+                            bal: "bal-Arab-PK",
+                            ban: "ban-Latn-ID",
+                            bap: "bap-Deva-NP",
+                            bar: "bar-Latn-AT",
+                            bas: "bas-Latn-CM",
+                            bav: "bav-Latn-ZZ",
+                            bax: "bax-Bamu-CM",
+                            bba: "bba-Latn-ZZ",
+                            bbb: "bbb-Latn-ZZ",
+                            bbc: "bbc-Latn-ID",
+                            bbd: "bbd-Latn-ZZ",
+                            bbj: "bbj-Latn-CM",
+                            bbp: "bbp-Latn-ZZ",
+                            bbr: "bbr-Latn-ZZ",
+                            bcf: "bcf-Latn-ZZ",
+                            bch: "bch-Latn-ZZ",
+                            bci: "bci-Latn-CI",
+                            bcm: "bcm-Latn-ZZ",
+                            bcn: "bcn-Latn-ZZ",
+                            bco: "bco-Latn-ZZ",
+                            bcq: "bcq-Ethi-ZZ",
+                            bcu: "bcu-Latn-ZZ",
+                            bdd: "bdd-Latn-ZZ",
+                            be: "be-Cyrl-BY",
+                            bef: "bef-Latn-ZZ",
+                            beh: "beh-Latn-ZZ",
+                            bej: "bej-Arab-SD",
+                            bem: "bem-Latn-ZM",
+                            bet: "bet-Latn-ZZ",
+                            bew: "bew-Latn-ID",
+                            bex: "bex-Latn-ZZ",
+                            bez: "bez-Latn-TZ",
+                            bfd: "bfd-Latn-CM",
+                            bfq: "bfq-Taml-IN",
+                            bft: "bft-Arab-PK",
+                            bfy: "bfy-Deva-IN",
+                            bg: "bg-Cyrl-BG",
+                            bgc: "bgc-Deva-IN",
+                            bgn: "bgn-Arab-PK",
+                            bgx: "bgx-Grek-TR",
+                            bhb: "bhb-Deva-IN",
+                            bhg: "bhg-Latn-ZZ",
+                            bhi: "bhi-Deva-IN",
+                            bhl: "bhl-Latn-ZZ",
+                            bho: "bho-Deva-IN",
+                            bhy: "bhy-Latn-ZZ",
+                            bi: "bi-Latn-VU",
+                            bib: "bib-Latn-ZZ",
+                            big: "big-Latn-ZZ",
+                            bik: "bik-Latn-PH",
+                            bim: "bim-Latn-ZZ",
+                            bin: "bin-Latn-NG",
+                            bio: "bio-Latn-ZZ",
+                            biq: "biq-Latn-ZZ",
+                            bjh: "bjh-Latn-ZZ",
+                            bji: "bji-Ethi-ZZ",
+                            bjj: "bjj-Deva-IN",
+                            bjn: "bjn-Latn-ID",
+                            bjo: "bjo-Latn-ZZ",
+                            bjr: "bjr-Latn-ZZ",
+                            bjt: "bjt-Latn-SN",
+                            bjz: "bjz-Latn-ZZ",
+                            bkc: "bkc-Latn-ZZ",
+                            bkm: "bkm-Latn-CM",
+                            bkq: "bkq-Latn-ZZ",
+                            bku: "bku-Latn-PH",
+                            bkv: "bkv-Latn-ZZ",
+                            blt: "blt-Tavt-VN",
+                            bm: "bm-Latn-ML",
+                            bmh: "bmh-Latn-ZZ",
+                            bmk: "bmk-Latn-ZZ",
+                            bmq: "bmq-Latn-ML",
+                            bmu: "bmu-Latn-ZZ",
+                            bn: "bn-Beng-BD",
+                            bng: "bng-Latn-ZZ",
+                            bnm: "bnm-Latn-ZZ",
+                            bnp: "bnp-Latn-ZZ",
+                            bo: "bo-Tibt-CN",
+                            boj: "boj-Latn-ZZ",
+                            bom: "bom-Latn-ZZ",
+                            bon: "bon-Latn-ZZ",
+                            bpy: "bpy-Beng-IN",
+                            bqc: "bqc-Latn-ZZ",
+                            bqi: "bqi-Arab-IR",
+                            bqp: "bqp-Latn-ZZ",
+                            bqv: "bqv-Latn-CI",
+                            br: "br-Latn-FR",
+                            bra: "bra-Deva-IN",
+                            brh: "brh-Arab-PK",
+                            brx: "brx-Deva-IN",
+                            brz: "brz-Latn-ZZ",
+                            bs: "bs-Latn-BA",
+                            bsj: "bsj-Latn-ZZ",
+                            bsq: "bsq-Bass-LR",
+                            bss: "bss-Latn-CM",
+                            bst: "bst-Ethi-ZZ",
+                            bto: "bto-Latn-PH",
+                            btt: "btt-Latn-ZZ",
+                            btv: "btv-Deva-PK",
+                            bua: "bua-Cyrl-RU",
+                            buc: "buc-Latn-YT",
+                            bud: "bud-Latn-ZZ",
+                            bug: "bug-Latn-ID",
+                            buk: "buk-Latn-ZZ",
+                            bum: "bum-Latn-CM",
+                            buo: "buo-Latn-ZZ",
+                            bus: "bus-Latn-ZZ",
+                            buu: "buu-Latn-ZZ",
+                            bvb: "bvb-Latn-GQ",
+                            bwd: "bwd-Latn-ZZ",
+                            bwr: "bwr-Latn-ZZ",
+                            bxh: "bxh-Latn-ZZ",
+                            bye: "bye-Latn-ZZ",
+                            byn: "byn-Ethi-ER",
+                            byr: "byr-Latn-ZZ",
+                            bys: "bys-Latn-ZZ",
+                            byv: "byv-Latn-CM",
+                            byx: "byx-Latn-ZZ",
+                            bza: "bza-Latn-ZZ",
+                            bze: "bze-Latn-ML",
+                            bzf: "bzf-Latn-ZZ",
+                            bzh: "bzh-Latn-ZZ",
+                            bzw: "bzw-Latn-ZZ",
+                            ca: "ca-Latn-ES",
+                            can: "can-Latn-ZZ",
+                            cbj: "cbj-Latn-ZZ",
+                            cch: "cch-Latn-NG",
+                            ccp: "ccp-Cakm-BD",
+                            ce: "ce-Cyrl-RU",
+                            ceb: "ceb-Latn-PH",
+                            cfa: "cfa-Latn-ZZ",
+                            cgg: "cgg-Latn-UG",
+                            ch: "ch-Latn-GU",
+                            chk: "chk-Latn-FM",
+                            chm: "chm-Cyrl-RU",
+                            cho: "cho-Latn-US",
+                            chp: "chp-Latn-CA",
+                            chr: "chr-Cher-US",
+                            cic: "cic-Latn-US",
+                            cja: "cja-Arab-KH",
+                            cjm: "cjm-Cham-VN",
+                            cjv: "cjv-Latn-ZZ",
+                            ckb: "ckb-Arab-IQ",
+                            ckl: "ckl-Latn-ZZ",
+                            cko: "cko-Latn-ZZ",
+                            cky: "cky-Latn-ZZ",
+                            cla: "cla-Latn-ZZ",
+                            cme: "cme-Latn-ZZ",
+                            cmg: "cmg-Soyo-MN",
+                            co: "co-Latn-FR",
+                            cop: "cop-Copt-EG",
+                            cps: "cps-Latn-PH",
+                            cr: "cr-Cans-CA",
+                            crh: "crh-Cyrl-UA",
+                            crj: "crj-Cans-CA",
+                            crk: "crk-Cans-CA",
+                            crl: "crl-Cans-CA",
+                            crm: "crm-Cans-CA",
+                            crs: "crs-Latn-SC",
+                            cs: "cs-Latn-CZ",
+                            csb: "csb-Latn-PL",
+                            csw: "csw-Cans-CA",
+                            ctd: "ctd-Pauc-MM",
+                            cu: "cu-Cyrl-RU",
+                            "cu-Glag": "cu-Glag-BG",
+                            cv: "cv-Cyrl-RU",
+                            cy: "cy-Latn-GB",
+                            da: "da-Latn-DK",
+                            dad: "dad-Latn-ZZ",
+                            daf: "daf-Latn-ZZ",
+                            dag: "dag-Latn-ZZ",
+                            dah: "dah-Latn-ZZ",
+                            dak: "dak-Latn-US",
+                            dar: "dar-Cyrl-RU",
+                            dav: "dav-Latn-KE",
+                            dbd: "dbd-Latn-ZZ",
+                            dbq: "dbq-Latn-ZZ",
+                            dcc: "dcc-Arab-IN",
+                            ddn: "ddn-Latn-ZZ",
+                            de: "de-Latn-DE",
+                            ded: "ded-Latn-ZZ",
+                            den: "den-Latn-CA",
+                            dga: "dga-Latn-ZZ",
+                            dgh: "dgh-Latn-ZZ",
+                            dgi: "dgi-Latn-ZZ",
+                            dgl: "dgl-Arab-ZZ",
+                            dgr: "dgr-Latn-CA",
+                            dgz: "dgz-Latn-ZZ",
+                            dia: "dia-Latn-ZZ",
+                            dje: "dje-Latn-NE",
+                            dnj: "dnj-Latn-CI",
+                            dob: "dob-Latn-ZZ",
+                            doi: "doi-Arab-IN",
+                            dop: "dop-Latn-ZZ",
+                            dow: "dow-Latn-ZZ",
+                            drh: "drh-Mong-CN",
+                            dri: "dri-Latn-ZZ",
+                            drs: "drs-Ethi-ZZ",
+                            dsb: "dsb-Latn-DE",
+                            dtm: "dtm-Latn-ML",
+                            dtp: "dtp-Latn-MY",
+                            dts: "dts-Latn-ZZ",
+                            dty: "dty-Deva-NP",
+                            dua: "dua-Latn-CM",
+                            duc: "duc-Latn-ZZ",
+                            dud: "dud-Latn-ZZ",
+                            dug: "dug-Latn-ZZ",
+                            dv: "dv-Thaa-MV",
+                            dva: "dva-Latn-ZZ",
+                            dww: "dww-Latn-ZZ",
+                            dyo: "dyo-Latn-SN",
+                            dyu: "dyu-Latn-BF",
+                            dz: "dz-Tibt-BT",
+                            dzg: "dzg-Latn-ZZ",
+                            ebu: "ebu-Latn-KE",
+                            ee: "ee-Latn-GH",
+                            efi: "efi-Latn-NG",
+                            egl: "egl-Latn-IT",
+                            egy: "egy-Egyp-EG",
+                            eka: "eka-Latn-ZZ",
+                            eky: "eky-Kali-MM",
+                            el: "el-Grek-GR",
+                            ema: "ema-Latn-ZZ",
+                            emi: "emi-Latn-ZZ",
+                            en: "en-Latn-US",
+                            "en-Shaw": "en-Shaw-GB",
+                            enn: "enn-Latn-ZZ",
+                            enq: "enq-Latn-ZZ",
+                            eo: "eo-Latn-001",
+                            eri: "eri-Latn-ZZ",
+                            es: "es-Latn-ES",
+                            esg: "esg-Gonm-IN",
+                            esu: "esu-Latn-US",
+                            et: "et-Latn-EE",
+                            etr: "etr-Latn-ZZ",
+                            ett: "ett-Ital-IT",
+                            etu: "etu-Latn-ZZ",
+                            etx: "etx-Latn-ZZ",
+                            eu: "eu-Latn-ES",
+                            ewo: "ewo-Latn-CM",
+                            ext: "ext-Latn-ES",
+                            fa: "fa-Arab-IR",
+                            faa: "faa-Latn-ZZ",
+                            fab: "fab-Latn-ZZ",
+                            fag: "fag-Latn-ZZ",
+                            fai: "fai-Latn-ZZ",
+                            fan: "fan-Latn-GQ",
+                            ff: "ff-Latn-SN",
+                            "ff-Adlm": "ff-Adlm-GN",
+                            ffi: "ffi-Latn-ZZ",
+                            ffm: "ffm-Latn-ML",
+                            fi: "fi-Latn-FI",
+                            fia: "fia-Arab-SD",
+                            fil: "fil-Latn-PH",
+                            fit: "fit-Latn-SE",
+                            fj: "fj-Latn-FJ",
+                            flr: "flr-Latn-ZZ",
+                            fmp: "fmp-Latn-ZZ",
+                            fo: "fo-Latn-FO",
+                            fod: "fod-Latn-ZZ",
+                            fon: "fon-Latn-BJ",
+                            for: "for-Latn-ZZ",
+                            fpe: "fpe-Latn-ZZ",
+                            fqs: "fqs-Latn-ZZ",
+                            fr: "fr-Latn-FR",
+                            frc: "frc-Latn-US",
+                            frp: "frp-Latn-FR",
+                            frr: "frr-Latn-DE",
+                            frs: "frs-Latn-DE",
+                            fub: "fub-Arab-CM",
+                            fud: "fud-Latn-WF",
+                            fue: "fue-Latn-ZZ",
+                            fuf: "fuf-Latn-GN",
+                            fuh: "fuh-Latn-ZZ",
+                            fuq: "fuq-Latn-NE",
+                            fur: "fur-Latn-IT",
+                            fuv: "fuv-Latn-NG",
+                            fuy: "fuy-Latn-ZZ",
+                            fvr: "fvr-Latn-SD",
+                            fy: "fy-Latn-NL",
+                            ga: "ga-Latn-IE",
+                            gaa: "gaa-Latn-GH",
+                            gaf: "gaf-Latn-ZZ",
+                            gag: "gag-Latn-MD",
+                            gah: "gah-Latn-ZZ",
+                            gaj: "gaj-Latn-ZZ",
+                            gam: "gam-Latn-ZZ",
+                            gan: "gan-Hans-CN",
+                            gaw: "gaw-Latn-ZZ",
+                            gay: "gay-Latn-ID",
+                            gba: "gba-Latn-ZZ",
+                            gbf: "gbf-Latn-ZZ",
+                            gbm: "gbm-Deva-IN",
+                            gby: "gby-Latn-ZZ",
+                            gbz: "gbz-Arab-IR",
+                            gcr: "gcr-Latn-GF",
+                            gd: "gd-Latn-GB",
+                            gde: "gde-Latn-ZZ",
+                            gdn: "gdn-Latn-ZZ",
+                            gdr: "gdr-Latn-ZZ",
+                            geb: "geb-Latn-ZZ",
+                            gej: "gej-Latn-ZZ",
+                            gel: "gel-Latn-ZZ",
+                            gez: "gez-Ethi-ET",
+                            gfk: "gfk-Latn-ZZ",
+                            ggn: "ggn-Deva-NP",
+                            ghs: "ghs-Latn-ZZ",
+                            gil: "gil-Latn-KI",
+                            gim: "gim-Latn-ZZ",
+                            gjk: "gjk-Arab-PK",
+                            gjn: "gjn-Latn-ZZ",
+                            gju: "gju-Arab-PK",
+                            gkn: "gkn-Latn-ZZ",
+                            gkp: "gkp-Latn-ZZ",
+                            gl: "gl-Latn-ES",
+                            glk: "glk-Arab-IR",
+                            gmm: "gmm-Latn-ZZ",
+                            gmv: "gmv-Ethi-ZZ",
+                            gn: "gn-Latn-PY",
+                            gnd: "gnd-Latn-ZZ",
+                            gng: "gng-Latn-ZZ",
+                            god: "god-Latn-ZZ",
+                            gof: "gof-Ethi-ZZ",
+                            goi: "goi-Latn-ZZ",
+                            gom: "gom-Deva-IN",
+                            gon: "gon-Telu-IN",
+                            gor: "gor-Latn-ID",
+                            gos: "gos-Latn-NL",
+                            got: "got-Goth-UA",
+                            grb: "grb-Latn-ZZ",
+                            grc: "grc-Cprt-CY",
+                            "grc-Linb": "grc-Linb-GR",
+                            grt: "grt-Beng-IN",
+                            grw: "grw-Latn-ZZ",
+                            gsw: "gsw-Latn-CH",
+                            gu: "gu-Gujr-IN",
+                            gub: "gub-Latn-BR",
+                            guc: "guc-Latn-CO",
+                            gud: "gud-Latn-ZZ",
+                            gur: "gur-Latn-GH",
+                            guw: "guw-Latn-ZZ",
+                            gux: "gux-Latn-ZZ",
+                            guz: "guz-Latn-KE",
+                            gv: "gv-Latn-IM",
+                            gvf: "gvf-Latn-ZZ",
+                            gvr: "gvr-Deva-NP",
+                            gvs: "gvs-Latn-ZZ",
+                            gwc: "gwc-Arab-ZZ",
+                            gwi: "gwi-Latn-CA",
+                            gwt: "gwt-Arab-ZZ",
+                            gyi: "gyi-Latn-ZZ",
+                            ha: "ha-Latn-NG",
+                            "ha-CM": "ha-Arab-CM",
+                            "ha-SD": "ha-Arab-SD",
+                            hag: "hag-Latn-ZZ",
+                            hak: "hak-Hans-CN",
+                            ham: "ham-Latn-ZZ",
+                            haw: "haw-Latn-US",
+                            haz: "haz-Arab-AF",
+                            hbb: "hbb-Latn-ZZ",
+                            hdy: "hdy-Ethi-ZZ",
+                            he: "he-Hebr-IL",
+                            hhy: "hhy-Latn-ZZ",
+                            hi: "hi-Deva-IN",
+                            hia: "hia-Latn-ZZ",
+                            hif: "hif-Latn-FJ",
+                            hig: "hig-Latn-ZZ",
+                            hih: "hih-Latn-ZZ",
+                            hil: "hil-Latn-PH",
+                            hla: "hla-Latn-ZZ",
+                            hlu: "hlu-Hluw-TR",
+                            hmd: "hmd-Plrd-CN",
+                            hmt: "hmt-Latn-ZZ",
+                            hnd: "hnd-Arab-PK",
+                            hne: "hne-Deva-IN",
+                            hnj: "hnj-Hmng-LA",
+                            hnn: "hnn-Latn-PH",
+                            hno: "hno-Arab-PK",
+                            ho: "ho-Latn-PG",
+                            hoc: "hoc-Deva-IN",
+                            hoj: "hoj-Deva-IN",
+                            hot: "hot-Latn-ZZ",
+                            hr: "hr-Latn-HR",
+                            hsb: "hsb-Latn-DE",
+                            hsn: "hsn-Hans-CN",
+                            ht: "ht-Latn-HT",
+                            hu: "hu-Latn-HU",
+                            hui: "hui-Latn-ZZ",
+                            hy: "hy-Armn-AM",
+                            hz: "hz-Latn-NA",
+                            ia: "ia-Latn-001",
+                            ian: "ian-Latn-ZZ",
+                            iar: "iar-Latn-ZZ",
+                            iba: "iba-Latn-MY",
+                            ibb: "ibb-Latn-NG",
+                            iby: "iby-Latn-ZZ",
+                            ica: "ica-Latn-ZZ",
+                            ich: "ich-Latn-ZZ",
+                            id: "id-Latn-ID",
+                            idd: "idd-Latn-ZZ",
+                            idi: "idi-Latn-ZZ",
+                            idu: "idu-Latn-ZZ",
+                            ife: "ife-Latn-TG",
+                            ig: "ig-Latn-NG",
+                            igb: "igb-Latn-ZZ",
+                            ige: "ige-Latn-ZZ",
+                            ii: "ii-Yiii-CN",
+                            ijj: "ijj-Latn-ZZ",
+                            ik: "ik-Latn-US",
+                            ikk: "ikk-Latn-ZZ",
+                            ikt: "ikt-Latn-CA",
+                            ikw: "ikw-Latn-ZZ",
+                            ikx: "ikx-Latn-ZZ",
+                            ilo: "ilo-Latn-PH",
+                            imo: "imo-Latn-ZZ",
+                            in: "in-Latn-ID",
+                            inh: "inh-Cyrl-RU",
+                            io: "io-Latn-001",
+                            iou: "iou-Latn-ZZ",
+                            iri: "iri-Latn-ZZ",
+                            is: "is-Latn-IS",
+                            it: "it-Latn-IT",
+                            iu: "iu-Cans-CA",
+                            iw: "iw-Hebr-IL",
+                            iwm: "iwm-Latn-ZZ",
+                            iws: "iws-Latn-ZZ",
+                            izh: "izh-Latn-RU",
+                            izi: "izi-Latn-ZZ",
+                            ja: "ja-Jpan-JP",
+                            jab: "jab-Latn-ZZ",
+                            jam: "jam-Latn-JM",
+                            jbo: "jbo-Latn-001",
+                            jbu: "jbu-Latn-ZZ",
+                            jen: "jen-Latn-ZZ",
+                            jgk: "jgk-Latn-ZZ",
+                            jgo: "jgo-Latn-CM",
+                            ji: "ji-Hebr-UA",
+                            jib: "jib-Latn-ZZ",
+                            jmc: "jmc-Latn-TZ",
+                            jml: "jml-Deva-NP",
+                            jra: "jra-Latn-ZZ",
+                            jut: "jut-Latn-DK",
+                            jv: "jv-Latn-ID",
+                            jw: "jw-Latn-ID",
+                            ka: "ka-Geor-GE",
+                            kaa: "kaa-Cyrl-UZ",
+                            kab: "kab-Latn-DZ",
+                            kac: "kac-Latn-MM",
+                            kad: "kad-Latn-ZZ",
+                            kai: "kai-Latn-ZZ",
+                            kaj: "kaj-Latn-NG",
+                            kam: "kam-Latn-KE",
+                            kao: "kao-Latn-ML",
+                            kbd: "kbd-Cyrl-RU",
+                            kbm: "kbm-Latn-ZZ",
+                            kbp: "kbp-Latn-ZZ",
+                            kbq: "kbq-Latn-ZZ",
+                            kbx: "kbx-Latn-ZZ",
+                            kby: "kby-Arab-NE",
+                            kcg: "kcg-Latn-NG",
+                            kck: "kck-Latn-ZW",
+                            kcl: "kcl-Latn-ZZ",
+                            kct: "kct-Latn-ZZ",
+                            kde: "kde-Latn-TZ",
+                            kdh: "kdh-Arab-TG",
+                            kdl: "kdl-Latn-ZZ",
+                            kdt: "kdt-Thai-TH",
+                            kea: "kea-Latn-CV",
+                            ken: "ken-Latn-CM",
+                            kez: "kez-Latn-ZZ",
+                            kfo: "kfo-Latn-CI",
+                            kfr: "kfr-Deva-IN",
+                            kfy: "kfy-Deva-IN",
+                            kg: "kg-Latn-CD",
+                            kge: "kge-Latn-ID",
+                            kgf: "kgf-Latn-ZZ",
+                            kgp: "kgp-Latn-BR",
+                            kha: "kha-Latn-IN",
+                            khb: "khb-Talu-CN",
+                            khn: "khn-Deva-IN",
+                            khq: "khq-Latn-ML",
+                            khs: "khs-Latn-ZZ",
+                            kht: "kht-Mymr-IN",
+                            khw: "khw-Arab-PK",
+                            khz: "khz-Latn-ZZ",
+                            ki: "ki-Latn-KE",
+                            kij: "kij-Latn-ZZ",
+                            kiu: "kiu-Latn-TR",
+                            kiw: "kiw-Latn-ZZ",
+                            kj: "kj-Latn-NA",
+                            kjd: "kjd-Latn-ZZ",
+                            kjg: "kjg-Laoo-LA",
+                            kjs: "kjs-Latn-ZZ",
+                            kjy: "kjy-Latn-ZZ",
+                            kk: "kk-Cyrl-KZ",
+                            "kk-AF": "kk-Arab-AF",
+                            "kk-Arab": "kk-Arab-CN",
+                            "kk-CN": "kk-Arab-CN",
+                            "kk-IR": "kk-Arab-IR",
+                            "kk-MN": "kk-Arab-MN",
+                            kkc: "kkc-Latn-ZZ",
+                            kkj: "kkj-Latn-CM",
+                            kl: "kl-Latn-GL",
+                            kln: "kln-Latn-KE",
+                            klq: "klq-Latn-ZZ",
+                            klt: "klt-Latn-ZZ",
+                            klx: "klx-Latn-ZZ",
+                            km: "km-Khmr-KH",
+                            kmb: "kmb-Latn-AO",
+                            kmh: "kmh-Latn-ZZ",
+                            kmo: "kmo-Latn-ZZ",
+                            kms: "kms-Latn-ZZ",
+                            kmu: "kmu-Latn-ZZ",
+                            kmw: "kmw-Latn-ZZ",
+                            kn: "kn-Knda-IN",
+                            knf: "knf-Latn-GW",
+                            knp: "knp-Latn-ZZ",
+                            ko: "ko-Kore-KR",
+                            koi: "koi-Cyrl-RU",
+                            kok: "kok-Deva-IN",
+                            kol: "kol-Latn-ZZ",
+                            kos: "kos-Latn-FM",
+                            koz: "koz-Latn-ZZ",
+                            kpe: "kpe-Latn-LR",
+                            kpf: "kpf-Latn-ZZ",
+                            kpo: "kpo-Latn-ZZ",
+                            kpr: "kpr-Latn-ZZ",
+                            kpx: "kpx-Latn-ZZ",
+                            kqb: "kqb-Latn-ZZ",
+                            kqf: "kqf-Latn-ZZ",
+                            kqs: "kqs-Latn-ZZ",
+                            kqy: "kqy-Ethi-ZZ",
+                            kr: "kr-Latn-ZZ",
+                            krc: "krc-Cyrl-RU",
+                            kri: "kri-Latn-SL",
+                            krj: "krj-Latn-PH",
+                            krl: "krl-Latn-RU",
+                            krs: "krs-Latn-ZZ",
+                            kru: "kru-Deva-IN",
+                            ks: "ks-Arab-IN",
+                            ksb: "ksb-Latn-TZ",
+                            ksd: "ksd-Latn-ZZ",
+                            ksf: "ksf-Latn-CM",
+                            ksh: "ksh-Latn-DE",
+                            ksj: "ksj-Latn-ZZ",
+                            ksr: "ksr-Latn-ZZ",
+                            ktb: "ktb-Ethi-ZZ",
+                            ktm: "ktm-Latn-ZZ",
+                            kto: "kto-Latn-ZZ",
+                            ktr: "ktr-Latn-MY",
+                            ku: "ku-Latn-TR",
+                            "ku-Arab": "ku-Arab-IQ",
+                            "ku-LB": "ku-Arab-LB",
+                            kub: "kub-Latn-ZZ",
+                            kud: "kud-Latn-ZZ",
+                            kue: "kue-Latn-ZZ",
+                            kuj: "kuj-Latn-ZZ",
+                            kum: "kum-Cyrl-RU",
+                            kun: "kun-Latn-ZZ",
+                            kup: "kup-Latn-ZZ",
+                            kus: "kus-Latn-ZZ",
+                            kv: "kv-Cyrl-RU",
+                            kvg: "kvg-Latn-ZZ",
+                            kvr: "kvr-Latn-ID",
+                            kvx: "kvx-Arab-PK",
+                            kw: "kw-Latn-GB",
+                            kwj: "kwj-Latn-ZZ",
+                            kwo: "kwo-Latn-ZZ",
+                            kwq: "kwq-Latn-ZZ",
+                            kxa: "kxa-Latn-ZZ",
+                            kxc: "kxc-Ethi-ZZ",
+                            kxe: "kxe-Latn-ZZ",
+                            kxm: "kxm-Thai-TH",
+                            kxp: "kxp-Arab-PK",
+                            kxw: "kxw-Latn-ZZ",
+                            kxz: "kxz-Latn-ZZ",
+                            ky: "ky-Cyrl-KG",
+                            "ky-Arab": "ky-Arab-CN",
+                            "ky-CN": "ky-Arab-CN",
+                            "ky-Latn": "ky-Latn-TR",
+                            "ky-TR": "ky-Latn-TR",
+                            kye: "kye-Latn-ZZ",
+                            kyx: "kyx-Latn-ZZ",
+                            kzj: "kzj-Latn-MY",
+                            kzr: "kzr-Latn-ZZ",
+                            kzt: "kzt-Latn-MY",
+                            la: "la-Latn-VA",
+                            lab: "lab-Lina-GR",
+                            lad: "lad-Hebr-IL",
+                            lag: "lag-Latn-TZ",
+                            lah: "lah-Arab-PK",
+                            laj: "laj-Latn-UG",
+                            las: "las-Latn-ZZ",
+                            lb: "lb-Latn-LU",
+                            lbe: "lbe-Cyrl-RU",
+                            lbu: "lbu-Latn-ZZ",
+                            lbw: "lbw-Latn-ID",
+                            lcm: "lcm-Latn-ZZ",
+                            lcp: "lcp-Thai-CN",
+                            ldb: "ldb-Latn-ZZ",
+                            led: "led-Latn-ZZ",
+                            lee: "lee-Latn-ZZ",
+                            lem: "lem-Latn-ZZ",
+                            lep: "lep-Lepc-IN",
+                            leq: "leq-Latn-ZZ",
+                            leu: "leu-Latn-ZZ",
+                            lez: "lez-Cyrl-RU",
+                            lg: "lg-Latn-UG",
+                            lgg: "lgg-Latn-ZZ",
+                            li: "li-Latn-NL",
+                            lia: "lia-Latn-ZZ",
+                            lid: "lid-Latn-ZZ",
+                            lif: "lif-Deva-NP",
+                            "lif-Limb": "lif-Limb-IN",
+                            lig: "lig-Latn-ZZ",
+                            lih: "lih-Latn-ZZ",
+                            lij: "lij-Latn-IT",
+                            lis: "lis-Lisu-CN",
+                            ljp: "ljp-Latn-ID",
+                            lki: "lki-Arab-IR",
+                            lkt: "lkt-Latn-US",
+                            lle: "lle-Latn-ZZ",
+                            lln: "lln-Latn-ZZ",
+                            lmn: "lmn-Telu-IN",
+                            lmo: "lmo-Latn-IT",
+                            lmp: "lmp-Latn-ZZ",
+                            ln: "ln-Latn-CD",
+                            lns: "lns-Latn-ZZ",
+                            lnu: "lnu-Latn-ZZ",
+                            lo: "lo-Laoo-LA",
+                            loj: "loj-Latn-ZZ",
+                            lok: "lok-Latn-ZZ",
+                            lol: "lol-Latn-CD",
+                            lor: "lor-Latn-ZZ",
+                            los: "los-Latn-ZZ",
+                            loz: "loz-Latn-ZM",
+                            lrc: "lrc-Arab-IR",
+                            lt: "lt-Latn-LT",
+                            ltg: "ltg-Latn-LV",
+                            lu: "lu-Latn-CD",
+                            lua: "lua-Latn-CD",
+                            luo: "luo-Latn-KE",
+                            luy: "luy-Latn-KE",
+                            luz: "luz-Arab-IR",
+                            lv: "lv-Latn-LV",
+                            lwl: "lwl-Thai-TH",
+                            lzh: "lzh-Hans-CN",
+                            lzz: "lzz-Latn-TR",
+                            mad: "mad-Latn-ID",
+                            maf: "maf-Latn-CM",
+                            mag: "mag-Deva-IN",
+                            mai: "mai-Deva-IN",
+                            mak: "mak-Latn-ID",
+                            man: "man-Latn-GM",
+                            "man-GN": "man-Nkoo-GN",
+                            "man-Nkoo": "man-Nkoo-GN",
+                            mas: "mas-Latn-KE",
+                            maw: "maw-Latn-ZZ",
+                            maz: "maz-Latn-MX",
+                            mbh: "mbh-Latn-ZZ",
+                            mbo: "mbo-Latn-ZZ",
+                            mbq: "mbq-Latn-ZZ",
+                            mbu: "mbu-Latn-ZZ",
+                            mbw: "mbw-Latn-ZZ",
+                            mci: "mci-Latn-ZZ",
+                            mcp: "mcp-Latn-ZZ",
+                            mcq: "mcq-Latn-ZZ",
+                            mcr: "mcr-Latn-ZZ",
+                            mcu: "mcu-Latn-ZZ",
+                            mda: "mda-Latn-ZZ",
+                            mde: "mde-Arab-ZZ",
+                            mdf: "mdf-Cyrl-RU",
+                            mdh: "mdh-Latn-PH",
+                            mdj: "mdj-Latn-ZZ",
+                            mdr: "mdr-Latn-ID",
+                            mdx: "mdx-Ethi-ZZ",
+                            med: "med-Latn-ZZ",
+                            mee: "mee-Latn-ZZ",
+                            mek: "mek-Latn-ZZ",
+                            men: "men-Latn-SL",
+                            mer: "mer-Latn-KE",
+                            met: "met-Latn-ZZ",
+                            meu: "meu-Latn-ZZ",
+                            mfa: "mfa-Arab-TH",
+                            mfe: "mfe-Latn-MU",
+                            mfn: "mfn-Latn-ZZ",
+                            mfo: "mfo-Latn-ZZ",
+                            mfq: "mfq-Latn-ZZ",
+                            mg: "mg-Latn-MG",
+                            mgh: "mgh-Latn-MZ",
+                            mgl: "mgl-Latn-ZZ",
+                            mgo: "mgo-Latn-CM",
+                            mgp: "mgp-Deva-NP",
+                            mgy: "mgy-Latn-TZ",
+                            mh: "mh-Latn-MH",
+                            mhi: "mhi-Latn-ZZ",
+                            mhl: "mhl-Latn-ZZ",
+                            mi: "mi-Latn-NZ",
+                            mif: "mif-Latn-ZZ",
+                            min: "min-Latn-ID",
+                            mis: "mis-Hatr-IQ",
+                            "mis-Medf": "mis-Medf-NG",
+                            miw: "miw-Latn-ZZ",
+                            mk: "mk-Cyrl-MK",
+                            mki: "mki-Arab-ZZ",
+                            mkl: "mkl-Latn-ZZ",
+                            mkp: "mkp-Latn-ZZ",
+                            mkw: "mkw-Latn-ZZ",
+                            ml: "ml-Mlym-IN",
+                            mle: "mle-Latn-ZZ",
+                            mlp: "mlp-Latn-ZZ",
+                            mls: "mls-Latn-SD",
+                            mmo: "mmo-Latn-ZZ",
+                            mmu: "mmu-Latn-ZZ",
+                            mmx: "mmx-Latn-ZZ",
+                            mn: "mn-Cyrl-MN",
+                            "mn-CN": "mn-Mong-CN",
+                            "mn-Mong": "mn-Mong-CN",
+                            mna: "mna-Latn-ZZ",
+                            mnf: "mnf-Latn-ZZ",
+                            mni: "mni-Beng-IN",
+                            mnw: "mnw-Mymr-MM",
+                            mo: "mo-Latn-RO",
+                            moa: "moa-Latn-ZZ",
+                            moe: "moe-Latn-CA",
+                            moh: "moh-Latn-CA",
+                            mos: "mos-Latn-BF",
+                            mox: "mox-Latn-ZZ",
+                            mpp: "mpp-Latn-ZZ",
+                            mps: "mps-Latn-ZZ",
+                            mpt: "mpt-Latn-ZZ",
+                            mpx: "mpx-Latn-ZZ",
+                            mql: "mql-Latn-ZZ",
+                            mr: "mr-Deva-IN",
+                            mrd: "mrd-Deva-NP",
+                            mrj: "mrj-Cyrl-RU",
+                            mro: "mro-Mroo-BD",
+                            ms: "ms-Latn-MY",
+                            "ms-CC": "ms-Arab-CC",
+                            "ms-ID": "ms-Arab-ID",
+                            mt: "mt-Latn-MT",
+                            mtc: "mtc-Latn-ZZ",
+                            mtf: "mtf-Latn-ZZ",
+                            mti: "mti-Latn-ZZ",
+                            mtr: "mtr-Deva-IN",
+                            mua: "mua-Latn-CM",
+                            mur: "mur-Latn-ZZ",
+                            mus: "mus-Latn-US",
+                            mva: "mva-Latn-ZZ",
+                            mvn: "mvn-Latn-ZZ",
+                            mvy: "mvy-Arab-PK",
+                            mwk: "mwk-Latn-ML",
+                            mwr: "mwr-Deva-IN",
+                            mwv: "mwv-Latn-ID",
+                            mww: "mww-Hmnp-US",
+                            mxc: "mxc-Latn-ZW",
+                            mxm: "mxm-Latn-ZZ",
+                            my: "my-Mymr-MM",
+                            myk: "myk-Latn-ZZ",
+                            mym: "mym-Ethi-ZZ",
+                            myv: "myv-Cyrl-RU",
+                            myw: "myw-Latn-ZZ",
+                            myx: "myx-Latn-UG",
+                            myz: "myz-Mand-IR",
+                            mzk: "mzk-Latn-ZZ",
+                            mzm: "mzm-Latn-ZZ",
+                            mzn: "mzn-Arab-IR",
+                            mzp: "mzp-Latn-ZZ",
+                            mzw: "mzw-Latn-ZZ",
+                            mzz: "mzz-Latn-ZZ",
+                            na: "na-Latn-NR",
+                            nac: "nac-Latn-ZZ",
+                            naf: "naf-Latn-ZZ",
+                            nak: "nak-Latn-ZZ",
+                            nan: "nan-Hans-CN",
+                            nap: "nap-Latn-IT",
+                            naq: "naq-Latn-NA",
+                            nas: "nas-Latn-ZZ",
+                            nb: "nb-Latn-NO",
+                            nca: "nca-Latn-ZZ",
+                            nce: "nce-Latn-ZZ",
+                            ncf: "ncf-Latn-ZZ",
+                            nch: "nch-Latn-MX",
+                            nco: "nco-Latn-ZZ",
+                            ncu: "ncu-Latn-ZZ",
+                            nd: "nd-Latn-ZW",
+                            ndc: "ndc-Latn-MZ",
+                            nds: "nds-Latn-DE",
+                            ne: "ne-Deva-NP",
+                            neb: "neb-Latn-ZZ",
+                            new: "new-Deva-NP",
+                            nex: "nex-Latn-ZZ",
+                            nfr: "nfr-Latn-ZZ",
+                            ng: "ng-Latn-NA",
+                            nga: "nga-Latn-ZZ",
+                            ngb: "ngb-Latn-ZZ",
+                            ngl: "ngl-Latn-MZ",
+                            nhb: "nhb-Latn-ZZ",
+                            nhe: "nhe-Latn-MX",
+                            nhw: "nhw-Latn-MX",
+                            nif: "nif-Latn-ZZ",
+                            nii: "nii-Latn-ZZ",
+                            nij: "nij-Latn-ID",
+                            nin: "nin-Latn-ZZ",
+                            niu: "niu-Latn-NU",
+                            niy: "niy-Latn-ZZ",
+                            niz: "niz-Latn-ZZ",
+                            njo: "njo-Latn-IN",
+                            nkg: "nkg-Latn-ZZ",
+                            nko: "nko-Latn-ZZ",
+                            nl: "nl-Latn-NL",
+                            nmg: "nmg-Latn-CM",
+                            nmz: "nmz-Latn-ZZ",
+                            nn: "nn-Latn-NO",
+                            nnf: "nnf-Latn-ZZ",
+                            nnh: "nnh-Latn-CM",
+                            nnk: "nnk-Latn-ZZ",
+                            nnm: "nnm-Latn-ZZ",
+                            nnp: "nnp-Wcho-IN",
+                            no: "no-Latn-NO",
+                            nod: "nod-Lana-TH",
+                            noe: "noe-Deva-IN",
+                            non: "non-Runr-SE",
+                            nop: "nop-Latn-ZZ",
+                            nou: "nou-Latn-ZZ",
+                            nqo: "nqo-Nkoo-GN",
+                            nr: "nr-Latn-ZA",
+                            nrb: "nrb-Latn-ZZ",
+                            nsk: "nsk-Cans-CA",
+                            nsn: "nsn-Latn-ZZ",
+                            nso: "nso-Latn-ZA",
+                            nss: "nss-Latn-ZZ",
+                            ntm: "ntm-Latn-ZZ",
+                            ntr: "ntr-Latn-ZZ",
+                            nui: "nui-Latn-ZZ",
+                            nup: "nup-Latn-ZZ",
+                            nus: "nus-Latn-SS",
+                            nuv: "nuv-Latn-ZZ",
+                            nux: "nux-Latn-ZZ",
+                            nv: "nv-Latn-US",
+                            nwb: "nwb-Latn-ZZ",
+                            nxq: "nxq-Latn-CN",
+                            nxr: "nxr-Latn-ZZ",
+                            ny: "ny-Latn-MW",
+                            nym: "nym-Latn-TZ",
+                            nyn: "nyn-Latn-UG",
+                            nzi: "nzi-Latn-GH",
+                            oc: "oc-Latn-FR",
+                            ogc: "ogc-Latn-ZZ",
+                            okr: "okr-Latn-ZZ",
+                            okv: "okv-Latn-ZZ",
+                            om: "om-Latn-ET",
+                            ong: "ong-Latn-ZZ",
+                            onn: "onn-Latn-ZZ",
+                            ons: "ons-Latn-ZZ",
+                            opm: "opm-Latn-ZZ",
+                            or: "or-Orya-IN",
+                            oro: "oro-Latn-ZZ",
+                            oru: "oru-Arab-ZZ",
+                            os: "os-Cyrl-GE",
+                            osa: "osa-Osge-US",
+                            ota: "ota-Arab-ZZ",
+                            otk: "otk-Orkh-MN",
+                            ozm: "ozm-Latn-ZZ",
+                            pa: "pa-Guru-IN",
+                            "pa-Arab": "pa-Arab-PK",
+                            "pa-PK": "pa-Arab-PK",
+                            pag: "pag-Latn-PH",
+                            pal: "pal-Phli-IR",
+                            "pal-Phlp": "pal-Phlp-CN",
+                            pam: "pam-Latn-PH",
+                            pap: "pap-Latn-AW",
+                            pau: "pau-Latn-PW",
+                            pbi: "pbi-Latn-ZZ",
+                            pcd: "pcd-Latn-FR",
+                            pcm: "pcm-Latn-NG",
+                            pdc: "pdc-Latn-US",
+                            pdt: "pdt-Latn-CA",
+                            ped: "ped-Latn-ZZ",
+                            peo: "peo-Xpeo-IR",
+                            pex: "pex-Latn-ZZ",
+                            pfl: "pfl-Latn-DE",
+                            phl: "phl-Arab-ZZ",
+                            phn: "phn-Phnx-LB",
+                            pil: "pil-Latn-ZZ",
+                            pip: "pip-Latn-ZZ",
+                            pka: "pka-Brah-IN",
+                            pko: "pko-Latn-KE",
+                            pl: "pl-Latn-PL",
+                            pla: "pla-Latn-ZZ",
+                            pms: "pms-Latn-IT",
+                            png: "png-Latn-ZZ",
+                            pnn: "pnn-Latn-ZZ",
+                            pnt: "pnt-Grek-GR",
+                            pon: "pon-Latn-FM",
+                            ppa: "ppa-Deva-IN",
+                            ppo: "ppo-Latn-ZZ",
+                            pra: "pra-Khar-PK",
+                            prd: "prd-Arab-IR",
+                            prg: "prg-Latn-001",
+                            ps: "ps-Arab-AF",
+                            pss: "pss-Latn-ZZ",
+                            pt: "pt-Latn-BR",
+                            ptp: "ptp-Latn-ZZ",
+                            puu: "puu-Latn-GA",
+                            pwa: "pwa-Latn-ZZ",
+                            qu: "qu-Latn-PE",
+                            quc: "quc-Latn-GT",
+                            qug: "qug-Latn-EC",
+                            rai: "rai-Latn-ZZ",
+                            raj: "raj-Deva-IN",
+                            rao: "rao-Latn-ZZ",
+                            rcf: "rcf-Latn-RE",
+                            rej: "rej-Latn-ID",
+                            rel: "rel-Latn-ZZ",
+                            res: "res-Latn-ZZ",
+                            rgn: "rgn-Latn-IT",
+                            rhg: "rhg-Arab-MM",
+                            ria: "ria-Latn-IN",
+                            rif: "rif-Tfng-MA",
+                            "rif-NL": "rif-Latn-NL",
+                            rjs: "rjs-Deva-NP",
+                            rkt: "rkt-Beng-BD",
+                            rm: "rm-Latn-CH",
+                            rmf: "rmf-Latn-FI",
+                            rmo: "rmo-Latn-CH",
+                            rmt: "rmt-Arab-IR",
+                            rmu: "rmu-Latn-SE",
+                            rn: "rn-Latn-BI",
+                            rna: "rna-Latn-ZZ",
+                            rng: "rng-Latn-MZ",
+                            ro: "ro-Latn-RO",
+                            rob: "rob-Latn-ID",
+                            rof: "rof-Latn-TZ",
+                            roo: "roo-Latn-ZZ",
+                            rro: "rro-Latn-ZZ",
+                            rtm: "rtm-Latn-FJ",
+                            ru: "ru-Cyrl-RU",
+                            rue: "rue-Cyrl-UA",
+                            rug: "rug-Latn-SB",
+                            rw: "rw-Latn-RW",
+                            rwk: "rwk-Latn-TZ",
+                            rwo: "rwo-Latn-ZZ",
+                            ryu: "ryu-Kana-JP",
+                            sa: "sa-Deva-IN",
+                            saf: "saf-Latn-GH",
+                            sah: "sah-Cyrl-RU",
+                            saq: "saq-Latn-KE",
+                            sas: "sas-Latn-ID",
+                            sat: "sat-Latn-IN",
+                            sav: "sav-Latn-SN",
+                            saz: "saz-Saur-IN",
+                            sba: "sba-Latn-ZZ",
+                            sbe: "sbe-Latn-ZZ",
+                            sbp: "sbp-Latn-TZ",
+                            sc: "sc-Latn-IT",
+                            sck: "sck-Deva-IN",
+                            scl: "scl-Arab-ZZ",
+                            scn: "scn-Latn-IT",
+                            sco: "sco-Latn-GB",
+                            scs: "scs-Latn-CA",
+                            sd: "sd-Arab-PK",
+                            "sd-Deva": "sd-Deva-IN",
+                            "sd-Khoj": "sd-Khoj-IN",
+                            "sd-Sind": "sd-Sind-IN",
+                            sdc: "sdc-Latn-IT",
+                            sdh: "sdh-Arab-IR",
+                            se: "se-Latn-NO",
+                            sef: "sef-Latn-CI",
+                            seh: "seh-Latn-MZ",
+                            sei: "sei-Latn-MX",
+                            ses: "ses-Latn-ML",
+                            sg: "sg-Latn-CF",
+                            sga: "sga-Ogam-IE",
+                            sgs: "sgs-Latn-LT",
+                            sgw: "sgw-Ethi-ZZ",
+                            sgz: "sgz-Latn-ZZ",
+                            shi: "shi-Tfng-MA",
+                            shk: "shk-Latn-ZZ",
+                            shn: "shn-Mymr-MM",
+                            shu: "shu-Arab-ZZ",
+                            si: "si-Sinh-LK",
+                            sid: "sid-Latn-ET",
+                            sig: "sig-Latn-ZZ",
+                            sil: "sil-Latn-ZZ",
+                            sim: "sim-Latn-ZZ",
+                            sjr: "sjr-Latn-ZZ",
+                            sk: "sk-Latn-SK",
+                            skc: "skc-Latn-ZZ",
+                            skr: "skr-Arab-PK",
+                            sks: "sks-Latn-ZZ",
+                            sl: "sl-Latn-SI",
+                            sld: "sld-Latn-ZZ",
+                            sli: "sli-Latn-PL",
+                            sll: "sll-Latn-ZZ",
+                            sly: "sly-Latn-ID",
+                            sm: "sm-Latn-WS",
+                            sma: "sma-Latn-SE",
+                            smj: "smj-Latn-SE",
+                            smn: "smn-Latn-FI",
+                            smp: "smp-Samr-IL",
+                            smq: "smq-Latn-ZZ",
+                            sms: "sms-Latn-FI",
+                            sn: "sn-Latn-ZW",
+                            snc: "snc-Latn-ZZ",
+                            snk: "snk-Latn-ML",
+                            snp: "snp-Latn-ZZ",
+                            snx: "snx-Latn-ZZ",
+                            sny: "sny-Latn-ZZ",
+                            so: "so-Latn-SO",
+                            sog: "sog-Sogd-UZ",
+                            sok: "sok-Latn-ZZ",
+                            soq: "soq-Latn-ZZ",
+                            sou: "sou-Thai-TH",
+                            soy: "soy-Latn-ZZ",
+                            spd: "spd-Latn-ZZ",
+                            spl: "spl-Latn-ZZ",
+                            sps: "sps-Latn-ZZ",
+                            sq: "sq-Latn-AL",
+                            sr: "sr-Cyrl-RS",
+                            "sr-ME": "sr-Latn-ME",
+                            "sr-RO": "sr-Latn-RO",
+                            "sr-RU": "sr-Latn-RU",
+                            "sr-TR": "sr-Latn-TR",
+                            srb: "srb-Sora-IN",
+                            srn: "srn-Latn-SR",
+                            srr: "srr-Latn-SN",
+                            srx: "srx-Deva-IN",
+                            ss: "ss-Latn-ZA",
+                            ssd: "ssd-Latn-ZZ",
+                            ssg: "ssg-Latn-ZZ",
+                            ssy: "ssy-Latn-ER",
+                            st: "st-Latn-ZA",
+                            stk: "stk-Latn-ZZ",
+                            stq: "stq-Latn-DE",
+                            su: "su-Latn-ID",
+                            sua: "sua-Latn-ZZ",
+                            sue: "sue-Latn-ZZ",
+                            suk: "suk-Latn-TZ",
+                            sur: "sur-Latn-ZZ",
+                            sus: "sus-Latn-GN",
+                            sv: "sv-Latn-SE",
+                            sw: "sw-Latn-TZ",
+                            swb: "swb-Arab-YT",
+                            swc: "swc-Latn-CD",
+                            swg: "swg-Latn-DE",
+                            swp: "swp-Latn-ZZ",
+                            swv: "swv-Deva-IN",
+                            sxn: "sxn-Latn-ID",
+                            sxw: "sxw-Latn-ZZ",
+                            syl: "syl-Beng-BD",
+                            syr: "syr-Syrc-IQ",
+                            szl: "szl-Latn-PL",
+                            ta: "ta-Taml-IN",
+                            taj: "taj-Deva-NP",
+                            tal: "tal-Latn-ZZ",
+                            tan: "tan-Latn-ZZ",
+                            taq: "taq-Latn-ZZ",
+                            tbc: "tbc-Latn-ZZ",
+                            tbd: "tbd-Latn-ZZ",
+                            tbf: "tbf-Latn-ZZ",
+                            tbg: "tbg-Latn-ZZ",
+                            tbo: "tbo-Latn-ZZ",
+                            tbw: "tbw-Latn-PH",
+                            tbz: "tbz-Latn-ZZ",
+                            tci: "tci-Latn-ZZ",
+                            tcy: "tcy-Knda-IN",
+                            tdd: "tdd-Tale-CN",
+                            tdg: "tdg-Deva-NP",
+                            tdh: "tdh-Deva-NP",
+                            tdu: "tdu-Latn-MY",
+                            te: "te-Telu-IN",
+                            ted: "ted-Latn-ZZ",
+                            tem: "tem-Latn-SL",
+                            teo: "teo-Latn-UG",
+                            tet: "tet-Latn-TL",
+                            tfi: "tfi-Latn-ZZ",
+                            tg: "tg-Cyrl-TJ",
+                            "tg-Arab": "tg-Arab-PK",
+                            "tg-PK": "tg-Arab-PK",
+                            tgc: "tgc-Latn-ZZ",
+                            tgo: "tgo-Latn-ZZ",
+                            tgu: "tgu-Latn-ZZ",
+                            th: "th-Thai-TH",
+                            thl: "thl-Deva-NP",
+                            thq: "thq-Deva-NP",
+                            thr: "thr-Deva-NP",
+                            ti: "ti-Ethi-ET",
+                            tif: "tif-Latn-ZZ",
+                            tig: "tig-Ethi-ER",
+                            tik: "tik-Latn-ZZ",
+                            tim: "tim-Latn-ZZ",
+                            tio: "tio-Latn-ZZ",
+                            tiv: "tiv-Latn-NG",
+                            tk: "tk-Latn-TM",
+                            tkl: "tkl-Latn-TK",
+                            tkr: "tkr-Latn-AZ",
+                            tkt: "tkt-Deva-NP",
+                            tl: "tl-Latn-PH",
+                            tlf: "tlf-Latn-ZZ",
+                            tlx: "tlx-Latn-ZZ",
+                            tly: "tly-Latn-AZ",
+                            tmh: "tmh-Latn-NE",
+                            tmy: "tmy-Latn-ZZ",
+                            tn: "tn-Latn-ZA",
+                            tnh: "tnh-Latn-ZZ",
+                            to: "to-Latn-TO",
+                            tof: "tof-Latn-ZZ",
+                            tog: "tog-Latn-MW",
+                            toq: "toq-Latn-ZZ",
+                            tpi: "tpi-Latn-PG",
+                            tpm: "tpm-Latn-ZZ",
+                            tpz: "tpz-Latn-ZZ",
+                            tqo: "tqo-Latn-ZZ",
+                            tr: "tr-Latn-TR",
+                            tru: "tru-Latn-TR",
+                            trv: "trv-Latn-TW",
+                            trw: "trw-Arab-ZZ",
+                            ts: "ts-Latn-ZA",
+                            tsd: "tsd-Grek-GR",
+                            tsf: "tsf-Deva-NP",
+                            tsg: "tsg-Latn-PH",
+                            tsj: "tsj-Tibt-BT",
+                            tsw: "tsw-Latn-ZZ",
+                            tt: "tt-Cyrl-RU",
+                            ttd: "ttd-Latn-ZZ",
+                            tte: "tte-Latn-ZZ",
+                            ttj: "ttj-Latn-UG",
+                            ttr: "ttr-Latn-ZZ",
+                            tts: "tts-Thai-TH",
+                            ttt: "ttt-Latn-AZ",
+                            tuh: "tuh-Latn-ZZ",
+                            tul: "tul-Latn-ZZ",
+                            tum: "tum-Latn-MW",
+                            tuq: "tuq-Latn-ZZ",
+                            tvd: "tvd-Latn-ZZ",
+                            tvl: "tvl-Latn-TV",
+                            tvu: "tvu-Latn-ZZ",
+                            twh: "twh-Latn-ZZ",
+                            twq: "twq-Latn-NE",
+                            txg: "txg-Tang-CN",
+                            ty: "ty-Latn-PF",
+                            tya: "tya-Latn-ZZ",
+                            tyv: "tyv-Cyrl-RU",
+                            tzm: "tzm-Latn-MA",
+                            ubu: "ubu-Latn-ZZ",
+                            udm: "udm-Cyrl-RU",
+                            ug: "ug-Arab-CN",
+                            "ug-Cyrl": "ug-Cyrl-KZ",
+                            "ug-KZ": "ug-Cyrl-KZ",
+                            "ug-MN": "ug-Cyrl-MN",
+                            uga: "uga-Ugar-SY",
+                            uk: "uk-Cyrl-UA",
+                            uli: "uli-Latn-FM",
+                            umb: "umb-Latn-AO",
+                            und: "en-Latn-US",
+                            "und-002": "en-Latn-NG",
+                            "und-003": "en-Latn-US",
+                            "und-005": "pt-Latn-BR",
+                            "und-009": "en-Latn-AU",
+                            "und-011": "en-Latn-NG",
+                            "und-013": "es-Latn-MX",
+                            "und-014": "sw-Latn-TZ",
+                            "und-015": "ar-Arab-EG",
+                            "und-017": "sw-Latn-CD",
+                            "und-018": "en-Latn-ZA",
+                            "und-019": "en-Latn-US",
+                            "und-021": "en-Latn-US",
+                            "und-029": "es-Latn-CU",
+                            "und-030": "zh-Hans-CN",
+                            "und-034": "hi-Deva-IN",
+                            "und-035": "id-Latn-ID",
+                            "und-039": "it-Latn-IT",
+                            "und-053": "en-Latn-AU",
+                            "und-054": "en-Latn-PG",
+                            "und-057": "en-Latn-GU",
+                            "und-061": "sm-Latn-WS",
+                            "und-142": "zh-Hans-CN",
+                            "und-143": "uz-Latn-UZ",
+                            "und-145": "ar-Arab-SA",
+                            "und-150": "ru-Cyrl-RU",
+                            "und-151": "ru-Cyrl-RU",
+                            "und-154": "en-Latn-GB",
+                            "und-155": "de-Latn-DE",
+                            "und-202": "en-Latn-NG",
+                            "und-419": "es-Latn-419",
+                            "und-AD": "ca-Latn-AD",
+                            "und-Adlm": "ff-Adlm-GN",
+                            "und-AE": "ar-Arab-AE",
+                            "und-AF": "fa-Arab-AF",
+                            "und-Aghb": "lez-Aghb-RU",
+                            "und-Ahom": "aho-Ahom-IN",
+                            "und-AL": "sq-Latn-AL",
+                            "und-AM": "hy-Armn-AM",
+                            "und-AO": "pt-Latn-AO",
+                            "und-AQ": "und-Latn-AQ",
+                            "und-AR": "es-Latn-AR",
+                            "und-Arab": "ar-Arab-EG",
+                            "und-Arab-CC": "ms-Arab-CC",
+                            "und-Arab-CN": "ug-Arab-CN",
+                            "und-Arab-GB": "ks-Arab-GB",
+                            "und-Arab-ID": "ms-Arab-ID",
+                            "und-Arab-IN": "ur-Arab-IN",
+                            "und-Arab-KH": "cja-Arab-KH",
+                            "und-Arab-MM": "rhg-Arab-MM",
+                            "und-Arab-MN": "kk-Arab-MN",
+                            "und-Arab-MU": "ur-Arab-MU",
+                            "und-Arab-NG": "ha-Arab-NG",
+                            "und-Arab-PK": "ur-Arab-PK",
+                            "und-Arab-TG": "apd-Arab-TG",
+                            "und-Arab-TH": "mfa-Arab-TH",
+                            "und-Arab-TJ": "fa-Arab-TJ",
+                            "und-Arab-TR": "az-Arab-TR",
+                            "und-Arab-YT": "swb-Arab-YT",
+                            "und-Armi": "arc-Armi-IR",
+                            "und-Armn": "hy-Armn-AM",
+                            "und-AS": "sm-Latn-AS",
+                            "und-AT": "de-Latn-AT",
+                            "und-Avst": "ae-Avst-IR",
+                            "und-AW": "nl-Latn-AW",
+                            "und-AX": "sv-Latn-AX",
+                            "und-AZ": "az-Latn-AZ",
+                            "und-BA": "bs-Latn-BA",
+                            "und-Bali": "ban-Bali-ID",
+                            "und-Bamu": "bax-Bamu-CM",
+                            "und-Bass": "bsq-Bass-LR",
+                            "und-Batk": "bbc-Batk-ID",
+                            "und-BD": "bn-Beng-BD",
+                            "und-BE": "nl-Latn-BE",
+                            "und-Beng": "bn-Beng-BD",
+                            "und-BF": "fr-Latn-BF",
+                            "und-BG": "bg-Cyrl-BG",
+                            "und-BH": "ar-Arab-BH",
+                            "und-Bhks": "sa-Bhks-IN",
+                            "und-BI": "rn-Latn-BI",
+                            "und-BJ": "fr-Latn-BJ",
+                            "und-BL": "fr-Latn-BL",
+                            "und-BN": "ms-Latn-BN",
+                            "und-BO": "es-Latn-BO",
+                            "und-Bopo": "zh-Bopo-TW",
+                            "und-BQ": "pap-Latn-BQ",
+                            "und-BR": "pt-Latn-BR",
+                            "und-Brah": "pka-Brah-IN",
+                            "und-Brai": "fr-Brai-FR",
+                            "und-BT": "dz-Tibt-BT",
+                            "und-Bugi": "bug-Bugi-ID",
+                            "und-Buhd": "bku-Buhd-PH",
+                            "und-BV": "und-Latn-BV",
+                            "und-BY": "be-Cyrl-BY",
+                            "und-Cakm": "ccp-Cakm-BD",
+                            "und-Cans": "cr-Cans-CA",
+                            "und-Cari": "xcr-Cari-TR",
+                            "und-CD": "sw-Latn-CD",
+                            "und-CF": "fr-Latn-CF",
+                            "und-CG": "fr-Latn-CG",
+                            "und-CH": "de-Latn-CH",
+                            "und-Cham": "cjm-Cham-VN",
+                            "und-Cher": "chr-Cher-US",
+                            "und-CI": "fr-Latn-CI",
+                            "und-CL": "es-Latn-CL",
+                            "und-CM": "fr-Latn-CM",
+                            "und-CN": "zh-Hans-CN",
+                            "und-CO": "es-Latn-CO",
+                            "und-Copt": "cop-Copt-EG",
+                            "und-CP": "und-Latn-CP",
+                            "und-Cprt": "grc-Cprt-CY",
+                            "und-CR": "es-Latn-CR",
+                            "und-CU": "es-Latn-CU",
+                            "und-CV": "pt-Latn-CV",
+                            "und-CW": "pap-Latn-CW",
+                            "und-CY": "el-Grek-CY",
+                            "und-Cyrl": "ru-Cyrl-RU",
+                            "und-Cyrl-AL": "mk-Cyrl-AL",
+                            "und-Cyrl-BA": "sr-Cyrl-BA",
+                            "und-Cyrl-GE": "ab-Cyrl-GE",
+                            "und-Cyrl-GR": "mk-Cyrl-GR",
+                            "und-Cyrl-MD": "uk-Cyrl-MD",
+                            "und-Cyrl-RO": "bg-Cyrl-RO",
+                            "und-Cyrl-SK": "uk-Cyrl-SK",
+                            "und-Cyrl-TR": "kbd-Cyrl-TR",
+                            "und-Cyrl-XK": "sr-Cyrl-XK",
+                            "und-CZ": "cs-Latn-CZ",
+                            "und-DE": "de-Latn-DE",
+                            "und-Deva": "hi-Deva-IN",
+                            "und-Deva-BT": "ne-Deva-BT",
+                            "und-Deva-FJ": "hif-Deva-FJ",
+                            "und-Deva-MU": "bho-Deva-MU",
+                            "und-Deva-PK": "btv-Deva-PK",
+                            "und-DJ": "aa-Latn-DJ",
+                            "und-DK": "da-Latn-DK",
+                            "und-DO": "es-Latn-DO",
+                            "und-Dogr": "doi-Dogr-IN",
+                            "und-Dupl": "fr-Dupl-FR",
+                            "und-DZ": "ar-Arab-DZ",
+                            "und-EA": "es-Latn-EA",
+                            "und-EC": "es-Latn-EC",
+                            "und-EE": "et-Latn-EE",
+                            "und-EG": "ar-Arab-EG",
+                            "und-Egyp": "egy-Egyp-EG",
+                            "und-EH": "ar-Arab-EH",
+                            "und-Elba": "sq-Elba-AL",
+                            "und-Elym": "arc-Elym-IR",
+                            "und-ER": "ti-Ethi-ER",
+                            "und-ES": "es-Latn-ES",
+                            "und-ET": "am-Ethi-ET",
+                            "und-Ethi": "am-Ethi-ET",
+                            "und-EU": "en-Latn-GB",
+                            "und-EZ": "de-Latn-EZ",
+                            "und-FI": "fi-Latn-FI",
+                            "und-FO": "fo-Latn-FO",
+                            "und-FR": "fr-Latn-FR",
+                            "und-GA": "fr-Latn-GA",
+                            "und-GE": "ka-Geor-GE",
+                            "und-Geor": "ka-Geor-GE",
+                            "und-GF": "fr-Latn-GF",
+                            "und-GH": "ak-Latn-GH",
+                            "und-GL": "kl-Latn-GL",
+                            "und-Glag": "cu-Glag-BG",
+                            "und-GN": "fr-Latn-GN",
+                            "und-Gong": "wsg-Gong-IN",
+                            "und-Gonm": "esg-Gonm-IN",
+                            "und-Goth": "got-Goth-UA",
+                            "und-GP": "fr-Latn-GP",
+                            "und-GQ": "es-Latn-GQ",
+                            "und-GR": "el-Grek-GR",
+                            "und-Gran": "sa-Gran-IN",
+                            "und-Grek": "el-Grek-GR",
+                            "und-Grek-TR": "bgx-Grek-TR",
+                            "und-GS": "und-Latn-GS",
+                            "und-GT": "es-Latn-GT",
+                            "und-Gujr": "gu-Gujr-IN",
+                            "und-Guru": "pa-Guru-IN",
+                            "und-GW": "pt-Latn-GW",
+                            "und-Hanb": "zh-Hanb-TW",
+                            "und-Hang": "ko-Hang-KR",
+                            "und-Hani": "zh-Hani-CN",
+                            "und-Hano": "hnn-Hano-PH",
+                            "und-Hans": "zh-Hans-CN",
+                            "und-Hant": "zh-Hant-TW",
+                            "und-Hatr": "mis-Hatr-IQ",
+                            "und-Hebr": "he-Hebr-IL",
+                            "und-Hebr-CA": "yi-Hebr-CA",
+                            "und-Hebr-GB": "yi-Hebr-GB",
+                            "und-Hebr-SE": "yi-Hebr-SE",
+                            "und-Hebr-UA": "yi-Hebr-UA",
+                            "und-Hebr-US": "yi-Hebr-US",
+                            "und-Hira": "ja-Hira-JP",
+                            "und-HK": "zh-Hant-HK",
+                            "und-Hluw": "hlu-Hluw-TR",
+                            "und-HM": "und-Latn-HM",
+                            "und-Hmng": "hnj-Hmng-LA",
+                            "und-Hmnp": "mww-Hmnp-US",
+                            "und-HN": "es-Latn-HN",
+                            "und-HR": "hr-Latn-HR",
+                            "und-HT": "ht-Latn-HT",
+                            "und-HU": "hu-Latn-HU",
+                            "und-Hung": "hu-Hung-HU",
+                            "und-IC": "es-Latn-IC",
+                            "und-ID": "id-Latn-ID",
+                            "und-IL": "he-Hebr-IL",
+                            "und-IN": "hi-Deva-IN",
+                            "und-IQ": "ar-Arab-IQ",
+                            "und-IR": "fa-Arab-IR",
+                            "und-IS": "is-Latn-IS",
+                            "und-IT": "it-Latn-IT",
+                            "und-Ital": "ett-Ital-IT",
+                            "und-Jamo": "ko-Jamo-KR",
+                            "und-Java": "jv-Java-ID",
+                            "und-JO": "ar-Arab-JO",
+                            "und-JP": "ja-Jpan-JP",
+                            "und-Jpan": "ja-Jpan-JP",
+                            "und-Kali": "eky-Kali-MM",
+                            "und-Kana": "ja-Kana-JP",
+                            "und-KE": "sw-Latn-KE",
+                            "und-KG": "ky-Cyrl-KG",
+                            "und-KH": "km-Khmr-KH",
+                            "und-Khar": "pra-Khar-PK",
+                            "und-Khmr": "km-Khmr-KH",
+                            "und-Khoj": "sd-Khoj-IN",
+                            "und-KM": "ar-Arab-KM",
+                            "und-Knda": "kn-Knda-IN",
+                            "und-Kore": "ko-Kore-KR",
+                            "und-KP": "ko-Kore-KP",
+                            "und-KR": "ko-Kore-KR",
+                            "und-Kthi": "bho-Kthi-IN",
+                            "und-KW": "ar-Arab-KW",
+                            "und-KZ": "ru-Cyrl-KZ",
+                            "und-LA": "lo-Laoo-LA",
+                            "und-Lana": "nod-Lana-TH",
+                            "und-Laoo": "lo-Laoo-LA",
+                            "und-Latn-AF": "tk-Latn-AF",
+                            "und-Latn-AM": "ku-Latn-AM",
+                            "und-Latn-CN": "za-Latn-CN",
+                            "und-Latn-CY": "tr-Latn-CY",
+                            "und-Latn-DZ": "fr-Latn-DZ",
+                            "und-Latn-ET": "en-Latn-ET",
+                            "und-Latn-GE": "ku-Latn-GE",
+                            "und-Latn-IR": "tk-Latn-IR",
+                            "und-Latn-KM": "fr-Latn-KM",
+                            "und-Latn-MA": "fr-Latn-MA",
+                            "und-Latn-MK": "sq-Latn-MK",
+                            "und-Latn-MM": "kac-Latn-MM",
+                            "und-Latn-MO": "pt-Latn-MO",
+                            "und-Latn-MR": "fr-Latn-MR",
+                            "und-Latn-RU": "krl-Latn-RU",
+                            "und-Latn-SY": "fr-Latn-SY",
+                            "und-Latn-TN": "fr-Latn-TN",
+                            "und-Latn-TW": "trv-Latn-TW",
+                            "und-Latn-UA": "pl-Latn-UA",
+                            "und-LB": "ar-Arab-LB",
+                            "und-Lepc": "lep-Lepc-IN",
+                            "und-LI": "de-Latn-LI",
+                            "und-Limb": "lif-Limb-IN",
+                            "und-Lina": "lab-Lina-GR",
+                            "und-Linb": "grc-Linb-GR",
+                            "und-Lisu": "lis-Lisu-CN",
+                            "und-LK": "si-Sinh-LK",
+                            "und-LS": "st-Latn-LS",
+                            "und-LT": "lt-Latn-LT",
+                            "und-LU": "fr-Latn-LU",
+                            "und-LV": "lv-Latn-LV",
+                            "und-LY": "ar-Arab-LY",
+                            "und-Lyci": "xlc-Lyci-TR",
+                            "und-Lydi": "xld-Lydi-TR",
+                            "und-MA": "ar-Arab-MA",
+                            "und-Mahj": "hi-Mahj-IN",
+                            "und-Maka": "mak-Maka-ID",
+                            "und-Mand": "myz-Mand-IR",
+                            "und-Mani": "xmn-Mani-CN",
+                            "und-Marc": "bo-Marc-CN",
+                            "und-MC": "fr-Latn-MC",
+                            "und-MD": "ro-Latn-MD",
+                            "und-ME": "sr-Latn-ME",
+                            "und-Medf": "mis-Medf-NG",
+                            "und-Mend": "men-Mend-SL",
+                            "und-Merc": "xmr-Merc-SD",
+                            "und-Mero": "xmr-Mero-SD",
+                            "und-MF": "fr-Latn-MF",
+                            "und-MG": "mg-Latn-MG",
+                            "und-MK": "mk-Cyrl-MK",
+                            "und-ML": "bm-Latn-ML",
+                            "und-Mlym": "ml-Mlym-IN",
+                            "und-MM": "my-Mymr-MM",
+                            "und-MN": "mn-Cyrl-MN",
+                            "und-MO": "zh-Hant-MO",
+                            "und-Modi": "mr-Modi-IN",
+                            "und-Mong": "mn-Mong-CN",
+                            "und-MQ": "fr-Latn-MQ",
+                            "und-MR": "ar-Arab-MR",
+                            "und-Mroo": "mro-Mroo-BD",
+                            "und-MT": "mt-Latn-MT",
+                            "und-Mtei": "mni-Mtei-IN",
+                            "und-MU": "mfe-Latn-MU",
+                            "und-Mult": "skr-Mult-PK",
+                            "und-MV": "dv-Thaa-MV",
+                            "und-MX": "es-Latn-MX",
+                            "und-MY": "ms-Latn-MY",
+                            "und-Mymr": "my-Mymr-MM",
+                            "und-Mymr-IN": "kht-Mymr-IN",
+                            "und-Mymr-TH": "mnw-Mymr-TH",
+                            "und-MZ": "pt-Latn-MZ",
+                            "und-NA": "af-Latn-NA",
+                            "und-Nand": "sa-Nand-IN",
+                            "und-Narb": "xna-Narb-SA",
+                            "und-Nbat": "arc-Nbat-JO",
+                            "und-NC": "fr-Latn-NC",
+                            "und-NE": "ha-Latn-NE",
+                            "und-Newa": "new-Newa-NP",
+                            "und-NI": "es-Latn-NI",
+                            "und-Nkoo": "man-Nkoo-GN",
+                            "und-NL": "nl-Latn-NL",
+                            "und-NO": "nb-Latn-NO",
+                            "und-NP": "ne-Deva-NP",
+                            "und-Nshu": "zhx-Nshu-CN",
+                            "und-Ogam": "sga-Ogam-IE",
+                            "und-Olck": "sat-Olck-IN",
+                            "und-OM": "ar-Arab-OM",
+                            "und-Orkh": "otk-Orkh-MN",
+                            "und-Orya": "or-Orya-IN",
+                            "und-Osge": "osa-Osge-US",
+                            "und-Osma": "so-Osma-SO",
+                            "und-PA": "es-Latn-PA",
+                            "und-Palm": "arc-Palm-SY",
+                            "und-Pauc": "ctd-Pauc-MM",
+                            "und-PE": "es-Latn-PE",
+                            "und-Perm": "kv-Perm-RU",
+                            "und-PF": "fr-Latn-PF",
+                            "und-PG": "tpi-Latn-PG",
+                            "und-PH": "fil-Latn-PH",
+                            "und-Phag": "lzh-Phag-CN",
+                            "und-Phli": "pal-Phli-IR",
+                            "und-Phlp": "pal-Phlp-CN",
+                            "und-Phnx": "phn-Phnx-LB",
+                            "und-PK": "ur-Arab-PK",
+                            "und-PL": "pl-Latn-PL",
+                            "und-Plrd": "hmd-Plrd-CN",
+                            "und-PM": "fr-Latn-PM",
+                            "und-PR": "es-Latn-PR",
+                            "und-Prti": "xpr-Prti-IR",
+                            "und-PS": "ar-Arab-PS",
+                            "und-PT": "pt-Latn-PT",
+                            "und-PW": "pau-Latn-PW",
+                            "und-PY": "gn-Latn-PY",
+                            "und-QA": "ar-Arab-QA",
+                            "und-QO": "en-Latn-DG",
+                            "und-RE": "fr-Latn-RE",
+                            "und-Rjng": "rej-Rjng-ID",
+                            "und-RO": "ro-Latn-RO",
+                            "und-Rohg": "rhg-Rohg-MM",
+                            "und-RS": "sr-Cyrl-RS",
+                            "und-RU": "ru-Cyrl-RU",
+                            "und-Runr": "non-Runr-SE",
+                            "und-RW": "rw-Latn-RW",
+                            "und-SA": "ar-Arab-SA",
+                            "und-Samr": "smp-Samr-IL",
+                            "und-Sarb": "xsa-Sarb-YE",
+                            "und-Saur": "saz-Saur-IN",
+                            "und-SC": "fr-Latn-SC",
+                            "und-SD": "ar-Arab-SD",
+                            "und-SE": "sv-Latn-SE",
+                            "und-Sgnw": "ase-Sgnw-US",
+                            "und-Shaw": "en-Shaw-GB",
+                            "und-Shrd": "sa-Shrd-IN",
+                            "und-SI": "sl-Latn-SI",
+                            "und-Sidd": "sa-Sidd-IN",
+                            "und-Sind": "sd-Sind-IN",
+                            "und-Sinh": "si-Sinh-LK",
+                            "und-SJ": "nb-Latn-SJ",
+                            "und-SK": "sk-Latn-SK",
+                            "und-SM": "it-Latn-SM",
+                            "und-SN": "fr-Latn-SN",
+                            "und-SO": "so-Latn-SO",
+                            "und-Sogd": "sog-Sogd-UZ",
+                            "und-Sogo": "sog-Sogo-UZ",
+                            "und-Sora": "srb-Sora-IN",
+                            "und-Soyo": "cmg-Soyo-MN",
+                            "und-SR": "nl-Latn-SR",
+                            "und-ST": "pt-Latn-ST",
+                            "und-Sund": "su-Sund-ID",
+                            "und-SV": "es-Latn-SV",
+                            "und-SY": "ar-Arab-SY",
+                            "und-Sylo": "syl-Sylo-BD",
+                            "und-Syrc": "syr-Syrc-IQ",
+                            "und-Tagb": "tbw-Tagb-PH",
+                            "und-Takr": "doi-Takr-IN",
+                            "und-Tale": "tdd-Tale-CN",
+                            "und-Talu": "khb-Talu-CN",
+                            "und-Taml": "ta-Taml-IN",
+                            "und-Tang": "txg-Tang-CN",
+                            "und-Tavt": "blt-Tavt-VN",
+                            "und-TD": "fr-Latn-TD",
+                            "und-Telu": "te-Telu-IN",
+                            "und-TF": "fr-Latn-TF",
+                            "und-Tfng": "zgh-Tfng-MA",
+                            "und-TG": "fr-Latn-TG",
+                            "und-Tglg": "fil-Tglg-PH",
+                            "und-TH": "th-Thai-TH",
+                            "und-Thaa": "dv-Thaa-MV",
+                            "und-Thai": "th-Thai-TH",
+                            "und-Thai-CN": "lcp-Thai-CN",
+                            "und-Thai-KH": "kdt-Thai-KH",
+                            "und-Thai-LA": "kdt-Thai-LA",
+                            "und-Tibt": "bo-Tibt-CN",
+                            "und-Tirh": "mai-Tirh-IN",
+                            "und-TJ": "tg-Cyrl-TJ",
+                            "und-TK": "tkl-Latn-TK",
+                            "und-TL": "pt-Latn-TL",
+                            "und-TM": "tk-Latn-TM",
+                            "und-TN": "ar-Arab-TN",
+                            "und-TO": "to-Latn-TO",
+                            "und-TR": "tr-Latn-TR",
+                            "und-TV": "tvl-Latn-TV",
+                            "und-TW": "zh-Hant-TW",
+                            "und-TZ": "sw-Latn-TZ",
+                            "und-UA": "uk-Cyrl-UA",
+                            "und-UG": "sw-Latn-UG",
+                            "und-Ugar": "uga-Ugar-SY",
+                            "und-UY": "es-Latn-UY",
+                            "und-UZ": "uz-Latn-UZ",
+                            "und-VA": "it-Latn-VA",
+                            "und-Vaii": "vai-Vaii-LR",
+                            "und-VE": "es-Latn-VE",
+                            "und-VN": "vi-Latn-VN",
+                            "und-VU": "bi-Latn-VU",
+                            "und-Wara": "hoc-Wara-IN",
+                            "und-Wcho": "nnp-Wcho-IN",
+                            "und-WF": "fr-Latn-WF",
+                            "und-WS": "sm-Latn-WS",
+                            "und-XK": "sq-Latn-XK",
+                            "und-Xpeo": "peo-Xpeo-IR",
+                            "und-Xsux": "akk-Xsux-IQ",
+                            "und-YE": "ar-Arab-YE",
+                            "und-Yiii": "ii-Yiii-CN",
+                            "und-YT": "fr-Latn-YT",
+                            "und-Zanb": "cmg-Zanb-MN",
+                            "und-ZW": "sn-Latn-ZW",
+                            unr: "unr-Beng-IN",
+                            "unr-Deva": "unr-Deva-NP",
+                            "unr-NP": "unr-Deva-NP",
+                            unx: "unx-Beng-IN",
+                            uok: "uok-Latn-ZZ",
+                            ur: "ur-Arab-PK",
+                            uri: "uri-Latn-ZZ",
+                            urt: "urt-Latn-ZZ",
+                            urw: "urw-Latn-ZZ",
+                            usa: "usa-Latn-ZZ",
+                            utr: "utr-Latn-ZZ",
+                            uvh: "uvh-Latn-ZZ",
+                            uvl: "uvl-Latn-ZZ",
+                            uz: "uz-Latn-UZ",
+                            "uz-AF": "uz-Arab-AF",
+                            "uz-Arab": "uz-Arab-AF",
+                            "uz-CN": "uz-Cyrl-CN",
+                            vag: "vag-Latn-ZZ",
+                            vai: "vai-Vaii-LR",
+                            van: "van-Latn-ZZ",
+                            ve: "ve-Latn-ZA",
+                            vec: "vec-Latn-IT",
+                            vep: "vep-Latn-RU",
+                            vi: "vi-Latn-VN",
+                            vic: "vic-Latn-SX",
+                            viv: "viv-Latn-ZZ",
+                            vls: "vls-Latn-BE",
+                            vmf: "vmf-Latn-DE",
+                            vmw: "vmw-Latn-MZ",
+                            vo: "vo-Latn-001",
+                            vot: "vot-Latn-RU",
+                            vro: "vro-Latn-EE",
+                            vun: "vun-Latn-TZ",
+                            vut: "vut-Latn-ZZ",
+                            wa: "wa-Latn-BE",
+                            wae: "wae-Latn-CH",
+                            waj: "waj-Latn-ZZ",
+                            wal: "wal-Ethi-ET",
+                            wan: "wan-Latn-ZZ",
+                            war: "war-Latn-PH",
+                            wbp: "wbp-Latn-AU",
+                            wbq: "wbq-Telu-IN",
+                            wbr: "wbr-Deva-IN",
+                            wci: "wci-Latn-ZZ",
+                            wer: "wer-Latn-ZZ",
+                            wgi: "wgi-Latn-ZZ",
+                            whg: "whg-Latn-ZZ",
+                            wib: "wib-Latn-ZZ",
+                            wiu: "wiu-Latn-ZZ",
+                            wiv: "wiv-Latn-ZZ",
+                            wja: "wja-Latn-ZZ",
+                            wji: "wji-Latn-ZZ",
+                            wls: "wls-Latn-WF",
+                            wmo: "wmo-Latn-ZZ",
+                            wnc: "wnc-Latn-ZZ",
+                            wni: "wni-Arab-KM",
+                            wnu: "wnu-Latn-ZZ",
+                            wo: "wo-Latn-SN",
+                            wob: "wob-Latn-ZZ",
+                            wos: "wos-Latn-ZZ",
+                            wrs: "wrs-Latn-ZZ",
+                            wsg: "wsg-Gong-IN",
+                            wsk: "wsk-Latn-ZZ",
+                            wtm: "wtm-Deva-IN",
+                            wuu: "wuu-Hans-CN",
+                            wuv: "wuv-Latn-ZZ",
+                            wwa: "wwa-Latn-ZZ",
+                            xav: "xav-Latn-BR",
+                            xbi: "xbi-Latn-ZZ",
+                            xcr: "xcr-Cari-TR",
+                            xes: "xes-Latn-ZZ",
+                            xh: "xh-Latn-ZA",
+                            xla: "xla-Latn-ZZ",
+                            xlc: "xlc-Lyci-TR",
+                            xld: "xld-Lydi-TR",
+                            xmf: "xmf-Geor-GE",
+                            xmn: "xmn-Mani-CN",
+                            xmr: "xmr-Merc-SD",
+                            xna: "xna-Narb-SA",
+                            xnr: "xnr-Deva-IN",
+                            xog: "xog-Latn-UG",
+                            xon: "xon-Latn-ZZ",
+                            xpr: "xpr-Prti-IR",
+                            xrb: "xrb-Latn-ZZ",
+                            xsa: "xsa-Sarb-YE",
+                            xsi: "xsi-Latn-ZZ",
+                            xsm: "xsm-Latn-ZZ",
+                            xsr: "xsr-Deva-NP",
+                            xwe: "xwe-Latn-ZZ",
+                            yam: "yam-Latn-ZZ",
+                            yao: "yao-Latn-MZ",
+                            yap: "yap-Latn-FM",
+                            yas: "yas-Latn-ZZ",
+                            yat: "yat-Latn-ZZ",
+                            yav: "yav-Latn-CM",
+                            yay: "yay-Latn-ZZ",
+                            yaz: "yaz-Latn-ZZ",
+                            yba: "yba-Latn-ZZ",
+                            ybb: "ybb-Latn-CM",
+                            yby: "yby-Latn-ZZ",
+                            yer: "yer-Latn-ZZ",
+                            ygr: "ygr-Latn-ZZ",
+                            ygw: "ygw-Latn-ZZ",
+                            yi: "yi-Hebr-001",
+                            yko: "yko-Latn-ZZ",
+                            yle: "yle-Latn-ZZ",
+                            ylg: "ylg-Latn-ZZ",
+                            yll: "yll-Latn-ZZ",
+                            yml: "yml-Latn-ZZ",
+                            yo: "yo-Latn-NG",
+                            yon: "yon-Latn-ZZ",
+                            yrb: "yrb-Latn-ZZ",
+                            yre: "yre-Latn-ZZ",
+                            yrl: "yrl-Latn-BR",
+                            yss: "yss-Latn-ZZ",
+                            yua: "yua-Latn-MX",
+                            yue: "yue-Hant-HK",
+                            "yue-CN": "yue-Hans-CN",
+                            "yue-Hans": "yue-Hans-CN",
+                            yuj: "yuj-Latn-ZZ",
+                            yut: "yut-Latn-ZZ",
+                            yuw: "yuw-Latn-ZZ",
+                            za: "za-Latn-CN",
+                            zag: "zag-Latn-SD",
+                            zdj: "zdj-Arab-KM",
+                            zea: "zea-Latn-NL",
+                            zgh: "zgh-Tfng-MA",
+                            zh: "zh-Hans-CN",
+                            "zh-AU": "zh-Hant-AU",
+                            "zh-BN": "zh-Hant-BN",
+                            "zh-Bopo": "zh-Bopo-TW",
+                            "zh-GB": "zh-Hant-GB",
+                            "zh-GF": "zh-Hant-GF",
+                            "zh-Hanb": "zh-Hanb-TW",
+                            "zh-Hant": "zh-Hant-TW",
+                            "zh-HK": "zh-Hant-HK",
+                            "zh-ID": "zh-Hant-ID",
+                            "zh-MO": "zh-Hant-MO",
+                            "zh-MY": "zh-Hant-MY",
+                            "zh-PA": "zh-Hant-PA",
+                            "zh-PF": "zh-Hant-PF",
+                            "zh-PH": "zh-Hant-PH",
+                            "zh-SR": "zh-Hant-SR",
+                            "zh-TH": "zh-Hant-TH",
+                            "zh-TW": "zh-Hant-TW",
+                            "zh-US": "zh-Hant-US",
+                            "zh-VN": "zh-Hant-VN",
+                            zhx: "zhx-Nshu-CN",
+                            zia: "zia-Latn-ZZ",
+                            zlm: "zlm-Latn-TG",
+                            zmi: "zmi-Latn-MY",
+                            zne: "zne-Latn-ZZ",
+                            zu: "zu-Latn-ZA",
+                            zza: "zza-Latn-TR"
+                        },
+                        timeData: {
+                            AX: {
+                                _allowed: "H",
+                                _preferred: "H"
+                            },
+                            BQ: {
+                                _allowed: "H",
+                                _preferred: "H"
+                            },
+                            CP: {
+                                _allowed: "H",
+                                _preferred: "H"
+                            },
+                            CZ: {
+                                _allowed: "H",
+                                _preferred: "H"
+                            },
+                            DK: {
+                                _allowed: "H",
+                                _preferred: "H"
+                            },
+                            FI: {
+                                _allowed: "H",
+                                _preferred: "H"
+                            },
+                            ID: {
+                                _allowed: "H",
+                                _preferred: "H"
+                            },
+                            IS: {
+                                _allowed: "H",
+                                _preferred: "H"
+                            },
+                            ML: {
+                                _allowed: "H",
+                                _preferred: "H"
+                            },
+                            NE: {
+                                _allowed: "H",
+                                _preferred: "H"
+                            },
+                            RU: {
+                                _allowed: "H",
+                                _preferred: "H"
+                            },
+                            SE: {
+                                _allowed: "H",
+                                _preferred: "H"
+                            },
+                            SJ: {
+                                _allowed: "H",
+                                _preferred: "H"
+                            },
+                            SK: {
+                                _allowed: "H",
+                                _preferred: "H"
+                            },
+                            AS: {
+                                _allowed: "h H",
+                                _preferred: "h"
+                            },
+                            BT: {
+                                _allowed: "h H",
+                                _preferred: "h"
+                            },
+                            DJ: {
+                                _allowed: "h H",
+                                _preferred: "h"
+                            },
+                            ER: {
+                                _allowed: "h H",
+                                _preferred: "h"
+                            },
+                            GH: {
+                                _allowed: "h H",
+                                _preferred: "h"
+                            },
+                            IN: {
+                                _allowed: "h H",
+                                _preferred: "h"
+                            },
+                            LS: {
+                                _allowed: "h H",
+                                _preferred: "h"
+                            },
+                            PG: {
+                                _allowed: "h H",
+                                _preferred: "h"
+                            },
+                            PW: {
+                                _allowed: "h H",
+                                _preferred: "h"
+                            },
+                            SO: {
+                                _allowed: "h H",
+                                _preferred: "h"
+                            },
+                            TO: {
+                                _allowed: "h H",
+                                _preferred: "h"
+                            },
+                            VU: {
+                                _allowed: "h H",
+                                _preferred: "h"
+                            },
+                            WS: {
+                                _allowed: "h H",
+                                _preferred: "h"
+                            },
+                            "001": {
+                                _allowed: "H h",
+                                _preferred: "H"
+                            },
+                            AL: {
+                                _allowed: "h H hB",
+                                _preferred: "h"
+                            },
+                            TD: {
+                                _allowed: "h H hB",
+                                _preferred: "h"
+                            },
+                            ca_ES: {
+                                _allowed: "H h hB",
+                                _preferred: "H"
+                            },
+                            CF: {
+                                _allowed: "H h hB",
+                                _preferred: "H"
+                            },
+                            CM: {
+                                _allowed: "H h hB",
+                                _preferred: "H"
+                            },
+                            fr_CA: {
+                                _allowed: "H h hB",
+                                _preferred: "H"
+                            },
+                            gl_ES: {
+                                _allowed: "H h hB",
+                                _preferred: "H"
+                            },
+                            it_CH: {
+                                _allowed: "H h hB",
+                                _preferred: "H"
+                            },
+                            it_IT: {
+                                _allowed: "H h hB",
+                                _preferred: "H"
+                            },
+                            LU: {
+                                _allowed: "H h hB",
+                                _preferred: "H"
+                            },
+                            NP: {
+                                _allowed: "H h hB",
+                                _preferred: "H"
+                            },
+                            PF: {
+                                _allowed: "H h hB",
+                                _preferred: "H"
+                            },
+                            SC: {
+                                _allowed: "H h hB",
+                                _preferred: "H"
+                            },
+                            SM: {
+                                _allowed: "H h hB",
+                                _preferred: "H"
+                            },
+                            SN: {
+                                _allowed: "H h hB",
+                                _preferred: "H"
+                            },
+                            TF: {
+                                _allowed: "H h hB",
+                                _preferred: "H"
+                            },
+                            VA: {
+                                _allowed: "H h hB",
+                                _preferred: "H"
+                            },
+                            CY: {
+                                _allowed: "h H hb hB",
+                                _preferred: "h"
+                            },
+                            GR: {
+                                _allowed: "h H hb hB",
+                                _preferred: "h"
+                            },
+                            CO: {
+                                _allowed: "h H hB hb",
+                                _preferred: "h"
+                            },
+                            DO: {
+                                _allowed: "h H hB hb",
+                                _preferred: "h"
+                            },
+                            KP: {
+                                _allowed: "h H hB hb",
+                                _preferred: "h"
+                            },
+                            KR: {
+                                _allowed: "h H hB hb",
+                                _preferred: "h"
+                            },
+                            NA: {
+                                _allowed: "h H hB hb",
+                                _preferred: "h"
+                            },
+                            PA: {
+                                _allowed: "h H hB hb",
+                                _preferred: "h"
+                            },
+                            PR: {
+                                _allowed: "h H hB hb",
+                                _preferred: "h"
+                            },
+                            VE: {
+                                _allowed: "h H hB hb",
+                                _preferred: "h"
+                            },
+                            AC: {
+                                _allowed: "H h hb hB",
+                                _preferred: "H"
+                            },
+                            AI: {
+                                _allowed: "H h hb hB",
+                                _preferred: "H"
+                            },
+                            BW: {
+                                _allowed: "H h hb hB",
+                                _preferred: "H"
+                            },
+                            BZ: {
+                                _allowed: "H h hb hB",
+                                _preferred: "H"
+                            },
+                            CC: {
+                                _allowed: "H h hb hB",
+                                _preferred: "H"
+                            },
+                            CK: {
+                                _allowed: "H h hb hB",
+                                _preferred: "H"
+                            },
+                            CX: {
+                                _allowed: "H h hb hB",
+                                _preferred: "H"
+                            },
+                            DG: {
+                                _allowed: "H h hb hB",
+                                _preferred: "H"
+                            },
+                            FK: {
+                                _allowed: "H h hb hB",
+                                _preferred: "H"
+                            },
+                            GB: {
+                                _allowed: "H h hb hB",
+                                _preferred: "H"
+                            },
+                            GG: {
+                                _allowed: "H h hb hB",
+                                _preferred: "H"
+                            },
+                            GI: {
+                                _allowed: "H h hb hB",
+                                _preferred: "H"
+                            },
+                            IE: {
+                                _allowed: "H h hb hB",
+                                _preferred: "H"
+                            },
+                            IM: {
+                                _allowed: "H h hb hB",
+                                _preferred: "H"
+                            },
+                            IO: {
+                                _allowed: "H h hb hB",
+                                _preferred: "H"
+                            },
+                            JE: {
+                                _allowed: "H h hb hB",
+                                _preferred: "H"
+                            },
+                            LT: {
+                                _allowed: "H h hb hB",
+                                _preferred: "H"
+                            },
+                            MK: {
+                                _allowed: "H h hb hB",
+                                _preferred: "H"
+                            },
+                            MN: {
+                                _allowed: "H h hb hB",
+                                _preferred: "H"
+                            },
+                            MS: {
+                                _allowed: "H h hb hB",
+                                _preferred: "H"
+                            },
+                            NF: {
+                                _allowed: "H h hb hB",
+                                _preferred: "H"
+                            },
+                            NG: {
+                                _allowed: "H h hb hB",
+                                _preferred: "H"
+                            },
+                            NR: {
+                                _allowed: "H h hb hB",
+                                _preferred: "H"
+                            },
+                            NU: {
+                                _allowed: "H h hb hB",
+                                _preferred: "H"
+                            },
+                            PN: {
+                                _allowed: "H h hb hB",
+                                _preferred: "H"
+                            },
+                            SH: {
+                                _allowed: "H h hb hB",
+                                _preferred: "H"
+                            },
+                            SX: {
+                                _allowed: "H h hb hB",
+                                _preferred: "H"
+                            },
+                            TA: {
+                                _allowed: "H h hb hB",
+                                _preferred: "H"
+                            },
+                            ZA: {
+                                _allowed: "H h hb hB",
+                                _preferred: "H"
+                            },
+                            af_ZA: {
+                                _allowed: "H h hB hb",
+                                _preferred: "H"
+                            },
+                            AR: {
+                                _allowed: "H h hB hb",
+                                _preferred: "H"
+                            },
+                            CL: {
+                                _allowed: "H h hB hb",
+                                _preferred: "H"
+                            },
+                            CR: {
+                                _allowed: "H h hB hb",
+                                _preferred: "H"
+                            },
+                            CU: {
+                                _allowed: "H h hB hb",
+                                _preferred: "H"
+                            },
+                            EA: {
+                                _allowed: "H h hB hb",
+                                _preferred: "H"
+                            },
+                            es_BO: {
+                                _allowed: "H h hB hb",
+                                _preferred: "H"
+                            },
+                            es_BR: {
+                                _allowed: "H h hB hb",
+                                _preferred: "H"
+                            },
+                            es_EC: {
+                                _allowed: "H h hB hb",
+                                _preferred: "H"
+                            },
+                            es_ES: {
+                                _allowed: "H h hB hb",
+                                _preferred: "H"
+                            },
+                            es_GQ: {
+                                _allowed: "H h hB hb",
+                                _preferred: "H"
+                            },
+                            es_PE: {
+                                _allowed: "H h hB hb",
+                                _preferred: "H"
+                            },
+                            GT: {
+                                _allowed: "H h hB hb",
+                                _preferred: "H"
+                            },
+                            HN: {
+                                _allowed: "H h hB hb",
+                                _preferred: "H"
+                            },
+                            IC: {
+                                _allowed: "H h hB hb",
+                                _preferred: "H"
+                            },
+                            KG: {
+                                _allowed: "H h hB hb",
+                                _preferred: "H"
+                            },
+                            KM: {
+                                _allowed: "H h hB hb",
+                                _preferred: "H"
+                            },
+                            LK: {
+                                _allowed: "H h hB hb",
+                                _preferred: "H"
+                            },
+                            MA: {
+                                _allowed: "H h hB hb",
+                                _preferred: "H"
+                            },
+                            MX: {
+                                _allowed: "H h hB hb",
+                                _preferred: "H"
+                            },
+                            NI: {
+                                _allowed: "H h hB hb",
+                                _preferred: "H"
+                            },
+                            PY: {
+                                _allowed: "H h hB hb",
+                                _preferred: "H"
+                            },
+                            SV: {
+                                _allowed: "H h hB hb",
+                                _preferred: "H"
+                            },
+                            UY: {
+                                _allowed: "H h hB hb",
+                                _preferred: "H"
+                            },
+                            JP: {
+                                _allowed: "H h K",
+                                _preferred: "H"
+                            },
+                            AD: {
+                                _allowed: "H hB",
+                                _preferred: "H"
+                            },
+                            AM: {
+                                _allowed: "H hB",
+                                _preferred: "H"
+                            },
+                            AO: {
+                                _allowed: "H hB",
+                                _preferred: "H"
+                            },
+                            AT: {
+                                _allowed: "H hB",
+                                _preferred: "H"
+                            },
+                            AW: {
+                                _allowed: "H hB",
+                                _preferred: "H"
+                            },
+                            BE: {
+                                _allowed: "H hB",
+                                _preferred: "H"
+                            },
+                            BF: {
+                                _allowed: "H hB",
+                                _preferred: "H"
+                            },
+                            BJ: {
+                                _allowed: "H hB",
+                                _preferred: "H"
+                            },
+                            BL: {
+                                _allowed: "H hB",
+                                _preferred: "H"
+                            },
+                            BR: {
+                                _allowed: "H hB",
+                                _preferred: "H"
+                            },
+                            CG: {
+                                _allowed: "H hB",
+                                _preferred: "H"
+                            },
+                            CI: {
+                                _allowed: "H hB",
+                                _preferred: "H"
+                            },
+                            CV: {
+                                _allowed: "H hB",
+                                _preferred: "H"
+                            },
+                            DE: {
+                                _allowed: "H hB",
+                                _preferred: "H"
+                            },
+                            EE: {
+                                _allowed: "H hB",
+                                _preferred: "H"
+                            },
+                            FR: {
+                                _allowed: "H hB",
+                                _preferred: "H"
+                            },
+                            GA: {
+                                _allowed: "H hB",
+                                _preferred: "H"
+                            },
+                            GF: {
+                                _allowed: "H hB",
+                                _preferred: "H"
+                            },
+                            GN: {
+                                _allowed: "H hB",
+                                _preferred: "H"
+                            },
+                            GP: {
+                                _allowed: "H hB",
+                                _preferred: "H"
+                            },
+                            GW: {
+                                _allowed: "H hB",
+                                _preferred: "H"
+                            },
+                            HR: {
+                                _allowed: "H hB",
+                                _preferred: "H"
+                            },
+                            IL: {
+                                _allowed: "H hB",
+                                _preferred: "H"
+                            },
+                            IT: {
+                                _allowed: "H hB",
+                                _preferred: "H"
+                            },
+                            KZ: {
+                                _allowed: "H hB",
+                                _preferred: "H"
+                            },
+                            MC: {
+                                _allowed: "H hB",
+                                _preferred: "H"
+                            },
+                            MD: {
+                                _allowed: "H hB",
+                                _preferred: "H"
+                            },
+                            MF: {
+                                _allowed: "H hB",
+                                _preferred: "H"
+                            },
+                            MQ: {
+                                _allowed: "H hB",
+                                _preferred: "H"
+                            },
+                            MZ: {
+                                _allowed: "H hB",
+                                _preferred: "H"
+                            },
+                            NC: {
+                                _allowed: "H hB",
+                                _preferred: "H"
+                            },
+                            NL: {
+                                _allowed: "H hB",
+                                _preferred: "H"
+                            },
+                            PM: {
+                                _allowed: "H hB",
+                                _preferred: "H"
+                            },
+                            PT: {
+                                _allowed: "H hB",
+                                _preferred: "H"
+                            },
+                            RE: {
+                                _allowed: "H hB",
+                                _preferred: "H"
+                            },
+                            RO: {
+                                _allowed: "H hB",
+                                _preferred: "H"
+                            },
+                            SI: {
+                                _allowed: "H hB",
+                                _preferred: "H"
+                            },
+                            SR: {
+                                _allowed: "H hB",
+                                _preferred: "H"
+                            },
+                            ST: {
+                                _allowed: "H hB",
+                                _preferred: "H"
+                            },
+                            TG: {
+                                _allowed: "H hB",
+                                _preferred: "H"
+                            },
+                            TR: {
+                                _allowed: "H hB",
+                                _preferred: "H"
+                            },
+                            WF: {
+                                _allowed: "H hB",
+                                _preferred: "H"
+                            },
+                            YT: {
+                                _allowed: "H hB",
+                                _preferred: "H"
+                            },
+                            BD: {
+                                _allowed: "h hB H",
+                                _preferred: "h"
+                            },
+                            PK: {
+                                _allowed: "h hB H",
+                                _preferred: "h"
+                            },
+                            AZ: {
+                                _allowed: "H hB h",
+                                _preferred: "H"
+                            },
+                            BA: {
+                                _allowed: "H hB h",
+                                _preferred: "H"
+                            },
+                            BG: {
+                                _allowed: "H hB h",
+                                _preferred: "H"
+                            },
+                            CH: {
+                                _allowed: "H hB h",
+                                _preferred: "H"
+                            },
+                            GE: {
+                                _allowed: "H hB h",
+                                _preferred: "H"
+                            },
+                            LI: {
+                                _allowed: "H hB h",
+                                _preferred: "H"
+                            },
+                            ME: {
+                                _allowed: "H hB h",
+                                _preferred: "H"
+                            },
+                            RS: {
+                                _allowed: "H hB h",
+                                _preferred: "H"
+                            },
+                            UA: {
+                                _allowed: "H hB h",
+                                _preferred: "H"
+                            },
+                            UZ: {
+                                _allowed: "H hB h",
+                                _preferred: "H"
+                            },
+                            XK: {
+                                _allowed: "H hB h",
+                                _preferred: "H"
+                            },
+                            AG: {
+                                _allowed: "h hb H hB",
+                                _preferred: "h"
+                            },
+                            AU: {
+                                _allowed: "h hb H hB",
+                                _preferred: "h"
+                            },
+                            BB: {
+                                _allowed: "h hb H hB",
+                                _preferred: "h"
+                            },
+                            BM: {
+                                _allowed: "h hb H hB",
+                                _preferred: "h"
+                            },
+                            BS: {
+                                _allowed: "h hb H hB",
+                                _preferred: "h"
+                            },
+                            CA: {
+                                _allowed: "h hb H hB",
+                                _preferred: "h"
+                            },
+                            DM: {
+                                _allowed: "h hb H hB",
+                                _preferred: "h"
+                            },
+                            en_001: {
+                                _allowed: "h hb H hB",
+                                _preferred: "h"
+                            },
+                            FJ: {
+                                _allowed: "h hb H hB",
+                                _preferred: "h"
+                            },
+                            FM: {
+                                _allowed: "h hb H hB",
+                                _preferred: "h"
+                            },
+                            GD: {
+                                _allowed: "h hb H hB",
+                                _preferred: "h"
+                            },
+                            GM: {
+                                _allowed: "h hb H hB",
+                                _preferred: "h"
+                            },
+                            GU: {
+                                _allowed: "h hb H hB",
+                                _preferred: "h"
+                            },
+                            GY: {
+                                _allowed: "h hb H hB",
+                                _preferred: "h"
+                            },
+                            JM: {
+                                _allowed: "h hb H hB",
+                                _preferred: "h"
+                            },
+                            KI: {
+                                _allowed: "h hb H hB",
+                                _preferred: "h"
+                            },
+                            KN: {
+                                _allowed: "h hb H hB",
+                                _preferred: "h"
+                            },
+                            KY: {
+                                _allowed: "h hb H hB",
+                                _preferred: "h"
+                            },
+                            LC: {
+                                _allowed: "h hb H hB",
+                                _preferred: "h"
+                            },
+                            LR: {
+                                _allowed: "h hb H hB",
+                                _preferred: "h"
+                            },
+                            MH: {
+                                _allowed: "h hb H hB",
+                                _preferred: "h"
+                            },
+                            MP: {
+                                _allowed: "h hb H hB",
+                                _preferred: "h"
+                            },
+                            MW: {
+                                _allowed: "h hb H hB",
+                                _preferred: "h"
+                            },
+                            NZ: {
+                                _allowed: "h hb H hB",
+                                _preferred: "h"
+                            },
+                            SB: {
+                                _allowed: "h hb H hB",
+                                _preferred: "h"
+                            },
+                            SG: {
+                                _allowed: "h hb H hB",
+                                _preferred: "h"
+                            },
+                            SL: {
+                                _allowed: "h hb H hB",
+                                _preferred: "h"
+                            },
+                            SS: {
+                                _allowed: "h hb H hB",
+                                _preferred: "h"
+                            },
+                            SZ: {
+                                _allowed: "h hb H hB",
+                                _preferred: "h"
+                            },
+                            TC: {
+                                _allowed: "h hb H hB",
+                                _preferred: "h"
+                            },
+                            TT: {
+                                _allowed: "h hb H hB",
+                                _preferred: "h"
+                            },
+                            UM: {
+                                _allowed: "h hb H hB",
+                                _preferred: "h"
+                            },
+                            US: {
+                                _allowed: "h hb H hB",
+                                _preferred: "h"
+                            },
+                            VC: {
+                                _allowed: "h hb H hB",
+                                _preferred: "h"
+                            },
+                            VG: {
+                                _allowed: "h hb H hB",
+                                _preferred: "h"
+                            },
+                            VI: {
+                                _allowed: "h hb H hB",
+                                _preferred: "h"
+                            },
+                            ZM: {
+                                _allowed: "h hb H hB",
+                                _preferred: "h"
+                            },
+                            BO: {
+                                _allowed: "H hB h hb",
+                                _preferred: "H"
+                            },
+                            EC: {
+                                _allowed: "H hB h hb",
+                                _preferred: "H"
+                            },
+                            ES: {
+                                _allowed: "H hB h hb",
+                                _preferred: "H"
+                            },
+                            GQ: {
+                                _allowed: "H hB h hb",
+                                _preferred: "H"
+                            },
+                            PE: {
+                                _allowed: "H hB h hb",
+                                _preferred: "H"
+                            },
+                            AE: {
+                                _allowed: "h hB hb H",
+                                _preferred: "h"
+                            },
+                            ar_001: {
+                                _allowed: "h hB hb H",
+                                _preferred: "h"
+                            },
+                            BH: {
+                                _allowed: "h hB hb H",
+                                _preferred: "h"
+                            },
+                            DZ: {
+                                _allowed: "h hB hb H",
+                                _preferred: "h"
+                            },
+                            EG: {
+                                _allowed: "h hB hb H",
+                                _preferred: "h"
+                            },
+                            EH: {
+                                _allowed: "h hB hb H",
+                                _preferred: "h"
+                            },
+                            IQ: {
+                                _allowed: "h hB hb H",
+                                _preferred: "h"
+                            },
+                            JO: {
+                                _allowed: "h hB hb H",
+                                _preferred: "h"
+                            },
+                            KW: {
+                                _allowed: "h hB hb H",
+                                _preferred: "h"
+                            },
+                            LB: {
+                                _allowed: "h hB hb H",
+                                _preferred: "h"
+                            },
+                            LY: {
+                                _allowed: "h hB hb H",
+                                _preferred: "h"
+                            },
+                            MR: {
+                                _allowed: "h hB hb H",
+                                _preferred: "h"
+                            },
+                            OM: {
+                                _allowed: "h hB hb H",
+                                _preferred: "h"
+                            },
+                            PH: {
+                                _allowed: "h hB hb H",
+                                _preferred: "h"
+                            },
+                            PS: {
+                                _allowed: "h hB hb H",
+                                _preferred: "h"
+                            },
+                            QA: {
+                                _allowed: "h hB hb H",
+                                _preferred: "h"
+                            },
+                            SA: {
+                                _allowed: "h hB hb H",
+                                _preferred: "h"
+                            },
+                            SD: {
+                                _allowed: "h hB hb H",
+                                _preferred: "h"
+                            },
+                            SY: {
+                                _allowed: "h hB hb H",
+                                _preferred: "h"
+                            },
+                            TN: {
+                                _allowed: "h hB hb H",
+                                _preferred: "h"
+                            },
+                            YE: {
+                                _allowed: "h hB hb H",
+                                _preferred: "h"
+                            },
+                            AF: {
+                                _allowed: "H hb hB h",
+                                _preferred: "H"
+                            },
+                            LA: {
+                                _allowed: "H hb hB h",
+                                _preferred: "H"
+                            },
+                            LV: {
+                                _allowed: "H hB hb h",
+                                _preferred: "H"
+                            },
+                            TL: {
+                                _allowed: "H hB hb h",
+                                _preferred: "H"
+                            },
+                            zu_ZA: {
+                                _allowed: "H hB hb h",
+                                _preferred: "H"
+                            },
+                            CD: {
+                                _allowed: "hB H",
+                                _preferred: "H"
+                            },
+                            IR: {
+                                _allowed: "hB H",
+                                _preferred: "H"
+                            },
+                            hi_IN: {
+                                _allowed: "hB h H",
+                                _preferred: "h"
+                            },
+                            kn_IN: {
+                                _allowed: "hB h H",
+                                _preferred: "h"
+                            },
+                            ml_IN: {
+                                _allowed: "hB h H",
+                                _preferred: "h"
+                            },
+                            te_IN: {
+                                _allowed: "hB h H",
+                                _preferred: "h"
+                            },
+                            KH: {
+                                _allowed: "hB h H hb",
+                                _preferred: "h"
+                            },
+                            ta_IN: {
+                                _allowed: "hB h hb H",
+                                _preferred: "h"
+                            },
+                            BN: {
+                                _allowed: "hb hB h H",
+                                _preferred: "h"
+                            },
+                            MY: {
+                                _allowed: "hb hB h H",
+                                _preferred: "h"
+                            },
+                            CN: {
+                                _allowed: "hB hb h H",
+                                _preferred: "h"
+                            },
+                            ET: {
+                                _allowed: "hB hb h H",
+                                _preferred: "h"
+                            },
+                            gu_IN: {
+                                _allowed: "hB hb h H",
+                                _preferred: "h"
+                            },
+                            HK: {
+                                _allowed: "hB hb h H",
+                                _preferred: "h"
+                            },
+                            MO: {
+                                _allowed: "hB hb h H",
+                                _preferred: "h"
+                            },
+                            mr_IN: {
+                                _allowed: "hB hb h H",
+                                _preferred: "h"
+                            },
+                            pa_IN: {
+                                _allowed: "hB hb h H",
+                                _preferred: "h"
+                            },
+                            TW: {
+                                _allowed: "hB hb h H",
+                                _preferred: "h"
+                            },
+                            KE: {
+                                _allowed: "hB hb H h",
+                                _preferred: "H"
+                            },
+                            MM: {
+                                _allowed: "hB hb H h",
+                                _preferred: "H"
+                            },
+                            TZ: {
+                                _allowed: "hB hb H h",
+                                _preferred: "H"
+                            },
+                            UG: {
+                                _allowed: "hB hb H h",
+                                _preferred: "H"
+                            }
+                        },
+                        weekData: {
+                            minDays: {
+                                "001": "1",
+                                AD: "4",
+                                AN: "4",
+                                AT: "4",
+                                AX: "4",
+                                BE: "4",
+                                BG: "4",
+                                CH: "4",
+                                CZ: "4",
+                                DE: "4",
+                                DK: "4",
+                                EE: "4",
+                                ES: "4",
+                                FI: "4",
+                                FJ: "4",
+                                FO: "4",
+                                FR: "4",
+                                GB: "4",
+                                GF: "4",
+                                GG: "4",
+                                GI: "4",
+                                GP: "4",
+                                GR: "4",
+                                GU: "1",
+                                HU: "4",
+                                IE: "4",
+                                IM: "4",
+                                IS: "4",
+                                IT: "4",
+                                JE: "4",
+                                LI: "4",
+                                LT: "4",
+                                LU: "4",
+                                MC: "4",
+                                MQ: "4",
+                                NL: "4",
+                                NO: "4",
+                                PL: "4",
+                                PT: "4",
+                                RE: "4",
+                                RU: "4",
+                                SE: "4",
+                                SJ: "4",
+                                SK: "4",
+                                SM: "4",
+                                UM: "1",
+                                US: "1",
+                                VA: "4",
+                                VI: "1"
+                            },
+                            firstDay: {
+                                "001": "mon",
+                                AD: "mon",
+                                AE: "sat",
+                                AF: "sat",
+                                AG: "sun",
+                                AI: "mon",
+                                AL: "mon",
+                                AM: "mon",
+                                AN: "mon",
+                                AR: "mon",
+                                AS: "sun",
+                                AT: "mon",
+                                AU: "sun",
+                                AX: "mon",
+                                AZ: "mon",
+                                BA: "mon",
+                                BD: "sun",
+                                BE: "mon",
+                                BG: "mon",
+                                BH: "sat",
+                                BM: "mon",
+                                BN: "mon",
+                                BR: "sun",
+                                BS: "sun",
+                                BT: "sun",
+                                BW: "sun",
+                                BY: "mon",
+                                BZ: "sun",
+                                CA: "sun",
+                                CH: "mon",
+                                CL: "mon",
+                                CM: "mon",
+                                CN: "sun",
+                                CO: "sun",
+                                CR: "mon",
+                                CY: "mon",
+                                CZ: "mon",
+                                DE: "mon",
+                                DJ: "sat",
+                                DK: "mon",
+                                DM: "sun",
+                                DO: "sun",
+                                DZ: "sat",
+                                EC: "mon",
+                                EE: "mon",
+                                EG: "sat",
+                                ES: "mon",
+                                ET: "sun",
+                                FI: "mon",
+                                FJ: "mon",
+                                FO: "mon",
+                                FR: "mon",
+                                GB: "mon",
+                                "GB-alt-variant": "sun",
+                                GE: "mon",
+                                GF: "mon",
+                                GP: "mon",
+                                GR: "mon",
+                                GT: "sun",
+                                GU: "sun",
+                                HK: "sun",
+                                HN: "sun",
+                                HR: "mon",
+                                HU: "mon",
+                                ID: "sun",
+                                IE: "mon",
+                                IL: "sun",
+                                IN: "sun",
+                                IQ: "sat",
+                                IR: "sat",
+                                IS: "mon",
+                                IT: "mon",
+                                JM: "sun",
+                                JO: "sat",
+                                JP: "sun",
+                                KE: "sun",
+                                KG: "mon",
+                                KH: "sun",
+                                KR: "sun",
+                                KW: "sat",
+                                KZ: "mon",
+                                LA: "sun",
+                                LB: "mon",
+                                LI: "mon",
+                                LK: "mon",
+                                LT: "mon",
+                                LU: "mon",
+                                LV: "mon",
+                                LY: "sat",
+                                MC: "mon",
+                                MD: "mon",
+                                ME: "mon",
+                                MH: "sun",
+                                MK: "mon",
+                                MM: "sun",
+                                MN: "mon",
+                                MO: "sun",
+                                MQ: "mon",
+                                MT: "sun",
+                                MV: "fri",
+                                MX: "sun",
+                                MY: "mon",
+                                MZ: "sun",
+                                NI: "sun",
+                                NL: "mon",
+                                NO: "mon",
+                                NP: "sun",
+                                NZ: "mon",
+                                OM: "sat",
+                                PA: "sun",
+                                PE: "sun",
+                                PH: "sun",
+                                PK: "sun",
+                                PL: "mon",
+                                PR: "sun",
+                                PT: "sun",
+                                PY: "sun",
+                                QA: "sat",
+                                RE: "mon",
+                                RO: "mon",
+                                RS: "mon",
+                                RU: "mon",
+                                SA: "sun",
+                                SD: "sat",
+                                SE: "mon",
+                                SG: "sun",
+                                SI: "mon",
+                                SK: "mon",
+                                SM: "mon",
+                                SV: "sun",
+                                SY: "sat",
+                                TH: "sun",
+                                TJ: "mon",
+                                TM: "mon",
+                                TR: "mon",
+                                TT: "sun",
+                                TW: "sun",
+                                UA: "mon",
+                                UM: "sun",
+                                US: "sun",
+                                UY: "mon",
+                                UZ: "mon",
+                                VA: "mon",
+                                VE: "sun",
+                                VI: "sun",
+                                VN: "mon",
+                                WS: "sun",
+                                XK: "mon",
+                                YE: "sun",
+                                ZA: "sun",
+                                ZW: "sun"
+                            },
+                            weekendStart: {
+                                "001": "sat",
+                                AE: "fri",
+                                AF: "thu",
+                                BH: "fri",
+                                DZ: "fri",
+                                EG: "fri",
+                                IL: "fri",
+                                IN: "sun",
+                                IQ: "fri",
+                                IR: "fri",
+                                JO: "fri",
+                                KW: "fri",
+                                LY: "fri",
+                                OM: "fri",
+                                QA: "fri",
+                                SA: "fri",
+                                SD: "fri",
+                                SY: "fri",
+                                UG: "sun",
+                                YE: "fri"
+                            },
+                            weekendEnd: {
+                                "001": "sun",
+                                AE: "sat",
+                                AF: "fri",
+                                BH: "sat",
+                                DZ: "sat",
+                                EG: "sat",
+                                IL: "sat",
+                                IQ: "sat",
+                                IR: "fri",
+                                JO: "sat",
+                                KW: "sat",
+                                LY: "sat",
+                                OM: "sat",
+                                QA: "sat",
+                                SA: "sat",
+                                SD: "sat",
+                                SY: "sat",
+                                YE: "sat"
+                            },
+                            af: {
+                                _ordering: "weekOfDate weekOfInterval weekOfMonth"
+                            },
+                            "am az bs cs cy da el et hi ky lt mk sk ta th": {
+                                _ordering: "weekOfYear weekOfMonth"
+                            },
+                            "ar fil gu hu hy id kk ko": {
+                                _ordering: "weekOfMonth"
+                            },
+                            "be ro ru": {
+                                _ordering: "weekOfInterval weekOfMonth"
+                            },
+                            "bg de iw pt ur zh": {
+                                _ordering: "weekOfDate weekOfMonth weekOfInterval"
+                            },
+                            "ca es fr gl": {
+                                _ordering: "weekOfDate"
+                            },
+                            "en bn ja ka": {
+                                _ordering: "weekOfDate weekOfMonth"
+                            },
+                            eu: {
+                                _ordering: "weekOfMonth weekOfDate"
+                            },
+                            "fa hr it lv pl si sr uk uz": {
+                                _ordering: "weekOfMonth weekOfInterval"
+                            },
+                            "fi zh-TW": {
+                                _ordering: "weekOfYear weekOfDate weekOfMonth"
+                            },
+                            "is mn no sv vi": {
+                                _ordering: "weekOfYear weekOfMonth weekOfInterval"
+                            },
+                            "km mr": {
+                                _ordering: "weekOfMonth weekOfYear"
+                            },
+                            "kn ml pa": {
+                                _ordering: "weekOfMonth weekOfDate weekOfYear"
+                            },
+                            "lo sq": {
+                                _ordering: "weekOfMonth weekOfInterval weekOfDate weekOfYear"
+                            },
+                            "ms tr": {
+                                _ordering: "weekOfMonth weekOfYear weekOfInterval weekOfDate"
+                            },
+                            nl: {
+                                _ordering: "weekOfDate weekOfYear weekOfMonth"
+                            },
+                            sl: {
+                                _ordering: "weekOfInterval"
+                            },
+                            "sw te": {
+                                _ordering: "weekOfMonth weekOfInterval weekOfYear"
+                            },
+                            und: {
+                                _ordering: "weekOfYear"
+                            },
+                            zu: {
+                                _ordering: "weekOfYear weekOfInterval"
+                            }
+                        },
+                        currencyData: {
+                            fractions: {
+                                ADP: {
+                                    _rounding: "0",
+                                    _digits: "0"
+                                },
+                                AFN: {
+                                    _rounding: "0",
+                                    _digits: "0"
+                                },
+                                ALL: {
+                                    _rounding: "0",
+                                    _digits: "0"
+                                },
+                                AMD: {
+                                    _rounding: "0",
+                                    _digits: "2",
+                                    _cashRounding: "0",
+                                    _cashDigits: "0"
+                                },
+                                BHD: {
+                                    _rounding: "0",
+                                    _digits: "3"
+                                },
+                                BIF: {
+                                    _rounding: "0",
+                                    _digits: "0"
+                                },
+                                BYN: {
+                                    _rounding: "0",
+                                    _digits: "2"
+                                },
+                                BYR: {
+                                    _rounding: "0",
+                                    _digits: "0"
+                                },
+                                CAD: {
+                                    _rounding: "0",
+                                    _digits: "2",
+                                    _cashRounding: "5"
+                                },
+                                CHF: {
+                                    _rounding: "0",
+                                    _digits: "2",
+                                    _cashRounding: "5"
+                                },
+                                CLF: {
+                                    _rounding: "0",
+                                    _digits: "4"
+                                },
+                                CLP: {
+                                    _rounding: "0",
+                                    _digits: "0"
+                                },
+                                COP: {
+                                    _rounding: "0",
+                                    _digits: "2",
+                                    _cashRounding: "0",
+                                    _cashDigits: "0"
+                                },
+                                CRC: {
+                                    _rounding: "0",
+                                    _digits: "2",
+                                    _cashRounding: "0",
+                                    _cashDigits: "0"
+                                },
+                                CZK: {
+                                    _rounding: "0",
+                                    _digits: "2",
+                                    _cashRounding: "0",
+                                    _cashDigits: "0"
+                                },
+                                DEFAULT: {
+                                    _rounding: "0",
+                                    _digits: "2"
+                                },
+                                DJF: {
+                                    _rounding: "0",
+                                    _digits: "0"
+                                },
+                                DKK: {
+                                    _rounding: "0",
+                                    _digits: "2",
+                                    _cashRounding: "50"
+                                },
+                                ESP: {
+                                    _rounding: "0",
+                                    _digits: "0"
+                                },
+                                GNF: {
+                                    _rounding: "0",
+                                    _digits: "0"
+                                },
+                                GYD: {
+                                    _rounding: "0",
+                                    _digits: "2",
+                                    _cashRounding: "0",
+                                    _cashDigits: "0"
+                                },
+                                HUF: {
+                                    _rounding: "0",
+                                    _digits: "2",
+                                    _cashRounding: "0",
+                                    _cashDigits: "0"
+                                },
+                                IDR: {
+                                    _rounding: "0",
+                                    _digits: "2",
+                                    _cashRounding: "0",
+                                    _cashDigits: "0"
+                                },
+                                IQD: {
+                                    _rounding: "0",
+                                    _digits: "0"
+                                },
+                                IRR: {
+                                    _rounding: "0",
+                                    _digits: "0"
+                                },
+                                ISK: {
+                                    _rounding: "0",
+                                    _digits: "0"
+                                },
+                                ITL: {
+                                    _rounding: "0",
+                                    _digits: "0"
+                                },
+                                JOD: {
+                                    _rounding: "0",
+                                    _digits: "3"
+                                },
+                                JPY: {
+                                    _rounding: "0",
+                                    _digits: "0"
+                                },
+                                KMF: {
+                                    _rounding: "0",
+                                    _digits: "0"
+                                },
+                                KPW: {
+                                    _rounding: "0",
+                                    _digits: "0"
+                                },
+                                KRW: {
+                                    _rounding: "0",
+                                    _digits: "0"
+                                },
+                                KWD: {
+                                    _rounding: "0",
+                                    _digits: "3"
+                                },
+                                LAK: {
+                                    _rounding: "0",
+                                    _digits: "0"
+                                },
+                                LBP: {
+                                    _rounding: "0",
+                                    _digits: "0"
+                                },
+                                LUF: {
+                                    _rounding: "0",
+                                    _digits: "0"
+                                },
+                                LYD: {
+                                    _rounding: "0",
+                                    _digits: "3"
+                                },
+                                MGA: {
+                                    _rounding: "0",
+                                    _digits: "0"
+                                },
+                                MGF: {
+                                    _rounding: "0",
+                                    _digits: "0"
+                                },
+                                MMK: {
+                                    _rounding: "0",
+                                    _digits: "0"
+                                },
+                                MNT: {
+                                    _rounding: "0",
+                                    _digits: "2",
+                                    _cashRounding: "0",
+                                    _cashDigits: "0"
+                                },
+                                MRO: {
+                                    _rounding: "0",
+                                    _digits: "0"
+                                },
+                                MUR: {
+                                    _rounding: "0",
+                                    _digits: "2",
+                                    _cashRounding: "0",
+                                    _cashDigits: "0"
+                                },
+                                NOK: {
+                                    _rounding: "0",
+                                    _digits: "2",
+                                    _cashRounding: "0",
+                                    _cashDigits: "0"
+                                },
+                                OMR: {
+                                    _rounding: "0",
+                                    _digits: "3"
+                                },
+                                PKR: {
+                                    _rounding: "0",
+                                    _digits: "2",
+                                    _cashRounding: "0",
+                                    _cashDigits: "0"
+                                },
+                                PYG: {
+                                    _rounding: "0",
+                                    _digits: "0"
+                                },
+                                RSD: {
+                                    _rounding: "0",
+                                    _digits: "0"
+                                },
+                                RWF: {
+                                    _rounding: "0",
+                                    _digits: "0"
+                                },
+                                SEK: {
+                                    _rounding: "0",
+                                    _digits: "2",
+                                    _cashRounding: "0",
+                                    _cashDigits: "0"
+                                },
+                                SLL: {
+                                    _rounding: "0",
+                                    _digits: "0"
+                                },
+                                SOS: {
+                                    _rounding: "0",
+                                    _digits: "0"
+                                },
+                                STD: {
+                                    _rounding: "0",
+                                    _digits: "0"
+                                },
+                                SYP: {
+                                    _rounding: "0",
+                                    _digits: "0"
+                                },
+                                TMM: {
+                                    _rounding: "0",
+                                    _digits: "0"
+                                },
+                                TND: {
+                                    _rounding: "0",
+                                    _digits: "3"
+                                },
+                                TRL: {
+                                    _rounding: "0",
+                                    _digits: "0"
+                                },
+                                TWD: {
+                                    _rounding: "0",
+                                    _digits: "2",
+                                    _cashRounding: "0",
+                                    _cashDigits: "0"
+                                },
+                                TZS: {
+                                    _rounding: "0",
+                                    _digits: "2",
+                                    _cashRounding: "0",
+                                    _cashDigits: "0"
+                                },
+                                UGX: {
+                                    _rounding: "0",
+                                    _digits: "0"
+                                },
+                                UYI: {
+                                    _rounding: "0",
+                                    _digits: "0"
+                                },
+                                UYW: {
+                                    _rounding: "0",
+                                    _digits: "4"
+                                },
+                                UZS: {
+                                    _rounding: "0",
+                                    _digits: "2",
+                                    _cashRounding: "0",
+                                    _cashDigits: "0"
+                                },
+                                VEF: {
+                                    _rounding: "0",
+                                    _digits: "2",
+                                    _cashRounding: "0",
+                                    _cashDigits: "0"
+                                },
+                                VND: {
+                                    _rounding: "0",
+                                    _digits: "0"
+                                },
+                                VUV: {
+                                    _rounding: "0",
+                                    _digits: "0"
+                                },
+                                XAF: {
+                                    _rounding: "0",
+                                    _digits: "0"
+                                },
+                                XOF: {
+                                    _rounding: "0",
+                                    _digits: "0"
+                                },
+                                XPF: {
+                                    _rounding: "0",
+                                    _digits: "0"
+                                },
+                                YER: {
+                                    _rounding: "0",
+                                    _digits: "0"
+                                },
+                                ZMK: {
+                                    _rounding: "0",
+                                    _digits: "0"
+                                },
+                                ZWD: {
+                                    _rounding: "0",
+                                    _digits: "0"
+                                }
+                            },
+                            region: {
+                                AC: [{
+                                    SHP: {
+                                        _from: "1976-01-01"
+                                    }
+                                }],
+                                AD: [{
+                                    ESP: {
+                                        _from: "1873-01-01",
+                                        _to: "2002-02-28"
+                                    }
+                                }, {
+                                    ADP: {
+                                        _from: "1936-01-01",
+                                        _to: "2001-12-31"
+                                    }
+                                }, {
+                                    FRF: {
+                                        _from: "1960-01-01",
+                                        _to: "2002-02-17"
+                                    }
+                                }, {
+                                    EUR: {
+                                        _from: "1999-01-01"
+                                    }
+                                }],
+                                AE: [{
+                                    AED: {
+                                        _from: "1973-05-19"
+                                    }
+                                }],
+                                AF: [{
+                                    AFA: {
+                                        _from: "1927-03-14",
+                                        _to: "2002-12-31"
+                                    }
+                                }, {
+                                    AFN: {
+                                        _from: "2002-10-07"
+                                    }
+                                }],
+                                AG: [{
+                                    XCD: {
+                                        _from: "1965-10-06"
+                                    }
+                                }],
+                                AI: [{
+                                    XCD: {
+                                        _from: "1965-10-06"
+                                    }
+                                }],
+                                AL: [{
+                                    ALK: {
+                                        _from: "1946-11-01",
+                                        _to: "1965-08-16"
+                                    }
+                                }, {
+                                    ALL: {
+                                        _from: "1965-08-16"
+                                    }
+                                }],
+                                AM: [{
+                                    SUR: {
+                                        _from: "1961-01-01",
+                                        _to: "1991-12-25"
+                                    }
+                                }, {
+                                    RUR: {
+                                        _from: "1991-12-25",
+                                        _to: "1993-11-22"
+                                    }
+                                }, {
+                                    AMD: {
+                                        _from: "1993-11-22"
+                                    }
+                                }],
+                                AO: [{
+                                    AOK: {
+                                        _from: "1977-01-08",
+                                        _to: "1991-03-01"
+                                    }
+                                }, {
+                                    AON: {
+                                        _from: "1990-09-25",
+                                        _to: "2000-02-01"
+                                    }
+                                }, {
+                                    AOR: {
+                                        _from: "1995-07-01",
+                                        _to: "2000-02-01"
+                                    }
+                                }, {
+                                    AOA: {
+                                        _from: "1999-12-13"
+                                    }
+                                }],
+                                AQ: [{
+                                    XXX: {
+                                        _tender: "false"
+                                    }
+                                }],
+                                AR: [{
+                                    ARM: {
+                                        _from: "1881-11-05",
+                                        _to: "1970-01-01"
+                                    }
+                                }, {
+                                    ARL: {
+                                        _from: "1970-01-01",
+                                        _to: "1983-06-01"
+                                    }
+                                }, {
+                                    ARP: {
+                                        _from: "1983-06-01",
+                                        _to: "1985-06-14"
+                                    }
+                                }, {
+                                    ARA: {
+                                        _from: "1985-06-14",
+                                        _to: "1992-01-01"
+                                    }
+                                }, {
+                                    ARS: {
+                                        _from: "1992-01-01"
+                                    }
+                                }],
+                                AS: [{
+                                    USD: {
+                                        _from: "1904-07-16"
+                                    }
+                                }],
+                                AT: [{
+                                    ATS: {
+                                        _from: "1947-12-04",
+                                        _to: "2002-02-28"
+                                    }
+                                }, {
+                                    EUR: {
+                                        _from: "1999-01-01"
+                                    }
+                                }],
+                                AU: [{
+                                    AUD: {
+                                        _from: "1966-02-14"
+                                    }
+                                }],
+                                AW: [{
+                                    ANG: {
+                                        _from: "1940-05-10",
+                                        _to: "1986-01-01"
+                                    }
+                                }, {
+                                    AWG: {
+                                        _from: "1986-01-01"
+                                    }
+                                }],
+                                AX: [{
+                                    EUR: {
+                                        _from: "1999-01-01"
+                                    }
+                                }],
+                                AZ: [{
+                                    SUR: {
+                                        _from: "1961-01-01",
+                                        _to: "1991-12-25"
+                                    }
+                                }, {
+                                    RUR: {
+                                        _from: "1991-12-25",
+                                        _to: "1994-01-01"
+                                    }
+                                }, {
+                                    AZM: {
+                                        _from: "1993-11-22",
+                                        _to: "2006-12-31"
+                                    }
+                                }, {
+                                    AZN: {
+                                        _from: "2006-01-01"
+                                    }
+                                }],
+                                BA: [{
+                                    YUD: {
+                                        _from: "1966-01-01",
+                                        _to: "1990-01-01"
+                                    }
+                                }, {
+                                    YUN: {
+                                        _from: "1990-01-01",
+                                        _to: "1992-07-01"
+                                    }
+                                }, {
+                                    YUR: {
+                                        _from: "1992-07-01",
+                                        _to: "1993-10-01"
+                                    }
+                                }, {
+                                    BAD: {
+                                        _from: "1992-07-01",
+                                        _to: "1994-08-15"
+                                    }
+                                }, {
+                                    BAN: {
+                                        _from: "1994-08-15",
+                                        _to: "1997-07-01"
+                                    }
+                                }, {
+                                    BAM: {
+                                        _from: "1995-01-01"
+                                    }
+                                }],
+                                BB: [{
+                                    XCD: {
+                                        _from: "1965-10-06",
+                                        _to: "1973-12-03"
+                                    }
+                                }, {
+                                    BBD: {
+                                        _from: "1973-12-03"
+                                    }
+                                }],
+                                BD: [{
+                                    INR: {
+                                        _from: "1835-08-17",
+                                        _to: "1948-04-01"
+                                    }
+                                }, {
+                                    PKR: {
+                                        _from: "1948-04-01",
+                                        _to: "1972-01-01"
+                                    }
+                                }, {
+                                    BDT: {
+                                        _from: "1972-01-01"
+                                    }
+                                }],
+                                BE: [{
+                                    NLG: {
+                                        _from: "1816-12-15",
+                                        _to: "1831-02-07"
+                                    }
+                                }, {
+                                    BEF: {
+                                        _from: "1831-02-07",
+                                        _to: "2002-02-28"
+                                    }
+                                }, {
+                                    BEC: {
+                                        _tender: "false",
+                                        _from: "1970-01-01",
+                                        _to: "1990-03-05"
+                                    }
+                                }, {
+                                    BEL: {
+                                        _tender: "false",
+                                        _from: "1970-01-01",
+                                        _to: "1990-03-05"
+                                    }
+                                }, {
+                                    EUR: {
+                                        _from: "1999-01-01"
+                                    }
+                                }],
+                                BF: [{
+                                    XOF: {
+                                        _from: "1984-08-04"
+                                    }
+                                }],
+                                BG: [{
+                                    BGO: {
+                                        _from: "1879-07-08",
+                                        _to: "1952-05-12"
+                                    }
+                                }, {
+                                    BGM: {
+                                        _from: "1952-05-12",
+                                        _to: "1962-01-01"
+                                    }
+                                }, {
+                                    BGL: {
+                                        _from: "1962-01-01",
+                                        _to: "1999-07-05"
+                                    }
+                                }, {
+                                    BGN: {
+                                        _from: "1999-07-05"
+                                    }
+                                }],
+                                BH: [{
+                                    BHD: {
+                                        _from: "1965-10-16"
+                                    }
+                                }],
+                                BI: [{
+                                    BIF: {
+                                        _from: "1964-05-19"
+                                    }
+                                }],
+                                BJ: [{
+                                    XOF: {
+                                        _from: "1975-11-30"
+                                    }
+                                }],
+                                BL: [{
+                                    FRF: {
+                                        _from: "1960-01-01",
+                                        _to: "2002-02-17"
+                                    }
+                                }, {
+                                    EUR: {
+                                        _from: "1999-01-01"
+                                    }
+                                }],
+                                BM: [{
+                                    BMD: {
+                                        _from: "1970-02-06"
+                                    }
+                                }],
+                                BN: [{
+                                    MYR: {
+                                        _from: "1963-09-16",
+                                        _to: "1967-06-12"
+                                    }
+                                }, {
+                                    BND: {
+                                        _from: "1967-06-12"
+                                    }
+                                }],
+                                BO: [{
+                                    BOV: {
+                                        _tender: "false"
+                                    }
+                                }, {
+                                    BOL: {
+                                        _from: "1863-06-23",
+                                        _to: "1963-01-01"
+                                    }
+                                }, {
+                                    BOP: {
+                                        _from: "1963-01-01",
+                                        _to: "1986-12-31"
+                                    }
+                                }, {
+                                    BOB: {
+                                        _from: "1987-01-01"
+                                    }
+                                }],
+                                BQ: [{
+                                    ANG: {
+                                        _from: "2010-10-10",
+                                        _to: "2011-01-01"
+                                    }
+                                }, {
+                                    USD: {
+                                        _from: "2011-01-01"
+                                    }
+                                }],
+                                BR: [{
+                                    BRZ: {
+                                        _from: "1942-11-01",
+                                        _to: "1967-02-13"
+                                    }
+                                }, {
+                                    BRB: {
+                                        _from: "1967-02-13",
+                                        _to: "1986-02-28"
+                                    }
+                                }, {
+                                    BRC: {
+                                        _from: "1986-02-28",
+                                        _to: "1989-01-15"
+                                    }
+                                }, {
+                                    BRN: {
+                                        _from: "1989-01-15",
+                                        _to: "1990-03-16"
+                                    }
+                                }, {
+                                    BRE: {
+                                        _from: "1990-03-16",
+                                        _to: "1993-08-01"
+                                    }
+                                }, {
+                                    BRR: {
+                                        _from: "1993-08-01",
+                                        _to: "1994-07-01"
+                                    }
+                                }, {
+                                    BRL: {
+                                        _from: "1994-07-01"
+                                    }
+                                }],
+                                BS: [{
+                                    BSD: {
+                                        _from: "1966-05-25"
+                                    }
+                                }],
+                                BT: [{
+                                    INR: {
+                                        _from: "1907-01-01"
+                                    }
+                                }, {
+                                    BTN: {
+                                        _from: "1974-04-16"
+                                    }
+                                }],
+                                BU: [{
+                                    BUK: {
+                                        _from: "1952-07-01",
+                                        _to: "1989-06-18"
+                                    }
+                                }],
+                                BV: [{
+                                    NOK: {
+                                        _from: "1905-06-07"
+                                    }
+                                }],
+                                BW: [{
+                                    ZAR: {
+                                        _from: "1961-02-14",
+                                        _to: "1976-08-23"
+                                    }
+                                }, {
+                                    BWP: {
+                                        _from: "1976-08-23"
+                                    }
+                                }],
+                                BY: [{
+                                    SUR: {
+                                        _from: "1961-01-01",
+                                        _to: "1991-12-25"
+                                    }
+                                }, {
+                                    RUR: {
+                                        _from: "1991-12-25",
+                                        _to: "1994-11-08"
+                                    }
+                                }, {
+                                    BYB: {
+                                        _from: "1994-08-01",
+                                        _to: "2000-12-31"
+                                    }
+                                }, {
+                                    BYR: {
+                                        _from: "2000-01-01",
+                                        _to: "2017-01-01"
+                                    }
+                                }, {
+                                    BYN: {
+                                        _from: "2016-07-01"
+                                    }
+                                }],
+                                BZ: [{
+                                    BZD: {
+                                        _from: "1974-01-01"
+                                    }
+                                }],
+                                CA: [{
+                                    CAD: {
+                                        _from: "1858-01-01"
+                                    }
+                                }],
+                                CC: [{
+                                    AUD: {
+                                        _from: "1966-02-14"
+                                    }
+                                }],
+                                CD: [{
+                                    ZRZ: {
+                                        _from: "1971-10-27",
+                                        _to: "1993-11-01"
+                                    }
+                                }, {
+                                    ZRN: {
+                                        _from: "1993-11-01",
+                                        _to: "1998-07-01"
+                                    }
+                                }, {
+                                    CDF: {
+                                        _from: "1998-07-01"
+                                    }
+                                }],
+                                CF: [{
+                                    XAF: {
+                                        _from: "1993-01-01"
+                                    }
+                                }],
+                                CG: [{
+                                    XAF: {
+                                        _from: "1993-01-01"
+                                    }
+                                }],
+                                CH: [{
+                                    CHE: {
+                                        _tender: "false"
+                                    }
+                                }, {
+                                    CHW: {
+                                        _tender: "false"
+                                    }
+                                }, {
+                                    CHF: {
+                                        _from: "1799-03-17"
+                                    }
+                                }],
+                                CI: [{
+                                    XOF: {
+                                        _from: "1958-12-04"
+                                    }
+                                }],
+                                CK: [{
+                                    NZD: {
+                                        _from: "1967-07-10"
+                                    }
+                                }],
+                                CL: [{
+                                    CLF: {
+                                        _tender: "false"
+                                    }
+                                }, {
+                                    CLE: {
+                                        _from: "1960-01-01",
+                                        _to: "1975-09-29"
+                                    }
+                                }, {
+                                    CLP: {
+                                        _from: "1975-09-29"
+                                    }
+                                }],
+                                CM: [{
+                                    XAF: {
+                                        _from: "1973-04-01"
+                                    }
+                                }],
+                                CN: [{
+                                    CNY: {
+                                        _from: "1953-03-01"
+                                    }
+                                }, {
+                                    CNX: {
+                                        _tender: "false",
+                                        _from: "1979-01-01",
+                                        _to: "1998-12-31"
+                                    }
+                                }, {
+                                    CNH: {
+                                        _tender: "false",
+                                        _from: "2010-07-19"
+                                    }
+                                }],
+                                CO: [{
+                                    COU: {
+                                        _tender: "false"
+                                    }
+                                }, {
+                                    COP: {
+                                        _from: "1905-01-01"
+                                    }
+                                }],
+                                CP: [{
+                                    XXX: {
+                                        _tender: "false"
+                                    }
+                                }],
+                                CR: [{
+                                    CRC: {
+                                        _from: "1896-10-26"
+                                    }
+                                }],
+                                CS: [{
+                                    YUM: {
+                                        _from: "1994-01-24",
+                                        _to: "2002-05-15"
+                                    }
+                                }, {
+                                    CSD: {
+                                        _from: "2002-05-15",
+                                        _to: "2006-06-03"
+                                    }
+                                }, {
+                                    EUR: {
+                                        _from: "2003-02-04",
+                                        _to: "2006-06-03"
+                                    }
+                                }],
+                                CU: [{
+                                    CUP: {
+                                        _from: "1859-01-01"
+                                    }
+                                }, {
+                                    USD: {
+                                        _from: "1899-01-01",
+                                        _to: "1959-01-01"
+                                    }
+                                }, {
+                                    CUC: {
+                                        _from: "1994-01-01"
+                                    }
+                                }],
+                                CV: [{
+                                    PTE: {
+                                        _from: "1911-05-22",
+                                        _to: "1975-07-05"
+                                    }
+                                }, {
+                                    CVE: {
+                                        _from: "1914-01-01"
+                                    }
+                                }],
+                                CW: [{
+                                    ANG: {
+                                        _from: "2010-10-10"
+                                    }
+                                }],
+                                CX: [{
+                                    AUD: {
+                                        _from: "1966-02-14"
+                                    }
+                                }],
+                                CY: [{
+                                    CYP: {
+                                        _from: "1914-09-10",
+                                        _to: "2008-01-31"
+                                    }
+                                }, {
+                                    EUR: {
+                                        _from: "2008-01-01"
+                                    }
+                                }],
+                                CZ: [{
+                                    CSK: {
+                                        _from: "1953-06-01",
+                                        _to: "1993-03-01"
+                                    }
+                                }, {
+                                    CZK: {
+                                        _from: "1993-01-01"
+                                    }
+                                }],
+                                DD: [{
+                                    DDM: {
+                                        _from: "1948-07-20",
+                                        _to: "1990-10-02"
+                                    }
+                                }],
+                                DE: [{
+                                    DEM: {
+                                        _from: "1948-06-20",
+                                        _to: "2002-02-28"
+                                    }
+                                }, {
+                                    EUR: {
+                                        _from: "1999-01-01"
+                                    }
+                                }],
+                                DG: [{
+                                    USD: {
+                                        _from: "1965-11-08"
+                                    }
+                                }],
+                                DJ: [{
+                                    DJF: {
+                                        _from: "1977-06-27"
+                                    }
+                                }],
+                                DK: [{
+                                    DKK: {
+                                        _from: "1873-05-27"
+                                    }
+                                }],
+                                DM: [{
+                                    XCD: {
+                                        _from: "1965-10-06"
+                                    }
+                                }],
+                                DO: [{
+                                    USD: {
+                                        _from: "1905-06-21",
+                                        _to: "1947-10-01"
+                                    }
+                                }, {
+                                    DOP: {
+                                        _from: "1947-10-01"
+                                    }
+                                }],
+                                DZ: [{
+                                    DZD: {
+                                        _from: "1964-04-01"
+                                    }
+                                }],
+                                EA: [{
+                                    EUR: {
+                                        _from: "1999-01-01"
+                                    }
+                                }],
+                                EC: [{
+                                    ECS: {
+                                        _from: "1884-04-01",
+                                        _to: "2000-10-02"
+                                    }
+                                }, {
+                                    ECV: {
+                                        _tender: "false",
+                                        _from: "1993-05-23",
+                                        _to: "2000-01-09"
+                                    }
+                                }, {
+                                    USD: {
+                                        _from: "2000-10-02"
+                                    }
+                                }],
+                                EE: [{
+                                    SUR: {
+                                        _from: "1961-01-01",
+                                        _to: "1992-06-20"
+                                    }
+                                }, {
+                                    EEK: {
+                                        _from: "1992-06-21",
+                                        _to: "2010-12-31"
+                                    }
+                                }, {
+                                    EUR: {
+                                        _from: "2011-01-01"
+                                    }
+                                }],
+                                EG: [{
+                                    EGP: {
+                                        _from: "1885-11-14"
+                                    }
+                                }],
+                                EH: [{
+                                    MAD: {
+                                        _from: "1976-02-26"
+                                    }
+                                }],
+                                ER: [{
+                                    ETB: {
+                                        _from: "1993-05-24",
+                                        _to: "1997-11-08"
+                                    }
+                                }, {
+                                    ERN: {
+                                        _from: "1997-11-08"
+                                    }
+                                }],
+                                ES: [{
+                                    ESP: {
+                                        _from: "1868-10-19",
+                                        _to: "2002-02-28"
+                                    }
+                                }, {
+                                    ESB: {
+                                        _tender: "false",
+                                        _from: "1975-01-01",
+                                        _to: "1994-12-31"
+                                    }
+                                }, {
+                                    ESA: {
+                                        _tender: "false",
+                                        _from: "1978-01-01",
+                                        _to: "1981-12-31"
+                                    }
+                                }, {
+                                    EUR: {
+                                        _from: "1999-01-01"
+                                    }
+                                }],
+                                ET: [{
+                                    ETB: {
+                                        _from: "1976-09-15"
+                                    }
+                                }],
+                                EU: [{
+                                    XEU: {
+                                        _tender: "false",
+                                        _from: "1979-01-01",
+                                        _to: "1998-12-31"
+                                    }
+                                }, {
+                                    EUR: {
+                                        _from: "1999-01-01"
+                                    }
+                                }],
+                                FI: [{
+                                    FIM: {
+                                        _from: "1963-01-01",
+                                        _to: "2002-02-28"
+                                    }
+                                }, {
+                                    EUR: {
+                                        _from: "1999-01-01"
+                                    }
+                                }],
+                                FJ: [{
+                                    FJD: {
+                                        _from: "1969-01-13"
+                                    }
+                                }],
+                                FK: [{
+                                    FKP: {
+                                        _from: "1901-01-01"
+                                    }
+                                }],
+                                FM: [{
+                                    JPY: {
+                                        _from: "1914-10-03",
+                                        _to: "1944-01-01"
+                                    }
+                                }, {
+                                    USD: {
+                                        _from: "1944-01-01"
+                                    }
+                                }],
+                                FO: [{
+                                    DKK: {
+                                        _from: "1948-01-01"
+                                    }
+                                }],
+                                FR: [{
+                                    FRF: {
+                                        _from: "1960-01-01",
+                                        _to: "2002-02-17"
+                                    }
+                                }, {
+                                    EUR: {
+                                        _from: "1999-01-01"
+                                    }
+                                }],
+                                GA: [{
+                                    XAF: {
+                                        _from: "1993-01-01"
+                                    }
+                                }],
+                                GB: [{
+                                    GBP: {
+                                        _from: "1694-07-27"
+                                    }
+                                }],
+                                GD: [{
+                                    XCD: {
+                                        _from: "1967-02-27"
+                                    }
+                                }],
+                                GE: [{
+                                    SUR: {
+                                        _from: "1961-01-01",
+                                        _to: "1991-12-25"
+                                    }
+                                }, {
+                                    RUR: {
+                                        _from: "1991-12-25",
+                                        _to: "1993-06-11"
+                                    }
+                                }, {
+                                    GEK: {
+                                        _from: "1993-04-05",
+                                        _to: "1995-09-25"
+                                    }
+                                }, {
+                                    GEL: {
+                                        _from: "1995-09-23"
+                                    }
+                                }],
+                                GF: [{
+                                    FRF: {
+                                        _from: "1960-01-01",
+                                        _to: "2002-02-17"
+                                    }
+                                }, {
+                                    EUR: {
+                                        _from: "1999-01-01"
+                                    }
+                                }],
+                                GG: [{
+                                    GBP: {
+                                        _from: "1830-01-01"
+                                    }
+                                }],
+                                GH: [{
+                                    GHC: {
+                                        _from: "1979-03-09",
+                                        _to: "2007-12-31"
+                                    }
+                                }, {
+                                    GHS: {
+                                        _from: "2007-07-03"
+                                    }
+                                }],
+                                GI: [{
+                                    GIP: {
+                                        _from: "1713-01-01"
+                                    }
+                                }],
+                                GL: [{
+                                    DKK: {
+                                        _from: "1873-05-27"
+                                    }
+                                }],
+                                GM: [{
+                                    GMD: {
+                                        _from: "1971-07-01"
+                                    }
+                                }],
+                                GN: [{
+                                    GNS: {
+                                        _from: "1972-10-02",
+                                        _to: "1986-01-06"
+                                    }
+                                }, {
+                                    GNF: {
+                                        _from: "1986-01-06"
+                                    }
+                                }],
+                                GP: [{
+                                    FRF: {
+                                        _from: "1960-01-01",
+                                        _to: "2002-02-17"
+                                    }
+                                }, {
+                                    EUR: {
+                                        _from: "1999-01-01"
+                                    }
+                                }],
+                                GQ: [{
+                                    GQE: {
+                                        _from: "1975-07-07",
+                                        _to: "1986-06-01"
+                                    }
+                                }, {
+                                    XAF: {
+                                        _from: "1993-01-01"
+                                    }
+                                }],
+                                GR: [{
+                                    GRD: {
+                                        _from: "1954-05-01",
+                                        _to: "2002-02-28"
+                                    }
+                                }, {
+                                    EUR: {
+                                        _from: "2001-01-01"
+                                    }
+                                }],
+                                GS: [{
+                                    GBP: {
+                                        _from: "1908-01-01"
+                                    }
+                                }],
+                                GT: [{
+                                    GTQ: {
+                                        _from: "1925-05-27"
+                                    }
+                                }],
+                                GU: [{
+                                    USD: {
+                                        _from: "1944-08-21"
+                                    }
+                                }],
+                                GW: [{
+                                    GWE: {
+                                        _from: "1914-01-01",
+                                        _to: "1976-02-28"
+                                    }
+                                }, {
+                                    GWP: {
+                                        _from: "1976-02-28",
+                                        _to: "1997-03-31"
+                                    }
+                                }, {
+                                    XOF: {
+                                        _from: "1997-03-31"
+                                    }
+                                }],
+                                GY: [{
+                                    GYD: {
+                                        _from: "1966-05-26"
+                                    }
+                                }],
+                                HK: [{
+                                    HKD: {
+                                        _from: "1895-02-02"
+                                    }
+                                }],
+                                HM: [{
+                                    AUD: {
+                                        _from: "1967-02-16"
+                                    }
+                                }],
+                                HN: [{
+                                    HNL: {
+                                        _from: "1926-04-03"
+                                    }
+                                }],
+                                HR: [{
+                                    YUD: {
+                                        _from: "1966-01-01",
+                                        _to: "1990-01-01"
+                                    }
+                                }, {
+                                    YUN: {
+                                        _from: "1990-01-01",
+                                        _to: "1991-12-23"
+                                    }
+                                }, {
+                                    HRD: {
+                                        _from: "1991-12-23",
+                                        _to: "1995-01-01"
+                                    }
+                                }, {
+                                    HRK: {
+                                        _from: "1994-05-30"
+                                    }
+                                }],
+                                HT: [{
+                                    HTG: {
+                                        _from: "1872-08-26"
+                                    }
+                                }, {
+                                    USD: {
+                                        _from: "1915-01-01"
+                                    }
+                                }],
+                                HU: [{
+                                    HUF: {
+                                        _from: "1946-07-23"
+                                    }
+                                }],
+                                IC: [{
+                                    EUR: {
+                                        _from: "1999-01-01"
+                                    }
+                                }],
+                                ID: [{
+                                    IDR: {
+                                        _from: "1965-12-13"
+                                    }
+                                }],
+                                IE: [{
+                                    GBP: {
+                                        _from: "1800-01-01",
+                                        _to: "1922-01-01"
+                                    }
+                                }, {
+                                    IEP: {
+                                        _from: "1922-01-01",
+                                        _to: "2002-02-09"
+                                    }
+                                }, {
+                                    EUR: {
+                                        _from: "1999-01-01"
+                                    }
+                                }],
+                                IL: [{
+                                    ILP: {
+                                        _from: "1948-08-16",
+                                        _to: "1980-02-22"
+                                    }
+                                }, {
+                                    ILR: {
+                                        _from: "1980-02-22",
+                                        _to: "1985-09-04"
+                                    }
+                                }, {
+                                    ILS: {
+                                        _from: "1985-09-04"
+                                    }
+                                }],
+                                IM: [{
+                                    GBP: {
+                                        _from: "1840-01-03"
+                                    }
+                                }],
+                                IN: [{
+                                    INR: {
+                                        _from: "1835-08-17"
+                                    }
+                                }],
+                                IO: [{
+                                    USD: {
+                                        _from: "1965-11-08"
+                                    }
+                                }],
+                                IQ: [{
+                                    EGP: {
+                                        _from: "1920-11-11",
+                                        _to: "1931-04-19"
+                                    }
+                                }, {
+                                    INR: {
+                                        _from: "1920-11-11",
+                                        _to: "1931-04-19"
+                                    }
+                                }, {
+                                    IQD: {
+                                        _from: "1931-04-19"
+                                    }
+                                }],
+                                IR: [{
+                                    IRR: {
+                                        _from: "1932-05-13"
+                                    }
+                                }],
+                                IS: [{
+                                    DKK: {
+                                        _from: "1873-05-27",
+                                        _to: "1918-12-01"
+                                    }
+                                }, {
+                                    ISJ: {
+                                        _from: "1918-12-01",
+                                        _to: "1981-01-01"
+                                    }
+                                }, {
+                                    ISK: {
+                                        _from: "1981-01-01"
+                                    }
+                                }],
+                                IT: [{
+                                    ITL: {
+                                        _from: "1862-08-24",
+                                        _to: "2002-02-28"
+                                    }
+                                }, {
+                                    EUR: {
+                                        _from: "1999-01-01"
+                                    }
+                                }],
+                                JE: [{
+                                    GBP: {
+                                        _from: "1837-01-01"
+                                    }
+                                }],
+                                JM: [{
+                                    JMD: {
+                                        _from: "1969-09-08"
+                                    }
+                                }],
+                                JO: [{
+                                    JOD: {
+                                        _from: "1950-07-01"
+                                    }
+                                }],
+                                JP: [{
+                                    JPY: {
+                                        _from: "1871-06-01"
+                                    }
+                                }],
+                                KE: [{
+                                    KES: {
+                                        _from: "1966-09-14"
+                                    }
+                                }],
+                                KG: [{
+                                    SUR: {
+                                        _from: "1961-01-01",
+                                        _to: "1991-12-25"
+                                    }
+                                }, {
+                                    RUR: {
+                                        _from: "1991-12-25",
+                                        _to: "1993-05-10"
+                                    }
+                                }, {
+                                    KGS: {
+                                        _from: "1993-05-10"
+                                    }
+                                }],
+                                KH: [{
+                                    KHR: {
+                                        _from: "1980-03-20"
+                                    }
+                                }],
+                                KI: [{
+                                    AUD: {
+                                        _from: "1966-02-14"
+                                    }
+                                }],
+                                KM: [{
+                                    KMF: {
+                                        _from: "1975-07-06"
+                                    }
+                                }],
+                                KN: [{
+                                    XCD: {
+                                        _from: "1965-10-06"
+                                    }
+                                }],
+                                KP: [{
+                                    KPW: {
+                                        _from: "1959-04-17"
+                                    }
+                                }],
+                                KR: [{
+                                    KRO: {
+                                        _from: "1945-08-15",
+                                        _to: "1953-02-15"
+                                    }
+                                }, {
+                                    KRH: {
+                                        _from: "1953-02-15",
+                                        _to: "1962-06-10"
+                                    }
+                                }, {
+                                    KRW: {
+                                        _from: "1962-06-10"
+                                    }
+                                }],
+                                KW: [{
+                                    KWD: {
+                                        _from: "1961-04-01"
+                                    }
+                                }],
+                                KY: [{
+                                    JMD: {
+                                        _from: "1969-09-08",
+                                        _to: "1971-01-01"
+                                    }
+                                }, {
+                                    KYD: {
+                                        _from: "1971-01-01"
+                                    }
+                                }],
+                                KZ: [{
+                                    KZT: {
+                                        _from: "1993-11-05"
+                                    }
+                                }],
+                                LA: [{
+                                    LAK: {
+                                        _from: "1979-12-10"
+                                    }
+                                }],
+                                LB: [{
+                                    LBP: {
+                                        _from: "1948-02-02"
+                                    }
+                                }],
+                                LC: [{
+                                    XCD: {
+                                        _from: "1965-10-06"
+                                    }
+                                }],
+                                LI: [{
+                                    CHF: {
+                                        _from: "1921-02-01"
+                                    }
+                                }],
+                                LK: [{
+                                    LKR: {
+                                        _from: "1978-05-22"
+                                    }
+                                }],
+                                LR: [{
+                                    LRD: {
+                                        _from: "1944-01-01"
+                                    }
+                                }],
+                                LS: [{
+                                    ZAR: {
+                                        _from: "1961-02-14"
+                                    }
+                                }, {
+                                    LSL: {
+                                        _from: "1980-01-22"
+                                    }
+                                }],
+                                LT: [{
+                                    SUR: {
+                                        _from: "1961-01-01",
+                                        _to: "1992-10-01"
+                                    }
+                                }, {
+                                    LTT: {
+                                        _from: "1992-10-01",
+                                        _to: "1993-06-25"
+                                    }
+                                }, {
+                                    LTL: {
+                                        _from: "1993-06-25",
+                                        _to: "2014-12-31"
+                                    }
+                                }, {
+                                    EUR: {
+                                        _from: "2015-01-01"
+                                    }
+                                }],
+                                LU: [{
+                                    LUF: {
+                                        _from: "1944-09-04",
+                                        _to: "2002-02-28"
+                                    }
+                                }, {
+                                    LUC: {
+                                        _tender: "false",
+                                        _from: "1970-01-01",
+                                        _to: "1990-03-05"
+                                    }
+                                }, {
+                                    LUL: {
+                                        _tender: "false",
+                                        _from: "1970-01-01",
+                                        _to: "1990-03-05"
+                                    }
+                                }, {
+                                    EUR: {
+                                        _from: "1999-01-01"
+                                    }
+                                }],
+                                LV: [{
+                                    SUR: {
+                                        _from: "1961-01-01",
+                                        _to: "1992-07-20"
+                                    }
+                                }, {
+                                    LVR: {
+                                        _from: "1992-05-07",
+                                        _to: "1993-10-17"
+                                    }
+                                }, {
+                                    LVL: {
+                                        _from: "1993-06-28",
+                                        _to: "2013-12-31"
+                                    }
+                                }, {
+                                    EUR: {
+                                        _from: "2014-01-01"
+                                    }
+                                }],
+                                LY: [{
+                                    LYD: {
+                                        _from: "1971-09-01"
+                                    }
+                                }],
+                                MA: [{
+                                    MAF: {
+                                        _from: "1881-01-01",
+                                        _to: "1959-10-17"
+                                    }
+                                }, {
+                                    MAD: {
+                                        _from: "1959-10-17"
+                                    }
+                                }],
+                                MC: [{
+                                    FRF: {
+                                        _from: "1960-01-01",
+                                        _to: "2002-02-17"
+                                    }
+                                }, {
+                                    MCF: {
+                                        _from: "1960-01-01",
+                                        _to: "2002-02-17"
+                                    }
+                                }, {
+                                    EUR: {
+                                        _from: "1999-01-01"
+                                    }
+                                }],
+                                MD: [{
+                                    MDC: {
+                                        _from: "1992-06-01",
+                                        _to: "1993-11-29"
+                                    }
+                                }, {
+                                    MDL: {
+                                        _from: "1993-11-29"
+                                    }
+                                }],
+                                ME: [{
+                                    YUM: {
+                                        _from: "1994-01-24",
+                                        _to: "2002-05-15"
+                                    }
+                                }, {
+                                    DEM: {
+                                        _from: "1999-10-02",
+                                        _to: "2002-05-15"
+                                    }
+                                }, {
+                                    EUR: {
+                                        _from: "2002-01-01"
+                                    }
+                                }],
+                                MF: [{
+                                    FRF: {
+                                        _from: "1960-01-01",
+                                        _to: "2002-02-17"
+                                    }
+                                }, {
+                                    EUR: {
+                                        _from: "1999-01-01"
+                                    }
+                                }],
+                                MG: [{
+                                    MGF: {
+                                        _from: "1963-07-01",
+                                        _to: "2004-12-31"
+                                    }
+                                }, {
+                                    MGA: {
+                                        _from: "1983-11-01"
+                                    }
+                                }],
+                                MH: [{
+                                    USD: {
+                                        _from: "1944-01-01"
+                                    }
+                                }],
+                                MK: [{
+                                    MKN: {
+                                        _from: "1992-04-26",
+                                        _to: "1993-05-20"
+                                    }
+                                }, {
+                                    MKD: {
+                                        _from: "1993-05-20"
+                                    }
+                                }],
+                                ML: [{
+                                    XOF: {
+                                        _from: "1958-11-24",
+                                        _to: "1962-07-02"
+                                    }
+                                }, {
+                                    MLF: {
+                                        _from: "1962-07-02",
+                                        _to: "1984-08-31"
+                                    }
+                                }, {
+                                    XOF: {
+                                        _from: "1984-06-01"
+                                    }
+                                }],
+                                MM: [{
+                                    BUK: {
+                                        _from: "1952-07-01",
+                                        _to: "1989-06-18"
+                                    }
+                                }, {
+                                    MMK: {
+                                        _from: "1989-06-18"
+                                    }
+                                }],
+                                MN: [{
+                                    MNT: {
+                                        _from: "1915-03-01"
+                                    }
+                                }],
+                                MO: [{
+                                    MOP: {
+                                        _from: "1901-01-01"
+                                    }
+                                }],
+                                MP: [{
+                                    USD: {
+                                        _from: "1944-01-01"
+                                    }
+                                }],
+                                MQ: [{
+                                    FRF: {
+                                        _from: "1960-01-01",
+                                        _to: "2002-02-17"
+                                    }
+                                }, {
+                                    EUR: {
+                                        _from: "1999-01-01"
+                                    }
+                                }],
+                                MR: [{
+                                    XOF: {
+                                        _from: "1958-11-28",
+                                        _to: "1973-06-29"
+                                    }
+                                }, {
+                                    MRO: {
+                                        _from: "1973-06-29",
+                                        _to: "2018-06-30"
+                                    }
+                                }, {
+                                    MRU: {
+                                        _from: "2018-01-01"
+                                    }
+                                }],
+                                MS: [{
+                                    XCD: {
+                                        _from: "1967-02-27"
+                                    }
+                                }],
+                                MT: [{
+                                    MTP: {
+                                        _from: "1914-08-13",
+                                        _to: "1968-06-07"
+                                    }
+                                }, {
+                                    MTL: {
+                                        _from: "1968-06-07",
+                                        _to: "2008-01-31"
+                                    }
+                                }, {
+                                    EUR: {
+                                        _from: "2008-01-01"
+                                    }
+                                }],
+                                MU: [{
+                                    MUR: {
+                                        _from: "1934-04-01"
+                                    }
+                                }],
+                                MV: [{
+                                    MVP: {
+                                        _from: "1947-01-01",
+                                        _to: "1981-07-01"
+                                    }
+                                }, {
+                                    MVR: {
+                                        _from: "1981-07-01"
+                                    }
+                                }],
+                                MW: [{
+                                    MWK: {
+                                        _from: "1971-02-15"
+                                    }
+                                }],
+                                MX: [{
+                                    MXV: {
+                                        _tender: "false"
+                                    }
+                                }, {
+                                    MXP: {
+                                        _from: "1822-01-01",
+                                        _to: "1992-12-31"
+                                    }
+                                }, {
+                                    MXN: {
+                                        _from: "1993-01-01"
+                                    }
+                                }],
+                                MY: [{
+                                    MYR: {
+                                        _from: "1963-09-16"
+                                    }
+                                }],
+                                MZ: [{
+                                    MZE: {
+                                        _from: "1975-06-25",
+                                        _to: "1980-06-16"
+                                    }
+                                }, {
+                                    MZM: {
+                                        _from: "1980-06-16",
+                                        _to: "2006-12-31"
+                                    }
+                                }, {
+                                    MZN: {
+                                        _from: "2006-07-01"
+                                    }
+                                }],
+                                NA: [{
+                                    ZAR: {
+                                        _from: "1961-02-14"
+                                    }
+                                }, {
+                                    NAD: {
+                                        _from: "1993-01-01"
+                                    }
+                                }],
+                                NC: [{
+                                    XPF: {
+                                        _from: "1985-01-01"
+                                    }
+                                }],
+                                NE: [{
+                                    XOF: {
+                                        _from: "1958-12-19"
+                                    }
+                                }],
+                                NF: [{
+                                    AUD: {
+                                        _from: "1966-02-14"
+                                    }
+                                }],
+                                NG: [{
+                                    NGN: {
+                                        _from: "1973-01-01"
+                                    }
+                                }],
+                                NI: [{
+                                    NIC: {
+                                        _from: "1988-02-15",
+                                        _to: "1991-04-30"
+                                    }
+                                }, {
+                                    NIO: {
+                                        _from: "1991-04-30"
+                                    }
+                                }],
+                                NL: [{
+                                    NLG: {
+                                        _from: "1813-01-01",
+                                        _to: "2002-02-28"
+                                    }
+                                }, {
+                                    EUR: {
+                                        _from: "1999-01-01"
+                                    }
+                                }],
+                                NO: [{
+                                    SEK: {
+                                        _from: "1873-05-27",
+                                        _to: "1905-06-07"
+                                    }
+                                }, {
+                                    NOK: {
+                                        _from: "1905-06-07"
+                                    }
+                                }],
+                                NP: [{
+                                    INR: {
+                                        _from: "1870-01-01",
+                                        _to: "1966-10-17"
+                                    }
+                                }, {
+                                    NPR: {
+                                        _from: "1933-01-01"
+                                    }
+                                }],
+                                NR: [{
+                                    AUD: {
+                                        _from: "1966-02-14"
+                                    }
+                                }],
+                                NU: [{
+                                    NZD: {
+                                        _from: "1967-07-10"
+                                    }
+                                }],
+                                NZ: [{
+                                    NZD: {
+                                        _from: "1967-07-10"
+                                    }
+                                }],
+                                OM: [{
+                                    OMR: {
+                                        _from: "1972-11-11"
+                                    }
+                                }],
+                                PA: [{
+                                    PAB: {
+                                        _from: "1903-11-04"
+                                    }
+                                }, {
+                                    USD: {
+                                        _from: "1903-11-18"
+                                    }
+                                }],
+                                PE: [{
+                                    PES: {
+                                        _from: "1863-02-14",
+                                        _to: "1985-02-01"
+                                    }
+                                }, {
+                                    PEI: {
+                                        _from: "1985-02-01",
+                                        _to: "1991-07-01"
+                                    }
+                                }, {
+                                    PEN: {
+                                        _from: "1991-07-01"
+                                    }
+                                }],
+                                PF: [{
+                                    XPF: {
+                                        _from: "1945-12-26"
+                                    }
+                                }],
+                                PG: [{
+                                    AUD: {
+                                        _from: "1966-02-14",
+                                        _to: "1975-09-16"
+                                    }
+                                }, {
+                                    PGK: {
+                                        _from: "1975-09-16"
+                                    }
+                                }],
+                                PH: [{
+                                    PHP: {
+                                        _from: "1946-07-04"
+                                    }
+                                }],
+                                PK: [{
+                                    INR: {
+                                        _from: "1835-08-17",
+                                        _to: "1947-08-15"
+                                    }
+                                }, {
+                                    PKR: {
+                                        _from: "1948-04-01"
+                                    }
+                                }],
+                                PL: [{
+                                    PLZ: {
+                                        _from: "1950-10-28",
+                                        _to: "1994-12-31"
+                                    }
+                                }, {
+                                    PLN: {
+                                        _from: "1995-01-01"
+                                    }
+                                }],
+                                PM: [{
+                                    FRF: {
+                                        _from: "1972-12-21",
+                                        _to: "2002-02-17"
+                                    }
+                                }, {
+                                    EUR: {
+                                        _from: "1999-01-01"
+                                    }
+                                }],
+                                PN: [{
+                                    NZD: {
+                                        _from: "1969-01-13"
+                                    }
+                                }],
+                                PR: [{
+                                    ESP: {
+                                        _from: "1800-01-01",
+                                        _to: "1898-12-10"
+                                    }
+                                }, {
+                                    USD: {
+                                        _from: "1898-12-10"
+                                    }
+                                }],
+                                PS: [{
+                                    JOD: {
+                                        _from: "1950-07-01",
+                                        _to: "1967-06-01"
+                                    }
+                                }, {
+                                    ILP: {
+                                        _from: "1967-06-01",
+                                        _to: "1980-02-22"
+                                    }
+                                }, {
+                                    ILS: {
+                                        _from: "1985-09-04"
+                                    }
+                                }, {
+                                    JOD: {
+                                        _from: "1996-02-12"
+                                    }
+                                }],
+                                PT: [{
+                                    PTE: {
+                                        _from: "1911-05-22",
+                                        _to: "2002-02-28"
+                                    }
+                                }, {
+                                    EUR: {
+                                        _from: "1999-01-01"
+                                    }
+                                }],
+                                PW: [{
+                                    USD: {
+                                        _from: "1944-01-01"
+                                    }
+                                }],
+                                PY: [{
+                                    PYG: {
+                                        _from: "1943-11-01"
+                                    }
+                                }],
+                                QA: [{
+                                    QAR: {
+                                        _from: "1973-05-19"
+                                    }
+                                }],
+                                RE: [{
+                                    FRF: {
+                                        _from: "1975-01-01",
+                                        _to: "2002-02-17"
+                                    }
+                                }, {
+                                    EUR: {
+                                        _from: "1999-01-01"
+                                    }
+                                }],
+                                RO: [{
+                                    ROL: {
+                                        _from: "1952-01-28",
+                                        _to: "2006-12-31"
+                                    }
+                                }, {
+                                    RON: {
+                                        _from: "2005-07-01"
+                                    }
+                                }],
+                                RS: [{
+                                    YUM: {
+                                        _from: "1994-01-24",
+                                        _to: "2002-05-15"
+                                    }
+                                }, {
+                                    CSD: {
+                                        _from: "2002-05-15",
+                                        _to: "2006-10-25"
+                                    }
+                                }, {
+                                    RSD: {
+                                        _from: "2006-10-25"
+                                    }
+                                }],
+                                RU: [{
+                                    RUR: {
+                                        _from: "1991-12-25",
+                                        _to: "1998-12-31"
+                                    }
+                                }, {
+                                    RUB: {
+                                        _from: "1999-01-01"
+                                    }
+                                }],
+                                RW: [{
+                                    RWF: {
+                                        _from: "1964-05-19"
+                                    }
+                                }],
+                                SA: [{
+                                    SAR: {
+                                        _from: "1952-10-22"
+                                    }
+                                }],
+                                SB: [{
+                                    AUD: {
+                                        _from: "1966-02-14",
+                                        _to: "1978-06-30"
+                                    }
+                                }, {
+                                    SBD: {
+                                        _from: "1977-10-24"
+                                    }
+                                }],
+                                SC: [{
+                                    SCR: {
+                                        _from: "1903-11-01"
+                                    }
+                                }],
+                                SD: [{
+                                    EGP: {
+                                        _from: "1889-01-19",
+                                        _to: "1958-01-01"
+                                    }
+                                }, {
+                                    GBP: {
+                                        _from: "1889-01-19",
+                                        _to: "1958-01-01"
+                                    }
+                                }, {
+                                    SDP: {
+                                        _from: "1957-04-08",
+                                        _to: "1998-06-01"
+                                    }
+                                }, {
+                                    SDD: {
+                                        _from: "1992-06-08",
+                                        _to: "2007-06-30"
+                                    }
+                                }, {
+                                    SDG: {
+                                        _from: "2007-01-10"
+                                    }
+                                }],
+                                SE: [{
+                                    SEK: {
+                                        _from: "1873-05-27"
+                                    }
+                                }],
+                                SG: [{
+                                    MYR: {
+                                        _from: "1963-09-16",
+                                        _to: "1967-06-12"
+                                    }
+                                }, {
+                                    SGD: {
+                                        _from: "1967-06-12"
+                                    }
+                                }],
+                                SH: [{
+                                    SHP: {
+                                        _from: "1917-02-15"
+                                    }
+                                }],
+                                SI: [{
+                                    SIT: {
+                                        _from: "1992-10-07",
+                                        _to: "2007-01-14"
+                                    }
+                                }, {
+                                    EUR: {
+                                        _from: "2007-01-01"
+                                    }
+                                }],
+                                SJ: [{
+                                    NOK: {
+                                        _from: "1905-06-07"
+                                    }
+                                }],
+                                SK: [{
+                                    CSK: {
+                                        _from: "1953-06-01",
+                                        _to: "1992-12-31"
+                                    }
+                                }, {
+                                    SKK: {
+                                        _from: "1992-12-31",
+                                        _to: "2009-01-01"
+                                    }
+                                }, {
+                                    EUR: {
+                                        _from: "2009-01-01"
+                                    }
+                                }],
+                                SL: [{
+                                    GBP: {
+                                        _from: "1808-11-30",
+                                        _to: "1966-02-04"
+                                    }
+                                }, {
+                                    SLL: {
+                                        _from: "1964-08-04"
+                                    }
+                                }],
+                                SM: [{
+                                    ITL: {
+                                        _from: "1865-12-23",
+                                        _to: "2001-02-28"
+                                    }
+                                }, {
+                                    EUR: {
+                                        _from: "1999-01-01"
+                                    }
+                                }],
+                                SN: [{
+                                    XOF: {
+                                        _from: "1959-04-04"
+                                    }
+                                }],
+                                SO: [{
+                                    SOS: {
+                                        _from: "1960-07-01"
+                                    }
+                                }],
+                                SR: [{
+                                    NLG: {
+                                        _from: "1815-11-20",
+                                        _to: "1940-05-10"
+                                    }
+                                }, {
+                                    SRG: {
+                                        _from: "1940-05-10",
+                                        _to: "2003-12-31"
+                                    }
+                                }, {
+                                    SRD: {
+                                        _from: "2004-01-01"
+                                    }
+                                }],
+                                SS: [{
+                                    SDG: {
+                                        _from: "2007-01-10",
+                                        _to: "2011-09-01"
+                                    }
+                                }, {
+                                    SSP: {
+                                        _from: "2011-07-18"
+                                    }
+                                }],
+                                ST: [{
+                                    STD: {
+                                        _from: "1977-09-08",
+                                        _to: "2017-12-31"
+                                    }
+                                }, {
+                                    STN: {
+                                        _from: "2018-01-01"
+                                    }
+                                }],
+                                SU: [{
+                                    SUR: {
+                                        _from: "1961-01-01",
+                                        _to: "1991-12-25"
+                                    }
+                                }],
+                                SV: [{
+                                    SVC: {
+                                        _from: "1919-11-11",
+                                        _to: "2001-01-01"
+                                    }
+                                }, {
+                                    USD: {
+                                        _from: "2001-01-01"
+                                    }
+                                }],
+                                SX: [{
+                                    ANG: {
+                                        _from: "2010-10-10"
+                                    }
+                                }],
+                                SY: [{
+                                    SYP: {
+                                        _from: "1948-01-01"
+                                    }
+                                }],
+                                SZ: [{
+                                    SZL: {
+                                        _from: "1974-09-06"
+                                    }
+                                }],
+                                TA: [{
+                                    GBP: {
+                                        _from: "1938-01-12"
+                                    }
+                                }],
+                                TC: [{
+                                    USD: {
+                                        _from: "1969-09-08"
+                                    }
+                                }],
+                                TD: [{
+                                    XAF: {
+                                        _from: "1993-01-01"
+                                    }
+                                }],
+                                TF: [{
+                                    FRF: {
+                                        _from: "1959-01-01",
+                                        _to: "2002-02-17"
+                                    }
+                                }, {
+                                    EUR: {
+                                        _from: "1999-01-01"
+                                    }
+                                }],
+                                TG: [{
+                                    XOF: {
+                                        _from: "1958-11-28"
+                                    }
+                                }],
+                                TH: [{
+                                    THB: {
+                                        _from: "1928-04-15"
+                                    }
+                                }],
+                                TJ: [{
+                                    RUR: {
+                                        _from: "1991-12-25",
+                                        _to: "1995-05-10"
+                                    }
+                                }, {
+                                    TJR: {
+                                        _from: "1995-05-10",
+                                        _to: "2000-10-25"
+                                    }
+                                }, {
+                                    TJS: {
+                                        _from: "2000-10-26"
+                                    }
+                                }],
+                                TK: [{
+                                    NZD: {
+                                        _from: "1967-07-10"
+                                    }
+                                }],
+                                TL: [{
+                                    TPE: {
+                                        _from: "1959-01-02",
+                                        _to: "2002-05-20"
+                                    }
+                                }, {
+                                    IDR: {
+                                        _from: "1975-12-07",
+                                        _to: "2002-05-20"
+                                    }
+                                }, {
+                                    USD: {
+                                        _from: "1999-10-20"
+                                    }
+                                }],
+                                TM: [{
+                                    SUR: {
+                                        _from: "1961-01-01",
+                                        _to: "1991-12-25"
+                                    }
+                                }, {
+                                    RUR: {
+                                        _from: "1991-12-25",
+                                        _to: "1993-11-01"
+                                    }
+                                }, {
+                                    TMM: {
+                                        _from: "1993-11-01",
+                                        _to: "2009-01-01"
+                                    }
+                                }, {
+                                    TMT: {
+                                        _from: "2009-01-01"
+                                    }
+                                }],
+                                TN: [{
+                                    TND: {
+                                        _from: "1958-11-01"
+                                    }
+                                }],
+                                TO: [{
+                                    TOP: {
+                                        _from: "1966-02-14"
+                                    }
+                                }],
+                                TP: [{
+                                    TPE: {
+                                        _from: "1959-01-02",
+                                        _to: "2002-05-20"
+                                    }
+                                }, {
+                                    IDR: {
+                                        _from: "1975-12-07",
+                                        _to: "2002-05-20"
+                                    }
+                                }],
+                                TR: [{
+                                    TRL: {
+                                        _from: "1922-11-01",
+                                        _to: "2005-12-31"
+                                    }
+                                }, {
+                                    TRY: {
+                                        _from: "2005-01-01"
+                                    }
+                                }],
+                                TT: [{
+                                    TTD: {
+                                        _from: "1964-01-01"
+                                    }
+                                }],
+                                TV: [{
+                                    AUD: {
+                                        _from: "1966-02-14"
+                                    }
+                                }],
+                                TW: [{
+                                    TWD: {
+                                        _from: "1949-06-15"
+                                    }
+                                }],
+                                TZ: [{
+                                    TZS: {
+                                        _from: "1966-06-14"
+                                    }
+                                }],
+                                UA: [{
+                                    SUR: {
+                                        _from: "1961-01-01",
+                                        _to: "1991-12-25"
+                                    }
+                                }, {
+                                    RUR: {
+                                        _from: "1991-12-25",
+                                        _to: "1992-11-13"
+                                    }
+                                }, {
+                                    UAK: {
+                                        _from: "1992-11-13",
+                                        _to: "1993-10-17"
+                                    }
+                                }, {
+                                    UAH: {
+                                        _from: "1996-09-02"
+                                    }
+                                }],
+                                UG: [{
+                                    UGS: {
+                                        _from: "1966-08-15",
+                                        _to: "1987-05-15"
+                                    }
+                                }, {
+                                    UGX: {
+                                        _from: "1987-05-15"
+                                    }
+                                }],
+                                UM: [{
+                                    USD: {
+                                        _from: "1944-01-01"
+                                    }
+                                }],
+                                US: [{
+                                    USN: {
+                                        _tender: "false"
+                                    }
+                                }, {
+                                    USS: {
+                                        _tender: "false",
+                                        _to: "2014-03-01"
+                                    }
+                                }, {
+                                    USD: {
+                                        _from: "1792-01-01"
+                                    }
+                                }],
+                                UY: [{
+                                    UYI: {
+                                        _tender: "false"
+                                    }
+                                }, {
+                                    UYW: {
+                                        _tender: "false"
+                                    }
+                                }, {
+                                    UYP: {
+                                        _from: "1975-07-01",
+                                        _to: "1993-03-01"
+                                    }
+                                }, {
+                                    UYU: {
+                                        _from: "1993-03-01"
+                                    }
+                                }],
+                                UZ: [{
+                                    UZS: {
+                                        _from: "1994-07-01"
+                                    }
+                                }],
+                                VA: [{
+                                    ITL: {
+                                        _from: "1870-10-19",
+                                        _to: "2002-02-28"
+                                    }
+                                }, {
+                                    EUR: {
+                                        _from: "1999-01-01"
+                                    }
+                                }],
+                                VC: [{
+                                    XCD: {
+                                        _from: "1965-10-06"
+                                    }
+                                }],
+                                VE: [{
+                                    VEB: {
+                                        _from: "1871-05-11",
+                                        _to: "2008-06-30"
+                                    }
+                                }, {
+                                    VEF: {
+                                        _from: "2008-01-01",
+                                        _to: "2018-08-20"
+                                    }
+                                }, {
+                                    VES: {
+                                        _from: "2018-08-20"
+                                    }
+                                }],
+                                VG: [{
+                                    USD: {
+                                        _from: "1833-01-01"
+                                    }
+                                }, {
+                                    GBP: {
+                                        _from: "1833-01-01",
+                                        _to: "1959-01-01"
+                                    }
+                                }],
+                                VI: [{
+                                    USD: {
+                                        _from: "1837-01-01"
+                                    }
+                                }],
+                                VN: [{
+                                    VNN: {
+                                        _from: "1978-05-03",
+                                        _to: "1985-09-14"
+                                    }
+                                }, {
+                                    VND: {
+                                        _from: "1985-09-14"
+                                    }
+                                }],
+                                VU: [{
+                                    VUV: {
+                                        _from: "1981-01-01"
+                                    }
+                                }],
+                                WF: [{
+                                    XPF: {
+                                        _from: "1961-07-30"
+                                    }
+                                }],
+                                WS: [{
+                                    WST: {
+                                        _from: "1967-07-10"
+                                    }
+                                }],
+                                XK: [{
+                                    YUM: {
+                                        _from: "1994-01-24",
+                                        _to: "1999-09-30"
+                                    }
+                                }, {
+                                    DEM: {
+                                        _from: "1999-09-01",
+                                        _to: "2002-03-09"
+                                    }
+                                }, {
+                                    EUR: {
+                                        _from: "2002-01-01"
+                                    }
+                                }],
+                                YD: [{
+                                    YDD: {
+                                        _from: "1965-04-01",
+                                        _to: "1996-01-01"
+                                    }
+                                }],
+                                YE: [{
+                                    YER: {
+                                        _from: "1990-05-22"
+                                    }
+                                }],
+                                YT: [{
+                                    KMF: {
+                                        _from: "1975-01-01",
+                                        _to: "1976-02-23"
+                                    }
+                                }, {
+                                    FRF: {
+                                        _from: "1976-02-23",
+                                        _to: "2002-02-17"
+                                    }
+                                }, {
+                                    EUR: {
+                                        _from: "1999-01-01"
+                                    }
+                                }],
+                                YU: [{
+                                    YUD: {
+                                        _from: "1966-01-01",
+                                        _to: "1990-01-01"
+                                    }
+                                }, {
+                                    YUN: {
+                                        _from: "1990-01-01",
+                                        _to: "1992-07-24"
+                                    }
+                                }, {
+                                    YUM: {
+                                        _from: "1994-01-24",
+                                        _to: "2002-05-15"
+                                    }
+                                }],
+                                ZA: [{
+                                    ZAR: {
+                                        _from: "1961-02-14"
+                                    }
+                                }, {
+                                    ZAL: {
+                                        _tender: "false",
+                                        _from: "1985-09-01",
+                                        _to: "1995-03-13"
+                                    }
+                                }],
+                                ZM: [{
+                                    ZMK: {
+                                        _from: "1968-01-16",
+                                        _to: "2013-01-01"
+                                    }
+                                }, {
+                                    ZMW: {
+                                        _from: "2013-01-01"
+                                    }
+                                }],
+                                ZR: [{
+                                    ZRZ: {
+                                        _from: "1971-10-27",
+                                        _to: "1993-11-01"
+                                    }
+                                }, {
+                                    ZRN: {
+                                        _from: "1993-11-01",
+                                        _to: "1998-07-31"
+                                    }
+                                }],
+                                ZW: [{
+                                    RHD: {
+                                        _from: "1970-02-17",
+                                        _to: "1980-04-18"
+                                    }
+                                }, {
+                                    ZWD: {
+                                        _from: "1980-04-18",
+                                        _to: "2008-08-01"
+                                    }
+                                }, {
+                                    ZWR: {
+                                        _from: "2008-08-01",
+                                        _to: "2009-02-02"
+                                    }
+                                }, {
+                                    ZWL: {
+                                        _from: "2009-02-02",
+                                        _to: "2009-04-12"
+                                    }
+                                }, {
+                                    USD: {
+                                        _from: "2009-04-12"
+                                    }
+                                }],
+                                ZZ: [{
+                                    XAG: {
+                                        _tender: "false"
+                                    }
+                                }, {
+                                    XAU: {
+                                        _tender: "false"
+                                    }
+                                }, {
+                                    XBA: {
+                                        _tender: "false"
+                                    }
+                                }, {
+                                    XBB: {
+                                        _tender: "false"
+                                    }
+                                }, {
+                                    XBC: {
+                                        _tender: "false"
+                                    }
+                                }, {
+                                    XBD: {
+                                        _tender: "false"
+                                    }
+                                }, {
+                                    XDR: {
+                                        _tender: "false"
+                                    }
+                                }, {
+                                    XPD: {
+                                        _tender: "false"
+                                    }
+                                }, {
+                                    XPT: {
+                                        _tender: "false"
+                                    }
+                                }, {
+                                    XSU: {
+                                        _tender: "false"
+                                    }
+                                }, {
+                                    XTS: {
+                                        _tender: "false"
+                                    }
+                                }, {
+                                    XUA: {
+                                        _tender: "false"
+                                    }
+                                }, {
+                                    XXX: {
+                                        _tender: "false"
+                                    }
+                                }, {
+                                    XRE: {
+                                        _tender: "false",
+                                        _to: "1999-11-30"
+                                    }
+                                }, {
+                                    XFU: {
+                                        _tender: "false",
+                                        _to: "2013-11-30"
+                                    }
+                                }, {
+                                    XFO: {
+                                        _tender: "false",
+                                        _from: "1930-01-01",
+                                        _to: "2003-04-01"
+                                    }
+                                }]
+                            }
+                        },
+                        numberingSystems: {
+                            adlm: {
+                                _digits: "\ud83a\udd50\ud83a\udd51\ud83a\udd52\ud83a\udd53\ud83a\udd54\ud83a\udd55\ud83a\udd56\ud83a\udd57\ud83a\udd58\ud83a\udd59",
+                                _type: "numeric"
+                            },
+                            ahom: {
+                                _digits: "\ud805\udf30\ud805\udf31\ud805\udf32\ud805\udf33\ud805\udf34\ud805\udf35\ud805\udf36\ud805\udf37\ud805\udf38\ud805\udf39",
+                                _type: "numeric"
+                            },
+                            arab: {
+                                _digits: "\u0660\u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668\u0669",
+                                _type: "numeric"
+                            },
+                            arabext: {
+                                _digits: "\u06f0\u06f1\u06f2\u06f3\u06f4\u06f5\u06f6\u06f7\u06f8\u06f9",
+                                _type: "numeric"
+                            },
+                            armn: {
+                                _rules: "armenian-upper",
+                                _type: "algorithmic"
+                            },
+                            armnlow: {
+                                _rules: "armenian-lower",
+                                _type: "algorithmic"
+                            },
+                            bali: {
+                                _digits: "\u1b50\u1b51\u1b52\u1b53\u1b54\u1b55\u1b56\u1b57\u1b58\u1b59",
+                                _type: "numeric"
+                            },
+                            beng: {
+                                _digits: "\u09e6\u09e7\u09e8\u09e9\u09ea\u09eb\u09ec\u09ed\u09ee\u09ef",
+                                _type: "numeric"
+                            },
+                            bhks: {
+                                _digits: "\ud807\udc50\ud807\udc51\ud807\udc52\ud807\udc53\ud807\udc54\ud807\udc55\ud807\udc56\ud807\udc57\ud807\udc58\ud807\udc59",
+                                _type: "numeric"
+                            },
+                            brah: {
+                                _digits: "\ud804\udc66\ud804\udc67\ud804\udc68\ud804\udc69\ud804\udc6a\ud804\udc6b\ud804\udc6c\ud804\udc6d\ud804\udc6e\ud804\udc6f",
+                                _type: "numeric"
+                            },
+                            cakm: {
+                                _digits: "\ud804\udd36\ud804\udd37\ud804\udd38\ud804\udd39\ud804\udd3a\ud804\udd3b\ud804\udd3c\ud804\udd3d\ud804\udd3e\ud804\udd3f",
+                                _type: "numeric"
+                            },
+                            cham: {
+                                _digits: "\uaa50\uaa51\uaa52\uaa53\uaa54\uaa55\uaa56\uaa57\uaa58\uaa59",
+                                _type: "numeric"
+                            },
+                            cyrl: {
+                                _rules: "cyrillic-lower",
+                                _type: "algorithmic"
+                            },
+                            deva: {
+                                _digits: "\u0966\u0967\u0968\u0969\u096a\u096b\u096c\u096d\u096e\u096f",
+                                _type: "numeric"
+                            },
+                            ethi: {
+                                _rules: "ethiopic",
+                                _type: "algorithmic"
+                            },
+                            fullwide: {
+                                _digits: "\uff10\uff11\uff12\uff13\uff14\uff15\uff16\uff17\uff18\uff19",
+                                _type: "numeric"
+                            },
+                            geor: {
+                                _rules: "georgian",
+                                _type: "algorithmic"
+                            },
+                            gong: {
+                                _digits: "\ud807\udda0\ud807\udda1\ud807\udda2\ud807\udda3\ud807\udda4\ud807\udda5\ud807\udda6\ud807\udda7\ud807\udda8\ud807\udda9",
+                                _type: "numeric"
+                            },
+                            gonm: {
+                                _digits: "\ud807\udd50\ud807\udd51\ud807\udd52\ud807\udd53\ud807\udd54\ud807\udd55\ud807\udd56\ud807\udd57\ud807\udd58\ud807\udd59",
+                                _type: "numeric"
+                            },
+                            grek: {
+                                _rules: "greek-upper",
+                                _type: "algorithmic"
+                            },
+                            greklow: {
+                                _rules: "greek-lower",
+                                _type: "algorithmic"
+                            },
+                            gujr: {
+                                _digits: "\u0ae6\u0ae7\u0ae8\u0ae9\u0aea\u0aeb\u0aec\u0aed\u0aee\u0aef",
+                                _type: "numeric"
+                            },
+                            guru: {
+                                _digits: "\u0a66\u0a67\u0a68\u0a69\u0a6a\u0a6b\u0a6c\u0a6d\u0a6e\u0a6f",
+                                _type: "numeric"
+                            },
+                            hanidays: {
+                                _rules: "zh/SpelloutRules/spellout-numbering-days",
+                                _type: "algorithmic"
+                            },
+                            hanidec: {
+                                _digits: "\u3007\u4e00\u4e8c\u4e09\u56db\u4e94\u516d\u4e03\u516b\u4e5d",
+                                _type: "numeric"
+                            },
+                            hans: {
+                                _rules: "zh/SpelloutRules/spellout-cardinal",
+                                _type: "algorithmic"
+                            },
+                            hansfin: {
+                                _rules: "zh/SpelloutRules/spellout-cardinal-financial",
+                                _type: "algorithmic"
+                            },
+                            hant: {
+                                _rules: "zh_Hant/SpelloutRules/spellout-cardinal",
+                                _type: "algorithmic"
+                            },
+                            hantfin: {
+                                _rules: "zh_Hant/SpelloutRules/spellout-cardinal-financial",
+                                _type: "algorithmic"
+                            },
+                            hebr: {
+                                _rules: "hebrew",
+                                _type: "algorithmic"
+                            },
+                            hmng: {
+                                _digits: "\ud81a\udf50\ud81a\udf51\ud81a\udf52\ud81a\udf53\ud81a\udf54\ud81a\udf55\ud81a\udf56\ud81a\udf57\ud81a\udf58\ud81a\udf59",
+                                _type: "numeric"
+                            },
+                            hmnp: {
+                                _digits: "\ud838\udd40\ud838\udd41\ud838\udd42\ud838\udd43\ud838\udd44\ud838\udd45\ud838\udd46\ud838\udd47\ud838\udd48\ud838\udd49",
+                                _type: "numeric"
+                            },
+                            java: {
+                                _digits: "\ua9d0\ua9d1\ua9d2\ua9d3\ua9d4\ua9d5\ua9d6\ua9d7\ua9d8\ua9d9",
+                                _type: "numeric"
+                            },
+                            jpan: {
+                                _rules: "ja/SpelloutRules/spellout-cardinal",
+                                _type: "algorithmic"
+                            },
+                            jpanfin: {
+                                _rules: "ja/SpelloutRules/spellout-cardinal-financial",
+                                _type: "algorithmic"
+                            },
+                            jpanyear: {
+                                _rules: "ja/SpelloutRules/spellout-numbering-year-latn",
+                                _type: "algorithmic"
+                            },
+                            kali: {
+                                _digits: "\ua900\ua901\ua902\ua903\ua904\ua905\ua906\ua907\ua908\ua909",
+                                _type: "numeric"
+                            },
+                            khmr: {
+                                _digits: "\u17e0\u17e1\u17e2\u17e3\u17e4\u17e5\u17e6\u17e7\u17e8\u17e9",
+                                _type: "numeric"
+                            },
+                            knda: {
+                                _digits: "\u0ce6\u0ce7\u0ce8\u0ce9\u0cea\u0ceb\u0cec\u0ced\u0cee\u0cef",
+                                _type: "numeric"
+                            },
+                            lana: {
+                                _digits: "\u1a80\u1a81\u1a82\u1a83\u1a84\u1a85\u1a86\u1a87\u1a88\u1a89",
+                                _type: "numeric"
+                            },
+                            lanatham: {
+                                _digits: "\u1a90\u1a91\u1a92\u1a93\u1a94\u1a95\u1a96\u1a97\u1a98\u1a99",
+                                _type: "numeric"
+                            },
+                            laoo: {
+                                _digits: "\u0ed0\u0ed1\u0ed2\u0ed3\u0ed4\u0ed5\u0ed6\u0ed7\u0ed8\u0ed9",
+                                _type: "numeric"
+                            },
+                            latn: {
+                                _digits: "0123456789",
+                                _type: "numeric"
+                            },
+                            lepc: {
+                                _digits: "\u1c40\u1c41\u1c42\u1c43\u1c44\u1c45\u1c46\u1c47\u1c48\u1c49",
+                                _type: "numeric"
+                            },
+                            limb: {
+                                _digits: "\u1946\u1947\u1948\u1949\u194a\u194b\u194c\u194d\u194e\u194f",
+                                _type: "numeric"
+                            },
+                            mathbold: {
+                                _digits: "\ud835\udfce\ud835\udfcf\ud835\udfd0\ud835\udfd1\ud835\udfd2\ud835\udfd3\ud835\udfd4\ud835\udfd5\ud835\udfd6\ud835\udfd7",
+                                _type: "numeric"
+                            },
+                            mathdbl: {
+                                _digits: "\ud835\udfd8\ud835\udfd9\ud835\udfda\ud835\udfdb\ud835\udfdc\ud835\udfdd\ud835\udfde\ud835\udfdf\ud835\udfe0\ud835\udfe1",
+                                _type: "numeric"
+                            },
+                            mathmono: {
+                                _digits: "\ud835\udff6\ud835\udff7\ud835\udff8\ud835\udff9\ud835\udffa\ud835\udffb\ud835\udffc\ud835\udffd\ud835\udffe\ud835\udfff",
+                                _type: "numeric"
+                            },
+                            mathsanb: {
+                                _digits: "\ud835\udfec\ud835\udfed\ud835\udfee\ud835\udfef\ud835\udff0\ud835\udff1\ud835\udff2\ud835\udff3\ud835\udff4\ud835\udff5",
+                                _type: "numeric"
+                            },
+                            mathsans: {
+                                _digits: "\ud835\udfe2\ud835\udfe3\ud835\udfe4\ud835\udfe5\ud835\udfe6\ud835\udfe7\ud835\udfe8\ud835\udfe9\ud835\udfea\ud835\udfeb",
+                                _type: "numeric"
+                            },
+                            mlym: {
+                                _digits: "\u0d66\u0d67\u0d68\u0d69\u0d6a\u0d6b\u0d6c\u0d6d\u0d6e\u0d6f",
+                                _type: "numeric"
+                            },
+                            modi: {
+                                _digits: "\ud805\ude50\ud805\ude51\ud805\ude52\ud805\ude53\ud805\ude54\ud805\ude55\ud805\ude56\ud805\ude57\ud805\ude58\ud805\ude59",
+                                _type: "numeric"
+                            },
+                            mong: {
+                                _digits: "\u1810\u1811\u1812\u1813\u1814\u1815\u1816\u1817\u1818\u1819",
+                                _type: "numeric"
+                            },
+                            mroo: {
+                                _digits: "\ud81a\ude60\ud81a\ude61\ud81a\ude62\ud81a\ude63\ud81a\ude64\ud81a\ude65\ud81a\ude66\ud81a\ude67\ud81a\ude68\ud81a\ude69",
+                                _type: "numeric"
+                            },
+                            mtei: {
+                                _digits: "\uabf0\uabf1\uabf2\uabf3\uabf4\uabf5\uabf6\uabf7\uabf8\uabf9",
+                                _type: "numeric"
+                            },
+                            mymr: {
+                                _digits: "\u1040\u1041\u1042\u1043\u1044\u1045\u1046\u1047\u1048\u1049",
+                                _type: "numeric"
+                            },
+                            mymrshan: {
+                                _digits: "\u1090\u1091\u1092\u1093\u1094\u1095\u1096\u1097\u1098\u1099",
+                                _type: "numeric"
+                            },
+                            mymrtlng: {
+                                _digits: "\ua9f0\ua9f1\ua9f2\ua9f3\ua9f4\ua9f5\ua9f6\ua9f7\ua9f8\ua9f9",
+                                _type: "numeric"
+                            },
+                            newa: {
+                                _digits: "\ud805\udc50\ud805\udc51\ud805\udc52\ud805\udc53\ud805\udc54\ud805\udc55\ud805\udc56\ud805\udc57\ud805\udc58\ud805\udc59",
+                                _type: "numeric"
+                            },
+                            nkoo: {
+                                _digits: "\u07c0\u07c1\u07c2\u07c3\u07c4\u07c5\u07c6\u07c7\u07c8\u07c9",
+                                _type: "numeric"
+                            },
+                            olck: {
+                                _digits: "\u1c50\u1c51\u1c52\u1c53\u1c54\u1c55\u1c56\u1c57\u1c58\u1c59",
+                                _type: "numeric"
+                            },
+                            orya: {
+                                _digits: "\u0b66\u0b67\u0b68\u0b69\u0b6a\u0b6b\u0b6c\u0b6d\u0b6e\u0b6f",
+                                _type: "numeric"
+                            },
+                            osma: {
+                                _digits: "\ud801\udca0\ud801\udca1\ud801\udca2\ud801\udca3\ud801\udca4\ud801\udca5\ud801\udca6\ud801\udca7\ud801\udca8\ud801\udca9",
+                                _type: "numeric"
+                            },
+                            rohg: {
+                                _digits: "\ud803\udd30\ud803\udd31\ud803\udd32\ud803\udd33\ud803\udd34\ud803\udd35\ud803\udd36\ud803\udd37\ud803\udd38\ud803\udd39",
+                                _type: "numeric"
+                            },
+                            roman: {
+                                _rules: "roman-upper",
+                                _type: "algorithmic"
+                            },
+                            romanlow: {
+                                _rules: "roman-lower",
+                                _type: "algorithmic"
+                            },
+                            saur: {
+                                _digits: "\ua8d0\ua8d1\ua8d2\ua8d3\ua8d4\ua8d5\ua8d6\ua8d7\ua8d8\ua8d9",
+                                _type: "numeric"
+                            },
+                            shrd: {
+                                _digits: "\ud804\uddd0\ud804\uddd1\ud804\uddd2\ud804\uddd3\ud804\uddd4\ud804\uddd5\ud804\uddd6\ud804\uddd7\ud804\uddd8\ud804\uddd9",
+                                _type: "numeric"
+                            },
+                            sind: {
+                                _digits: "\ud804\udef0\ud804\udef1\ud804\udef2\ud804\udef3\ud804\udef4\ud804\udef5\ud804\udef6\ud804\udef7\ud804\udef8\ud804\udef9",
+                                _type: "numeric"
+                            },
+                            sinh: {
+                                _digits: "\u0de6\u0de7\u0de8\u0de9\u0dea\u0deb\u0dec\u0ded\u0dee\u0def",
+                                _type: "numeric"
+                            },
+                            sora: {
+                                _digits: "\ud804\udcf0\ud804\udcf1\ud804\udcf2\ud804\udcf3\ud804\udcf4\ud804\udcf5\ud804\udcf6\ud804\udcf7\ud804\udcf8\ud804\udcf9",
+                                _type: "numeric"
+                            },
+                            sund: {
+                                _digits: "\u1bb0\u1bb1\u1bb2\u1bb3\u1bb4\u1bb5\u1bb6\u1bb7\u1bb8\u1bb9",
+                                _type: "numeric"
+                            },
+                            takr: {
+                                _digits: "\ud805\udec0\ud805\udec1\ud805\udec2\ud805\udec3\ud805\udec4\ud805\udec5\ud805\udec6\ud805\udec7\ud805\udec8\ud805\udec9",
+                                _type: "numeric"
+                            },
+                            talu: {
+                                _digits: "\u19d0\u19d1\u19d2\u19d3\u19d4\u19d5\u19d6\u19d7\u19d8\u19d9",
+                                _type: "numeric"
+                            },
+                            taml: {
+                                _rules: "tamil",
+                                _type: "algorithmic"
+                            },
+                            tamldec: {
+                                _digits: "\u0be6\u0be7\u0be8\u0be9\u0bea\u0beb\u0bec\u0bed\u0bee\u0bef",
+                                _type: "numeric"
+                            },
+                            telu: {
+                                _digits: "\u0c66\u0c67\u0c68\u0c69\u0c6a\u0c6b\u0c6c\u0c6d\u0c6e\u0c6f",
+                                _type: "numeric"
+                            },
+                            thai: {
+                                _digits: "\u0e50\u0e51\u0e52\u0e53\u0e54\u0e55\u0e56\u0e57\u0e58\u0e59",
+                                _type: "numeric"
+                            },
+                            tibt: {
+                                _digits: "\u0f20\u0f21\u0f22\u0f23\u0f24\u0f25\u0f26\u0f27\u0f28\u0f29",
+                                _type: "numeric"
+                            },
+                            tirh: {
+                                _digits: "\ud805\udcd0\ud805\udcd1\ud805\udcd2\ud805\udcd3\ud805\udcd4\ud805\udcd5\ud805\udcd6\ud805\udcd7\ud805\udcd8\ud805\udcd9",
+                                _type: "numeric"
+                            },
+                            vaii: {
+                                _digits: "\ua620\ua621\ua622\ua623\ua624\ua625\ua626\ua627\ua628\ua629",
+                                _type: "numeric"
+                            },
+                            wara: {
+                                _digits: "\ud806\udce0\ud806\udce1\ud806\udce2\ud806\udce3\ud806\udce4\ud806\udce5\ud806\udce6\ud806\udce7\ud806\udce8\ud806\udce9",
+                                _type: "numeric"
+                            },
+                            wcho: {
+                                _digits: "\ud838\udef0\ud838\udef1\ud838\udef2\ud838\udef3\ud838\udef4\ud838\udef5\ud838\udef6\ud838\udef7\ud838\udef8\ud838\udef9",
+                                _type: "numeric"
+                            }
+                        }
+                    }
+                }
+            },
         91331:
             /*!******************************************************************!*\
               !*** ./artifacts/transpiled-renovation-npm/localization/core.js ***!
@@ -25463,7 +34568,6 @@
                 var _dependency_injector = _interopRequireDefault(__webpack_require__( /*! ../core/utils/dependency_injector */ 20476));
                 var _type = __webpack_require__( /*! ../core/utils/type */ 35922);
                 var _iterator = __webpack_require__( /*! ../core/utils/iterator */ 95479);
-                var _array = __webpack_require__( /*! ../core/utils/array */ 89386);
                 var _errors = _interopRequireDefault(__webpack_require__( /*! ../core/errors */ 17381));
                 var _date = __webpack_require__( /*! ./ldml/date.formatter */ 40594);
                 var _date2 = __webpack_require__( /*! ./ldml/date.format */ 59937);
@@ -25532,7 +34636,7 @@
                         var result = [];
                         (0, _iterator.each)(pattern.split(/\W+/), (function(_, formatPart) {
                             (0, _iterator.each)(possiblePartPatterns, (function(partName, possiblePatterns) {
-                                if ((0, _array.inArray)(formatPart, possiblePatterns) > -1) {
+                                if (possiblePatterns.includes(formatPart)) {
                                     result.push(partName)
                                 }
                             }))
@@ -25689,6 +34793,7 @@
                         Yes: "Yes",
                         No: "No",
                         Cancel: "Cancel",
+                        Close: "Close",
                         Clear: "Clear",
                         Done: "Done",
                         Loading: "Loading...",
@@ -25734,8 +34839,8 @@
                         "dxDateBox-simulatedDataPickerTitleDate": "Select date",
                         "dxDateBox-simulatedDataPickerTitleDateTime": "Select date and time",
                         "dxDateBox-validation-datetime": "Value must be a date or time",
-                        "dxFileUploader-selectFile": "Select file",
-                        "dxFileUploader-dropFile": "or Drop file here",
+                        "dxFileUploader-selectFile": "Select a file",
+                        "dxFileUploader-dropFile": "or Drop a file here",
                         "dxFileUploader-bytes": "bytes",
                         "dxFileUploader-kb": "kb",
                         "dxFileUploader-Mb": "Mb",
@@ -25815,8 +34920,10 @@
                         "dxDataGrid-exporting": "Exporting...",
                         "dxDataGrid-excelFormat": "Excel file",
                         "dxDataGrid-selectedRows": "Selected rows",
-                        "dxDataGrid-exportSelectedRows": "Export selected rows",
-                        "dxDataGrid-exportAll": "Export all data",
+                        "dxDataGrid-exportSelectedRows": "Export selected rows to {0}",
+                        "dxDataGrid-exportAll": "Export all data to {0}",
+                        "dxDataGrid-headerFilterLabel": "Filter options",
+                        "dxDataGrid-headerFilterIndicatorLabel": "Show filter options for column '{0}'",
                         "dxDataGrid-headerFilterEmptyValue": "(Blanks)",
                         "dxDataGrid-headerFilterOK": "OK",
                         "dxDataGrid-headerFilterCancel": "Cancel",
@@ -25843,6 +34950,10 @@
                         "dxPager-infoText": "Page {0} of {1} ({2} items)",
                         "dxPager-pagesCountText": "of",
                         "dxPager-pageSizesAllText": "All",
+                        "dxPager-page": "Page {0}",
+                        "dxPager-prevPage": "Previous Page",
+                        "dxPager-nextPage": "Next Page",
+                        "dxPager-ariaLabel": "Page Navigation",
                         "dxPivotGrid-grandTotal": "Grand Total",
                         "dxPivotGrid-total": "{0} Total",
                         "dxPivotGrid-fieldChooserTitle": "Field Chooser",
@@ -25955,6 +35066,13 @@
                         "dxHtmlEditor-dialogInsertTableRowsField": "Rows",
                         "dxHtmlEditor-dialogInsertTableColumnsField": "Columns",
                         "dxHtmlEditor-dialogInsertTableCaption": "Insert Table",
+                        "dxHtmlEditor-dialogUpdateImageCaption": "Update Image",
+                        "dxHtmlEditor-dialogImageUpdateButton": "Update",
+                        "dxHtmlEditor-dialogImageAddButton": "Add",
+                        "dxHtmlEditor-dialogImageSpecifyUrl": "From the Web",
+                        "dxHtmlEditor-dialogImageSelectFile": "From This Device",
+                        "dxHtmlEditor-dialogImageKeepAspectRatio": "Keep Aspect Ratio",
+                        "dxHtmlEditor-dialogImageEncodeToBase64": "Encode to Base64",
                         "dxHtmlEditor-heading": "Heading",
                         "dxHtmlEditor-normalText": "Normal text",
                         "dxHtmlEditor-background": "Background Color",
@@ -26092,6 +35210,8 @@
                         "dxFileManager-editingUploadSingleItemErrorMessage": "Item was not uploaded",
                         "dxFileManager-editingUploadMultipleItemsErrorMessage": "{0} items were not uploaded",
                         "dxFileManager-editingUploadCanceledMessage": "Canceled",
+                        "dxFileManager-editingDownloadSingleItemErrorMessage": "Item was not downloaded",
+                        "dxFileManager-editingDownloadMultipleItemsErrorMessage": "{0} items were not downloaded",
                         "dxFileManager-listDetailsColumnCaptionName": "Name",
                         "dxFileManager-listDetailsColumnCaptionDateModified": "Date Modified",
                         "dxFileManager-listDetailsColumnCaptionFileSize": "File Size",
@@ -26174,7 +35294,7 @@
                         "dxDiagram-dialogInsertShapeImageTitle": "Insert Image",
                         "dxDiagram-dialogEditShapeImageTitle": "Change Image",
                         "dxDiagram-dialogEditShapeImageSelectButton": "Select image",
-                        "dxDiagram-dialogEditShapeImageLabelText": "or drop file here",
+                        "dxDiagram-dialogEditShapeImageLabelText": "or drop a file here",
                         "dxDiagram-uiExport": "Export",
                         "dxDiagram-uiProperties": "Properties",
                         "dxDiagram-uiSettings": "Settings",
@@ -26256,6 +35376,10 @@
                         "dxGantt-dialogCancelOperationMessage": "Cancel the operation",
                         "dxGantt-dialogDeleteDependencyMessage": "Delete the dependency",
                         "dxGantt-dialogMoveTaskAndKeepDependencyMessage": "Move the task and keep the dependency",
+                        "dxGantt-dialogConstraintCriticalViolationSeveralTasksMessage": "The task you are attempting to move is linked to another tasks by dependency relations. This change would conflict with dependency rules. How would you like to proceed?",
+                        "dxGantt-dialogConstraintViolationSeveralTasksMessage": "The task you are attempting to move is linked to another tasks by dependency relations. How would you like to proceed?",
+                        "dxGantt-dialogDeleteDependenciesMessage": "Delete the dependency relations",
+                        "dxGantt-dialogMoveTaskAndKeepDependenciesMessage": "Move the task and keep the dependencies",
                         "dxGantt-undo": "Undo",
                         "dxGantt-redo": "Redo",
                         "dxGantt-expandAll": "Expand All",
@@ -26283,6 +35407,8 @@
             function(__unused_webpack_module, __unused_webpack_exports, __webpack_require__) {
                 var _globalize = _interopRequireDefault(__webpack_require__( /*! globalize */ 71272));
                 var _core = _interopRequireDefault(__webpack_require__( /*! ../core */ 91331));
+                var _en = __webpack_require__( /*! ../cldr-data/en */ 35608);
+                var _supplemental = __webpack_require__( /*! ../cldr-data/supplemental */ 57421);
 
                 function _interopRequireDefault(obj) {
                     return obj && obj.__esModule ? obj : {
@@ -26291,21 +35417,7 @@
                 }
                 if (_globalize.default && _globalize.default.load) {
                     if (!_globalize.default.locale()) {
-                        _globalize.default.load({
-                            supplemental: {
-                                version: {
-                                    _cldrVersion: "28",
-                                    _unicodeVersion: "8.0.0",
-                                    _number: "$Revision: 11965 $"
-                                },
-                                likelySubtags: {
-                                    en: "en-Latn-US",
-                                    de: "de-Latn-DE",
-                                    ru: "ru-Cyrl-RU",
-                                    ja: "ja-Jpan-JP"
-                                }
-                            }
-                        });
+                        _globalize.default.load(_en.enCldr, _supplemental.supplementalCldr);
                         _globalize.default.locale("en")
                     }
                     _core.default.inject({
@@ -26345,48 +35457,9 @@
                         return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj
                     }, _typeof(obj)
                 }
+                var CURRENCY_STYLES = ["symbol", "accounting"];
                 if (_globalize.default && _globalize.default.formatCurrency) {
                     if ("en" === _globalize.default.locale().locale) {
-                        _globalize.default.load({
-                            main: {
-                                en: {
-                                    identity: {
-                                        version: {
-                                            _cldrVersion: "28",
-                                            _number: "$Revision: 11972 $"
-                                        },
-                                        language: "en"
-                                    },
-                                    numbers: {
-                                        currencies: {
-                                            USD: {
-                                                displayName: "US Dollar",
-                                                "displayName-count-one": "US dollar",
-                                                "displayName-count-other": "US dollars",
-                                                symbol: "$",
-                                                "symbol-alt-narrow": "$"
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }, {
-                            supplemental: {
-                                version: {
-                                    _cldrVersion: "28",
-                                    _unicodeVersion: "8.0.0",
-                                    _number: "$Revision: 11969 $"
-                                },
-                                currencyData: {
-                                    fractions: {
-                                        DEFAULT: {
-                                            _rounding: "0",
-                                            _digits: "2"
-                                        }
-                                    }
-                                }
-                            }
-                        });
                         _globalize.default.locale("en")
                     }
                     var formattersCache = {};
@@ -26413,11 +35486,13 @@
                             return this.callBase.apply(this, arguments)
                         },
                         _normalizeFormatConfig: function(format, formatConfig, value) {
-                            var config = this.callBase(format, formatConfig, value);
+                            var normalizedConfig = this.callBase(format, formatConfig, value);
                             if ("currency" === format) {
-                                config.style = "accounting"
+                                var _formatConfig$useCurr;
+                                var useAccountingStyle = null !== (_formatConfig$useCurr = formatConfig.useCurrencyAccountingStyle) && void 0 !== _formatConfig$useCurr ? _formatConfig$useCurr : (0, _config.default)().defaultUseCurrencyAccountingStyle;
+                                normalizedConfig.style = CURRENCY_STYLES[+useAccountingStyle]
                             }
-                            return config
+                            return normalizedConfig
                         },
                         format: function(value, _format) {
                             if ("number" !== typeof value) {
@@ -26469,7 +35544,6 @@
                 var _globalize = _interopRequireDefault(__webpack_require__( /*! globalize */ 71272));
                 var _date2 = _interopRequireDefault(__webpack_require__( /*! ../date */ 91500));
                 var _type = __webpack_require__( /*! ../../core/utils/type */ 35922);
-                var _array = __webpack_require__( /*! ../../core/utils/array */ 89386);
                 var iteratorUtils = function(obj, nodeInterop) {
                     if (!nodeInterop && obj && obj.__esModule) {
                         return obj
@@ -26522,558 +35596,6 @@
                 var RTL_MARKS_REGEX = /[\u200E\u200F]/g;
                 if (_globalize.default && _globalize.default.formatDate) {
                     if ("en" === _globalize.default.locale().locale) {
-                        _globalize.default.load({
-                            supplemental: {
-                                version: {
-                                    _cldrVersion: "28",
-                                    _unicodeVersion: "8.0.0",
-                                    _number: "$Revision: 11969 $"
-                                },
-                                weekData: {
-                                    minDays: {
-                                        "001": "1",
-                                        US: "1",
-                                        DE: "4"
-                                    },
-                                    firstDay: {
-                                        "001": "mon",
-                                        DE: "mon",
-                                        RU: "mon",
-                                        JP: "sun",
-                                        US: "sun"
-                                    },
-                                    weekendStart: {
-                                        "001": "sat"
-                                    },
-                                    weekendEnd: {
-                                        "001": "sun"
-                                    }
-                                }
-                            }
-                        }, {
-                            supplemental: {
-                                version: {
-                                    _cldrVersion: "28",
-                                    _unicodeVersion: "8.0.0",
-                                    _number: "$Revision: 11969 $"
-                                },
-                                timeData: {
-                                    "001": {
-                                        _allowed: "H h",
-                                        _preferred: "H"
-                                    },
-                                    DE: {
-                                        _allowed: "H",
-                                        _preferred: "H"
-                                    },
-                                    JP: {
-                                        _allowed: "H K h",
-                                        _preferred: "H"
-                                    },
-                                    RU: {
-                                        _allowed: "H",
-                                        _preferred: "H"
-                                    },
-                                    US: {
-                                        _allowed: "H h",
-                                        _preferred: "h"
-                                    }
-                                }
-                            }
-                        }, {
-                            main: {
-                                en: {
-                                    identity: {
-                                        version: {
-                                            _cldrVersion: "28",
-                                            _number: "$Revision: 11972 $"
-                                        },
-                                        language: "en"
-                                    },
-                                    dates: {
-                                        calendars: {
-                                            gregorian: {
-                                                months: {
-                                                    format: {
-                                                        abbreviated: {
-                                                            1: "Jan",
-                                                            2: "Feb",
-                                                            3: "Mar",
-                                                            4: "Apr",
-                                                            5: "May",
-                                                            6: "Jun",
-                                                            7: "Jul",
-                                                            8: "Aug",
-                                                            9: "Sep",
-                                                            10: "Oct",
-                                                            11: "Nov",
-                                                            12: "Dec"
-                                                        },
-                                                        narrow: {
-                                                            1: "J",
-                                                            2: "F",
-                                                            3: "M",
-                                                            4: "A",
-                                                            5: "M",
-                                                            6: "J",
-                                                            7: "J",
-                                                            8: "A",
-                                                            9: "S",
-                                                            10: "O",
-                                                            11: "N",
-                                                            12: "D"
-                                                        },
-                                                        wide: {
-                                                            1: "January",
-                                                            2: "February",
-                                                            3: "March",
-                                                            4: "April",
-                                                            5: "May",
-                                                            6: "June",
-                                                            7: "July",
-                                                            8: "August",
-                                                            9: "September",
-                                                            10: "October",
-                                                            11: "November",
-                                                            12: "December"
-                                                        }
-                                                    },
-                                                    "stand-alone": {
-                                                        abbreviated: {
-                                                            1: "Jan",
-                                                            2: "Feb",
-                                                            3: "Mar",
-                                                            4: "Apr",
-                                                            5: "May",
-                                                            6: "Jun",
-                                                            7: "Jul",
-                                                            8: "Aug",
-                                                            9: "Sep",
-                                                            10: "Oct",
-                                                            11: "Nov",
-                                                            12: "Dec"
-                                                        },
-                                                        narrow: {
-                                                            1: "J",
-                                                            2: "F",
-                                                            3: "M",
-                                                            4: "A",
-                                                            5: "M",
-                                                            6: "J",
-                                                            7: "J",
-                                                            8: "A",
-                                                            9: "S",
-                                                            10: "O",
-                                                            11: "N",
-                                                            12: "D"
-                                                        },
-                                                        wide: {
-                                                            1: "January",
-                                                            2: "February",
-                                                            3: "March",
-                                                            4: "April",
-                                                            5: "May",
-                                                            6: "June",
-                                                            7: "July",
-                                                            8: "August",
-                                                            9: "September",
-                                                            10: "October",
-                                                            11: "November",
-                                                            12: "December"
-                                                        }
-                                                    }
-                                                },
-                                                days: {
-                                                    format: {
-                                                        abbreviated: {
-                                                            sun: "Sun",
-                                                            mon: "Mon",
-                                                            tue: "Tue",
-                                                            wed: "Wed",
-                                                            thu: "Thu",
-                                                            fri: "Fri",
-                                                            sat: "Sat"
-                                                        },
-                                                        narrow: {
-                                                            sun: "S",
-                                                            mon: "M",
-                                                            tue: "T",
-                                                            wed: "W",
-                                                            thu: "T",
-                                                            fri: "F",
-                                                            sat: "S"
-                                                        },
-                                                        short: {
-                                                            sun: "Su",
-                                                            mon: "Mo",
-                                                            tue: "Tu",
-                                                            wed: "We",
-                                                            thu: "Th",
-                                                            fri: "Fr",
-                                                            sat: "Sa"
-                                                        },
-                                                        wide: {
-                                                            sun: "Sunday",
-                                                            mon: "Monday",
-                                                            tue: "Tuesday",
-                                                            wed: "Wednesday",
-                                                            thu: "Thursday",
-                                                            fri: "Friday",
-                                                            sat: "Saturday"
-                                                        }
-                                                    },
-                                                    "stand-alone": {
-                                                        abbreviated: {
-                                                            sun: "Sun",
-                                                            mon: "Mon",
-                                                            tue: "Tue",
-                                                            wed: "Wed",
-                                                            thu: "Thu",
-                                                            fri: "Fri",
-                                                            sat: "Sat"
-                                                        },
-                                                        narrow: {
-                                                            sun: "S",
-                                                            mon: "M",
-                                                            tue: "T",
-                                                            wed: "W",
-                                                            thu: "T",
-                                                            fri: "F",
-                                                            sat: "S"
-                                                        },
-                                                        short: {
-                                                            sun: "Su",
-                                                            mon: "Mo",
-                                                            tue: "Tu",
-                                                            wed: "We",
-                                                            thu: "Th",
-                                                            fri: "Fr",
-                                                            sat: "Sa"
-                                                        },
-                                                        wide: {
-                                                            sun: "Sunday",
-                                                            mon: "Monday",
-                                                            tue: "Tuesday",
-                                                            wed: "Wednesday",
-                                                            thu: "Thursday",
-                                                            fri: "Friday",
-                                                            sat: "Saturday"
-                                                        }
-                                                    }
-                                                },
-                                                quarters: {
-                                                    format: {
-                                                        abbreviated: {
-                                                            1: "Q1",
-                                                            2: "Q2",
-                                                            3: "Q3",
-                                                            4: "Q4"
-                                                        },
-                                                        narrow: {
-                                                            1: "1",
-                                                            2: "2",
-                                                            3: "3",
-                                                            4: "4"
-                                                        },
-                                                        wide: {
-                                                            1: "1st quarter",
-                                                            2: "2nd quarter",
-                                                            3: "3rd quarter",
-                                                            4: "4th quarter"
-                                                        }
-                                                    },
-                                                    "stand-alone": {
-                                                        abbreviated: {
-                                                            1: "Q1",
-                                                            2: "Q2",
-                                                            3: "Q3",
-                                                            4: "Q4"
-                                                        },
-                                                        narrow: {
-                                                            1: "1",
-                                                            2: "2",
-                                                            3: "3",
-                                                            4: "4"
-                                                        },
-                                                        wide: {
-                                                            1: "1st quarter",
-                                                            2: "2nd quarter",
-                                                            3: "3rd quarter",
-                                                            4: "4th quarter"
-                                                        }
-                                                    }
-                                                },
-                                                dayPeriods: {
-                                                    format: {
-                                                        abbreviated: {
-                                                            midnight: "midnight",
-                                                            am: "AM",
-                                                            "am-alt-variant": "am",
-                                                            noon: "noon",
-                                                            pm: "PM",
-                                                            "pm-alt-variant": "pm",
-                                                            morning1: "in the morning",
-                                                            afternoon1: "in the afternoon",
-                                                            evening1: "in the evening",
-                                                            night1: "at night"
-                                                        },
-                                                        narrow: {
-                                                            midnight: "mi",
-                                                            am: "a",
-                                                            "am-alt-variant": "am",
-                                                            noon: "n",
-                                                            pm: "p",
-                                                            "pm-alt-variant": "pm",
-                                                            morning1: "in the morning",
-                                                            afternoon1: "in the afternoon",
-                                                            evening1: "in the evening",
-                                                            night1: "at night"
-                                                        },
-                                                        wide: {
-                                                            midnight: "midnight",
-                                                            am: "AM",
-                                                            "am-alt-variant": "am",
-                                                            noon: "noon",
-                                                            pm: "PM",
-                                                            "pm-alt-variant": "pm",
-                                                            morning1: "in the morning",
-                                                            afternoon1: "in the afternoon",
-                                                            evening1: "in the evening",
-                                                            night1: "at night"
-                                                        }
-                                                    },
-                                                    "stand-alone": {
-                                                        abbreviated: {
-                                                            midnight: "midnight",
-                                                            am: "AM",
-                                                            "am-alt-variant": "am",
-                                                            noon: "noon",
-                                                            pm: "PM",
-                                                            "pm-alt-variant": "pm",
-                                                            morning1: "in the morning",
-                                                            afternoon1: "in the afternoon",
-                                                            evening1: "in the evening",
-                                                            night1: "at night"
-                                                        },
-                                                        narrow: {
-                                                            midnight: "midnight",
-                                                            am: "AM",
-                                                            "am-alt-variant": "am",
-                                                            noon: "noon",
-                                                            pm: "PM",
-                                                            "pm-alt-variant": "pm",
-                                                            morning1: "in the morning",
-                                                            afternoon1: "in the afternoon",
-                                                            evening1: "in the evening",
-                                                            night1: "at night"
-                                                        },
-                                                        wide: {
-                                                            midnight: "midnight",
-                                                            am: "AM",
-                                                            "am-alt-variant": "am",
-                                                            noon: "noon",
-                                                            pm: "PM",
-                                                            "pm-alt-variant": "pm",
-                                                            morning1: "morning",
-                                                            afternoon1: "afternoon",
-                                                            evening1: "evening",
-                                                            night1: "night"
-                                                        }
-                                                    }
-                                                },
-                                                eras: {
-                                                    eraNames: {
-                                                        0: "Before Christ",
-                                                        "0-alt-variant": "Before Common Era",
-                                                        1: "Anno Domini",
-                                                        "1-alt-variant": "Common Era"
-                                                    },
-                                                    eraAbbr: {
-                                                        0: "BC",
-                                                        "0-alt-variant": "BCE",
-                                                        1: "AD",
-                                                        "1-alt-variant": "CE"
-                                                    },
-                                                    eraNarrow: {
-                                                        0: "B",
-                                                        "0-alt-variant": "BCE",
-                                                        1: "A",
-                                                        "1-alt-variant": "CE"
-                                                    }
-                                                },
-                                                dateFormats: {
-                                                    full: "EEEE, MMMM d, y",
-                                                    long: "MMMM d, y",
-                                                    medium: "MMM d, y",
-                                                    short: "M/d/yy"
-                                                },
-                                                timeFormats: {
-                                                    full: "h:mm:ss a zzzz",
-                                                    long: "h:mm:ss a z",
-                                                    medium: "h:mm:ss a",
-                                                    short: "h:mm a"
-                                                },
-                                                dateTimeFormats: {
-                                                    full: "{1} 'at' {0}",
-                                                    long: "{1} 'at' {0}",
-                                                    medium: "{1}, {0}",
-                                                    short: "{1}, {0}",
-                                                    availableFormats: {
-                                                        d: "d",
-                                                        E: "ccc",
-                                                        Ed: "d E",
-                                                        Ehm: "E h:mm a",
-                                                        EHm: "E HH:mm",
-                                                        Ehms: "E h:mm:ss a",
-                                                        EHms: "E HH:mm:ss",
-                                                        Gy: "y G",
-                                                        GyMMM: "MMM y G",
-                                                        GyMMMd: "MMM d, y G",
-                                                        GyMMMEd: "E, MMM d, y G",
-                                                        h: "h a",
-                                                        H: "HH",
-                                                        hm: "h:mm a",
-                                                        Hm: "HH:mm",
-                                                        hms: "h:mm:ss a",
-                                                        Hms: "HH:mm:ss",
-                                                        hmsv: "h:mm:ss a v",
-                                                        Hmsv: "HH:mm:ss v",
-                                                        hmv: "h:mm a v",
-                                                        Hmv: "HH:mm v",
-                                                        M: "L",
-                                                        Md: "M/d",
-                                                        MEd: "E, M/d",
-                                                        MMM: "LLL",
-                                                        MMMd: "MMM d",
-                                                        MMMEd: "E, MMM d",
-                                                        MMMMd: "MMMM d",
-                                                        ms: "mm:ss",
-                                                        y: "y",
-                                                        yM: "M/y",
-                                                        yMd: "M/d/y",
-                                                        yMEd: "E, M/d/y",
-                                                        yMMM: "MMM y",
-                                                        yMMMd: "MMM d, y",
-                                                        yMMMEd: "E, MMM d, y",
-                                                        yMMMM: "MMMM y",
-                                                        yQQQ: "QQQ y",
-                                                        yQQQQ: "QQQQ y"
-                                                    },
-                                                    appendItems: {
-                                                        Day: "{0} ({2}: {1})",
-                                                        "Day-Of-Week": "{0} {1}",
-                                                        Era: "{0} {1}",
-                                                        Hour: "{0} ({2}: {1})",
-                                                        Minute: "{0} ({2}: {1})",
-                                                        Month: "{0} ({2}: {1})",
-                                                        Quarter: "{0} ({2}: {1})",
-                                                        Second: "{0} ({2}: {1})",
-                                                        Timezone: "{0} {1}",
-                                                        Week: "{0} ({2}: {1})",
-                                                        Year: "{0} {1}"
-                                                    },
-                                                    intervalFormats: {
-                                                        intervalFormatFallback: "{0} \u2013 {1}",
-                                                        d: {
-                                                            d: "d \u2013 d"
-                                                        },
-                                                        h: {
-                                                            a: "h a \u2013 h a",
-                                                            h: "h \u2013 h a"
-                                                        },
-                                                        H: {
-                                                            H: "HH \u2013 HH"
-                                                        },
-                                                        hm: {
-                                                            a: "h:mm a \u2013 h:mm a",
-                                                            h: "h:mm \u2013 h:mm a",
-                                                            m: "h:mm \u2013 h:mm a"
-                                                        },
-                                                        Hm: {
-                                                            H: "HH:mm \u2013 HH:mm",
-                                                            m: "HH:mm \u2013 HH:mm"
-                                                        },
-                                                        hmv: {
-                                                            a: "h:mm a \u2013 h:mm a v",
-                                                            h: "h:mm \u2013 h:mm a v",
-                                                            m: "h:mm \u2013 h:mm a v"
-                                                        },
-                                                        Hmv: {
-                                                            H: "HH:mm \u2013 HH:mm v",
-                                                            m: "HH:mm \u2013 HH:mm v"
-                                                        },
-                                                        hv: {
-                                                            a: "h a \u2013 h a v",
-                                                            h: "h \u2013 h a v"
-                                                        },
-                                                        Hv: {
-                                                            H: "HH \u2013 HH v"
-                                                        },
-                                                        M: {
-                                                            M: "M \u2013 M"
-                                                        },
-                                                        Md: {
-                                                            d: "M/d \u2013 M/d",
-                                                            M: "M/d \u2013 M/d"
-                                                        },
-                                                        MEd: {
-                                                            d: "E, M/d \u2013 E, M/d",
-                                                            M: "E, M/d \u2013 E, M/d"
-                                                        },
-                                                        MMM: {
-                                                            M: "MMM \u2013 MMM"
-                                                        },
-                                                        MMMd: {
-                                                            d: "MMM d \u2013 d",
-                                                            M: "MMM d \u2013 MMM d"
-                                                        },
-                                                        MMMEd: {
-                                                            d: "E, MMM d \u2013 E, MMM d",
-                                                            M: "E, MMM d \u2013 E, MMM d"
-                                                        },
-                                                        y: {
-                                                            y: "y \u2013 y"
-                                                        },
-                                                        yM: {
-                                                            M: "M/y \u2013 M/y",
-                                                            y: "M/y \u2013 M/y"
-                                                        },
-                                                        yMd: {
-                                                            d: "M/d/y \u2013 M/d/y",
-                                                            M: "M/d/y \u2013 M/d/y",
-                                                            y: "M/d/y \u2013 M/d/y"
-                                                        },
-                                                        yMEd: {
-                                                            d: "E, M/d/y \u2013 E, M/d/y",
-                                                            M: "E, M/d/y \u2013 E, M/d/y",
-                                                            y: "E, M/d/y \u2013 E, M/d/y"
-                                                        },
-                                                        yMMM: {
-                                                            M: "MMM \u2013 MMM y",
-                                                            y: "MMM y \u2013 MMM y"
-                                                        },
-                                                        yMMMd: {
-                                                            d: "MMM d \u2013 d, y",
-                                                            M: "MMM d \u2013 MMM d, y",
-                                                            y: "MMM d, y \u2013 MMM d, y"
-                                                        },
-                                                        yMMMEd: {
-                                                            d: "E, MMM d \u2013 E, MMM d, y",
-                                                            M: "E, MMM d \u2013 E, MMM d, y",
-                                                            y: "E, MMM d, y \u2013 E, MMM d, y"
-                                                        },
-                                                        yMMMM: {
-                                                            M: "MMMM \u2013 MMMM y",
-                                                            y: "MMMM y \u2013 MMMM y"
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        });
                         _globalize.default.locale("en")
                     }
                     var formattersCache = {};
@@ -27254,7 +35776,7 @@
                         },
                         firstDayOfWeekIndex: function() {
                             var firstDay = _globalize.default.locale().supplemental.weekData.firstDay();
-                            return (0, _array.inArray)(firstDay, this._getDayKeys())
+                            return this._getDayKeys().indexOf(firstDay)
                         },
                         _getDayKeys: function() {
                             var days = _globalize.default.locale().main("dates/calendars/gregorian/days/format/short");
@@ -27362,155 +35884,6 @@
                 }
                 if (_globalize.default && _globalize.default.formatNumber) {
                     if ("en" === _globalize.default.locale().locale) {
-                        _globalize.default.load({
-                            main: {
-                                en: {
-                                    identity: {
-                                        version: {
-                                            _cldrVersion: "28",
-                                            _number: "$Revision: 11972 $"
-                                        },
-                                        language: "en"
-                                    },
-                                    numbers: {
-                                        defaultNumberingSystem: "latn",
-                                        otherNumberingSystems: {
-                                            native: "latn"
-                                        },
-                                        minimumGroupingDigits: "1",
-                                        "symbols-numberSystem-latn": {
-                                            decimal: ".",
-                                            group: ",",
-                                            list: ";",
-                                            percentSign: "%",
-                                            plusSign: "+",
-                                            minusSign: "-",
-                                            exponential: "E",
-                                            superscriptingExponent: "\xd7",
-                                            perMille: "\u2030",
-                                            infinity: "\u221e",
-                                            nan: "NaN",
-                                            timeSeparator: ":"
-                                        },
-                                        "decimalFormats-numberSystem-latn": {
-                                            standard: "#,##0.###",
-                                            long: {
-                                                decimalFormat: {
-                                                    "1000-count-one": "0 thousand",
-                                                    "1000-count-other": "0 thousand",
-                                                    "10000-count-one": "00 thousand",
-                                                    "10000-count-other": "00 thousand",
-                                                    "100000-count-one": "000 thousand",
-                                                    "100000-count-other": "000 thousand",
-                                                    "1000000-count-one": "0 million",
-                                                    "1000000-count-other": "0 million",
-                                                    "10000000-count-one": "00 million",
-                                                    "10000000-count-other": "00 million",
-                                                    "100000000-count-one": "000 million",
-                                                    "100000000-count-other": "000 million",
-                                                    "1000000000-count-one": "0 billion",
-                                                    "1000000000-count-other": "0 billion",
-                                                    "10000000000-count-one": "00 billion",
-                                                    "10000000000-count-other": "00 billion",
-                                                    "100000000000-count-one": "000 billion",
-                                                    "100000000000-count-other": "000 billion",
-                                                    "1000000000000-count-one": "0 trillion",
-                                                    "1000000000000-count-other": "0 trillion",
-                                                    "10000000000000-count-one": "00 trillion",
-                                                    "10000000000000-count-other": "00 trillion",
-                                                    "100000000000000-count-one": "000 trillion",
-                                                    "100000000000000-count-other": "000 trillion"
-                                                }
-                                            },
-                                            short: {
-                                                decimalFormat: {
-                                                    "1000-count-one": "0K",
-                                                    "1000-count-other": "0K",
-                                                    "10000-count-one": "00K",
-                                                    "10000-count-other": "00K",
-                                                    "100000-count-one": "000K",
-                                                    "100000-count-other": "000K",
-                                                    "1000000-count-one": "0M",
-                                                    "1000000-count-other": "0M",
-                                                    "10000000-count-one": "00M",
-                                                    "10000000-count-other": "00M",
-                                                    "100000000-count-one": "000M",
-                                                    "100000000-count-other": "000M",
-                                                    "1000000000-count-one": "0B",
-                                                    "1000000000-count-other": "0B",
-                                                    "10000000000-count-one": "00B",
-                                                    "10000000000-count-other": "00B",
-                                                    "100000000000-count-one": "000B",
-                                                    "100000000000-count-other": "000B",
-                                                    "1000000000000-count-one": "0T",
-                                                    "1000000000000-count-other": "0T",
-                                                    "10000000000000-count-one": "00T",
-                                                    "10000000000000-count-other": "00T",
-                                                    "100000000000000-count-one": "000T",
-                                                    "100000000000000-count-other": "000T"
-                                                }
-                                            }
-                                        },
-                                        "scientificFormats-numberSystem-latn": {
-                                            standard: "#E0"
-                                        },
-                                        "percentFormats-numberSystem-latn": {
-                                            standard: "#,##0%"
-                                        },
-                                        "currencyFormats-numberSystem-latn": {
-                                            currencySpacing: {
-                                                beforeCurrency: {
-                                                    currencyMatch: "[:^S:]",
-                                                    surroundingMatch: "[:digit:]",
-                                                    insertBetween: "\xa0"
-                                                },
-                                                afterCurrency: {
-                                                    currencyMatch: "[:^S:]",
-                                                    surroundingMatch: "[:digit:]",
-                                                    insertBetween: "\xa0"
-                                                }
-                                            },
-                                            standard: "\xa4#,##0.00",
-                                            accounting: "\xa4#,##0.00;(\xa4#,##0.00)",
-                                            short: {
-                                                standard: {
-                                                    "1000-count-one": "\xa40K",
-                                                    "1000-count-other": "\xa40K",
-                                                    "10000-count-one": "\xa400K",
-                                                    "10000-count-other": "\xa400K",
-                                                    "100000-count-one": "\xa4000K",
-                                                    "100000-count-other": "\xa4000K",
-                                                    "1000000-count-one": "\xa40M",
-                                                    "1000000-count-other": "\xa40M",
-                                                    "10000000-count-one": "\xa400M",
-                                                    "10000000-count-other": "\xa400M",
-                                                    "100000000-count-one": "\xa4000M",
-                                                    "100000000-count-other": "\xa4000M",
-                                                    "1000000000-count-one": "\xa40B",
-                                                    "1000000000-count-other": "\xa40B",
-                                                    "10000000000-count-one": "\xa400B",
-                                                    "10000000000-count-other": "\xa400B",
-                                                    "100000000000-count-one": "\xa4000B",
-                                                    "100000000000-count-other": "\xa4000B",
-                                                    "1000000000000-count-one": "\xa40T",
-                                                    "1000000000000-count-other": "\xa40T",
-                                                    "10000000000000-count-one": "\xa400T",
-                                                    "10000000000000-count-other": "\xa400T",
-                                                    "100000000000000-count-one": "\xa4000T",
-                                                    "100000000000000-count-other": "\xa4000T"
-                                                }
-                                            },
-                                            "unitPattern-count-one": "{0} {1}",
-                                            "unitPattern-count-other": "{0} {1}"
-                                        },
-                                        "miscPatterns-numberSystem-latn": {
-                                            atLeast: "{0}+",
-                                            range: "{0}\u2013{1}"
-                                        }
-                                    }
-                                }
-                            }
-                        });
                         _globalize.default.locale("en")
                     }
                     var formattersCache = {};
@@ -27628,7 +36001,7 @@
                             var year = date.getFullYear();
                             var recognizableAsTwentyCentury = String(year).length < 3;
                             var temporaryYearValue = recognizableAsTwentyCentury ? year + 400 : year;
-                            var utcDate = new Date(Date.UTC(temporaryYearValue, date.getMonth(), date.getDate(), date.getHours(), date.getMinutes(), date.getSeconds()));
+                            var utcDate = new Date(Date.UTC(temporaryYearValue, date.getMonth(), date.getDate(), date.getHours(), date.getMinutes(), date.getSeconds(), date.getMilliseconds()));
                             if (recognizableAsTwentyCentury) {
                                 utcDate.setFullYear(year)
                             }
@@ -27971,6 +36344,7 @@
                         default: obj
                     }
                 }
+                var CURRENCY_STYLES = ["standard", "accounting"];
                 var detectCurrencySymbolRegex = /([^\s0]+)?(\s*)0*[.,]*0*(\s*)([^\s0]+)?/;
                 var formattersCache = {};
                 var getFormatter = function(format) {
@@ -28005,8 +36379,11 @@
                         if ("percent" === format) {
                             config.style = "percent"
                         } else if ("currency" === format) {
+                            var _formatConfig$useCurr;
+                            var useAccountingStyle = null !== (_formatConfig$useCurr = formatConfig.useCurrencyAccountingStyle) && void 0 !== _formatConfig$useCurr ? _formatConfig$useCurr : (0, _config.default)().defaultUseCurrencyAccountingStyle;
                             config.style = "currency";
-                            config.currency = formatConfig.currency || (0, _config.default)().defaultCurrency
+                            config.currency = formatConfig.currency || (0, _config.default)().defaultCurrency;
+                            config.currencySign = CURRENCY_STYLES[+useAccountingStyle]
                         }
                         return config
                     },
@@ -29122,14 +37499,6 @@
                         var isPositiveZero = 1 / value === 1 / 0;
                         var isPositive = value > 0 || isPositiveZero;
                         var numberFormat = signFormatParts[isPositive ? 0 : 1];
-                        if (function(format) {
-                                return -1 !== format.indexOf("%") && !format.match(/'[^']*%[^']*'/g)
-                            }(numberFormat)) {
-                            value *= 100
-                        }
-                        if (!isPositive) {
-                            value = -value
-                        }
                         var floatPointIndex = function(format) {
                             var isEscape = false;
                             for (var index = 0; index < format.length; index++) {
@@ -29145,6 +37514,14 @@
                         var floatFormatParts = [numberFormat.substr(0, floatPointIndex), numberFormat.substr(floatPointIndex + 1)];
                         var minFloatPrecision = getRequiredDigitCount(floatFormatParts[1]);
                         var maxFloatPrecision = minFloatPrecision + getNonRequiredDigitCount(floatFormatParts[1]);
+                        if (function(format) {
+                                return -1 !== format.indexOf("%") && !format.match(/'[^']*%[^']*'/g)
+                            }(numberFormat)) {
+                            value = (0, _math.multiplyInExponentialForm)(value, 2)
+                        }
+                        if (!isPositive) {
+                            value = -value
+                        }
                         var minIntegerPrecision = getRequiredDigitCount(floatFormatParts[0]);
                         var maxIntegerPrecision = getNonRequiredDigitCount(floatFormatParts[0]) || config.unlimitedIntegerDigits ? void 0 : minIntegerPrecision;
                         var integerLength = Math.floor(value).toString().length;
@@ -29295,10 +37672,8 @@
               \*********************************************************************/
             function(module, exports, __webpack_require__) {
                 exports.default = void 0;
-                var _renderer = _interopRequireDefault(__webpack_require__( /*! ../core/renderer */ 68374));
                 var _dependency_injector = _interopRequireDefault(__webpack_require__( /*! ../core/utils/dependency_injector */ 20476));
                 var _extend = __webpack_require__( /*! ../core/utils/extend */ 13306);
-                var _iterator = __webpack_require__( /*! ../core/utils/iterator */ 95479);
                 var _string = __webpack_require__( /*! ../core/utils/string */ 68752);
                 var _inflector = __webpack_require__( /*! ../core/utils/inflector */ 78008);
                 var _core = _interopRequireDefault(__webpack_require__( /*! ./core */ 91331));
@@ -29337,29 +37712,6 @@
                                 newMessages[localizationKey] = (0, _inflector.humanize)(localizationKey)
                             }
                             return prefix + (result || defaultResult)
-                        }))
-                    },
-                    localizeNode: function(node) {
-                        var that = this;
-                        (0, _renderer.default)(node).each((function(index, nodeItem) {
-                            if (!nodeItem.nodeType) {
-                                return
-                            }
-                            if (3 === nodeItem.nodeType) {
-                                nodeItem.nodeValue = that.localizeString(nodeItem.nodeValue)
-                            } else if (!(0, _renderer.default)(nodeItem).is("iframe")) {
-                                (0, _iterator.each)(nodeItem.attributes || [], (function(index, attr) {
-                                    if ("string" === typeof attr.value) {
-                                        var localizedValue = that.localizeString(attr.value);
-                                        if (attr.value !== localizedValue) {
-                                            attr.value = localizedValue
-                                        }
-                                    }
-                                }));
-                                (0, _renderer.default)(nodeItem).contents().each((function(index, node) {
-                                    that.localizeNode(node)
-                                }))
-                            }
                         }))
                     },
                     getMessagesByLocales: function() {
@@ -29407,7 +37759,6 @@
             function(module, exports, __webpack_require__) {
                 exports.default = void 0;
                 var _dependency_injector = _interopRequireDefault(__webpack_require__( /*! ../core/utils/dependency_injector */ 20476));
-                var _array = __webpack_require__( /*! ../core/utils/array */ 89386);
                 var _common = __webpack_require__( /*! ../core/utils/common */ 20576);
                 var _iterator = __webpack_require__( /*! ../core/utils/iterator */ 95479);
                 var _type = __webpack_require__( /*! ../core/utils/type */ 35922);
@@ -29519,7 +37870,7 @@
                         }
                         var formatList = formatType.toLowerCase().split(" ");
                         (0, _iterator.each)(formatList, (function(index, value) {
-                            if ((0, _array.inArray)(value, NUMERIC_FORMATS) > -1) {
+                            if (NUMERIC_FORMATS.includes(value)) {
                                 formatObject.formatType = value
                             } else if (value in LargeNumberFormatPowers) {
                                 formatObject.power = LargeNumberFormatPowers[value]
@@ -29673,10 +38024,10 @@
                         var digitalRegExp = new RegExp("[0-9" + (0, _common.escapeRegExp)(separators.decimalSeparator + separators.thousandsSeparator) + "]+", "g");
                         var negativeEtalon = this.format(-1, format).replace(digitalRegExp, "1");
                         ["\\", "(", ")", "[", "]", "*", "+", "$", "^", "?", "|", "{", "}"].forEach((function(char) {
-                            negativeEtalon = negativeEtalon.replaceAll(char, "\\".concat(char))
+                            negativeEtalon = negativeEtalon.replace(new RegExp("\\".concat(char), "g"), "\\".concat(char))
                         }));
-                        negativeEtalon = negativeEtalon.replaceAll(" ", "\\s");
-                        negativeEtalon = negativeEtalon.replaceAll("1", ".+");
+                        negativeEtalon = negativeEtalon.replace(/ /g, "\\s");
+                        negativeEtalon = negativeEtalon.replace(/1/g, ".*");
                         return new RegExp(negativeEtalon, "g")
                     },
                     getSign: function(text, format) {
@@ -29740,7 +38091,7 @@
                             if ("auto" === power) {
                                 var match = text.match(/\d(K|M|B|T)/);
                                 if (match) {
-                                    power = (0, _array.find)(Object.keys(LargeNumberFormatPostfixes), (function(power) {
+                                    power = Object.keys(LargeNumberFormatPostfixes).find((function(power) {
                                         return LargeNumberFormatPostfixes[power] === match[1]
                                     }))
                                 }
@@ -29858,8 +38209,7 @@
 
                 function adjustValue(value, precision) {
                     var precisionMultiplier = Math.pow(10, precision);
-                    var roundMultiplier = 10 * precisionMultiplier;
-                    var intermediateValue = value * roundMultiplier / 10;
+                    var intermediateValue = (0, _math.multiplyInExponentialForm)(value, precision);
                     return function(value) {
                         var valueSign = (0, _math.sign)(value);
                         return valueSign * Math.round(Math.abs(value))
@@ -29870,18 +38220,16 @@
             /*!*********************************************************************!*\
               !*** ./artifacts/transpiled-renovation-npm/mobile/hide_callback.js ***!
               \*********************************************************************/
-            function(__unused_webpack_module, exports, __webpack_require__) {
+            function(__unused_webpack_module, exports) {
                 exports.hideCallback = void 0;
-                var _array = __webpack_require__( /*! ../core/utils/array */ 89386);
                 var hideCallback = (callbacks = [], {
                     add: function(callback) {
-                        var indexOfCallback = (0, _array.inArray)(callback, callbacks);
-                        if (-1 === indexOfCallback) {
+                        if (!callbacks.includes(callback)) {
                             callbacks.push(callback)
                         }
                     },
                     remove: function(callback) {
-                        var indexOfCallback = (0, _array.inArray)(callback, callbacks);
+                        var indexOfCallback = callbacks.indexOf(callback);
                         if (-1 !== indexOfCallback) {
                             callbacks.splice(indexOfCallback, 1)
                         }
@@ -30011,6 +38359,12 @@
                         return _export_data_grid.exportDataGrid
                     }
                 });
+                Object.defineProperty(exports, "exportDataGridWithAutoTable", {
+                    enumerable: true,
+                    get: function() {
+                        return _export_data_grid2.exportDataGrid
+                    }
+                });
                 Object.defineProperty(exports, "exportGantt", {
                     enumerable: true,
                     get: function() {
@@ -30018,6 +38372,7 @@
                     }
                 });
                 var _export_data_grid = __webpack_require__( /*! ./exporter/jspdf/export_data_grid */ 654);
+                var _export_data_grid2 = __webpack_require__( /*! ./exporter/jspdf/autotable/export_data_grid */ 83152);
                 var _export_gantt = __webpack_require__( /*! ./exporter/jspdf/export_gantt */ 29982)
             },
         27135:
@@ -30073,7 +38428,7 @@
                 }
 
                 function _extends() {
-                    _extends = Object.assign || function(target) {
+                    _extends = Object.assign ? Object.assign.bind() : function(target) {
                         for (var i = 1; i < arguments.length; i++) {
                             var source = arguments[i];
                             for (var key in source) {
@@ -30170,7 +38525,7 @@
                 }
 
                 function _setPrototypeOf(o, p) {
-                    _setPrototypeOf = Object.setPrototypeOf || function(o, p) {
+                    _setPrototypeOf = Object.setPrototypeOf ? Object.setPrototypeOf.bind() : function(o, p) {
                         o.__proto__ = p;
                         return o
                     };
@@ -30237,16 +38592,25 @@
                             return _extends({}, options, _defineProperty({}, name, null))
                         }), {}))
                     };
+                    _proto._getUnwrappedOption = function() {
+                        var _this3 = this;
+                        var unwrappedProps = {};
+                        Object.keys(this.option()).forEach((function(key) {
+                            unwrappedProps[key] = _this3.option(key)
+                        }));
+                        return unwrappedProps
+                    };
                     _proto._initializeComponent = function() {
-                        var _this$_templateManage, _this3 = this;
+                        var _this$_templateManage, _this4 = this;
                         _DOMComponent.prototype._initializeComponent.call(this);
                         null === (_this$_templateManage = this._templateManager) || void 0 === _this$_templateManage ? void 0 : _this$_templateManage.addDefaultTemplates(this.getDefaultTemplates());
-                        this._props = this._optionsWithDefaultTemplates(this.option());
+                        var optionProxy = this._getUnwrappedOption();
+                        this._props = this._optionsWithDefaultTemplates(optionProxy);
                         this._propsInfo.templates.forEach((function(template) {
-                            _this3._componentTemplates[template] = _this3._createTemplateComponent(_this3._props[template])
+                            _this4._componentTemplates[template] = _this4._createTemplateComponent(_this4._props[template])
                         }));
                         Object.keys(this._getActionConfigsFull()).forEach((function(name) {
-                            return _this3._addAction(name)
+                            return _this4._addAction(name)
                         }));
                         this._viewRef = (0, _inferno.createRef)();
                         this.defaultKeyHandlers = this._createDefaultKeyHandlers()
@@ -30293,13 +38657,14 @@
                         return []
                     };
                     _proto._patchOptionValues = function(options) {
-                        var _this4 = this;
+                        var _this5 = this;
                         var _this$_propsInfo = this._propsInfo,
                             allowNull = _this$_propsInfo.allowNull,
                             elements = _this$_propsInfo.elements,
                             props = _this$_propsInfo.props,
                             twoWay = _this$_propsInfo.twoWay;
-                        var defaultProps = this._viewComponent.defaultProps;
+                        var defaultWidgetPropsKeys = Object.keys(this._viewComponent.defaultProps);
+                        var defaultOptions = this._getDefaultOptions();
                         var children = options.children,
                             onKeyboardHandled = options.onKeyboardHandled,
                             ref = options.ref;
@@ -30319,22 +38684,22 @@
                         allowNull.forEach(setDefaultOptionValue(widgetProps, (function() {
                             return null
                         })));
-                        Object.keys(defaultProps).forEach(setDefaultOptionValue(widgetProps, (function(name) {
-                            return defaultProps[name]
+                        defaultWidgetPropsKeys.forEach(setDefaultOptionValue(widgetProps, (function(name) {
+                            return defaultOptions[name]
                         })));
                         twoWay.forEach((function(_ref3) {
                             var _ref4 = _slicedToArray(_ref3, 2),
                                 name = _ref4[0],
                                 defaultName = _ref4[1];
                             setDefaultOptionValue(widgetProps, (function() {
-                                return defaultProps[defaultName]
+                                return defaultOptions[defaultName]
                             }))(name)
                         }));
                         elements.forEach((function(name) {
                             if (name in widgetProps) {
                                 var value = widgetProps[name];
                                 if ((0, _type.isRenderer)(value)) {
-                                    widgetProps[name] = _this4._patchElementParam(value)
+                                    widgetProps[name] = _this5._patchElementParam(value)
                                 }
                             }
                         }));
@@ -30353,7 +38718,7 @@
                         return props
                     };
                     _proto.getProps = function() {
-                        var _this$elementAttr$cla, _elementAttr$class, _this5 = this;
+                        var _this$elementAttr$cla, _elementAttr$class, _this6 = this;
                         var _this$option = this.option(),
                             elementAttr = _this$option.elementAttr;
                         var options = this._patchOptionValues(_extends({}, this._props, {
@@ -30362,7 +38727,7 @@
                             aria: this._aria
                         }));
                         this._propsInfo.templates.forEach((function(template) {
-                            options[template] = _this5._componentTemplates[template]
+                            options[template] = _this6._componentTemplates[template]
                         }));
                         return this.prepareStyleProp(_extends({}, options, this.elementAttr, elementAttr, {
                             className: [].concat(_toConsumableArray((null !== (_this$elementAttr$cla = this.elementAttr.class) && void 0 !== _this$elementAttr$cla ? _this$elementAttr$cla : "").split(" ")), _toConsumableArray((null !== (_elementAttr$class = null === elementAttr || void 0 === elementAttr ? void 0 : elementAttr.class) && void 0 !== _elementAttr$class ? _elementAttr$class : "").split(" "))).filter((function(c, i, a) {
@@ -30403,12 +38768,12 @@
                         this._componentTemplates = {}
                     };
                     _proto._createDefaultKeyHandlers = function() {
-                        var _this6 = this;
+                        var _this7 = this;
                         var result = {};
                         var keys = this.getSupportedKeyNames();
                         keys.forEach((function(key) {
                             result[key] = function(e) {
-                                return _this6.viewRef.keyDown(_keyboard_processor.default.createKeyDownOptions(e))
+                                return _this7.viewRef.keyDown(_keyboard_processor.default.createKeyDownOptions(e))
                             }
                         }));
                         return result
@@ -30448,7 +38813,8 @@
                         if (this.option("_hasAnonymousTemplateContent")) {
                             return _inferno_renderer.default.createElement(_template_wrapper.TemplateWrapper, {
                                 template: this._getTemplate(this._templateManager.anonymousTemplateName),
-                                transclude: true
+                                transclude: true,
+                                renovated: true
                             })
                         }
                         return null
@@ -30469,15 +38835,15 @@
                         }
                     };
                     _proto._wrapKeyDownHandler = function(initialHandler) {
-                        var _this7 = this;
+                        var _this8 = this;
                         return function(options) {
                             var keyName = options.keyName,
                                 originalEvent = options.originalEvent,
                                 which = options.which;
-                            var keys = _this7.customKeyHandlers;
+                            var keys = _this8.customKeyHandlers;
                             var func = keys[keyName] || keys[which];
                             if (void 0 !== func) {
-                                var handler = func.bind(_this7);
+                                var handler = func.bind(_this8);
                                 var result = handler(originalEvent, options);
                                 if (!result) {
                                     originalEvent.cancel = true;
@@ -30546,23 +38912,25 @@
                     }, {
                         key: "elementAttr",
                         get: function() {
-                            var _this8 = this;
+                            var _this9 = this;
+                            var element = this.$element()[0];
                             if (!this._elementAttr) {
-                                var attributes = this.$element()[0].attributes;
+                                var attributes = element.attributes;
                                 var attrs = Array.from(attributes).filter((function(attr) {
                                     var _attributes$attr$name;
-                                    return !_this8._propsInfo.templates.includes(attr.name) && (null === (_attributes$attr$name = attributes[attr.name]) || void 0 === _attributes$attr$name ? void 0 : _attributes$attr$name.specified)
+                                    return !_this9._propsInfo.templates.includes(attr.name) && (null === (_attributes$attr$name = attributes[attr.name]) || void 0 === _attributes$attr$name ? void 0 : _attributes$attr$name.specified)
                                 })).reduce((function(result, _ref7) {
                                     var name = _ref7.name,
                                         value = _ref7.value;
                                     var updatedAttributes = result;
-                                    updatedAttributes[name] = value;
+                                    var isDomAttr = name in element;
+                                    updatedAttributes[name] = "" === value && isDomAttr ? element[name] : value;
                                     return updatedAttributes
                                 }), {});
                                 this._elementAttr = attrs;
-                                this._storedClasses = this.$element()[0].getAttribute("class") || ""
+                                this._storedClasses = element.getAttribute("class") || ""
                             }
-                            var elemStyle = this.$element()[0].style;
+                            var elemStyle = element.style;
                             var style = {};
                             for (var i = 0; i < elemStyle.length; i += 1) {
                                 style[elemStyle[i]] = elemStyle.getPropertyValue(elemStyle[i])
@@ -30599,7 +38967,6 @@
                 var _dom_adapter = _interopRequireDefault(__webpack_require__( /*! ../../../core/dom_adapter */ 73349));
                 var _element = __webpack_require__( /*! ../../../core/element */ 6415);
                 var _utils = __webpack_require__( /*! ../utils/utils */ 2561);
-                var _number = _interopRequireDefault(__webpack_require__( /*! ../../../core/polyfills/number */ 27050));
                 var _type = __webpack_require__( /*! ../../../core/utils/type */ 35922);
 
                 function _interopRequireDefault(obj) {
@@ -30609,7 +38976,7 @@
                 }
 
                 function _extends() {
-                    _extends = Object.assign || function(target) {
+                    _extends = Object.assign ? Object.assign.bind() : function(target) {
                         for (var i = 1; i < arguments.length; i++) {
                             var source = arguments[i];
                             for (var key in source) {
@@ -30624,7 +38991,7 @@
                 }
 
                 function _setPrototypeOf(o, p) {
-                    _setPrototypeOf = Object.setPrototypeOf || function(o, p) {
+                    _setPrototypeOf = Object.setPrototypeOf ? Object.setPrototypeOf.bind() : function(o, p) {
                         o.__proto__ = p;
                         return o
                     };
@@ -30670,9 +39037,11 @@
                         var $result = (0, _renderer.default)(this.props.template.render(_extends({
                             container: (0, _element.getPublicElement)($parent),
                             transclude: this.props.transclude
+                        }, {
+                            renovated: this.props.renovated
                         }, !this.props.transclude ? {
                             model: data
-                        } : {}, !this.props.transclude && _number.default.isFinite(index) ? {
+                        } : {}, !this.props.transclude && Number.isFinite(index) ? {
                             index: index
                         } : {})));
                         (0, _dom.replaceWith)((0, _renderer.default)(node), $result);
@@ -30747,7 +39116,7 @@
                 var _data = __webpack_require__( /*! ../../../core/utils/data */ 47617);
 
                 function _extends() {
-                    _extends = Object.assign || function(target) {
+                    _extends = Object.assign ? Object.assign.bind() : function(target) {
                         for (var i = 1; i < arguments.length; i++) {
                             var source = arguments[i];
                             for (var key in source) {
@@ -30966,7 +39335,6 @@
                 var _type = __webpack_require__( /*! ../../core/utils/type */ 35922);
                 var _deferred = __webpack_require__( /*! ../../core/utils/deferred */ 62754);
                 var _extend = __webpack_require__( /*! ../../core/utils/extend */ 13306);
-                var _array = __webpack_require__( /*! ../../core/utils/array */ 89386);
                 var _iterator = __webpack_require__( /*! ../../core/utils/iterator */ 95479);
                 var _action = _interopRequireDefault(__webpack_require__( /*! ../../core/action */ 62414));
                 var _guid = _interopRequireDefault(__webpack_require__( /*! ../../core/guid */ 73176));
@@ -31142,7 +39510,7 @@
                     },
                     _focusInHandler: function(e) {
                         this.callBase.apply(this, arguments);
-                        if (-1 === (0, _array.inArray)(e.target, this._focusTarget())) {
+                        if (!this._isFocusTarget(e.target)) {
                             return
                         }
                         var $focusedElement = (0, _renderer.default)(this.option("focusedElement"));
@@ -31512,7 +39880,7 @@
                             var $target = (0, _renderer.default)(e.target);
                             var $closestItem = $target.closest(this._itemElements());
                             var $closestFocusable = this._closestFocusable($target);
-                            if ($closestItem.length && $closestFocusable && -1 !== (0, _array.inArray)($closestFocusable.get(0), this._focusTarget())) {
+                            if ($closestItem.length && this._isFocusTarget(null === $closestFocusable || void 0 === $closestFocusable ? void 0 : $closestFocusable.get(0))) {
                                 this.option("focusedElement", (0, _element.getPublicElement)($closestItem))
                             }
                         }.bind(this);
@@ -32619,7 +40987,6 @@
               \*******************************************************************************************************/
             function(module, exports, __webpack_require__) {
                 exports.default = void 0;
-                var _array = __webpack_require__( /*! ../../core/utils/array */ 89386);
                 var _uiCollection_widgetEdit = (obj = __webpack_require__( /*! ./ui.collection_widget.edit.strategy */ 41042), obj && obj.__esModule ? obj : {
                     default: obj
                 });
@@ -32641,7 +41008,7 @@
                         if (keyOf) {
                             return this.getIndexByKey(keyOf(itemData))
                         } else {
-                            return (0, _array.inArray)(itemData, this._getPlainItems())
+                            return this._getPlainItems().indexOf(itemData)
                         }
                     },
                     getItemDataByIndex: function(index) {
@@ -32748,6 +41115,21 @@
                     return obj && obj.__esModule ? obj : {
                         default: obj
                     }
+                }
+
+                function _extends() {
+                    _extends = Object.assign ? Object.assign.bind() : function(target) {
+                        for (var i = 1; i < arguments.length; i++) {
+                            var source = arguments[i];
+                            for (var key in source) {
+                                if (Object.prototype.hasOwnProperty.call(source, key)) {
+                                    target[key] = source[key]
+                                }
+                            }
+                        }
+                        return target
+                    };
+                    return _extends.apply(this, arguments)
                 }
                 var window = (0, _window.getWindow)();
                 var DRAGGABLE = "dxDraggable";
@@ -33216,6 +41598,9 @@
                             dragElement: $dragElement.get(0),
                             initialOffset: isFixedPosition && initialOffset
                         }));
+                        this._getAction("onDraggableElementShown")(_extends({}, dragStartArgs, {
+                            dragElement: $dragElement
+                        }));
                         var $area = this._getArea();
                         var areaOffset = this._getAreaOffset($area);
                         var boundOffset = this._getBoundOffset();
@@ -33464,6 +41849,7 @@
                             case "onDrop":
                             case "onDragEnter":
                             case "onDragLeave":
+                            case "onDraggableElementShown":
                                 this["_" + name + "Action"] = this._createActionByOption(name);
                                 break;
                             case "dragTemplate":
@@ -33740,7 +42126,7 @@
                                 validationErrors: validationErrors,
                                 rtlEnabled: rtlEnabled,
                                 target: this._getValidationMessageTarget(),
-                                container: $element,
+                                visualContainer: $element,
                                 mode: validationMessageMode,
                                 positionRequest: "below",
                                 offset: validationMessageOffset,
@@ -33892,11 +42278,44 @@
                 var _format_helper = _interopRequireDefault(__webpack_require__( /*! ../../format_helper */ 30343));
                 var _window = __webpack_require__( /*! ../../core/utils/window */ 58201);
                 var _events_engine = _interopRequireDefault(__webpack_require__( /*! ../../events/core/events_engine */ 55994));
+                var _data_source = __webpack_require__( /*! ../../data/data_source/data_source */ 85273);
+                var _array_store = _interopRequireDefault(__webpack_require__( /*! ../../data/array_store */ 26562));
+                var _utils2 = __webpack_require__( /*! ../../data/data_source/utils */ 9234);
+                var _variable_wrapper = _interopRequireDefault(__webpack_require__( /*! ../../core/utils/variable_wrapper */ 26974));
 
                 function _interopRequireDefault(obj) {
                     return obj && obj.__esModule ? obj : {
                         default: obj
                     }
+                }
+
+                function _defineProperty(obj, key, value) {
+                    if (key in obj) {
+                        Object.defineProperty(obj, key, {
+                            value: value,
+                            enumerable: true,
+                            configurable: true,
+                            writable: true
+                        })
+                    } else {
+                        obj[key] = value
+                    }
+                    return obj
+                }
+
+                function _extends() {
+                    _extends = Object.assign ? Object.assign.bind() : function(target) {
+                        for (var i = 1; i < arguments.length; i++) {
+                            var source = arguments[i];
+                            for (var key in source) {
+                                if (Object.prototype.hasOwnProperty.call(source, key)) {
+                                    target[key] = source[key]
+                                }
+                            }
+                        }
+                        return target
+                    };
+                    return _extends.apply(this, arguments)
                 }
                 var DATE_INTERVAL_SELECTORS = {
                     year: function(value) {
@@ -34328,6 +42747,110 @@
                             return 8e6
                         }
                         return 15e6 / this.getPixelRatio((0, _window.getWindow)())
+                    },
+                    normalizeLookupDataSource: function(lookup) {
+                        var lookupDataSourceOptions;
+                        if (lookup.items) {
+                            lookupDataSourceOptions = lookup.items
+                        } else {
+                            lookupDataSourceOptions = lookup.dataSource;
+                            if ((0, _type.isFunction)(lookupDataSourceOptions) && !_variable_wrapper.default.isWrapped(lookupDataSourceOptions)) {
+                                lookupDataSourceOptions = lookupDataSourceOptions({})
+                            }
+                        }
+                        return (0, _utils2.normalizeDataSourceOptions)(lookupDataSourceOptions)
+                    },
+                    getWrappedLookupDataSource: function(column, dataSource, filter) {
+                        var _this = this;
+                        var lookupDataSourceOptions = this.normalizeLookupDataSource(column.lookup);
+                        if (column.calculateCellValue !== column.defaultCalculateCellValue) {
+                            return lookupDataSourceOptions
+                        }
+                        var hasGroupPaging = dataSource.remoteOperations().groupPaging;
+                        var hasLookupOptimization = column.displayField && (0, _type.isString)(column.displayField);
+                        var cachedUniqueRelevantItems;
+                        var loadUniqueRelevantItems = function(loadOptions) {
+                            var group = function(group) {
+                                if (!Array.isArray(group)) {
+                                    group = [group]
+                                }
+                                return group.map((function(item, i) {
+                                    if ((0, _type.isString)(item)) {
+                                        return {
+                                            selector: item,
+                                            isExpanded: i < group.length - 1
+                                        }
+                                    }
+                                    return item
+                                }))
+                            }(hasLookupOptimization ? [column.dataField, column.displayField] : column.dataField);
+                            var d = new _deferred.Deferred;
+                            if (!hasGroupPaging && cachedUniqueRelevantItems) {
+                                d.resolve(cachedUniqueRelevantItems)
+                            } else {
+                                dataSource.load({
+                                    filter: filter,
+                                    group: group,
+                                    take: hasGroupPaging ? loadOptions.take : void 0,
+                                    skip: hasGroupPaging ? loadOptions.skip : void 0
+                                }).done((function(items) {
+                                    cachedUniqueRelevantItems = items;
+                                    d.resolve(items)
+                                })).fail(d.fail)
+                            }
+                            return d
+                        };
+                        var lookupDataSource = _extends({}, lookupDataSourceOptions, {
+                            load: function(loadOptions) {
+                                var d = new _deferred.Deferred;
+                                loadUniqueRelevantItems(loadOptions).done((function(items) {
+                                    if (0 === items.length) {
+                                        d.resolve([])
+                                    }
+                                    var newDataSource;
+                                    if (hasLookupOptimization) {
+                                        var lookupItems = items.map((function(item) {
+                                            var _column$displayValueM, _ref;
+                                            return _ref = {}, _defineProperty(_ref, column.lookup.valueExpr, item.key), _defineProperty(_ref, column.lookup.displayExpr, null !== (_column$displayValueM = column.displayValueMap[item.key]) && void 0 !== _column$displayValueM ? _column$displayValueM : item.items[0].key), _ref
+                                        }));
+                                        newDataSource = new _data_source.DataSource(_extends({}, lookupDataSourceOptions, loadOptions, {
+                                            store: new _array_store.default({
+                                                data: lookupItems,
+                                                key: column.lookup.valueExpr
+                                            })
+                                        }))
+                                    } else {
+                                        var _filter = _this.combineFilters(items.flatMap((function(data) {
+                                            return data.key
+                                        })).map((function(key) {
+                                            return [column.lookup.valueExpr, key]
+                                        })), "or");
+                                        newDataSource = new _data_source.DataSource(_extends({}, lookupDataSourceOptions, loadOptions, {
+                                            filter: _this.combineFilters([_filter, loadOptions.filter], "and")
+                                        }))
+                                    }
+                                    if (!hasGroupPaging) {
+                                        newDataSource.on("customizeStoreLoadOptions", (function(e) {
+                                            e.storeLoadOptions.take = loadOptions.take;
+                                            e.storeLoadOptions.skip = loadOptions.skip
+                                        }))
+                                    }
+                                    newDataSource.load().done(d.resolve).fail(d.fail)
+                                })).fail(d.fail);
+                                return d
+                            },
+                            key: column.lookup.valueExpr,
+                            byKey: function(key) {
+                                var d = (0, _deferred.Deferred)();
+                                this.load({
+                                    filter: [column.lookup.valueExpr, "=", key]
+                                }).done((function(arr) {
+                                    d.resolve(arr[0])
+                                }));
+                                return d.promise()
+                            }
+                        });
+                        return lookupDataSource
                     }
                 };
                 exports.default = _default;
@@ -34534,8 +43057,8 @@
                             delay: 0,
                             templatesRenderAsynchronously: false,
                             hideTopOverlayHandler: null,
-                            resizeEnabled: false,
-                            focusStateEnabled: false
+                            focusStateEnabled: false,
+                            propagateOutsideClick: true
                         })
                     },
                     _defaultOptionsRules: function() {
@@ -34660,220 +43183,6 @@
                 module.exports = exports.default;
                 module.exports.default = exports.default
             },
-        77601:
-            /*!************************************************************************!*\
-              !*** ./artifacts/transpiled-renovation-npm/ui/overlay/overlay_drag.js ***!
-              \************************************************************************/
-            function(module, exports, __webpack_require__) {
-                exports.default = void 0;
-                var _translator = __webpack_require__( /*! ../../animation/translator */ 31648);
-                var _dom_adapter = _interopRequireDefault(__webpack_require__( /*! ../../core/dom_adapter */ 73349));
-                var _size = __webpack_require__( /*! ../../core/utils/size */ 58664);
-                var _math = __webpack_require__( /*! ../../core/utils/math */ 60810);
-                var _type = __webpack_require__( /*! ../../core/utils/type */ 35922);
-                var _events_engine = _interopRequireDefault(__webpack_require__( /*! ../../events/core/events_engine */ 55994));
-                var _drag = __webpack_require__( /*! ../../events/drag */ 23174);
-                var _index = __webpack_require__( /*! ../../events/utils/index */ 39611);
-
-                function _interopRequireDefault(obj) {
-                    return obj && obj.__esModule ? obj : {
-                        default: obj
-                    }
-                }
-                var OverlayDrag = function() {
-                    function OverlayDrag(config) {
-                        this.init(config)
-                    }
-                    var _proto = OverlayDrag.prototype;
-                    _proto.init = function(_ref) {
-                        var dragEnabled = _ref.dragEnabled,
-                            handle = _ref.handle,
-                            draggableElement = _ref.draggableElement,
-                            positionController = _ref.positionController;
-                        this._positionController = positionController;
-                        this._draggableElement = draggableElement;
-                        this._handle = handle;
-                        this._dragEnabled = dragEnabled;
-                        this.unsubscribe();
-                        if (!dragEnabled) {
-                            return
-                        }
-                        this.subscribe()
-                    };
-                    _proto.moveDown = function(e) {
-                        this._moveTo(5, 0, e)
-                    };
-                    _proto.moveUp = function(e) {
-                        this._moveTo(-5, 0, e)
-                    };
-                    _proto.moveLeft = function(e) {
-                        this._moveTo(0, -5, e)
-                    };
-                    _proto.moveRight = function(e) {
-                        this._moveTo(0, 5, e)
-                    };
-                    _proto.subscribe = function() {
-                        var _this = this;
-                        var eventNames = this._getEventNames();
-                        _events_engine.default.on(this._handle, eventNames.startEventName, (function(e) {
-                            _this._dragStartHandler(e)
-                        }));
-                        _events_engine.default.on(this._handle, eventNames.updateEventName, (function(e) {
-                            _this._dragUpdateHandler(e)
-                        }));
-                        _events_engine.default.on(this._handle, eventNames.endEventName, (function(e) {
-                            _this._dragEndHandler(e)
-                        }))
-                    };
-                    _proto.unsubscribe = function() {
-                        var eventNames = this._getEventNames();
-                        _events_engine.default.off(this._handle, eventNames.startEventName);
-                        _events_engine.default.off(this._handle, eventNames.updateEventName);
-                        _events_engine.default.off(this._handle, eventNames.endEventName)
-                    };
-                    _proto._getEventNames = function() {
-                        var startEventName = (0, _index.addNamespace)(_drag.start, "overlayDrag");
-                        var updateEventName = (0, _index.addNamespace)(_drag.move, "overlayDrag");
-                        var endEventName = (0, _index.addNamespace)(_drag.end, "overlayDrag");
-                        return {
-                            startEventName: startEventName,
-                            updateEventName: updateEventName,
-                            endEventName: endEventName
-                        }
-                    };
-                    _proto._dragStartHandler = function(e) {
-                        var allowedOffsets = this._getAllowedOffsets();
-                        this._prevOffset = {
-                            x: 0,
-                            y: 0
-                        };
-                        e.targetElements = [];
-                        e.maxTopOffset = allowedOffsets.top;
-                        e.maxBottomOffset = allowedOffsets.bottom;
-                        e.maxLeftOffset = allowedOffsets.left;
-                        e.maxRightOffset = allowedOffsets.right
-                    };
-                    _proto._dragUpdateHandler = function(e) {
-                        var targetOffset = {
-                            top: e.offset.y - this._prevOffset.y,
-                            left: e.offset.x - this._prevOffset.x
-                        };
-                        this._moveByOffset(targetOffset);
-                        this._prevOffset = e.offset
-                    };
-                    _proto._dragEndHandler = function(event) {
-                        this._positionController.dragHandled();
-                        this._positionController.detectVisualPositionChange(event)
-                    };
-                    _proto._moveTo = function(top, left, e) {
-                        if (!this._dragEnabled) {
-                            return
-                        }
-                        e.preventDefault();
-                        e.stopPropagation();
-                        var offset = this._fitOffsetIntoAllowedRange(top, left);
-                        this._moveByOffset(offset);
-                        this._dragEndHandler(e)
-                    };
-                    _proto._fitOffsetIntoAllowedRange = function(top, left) {
-                        var allowedOffsets = this._getAllowedOffsets();
-                        return {
-                            top: (0, _math.fitIntoRange)(top, -allowedOffsets.top, allowedOffsets.bottom),
-                            left: (0, _math.fitIntoRange)(left, -allowedOffsets.left, allowedOffsets.right)
-                        }
-                    };
-                    _proto._getContainerDimensions = function() {
-                        var document = _dom_adapter.default.getDocument();
-                        var container = this._positionController.$dragResizeContainer.get(0);
-                        var containerWidth = (0, _size.getOuterWidth)(container);
-                        var containerHeight = (0, _size.getOuterHeight)(container);
-                        if ((0, _type.isWindow)(container)) {
-                            containerHeight = Math.max(document.body.clientHeight, containerHeight);
-                            containerWidth = Math.max(document.body.clientWidth, containerWidth)
-                        }
-                        return {
-                            width: containerWidth,
-                            height: containerHeight
-                        }
-                    };
-                    _proto._getContainerPosition = function() {
-                        var container = this._positionController.$dragResizeContainer.get(0);
-                        return (0, _type.isWindow)(container) ? {
-                            top: 0,
-                            left: 0
-                        } : (0, _size.getOffset)(container)
-                    };
-                    _proto._getElementPosition = function() {
-                        return (0, _size.getOffset)(this._draggableElement)
-                    };
-                    _proto._getInnerDelta = function() {
-                        var containerDimensions = this._getContainerDimensions();
-                        var elementDimensions = this._getElementDimensions();
-                        return {
-                            x: containerDimensions.width - elementDimensions.width,
-                            y: containerDimensions.height - elementDimensions.height
-                        }
-                    };
-                    _proto._getOuterDelta = function() {
-                        var _this$_getElementDime = this._getElementDimensions(),
-                            width = _this$_getElementDime.width,
-                            height = _this$_getElementDime.height;
-                        var outsideDragFactor = this._positionController.outsideDragFactor;
-                        return {
-                            x: width * outsideDragFactor,
-                            y: height * outsideDragFactor
-                        }
-                    };
-                    _proto._getFullDelta = function() {
-                        var fullDelta = this._getInnerDelta();
-                        var outerDelta = this._getOuterDelta();
-                        return {
-                            x: fullDelta.x + outerDelta.x,
-                            y: fullDelta.y + outerDelta.y
-                        }
-                    };
-                    _proto._getElementDimensions = function() {
-                        return {
-                            width: this._draggableElement.offsetWidth,
-                            height: this._draggableElement.offsetHeight
-                        }
-                    };
-                    _proto._getAllowedOffsets = function() {
-                        var fullDelta = this._getFullDelta();
-                        var isDragAllowed = fullDelta.y >= 0 && fullDelta.x >= 0;
-                        if (!isDragAllowed) {
-                            return {
-                                top: 0,
-                                bottom: 0,
-                                left: 0,
-                                right: 0
-                            }
-                        }
-                        var elementPosition = this._getElementPosition();
-                        var containerPosition = this._getContainerPosition();
-                        var outerDelta = this._getOuterDelta();
-                        return {
-                            top: elementPosition.top - containerPosition.top + outerDelta.y,
-                            bottom: -elementPosition.top + containerPosition.top + fullDelta.y,
-                            left: elementPosition.left - containerPosition.left + outerDelta.x,
-                            right: -elementPosition.left + containerPosition.left + fullDelta.x
-                        }
-                    };
-                    _proto._moveByOffset = function(offset) {
-                        var currentPosition = (0, _translator.locate)(this._draggableElement);
-                        var newPosition = {
-                            left: currentPosition.left + offset.left,
-                            top: currentPosition.top + offset.top
-                        };
-                        (0, _translator.move)(this._draggableElement, newPosition)
-                    };
-                    return OverlayDrag
-                }();
-                var _default = OverlayDrag;
-                exports.default = _default;
-                module.exports = exports.default;
-                module.exports.default = exports.default
-            },
         49314:
             /*!***************************************************************************************!*\
               !*** ./artifacts/transpiled-renovation-npm/ui/overlay/overlay_position_controller.js ***!
@@ -34886,7 +43195,7 @@
                 var _position = _interopRequireDefault(__webpack_require__( /*! ../../animation/position */ 49387));
                 var _translator = __webpack_require__( /*! ../../animation/translator */ 31648);
                 var _window = __webpack_require__( /*! ../../core/utils/window */ 58201);
-                var _view_port = __webpack_require__( /*! ../../core/utils/view_port */ 77695);
+                var _swatch_container = _interopRequireDefault(__webpack_require__( /*! ../widget/swatch_container */ 92591));
 
                 function _interopRequireDefault(obj) {
                     return obj && obj.__esModule ? obj : {
@@ -34952,25 +43261,19 @@
                 var OverlayPositionController = function() {
                     function OverlayPositionController(_ref) {
                         var position = _ref.position,
-                            target = _ref.target,
                             container = _ref.container,
+                            visualContainer = _ref.visualContainer,
                             $root = _ref.$root,
                             $content = _ref.$content,
                             $wrapper = _ref.$wrapper,
                             onPositioned = _ref.onPositioned,
                             onVisualPositionChanged = _ref.onVisualPositionChanged,
-                            dragOutsideBoundary = _ref.dragOutsideBoundary,
-                            dragAndResizeArea = _ref.dragAndResizeArea,
-                            outsideDragFactor = _ref.outsideDragFactor,
                             restorePosition = _ref.restorePosition,
                             _fixWrapperPosition = _ref._fixWrapperPosition;
                         this._props = {
                             position: position,
-                            target: target,
                             container: container,
-                            dragOutsideBoundary: dragOutsideBoundary,
-                            dragAndResizeArea: dragAndResizeArea,
-                            outsideDragFactor: outsideDragFactor,
+                            visualContainer: visualContainer,
                             restorePosition: restorePosition,
                             onPositioned: onPositioned,
                             onVisualPositionChanged: onVisualPositionChanged,
@@ -34980,17 +43283,14 @@
                         this._$content = $content;
                         this._$wrapper = $wrapper;
                         this._$markupContainer = void 0;
-                        this._$wrapperCoveredElement = void 0;
+                        this._$visualContainer = void 0;
                         this._shouldRenderContentInitialPosition = true;
                         this._visualPosition = void 0;
                         this._initialPosition = void 0;
                         this._previousVisualPosition = void 0;
-                        this._$dragResizeContainer = void 0;
-                        this._outsideDragFactor = void 0;
                         this.updateContainer(container);
-                        this.updatePosition(position, target);
-                        this._updateDragResizeContainer();
-                        this._updateOutsideDragFactor()
+                        this.updatePosition(position);
+                        this.updateVisualContainer(visualContainer)
                     }
                     var _proto = OverlayPositionController.prototype;
                     _proto.restorePositionOnNextRender = function(value) {
@@ -35000,32 +43300,21 @@
                         var shouldRestorePosition = this._props.restorePosition;
                         this.restorePositionOnNextRender(shouldRestorePosition)
                     };
-                    _proto.dragHandled = function() {
-                        this.restorePositionOnNextRender(false)
-                    };
-                    _proto.resizeHandled = function() {
-                        this.restorePositionOnNextRender(false)
-                    };
-                    _proto.updateTarget = function(target) {
-                        this._props.target = target;
-                        this.updatePosition(this._props.position, target)
-                    };
                     _proto.updatePosition = function(positionProp) {
-                        var targetProp = arguments.length > 1 && void 0 !== arguments[1] ? arguments[1] : this._props.target;
                         this._props.position = positionProp;
-                        this._position = this._normalizePosition(positionProp, targetProp);
-                        this._updateWrapperCoveredElement()
+                        this._position = this._normalizePosition(positionProp);
+                        this.updateVisualContainer()
                     };
-                    _proto.updateContainer = function(containerProp) {
+                    _proto.updateContainer = function() {
+                        var containerProp = arguments.length > 0 && void 0 !== arguments[0] ? arguments[0] : this._props.container;
                         this._props.container = containerProp;
-                        var container = null !== containerProp && void 0 !== containerProp ? containerProp : (0, _view_port.value)();
-                        var $container = this._$root.closest(container);
-                        if (!$container.length) {
-                            $container = (0, _renderer.default)(container).first()
-                        }
-                        this._$markupContainer = $container.length ? $container : this._$root.parent();
-                        this._updateWrapperCoveredElement();
-                        this._updateDragResizeContainer()
+                        this._$markupContainer = containerProp ? (0, _renderer.default)(containerProp) : _swatch_container.default.getSwatchContainer(this._$root);
+                        this.updateVisualContainer(this._props.visualContainer)
+                    };
+                    _proto.updateVisualContainer = function() {
+                        var visualContainer = arguments.length > 0 && void 0 !== arguments[0] ? arguments[0] : this._props.visualContainer;
+                        this._props.visualContainer = visualContainer;
+                        this._$visualContainer = this._getVisualContainer()
                     };
                     _proto.detectVisualPositionChange = function(event) {
                         this._updateVisualPositionValue();
@@ -35040,19 +43329,16 @@
                         }
                     };
                     _proto.positionWrapper = function() {
-                        if (this._$wrapperCoveredElement) {
+                        if (this._$visualContainer) {
                             _position.default.setup(this._$wrapper, {
                                 my: "top left",
                                 at: "top left",
-                                of: this._$wrapperCoveredElement
+                                of: this._$visualContainer
                             })
                         }
                     };
-                    _proto.isAllWindowCoveredByWrapper = function() {
-                        return !this._$wrapperCoveredElement || (0, _type.isWindow)(this._$wrapperCoveredElement.get(0))
-                    };
                     _proto.styleWrapperPosition = function() {
-                        var useFixed = this.isAllWindowCoveredByWrapper() || this._props._fixWrapperPosition;
+                        var useFixed = (0, _type.isWindow)(this.$visualContainer.get(0)) || this._props._fixWrapperPosition;
                         var positionStyle = useFixed ? "fixed" : "absolute";
                         this._$wrapper.css("position", positionStyle)
                     };
@@ -35085,31 +43371,6 @@
                             position: this._initialPosition
                         })
                     };
-                    _proto._updateOutsideDragFactor = function() {
-                        this._outsideDragFactor = this._getOutsideDragFactor()
-                    };
-                    _proto._getOutsideDragFactor = function() {
-                        if (this._props.dragOutsideBoundary) {
-                            return 1
-                        }
-                        return this._props.outsideDragFactor
-                    };
-                    _proto._updateDragResizeContainer = function() {
-                        this._$dragResizeContainer = this._getDragResizeContainer()
-                    };
-                    _proto._getDragResizeContainer = function() {
-                        if (this._props.dragOutsideBoundary) {
-                            return (0, _renderer.default)(window)
-                        }
-                        if (this._props.dragAndResizeArea) {
-                            return (0, _renderer.default)(this._props.dragAndResizeArea)
-                        }
-                        var isContainerDefined = (0, _view_port.originalViewPort)().get(0) || this._props.container;
-                        return isContainerDefined ? this._$markupContainer : (0, _renderer.default)(window)
-                    };
-                    _proto._updateWrapperCoveredElement = function() {
-                        this._$wrapperCoveredElement = this._getWrapperCoveredElement()
-                    };
                     _proto._renderBoundaryOffset = function() {
                         var _this$_position;
                         var boundaryOffset = null !== (_this$_position = this._position) && void 0 !== _this$_position ? _this$_position : {
@@ -35117,18 +43378,24 @@
                         };
                         this._$content.css("margin", "".concat(boundaryOffset.v, "px ").concat(boundaryOffset.h, "px"))
                     };
-                    _proto._getWrapperCoveredElement = function() {
+                    _proto._getVisualContainer = function() {
+                        var _this$_props$position, _this$_props$position2;
                         var containerProp = this._props.container;
+                        var visualContainerProp = this._props.visualContainer;
+                        var positionOf = (0, _type.isEvent)(null === (_this$_props$position = this._props.position) || void 0 === _this$_props$position ? void 0 : _this$_props$position.of) ? this._props.position.of.target : null === (_this$_props$position2 = this._props.position) || void 0 === _this$_props$position2 ? void 0 : _this$_props$position2.of;
+                        if (visualContainerProp) {
+                            return (0, _renderer.default)(visualContainerProp)
+                        }
                         if (containerProp) {
                             return (0, _renderer.default)(containerProp)
                         }
-                        if (this._position) {
-                            return (0, _renderer.default)((0, _type.isEvent)(this._position.of) ? window : this._position.of || window)
+                        if (positionOf) {
+                            return (0, _renderer.default)(positionOf)
                         }
+                        return (0, _renderer.default)(window)
                     };
-                    _proto._normalizePosition = function(positionProp, targetProp) {
+                    _proto._normalizePosition = function(positionProp) {
                         var defaultPositionConfig = {
-                            of: targetProp,
                             boundaryOffset: OVERLAY_DEFAULT_BOUNDARY_OFFSET
                         };
                         if ((0, _type.isDefined)(positionProp)) {
@@ -35157,40 +43424,24 @@
                     }(OverlayPositionController, [{
                         key: "$container",
                         get: function() {
+                            this.updateContainer();
                             return this._$markupContainer
                         }
                     }, {
-                        key: "$dragResizeContainer",
+                        key: "$visualContainer",
                         get: function() {
-                            return this._$dragResizeContainer
+                            return this._$visualContainer
                         }
                     }, {
-                        key: "outsideDragFactor",
+                        key: "position",
                         get: function() {
-                            return this._outsideDragFactor
-                        },
-                        set: function(outsideDragFactor) {
-                            this._props.outsideDragFactor = outsideDragFactor;
-                            this._updateOutsideDragFactor()
+                            return this._position
                         }
                     }, {
                         key: "fixWrapperPosition",
                         set: function(fixWrapperPosition) {
                             this._props._fixWrapperPosition = fixWrapperPosition;
                             this.styleWrapperPosition()
-                        }
-                    }, {
-                        key: "dragAndResizeArea",
-                        set: function(dragAndResizeArea) {
-                            this._props.dragAndResizeArea = dragAndResizeArea;
-                            this._updateDragResizeContainer()
-                        }
-                    }, {
-                        key: "dragOutsideBoundary",
-                        set: function(dragOutsideBoundary) {
-                            this._props.dragOutsideBoundary = dragOutsideBoundary;
-                            this._updateDragResizeContainer();
-                            this._updateOutsideDragFactor()
                         }
                     }, {
                         key: "restorePosition",
@@ -35207,6 +43458,13 @@
               !*** ./artifacts/transpiled-renovation-npm/ui/overlay/ui.overlay.js ***!
               \**********************************************************************/
             function(module, exports, __webpack_require__) {
+                function _typeof(obj) {
+                    return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function(obj) {
+                        return typeof obj
+                    } : function(obj) {
+                        return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj
+                    }, _typeof(obj)
+                }
                 exports.default = void 0;
                 var _size = __webpack_require__( /*! ../../core/utils/size */ 58664);
                 var _fx = _interopRequireDefault(__webpack_require__( /*! ../../animation/fx */ 87209));
@@ -35216,7 +43474,6 @@
                 var _element = __webpack_require__( /*! ../../core/element */ 6415);
                 var _renderer = _interopRequireDefault(__webpack_require__( /*! ../../core/renderer */ 68374));
                 var _empty_template = __webpack_require__( /*! ../../core/templates/empty_template */ 10688);
-                var _array = __webpack_require__( /*! ../../core/utils/array */ 89386);
                 var _common = __webpack_require__( /*! ../../core/utils/common */ 20576);
                 var _deferred = __webpack_require__( /*! ../../core/utils/deferred */ 62754);
                 var _dom = __webpack_require__( /*! ../../core/utils/dom */ 3532);
@@ -35234,10 +43491,7 @@
                 var _index = __webpack_require__( /*! ../../events/utils/index */ 39611);
                 var _visibility_change = __webpack_require__( /*! ../../events/visibility_change */ 80506);
                 var _hide_callback = __webpack_require__( /*! ../../mobile/hide_callback */ 4928);
-                var _resizable = _interopRequireDefault(__webpack_require__( /*! ../resizable */ 46743));
-                var _overlay_drag = _interopRequireDefault(__webpack_require__( /*! ./overlay_drag */ 77601));
                 var _selectors = __webpack_require__( /*! ../widget/selectors */ 31421);
-                var _swatch_container = _interopRequireDefault(__webpack_require__( /*! ../widget/swatch_container */ 92591));
                 var _ui = _interopRequireDefault(__webpack_require__( /*! ../widget/ui.widget */ 14390));
                 var _browser = _interopRequireDefault(__webpack_require__( /*! ../../core/utils/browser */ 47810));
                 var zIndexPool = function(obj, nodeInterop) {
@@ -35271,7 +43525,6 @@
                     }
                     return newObj
                 }(__webpack_require__( /*! ./z_index */ 85421));
-                var _resize_observer = _interopRequireDefault(__webpack_require__( /*! ../../core/resize_observer */ 91784));
                 var _overlay_position_controller = __webpack_require__( /*! ./overlay_position_controller */ 49314);
 
                 function _getRequireWildcardCache(nodeInterop) {
@@ -35290,18 +43543,9 @@
                         default: obj
                     }
                 }
-
-                function _typeof(obj) {
-                    return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function(obj) {
-                        return typeof obj
-                    } : function(obj) {
-                        return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj
-                    }, _typeof(obj)
-                }
                 var ready = _ready_callbacks.default.add;
                 var window = (0, _window.getWindow)();
                 var viewPortChanged = _view_port.changeCallback;
-                var ACTIONS = ["onShowing", "onShown", "onHiding", "onHidden", "onPositioned", "onResizeStart", "onResize", "onResizeEnd", "onVisualPositionChanged"];
                 var OVERLAY_STACK = [];
                 ready((function() {
                     _events_engine.default.subscribeGlobal(_dom_adapter.default.getDocument(), _pointer.default.down, (function(e) {
@@ -35314,27 +43558,14 @@
                 }));
                 var Overlay = _ui.default.inherit({
                     _supportedKeys: function() {
-                        var _this = this;
                         return (0, _extend.extend)(this.callBase(), {
                             escape: function() {
                                 this.hide()
-                            },
-                            upArrow: function(e) {
-                                _this._drag.moveUp(e)
-                            },
-                            downArrow: function(e) {
-                                _this._drag.moveDown(e)
-                            },
-                            leftArrow: function(e) {
-                                _this._drag.moveLeft(e)
-                            },
-                            rightArrow: function(e) {
-                                _this._drag.moveRight(e)
                             }
                         })
                     },
                     _getDefaultOptions: function() {
-                        var _this2 = this;
+                        var _this = this;
                         return (0, _extend.extend)(this.callBase(), {
                             activeStateEnabled: false,
                             visible: false,
@@ -35370,28 +43601,22 @@
                                     }
                                 }
                             },
-                            dragOutsideBoundary: false,
                             closeOnOutsideClick: false,
+                            hideOnOutsideClick: false,
                             copyRootClassesToWrapper: false,
                             _ignoreCopyRootClassesToWrapperDeprecation: false,
+                            _ignoreElementAttrDeprecation: false,
                             onShowing: null,
                             onShown: null,
                             onHiding: null,
                             onHidden: null,
                             contentTemplate: "content",
-                            dragEnabled: false,
-                            dragAndResizeArea: void 0,
-                            outsideDragFactor: 0,
-                            resizeEnabled: false,
-                            onResizeStart: null,
-                            onResize: null,
-                            onResizeEnd: null,
                             innerOverlay: false,
                             restorePosition: true,
-                            target: void 0,
                             container: void 0,
+                            visualContainer: void 0,
                             hideTopOverlayHandler: function() {
-                                _this2.hide()
+                                _this.hide()
                             },
                             hideOnParentScroll: false,
                             onPositioned: null,
@@ -35429,23 +43654,34 @@
                     _setDeprecatedOptions: function() {
                         this.callBase();
                         (0, _extend.extend)(this._deprecatedOptions, {
-                            elementAttr: {
-                                since: "21.2",
-                                message: 'Use the "wrapperAttr" option instead'
+                            closeOnOutsideClick: {
+                                since: "22.1",
+                                alias: "hideOnOutsideClick"
                             }
                         })
                     },
                     ctor: function(element, options) {
                         this.callBase(element, options);
-                        if (options && options.copyRootClassesToWrapper && !options._ignoreCopyRootClassesToWrapperDeprecation) {
-                            _errors.default.log("W0001", this.NAME, "copyRootClassesToWrapper", "21.2", 'Use the "wrapperAttr" option instead')
+                        if (options) {
+                            if (options.copyRootClassesToWrapper && !options._ignoreCopyRootClassesToWrapperDeprecation) {
+                                this._logDeprecatedOptionWarning("copyRootClassesToWrapper", {
+                                    since: "21.2",
+                                    message: 'Use the "wrapperAttr" option instead'
+                                })
+                            }
+                            if (options.elementAttr && !options._ignoreElementAttrDeprecation) {
+                                this._logDeprecatedOptionWarning("elementAttr", {
+                                    since: "21.2",
+                                    message: 'Use the "wrapperAttr" option instead'
+                                })
+                            }
                         }
                     },
                     _init: function() {
-                        var _this3 = this;
+                        var _this2 = this;
                         this.callBase();
                         this._initActions();
-                        this._initCloseOnOutsideClickHandler();
+                        this._initHideOnOutsideClickHandler();
                         this._initTabTerminatorHandler();
                         this._customWrapperClass = null;
                         this._$wrapper = (0, _renderer.default)("<div>").addClass("dx-overlay-wrapper");
@@ -35461,10 +43697,9 @@
                         this._initHideTopOverlayHandler(this.option("hideTopOverlayHandler"));
                         this._parentsScrollSubscriptionInfo = {
                             handler: function(e) {
-                                _this3._hideOnParentsScrollHandler(e)
+                                _this2._hideOnParentsScrollHandler(e)
                             }
                         };
-                        this._updateResizeCallbackSkipCondition();
                         this.warnPositionAsFunction()
                     },
                     warnPositionAsFunction: function() {
@@ -35472,49 +43707,29 @@
                             _errors.default.log("W0018")
                         }
                     },
-                    _initOptions: function(options) {
-                        this._setAnimationTarget(options.target);
-                        this.callBase(options)
-                    },
                     _initInnerOverlayClass: function() {
                         this._$content.toggleClass("dx-inner-overlay", this.option("innerOverlay"))
-                    },
-                    _setAnimationTarget: function(target) {
-                        if (!(0, _type.isDefined)(target)) {
-                            return
-                        }
-                        var options = this.option();
-                        ["animation.show.from.position.of", "animation.show.to.position.of", "animation.hide.from.position.of", "animation.hide.to.position.of"].forEach((function(path) {
-                            var pathParts = path.split(".");
-                            var option = options;
-                            while (option) {
-                                if (1 === pathParts.length) {
-                                    if ((0, _type.isPlainObject)(option)) {
-                                        option[pathParts.shift()] = target
-                                    }
-                                    break
-                                } else {
-                                    option = option[pathParts.shift()]
-                                }
-                            }
-                        }))
                     },
                     _initHideTopOverlayHandler: function(handler) {
                         this._hideTopOverlayHandler = handler
                     },
+                    _getActionsList: function() {
+                        return ["onShowing", "onShown", "onHiding", "onHidden", "onPositioned", "onVisualPositionChanged"]
+                    },
                     _initActions: function() {
-                        var _this4 = this;
+                        var _this3 = this;
                         this._actions = {};
-                        (0, _iterator.each)(ACTIONS, (function(_, action) {
-                            _this4._actions[action] = _this4._createActionByOption(action, {
+                        var actions = this._getActionsList();
+                        (0, _iterator.each)(actions, (function(_, action) {
+                            _this3._actions[action] = _this3._createActionByOption(action, {
                                 excludeValidators: ["disabled", "readOnly"]
                             }) || _common.noop
                         }))
                     },
-                    _initCloseOnOutsideClickHandler: function() {
-                        var _this5 = this;
+                    _initHideOnOutsideClickHandler: function() {
+                        var _this4 = this;
                         this._proxiedDocumentDownHandler = function() {
-                            return _this5._documentDownHandler.apply(_this5, arguments)
+                            return _this4._documentDownHandler.apply(_this4, arguments)
                         }
                     },
                     _areContentDimensionsRendered: function(entry) {
@@ -35527,42 +43742,6 @@
                         var contentRect = entry.contentRect;
                         return parseInt(contentRect.width, 10) === (null === (_this$_renderedDimens3 = this._renderedDimensions) || void 0 === _this$_renderedDimens3 ? void 0 : _this$_renderedDimens3.width) && parseInt(contentRect.height, 10) === (null === (_this$_renderedDimens4 = this._renderedDimensions) || void 0 === _this$_renderedDimens4 ? void 0 : _this$_renderedDimens4.height)
                     },
-                    _contentResizeHandler: function(entry) {
-                        if (!this._shouldSkipContentResize(entry)) {
-                            this._renderGeometry({
-                                shouldOnlyReposition: true
-                            })
-                        }
-                    },
-                    _updateResizeCallbackSkipCondition: function() {
-                        var _this6 = this;
-                        var doesShowAnimationChangeDimensions = this._doesShowAnimationChangeDimensions();
-                        this._shouldSkipContentResize = function(entry) {
-                            return doesShowAnimationChangeDimensions && _this6._showAnimationProcessing || _this6._areContentDimensionsRendered(entry)
-                        }
-                    },
-                    _doesShowAnimationChangeDimensions: function() {
-                        var animation = this.option("animation");
-                        return ["to", "from"].some((function(prop) {
-                            var _animation$show;
-                            var config = null === animation || void 0 === animation ? void 0 : null === (_animation$show = animation.show) || void 0 === _animation$show ? void 0 : _animation$show[prop];
-                            return (0, _type.isObject)(config) && ("width" in config || "height" in config)
-                        }))
-                    },
-                    _observeContentResize: function(shouldObserve) {
-                        var _this7 = this;
-                        if (!this.option("useResizeObserver")) {
-                            return
-                        }
-                        var contentElement = this._$content.get(0);
-                        if (shouldObserve) {
-                            _resize_observer.default.observe(contentElement, (function(entry) {
-                                _this7._contentResizeHandler(entry)
-                            }))
-                        } else {
-                            _resize_observer.default.unobserve(contentElement)
-                        }
-                    },
                     _initMarkup: function() {
                         this.callBase();
                         this._renderWrapperAttributes();
@@ -35572,17 +43751,21 @@
                         if (this._showAnimationProcessing) {
                             this._stopAnimation()
                         }
-                        var closeOnOutsideClick = this.option("closeOnOutsideClick");
-                        if ((0, _type.isFunction)(closeOnOutsideClick)) {
-                            closeOnOutsideClick = closeOnOutsideClick(e)
-                        }
                         var isAttachedTarget = (0, _renderer.default)(window.document).is(e.target) || (0, _dom.contains)(window.document, e.target);
                         var isInnerOverlay = (0, _renderer.default)(e.target).closest(".".concat("dx-inner-overlay")).length;
                         var outsideClick = isAttachedTarget && !isInnerOverlay && !(this._$content.is(e.target) || (0, _dom.contains)(this._$content.get(0), e.target));
-                        if (outsideClick && closeOnOutsideClick) {
+                        if (outsideClick && this._shouldHideOnOutsideClick(e)) {
                             this._outsideClickHandler(e)
                         }
                         return this.option("propagateOutsideClick")
+                    },
+                    _shouldHideOnOutsideClick: function(e) {
+                        var _this$option = this.option(),
+                            hideOnOutsideClick = _this$option.hideOnOutsideClick;
+                        if ((0, _type.isFunction)(hideOnOutsideClick)) {
+                            return hideOnOutsideClick(e)
+                        }
+                        return hideOnOutsideClick
                     },
                     _outsideClickHandler: function(e) {
                         if (this.option("shading")) {
@@ -35616,11 +43799,11 @@
                         return Overlay.baseZIndex()
                     },
                     _toggleViewPortSubscription: function(toggle) {
-                        var _this8 = this;
+                        var _this5 = this;
                         viewPortChanged.remove(this._viewPortChangeHandle);
                         if (toggle) {
                             this._viewPortChangeHandle = function() {
-                                _this8._viewPortChangeHandler.apply(_this8, arguments)
+                                _this5._viewPortChangeHandler.apply(_this5, arguments)
                             };
                             viewPortChanged.add(this._viewPortChangeHandle)
                         }
@@ -35630,8 +43813,8 @@
                         this._refresh()
                     },
                     _renderWrapperAttributes: function() {
-                        var _this$option = this.option(),
-                            wrapperAttr = _this$option.wrapperAttr;
+                        var _this$option2 = this.option(),
+                            wrapperAttr = _this$option2.wrapperAttr;
                         var attributes = (0, _extend.extend)({}, wrapperAttr);
                         var classNames = attributes.class;
                         delete attributes.class;
@@ -35639,7 +43822,6 @@
                         this._customWrapperClass = classNames
                     },
                     _renderVisibilityAnimate: function(visible) {
-                        this._observeContentResize(visible);
                         this._stopAnimation();
                         return visible ? this._show() : this._hide()
                     },
@@ -35647,44 +43829,44 @@
                         return this._getOptionValue("animation", this)
                     },
                     _animateShowing: function() {
-                        var _this$_getAnimationCo, _showAnimation$start, _showAnimation$comple, _this9 = this;
+                        var _this$_getAnimationCo, _showAnimation$start, _showAnimation$comple, _this6 = this;
                         var animation = null !== (_this$_getAnimationCo = this._getAnimationConfig()) && void 0 !== _this$_getAnimationCo ? _this$_getAnimationCo : {};
                         var showAnimation = this._normalizeAnimation(animation.show, "to");
                         var startShowAnimation = null !== (_showAnimation$start = null === showAnimation || void 0 === showAnimation ? void 0 : showAnimation.start) && void 0 !== _showAnimation$start ? _showAnimation$start : _common.noop;
                         var completeShowAnimation = null !== (_showAnimation$comple = null === showAnimation || void 0 === showAnimation ? void 0 : showAnimation.complete) && void 0 !== _showAnimation$comple ? _showAnimation$comple : _common.noop;
                         this._animate(showAnimation, (function() {
-                            if (_this9._isAnimationPaused) {
+                            if (_this6._isAnimationPaused) {
                                 return
                             }
-                            if (_this9.option("focusStateEnabled")) {
-                                _events_engine.default.trigger(_this9._focusTarget(), "focus")
+                            if (_this6.option("focusStateEnabled")) {
+                                _events_engine.default.trigger(_this6._focusTarget(), "focus")
                             }
                             for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
                                 args[_key] = arguments[_key]
                             }
-                            completeShowAnimation.call.apply(completeShowAnimation, [_this9].concat(args));
-                            _this9._showAnimationProcessing = false;
-                            _this9._isHidden = false;
-                            _this9._actions.onShown();
-                            _this9._toggleSafariScrolling();
-                            _this9._showingDeferred.resolve()
+                            completeShowAnimation.call.apply(completeShowAnimation, [_this6].concat(args));
+                            _this6._showAnimationProcessing = false;
+                            _this6._isHidden = false;
+                            _this6._actions.onShown();
+                            _this6._toggleSafariScrolling();
+                            _this6._showingDeferred.resolve()
                         }), (function() {
-                            if (_this9._isAnimationPaused) {
+                            if (_this6._isAnimationPaused) {
                                 return
                             }
                             for (var _len2 = arguments.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
                                 args[_key2] = arguments[_key2]
                             }
-                            startShowAnimation.call.apply(startShowAnimation, [_this9].concat(args));
-                            _this9._showAnimationProcessing = true
+                            startShowAnimation.call.apply(startShowAnimation, [_this6].concat(args));
+                            _this6._showAnimationProcessing = true
                         }))
                     },
                     _show: function() {
-                        var _this10 = this;
+                        var _this7 = this;
                         this._showingDeferred = new _deferred.Deferred;
                         this._parentHidden = this._isParentHidden();
                         this._showingDeferred.done((function() {
-                            delete _this10._parentHidden
+                            delete _this7._parentHidden
                         }));
                         if (this._parentHidden) {
                             this._isHidden = true;
@@ -35699,13 +43881,34 @@
                             this._showingDeferred.resolve()
                         } else {
                             var show = function() {
-                                _this10._renderVisibility(true);
-                                if (_this10._isShowingActionCanceled) {
-                                    delete _this10._isShowingActionCanceled;
-                                    _this10._showingDeferred.resolve();
-                                    return
+                                _this7._stopAnimation();
+                                _this7._toggleVisibility(true);
+                                _this7._$content.css("visibility", "hidden");
+                                _this7._$content.toggleClass("dx-state-invisible", false);
+                                _this7._updateZIndexStackPosition(true);
+                                _this7._positionController.openingHandled();
+                                _this7._renderContent();
+                                var showingArgs = {
+                                    cancel: false
+                                };
+                                _this7._actions.onShowing(showingArgs);
+                                if (showingArgs.cancel) {
+                                    ! function() {
+                                        _this7._toggleVisibility(false);
+                                        _this7._$content.css("visibility", "");
+                                        _this7._$content.toggleClass("dx-state-invisible", true);
+                                        _this7._isShowingActionCanceled = true;
+                                        _this7._moveFromContainer();
+                                        _this7.option("visible", false);
+                                        _this7._showingDeferred.resolve()
+                                    }()
+                                } else {
+                                    ! function() {
+                                        _this7._$content.css("visibility", "");
+                                        _this7._renderVisibility(true);
+                                        _this7._animateShowing()
+                                    }()
                                 }
-                                _this10._animateShowing()
                             };
                             if (this.option("templatesRenderAsynchronously")) {
                                 this._stopShowTimer();
@@ -35716,47 +43919,48 @@
                         }
                         return this._showingDeferred.promise()
                     },
-                    _normalizeAnimation: function(animation, prop) {
-                        if (animation) {
-                            animation = (0, _extend.extend)({
+                    _normalizeAnimation: function(showHideConfig, direction) {
+                        if (showHideConfig) {
+                            showHideConfig = (0, _extend.extend)({
                                 type: "slide",
                                 skipElementInitialStyles: true
-                            }, animation);
-                            if (animation[prop] && "object" === _typeof(animation[prop])) {
-                                (0, _extend.extend)(animation[prop], {
-                                    position: this._positionController._position
+                            }, showHideConfig);
+                            if ((0, _type.isObject)(showHideConfig[direction])) {
+                                (0, _extend.extend)(showHideConfig[direction], {
+                                    position: this._positionController.position
                                 })
                             }
                         }
-                        return animation
+                        return showHideConfig
                     },
                     _animateHiding: function() {
-                        var _this$_getAnimationCo2, _hideAnimation$start, _hideAnimation$comple, _this11 = this;
+                        var _this$_getAnimationCo2, _hideAnimation$start, _hideAnimation$comple, _this8 = this;
                         var animation = null !== (_this$_getAnimationCo2 = this._getAnimationConfig()) && void 0 !== _this$_getAnimationCo2 ? _this$_getAnimationCo2 : {};
                         var hideAnimation = this._normalizeAnimation(animation.hide, "from");
                         var startHideAnimation = null !== (_hideAnimation$start = null === hideAnimation || void 0 === hideAnimation ? void 0 : hideAnimation.start) && void 0 !== _hideAnimation$start ? _hideAnimation$start : _common.noop;
                         var completeHideAnimation = null !== (_hideAnimation$comple = null === hideAnimation || void 0 === hideAnimation ? void 0 : hideAnimation.complete) && void 0 !== _hideAnimation$comple ? _hideAnimation$comple : _common.noop;
                         this._animate(hideAnimation, (function() {
-                            var _this11$_actions;
-                            _this11._$content.css("pointerEvents", "");
-                            _this11._renderVisibility(false);
+                            var _this8$_actions;
+                            _this8._$content.css("pointerEvents", "");
+                            _this8._renderVisibility(false);
                             for (var _len3 = arguments.length, args = new Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
                                 args[_key3] = arguments[_key3]
                             }
-                            completeHideAnimation.call.apply(completeHideAnimation, [_this11].concat(args));
-                            _this11._hideAnimationProcessing = false;
-                            null === (_this11$_actions = _this11._actions) || void 0 === _this11$_actions ? void 0 : _this11$_actions.onHidden();
-                            _this11._hidingDeferred.resolve()
+                            completeHideAnimation.call.apply(completeHideAnimation, [_this8].concat(args));
+                            _this8._hideAnimationProcessing = false;
+                            null === (_this8$_actions = _this8._actions) || void 0 === _this8$_actions ? void 0 : _this8$_actions.onHidden();
+                            _this8._hidingDeferred.resolve()
                         }), (function() {
-                            _this11._$content.css("pointerEvents", "none");
+                            _this8._$content.css("pointerEvents", "none");
                             for (var _len4 = arguments.length, args = new Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
                                 args[_key4] = arguments[_key4]
                             }
-                            startHideAnimation.call.apply(startHideAnimation, [_this11].concat(args));
-                            _this11._hideAnimationProcessing = true
+                            startHideAnimation.call.apply(startHideAnimation, [_this8].concat(args));
+                            _this8._hideAnimationProcessing = true
                         }))
                     },
                     _hide: function() {
+                        var _this9 = this;
                         if (!this._currentVisible) {
                             return (new _deferred.Deferred).resolve().promise()
                         }
@@ -35771,15 +43975,19 @@
                             this._actions.onHiding(hidingArgs);
                             this._toggleSafariScrolling();
                             if (hidingArgs.cancel) {
-                                this._isHidingActionCanceled = true;
-                                this.option("visible", true);
-                                this._hidingDeferred.resolve()
+                                ! function() {
+                                    _this9._isHidingActionCanceled = true;
+                                    _this9.option("visible", true);
+                                    _this9._hidingDeferred.resolve()
+                                }()
                             } else {
-                                this._forceFocusLost();
-                                this._toggleShading(false);
-                                this._toggleSubscriptions(false);
-                                this._stopShowTimer();
-                                this._animateHiding()
+                                ! function() {
+                                    _this9._forceFocusLost();
+                                    _this9._toggleShading(false);
+                                    _this9._toggleSubscriptions(false);
+                                    _this9._stopShowTimer();
+                                    _this9._animateHiding()
+                                }()
                             }
                         }
                         return this._hidingDeferred.promise()
@@ -35814,30 +44022,15 @@
                         if (!visible) {
                             (0, _visibility_change.triggerHidingEvent)(this._$content)
                         }
-                        this._toggleVisibility(visible);
-                        this._$content.toggleClass("dx-state-invisible", !visible);
-                        this._updateZIndexStackPosition(visible);
                         if (visible) {
-                            this._positionController.openingHandled();
-                            this._renderContent();
-                            var showingArgs = {
-                                cancel: false
-                            };
-                            this._actions.onShowing(showingArgs);
-                            if (showingArgs.cancel) {
-                                this._toggleVisibility(false);
-                                this._$content.toggleClass("dx-state-invisible", true);
-                                this._updateZIndexStackPosition(false);
-                                this._moveFromContainer();
-                                this._isShowingActionCanceled = true;
-                                this.option("visible", false);
-                                return
-                            }
                             this._moveToContainer();
                             this._renderGeometry();
                             (0, _visibility_change.triggerShownEvent)(this._$content);
                             (0, _visibility_change.triggerResizeEvent)(this._$content)
                         } else {
+                            this._toggleVisibility(visible);
+                            this._$content.toggleClass("dx-state-invisible", !visible);
+                            this._updateZIndexStackPosition(visible);
                             this._moveFromContainer()
                         }
                         this._toggleShading(visible);
@@ -35845,7 +44038,7 @@
                     },
                     _updateZIndexStackPosition: function(pushToStack) {
                         var overlayStack = this._overlayStack();
-                        var index = (0, _array.inArray)(this, overlayStack);
+                        var index = overlayStack.indexOf(this);
                         if (pushToStack) {
                             if (-1 === index) {
                                 this._zIndex = zIndexPool.create(this._zIndexInitValue());
@@ -35859,15 +44052,14 @@
                         }
                     },
                     _toggleShading: function(visible) {
-                        this._$wrapper.toggleClass("dx-overlay-modal", this.option("shading") && !this.option("container"));
                         this._$wrapper.toggleClass("dx-overlay-shader", visible && this.option("shading"));
                         this._$wrapper.css("backgroundColor", this.option("shading") ? this.option("shadingColor") : "");
                         this._toggleTabTerminator(visible && this.option("shading"))
                     },
                     _initTabTerminatorHandler: function() {
-                        var _this12 = this;
+                        var _this10 = this;
                         this._proxiedTabTerminatorHandler = function() {
-                            _this12._tabKeyHandler.apply(_this12, arguments)
+                            _this10._tabKeyHandler.apply(_this10, arguments)
                         }
                     },
                     _toggleTabTerminator: function(enabled) {
@@ -36008,7 +44200,7 @@
                         return isHidden || !_dom_adapter.default.getBody().contains($parent.get(0))
                     },
                     _renderContentImpl: function() {
-                        var _this13 = this;
+                        var _this11 = this;
                         var whenContentRendered = new _deferred.Deferred;
                         var contentTemplateOption = this.option("contentTemplate");
                         var contentTemplate = this._getTemplate(contentTemplateOption);
@@ -36021,89 +44213,34 @@
                                 whenContentRendered.resolve()
                             }
                         });
-                        this._renderDrag();
-                        this._renderResize();
                         this._renderScrollTerminator();
                         whenContentRendered.done((function() {
-                            if (_this13.option("visible")) {
-                                _this13._moveToContainer()
+                            if (_this11.option("visible")) {
+                                _this11._moveToContainer()
                             }
                         }));
                         return whenContentRendered.promise()
                     },
                     _getPositionControllerConfig: function() {
-                        var _this$option2 = this.option(),
-                            target = _this$option2.target,
-                            container = _this$option2.container,
-                            dragAndResizeArea = _this$option2.dragAndResizeArea,
-                            dragOutsideBoundary = _this$option2.dragOutsideBoundary,
-                            outsideDragFactor = _this$option2.outsideDragFactor,
-                            _fixWrapperPosition = _this$option2._fixWrapperPosition,
-                            restorePosition = _this$option2.restorePosition;
+                        var _this$option3 = this.option(),
+                            container = _this$option3.container,
+                            visualContainer = _this$option3.visualContainer,
+                            _fixWrapperPosition = _this$option3._fixWrapperPosition,
+                            restorePosition = _this$option3.restorePosition;
                         return {
-                            target: target,
                             container: container,
+                            visualContainer: visualContainer,
                             $root: this.$element(),
                             $content: this._$content,
                             $wrapper: this._$wrapper,
                             onPositioned: this._actions.onPositioned,
                             onVisualPositionChanged: this._actions.onVisualPositionChanged,
                             restorePosition: restorePosition,
-                            dragAndResizeArea: dragAndResizeArea,
-                            dragOutsideBoundary: dragOutsideBoundary,
-                            outsideDragFactor: outsideDragFactor,
                             _fixWrapperPosition: _fixWrapperPosition
                         }
                     },
                     _initPositionController: function() {
                         this._positionController = new _overlay_position_controller.OverlayPositionController(this._getPositionControllerConfig())
-                    },
-                    _renderDrag: function() {
-                        var $dragTarget = this._getDragTarget();
-                        if (!$dragTarget) {
-                            return
-                        }
-                        var config = {
-                            dragEnabled: this.option("dragEnabled"),
-                            handle: $dragTarget.get(0),
-                            draggableElement: this._$content.get(0),
-                            positionController: this._positionController
-                        };
-                        if (this._drag) {
-                            this._drag.init(config)
-                        } else {
-                            this._drag = new _overlay_drag.default(config)
-                        }
-                    },
-                    _renderResize: function() {
-                        var _this14 = this;
-                        this._resizable = this._createComponent(this._$content, _resizable.default, {
-                            handles: this.option("resizeEnabled") ? "all" : "none",
-                            onResizeEnd: function(e) {
-                                _this14._resizeEndHandler(e);
-                                _this14._observeContentResize(true)
-                            },
-                            onResize: function(e) {
-                                _this14._actions.onResize(e)
-                            },
-                            onResizeStart: function(e) {
-                                _this14._observeContentResize(false);
-                                _this14._actions.onResizeStart(e)
-                            },
-                            minHeight: 100,
-                            minWidth: 100,
-                            area: this._positionController.$dragResizeContainer
-                        })
-                    },
-                    _resizeEndHandler: function(e) {
-                        var width = this._resizable.option("width");
-                        var height = this._resizable.option("height");
-                        width && this._setOptionWithoutOptionChange("width", width);
-                        height && this._setOptionWithoutOptionChange("height", height);
-                        this._cacheDimensions();
-                        this._positionController.resizeHandled();
-                        this._positionController.detectVisualPositionChange(e.event);
-                        this._actions.onResizeEnd(e)
                     },
                     _renderScrollTerminator: function() {
                         var $scrollTerminator = this._$wrapper;
@@ -36136,9 +44273,6 @@
                             }
                         }))
                     },
-                    _getDragTarget: function() {
-                        return this.$content()
-                    },
                     _moveFromContainer: function() {
                         this._$content.appendTo(this.$element());
                         this._detachWrapperToContainer()
@@ -36147,59 +44281,28 @@
                         this._$wrapper.detach()
                     },
                     _moveToContainer: function() {
-                        this._attachWrapperToContainer();
+                        this._$wrapper.appendTo(this._positionController.$container);
                         this._$content.appendTo(this._$wrapper)
                     },
-                    _attachWrapperToContainer: function() {
-                        var $element = this.$element();
-                        var containerDefined = void 0 !== this.option("container");
-                        var renderContainer = containerDefined ? this._positionController.$container : _swatch_container.default.getSwatchContainer($element);
-                        if (renderContainer && renderContainer[0] === $element.parent()[0]) {
-                            renderContainer = $element
-                        }
-                        this._$wrapper.appendTo(renderContainer)
-                    },
                     _renderGeometry: function(options) {
-                        var _this$option3 = this.option(),
-                            visible = _this$option3.visible,
-                            useResizeObserver = _this$option3.useResizeObserver;
+                        var _this$option4 = this.option(),
+                            visible = _this$option4.visible;
                         if (visible && (0, _window.hasWindow)()) {
-                            var isAnimated = this._showAnimationProcessing;
-                            var shouldRepeatAnimation = isAnimated && !(null !== options && void 0 !== options && options.forceStopAnimation) && useResizeObserver;
-                            this._isAnimationPaused = shouldRepeatAnimation || void 0;
                             this._stopAnimation();
-                            if (null !== options && void 0 !== options && options.shouldOnlyReposition) {
-                                this._positionController.positionContent()
-                            } else {
-                                this._renderGeometryImpl()
-                            }
-                            if (shouldRepeatAnimation) {
-                                this._animateShowing();
-                                this._isAnimationPaused = void 0
-                            }
-                        }
-                    },
-                    _cacheDimensions: function() {
-                        if (!this.option("useResizeObserver")) {
-                            return
-                        }
-                        this._renderedDimensions = {
-                            width: parseInt((0, _size.getWidth)(this._$content), 10),
-                            height: parseInt((0, _size.getHeight)(this._$content), 10)
+                            this._renderGeometryImpl()
                         }
                     },
                     _renderGeometryImpl: function() {
                         this._positionController.updatePosition(this._getOptionValue("position"));
                         this._renderWrapper();
                         this._renderDimensions();
-                        this._renderPosition();
-                        this._cacheDimensions()
+                        this._renderPosition()
                     },
                     _renderPosition: function() {
                         this._positionController.positionContent()
                     },
                     _isAllWindowCovered: function() {
-                        return this._positionController.isAllWindowCoveredByWrapper() && this.option("shading")
+                        return (0, _type.isWindow)(this._positionController.$visualContainer.get(0)) && this.option("shading")
                     },
                     _toggleSafariScrolling: function() {
                         var visible = this.option("visible");
@@ -36226,15 +44329,11 @@
                         this._positionController.positionWrapper()
                     },
                     _renderWrapperDimensions: function() {
-                        var wrapperWidth;
-                        var wrapperHeight;
-                        var $container = this._positionController._$wrapperCoveredElement;
-                        if (!$container) {
-                            return
-                        }
-                        var isWindow = this._positionController.isAllWindowCoveredByWrapper();
+                        var $visualContainer = this._positionController.$visualContainer;
                         var documentElement = _dom_adapter.default.getDocumentElement();
-                        wrapperWidth = isWindow ? documentElement.clientWidth : (0, _size.getOuterWidth)($container), wrapperHeight = isWindow ? window.innerHeight : (0, _size.getOuterHeight)($container);
+                        var isVisualContainerWindow = (0, _type.isWindow)($visualContainer.get(0));
+                        var wrapperWidth = isVisualContainerWindow ? documentElement.clientWidth : (0, _size.getOuterWidth)($visualContainer);
+                        var wrapperHeight = isVisualContainerWindow ? window.innerHeight : (0, _size.getOuterHeight)($visualContainer);
                         this._$wrapper.css({
                             width: wrapperWidth,
                             height: wrapperHeight
@@ -36255,9 +44354,9 @@
                         return this._$content
                     },
                     _attachKeyboardEvents: function() {
-                        var _this15 = this;
+                        var _this12 = this;
                         this._keyboardListenerId = _short.keyboard.on(this._$content, null, (function(opts) {
-                            return _this15._keyboardHandler(opts)
+                            return _this12._keyboardHandler(opts)
                         }))
                     },
                     _keyboardHandler: function(options) {
@@ -36283,12 +44382,12 @@
                         this._renderGeometry()
                     },
                     _clean: function() {
-                        if (!this._contentAlreadyRendered) {
+                        var options = this.option();
+                        if (!this._contentAlreadyRendered && !options.isRenovated) {
                             this.$content().empty()
                         }
                         this._renderVisibility(false);
                         this._stopShowTimer();
-                        this._observeContentResize(false);
                         this._cleanFocusState()
                     },
                     _stopShowTimer: function() {
@@ -36316,20 +44415,14 @@
                         this._$content.toggleClass("dx-rtl", rtl)
                     },
                     _optionChanged: function(args) {
-                        var _this$_resizable, _this16 = this;
+                        var _this13 = this;
                         var value = args.value;
-                        if ((0, _array.inArray)(args.name, ACTIONS) > -1) {
+                        if (this._getActionsList().includes(args.name)) {
                             this._initActions();
                             return
                         }
                         switch (args.name) {
-                            case "dragEnabled":
-                                this._renderDrag();
-                                this._renderGeometry();
-                                break;
-                            case "resizeEnabled":
-                                this._renderResize();
-                                this._renderGeometry();
+                            case "animation":
                                 break;
                             case "shading":
                                 this._toggleShading(this.option("visible"));
@@ -36341,7 +44434,6 @@
                             case "width":
                             case "height":
                                 this._renderGeometry();
-                                null === (_this$_resizable = this._resizable) || void 0 === _this$_resizable ? void 0 : _this$_resizable.option(args.name, args.value);
                                 break;
                             case "minWidth":
                             case "maxWidth":
@@ -36357,25 +44449,21 @@
                                 break;
                             case "visible":
                                 this._renderVisibilityAnimate(value).done((function() {
-                                    if (!_this16._animateDeferred) {
+                                    if (!_this13._animateDeferred) {
                                         return
                                     }
-                                    _this16._animateDeferred.resolveWith(_this16)
+                                    _this13._animateDeferred.resolveWith(_this13)
                                 }));
-                                break;
-                            case "target":
-                                this._positionController.updateTarget(value);
-                                this._setAnimationTarget(value);
-                                this._invalidate();
                                 break;
                             case "container":
                                 this._positionController.updateContainer(value);
                                 this._invalidate();
                                 this._toggleSafariScrolling();
-                                if (this.option("resizeEnabled")) {
-                                    var _this$_resizable2;
-                                    null === (_this$_resizable2 = this._resizable) || void 0 === _this$_resizable2 ? void 0 : _this$_resizable2.option("area", this._positionController.$dragResizeContainer)
-                                }
+                                break;
+                            case "visualContainer":
+                                this._positionController.updateVisualContainer(value);
+                                this._renderWrapper();
+                                this._toggleSafariScrolling();
                                 break;
                             case "innerOverlay":
                                 this._initInnerOverlayClass();
@@ -36395,10 +44483,8 @@
                                 this._toggleHideOnParentsScrollSubscription(this.option("visible"));
                                 break;
                             case "closeOnOutsideClick":
+                            case "hideOnOutsideClick":
                             case "propagateOutsideClick":
-                                break;
-                            case "animation":
-                                this._updateResizeCallbackSkipCondition();
                                 break;
                             case "rtlEnabled":
                                 this._contentAlreadyRendered = false;
@@ -36410,22 +44496,6 @@
                             case "wrapperAttr":
                                 this._renderWrapperAttributes();
                                 break;
-                            case "dragAndResizeArea":
-                                this._positionController.dragAndResizeArea = value;
-                                if (this.option("resizeEnabled")) {
-                                    this._resizable.option("area", this._positionController.$dragResizeContainer)
-                                }
-                                this._positionController.positionContent();
-                                break;
-                            case "dragOutsideBoundary":
-                                this._positionController.dragOutsideBoundary = value;
-                                if (this.option("resizeEnabled")) {
-                                    this._resizable.option("area", this._positionController.$dragResizeContainer)
-                                }
-                                break;
-                            case "outsideDragFactor":
-                                this._positionController.outsideDragFactor = value;
-                                break;
                             case "restorePosition":
                                 this._positionController.restorePosition = args.value;
                                 break;
@@ -36434,7 +44504,7 @@
                         }
                     },
                     toggle: function(showing) {
-                        var _this17 = this;
+                        var _this14 = this;
                         showing = void 0 === showing ? !this.option("visible") : showing;
                         var result = new _deferred.Deferred;
                         if (showing === this.option("visible")) {
@@ -36444,8 +44514,8 @@
                         this._animateDeferred = animateDeferred;
                         this.option("visible", showing);
                         animateDeferred.promise().done((function() {
-                            delete _this17._animateDeferred;
-                            result.resolveWith(_this17, [_this17.option("visible")])
+                            delete _this14._animateDeferred;
+                            result.resolveWith(_this14, [_this14.option("visible")])
                         }));
                         return result.promise()
                     },
@@ -36487,7 +44557,7 @@
               !*** ./artifacts/transpiled-renovation-npm/ui/overlay/z_index.js ***!
               \*******************************************************************/
             function(__unused_webpack_module, exports, __webpack_require__) {
-                exports.remove = exports.create = exports.clearStack = exports.base = void 0;
+                exports.remove = exports.isLastZIndexInStack = exports.create = exports.clearStack = exports.base = void 0;
                 var _common = __webpack_require__( /*! ../../core/utils/common */ 20576);
                 var baseZIndex = 1500;
                 var zIndexStack = [];
@@ -36508,574 +44578,309 @@
                         zIndexStack.splice(position, 1)
                     }
                 };
+                exports.isLastZIndexInStack = function(zIndex) {
+                    return zIndexStack.length && zIndexStack[zIndexStack.length - 1] === zIndex
+                };
                 exports.clearStack = function() {
                     zIndexStack = []
                 }
             },
-        46743:
-            /*!*************************************************************!*\
-              !*** ./artifacts/transpiled-renovation-npm/ui/resizable.js ***!
-              \*************************************************************/
-            function(module, exports, __webpack_require__) {
-                exports.default = void 0;
-                var _size = __webpack_require__( /*! ../core/utils/size */ 58664);
-                var _translator = __webpack_require__( /*! ../animation/translator */ 31648);
-                var _component_registrator = _interopRequireDefault(__webpack_require__( /*! ../core/component_registrator */ 99393));
-                var _dom_component = _interopRequireDefault(__webpack_require__( /*! ../core/dom_component */ 13046));
-                var _renderer = _interopRequireDefault(__webpack_require__( /*! ../core/renderer */ 68374));
-                var _array = __webpack_require__( /*! ../core/utils/array */ 89386);
-                var _common = __webpack_require__( /*! ../core/utils/common */ 20576);
-                var _extend = __webpack_require__( /*! ../core/utils/extend */ 13306);
-                var _iterator = __webpack_require__( /*! ../core/utils/iterator */ 95479);
-                var _math = __webpack_require__( /*! ../core/utils/math */ 60810);
-                var _type = __webpack_require__( /*! ../core/utils/type */ 35922);
-                var _window = __webpack_require__( /*! ../core/utils/window */ 58201);
-                var _events_engine = _interopRequireDefault(__webpack_require__( /*! ../events/core/events_engine */ 55994));
-                var _drag = __webpack_require__( /*! ../events/drag */ 23174);
-                var _index = __webpack_require__( /*! ../events/utils/index */ 39611);
-                var _visibility_change = __webpack_require__( /*! ../events/visibility_change */ 80506);
+        87280:
+            /*!**********************************************************************************!*\
+              !*** ./artifacts/transpiled-renovation-npm/ui/pivot_grid/ui.pivot_grid.utils.js ***!
+              \**********************************************************************************/
+            function(__unused_webpack_module, exports, __webpack_require__) {
+                exports.capitalizeFirstLetter = function(string) {
+                    return string.charAt(0).toUpperCase() + string.slice(1)
+                };
+                exports.createPath = function(items) {
+                    var result = [];
+                    for (var i = items.length - 1; i >= 0; i--) {
+                        result.push(items[i].key || items[i].value)
+                    }
+                    return result
+                };
+                exports.discoverObjectFields = function(items, fields) {
+                    var fieldsDataType = getFieldsDataType(fields);
+                    return function parseFields(dataSource, fieldsList, path, fieldsDataType) {
+                        var result = [];
+                        Object.keys(fieldsList || []).forEach((function(field) {
+                            if (field && 0 === field.indexOf("__")) {
+                                return
+                            }
+                            var dataIndex = 1;
+                            var currentPath = path.length ? path + "." + field : field;
+                            var dataType = fieldsDataType[currentPath];
+                            var getter = (0, _data.compileGetter)(currentPath);
+                            var value = fieldsList[field];
+                            var items;
+                            while (!(0, _type.isDefined)(value) && dataSource[dataIndex]) {
+                                value = getter(dataSource[dataIndex]);
+                                dataIndex++
+                            }
+                            if (!dataType && (0, _type.isDefined)(value)) {
+                                dataType = (0, _type.type)(value)
+                            }
+                            items = [{
+                                dataField: currentPath,
+                                dataType: dataType,
+                                groupName: "date" === dataType ? field : void 0,
+                                groupInterval: void 0,
+                                displayFolder: path
+                            }];
+                            if ("date" === dataType) {
+                                items = items.concat((item = items[0], (0, _iterator.map)(["year", "quarter", "month"], (function(value, index) {
+                                    return (0, _extend.extend)({}, item, {
+                                        groupInterval: value,
+                                        groupIndex: index
+                                    })
+                                }))))
+                            } else if ("object" === dataType) {
+                                items = parseFields(dataSource, value, currentPath, fieldsDataType)
+                            }
+                            var item;
+                            result.push.apply(result, items)
+                        }));
+                        return result
+                    }(items, items[0], "", fieldsDataType)
+                };
+                exports.findField = function(fields, id) {
+                    if (fields && (0, _type.isDefined)(id)) {
+                        for (var i = 0; i < fields.length; i++) {
+                            var field = fields[i];
+                            if (field.name === id || field.caption === id || field.dataField === id || field.index === id) {
+                                return i
+                            }
+                        }
+                    }
+                    return -1
+                };
+                exports.foreachDataLevel = function foreachDataLevel(data, callback, index, childrenField) {
+                    index = index || 0;
+                    childrenField = childrenField || "children";
+                    if (data.length) {
+                        callback(data, index)
+                    }
+                    for (var i = 0; i < data.length; i++) {
+                        var item = data[i];
+                        if (item[childrenField] && item[childrenField].length) {
+                            foreachDataLevel(item[childrenField], callback, index + 1, childrenField)
+                        }
+                    }
+                };
+                exports.foreachTreeAsync = exports.foreachTree = void 0;
+                exports.formatValue = function(value, options) {
+                    var valueText = value === value && _format_helper.default.format(value, options.format);
+                    var formatObject = {
+                        value: value,
+                        valueText: valueText || ""
+                    };
+                    return options.customizeText ? options.customizeText.call(options, formatObject) : formatObject.valueText
+                };
+                exports.getCompareFunction = function(valueSelector) {
+                    return function(a, b) {
+                        var result = 0;
+                        var valueA = valueSelector(a);
+                        var valueB = valueSelector(b);
+                        var aIsDefined = (0, _type.isDefined)(valueA);
+                        var bIsDefined = (0, _type.isDefined)(valueB);
+                        if (aIsDefined && bIsDefined) {
+                            if (valueA > valueB) {
+                                result = 1
+                            } else if (valueA < valueB) {
+                                result = -1
+                            }
+                        }
+                        if (aIsDefined && !bIsDefined) {
+                            result = 1
+                        }
+                        if (!aIsDefined && bIsDefined) {
+                            result = -1
+                        }
+                        return result
+                    }
+                };
+                exports.getExpandedLevel = function(options, axisName) {
+                    var dimensions = options[axisName];
+                    var expandLevel = 0;
+                    var expandedPaths = ("columns" === axisName ? options.columnExpandedPaths : options.rowExpandedPaths) || [];
+                    if (options.headerName === axisName) {
+                        expandLevel = options.path.length
+                    } else if (options.headerName && options.headerName !== axisName && options.oppositePath) {
+                        expandLevel = options.oppositePath.length
+                    } else {
+                        (0, _iterator.each)(expandedPaths, (function(_, path) {
+                            expandLevel = Math.max(expandLevel, path.length)
+                        }))
+                    }
+                    while (dimensions[expandLevel + 1] && dimensions[expandLevel].expanded) {
+                        expandLevel++
+                    }
+                    return expandLevel
+                };
+                exports.getFieldsDataType = getFieldsDataType;
+                exports.getFiltersByPath = function(fields, path) {
+                    var result = [];
+                    path = path || [];
+                    for (var i = 0; i < path.length; i++) {
+                        result.push((0, _extend.extend)({}, fields[i], {
+                            groupIndex: null,
+                            groupName: null,
+                            filterType: "include",
+                            filterValues: [path[i]]
+                        }))
+                    }
+                    return result
+                };
+                exports.mergeArraysByMaxValue = function(values1, values2) {
+                    var result = [];
+                    for (var i = 0; i < values1.length; i++) {
+                        result.push(Math.max(values1[i] || 0, values2[i] || 0))
+                    }
+                    return result
+                };
+                exports.sendRequest = function(options) {
+                    return _ajax.default.sendRequest(options)
+                };
+                exports.setDefaultFieldValueFormatting = function(field) {
+                    if ("date" === field.dataType) {
+                        if (!field.format) {
+                            setFieldProperty(field, "format", DATE_INTERVAL_FORMATS[field.groupInterval])
+                        }
+                    } else if ("number" === field.dataType) {
+                        var groupInterval = (0, _type.isNumeric)(field.groupInterval) && field.groupInterval > 0 && field.groupInterval;
+                        if (groupInterval && !field.customizeText) {
+                            setFieldProperty(field, "customizeText", (function(formatObject) {
+                                var secondValue = formatObject.value + groupInterval;
+                                var secondValueText = _format_helper.default.format(secondValue, field.format);
+                                return formatObject.valueText && secondValueText ? formatObject.valueText + " - " + secondValueText : ""
+                            }))
+                        }
+                    }
+                };
+                exports.storeDrillDownMixin = exports.setFieldProperty = void 0;
+                var _type = __webpack_require__( /*! ../../core/utils/type */ 35922);
+                var _ajax = _interopRequireDefault(__webpack_require__( /*! ../../core/utils/ajax */ 37208));
+                var _data = __webpack_require__( /*! ../../core/utils/data */ 47617);
+                var _iterator = __webpack_require__( /*! ../../core/utils/iterator */ 95479);
+                var _extend = __webpack_require__( /*! ../../core/utils/extend */ 13306);
+                var _date = _interopRequireDefault(__webpack_require__( /*! ../../localization/date */ 91500));
+                var _format_helper = _interopRequireDefault(__webpack_require__( /*! ../../format_helper */ 30343));
+                var _data_source = __webpack_require__( /*! ../../data/data_source/data_source */ 85273);
+                var _array_store = _interopRequireDefault(__webpack_require__( /*! ../../data/array_store */ 26562));
+                var _deferred = __webpack_require__( /*! ../../core/utils/deferred */ 62754);
 
                 function _interopRequireDefault(obj) {
                     return obj && obj.__esModule ? obj : {
                         default: obj
                     }
                 }
+                var setFieldProperty = function(field, property, value, isInitialization) {
+                    var initProperties = field._initProperties = field._initProperties || {};
+                    var initValue = isInitialization ? value : field[property];
+                    if (!Object.prototype.hasOwnProperty.call(initProperties, property) || isInitialization) {
+                        initProperties[property] = initValue
+                    }
+                    field[property] = value
+                };
+                exports.setFieldProperty = setFieldProperty;
+                var foreachTreeAsyncDate = new Date;
 
-                function _extends() {
-                    _extends = Object.assign || function(target) {
-                        for (var i = 1; i < arguments.length; i++) {
-                            var source = arguments[i];
-                            for (var key in source) {
-                                if (Object.prototype.hasOwnProperty.call(source, key)) {
-                                    target[key] = source[key]
+                function createForeachTreeFunc(isAsync) {
+                    return function foreachTreeFunc(items, callback, parentAtFirst, members, index, isChildrenProcessing) {
+                        members = members || [];
+                        items = items || [];
+                        var i;
+                        var deferred;
+                        index = index || 0;
+
+                        function createForeachTreeAsyncHandler(deferred, i, isChildrenProcessing) {
+                            (0, _deferred.when)(foreachTreeFunc(items, callback, parentAtFirst, members, i, isChildrenProcessing)).done(deferred.resolve)
+                        }
+                        for (i = index; i < items.length; i++) {
+                            if (isAsync && i > index && i % 1e4 === 0 && new Date - foreachTreeAsyncDate >= 300) {
+                                foreachTreeAsyncDate = new Date;
+                                deferred = new _deferred.Deferred;
+                                setTimeout(createForeachTreeAsyncHandler(deferred, i, false), 0);
+                                return deferred
+                            }
+                            var item = items[i];
+                            if (!isChildrenProcessing) {
+                                members.unshift(item);
+                                if (parentAtFirst && false === callback(members, i)) {
+                                    return
+                                }
+                                if (item.children) {
+                                    var childrenDeferred = foreachTreeFunc(item.children, callback, parentAtFirst, members);
+                                    if (isAsync && childrenDeferred) {
+                                        deferred = new _deferred.Deferred;
+                                        childrenDeferred.done(createForeachTreeAsyncHandler(deferred, i, true));
+                                        return deferred
+                                    }
                                 }
                             }
-                        }
-                        return target
-                    };
-                    return _extends.apply(this, arguments)
-                }
-                var DRAGSTART_START_EVENT_NAME = (0, _index.addNamespace)(_drag.start, "dxResizable");
-                var DRAGSTART_EVENT_NAME = (0, _index.addNamespace)(_drag.move, "dxResizable");
-                var DRAGSTART_END_EVENT_NAME = (0, _index.addNamespace)(_drag.end, "dxResizable");
-                var SIDE_BORDER_WIDTH_STYLES = {
-                    left: "borderLeftWidth",
-                    top: "borderTopWidth",
-                    right: "borderRightWidth",
-                    bottom: "borderBottomWidth"
-                };
-                var Resizable = _dom_component.default.inherit({
-                    _getDefaultOptions: function() {
-                        return (0, _extend.extend)(this.callBase(), {
-                            handles: "all",
-                            step: "1",
-                            stepPrecision: "simple",
-                            area: void 0,
-                            minWidth: 30,
-                            maxWidth: 1 / 0,
-                            minHeight: 30,
-                            maxHeight: 1 / 0,
-                            onResizeStart: null,
-                            onResize: null,
-                            onResizeEnd: null,
-                            roundStepValue: true,
-                            _keepAspectRatio: false
-                        })
-                    },
-                    _init: function() {
-                        this.callBase();
-                        this.$element().addClass("dx-resizable")
-                    },
-                    _initMarkup: function() {
-                        this.callBase();
-                        this._renderHandles()
-                    },
-                    _render: function() {
-                        this.callBase();
-                        this._renderActions()
-                    },
-                    _renderActions: function() {
-                        this._resizeStartAction = this._createActionByOption("onResizeStart");
-                        this._resizeEndAction = this._createActionByOption("onResizeEnd");
-                        this._resizeAction = this._createActionByOption("onResize")
-                    },
-                    _renderHandles: function() {
-                        var _this = this;
-                        this._handles = [];
-                        var handles = this.option("handles");
-                        if ("none" === handles) {
-                            return
-                        }
-                        var directions = "all" === handles ? ["top", "bottom", "left", "right"] : handles.split(" ");
-                        (0, _iterator.each)(directions, (function(index, handleName) {
-                            _this._renderHandle(handleName)
-                        }));
-                        (0, _array.inArray)("bottom", directions) + 1 && (0, _array.inArray)("right", directions) + 1 && this._renderHandle("corner-bottom-right");
-                        (0, _array.inArray)("bottom", directions) + 1 && (0, _array.inArray)("left", directions) + 1 && this._renderHandle("corner-bottom-left");
-                        (0, _array.inArray)("top", directions) + 1 && (0, _array.inArray)("right", directions) + 1 && this._renderHandle("corner-top-right");
-                        (0, _array.inArray)("top", directions) + 1 && (0, _array.inArray)("left", directions) + 1 && this._renderHandle("corner-top-left");
-                        this._attachEventHandlers()
-                    },
-                    _renderHandle: function(handleName) {
-                        var $handle = (0, _renderer.default)("<div>").addClass("dx-resizable-handle").addClass("dx-resizable-handle-" + handleName).appendTo(this.$element());
-                        this._handles.push($handle)
-                    },
-                    _attachEventHandlers: function() {
-                        if (this.option("disabled")) {
-                            return
-                        }
-                        var handlers = {};
-                        handlers[DRAGSTART_START_EVENT_NAME] = this._dragStartHandler.bind(this);
-                        handlers[DRAGSTART_EVENT_NAME] = this._dragHandler.bind(this);
-                        handlers[DRAGSTART_END_EVENT_NAME] = this._dragEndHandler.bind(this);
-                        this._handles.forEach((function(handleElement) {
-                            _events_engine.default.on(handleElement, handlers, {
-                                direction: "both",
-                                immediate: true
-                            })
-                        }))
-                    },
-                    _detachEventHandlers: function() {
-                        this._handles.forEach((function(handleElement) {
-                            _events_engine.default.off(handleElement)
-                        }))
-                    },
-                    _toggleEventHandlers: function(shouldAttachEvents) {
-                        shouldAttachEvents ? this._attachEventHandlers() : this._detachEventHandlers()
-                    },
-                    _getElementSize: function() {
-                        var $element = this.$element();
-                        return "border-box" === $element.css("boxSizing") ? {
-                            width: (0, _size.getOuterWidth)($element),
-                            height: (0, _size.getOuterHeight)($element)
-                        } : {
-                            width: (0, _size.getWidth)($element),
-                            height: (0, _size.getHeight)($element)
-                        }
-                    },
-                    _dragStartHandler: function(e) {
-                        var $element = this.$element();
-                        if ($element.is(".dx-state-disabled, .dx-state-disabled *")) {
-                            e.cancel = true;
-                            return
-                        }
-                        this._toggleResizingClass(true);
-                        this._movingSides = this._getMovingSides(e);
-                        this._elementLocation = (0, _translator.locate)($element);
-                        this._elementSize = this._getElementSize();
-                        this._renderDragOffsets(e);
-                        this._resizeStartAction({
-                            event: e,
-                            width: this._elementSize.width,
-                            height: this._elementSize.height,
-                            handles: this._movingSides
-                        });
-                        e.targetElements = null
-                    },
-                    _toggleResizingClass: function(value) {
-                        this.$element().toggleClass("dx-resizable-resizing", value)
-                    },
-                    _renderDragOffsets: function(e) {
-                        var area = this._getArea();
-                        if (!area) {
-                            return
-                        }
-                        var $handle = (0, _renderer.default)(e.target).closest(".dx-resizable-handle");
-                        var handleWidth = (0, _size.getOuterWidth)($handle);
-                        var handleHeight = (0, _size.getOuterHeight)($handle);
-                        var handleOffset = $handle.offset();
-                        var areaOffset = area.offset;
-                        var scrollOffset = this._getAreaScrollOffset();
-                        e.maxLeftOffset = this._leftMaxOffset = handleOffset.left - areaOffset.left - scrollOffset.scrollX;
-                        e.maxRightOffset = this._rightMaxOffset = areaOffset.left + area.width - handleOffset.left - handleWidth + scrollOffset.scrollX;
-                        e.maxTopOffset = this._topMaxOffset = handleOffset.top - areaOffset.top - scrollOffset.scrollY;
-                        e.maxBottomOffset = this._bottomMaxOffset = areaOffset.top + area.height - handleOffset.top - handleHeight + scrollOffset.scrollY
-                    },
-                    _getBorderWidth: function($element, direction) {
-                        if ((0, _type.isWindow)($element.get(0))) {
-                            return 0
-                        }
-                        var borderWidth = $element.css(SIDE_BORDER_WIDTH_STYLES[direction]);
-                        return parseInt(borderWidth) || 0
-                    },
-                    _proportionate: function(direction, value) {
-                        var size = this._elementSize;
-                        var factor = "x" === direction ? size.width / size.height : size.height / size.width;
-                        return value * factor
-                    },
-                    _getProportionalDelta: function(_ref) {
-                        var x = _ref.x,
-                            y = _ref.y;
-                        var proportionalY = this._proportionate("y", x);
-                        if (proportionalY >= y) {
-                            return {
-                                x: x,
-                                y: proportionalY
+                            isChildrenProcessing = false;
+                            if (!parentAtFirst && false === callback(members, i)) {
+                                return
+                            }
+                            members.shift();
+                            if (items[i] !== item) {
+                                i--
                             }
                         }
-                        var proportionalX = this._proportionate("x", y);
-                        if (proportionalX >= x) {
-                            return {
-                                x: proportionalX,
-                                y: y
-                            }
-                        }
-                        return {
-                            x: 0,
-                            y: 0
-                        }
-                    },
-                    _getDirectionName: function(axis) {
-                        var sides = this._movingSides;
-                        if ("x" === axis) {
-                            return sides.left ? "left" : "right"
-                        } else {
-                            return sides.top ? "top" : "bottom"
-                        }
-                    },
-                    _fitIntoArea: function(axis, value) {
-                        var _this$;
-                        var directionName = this._getDirectionName(axis);
-                        return Math.min(value, null !== (_this$ = this["_".concat(directionName, "MaxOffset")]) && void 0 !== _this$ ? _this$ : 1 / 0)
-                    },
-                    _fitDeltaProportionally: function(delta) {
-                        var _this2 = this;
-                        var fittedDelta = _extends({}, delta);
-                        var size = this._elementSize;
-                        var _this$option = this.option(),
-                            minWidth = _this$option.minWidth,
-                            minHeight = _this$option.minHeight,
-                            maxWidth = _this$option.maxWidth,
-                            maxHeight = _this$option.maxHeight;
-                        var getWidth = function() {
-                            return size.width + fittedDelta.x
-                        };
-                        var getHeight = function() {
-                            return size.height + fittedDelta.y
-                        };
-                        var isInArea = function(axis) {
-                            return fittedDelta[axis] === _this2._fitIntoArea(axis, fittedDelta[axis])
-                        };
-                        var isFittedX = function() {
-                            return (0, _math.inRange)(getWidth(), minWidth, maxWidth) && isInArea("x")
-                        };
-                        var isFittedY = function() {
-                            return (0, _math.inRange)(getHeight(), minHeight, maxHeight) && isInArea("y")
-                        };
-                        if (!isFittedX()) {
-                            var x = this._fitIntoArea("x", (0, _math.fitIntoRange)(getWidth(), minWidth, maxWidth) - size.width);
-                            fittedDelta = {
-                                x: x,
-                                y: this._proportionate("y", x)
-                            }
-                        }
-                        if (!isFittedY()) {
-                            var y = this._fitIntoArea("y", (0, _math.fitIntoRange)(getHeight(), minHeight, maxHeight) - size.height);
-                            fittedDelta = {
-                                x: this._proportionate("x", y),
-                                y: y
-                            }
-                        }
-                        return isFittedX() && isFittedY() ? fittedDelta : {
-                            x: 0,
-                            y: 0
-                        }
-                    },
-                    _fitDelta: function(_ref2) {
-                        var x = _ref2.x,
-                            y = _ref2.y;
-                        var size = this._elementSize;
-                        var _this$option2 = this.option(),
-                            minWidth = _this$option2.minWidth,
-                            minHeight = _this$option2.minHeight,
-                            maxWidth = _this$option2.maxWidth,
-                            maxHeight = _this$option2.maxHeight;
-                        return {
-                            x: (0, _math.fitIntoRange)(size.width + x, minWidth, maxWidth) - size.width,
-                            y: (0, _math.fitIntoRange)(size.height + y, minHeight, maxHeight) - size.height
-                        }
-                    },
-                    _getDeltaByOffset: function(offset) {
-                        var sides = this._movingSides;
-                        var shouldKeepAspectRatio = this._isCornerHandler(sides) && this.option("_keepAspectRatio");
-                        var delta = {
-                            x: offset.x * (sides.left ? -1 : 1),
-                            y: offset.y * (sides.top ? -1 : 1)
-                        };
-                        if (shouldKeepAspectRatio) {
-                            var proportionalDelta = this._getProportionalDelta(delta);
-                            var fittedProportionalDelta = this._fitDeltaProportionally(proportionalDelta);
-                            delta = fittedProportionalDelta
-                        } else {
-                            var fittedDelta = this._fitDelta(delta);
-                            var roundedFittedDelta = this._roundByStep(fittedDelta);
-                            delta = roundedFittedDelta
-                        }
-                        return delta
-                    },
-                    _updatePosition: function(delta, _ref3) {
-                        var width = _ref3.width,
-                            height = _ref3.height;
-                        var location = this._elementLocation;
-                        var sides = this._movingSides;
-                        var $element = this.$element();
-                        var elementRect = this._getElementSize();
-                        var offsetTop = delta.y * (sides.top ? -1 : 1) - ((elementRect.height || height) - height);
-                        var offsetLeft = delta.x * (sides.left ? -1 : 1) - ((elementRect.width || width) - width);
-                        (0, _translator.move)($element, {
-                            top: location.top + (sides.top ? offsetTop : 0),
-                            left: location.left + (sides.left ? offsetLeft : 0)
-                        })
-                    },
-                    _dragHandler: function(e) {
-                        var offset = this._getOffset(e);
-                        var delta = this._getDeltaByOffset(offset);
-                        var dimensions = this._updateDimensions(delta);
-                        this._updatePosition(delta, dimensions);
-                        this._triggerResizeAction(e, dimensions)
-                    },
-                    _updateDimensions: function(delta) {
-                        var isAbsoluteSize = function(size) {
-                            return "px" === size.substring(size.length - 2)
-                        };
-                        var isStepPrecisionStrict = "strict" === this.option("stepPrecision");
-                        var size = this._elementSize;
-                        var width = size.width + delta.x;
-                        var height = size.height + delta.y;
-                        var elementStyle = this.$element().get(0).style;
-                        var shouldRenderWidth = delta.x || isStepPrecisionStrict || isAbsoluteSize(elementStyle.width);
-                        var shouldRenderHeight = delta.y || isStepPrecisionStrict || isAbsoluteSize(elementStyle.height);
-                        if (shouldRenderWidth) {
-                            this.option({
-                                width: width
-                            })
-                        }
-                        if (shouldRenderHeight) {
-                            this.option({
-                                height: height
-                            })
-                        }
-                        return {
-                            width: shouldRenderWidth ? width : size.width,
-                            height: shouldRenderHeight ? height : size.height
-                        }
-                    },
-                    _triggerResizeAction: function(e, _ref4) {
-                        var width = _ref4.width,
-                            height = _ref4.height;
-                        this._resizeAction({
-                            event: e,
-                            width: this.option("width") || width,
-                            height: this.option("height") || height,
-                            handles: this._movingSides
-                        });
-                        (0, _visibility_change.triggerResizeEvent)(this.$element())
-                    },
-                    _isCornerHandler: function(sides) {
-                        return 0 === Object.values(sides).reduce((function(xor, value) {
-                            return xor ^ value
-                        }), 0)
-                    },
-                    _getOffset: function(e) {
-                        var offset = e.offset;
-                        var sides = this._movingSides;
-                        if (!sides.left && !sides.right) {
-                            offset.x = 0
-                        }
-                        if (!sides.top && !sides.bottom) {
-                            offset.y = 0
-                        }
-                        return offset
-                    },
-                    _roundByStep: function(delta) {
-                        return "strict" === this.option("stepPrecision") ? this._roundStrict(delta) : this._roundNotStrict(delta)
-                    },
-                    _getSteps: function() {
-                        return (0, _common.pairToObject)(this.option("step"), !this.option("roundStepValue"))
-                    },
-                    _roundNotStrict: function(delta) {
-                        var steps = this._getSteps();
-                        return {
-                            x: delta.x - delta.x % steps.h,
-                            y: delta.y - delta.y % steps.v
-                        }
-                    },
-                    _roundStrict: function(delta) {
-                        var sides = this._movingSides;
-                        var offset = {
-                            x: delta.x * (sides.left ? -1 : 1),
-                            y: delta.y * (sides.top ? -1 : 1)
-                        };
-                        var steps = this._getSteps();
-                        var location = this._elementLocation;
-                        var size = this._elementSize;
-                        var xPos = sides.left ? location.left : location.left + size.width;
-                        var yPos = sides.top ? location.top : location.top + size.height;
-                        var newXShift = (xPos + offset.x) % steps.h;
-                        var newYShift = (yPos + offset.y) % steps.v;
-                        var sign = Math.sign || function(x) {
-                            x = +x;
-                            if (0 === x || isNaN(x)) {
-                                return x
-                            }
-                            return x > 0 ? 1 : -1
-                        };
-                        var separatorOffset = function(steps, offset) {
-                            return (1 + .2 * sign(offset)) % 1 * steps
-                        };
-                        var isSmallOffset = function(offset, steps) {
-                            return Math.abs(offset) < .2 * steps
-                        };
-                        var newOffsetX = offset.x - newXShift;
-                        var newOffsetY = offset.y - newYShift;
-                        if (newXShift > separatorOffset(steps.h, offset.x)) {
-                            newOffsetX += steps.h
-                        }
-                        if (newYShift > separatorOffset(steps.v, offset.y)) {
-                            newOffsetY += steps.v
-                        }
-                        var roundedOffset_x = (sides.left || sides.right) && !isSmallOffset(offset.x, steps.h) ? newOffsetX : 0,
-                            roundedOffset_y = (sides.top || sides.bottom) && !isSmallOffset(offset.y, steps.v) ? newOffsetY : 0;
-                        return {
-                            x: roundedOffset_x * (sides.left ? -1 : 1),
-                            y: roundedOffset_y * (sides.top ? -1 : 1)
-                        }
-                    },
-                    _getMovingSides: function(e) {
-                        var $target = (0, _renderer.default)(e.target);
-                        var hasCornerTopLeftClass = $target.hasClass("dx-resizable-handle-corner-top-left");
-                        var hasCornerTopRightClass = $target.hasClass("dx-resizable-handle-corner-top-right");
-                        var hasCornerBottomLeftClass = $target.hasClass("dx-resizable-handle-corner-bottom-left");
-                        var hasCornerBottomRightClass = $target.hasClass("dx-resizable-handle-corner-bottom-right");
-                        return {
-                            top: $target.hasClass("dx-resizable-handle-top") || hasCornerTopLeftClass || hasCornerTopRightClass,
-                            left: $target.hasClass("dx-resizable-handle-left") || hasCornerTopLeftClass || hasCornerBottomLeftClass,
-                            bottom: $target.hasClass("dx-resizable-handle-bottom") || hasCornerBottomLeftClass || hasCornerBottomRightClass,
-                            right: $target.hasClass("dx-resizable-handle-right") || hasCornerTopRightClass || hasCornerBottomRightClass
-                        }
-                    },
-                    _getArea: function() {
-                        var area = this.option("area");
-                        if ((0, _type.isFunction)(area)) {
-                            area = area.call(this)
-                        }
-                        if ((0, _type.isPlainObject)(area)) {
-                            return this._getAreaFromObject(area)
-                        }
-                        return this._getAreaFromElement(area)
-                    },
-                    _getAreaScrollOffset: function() {
-                        var area = this.option("area");
-                        var isElement = !(0, _type.isFunction)(area) && !(0, _type.isPlainObject)(area);
-                        var scrollOffset = {
-                            scrollY: 0,
-                            scrollX: 0
-                        };
-                        if (isElement) {
-                            var areaElement = (0, _renderer.default)(area)[0];
-                            if ((0, _type.isWindow)(areaElement)) {
-                                scrollOffset.scrollX = areaElement.pageXOffset;
-                                scrollOffset.scrollY = areaElement.pageYOffset
-                            }
-                        }
-                        return scrollOffset
-                    },
-                    _getAreaFromObject: function(area) {
-                        var result = {
-                            width: area.right - area.left,
-                            height: area.bottom - area.top,
-                            offset: {
-                                left: area.left,
-                                top: area.top
-                            }
-                        };
-                        this._correctAreaGeometry(result);
-                        return result
-                    },
-                    _getAreaFromElement: function(area) {
-                        var $area = (0, _renderer.default)(area);
-                        var result;
-                        if ($area.length) {
-                            result = {
-                                width: (0, _size.getInnerWidth)($area),
-                                height: (0, _size.getInnerHeight)($area),
-                                offset: (0, _extend.extend)({
-                                    top: 0,
-                                    left: 0
-                                }, (0, _type.isWindow)($area[0]) ? {} : $area.offset())
-                            };
-                            this._correctAreaGeometry(result, $area)
-                        }
-                        return result
-                    },
-                    _correctAreaGeometry: function(result, $area) {
-                        var areaBorderLeft = $area ? this._getBorderWidth($area, "left") : 0;
-                        var areaBorderTop = $area ? this._getBorderWidth($area, "top") : 0;
-                        result.offset.left += areaBorderLeft + this._getBorderWidth(this.$element(), "left");
-                        result.offset.top += areaBorderTop + this._getBorderWidth(this.$element(), "top");
-                        result.width -= (0, _size.getOuterWidth)(this.$element()) - (0, _size.getInnerWidth)(this.$element());
-                        result.height -= (0, _size.getOuterHeight)(this.$element()) - (0, _size.getInnerHeight)(this.$element())
-                    },
-                    _dragEndHandler: function(e) {
-                        var $element = this.$element();
-                        this._resizeEndAction({
-                            event: e,
-                            width: (0, _size.getOuterWidth)($element),
-                            height: (0, _size.getOuterHeight)($element),
-                            handles: this._movingSides
-                        });
-                        this._toggleResizingClass(false)
-                    },
-                    _renderWidth: function(width) {
-                        this.option("width", (0, _math.fitIntoRange)(width, this.option("minWidth"), this.option("maxWidth")))
-                    },
-                    _renderHeight: function(height) {
-                        this.option("height", (0, _math.fitIntoRange)(height, this.option("minHeight"), this.option("maxHeight")))
-                    },
-                    _optionChanged: function(args) {
-                        switch (args.name) {
-                            case "disabled":
-                                this._toggleEventHandlers(!args.value);
-                                this.callBase(args);
-                                break;
-                            case "handles":
-                                this._invalidate();
-                                break;
-                            case "minWidth":
-                            case "maxWidth":
-                                (0, _window.hasWindow)() && this._renderWidth((0, _size.getOuterWidth)(this.$element()));
-                                break;
-                            case "minHeight":
-                            case "maxHeight":
-                                (0, _window.hasWindow)() && this._renderHeight((0, _size.getOuterHeight)(this.$element()));
-                                break;
-                            case "onResize":
-                            case "onResizeStart":
-                            case "onResizeEnd":
-                                this._renderActions();
-                                break;
-                            case "area":
-                            case "stepPrecision":
-                            case "step":
-                            case "roundStepValue":
-                            case "_keepAspectRatio":
-                                break;
-                            default:
-                                this.callBase(args)
-                        }
-                    },
-                    _clean: function() {
-                        this.$element().find(".dx-resizable-handle").remove()
-                    },
-                    _useTemplates: function() {
-                        return false
                     }
-                });
-                (0, _component_registrator.default)("dxResizable", Resizable);
-                var _default = Resizable;
-                exports.default = _default;
-                module.exports = exports.default;
-                module.exports.default = exports.default
+                }
+                var foreachTree = createForeachTreeFunc(false);
+                exports.foreachTree = foreachTree;
+                var foreachTreeAsync = createForeachTreeFunc(true);
+                exports.foreachTreeAsync = foreachTreeAsync;
+
+                function getFieldsDataType(fields) {
+                    var result = {};
+                    (0, _iterator.each)(fields, (function(_, field) {
+                        result[field.dataField] = result[field.dataField] || field.dataType
+                    }));
+                    return result
+                }
+                var DATE_INTERVAL_FORMATS = {
+                    month: function(value) {
+                        return _date.default.getMonthNames()[value - 1]
+                    },
+                    quarter: function(value) {
+                        return _date.default.format(new Date(2e3, 3 * value - 1), "quarter")
+                    },
+                    dayOfWeek: function(value) {
+                        return _date.default.getDayNames()[value]
+                    }
+                };
+                var storeDrillDownMixin = {
+                    createDrillDownDataSource: function(descriptions, params) {
+                        var items = this.getDrillDownItems(descriptions, params);
+
+                        function createCustomStoreMethod(methodName) {
+                            return function(options) {
+                                var d;
+                                if (void 0) {
+                                    d = (void 0)[methodName](options)
+                                } else {
+                                    d = new _deferred.Deferred;
+                                    (0, _deferred.when)(items).done((function(data) {
+                                        var arrayStore = new _array_store.default(data);
+                                        arrayStore[methodName](options).done(d.resolve).fail(d.reject)
+                                    })).fail(d.reject)
+                                }
+                                return d
+                            }
+                        }
+                        var dataSource = new _data_source.DataSource({
+                            load: createCustomStoreMethod("load"),
+                            totalCount: createCustomStoreMethod("totalCount"),
+                            key: this.key()
+                        });
+                        return dataSource
+                    }
+                };
+                exports.storeDrillDownMixin = storeDrillDownMixin
             },
         26983:
             /*!*************************************************************************!*\
@@ -40406,6 +48211,10 @@
                     var endDayDate = new Date(new Date(date).setHours(23, 59, 59, 0));
                     return startDayDate.getTimezoneOffset() - endDayDate.getTimezoneOffset() !== 0
                 };
+                var getClientTimezoneOffset = function() {
+                    var date = arguments.length > 0 && void 0 !== arguments[0] ? arguments[0] : new Date;
+                    return 6e4 * date.getTimezoneOffset()
+                };
                 var hasDSTInLocalTimeZone = function() {
                     var _getExtremeDates = getExtremeDates(),
                         _getExtremeDates2 = _slicedToArray(_getExtremeDates, 2),
@@ -40488,9 +48297,11 @@
                         }
                         return new Date(exception.getTime() + (isBackConversion ? -1 : 1) * timezoneOffset * toMs("hour"))
                     },
-                    getClientTimezoneOffset: function() {
-                        var date = arguments.length > 0 && void 0 !== arguments[0] ? arguments[0] : new Date;
-                        return 6e4 * date.getTimezoneOffset()
+                    getClientTimezoneOffset: getClientTimezoneOffset,
+                    getDiffBetweenClientTimezoneOffsets: function() {
+                        var firstDate = arguments.length > 0 && void 0 !== arguments[0] ? arguments[0] : new Date;
+                        var secondDate = arguments.length > 1 && void 0 !== arguments[1] ? arguments[1] : new Date;
+                        return getClientTimezoneOffset(firstDate) - getClientTimezoneOffset(secondDate)
                     },
                     createUTCDateWithLocalOffset: function(date) {
                         if (!date) {
@@ -40531,6 +48342,12 @@
                         var date = arguments.length > 0 && void 0 !== arguments[0] ? arguments[0] : new Date;
                         var dateInUTC = createUTCDate(date);
                         return _utils.default.getDisplayedTimeZones(dateInUTC.getTime())
+                    },
+                    setOffsetsToDate: function(targetDate, offsetsArray) {
+                        var newDateMs = offsetsArray.reduce((function(result, offset) {
+                            return result + offset
+                        }), targetDate.getTime());
+                        return new Date(newDateMs)
                     }
                 };
                 var _default = utils;
@@ -40715,12 +48532,19 @@
                         var allowLoadByRange = null === (_this$options$allowLo = (_this$options = this.options).allowLoadByRange) || void 0 === _this$options$allowLo ? void 0 : _this$options$allowLo.call(_this$options);
                         var indexOffset;
                         var focusedItemNotInLoadedRange = false;
+                        var shiftFocusedItemNotInLoadedRange = false;
+                        var itemIsNotInLoadedRange = function(index) {
+                            return index >= 0 && !items.filter((function(it) {
+                                return it.loadIndex === index
+                            })).length
+                        };
                         if (allowLoadByRange) {
                             indexOffset = item.loadIndex - itemIndex;
                             itemIndex = item.loadIndex;
-                            focusedItemNotInLoadedRange = this._focusedItemIndex >= 0 && !items.filter((function(it) {
-                                return it.loadIndex === _this._focusedItemIndex
-                            })).length
+                            focusedItemNotInLoadedRange = itemIsNotInLoadedRange(this._focusedItemIndex);
+                            if ((0, _type.isDefined)(this._shiftFocusedItemIndex)) {
+                                shiftFocusedItemNotInLoadedRange = itemIsNotInLoadedRange(this._shiftFocusedItemIndex)
+                            }
                         }
                         if (!this.isSelectable() || !this.isDataItem(item)) {
                             return false
@@ -40729,7 +48553,7 @@
                         var itemKey = this.options.keyOf(itemData);
                         keys = keys || {};
                         if (keys.shift && "multiple" === this.options.mode && this._focusedItemIndex >= 0) {
-                            if (focusedItemNotInLoadedRange) {
+                            if (focusedItemNotInLoadedRange || shiftFocusedItemNotInLoadedRange) {
                                 isSelectedItemsChanged = itemIndex !== this._shiftFocusedItemIndex || this._focusedItemIndex !== this._shiftFocusedItemIndex;
                                 if (isSelectedItemsChanged) {
                                     deferred = this.changeItemSelectionWhenShiftKeyInVirtualPaging(itemIndex)
@@ -41529,7 +49353,7 @@
                         if (this._isMultiSelectEnabled() && this._shouldMergeWithLastRequest && !isDeselect && !isSelectAll) {
                             var _this$_lastRequestDat, _this$_lastRequestDat2;
                             currentKeys = (0, _array.removeDuplicates)(keys.concat(null === (_this$_lastRequestDat = this._lastRequestData) || void 0 === _this$_lastRequestDat ? void 0 : _this$_lastRequestDat.addedItems), null === (_this$_lastRequestDat2 = this._lastRequestData) || void 0 === _this$_lastRequestDat2 ? void 0 : _this$_lastRequestDat2.removedItems);
-                            currentKeys = (0, _array.uniqueValues)(currentKeys)
+                            currentKeys = (0, _array.getUniqueValues)(currentKeys)
                         }
                         return currentKeys
                     },
@@ -41728,7 +49552,6 @@
             function(module, exports, __webpack_require__) {
                 exports.default = void 0;
                 var _type = __webpack_require__( /*! ../../core/utils/type */ 35922);
-                var _array = __webpack_require__( /*! ../../core/utils/array */ 89386);
                 var _iterator = __webpack_require__( /*! ../../core/utils/iterator */ 95479);
                 var DEFAULT_DATE_INTERVAL = ["year", "month", "day"];
                 var DEFAULT_DATETIME_INTERVAL = ["year", "month", "day", "hour", "minute"];
@@ -41743,7 +49566,7 @@
                     var interval = "quarter" === groupInterval ? "month" : groupInterval;
                     if (isDateType(column.dataType) && null !== groupInterval) {
                         result = "datetime" === column.dataType ? DEFAULT_DATETIME_INTERVAL : DEFAULT_DATE_INTERVAL;
-                        index = (0, _array.inArray)(interval, dateIntervals);
+                        index = dateIntervals.indexOf(interval);
                         if (index >= 0) {
                             result = dateIntervals.slice(0, index);
                             result.push(groupInterval);
@@ -41913,7 +49736,6 @@
                 var _size = __webpack_require__( /*! ../core/utils/size */ 58664);
                 var _devices = _interopRequireDefault(__webpack_require__( /*! ../core/devices */ 20530));
                 var _dom_adapter = _interopRequireDefault(__webpack_require__( /*! ../core/dom_adapter */ 73349));
-                var _promise = _interopRequireDefault(__webpack_require__( /*! ../core/polyfills/promise */ 48136));
                 var _renderer = _interopRequireDefault(__webpack_require__( /*! ../core/renderer */ 68374));
                 var _deferred = __webpack_require__( /*! ../core/utils/deferred */ 62754);
                 var _html_parser = __webpack_require__( /*! ../core/utils/html_parser */ 61371);
@@ -42204,7 +50026,7 @@
                 }
 
                 function waitWebFont(text, fontWeight) {
-                    return new _promise.default((function(resolve) {
+                    return new Promise((function(resolve) {
                         var clear = function() {
                             clearInterval(intervalId);
                             clearTimeout(timeoutId);
@@ -42299,7 +50121,6 @@
                 exports.default = void 0;
                 var _class = _interopRequireDefault(__webpack_require__( /*! ../core/class */ 38377));
                 var _extend = __webpack_require__( /*! ../core/utils/extend */ 13306);
-                var _array = __webpack_require__( /*! ../core/utils/array */ 89386);
                 var _iterator = __webpack_require__( /*! ../core/utils/iterator */ 95479);
                 var _events_strategy = __webpack_require__( /*! ../core/events_strategy */ 80566);
                 var _errors = _interopRequireDefault(__webpack_require__( /*! ../core/errors */ 17381));
@@ -42307,7 +50128,6 @@
                 var _type = __webpack_require__( /*! ../core/utils/type */ 35922);
                 var _number = _interopRequireDefault(__webpack_require__( /*! ../localization/number */ 18016));
                 var _message = _interopRequireDefault(__webpack_require__( /*! ../localization/message */ 28109));
-                var _promise = _interopRequireDefault(__webpack_require__( /*! ../core/polyfills/promise */ 48136));
                 var _deferred = __webpack_require__( /*! ../core/utils/deferred */ 62754);
 
                 function _interopRequireDefault(obj) {
@@ -42323,7 +50143,7 @@
                 }
 
                 function _setPrototypeOf(o, p) {
-                    _setPrototypeOf = Object.setPrototypeOf || function(o, p) {
+                    _setPrototypeOf = Object.setPrototypeOf ? Object.setPrototypeOf.bind() : function(o, p) {
                         o.__proto__ = p;
                         return o
                     };
@@ -42724,7 +50544,7 @@
                         }
                     },
                     _removePendingValidator: function(validator) {
-                        var index = (0, _array.inArray)(validator, this._pendingValidators);
+                        var index = this._pendingValidators.indexOf(validator);
                         if (index >= 0) {
                             this._pendingValidators.splice(index, 1)
                         }
@@ -42797,7 +50617,7 @@
                         }
                     },
                     removeRegisteredValidator: function(validator) {
-                        var index = (0, _array.inArray)(validator, this.validators);
+                        var index = this.validators.indexOf(validator);
                         if (index > -1) {
                             this.validators.splice(index, 1);
                             this._synchronizeValidationInfo();
@@ -42807,7 +50627,7 @@
                         }
                     },
                     registerValidator: function(validator) {
-                        if ((0, _array.inArray)(validator, this.validators) < 0) {
+                        if (!this.validators.includes(validator)) {
                             this.validators.push(validator);
                             this._synchronizeValidationInfo()
                         }
@@ -42839,6 +50659,12 @@
                         }
                     },
                     findGroup: function($element, model) {
+                        var _$element$data, _$element$data$dxComp;
+                        var hasValidationGroup = null === (_$element$data = $element.data()) || void 0 === _$element$data ? void 0 : null === (_$element$data$dxComp = _$element$data.dxComponents) || void 0 === _$element$data$dxComp ? void 0 : _$element$data$dxComp.includes("dxValidationGroup");
+                        var validationGroup = hasValidationGroup && $element.dxValidationGroup("instance");
+                        if (validationGroup) {
+                            return validationGroup
+                        }
                         var $dxGroup = $element.parents(".dx-validationgroup").first();
                         if ($dxGroup.length) {
                             return $dxGroup.dxValidationGroup("instance")
@@ -42859,7 +50685,7 @@
                     },
                     removeGroup: function(group) {
                         var config = this.getGroupConfig(group);
-                        var index = (0, _array.inArray)(config, this.groups);
+                        var index = this.groups.indexOf(config);
                         if (index > -1) {
                             this.groups.splice(index, 1)
                         }
@@ -43005,7 +50831,7 @@
                             }
                         }));
                         if (asyncResults.length) {
-                            result.complete = _promise.default.all(asyncResults).then((function(values) {
+                            result.complete = Promise.all(asyncResults).then((function(values) {
                                 return _this14._getAsyncRulesResult({
                                     result: result,
                                     values: values
@@ -43191,7 +51017,7 @@
                             shading: false,
                             width: "auto",
                             height: "auto",
-                            closeOnOutsideClick: false,
+                            hideOnOutsideClick: false,
                             animation: null,
                             visible: true,
                             propagateOutsideClick: true,
@@ -43199,6 +51025,8 @@
                             rtlEnabled: false,
                             contentTemplate: this._renderInnerHtml,
                             maxWidth: "100%",
+                            container: this.$element(),
+                            target: void 0,
                             mode: "auto",
                             validationErrors: void 0,
                             positionRequest: void 0,
@@ -43218,8 +51046,14 @@
                     _initMarkup: function() {
                         this.callBase();
                         this._ensureMessageNotEmpty();
+                        this._updatePositionByTarget();
                         this._toggleModeClass();
                         this._updateContentId()
+                    },
+                    _updatePositionByTarget: function() {
+                        var _this$option = this.option(),
+                            target = _this$option.target;
+                        this.option("position.of", target)
                     },
                     _ensureMessageNotEmpty: function() {
                         this._textMarkup = this._getTextMarkup();
@@ -43236,9 +51070,9 @@
                         }
                     },
                     _updateContentId: function() {
-                        var _this$option = this.option(),
-                            container = _this$option.container,
-                            contentId = _this$option.contentId;
+                        var _this$option2 = this.option(),
+                            container = _this$option2.container,
+                            contentId = _this$option2.contentId;
                         var id = null !== contentId && void 0 !== contentId ? contentId : (0, _renderer.default)(container).attr("aria-describedby");
                         this.$content().addClass("dx-invalid-message-content").attr("id", id)
                     },
@@ -43247,8 +51081,8 @@
                         null === $element || void 0 === $element ? void 0 : $element.html(this._textMarkup)
                     },
                     _getTextMarkup: function() {
-                        var _this$option2;
-                        var validationErrors = null !== (_this$option2 = this.option("validationErrors")) && void 0 !== _this$option2 ? _this$option2 : [];
+                        var _this$option3;
+                        var validationErrors = null !== (_this$option3 = this.option("validationErrors")) && void 0 !== _this$option3 ? _this$option3 : [];
                         var validationErrorMessage = "";
                         validationErrors.forEach((function(err) {
                             var _err$message;
@@ -43273,11 +51107,11 @@
                         })
                     },
                     _updatePosition: function() {
-                        var _this$option3 = this.option(),
-                            positionRequest = _this$option3.positionRequest,
-                            rtlEnabled = _this$option3.rtlEnabled,
-                            offset = _this$option3.offset,
-                            boundary = _this$option3.boundary;
+                        var _this$option4 = this.option(),
+                            positionRequest = _this$option4.positionRequest,
+                            rtlEnabled = _this$option4.rtlEnabled,
+                            offset = _this$option4.offset,
+                            boundary = _this$option4.boundary;
                         var positionSide = (0, _position.getDefaultAlignment)(rtlEnabled);
                         var verticalPositions = "below" === positionRequest ? [" top", " bottom"] : [" bottom", " top"];
                         if (rtlEnabled) {
@@ -43299,6 +51133,7 @@
                             value = args.value;
                         switch (name) {
                             case "target":
+                                this._updatePositionByTarget();
                                 this.updateMaxWidth();
                                 this.callBase(args);
                                 break;
@@ -43381,7 +51216,7 @@
                 };
                 exports.focused = function($element) {
                     var element = (0, _renderer.default)($element).get(0);
-                    return _dom_adapter.default.getActiveElement() === element
+                    return _dom_adapter.default.getActiveElement(element) === element
                 }
             },
         92591:
@@ -43517,7 +51352,6 @@
                 var _iterator = __webpack_require__( /*! ../../core/utils/iterator */ 95479);
                 var _extend2 = __webpack_require__( /*! ../../core/utils/extend */ 13306);
                 var _selectors = __webpack_require__( /*! ./selectors */ 31421);
-                var _array = __webpack_require__( /*! ../../core/utils/array */ 89386);
                 var _type = __webpack_require__( /*! ../../core/utils/type */ 35922);
                 var _devices = _interopRequireDefault(__webpack_require__( /*! ../../core/devices */ 20530));
                 var _version = __webpack_require__( /*! ../../core/utils/version */ 58020);
@@ -43568,7 +51402,7 @@
                                 var device = _devices.default.real();
                                 var platform = device.platform;
                                 var version = device.version;
-                                return "ios" === platform && (0, _version.compare)(version, "13.3") <= 0 || "android" === platform && (0, _version.compare)(version, "4.4.4") <= 0
+                                return "ios" === platform && (0, _version.compare)(version, "13.3") <= 0
                             },
                             options: {
                                 useResizeObserver: false
@@ -43680,6 +51514,10 @@
                     _focusTarget: function() {
                         return this._getActiveElement()
                     },
+                    _isFocusTarget: function(element) {
+                        var focusTargets = (0, _renderer.default)(this._focusTarget()).toArray();
+                        return focusTargets.includes(element)
+                    },
                     _getActiveElement: function() {
                         var activeElement = this._eventBindingTarget();
                         if (this._activeStateUnit) {
@@ -43730,7 +51568,7 @@
                     },
                     _updateFocusState: function(_ref, isFocused) {
                         var target = _ref.target;
-                        if (-1 !== (0, _array.inArray)(target, this._focusTarget())) {
+                        if (this._isFocusTarget(target)) {
                             this._toggleFocusClass(isFocused, (0, _renderer.default)(target))
                         }
                     },
@@ -44181,7 +52019,6 @@
                 var _type = __webpack_require__( /*! ../../core/utils/type */ 35922);
                 var _axes_constants = _interopRequireDefault(__webpack_require__( /*! ./axes_constants */ 53805));
                 var _extend = __webpack_require__( /*! ../../core/utils/extend */ 13306);
-                var _array = __webpack_require__( /*! ../../core/utils/array */ 89386);
                 var _format_helper = _interopRequireDefault(__webpack_require__( /*! ../../format_helper */ 30343));
                 var _parse_utils = __webpack_require__( /*! ../components/parse_utils */ 8587);
                 var _tick_generator = __webpack_require__( /*! ./tick_generator */ 45971);
@@ -44552,10 +52389,11 @@
                         var endCategoryIndex;
                         if (!isContinuous) {
                             if ((0, _type.isDefined)(startValue) && (0, _type.isDefined)(endValue)) {
+                                var _parsedStartValue$val, _parsedEndValue$value;
                                 var parsedStartValue = this.parser(startValue);
                                 var parsedEndValue = this.parser(endValue);
-                                startCategoryIndex = (0, _array.inArray)((0, _type.isDefined)(parsedStartValue) ? parsedStartValue.valueOf() : void 0, categories);
-                                endCategoryIndex = (0, _array.inArray)((0, _type.isDefined)(parsedEndValue) ? parsedEndValue.valueOf() : void 0, categories);
+                                startCategoryIndex = categories.indexOf(null !== (_parsedStartValue$val = null === parsedStartValue || void 0 === parsedStartValue ? void 0 : parsedStartValue.valueOf()) && void 0 !== _parsedStartValue$val ? _parsedStartValue$val : void 0);
+                                endCategoryIndex = categories.indexOf(null !== (_parsedEndValue$value = null === parsedEndValue || void 0 === parsedEndValue ? void 0 : parsedEndValue.valueOf()) && void 0 !== _parsedEndValue$value ? _parsedEndValue$value : void 0);
                                 if (-1 === startCategoryIndex || -1 === endCategoryIndex) {
                                     return {
                                         from: 0,
@@ -45116,7 +52954,7 @@
                         var wholeRange = this.adjustRange((0, _utils.getVizRangeObject)(options.wholeRange));
                         var visualRange = this.getViewport() || {};
                         var result = new _range.Range(businessRange);
-                        this._addConstantLinesToRange(result, "minVisible", "maxVisible");
+                        this._addConstantLinesToRange(result);
                         var minDefined = (0, _type.isDefined)(visualRange.startValue);
                         var maxDefined = (0, _type.isDefined)(visualRange.endValue);
                         if (!isDiscrete) {
@@ -45294,7 +53132,7 @@
                         this._seriesData = new _range.Range(range);
                         var dataIsEmpty = this._seriesData.isEmpty();
                         var rangeWithConstantLines = new _range.Range(this._seriesData);
-                        this._addConstantLinesToRange(rangeWithConstantLines, "minVisible", "maxVisible");
+                        this._addConstantLinesToRange(rangeWithConstantLines);
                         this._prevDataInfo = {
                             isEmpty: dataIsEmpty,
                             containsConstantLine: rangeWithConstantLines.containsConstantLine
@@ -45332,14 +53170,17 @@
                         this._seriesData.userBreaks = this._seriesData.isEmpty() ? [] : this._getScaleBreaks(options, this._seriesData, this._series, this.isArgumentAxis);
                         this._translator.updateBusinessRange(this._getViewportRange())
                     },
-                    _addConstantLinesToRange: function(dataRange, minValueField, maxValueField) {
+                    _addConstantLinesToRange: function(dataRange) {
                         this._outsideConstantLines.concat(this._insideConstantLines || []).forEach((function(cl) {
                             if (cl.options.extendAxis) {
-                                var _dataRange$addRange;
                                 var value = cl.getParsedValue();
-                                dataRange.addRange((_dataRange$addRange = {
-                                    containsConstantLine: true
-                                }, _defineProperty(_dataRange$addRange, minValueField, value), _defineProperty(_dataRange$addRange, maxValueField, value), _dataRange$addRange))
+                                dataRange.addRange({
+                                    containsConstantLine: true,
+                                    minVisible: value,
+                                    maxVisible: value,
+                                    min: !(0, _type.isDefined)(dataRange.min) ? value : dataRange.min,
+                                    max: !(0, _type.isDefined)(dataRange.max) ? value : dataRange.max
+                                })
                             }
                         }))
                     },
@@ -47734,6 +55575,9 @@
                     var isLogarithmic = "logarithmic" === options.type;
                     if (1 === ticks.length && 0 === ticks.indexOf(tick) && !(0, _type.isDefined)(tickInterval)) {
                         tickInterval = abs(tick) >= 1 ? 1 : (0, _math.adjust)(1 - abs(tick), tick)
+                    }
+                    if (Object.is(tick, -0)) {
+                        tick = 0
                     }
                     if (!(0, _type.isDefined)(format) && "discrete" !== options.type && tick && (10 === options.logarithmBase || !isLogarithmic)) {
                         if ("datetime" !== options.dataType && (0, _type.isDefined)(tickInterval)) {
@@ -50303,7 +58147,6 @@
                 var _size = __webpack_require__( /*! ../core/utils/size */ 58664);
                 var _common = __webpack_require__( /*! ../core/utils/common */ 20576);
                 var _extend2 = __webpack_require__( /*! ../core/utils/extend */ 13306);
-                var _array = __webpack_require__( /*! ../core/utils/array */ 89386);
                 var _window = __webpack_require__( /*! ../core/utils/window */ 58201);
                 var _iterator = __webpack_require__( /*! ../core/utils/iterator */ 95479);
                 var _component_registrator = _interopRequireDefault(__webpack_require__( /*! ../core/component_registrator */ 99393));
@@ -50587,7 +58430,7 @@
                             return pane.name
                         }));
                         seriesTheme.pane = seriesTheme.pane || this.defaultPane;
-                        return -1 !== (0, _array.inArray)(seriesTheme.pane, paneList)
+                        return paneList.includes(seriesTheme.pane)
                     },
                     _initCustomPositioningAxes: function() {
                         var that = this;
@@ -51735,7 +59578,6 @@
             function(__unused_webpack_module, exports, __webpack_require__) {
                 exports.AdvancedChart = void 0;
                 var _extend2 = __webpack_require__( /*! ../../core/utils/extend */ 13306);
-                var _array = __webpack_require__( /*! ../../core/utils/array */ 89386);
                 var _iterator = __webpack_require__( /*! ../../core/utils/iterator */ 95479);
                 var _range = __webpack_require__( /*! ../translators/range */ 21177);
                 var _base_axis = __webpack_require__( /*! ../axes/base_axis */ 41278);
@@ -51750,7 +59592,7 @@
                 var _utils = __webpack_require__( /*! ../core/utils */ 19157);
 
                 function _extends() {
-                    _extends = Object.assign || function(target) {
+                    _extends = Object.assign ? Object.assign.bind() : function(target) {
                         for (var i = 1; i < arguments.length; i++) {
                             var source = arguments[i];
                             for (var key in source) {
@@ -51916,7 +59758,7 @@
                             var _axisOptions$panes;
                             var axisPanes = [];
                             var name = axisOptions.name;
-                            if (name && -1 !== (0, _array.inArray)(name, axisNames)) {
+                            if (name && axisNames.includes(name)) {
                                 that._incidentOccurred("E2102");
                                 return
                             }
@@ -52079,7 +59921,7 @@
                             }));
                             return
                         }(0, _iterator.each)(that.series, (function(_, item) {
-                            if (-1 === (0, _array.inArray)(item.type, types)) {
+                            if (!types.includes(item.type)) {
                                 types.push(item.type)
                             }
                         }));
@@ -52532,7 +60374,6 @@
                 var _type = __webpack_require__( /*! ../../core/utils/type */ 35922);
                 var _iterator = __webpack_require__( /*! ../../core/utils/iterator */ 95479);
                 var _extend = __webpack_require__( /*! ../../core/utils/extend */ 13306);
-                var _array = __webpack_require__( /*! ../../core/utils/array */ 89386);
                 var _index = __webpack_require__( /*! ../../events/utils/index */ 39611);
                 var _base_widget = _interopRequireDefault(__webpack_require__( /*! ../core/base_widget */ 59063));
                 var _legend = __webpack_require__( /*! ../components/legend */ 16342);
@@ -52660,6 +60501,19 @@
                     return firstRect.end > secondRect.start && oppositeOverlapping
                 }
 
+                function sortRollingStocksByValue(rollingStocks) {
+                    var positiveRollingStocks = [];
+                    var negativeRollingStocks = [];
+                    rollingStocks.forEach((function(stock) {
+                        if (stock.value() > 0) {
+                            positiveRollingStocks.push(stock)
+                        } else {
+                            negativeRollingStocks.unshift(stock)
+                        }
+                    }));
+                    return positiveRollingStocks.concat(negativeRollingStocks)
+                }
+
                 function prepareOverlapStacks(rollingStocks) {
                     var i;
                     var currentRollingStock;
@@ -52778,6 +60632,7 @@
                             end: isRotated ? canvas.width - canvas.right : canvas.height - canvas.bottom
                         };
                         var hasStackedSeries = false;
+                        var sortRollingStocks;
                         points.forEach((function(p) {
                             if (!p) {
                                 return
@@ -52788,20 +60643,21 @@
                             }))
                         }));
                         if (hasStackedSeries) {
-                            !isRotated ^ isInverted && rollingStocks.reverse()
+                            !isRotated ^ isInverted && rollingStocks.reverse();
+                            sortRollingStocks = !isInverted ? sortRollingStocksByValue(rollingStocks) : rollingStocks
                         } else {
                             var rollingStocksTmp = rollingStocks.slice();
-                            rollingStocks.sort((function(a, b) {
+                            sortRollingStocks = rollingStocks.sort((function(a, b) {
                                 return customSorting(a, b) || a.getInitialPosition() - b.getInitialPosition() || rollingStocksTmp.indexOf(a) - rollingStocksTmp.indexOf(b)
                             }))
                         }
-                        if (!checkStackOverlap(rollingStocks)) {
+                        if (!checkStackOverlap(sortRollingStocks)) {
                             return false
                         }
-                        checkHeightRollingStock(rollingStocks, stubCanvas);
-                        prepareOverlapStacks(rollingStocks);
-                        rollingStocks.reverse();
-                        moveRollingStock(rollingStocks, stubCanvas);
+                        checkHeightRollingStock(sortRollingStocks, stubCanvas);
+                        prepareOverlapStacks(sortRollingStocks);
+                        sortRollingStocks.reverse();
+                        moveRollingStock(sortRollingStocks, stubCanvas);
                         return true
                     }
                 };
@@ -53361,8 +61217,8 @@
                         return options
                     },
                     _processRefreshData: function(newRefreshAction) {
-                        var currentRefreshActionPosition = (0, _array.inArray)(this._currentRefreshData, ACTIONS_BY_PRIORITY);
-                        var newRefreshActionPosition = (0, _array.inArray)(newRefreshAction, ACTIONS_BY_PRIORITY);
+                        var currentRefreshActionPosition = ACTIONS_BY_PRIORITY.indexOf(this._currentRefreshData);
+                        var newRefreshActionPosition = ACTIONS_BY_PRIORITY.indexOf(newRefreshAction);
                         if (!this._currentRefreshData || currentRefreshActionPosition >= 0 && newRefreshActionPosition < currentRefreshActionPosition) {
                             this._currentRefreshData = newRefreshAction
                         }
@@ -55095,6 +62951,7 @@
                 var _index = __webpack_require__( /*! ../../events/utils/index */ 39611);
                 var _type = __webpack_require__( /*! ../../core/utils/type */ 35922);
                 var _common = __webpack_require__( /*! ../../core/utils/common */ 20576);
+                var _errors = _interopRequireDefault(__webpack_require__( /*! ../../core/errors */ 17381));
 
                 function _interopRequireDefault(obj) {
                     return obj && obj.__esModule ? obj : {
@@ -55131,8 +62988,15 @@
                     return data
                 }
 
-                function eventCanceled(event, target) {
-                    return event.cancel || !target.getOptions()
+                function eventCanceled(_ref, target, clickTarget) {
+                    var event = _ref.event,
+                        cancel = _ref.cancel;
+                    var deprecatedCancel = event.cancel;
+                    var eventCanceled = cancel || deprecatedCancel;
+                    if (deprecatedCancel) {
+                        _errors.default.log("W0003", "".concat(clickTarget, "Ckick handler argument"), "event.cancel", "22.1", "Use the 'cancel' field instead")
+                    }
+                    return eventCanceled || !target.getOptions()
                 }
 
                 function correctHoverMode(target) {
@@ -55313,7 +63177,7 @@
                     _triggerLegendClick: function(eventArgs, elementClick) {
                         var eventTrigger = this._eventTrigger;
                         eventTrigger("legendClick", eventArgs, (function() {
-                            !eventCanceled(eventArgs.event, eventArgs.target) && eventTrigger(elementClick, eventArgs)
+                            !eventCanceled(eventArgs, eventArgs.target, "Legend") && eventTrigger(elementClick, eventArgs)
                         }))
                     },
                     _hoverLegendItem: function(x, y) {
@@ -55516,11 +63380,12 @@
                     _pointClick: function(point, event) {
                         var eventTrigger = this._eventTrigger;
                         var series = point.series;
-                        eventTrigger("pointClick", {
+                        var eventArgs = {
                             target: point,
                             event: event
-                        }, (function() {
-                            !eventCanceled(event, series) && eventTrigger("seriesClick", {
+                        };
+                        eventTrigger("pointClick", eventArgs, (function() {
+                            !eventCanceled(eventArgs, series, "Point") && eventTrigger("seriesClick", {
                                 target: series,
                                 event: event
                             })
@@ -55764,6 +63629,21 @@
                         return nodeInterop ? cacheNodeInterop : cacheBabelInterop
                     })(nodeInterop)
                 }
+
+                function _extends() {
+                    _extends = Object.assign ? Object.assign.bind() : function(target) {
+                        for (var i = 1; i < arguments.length; i++) {
+                            var source = arguments[i];
+                            for (var key in source) {
+                                if (Object.prototype.hasOwnProperty.call(source, key)) {
+                                    target[key] = source[key]
+                                }
+                            }
+                        }
+                        return target
+                    };
+                    return _extends.apply(this, arguments)
+                }
                 var EVENTS_NS = ".zoomAndPanNS";
                 var DRAG_START_EVENT_NAME = _drag.start + EVENTS_NS;
                 var DRAG_EVENT_NAME = _drag.move + EVENTS_NS;
@@ -55790,23 +63670,16 @@
                     return x >= rect.x && x <= rect.width + rect.x && y >= rect.y && y <= rect.height + rect.y
                 }
 
-                function sortAxes(axes, onlyAxisToNotify) {
-                    if (onlyAxisToNotify) {
-                        axes = axes.sort((function(a, b) {
-                            if (a === onlyAxisToNotify) {
-                                return -1
-                            }
-                            if (b === onlyAxisToNotify) {
-                                return 1
-                            }
-                            return 0
-                        }))
-                    }
-                    return axes
+                function getFilteredAxes(axes) {
+                    return axes.filter((function(a) {
+                        return !a.getTranslator().getBusinessRange().isEmpty()
+                    }))
                 }
 
-                function isNotEmptyAxisBusinessRange(axis) {
-                    return !axis.getTranslator().getBusinessRange().isEmpty()
+                function isAxisAvailablePanning(axes) {
+                    return axes.some((function(axis) {
+                        return !axis.isExtremePosition(false) || !axis.isExtremePosition(true)
+                    }))
                 }
 
                 function axisZoom(axis, onlyAxisToNotify, getRange, getParameters, actionField, scale, e) {
@@ -55822,42 +63695,79 @@
                         result: result
                     }
                 }
+
+                function zoomAxes(e, axes, getRange, zoom, params, onlyAxisToNotify) {
+                    axes = function(axes, onlyAxisToNotify) {
+                        if (onlyAxisToNotify) {
+                            axes = axes.sort((function(a, b) {
+                                if (a === onlyAxisToNotify) {
+                                    return -1
+                                }
+                                if (b === onlyAxisToNotify) {
+                                    return 1
+                                }
+                                return 0
+                            }))
+                        }
+                        return axes
+                    }(axes, onlyAxisToNotify);
+                    var zoomStarted = false;
+                    var getParameters = function(silent) {
+                        return {
+                            start: !!silent,
+                            end: !!silent
+                        }
+                    };
+                    getFilteredAxes(axes).some((function(axis) {
+                        var translator = axis.getTranslator();
+                        var scale = translator.getMinScale(zoom);
+                        var _axisZoom = axisZoom(axis, onlyAxisToNotify, getRange(_extends({
+                                scale: scale,
+                                translator: translator,
+                                axis: axis
+                            }, params)), getParameters, "zoom", scale, e),
+                            stopInteraction = _axisZoom.stopInteraction,
+                            result = _axisZoom.result;
+                        zoomStarted = !stopInteraction;
+                        return onlyAxisToNotify && result.isPrevented
+                    }));
+                    return zoomStarted
+                }
+
+                function cancelEvent(e) {
+                    if (e.originalEvent) {
+                        cancelEvent(e.originalEvent)
+                    }
+                    if (false !== e.cancelable) {
+                        e.cancel = true
+                    }
+                }
                 var _default = {
                     name: "zoom_and_pan",
                     init: function() {
                         var chart = this;
                         var renderer = this._renderer;
 
-                        function cancelEvent(e) {
-                            if (e.originalEvent) {
-                                cancelEvent(e.originalEvent)
-                            }
-                            if (false !== e.cancelable) {
-                                e.cancel = true
-                            }
-                        }
-
-                        function startAxesViewportChanging(zoomAndPan, actionField, e) {
+                        function getAxesCopy(zoomAndPan, actionField) {
+                            var axes = [];
                             var options = zoomAndPan.options;
                             var actionData = zoomAndPan.actionData;
-                            var axes = [];
                             if (options.argumentAxis[actionField]) {
                                 axes.push(chart.getArgumentAxis())
                             }
                             if (options.valueAxis[actionField]) {
                                 axes = axes.concat(actionData.valueAxes)
                             }
-                            axes.reduce((function(isPrevented, axis) {
-                                if (isPrevented) {
-                                    return isPrevented
-                                }
-                                if (isNotEmptyAxisBusinessRange(axis)) {
-                                    return axis.handleZooming(null, {
-                                        end: true
-                                    }, e, actionField).isPrevented
-                                }
-                                return isPrevented
-                            }), false) && cancelEvent(e)
+                            return axes
+                        }
+
+                        function startAxesViewportChanging(zoomAndPan, actionField, e) {
+                            var axes = getAxesCopy(zoomAndPan, actionField);
+                            getFilteredAxes(axes).some((function(axis) {
+                                return axis.handleZooming(null, {
+                                    end: true
+                                }, e, actionField).isPrevented
+                            })) && cancelEvent(e)
                         }
 
                         function axesViewportChanging(zoomAndPan, actionField, e, offsetCalc, centerCalc) {
@@ -55865,7 +63775,7 @@
                                 var zoom = {
                                     zoomed: false
                                 };
-                                criteria && axes.filter(isNotEmptyAxisBusinessRange).forEach((function(axis) {
+                                criteria && getFilteredAxes(axes).forEach((function(axis) {
                                     var options = axis.getOptions();
                                     var viewport = axis.visualRange();
                                     var scale = axis.getTranslator().getEventScale(e);
@@ -55929,7 +63839,7 @@
                         }
 
                         function finishAxesViewportChanging(zoomAndPan, actionField, e, offsetCalc) {
-                            function zoomAxes(axes, criteria, coordField, actionData, onlyAxisToNotify) {
+                            function zoomAxes(axes, coordField, actionData, onlyAxisToNotify) {
                                 var zoomStarted = false;
                                 var scale = e.scale || 1;
                                 var getRange = function(axis) {
@@ -55945,7 +63855,7 @@
                                         end: silent
                                     }
                                 };
-                                criteria && axes.forEach((function(axis) {
+                                getFilteredAxes(axes).forEach((function(axis) {
                                     zoomStarted = !axisZoom(axis, onlyAxisToNotify, getRange, getParameters, actionField, scale, e).stopInteraction
                                 }));
                                 return zoomStarted
@@ -55955,17 +63865,11 @@
                             var options = zoomAndPan.options;
                             var zoomStarted = true;
                             if (actionData.fallback) {
-                                zoomStarted &= zoomAxes(chart._argumentAxes, options.argumentAxis[actionField], rotated ? "y" : "x", actionData, chart.getArgumentAxis());
-                                zoomStarted |= zoomAxes(actionData.valueAxes, options.valueAxis[actionField], rotated ? "x" : "y", actionData)
+                                zoomStarted &= options.argumentAxis[actionField] && zoomAxes(chart._argumentAxes, rotated ? "y" : "x", actionData, chart.getArgumentAxis());
+                                zoomStarted |= options.valueAxis[actionField] && zoomAxes(actionData.valueAxes, rotated ? "x" : "y", actionData)
                             } else {
-                                var axes = [];
-                                if (options.argumentAxis[actionField]) {
-                                    axes.push(chart.getArgumentAxis())
-                                }
-                                if (options.valueAxis[actionField]) {
-                                    axes = axes.concat(actionData.valueAxes)
-                                }
-                                axes.filter(isNotEmptyAxisBusinessRange).forEach((function(axis) {
+                                var axes = getAxesCopy(zoomAndPan, actionField);
+                                getFilteredAxes(axes).forEach((function(axis) {
                                     axis.handleZooming(null, {
                                         start: true
                                     }, e, actionField)
@@ -56050,9 +63954,7 @@
                                         var cancelPanning = !zoomAndPan.panningVisualRangeEnabled() || zoomAndPan.skipEvent;
                                         action = cancelPanning ? null : "pan"
                                     }
-                                } else if (dragToZoom && wantPan && panKeyPressed) {
-                                    action = "pan"
-                                } else if (!dragToZoom && wantPan) {
+                                } else if (dragToZoom && wantPan && panKeyPressed || !dragToZoom && wantPan) {
                                     action = "pan"
                                 } else if (dragToZoom && wantZoom) {
                                     action = "zoom"
@@ -56122,42 +64024,33 @@
                                 var options = zoomAndPan.options;
                                 var actionData = zoomAndPan.actionData;
                                 var isTouch = "touch" === e.pointerType;
+                                var getRange = function(_ref) {
+                                    var translator = _ref.translator,
+                                        startCoord = _ref.startCoord,
+                                        curCoord = _ref.curCoord;
+                                    return function() {
+                                        return [translator.from(startCoord), translator.from(curCoord)]
+                                    }
+                                };
+                                var getCoords = function(curCoords, startCoords, field) {
+                                    return {
+                                        curCoord: curCoords[field],
+                                        startCoord: startCoords[field]
+                                    }
+                                };
+                                var needToZoom = function(axisOption, coords) {
+                                    return axisOption.zoom && _abs(coords.curCoord - coords.startCoord) > 5
+                                };
                                 var panIsEmpty = actionData && "pan" === actionData.action && !actionData.fallback && 0 === actionData.offset.x && 0 === actionData.offset.y;
                                 if (!actionData || isTouch && !zoomAndPan.panningVisualRangeEnabled() || panIsEmpty) {
                                     return
-                                }(!isTouch || !zoomAndPan.actionData.isNative) && preventDefaults(e);
+                                }!isTouch && preventDefaults(e);
                                 if ("zoom" === actionData.action) {
-                                    var zoomAxes = function(axes, criteria, coordField, startCoords, curCoords, onlyAxisToNotify) {
-                                        axes = sortAxes(axes, onlyAxisToNotify);
-                                        var curCoord = curCoords[coordField];
-                                        var startCoord = startCoords[coordField];
-                                        var zoomStarted = false;
-                                        var getParameters = function(silent) {
-                                            return {
-                                                start: !!silent,
-                                                end: !!silent
-                                            }
-                                        };
-                                        if (criteria && _abs(curCoord - startCoord) > 5) {
-                                            axes.some((function(axis) {
-                                                var tr = axis.getTranslator();
-                                                if (tr.getBusinessRange().isEmpty()) {
-                                                    return
-                                                }
-                                                var _axisZoom = axisZoom(axis, onlyAxisToNotify, (function() {
-                                                        return [tr.from(startCoord), tr.from(curCoord)]
-                                                    }), getParameters, actionData.action, tr.getMinScale(true), e),
-                                                    stopInteraction = _axisZoom.stopInteraction,
-                                                    result = _axisZoom.result;
-                                                zoomStarted = !stopInteraction;
-                                                return onlyAxisToNotify && result.isPrevented
-                                            }))
-                                        }
-                                        return zoomStarted
-                                    };
                                     var curCoords = getPointerCoord(actionData.curAxisRect, e);
-                                    var argumentAxesZoomed = zoomAxes(chart._argumentAxes, options.argumentAxis.zoom, rotated ? "y" : "x", actionData.startCoords, curCoords, chart.getArgumentAxis());
-                                    var valueAxesZoomed = zoomAxes(actionData.valueAxes, options.valueAxis.zoom, rotated ? "x" : "y", actionData.startCoords, curCoords);
+                                    var argumentCoords = getCoords(curCoords, actionData.startCoords, rotated ? "y" : "x");
+                                    var valueCoords = getCoords(curCoords, actionData.startCoords, rotated ? "x" : "y");
+                                    var argumentAxesZoomed = needToZoom(options.argumentAxis, argumentCoords) && zoomAxes(e, chart._argumentAxes, getRange, true, argumentCoords, chart.getArgumentAxis());
+                                    var valueAxesZoomed = needToZoom(options.valueAxis, valueCoords) && zoomAxes(e, actionData.valueAxes, getRange, true, valueCoords);
                                     if (valueAxesZoomed || argumentAxesZoomed) {
                                         chart._requestChange(["VISUAL_RANGE"])
                                     }
@@ -56169,7 +64062,6 @@
                             },
                             pinchStartHandler: function(e) {
                                 var actionData = prepareActionData(calcCenterForPinch(e), "zoom");
-                                actionData.isNative = !zoomAndPan.panningVisualRangeEnabled();
                                 if (actionData.cancel) {
                                     cancelEvent(e);
                                     return
@@ -56181,11 +64073,10 @@
                                 if (!zoomAndPan.actionData) {
                                     return
                                 }
-                                var viewportChanged = axesViewportChanging(zoomAndPan, "zoom", e, (function(e, actionData, coordField, scale) {
+                                axesViewportChanging(zoomAndPan, "zoom", e, (function(e, actionData, coordField, scale) {
                                     return calcCenterForPinch(e)[coordField] - actionData.center[coordField] + (actionData.center[coordField] - actionData.center[coordField] * scale)
                                 }), calcCenterForPinch);
-                                zoomAndPan.defineTouchBehavior(!viewportChanged, e);
-                                !viewportChanged && (zoomAndPan.actionData = null)
+                                preventDefaults(e)
                             },
                             pinchEndHandler: function(e) {
                                 if (!zoomAndPan.actionData) {
@@ -56195,6 +64086,67 @@
                                     return actionData.center[coordField] - actionData.startCenter[coordField] + (actionData.startCenter[coordField] - actionData.startCenter[coordField] * scale)
                                 }));
                                 zoomAndPan.actionData = null
+                            },
+                            mouseWheelHandler: function(e) {
+                                var options = zoomAndPan.options;
+                                var rotated = chart.option("rotated");
+                                var getRange = function(_ref2) {
+                                    var translator = _ref2.translator,
+                                        coord = _ref2.coord,
+                                        scale = _ref2.scale,
+                                        axis = _ref2.axis;
+                                    return function() {
+                                        var zoom = translator.zoom(-(coord - coord * scale), scale, axis.getZoomBounds());
+                                        return {
+                                            startValue: zoom.min,
+                                            endValue: zoom.max
+                                        }
+                                    }
+                                };
+                                var coords = calcCenterForDrag(e);
+                                var axesZoomed = false;
+                                var targetAxes;
+                                if (options.valueAxis.zoom) {
+                                    targetAxes = chart._valueAxes.filter((function(axis) {
+                                        return checkCoords(canvasToRect(axis.getCanvas()), coords)
+                                    }));
+                                    if (0 === targetAxes.length) {
+                                        var targetCanvas = chart._valueAxes.reduce((function(r, axis) {
+                                            if (!r && axis.coordsIn(coords.x, coords.y)) {
+                                                r = axis.getCanvas()
+                                            }
+                                            return r
+                                        }), null);
+                                        if (targetCanvas) {
+                                            targetAxes = chart._valueAxes.filter((function(axis) {
+                                                return checkCoords(canvasToRect(axis.getCanvas()), {
+                                                    x: targetCanvas.left,
+                                                    y: targetCanvas.top
+                                                })
+                                            }))
+                                        }
+                                    }
+                                    axesZoomed |= zoomAxes(e, targetAxes, getRange, e.delta > 0, {
+                                        coord: rotated ? coords.x : coords.y
+                                    })
+                                }
+                                if (options.argumentAxis.zoom) {
+                                    var canZoom = chart._argumentAxes.some((function(axis) {
+                                        if (checkCoords(canvasToRect(axis.getCanvas()), coords) || axis.coordsIn(coords.x, coords.y)) {
+                                            return true
+                                        }
+                                        return false
+                                    }));
+                                    axesZoomed |= canZoom && zoomAxes(e, chart._argumentAxes, getRange, e.delta > 0, {
+                                        coord: rotated ? coords.y : coords.x
+                                    }, chart.getArgumentAxis())
+                                }
+                                if (axesZoomed) {
+                                    chart._requestChange(["VISUAL_RANGE"]);
+                                    if (targetAxes && isAxisAvailablePanning(targetAxes) || !targetAxes && zoomAndPan.panningVisualRangeEnabled()) {
+                                        preventDefaults(e)
+                                    }
+                                }
                             },
                             cleanup: function() {
                                 renderer.root.off(EVENTS_NS);
@@ -56214,86 +64166,15 @@
                                     return
                                 }
                                 zoomAndPan.options = options;
-                                var rotated = chart.option("rotated");
                                 if ((options.argumentAxis.zoom || options.valueAxis.zoom) && options.allowMouseWheel) {
-                                    renderer.root.on(_wheel.name + EVENTS_NS, (function(e) {
-                                        function zoomAxes(axes, coord, delta, onlyAxisToNotify) {
-                                            axes = sortAxes(axes, onlyAxisToNotify);
-                                            var zoomStarted = false;
-                                            var getParameters = function(silent) {
-                                                return {
-                                                    start: !!silent,
-                                                    end: !!silent
-                                                }
-                                            };
-                                            axes.some((function(axis) {
-                                                var translator = axis.getTranslator();
-                                                if (translator.getBusinessRange().isEmpty()) {
-                                                    return
-                                                }
-                                                var scale = translator.getMinScale(delta > 0);
-                                                var _axisZoom2 = axisZoom(axis, onlyAxisToNotify, (function() {
-                                                        var zoom = translator.zoom(-(coord - coord * scale), scale, axis.getZoomBounds());
-                                                        return {
-                                                            startValue: zoom.min,
-                                                            endValue: zoom.max
-                                                        }
-                                                    }), getParameters, "zoom", scale, e),
-                                                    stopInteraction = _axisZoom2.stopInteraction,
-                                                    result = _axisZoom2.result;
-                                                zoomStarted = !stopInteraction;
-                                                return onlyAxisToNotify && result.isPrevented
-                                            }));
-                                            return zoomStarted
-                                        }
-                                        var coords = calcCenterForDrag(e);
-                                        var axesZoomed = false;
-                                        var targetAxes;
-                                        if (options.valueAxis.zoom) {
-                                            targetAxes = chart._valueAxes.filter((function(axis) {
-                                                return checkCoords(canvasToRect(axis.getCanvas()), coords)
-                                            }));
-                                            if (0 === targetAxes.length) {
-                                                var targetCanvas = chart._valueAxes.reduce((function(r, axis) {
-                                                    if (!r && axis.coordsIn(coords.x, coords.y)) {
-                                                        r = axis.getCanvas()
-                                                    }
-                                                    return r
-                                                }), null);
-                                                if (targetCanvas) {
-                                                    targetAxes = chart._valueAxes.filter((function(axis) {
-                                                        return checkCoords(canvasToRect(axis.getCanvas()), {
-                                                            x: targetCanvas.left,
-                                                            y: targetCanvas.top
-                                                        })
-                                                    }))
-                                                }
-                                            }
-                                            axesZoomed |= zoomAxes(targetAxes, rotated ? coords.x : coords.y, e.delta)
-                                        }
-                                        if (options.argumentAxis.zoom) {
-                                            var canZoom = chart._argumentAxes.some((function(axis) {
-                                                if (checkCoords(canvasToRect(axis.getCanvas()), coords) || axis.coordsIn(coords.x, coords.y)) {
-                                                    return true
-                                                }
-                                                return false
-                                            }));
-                                            axesZoomed |= canZoom && zoomAxes(chart._argumentAxes, rotated ? coords.y : coords.x, e.delta, chart.getArgumentAxis())
-                                        }
-                                        if (axesZoomed) {
-                                            chart._requestChange(["VISUAL_RANGE"]);
-                                            zoomAndPan.panningVisualRangeEnabled(targetAxes) && preventDefaults(e)
-                                        }
-                                    }))
+                                    renderer.root.on(_wheel.name + EVENTS_NS, zoomAndPan.mouseWheelHandler)
                                 }
-                                if (options.allowTouchGestures) {
-                                    if (options.argumentAxis.zoom || options.valueAxis.zoom) {
-                                        renderer.root.on(PINCH_START_EVENT_NAME, {
-                                            passive: false
-                                        }, zoomAndPan.pinchStartHandler).on(PINCH_EVENT_NAME, {
-                                            passive: false
-                                        }, zoomAndPan.pinchHandler).on(PINCH_END_EVENT_NAME, zoomAndPan.pinchEndHandler)
-                                    }
+                                if ((options.argumentAxis.zoom || options.valueAxis.zoom) && options.allowTouchGestures) {
+                                    renderer.root.on(PINCH_START_EVENT_NAME, {
+                                        passive: false
+                                    }, zoomAndPan.pinchStartHandler).on(PINCH_EVENT_NAME, {
+                                        passive: false
+                                    }, zoomAndPan.pinchHandler).on(PINCH_END_EVENT_NAME, zoomAndPan.pinchEndHandler)
                                 }
                                 renderer.root.on(DRAG_START_EVENT_NAME, {
                                     immediate: true,
@@ -56302,52 +64183,33 @@
                                     immediate: true,
                                     passive: false
                                 }, zoomAndPan.dragHandler).on(DRAG_END_EVENT_NAME, zoomAndPan.dragEndHandler);
-                                if (options.argumentAxis.pan) {
-                                    renderer.root.on("dxc-scroll-start.zoomAndPanNS", (function(e) {
-                                        zoomAndPan.actionData = {
-                                            valueAxes: [],
-                                            offset: {
-                                                x: 0,
-                                                y: 0
-                                            },
-                                            center: {
-                                                x: 0,
-                                                y: 0
-                                            }
-                                        };
-                                        preventDefaults(e);
-                                        startAxesViewportChanging(zoomAndPan, "pan", e)
-                                    })).on("dxc-scroll-move.zoomAndPanNS", (function(e) {
-                                        preventDefaults(e);
-                                        axesViewportChanging(zoomAndPan, "pan", e, calcOffsetForDrag, (function(e) {
-                                            return e.offset
-                                        }))
-                                    })).on("dxc-scroll-end.zoomAndPanNS", (function(e) {
-                                        preventDefaults(e);
-                                        finishAxesViewportChanging(zoomAndPan, "pan", e, calcOffsetForDrag);
-                                        zoomAndPan.actionData = null
+                                renderer.root.on("dxc-scroll-start.zoomAndPanNS", (function(e) {
+                                    zoomAndPan.actionData = {
+                                        valueAxes: [],
+                                        offset: {
+                                            x: 0,
+                                            y: 0
+                                        },
+                                        center: {
+                                            x: 0,
+                                            y: 0
+                                        }
+                                    };
+                                    preventDefaults(e);
+                                    startAxesViewportChanging(zoomAndPan, "pan", e)
+                                })).on("dxc-scroll-move.zoomAndPanNS", (function(e) {
+                                    preventDefaults(e);
+                                    axesViewportChanging(zoomAndPan, "pan", e, calcOffsetForDrag, (function(e) {
+                                        return e.offset
                                     }))
-                                }
+                                })).on("dxc-scroll-end.zoomAndPanNS", (function(e) {
+                                    preventDefaults(e);
+                                    finishAxesViewportChanging(zoomAndPan, "pan", e, calcOffsetForDrag);
+                                    zoomAndPan.actionData = null
+                                }))
                             },
-                            defineTouchBehavior: function(isDefault, e) {
-                                zoomAndPan.actionData && (zoomAndPan.actionData.isNative = isDefault);
-                                if (!isDefault) {
-                                    preventDefaults(e)
-                                }
-                            },
-                            panningVisualRangeEnabled: function(targetAxes) {
-                                if (null !== targetAxes && void 0 !== targetAxes && targetAxes.length) {
-                                    return targetAxes.some((function(axis) {
-                                        return !axis.isExtremePosition(false) || !axis.isExtremePosition(true)
-                                    }))
-                                }
-                                var enablePanByValueAxis = chart._valueAxes.some((function(axis) {
-                                    return !axis.isExtremePosition(false) || !axis.isExtremePosition(true)
-                                }));
-                                var enablePanByArgumentAxis = chart._argumentAxes.some((function(axis) {
-                                    return !axis.isExtremePosition(false) || !axis.isExtremePosition(true)
-                                }));
-                                return enablePanByValueAxis || enablePanByArgumentAxis
+                            panningVisualRangeEnabled: function() {
+                                return isAxisAvailablePanning(chart._valueAxes) || isAxisAvailablePanning(chart._argumentAxes)
                             }
                         };
                         this._zoomAndPan = zoomAndPan
@@ -59221,6 +67083,9 @@
                     _stopCurrentHandling: _common.noop,
                     _dispose: function() {
                         var that = this;
+                        if (this._disposed) {
+                            return
+                        }
                         that.callBase.apply(that, arguments);
                         that._toggleParentsScrollSubscription(false);
                         that._removeResizeHandler();
@@ -61038,7 +68903,7 @@
                 var _excluded = ["x", "y", "canvas", "offsetX", "offsetY", "offset"];
 
                 function _extends() {
-                    _extends = Object.assign || function(target) {
+                    _extends = Object.assign ? Object.assign.bind() : function(target) {
                         for (var i = 1; i < arguments.length; i++) {
                             var source = arguments[i];
                             for (var key in source) {
@@ -68320,7 +76185,7 @@
                                     });
                                     if (useTemplate) {
                                         var htmlContainers = that._textHtmlContainers;
-                                        var containerToTemplateRender = createTextHtml();
+                                        var containerToTemplateRender = createTextHtml().appendTo(that._textGroupHtml);
                                         htmlContainers.push(containerToTemplateRender);
                                         template.render({
                                             model: state.formatObject,
@@ -68330,11 +76195,9 @@
                                                     return el.remove()
                                                 }));
                                                 var elements;
-                                                var containerWithContent = htmlContainers[0];
-                                                (0, _dom.replaceWith)(that._textHtml, containerWithContent);
-                                                that._textHtml = containerWithContent;
-                                                state.html = containerWithContent.html();
-                                                if (0 === (0, _size.getWidth)(containerWithContent) && 0 === (0, _size.getHeight)(containerWithContent)) {
+                                                that._textHtml = (0, _dom.replaceWith)(that._textHtml, containerToTemplateRender);
+                                                state.html = that._textHtml.html();
+                                                if (0 === (0, _size.getWidth)(that._textHtml) && 0 === (0, _size.getHeight)(that._textHtml)) {
                                                     _this.plaque.clear();
                                                     templateCallback(false);
                                                     return
@@ -68382,25 +76245,13 @@
                         }), true, (function(tooltip, g) {
                             var state = tooltip._state;
                             if (state.html) {
-                                var bBox;
-                                var getComputedStyle = window.getComputedStyle;
-                                if (getComputedStyle) {
-                                    bBox = getComputedStyle(that._textHtml.get(0));
-                                    bBox = {
-                                        x: 0,
-                                        y: 0,
-                                        width: mathCeil(parseFloat(bBox.width)),
-                                        height: mathCeil(parseFloat(bBox.height))
-                                    }
-                                } else {
-                                    bBox = that._textHtml.get(0).getBoundingClientRect();
-                                    bBox = {
-                                        x: 0,
-                                        y: 0,
-                                        width: mathCeil(bBox.width ? bBox.width : bBox.right - bBox.left),
-                                        height: mathCeil(bBox.height ? bBox.height : bBox.bottom - bBox.top)
-                                    }
-                                }
+                                var bBox = window.getComputedStyle(that._textHtml.get(0));
+                                bBox = {
+                                    x: 0,
+                                    y: 0,
+                                    width: mathCeil(parseFloat(bBox.width)),
+                                    height: mathCeil(parseFloat(bBox.height))
+                                };
                                 return bBox
                             }
                             return g.getBBox()
@@ -71209,6 +79060,9 @@
                 });
                 exports.BaseGauge = BaseGauge;
                 var formatValue = function(value, options, extra) {
+                    if (Object.is(value, -0)) {
+                        value = 0
+                    }
                     options = options || {};
                     var text = _format(value, options.format);
                     var formatObject;
@@ -76685,7 +84539,6 @@
                 var _series_family = __webpack_require__( /*! ../core/series_family */ 1939);
                 var _type = __webpack_require__( /*! ../../core/utils/type */ 35922);
                 var _extend = __webpack_require__( /*! ../../core/utils/extend */ 13306);
-                var _array = __webpack_require__( /*! ../../core/utils/array */ 89386);
                 var _iterator = __webpack_require__( /*! ../../core/utils/iterator */ 95479);
                 var _utils = __webpack_require__( /*! ../core/utils */ 19157);
                 var _range = __webpack_require__( /*! ../translators/range */ 21177);
@@ -76799,7 +84652,7 @@
                             var families = [];
                             var types = [];
                             (0, _iterator.each)(series, (function(i, item) {
-                                if (-1 === (0, _array.inArray)(item.type, types)) {
+                                if (!types.includes(item.type)) {
                                     types.push(item.type)
                                 }
                             }));
@@ -79111,10 +86964,25 @@
                                 if (!(linkTemplate && "link" === args.type || nodeTemplate && "node" === args.type)) {
                                     args.skipTemplate = true
                                 }
+                                var formatter = function(value) {
+                                    return tooltip.formatValue(value)
+                                };
                                 if ("node" === args.type) {
-                                    return generateCustomCallback(options.customizeNodeTooltip, defaultCustomizeNodeTooltip)(args.info)
+                                    return generateCustomCallback(options.customizeNodeTooltip, function(formatter) {
+                                        return function(info) {
+                                            return {
+                                                html: "<strong>".concat(info.label, "</strong><br/>Incoming weight: ").concat(formatter(info.weightIn), "<br/>Outgoing weight: ").concat(formatter(info.weightOut))
+                                            }
+                                        }
+                                    }(formatter))(args.info)
                                 } else if ("link" === args.type) {
-                                    return generateCustomCallback(options.customizeLinkTooltip, defaultCustomizeLinkTooltip)(args.info)
+                                    return generateCustomCallback(options.customizeLinkTooltip, function(formatter) {
+                                        return function(info) {
+                                            return {
+                                                html: "<strong>".concat(info.source, " > ").concat(info.target, "</strong><br/>Weight: ").concat(formatter(info.weight))
+                                            }
+                                        }
+                                    }(formatter))(args.info)
                                 }
                                 return {}
                             },
@@ -79139,16 +87007,6 @@
                 };
                 var _extend2 = __webpack_require__( /*! ../../core/utils/extend */ 13306);
                 var _type = __webpack_require__( /*! ../../core/utils/type */ 35922);
-                var defaultCustomizeLinkTooltip = function(info) {
-                    return {
-                        html: "<strong>".concat(info.source, " > ").concat(info.target, "</strong><br/>Weight: ").concat(info.weight)
-                    }
-                };
-                var defaultCustomizeNodeTooltip = function(info) {
-                    return {
-                        html: "<strong>".concat(info.label, "</strong><br/>Incoming weight: ").concat(info.weightIn, "<br/>Outgoing weight: ").concat(info.weightOut)
-                    }
-                };
                 var generateCustomCallback = function(customCallback, defaultCallback) {
                     return function(objectInfo) {
                         var res = (0, _type.isFunction)(customCallback) ? customCallback.call(objectInfo, objectInfo) : {};
@@ -80367,7 +88225,8 @@
                                 rotationAngle: opt.rotationAngle,
                                 wordWrap: opt.wordWrap,
                                 textOverflow: opt.textOverflow,
-                                cssClass: opt.cssClass
+                                cssClass: opt.cssClass,
+                                displayFormat: opt.displayFormat
                             }
                         }(labelOptions, styles.normal.fill);
                         if (this.areErrorBarsVisible()) {
@@ -81185,6 +89044,49 @@
                 });
                 exports.candlestick = candlestick
             },
+        10656:
+            /*!*****************************************************************************************!*\
+              !*** ./artifacts/transpiled-renovation-npm/viz/series/helpers/display_format_parser.js ***!
+              \*****************************************************************************************/
+            function(__unused_webpack_module, exports, __webpack_require__) {
+                exports.processDisplayFormat = function(displayFormat, pointInfo) {
+                    var actualText = displayFormat;
+                    var continueProcess = true;
+                    while (continueProcess) {
+                        var startBracketIndex = actualText.indexOf("{");
+                        var endBracketIndex = actualText.indexOf("}");
+                        if (startBracketIndex >= 0 && endBracketIndex > 0) {
+                            var placeHolder = actualText.substring(startBracketIndex + 1, endBracketIndex);
+                            var value = getValueByPlaceHolder(placeHolder, pointInfo);
+                            actualText = actualText.substr(0, startBracketIndex) + value + actualText.substr(endBracketIndex + 1)
+                        } else {
+                            continueProcess = false
+                        }
+                    }
+                    return actualText
+                };
+                var _localization = __webpack_require__( /*! ../../../localization */ 94484);
+
+                function getValueByPlaceHolder(placeHolder, pointInfo) {
+                    var customFormat = "";
+                    var customFormatIndex = placeHolder.indexOf(":");
+                    if (customFormatIndex > 0) {
+                        customFormat = placeHolder.substr(customFormatIndex + 1);
+                        placeHolder = placeHolder.substr(0, customFormatIndex)
+                    }
+                    return function(value, format) {
+                        if (format) {
+                            if (value instanceof Date) {
+                                return (0, _localization.formatDate)(value, format)
+                            }
+                            if ("number" === typeof value) {
+                                return (0, _localization.formatNumber)(value, format)
+                            }
+                        }
+                        return value
+                    }(pointInfo[placeHolder], customFormat)
+                }
+            },
         63407:
             /*!*****************************************************************************************!*\
               !*** ./artifacts/transpiled-renovation-npm/viz/series/helpers/range_data_calculator.js ***!
@@ -81919,7 +89821,7 @@
                         lastSegment && this._closeSegment(points);
                         if ("discrete" !== this.argumentAxisType && "discrete" !== this.valueAxisType) {
                             for (i = 1; i < points.length; i++) {
-                                preparedPoints = preparedPoints.concat(this._getTangentPoints(points[i], points[i - 1], centerPoint))
+                                preparedPoints = preparedPoints.concat(this._getTangentPoints(points[i], points[i - 1], centerPoint, i === points.length - 1))
                             }
                             if (!preparedPoints.length) {
                                 preparedPoints = points
@@ -81959,7 +89861,7 @@
                         }
                         return point
                     },
-                    _getTangentPoints: function(point, prevPoint, centerPoint) {
+                    _getTangentPoints: function(point, prevPoint, centerPoint, isLastSegment) {
                         var tangentPoints = [];
                         var betweenAngle = Math.round(prevPoint.angle - point.angle);
                         var tan = (prevPoint.radius - point.radius) / betweenAngle;
@@ -81967,11 +89869,13 @@
                         if (0 === betweenAngle) {
                             tangentPoints = [prevPoint, point]
                         } else if (betweenAngle > 0) {
-                            for (i = betweenAngle; i >= 0; i--) {
+                            var angle = isLastSegment ? betweenAngle : betweenAngle - 1;
+                            for (i = angle; i >= 0; i--) {
                                 tangentPoints.push(getTangentPoint(point, prevPoint, centerPoint, tan, i))
                             }
                         } else {
-                            for (i = 0; i >= betweenAngle; i--) {
+                            var _angle = isLastSegment ? betweenAngle : betweenAngle + 1;
+                            for (i = 0; i >= _angle; i--) {
                                 tangentPoints.push(getTangentPoint(point, prevPoint, centerPoint, tan, betweenAngle - i))
                             }
                         }
@@ -83552,6 +91456,7 @@
                 var _utils = __webpack_require__( /*! ../../core/utils */ 19157);
                 var _iterator = __webpack_require__( /*! ../../../core/utils/iterator */ 95479);
                 var _extend = __webpack_require__( /*! ../../../core/utils/extend */ 13306);
+                var _display_format_parser = __webpack_require__( /*! ../helpers/display_format_parser */ 10656);
                 var _format = _format_helper.default.format;
                 var _math = Math;
                 var _round = _math.round;
@@ -83864,8 +91769,8 @@
                             if (void 0 !== data.reductionValue) {
                                 data.reductionValueText = _format(data.reductionValue, format)
                             }
-                            return options.customizeText ? options.customizeText.call(data, data) : data.valueText
-                        }(this._data, this._options) || null;
+                            return options.customizeText ? options.customizeText.call(data, data) : options.displayFormat ? (0, _display_format_parser.processDisplayFormat)(options.displayFormat, data) : data.valueText
+                        }(this._data, options) || null;
                         if (text) {
                             if (!this._group) {
                                 this._group = renderer.g().append(container);
@@ -86006,7 +93911,6 @@
             function(__unused_webpack_module, exports, __webpack_require__) {
                 exports.polar = exports.chart = void 0;
                 var _extend3 = __webpack_require__( /*! ../../core/utils/extend */ 13306);
-                var _array = __webpack_require__( /*! ../../core/utils/array */ 89386);
                 var _iterator = __webpack_require__( /*! ../../core/utils/iterator */ 95479);
                 var _range_data_calculator = (obj = __webpack_require__( /*! ./helpers/range_data_calculator */ 63407), obj && obj.__esModule ? obj : {
                     default: obj
@@ -86033,6 +93937,11 @@
                 var _abs = math.abs;
                 var _sqrt = math.sqrt;
                 var _max = math.max;
+                var VARIANCE = "variance";
+                var STANDARD_DEVIATION = "stddeviation";
+                var STANDARD_ERROR = "stderror";
+                var PERCENT = "percent";
+                var FIXED = "fixed";
                 var chart = {};
                 exports.chart = chart;
                 var polar = {};
@@ -86127,7 +94036,7 @@
                     },
                     areErrorBarsVisible: function() {
                         var errorBarOptions = this._options.valueErrorBar;
-                        return errorBarOptions && this._errorBarsEnabled() && "none" !== errorBarOptions.displayMode && ((type = (0, _utils.normalizeEnum)(errorBarOptions.type), -1 !== (0, _array.inArray)(type, ["fixed", "percent", "variance", "stddeviation", "stderror"])) || (0, _type.isDefined)(errorBarOptions.lowValueField) || (0, _type.isDefined)(errorBarOptions.highValueField));
+                        return errorBarOptions && this._errorBarsEnabled() && "none" !== errorBarOptions.displayMode && ((type = (0, _utils.normalizeEnum)(errorBarOptions.type), [FIXED, PERCENT, VARIANCE, STANDARD_DEVIATION, STANDARD_ERROR].includes(type)) || (0, _type.isDefined)(errorBarOptions.lowValueField) || (0, _type.isDefined)(errorBarOptions.highValueField));
                         var type
                     },
                     groupPointsByCoords: function(rotated) {
@@ -86471,10 +94380,10 @@
                             item.highError = value + floatErrorValue
                         };
                         switch (errorBarType) {
-                            case "fixed":
+                            case FIXED:
                                 processDataItem = addSubError;
                                 break;
-                            case "percent":
+                            case PERCENT:
                                 processDataItem = function(_, item) {
                                     value = item.value;
                                     var error = value * floatErrorValue / 100;
@@ -86495,11 +94404,11 @@
                                 valueArrayLength = valueArray.length;
                                 floatErrorValue = floatErrorValue || 1;
                                 switch (errorBarType) {
-                                    case "variance":
+                                    case VARIANCE:
                                         floatErrorValue = variance(valueArray, sum(valueArray) / valueArrayLength) * floatErrorValue;
                                         processDataItem = addSubError;
                                         break;
-                                    case "stddeviation":
+                                    case STANDARD_DEVIATION:
                                         meanValue = sum(valueArray) / valueArrayLength;
                                         floatErrorValue = _sqrt(variance(valueArray, meanValue)) * floatErrorValue;
                                         processDataItem = function(_, item) {
@@ -86507,7 +94416,7 @@
                                             item.highError = meanValue + floatErrorValue
                                         };
                                         break;
-                                    case "stderror":
+                                    case STANDARD_ERROR:
                                         floatErrorValue = _sqrt(variance(valueArray, sum(valueArray) / valueArrayLength) / valueArrayLength) * floatErrorValue;
                                         processDataItem = addSubError
                                 }
@@ -87492,7 +95401,8 @@
                             seriesGroup: this._seriesGroup,
                             labelsGroup: this._seriesLabelGroup,
                             argumentAxis: this._argumentAxis,
-                            valueAxis: this._valueAxis
+                            valueAxis: this._valueAxis,
+                            incidentOccurred: this._incidentOccurred
                         }, {
                             widgetType: "chart",
                             type: "line"
@@ -87579,6 +95489,7 @@
                             color: options.lineColor,
                             width: options.lineWidth,
                             widgetType: "chart",
+                            name: "",
                             type: type,
                             opacity: -1 !== type.indexOf("area") ? this._allOptions.areaOpacity : void 0,
                             point: {
@@ -89955,7 +97866,6 @@
                 var _helpers = __webpack_require__( /*! ../core/helpers */ 3603);
                 var _common = __webpack_require__( /*! ./common */ 77707);
                 var _utils = __webpack_require__( /*! ../core/utils */ 19157);
-                var _array = __webpack_require__( /*! ../../core/utils/array */ 89386);
                 __webpack_require__( /*! ./api */ 4815);
                 __webpack_require__( /*! ./states */ 83469);
 
@@ -89983,7 +97893,7 @@
                         that._selectNode(this._id, !!state)
                     };
                     proto.isSelected = function() {
-                        return (0, _array.inArray)(this._id, that._selectionList) >= 0
+                        return that._selectionList.includes(this._id)
                     };
                     that._selectionList = []
                 }));
@@ -90040,7 +97950,7 @@
                     if (0 !== this._selectionMode) {
                         this._context.suspend();
                         selectionList = this._selectionList;
-                        k = (0, _array.inArray)(index, selectionList);
+                        k = selectionList.indexOf(index);
                         if (state && -1 === k) {
                             if (1 === this._selectionMode) {
                                 if (selectionList.length) {
@@ -91745,13 +99655,11 @@
               \**********************************************************************/
             function(__unused_webpack_module, exports, __webpack_require__) {
                 exports.LayoutControl = LayoutControl;
-                var _array = __webpack_require__( /*! ../../core/utils/array */ 89386);
                 var _iterator = __webpack_require__( /*! ../../core/utils/iterator */ 95479);
                 var _round = Math.round;
                 var _min = Math.min;
                 var _max = Math.max;
                 var _each = _iterator.each;
-                var _inArray = _array.inArray;
                 var horizontalAlignmentMap = {
                     left: 0,
                     center: 1,
@@ -91972,7 +99880,8 @@
                         item.updateLayout = this._updateLayout
                     },
                     removeItem: function(item) {
-                        this._items.splice(_inArray(item, this._items), 1);
+                        var index = this._items.indexOf(item);
+                        this._items.splice(index, 1);
                         item.updateLayout = null
                     },
                     _update: function() {
@@ -94597,15 +102506,14 @@
                         var that = this;
                         that._docHandlers = {};
                         that._rootHandlers = {};
-                        that._rootHandlers[EVENTS.start] = that._docHandlers[EVENTS.start] = function(event) {
+                        that._docHandlers[EVENTS.start] = function(event) {
                             var isTouch = isTouchEvent(event);
                             var data = getData(event);
                             if (isTouch && !that._isTouchEnabled) {
                                 return
                             }
                             if (data) {
-                                event.preventDefault();
-                                event.stopPropagation()
+                                event.preventDefault()
                             }
                             that._startClick(event, data);
                             that._startDrag(event, data);
@@ -95465,12 +103373,70 @@
             /*!************************************************************************!*\
               !*** ./node_modules/@devextreme/runtime/cjs/inferno/create_context.js ***!
               \************************************************************************/
-            function(__unused_webpack_module, exports) {
+            function(__unused_webpack_module, exports, __webpack_require__) {
+                var __extends = this && this.__extends || (extendStatics = function(d, b) {
+                    extendStatics = Object.setPrototypeOf || {
+                        __proto__: []
+                    }
+                    instanceof Array && function(d, b) {
+                        d.__proto__ = b
+                    } || function(d, b) {
+                        for (var p in b) {
+                            if (b.hasOwnProperty(p)) {
+                                d[p] = b[p]
+                            }
+                        }
+                    };
+                    return extendStatics(d, b)
+                }, function(d, b) {
+                    extendStatics(d, b);
+
+                    function __() {
+                        this.constructor = d
+                    }
+                    d.prototype = null === b ? Object.create(b) : (__.prototype = b.prototype, new __)
+                });
+                var extendStatics;
+                var __assign = this && this.__assign || function() {
+                    __assign = Object.assign || function(t) {
+                        for (var s, i = 1, n = arguments.length; i < n; i++) {
+                            s = arguments[i];
+                            for (var p in s) {
+                                if (Object.prototype.hasOwnProperty.call(s, p)) {
+                                    t[p] = s[p]
+                                }
+                            }
+                        }
+                        return t
+                    };
+                    return __assign.apply(this, arguments)
+                };
                 Object.defineProperty(exports, "__esModule", {
                     value: true
                 });
+                var inferno_1 = __webpack_require__( /*! inferno */ 55285);
+                var contextId = 0;
                 exports.createContext = function(defaultValue) {
-                    return defaultValue
+                    var id = contextId++;
+                    return {
+                        id: id,
+                        defaultValue: defaultValue,
+                        Provider: function(_super) {
+                            __extends(class_1, _super);
+
+                            function class_1() {
+                                return null !== _super && _super.apply(this, arguments) || this
+                            }
+                            class_1.prototype.getChildContext = function() {
+                                var _a;
+                                return __assign(__assign({}, this.context), (_a = {}, _a[id] = this.props.value || defaultValue, _a))
+                            };
+                            class_1.prototype.render = function() {
+                                return this.props.children
+                            };
+                            return class_1
+                        }(inferno_1.Component)
+                    }
                 }
             },
         37221:
@@ -95483,8 +103449,8 @@
                 });
                 var InfernoEffect = function() {
                     function InfernoEffect(effect, dependency) {
-                        this.effect = effect;
                         this.dependency = dependency;
+                        this.effect = effect;
                         this.destroy = effect()
                     }
                     InfernoEffect.prototype.update = function(dependency) {
@@ -95558,9 +103524,9 @@
                 __export(__webpack_require__( /*! ./effect_host */ 46275));
                 __export(__webpack_require__( /*! ./portal */ 89216));
                 __export(__webpack_require__( /*! ./re_render_effect */ 32766));
-                __export(__webpack_require__( /*! ./utils */ 45202));
                 __export(__webpack_require__( /*! ./mocked/hydrate */ 84885));
-                __export(__webpack_require__( /*! ./render_template */ 56064))
+                __export(__webpack_require__( /*! ./render_template */ 56064));
+                __export(__webpack_require__( /*! ./normalize_styles */ 91019))
             },
         84885:
             /*!************************************************************************!*\
@@ -95788,6 +103754,65 @@
                     throw new Error("Inferno Error: " + message)
                 }
             },
+        91019:
+            /*!**************************************************************************!*\
+              !*** ./node_modules/@devextreme/runtime/cjs/inferno/normalize_styles.js ***!
+              \**************************************************************************/
+            function(__unused_webpack_module, exports) {
+                var __read = this && this.__read || function(o, n) {
+                    var m = "function" === typeof Symbol && o[Symbol.iterator];
+                    if (!m) {
+                        return o
+                    }
+                    var r, e, i = m.call(o),
+                        ar = [];
+                    try {
+                        while ((void 0 === n || n-- > 0) && !(r = i.next()).done) {
+                            ar.push(r.value)
+                        }
+                    } catch (error) {
+                        e = {
+                            error: error
+                        }
+                    } finally {
+                        try {
+                            if (r && !r.done && (m = i.return)) {
+                                m.call(i)
+                            }
+                        } finally {
+                            if (e) {
+                                throw e.error
+                            }
+                        }
+                    }
+                    return ar
+                };
+                Object.defineProperty(exports, "__esModule", {
+                    value: true
+                });
+                var NUMBER_STYLES = new Set(["animationIterationCount", "borderImageOutset", "borderImageSlice", "border-imageWidth", "boxFlex", "boxFlexGroup", "boxOrdinalGroup", "columnCount", "fillOpacity", "flex", "flexGrow", "flexNegative", "flexOrder", "flexPositive", "flexShrink", "floodOpacity", "fontWeight", "gridColumn", "gridRow", "lineClamp", "lineHeight", "opacity", "order", "orphans", "stopOpacity", "strokeDasharray", "strokeDashoffset", "strokeMiterlimit", "strokeOpacity", "strokeWidth", "tabSize", "widows", "zIndex", "zoom"]);
+                var uppercasePattern = /[A-Z]/g;
+                exports.normalizeStyles = function(styles) {
+                    if (!(styles instanceof Object)) {
+                        return
+                    }
+                    return Object.entries(styles).reduce((function(acc, _a) {
+                        var _b = __read(_a, 2),
+                            key = _b[0],
+                            value = _b[1];
+                        acc[(str = key, str.replace(uppercasePattern, "-$&").toLowerCase())] = function(value) {
+                            if ("number" === typeof value) {
+                                return true
+                            }
+                            return !Number.isNaN(Number(value))
+                        }(value) ? function(style, value) {
+                            return NUMBER_STYLES.has(style) ? value : value + "px"
+                        }(key, value) : value;
+                        var str;
+                        return acc
+                    }), {})
+                }
+            },
         89216:
             /*!****************************************************************!*\
               !*** ./node_modules/@devextreme/runtime/cjs/inferno/portal.js ***!
@@ -95834,42 +103859,15 @@
                 var inferno_create_element_1 = __webpack_require__( /*! inferno-create-element */ 87456);
                 exports.renderTemplate = function(template, props, _component) {
                     setTimeout((function() {
-                        var _a;
-                        inferno_1.render(inferno_create_element_1.createElement(template, props), null === (_a = props.container) || void 0 === _a ? void 0 : _a.get(0))
+                        inferno_1.render(inferno_create_element_1.createElement(template, props), function(props) {
+                            var _a, _b;
+                            return (null === (_a = props.container) || void 0 === _a ? void 0 : _a.get(0)) || (null === (_b = props.item) || void 0 === _b ? void 0 : _b.get(0))
+                        }(props))
                     }), 0)
                 };
                 exports.hasTemplate = function(name, properties, _component) {
-                    return !!properties[name]
-                }
-            },
-        45202:
-            /*!***************************************************************!*\
-              !*** ./node_modules/@devextreme/runtime/cjs/inferno/utils.js ***!
-              \***************************************************************/
-            function(__unused_webpack_module, exports) {
-                Object.defineProperty(exports, "__esModule", {
-                    value: true
-                });
-                var NUMBER_STYLES = ["animation-iteration-count", "border-image-outset", "border-image-slice", "border-image-width", "box-flex", "box-flex-group", "box-ordinal-group", "column-count", "fill-opacity", "flex", "flex-grow", "flex-negative", "flex-order", "flex-positive", "flex-shrink", "flood-opacity", "font-weight", "grid-column", "grid-row", "line-clamp", "line-height", "opacity", "order", "orphans", "stop-opacity", "stroke-dasharray", "stroke-dashoffset", "stroke-miterlimit", "stroke-opacity", "stroke-width", "tab-size", "widows", "z-index", "zoom"];
-                var uppercasePattern = /[A-Z]/g;
-                exports.normalizeStyles = function(styles) {
-                    if (!(styles instanceof Object)) {
-                        return
-                    }
-                    return Object.keys(styles).reduce((function(result, key) {
-                        var value = styles[key];
-                        var kebabString = (str = key, str.replace(uppercasePattern, "-$&").toLowerCase());
-                        var str;
-                        result[kebabString] = function(value) {
-                            if ("number" === typeof value) {
-                                return true
-                            }
-                            return !isNaN(Number(value))
-                        }(value) ? function(style, value) {
-                            return NUMBER_STYLES.indexOf(style) > -1 ? value : value + "px"
-                        }(kebabString, value) : value;
-                        return result
-                    }), {})
+                    var value = properties[name];
+                    return !!value && "string" !== typeof value
                 }
             },
         87456:

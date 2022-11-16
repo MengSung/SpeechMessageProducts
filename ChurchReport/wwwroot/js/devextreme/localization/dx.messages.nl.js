@@ -1,7 +1,7 @@
 /*!
 * DevExtreme (dx.messages.nl.js)
-* Version: 21.2.7
-* Build date: Mon Apr 11 2022
+* Version: 22.1.6
+* Build date: Tue Oct 18 2022
 *
 * Copyright (c) 2012 - 2022 Developer Express Inc. ALL RIGHTS RESERVED
 * Read about DevExtreme licensing here: https://js.devexpress.com/Licensing/
@@ -24,6 +24,7 @@
             Yes: "Ja",
             No: "Nee",
             Cancel: "Annuleren",
+            Close: "Sluiten",
             Clear: "Wissen",
             Done: "Klaar",
             Loading: "Laden...",
@@ -285,6 +286,13 @@
             "dxHtmlEditor-dialogInsertTableRowsField": "!TODO",
             "dxHtmlEditor-dialogInsertTableColumnsField": "!TODO",
             "dxHtmlEditor-dialogInsertTableCaption": "!TODO",
+            "dxHtmlEditor-dialogUpdateImageCaption": "!TODO",
+            "dxHtmlEditor-dialogImageUpdateButton": "!TODO",
+            "dxHtmlEditor-dialogImageAddButton": "!TODO",
+            "dxHtmlEditor-dialogImageSpecifyUrl": "!TODO",
+            "dxHtmlEditor-dialogImageSelectFile": "!TODO",
+            "dxHtmlEditor-dialogImageKeepAspectRatio": "!TODO",
+            "dxHtmlEditor-dialogImageEncodeToBase64": "!TODO",
             "dxHtmlEditor-heading": "Titel",
             "dxHtmlEditor-normalText": "Normale tekst",
             "dxHtmlEditor-background": "TODO",
@@ -517,6 +525,10 @@
             "dxGantt-dialogCancelOperationMessage": "Annuleer de operatie",
             "dxGantt-dialogDeleteDependencyMessage": "Verwijder de afhankelijkheid",
             "dxGantt-dialogMoveTaskAndKeepDependencyMessage": "Verplaats de taak en behoud de afhankelijkheid",
+            "dxGantt-dialogConstraintCriticalViolationSeveralTasksMessage": "TODO",
+            "dxGantt-dialogConstraintViolationSeveralTasksMessage": "TODO",
+            "dxGantt-dialogDeleteDependenciesMessage": "TODO",
+            "dxGantt-dialogMoveTaskAndKeepDependenciesMessage": "TODO",
             "dxGantt-undo": "Ongedaan maken",
             "dxGantt-redo": "Opnieuw doen",
             "dxGantt-expandAll": "Alles uitklappen",

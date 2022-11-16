@@ -1,7 +1,7 @@
 /*!
  * DevExpress Diagram (dx-diagram)
- * Version: 2.1.47
- * Build date: Wed Jan 19 2022
+ * Version: 2.1.65
+ * Build date: Tue Oct 11 2022
  * 
  * Copyright (c) 2012 - 2022 Developer Express Inc. ALL RIGHTS RESERVED
  * Read about DevExpress licensing here: https://www.devexpress.com/Support/EULAs
@@ -103,14 +103,14 @@
 .dxdi-canvas .shape.not-valid path,
 .dxdi-canvas .shape.not-valid line,
 .dxdi-canvas .shape.not-valid ellipse {
-  stroke: red; }
+  stroke: red !important; }
 
 .dxdi-canvas .shape {
   cursor: move; }
   .dxdi-canvas .shape.text-input > text {
     display: none; }
   .dxdi-canvas .shape.container > rect:first-child {
-    fill: none; }
+    fill: transparent; }
   .dxdi-canvas .shape .shape-expand-btn {
     cursor: pointer; }
     .dxdi-canvas .shape .shape-expand-btn > rect,
@@ -197,7 +197,7 @@
 
 .dxdi-canvas .connector.not-valid path,
 .dxdi-canvas .connector.not-valid line {
-  stroke: red; }
+  stroke: red !important; }
 
 .dxdi-canvas .connector.can-move {
   cursor: move; }
@@ -263,7 +263,7 @@
   stroke: orchid; }
 
 .dxdi-canvas .connection-point.not-valid {
-  stroke: grey;
+  stroke: grey !important;
   display: none; }
 
 .dxdi-canvas .connection-mark {
@@ -424,12 +424,12 @@
 .dxdi-dragging * {
   user-select: none; }
 
-.dxdi-touch-action {
-  touch-action: none; }
-
 .dxdi-canvas.export * {
   cursor: inherit !important;
   pointer-events: all !important; }
+
+.dxdi-touch-action {
+  touch-action: none; }
 
 .dxdi-toolbox,
 .dxdi-toolbox svg {
@@ -513,7 +513,9 @@
   overflow: hidden;
   left: -1000px !important;
   top: -1000px !important;
-  opacity: 0; }
+  opacity: 0;
+  z-index: -100;
+  font-size: 16px; }
 
 .dxdi-text-input-container {
   display: none; }
