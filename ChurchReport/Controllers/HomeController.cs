@@ -5702,6 +5702,8 @@ namespace ChurchReport.Controllers
 
                 m_InMemoryDataContextSmallGroup.ListManagementDataManager.SetupListManagementData(m_InMemoryDataContextSmallGroup.AppointmentsListManager.m_Account, m_InMemoryDataContextSmallGroup.AppointmentsListManager.m_Password);
 
+                ViewBag.ListManagementType = m_InMemoryDataContextSmallGroup.ListManagementDataManager.ListManagementType;
+
                 return View();
             }
             catch (System.Exception e)
