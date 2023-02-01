@@ -1,0 +1,182 @@
+﻿@{
+    String DataStatus = "上傳成功了!";
+    //String ReUpload = "請再按上傳一次!";
+    String ReUpload = "您有一些操作沒有完成，請檢查一下剛剛輸入的資料!";
+}
+
+@using ChurchReport.Models
+
+@model ChurchReport.Models.AreaLeader
+
+<head>
+    <!-- Site made with Mobirise Website Builder v4.0.16, https://mobirise.com -->
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="generator" content="Mobirise v4.0.16, mobirise.com">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="shortcut icon" href="assets/images/logo.png" type="image/x-icon">
+    <meta name="description" content="">
+    <title>永和禮拜堂</title>
+    @*<title>永和禮拜堂</title>*@
+
+</head>
+
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+
+<div class="dx-field">
+    <div id="LoadPanel">
+        @(Html.DevExtreme().LoadPanel()
+            .ID("loadPanel")
+            .ShadingColor("rgba(0,0,0,0.4)")
+            //.Position(p => p.Of("#data-grid").Of("#buttonContainer"))
+            .Position(p => p.Of("#data-grid"))
+            .Visible(false)
+            .ShowIndicator(true)
+            .ShowPane(true)
+            .Shading(true)
+            .CloseOnOutsideClick(false)
+            .Message("更新資料中...")
+            .Animation(l => l.Show(k => k.Easing(AnimationEasing.Swing)))
+            //.OnShown("loadPanel_shown")
+            //.OnHidden("loadPanel_hidden")
+            )
+    </div>
+</div>
+
+<div id="data-grid-ChurchRoot" style="color:#00FF00 ; height:100%; width:100%; overflow: hidden;">
+
+        @(Html.DevExtreme().DataGrid<AreaLeader>()
+        //.ID(new JS("'grid_'+data.AreaLeaderEntityId"))
+        .Grouping(g=>g.AutoExpandAll(true))
+        .AllowColumnResizing(false)
+        //.Width(1500)
+        .Width("auto")
+        //.AllowColumnReordering(true)
+        .ColumnAutoWidth(false)
+        .ColumnMinWidth(80)
+        .ColumnFixing(c => c.Enabled(true))
+        .NoDataText("沒有資料")
+        .ShowBorders(true)
+        .ShowRowLines(true)
+        .ShowColumnLines(true)
+        .OnRowPrepared("OnRowPrepared")
+        //.SearchPanel(s => s.Visible(true).Placeholder("搜尋.."))
+        //.Sorting(sorting => sorting.Mode(GridSortingMode.Multiple))
+
+        .DataSource(d => d
+            .WebApi()
+            .Controller("Home")
+            .LoadAction("LoadChurchRoot")
+            //.InsertAction("PostBest")
+            //.DeleteAction("DeleteBest")
+            //.UpdateAction("PutBest")
+            .Key("AreaLeaderEntityId")
+        )
+
+        .Editing(editing =>
+        {
+
+            //editing.Mode(GridEditMode.Row);
+            editing.Mode(GridEditMode.Cell);
+            //editing.Mode(GridEditMode.Batch);
+            //editing.Mode(GridEditMode.Form);
+            //editing.Mode(GridEditMode.Popup);
+            //editing.AllowUpdating(true);
+            //editing.AllowDeleting(true);
+            //editing.AllowAdding(true);
+            editing.Texts(a => a.SaveAllChanges("上傳檔案").AddRow("新增").CancelAllChanges("取消變更").SaveRowChanges("確定").CancelRowChanges("取消").EditRow("編輯").DeleteRow("刪除").ConfirmDeleteTitle("確定要刪除嗎?").ConfirmDeleteMessage("刪除幸福小組週報"));
+            //editing.AllowDeleting(true);
+        })
+
+
+        .OnContentReady(
+                @<text>
+                    function(e)
+                    {
+                        moveEditColumnToLeft(e.component);
+                    }
+                    </text>
+                )
+       //此處設定是鉛筆形狀還是"編輯"字樣
+       .OnCellPrepared("cell_prepared")
+
+        .Columns(columns =>
+        {
+            columns.AddFor(m => m.AreaLeaderName)
+            .AllowEditing(false)
+            .Caption("區牧")
+            .MinWidth(10);
+        })
+        .MasterDetail(md =>
+        {
+            md.Enabled(true);
+            md.AutoExpandAll(true);
+
+            md.Template(new TemplateName("ListManagementView"));
+
+        })
+    )
+
+        @using (Html.DevExtreme().NamedTemplate("ListManagementView"))
+        {
+            @(Html.Partial("ListManagement"))
+        }
+
+    </div>
+
+    <script>
+        function moveEditColumnToLeft(dataGrid) {
+            dataGrid.columnOption("command:edit", {
+                visibleIndex: -1,
+                width: 50
+            });
+        }
+
+        function cell_prepared(e) {
+            if (e.rowType === "data" && e.column.command === "edit") {
+                var isEditing = e.row.isEditing,
+                    $links = e.cellElement.find(".dx-link");
+
+                $links.text("");
+
+                if (isEditing) {
+                    $links.filter(".dx-link-save").addClass("dx-icon-save");
+                    $links.filter(".dx-link-cancel").addClass("dx-icon-revert");
+                } else {
+                    $links.filter(".dx-link-edit").addClass("dx-icon-edit");
+                    $links.filter(".dx-link-delete").addClass("dx-icon-trash");
+                }
+            }
+        }
+
+        function OnRowPrepared(e) {
+            e.rowElement.css({ height: 25 });
+            e.rowElement.css('font-size', '18px');
+            e.rowElement.css('font-family', '標楷體');
+            e.rowElement.css('background', 'rgb(253, 255, 255)');
+            //e.rowElement.css('color', 'rgb(20,57,20)');
+            //e.rowElement.css('color', 'rgb(0, 0, 255)');
+            //e.rowElement.css('color', 'rgb(0, 0, 128)');
+            e.rowElement.css('color', '#000066');
+
+            e.rowElement.addClass("indicatorClass");
+
+            if (e.rowType == 'data') {
+                //e.rowElement.css('background', '#fff2a8');
+                e.rowElement[0].addEventListener("mouseover", function () {
+                    e.rowElement.css('background', '#fff2a8');
+                    e.rowElement.css("transition", "background-color 0.5s");
+                });
+                e.rowElement[0].addEventListener("mouseleave", function () {
+                    e.rowElement[0].style.background = ""
+                });
+            }
+        }
+    </script>
+
+    <link href="~/css/MasterDetail.css" rel="stylesheet" />

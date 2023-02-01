@@ -21,6 +21,7 @@ namespace ChurchReport.Models
         public NewPersonModel m_NewPersonModel;
         public PersonalInfomationModel m_PersonalInfomationModel;
         public HappyGroupDataManager m_HappyGroupDataManager;
+        public ListManagementDataManager m_ListManagementDataManager;
         public EquipmentDataManager m_EquipmentDataManager;
         public FeeList m_FeeList;
         public LineBindingViewModel m_LineBindingViewModel;
@@ -317,6 +318,50 @@ namespace ChurchReport.Models
                     session.SetInt32("dirty", 1);
                 }
                 return _memoryCache.Get<HappyGroupDataManager>(key);
+            }
+        }
+
+        #endregion
+        #region 名單管理處理區
+        public ListManagementDataManager ListManagementDataManager
+        {
+            get
+            {
+                var session = _contextAccessor.HttpContext.Session;
+                var key = session.Id + "_ListManagementDataManager";
+
+                if (_memoryCache.Get(key) == null)
+                //if (!_memoryCache.TryGetValue(key, out m_HappyGroupDataManager))
+                {
+                    var options = new MemoryCacheEntryOptions();
+                    options.PostEvictionCallbacks.Add(new PostEvictionCallbackRegistration()
+                    {
+                        EvictionCallback = (subkey, subValue, reason, state) =>
+                        {
+                            // 這裡執行某一個動作
+                            // ....
+                            if (state != null)
+                            {
+                                var localCallbackInvoked = (ManualResetEvent)state;
+
+                                localCallbackInvoked.Set();
+                            }
+
+                            //_memoryCache.Remove(key);
+
+                        },
+                    });
+                    options.SetAbsoluteExpiration(DateTime.Now.AddMinutes(30));
+                    options.SetSlidingExpiration(TimeSpan.FromMinutes(30));
+                    //options.SetSize(1);
+                    //options.Size = 1024;
+
+                    m_ListManagementDataManager = new ListManagementDataManager();
+                    _memoryCache.Set<ListManagementDataManager>(key, m_ListManagementDataManager, options);
+
+                    session.SetInt32("dirty", 1);
+                }
+                return _memoryCache.Get<ListManagementDataManager>(key);
             }
         }
 

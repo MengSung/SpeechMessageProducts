@@ -1,0 +1,505 @@
+﻿@{
+    String DataStatus = "上傳成功了!";
+    //String ReUpload = "請再按上傳一次!";
+    String ReUpload = "您有一些操作沒有完成，請檢查一下剛剛輸入的資料!";
+}
+
+@using ChurchReport.Models
+
+@model ChurchReport.Models.SmallGroup
+
+<head>
+    <!-- Site made with Mobirise Website Builder v4.0.16, https://mobirise.com -->
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="generator" content="Mobirise v4.0.16, mobirise.com">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="shortcut icon" href="assets/images/logo.png" type="image/x-icon">
+    <meta name="description" content="">
+    <title>永和禮拜堂</title>
+    @*<title>永和禮拜堂</title>*@
+
+</head>
+
+<div class="dx-field">
+    <div id="LoadPanel">
+        @(Html.DevExtreme().LoadPanel()
+        .ID("loadPanel")
+        .ShadingColor("rgba(0,0,0,0.4)")
+        //.Position(p => p.Of("#data-grid").Of("#buttonContainer"))
+        .Position(p => p.Of("#data-grid"))
+        .Visible(false)
+        .ShowIndicator(true)
+        .ShowPane(true)
+        .Shading(true)
+        .CloseOnOutsideClick(false)
+        .Message("更新資料中...")
+        .Animation(l => l.Show(k => k.Easing(AnimationEasing.Swing)))
+        //.OnShown("loadPanel_shown")
+        //.OnHidden("loadPanel_hidden")
+        )
+    </div>
+    <div id="ToastContainer">
+        @(Html.DevExtreme().Toast()
+        .ID("Toast")
+        .Position(p => p
+        .At(HorizontalAlignment.Center, VerticalAlignment.Center)
+        .Offset(0, 50))
+        //.Shading(true)
+        //.ShadingColor("red")
+        .CloseOnOutsideClick(true)
+        .DisplayTime(2000)
+        .MaxWidth(200)
+    )
+    </div>
+</div>
+
+<div id="data-grid-DistrictPastor" class="internal-grid-container" style="color:#00FF00 ; height:100%; width:100%; overflow: hidden;">
+    <p style="font-family:標楷體;font-size: 100%; color: darkred; text-align:left;background-color:powderblue;font-weight: bold">請按+號新增小組</p>
+
+    @(Html.DevExtreme().DataGrid<SmallGroup>()
+        //.ID("WeeklyGridContainer")
+        .ID(new JS("'grid_'+data.RaceLeaderEntityId"))
+        //.Width(600)
+        //.Width("auto")
+        .Width("inherit")
+        //.Width("80%")
+        .AllowColumnResizing(true)
+        //.AllowColumnReordering(true)
+        .ColumnAutoWidth(true)
+        .ColumnFixing(c => c.Enabled(true))
+        .NoDataText("沒有資料")
+        .ShowBorders(true)
+        .ShowRowLines(true)
+        .ShowColumnLines(true)
+        //.SearchPanel(s => s.Visible(true).Placeholder("搜尋.."))
+        .Sorting(sorting => sorting.Mode(GridSortingMode.Multiple))
+        .Grouping( d=>d.AutoExpandAll(true))
+        //.Width(350)
+
+        .DataSource(d => d
+        .WebApi()
+        .Controller("Home")
+        .LoadAction("LoadListManagementSmallGroup")
+        .InsertAction("PostSmallGroupAction")
+        .DeleteAction("DeletSmallGroup")
+        .UpdateAction("UpdateListManagementSmallGroup")
+        .Key("SmallGroupId")
+        .LoadParams(new { id = new JS("data.RaceLeaderEntityId") }))
+
+        .Editing(editing =>
+        {
+            //editing.Mode(GridEditMode.Row);
+            editing.Mode(GridEditMode.Cell);
+            //editing.Mode(GridEditMode.Batch);
+            //editing.Mode(GridEditMode.Form);
+            //editing.Mode(GridEditMode.Popup);
+            editing.AllowUpdating(true);
+            editing.AllowDeleting(true);
+            editing.AllowAdding(true);
+            editing.Texts(a => a.SaveAllChanges("上傳檔案").AddRow("新增").CancelAllChanges("取消變更").SaveRowChanges("確定").CancelRowChanges("取消").EditRow("編輯").DeleteRow("刪除").ConfirmDeleteTitle("確定要刪除嗎?").ConfirmDeleteMessage("移除小組"));
+            //editing.AllowDeleting(true);
+        })
+
+        // 此處設定是讓選項偏左邊一排
+        .OnContentReady(
+            @<text>
+            function(e)
+            {
+                SetEditColumnRight(e.component);
+            }
+            </text> )
+        //此處設定是鉛筆形狀還是"編輯"字樣
+        .OnCellPrepared("cell_prepared")
+
+        .OnRowPrepared("OnRowPrepared")
+
+        //.OnRowExpanding("OnRowExpanding")
+        //.OnRowCollapsed("OnRowExpanding")
+
+        .OnInitNewRow(string.Format("function(e) {{ OnInitSmallGroupLeaderRow(e, {0}); }}", new JS("data.RaceLeaderEntityId")))
+        //.OnRowInserting("cell_prepared")
+
+        .OnRowUpdated(
+                @<text>
+                  function(arg)
+                  {
+                        // AJAX 區塊
+                        $.ajax
+                        (
+                            {
+                                    url: '@Url.Action("UpdateSmallGroup", "Home")',
+                                    data:
+                                    {
+                                        key:arg.key,
+                                        values:arg.data.ChangeRaceLeader,
+                                    }, // 整理回傳給 Server 的點名資料
+
+                                    type: 'POST', //POST if you want to save, GET if you want to fetch data from server
+
+                                    success: function (arg)
+                                    {
+                                        if (arg.status == 1)
+                                        {
+                                            ShowToast(arg.message, "success", 2000);
+                                        }
+                                        else if (arg.status == 6)
+                                        {
+                                            ////不彈跳任何通知
+                                        }
+                                        else
+                                        {
+                                            ShowToast(arg.message, "error", 5000);
+                                        }
+
+                                        $("#grid_"+ arg.parentid).dxDataGrid("instance").refresh();
+                                    },
+
+                                    error: function (obj)
+                                    {
+                                        //alert('Something happened');
+                                    }
+                            }
+                        );
+                        // AJAX 區塊
+
+                    }
+                </text>)
+
+        .OnRowExpanding(
+                @<text>
+                function(e)
+                {
+                    @*//alert("TEST222!")
+                    debugger;
+                    e.rowElement.css({ height: 20 });
+                    e.rowElement.css('font-size', '16px');
+                    e.rowElement.css('font-family', '標楷體');
+                    e.rowElement.css('background', 'rgb(255, 249, 246)');
+                    //e.rowElement.css('color', 'rgb(20,57,20)');
+                    //e.rowElement.css('color', 'rgb(0, 0, 255)');
+                    //e.rowElement.css('color', 'rgb(0, 255, 128)');
+                    e.rowElement.css('color', '#011006');
+
+                    if (e.rowType == 'data') {
+                        //e.rowElement.css('background', '#fff2a8');
+                        e.rowElement[0].addEventListener("mouseover", function () {
+                            e.rowElement.css('background', '#fff2a8');
+                            e.rowElement.css("transition", "background-color 0.5s");
+                        });
+                        e.rowElement[0].addEventListener("mouseleave", function () {
+                            e.rowElement[0].style.background = ""
+                        });
+                    }*@
+                }
+                </text>)
+
+        .OnRowRemoved(
+                @<text>
+                function(e)
+                {
+                    @*debugger;
+
+                    var detailRowIndex = e.component.getRowIndexByKey(e.key) + 1,
+                    $detailCell = e.component.getCellElement(detailRowIndex, 0).parent().find(".dx-master-detail-cell"),
+                    dataGrid = $detailCell.find(".dx-datagrid").first().parent().dxDataGrid("instance");
+
+                    dataGrid.refresh();*@
+
+                }
+                </text>)
+
+        .OnRowInserted(
+                @<text>
+                  function(arg)
+                  {
+                        //debugger;
+                        // AJAX 區塊
+                        $.ajax
+                        (
+                            {
+                                    url: '@Url.Action("AddSmallGroup", "Home")',
+                                    data:
+                                    {
+                                        MasterParentID:arg.data.MasterParentID,
+                                        SmallGroupName:arg.data.SmallGroupName,
+                                        SmallGroupLeaderName:arg.data.SmallGroupLeaderName,
+                                    }, // 整理回傳給 Server 的點名資料
+
+                                    type: 'POST', //POST if you want to save, GET if you want to fetch data from server
+
+                                    success: function (arg)
+                                    {
+                                        //debugger;
+                                        if (arg.status == 1)
+                                        {
+                                            //debugger;
+                                            // 先呼叫 InsertAction，但是回傳正確
+                                            $("#grid_" + arg.parentid).dxDataGrid("instance").refresh();
+                                            ShowToast(arg.message, "success", 3000);
+                                        }
+                                        if (arg.status == 2)
+                                        {
+                                            // 先呼叫 InsertAction，但是回傳錯誤
+                                            //debugger;
+                                            var RowIndex = $("#grid_" + arg.parentid).dxDataGrid("instance").getRowIndexByKey(arg.RaceEntityId);
+                                            $("#grid_" + arg.parentid).dxDataGrid("instance").deleteRow(RowIndex);
+
+                                            ShowToast(arg.message, "error", 5000);
+                                        }
+                                        else if( arg.status == 3)
+                                        {
+                                             debugger;
+                                             //先呼叫Ajax，但是回傳正確
+                                             $("#grid_" + arg.parentid).dxDataGrid("instance").refresh();
+                                             ShowToast(arg.message, "success", 3000);
+                                        }
+                                        else if( arg.status == 4)
+                                        {
+                                            //debugger;
+                                            //先呼叫Ajax，但是回傳錯誤
+                                            //var RowIndex = $("#grid_" + arg.parentid).dxDataGrid("instance").getRowIndexByKey(arg.RaceEntityId);
+                                            //$("#grid_" + arg.parentid).dxDataGrid("instance").deleteRow(RowIndex);
+
+                                            ShowToast(arg.message, "error", 5000);
+                                        }
+                                        else if( arg.status == 5)
+                                        {
+                                            //debugger;
+                                            //先呼叫Ajax，但是回傳錯誤
+                                            //var RowIndex = $("#grid_" + arg.parentid).dxDataGrid("instance").getRowIndexByKey(arg.RaceEntityId);
+                                            //$("#grid_" + arg.parentid).dxDataGrid("instance").deleteRow(RowIndex);
+
+                                            ShowToast(arg.message, "error", 5000);
+                                        }
+                                        else
+                                        {
+                                        }
+                                    },
+
+                                    error: function (obj)
+                                    {
+                                        //alert('Something happened');
+                                    }
+
+                            }
+                        );
+                        // AJAX 區塊
+
+                    }
+                </text>)
+
+        //.OnEditorPreparing("OnEditorPrepare")
+        .OnEditorPreparing(
+                @<text>
+                function(e) {
+                 if (e.editorName == 'dxSelectBox')
+                    {
+                        e.editorOptions.onPopupInitialized = function(arg)
+                        {
+                            arg.popup.content().addClass('LookupClass');
+                        }
+                    }
+                }
+                </text>)
+
+        .Columns(columns =>
+        {
+            columns.AddFor(m => m.SmallGroupName)
+            .AllowEditing(true)
+            //.Type(GridCommandColumnType.DetailExpand)
+            //.Type(GridCommandColumnType.GroupExpand)
+            .Caption("小組名稱")
+            //.GroupIndex(0)
+            .Fixed(true)
+            .Width(100)
+            .MinWidth(100);
+
+            columns.AddFor(m => m.SmallGroupLeaderName)
+                .AllowEditing(true)
+                .Alignment(HorizontalAlignment.Center)
+                //.Type(GridCommandColumnType.DetailExpand)
+                //.Type(GridCommandColumnType.GroupExpand)
+                .Caption("小組長")
+                //.GroupIndex(0)
+                .Fixed(false)
+                .Width(80)
+                .MinWidth(80);
+
+            columns.AddFor(m => m.ChangeRaceLeader)
+                 .Caption("換區")
+                 .Alignment(HorizontalAlignment.Center)
+                 .Width(80).MinWidth(30)
+                 .Lookup(lookup => lookup
+                 .DataSource
+                    (
+                         d => d.WebApi()
+                         .Controller("Home")
+                         .LoadAction("LoadLookupList")
+                         .LoadParams(new { id = "換區長" })
+                         .Key("SmallGroupId")
+                     )
+                 );
+
+            columns.AddFor(m => m.ChangeAreaLeader)
+                 .Caption("換牧區")
+                 .Alignment(HorizontalAlignment.Left)
+                 .Width(80).MinWidth(30)
+                 .Lookup(lookup => lookup
+                 .DataSource
+                     (
+                         d => d.WebApi()
+                         .Controller("Home")
+                         .LoadAction("LoadLookupList")
+                         .LoadParams(new { id = "換牧區" })
+                         .Key("SmallGroupId")
+                     )
+                 );
+
+        })
+
+        .MasterDetail(md =>
+        {
+        //md.Enabled(true);
+        //md.Template(new TemplateName("DetailBestList"));
+
+        md.Enabled(true);
+        md.AutoExpandAll(false);
+        md.Template(@<text>
+                        @(Html.Partial("SmallGroupMemberList"))
+                    </text>);
+        })
+    )
+</div>
+
+
+<script>
+    function moveEditColumnToLeft(dataGrid) {
+        dataGrid.columnOption("command:edit", {
+            visibleIndex: -1,
+            width: 50
+        });
+    }
+    function SetEditColumnRight(dataGrid) {
+        dataGrid.columnOption("command:edit", {
+            visibleIndex: 0,
+            width: 35
+        });
+    }
+
+    function cell_prepared(e) {
+        if (e.rowType === "data" && e.column.command === "edit") {
+            var isEditing = e.row.isEditing,
+                $links = e.cellElement.find(".dx-link");
+
+            $links.text("");
+
+            if (isEditing) {
+                $links.filter(".dx-link-save").addClass("dx-icon-save");
+                $links.filter(".dx-link-cancel").addClass("dx-icon-revert");
+            } else {
+                $links.filter(".dx-link-edit").addClass("dx-icon-edit");
+                $links.filter(".dx-link-delete").addClass("dx-icon-trash");
+            }
+        }
+    }
+
+    function OnRowPrepared(e) {
+
+        //debugger;
+
+        e.rowElement.css({ height: 25 });
+        e.rowElement.css('font-size', '14px');
+        e.rowElement.css('font-family', '標楷體');
+        //e.rowElement.css('background', 'rgb(246, 255, 254)');
+        e.rowElement.css('background', '#F8FCFE');
+
+        //e.rowElement.css('color', 'rgb(20,57,20)');
+        //e.rowElement.css('color', 'rgb(0, 0, 255)');
+        e.rowElement.css('color', 'rgb(0, 0, 128)');
+
+        e.rowElement.addClass("indicatorClass");
+
+        if (e.rowType == 'data') {
+            //e.rowElement.css('background', '#fff2a8');
+            //e.rowElement[0].addEventListener("mouseover", function () {
+            //    e.rowElement.css('background', '#fff2a8');
+            //    e.rowElement.css("transition", "background-color 0.5s");
+            //});
+            //e.rowElement[0].addEventListener("mouseleave", function () {
+            //    e.rowElement[0].style.background = ""
+            //});
+        }
+
+        //if (e.rowIndex === 0) {
+        //    e.rowElement.addClass("myClass");
+        //}
+        //if (e.rowType === 'group') {
+        //    e.rowElement.find('td').css('font-weight', '1000');
+        //}
+
+        //debugger;
+
+        //commandExpand = e.rowElement.querySelector(".dx-command-expand");
+        //let commandExpand = e.rowElement.querySelector(".dx-command-expand");
+        //let sibling = commandExpand.nextSibling;
+        //let colspan = Number.parseInt(sibling.getAttribute("colspan"));
+        //if (!colspan)
+        //    colspan = 1;
+        //sibling.setAttribute("colspan", colspan + 1);
+        //commandExpand.remove();
+    }
+
+    function OnRowExpanding(e) {
+        //alert("TEST0000!!")
+
+        debugger;
+
+        e.rowElement.css({ height: 25 });
+        e.rowElement.css('font-size', '14px');
+        e.rowElement.css('font-family', '標楷體');
+        e.rowElement.css('background', 'rgb(246, 255, 254)');
+        //e.rowElement.css('color', 'rgb(20,57,20)');
+        //e.rowElement.css('color', 'rgb(0, 0, 255)');
+        e.rowElement.css('color', 'rgb(0, 256, 128)');
+
+        if (e.rowType == 'data') {
+            //e.rowElement.css('background', '#fff2a8');
+            e.rowElement[0].addEventListener("mouseover", function () {
+                e.rowElement.css('background', '#fff2a8');
+                e.rowElement.css("transition", "background-color 0.5s");
+            });
+            e.rowElement[0].addEventListener("mouseleave", function () {
+                e.rowElement[0].style.background = ""
+            });
+        }
+    }
+
+    function OnInitSmallGroupLeaderRow(e, ParentID) {
+        //alert(parentID);
+        e.data.InsertType = "SmallGroupLeader";
+        e.data.MasterParentID = ParentID;
+    }
+
+    function OnEditorPrepare(e) {
+        if (e.editorName == 'dxSelectBox') {
+            e.editorOptions.onPopupInitialized = function (arg) {
+                arg.popup.content().addClass('LookupClass');
+            }
+        }
+    }
+
+    function ShowToast(LocalToastMessage, Type, DisplayTime) {
+        //debugger;
+        var ToastInstance = $("#Toast").dxToast("instance");
+        ToastInstance.option('message', LocalToastMessage);
+        ToastInstance.option('type', Type);
+        ToastInstance.option('displayTime', DisplayTime);
+        ToastInstance.option('white-space', 'pre-line');
+        ToastInstance.option('closeOnClick', true);
+        ToastInstance.show();
+    }
+
+</script>
+
+<link href="~/css/MasterDetail.css" rel="stylesheet" />

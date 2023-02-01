@@ -2398,6 +2398,57 @@ namespace ToolUtilityNameSpace
                 throw e;
             }
         }
+        public EntityCollection RetrievePresentRecordByFetchXmlAndContact_SmallGroup_SundayDate(String ContactName, String ContactId, String SmallGroupName, String SmallGroupId, DateTime SundayDate)
+        {
+            try
+            {
+                ContactName = @"'" + ContactName + @"'";
+                ContactId = @"'{" + ContactId + @"}'";
+
+                SmallGroupName = @"'" + SmallGroupName + @"'";
+                SmallGroupId = @"'{" + SmallGroupId + @"}'";
+
+                string SundayDateString = @"'" + SundayDate.Year + "-" + SundayDate.Month + "-" + SundayDate.Day + @"'";
+
+                var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+                          <entity name='new_present_record'>
+                            <attribute name='new_present_recordid' />
+                            <attribute name='new_name' />
+                            <attribute name='createdon' />
+                            <order attribute='new_name' descending='false' />
+                            <filter type='and'>
+                              <condition attribute='new_list_new_present_record' operator='eq' uiname=" + SmallGroupName + @" uitype='list' value=" + SmallGroupId + @" />
+                              <condition attribute='new_contact_new_present_record' operator='eq' uiname=" + ContactName + @" uitype='contact' value=" + ContactId + @" />
+                              <condition attribute='new_sunday_date' operator='on' value=" + SundayDateString + @" />
+                            </filter>
+                          </entity>
+                        </fetch>";
+
+                RetrieveMultipleRequest fetchRequest = new RetrieveMultipleRequest
+                {
+                    Query = new FetchExpression(fetchXml)
+                };
+
+                EntityCollection retrieved;
+                if (CRM_TYPE == "DYNAMICS365")
+                {
+                    retrieved = ((RetrieveMultipleResponse)this.m_OrganizationService.Execute(fetchRequest)).EntityCollection;
+                }
+                else
+                {
+                    retrieved = ((RetrieveMultipleResponse)this.m_Crm2011OrganizationService.Execute(fetchRequest)).EntityCollection;
+                }
+
+
+                return retrieved;
+                //}
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                throw e;
+            }
+        }
         #endregion
         #region 取得名單
         public Entity RetrieveListEntityByName(String ListName)
@@ -2475,6 +2526,53 @@ namespace ToolUtilityNameSpace
                             </link-entity>
                           </entity>
                         </fetch>";
+
+                RetrieveMultipleRequest fetchRequest = new RetrieveMultipleRequest
+                {
+                    Query = new FetchExpression(fetchXml)
+                };
+
+                EntityCollection retrieved;
+                if (CRM_TYPE == "DYNAMICS365")
+                {
+                    retrieved = ((RetrieveMultipleResponse)this.m_OrganizationService.Execute(fetchRequest)).EntityCollection;
+                }
+                else
+                {
+                    retrieved = ((RetrieveMultipleResponse)this.m_Crm2011OrganizationService.Execute(fetchRequest)).EntityCollection;
+                }
+
+
+                return retrieved;
+                #endregion
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                throw e;
+            }
+        }
+        public EntityCollection RetrieveListByFetchXmlRacerLeader(String ContactName, String ContactId)
+        {
+            try
+            {
+                #region 取得聯絡人的
+                ContactName = @"'" + ContactName + @"'";
+                ContactId = @"'{" + ContactId + @"}'";
+
+                var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+                      <entity name='list'>
+                        <attribute name='listname' />
+                        <attribute name='createdfromcode' />
+                        <attribute name='lastusedon' />
+                        <attribute name='purpose' />
+                        <attribute name='listid' />
+                        <order attribute='listname' descending='true' />
+                        <filter type='and'>
+                            <condition attribute='new_contact_race_leager_list' operator='eq' uiname=" + ContactName + @" uitype='contact' value=" + ContactId + @" />
+                        </filter>
+                      </entity>
+                    </fetch>";
 
                 RetrieveMultipleRequest fetchRequest = new RetrieveMultipleRequest
                 {
@@ -4262,6 +4360,43 @@ namespace ToolUtilityNameSpace
                         </filter>
                       </entity>
                     </fetch>";
+
+                RetrieveMultipleRequest fetchRequest1 = new RetrieveMultipleRequest
+                {
+                    Query = new FetchExpression(fetchXml)
+                };
+
+                return ((RetrieveMultipleResponse)this.m_OrganizationService.Execute(fetchRequest1)).EntityCollection;
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                throw e;
+            }
+        }
+        public EntityCollection RetrieveSmallGroupListCollectionByFetchXml()
+        {
+            try
+            {
+                var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+                      <entity name='list'>
+                        <attribute name='listname' />
+                        <attribute name='createdfromcode' />
+                        <attribute name='lastusedon' />
+                        <attribute name='purpose' />
+                        <attribute name='new_contact_race_leager_list' />
+                        <attribute name='new_contact_family_leader_list' />
+                        <attribute name='listid' />
+                        <order attribute='listname' descending='true' />
+                        <filter type='and'>
+                          <condition attribute='new_app_named' operator='eq' value='1' />
+                          <condition attribute='statuscode' operator='eq' value='0' />
+                          <condition attribute='purpose' operator='eq' value='小組名單' />
+                          <condition attribute='listname' operator='not-like' value='%幸福%' />
+                        </filter>
+                      </entity>
+                    </fetch>";
+
 
                 RetrieveMultipleRequest fetchRequest1 = new RetrieveMultipleRequest
                 {
