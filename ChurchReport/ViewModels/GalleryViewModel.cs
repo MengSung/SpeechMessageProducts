@@ -52,6 +52,12 @@ namespace ChurchReport.ViewModel
         public DateTime BirthDate { get; set; }   // 生日
         public string PersonalId { get; set; } //身分證字號
 
+        public string PictureUrl { get; set; }
+        public string StatusMessage { get; set; }
+
+        public String Gender { get; set; }          // 性別
+        public String Status { get; set; }          // 新人信仰狀態
+
         #endregion
 
         #region 工具區

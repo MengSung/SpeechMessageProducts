@@ -19,6 +19,7 @@ using System.Text.RegularExpressions;
 using ToolUtility;
 using Line.Messaging;
 using ChurchReport.Models;
+using ChurchReport.ViewModel;
 #endregion
 
 namespace ChurchReport.WebServiceConnector
@@ -32,6 +33,9 @@ namespace ChurchReport.WebServiceConnector
         private LineMessagingClient m_LineMessagingClient { get; set; }
 
         private PushUtility m_PushUtility { get; set; }
+
+        LineBindingViewModel m_LineBindingViewModel;
+
         #endregion
         #region 常數參數
         //private const String CRM_TYPE = "CRM2011";
@@ -45,7 +49,7 @@ namespace ChurchReport.WebServiceConnector
         private const String MENGSUNG_LINE_ID = @"U7638e4ed509708a3573ba6d69970583d";
         #endregion
         #endregion
-        #region 初始化
+        #region 綁定
 
         public LineBindingUtility()
         {
@@ -483,6 +487,331 @@ namespace ChurchReport.WebServiceConnector
             }
         }
 
+        #endregion
+        #region 來賓QR CODE
+        public String RigisterVisitorCard(String UserLineId, LineBindingViewModel aLineBindingViewModel)
+        {
+            try
+            {
+                m_LineBindingViewModel = aLineBindingViewModel;
+                // 取得撥入者/申請者的 LineId 及使用者姓名
+                //String LineId = "";
+                String ContactFullName = "";
+
+                if (UserLineId != "" && UserLineId != null)
+                {
+                    return ProcessVisitorCard(ContactFullName, UserLineId, "", aLineBindingViewModel);
+                }
+                else
+                {
+                    if (UserLineId != null)
+                    {
+                        return "您的 Line Id=" + UserLineId + " ，無法辨識請洽辦公室行政人員為您服務喔!";
+                    }
+                    else
+                    {
+                        return "您的 Line Id= null，無法辨識請洽辦公室行政人員為您服務喔!";
+                    }
+                }
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                throw e;
+            }
+        }
+        private String ProcessVisitorCard(String ContactFullName, String LineId, String DisplayId, LineBindingViewModel aLineBindingViewModel)
+        {
+            try
+            {
+                #region // 還沒有註冊註冊過!
+                // 取得寄件人，也就是想要註冊的人
+                //Entity aSenderEntity = GetLineSender();
+
+                #region // 註冊失敗過濾區
+                // 想要註冊/註冊的姓名及手機號碼
+                // Line 好友輸入的註冊姓名
+                if (aLineBindingViewModel.FullName == "")
+                {
+                    //SendSimpleMessage(DisplayId, "註冊失敗!沒有姓名!");
+                    //this.m_LineUtilityClass.ReplyTextMessage(ReplyToken, "註冊失敗!沒有姓名!");
+                    return "註冊失敗!沒有姓名!";
+                }
+                // Line 好友輸入的註冊行動號碼
+                if (aLineBindingViewModel.Mobile == "")
+                {
+                    //SendSimpleMessage(DisplayId, "註冊失敗!沒有行動電話!");
+                    //this.m_LineUtilityClass.ReplyTextMessage(ReplyToken, "註冊失敗!沒有行動電話!");
+                    return "註冊失敗!沒有行動電話!";
+                }
+                #endregion
+
+                #region// 尋找註冊/註冊的姓名，也就是找到系統裡同名同姓的集合
+                EntityCollection aContactCollection = this.m_ToolUtilityClass.RetrieveContactCollectionByName(aLineBindingViewModel.FullName);
+
+                if (aContactCollection.Entities.Count > 0)
+                {
+                    #region 在系統裡有相同名字的連絡人，如果有 LineId 表示註冊過過，但是如果是換手機，則目前假設LineId仍然要被更新
+                    String Result = "";
+                    if (ProcessEachContactWithSameName(aContactCollection, LineId, DisplayId, aLineBindingViewModel, ref Result) == true)
+                    {
+                        // 已經成功註冊了
+                        //return "成功註冊了";
+                        return Result;
+                    }
+                    else
+                    {
+                        //return Result;
+                    }
+                    #endregion
+                }
+                else
+                {
+                    #region 在系統裡完全還沒有這個人，因為 aContactCollection.Entities.Count <= 0
+                    if (m_ToolUtilityClass.RetrieveContactByLineId(LineId) == null)
+                    {
+                        // 而且也沒有相同LINE ID 的人，就要建立一個新連絡人
+                        CreateContact(LineId, aLineBindingViewModel);
+                        return "註冊成功"; // 註冊成功，並返回
+                    }
+                    else
+                    {
+                        return "不能註冊，因為已經有相同的LINE ID"; // 註冊成功，並返回
+                    }
+                    #endregion
+                }
+                #endregion
+
+                #region // 跳出了迴圈在系統裡有相同姓名的連絡人，但是電話都不一樣
+                Entity aContactNoMobile = FindEmptyMobileContact(aContactCollection);
+
+                if (aContactNoMobile != null)
+                {
+                    #region 找到一個在系統裡已經有同名同姓，但是卻沒有手機號碼
+                    CopyLineInfomation(aContactNoMobile, LineId, DisplayId, aLineBindingViewModel);
+                    //SendSimpleMessage(LineId, RegisterContactFullName + "註冊已經完成了!");
+                    //this.m_LineUtilityClass.ReplyTextMessage(ReplyToken, RegisterContactFullName + "註冊已經完成了!");
+                    #endregion
+                    return "註冊成功"; // 註冊完成，並返回
+                }
+                else
+                {
+                    #region 在系統裡有相同姓名的連絡人，但是電話都不一樣，而且每個人都有手機號碼
+                    //CreateNewContact(RegisterContactFullName, RegisterContactMobilePhone);
+                    //UpdateRegisteredContact(RegisterContactFullName, RegisterContactMobilePhone);
+                    //SendSimpleMessage(LineId, RegisterContactFullName + "註冊失敗!");
+                    //this.m_LineUtilityClass.ReplyTextMessage(ReplyToken, RegisterContactFullName + "註冊失敗!");
+                    return "在系統裡有相同姓名的連絡人，但是電話都不一樣，而且每個人都有手機號碼";
+                    #endregion
+                }
+                #endregion
+                #endregion
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                throw e;
+            }
+        }
+        private bool ProcessEachContactWithSameName(EntityCollection aContactCollection, String LineId, String DisplayId, LineBindingViewModel aLineBindingViewModel, ref String Result)
+        {
+            try
+            {
+                #region 在系統裡有相同名字的連絡人，如果有 LineId 表示註冊過過，但是如果是換手機，則目前假設LineId仍然要被更新
+                foreach (Entity aContactEntity in aContactCollection.Entities)
+                {
+                    #region 一個一個處理所有相同姓名的人
+                    String MobilePhone = this.m_ToolUtilityClass.GetEntityStringAttribute(aContactEntity, "mobilephone");
+                    MobilePhone = this.m_ToolUtilityClass.FilterDigit(MobilePhone);
+
+                    if (aLineBindingViewModel.Mobile == MobilePhone)
+                    {
+                        #region 在系統裡已經有同名同姓而且手機相同的人，就認定是相同的連絡人，而且是還沒被註冊的連絡人
+                        CopyLineInfomation(aContactEntity, LineId, DisplayId, aLineBindingViewModel);
+                        Result = "註冊成功，並返回";
+                        return true; // 註冊完成，並返回
+                        #endregion
+                    }
+                    else
+                    {
+                        #region 在系統裡已經有同名同姓而且手機卻不相同的人，就認定是不同的連絡人，必須是同名同姓，而且手機相同的才符合是同一人的條件
+                        // 同名同姓，手機不同，就不做任何處理
+                        if (MobilePhone != "")
+                        {
+                            //SendSimpleMessage(DisplayId, RegisterContactFullName + "，發生同名同姓的問題!" + Environment.NewLine + "但是行動號碼不一樣!");
+                            //return RegisterContactFullName + "，發生同名同姓的問題!" + Environment.NewLine + "但是行動號碼不一樣!";
+                            Result = aLineBindingViewModel.FullName + "，發生同名同姓的問題!" + Environment.NewLine + "但是行動號碼不一樣!";
+                            //return false;
+                        }
+                        #endregion
+                    }
+                    #endregion
+                }
+
+                // 在系統裡已經有同名同姓，但是手機號碼全都不一樣
+                return false;
+                #endregion
+
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                throw e;
+            }
+        }
+        private void CopyLineInfomation(Entity aContactNoMobile, String LineId, String DisplayId, LineBindingViewModel aLineBindingViewModel)
+        {
+            try
+            {
+                #region 找到一個在系統裡已經有同名同姓，但是卻沒有手機號碼
+                #region 系統中的連絡人進行註冊(註冊)，取得寄件人的 LINE 相關訊息(含 LineId )，並複製給系統中的連絡人
+
+                // 在系統裡已經有同名同姓而且手機相同的人，就認定是相同的連絡人，而且是還沒被註冊的連絡人
+                // 取得寄件人
+                Entity EnteredLineContactEntity = this.m_ToolUtilityClass.RetrieveContactByLineId(LineId);
+
+                // 取得寄件人的 LINE 相關訊息並複製給系統中的連絡人
+                CopyLineInfomation(EnteredLineContactEntity, aContactNoMobile);
+
+                CopyVistorCardInfo(aLineBindingViewModel, ref aContactNoMobile);
+
+                // 更新系統中的連絡人
+                this.m_ToolUtilityClass.UpdateEntity(aContactNoMobile);
+                #endregion
+
+                #region// 移除登錄者的LINE Id
+                //this.m_ToolUtilityClass.SetEntityStringAttribute(ref SenderEntity, "new_lineid", "");
+                //
+                //// 更新系統中的登錄者
+                //this.m_ToolUtilityClass.UpdateEntity(ref this.m_CrmService, SenderEntity);
+
+                // 刪除系統中的登錄者
+                if (this.m_ToolUtilityClass.GetEntityStringAttribute(EnteredLineContactEntity, "fullname").EndsWith("(Line)") == true)
+                {
+                    // 必須確保是"真的"尚未註冊過的才能刪除
+                    this.m_ToolUtilityClass.DeleteEntity("contact", EnteredLineContactEntity.Id);
+                }
+
+                #endregion
+
+                #endregion
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                throw e;
+            }
+        }
+        private void CopyVistorCardInfo(LineBindingViewModel aLineBindingViewModel, ref Entity ToContact)
+        {
+            try
+            {
+                // 設定行動電話
+                this.m_ToolUtilityClass.SetEntityStringAttribute
+                (
+                    ref ToContact,
+                    "mobilephone",
+                    aLineBindingViewModel.Mobile
+                );
+
+                // 設定性別
+                if (aLineBindingViewModel.Gender != null)
+                {
+                    if (aLineBindingViewModel.Gender == "男性")
+                    { this.m_ToolUtilityClass.SetOptionSetAttribute(ref ToContact, "gendercode", 200000); }
+                    else if (aLineBindingViewModel.Gender == "女性")
+                    { this.m_ToolUtilityClass.SetOptionSetAttribute(ref ToContact, "gendercode", 200001); }
+                    else { }
+                }
+
+                // 設定信仰狀態
+                if (aLineBindingViewModel.Status != null)
+                {
+                    if (aLineBindingViewModel.Status == "已受洗(本教會)")
+                    { this.m_ToolUtilityClass.SetOptionSetAttribute(ref ToContact, "new_spiriitual_identity", 100000000); }
+                    else if (aLineBindingViewModel.Status == "已受洗(其他教會)")
+                    { this.m_ToolUtilityClass.SetOptionSetAttribute(ref ToContact, "new_spiriitual_identity", 100000003); }
+                    else if (aLineBindingViewModel.Status == "-未知-")
+                    { this.m_ToolUtilityClass.SetOptionSetAttribute(ref ToContact, "new_spiriitual_identity", 100000004); }
+                    else if (aLineBindingViewModel.Status == "未信主")
+                    { this.m_ToolUtilityClass.SetOptionSetAttribute(ref ToContact, "new_spiriitual_identity", 100000001); }
+                    else if (aLineBindingViewModel.Status == "基督徒")
+                    { this.m_ToolUtilityClass.SetOptionSetAttribute(ref ToContact, "new_spiriitual_identity", 100000008); }
+                    else if (aLineBindingViewModel.Status == "已決志")
+                    { this.m_ToolUtilityClass.SetOptionSetAttribute(ref ToContact, "new_spiriitual_identity", 100000002); }
+                    else { }
+                }
+
+                // 設定生日
+                if (aLineBindingViewModel.BirthDate != null && aLineBindingViewModel.BirthDate.Year > 1919)
+                {
+                    this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref ToContact, "birthdate", aLineBindingViewModel.BirthDate.ToLocalTime());
+                }
+
+                // 設定到教會日
+                this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref ToContact, "new_enter_church_date", DateTime.Now.ToLocalTime());
+                return;
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                throw e;
+            }
+        }
+        private async Task CreateContact(String LineId, LineBindingViewModel aLineBindingViewModel)
+        {
+            try
+            {
+                #region 在系統裡沒有相同姓名的連絡人
+                // 取得寄件人
+                Entity aCreatedContactEntity = new Entity("contact");
+
+                // 更新寄件人的姓名
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aCreatedContactEntity, "lastname", aLineBindingViewModel.FullName);
+
+                CopyVistorCardInfo(aLineBindingViewModel, ref aCreatedContactEntity);
+
+                m_LineMessagingClient = new LineMessagingClient(CHANNEL_ACCESS_TOKEN);
+
+                // 寫入LINE的個人基本資料
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aCreatedContactEntity, "new_lineid", LineId);
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aCreatedContactEntity, "new_lineid_backup", LineId);
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aCreatedContactEntity, "new_line_displayname", m_LineBindingViewModel.DisplayName);
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aCreatedContactEntity, "new_line_picture_url", m_LineBindingViewModel.PictureUrl);
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aCreatedContactEntity, "new_line_status_message", m_LineBindingViewModel.StatusMessage);
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aCreatedContactEntity, "new_line_type", "個人");
+                this.m_ToolUtilityClass.SetEntityBoolAttribute(ref aCreatedContactEntity, "new_line_register", false);
+                this.m_ToolUtilityClass.SetEntityBoolAttribute(ref aCreatedContactEntity, "new_scan_qr_code", true);
+
+                //設定LINE狀態為"新加入"
+                this.m_ToolUtilityClass.SetOptionSetAttribute(ref aCreatedContactEntity, "new_line_status", 100000001);
+
+                // 委身類型客製化，客製委身類型欄位，每間教會委身類型都不一樣，喜樂城靈糧堂=>"訪客" = 100000000
+                // 設定成為 訪客 的委身類型
+                this.m_ToolUtilityClass.SetOptionSetAttribute(ref aCreatedContactEntity, "customertypecode", 100000000);
+
+                // 設定系統中的連絡人為已註冊
+                //this.m_ToolUtilityClass.SetEntityBoolAttribute(aSenderEntity, "new_line_register", true);
+
+                // 更新系統中的登錄者
+                this.m_ToolUtilityClass.CreateEntity(aCreatedContactEntity);
+
+                return;
+                #endregion
+
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                throw e;
+            }
+        }
         #endregion
     }
 }

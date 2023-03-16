@@ -41,6 +41,7 @@
     <None Remove="Views\Home\SchedulerView.cshtml" />
     <None Remove="Views\Home\SmallGroupQrCodeView.cshtml" />
     <None Remove="Views\Home\SundayQrCodeView.cshtml" />
+    <None Remove="Views\Home\VisitorCard.cshtml" />
     <None Remove="wwwroot\assets\images\永和堂牧養系統web_banner-01.jpg" />
     <None Remove="wwwroot\css\MasterDetail.css" />
     <None Remove="wwwroot\css\Site - 複製.css" />
