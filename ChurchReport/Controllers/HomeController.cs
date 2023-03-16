@@ -3698,7 +3698,6 @@ namespace ChurchReport.Controllers
                 throw e;
             }
         }
-
         [HttpPost]
         public IActionResult ProcessLineBinding(LineBindingViewModel aLineBindingViewModel)
         {
@@ -3879,6 +3878,117 @@ namespace ChurchReport.Controllers
             }
         }
 
+        #region 掃描來賓卡QR-CODE
+        [Route("/Home/VisitorCard/{LineLiffViewPatameter}")]
+        public IActionResult VisitorCard(string LineLiffViewPatameter)
+        {
+            try
+            {
+                //真正註冊在 Line Developer
+                var images = new List<string>();
+                images.Add(Url.Content("~/assets/images/tpehoc-005.jpg"));
+                images.Add(Url.Content("~/assets/images/tpehoc-006.jpg"));
+                images.Add(Url.Content("~/assets/images/tpehoc-007.jpg"));
+                images.Add(Url.Content("~/assets/images/tpehoc-008.jpg"));
+                images.Add(Url.Content("~/assets/images/tpehoc-009.jpg"));
+
+                m_InMemoryDataContextSmallGroup.LineBindingViewModel.Images = images;
+
+                TempData["Proponent"] = LineLiffViewPatameter;
+
+                return View(m_InMemoryDataContextSmallGroup.LineBindingViewModel);
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "忠孝路長老教會 : 註冊錯誤 => " + ErrorString);
+
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
+                throw e;
+            }
+        }
+        [HttpPost]
+        public IActionResult ProcessVisitorCard(LineBindingViewModel aLineBindingViewModel)
+        {
+            try
+            {
+                if (aLineBindingViewModel.FullName == null || aLineBindingViewModel.FullName == "")
+                {
+                    return Json(new { status = "2", message = aLineBindingViewModel.DisplayName + " 沒有輸入姓名!" });
+
+                }
+                if (aLineBindingViewModel.Mobile == null || aLineBindingViewModel.Mobile == "")
+                {
+                    return Json(new { status = "2", message = aLineBindingViewModel.DisplayName + " 沒有輸入行動電話!" });
+
+                }
+
+                Regex DigitsOnly = new Regex(@"[^\d]");
+                string Mobile = DigitsOnly.Replace(aLineBindingViewModel.Mobile, "");
+
+                //string BindingString = "//" + aLineBindingViewModel.FullName + "," + aLineBindingViewModel.Mobile;
+
+                //Guid aLineEntityId = CreateLineMessage(m_InMemoryDataContextSmallGroup.LineBindingViewModel.DisplayId, m_InMemoryDataContextSmallGroup.LineBindingViewModel.LineUserId, BindingString, 100000000);
+                //Guid aLineEntityId = CreateLineMessage(aLineBindingViewModel.DisplayId, BindingString, 100000000);
+                aLineBindingViewModel.DisplayName = m_InMemoryDataContextSmallGroup.LineBindingViewModel.DisplayName;
+                aLineBindingViewModel.PictureUrl = m_InMemoryDataContextSmallGroup.LineBindingViewModel.PictureUrl;
+                aLineBindingViewModel.StatusMessage = m_InMemoryDataContextSmallGroup.LineBindingViewModel.StatusMessage;
+
+                String BindingResult = ProcessVisitorCard(m_InMemoryDataContextSmallGroup.LineBindingViewModel.DisplayId, m_InMemoryDataContextSmallGroup.LineBindingViewModel.LineUserId, aLineBindingViewModel);
+
+                if (BindingResult.Contains("成功"))
+                {
+                    //return Json(new { status = "1", message = "感謝 " + aLineBindingViewModel.FullName + " 完成註冊程序，請回到LINE視窗進行報名或回報，謝謝您!" + Environment.NewLine + BindingResult, encoded = aLineBindingViewModel.DisplayName + "," + aLineBindingViewModel.LineUserId });
+                    return Json(new { status = "1", message = "感謝 " + aLineBindingViewModel.FullName + " 完成註冊程序!" + Environment.NewLine + BindingResult, encoded = aLineBindingViewModel.DisplayName + "," + aLineBindingViewModel.LineUserId });
+                }
+                else
+                {
+                    return Json(new { status = "2", message = BindingResult });
+                }
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "忠孝路長老教會 : 註冊錯誤 => " + ErrorString);
+
+                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
+                throw e;
+            }
+
+        }
+        public String ProcessVisitorCard(string DisplayId, string UserLineId, LineBindingViewModel aLineBindingViewModel)
+        {
+            try
+            {
+                WebServiceConnector.LineBindingUtility aLineBindingUtility = new WebServiceConnector.LineBindingUtility();
+
+                return aLineBindingUtility.RigisterVisitorCard(UserLineId, aLineBindingViewModel);
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "忠孝路長老教會 : 註冊錯誤 => " + ErrorString);
+
+                //return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
+                throw e;
+            }
+        }
+        #endregion
         #endregion
         #region Line 上課資格
         [Route("/Home/QualificationView/{QualificationViewPatameter}")]
