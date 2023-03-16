@@ -3839,28 +3839,35 @@ namespace ChurchReport.Controllers
             return View(m_InMemoryDataContextSmallGroup.LineBindingViewModel);
         }
         [HttpPost]
-        public IActionResult SaveUserId(string UserLineId, string GroupId, string RoomId, string ViewType)
+        public IActionResult SaveUserId(string UserLineId, string GroupId, string RoomId, string ViewType, string DisplayName, string PictureUrl, string StatusMessage)
         {
             try
             {
-                m_InMemoryDataContextSmallGroup.LineBindingViewModel.LineUserId = UserLineId;
-                m_InMemoryDataContextSmallGroup.LineBindingViewModel.RoomId = RoomId;
-                m_InMemoryDataContextSmallGroup.LineBindingViewModel.GroupId = GroupId;
-                m_InMemoryDataContextSmallGroup.LineBindingViewModel.ViewType = ViewType;
+                if (m_InMemoryDataContextSmallGroup.LineBindingViewModel.LineUserId == "" || m_InMemoryDataContextSmallGroup.LineBindingViewModel.LineUserId == null)
+                {
+                    #region 已經有LINE ID的資料，應該是掃描QR CODE時得到的，因為未綁定/註冊，所以轉址到這裡的
+                    m_InMemoryDataContextSmallGroup.LineBindingViewModel.LineUserId = UserLineId;
+                    m_InMemoryDataContextSmallGroup.LineBindingViewModel.RoomId = RoomId;
+                    m_InMemoryDataContextSmallGroup.LineBindingViewModel.GroupId = GroupId;
+                    m_InMemoryDataContextSmallGroup.LineBindingViewModel.ViewType = ViewType;
+                    m_InMemoryDataContextSmallGroup.LineBindingViewModel.DisplayName = DisplayName;
+                    m_InMemoryDataContextSmallGroup.LineBindingViewModel.PictureUrl = PictureUrl;
+                    m_InMemoryDataContextSmallGroup.LineBindingViewModel.StatusMessage = StatusMessage;
 
-                if (GroupId != null && GroupId != "")
-                {
-                    m_InMemoryDataContextSmallGroup.LineBindingViewModel.DisplayId = GroupId;
+                    if (GroupId != null && GroupId != "")
+                    {
+                        m_InMemoryDataContextSmallGroup.LineBindingViewModel.DisplayId = GroupId;
+                    }
+                    else if (RoomId != null && RoomId != "")
+                    {
+                        m_InMemoryDataContextSmallGroup.LineBindingViewModel.DisplayId = RoomId;
+                    }
+                    else
+                    {
+                        m_InMemoryDataContextSmallGroup.LineBindingViewModel.DisplayId = UserLineId;
+                    }
+                    #endregion
                 }
-                else if (RoomId != null && RoomId != "")
-                {
-                    m_InMemoryDataContextSmallGroup.LineBindingViewModel.DisplayId = RoomId;
-                }
-                else
-                {
-                    m_InMemoryDataContextSmallGroup.LineBindingViewModel.DisplayId = UserLineId;
-                }
-
                 return Json(new { status = "1", message = "成功上傳了...." });
             }
             catch (System.Exception e)
