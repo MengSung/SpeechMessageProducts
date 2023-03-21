@@ -50,7 +50,6 @@ namespace ChurchReport.WebServiceConnector
         #endregion
         #endregion
         #region 綁定
-
         public LineBindingUtility()
         {
         }
@@ -96,7 +95,6 @@ namespace ChurchReport.WebServiceConnector
                 throw e;
             }
         }
-
         private String ProcessNotYetBinding(String ContactFullName, String LineId, String DisplayId, string EnteredFullName, string EnteredOtherName, String EnteredMobilePhone)
         {
             try
@@ -186,7 +184,6 @@ namespace ChurchReport.WebServiceConnector
                 throw e;
             }
         }
-
         // 申請綁定的好友是否曾經綁定過了
         private bool IsBindingAlready(ref String LineId, ref String ContactFullName)
         {
@@ -220,7 +217,6 @@ namespace ChurchReport.WebServiceConnector
                 throw e;
             }
         }
-
         private bool ProcessEachContactWithSameName(EntityCollection aContactCollection, String LineId, String DisplayId ,String RegisterContactFullName, string RegisterContactOtherName, String RegisterContactMobilePhone, ref String Result )
         {
             try
@@ -268,7 +264,6 @@ namespace ChurchReport.WebServiceConnector
                 throw e;
             }
         }
-
         private void CopyLineInfomation(Entity aContactNoMobile, String LineId, String DisplayId, String RegisterContactFullName, string RegisteredOtherName, String RegisterContactMobilePhone)
         {
             try
@@ -450,8 +445,6 @@ namespace ChurchReport.WebServiceConnector
                 throw e;
             }
         }
-
-
         private void UpdateRegisteredContact(String LineId, String RegisterContactFullName, string RegisterContactOtherName, String RegisterContactMobilePhone)
         {
             try
@@ -486,8 +479,8 @@ namespace ChurchReport.WebServiceConnector
                 throw e;
             }
         }
-
         #endregion
+
         #region 來賓QR CODE
         public String RigisterVisitorCard(String UserLineId, LineBindingViewModel aLineBindingViewModel)
         {

@@ -334,15 +334,19 @@
         </div>
         <div class="dx-field" style="text-align: center;">
             <div id="buttonContainer" class="dx-button-icon">
+
+                <div id="LineButton" style="display:none;">
+                    <a href="https://lin.ee/fvmtQOr"><img src="https://scdn.line-apps.com/n/line_add_friends/btn/zh-Hant.png" alt="加入好友" height="36" border="0"></a>
+                </div>
                 @(Html.DevExtreme().Button()
-                                .Text("註冊")
-                                //.Type(ButtonType.Success)
-                                //.Type(ButtonType.Normal)
-                                .Type(ButtonType.Default)
-                                .ID("register-button")
-                                .UseSubmitBehavior(true)
-                                .OnClick("Register")
-                                .Width(100)
+                            .Text("註冊")
+                            //.Type(ButtonType.Success)
+                            //.Type(ButtonType.Normal)
+                            .Type(ButtonType.Default)
+                            .ID("register-button")
+                            .UseSubmitBehavior(true)
+                            .OnClick("Register")
+                            .Width(100)
                 )
             </div>
             <div id="LoadPanel">
@@ -379,7 +383,6 @@
 
     </div>
 
-
     <script src="~/js/liff-starter.js"></script>
 
     <script>
@@ -411,13 +414,13 @@
             // 註冊按鈕反白
             ButtonContainer.option("disabled", true);
 
-            ShowToast("正在處理中，請稍待...", "success", 3000);
+            ShowToast("正在處理中，請稍待...", "info", 3000);
 
             DevExpress.ui.notify({
                 displayTime: 3000,
                 closeOnClick: true,
                 message: "正在處理中，請稍待喔...",
-                type: 'success',
+                type: 'info',
             });
 
             // 顯示旋轉鈕
@@ -479,7 +482,19 @@
 
                 //ShowToast(data.message, "success", 3000);
                 //getLoadPanelInstance().hide();
+
+                // 隱藏註冊按鈕
+                $("#register-button").dxButton("instance").option("visible", false);
+
+                document.getElementById("LineButton").style.display = "";//顯示LINE加入好友
+                //document.getElementById("LineButton").style.visibility = "hidden";//隱藏LINE加入好友
+                document.getElementById("LineButton").style.visibility = "visible";//顯示LINE加入好友
+
+
                 document.getElementById('displaynamefield').innerHTML = data.message;
+
+                document.getElementById('remind').innerHTML = "請點擊下面加入好友按鈕";
+
             }
             else {
                 DevExpress.ui.notify(data.message, "error", 5000);
