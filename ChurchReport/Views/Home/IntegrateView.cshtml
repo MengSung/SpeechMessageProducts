@@ -180,7 +180,8 @@ else
                     .Width(30)
                     .DisplayFormat("yyyy/M/d")
                     .OnChange("OnDateboxChange")
-                    .CalendarOptions( k=>k.FirstDayOfWeek(0))
+                    .CalendarOptions(k => k.FirstDayOfWeek(0))
+                    //.CalendarOptions(k => k.FirstDayOfWeek(0).MaxZoomLevel(CalendarZoomLevel.Year).MinZoomLevel(CalendarZoomLevel.Century))//只選擇年/月
                     //.PickerType(DateBoxPickerType.Calendar)
                     //.PickerType(DateBoxPickerType.Rollers)
                     //.PickerType(DateBoxPickerType.List)
