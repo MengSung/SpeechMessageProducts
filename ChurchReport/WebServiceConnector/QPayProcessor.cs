@@ -46,7 +46,7 @@ namespace ChurchReport.WebServiceConnector
         #endregion
 
         // 客製化
-        // 台北基督之家
+        // 天母豐盛靈糧堂
         private const String CHANNEL_ACCESS_TOKEN = @"MW7xRUVOMqzX651Akvg2cI8Z8oaX61lPAyL3QdSA94/pD61/FmU0wxj8rJ3CBp6Kle1qoDGIPXnMQuV5fhtYLELP+3nfPPiTdvvud9wrDp0uB204ovkDM3CE6wKpcpS2RUILadDWc4FXX6e8lyr+HQdB04t89/1O/w1cDnyilFU=";
 
         //private LinePayClient m_LinePayClient { get; }

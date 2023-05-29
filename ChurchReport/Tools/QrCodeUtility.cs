@@ -49,7 +49,7 @@ namespace ChurchReport.Tools
 
         private DateTime m_SigningTime;
         // 客製化
-        // 台北基督之家
+        // 天母豐盛靈糧堂
         private const String CHANNEL_ACCESS_TOKEN = @"MW7xRUVOMqzX651Akvg2cI8Z8oaX61lPAyL3QdSA94/pD61/FmU0wxj8rJ3CBp6Kle1qoDGIPXnMQuV5fhtYLELP+3nfPPiTdvvud9wrDp0uB204ovkDM3CE6wKpcpS2RUILadDWc4FXX6e8lyr+HQdB04t89/1O/w1cDnyilFU=";
 
 
@@ -63,7 +63,7 @@ namespace ChurchReport.Tools
         public QrCodeUtility()
         {
             // 客製化，請選擇
-            // 台北基督之家(免費版)
+            // 天母豐盛靈糧堂(免費版)
             this.m_LineMessagingClient = new LineMessagingClient(CHANNEL_ACCESS_TOKEN);
 
             // 客製化
@@ -85,7 +85,7 @@ namespace ChurchReport.Tools
                     // 透過 LINE ID 找不到此好友，可能還沒加入官LINE@
                     //this.AddNewFriend( DisplayName, UserLineId );
 
-                    OnboardType = "錯誤 : " + DisplayName + "還沒有加入台北基督之家的 Line@" ;
+                    OnboardType = "錯誤 : " + DisplayName + "還沒有加入天母豐盛靈糧堂的 Line@" ;
 
                     return;
                 }

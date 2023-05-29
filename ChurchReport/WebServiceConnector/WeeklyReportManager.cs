@@ -135,7 +135,7 @@ namespace ChurchReport.WebServiceConnector
                         //    沒有: 建立GroupName及WeeklyReportId = Guid.Empty();
                         if (GroupWeeklyReportEntity != null)
                         {
-                            #region 內壢台北基督之家
+                            #region 內壢天母豐盛靈糧堂
                             //if (( aWeeklyReport.ReligiousInvestigator = this.m_ToolUtilityClass.GetEntityIntAttribute(ref GroupWeeklyReportEntity, "new_number_of_seekers")) < 0 )
                             //{
                             //    aWeeklyReport.ReligiousInvestigator = 0;
@@ -155,14 +155,14 @@ namespace ChurchReport.WebServiceConnector
                             //aWeeklyReport.ProgressMethod = this.m_ToolUtilityClass.GetEntityStringAttribute(ref GroupWeeklyReportEntity, "new_methods_and_number");
                             //aWeeklyReport.OneOnOne = this.m_ToolUtilityClass.GetEntityStringAttribute(ref GroupWeeklyReportEntity, "new_onebynoe_and_number");
                             #endregion
-                            #region 楊梅台北基督之家
+                            #region 楊梅天母豐盛靈糧堂
                             // 小組日誌
                             aWeeklyReport.WeeklyReportContent = this.m_ToolUtilityClass.GetEntityStringAttribute(ref GroupWeeklyReportEntity, "new_memo");
                             #endregion
                         }
                         else
                         {
-                            #region 內壢台北基督之家
+                            #region 內壢天母豐盛靈糧堂
                             //aWeeklyReport.ReligiousInvestigator = 0;
                             //aWeeklyReport.Baptized = 0;
                             //aWeeklyReport.FollowNumber = 0;
@@ -170,7 +170,7 @@ namespace ChurchReport.WebServiceConnector
                             //aWeeklyReport.PushMethod = "還未建立小家回報單";
                             //aWeeklyReport.OneOnOne = "還未建立小家回報單";
                             #endregion
-                            #region 楊梅台北基督之家
+                            #region 楊梅天母豐盛靈糧堂
                             // 小組日誌
                             //aWeeklyReport.WeeklyReportContent = "還沒有點過名，所以沒有小組日誌，請先點過名之後，才能上傳小組日誌";
                             //aWeeklyReport.WeeklyReportContent = "沒有週報資料，您可能是小家長，但不是小組長，所以沒有小組長日誌需要回報";
@@ -210,7 +210,7 @@ namespace ChurchReport.WebServiceConnector
                     //    沒有: 建立GroupName及WeeklyReportId = Guid.Empty();
                     if (GroupWeeklyReportEntity != null)
                     {
-                        #region 台北基督之家
+                        #region 天母豐盛靈糧堂
 
                         // 出席紀錄
                         //aWeeklyReport.PresentContent = this.m_ToolUtilityClass.GetEntityStringAttribute(ref GroupWeeklyReportEntity, "new_sunday_present_report");
@@ -395,7 +395,7 @@ namespace ChurchReport.WebServiceConnector
                     return;
                 }
 
-                // 找到小家長小組名單集合 ，內壢台北基督之家才有，因為是三層，台北基督之家並沒有
+                // 找到小家長小組名單集合 ，內壢天母豐盛靈糧堂才有，因為是三層，天母豐盛靈糧堂並沒有
                 //aListEntityCollection = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_familyhead_list", "list");
                 //if (aListEntityCollection.Entities.Count > 0)
                 //{
@@ -564,7 +564,7 @@ namespace ChurchReport.WebServiceConnector
                             {
                                 //  族長   = new_contact_race_leager_list
                                 //  小組長 = new_contact_family_leader_list
-                                //  台北基督之家，因為台北基督之家沒有小家長
+                                //  天母豐盛靈糧堂，因為天母豐盛靈糧堂沒有小家長
                                 //Guid FamilyLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ListEntity, "new_familyhead_list");
                                 Guid GroupLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ListEntity, "new_contact_family_leader_list");
 

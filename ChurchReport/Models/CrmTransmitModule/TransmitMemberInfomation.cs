@@ -227,9 +227,9 @@ namespace ChurchReport.Models.CrmTransmitModule
             set { m_WorkAndCampusNumber = value; }
         }
         #endregion
-        #region 內壢台北基督之家專用
+        #region 內壢天母豐盛靈糧堂專用
         // 牧養狀態
-        // 本週牧養狀態(內壢台北基督之家專用)
+        // 本週牧養狀態(內壢天母豐盛靈糧堂專用)
         string m_ShepherdStatus = "";
         public string ShepherdStatus
         {
@@ -238,7 +238,7 @@ namespace ChurchReport.Models.CrmTransmitModule
         }
 
         // 一對一牧養材料選項
-        // 一對一牧養材料(內壢台北基督之家專用)
+        // 一對一牧養材料(內壢天母豐盛靈糧堂專用)
         string m_OneOnOne = "";
         public string OneOnOne
         {
