@@ -65,7 +65,7 @@ namespace ChurchReport.Controllers
             try
             {
                 var images = new List<string>();
-                images.Add(Url.Content("~/assets/images/tpehoc-001.jpg"));
+                images.Add(Url.Content("~/assets/images/fbllc-001.jpg"));
 
                 return View(new GalleryViewModel
                 {

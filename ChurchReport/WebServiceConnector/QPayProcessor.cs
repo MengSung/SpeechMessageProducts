@@ -37,17 +37,17 @@ namespace ChurchReport.WebServiceConnector
 
         #region 公司內部開發
         // 使用 ChurchReport 當作 WebHook
-        //private const String RETURN_URL = "https://tpehocback.speechmessage.com.tw:466/api/QPayCard/QPayReturnUrl";
-        //private const String BACKEND_URL = "http://QPbackendback.speechmessage.com.tw/api/QPayAtm/QPayBackendUrl";// 公司內部開發
+        private const String RETURN_URL = "https://fbllcback.speechmessage.com.tw:460/api/QPayCard/QPayReturnUrl";
+        private const String BACKEND_URL = "http://QPbackendback.speechmessage.com.tw/api/QPayAtm/QPayBackendUrl";// 公司內部開發
         #endregion
         #region 雲端機房
-        private const String RETURN_URL = "https://tpehoc.speechmessage.com.tw:359/api/QPayCard/QPayReturnUrl";
-        private const String BACKEND_URL = "http://QPaybackend.speechmessage.com.tw/api/QPayAtm/QPayBackendUrl"; // 雲端機房
+        //private const String RETURN_URL = "https://tpehoc.speechmessage.com.tw:359/api/QPayCard/QPayReturnUrl";
+        //private const String BACKEND_URL = "http://QPaybackend.speechmessage.com.tw/api/QPayAtm/QPayBackendUrl"; // 雲端機房
         #endregion
 
         // 客製化
         // 天母豐盛靈糧堂
-        private const String CHANNEL_ACCESS_TOKEN = @"MW7xRUVOMqzX651Akvg2cI8Z8oaX61lPAyL3QdSA94/pD61/FmU0wxj8rJ3CBp6Kle1qoDGIPXnMQuV5fhtYLELP+3nfPPiTdvvud9wrDp0uB204ovkDM3CE6wKpcpS2RUILadDWc4FXX6e8lyr+HQdB04t89/1O/w1cDnyilFU=";
+        private const String CHANNEL_ACCESS_TOKEN = @"JKvyZvuUbypnSwia3YlLwT0qFT9x0YAidIEW8yqgjB6qnMJTMALwy+8g62vNxOugd028TTGMI9B8dTJgD5y4hJq33gugp5/lmVxqacDXudfaCevgMrPlYtIFDtzByGpyYwIBC/clkFUxK/5kmIKxbAdB04t89/1O/w1cDnyilFU=";
 
         //private LinePayClient m_LinePayClient { get; }
 
@@ -65,7 +65,7 @@ namespace ChurchReport.WebServiceConnector
         //private DateTime m_AtmExpireDate;
 
         // 客製化
-        private const String QPAY_ORGANIZATION = "tpehoc";
+        private const String QPAY_ORGANIZATION = "fbllcback";
 
         #endregion
         #region 初始化

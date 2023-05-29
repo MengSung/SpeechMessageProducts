@@ -34,11 +34,11 @@ namespace ChurchReport.Tools
 
             // 客製化
             // 天母豐盛靈糧堂 Line 2.0
-            private const String FRENCHHORN_CHANNEL_ACCESS_TOKEN = "MW7xRUVOMqzX651Akvg2cI8Z8oaX61lPAyL3QdSA94/pD61/FmU0wxj8rJ3CBp6Kle1qoDGIPXnMQuV5fhtYLELP+3nfPPiTdvvud9wrDp0uB204ovkDM3CE6wKpcpS2RUILadDWc4FXX6e8lyr+HQdB04t89/1O/w1cDnyilFU=";
-            private const String FRENCHHORN_BACK_CHANNEL_ACCESS_TOKEN = "MW7xRUVOMqzX651Akvg2cI8Z8oaX61lPAyL3QdSA94/pD61/FmU0wxj8rJ3CBp6Kle1qoDGIPXnMQuV5fhtYLELP+3nfPPiTdvvud9wrDp0uB204ovkDM3CE6wKpcpS2RUILadDWc4FXX6e8lyr+HQdB04t89/1O/w1cDnyilFU=";
-        #endregion
+            private const String FBLLC_CHANNEL_ACCESS_TOKEN = "JKvyZvuUbypnSwia3YlLwT0qFT9x0YAidIEW8yqgjB6qnMJTMALwy+8g62vNxOugd028TTGMI9B8dTJgD5y4hJq33gugp5/lmVxqacDXudfaCevgMrPlYtIFDtzByGpyYwIBC/clkFUxK/5kmIKxbAdB04t89/1O/w1cDnyilFU=";
+            private const String FBLLC_BACK_CHANNEL_ACCESS_TOKEN = "JKvyZvuUbypnSwia3YlLwT0qFT9x0YAidIEW8yqgjB6qnMJTMALwy+8g62vNxOugd028TTGMI9B8dTJgD5y4hJq33gugp5/lmVxqacDXudfaCevgMrPlYtIFDtzByGpyYwIBC/clkFUxK/5kmIKxbAdB04t89/1O/w1cDnyilFU=";
+            #endregion
 
-        String m_ChannelAccessToken = FRENCHHORN_CHANNEL_ACCESS_TOKEN;
+            String m_ChannelAccessToken = FBLLC_CHANNEL_ACCESS_TOKEN;
 
             LineMessagingClient m_LineMessagingClient;
 
@@ -104,17 +104,17 @@ namespace ChurchReport.Tools
                 {
                     // 客製化，請選擇
                     // 先取得組織名稱
-                    if (this.m_OrganizationName == "frenchhorn")
+                    if (this.m_OrganizationName == "fbllc")
                     {
-                        m_ChannelAccessToken = FRENCHHORN_CHANNEL_ACCESS_TOKEN;
+                        m_ChannelAccessToken = FBLLC_CHANNEL_ACCESS_TOKEN;
                     }
-                    else if (this.m_OrganizationName == "frenchhornback")
+                    else if (this.m_OrganizationName == "fbllcback")
                     {
-                        m_ChannelAccessToken = FRENCHHORN_BACK_CHANNEL_ACCESS_TOKEN;
+                        m_ChannelAccessToken = FBLLC_BACK_CHANNEL_ACCESS_TOKEN;
                     }
                     else
                     {
-                        m_ChannelAccessToken = FRENCHHORN_CHANNEL_ACCESS_TOKEN;
+                        m_ChannelAccessToken = FBLLC_CHANNEL_ACCESS_TOKEN;
                     }
                 }
                 catch (System.Exception e)
