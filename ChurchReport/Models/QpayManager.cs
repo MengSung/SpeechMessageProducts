@@ -1204,20 +1204,20 @@ namespace ChurchReport.Models
             {
                 case 100000000:
                     return "十一奉獻";
-                case 100000001:
-                    return "感恩奉獻";
-                case 100000002:
-                    return "愛心奉獻";
                 case 100000003:
                     return "建堂奉獻";
-                case 100000004:
-                    return "代收代轉";
-                case 100000005:
-                    return "宣教奉獻";
+                case 100000001:
+                    return "感恩奉獻";
                 case 100000006:
                     return "其他奉獻";
-                case 100000007:
-                    return "紓困奉獻";
+                case 100000004:
+                    return "指定奉獻";
+                case 100000005:
+                    return "宣教奉獻";
+                case 100000002:
+                    return "慈惠奉獻";
+                case 100000008:
+                    return "特別奉獻";
                 default:
                     return "十一奉獻";
             }
@@ -1228,20 +1228,20 @@ namespace ChurchReport.Models
             {
                 case 100000000:
                     return "十一奉獻";
-                case 100000001:
-                    return "感恩奉獻";
-                case 100000002:
-                    return "愛心奉獻";
                 case 100000003:
                     return "建堂奉獻";
-                case 100000004:
-                    return "代收代轉";
-                case 100000005:
-                    return "宣教奉獻";
+                case 100000001:
+                    return "感恩奉獻";
                 case 100000006:
                     return "其他奉獻";
-                case 100000007:
-                    return "紓困奉獻";
+                case 100000004:
+                    return "指定奉獻";
+                case 100000005:
+                    return "宣教奉獻";
+                case 100000002:
+                    return "慈惠奉獻";
+                case 100000008:
+                    return "特別奉獻";
                 default:
                     return "十一奉獻";
             }
