@@ -1096,7 +1096,7 @@ namespace ChurchReport.WebServiceConnector
             };
 
         }
-        // 永和禮拜堂
+        // 天母豐盛靈糧堂
         // 委身類型客製化
         private String ConvertIndexToIdentity(int Identity)
         {
