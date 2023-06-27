@@ -286,8 +286,18 @@ namespace ChurchReport.WebServiceConnector
         {
             try
             {
-                Entity aAreaLeaderContact = m_ToolUtilityClass.RetrieveEntity( "contact", m_ToolUtilityClass.GetEntityLookupAttribute(aListEntity, "new_contact_list_arealeader"));
-                AreaLeader aAreaLeader = SetAreaLeader(aAreaLeaderContact, aAreaLeadersList);
+                Guid aArealeaderId = m_ToolUtilityClass.GetEntityLookupAttribute(aListEntity, "new_contact_list_arealeader");
+                AreaLeader aAreaLeader = new AreaLeader();
+                if (aArealeaderId != Guid.Empty)
+                {
+                    Entity aAreaLeaderContact = m_ToolUtilityClass.RetrieveEntity("contact", aArealeaderId);
+                    aAreaLeader = SetAreaLeader(aAreaLeaderContact, aAreaLeadersList);
+                }
+                else 
+                {
+                    // 沒有填區牧
+                    aAreaLeader = SetAreaLeader( null , aAreaLeadersList);
+                }
 
                 RaceLeader aRaceLeader;
                 if (aAreaLeader != null)
