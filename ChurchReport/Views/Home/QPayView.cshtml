@@ -129,8 +129,9 @@
                                 "信用卡",
                                 "ATM轉帳/匯款",
                                 "信用卡定期定額(每個月)",
-                                //"行動支付",
+                                "行動支付",
                                 //"銀聯卡",
+                                "LinePay",
                             }
                             //.DisplayExpr("Name")
                         )
@@ -566,8 +567,9 @@
         "信用卡",
         "ATM轉帳/匯款",
         "信用卡定期定額(每個月)",
-        //"行動支付",
+        "行動支付",
         //"銀聯卡",
+        "LinePay",
     ]
 
     // 觸發事件管理
@@ -906,7 +908,27 @@
             });
 
         }
-        else {}
+        else if (e.value == "LinePay") {
+            document.getElementById("creditcardlistcontainer").style.display = "none";//隱藏信用卡
+            document.getElementById("dedicationbookinglistcontainer").style.display = "none";//隱藏定期定額
+            // 隱藏總期數
+            $("#form").dxForm("instance").itemOption("DeductTotalNumberSelectionBox", 'visible', false);
+            $("#form").dxForm("instance").itemOption("DedicationAmount", "label", { text: "奉獻金額" });
+            $("#form").dxForm("instance").itemOption("DedicationAmount", "editorOptions", { placeholder: "輸入奉獻金額" });
+
+            $("#save-button3").dxButton("instance").option("visible", false);
+            $("#save-button2").dxButton("instance").option("text", "奉獻");
+
+            document.getElementById('atmfield').innerHTML = "";
+
+            $("#form").dxForm("instance").itemOption('DedicationAmount', {
+                editorOptions: {
+                    width: 200
+                },
+            });
+
+        }
+       else {}
     }
     function OnAmountContentReady(e) {
 

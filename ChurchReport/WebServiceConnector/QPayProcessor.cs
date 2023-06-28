@@ -188,6 +188,24 @@ namespace ChurchReport.WebServiceConnector
 
                     return CreatedCardOrder.MobileParam.MobilePayURL;
                 }
+                else if (QpayModel.PayWay == "LinePay")
+                {
+                    //ONE 一次付清
+                    //STAGING 分期付款
+                    //BONUS 紅利折抵
+                    //CUP 銀聯卡一次付清
+                    //REGULAR 定期定額扣款
+
+                    Guid aCreatedFeeId = CreateFee(LineLoginContact, QpayModel);
+                    Entity aFeeToUpdate = this.m_ToolUtilityClass.RetrieveEntity("new_fee", aCreatedFeeId);
+
+                    CreOrder CreatedCardOrder = await CreOrderCard(QpayModel.Amount, QpayModel.Category + "-" + QpayModel.FullName, DateTime.Now.ToString("yyyyMMddhhmmssfff"), aCreatedFeeId.ToString(), "L", "ONE", "", 0, "M", 1, "收費單", QpayModel.SelectedCreditCard);
+
+                    // 用剛剛建立的收費單，填寫訂單編號
+                    UpdateFee(ref aFeeToUpdate, CreatedCardOrder.OrderNo, "", "");
+
+                    return CreatedCardOrder.MobileParam.MobilePayURL;
+                }
                 else if (QpayModel.PayWay == "ATM轉帳/匯款")
                 {
                     Guid aCreatedFeeId = CreateFee(LineLoginContact, QpayModel);
@@ -866,6 +884,9 @@ namespace ChurchReport.WebServiceConnector
                     break;
                 case "銀聯卡":
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_pay_way", 100000008);
+                    break;
+                case "LinePay":
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_pay_way", 100000005);
                     break;
                 default:
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_pay_way", 100000004);
