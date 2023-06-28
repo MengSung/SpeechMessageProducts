@@ -43,8 +43,8 @@ namespace ChurchReport.Tools
         static readonly object m_UpdateSundayWeeklyReportLocker = new object();//避免多人同時輸入"小組出席"，會產生2個週報或是改變"委身類型"、"裝備狀態"                                                                 //private const bool RACE_LEADER_CAN_CREATE_WEEKLYREPORT = false; // 族系組長能否幫小組長建立週報，false 不可以
 
         // 客製化
-        // 天母豐盛靈糧堂
-        private const String CHANNEL_ACCESS_TOKEN = @"JKvyZvuUbypnSwia3YlLwT0qFT9x0YAidIEW8yqgjB6qnMJTMALwy+8g62vNxOugd028TTGMI9B8dTJgD5y4hJq33gugp5/lmVxqacDXudfaCevgMrPlYtIFDtzByGpyYwIBC/clkFUxK/5kmIKxbAdB04t89/1O/w1cDnyilFU=";
+        // 神住611靈糧堂
+        private const String CHANNEL_ACCESS_TOKEN = @"e4DmmyIWDuKndlRjHR3BscuVYoqlk9SVxhFXhoZJyhCmBKzIKk9j89bMKLPBoX/Foxvpm/H5XKqA5yu8xjDyxRtdc04LPNvcBRDwzdu1ovcX1L3ErJZkL06pHSRfjvOKBQTMZdiA6j7TnisCPUqwXwdB04t89/1O/w1cDnyilFU=";
 
         // 掃描 QR CODE之後是否發送 LINE通知
         private const bool SEND_LINE_NOTIFICATION = false;
@@ -55,7 +55,7 @@ namespace ChurchReport.Tools
         public SundayQrCodeUtility()
         {
             // 客製化，請選擇
-            // 天母豐盛靈糧堂(免費版)
+            // 神住611靈糧堂(免費版)
             this.m_LineMessagingClient = new LineMessagingClient(CHANNEL_ACCESS_TOKEN);
 
             // 客製化
@@ -79,7 +79,7 @@ namespace ChurchReport.Tools
                     // 透過 LINE ID 找不到此好友，可能還沒加入官LINE@
                     //this.AddNewFriend(DisplayName, UserLineId);
 
-                    OnboardType = "錯誤 : " + DisplayName + "還沒有加入天母豐盛靈糧堂的 Line@";
+                    OnboardType = "錯誤 : " + DisplayName + "還沒有加入神住611靈糧堂的 Line@";
 
                     return;
                 }

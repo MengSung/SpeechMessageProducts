@@ -33,9 +33,9 @@ namespace ChurchReport.Tools
             #region Channel Access Token 設定
 
             // 客製化
-            // 天母豐盛靈糧堂 Line 2.0
-            private const String FBLLC_CHANNEL_ACCESS_TOKEN = "JKvyZvuUbypnSwia3YlLwT0qFT9x0YAidIEW8yqgjB6qnMJTMALwy+8g62vNxOugd028TTGMI9B8dTJgD5y4hJq33gugp5/lmVxqacDXudfaCevgMrPlYtIFDtzByGpyYwIBC/clkFUxK/5kmIKxbAdB04t89/1O/w1cDnyilFU=";
-            private const String FBLLC_BACK_CHANNEL_ACCESS_TOKEN = "JKvyZvuUbypnSwia3YlLwT0qFT9x0YAidIEW8yqgjB6qnMJTMALwy+8g62vNxOugd028TTGMI9B8dTJgD5y4hJq33gugp5/lmVxqacDXudfaCevgMrPlYtIFDtzByGpyYwIBC/clkFUxK/5kmIKxbAdB04t89/1O/w1cDnyilFU=";
+            // 神住611靈糧堂 Line 2.0
+            private const String FBLLC_CHANNEL_ACCESS_TOKEN = "e4DmmyIWDuKndlRjHR3BscuVYoqlk9SVxhFXhoZJyhCmBKzIKk9j89bMKLPBoX/Foxvpm/H5XKqA5yu8xjDyxRtdc04LPNvcBRDwzdu1ovcX1L3ErJZkL06pHSRfjvOKBQTMZdiA6j7TnisCPUqwXwdB04t89/1O/w1cDnyilFU=";
+            private const String FBLLC_BACK_CHANNEL_ACCESS_TOKEN = "e4DmmyIWDuKndlRjHR3BscuVYoqlk9SVxhFXhoZJyhCmBKzIKk9j89bMKLPBoX/Foxvpm/H5XKqA5yu8xjDyxRtdc04LPNvcBRDwzdu1ovcX1L3ErJZkL06pHSRfjvOKBQTMZdiA6j7TnisCPUqwXwdB04t89/1O/w1cDnyilFU=";
             #endregion
 
             String m_ChannelAccessToken = FBLLC_CHANNEL_ACCESS_TOKEN;
@@ -54,7 +54,7 @@ namespace ChurchReport.Tools
             private const String m_Default_ThumbnailImageUrl = "https://web.opendrive.com/api/v1/download/file.json/ODdfMzk3Nzc5Nl8?inline=1";
             // 楊梅靈糧堂模板預設的圖片
             private const String m_Yangmeillc_ThumbnailImageUrl = "https://web.opendrive.com/api/v1/download/file.json/ODdfMzk3Nzc5Nl8?inline=1";
-            // 天母豐盛靈糧堂模板預設的圖片
+            // 神住611靈糧堂模板預設的圖片
             private const String m_TpeHoc_ThumbnailImageUrl = "https://od.lk/s/ODdfNTg5ODc5OF8/2017_06_sermon_6-18.jpg";
 
             #endregion

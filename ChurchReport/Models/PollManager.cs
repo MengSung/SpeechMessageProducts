@@ -64,7 +64,7 @@ namespace ChurchReport.Models
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "天母豐盛靈糧堂: 錯誤 => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "神住611靈糧堂: 錯誤 => " + ErrorString);
 
                 //return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -146,7 +146,7 @@ namespace ChurchReport.Models
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "天母豐盛靈糧堂: 錯誤 => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "神住611靈糧堂: 錯誤 => " + ErrorString);
 
                 //return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -170,7 +170,7 @@ namespace ChurchReport.Models
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "天母豐盛靈糧堂: 錯誤 => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "神住611靈糧堂: 錯誤 => " + ErrorString);
 
                 //return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -249,7 +249,7 @@ namespace ChurchReport.Models
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "天母豐盛靈糧堂: 錯誤 => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "神住611靈糧堂: 錯誤 => " + ErrorString);
 
                 //return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -374,7 +374,7 @@ namespace ChurchReport.Models
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "天母豐盛靈糧堂: 錯誤 => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "神住611靈糧堂: 錯誤 => " + ErrorString);
 
                 //return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -398,7 +398,7 @@ namespace ChurchReport.Models
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "天母豐盛靈糧堂: 錯誤 => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "神住611靈糧堂: 錯誤 => " + ErrorString);
 
                 //return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 

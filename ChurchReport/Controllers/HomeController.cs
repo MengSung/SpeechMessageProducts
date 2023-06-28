@@ -65,7 +65,7 @@ namespace ChurchReport.Controllers
             try
             {
                 var images = new List<string>();
-                images.Add(Url.Content("~/assets/images/fbllc-001.jpg"));
+                images.Add(Url.Content("~/assets/images/shekinah611-001.png"));
 
                 return View(new GalleryViewModel
                 {
@@ -79,7 +79,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                await aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                await aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -305,7 +305,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -323,7 +323,7 @@ namespace ChurchReport.Controllers
                 var images = new List<string>();
 
                 // ©xºô¾ã¦X¦ê³sª÷¬y©^Äm¶]°¨¿O
-                images.Add(Url.Content("~/assets/images/fbllc-001.jpg"));
+                images.Add(Url.Content("~/assets/images/shekinah611-001.png"));
 
                 return View(new GalleryViewModel
                 {
@@ -337,7 +337,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                await aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                await aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -382,7 +382,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -398,7 +398,7 @@ namespace ChurchReport.Controllers
             try
             {
                 var images = new List<string>();
-                images.Add(Url.Content("~/assets/images/fbllc-001.jpg"));
+                images.Add(Url.Content("~/assets/images/shekinah611-001.png"));
 
                 m_InMemoryDataContextSmallGroup.LineBindingViewModel.Images = images;
 
@@ -414,7 +414,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -469,7 +469,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -505,7 +505,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -537,7 +537,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -696,7 +696,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -863,7 +863,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -915,7 +915,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -940,7 +940,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -972,7 +972,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -1017,7 +1017,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -1041,7 +1041,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -1160,7 +1160,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -1186,7 +1186,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -1210,7 +1210,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -1272,7 +1272,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -1313,7 +1313,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -1336,7 +1336,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -1361,7 +1361,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -1384,7 +1384,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -1424,7 +1424,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -1464,7 +1464,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -1593,7 +1593,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -1631,7 +1631,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -1682,7 +1682,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -1735,7 +1735,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -1758,7 +1758,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -1811,7 +1811,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -1841,7 +1841,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -1865,7 +1865,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -1912,7 +1912,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -1935,7 +1935,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -1960,7 +1960,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -2000,7 +2000,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -2087,7 +2087,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -2120,7 +2120,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -2180,7 +2180,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -2250,7 +2250,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -2288,7 +2288,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -2310,7 +2310,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -2364,7 +2364,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -2391,7 +2391,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -2421,7 +2421,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -2451,7 +2451,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -2477,7 +2477,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -2520,7 +2520,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -2545,7 +2545,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -2574,7 +2574,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -2612,7 +2612,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -2640,7 +2640,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -2667,7 +2667,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 //return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -2699,7 +2699,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -2750,7 +2750,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó : ¸j©w¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó : ¸j©w¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -2775,7 +2775,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó : ¸j©w¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó : ¸j©w¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -2806,7 +2806,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó : ¸j©w¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó : ¸j©w¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -2836,7 +2836,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó : ¸j©w¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó : ¸j©w¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -2893,7 +2893,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -2948,7 +2948,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -3007,7 +3007,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -3061,7 +3061,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -3101,7 +3101,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 //return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -3160,7 +3160,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -3194,7 +3194,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -3222,7 +3222,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -3252,7 +3252,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -3339,7 +3339,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -3400,7 +3400,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -3450,7 +3450,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -3473,7 +3473,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -3534,7 +3534,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó : ¸j©w¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó : ¸j©w¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -3558,7 +3558,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó : ¸j©w¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó : ¸j©w¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -3610,7 +3610,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 //return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -3636,7 +3636,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -3659,7 +3659,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -3676,7 +3676,7 @@ namespace ChurchReport.Controllers
             {
                 //¯u¥¿µù¥U¦b Line Developer
                 var images = new List<string>();
-                images.Add(Url.Content("~/assets/images/fbllc-001.jpg"));
+                images.Add(Url.Content("~/assets/images/shekinah611-001.png"));
 
                 m_InMemoryDataContextSmallGroup.LineBindingViewModel.Images = images;
 
@@ -3691,7 +3691,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -3741,7 +3741,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -3797,7 +3797,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 //return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -3819,7 +3819,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 //return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -3830,7 +3830,7 @@ namespace ChurchReport.Controllers
         public IActionResult BindingResultView(string LineBindingResult)
         {
             var images = new List<string>();
-            images.Add(Url.Content("~/assets/images/fbllc-001.jpg"));
+            images.Add(Url.Content("~/assets/images/shekinah611-001.png"));
 
             m_InMemoryDataContextSmallGroup.LineBindingViewModel.Images = images;
 
@@ -3877,7 +3877,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -4004,7 +4004,7 @@ namespace ChurchReport.Controllers
             try
             {
                 var images = new List<string>();
-                images.Add(Url.Content("~/assets/images/fbllc-001.jpg"));
+                images.Add(Url.Content("~/assets/images/shekinah611-001.png"));
 
                 m_InMemoryDataContextSmallGroup.LineBindingViewModel.Images = images;
 
@@ -4019,7 +4019,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -4068,7 +4068,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -4093,7 +4093,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -4176,7 +4176,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 throw e;
             }
@@ -4226,7 +4226,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -4332,7 +4332,7 @@ namespace ChurchReport.Controllers
 
                 //LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                //aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                //aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 //return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -4380,7 +4380,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 throw e;
             }
@@ -4445,7 +4445,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -4493,7 +4493,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 throw e;
             }
@@ -4568,7 +4568,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -4592,7 +4592,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó : => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó : => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -4638,7 +4638,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 throw e;
             }
@@ -4702,7 +4702,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -4748,7 +4748,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 throw e;
             }
@@ -4816,7 +4816,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -4863,7 +4863,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó : ¸j©w¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó : ¸j©w¿ù»~ => " + ErrorString);
 
                 throw e;
             }
@@ -4929,7 +4929,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó : ¸j©w¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó : ¸j©w¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -4969,7 +4969,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 throw e;
             }
@@ -5005,7 +5005,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -5044,7 +5044,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 throw e;
             }
@@ -5068,7 +5068,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -5144,7 +5144,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 throw e;
             }
@@ -5163,7 +5163,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó : => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó : => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -5188,7 +5188,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -5225,7 +5225,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -5290,7 +5290,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -5339,7 +5339,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -5363,7 +5363,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -5415,7 +5415,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -5465,7 +5465,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -5487,7 +5487,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -5510,7 +5510,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -5544,7 +5544,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -5597,7 +5597,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -5646,7 +5646,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -5669,7 +5669,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -5693,7 +5693,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -5709,7 +5709,7 @@ namespace ChurchReport.Controllers
             try
             {
                 var images = new List<string>();
-                images.Add(Url.Content("~/assets/images/fbllc-001.jpg"));
+                images.Add(Url.Content("~/assets/images/shekinah611-001.png"));
 
                 m_InMemoryDataContextSmallGroup.LineBindingViewModel.Images = images;
 
@@ -5725,7 +5725,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -5776,7 +5776,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó: ¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -5830,7 +5830,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó : ¸j©w¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó : ¸j©w¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -5855,7 +5855,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó : ¸j©w¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó : ¸j©w¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -5885,7 +5885,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó : ¸j©w¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó : ¸j©w¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -5916,7 +5916,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó : ¸j©w¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó : ¸j©w¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -5946,7 +5946,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó : ¸j©w¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó : ¸j©w¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -5971,7 +5971,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó : ¸j©w¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó : ¸j©w¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -5996,7 +5996,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó : ¸j©w¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó : ¸j©w¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -6026,7 +6026,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó : ¸j©w¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó : ¸j©w¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -6050,7 +6050,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó : ¸j©w¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó : ¸j©w¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -6080,7 +6080,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó : ¸j©w¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó : ¸j©w¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -6106,7 +6106,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó : ¸j©w¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó : ¸j©w¿ù»~ => " + ErrorString);
 
                 //return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -6137,7 +6137,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó : ¸j©w¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó : ¸j©w¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -6160,7 +6160,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó : ¸j©w¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó : ¸j©w¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -6183,7 +6183,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó : ¸j©w¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó : ¸j©w¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -6217,7 +6217,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó : ¸j©w¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó : ¸j©w¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -6241,7 +6241,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó : ¸j©w¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó : ¸j©w¿ù»~ => " + ErrorString);
 
                 //return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -6282,7 +6282,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó : ¸j©w¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó : ¸j©w¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -6310,7 +6310,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó : ¸j©w¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó : ¸j©w¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -6345,7 +6345,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó : ¸j©w¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó : ¸j©w¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -6370,7 +6370,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó : ¸j©w¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó : ¸j©w¿ù»~ => " + ErrorString);
 
                 //return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -6397,7 +6397,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó : ¸j©w¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó : ¸j©w¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -6432,7 +6432,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó : ¸j©w¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó : ¸j©w¿ù»~ => " + ErrorString);
 
                 return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -6456,7 +6456,7 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¤Ñ¥ÀÂ×²±ÆFÂ³°ó : ¸j©w¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "¯«¦í611ÆFÂ³°ó : ¸j©w¿ù»~ => " + ErrorString);
 
                 //return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 

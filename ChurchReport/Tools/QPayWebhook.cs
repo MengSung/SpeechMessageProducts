@@ -23,8 +23,8 @@ namespace ChurchReport.Tools
         ToolUtilityClass m_ToolUtilityClass;
 
         // 客製化
-        // 天母豐盛靈糧堂 2.0
-        private const String SPEECHMESSAGE_CHANNEL_ACCESS_TOKEN = @"JKvyZvuUbypnSwia3YlLwT0qFT9x0YAidIEW8yqgjB6qnMJTMALwy+8g62vNxOugd028TTGMI9B8dTJgD5y4hJq33gugp5/lmVxqacDXudfaCevgMrPlYtIFDtzByGpyYwIBC/clkFUxK/5kmIKxbAdB04t89/1O/w1cDnyilFU=";
+        // 神住611靈糧堂 2.0
+        private const String SPEECHMESSAGE_CHANNEL_ACCESS_TOKEN = @"e4DmmyIWDuKndlRjHR3BscuVYoqlk9SVxhFXhoZJyhCmBKzIKk9j89bMKLPBoX/Foxvpm/H5XKqA5yu8xjDyxRtdc04LPNvcBRDwzdu1ovcX1L3ErJZkL06pHSRfjvOKBQTMZdiA6j7TnisCPUqwXwdB04t89/1O/w1cDnyilFU=";
 
         // 胡夢嵩回傳　EXCEPTION　專用的ＩＤ
         private const String MENGSUNG_LINE_ID = @"U7638e4ed509708a3573ba6d69970583d";
