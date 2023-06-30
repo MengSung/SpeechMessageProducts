@@ -42,12 +42,13 @@
                     .DataSource(new string[]
                     {
                        "十一奉獻",
-                       "建堂奉獻",
                        "感恩奉獻",
-                       "其他奉獻",
-                       "指定奉獻",
-                       "其他奉獻",
+                       "建殿奉獻",
                        "慈惠奉獻",
+                       "苗圃奉獻",
+                       "宣教奉獻",
+                       "其他奉獻",
+                       "豐盛120奉獻",
                        "特別奉獻",
                     }
                     //.DisplayExpr("Name")
@@ -433,7 +434,7 @@
                         <div class="card-header" role="tab" id="headingTwo">
                             <a role="button" class="collapsed panel-title text-black" data-toggle="collapse" data-parent="#bootstrap-accordion_7" data-core="" href="#collapse2_7" aria-expanded="false" aria-controls="collapse2">
                                 <h4 class="mbr-fonts-style display-5">
-                                    <span class="sign mbr-iconfont mbri-arrow-down inactive"></span>建堂奉獻
+                                    <span class="sign mbr-iconfont mbri-arrow-down inactive"></span>建殿奉獻
                                 </h4>
                             </a>
 
@@ -494,7 +495,7 @@
                         <div id="collapse6_7" class="panel-collapse noScroll collapse " role="tabpanel" aria-labelledby="headingOne">
                             <div class="panel-body p-4">
                                 <p class="mbr-fonts-style panel-text display-7">
-                                    若有任何奉獻問題，請洽詢黃姊妹
+                                    若有任何奉獻問題，請洽詢劉亞蘭姊妹
                                 </p>
                             </div>
                         </div>
@@ -616,7 +617,7 @@
             });
 
         }
-        else if (e.value == "建堂奉獻") {
+        else if (e.value == "建殿奉獻") {
             $("#form").dxForm("instance").itemOption("OtherDedication", 'visible', false);
             $("#form").dxForm("instance").itemOption("SpecialDedicationSelectionBox", 'visible', false);
             $("#form").dxForm("instance").itemOption("OtherDedicationSelectionBox", 'visible', false);
@@ -741,9 +742,9 @@
 
         }
         else {
-            $("#form").dxForm("instance").itemOption("OtherDedicationSelectionBox", 'visible', false);
-            $("#form").dxForm("instance").itemOption("SpecialDedicationSelectionBox", 'visible', false);
             $("#form").dxForm("instance").itemOption("OtherDedication", 'visible', false);
+            $("#form").dxForm("instance").itemOption("SpecialDedicationSelectionBox", 'visible', false);
+            $("#form").dxForm("instance").itemOption("OtherDedicationSelectionBox", 'visible', false);
 
             //document.getElementById("creditcardlistcontainer").style.display = "";//顯示信用卡
             //$("#form").dxForm("instance").itemOption('PayWaySelectBox', {
