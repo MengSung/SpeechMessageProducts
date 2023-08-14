@@ -5132,10 +5132,6 @@ namespace ChurchReport.WebServiceConnector
         {
             switch (SpiritualIdentity)
             {
-                case "未信者":
-                    return 100000000;
-                case "已受洗(其他教會)":
-                    return 100000003;
                 case "-未知-":
                     return 100000004;
                 case "基督徒":
@@ -5144,6 +5140,8 @@ namespace ChurchReport.WebServiceConnector
                     return 100000002;
                 case "慕道友":
                     return 100000005;
+                case "未信主":
+                    return 100000003;
                 default:
                     return 100000004;
             }

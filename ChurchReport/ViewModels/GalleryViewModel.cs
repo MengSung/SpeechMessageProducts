@@ -103,18 +103,18 @@ namespace ChurchReport.ViewModel
 
             switch (FaithStatusIndex)
             {
-                case 100000000:
-                    return "基督徒";
                 case 100000001:
+                    return "基督徒";
+                case 100000003:
                     return "未信主";
                 case 100000002:
                     return "已決志";
-                case 100000003:
-                    return "天主教";
-                case 100000004:
+                case 100000005:
                     return "慕道友";
+                case 100000004:
+                    return "-未知-";
                 default:
-                    return "未信主";
+                    return "基督徒";
             }
 
         }
@@ -123,16 +123,16 @@ namespace ChurchReport.ViewModel
         {
             switch (FaithStatus)
             {
+                case "-未知-":
+                    return 100000004;
                 case "基督徒":
-                    return 100000000;
-                case "未信主":
                     return 100000001;
                 case "已決志":
                     return 100000002;
-                case "天主教":
+                case "未信主":
                     return 100000003;
                 case "慕道友":
-                    return 100000004;
+                    return 100000005;
                 default:
                     return 100000001;
             }

@@ -2683,8 +2683,8 @@ namespace ChurchReport.WebServiceConnector
                     return "已決志";
                 case 100000005:
                     return "慕道友";
-                case 100000000:
-                    return "未信者";
+                case 100000003:
+                    return "未信主";
                 default:
                     return ".";
             }
@@ -2701,8 +2701,8 @@ namespace ChurchReport.WebServiceConnector
                     return "已決志";
                 case 100000005:
                     return "慕道友";
-                case 100000000:
-                    return "未信者";
+                case 100000003:
+                    return "未信主";
                 default:
                     return ".";
             }

@@ -306,12 +306,19 @@ namespace ChurchReport.WebServiceConnector
 
             // "基督徒", "慕道友"
             if (aNewContact.FaithStatus == "基督徒")
-            { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "new_spiriitual_identity", 100000000); }
-            else if (aNewContact.FaithStatus == "未信主")
             { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "new_spiriitual_identity", 100000001); }
+            else if (aNewContact.FaithStatus == "未信主")
+            { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "new_spiriitual_identity", 100000003); }
             else if (aNewContact.FaithStatus == "已決志")
             { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "new_spiriitual_identity", 100000002); }
-            else { }
+            else if (aNewContact.FaithStatus == "慕道友")
+            { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "new_spiriitual_identity", 100000005); }
+            else
+            {
+                // -未知-
+                this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "new_spiriitual_identity", 100000004);
+            }
+
 
             // 來源
             this.m_ToolUtilityClass.SetEntityStringAttribute(ref aNewContactEntity, "new_coming_reason", aNewContact.Source);
@@ -647,12 +654,16 @@ namespace ChurchReport.WebServiceConnector
             // 信仰狀態 : "基督徒", "慕道友"
             int FaithStatus = this.m_ToolUtilityClass.GetOptionSetAttribute(ref aContactEntity, "new_spiriitual_identity");
 
-            if (FaithStatus == 100000000)
-            { aPersonalInfomationViewModel.Status = "基督徒"; }
+            if (FaithStatus == 100000004)
+            { aPersonalInfomationViewModel.Status = "-未知-"; }
             else if (FaithStatus == 100000001)
-            { aPersonalInfomationViewModel.Status = "未信主"; }
+            { aPersonalInfomationViewModel.Status = "基督徒"; }
             else if (FaithStatus == 100000002)
             { aPersonalInfomationViewModel.Status = "已決志"; }
+            else if (FaithStatus == 100000005)
+            { aPersonalInfomationViewModel.Status = "慕道友"; }
+            else if (FaithStatus == 100000003)
+            { aPersonalInfomationViewModel.Status = "未信主"; }
             else { }
 
             // 邀請人相關欄位設定
@@ -775,11 +786,15 @@ namespace ChurchReport.WebServiceConnector
 
             // 信仰狀態 : "基督徒", "慕道友"
             if (aPersonalInfomationViewModel.Status == "基督徒")
-            { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aContactEntity, "new_spiriitual_identity", 100000000); }
-            else if (aPersonalInfomationViewModel.Status == "未信主")
             { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aContactEntity, "new_spiriitual_identity", 100000001); }
+            else if (aPersonalInfomationViewModel.Status == "未信主")
+            { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aContactEntity, "new_spiriitual_identity", 100000003); }
             else if (aPersonalInfomationViewModel.Status == "已決志")
             { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aContactEntity, "new_spiriitual_identity", 100000002); }
+            else if (aPersonalInfomationViewModel.Status == "慕道友")
+            { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aContactEntity, "new_spiriitual_identity", 100000005); }
+            else if (aPersonalInfomationViewModel.Status == "-未知-")
+            { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aContactEntity, "new_spiriitual_identity", 100000004); }
             else { }
 
 

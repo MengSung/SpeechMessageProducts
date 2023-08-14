@@ -37,12 +37,12 @@ namespace ChurchReport.WebServiceConnector
 
         #region 公司內部開發
         // 使用 ChurchReport 當作 WebHook
-        private const String RETURN_URL = "https://shekinah611back.speechmessage.com.tw:473/api/QPayCard/QPayReturnUrl";
-        private const String BACKEND_URL = "http://QPbackendback.speechmessage.com.tw/api/QPayAtm/QPayBackendUrl";// 公司內部開發
+        //private const String RETURN_URL = "https://shekinah611back.speechmessage.com.tw:473/api/QPayCard/QPayReturnUrl";
+        //private const String BACKEND_URL = "http://QPbackendback.speechmessage.com.tw/api/QPayAtm/QPayBackendUrl";// 公司內部開發
         #endregion
         #region 雲端機房
-        //private const String RETURN_URL = "https://fbllc.speechmessage.com.tw:398/api/QPayCard/QPayReturnUrl";
-        //private const String BACKEND_URL = "http://QPaybackend.speechmessage.com.tw/api/QPayAtm/QPayBackendUrl"; // 雲端機房
+        private const String RETURN_URL = "https://shekinah611.speechmessage.com.tw:200/api/QPayCard/QPayReturnUrl";
+        private const String BACKEND_URL = "http://QPaybackend.speechmessage.com.tw/api/QPayAtm/QPayBackendUrl"; // 雲端機房
         #endregion
 
         // 客製化
@@ -65,7 +65,7 @@ namespace ChurchReport.WebServiceConnector
         //private DateTime m_AtmExpireDate;
 
         // 客製化
-        private const String QPAY_ORGANIZATION = "shekinah611back";
+        private const String QPAY_ORGANIZATION = "shekinah611";
 
         #endregion
         #region 初始化
@@ -392,40 +392,37 @@ namespace ChurchReport.WebServiceConnector
                     break;
             }
         }
-        public void SetPayCategory(String Value, String EntityName, ref Entity aFeeEntity)
+        public void SetPayCategory(String Value, String AttributeName, ref Entity aFeeEntity)
         {
 
             switch (Value)
             {
                 case "十一奉獻":
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000000);
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, AttributeName, 100000000);
+                    break;
+                case "建堂奉獻":
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, AttributeName, 100000003);
                     break;
                 case "感恩奉獻":
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000001);
-                    break;
-                case "建殿奉獻":
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000003);
-                    break;
-                case "慈惠奉獻":
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000002);
-                    break;
-                case "苗圃奉獻":
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000004);
-                    break;
-                case "宣教奉獻":
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000005);
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, AttributeName, 100000001);
                     break;
                 case "其他奉獻":
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000006);
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, AttributeName, 100000006);
                     break;
-                case "豐盛120奉獻":
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000007);
+                case "指定奉獻":
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, AttributeName, 100000004);
+                    break;
+                case "宣教奉獻":
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, AttributeName, 100000005);
+                    break;
+                case "慈惠奉獻":
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, AttributeName, 100000002);
                     break;
                 case "特別奉獻":
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000008);
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, AttributeName, 100000008);
                     break;
                 default:
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000000);
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, AttributeName, 100000000);
                     break;
             }
         }

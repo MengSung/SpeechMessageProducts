@@ -724,18 +724,16 @@ namespace ChurchReport.WebServiceConnector
                 // 設定信仰狀態
                 if (aLineBindingViewModel.Status != null)
                 {
-                    if (aLineBindingViewModel.Status == "已受洗(本教會)")
-                    { this.m_ToolUtilityClass.SetOptionSetAttribute(ref ToContact, "new_spiriitual_identity", 100000000); }
-                    else if (aLineBindingViewModel.Status == "已受洗(其他教會)")
-                    { this.m_ToolUtilityClass.SetOptionSetAttribute(ref ToContact, "new_spiriitual_identity", 100000003); }
-                    else if (aLineBindingViewModel.Status == "-未知-")
+                    if (aLineBindingViewModel.Status == "-未知-")
                     { this.m_ToolUtilityClass.SetOptionSetAttribute(ref ToContact, "new_spiriitual_identity", 100000004); }
-                    else if (aLineBindingViewModel.Status == "未信主")
-                    { this.m_ToolUtilityClass.SetOptionSetAttribute(ref ToContact, "new_spiriitual_identity", 100000001); }
                     else if (aLineBindingViewModel.Status == "基督徒")
-                    { this.m_ToolUtilityClass.SetOptionSetAttribute(ref ToContact, "new_spiriitual_identity", 100000008); }
+                    { this.m_ToolUtilityClass.SetOptionSetAttribute(ref ToContact, "new_spiriitual_identity", 100000001); }
                     else if (aLineBindingViewModel.Status == "已決志")
                     { this.m_ToolUtilityClass.SetOptionSetAttribute(ref ToContact, "new_spiriitual_identity", 100000002); }
+                    else if (aLineBindingViewModel.Status == "慕道友")
+                    { this.m_ToolUtilityClass.SetOptionSetAttribute(ref ToContact, "new_spiriitual_identity", 100000005); }
+                    else if (aLineBindingViewModel.Status == "未信主")
+                    { this.m_ToolUtilityClass.SetOptionSetAttribute(ref ToContact, "new_spiriitual_identity", 100000003); }
                     else { }
                 }
 

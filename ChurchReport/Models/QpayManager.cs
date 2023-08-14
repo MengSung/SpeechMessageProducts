@@ -559,6 +559,10 @@ namespace ChurchReport.Models
                     {
                         return Json(new { status = "2", message = "信用卡繳費失敗!" });
                     }
+                    else if (DedicationResult == "信用卡定期定額建立失敗!")
+                    {
+                        return Json(new { status = "2", message = "信用卡定期定額建立失敗!" });
+                    }
                     else if (DedicationResult.Contains("*** 請依照訊息付款 ***") != true)
                     {
                         PayWay = "信用卡";

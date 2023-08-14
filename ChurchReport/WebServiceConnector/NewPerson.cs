@@ -583,6 +583,10 @@ namespace ChurchReport.WebServiceConnector
             { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "new_spiriitual_identity", 100000001); }
             else if (aNewContact.FaithStatus == "已決志")
             { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "new_spiriitual_identity", 100000002); }
+            else if (aNewContact.FaithStatus == "-未知-")
+            { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "new_spiriitual_identity", 100000004); }
+            else if (aNewContact.FaithStatus == "未信主")
+            { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "new_spiriitual_identity", 100000003); }
             else { }
 
             // 來源
