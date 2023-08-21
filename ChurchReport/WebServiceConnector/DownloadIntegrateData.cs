@@ -914,7 +914,7 @@ namespace ChurchReport.WebServiceConnector
                 if (aWeeklyReportId != Guid.Empty)
                 { this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aPresentRecord, "new_group_present_weekly_report_prese", "new_group_present_weekly_report", aWeeklyReportId); }
                 #endregion
-                #region 從名單取得 區名、小家長 ID、小組長 ID、小家長、區牧長 ID
+                #region 從名單取得 區名、小家長 ID、小組長 ID、小家長、上代族系族長長 ID
                 // 小家長 ID
                 Guid aFamilyLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_familyhead_list");
 
@@ -924,7 +924,7 @@ namespace ChurchReport.WebServiceConnector
                 // 小家長 ID
                 Guid aRaceLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_race_leager_list");
 
-                // 區牧長 ID
+                // 上代族系族長長 ID
                 Guid aShepherdLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_list_arealeader");
 
                 // 區名
@@ -946,7 +946,7 @@ namespace ChurchReport.WebServiceConnector
                 if (aRaceLeaderId != Guid.Empty)
                 { this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aPresentRecord, "new_race_leader_present_record", "contact", aRaceLeaderId); }
                 #endregion
-                #region 關聯區牧長屬性
+                #region 關聯上代族系族長長屬性
                 if (aShepherdLeaderId != Guid.Empty)
                 { this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aPresentRecord, "new_contact_arealeader_present_record", "contact", aShepherdLeaderId); }
                 #endregion
@@ -1591,7 +1591,7 @@ namespace ChurchReport.WebServiceConnector
 
             foreach (Member aMember in aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members)
             {
-                if (aMember.Status.Contains("牧師師母") || aMember.Status.Contains("小家長") || aMember.Status.Contains("區牧") || aMember.Status.Contains("小組長") || aMember.Status.Contains("門徒") || aMember.Status.Contains("小組組員"))
+                if (aMember.Status.Contains("牧師師母") || aMember.Status.Contains("小家長") || aMember.Status.Contains("上代族系族長") || aMember.Status.Contains("小組長") || aMember.Status.Contains("門徒") || aMember.Status.Contains("小組組員"))
                 {
                     aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.Members.Add(aMember);
                 }
@@ -1720,7 +1720,7 @@ namespace ChurchReport.WebServiceConnector
                 //case 100000006:
                 //    return "01. 牧師師母";
                 //case 100000009:
-                //    return "02. 區牧";
+                //    return "02. 上代族系族長";
                 //case 100000003:
                 //    return "03. 小家長";
                 //case 100000008:
@@ -2648,7 +2648,7 @@ namespace ChurchReport.WebServiceConnector
                 case 100000006:
                     return "01. 牧師師母";
                 case 100000002:
-                    return "011. 區牧";
+                    return "011. 上代族系族長";
                 case 100000003:
                     return "02. 小家長";
                 case 100000008:

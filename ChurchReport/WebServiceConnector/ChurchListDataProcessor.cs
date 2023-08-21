@@ -41,8 +41,8 @@ namespace ChurchReport.WebServiceConnector
             #region// 先把資料給儲存起來
             m_LocalChurchRoot           = aChurchRoot;
 
-            //m_RaceLeaderArray           = aRaceLeaderArray;             //換區要用到的區長清單
-            //m_AreaLeaderArray           = aAreaLeaderArray;             //換牧區要用到的區牧清單
+            //m_RaceLeaderArray           = aRaceLeaderArray;             //換區要用到的族系族長清單
+            //m_AreaLeaderArray           = aAreaLeaderArray;             //換牧區要用到的上代族系族長清單
             //m_RaceLeaderSmallGroupArray = aRaceLeaderSmallGroupArray;   //換本區小組要用到的本區小組清單
             //m_ChurchSmallGroupArray     = aChurchSmallGroupArray;       //換全教會小組要用到的全教會小組清單
             #endregion
@@ -75,7 +75,7 @@ namespace ChurchReport.WebServiceConnector
 
                 #endregion
 
-                // 設定本區要換小組名單及區長
+                // 設定本區要換小組名單及族系族長
                 SetChangeSmalllGroupAndRaceList(ref aRaceLeaderArray, ref aRaceLeaderSmallGroupArray);
 
                 SetChangeSmalllGroupAndAreaList(ref aRaceLeaderArray, ref aAreaLeaderArray, ref aRaceLeaderSmallGroupArray, ref aChurchSmallGroupArray);
@@ -131,9 +131,9 @@ namespace ChurchReport.WebServiceConnector
                 //aListEntityCollection = m_ToolUtilityClass.QueryListByContactId(m_ContactId, "new_contact_family_leader_list");  // 小組長/小組同工
                 MergeCollectionSmallGroupAhead(ref aListEntityCollection);
 
-                // 共同區長 new_contact_co_race_leager_list
-                //aListEntityCollection = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_contact_co_race_leager_list", "list");  // 共同區長
-                aListEntityCollection = m_ToolUtilityClass.QueryListByContactId(m_ContactId, "new_contact_co_race_leager_list");  // 共同區長
+                // 共同族系族長 new_contact_co_race_leager_list
+                //aListEntityCollection = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_contact_co_race_leager_list", "list");  // 共同族系族長
+                aListEntityCollection = m_ToolUtilityClass.QueryListByContactId(m_ContactId, "new_contact_co_race_leager_list");  // 共同族系族長
                 MergeCollectionSmallGroupAhead(ref aListEntityCollection);
 
                 // 上代組長 new_contact_race_leager_list
@@ -146,8 +146,8 @@ namespace ChurchReport.WebServiceConnector
                 aListEntityCollection = m_ToolUtilityClass.QueryListByContactId(m_ContactId, "new_contact_list_arealeader");  // 族系族長
                 MergeCollectionSmallGroupAhead(ref aListEntityCollection);
 
-                // 共同區牧 new_contact_list_co_arealeader
-                aListEntityCollection = m_ToolUtilityClass.QueryListByContactId(m_ContactId, "new_contact_list_co_arealeader");  // 共同區牧
+                // 共同上代族系族長 new_contact_list_co_arealeader
+                aListEntityCollection = m_ToolUtilityClass.QueryListByContactId(m_ContactId, "new_contact_list_co_arealeader");  // 共同上代族系族長
                 MergeCollectionSmallGroupAhead(ref aListEntityCollection);
 
                 return;
@@ -163,7 +163,7 @@ namespace ChurchReport.WebServiceConnector
         {
             try
             {
-                // 族系族長或是區長的名單若是與小組長名單重疊，則要過濾出僅有族長/區長的名單
+                // 族系族長或是族系族長的名單若是與小組長名單重疊，則要過濾出僅有族長/族系族長的名單
                 // 合併小組名單至族系名單，單扣除掉重複的
                 // 然後放在小組名單裡面
                 // 一個一個處理族系名單
@@ -295,7 +295,7 @@ namespace ChurchReport.WebServiceConnector
                 }
                 else 
                 {
-                    // 沒有填區牧
+                    // 沒有填上代族系族長
                     aAreaLeader = SetAreaLeader( null , aAreaLeadersList);
                 }
 
@@ -353,7 +353,7 @@ namespace ChurchReport.WebServiceConnector
                 }
                 else
                 {
-                    FullName = "區牧未填";
+                    FullName = "上代族系族長未填";
                     AreaLeaderId = "Unknown";
                 }
 
@@ -396,7 +396,7 @@ namespace ChurchReport.WebServiceConnector
                 }
                 else
                 {
-                    FullName = "區長未填";
+                    FullName = "族系族長未填";
                     RaceLeaderId = "Unknown";
                 }
 
@@ -539,7 +539,7 @@ namespace ChurchReport.WebServiceConnector
                         aRaceLeaderSmallGroupArray.Add(SmallGroupName);
                     }
 
-                    // 將本牧區的區長名稱放在清單中
+                    // 將本牧區的族系族長名稱放在清單中
                     String RaceLeaderName = this.m_ToolUtilityClass.GetEntityLookupDisplayName(aListEntity, "new_contact_race_leager_list");
                     if (aRaceLeaderArray != null)
                     {
@@ -589,7 +589,7 @@ namespace ChurchReport.WebServiceConnector
                         aChurchSmallGroupArray.Add(SmallGroupName);
                     }
 
-                    // 將本牧區的區長名稱放在清單中
+                    // 將本牧區的族系族長名稱放在清單中
                     String RaceLeaderName = this.m_ToolUtilityClass.GetEntityLookupDisplayName(aSmallGroupEntity, "new_contact_race_leager_list");
                     if (aAreaLeaderArray != null)
                     {
@@ -715,13 +715,13 @@ namespace ChurchReport.WebServiceConnector
             {
                 new AreaLeader
                 {
-                     AreaLeaderName = "區牧_001",
+                     AreaLeaderName = "上代族系族長_001",
                      AreaLeaderEntityId = "001",
                      RaceLeaderList= new List<RaceLeader>
                      {
                         new RaceLeader
                         {
-                            RaceLeaderName = "忠勤,區長 001-001",
+                            RaceLeaderName = "忠勤,族系族長 001-001",
                             RaceLeaderEntityId ="001-001",
                             SmallGroupList = new List<SmallGroup>
                             {
@@ -822,7 +822,7 @@ namespace ChurchReport.WebServiceConnector
                         },
                         new RaceLeader
                         {
-                            RaceLeaderName = "忠勤,區長 001-002",
+                            RaceLeaderName = "忠勤,族系族長 001-002",
                             RaceLeaderEntityId ="001-002",
                             SmallGroupList = new List<SmallGroup>
                             {
@@ -925,13 +925,13 @@ namespace ChurchReport.WebServiceConnector
                 },
                 //new AreaLeader
                 //{
-                //     AreaLeaderName = "區牧_002",
+                //     AreaLeaderName = "上代族系族長_002",
                 //     AreaLeaderEntityId = "0002",
                 //     RaceLeaderList= new List<RaceLeader>
                 //     {
                 //        new RaceLeader
                 //        {
-                //            RaceLeaderName = "忠勤,區長 003",
+                //            RaceLeaderName = "忠勤,族系族長 003",
                 //            RaceLeaderEntityId ="0002-003",
                 //            SmallGroupList = new List<SmallGroup>
                 //            {
@@ -1017,7 +1017,7 @@ namespace ChurchReport.WebServiceConnector
                 //        },
                 //        new RaceLeader
                 //        {
-                //            RaceLeaderName = "忠勤,區長 004",
+                //            RaceLeaderName = "忠勤,族系族長 004",
                 //            RaceLeaderEntityId ="002",
                 //            SmallGroupList = new List<SmallGroup>
                 //            {
@@ -1115,9 +1115,9 @@ namespace ChurchReport.WebServiceConnector
                 case 100000006:
                     return "牧師師母";
                 case 100000002:
-                    return "區牧";
+                    return "上代族系族長";
                 case 100000003:
-                    return "區長";
+                    return "族系族長";
                 case 100000008:
                     return "小組長";
                 case 100000012:

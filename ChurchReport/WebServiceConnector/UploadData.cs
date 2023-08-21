@@ -78,7 +78,7 @@ namespace ChurchReport.WebServiceConnector
         Guid m_DecipleGroupListId;
         //Guid m_GroupLeaderId; // 小組長
         Guid m_RaceLeaderId; // 族系族長/小家長
-        Guid m_ShepherdLeaderId; // 區牧
+        Guid m_ShepherdLeaderId; // 上代族系族長
         String m_SmallGroupPlace;
         String m_SmallGroupTime;
 
@@ -457,7 +457,7 @@ namespace ChurchReport.WebServiceConnector
                 case 100000006:
                     return "01. 牧師師母";
                 case 100000002:
-                    return "011. 區牧";
+                    return "011. 上代族系族長";
                 case 100000003:
                     return "02. 小家長";
                 case 100000008:

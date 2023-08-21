@@ -427,7 +427,7 @@ namespace ChurchReport.WebServiceConnector
                 #region 先找到"小家長"、"小組長"、族系族長/小家長"
                 Entity aContact;
 
-                // 區牧 LINE ID
+                // 上代族系族長 LINE ID
                 String aListGraceLeaderLineId = "";
                 Guid aListGraceLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_list_arealeader");
                 if (aListGraceLeaderId != Guid.Empty)
@@ -436,7 +436,7 @@ namespace ChurchReport.WebServiceConnector
                     aListGraceLeaderLineId = this.m_ToolUtilityClass.GetEntityStringAttribute(aContact, "new_lineid");
                 }
 
-                // 共同區牧 LINE ID
+                // 共同上代族系族長 LINE ID
                 String aCoListGraceLeaderLineId = "";
                 Guid aCoListGraceLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_list_co_arealeader");
                 if (aCoListGraceLeaderId != Guid.Empty)
@@ -520,9 +520,9 @@ namespace ChurchReport.WebServiceConnector
                 else if ( LoginType == "指派" )
                 {
                     // 指派回報
-                    // 區牧 LINE ID
+                    // 上代族系族長 LINE ID
                     if (aListGraceLeaderLineId != "") aList.Add(aListGraceLeaderLineId);
-                    // 共同區牧 LINE ID
+                    // 共同上代族系族長 LINE ID
                     if (aCoListGraceLeaderLineId != "") aList.Add(aCoListGraceLeaderLineId);
                     // 小家長 LINE ID
                     if (aAreaLeaderLineId != "") aList.Add(aAreaLeaderLineId);
@@ -589,7 +589,7 @@ namespace ChurchReport.WebServiceConnector
                 #region 先找到"小家長"、"小組長"、族系族長/小家長"
                 Entity aContact;
 
-                // 區牧 LINE ID
+                // 上代族系族長 LINE ID
                 String aListGraceLeaderLineId = "";
                 Guid aListGraceLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_list_arealeader");
                 if (aListGraceLeaderId != Guid.Empty)
@@ -602,7 +602,7 @@ namespace ChurchReport.WebServiceConnector
                     }
                 }
 
-                // 共同區牧 LINE ID
+                // 共同上代族系族長 LINE ID
                 String aCoListGraceLeaderLineId = "";
                 Guid aCoListGraceLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_list_co_arealeader");
                 if (aCoListGraceLeaderId != Guid.Empty)
@@ -683,16 +683,16 @@ namespace ChurchReport.WebServiceConnector
                 if (LoginType == "小組長")
                 {
                     // 小組長個人回報
-                    // 區牧=> aListGraceLeaderLineId
+                    // 上代族系族長=> aListGraceLeaderLineId
                     if (aListGraceLeaderLineId != "") aList.Add(aListGraceLeaderLineId);
 
-                    // 共同區牧=> aCoListGraceLeaderLineId
+                    // 共同上代族系族長=> aCoListGraceLeaderLineId
                     if (aCoListGraceLeaderLineId != "") aList.Add(aCoListGraceLeaderLineId);
 
-                    // 小家長(區長)=> aAreaLeaderLineId
+                    // 小家長(族系族長)=> aAreaLeaderLineId
                     if (aAreaLeaderLineId != "") aList.Add(aAreaLeaderLineId);
 
-                    // 共同小家長(共同區長)=> aCoAreaLeaderLineId
+                    // 共同小家長(共同族系族長)=> aCoAreaLeaderLineId
                     if (aCoAreaLeaderLineId != "") aList.Add(aCoAreaLeaderLineId);
 
                     // 小組長=> aListSmallGroupLeaderLineId
@@ -719,10 +719,10 @@ namespace ChurchReport.WebServiceConnector
                 else
                 {
                     // 個人回報
-                    // 區牧=> aListGraceLeaderLineId
+                    // 上代族系族長=> aListGraceLeaderLineId
                     //if (aListGraceLeaderLineId != "") aList.Add(aListGraceLeaderLineId);
 
-                    // 共同區牧=> aCoListGraceLeaderLineId
+                    // 共同上代族系族長=> aCoListGraceLeaderLineId
                     //if (aCoListGraceLeaderLineId != "") aList.Add(aCoListGraceLeaderLineId);
 
                     // 小家長=> aAreaLeaderLineId

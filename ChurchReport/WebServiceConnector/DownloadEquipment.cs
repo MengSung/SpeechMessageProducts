@@ -122,9 +122,9 @@ namespace ChurchReport.WebServiceConnector
                 //aListEntityCollection = m_ToolUtilityClass.QueryListByContactId(m_ContactId, "new_contact_family_leader_list");  // 小組長/小組同工
                 MergeCollectionSmallGroupAhead(ref aListEntityCollection);
 
-                // 共同區長 new_contact_co_race_leager_list
-                //aListEntityCollection = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_contact_co_race_leager_list", "list");  // 共同區長
-                aListEntityCollection = m_ToolUtilityClass.QueryListByContactId(m_ContactId, "new_contact_co_race_leager_list");  // 共同區長
+                // 共同族系族長 new_contact_co_race_leager_list
+                //aListEntityCollection = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_contact_co_race_leager_list", "list");  // 共同族系族長
+                aListEntityCollection = m_ToolUtilityClass.QueryListByContactId(m_ContactId, "new_contact_co_race_leager_list");  // 共同族系族長
                 MergeCollectionSmallGroupAhead(ref aListEntityCollection);
 
                 // 上代組長 new_contact_race_leager_list
@@ -137,8 +137,8 @@ namespace ChurchReport.WebServiceConnector
                 aListEntityCollection = m_ToolUtilityClass.QueryListByContactId(m_ContactId, "new_contact_list_arealeader");  // 族系族長
                 MergeCollectionSmallGroupAhead(ref aListEntityCollection);
 
-                // 共同區牧 new_contact_list_co_arealeader
-                aListEntityCollection = m_ToolUtilityClass.QueryListByContactId(m_ContactId, "new_contact_list_co_arealeader");  // 共同區牧
+                // 共同上代族系族長 new_contact_list_co_arealeader
+                aListEntityCollection = m_ToolUtilityClass.QueryListByContactId(m_ContactId, "new_contact_list_co_arealeader");  // 共同上代族系族長
                 MergeCollectionSmallGroupAhead(ref aListEntityCollection);
 
                 return;
@@ -154,7 +154,7 @@ namespace ChurchReport.WebServiceConnector
         {
             try
             {
-                // 族系族長或是區長的名單若是與小組長名單重疊，則要過濾出僅有族長/區長的名單
+                // 族系族長或是族系族長的名單若是與小組長名單重疊，則要過濾出僅有族長/族系族長的名單
                 // 合併小組名單至族系名單，單扣除掉重複的
                 // 然後放在小組名單裡面
                 // 一個一個處理族系名單

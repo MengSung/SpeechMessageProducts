@@ -328,7 +328,7 @@ namespace ChurchReport.WebServiceConnector
                         // 回報情況
                         this.m_ToolUtilityClass.SetEntityStringAttribute(ref GroupWeeklyReportEntity, "new_memo", aWeeklyReport.WeeklyReportContent);
 
-                        // 小組日誌傳 LINE 給小家長、區牧
+                        // 小組日誌傳 LINE 給小家長、上代族系族長
                         m_LineNotifyUtility.SendWeeklyReportLine(aWeeklyReport.WeeklyReportContent, ListEntity);
 
                         this.m_ToolUtilityClass.UpdateEntity(ref GroupWeeklyReportEntity);
