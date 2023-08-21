@@ -6254,7 +6254,7 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                if (id == "換牧區")
+                if (id == "換上代族系")
                 {
                     return m_InMemoryDataContextSmallGroup.ListManagementDataManager.m_AreaLeaderArray;
                 }

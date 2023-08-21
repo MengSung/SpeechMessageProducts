@@ -21,8 +21,8 @@ namespace ChurchReport.Models
         public string ChangeRaceLeader { set; get; }          // 換族系族長
         public string ChangeAreaLeader { set; get; }          // 換上代族系族長
 
-        //public List<String> RaceLeaderArray { get; set; } = new List<string>();     //換區要用到的族系族長清單
-        //public List<String> AreaLeaderArray { get; set; } = new List<string>();     //換牧區要用到的上代族系族長清單
+        //public List<String> RaceLeaderArray { get; set; } = new List<string>();     //換族系要用到的族系族長清單
+        //public List<String> AreaLeaderArray { get; set; } = new List<string>();     //換上代族系要用到的上代族系族長清單
 
 
         public DateTime MeetingDate { get; set; }                   // 小組聚會日期

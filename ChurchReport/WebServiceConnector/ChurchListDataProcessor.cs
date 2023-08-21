@@ -41,8 +41,8 @@ namespace ChurchReport.WebServiceConnector
             #region// 先把資料給儲存起來
             m_LocalChurchRoot           = aChurchRoot;
 
-            //m_RaceLeaderArray           = aRaceLeaderArray;             //換區要用到的族系族長清單
-            //m_AreaLeaderArray           = aAreaLeaderArray;             //換牧區要用到的上代族系族長清單
+            //m_RaceLeaderArray           = aRaceLeaderArray;             //換族系要用到的族系族長清單
+            //m_AreaLeaderArray           = aAreaLeaderArray;             //換上代族系要用到的上代族系族長清單
             //m_RaceLeaderSmallGroupArray = aRaceLeaderSmallGroupArray;   //換本區小組要用到的本區小組清單
             //m_ChurchSmallGroupArray     = aChurchSmallGroupArray;       //換全教會小組要用到的全教會小組清單
             #endregion

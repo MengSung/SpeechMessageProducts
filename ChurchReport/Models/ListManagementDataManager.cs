@@ -26,8 +26,8 @@ namespace ChurchReport.Models
         // 教會根目錄 
         public ChurchRoot m_ChurchRoot = new ChurchRoot();
 
-        public List<String> m_RaceLeaderArray;            //換區要用到的族系族長清單
-        public List<String> m_AreaLeaderArray;          //換牧區要用到的上代族系族長清單
+        public List<String> m_RaceLeaderArray;            //換族系要用到的族系族長清單
+        public List<String> m_AreaLeaderArray;          //換上代族系要用到的上代族系族長清單
 
         public List<String> m_RaceLeaderSmallGroupArray; //換本區小組要用到的本區小組清單
         public List<String> m_ChurchSmallGroupArray;    //換全教會小組要用到的全教會小組清單
@@ -2045,8 +2045,8 @@ namespace ChurchReport.Models
                 //},
             };
 
-            m_RaceLeaderArray = new List<string>();            //換區要用到的族系族長清單
-            m_AreaLeaderArray = new List<string>();          //換牧區要用到的上代族系族長清單
+            m_RaceLeaderArray = new List<string>();            //換族系要用到的族系族長清單
+            m_AreaLeaderArray = new List<string>();          //換上代族系要用到的上代族系族長清單
 
             m_RaceLeaderSmallGroupArray = new List<string>(); //換本區小組要用到的本區小組清單
             m_ChurchSmallGroupArray = new List<string>();    //換全教會小組要用到的全教會小組清單
