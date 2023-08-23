@@ -353,9 +353,18 @@
 
                        success: function (data)
                        {
-                          //ShowToast(data.message, "success", 3000);
-                          //getLoadPanelInstance().hide();
-                          //document.getElementById('displaynamefield').innerHTML = data.message;
+                           if (data.status == 1) {
+                               // 顯示上傳成功
+                               ShowToast(data.message, "success", 2000);
+                           }
+                           else {
+                               ShowToast(data.message + "，您不需要註冊了", "error", 5000);
+                               document.getElementById('displaynamefield').innerHTML = data.message + "，您不需要註冊了";
+                               document.getElementById('remind').innerHTML = "願神與您同在!";
+                               document.getElementById("form-container").style.display = "none";//隱藏輸入欄位
+                               document.getElementById("buttonContainer").style.display = "none";//隱藏輸入欄位
+                               $("#register-button").dxButton("instance").option("visible", false);
+                           }
                        },
 
                        error: function (obj)

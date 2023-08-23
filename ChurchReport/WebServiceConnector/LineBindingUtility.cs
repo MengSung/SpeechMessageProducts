@@ -53,6 +53,50 @@ namespace ChurchReport.WebServiceConnector
         public LineBindingUtility()
         {
         }
+
+        public String VerifyContact(String UserLineId)
+        {
+            try
+            {
+                // 取得撥入者/申請者的 LineId 及使用者姓名
+                //String LineId = "";
+                String ContactFullName = "";
+
+                if (UserLineId != "" && UserLineId != null)
+                {
+                    if (IsBindingAlreadyOrNot(ref UserLineId, ref ContactFullName) != true)
+                    {
+                        #region // 還沒有綁定註冊過!
+                        return ContactFullName + "歡迎您進行註冊!";
+                        #endregion
+                    }
+                    else
+                    {
+                        #region// 已經註冊註冊過了
+                        return ContactFullName + "已經註冊過了!";
+                        #endregion
+                    }
+                }
+                else
+                {
+                    if (UserLineId != null)
+                    {
+                        return "您的 Line Id=" + UserLineId + " ，無法辨識請洽辦公室行政人員為您服務喔!或許您是否在加入時沒有同意授權呢?";
+                    }
+                    else
+                    {
+                        return "您的 Line Id= null，無法辨識請洽辦公室行政人員為您服務喔!或許您是否在加入時沒有同意授權呢?";
+                    }
+                }
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                throw e;
+            }
+        }
+
         public String RegisterContact(String UserLineId, string EnteredFullName, string EnteredOtherName, String EnteredMobilePhone)
         {
             try
@@ -144,7 +188,7 @@ namespace ChurchReport.WebServiceConnector
                 else
                 {
                     #region 在系統裡完全還沒有這個人，因為 aContactCollection.Entities.Count <= 0
-                    UpdateRegisteredContact( LineId, EnteredFullName, EnteredOtherName, EnteredMobilePhone);
+                    UpdateRegisteredContact(LineId, EnteredFullName, EnteredOtherName, EnteredMobilePhone);
                     return "綁定成功"; // 綁定成功，並返回
                     #endregion
                 }
@@ -185,13 +229,47 @@ namespace ChurchReport.WebServiceConnector
             }
         }
         // 申請綁定的好友是否曾經綁定過了
+        private bool IsBindingAlreadyOrNot(ref String LineId, ref String ContactFullName)
+        {
+            try
+            {
+                // 取得撥入者的 LineId 及使用者姓名
+                Entity LineLoginContact = this.m_ToolUtilityClass.RetrieveContactByLineId(LineId);
+                if (LineLoginContact != null)
+                {
+                    ContactFullName = this.m_ToolUtilityClass.GetEntityStringAttribute(LineLoginContact, "fullname");
+                    String Mobile = this.m_ToolUtilityClass.GetEntityStringAttribute(LineLoginContact, "mobilephone");
+
+                    if (ContactFullName.EndsWith("(Line)") && Mobile == "")
+                    {
+                        return false;// 還沒Binding
+                    }
+                    else
+                    {
+                        return true;// 已經Binding過了
+                    }
+                }
+                else
+                {
+                    // 沒有這個人
+                    return true;// 已經Binding過了
+                }
+
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                throw e;
+            }
+        }
         private bool IsBindingAlready(ref String LineId, ref String ContactFullName)
         {
             try
             {
                 // 取得撥入者的 LineId 及使用者姓名
                 Entity LineLoginContact = this.m_ToolUtilityClass.RetrieveContactByLineId(LineId);
-                if ( LineLoginContact != null )
+                if (LineLoginContact != null)
                 {
                     ContactFullName = this.m_ToolUtilityClass.GetEntityStringAttribute(LineLoginContact, "fullname");
 
@@ -217,7 +295,7 @@ namespace ChurchReport.WebServiceConnector
                 throw e;
             }
         }
-        private bool ProcessEachContactWithSameName(EntityCollection aContactCollection, String LineId, String DisplayId ,String RegisterContactFullName, string RegisterContactOtherName, String RegisterContactMobilePhone, ref String Result )
+        private bool ProcessEachContactWithSameName(EntityCollection aContactCollection, String LineId, String DisplayId, String RegisterContactFullName, string RegisterContactOtherName, String RegisterContactMobilePhone, ref String Result)
         {
             try
             {
@@ -285,7 +363,7 @@ namespace ChurchReport.WebServiceConnector
                 CopyMobilePhoneNumber(RegisterContactMobilePhone, aContactNoMobile);
 
                 // 更新系統中的連絡人
-                this.m_ToolUtilityClass.UpdateEntity( aContactNoMobile);
+                this.m_ToolUtilityClass.UpdateEntity(aContactNoMobile);
                 #endregion
 
                 #region// 移除登錄者的LINE Id

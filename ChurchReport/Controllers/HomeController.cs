@@ -3868,7 +3868,19 @@ namespace ChurchReport.Controllers
                     }
                     #endregion
                 }
-                return Json(new { status = "1", message = "成功上傳了...." });
+
+                WebServiceConnector.LineBindingUtility aLineBindingUtility = new WebServiceConnector.LineBindingUtility();
+                var VerufyResult = aLineBindingUtility.VerifyContact(UserLineId);
+
+                if (VerufyResult.Contains("歡迎您進行註冊!"))
+                {
+                    return Json(new { status = "1", message = VerufyResult });
+                }
+                else
+                {
+                    // 已經註冊過了!
+                    return Json(new { status = "2", message = VerufyResult });
+                }
             }
             catch (System.Exception e)
             {
