@@ -607,9 +607,11 @@ namespace ChurchReport.WebServiceConnector
             aPersonalInfomationViewModel.Instagram = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContactEntity, "new_ig_account");//Instagram帳號
             aPersonalInfomationViewModel.Email = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContactEntity, "emailaddress1"); //電子郵件
             aPersonalInfomationViewModel.LastSixDigit = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContactEntity, "new_last_six_digit");// 銀行帳戶後六碼
-            aPersonalInfomationViewModel.NtbtOrNot = this.m_ToolUtilityClass.GetEntityBoolAttribute(ref aContactEntity, "new_ntbt_ornot");// 是否上傳國稅局
+            //aPersonalInfomationViewModel.NtbtOrNot = this.m_ToolUtilityClass.GetEntityBoolAttribute(ref aContactEntity, "new_ntbt_ornot");// 是否上傳國稅局
             aPersonalInfomationViewModel.Address = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContactEntity, "address2_line1");// 地址
             aPersonalInfomationViewModel.PersonalId = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContactEntity, "new_personal_id");// 身份證字號
+
+            aPersonalInfomationViewModel.NtbtOrNot = this.m_ToolUtilityClass.GetEntityBoolAttribute(ref aContactEntity, "new_ntbt_ornot") == true ? "是" : "否";// 是否上傳國稅局
 
             // 委身類型
             aPersonalInfomationViewModel.CustomerTypeCode = ConvertIndexToIdentity(this.m_ToolUtilityClass.GetOptionSetAttribute(ref aContactEntity, "customertypecode"));
@@ -733,9 +735,19 @@ namespace ChurchReport.WebServiceConnector
             this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactEntity, "new_ig_account", aPersonalInfomationViewModel.Instagram);         //instagram帳號
             this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactEntity, "emailaddress1", aPersonalInfomationViewModel.Email);             //電子郵件
             this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactEntity, "new_last_six_digit", aPersonalInfomationViewModel.LastSixDigit); // 銀行帳戶後六碼
-            this.m_ToolUtilityClass.SetEntityBoolAttribute(ref aContactEntity, "new_ntbt_ornot", aPersonalInfomationViewModel.NtbtOrNot);          // 是否上傳國稅局
+            //this.m_ToolUtilityClass.SetEntityBoolAttribute(ref aContactEntity, "new_ntbt_ornot", aPersonalInfomationViewModel.NtbtOrNot);          // 是否上傳國稅局
             this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactEntity, "address2_line1", aPersonalInfomationViewModel.Address);          // 地址
             this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactEntity, "new_personal_id", aPersonalInfomationViewModel.PersonalId);      // 身份證字號
+
+            // 是否上傳國稅局
+            if (aPersonalInfomationViewModel.NtbtOrNot == "是")
+            {
+                this.m_ToolUtilityClass.SetEntityBoolAttribute(ref aContactEntity, "new_ntbt_ornot", true);
+            }
+            else
+            {
+                this.m_ToolUtilityClass.SetEntityBoolAttribute(ref aContactEntity, "new_ntbt_ornot", false);
+            }
 
             // 委身類型
             if (aPersonalInfomationViewModel.CustomerTypeCode == "小組組員")

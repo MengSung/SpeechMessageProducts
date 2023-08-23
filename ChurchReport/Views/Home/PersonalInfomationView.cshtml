@@ -74,6 +74,11 @@
         </div>
     </div>
     <div id="form-container">
+
+        @{
+            var NtbtOrNotPriorities = new[] { "是", "否", };
+        }
+
         @(Html.DevExtreme().Form<PersonalInfomationViewModel>()
         .ID("form")
         .ColCount(3)
@@ -160,11 +165,23 @@
                 //.DataField("Address")
                 .Label(l => l.Text("銀行帳戶後六碼"))
                 ;
+
+            //items.AddSimpleFor(m => m.NtbtOrNot)
+            //    //.DataField("Address")
+            //    .Label(l => l.Text("是否上傳國稅局"))
+            //    .Editor(e => e.CheckBox())
+            //    ;
+
             items.AddSimpleFor(m => m.NtbtOrNot)
                 //.DataField("Address")
                 .Label(l => l.Text("是否上傳國稅局"))
-                .Editor(e => e.CheckBox())
+                .Editor(
+                    e => e.RadioGroup()
+                    .Items(NtbtOrNotPriorities)
+                    .Layout(Orientation.Horizontal)
+                )
                 ;
+
             items.AddSimpleFor(m => m.PersonalId)
                 //.DataField("Address")
                 .Label(l => l.Text("身份證字號"))

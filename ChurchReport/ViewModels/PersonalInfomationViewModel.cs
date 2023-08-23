@@ -25,7 +25,8 @@ namespace ChurchReport.ViewModels
         public String Email { get; set; } //電子郵件
         public String Address { get; set; } // 地址
         public String LastSixDigit { get; set; } // 銀行帳戶後六碼
-        public bool NtbtOrNot { get; set; } // 是否上傳國稅局
+        //public bool NtbtOrNot { get; set; } // 是否上傳國稅局
+        public String NtbtOrNot { get; set; } // 是否上傳國稅局
         public String PersonalId { get; set; } // 身份證字號
         public String Position { get; set; }
         public List<String> GroupArray { get; set; }
