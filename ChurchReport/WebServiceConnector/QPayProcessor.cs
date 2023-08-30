@@ -637,16 +637,22 @@ namespace ChurchReport.WebServiceConnector
 
                     // 收費單付款狀態，預設是現金已繳費
                     SetPayStatus("現金已繳費", ref aFeeToCreated);
-
                 }
                 else if (QpayModel.PayWay == "銀行轉帳")
                 {
                     // 收費單實收金額，如果付款方式是"現金"，就預設是足額實收，因為程式應該是跑行政人員收奉獻，所以就都表示已付款
                     this.m_ToolUtilityClass.SetEntityMoneyAttribute(ref aFeeToCreated, "new_fee_really_paid", new Money(QpayModel.Amount));
 
-                    // 收費單付款狀態，預設是現金已繳費
+                    // 收費單付款狀態，銀行轉帳已繳費
                     SetPayStatus("銀行轉帳已繳費", ref aFeeToCreated);
+                }
+                else if (QpayModel.PayWay == "信用卡")
+                {
+                    // 收費單實收金額，如果付款方式是"現金"，就預設是足額實收，因為程式應該是跑行政人員收奉獻，所以就都表示已付款
+                    this.m_ToolUtilityClass.SetEntityMoneyAttribute(ref aFeeToCreated, "new_fee_really_paid", new Money(QpayModel.Amount));
 
+                    // 收費單付款狀態，信用卡已繳費
+                    SetPayStatus("信用卡已繳費", ref aFeeToCreated);
                 }
                 else
                 {

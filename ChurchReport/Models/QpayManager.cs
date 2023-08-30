@@ -1122,10 +1122,10 @@ namespace ChurchReport.Models
                     this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactToCreate, "lastname", FullName);
                     Guid aContactToCreateId = this.m_ToolUtilityClass.CreateEntity(aContactToCreate);
 
-                    Entity aContactCreated = this.m_ToolUtilityClass.RetrieveEntity("contact", aContactToCreateId);
 
                     // 自動奉獻編號
-                    AutoDedicationNumbering(FullName, aContactCreated);
+                    // Entity aContactCreated = this.m_ToolUtilityClass.RetrieveEntity("contact", aContactToCreateId);
+                    // AutoDedicationNumbering(FullName, aContactCreated);
 
                     return Json(new { status = "1", message = "成功建立了" + FullName });
                 }
