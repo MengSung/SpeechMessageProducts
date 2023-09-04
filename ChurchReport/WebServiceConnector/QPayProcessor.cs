@@ -98,7 +98,7 @@ namespace ChurchReport.WebServiceConnector
 
                 if (QpayModel.PayWay == "信用卡" || QpayModel.PayWay == "銀聯卡")
                 {
-                    Guid aCreatedFeeId = CreateFee(LineLoginContact, QpayModel);
+                    Guid aCreatedFeeId = CreateFee(LineLoginContact, QpayModel, false);
                     Entity aFeeToUpdate = this.m_ToolUtilityClass.RetrieveEntity("new_fee", aCreatedFeeId);
 
                     CreOrder CreatedCardOrder;
@@ -178,7 +178,7 @@ namespace ChurchReport.WebServiceConnector
                     //CUP 銀聯卡一次付清
                     //REGULAR 定期定額扣款
 
-                    Guid aCreatedFeeId = CreateFee(LineLoginContact, QpayModel);
+                    Guid aCreatedFeeId = CreateFee(LineLoginContact, QpayModel, false);
                     Entity aFeeToUpdate = this.m_ToolUtilityClass.RetrieveEntity("new_fee", aCreatedFeeId);
 
                     CreOrder CreatedCardOrder = await CreOrderCard(QpayModel.Amount, QpayModel.Category + "-" + QpayModel.FullName, DateTime.Now.ToString("yyyyMMddhhmmssfff"), aCreatedFeeId.ToString(), "M", "ONE", "", 0, "M", 1, "收費單", QpayModel.SelectedCreditCard);
@@ -196,7 +196,7 @@ namespace ChurchReport.WebServiceConnector
                     //CUP 銀聯卡一次付清
                     //REGULAR 定期定額扣款
 
-                    Guid aCreatedFeeId = CreateFee(LineLoginContact, QpayModel);
+                    Guid aCreatedFeeId = CreateFee(LineLoginContact, QpayModel, false);
                     Entity aFeeToUpdate = this.m_ToolUtilityClass.RetrieveEntity("new_fee", aCreatedFeeId);
 
                     CreOrder CreatedCardOrder = await CreOrderCard(QpayModel.Amount, QpayModel.Category + "-" + QpayModel.FullName, DateTime.Now.ToString("yyyyMMddhhmmssfff"), aCreatedFeeId.ToString(), "L", "ONE", "", 0, "M", 1, "收費單", QpayModel.SelectedCreditCard);
@@ -208,7 +208,7 @@ namespace ChurchReport.WebServiceConnector
                 }
                 else if (QpayModel.PayWay == "ATM轉帳/匯款")
                 {
-                    Guid aCreatedFeeId = CreateFee(LineLoginContact, QpayModel);
+                    Guid aCreatedFeeId = CreateFee(LineLoginContact, QpayModel, false);
                     Entity aFeeToUpdate = this.m_ToolUtilityClass.RetrieveEntity("new_fee", aCreatedFeeId);
 
                     return await ProcessAtm(aCreatedFeeId, aFeeToUpdate, QpayModel, "", LineLoginContact);
@@ -228,42 +228,7 @@ namespace ChurchReport.WebServiceConnector
                 throw e;
             }
         }
-        public Guid CreateFee(String LineId, QpayModel QpayModel)
-        {
-            try
-            {
-                #region 建立收費單
-
-                Entity aFeeToCreated = new Entity("new_fee");
-
-                SetFeeParameter(LineId, aFeeToCreated, QpayModel);
-
-                // 新增收費單
-                Guid aFeeId = this.m_ToolUtilityClass.CreateEntity(aFeeToCreated);
-                Entity aRetrievedFee = this.m_ToolUtilityClass.RetrieveEntity("new_fee", aFeeId);
-
-                //指派負責人
-                Entity aContact = this.m_ToolUtilityClass.RetrieveContactEntityByLineUserId(LineId);
-                try
-                {
-                    this.m_ToolUtilityClass.AssignOwner("new_fee", aRetrievedFee, this.m_ToolUtilityClass.GetOwnerId(aContact));
-                }
-                catch (System.Exception e)
-                {
-                    String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                }
-                return aFeeId;
-                #endregion
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-
-                //Monitor.Exit(this);
-                throw e;
-            }
-        }
-        public void SetFeeParameter(String LineId, Entity aFeeToCreated, QpayModel QpayModel)
+        public void SetFeeParameter(String LineId, Entity aFeeToCreated, QpayModel QpayModel, bool KeyinMode)
         {
             try
             {
@@ -541,7 +506,7 @@ namespace ChurchReport.WebServiceConnector
                 }
                 else
                 {
-                    Guid aCreatedFeeId = CreateFee(aContact, QpayModel);
+                    Guid aCreatedFeeId = CreateFee(aContact, QpayModel, true);
 
                     // 奉獻感謝與通知
                     //SendGratitudeLineMessage(aContact, QpayModel);
@@ -574,7 +539,7 @@ namespace ChurchReport.WebServiceConnector
                 throw e;
             }
         }
-        public Guid CreateFee(Entity aContact, QpayModel QpayModel)
+        public Guid CreateFee(Entity aContact, QpayModel QpayModel, bool KeyinMode)
         {
             try
             {
@@ -582,7 +547,7 @@ namespace ChurchReport.WebServiceConnector
 
                 Entity aFeeToCreated = new Entity("new_fee");
 
-                SetFeeParameter(aContact, aFeeToCreated, QpayModel);
+                SetFeeParameter(aContact, aFeeToCreated, QpayModel, KeyinMode);
 
                 // 新增收費單
                 Guid aFeeId = this.m_ToolUtilityClass.CreateEntity(aFeeToCreated);
@@ -612,7 +577,7 @@ namespace ChurchReport.WebServiceConnector
                 throw e;
             }
         }
-        public void SetFeeParameter(Entity aContact, Entity aFeeToCreated, QpayModel QpayModel)
+        public void SetFeeParameter(Entity aContact, Entity aFeeToCreated, QpayModel QpayModel, bool KeyinMode )
         {
             try
             {
@@ -648,11 +613,22 @@ namespace ChurchReport.WebServiceConnector
                 }
                 else if (QpayModel.PayWay == "信用卡")
                 {
-                    // 收費單實收金額，如果付款方式是"現金"，就預設是足額實收，因為程式應該是跑行政人員收奉獻，所以就都表示已付款
-                    this.m_ToolUtilityClass.SetEntityMoneyAttribute(ref aFeeToCreated, "new_fee_really_paid", new Money(QpayModel.Amount));
+                    if (KeyinMode == true) // 是否是會計輸入的
+                    {
+                        // 收費單實收金額，如果付款方式是"現金"，就預設是足額實收，因為程式應該是跑行政人員收奉獻，所以就都表示已付款
+                        this.m_ToolUtilityClass.SetEntityMoneyAttribute(ref aFeeToCreated, "new_fee_really_paid", new Money(QpayModel.Amount));
 
-                    // 收費單付款狀態，信用卡已繳費
-                    SetPayStatus("新建立", ref aFeeToCreated);
+                        // 收費單付款狀態，信用卡已繳費，這是會計輸入的，所以是"信用卡已繳費"
+                        SetPayStatus("信用卡已繳費", ref aFeeToCreated);
+                    }
+                    else
+                    {
+                        // 收費單實收金額
+                        this.m_ToolUtilityClass.SetEntityMoneyAttribute(ref aFeeToCreated, "new_fee_really_paid", new Money(0));
+
+                        // 收費單付款狀態，信用卡已繳費，這是奉獻網頁建立的的，所以是"新建立"
+                        SetPayStatus("新建立", ref aFeeToCreated);
+                    }
                 }
                 else
                 {
