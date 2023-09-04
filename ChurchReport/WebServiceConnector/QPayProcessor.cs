@@ -652,7 +652,7 @@ namespace ChurchReport.WebServiceConnector
                     this.m_ToolUtilityClass.SetEntityMoneyAttribute(ref aFeeToCreated, "new_fee_really_paid", new Money(QpayModel.Amount));
 
                     // 收費單付款狀態，信用卡已繳費
-                    SetPayStatus("信用卡已繳費", ref aFeeToCreated);
+                    SetPayStatus("新建立", ref aFeeToCreated);
                 }
                 else
                 {
