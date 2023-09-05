@@ -97,7 +97,7 @@
                             items.AddSimpleFor(m => m.FullName)
                                 //.DataField("FullName")
                                 .IsRequired(true)
-                                .Label(l => l.Text("姓名"))
+                                .Label(l => l.Text("姓名/Name"))
                                 .Editor(e => e
                                     .TextBox()
                                     .Disabled(false)
@@ -109,7 +109,7 @@
                             items.AddSimpleFor(m => m.NationId)
                                 //.DataField("NationId")
                                 .IsRequired(true)
-                                .Label(l => l.Text("身分證字號"))
+                                .Label(l => l.Text("身分證字號/Nation Id"))
                                 .Editor(e => e
                                     .TextBox()
                                     //.Mask("X-000-0Z0-000")
@@ -124,7 +124,7 @@
 
                             items.AddSimpleFor(m => m.Mobile)
                                 //.DataField("Phone")
-                                .Label(l => l.Text("行動電話"))
+                                .Label(l => l.Text("行動電話/Mobile"))
                                 .IsRequired(true)
                                 .Editor(e => e
                                     .TextBox()
@@ -147,7 +147,7 @@
 
                             items.AddSimpleFor(m => m.Address)
                                 //.DataField("Phone")
-                                .Label(l => l.Text("地址"))
+                                .Label(l => l.Text("地址/Address"))
                                 .IsRequired(false)
                                 .Editor(e => e
                                     .TextBox()

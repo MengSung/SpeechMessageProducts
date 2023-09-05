@@ -675,7 +675,8 @@ namespace ChurchReport.Models
                 this.m_ToolUtilityClass.SetOptionSetAttribute(ref aContactToCreate, "customertypecode", 100000000);
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactToCreate, "description", "透過官網建立的奉獻新朋友");
 
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactToCreate, "pager", aGalleryViewModel.NationId);
+                // 設定奉獻帶編號
+                //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactToCreate, "pager", aGalleryViewModel.NationId);
 
                 return this.m_ToolUtilityClass.RetrieveEntity("contact", this.m_ToolUtilityClass.CreateEntity(aContactToCreate));
             }
