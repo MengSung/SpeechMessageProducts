@@ -187,6 +187,7 @@
                 .IsRequired(false)
                 .Editor(e => e
                     .DateBox()
+                    .DisplayFormat("yyyy/M/d")
                     .Disabled(false)
                     .Placeholder("生日")
                     .PickerType(DateBoxPickerType.Calendar)
@@ -197,6 +198,7 @@
                 .Label(l => l.Text("進教會日期"))
                 .Editor(
                         e => e.DateBox()//.Value(new JS("null"))
+                        .DisplayFormat("yyyy/M/d")
                         .Placeholder("進教會日期")
                         .PickerType(DateBoxPickerType.Calendar)
                    );

@@ -1705,7 +1705,7 @@ namespace ChurchReport.WebServiceConnector
                 this.m_ToolUtilityClass.SetOptionSetAttribute(ref aPresentRecord, "new_weeks", ConvertFollowUpWeekPickerToIndex(aMemberInfomation.FollowUpWeek));
                 this.m_ToolUtilityClass.SetOptionSetAttribute(ref aPresentRecord, "new_conclusion_choise", ConvertFollowUpResultPickerToIndex(aMemberInfomation.FollowUpResult));
                 this.m_ToolUtilityClass.SetOptionSetAttribute(ref aPresentRecord, "new_next_step", ConvertFollowUpNextStepPickerToIndex(aMemberInfomation.FollowUpNextStep));
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_follow_up", aMemberInfomation.FollowUp);
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_follow_up", aMemberInfomation.FollowUpOption);
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_explanation", aMemberInfomation.FollowUpNote);
 
                 AddToDictionaryFollowByIdentity(ref ClearIdentity, ref aContactEntity, aMemberInfomation);
@@ -2079,7 +2079,7 @@ namespace ChurchReport.WebServiceConnector
             {
                 return
                     AppendHeadString("\t\t\t跟進週次:", aMemberInfomation.FollowUpWeek) +
-                    AppendHeadString("\t\t\t跟進方式:", aMemberInfomation.FollowUp) +
+                    AppendHeadString("\t\t\t跟進方式:", aMemberInfomation.FollowUpOption) +
                     AppendHeadString("\t\t\t跟進結果:", aMemberInfomation.FollowUpResult) +
                     AppendHeadString("\t\t\t下一步驟:", aMemberInfomation.FollowUpNextStep) +
                     AppendHeadString("\t\t\t跟進摘要:", aMemberInfomation.FollowUpNote)
