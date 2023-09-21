@@ -1215,14 +1215,12 @@ namespace ChurchReport.Models
                     return "建殿奉獻";
                 case 100000002:
                     return "慈惠奉獻";
-                case 100000004:
-                    return "苗圃奉獻";
                 case 100000005:
                     return "宣教奉獻";
+                case 100000004:
+                    return "醫治中心";
                 case 100000006:
                     return "其他奉獻";
-                case 100000007:
-                    return "豐盛120奉獻";
                 case 100000008:
                     return "特別奉獻";
                 default:
@@ -1241,14 +1239,12 @@ namespace ChurchReport.Models
                     return "建殿奉獻";
                 case 100000002:
                     return "慈惠奉獻";
-                case 100000004:
-                    return "苗圃奉獻";
                 case 100000005:
                     return "宣教奉獻";
+                case 100000004:
+                    return "醫治中心";
                 case 100000006:
                     return "其他奉獻";
-                case 100000007:
-                    return "豐盛120奉獻";
                 case 100000008:
                     return "特別奉獻";
                 default:

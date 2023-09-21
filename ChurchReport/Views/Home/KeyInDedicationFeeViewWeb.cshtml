@@ -329,10 +329,9 @@
                        "感恩奉獻",
                        "建殿奉獻",
                        "慈惠奉獻",
-                       "苗圃奉獻",
+                       "醫治中心",
                        "宣教奉獻",
                        "其他奉獻",
-                       "豐盛120奉獻",
                        "特別奉獻",
                    }
                 //.DisplayExpr("Name")
@@ -390,7 +389,7 @@
 
             items.AddSimpleFor
                 (m => m.Others)
-                    .Label(l => l.Text("代轉對象"))
+                    .Label(l => l.Text("其他奉獻內容"))
                     .Visible(false)
                     .Name("OtherDedication")
                     .Editor
@@ -399,7 +398,7 @@
                         .Autocomplete()
                         .Width(120)
                         .DataSource(Model.OtherCategoryArray)
-                        .Placeholder("請輸入代轉對象")
+                        .Placeholder("請輸入其他奉獻內容")
                     //.Value("特別")
                     );
 
