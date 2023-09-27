@@ -86,7 +86,7 @@ namespace ChurchReport.Tools
             {
                 QryOrderPay aQryOrderPay = new QryOrderPay();
 
-                aQryOrderPay = m_QPayProcessor.OrderPayQuery(PayToken);
+                aQryOrderPay = m_QPayProcessor.OrderPayQuery(ShopNo, PayToken);
 
                 if (aQryOrderPay != null)
                 {
