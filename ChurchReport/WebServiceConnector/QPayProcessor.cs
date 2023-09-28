@@ -431,6 +431,12 @@ namespace ChurchReport.WebServiceConnector
                     // 轉帳/匯款編號
                     String aAtmPayNumber = this.m_ToolUtilityClass.GetEntityStringAttribute(aFeeToCreated, "new_atm_pay_number") + DateTime.Now.ToString() + " = " + AtmOrderNo + " : " + AtmPayNo + Environment.NewLine;
                     this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeToCreated, "new_atm_pay_number", aAtmPayNumber);
+
+                    // ATM轉帳匯款虛擬帳號
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeToCreated, "new_atm_pay_no", AtmPayNo);
+
+                    // ATM轉帳匯款到期日
+                    this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aFeeToCreated, "new_atm_expire_date", DateTime.Now.AddDays(10).ToLocalTime());
                 }
 
                 #endregion
