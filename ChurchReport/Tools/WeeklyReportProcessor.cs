@@ -1253,6 +1253,8 @@ namespace ChurchReport.Tools
                     return 100000003;
                 case "小組長":
                     return 100000008;
+                case "關懷小組長":
+                    return 100000009;
                 case "門徒":
                     return 100000012;
                 case "小組組員":
@@ -1283,6 +1285,8 @@ namespace ChurchReport.Tools
                     return "02. 小家長";
                 case 100000008:
                     return "03. 小組長";
+                case 100000009:
+                    return "03.1 關懷小組長";
                 case 100000012:
                     return "04. 門徒";
                 case 1:

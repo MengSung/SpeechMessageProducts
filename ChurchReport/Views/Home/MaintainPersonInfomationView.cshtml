@@ -275,31 +275,31 @@
                     </text>);*@
 
                 @*columns.Add().DataField("SectionName").Caption("族系").GroupIndex(-1).MinWidth(10);*@
-                    columns.Add().DataField("SmallGroupName").Caption("小組").GroupIndex(0).MinWidth(10);
+    columns.Add().DataField("SmallGroupName").Caption("小組").GroupIndex(0).MinWidth(10);
 
-                    columns.Add().DataField("FullName").Caption("姓名").AllowEditing(false).Fixed(true).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Left).AllowEditing(false);
-                    columns.Add().DataField("Status")
-                    .Caption("會員身分").Alignment(HorizontalAlignment.Center)
-                    .AllowEditing(true)
-                    .Width(70).MinWidth(30).DataType(GridColumnDataType.Number)
-                    .Lookup(lookup => lookup
-                    .DataSource(new string[] { "牧師師母", "小家長", "上代族系族長", "小組長", "門徒", "小組組員", "未入組", "新朋友", "外教會", "結案", })
-                    //.DisplayExpr("Name")
-                    //.ValueExpr("ID")
-                    );
+    columns.Add().DataField("FullName").Caption("姓名").AllowEditing(false).Fixed(true).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Left).AllowEditing(false);
+    columns.Add().DataField("Status")
+    .Caption("會員身分").Alignment(HorizontalAlignment.Center)
+    .AllowEditing(true)
+    .Width(70).MinWidth(30).DataType(GridColumnDataType.Number)
+    .Lookup(lookup => lookup
+    .DataSource(new string[] { "牧師師母", "小家長", "上代族系族長", "小組長", "關懷小組長", "門徒", "小組組員", "關懷小組長", "未入組", "新朋友", "外教會", "結案", })
+    //.DisplayExpr("Name")
+    //.ValueExpr("ID")
+    );
 
-                    columns.Add().DataField("EquipmentStatus").Caption("裝備狀態").Alignment(HorizontalAlignment.Center).Fixed(false).Width(60).MinWidth(90).AllowEditing(false);
-                    //columns.Add().DataField("SpiritualIdentity").Caption("受洗狀態").Alignment(HorizontalAlignment.Center).Fixed(false).Width(100).MinWidth(90).AllowEditing(true);
-                    columns.Add().DataField("SpiritualIdentity")
-            .Caption("受洗狀態").Alignment(HorizontalAlignment.Center)
-            .AllowEditing(true)
-            .Width(110).MinWidth(100).DataType(GridColumnDataType.String)
-            .Lookup(lookup => lookup
-            .DataSource(new string[] { "-未知-", "基督徒", "已決志", "慕道友", "未信主" })
-            //.DisplayExpr("Name")
-            //.ValueExpr("ID")
-            );
-columns.Add().DataField("Phone").Caption("行動電話").Fixed(false).Width(120).MinWidth(90).Alignment(HorizontalAlignment.Left);
+    columns.Add().DataField("EquipmentStatus").Caption("裝備狀態").Alignment(HorizontalAlignment.Center).Fixed(false).Width(60).MinWidth(90).AllowEditing(false);
+    //columns.Add().DataField("SpiritualIdentity").Caption("受洗狀態").Alignment(HorizontalAlignment.Center).Fixed(false).Width(100).MinWidth(90).AllowEditing(true);
+    columns.Add().DataField("SpiritualIdentity")
+.Caption("受洗狀態").Alignment(HorizontalAlignment.Center)
+.AllowEditing(true)
+.Width(110).MinWidth(100).DataType(GridColumnDataType.String)
+.Lookup(lookup => lookup
+.DataSource(new string[] { "-未知-", "基督徒", "已決志", "慕道友", "未信主" })
+//.DisplayExpr("Name")
+//.ValueExpr("ID")
+);
+    columns.Add().DataField("Phone").Caption("行動電話").Fixed(false).Width(120).MinWidth(90).Alignment(HorizontalAlignment.Left);
     //columns.Add().DataField("HomePhone").Caption("家裡電話").Fixed(false).Width(120).MinWidth(90).Alignment(HorizontalAlignment.Left);
 
     //columns.Add().DataField("BirthDate").Caption("生日").DataType(GridColumnDataType.Date).Format("yyyy/M/d").Alignment(HorizontalAlignment.Center).Fixed(false).Width(100).MinWidth(80);
@@ -472,7 +472,7 @@ columns.Add().DataField("Status")
                     .AllowEditing(true)
                     .Width(70).MinWidth(30).DataType(GridColumnDataType.Number)
                     .Lookup(lookup => lookup
-                    .DataSource(new string[] { "牧師師母", "小家長", "上代族系族長", "小組長", "門徒", "小組組員", "未入組", "新朋友", "外教會", "結案", })
+                    .DataSource(new string[] { "牧師師母", "小家長", "上代族系族長", "小組長", "關懷小組長", "門徒", "小組組員", "關懷小組長", "未入組", "新朋友", "外教會", "結案", })
                     //.DisplayExpr("Name")
                     //.ValueExpr("ID")
                     );

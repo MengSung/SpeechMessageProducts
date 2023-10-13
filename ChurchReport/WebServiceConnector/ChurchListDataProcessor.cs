@@ -1120,6 +1120,8 @@ namespace ChurchReport.WebServiceConnector
                     return "族系族長";
                 case 100000008:
                     return "小組長";
+                case 100000009:
+                    return "關懷小組長";
                 case 100000012:
                     return "小組同工";
                 case 1:
