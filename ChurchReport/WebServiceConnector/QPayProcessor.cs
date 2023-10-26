@@ -121,7 +121,7 @@ namespace ChurchReport.WebServiceConnector
                     }
                     else
                     {
-                        return "信用卡繳費失敗!";
+                        return "信用卡繳費失敗!" + CreatedCardOrder.Description;
                     }
                 }
                 else if (QpayModel.PayWay == "信用卡定期定額(每個月)")
@@ -153,7 +153,7 @@ namespace ChurchReport.WebServiceConnector
                             // 用剛剛建立的認獻單，填寫訂單編號， 更新收費單或是認獻單(因為欄位名稱一致)
                             UpdateFee(ref aDedicationBookingToUpdate, CreatedCardOrder.Description, "", "");
 
-                            return "信用卡繳費失敗!";
+                            return "信用卡繳費失敗!" + CreatedCardOrder.Description;
                         }
                     }
                     else
@@ -167,7 +167,7 @@ namespace ChurchReport.WebServiceConnector
                         // 更新認獻單
                         this.m_ToolUtilityClass.UpdateEntity(aDedicationBookingToUpdate);
 
-                        return "信用卡定期定額建立失敗!";
+                        return "信用卡定期定額建立失敗!" + CreatedCardOrder.Description;
                     }
                 }
                 else if (QpayModel.PayWay == "行動支付")
@@ -183,10 +183,20 @@ namespace ChurchReport.WebServiceConnector
 
                     CreOrder CreatedCardOrder = await CreOrderCard(QpayModel.Amount, QpayModel.Category + "-" + QpayModel.FullName, DateTime.Now.ToString("yyyyMMddhhmmssfff"), aCreatedFeeId.ToString(), "M", "ONE", "", 0, "M", 1, "收費單", QpayModel.SelectedCreditCard);
 
-                    // 用剛剛建立的收費單，填寫訂單編號
-                    UpdateFee(ref aFeeToUpdate, CreatedCardOrder.OrderNo, "", "");
+                    if (CreatedCardOrder.MobileParam != null && CreatedCardOrder.MobileParam.MobilePayURL != null)
+                    {
+                        // 用剛剛建立的收費單，填寫訂單編號
+                        UpdateFee(ref aFeeToUpdate, CreatedCardOrder.OrderNo, "", "");
 
-                    return CreatedCardOrder.MobileParam.MobilePayURL;
+                        return CreatedCardOrder.MobileParam.MobilePayURL;
+                    }
+                    else
+                    {
+                        UpdateFee(ref aFeeToUpdate, CreatedCardOrder.Description, "", "");
+
+                        return "行動支付付款失敗!" + CreatedCardOrder.Description;
+                    }
+
                 }
                 else if (QpayModel.PayWay == "LinePay")
                 {
@@ -201,10 +211,19 @@ namespace ChurchReport.WebServiceConnector
 
                     CreOrder CreatedCardOrder = await CreOrderCard(QpayModel.Amount, QpayModel.Category + "-" + QpayModel.FullName, DateTime.Now.ToString("yyyyMMddhhmmssfff"), aCreatedFeeId.ToString(), "L", "ONE", "", 0, "M", 1, "收費單", QpayModel.SelectedCreditCard);
 
-                    // 用剛剛建立的收費單，填寫訂單編號
-                    UpdateFee(ref aFeeToUpdate, CreatedCardOrder.OrderNo, "", "");
+                    if (CreatedCardOrder.MobileParam != null && CreatedCardOrder.MobileParam.MobilePayURL != null)
+                    {
+                        // 用剛剛建立的收費單，填寫訂單編號
+                        UpdateFee(ref aFeeToUpdate, CreatedCardOrder.OrderNo, "", "");
 
-                    return CreatedCardOrder.MobileParam.MobilePayURL;
+                        return CreatedCardOrder.MobileParam.MobilePayURL;
+                    }
+                    else
+                    {
+                        UpdateFee(ref aFeeToUpdate, CreatedCardOrder.Description, "", "");
+
+                        return "LinePay付款失敗!" + CreatedCardOrder.Description;
+                    }
                 }
                 else if (QpayModel.PayWay == "ATM轉帳/匯款")
                 {

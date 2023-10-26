@@ -555,13 +555,21 @@ namespace ChurchReport.Models
                     String DedicationResult = await m_QPayProcessor.CreateFeeAsync(m_Contact, QpayModel);
 
                     String PayWay = "";
-                    if (DedicationResult == "信用卡繳費失敗!")
+                    if (DedicationResult.StartsWith("信用卡繳費失敗!"))
                     {
-                        return Json(new { status = "2", message = "信用卡繳費失敗!" });
+                        return Json(new { status = "2", message = DedicationResult });
                     }
-                    else if (DedicationResult == "信用卡定期定額建立失敗!")
+                    else if (DedicationResult.StartsWith("信用卡定期定額建立失敗!"))
                     {
-                        return Json(new { status = "2", message = "信用卡定期定額建立失敗!" });
+                        return Json(new { status = "2", message = DedicationResult });
+                    }
+                    else if (DedicationResult.StartsWith("行動支付付款失敗!"))
+                    {
+                        return Json(new { status = "2", message = DedicationResult });
+                    }
+                    else if (DedicationResult.StartsWith("LinePay付款失敗!"))
+                    {
+                        return Json(new { status = "2", message = DedicationResult });
                     }
                     else if (DedicationResult.Contains("*** 請依照訊息付款 ***") != true)
                     {
