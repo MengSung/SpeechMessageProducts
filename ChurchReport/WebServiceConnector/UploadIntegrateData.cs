@@ -3305,7 +3305,7 @@ namespace ChurchReport.WebServiceConnector
                         #region 設定附註或是代禱事項
                         // 神住611靈糧堂
                         //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aMachedPresentRecordEntity, "new_name", aMemberInfomation.Note);
-                        this.m_ToolUtilityClass.SetEntityStringAttribute(ref aMachedPresentRecordEntity, "new_explanation", aMember.PrayItem);
+                        //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aMachedPresentRecordEntity, "new_explanation", aMember.PrayItem);
 
                         // 內壢神住611靈糧堂
                         //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aMachedPresentRecordEntity, "new_memo", aMemberInfomation.Note);
