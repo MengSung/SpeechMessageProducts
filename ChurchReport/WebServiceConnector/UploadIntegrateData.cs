@@ -3305,7 +3305,7 @@ namespace ChurchReport.WebServiceConnector
                         #region 設定附註或是代禱事項
                         // 神住611靈糧堂
                         //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aMachedPresentRecordEntity, "new_name", aMemberInfomation.Note);
-                        //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aMachedPresentRecordEntity, "new_explanation", aMember.PrayItem);
+                        this.m_ToolUtilityClass.SetEntityStringAttribute(ref aMachedPresentRecordEntity, "new_explanation", aMember.PrayItem);
 
                         // 內壢神住611靈糧堂
                         //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aMachedPresentRecordEntity, "new_memo", aMemberInfomation.Note);
@@ -3336,7 +3336,7 @@ namespace ChurchReport.WebServiceConnector
                         // 因為之前APP無法直接把代禱事項和新人跟進關懷用在表單中
                         // 但是網頁現在可以了
                         //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aMachedPresentRecordEntity, "new_explanation", aMemberInfomation.FollowUpNote);
-                        this.m_ToolUtilityClass.SetEntityStringAttribute(ref aMachedPresentRecordEntity, "new_explanation", aMember.PrayItem);
+                        //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aMachedPresentRecordEntity, "new_explanation", aMember.PrayItem);
 
                         AddToDictionaryFollowByIdentity(ref ClearIdentity, ref aContactEntity, aMember);
 
