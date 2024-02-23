@@ -11,7 +11,6 @@ namespace ChurchReport.Models
     public class InMemoryDataContextSmallGroup
     {
         #region 資料區
-        IHttpContextAccessor _contextAccessor;
         IMemoryCache _memoryCache;
 
         private ToolUtilityClass m_ToolUtilityClass;
@@ -29,13 +28,19 @@ namespace ChurchReport.Models
         public QpayManager m_QpayManager;
         public PollManager m_PollManager;
 
+        private HttpContextAccessor m_ContextAccessor;
+        private HttpContext m_HttpContext;
+        private ISession m_Session;
+
         #endregion
         #region 初始化
-
         public InMemoryDataContextSmallGroup(IHttpContextAccessor contextAccessor, IMemoryCache memoryCache)
         {
-            _contextAccessor = contextAccessor;
             _memoryCache = memoryCache;
+
+            m_ContextAccessor = (HttpContextAccessor)contextAccessor;
+            m_HttpContext = m_ContextAccessor.HttpContext;
+            m_Session = m_ContextAccessor.HttpContext.Session;
         }
         #endregion
         #region 多個組長處理區
@@ -43,8 +48,7 @@ namespace ChurchReport.Models
         {
             get
             {
-                var session = _contextAccessor.HttpContext.Session;
-                var key = session.Id + "_ListManager";
+                var key = m_Session.Id + "_ListManager";
 
                 if (_memoryCache.Get(key) == null)
                 //if (!_memoryCache.TryGetValue(key, out m_ListManager))
@@ -75,7 +79,7 @@ namespace ChurchReport.Models
                     m_ListManager = new ListManager();
                     _memoryCache.Set<ListManager>(key, m_ListManager, options);
 
-                    session.SetInt32("dirty", 1);
+                    m_Session.SetInt32("dirty", 1);
                 }
 
                 return _memoryCache.Get<ListManager>(key);
@@ -105,8 +109,7 @@ namespace ChurchReport.Models
         {
             get
             {
-                var session = _contextAccessor.HttpContext.Session;
-                var key = session.Id + "_SmallGroupDataList";
+                var key = m_Session.Id + "_SmallGroupDataList";
 
                 if (_memoryCache.Get(key) == null)
                 //if (!_memoryCache.TryGetValue(key, out m_SmallGroupDataList))
@@ -138,7 +141,7 @@ namespace ChurchReport.Models
 
                     _memoryCache.Set<SmallGroupDataList>(key, m_SmallGroupDataList, options);
 
-                    session.SetInt32("dirty", 1);
+                    m_Session.SetInt32("dirty", 1);
                 }
 
                 return _memoryCache.Get<SmallGroupDataList>(key);
@@ -150,8 +153,7 @@ namespace ChurchReport.Models
         {
             get
             {
-                var session = _contextAccessor.HttpContext.Session;
-                var key = session.Id + "_WeeklyReportData";
+                var key = m_Session.Id + "_WeeklyReportData";
 
                 if (_memoryCache.Get(key) == null)
                 //if (!_memoryCache.TryGetValue(key, out m_WeeklyReportData))
@@ -182,7 +184,7 @@ namespace ChurchReport.Models
                     m_WeeklyReportData = new WeeklyReportData();
                     _memoryCache.Set<WeeklyReportData>(key, m_WeeklyReportData, options);
 
-                    session.SetInt32("dirty", 1);
+                    m_Session.SetInt32("dirty", 1);
                 }
                 return _memoryCache.Get<WeeklyReportData>(key);
             }
@@ -195,8 +197,7 @@ namespace ChurchReport.Models
         {
             get
             {
-                var session = _contextAccessor.HttpContext.Session;
-                var key = session.Id + "_NewPersonModel";
+                var key = m_Session.Id + "_NewPersonModel";
 
                 if (_memoryCache.Get(key) == null)
                 //if (!_memoryCache.TryGetValue(key, out m_NewPersonModel))
@@ -227,7 +228,7 @@ namespace ChurchReport.Models
                     m_NewPersonModel = new NewPersonModel();
                     _memoryCache.Set<NewPersonModel>(key, m_NewPersonModel, options);
 
-                    session.SetInt32("dirty", 1);
+                    m_Session.SetInt32("dirty", 1);
                 }
                 return _memoryCache.Get<NewPersonModel>(key);
             }
@@ -239,8 +240,7 @@ namespace ChurchReport.Models
         {
             get
             {
-                var session = _contextAccessor.HttpContext.Session;
-                var key = session.Id + "_PersonalInfomationModel";
+                var key = m_Session.Id + "_PersonalInfomationModel";
 
                 if (_memoryCache.Get(key) == null)
                 //if (!_memoryCache.TryGetValue(key, out m_NewPersonModel))
@@ -271,7 +271,7 @@ namespace ChurchReport.Models
                     m_PersonalInfomationModel = new PersonalInfomationModel();
                     _memoryCache.Set<PersonalInfomationModel>(key, m_PersonalInfomationModel, options);
 
-                    session.SetInt32("dirty", 1);
+                    m_Session.SetInt32("dirty", 1);
                 }
                 return _memoryCache.Get<PersonalInfomationModel>(key);
             }
@@ -283,8 +283,7 @@ namespace ChurchReport.Models
         {
             get
             {
-                var session = _contextAccessor.HttpContext.Session;
-                var key = session.Id + "_HappyGroupDataManager";
+                var key = m_Session.Id + "_HappyGroupDataManager";
 
                 if (_memoryCache.Get(key) == null)
                 //if (!_memoryCache.TryGetValue(key, out m_HappyGroupDataManager))
@@ -315,7 +314,7 @@ namespace ChurchReport.Models
                     m_HappyGroupDataManager = new HappyGroupDataManager();
                     _memoryCache.Set<HappyGroupDataManager>(key, m_HappyGroupDataManager, options);
 
-                    session.SetInt32("dirty", 1);
+                    m_Session.SetInt32("dirty", 1);
                 }
                 return _memoryCache.Get<HappyGroupDataManager>(key);
             }
@@ -327,8 +326,7 @@ namespace ChurchReport.Models
         {
             get
             {
-                var session = _contextAccessor.HttpContext.Session;
-                var key = session.Id + "_ListManagementDataManager";
+                var key = m_Session.Id + "_ListManagementDataManager";
 
                 if (_memoryCache.Get(key) == null)
                 //if (!_memoryCache.TryGetValue(key, out m_HappyGroupDataManager))
@@ -359,7 +357,7 @@ namespace ChurchReport.Models
                     m_ListManagementDataManager = new ListManagementDataManager();
                     _memoryCache.Set<ListManagementDataManager>(key, m_ListManagementDataManager, options);
 
-                    session.SetInt32("dirty", 1);
+                    m_Session.SetInt32("dirty", 1);
                 }
                 return _memoryCache.Get<ListManagementDataManager>(key);
             }
@@ -371,8 +369,7 @@ namespace ChurchReport.Models
         {
             get
             {
-                var session = _contextAccessor.HttpContext.Session;
-                var key = session.Id + "_EquipmentDataManager";
+                var key = m_Session.Id + "_EquipmentDataManager";
 
                 if (_memoryCache.Get(key) == null)
                 //if (!_memoryCache.TryGetValue(key, out m_HappyGroupDataManager))
@@ -403,7 +400,7 @@ namespace ChurchReport.Models
                     m_EquipmentDataManager = new EquipmentDataManager();
                     _memoryCache.Set<EquipmentDataManager>(key, m_EquipmentDataManager, options);
 
-                    session.SetInt32("dirty", 1);
+                    m_Session.SetInt32("dirty", 1);
                 }
                 return _memoryCache.Get<EquipmentDataManager>(key);
             }
@@ -416,8 +413,7 @@ namespace ChurchReport.Models
         {
             get
             {
-                var session = _contextAccessor.HttpContext.Session;
-                var key = session.Id + "_FeeList";
+                var key = m_Session.Id + "_FeeList";
 
                 if (_memoryCache.Get(key) == null)
                 //if (!_memoryCache.TryGetValue(key, out m_FeeList))
@@ -448,7 +444,7 @@ namespace ChurchReport.Models
                     m_FeeList = new FeeList();
                     _memoryCache.Set<FeeList>(key, m_FeeList, options);
 
-                    session.SetInt32("dirty", 1);
+                    m_Session.SetInt32("dirty", 1);
                 }
 
                 return _memoryCache.Get<FeeList>(key);
@@ -460,8 +456,7 @@ namespace ChurchReport.Models
         {
             get
             {
-                var session = _contextAccessor.HttpContext.Session;
-                var key = session.Id + "_LineBindingViewModel";
+                var key = m_Session.Id + "_LineBindingViewModel";
 
                 if (_memoryCache.Get(key) == null)
                 //if (!_memoryCache.TryGetValue(key, out m_LineBindingViewModel))
@@ -492,7 +487,7 @@ namespace ChurchReport.Models
                     m_LineBindingViewModel = new LineBindingViewModel();
                     _memoryCache.Set<LineBindingViewModel>(key, m_LineBindingViewModel, options);
 
-                    session.SetInt32("dirty", 1);
+                    m_Session.SetInt32("dirty", 1);
                 }
                 return _memoryCache.Get<LineBindingViewModel>(key);
             }
@@ -504,8 +499,7 @@ namespace ChurchReport.Models
         {
             get
             {
-                var session = _contextAccessor.HttpContext.Session;
-                var key = session.Id + "_AppointmentsListManager";
+                var key = m_Session.Id + "_AppointmentsListManager";
 
                 if (_memoryCache.Get(key) == null)
                 //if (!_memoryCache.TryGetValue(key, out m_AppointmentsListManager))
@@ -536,7 +530,7 @@ namespace ChurchReport.Models
                     m_AppointmentsListManager = new AppointmentsListManager();
                     _memoryCache.Set<AppointmentsListManager>(key, m_AppointmentsListManager, options);
 
-                    session.SetInt32("dirty", 1);
+                    m_Session.SetInt32("dirty", 1);
                 }
 
                 return _memoryCache.Get<AppointmentsListManager>(key);
@@ -548,8 +542,7 @@ namespace ChurchReport.Models
         {
             get
             {
-                var session = _contextAccessor.HttpContext.Session;
-                var key = session.Id + "_QpayManager";
+                var key = m_Session.Id + "_QpayManager";
 
                 if (_memoryCache.Get(key) == null)
                 //if (!_memoryCache.TryGetValue(key, out m_ListManager))
@@ -580,7 +573,7 @@ namespace ChurchReport.Models
                     m_QpayManager = new QpayManager();
                     _memoryCache.Set<QpayManager>(key, m_QpayManager, options);
 
-                    session.SetInt32("dirty", 1);
+                    m_Session.SetInt32("dirty", 1);
                 }
 
                 return _memoryCache.Get<QpayManager>(key);
@@ -592,8 +585,7 @@ namespace ChurchReport.Models
         {
             get
             {
-                var session = _contextAccessor.HttpContext.Session;
-                var key = session.Id + "_PollManager";
+                var key = m_Session.Id + "_PollManager";
 
                 if (_memoryCache.Get(key) == null)
                 //if (!_memoryCache.TryGetValue(key, out m_ListManager))
@@ -624,7 +616,7 @@ namespace ChurchReport.Models
                     m_PollManager = new PollManager();
                     _memoryCache.Set<PollManager>(key, m_PollManager, options);
 
-                    session.SetInt32("dirty", 1);
+                    m_Session.SetInt32("dirty", 1);
                 }
 
                 return _memoryCache.Get<PollManager>(key);
@@ -637,8 +629,7 @@ namespace ChurchReport.Models
         {
             get
             {
-                var session = _contextAccessor.HttpContext.Session;
-                var key = session.Id + "_ToolUtilityClass";
+                var key = m_Session.Id + "_ToolUtilityClass";
 
                 if (_memoryCache.Get(key) == null)
                 //if (!_memoryCache.TryGetValue(key, out m_AppointmentsListManager))
@@ -669,7 +660,7 @@ namespace ChurchReport.Models
                     m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
                     _memoryCache.Set<ToolUtilityClass>(key, m_ToolUtilityClass, options);
 
-                    session.SetInt32("dirty", 1);
+                    m_Session.SetInt32("dirty", 1);
                 }
 
                 return _memoryCache.Get<ToolUtilityClass>(key);
