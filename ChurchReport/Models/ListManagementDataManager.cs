@@ -1126,18 +1126,25 @@ namespace ChurchReport.Models
             try
             {
                 // 處理出席紀錄單
+                #region 先根據日期尋找當週主日日期
+                // 其值的範圍從 0 (表示 DayOfWeek.Sunday) 為 6 (表示 DayOfWeek.Saturday)。
                 int DayOfWeek = (int)DateTime.Now.DayOfWeek;
+
+                // 當週的星期日為認定的主日
+                //this.m_Sunday = DateTime.Now.AddDays(-DayOfWeek);
                 DateTime aSunday;
-                if (DayOfWeek != 6)
+                // 每周以星期一為第一日
+                if (DayOfWeek > 0)
                 {
-                    // 如果不是星期六則是上個星期天
-                    aSunday = DateTime.Now.AddDays(-DayOfWeek);
+                    // 大於 0， 表示星期一到星期六=>下一週的星期日為認定的主日
+                    aSunday = DateTime.Now.AddDays(-DayOfWeek + 7).ToLocalTime();
                 }
                 else
                 {
-                    // 如果是星期六則是下個星期天
-                    aSunday = DateTime.Now.AddDays(1);
+                    // 為 0 = 星期日 (表示 DayOfWeek.Saturday)表示當週星期日為認定的主日
+                    aSunday = DateTime.Now.AddDays(-DayOfWeek).ToLocalTime();
                 }
+                #endregion
 
                 EntityCollection aPresentRecordEntityCollection = m_ToolUtilityClass.RetrievePresentRecordByFetchXmlAndContact_SmallGroup_SundayDate
                 (
@@ -1497,18 +1504,25 @@ namespace ChurchReport.Models
 
                     #region 刪除當周、那個小組、那個連絡人的出席紀錄單
 
+                    #region 先根據日期尋找當週主日日期
+                    // 其值的範圍從 0 (表示 DayOfWeek.Sunday) 為 6 (表示 DayOfWeek.Saturday)。
                     int DayOfWeek = (int)DateTime.Now.DayOfWeek;
+
+                    // 當週的星期日為認定的主日
+                    //this.m_Sunday = DateTime.Now.AddDays(-DayOfWeek);
                     DateTime aSunday;
-                    if (DayOfWeek != 6)
+                    // 每周以星期一為第一日
+                    if (DayOfWeek > 0)
                     {
-                        // 如果不是星期六則是上個星期天
-                        aSunday = DateTime.Now.AddDays(-DayOfWeek);
+                        // 大於 0， 表示星期一到星期六=>下一週的星期日為認定的主日
+                        aSunday = DateTime.Now.AddDays(-DayOfWeek + 7).ToLocalTime();
                     }
                     else
                     {
-                        // 如果是星期六則是下個星期天
-                        aSunday = DateTime.Now.AddDays(1);
+                        // 為 0 = 星期日 (表示 DayOfWeek.Saturday)表示當週星期日為認定的主日
+                        aSunday = DateTime.Now.AddDays(-DayOfWeek).ToLocalTime();
                     }
+                    #endregion
 
                     ContactMember aContactMember = GetContactByContactId(aContactId);
 
