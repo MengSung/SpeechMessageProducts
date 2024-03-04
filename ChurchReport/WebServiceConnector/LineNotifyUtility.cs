@@ -292,7 +292,8 @@ namespace ChurchReport.WebServiceConnector
                 if (aSmallGroupData.LoginType == "小組長")
                 {
                     // 取得小組名稱
-                    String GroupName = "小組名稱: " + m_ToolUtilityClass.GetEntityStringAttribute(ref aListEntity, "listname") + Environment.NewLine;
+                    //String GroupName = "小組名稱: " + m_ToolUtilityClass.GetEntityStringAttribute(ref aListEntity, "listname") + Environment.NewLine;
+                    String GroupName = "小組名稱: " + m_ToolUtilityClass.GetEntityStringAttribute(ref aListEntity, "listname");
 
                     SmallGroupResult = GroupName + SmallGroupResult + Environment.NewLine;
 
@@ -633,6 +634,7 @@ namespace ChurchReport.WebServiceConnector
                 Guid aAreaLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_race_leager_list");
                 if (aAreaLeaderId != Guid.Empty)
                 {
+                    // 暫時先取消，因為要除錯
                     if (LoginContact.Id != aAreaLeaderId)
                     {
                         // 登入回報者與此人是不一樣的ID

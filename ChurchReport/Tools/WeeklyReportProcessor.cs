@@ -1315,6 +1315,7 @@ namespace ChurchReport.Tools
             try
             {
                 //AddToDictionary(ref this.m_SigningReport, "主日出席統計表頭", aSunday.ToLocalTime().ToShortDateString() + "出席紀錄(過去八週主日出席次數)" + Environment.NewLine);
+                //AddToDictionary(ref this.m_SigningReport, "主日出席統計表頭", aSunday.ToLocalTime().ToShortDateString() + "出席紀錄(過去八週主日出席次數)" + Environment.NewLine);
             }
             catch (FormatException)
             {
