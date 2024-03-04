@@ -649,12 +649,12 @@ namespace ChurchReport.WebServiceConnector
                 if (aListSmallGroupLeaderId != Guid.Empty)
                 {
                     // 暫時先取消，因為要除錯
-                    if (LoginContact.Id != aListSmallGroupLeaderId)
-                    {
+                    //if (LoginContact.Id != aListSmallGroupLeaderId)
+                    //{
                         // 登入回報者與此人是不一樣的ID
                         aContact = this.m_ToolUtilityClass.RetrieveEntity("contact", aListSmallGroupLeaderId);
                         aListSmallGroupLeaderLineId = this.m_ToolUtilityClass.GetEntityStringAttribute(aContact, "new_lineid");
-                    }
+                    //}
                 }
 
                 // 共同小組長 ID
