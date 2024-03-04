@@ -648,6 +648,7 @@ namespace ChurchReport.WebServiceConnector
                 Guid aListSmallGroupLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_family_leader_list");
                 if (aListSmallGroupLeaderId != Guid.Empty)
                 {
+                    // 暫時先取消，因為要除錯
                     if (LoginContact.Id != aListSmallGroupLeaderId)
                     {
                         // 登入回報者與此人是不一樣的ID
