@@ -3834,15 +3834,17 @@ namespace ChurchReport.WebServiceConnector
 
                                 // 版本轉換
                                 //// 如果是新朋友、未入組、外教會則不列入累積，神住611靈糧堂
-                                if (aCustomerTypeCode.Value != 100000004 && aCustomerTypeCode.Value != 100000000 && aCustomerTypeCode.Value != 100000007)
-                                {
-                                    return true;
-                                }
-                                else
-                                {
-                                    return false;
-                                }
+                                //if (aCustomerTypeCode.Value != 100000004 && aCustomerTypeCode.Value != 100000000 && aCustomerTypeCode.Value != 100000007)
+                                //{
+                                //    return true;
+                                //}
+                                //else
+                                //{
+                                //    return false;
+                                //}
 
+                                // 所有的委身類型都是要列入計算統計的
+                                return true;
                                 // 如果是新朋友或是未入組則不列入累積，內壢神住611靈糧堂
                                 // 10.不穩定組員   =   100,000,008
                                 // 11.新朋友       =   100,000,009
