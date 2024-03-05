@@ -142,7 +142,8 @@ namespace ChurchReport.WebServiceConnector
                 //神住611靈糧堂小組名稱含有數字
                 //String FilteredOutDigitGroupName = Regex.Replace(FilteredGroupName, "[0-9]", "");//過濾掉數字
                 String FilteredOutDigitGroupName = FilteredGroupName.Replace(" ", ""); // //過濾掉空白
-                AddToDictionary(ref this.m_FeedBackReport, "主日出席統計表頭", FilteredOutDigitGroupName + Environment.NewLine + "主日出席紀錄:");
+                //AddToDictionary(ref this.m_FeedBackReport, "主日出席統計表頭", FilteredOutDigitGroupName + Environment.NewLine + "主日出席紀錄:");
+                AddToDictionary(ref this.m_FeedBackReport, "主日出席統計表頭", "主日出席統計:");
                 //AddToDictionary(ref this.m_FeedBackReport, "小組出席統計表頭" , "");
                 //AddToDictionary(ref this.m_FeedBackReport, "跟進統計表頭"     , "");
 
@@ -821,53 +822,25 @@ namespace ChurchReport.WebServiceConnector
         {
             try
             {
-                //tring SundayResult = "";
-                //String SundayResult = this.GetDictionaryValue(ref this.m_FeedBackReport, "主日出席統計表頭") +
-                //    "\t" + "A.小組組員" + Environment.NewLine +
-                //    this.GetDictionaryValue(ref this.m_FeedBackReport, "\t\t" + "出席　：", "主日統計小組組員出席字串") +
-                //    this.GetDictionaryValue(ref this.m_FeedBackReport, "\t\t" + "未出席：", "主日統計小組組員未出席字串") +
-                //    "\t" + "B.不穩定組員" + Environment.NewLine +
-                //    this.GetDictionaryValue(ref this.m_FeedBackReport, "\t\t" + "出席　：", "主日統計未入組出席字串") +
-                //    this.GetDictionaryValue(ref this.m_FeedBackReport, "\t\t" + "未出席：", "主日統計未入組出未席字串") +
-                //    "\t" + "C.新朋友" + Environment.NewLine +
-                //    this.GetDictionaryValue(ref this.m_FeedBackReport, "\t\t" + "出席　：", "主日統計新人出席字串") +
-                //    this.GetDictionaryValue(ref this.m_FeedBackReport, "\t\t" + "未出席：", "主日統計新人未出席字串")
-                //    ;
-
-
-
-                //String SundayResult = this.GetDictionaryValue(ref this.m_FeedBackReport, "主日出席統計表頭") +
-                //    "\t" + "A.小組組員" + Environment.NewLine +
-                //    "\t\t" + "出席　：" + this.GetDictionaryValue(ref this.m_FeedBackReport, "主日統計小組組員出席字串") + Environment.NewLine +
-                //    "\t\t" + "未出席：" + this.GetDictionaryValue(ref this.m_FeedBackReport, "主日統計小組組員未出席字串") + Environment.NewLine +
-                //    "\t" + "B.不穩定組員" + Environment.NewLine +
-                //    "\t\t" + "出席　：" + this.GetDictionaryValue(ref this.m_FeedBackReport, "主日統計未入組出席字串") + Environment.NewLine +
-                //    "\t\t" + "未出席：" + this.GetDictionaryValue(ref this.m_FeedBackReport, "主日統計未入組出未席字串") + Environment.NewLine +
-                //    "\t" + "C.新朋友" + Environment.NewLine +
-                //    "\t\t" + "出席　：" + this.GetDictionaryValue(ref this.m_FeedBackReport, "主日統計新人出席字串") + Environment.NewLine +
-                //    "\t\t" + "未出席：" + this.GetDictionaryValue(ref this.m_FeedBackReport, "小組統計新人未出席字串") + Environment.NewLine
-                //    ;
-                //SundayResult += "---------------------------------" + Environment.NewLine;
-                //SundayResult += Environment.NewLine + Environment.NewLine;
-                //SundayResult += Environment.NewLine;
-
-                //String SmallGroupResult = this.GetDictionaryValue(ref this.m_FeedBackReport, "小組出席統計表頭") +
-                //    "\t" + "A.小組組員" + Environment.NewLine +
-                //    this.GetDictionaryValue(ref this.m_FeedBackReport, "\t\t" + "出席　：", "小組統計小組組員出席字串") +
-                //    this.GetDictionaryValue(ref this.m_FeedBackReport, "\t\t" + "未出席：", "小組統計小組組員未出席字串") +
-                //    "\t" + "B.不穩定組員" + Environment.NewLine +
-                //    this.GetDictionaryValue(ref this.m_FeedBackReport, "\t\t" + "出席　：", "小組統計未入組出席字串") +
-                //    this.GetDictionaryValue(ref this.m_FeedBackReport, "\t\t" + "未出席：", "小組統計未入組出未席字串") +
-                //    "\t" + "C.新朋友" + Environment.NewLine +
-                //    this.GetDictionaryValue(ref this.m_FeedBackReport, "\t\t" + "出席　：", "小組統計新人出席字串") +
-                //    this.GetDictionaryValue(ref this.m_FeedBackReport, "\t\t" + "未出席：", "小組統計新人未出席字串")
-                //
-                // 
                 //Emoji 清單列表
                 // https://apps.timwhitlock.info/emoji/tables/unicode
                 string Apple = "\uD83C\uDF4F";
                 string Heart = "\uD83D\uDC96";
-                //string apple = "0x100078";
+                String SundayResult = this.GetDictionaryValue(ref this.m_FeedBackReport, "主日出席統計表頭") +
+                    Environment.NewLine + Apple + "已出席:(八週累計)" + Environment.NewLine +
+                    this.GetDictionaryValue(ref this.m_FeedBackReport, "", "主日統計小組組員出席字串") +
+                    this.GetDictionaryValue(ref this.m_FeedBackReport, "", "主日統計未入組出席字串") +
+                    this.GetDictionaryValue(ref this.m_FeedBackReport, "", "主日統計新人出席字串") +
+                    Environment.NewLine + Heart + "未出席:(八週累計)" + Environment.NewLine +
+                    this.GetDictionaryValue(ref this.m_FeedBackReport, "", "主日統計小組組員未出席字串") +
+                    this.GetDictionaryValue(ref this.m_FeedBackReport, "", "主日統計未入組出席字串") +
+                    this.GetDictionaryValue(ref this.m_FeedBackReport, "", "主日統計新人未出席字串") 
+                    ;
+
+                //Emoji 清單列表
+                // https://apps.timwhitlock.info/emoji/tables/unicode
+                //string Apple = "\uD83C\uDF4F";
+                //string Heart = "\uD83D\uDC96";
                 String SmallGroupResult = this.GetDictionaryValue(ref this.m_FeedBackReport, "小組出席統計表頭") +
                     Environment.NewLine + Apple + "已出席:(八週累計)" + Environment.NewLine +
                     this.GetDictionaryValue(ref this.m_FeedBackReport, "" , "小組統計小組組員出席字串") +
@@ -876,7 +849,7 @@ namespace ChurchReport.WebServiceConnector
                     Environment.NewLine + Heart + "未出席:(八週累計)" + Environment.NewLine +
                     this.GetDictionaryValue(ref this.m_FeedBackReport, "" , "小組統計小組組員未出席字串") +
                     this.GetDictionaryValue(ref this.m_FeedBackReport, "" , "小組統計未入組出未席字串") +
-                    this.GetDictionaryValue(ref this.m_FeedBackReport, "" , "小組統計新人未出席字串") + Environment.NewLine                   
+                    this.GetDictionaryValue(ref this.m_FeedBackReport, "" , "小組統計新人未出席字串")                   
                     ;
 
                 //String SmallGroupResult = this.GetDictionaryValue(ref this.m_FeedBackReport, "小組出席統計表頭") +
@@ -894,23 +867,28 @@ namespace ChurchReport.WebServiceConnector
                 //SundayResult += Environment.NewLine + Environment.NewLine;
                 //SundayResult += Environment.NewLine;
 
-                //String FollowUpResult = this.GetDictionaryValue(ref this.m_FeedBackReport, "跟進統計表頭") +
-                //    "\t" + "A.未入組跟進統計內容" + Environment.NewLine +
-                //    this.GetDictionaryValue(ref this.m_FeedBackReport, "未入組跟進統計內容") + Environment.NewLine +
-                //    "\t" + "B.新朋友跟進統計內容" + Environment.NewLine +
-                //    this.GetDictionaryValue(ref this.m_FeedBackReport, "新朋友跟進統計內容") + Environment.NewLine
-                //    ;
-                //FollowUpResult += "---------------------------------" + Environment.NewLine;
+                String FollowUpResult = this.GetDictionaryValue(ref this.m_FeedBackReport, "跟進統計表頭") +
+                    "\t" + "A.未入組跟進統計內容" + Environment.NewLine +
+                    this.GetDictionaryValue(ref this.m_FeedBackReport, "未入組跟進統計內容") + Environment.NewLine +
+                    "\t" + "B.新朋友跟進統計內容" + Environment.NewLine +
+                    this.GetDictionaryValue(ref this.m_FeedBackReport, "新朋友跟進統計內容") + Environment.NewLine
+                    ;
+                FollowUpResult += "---------------------------------" + Environment.NewLine;
 
                 // 主日出席寫入至週報
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aWeeklyReportEntity, "new_sunday_present_report", SmallGroupResult);
-                //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aWeeklyReportEntity, "new_sunday_present_report", SundayResult + SmallGroupResult + FollowUpResult);
+                //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aWeeklyReportEntity, "new_sunday_present_report", SmallGroupResult);
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aWeeklyReportEntity, "new_sunday_present_report", SundayResult + SmallGroupResult + FollowUpResult);
 
                 // 加總族系族長的主日出席
-                //AddToDictionary(ref this.m_FeedBackReport, "主日統計", SundayResult);
+                AddToDictionary(ref this.m_FeedBackReport, "主日統計", SundayResult);
 
-                return SmallGroupResult;
-                //return SundayResult + SmallGroupResult + FollowUpResult;
+                //return SmallGroupResult;
+                return 
+                    SundayResult + Environment.NewLine + 
+                    "---------------------------------" + Environment.NewLine + 
+                    SmallGroupResult + Environment.NewLine + 
+                    "---------------------------------" + Environment.NewLine + 
+                    FollowUpResult;
                 //return SundayResult + SmallGroupResult;
             }
             catch (System.Exception Exception)
@@ -3028,8 +3006,8 @@ namespace ChurchReport.WebServiceConnector
                 // 加入百分比 
                 //AddToDictionary(ref this.m_FeedBackReport, "主日出席統計表頭", ValidSundayMemberNumber.ToString() + "/" + ValidNumber.ToString() + "，" + String.Format("{0:0%}", aWeeklySundayRate) + Environment.NewLine);
                 //AddToDictionary(ref this.m_FeedBackReport, "小組出席統計表頭", ValidSmallGroupMemberNumber.ToString() + "/" + ValidNumber.ToString() + "，" + String.Format("{0:0%}", aWeeklySmallGroupRate) + Environment.NewLine);
-                //AddToDictionary(ref this.m_FeedBackReport, "主日出席統計表頭", "實到" +ValidSundayMemberNumber.ToString() + "人/應到" + ValidNumber.ToString() + "人，出席率" + String.Format("{0:0%}", aWeeklySundayRate) + Environment.NewLine);
-                AddToDictionary(ref this.m_FeedBackReport, "小組出席統計表頭", Environment.NewLine + "實到" + ValidSmallGroupMemberNumber.ToString() + "人/應到" + ValidNumber.ToString() + "人，出席率" + String.Format("{0:0%}", aWeeklySmallGroupRate) + Environment.NewLine);
+                AddToDictionary(ref this.m_FeedBackReport, "主日出席統計表頭", Environment.NewLine + "實到" + ValidSundayMemberNumber.ToString() + "人/應到" + ValidNumber.ToString() + "人，出席率" + String.Format("{0:0%}", aWeeklySundayRate));
+                AddToDictionary(ref this.m_FeedBackReport, "小組出席統計表頭", Environment.NewLine + "實到" + ValidSmallGroupMemberNumber.ToString() + "人/應到" + ValidNumber.ToString() + "人，出席率" + String.Format("{0:0%}", aWeeklySmallGroupRate));
                 #endregion
 
                 // 建立週報主日出席、小組出席、新人跟進字串內容
@@ -5186,8 +5164,8 @@ namespace ChurchReport.WebServiceConnector
         {
             try
             {
-                AddToDictionary(ref this.m_FeedBackReport, "主日出席統計表頭", aSunday.ToLocalTime().ToShortDateString() + "出席紀錄" + Environment.NewLine);
-                //AddToDictionary(ref this.m_FeedBackReport, "小組出席統計表頭", "小組出席紀錄:");
+                AddToDictionary(ref this.m_FeedBackReport, "主日出席統計表頭", "主日日期:" + aSunday.ToLocalTime().ToShortDateString() +  Environment.NewLine + "---------------------------------" + Environment.NewLine);
+                AddToDictionary(ref this.m_FeedBackReport, "小組出席統計表頭", "小組出席統計:");
                 //AddToDictionary(ref this.m_FeedBackReport, "跟進統計表頭", "跟進統計報告" + Environment.NewLine);
 
                 //AddToDictionary(ref this.m_FeedBackReport, "主日統計小組組員出席字串", "");

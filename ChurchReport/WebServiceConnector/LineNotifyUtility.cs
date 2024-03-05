@@ -292,14 +292,15 @@ namespace ChurchReport.WebServiceConnector
                 if (aSmallGroupData.LoginType == "小組長")
                 {
                     // 取得小組名稱
-                    //String GroupName = "小組名稱: " + m_ToolUtilityClass.GetEntityStringAttribute(ref aListEntity, "listname") + Environment.NewLine;
-                    String GroupName = "小組名稱: " + m_ToolUtilityClass.GetEntityStringAttribute(ref aListEntity, "listname");
+                    //String GroupName = "小組名稱:" + m_ToolUtilityClass.GetEntityStringAttribute(ref aListEntity, "listname") + Environment.NewLine;
+                    String GroupName = "小組名稱:" + m_ToolUtilityClass.GetEntityStringAttribute(ref aListEntity, "listname");
 
-                    SmallGroupResult = GroupName + SmallGroupResult + Environment.NewLine;
+                    SmallGroupResult = GroupName + Environment.NewLine + SmallGroupResult + Environment.NewLine;
 
                     // 取得代禱事項
                     SmallGroupResult += GetAllPersonalReply(ref aSmallGroupData) + Environment.NewLine;
 
+                    // 取得小組日誌
                     if (PauseCheckBox != true)
                     {
                         SmallGroupResult += "小組日誌:" + Environment.NewLine + WeeklyReportData + Environment.NewLine;
@@ -314,7 +315,7 @@ namespace ChurchReport.WebServiceConnector
                 else
                 {
                     // 個人回報
-                    String GroupName = "小組名稱: " + m_ToolUtilityClass.GetEntityStringAttribute(ref aListEntity, "listname");
+                    String GroupName = "小組名稱:" + m_ToolUtilityClass.GetEntityStringAttribute(ref aListEntity, "listname");
                     String LoginContactName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LoginContact, "fullname");
 
                     return
@@ -635,12 +636,12 @@ namespace ChurchReport.WebServiceConnector
                 if (aAreaLeaderId != Guid.Empty)
                 {
                     // 暫時先取消，因為要除錯
-                    if (LoginContact.Id != aAreaLeaderId)
-                    {
+                    //if (LoginContact.Id != aAreaLeaderId)
+                    //{
                         // 登入回報者與此人是不一樣的ID
                         aContact = this.m_ToolUtilityClass.RetrieveEntity("contact", aAreaLeaderId);
                         aAreaLeaderLineId = this.m_ToolUtilityClass.GetEntityStringAttribute(aContact, "new_lineid");
-                    }
+                    //}
                 }
 
                 // 小組長 ID
@@ -649,12 +650,12 @@ namespace ChurchReport.WebServiceConnector
                 if (aListSmallGroupLeaderId != Guid.Empty)
                 {
                     // 暫時先取消，因為要除錯
-                    if (LoginContact.Id != aListSmallGroupLeaderId)
-                    {
+                    //if (LoginContact.Id != aListSmallGroupLeaderId)
+                    //{
                         // 登入回報者與此人是不一樣的ID
                         aContact = this.m_ToolUtilityClass.RetrieveEntity("contact", aListSmallGroupLeaderId);
                         aListSmallGroupLeaderLineId = this.m_ToolUtilityClass.GetEntityStringAttribute(aContact, "new_lineid");
-                    }
+                    //}
                 }
 
                 // 共同小組長 ID
