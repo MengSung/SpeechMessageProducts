@@ -1106,7 +1106,7 @@ namespace ChurchReport.WebServiceConnector
             };
 
         }
-        // 神住611靈糧堂
+        // 南崁基督長老教會
         // 委身類型客製化
         private String ConvertIndexToIdentity(int Identity)
         {

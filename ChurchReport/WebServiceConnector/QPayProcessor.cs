@@ -46,7 +46,7 @@ namespace ChurchReport.WebServiceConnector
         #endregion
 
         // 客製化
-        // 神住611靈糧堂
+        // 南崁基督長老教會
         private const String CHANNEL_ACCESS_TOKEN = @"e4DmmyIWDuKndlRjHR3BscuVYoqlk9SVxhFXhoZJyhCmBKzIKk9j89bMKLPBoX/Foxvpm/H5XKqA5yu8xjDyxRtdc04LPNvcBRDwzdu1ovcX1L3ErJZkL06pHSRfjvOKBQTMZdiA6j7TnisCPUqwXwdB04t89/1O/w1cDnyilFU=";
 
         //private LinePayClient m_LinePayClient { get; }
@@ -1256,7 +1256,7 @@ namespace ChurchReport.WebServiceConnector
                     B22 = "48737E77D6864915";
                     return A21 + "," + A22 + "," + B21 + "," + B22;
                 case "DA3009_001":
-                    // 神住611靈糧堂
+                    // 南崁基督長老教會
                     A21 = "D3AA59886C7041B2";
                     A22 = "4519D42101984D8E";
                     B21 = "93BCEDA52A8C45D9";

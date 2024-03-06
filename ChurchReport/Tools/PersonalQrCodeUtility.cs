@@ -46,7 +46,7 @@ namespace ChurchReport.Tools
         bool m_NotifyLineFlag = false;
 
         // 客製化
-        // 神住611靈糧堂
+        // 南崁基督長老教會
         private const String CHANNEL_ACCESS_TOKEN = @"e4DmmyIWDuKndlRjHR3BscuVYoqlk9SVxhFXhoZJyhCmBKzIKk9j89bMKLPBoX/Foxvpm/H5XKqA5yu8xjDyxRtdc04LPNvcBRDwzdu1ovcX1L3ErJZkL06pHSRfjvOKBQTMZdiA6j7TnisCPUqwXwdB04t89/1O/w1cDnyilFU=";
 
         #endregion
@@ -55,7 +55,7 @@ namespace ChurchReport.Tools
         public PersonalQrCodeUtility()
         {
             // 客製化，請選擇
-            // 神住611靈糧堂(免費版)
+            // 南崁基督長老教會(免費版)
             this.m_LineMessagingClient = new LineMessagingClient(CHANNEL_ACCESS_TOKEN);
 
             // 客製化

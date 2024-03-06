@@ -485,7 +485,7 @@ namespace ChurchReport.WebServiceConnector
             // 委身類型設定為新朋友
 
 
-            // 內壢神住611靈糧堂牧養新朋友稱呼代碼，跟台中思恩堂不一樣
+            // 內壢南崁基督長老教會牧養新朋友稱呼代碼，跟台中思恩堂不一樣
             //台中思恩堂
             if (aListEntityId != Guid.Empty)
             {
@@ -531,7 +531,7 @@ namespace ChurchReport.WebServiceConnector
                     this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "customertypecode", 100000000);
                 }
             }
-            // 內壢神住611靈糧堂
+            // 內壢南崁基督長老教會
             //this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "customertypecode", 100000009);
 
             // 生日
@@ -553,7 +553,7 @@ namespace ChurchReport.WebServiceConnector
             { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "gendercode", 200001); }
             else { }
 
-            // 內壢神住611靈糧堂性別值，跟神住611靈糧堂不一樣
+            // 內壢南崁基督長老教會性別值，跟南崁基督長老教會不一樣
             //if (aNewContact.Gender)
             //{ this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "gendercode", 100000001); }
             //else
@@ -701,9 +701,9 @@ namespace ChurchReport.WebServiceConnector
                         Entity aNewContactEntity = this.m_ToolUtilityClass.RetrieveEntity("contact", NewContactEntityId);
                         EntityReference aListEntityReference = new EntityReference("list", aListEntity.Id);
 
-                        // 內壢神住611靈糧堂
+                        // 內壢南崁基督長老教會
                         //this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aNewContactEntity, "new_cell_list_contact", ref aListEntityReference);
-                        // 神住611靈糧堂
+                        // 南崁基督長老教會
                         this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aNewContactEntity, "new_list_contact", ref aListEntityReference);
 
                         this.m_ToolUtilityClass.UpdateEntity(ref aNewContactEntity);
@@ -739,9 +739,9 @@ namespace ChurchReport.WebServiceConnector
                         Entity aNewContactEntity = this.m_ToolUtilityClass.RetrieveEntity("contact", NewContactEntityId);
                         EntityReference aListEntityReference = new EntityReference("list", aListEntity.Id);
 
-                        // 內壢神住611靈糧堂
+                        // 內壢南崁基督長老教會
                         //this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aNewContactEntity, "new_cell_list_contact", ref aListEntityReference);
-                        // 神住611靈糧堂
+                        // 南崁基督長老教會
                         this.m_ToolUtilityClass.SetEntityLookUpToNull(ref aNewContactEntity, "new_list_contact");
 
                         this.m_ToolUtilityClass.UpdateEntity(ref aNewContactEntity);
@@ -2253,11 +2253,11 @@ namespace ChurchReport.WebServiceConnector
                 #endregion
                 #region 設定附註或是代禱事項
 
-                // 神住611靈糧堂
+                // 南崁基督長老教會
                 //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_name", aMemberInfomation.Note);
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_explanation", aMemberInfomation.Note);
 
-                // 內壢神住611靈糧堂
+                // 內壢南崁基督長老教會
                 //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_memo", aMemberInfomation.Note);
                 #endregion
                 #region// 新人跟進
@@ -2509,7 +2509,7 @@ namespace ChurchReport.WebServiceConnector
                 int aCustomerTypeCodeValue = this.m_ToolUtilityClass.GetOptionSetAttribute(ref aContactEntity, "customertypecode");
                 //OptionSetValue aCustomerTypeCode = aContactEntity.Attributes["customertypecode"] as OptionSetValue;
 
-                // 如果是新朋友或是未入組則不列入累積，神住611靈糧堂
+                // 如果是新朋友或是未入組則不列入累積，南崁基督長老教會
                 if (aCustomerTypeCodeValue != 100000004 && aCustomerTypeCodeValue != 100000000 && aCustomerTypeCodeValue != 100000007 && aCustomerTypeCodeValue != EMPTY_VALUE)
                 {
                     return true;
@@ -2520,7 +2520,7 @@ namespace ChurchReport.WebServiceConnector
                 }
 
 
-                // 如果是新朋友或是未入組則不列入累積，內壢神住611靈糧堂
+                // 如果是新朋友或是未入組則不列入累積，內壢南崁基督長老教會
                 // 10.不穩定組員   =   100,000,008
                 // 11.新朋友       =   100,000,009
                 // 12.未入組       =   100,000,010
