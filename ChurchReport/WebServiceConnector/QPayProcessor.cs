@@ -1228,7 +1228,7 @@ namespace ChurchReport.WebServiceConnector
                     B22 = "32D5A23910734C93";
                     return A21 + "," + A22 + "," + B21 + "," + B22;
                 case "DA3412_001":
-                    // 安平靈糧堂
+                    // 南崁長老教會
                     A21 = "2B27264C1D794727";
                     A22 = "7C91CB903482427D";
                     B21 = "7360D573A5A34184";

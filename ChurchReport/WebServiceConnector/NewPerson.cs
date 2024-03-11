@@ -105,7 +105,7 @@ namespace ChurchReport.WebServiceConnector
                 this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "依據姓名及手機號碼過濾，看新人是否已存在");
                 Entity aExistContact = SearchContactByMobilePhone(ref aNewContact);
 
-                if ( aExistContact == null )
+                if (aExistContact == null)
                 {
                     // 這是要新建立的連絡人
                     return CreateNewContact(aAccountPasswordData, ref aNewContact);
@@ -231,7 +231,7 @@ namespace ChurchReport.WebServiceConnector
                 {
                     #region//已經在其他小組中 
                     String aExistListName = this.m_ToolUtilityClass.GetEntityStringAttribute(aExistList, "listname");
-                    if ( aExistListName.Contains("新人") || aExistListName.Contains("關懷") )
+                    if (aExistListName.Contains("新人") || aExistListName.Contains("關懷"))
                     {
                         #region 要加的新人是在"新人關懷"小組裡
                         //if (aListEntity != null)
@@ -378,6 +378,10 @@ namespace ChurchReport.WebServiceConnector
                     SetupNewContactParameter(ref aNewContactEntity, aAccountPasswordData, ref aNewContact, Guid.Empty);
                 }
 
+                #region 關聯主要小組
+                this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aNewContactEntity, "new_cell_list_contact", "list", aListEntity.Id);
+                #endregion
+
                 // 新增連絡人
                 Guid NewContactEntityId = this.m_ToolUtilityClass.CreateEntity(aNewContactEntity);
                 aNewContact.PresentRecordId = NewContactEntityId.ToString();
@@ -393,14 +397,11 @@ namespace ChurchReport.WebServiceConnector
                 {
                     // 有找到被關聯的小組名單
                     CreateNewContactPresentRecord(aListEntity, NewContactEntityId, aNewContact.GroupName, ref aNewContact);
-                    #region 關聯主要小組
-                    this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aNewContactEntity, "new_cell_list_contact", "list", aListEntity.Id);
-                    #endregion
                 }
                 #endregion
                 #region 更新新建立的連絡人
-                aNewContactEntity = this.m_ToolUtilityClass.RetrieveEntity("contact", NewContactEntityId);
-                this.m_ToolUtilityClass.UpdateEntity(ref aNewContactEntity);
+                //aNewContactEntity = this.m_ToolUtilityClass.RetrieveEntity("contact", NewContactEntityId);
+                //this.m_ToolUtilityClass.UpdateEntity(ref aNewContactEntity);
                 #endregion
 
                 String LoginContactFullName = this.m_ToolUtilityClass.GetEntityStringAttribute(this.m_ContactEntity, "fullname");
@@ -485,7 +486,7 @@ namespace ChurchReport.WebServiceConnector
             // 委身類型設定為新朋友
 
 
-            // 內壢南崁基督長老教會牧養新朋友稱呼代碼，跟台中思恩堂不一樣
+            // 南崁長老教會牧養新朋友稱呼代碼，跟台中思恩堂不一樣
             //台中思恩堂
             if (aListEntityId != Guid.Empty)
             {
@@ -531,7 +532,7 @@ namespace ChurchReport.WebServiceConnector
                     this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "customertypecode", 100000000);
                 }
             }
-            // 內壢南崁基督長老教會
+            // 南崁長老教會
             //this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "customertypecode", 100000009);
 
             // 生日
@@ -553,7 +554,7 @@ namespace ChurchReport.WebServiceConnector
             { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "gendercode", 200001); }
             else { }
 
-            // 內壢南崁基督長老教會性別值，跟南崁基督長老教會不一樣
+            // 南崁長老教會性別值，跟南崁長老教會不一樣
             //if (aNewContact.Gender)
             //{ this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "gendercode", 100000001); }
             //else
@@ -583,10 +584,6 @@ namespace ChurchReport.WebServiceConnector
             { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "new_spiriitual_identity", 100000001); }
             else if (aNewContact.FaithStatus == "已決志")
             { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "new_spiriitual_identity", 100000002); }
-            else if (aNewContact.FaithStatus == "-未知-")
-            { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "new_spiriitual_identity", 100000004); }
-            else if (aNewContact.FaithStatus == "未信主")
-            { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "new_spiriitual_identity", 100000003); }
             else { }
 
             // 來源
@@ -701,9 +698,9 @@ namespace ChurchReport.WebServiceConnector
                         Entity aNewContactEntity = this.m_ToolUtilityClass.RetrieveEntity("contact", NewContactEntityId);
                         EntityReference aListEntityReference = new EntityReference("list", aListEntity.Id);
 
-                        // 內壢南崁基督長老教會
+                        // 南崁長老教會 
                         //this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aNewContactEntity, "new_cell_list_contact", ref aListEntityReference);
-                        // 南崁基督長老教會
+                        // 南崁長老教會
                         this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aNewContactEntity, "new_list_contact", ref aListEntityReference);
 
                         this.m_ToolUtilityClass.UpdateEntity(ref aNewContactEntity);
@@ -731,7 +728,7 @@ namespace ChurchReport.WebServiceConnector
                     if (ListType == false)
                     {
                         // 靜態名單
-                        m_ToolUtilityClass.RemoveMembersToMarketingList( aListEntity.Id, NewContactEntityId);
+                        m_ToolUtilityClass.RemoveMembersToMarketingList(aListEntity.Id, NewContactEntityId);
                     }
                     else
                     {
@@ -739,9 +736,9 @@ namespace ChurchReport.WebServiceConnector
                         Entity aNewContactEntity = this.m_ToolUtilityClass.RetrieveEntity("contact", NewContactEntityId);
                         EntityReference aListEntityReference = new EntityReference("list", aListEntity.Id);
 
-                        // 內壢南崁基督長老教會
+                        // 南崁長老教會
                         //this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aNewContactEntity, "new_cell_list_contact", ref aListEntityReference);
-                        // 南崁基督長老教會
+                        // 南崁長老教會
                         this.m_ToolUtilityClass.SetEntityLookUpToNull(ref aNewContactEntity, "new_list_contact");
 
                         this.m_ToolUtilityClass.UpdateEntity(ref aNewContactEntity);
@@ -775,23 +772,18 @@ namespace ChurchReport.WebServiceConnector
                 #region 先根據日期尋找當週主日日期
                 // 其值的範圍從 0 (表示 DayOfWeek.Sunday) 為 6 (表示 DayOfWeek.Saturday)。
                 int DayOfWeek = (int)DateTime.Now.DayOfWeek;
-
-                // 當週的星期日為認定的主日
-                //this.m_Sunday = DateTime.Now.AddDays(-DayOfWeek);
-                DateTime aSunday;
-                // 每周以星期一為第一日
-                if (DayOfWeek > 0)
+                // 每周以星期六為第一日
+                if (DayOfWeek < 6)
                 {
-                    // 大於 0， 表示星期一到星期六=>下一週的星期日為認定的主日
-                    aSunday = DateTime.Now.AddDays(-DayOfWeek + 7).ToLocalTime();
+                    // 小於 6 表示星期日到星期五=>當週的星期日為認定的主日
+                    this.m_Sunday = DateTime.Now.AddDays(-DayOfWeek);
                 }
                 else
                 {
-                    // 為 0 = 星期日 (表示 DayOfWeek.Saturday)表示當週星期日為認定的主日
-                    aSunday = DateTime.Now.AddDays(-DayOfWeek).ToLocalTime();
+                    // 為 6 = 星期六 (表示 DayOfWeek.Saturday)表示要加1到下一個星期日為認定的主日
+                    this.m_Sunday = DateTime.Now.AddDays(1);
                 }
                 #endregion
-
                 //Entity GroupWeeklyReportEntity = FilterWeeklyReportByDate(ref GroupWeeklyReportEntityCollection);
                 //if (GroupWeeklyReportEntity == null)
                 //{ return; }
@@ -918,7 +910,7 @@ namespace ChurchReport.WebServiceConnector
         #endregion
         #endregion
         #region 指派小組
-        public String AssignNewSmallGroup( String PresentRecordId, String AssignedSmallGroupName, Entity aLoginContact, String ActiveListId)
+        public String AssignNewSmallGroup(String PresentRecordId, String AssignedSmallGroupName, Entity aLoginContact, String ActiveListId)
         {
             try
             {
@@ -970,13 +962,13 @@ namespace ChurchReport.WebServiceConnector
                 throw e;
             }
         }
-        public String AssignContactToList( String AssignedSmallGroupName, Entity aAssignedContact, Entity aActiveListEntity, Entity aAssignedListEntity)
+        public String AssignContactToList(String AssignedSmallGroupName, Entity aAssignedContact, Entity aActiveListEntity, Entity aAssignedListEntity)
         {
             try
             {
                 #region 要加的新人是在"新人關懷"小組裡
                 // 將剛剛新增的聯絡人加入至成員名單
-                ConnectNewContactInMemberList( aAssignedContact.Id, AssignedSmallGroupName, aAssignedListEntity);
+                ConnectNewContactInMemberList(aAssignedContact.Id, AssignedSmallGroupName, aAssignedListEntity);
 
                 // 將連絡人從舊的名單中移除
                 try
@@ -1000,7 +992,7 @@ namespace ChurchReport.WebServiceConnector
                 #endregion
 
                 #region 更新新建立的連絡人// 設定被指派會友，被指派小組的日期
-                this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aAssignedContact, "new_assigne_group_date", DateTime.Now);
+                //this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aAssignedContact, "new_assigne_group_date", DateTime.Now);
                 #endregion
 
                 #region 更新新建立的連絡人
@@ -1039,7 +1031,7 @@ namespace ChurchReport.WebServiceConnector
                 throw e;
             }
         }
-        private void CreateAssignedContactPresentRecord(Entity aListEntity, Guid NewContactEntityId, String GroupName )
+        private void CreateAssignedContactPresentRecord(Entity aListEntity, Guid NewContactEntityId, String GroupName)
         {
             try
             {
@@ -1251,7 +1243,7 @@ namespace ChurchReport.WebServiceConnector
                 // 更新個人聚會與靈修記錄
                 this.m_ToolUtilityClass.UpdateEntity(ref aPresentRecordEntity);
 
-                return ;
+                return;
             }
             catch (System.Exception e)
             {
@@ -1338,8 +1330,8 @@ namespace ChurchReport.WebServiceConnector
                 aListEntityCollection = m_ToolUtilityClass.QueryListByContactId(m_ContactId, "new_contact_list_arealeader");  // 族系族長
                 MergeCollectionSmallGroupAhead(ref aListEntityCollection);
 
-                // 共同上代族系族長 new_contact_list_co_arealeader
-                aListEntityCollection = m_ToolUtilityClass.QueryListByContactId(m_ContactId, "new_contact_list_co_arealeader");  // 共同上代族系族長
+                // 共同區牧 new_contact_list_co_arealeader
+                aListEntityCollection = m_ToolUtilityClass.QueryListByContactId(m_ContactId, "new_contact_list_co_arealeader");  // 共同區牧
                 MergeCollectionSmallGroupAhead(ref aListEntityCollection);
 
                 return;
@@ -1472,23 +1464,20 @@ namespace ChurchReport.WebServiceConnector
                             // 如果是未入組就有可能是死灰復燃，所以要依據"開始關懷日期"是否要重燃關懷的過程
                             DateTime aStartTrackingDate = DateTime.Parse(aStartTracking);
 
-                            #region 先根據日期尋找當週主日日期，先根據日期尋找開始關懷日期的那週主日日期
+                            #region 先根據日期尋找開始關懷日期的那週主日日期
                             // 其值的範圍從 0 (表示 DayOfWeek.Sunday) 為 6 (表示 DayOfWeek.Saturday)。
                             int DayOfWeek = (int)aStartTrackingDate.DayOfWeek;
-
-                            // 當週的星期日為認定的主日
-                            //this.m_Sunday = DateTime.Now.AddDays(-DayOfWeek);
-                            DateTime aSunday;
-                            // 每周以星期一為第一日
-                            if (DayOfWeek > 0)
+                            DateTime aSunday = new DateTime();
+                            // 每周以星期六為第一日
+                            if (DayOfWeek < 6)
                             {
-                                // 大於 0， 表示星期一到星期六=>下一週的星期日為認定的主日
-                                aSunday = aStartTrackingDate.AddDays(-DayOfWeek + 7).ToLocalTime();
+                                // 小於 6 表示星期日到星期五=>當週的星期日為認定的主日
+                                aSunday = aStartTrackingDate.AddDays(-DayOfWeek);
                             }
                             else
                             {
-                                // 為 0 = 星期日 (表示 DayOfWeek.Saturday)表示當週星期日為認定的主日
-                                aSunday = aStartTrackingDate.AddDays(-DayOfWeek).ToLocalTime();
+                                // 為 6 = 星期六 (表示 DayOfWeek.Saturday)表示要加1到下一個星期日為認定的主日
+                                aSunday = aStartTrackingDate.AddDays(1);
                             }
                             #endregion
 
@@ -2130,7 +2119,7 @@ namespace ChurchReport.WebServiceConnector
             try
             {
                 //設定名稱
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_name", this.m_ToolUtilityClass.GetEntityStringAttribute(ref  aContactEntity, "fullname") + "-" +m_Sunday.ToShortDateString() + " 出席紀錄");
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_name", this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContactEntity, "fullname") + "-" + m_Sunday.ToShortDateString() + " 出席紀錄");
 
                 #region 設定姓名
                 // 找到組員ID
@@ -2253,11 +2242,11 @@ namespace ChurchReport.WebServiceConnector
                 #endregion
                 #region 設定附註或是代禱事項
 
-                // 南崁基督長老教會
+                // 南崁長老教會
                 //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_name", aMemberInfomation.Note);
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_explanation", aMemberInfomation.Note);
 
-                // 內壢南崁基督長老教會
+                // 南崁長老教會
                 //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_memo", aMemberInfomation.Note);
                 #endregion
                 #region// 新人跟進
@@ -2265,7 +2254,7 @@ namespace ChurchReport.WebServiceConnector
                 this.m_ToolUtilityClass.SetOptionSetAttribute(ref aPresentRecord, "new_weeks", ConvertFollowUpWeekPickerToIndex(aMemberInfomation.FollowUpWeek));
                 this.m_ToolUtilityClass.SetOptionSetAttribute(ref aPresentRecord, "new_conclusion_choise", ConvertFollowUpResultPickerToIndex(aMemberInfomation.FollowUpResult));
                 this.m_ToolUtilityClass.SetOptionSetAttribute(ref aPresentRecord, "new_next_step", ConvertFollowUpNextStepPickerToIndex(aMemberInfomation.FollowUpNextStep));
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_follow_up", aMemberInfomation.FollowUpOption);
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_follow_up", aMemberInfomation.FollowUp);
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_explanation", aMemberInfomation.FollowUpNote);
 
                 AddToDictionaryFollowByIdentity(ref ClearIdentity, ref aContactEntity, aMemberInfomation);
@@ -2509,7 +2498,7 @@ namespace ChurchReport.WebServiceConnector
                 int aCustomerTypeCodeValue = this.m_ToolUtilityClass.GetOptionSetAttribute(ref aContactEntity, "customertypecode");
                 //OptionSetValue aCustomerTypeCode = aContactEntity.Attributes["customertypecode"] as OptionSetValue;
 
-                // 如果是新朋友或是未入組則不列入累積，南崁基督長老教會
+                // 如果是新朋友或是未入組則不列入累積，南崁長老教會
                 if (aCustomerTypeCodeValue != 100000004 && aCustomerTypeCodeValue != 100000000 && aCustomerTypeCodeValue != 100000007 && aCustomerTypeCodeValue != EMPTY_VALUE)
                 {
                     return true;
@@ -2520,7 +2509,7 @@ namespace ChurchReport.WebServiceConnector
                 }
 
 
-                // 如果是新朋友或是未入組則不列入累積，內壢南崁基督長老教會
+                // 如果是新朋友或是未入組則不列入累積，南崁長老教會
                 // 10.不穩定組員   =   100,000,008
                 // 11.新朋友       =   100,000,009
                 // 12.未入組       =   100,000,010

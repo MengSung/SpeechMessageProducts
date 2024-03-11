@@ -34,10 +34,7 @@
     @*<link href="~/css/devextreme/dx.generic.dark-moon-scheme.css" rel="stylesheet" />*@
 
 </head>
-@*<br />
-<br />
-<br />
-<br />*@
+
 @if (Model.SundayPrayers.Year != 2000)
 {
     <div style="font-family:標楷體;font-size:100%; color:cadetblue; text-align:left;font-weight:bold">
@@ -183,8 +180,7 @@ else
                     .Width(30)
                     .DisplayFormat("yyyy/M/d")
                     .OnChange("OnDateboxChange")
-                    .CalendarOptions(k => k.FirstDayOfWeek(0))
-                    //.CalendarOptions(k => k.FirstDayOfWeek(0).MaxZoomLevel(CalendarZoomLevel.Year).MinZoomLevel(CalendarZoomLevel.Century))//只選擇年/月
+                    .CalendarOptions( k=>k.FirstDayOfWeek(0))
                     //.PickerType(DateBoxPickerType.Calendar)
                     //.PickerType(DateBoxPickerType.Rollers)
                     //.PickerType(DateBoxPickerType.List)
@@ -830,7 +826,7 @@ else
                                                         .AllowEditing(true)
                                                         .Width(70).MinWidth(30).DataType(GridColumnDataType.Number)
                                                         .Lookup(lookup => lookup
-                                                        .DataSource(new string[] { "牧師師母", "小家長", "上代族系族長", "小組長", "關懷小組長", "門徒", "小組組員", "未入組", "新朋友", "外教會", "結案", })
+                                                        .DataSource(new string[] { "牧師師母", "小家長", "區牧", "小組長", "門徒", "小組組員", "未入組", "新朋友", "外教會", "結案", })
                                                         //.DisplayExpr("Name")
                                                         //.ValueExpr("ID")
                                                         );
@@ -841,7 +837,7 @@ else
                                                         .AllowEditing(true)
                                                         .Width(110).MinWidth(100).DataType(GridColumnDataType.String)
                                                         .Lookup(lookup => lookup
-                                                        .DataSource(new string[] { "-未知-", "基督徒", "已決志", "慕道友", "未信主" })
+                                                        .DataSource(new string[] { "-未知-", "基督徒", "已決志", "慕道友", "未信者" })
                                                         //.DisplayExpr("Name")
                                                         //.ValueExpr("ID")
                                                         );
@@ -1008,7 +1004,7 @@ else
                                             .AllowEditing(true)
                                             .Width(70).MinWidth(30).DataType(GridColumnDataType.Number)
                                             .Lookup(lookup => lookup
-                                            .DataSource(new string[] { "牧師師母", "小家長", "上代族系族長", "小組長", "關懷小組長","門徒", "小組組員", "未入組", "新朋友", "外教會", "結案", })
+                                            .DataSource(new string[] { "牧師師母", "小家長", "區牧", "小組長", "門徒", "小組組員", "未入組", "新朋友", "外教會", "結案", })
                                             //.DisplayExpr("Name")
                                             //.ValueExpr("ID")
                                             );
@@ -1057,7 +1053,7 @@ else
                                         "考慮中，繼續跟進",
                                         "入小組",
                                         "來主日",
-                                        "轉介",
+                                        //"轉介",
                                         "其他",
                                     })
                                     //.DisplayExpr("Name")
@@ -1221,7 +1217,7 @@ else
                                             .AllowEditing(true)
                                             .Width(70).MinWidth(30).DataType(GridColumnDataType.Number)
                                             .Lookup(lookup => lookup
-                                            .DataSource(new string[] { "牧師師母", "小家長", "上代族系族長", "小組長", "關懷小組長", "門徒", "小組組員", "未入組", "新朋友", "外教會", "結案", })
+                                            .DataSource(new string[] { "牧師師母", "小家長", "區牧", "小組長", "門徒", "小組組員", "未入組", "新朋友", "外教會", "結案", })
                                             //.DisplayExpr("Name")
                                             //.ValueExpr("ID")
                                             );
