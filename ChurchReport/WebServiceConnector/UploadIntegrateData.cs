@@ -3157,6 +3157,7 @@ namespace ChurchReport.WebServiceConnector
                         // 更新個人資料:手機、家裡電話、地址、設定委身類型
                         // 但是不知何故，更新連絡人之後，委身類型卻會"自動變成" 新朋友，所以就先用一個可以受影響的Entity aToUpdateContactEntity，去更新連絡人
                         Entity aToUpdateContactEntity = this.m_ToolUtilityClass.RetrieveEntity("contact", aFullNameEntityReference.Id);
+                        var aContactToBeSentToDynamics = new Entity("contact", aToUpdateContactEntity.Id);
                         UpdateContactInfomation(aListEntity.Id, aMember, ref aToUpdateContactEntity, HappyWeekTopic);
 
                         #endregion
@@ -4188,13 +4189,15 @@ namespace ChurchReport.WebServiceConnector
             try
             {
                 #region 要加的新人是在"新人關懷"小組裡
+                var aContactToBeSentToDynamics = new Entity("contact", aAssignedContact.Id);
+
                 // 將剛剛新增的聯絡人加入至成員名單
-                ConnectNewContactInMemberList(aAssignedContact.Id, AssignedSmallGroupName, aAssignedListEntity);
+                ConnectNewContactInMemberList(aContactToBeSentToDynamics.Id, AssignedSmallGroupName, aAssignedListEntity);
 
                 // 將連絡人從舊的名單中移除
                 try
                 {
-                    m_ToolUtilityClass.RemoveMembersToMarketingList(aActiveListEntity.Id, aAssignedContact.Id);
+                    m_ToolUtilityClass.RemoveMembersToMarketingList(aActiveListEntity.Id, aContactToBeSentToDynamics.Id);
                 }
                 catch (System.Exception e)
                 {
@@ -4206,7 +4209,7 @@ namespace ChurchReport.WebServiceConnector
                     if (AssignedSmallGroupName.Contains("關懷") != true)
                     {
                         // 有找到被關聯的小組名單，建立出席紀錄單
-                        CreateAssignedContactPresentRecord(aAssignedListEntity, aAssignedContact.Id, AssignedSmallGroupName);
+                        CreateAssignedContactPresentRecord(aAssignedListEntity, aContactToBeSentToDynamics.Id, AssignedSmallGroupName);
                     }
                     else
                     {
@@ -4215,21 +4218,21 @@ namespace ChurchReport.WebServiceConnector
                     }
                 }
                 #region 關聯主要小組
-                //Entity aExistedContact = this.m_ToolUtilityClass.RetrieveEntity("contact", aAssignedContact.Id);
-                this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aAssignedContact, "new_cell_list_contact", "list", aAssignedListEntity.Id);
+                //Entity aExistedContact = this.m_ToolUtilityClass.RetrieveEntity("contact", aContactToBeSentToDynamics.Id);
+                this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aContactToBeSentToDynamics, "new_cell_list_contact", "list", aAssignedListEntity.Id);
                 #endregion
 
                 #region 更新新建立的連絡人// 設定被指派會友，被指派小組的日期
-                    this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aAssignedContact, "new_assigne_group_date", DateTime.Now);
-                    #endregion
+                //this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aContactToBeSentToDynamics, "new_assigne_group_date", DateTime.Now);
+                #endregion
 
                 #region 更新新建立的連絡人
                 //aNewContactEntity = this.m_ToolUtilityClass.RetrieveEntity("contact", NewContactEntityId);
-                this.m_ToolUtilityClass.UpdateEntity(ref aAssignedContact);
+                this.m_ToolUtilityClass.UpdateEntity(ref aContactToBeSentToDynamics);
                 #endregion
 
                 String LoginContactFullName = this.m_ToolUtilityClass.GetEntityStringAttribute(this.m_ContactEntity, "fullname");
-                String ExistContactFullName = this.m_ToolUtilityClass.GetEntityStringAttribute(aAssignedContact, "fullname");
+                String ExistContactFullName = this.m_ToolUtilityClass.GetEntityStringAttribute(aContactToBeSentToDynamics, "fullname");
 
                 // 指派新增連絡人的負責人
                 // 領袖的負責人 Id
