@@ -3370,8 +3370,12 @@ namespace ChurchReport.WebServiceConnector
 
                         if ( aMember.AssignedGroup != "" && aMember.AssignedGroup != null )
                         {
-                            //設定個人聚會與靈修記錄"不要顯示在回報網頁"為"是"
-                            m_ToolUtilityClass.SetEntityBoolAttribute(ref aMachedPresentRecordEntity, "new_not_display", true);
+                            if (aMember.AssignedGroup.Contains("關懷") != true)
+                            {
+                                // 如果被指派的不是"關懷"小組，才要停止顯示
+                                //設定個人聚會與靈修記錄"不要顯示在回報網頁"為"是"
+                                m_ToolUtilityClass.SetEntityBoolAttribute(ref aMachedPresentRecordEntity, "new_not_display", true);
+                            }
                         }
                         #endregion
                         #region 更新個人聚會與靈修記錄
@@ -4146,8 +4150,12 @@ namespace ChurchReport.WebServiceConnector
 
                 AssignContactToList(AssignedSmallGroupName, aAssignedContact, aActiveListEntity, aAssingedSmallGroupEntity);
 
-                // 設定個人聚會與靈修記錄"停止提醒"為"是"
-                SetNotRemindFlag(aAssignedContact);
+                if (AssignedSmallGroupName.Contains("關懷") != true)
+                {
+                    // 如果被指派的不是"關懷"小組，才要停止顯示
+                    // 設定個人聚會與靈修記錄"停止提醒"為"是"
+                    SetNotRemindFlag(aAssignedContact);
+                }
 
                 // 原來小組的出席紀錄單要被刪除
                 if (aPresentRecordEntity != null)
@@ -4232,7 +4240,7 @@ namespace ChurchReport.WebServiceConnector
                 #endregion
 
                 String LoginContactFullName = this.m_ToolUtilityClass.GetEntityStringAttribute(this.m_ContactEntity, "fullname");
-                String ExistContactFullName = this.m_ToolUtilityClass.GetEntityStringAttribute(aContactToBeSentToDynamics, "fullname");
+                String ExistContactFullName = this.m_ToolUtilityClass.GetEntityStringAttribute(aAssignedContact, "fullname");
 
                 // 指派新增連絡人的負責人
                 // 領袖的負責人 Id
