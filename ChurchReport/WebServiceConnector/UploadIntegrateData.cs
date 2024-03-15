@@ -3379,7 +3379,7 @@ namespace ChurchReport.WebServiceConnector
                         }
                         #endregion
                         #region 更新個人聚會與靈修記錄
-                        this.m_ToolUtilityClass.UpdateEntity(ref aMachedPresentRecordEntity);
+                        //this.m_ToolUtilityClass.UpdateEntity(ref aMachedPresentRecordEntity);
                         #endregion
 
                         //指派負責人
@@ -3408,11 +3408,15 @@ namespace ChurchReport.WebServiceConnector
                             //}
                         }
 
+                        #region 更新個人聚會與靈修記錄
+                        //this.m_ToolUtilityClass.UpdateEntity(ref aMachedPresentRecordEntity);
+                        #endregion
+
                     }
                     else
                     {
                         // 沒找到靈修紀錄
-                        CreatePresentRecord(aMember, ref aListEntity, ref aWeeklyReportId, ValidNumber, ref aWeeklySundayRate, ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber, ref aGroupWeeklyReportGuid, HappyWeekIndex, HappyWeekTopic, PauseCheckBox);
+                        //CreatePresentRecord(aMember, ref aListEntity, ref aWeeklyReportId, ValidNumber, ref aWeeklySundayRate, ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber, ref aGroupWeeklyReportGuid, HappyWeekIndex, HappyWeekTopic, PauseCheckBox);
                     }
                 }
 
@@ -3769,7 +3773,23 @@ namespace ChurchReport.WebServiceConnector
                 String aPresentRecordName = this.m_ToolUtilityClass.GetEntityLookupDisplayName(PresentRecordEntity, "new_contact_new_present_record");
                 if (Name == aPresentRecordName)
                 {
-                    return PresentRecordEntity;
+                    // 重新取得出席單，為要取得出席單所有的欄位
+                    Entity aRetrievedPresentRecordEntity = this.m_ToolUtilityClass.RetrieveEntity("new_present_record", PresentRecordEntity.Id);
+
+                    #region 取得出席單上面的連絡人，為要取得委身狀態
+                    EntityReference aFullNameEntityReference = new EntityReference();
+                    if (aRetrievedPresentRecordEntity.Attributes.Contains("new_contact_new_present_record"))
+                    {
+                        aFullNameEntityReference = (EntityReference)aRetrievedPresentRecordEntity.Attributes["new_contact_new_present_record"];
+                    }
+                    Entity aContactEntity = this.m_ToolUtilityClass.RetrieveEntity("contact", aFullNameEntityReference.Id);
+                    #endregion
+
+                    if (m_ToolUtilityClass.GetOptionSetAttribute(aContactEntity, "customertypecode") != 100000001 && m_ToolUtilityClass.GetEntityBoolAttribute(aRetrievedPresentRecordEntity, "new_not_display") == false)
+                    {
+                        // 連絡人委身狀態不是"結案"，出席單的"不要顯示在回報網頁"值為="否"
+                        return PresentRecordEntity;
+                    }
                 }
             }
 
@@ -4158,11 +4178,16 @@ namespace ChurchReport.WebServiceConnector
                 }
 
                 // 原來小組的出席紀錄單要被刪除
+                //if (aPresentRecordEntity != null)
+                //{
+                //    this.m_ToolUtilityClass.DeleteEntity("new_present_record", aPresentRecordEntity.Id);
+                //}
+
+                // 原來小組的出席紀錄單不要再出現在前台網頁
                 if (aPresentRecordEntity != null)
                 {
-                    this.m_ToolUtilityClass.DeleteEntity("new_present_record", aPresentRecordEntity.Id);
+                    m_ToolUtilityClass.SetEntityBoolAttribute(ref aPresentRecordEntity, "new_not_display", true);
                 }
-
                 return "指派小組";
             }
             catch (System.Exception e)
@@ -4664,6 +4689,11 @@ namespace ChurchReport.WebServiceConnector
                     String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
                 }
 
+                // 原來小組的出席紀錄單不要再出現在前台網頁
+                if (aPresentRecordEntity != null)
+                {
+                    m_ToolUtilityClass.SetEntityBoolAttribute(ref aPresentRecordEntity, "new_not_display", true);
+                }
 
                 String Result = this.m_ToolUtilityClass.GetEntityStringAttribute(aAssignedContact, "fullname") + "從" + this.m_ToolUtilityClass.GetEntityStringAttribute(aActiveListEntity, "listname") + " 被結案了";
                 this.m_LineNotifyUtility.SendAddNewPersonResultLine(Result, aActiveListEntity);
