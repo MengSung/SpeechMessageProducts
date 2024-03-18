@@ -1115,15 +1115,15 @@ namespace ChurchReport.WebServiceConnector
                 case 100000006:
                     return "牧師師母";
                 case 100000002:
-                    return "上代族系族長";
+                    return "區牧";
                 case 100000003:
-                    return "族系族長";
+                    return "小區長";
                 case 100000008:
                     return "小組長";
                 case 100000009:
-                    return "關懷小組長";
+                    return "副小組長";
                 case 100000012:
-                    return "小組同工";
+                    return "核心同工";
                 case 1:
                     return "小組組員";
                 case 100000005:
@@ -1133,7 +1133,7 @@ namespace ChurchReport.WebServiceConnector
                 case 100000000:
                     return "新朋友";
                 case 100000007:
-                    return "外教會.訪客";
+                    return "外教會";
                 case 100000001:
                     return "結案";
                 default:

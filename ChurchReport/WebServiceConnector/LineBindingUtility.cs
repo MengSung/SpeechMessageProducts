@@ -812,7 +812,8 @@ namespace ChurchReport.WebServiceConnector
                     { this.m_ToolUtilityClass.SetOptionSetAttribute(ref ToContact, "new_spiriitual_identity", 100000005); }
                     else if (aLineBindingViewModel.Status == "未信主")
                     { this.m_ToolUtilityClass.SetOptionSetAttribute(ref ToContact, "new_spiriitual_identity", 100000003); }
-                    else { }
+                    else //-未知-
+                    { this.m_ToolUtilityClass.SetOptionSetAttribute(ref ToContact, "new_spiriitual_identity", 100000004); }
                 }
 
                 // 設定生日

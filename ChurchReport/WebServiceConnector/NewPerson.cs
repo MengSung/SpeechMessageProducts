@@ -561,30 +561,41 @@ namespace ChurchReport.WebServiceConnector
             //{ this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "gendercode", 100000000); }
 
             // "未知", "已婚", "未婚", "離異", "喪偶","單身"
-            if (aNewContact.MerrageState == "未婚")
-            { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "familystatuscode", 2); }
-            else if (aNewContact.MerrageState == "已婚")
+            if (aNewContact.MerrageState == "已婚")
             { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "familystatuscode", 1); }
+           else if (aNewContact.MerrageState == "未婚")
+            { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "familystatuscode", 2); }
             else if (aNewContact.MerrageState == "離異")
             { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "familystatuscode", 3); }
             else if (aNewContact.MerrageState == "喪偶")
             { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "familystatuscode", 4); }
             else if (aNewContact.MerrageState == "單身")
             { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "familystatuscode", 100000000); }
-            else if (aNewContact.MerrageState == "單親")
-            { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "familystatuscode", 100000003); }
             else if (aNewContact.MerrageState == "未知")
             { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "familystatuscode", 100000001); }
+            else if (aNewContact.MerrageState == "失婚")
+            { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "familystatuscode", 100000002); }
+            else if (aNewContact.MerrageState == "單親")
+            { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "familystatuscode", 100000003); }
+            else if (aNewContact.MerrageState == "婚姻")
+            { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "familystatuscode", 100000004); }
+            else if (aNewContact.MerrageState == "離婚")
+            { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "familystatuscode", 100000005); }
             else { }
 
             // "基督徒", "慕道友"
-            if (aNewContact.FaithStatus == "基督徒")
-            { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "new_spiriitual_identity", 100000000); }
-            else if (aNewContact.FaithStatus == "未信主")
+            if (aNewContact.FaithStatus == "-未知-")
+            { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "new_spiriitual_identity", 100000004); }
+            else if (aNewContact.FaithStatus == "基督徒")
             { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "new_spiriitual_identity", 100000001); }
             else if (aNewContact.FaithStatus == "已決志")
             { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "new_spiriitual_identity", 100000002); }
-            else { }
+            else if (aNewContact.FaithStatus == "慕道友")
+            { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "new_spiriitual_identity", 100000005); }
+            else if (aNewContact.FaithStatus == "未信主")
+            { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "new_spiriitual_identity", 100000003); }
+            else //-未知-
+            { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "new_spiriitual_identity", 100000004); }
 
             // 來源
             this.m_ToolUtilityClass.SetEntityStringAttribute(ref aNewContactEntity, "new_coming_reason", aNewContact.Source);
@@ -1050,16 +1061,17 @@ namespace ChurchReport.WebServiceConnector
                 // 其值的範圍從 0 (表示 DayOfWeek.Sunday) 為 6 (表示 DayOfWeek.Saturday)。
                 int DayOfWeek = (int)DateTime.Now.DayOfWeek;
                 // 每周以星期六為第一日
-                if (DayOfWeek < 6)
+                if (DayOfWeek != 6)
                 {
-                    // 小於 6 表示星期日到星期五=>當週的星期日為認定的主日
-                    this.m_Sunday = DateTime.Now.AddDays(-DayOfWeek);
+                    // 如果不是星期六則是上個星期天
+                    m_Sunday = DateTime.Now.AddDays(-DayOfWeek);
                 }
                 else
                 {
-                    // 為 6 = 星期六 (表示 DayOfWeek.Saturday)表示要加1到下一個星期日為認定的主日
-                    this.m_Sunday = DateTime.Now.AddDays(1);
+                    // 如果是星期六則是下個星期天
+                    m_Sunday = DateTime.Now.AddDays(1);
                 }
+
                 #endregion
                 //Entity GroupWeeklyReportEntity = FilterWeeklyReportByDate(ref GroupWeeklyReportEntityCollection);
                 //if (GroupWeeklyReportEntity == null)

@@ -85,16 +85,16 @@ namespace ChurchReport.WebServiceConnector
 
             // 當週的星期日為認定的主日
             //this.m_Sunday = DateTime.Now.AddDays(-DayOfWeek);
-            // 每周以星期一為第一日
-            if (DayOfWeek > 0)
+            // 每周以星期六為第一日
+            if (DayOfWeek != 6)
             {
-                // 大於 0， 表示星期一到星期六=>下一週的星期日為認定的主日
-                m_Sunday = aDownloadDate.AddDays(-DayOfWeek + 7).ToLocalTime();
+                // 如果不是星期六則是上個星期天
+                m_Sunday = DateTime.Now.AddDays(-DayOfWeek);
             }
             else
             {
-                // 為 0 = 星期日 (表示 DayOfWeek.Saturday)表示當週星期日為認定的主日
-                m_Sunday = aDownloadDate.AddDays(-DayOfWeek).ToLocalTime();
+                // 如果是星期六則是下個星期天
+                m_Sunday = DateTime.Now.AddDays(1);
             }
             #endregion
 
@@ -144,8 +144,8 @@ namespace ChurchReport.WebServiceConnector
             aListSmallGroupWeeklyReport.LoginType = this.m_LoginType;
             aListSmallGroupWeeklyReport.SmallGroupLeaderFullName = m_ToolUtilityClass.GetEntityLookupDisplayName(ref m_ListEntity, "new_contact_family_leader_list");
             aListSmallGroupWeeklyReport.SundayPrayers = aDownloadDate;
-            //aListSmallGroupWeeklyReport.SundayPeriod = "小組日期對應到主日期間是: " + m_Sunday.ToLocalTime().ToShortDateString() + " ~ " + m_Sunday.AddDays(6).ToLocalTime().ToShortDateString();
-            aListSmallGroupWeeklyReport.SundayPeriod = "小組日期對應到主日期間是: " + m_Sunday.AddDays(-6).ToLocalTime().ToShortDateString() + " ~ " + m_Sunday.AddDays(0).ToLocalTime().ToShortDateString();
+            aListSmallGroupWeeklyReport.SundayPeriod = "小組日期對應到主日期間是: " + m_Sunday.ToLocalTime().ToShortDateString() + " ~ " + m_Sunday.AddDays(6).ToLocalTime().ToShortDateString();
+            //aListSmallGroupWeeklyReport.SundayPeriod = "小組日期對應到主日期間是: " + m_Sunday.AddDays(-6).ToLocalTime().ToShortDateString() + " ~ " + m_Sunday.AddDays(0).ToLocalTime().ToShortDateString();
             aListSmallGroupWeeklyReport.SmallGroupLeaderContactId = m_ContactId.ToString();
             aListSmallGroupWeeklyReport.SmallGroupLeaderFullName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref this.m_ContactEntity, "fullname");
 
@@ -1592,7 +1592,7 @@ namespace ChurchReport.WebServiceConnector
 
             foreach (Member aMember in aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members)
             {
-                if (aMember.Status.Contains("牧師師母") || aMember.Status.Contains("小家長") || aMember.Status.Contains("上代族系族長") || aMember.Status.Contains("小組長") || aMember.Status.Contains("關懷小組長") || aMember.Status.Contains("門徒") || aMember.Status.Contains("小組組員"))
+                if (aMember.Status.Contains("牧師師母") || aMember.Status.Contains("區牧") || aMember.Status.Contains("小區長") || aMember.Status.Contains("小組長") || aMember.Status.Contains("副小組長") || aMember.Status.Contains("核心同工") || aMember.Status.Contains("小組組員"))
                 {
                     aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.Members.Add(aMember);
                 }
@@ -1667,16 +1667,16 @@ namespace ChurchReport.WebServiceConnector
                             // 當週的星期日為認定的主日
                             //this.m_Sunday = DateTime.Now.AddDays(-DayOfWeek);
                             DateTime aSunday;
-                            // 每周以星期一為第一日
-                            if (DayOfWeek > 0)
+                            // 每周以星期六為第一日
+                            if (DayOfWeek != 6)
                             {
-                                // 大於 0， 表示星期一到星期六=>下一週的星期日為認定的主日
-                                aSunday = aStartTrackingDate.AddDays(-DayOfWeek + 7).ToLocalTime();
+                                // 如果不是星期六則是上個星期天
+                                aSunday = DateTime.Now.AddDays(-DayOfWeek);
                             }
                             else
                             {
-                                // 為 0 = 星期日 (表示 DayOfWeek.Saturday)表示當週星期日為認定的主日
-                                aSunday = aStartTrackingDate.AddDays(-DayOfWeek).ToLocalTime();
+                                // 如果是星期六則是下個星期天
+                                aSunday = DateTime.Now.AddDays(1);
                             }
                             #endregion
 
@@ -2652,15 +2652,15 @@ namespace ChurchReport.WebServiceConnector
                 case 100000006:
                     return "01. 牧師師母";
                 case 100000002:
-                    return "011. 上代族系族長";
+                    return "02. 區牧";
                 case 100000003:
-                    return "02. 小家長";
+                    return "03. 小區長";
                 case 100000008:
-                    return "03. 小組長";
+                    return "04. 小組長";
                 case 100000009:
-                    return "03.1 關懷小組長";
+                    return "05. 副小組長";
                 case 100000012:
-                    return "04. 門徒";
+                    return "06. 核心同工";
                 case 1:
                     return "05. 小組組員";
                 case 100000005:
@@ -2673,6 +2673,7 @@ namespace ChurchReport.WebServiceConnector
                     return "09. 外教會";
                 case 100000001:
                     return "10. 結案";
+
                 default:
                     return ".";
             }
@@ -2710,7 +2711,7 @@ namespace ChurchReport.WebServiceConnector
                 case 100000003:
                     return "未信主";
                 default:
-                    return ".";
+                    return "-未知-";
             }
         }
         #endregion

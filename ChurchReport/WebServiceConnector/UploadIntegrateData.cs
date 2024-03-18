@@ -514,16 +514,16 @@ namespace ChurchReport.WebServiceConnector
                 // 當週的星期日為認定的主日
                 //this.m_Sunday = DateTime.Now.AddDays(-DayOfWeek);
                 //DateTime aSunday;
-                // 每周以星期一為第一日
-                if (DayOfWeek > 0)
+                // 每周以星期六為第一日
+                if (DayOfWeek != 6)
                 {
-                    // 大於 0， 表示星期一到星期六=>下一週的星期日為認定的主日
-                    m_Sunday = aSmallGroupDate.AddDays(-DayOfWeek + 7).ToLocalTime();
+                    // 如果不是星期六則是上個星期天
+                    m_Sunday = DateTime.Now.AddDays(-DayOfWeek);
                 }
                 else
                 {
-                    // 為 0 = 星期日 (表示 DayOfWeek.Saturday)表示當週星期日為認定的主日
-                    m_Sunday = aSmallGroupDate.AddDays(-DayOfWeek).ToLocalTime();
+                    // 如果是星期六則是下個星期天
+                    m_Sunday = DateTime.Now.AddDays(1);
                 }
                 #endregion
 
@@ -1459,16 +1459,16 @@ namespace ChurchReport.WebServiceConnector
                             // 當週的星期日為認定的主日
                             //this.m_Sunday = DateTime.Now.AddDays(-DayOfWeek);
                             DateTime aSunday;
-                            // 每周以星期一為第一日
-                            if (DayOfWeek > 0)
+                            // 每周以星期六為第一日
+                            if (DayOfWeek != 6)
                             {
-                                // 大於 0， 表示星期一到星期六=>下一週的星期日為認定的主日
-                                aSunday = aStartTrackingDate.AddDays(-DayOfWeek + 7).ToLocalTime();
+                                // 如果不是星期六則是上個星期天
+                                aSunday = DateTime.Now.AddDays(-DayOfWeek);
                             }
                             else
                             {
-                                // 為 0 = 星期日 (表示 DayOfWeek.Saturday)表示當週星期日為認定的主日
-                                aSunday = aStartTrackingDate.AddDays(-DayOfWeek).ToLocalTime();
+                                // 如果是星期六則是下個星期天
+                                aSunday = DateTime.Now.AddDays(1);
                             }
                             #endregion
 
@@ -4321,16 +4321,16 @@ namespace ChurchReport.WebServiceConnector
                 // 當週的星期日為認定的主日
                 //this.m_Sunday = DateTime.Now.AddDays(-DayOfWeek);
                 //DateTime aSunday;
-                // 每周以星期一為第一日
-                if (DayOfWeek > 0)
+                // 每周以星期六為第一日
+                if (DayOfWeek != 6)
                 {
-                    // 大於 0， 表示星期一到星期六=>下一週的星期日為認定的主日
-                    m_Sunday = DateTime.Now.AddDays(-DayOfWeek + 7).ToLocalTime();
+                    // 如果不是星期六則是上個星期天
+                    m_Sunday = DateTime.Now.AddDays(-DayOfWeek);
                 }
                 else
                 {
-                    // 為 0 = 星期日 (表示 DayOfWeek.Saturday)表示當週星期日為認定的主日
-                    m_Sunday = DateTime.Now.AddDays(-DayOfWeek).ToLocalTime();
+                    // 如果是星期六則是下個星期天
+                    m_Sunday = DateTime.Now.AddDays(1);
                 }
                 #endregion
 
@@ -5061,49 +5061,49 @@ namespace ChurchReport.WebServiceConnector
                     return 100000006;
                 case "01. 牧師師母":
                     return 100000006;
-                case "上代族系族長":
+                case "區牧":
                     return 100000002;
-                case "011. 上代族系族長":
+                case "02. 區牧":
                     return 100000002;
-                case "小家長":
+                case "小區長":
                     return 100000003;
-                case "02. 小家長":
+                case "03. 小區長":
                     return 100000003;
                 case "小組長":
                     return 100000008;
-                case "03. 小組長":
+                case "04. 小組長":
                     return 100000008;
-                case "關懷小組長":
+                case "副小組長":
                     return 100000009;
-                case "03.1 關懷小組長":
+                case "05. 副小組長":
                     return 100000009;
-                case "門徒":
+                case "核心同工":
                     return 100000012;
-                case "04. 門徒":
+                case "06. 核心同工":
                     return 100000012;
                 case "小組組員":
                     return 1;
-                case "05. 小組組員":
+                case "07. 小組組員":
                     return 1;
                 case "幸福BEST":
                     return 100000005;
-                case "06. 幸福BEST":
+                case "08. 幸福BEST":
                     return 100000005;
                 case "未入組":
                     return 100000004;
-                case "07. 未入組":
+                case "09. 未入組":
                     return 100000004;
                 case "新朋友":
                     return 100000000;
-                case "08. 新朋友":
+                case "10. 新朋友":
                     return 100000000;
                 case "外教會":
                     return 100000007;
-                case "09. 外教會":
+                case "11. 外教會":
                     return 100000007;
                 case "結案":
                     return 100000001;
-                case "10. 結案":
+                case "12. 結案":
                     return 100000001;
                 default:
                     return 100000000;
@@ -5118,15 +5118,15 @@ namespace ChurchReport.WebServiceConnector
                 case 100000006:
                     return "01. 牧師師母";
                 case 100000002:
-                    return "011. 上代族系族長";
+                    return "02. 區牧";
                 case 100000003:
-                    return "02. 小家長";
+                    return "03. 小區長";
                 case 100000008:
-                    return "03. 小組長";
+                    return "04. 小組長";
                 case 100000009:
-                    return "03.1 關懷小組長";
+                    return "05. 副小組長";
                 case 100000012:
-                    return "04. 門徒";
+                    return "06. 核心同工";
                 case 1:
                     return "05. 小組組員";
                 case 100000005:

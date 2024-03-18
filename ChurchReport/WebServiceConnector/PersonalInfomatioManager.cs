@@ -287,32 +287,42 @@ namespace ChurchReport.WebServiceConnector
             //else
             //{ this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "gendercode", 100000000); }
 
-            // "未知", "已婚", "未婚", "離異", "喪偶","單身"
-            if (aNewContact.MerrageState == "未婚")
-            { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "familystatuscode", 2); }
-            else if (aNewContact.MerrageState == "已婚")
+                // "未知", "已婚", "未婚", "離異", "喪偶","單身"
+            if (aNewContact.MerrageState == "已婚")
             { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "familystatuscode", 1); }
+            else if (aNewContact.MerrageState == "未婚")
+            { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "familystatuscode", 2); }
             else if (aNewContact.MerrageState == "離異")
             { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "familystatuscode", 3); }
             else if (aNewContact.MerrageState == "喪偶")
             { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "familystatuscode", 4); }
             else if (aNewContact.MerrageState == "單身")
             { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "familystatuscode", 100000000); }
-            else if (aNewContact.MerrageState == "單親")
-            { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "familystatuscode", 100000003); }
             else if (aNewContact.MerrageState == "未知")
             { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "familystatuscode", 100000001); }
-            else { }
+            else if (aNewContact.MerrageState == "失婚")
+            { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "familystatuscode", 100000002); }
+            else if (aNewContact.MerrageState == "單親")
+            { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "familystatuscode", 100000003); }
+            else if (aNewContact.MerrageState == "婚姻")
+            { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "familystatuscode", 100000004); }
+            else if (aNewContact.MerrageState == "離婚")
+            { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "familystatuscode", 100000005); }
+            else
+            { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "familystatuscode", 100000001); }
+
 
             // "基督徒", "慕道友"
-            if (aNewContact.FaithStatus == "基督徒")
+            if (aNewContact.FaithStatus == "-未知-")
+            { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "new_spiriitual_identity", 100000004); }
+            else if (aNewContact.FaithStatus == "基督徒")
             { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "new_spiriitual_identity", 100000001); }
-            else if (aNewContact.FaithStatus == "未信主")
-            { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "new_spiriitual_identity", 100000003); }
             else if (aNewContact.FaithStatus == "已決志")
             { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "new_spiriitual_identity", 100000002); }
             else if (aNewContact.FaithStatus == "慕道友")
             { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "new_spiriitual_identity", 100000005); }
+            else if (aNewContact.FaithStatus == "未信主")
+            { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "new_spiriitual_identity", 100000003); }
             else
             {
                 // -未知-
@@ -463,16 +473,16 @@ namespace ChurchReport.WebServiceConnector
                 // 當週的星期日為認定的主日
                 //this.m_Sunday = DateTime.Now.AddDays(-DayOfWeek);
                 DateTime aSunday;
-                // 每周以星期一為第一日
-                if (DayOfWeek > 0)
+                // 每周以星期六為第一日
+                if (DayOfWeek != 6)
                 {
-                    // 大於 0， 表示星期一到星期六=>下一週的星期日為認定的主日
-                    aSunday = DateTime.Now.AddDays(-DayOfWeek + 7).ToLocalTime();
+                    // 如果不是星期六則是上個星期天
+                    aSunday = DateTime.Now.AddDays(-DayOfWeek);
                 }
                 else
                 {
-                    // 為 0 = 星期日 (表示 DayOfWeek.Saturday)表示當週星期日為認定的主日
-                    aSunday = DateTime.Now.AddDays(-DayOfWeek).ToLocalTime();
+                    // 如果是星期六則是下個星期天
+                    aSunday = DateTime.Now.AddDays(1);
                 }
                 #endregion
                 //Entity GroupWeeklyReportEntity = FilterWeeklyReportByDate(ref GroupWeeklyReportEntityCollection);
@@ -641,21 +651,31 @@ namespace ChurchReport.WebServiceConnector
 
             // 婚姻狀態 : "未知", "已婚", "未婚", "離異", "喪偶","單身"
             int MerrageState = this.m_ToolUtilityClass.GetOptionSetAttribute(ref aContactEntity, "familystatuscode");
-            if (MerrageState == 2)
-            { aPersonalInfomationViewModel.MerrageState = "未婚"; }
-            else if (MerrageState == 1)
+            if (MerrageState == 1)
             { aPersonalInfomationViewModel.MerrageState = "已婚"; }
+            else if (MerrageState == 2)
+            { aPersonalInfomationViewModel.MerrageState = "未婚"; }
             else if (MerrageState == 3)
             { aPersonalInfomationViewModel.MerrageState = "離異"; }
             else if (MerrageState == 4)
             { aPersonalInfomationViewModel.MerrageState = "喪偶"; }
             else if (MerrageState == 100000000)
             { aPersonalInfomationViewModel.MerrageState = "單身"; }
-            else if (MerrageState == 100000003)
-            { aPersonalInfomationViewModel.MerrageState = "單親"; }
             else if (MerrageState == 100000001)
             { aPersonalInfomationViewModel.MerrageState = "未知"; }
-            else { }
+            else if (MerrageState == 100000002)
+            { aPersonalInfomationViewModel.MerrageState = "失婚"; }
+            else if (MerrageState == 100000003)
+            { aPersonalInfomationViewModel.MerrageState = "單親"; }
+            else if (MerrageState == 100000004)
+            { aPersonalInfomationViewModel.MerrageState = "婚姻"; }
+            else if (MerrageState == 100000005)
+            { aPersonalInfomationViewModel.MerrageState = "離婚"; }
+            else
+            {
+                //未知
+                aPersonalInfomationViewModel.MerrageState = "未知";
+            }
 
             // 信仰狀態 : "基督徒", "慕道友"
             int FaithStatus = this.m_ToolUtilityClass.GetOptionSetAttribute(ref aContactEntity, "new_spiriitual_identity");
@@ -670,7 +690,11 @@ namespace ChurchReport.WebServiceConnector
             { aPersonalInfomationViewModel.Status = "慕道友"; }
             else if (FaithStatus == 100000003)
             { aPersonalInfomationViewModel.Status = "未信主"; }
-            else { }
+            else 
+            {
+                // -未知-
+                aPersonalInfomationViewModel.Status = "-未知-";
+            }
 
             // 邀請人相關欄位設定
             aPersonalInfomationViewModel.Introducer = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContactEntity, "new_invitor");
@@ -702,13 +726,15 @@ namespace ChurchReport.WebServiceConnector
                 case 100000006:
                     return "牧師師母";
                 case 100000002:
-                    return "上代族系族長";
+                    return "區牧";
                 case 100000003:
-                    return "小家長";
+                    return "小區長";
                 case 100000008:
                     return "小組長";
+                case 100000009:
+                    return "副小組長";
                 case 100000012:
-                    return "小組同工";
+                    return "核心同工";
                 case 1:
                     return "小組組員";
                 case 100000005:
@@ -718,7 +744,7 @@ namespace ChurchReport.WebServiceConnector
                 case 100000000:
                     return "新朋友";
                 case 100000007:
-                    return "外教會.訪客";
+                    return "外教會";
                 case 100000001:
                     return "結案";
                 default:
@@ -784,35 +810,47 @@ namespace ChurchReport.WebServiceConnector
             else { }
 
             // 婚姻狀態 : "未知", "已婚", "未婚", "離異", "喪偶","單身"
-            if (aPersonalInfomationViewModel.MerrageState == "未婚")
-            { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aContactEntity, "familystatuscode", 2); }
-            else if (aPersonalInfomationViewModel.MerrageState == "已婚")
+            if (aPersonalInfomationViewModel.MerrageState == "已婚")
             { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aContactEntity, "familystatuscode", 1); }
+            else if (aPersonalInfomationViewModel.MerrageState == "未婚")
+            { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aContactEntity, "familystatuscode", 2); }
             else if (aPersonalInfomationViewModel.MerrageState == "離異")
             { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aContactEntity, "familystatuscode", 3); }
             else if (aPersonalInfomationViewModel.MerrageState == "喪偶")
             { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aContactEntity, "familystatuscode", 4); }
             else if (aPersonalInfomationViewModel.MerrageState == "單身")
             { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aContactEntity, "familystatuscode", 100000000); }
-            else if (aPersonalInfomationViewModel.MerrageState == "單親")
-            { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aContactEntity, "familystatuscode", 100000003); }
             else if (aPersonalInfomationViewModel.MerrageState == "未知")
             { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aContactEntity, "familystatuscode", 100000001); }
-            else { }
+            else if (aPersonalInfomationViewModel.MerrageState == "失婚")
+            { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aContactEntity, "familystatuscode", 100000002); }
+            else if (aPersonalInfomationViewModel.MerrageState == "單親")
+            { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aContactEntity, "familystatuscode", 100000003); }
+            else if (aPersonalInfomationViewModel.MerrageState == "婚姻")
+            { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aContactEntity, "familystatuscode", 100000004); }
+            else if (aPersonalInfomationViewModel.MerrageState == "離婚")
+            { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aContactEntity, "familystatuscode", 100000005); }
+            else//"未知"
+            { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aContactEntity, "familystatuscode", 100000001); }
+
+
 
             // 信仰狀態 : "基督徒", "慕道友"
-            if (aPersonalInfomationViewModel.Status == "基督徒")
+            if (aPersonalInfomationViewModel.Status == "-未知-")
+            { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aContactEntity, "new_spiriitual_identity", 100000004); }
+            else if (aPersonalInfomationViewModel.Status == "基督徒")
             { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aContactEntity, "new_spiriitual_identity", 100000001); }
-            else if (aPersonalInfomationViewModel.Status == "未信主")
-            { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aContactEntity, "new_spiriitual_identity", 100000003); }
             else if (aPersonalInfomationViewModel.Status == "已決志")
             { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aContactEntity, "new_spiriitual_identity", 100000002); }
             else if (aPersonalInfomationViewModel.Status == "慕道友")
             { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aContactEntity, "new_spiriitual_identity", 100000005); }
-            else if (aPersonalInfomationViewModel.Status == "-未知-")
-            { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aContactEntity, "new_spiriitual_identity", 100000004); }
-            else { }
-
+            else if (aPersonalInfomationViewModel.Status == "未信主")
+            { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aContactEntity, "new_spiriitual_identity", 100000003); }
+            else
+            {
+                // -未知-
+                this.m_ToolUtilityClass.SetOptionSetAttribute(ref aContactEntity, "new_spiriitual_identity", 100000004);
+            }
 
             // 邀請人相關欄位設定
             this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactEntity, "new_invitor", aPersonalInfomationViewModel.Introducer);
@@ -975,16 +1013,16 @@ namespace ChurchReport.WebServiceConnector
                             // 當週的星期日為認定的主日
                             //this.m_Sunday = DateTime.Now.AddDays(-DayOfWeek);
                             DateTime aSunday;
-                            // 每周以星期一為第一日
-                            if (DayOfWeek > 0)
+                            // 每周以星期六為第一日
+                            if (DayOfWeek != 6)
                             {
-                                // 大於 0， 表示星期一到星期六=>下一週的星期日為認定的主日
-                                aSunday = aStartTrackingDate.AddDays(-DayOfWeek + 7).ToLocalTime();
+                                // 如果不是星期六則是上個星期天
+                                aSunday = DateTime.Now.AddDays(-DayOfWeek);
                             }
                             else
                             {
-                                // 為 0 = 星期日 (表示 DayOfWeek.Saturday)表示當週星期日為認定的主日
-                                aSunday = aStartTrackingDate.AddDays(-DayOfWeek).ToLocalTime();
+                                // 如果是星期六則是下個星期天
+                                aSunday = DateTime.Now.AddDays(1);
                             }
                             #endregion
 
