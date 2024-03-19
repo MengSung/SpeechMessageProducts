@@ -322,7 +322,8 @@
         var RoomId = "";
         var DisplayName = "";
         var ViewType = "";
-
+        var PictureUrl = "";
+        var StatusMessage = "";
 
         async function initializeApp(data)
         {
@@ -336,19 +337,23 @@
                 RoomId = profile.aRoomId;
                 ViewType = profile.aViewType;
                 //alert("測試004!" + DisplayName);
+
+                PictureUrl = profile.pictureUrl;
+                StatusMessage = profile.statusMessage;
+
                 // 取得 UserId 的Ajax
-                UpdateLineUserId(UserId, GroupId, RoomId, ViewType);
+                UpdateLineUserId(UserId, GroupId, RoomId, ViewType, DisplayName, PictureUrl, StatusMessage);
 
             });
         }
 
-        function UpdateLineUserId(aUserLineId, aGroupId, aRoomId, aViewType ) {
+        function UpdateLineUserId(aUserLineId, aGroupId, aRoomId, aViewType, aDisplayName, aPictureUrl, aStatusMessage) {
                // AJAX 區塊
                $.ajax
                (
                    {
                        url: '@Url.Action("SaveUserId", "Home")',
-                       data: { UserLineId: aUserLineId, GroupId: aGroupId, RoomId: aRoomId, ViewType: aViewType}, // 整理回傳給 Server 的點名資料
+                       data: { UserLineId: aUserLineId, GroupId: aGroupId, RoomId: aRoomId, ViewType: aViewType, DisplayName: aDisplayName, PictureUrl: aPictureUrl, StatusMessage: aStatusMessage }, // 整理回傳給 Server 的點名資料
                        type: 'POST', //POST if you want to save, GET if you want to fetch data from server
 
                        success: function (data)

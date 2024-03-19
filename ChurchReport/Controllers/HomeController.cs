@@ -3818,7 +3818,7 @@ namespace ChurchReport.Controllers
             {
                 WebServiceConnector.LineBindingUtility aLineBindingUtility = new WebServiceConnector.LineBindingUtility();
 
-                return aLineBindingUtility.RegisterContact(UserLineId, EnteredFullName, EnteredOtherName, EnteredMobilePhone);
+                return aLineBindingUtility.RegisterContact(UserLineId, EnteredFullName, EnteredOtherName, EnteredMobilePhone, m_InMemoryDataContextSmallGroup.LineBindingViewModel);
             }
             catch (System.Exception e)
             {
@@ -3882,7 +3882,7 @@ namespace ChurchReport.Controllers
                 WebServiceConnector.LineBindingUtility aLineBindingUtility = new WebServiceConnector.LineBindingUtility();
                 var VerufyResult = aLineBindingUtility.VerifyContact(UserLineId);
 
-                if (VerufyResult.Contains("歡迎您進行註冊!"))
+                if (VerufyResult.Contains("歡迎您進行註冊!") || VerufyResult.Contains("沒有找到註冊者!"))
                 {
                     return Json(new { status = "1", message = VerufyResult });
                 }
