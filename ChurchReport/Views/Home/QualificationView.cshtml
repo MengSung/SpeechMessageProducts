@@ -498,6 +498,17 @@
             return new Date(date.getFullYear(), rawMonth, rawDate);
         }
 
+        function ShowToast(LocalToastMessage, Type, DisplayTime) {
+            //debugger;
+            var ToastInstance = $("#Toast").dxToast("instance");
+            ToastInstance.option('message', LocalToastMessage);
+            ToastInstance.option('type', Type);
+            ToastInstance.option('displayTime', DisplayTime);
+            ToastInstance.option('white-space', 'pre-line');
+            ToastInstance.option('closeOnClick', true);
+            ToastInstance.show();
+        }
+
     </script>
 </body>
 

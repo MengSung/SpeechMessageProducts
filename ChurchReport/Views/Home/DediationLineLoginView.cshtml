@@ -61,6 +61,19 @@
         )
     </div>
 
+    <div id="ToastContainer">
+        @(Html.DevExtreme().Toast()
+                .ID("Toast")
+                .Position(p => p
+                    .At(HorizontalAlignment.Center, VerticalAlignment.Center)
+                    .Offset(0, 50))
+                    .Message("上傳成功了!")
+                    .DisplayTime(20000)
+                    .MaxWidth(200)
+            )
+
+    </div>
+
     <div class="long-title"><h3 id="displaynamefield"></h3></div>
     <div id="LoadPanelSection"></div>
 
@@ -107,7 +120,7 @@
                 { liffId: '@TempData["Proponent"]' },
                 function (data) {
                     if (!liff.isLoggedIn()) {
-                        //document.getElementById('displaynamefield').innerHTML = "您還沒有登入LINE";
+                        document.getElementById('displaynamefield').innerHTML = "您還沒有登入LINE!";
 
                         ShowToast("您還沒有登入LINE", "error", 5000);
 
@@ -200,7 +213,6 @@
             ToastInstance.option('closeOnClick', true);
             ToastInstance.show();
         }
-
     </script>
     <link href="~/css/Gallery.css" rel="stylesheet" />
     <link href="~/css/WeeklyReport.css" rel="stylesheet" />
