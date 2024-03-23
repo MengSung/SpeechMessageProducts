@@ -234,26 +234,31 @@
 <script src="https://static.line-scdn.net/liff/edge/2.1/sdk.js"></script>
 <script>
 
-    window.onload = function (e) {
-            //var message = '@TempData["Proponent"]';           
-            //window.alert( "耶和華" + message);         
-            liff.init(
-                { liffId: '@TempData["Proponent"]' },
-                function (data) {
-                    if (!liff.isLoggedIn()) {
-                        //document.getElementById('displaynamefield').innerHTML = "您還沒有登入LINE";
+        window.onload = function (e)
+        {
+            liff.init({ liffId:  '@TempData["Proponent"]' })
+                .then(() =>
+                {
+                // 检查用户是否已登录
+                  if (!liff.isLoggedIn())
+                  {
+                      //document.getElementById('displaynamefield').innerHTML = "您還沒有登入LINE";
 
-                        ShowToast("您還沒有登入LINE", "error", 5000);
+                      ShowToast("您還沒有登入LINE", "error", 5000);
 
-                        liff.login();
-                        return;
-                    }
-          //debugger;
-                    //alert("測試 window.onload 001!");
-                    initializeApp(data);
-                    //alert("測試 window.onload 002!");
-                }
-            );
+                      liff.login();
+
+                      return;
+                  }
+                  else
+                  {
+                      initializeApp();
+                  }
+                })
+                .catch(error => {
+                    // 处理错误
+                    document.getElementById('displaynamefield').innerHTML = "錯誤:" + error;
+                });
         };
 
 
@@ -264,22 +269,27 @@
         var ViewType = "";
 
 
-        async function initializeApp(data) {
+        async function initializeApp() {
+            await liff.getProfile()
+            .then(function (profile) {
+                document.getElementById('displaynamefield').innerHTML = profile.displayName + "奉獻";
 
-            await liff.getProfile().then(function (profile) {
                 DisplayName = profile.displayName;
                 UserId = profile.userId;
                 //alert("測試 UserId =" + UserId);
-                GroupId= profile.aGroupId;
+                GroupId = profile.aGroupId;
                 RoomId = profile.aRoomId;
                 ViewType = profile.aViewType;
                 //alert("測試004!" + DisplayName);
+
                 // 取得 UserId 的Ajax
                 UpdateLineUserId(UserId, GroupId, RoomId, ViewType);
-
-                document.getElementById('displaynamefield').innerHTML = profile.displayName + "奉獻";
-                DisplayName = profile.displayName;
+            })
+            .catch(error => {
+                // 处理错误
+                document.getElementById('displaynamefield').innerHTML = "錯誤:" + error;
             });
+
         }
 
         function UpdateLineUserId(aUserLineId, aGroupId, aRoomId, aViewType ) {
