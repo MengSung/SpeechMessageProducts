@@ -3,7 +3,7 @@
 <div class="long-title"><h3 id="usernamefield"></h3></div>
 <div class="long-title"><h3 id="classindexfield"></h3></div>
 <div class="long-title"><h3 id="onboardtypefield"></h3></div>
-@*<div class="long-title"><h3 id="displaynamefield"></h3></div>*@
+<div class="long-title"><h3 id="displaynamefield"></h3></div>
 
 <script>
     function getSchedulerInstance() {
@@ -88,7 +88,7 @@
     async function initializeApp() {
         await liff.getProfile()
             .then(function (profile) {
-                document.getElementById('sundayfield').innerHTML = "親愛的" + profile.displayName + "<br />您已掃描了QR Code" + "請您耐心等候約5~10秒，不要關閉網頁，但是您已經可以進入會場了喔!";
+                document.getElementById('displaynamefield').innerHTML = "親愛的" + profile.displayName + "<br />您已掃描了QR Code" + "請您耐心等候約5~10秒，不要關閉網頁!";
                 DisplayName = profile.displayName;
                 UserId = profile.userId;
                 //alert("測試 UserId =" + UserId);
@@ -98,7 +98,7 @@
                 //alert("測試004!" + DisplayName);
 
                 // 取得 UserId 的Ajax
-                UpdateLineUserId(UserId, GroupId, RoomId, ViewType);
+                UpdateLineUserId(DisplayName, UserId, GroupId, RoomId, ViewType);
             })
             .catch(error => {
                 // 处理错误

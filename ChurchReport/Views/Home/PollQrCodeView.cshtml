@@ -363,7 +363,7 @@
     async function initializeApp() {
         await liff.getProfile()
             .then(function (profile) {
-                document.getElementById('classnamefield').innerHTML = "正在處理中......";
+                document.getElementById('displaynamefield').innerHTML = "正在處理中......";
                 DisplayName = profile.displayName;
                 UserId = profile.userId;
                 //alert("測試 UserId =" + UserId);

@@ -96,11 +96,11 @@
                 ViewType = profile.aViewType;
                 //alert("測試004!" + DisplayName);
                 // 取得 UserId 的Ajax
-                UpdateLineUserId(UserId, GroupId, RoomId, ViewType);
+                UpdateLineUserId(DisplayName, UserId, GroupId, RoomId, ViewType);
             })
             .catch(error => {
                 // 处理错误
-                document.getElementById('displaynamefield').innerHTML = "錯誤:" + error;
+                document.getElementById('smallgroupfield').innerHTML = "錯誤:" + error;
             });
 
     }
