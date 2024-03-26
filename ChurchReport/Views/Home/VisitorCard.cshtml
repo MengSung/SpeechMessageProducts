@@ -63,10 +63,6 @@
         )
     </div>
 
-    <div class="long-title"><h3 id="displaynamefield"></h3></div>
-    @*<p id="demo2">測試</p>*@
-    @*<p id="displaynamefield"></p>*@
-
     <div class="long-title"><h3 id="displaynamefield">請稍待幾秒，正在讀取資料中......</h3></div>
     <div class="long-title"><h3 id="remind">請輸入真實中文姓名</h3></div>
 
@@ -336,7 +332,7 @@
             <div id="buttonContainer" class="dx-button-icon">
 
                 <div id="LineButton" style="display:none;">
-                    <a href="https://lin.ee/fvmtQOr"><img src="https://scdn.line-apps.com/n/line_add_friends/btn/zh-Hant.png" alt="加入好友" height="36" border="0"></a>
+                    <a href="https://lin.ee/R9krzR9"><img src="https://scdn.line-apps.com/n/line_add_friends/btn/zh-Hant.png" alt="加入好友" height="36" border="0"></a>
                 </div>
                 @(Html.DevExtreme().Button()
                             .Text("註冊")
@@ -529,9 +525,9 @@
                 // 检查用户是否已登录
                   if (!liff.isLoggedIn())
                   {
-                      /document.getElementById('displaynamefield').innerHTML = "您還沒有登入LINE";
+                      document.getElementById('displaynamefield').innerHTML = "您還沒有登入LINE";
 
-                      //ShowToast("您還沒有登入LINE", "error", 5000);
+                      ShowToast("您還沒有登入LINE", "error", 5000);
 
                       liff.login();
 
