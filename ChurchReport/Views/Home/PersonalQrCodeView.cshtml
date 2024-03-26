@@ -3,7 +3,7 @@
 <div class="long-title"><h3 id="categoryfield"></h3></div>
 <div class="long-title"><h3 id="usernamefield"></h3></div>
 <div class="long-title"><h3 id="onboardtypefield"></h3></div>
-@*<div class="long-title"><h3 id="displaynamefield"></h3></div>*@
+<div class="long-title"><h3 id="displaynamefield"></h3></div>
 
 <script>
     function getSchedulerInstance() {
@@ -57,7 +57,7 @@
                 // 检查用户是否已登录
                   if (!liff.isLoggedIn())
                   {
-                      //document.getElementById('displaynamefield').innerHTML = "您還沒有登入LINE";
+                      document.getElementById('displaynamefield').innerHTML = "您還沒有登入LINE";
 
                       //ShowToast("您還沒有登入LINE", "error", 5000);
 
@@ -101,7 +101,7 @@
                 StatusMessage = profile.statusMessage;
 
                 // 取得 UserId 的Ajax
-                UpdateLineUserId(UserId, GroupId, RoomId, ViewType);
+                UpdateLineUserId( DisplayName, UserId, GroupId, RoomId, ViewType);
             })
             .catch(error => {
                 // 处理错误
