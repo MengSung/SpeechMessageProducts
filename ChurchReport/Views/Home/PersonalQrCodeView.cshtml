@@ -5,6 +5,19 @@
 <div class="long-title"><h3 id="onboardtypefield"></h3></div>
 <div class="long-title"><h3 id="displaynamefield"></h3></div>
 
+<div id="ToastContainer">
+    @(Html.DevExtreme().Toast()
+                        .ID("Toast")
+                        .Position(p => p
+                        .At(HorizontalAlignment.Center, VerticalAlignment.Center)
+                        .Offset(0, 50))
+                        .Message("以利亞")
+                        .DisplayTime(2000)
+                        .MaxWidth(200)
+        )
+
+</div>
+
 <script>
     function getSchedulerInstance() {
         return $("#scheduler").dxScheduler("instance");
@@ -59,7 +72,7 @@
                   {
                       document.getElementById('displaynamefield').innerHTML = "您還沒有登入LINE";
 
-                      //ShowToast("您還沒有登入LINE", "error", 5000);
+                      ShowToast("您還沒有登入LINE", "error", 5000);
 
                       liff.login();
 
@@ -85,7 +98,7 @@
 
         var ClassName = "";
 
-    async function initializeApp() {
+        async function initializeApp() {
         await liff.getProfile()
             .then(function (profile) {
 
@@ -111,7 +124,7 @@
     }
 
 
-                function UpdateLineUserId( aDisplayName, aUserLineId, aGroupId, aRoomId, aViewType ) {
+        function UpdateLineUserId( aDisplayName, aUserLineId, aGroupId, aRoomId, aViewType ) {
                     // AJAX 區塊
                     return $.ajax
                     (

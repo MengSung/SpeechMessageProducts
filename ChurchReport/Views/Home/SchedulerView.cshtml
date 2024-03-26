@@ -1,18 +1,17 @@
-﻿
-@*<br />
-<br />
-<br />
-<br />
-<br />*@
+﻿@*<br />
+    <br />
+    <br />
+    <br />
+    <br />*@
 
 <div class="long-title"><h3 id="displaynamefield"></h3></div>
 
 @*<div id="the_wholething" style="width:600px;height:800px;overflow:auto;">*@
 <div id="the_wholething" style="width:auto;height:550px;overflow:auto;">
     @*<div id="the_wholething" style="width:auto;height:auto;overflow:auto;">*@
-        @*<div id="the_wholething" class="demo-container" style="width:500px;height:auto;overflow:auto;">*@
-        @*<div class="demo-container">*@
-        @(Html.DevExtreme().Scheduler()
+    @*<div id="the_wholething" class="demo-container" style="width:500px;height:auto;overflow:auto;">*@
+    @*<div class="demo-container">*@
+    @(Html.DevExtreme().Scheduler()
         .ID("scheduler")
         //.AdaptivityEnabled(true)
         //.DataSource(Model.Appointments)
@@ -168,11 +167,7 @@
             })
 
         )
-
-
-
-
-        @(Html.DevExtreme().SpeedDialAction()
+    @(Html.DevExtreme().SpeedDialAction()
             .ID("speedDialAction")
             .Icon("plus")
             .OnClick(@<text>
@@ -181,9 +176,21 @@
                         }
             </text>)
         )
+    @*</div>*@
+</div>
 
-        @*</div>*@
-    </div>
+<div id="ToastContainer">
+    @(Html.DevExtreme().Toast()
+                        .ID("Toast")
+                        .Position(p => p
+                        .At(HorizontalAlignment.Center, VerticalAlignment.Center)
+                        .Offset(0, 50))
+                        .Message("以利亞")
+                        .DisplayTime(2000)
+                        .MaxWidth(200)
+        )
+
+</div>
 
 <script>
     function getSchedulerInstance() {

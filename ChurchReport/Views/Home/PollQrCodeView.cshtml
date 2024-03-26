@@ -251,17 +251,6 @@
         return $("#loadPanel").dxLoadPanel("instance");
     }
 
-    function ShowToast(LocalToastMessage, Type, DisplayTime) {
-        //debugger;
-        var ToastInstance = $("#Toast").dxToast("instance");
-        ToastInstance.option('message', LocalToastMessage);
-        ToastInstance.option('type', Type);
-        ToastInstance.option('displayTime', DisplayTime);
-        ToastInstance.option('white-space', 'pre-line');
-        ToastInstance.option('closeOnClick', true);
-        ToastInstance.show();
-    }
-
     var GlobalCategory = "";
 </script>
 <script type="text/javascript">
@@ -372,7 +361,7 @@
                 ViewType = profile.aViewType;
                 //alert("測試004!" + DisplayName);
                 // 取得 UserId 的Ajax
-                UpdateLineUserId(UserId, GroupId, RoomId, ViewType);
+                UpdateLineUserId( DisplayName, UserId, GroupId, RoomId, ViewType);
             })
             .catch(error => {
                 // 处理错误
