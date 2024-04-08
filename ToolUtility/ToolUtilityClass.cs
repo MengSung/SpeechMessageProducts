@@ -43,7 +43,7 @@ namespace ToolUtilityNameSpace
         #region 南崁基督長老教會(雲端機房)
         private const String SERVER = "speechmessage.com.tw";
         private const String PORT = "7777";
-        private const String ORGANIZATION = "shekinah611";
+        private const String ORGANIZATION = "nankanchurch";
         private const String USERNAME = "Administrator@speechmessage.com.tw";
         private const String PASSWORD = "hu9840";
         private const String DOMAIN = "DYNAMICS-365";
