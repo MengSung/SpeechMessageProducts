@@ -11,6 +11,6 @@ namespace ChurchReport.Models
 
         public bool DirtyFlag { set; get; } = true;
 
-        public List<AreaLeader> AreaLeaderList { set; get; }    // 上代族系族長清單
+        public List<AreaLeader> AreaLeaderList { set; get; }    // 區牧清單
     }
 }

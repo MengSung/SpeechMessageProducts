@@ -327,7 +327,7 @@
                 .MinWidth(80);
 
             columns.AddFor(m => m.ChangeRaceLeader)
-                 .Caption("換族系")
+                 .Caption("換區長")
                  .Alignment(HorizontalAlignment.Center)
                  .Width(80).MinWidth(30)
                  .Lookup(lookup => lookup
@@ -336,13 +336,13 @@
                          d => d.WebApi()
                          .Controller("Home")
                          .LoadAction("LoadLookupList")
-                         .LoadParams(new { id = "換族系族長" })
+                         .LoadParams(new { id = "換區長" })
                          .Key("SmallGroupId")
                      )
                  );
 
             columns.AddFor(m => m.ChangeAreaLeader)
-                 .Caption("換上代族系")
+                 .Caption("換區牧")
                  .Alignment(HorizontalAlignment.Left)
                  .Width(80).MinWidth(30)
                  .Lookup(lookup => lookup
@@ -351,7 +351,7 @@
                          d => d.WebApi()
                          .Controller("Home")
                          .LoadAction("LoadLookupList")
-                         .LoadParams(new { id = "換上代族系" })
+                         .LoadParams(new { id = "換區牧" })
                          .Key("SmallGroupId")
                      )
                  );

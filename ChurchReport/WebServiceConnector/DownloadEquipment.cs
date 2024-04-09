@@ -57,7 +57,7 @@ namespace ChurchReport.WebServiceConnector
             }
             #endregion
 
-            #region 先尋找帶領族系名單，若找到表示就是族系族長，若沒有則在繼續尋找帶領小組名單
+            #region 先尋找帶領族系名單，若找到表示就是區長，若沒有則在繼續尋找帶領小組名單
 
             // 取得並過濾需要回報的幸福小組名單
             FindListCollection();
@@ -101,7 +101,7 @@ namespace ChurchReport.WebServiceConnector
         #endregion
         #region 小組名單
         /// <summary>
-        /// 取得族系族長或是小長
+        /// 取得區長或是小長
         /// 所有的名單包括小組點名及幸福小組
         /// </summary>
         private void FindListCollection()
@@ -122,9 +122,9 @@ namespace ChurchReport.WebServiceConnector
                 //aListEntityCollection = m_ToolUtilityClass.QueryListByContactId(m_ContactId, "new_contact_family_leader_list");  // 小組長/小組同工
                 MergeCollectionSmallGroupAhead(ref aListEntityCollection);
 
-                // 共同族系族長 new_contact_co_race_leager_list
-                //aListEntityCollection = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_contact_co_race_leager_list", "list");  // 共同族系族長
-                aListEntityCollection = m_ToolUtilityClass.QueryListByContactId(m_ContactId, "new_contact_co_race_leager_list");  // 共同族系族長
+                // 共同區長 new_contact_co_race_leager_list
+                //aListEntityCollection = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_contact_co_race_leager_list", "list");  // 共同區長
+                aListEntityCollection = m_ToolUtilityClass.QueryListByContactId(m_ContactId, "new_contact_co_race_leager_list");  // 共同區長
                 MergeCollectionSmallGroupAhead(ref aListEntityCollection);
 
                 // 上代組長 new_contact_race_leager_list
@@ -132,13 +132,13 @@ namespace ChurchReport.WebServiceConnector
                 aListEntityCollection = m_ToolUtilityClass.QueryListByContactId(m_ContactId, "new_contact_race_leager_list");  // 上代組長
                 MergeCollectionSmallGroupAhead(ref aListEntityCollection);
 
-                // 族系族長 new_contact_list_arealeader
-                //aListEntityCollection = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_contact_list_arealeader", "list");  // 族系族長
-                aListEntityCollection = m_ToolUtilityClass.QueryListByContactId(m_ContactId, "new_contact_list_arealeader");  // 族系族長
+                // 區長 new_contact_list_arealeader
+                //aListEntityCollection = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_contact_list_arealeader", "list");  // 區長
+                aListEntityCollection = m_ToolUtilityClass.QueryListByContactId(m_ContactId, "new_contact_list_arealeader");  // 區長
                 MergeCollectionSmallGroupAhead(ref aListEntityCollection);
 
-                // 共同上代族系族長 new_contact_list_co_arealeader
-                aListEntityCollection = m_ToolUtilityClass.QueryListByContactId(m_ContactId, "new_contact_list_co_arealeader");  // 共同上代族系族長
+                // 共同區牧 new_contact_list_co_arealeader
+                aListEntityCollection = m_ToolUtilityClass.QueryListByContactId(m_ContactId, "new_contact_list_co_arealeader");  // 共同區牧
                 MergeCollectionSmallGroupAhead(ref aListEntityCollection);
 
                 return;
@@ -154,7 +154,7 @@ namespace ChurchReport.WebServiceConnector
         {
             try
             {
-                // 族系族長或是族系族長的名單若是與小組長名單重疊，則要過濾出僅有族長/族系族長的名單
+                // 區長或是區長的名單若是與小組長名單重疊，則要過濾出僅有族長/區長的名單
                 // 合併小組名單至族系名單，單扣除掉重複的
                 // 然後放在小組名單裡面
                 // 一個一個處理族系名單
@@ -167,7 +167,7 @@ namespace ChurchReport.WebServiceConnector
                         // 比對每一個小組名單
                         if (aListEntity.Id == m_ListEntity.Id)
                         {
-                            // 族系族長的名單與小組長的名單有相同的了
+                            // 區長的名單與小組長的名單有相同的了
                             SearchedFlag = true;
                             break;
                         }
@@ -175,7 +175,7 @@ namespace ChurchReport.WebServiceConnector
 
                     if (SearchedFlag == false)
                     {
-                        // 族系族長的名單沒有與小組長名單相同的
+                        // 區長的名單沒有與小組長名單相同的
                         if (this.m_ToolUtilityClass.GetEntityBoolAttribute(aListEntity, "new_app_named") == true)
                         {
                             // 點名有打勾

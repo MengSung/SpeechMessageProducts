@@ -6223,9 +6223,9 @@ namespace ChurchReport.Controllers
                 // 整合式網頁按上傳按鈕
                 m_InMemoryDataContextSmallGroup.ListManagementDataManager.AddRacerOnRowInserting(key, values);
 
-                //return Json(new { status = "1", message = "新增族系族長" });
-                //return Json(new { status = "3", message = "無法新增族系族長" });
-                //return Json(new { status = "2", RaceEntityId = aRaceEntityId, message = "無法新增族系族長" });
+                //return Json(new { status = "1", message = "新增區長" });
+                //return Json(new { status = "3", message = "無法新增區長" });
+                //return Json(new { status = "2", RaceEntityId = aRaceEntityId, message = "無法新增區長" });
                 return Json(
                                 new
                                 {
@@ -6280,11 +6280,11 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                if (id == "換上代族系")
+                if (id == "換區牧")
                 {
                     return m_InMemoryDataContextSmallGroup.ListManagementDataManager.m_AreaLeaderArray;
                 }
-                else if (id == "換族系族長")
+                else if (id == "換區長")
                 {
                     return m_InMemoryDataContextSmallGroup.ListManagementDataManager.m_RaceLeaderArray;
                 }
@@ -6351,9 +6351,9 @@ namespace ChurchReport.Controllers
                 // 整合式網頁按上傳按鈕
                 m_InMemoryDataContextSmallGroup.ListManagementDataManager.AddSmalllGroupOnRowInserted(MasterParentID, SmallGroupName, SmallGroupLeaderName);
 
-                //return Json(new { status = "1", message = "新增族系族長" });
-                //return Json(new { status = "3", message = "無法新增族系族長" });
-                //return Json(new { status = "2", RaceEntityId = aRaceEntityId, message = "無法新增族系族長" });
+                //return Json(new { status = "1", message = "新增區長" });
+                //return Json(new { status = "3", message = "無法新增區長" });
+                //return Json(new { status = "2", RaceEntityId = aRaceEntityId, message = "無法新增區長" });
                 return Json(
                                 new
                                 {
@@ -6438,9 +6438,9 @@ namespace ChurchReport.Controllers
                 // 整合式網頁按上傳按鈕
                 m_InMemoryDataContextSmallGroup.ListManagementDataManager.AddContactOnRowInserted(MasterParentID, FulllName, Status, MobilePhone, m_InMemoryDataContextSmallGroup.ListManager.m_Account, m_InMemoryDataContextSmallGroup.ListManager.m_Password);
 
-                //return Json(new { status = "1", message = "新增族系族長" });
-                //return Json(new { status = "3", message = "無法新增族系族長" });
-                //return Json(new { status = "2", RaceEntityId = aRaceEntityId, message = "無法新增族系族長" });
+                //return Json(new { status = "1", message = "新增區長" });
+                //return Json(new { status = "3", message = "無法新增區長" });
+                //return Json(new { status = "2", RaceEntityId = aRaceEntityId, message = "無法新增區長" });
                 return Json(
                                 new
                                 {

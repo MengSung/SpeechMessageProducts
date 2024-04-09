@@ -79,7 +79,7 @@
 </div>
 
 <div id="data-grid-SmallGroup" class="internal-grid-container" style="color:#00FF00 ; height:100%; width:100%; overflow: hidden;">
-    <p style="font-family:標楷體;font-size: 120%; color: darkcyan; text-align:right;background-color: lemonchiffon;font-weight: bold">請按+號新增族系族長</p>
+    <p style="font-family:標楷體;font-size: 120%; color: darkcyan; text-align:right;background-color: lemonchiffon;font-weight: bold">請按+號新增區長</p>
     @(Html.DevExtreme().DataGrid<RaceLeader>()
         .ID(new JS("'grid_'+data.AreaLeaderEntityId"))
         .Grouping(g=>g.AutoExpandAll(true))
@@ -122,7 +122,7 @@
             editing.AllowUpdating(true);
             //editing.AllowDeleting(true);
             editing.AllowAdding(true);
-            editing.Texts(a => a.SaveAllChanges("上傳檔案").AddRow("新增").CancelAllChanges("取消變更").SaveRowChanges("確定").CancelRowChanges("取消").EditRow("編輯").DeleteRow("刪除").ConfirmDeleteTitle("確定要刪除嗎?").ConfirmDeleteMessage("移除族系族長"));
+            editing.Texts(a => a.SaveAllChanges("上傳檔案").AddRow("新增").CancelAllChanges("取消變更").SaveRowChanges("確定").CancelRowChanges("取消").EditRow("編輯").DeleteRow("刪除").ConfirmDeleteTitle("確定要刪除嗎?").ConfirmDeleteMessage("移除區長"));
             //editing.AllowDeleting(true);
         })
 
@@ -241,7 +241,7 @@
         {
             columns.AddFor(m => m.RaceLeaderName)
             .AllowEditing(true)
-            .Caption("族系族長")
+            .Caption("區長")
             .MinWidth(10);
         })
 

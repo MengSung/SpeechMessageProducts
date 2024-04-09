@@ -78,12 +78,12 @@ namespace ChurchReport.WebServiceConnector
         Entity m_ListEntity; // 小組名單實體紀錄
         Entity m_WeeklyReportEntity; // 週報實體紀錄
         EntityCollection m_Lists = new EntityCollection(); // 需要點名的名單
-        EntityCollection m_PresentLists = new EntityCollection(); // 需要回報給族系族長/小家長的名單
+        EntityCollection m_PresentLists = new EntityCollection(); // 需要回報給區長/小家長的名單
 
         Guid m_DecipleGroupListId;
         //Guid m_GroupLeaderId; // 小組長
-        Guid m_RaceLeaderId; // 族系族長/小家長
-        Guid m_ShepherdLeaderId; // 上代族系族長
+        Guid m_RaceLeaderId; // 區長/小家長
+        Guid m_ShepherdLeaderId; // 區牧
         String m_SmallGroupPlace;
         String m_SmallGroupTime;
 
@@ -125,7 +125,7 @@ namespace ChurchReport.WebServiceConnector
                 this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "設定參數");
                 SetupCommonParameter(Account, Password, aSmallGroupDate, ListEntityId, WeeklyReportEntityId);
 
-                Entity aGraceLeaderWeeklyReportEntity = null;// 族系族長的週報
+                Entity aGraceLeaderWeeklyReportEntity = null;// 區長的週報
 
                 this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "回傳結果");
 
@@ -155,7 +155,7 @@ namespace ChurchReport.WebServiceConnector
                 {
                     lock (m_UploadDataLocker) //避免多人同時輸入"小組出席"，會產生2個週報或是改變"委身類型"、"裝備狀態"
                     {
-                        #region 有找到要點名的名單，而且登入的操作者與此名單或是與小組長ID、或是與小家長ID、或是與族系族長/小家長一致，或是個人回報也可以上傳
+                        #region 有找到要點名的名單，而且登入的操作者與此名單或是與小組長ID、或是與小家長ID、或是與區長/小家長一致，或是個人回報也可以上傳
                         if (aWeeklyReportId == Guid.Empty)
                         {
                             #region // 要建立週報
@@ -208,10 +208,10 @@ namespace ChurchReport.WebServiceConnector
                             //}
                             #endregion
                         }
-                        #region 如果登入者是族系族長，則他的週報要留下來，以便寫入他底下的小組長，所有的主日、小組出席紀錄
+                        #region 如果登入者是區長，則他的週報要留下來，以便寫入他底下的小組長，所有的主日、小組出席紀錄
                         //if ( this.m_ContactId != aThisListGraceLeaderId )
                         //{
-                        //    //　不是族系族長，週報設為ＮＵＬＬ
+                        //    //　不是區長，週報設為ＮＵＬＬ
                         //    aGraceLeaderWeeklyReportEntity = null;
                         //}
                         #endregion
@@ -387,30 +387,30 @@ namespace ChurchReport.WebServiceConnector
             // Guid m_ContactId,                    登入者
             // Guid aThisListFamilyHeadId,          小家長
             // Guid aThisListSmallGroupLeaderId,    小組長
-            // Guid aThisListGraceLeaderId，        族系族長/小家長
+            // Guid aThisListGraceLeaderId，        區長/小家長
             try
             {
                 if (m_ContactId == aThisListSmallGroupLeaderId && m_ContactId != aThisListGraceLeaderId)
                 {
-                    #region 登入者是小組長，但不是族系族長/小家長
+                    #region 登入者是小組長，但不是區長/小家長
                     return true;
                     #endregion
                 }
                 else if (m_ContactId == aThisListSmallGroupLeaderId && m_ContactId == aThisListGraceLeaderId)
                 {
-                    #region  登入者是族系族長/小家長，而且也是族系族長/小家長
+                    #region  登入者是區長/小家長，而且也是區長/小家長
                     return true;
                     #endregion
                 }
                 else if (m_ContactId != aThisListSmallGroupLeaderId && m_ContactId == aThisListGraceLeaderId)
                 {
-                    #region  登入者是族系族長/小家長，而且也是族系族長/小家長
+                    #region  登入者是區長/小家長，而且也是區長/小家長
                     return false;
                     #endregion
                 }
                 else
                 {
-                    #region 登入者是族系族長/小家長，但不是小組長
+                    #region 登入者是區長/小家長，但不是小組長
                     return false;
                     #endregion
                 }
@@ -634,7 +634,7 @@ namespace ChurchReport.WebServiceConnector
                 //    // 比對名單中的小組長跟族系組長是否是同一人
                 //    // 名單裡的小組長 ID
                 //    Guid aSmallGroupLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_family_leader_list");
-                //    // 名單裡的族系族長 ID
+                //    // 名單裡的區長 ID
                 //    Guid aRaceGroupLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_race_leager_list");
 
                 //    if (this.m_RaceLeaderId == Guid.Empty) // m_RaceLeaderId 是指小組長的族系組長ID
@@ -694,7 +694,7 @@ namespace ChurchReport.WebServiceConnector
                 if (aListEntity != null)
                 {
                     #region// 有找到吻合的名單
-                    #region 先找到"小家長"、"小組長"、族系族長/小家長"
+                    #region 先找到"小家長"、"小組長"、區長/小家長"
 
                     // 先找到這個名單的小家長 ID，內壢南崁基督長老教會專用
                     //Guid aThisListFamilyHeadId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref m_ListEntity, "new_familyhead_list");
@@ -708,7 +708,7 @@ namespace ChurchReport.WebServiceConnector
                     // 找到這個名單的上代組長 ID
                     //Guid aThisListUpperGenerationLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref m_ListEntity, "new_contact_race_leager_list");
 
-                    // 找到這個名單的族系族長/小家長 ID
+                    // 找到這個名單的區長/小家長 ID
                     //Guid aThisListGraceLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref m_ListEntity, "new_contact_list_arealeader");
 
                     #endregion
@@ -748,7 +748,7 @@ namespace ChurchReport.WebServiceConnector
                 //    // 比對名單中的小組長跟族系組長是否是同一人
                 //    // 名單裡的小組長 ID
                 //    Guid aSmallGroupLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_family_leader_list");
-                //    // 名單裡的族系族長 ID
+                //    // 名單裡的區長 ID
                 //    Guid aRaceGroupLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_race_leager_list");
 
                 //    if (this.m_RaceLeaderId == Guid.Empty) // m_RaceLeaderId 是指小組長的族系組長ID
@@ -879,7 +879,7 @@ namespace ChurchReport.WebServiceConnector
                 //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aWeeklyReportEntity, "new_sunday_present_report", SmallGroupResult);
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aWeeklyReportEntity, "new_sunday_present_report", SundayResult + SmallGroupResult + FollowUpResult);
 
-                // 加總族系族長的主日出席
+                // 加總區長的主日出席
                 AddToDictionary(ref this.m_FeedBackReport, "主日統計", SundayResult);
 
                 //return SmallGroupResult;
@@ -924,7 +924,7 @@ namespace ChurchReport.WebServiceConnector
                 // 小家長 ID
                 Guid RaceLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_race_leager_list");
 
-                // 上代組長/(原來是:族系族長) ID
+                // 上代組長/(原來是:區長) ID
                 Guid ShepherdLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_list_arealeader");
 
                 // 區名
@@ -970,7 +970,7 @@ namespace ChurchReport.WebServiceConnector
                 if (aGroupLeaderId != Guid.Empty)
                 { this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aWeeklyReportEntity, "new_groupleader_group_present_weekly_", "contact", aGroupLeaderId); }
                 #endregion
-                #region 關聯族系族長/小家長屬性
+                #region 關聯區長/小家長屬性
                 if (aRaceLeaderId != Guid.Empty)
                 { this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aWeeklyReportEntity, "new_group_head_group_present_weekly_r", "contact", aRaceLeaderId); }
                 #endregion
@@ -2207,7 +2207,7 @@ namespace ChurchReport.WebServiceConnector
                 if (aWeeklyReportId != Guid.Empty)
                 { this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aPresentRecord, "new_group_present_weekly_report_prese", "new_group_present_weekly_report", aWeeklyReportId); }
                 #endregion
-                #region 從名單取得 區名、小家長 ID、小組長 ID、小家長、上代族系族長長 ID
+                #region 從名單取得 區名、小家長 ID、小組長 ID、小家長、區牧長 ID
                 // 小家長 ID
                 Guid aFamilyLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_familyhead_list");
 
@@ -2217,7 +2217,7 @@ namespace ChurchReport.WebServiceConnector
                 // 小家長 ID
                 Guid aRaceLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_race_leager_list");
 
-                // 上代族系族長長 ID
+                // 區牧長 ID
                 Guid aShepherdLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_list_arealeader");
 
                 // 區名
@@ -2239,7 +2239,7 @@ namespace ChurchReport.WebServiceConnector
                 if (aRaceLeaderId != Guid.Empty)
                 { this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aPresentRecord, "new_race_leader_present_record", "contact", aRaceLeaderId); }
                 #endregion
-                #region 關聯上代族系族長長屬性
+                #region 關聯區牧長屬性
                 if (aShepherdLeaderId != Guid.Empty)
                 { this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aPresentRecord, "new_contact_arealeader_present_record", "contact", aShepherdLeaderId); }
                 #endregion

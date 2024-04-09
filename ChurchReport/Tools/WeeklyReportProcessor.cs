@@ -53,12 +53,12 @@ namespace ChurchReport.Tools
         //Entity m_ListEntity; // 小組名單實體紀錄
         //Entity m_WeeklyReportEntity; // 週報實體紀錄
         EntityCollection m_Lists = new EntityCollection(); // 需要點名的名單
-        //EntityCollection m_PresentLists = new EntityCollection(); // 需要回報給族系族長/小家長的名單
+        //EntityCollection m_PresentLists = new EntityCollection(); // 需要回報給區長/小家長的名單
 
         Guid m_DecipleGroupListId;
         //Guid m_GroupLeaderId; // 小組長
-        //Guid m_RaceLeaderId; // 族系族長/小家長
-        //Guid m_ShepherdLeaderId; // 上代族系族長
+        //Guid m_RaceLeaderId; // 區長/小家長
+        //Guid m_ShepherdLeaderId; // 區牧
         String m_SmallGroupPlace;
         String m_SmallGroupTime;
 
@@ -108,7 +108,7 @@ namespace ChurchReport.Tools
                 m_ContactEntity = m_ToolUtilityClass.RetrieveEntity("contact", m_ContactId);
                 #endregion
 
-                #region 先尋找帶領族系名單，若找到表示就是族系族長，若沒有則在繼續尋找帶領小組名單
+                #region 先尋找帶領族系名單，若找到表示就是區長，若沒有則在繼續尋找帶領小組名單
                 FindListCollection();
                 #endregion
 
@@ -283,13 +283,13 @@ namespace ChurchReport.Tools
                 aListEntityCollection = m_ToolUtilityClass.QueryListByContactId(m_ContactId, "new_contact_race_leager_list");  // 上代組長
                 MergeCollectionSmallGroupAhead(ref aListEntityCollection);
 
-                // 族系族長 new_contact_list_arealeader
-                //aListEntityCollection = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_contact_list_arealeader", "list");  // 族系族長
-                aListEntityCollection = m_ToolUtilityClass.QueryListByContactId(m_ContactId, "new_contact_list_arealeader");  // 族系族長
+                // 區長 new_contact_list_arealeader
+                //aListEntityCollection = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_contact_list_arealeader", "list");  // 區長
+                aListEntityCollection = m_ToolUtilityClass.QueryListByContactId(m_ContactId, "new_contact_list_arealeader");  // 區長
                 MergeCollectionSmallGroupAhead(ref aListEntityCollection);
 
-                // 共同上代族系族長 new_contact_list_co_arealeader
-                aListEntityCollection = m_ToolUtilityClass.QueryListByContactId(m_ContactId, "new_contact_list_co_arealeader");  // 共同上代族系族長
+                // 共同區牧 new_contact_list_co_arealeader
+                aListEntityCollection = m_ToolUtilityClass.QueryListByContactId(m_ContactId, "new_contact_list_co_arealeader");  // 共同區牧
                 MergeCollectionSmallGroupAhead(ref aListEntityCollection);
 
                 return;
@@ -305,7 +305,7 @@ namespace ChurchReport.Tools
         {
             try
             {
-                // 族系族長或是小家長的名單若是與小組長名單重疊，則要過濾出僅有族長/小家長的名單
+                // 區長或是小家長的名單若是與小組長名單重疊，則要過濾出僅有族長/小家長的名單
                 // 合併小組名單至族系名單，單扣除掉重複的
                 // 然後放在小組名單裡面
                 // 一個一個處理族系名單
@@ -318,7 +318,7 @@ namespace ChurchReport.Tools
                         // 比對每一個小組名單
                         if (aListEntity.Id == m_ListEntity.Id)
                         {
-                            // 族系族長的名單與小組長的名單有相同的了
+                            // 區長的名單與小組長的名單有相同的了
                             SearchedFlag = true;
                             break;
                         }
@@ -326,7 +326,7 @@ namespace ChurchReport.Tools
 
                     if (SearchedFlag == false)
                     {
-                        // 族系族長的名單沒有與小組長名單相同的
+                        // 區長的名單沒有與小組長名單相同的
                         if (this.m_ToolUtilityClass.GetEntityBoolAttribute(aListEntity, "new_app_named") == true)
                         {
                             // 點名有打勾
@@ -414,7 +414,7 @@ namespace ChurchReport.Tools
                 // 小家長 ID
                 Guid RaceLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_race_leager_list");
 
-                // 上代族系族長長 ID/(原來是:族系族長) ID
+                // 區牧長 ID/(原來是:區長) ID
                 Guid ShepherdLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_list_arealeader");
 
                 // 區名
@@ -476,7 +476,7 @@ namespace ChurchReport.Tools
                 if (aGroupLeaderId != Guid.Empty)
                 { this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aWeeklyReportEntity, "new_groupleader_group_present_weekly_", "contact", aGroupLeaderId); }
                 #endregion
-                #region 關聯族系族長/小家長屬性
+                #region 關聯區長/小家長屬性
                 if (aRaceLeaderId != Guid.Empty)
                 { this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aWeeklyReportEntity, "new_group_head_group_present_weekly_r", "contact", aRaceLeaderId); }
                 #endregion
@@ -955,7 +955,7 @@ namespace ChurchReport.Tools
                 if (aWeeklyReportId != Guid.Empty)
                 { this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aPresentRecord, "new_group_present_weekly_report_prese", "new_group_present_weekly_report", aWeeklyReportId); }
                 #endregion
-                #region 從名單取得 區名、小家長 ID、小組長 ID、小家長、上代族系族長長 ID
+                #region 從名單取得 區名、小家長 ID、小組長 ID、小家長、區牧長 ID
                 // 小家長 ID
                 Guid aFamilyLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_familyhead_list");
 
@@ -965,7 +965,7 @@ namespace ChurchReport.Tools
                 // 小家長 ID
                 Guid aRaceLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_race_leager_list");
 
-                // 上代族系族長長 ID
+                // 區牧長 ID
                 Guid aShepherdLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_list_arealeader");
 
                 // 區名
@@ -987,7 +987,7 @@ namespace ChurchReport.Tools
                 if (aRaceLeaderId != Guid.Empty)
                 { this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aPresentRecord, "new_race_leader_present_record", "contact", aRaceLeaderId); }
                 #endregion
-                #region 關聯上代族系族長長屬性
+                #region 關聯區牧長屬性
                 if (aShepherdLeaderId != Guid.Empty)
                 { this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aPresentRecord, "new_contact_arealeader_present_record", "contact", aShepherdLeaderId); }
                 #endregion
