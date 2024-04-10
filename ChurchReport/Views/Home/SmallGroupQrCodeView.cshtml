@@ -77,12 +77,24 @@
                   }
                   else
                   {
-                      initializeApp();
+                      liff.permission.query("profile").then((permissionStatus) => {
+                          if (permissionStatus.state === "granted") {
+                              //使用者已授權
+                              initializeApp();
+                          }
+                          else if (permissionStatus.state === "prompt") {
+                              document.getElementById('smallgroupfield').innerHTML = "您並未授權!";
+                              liff.permission.requestAll();
+                          }
+                          else {
+                              document.getElementById('smallgroupfield').innerHTML = "Liff Scope沒有設定，所以無法操作!";
+                          }
+                      });
                   }
                 })
                 .catch(error => {
                     // 錯誤處理 Liff LLogin
-                    document.getElementById('displaynamefield').innerHTML = "錯誤:" + error;
+                    document.getElementById('smallgroupfield').innerHTML = "錯誤:" + error;
                 });
         };
 

@@ -306,10 +306,11 @@
         // 測試!
         window.onload = function (e)
         {
-            liff.init({ liffId:  '@TempData["Proponent"]' })
+            liff
+                .init({ liffId: '@TempData["Proponent"]' })
                 .then(() =>
                 {
-                // 检查用户是否已登录
+                  // 检查用户是否已登录
                   if (!liff.isLoggedIn())
                   {
                       document.getElementById('displaynamefield').innerHTML = "您還沒有登入LINE";
@@ -322,7 +323,22 @@
                   }
                   else
                   {
-                      initializeApp();
+                      liff.permission.query("profile").then((permissionStatus) => {
+                          if (permissionStatus.state === "granted")
+                          {
+                              //使用者已授權
+                              initializeApp();
+                          }
+                          else if (permissionStatus.state === "prompt")
+                          {
+                              document.getElementById('displaynamefield').innerHTML = "您並未授權!";
+                              liff.permission.requestAll();
+                          }
+                          else
+                          {
+                              document.getElementById('displaynamefield').innerHTML = "Liff Scope沒有設定，所以無法操作!";
+                          }
+                      });
                   }
                 })
                 .catch(error => {
