@@ -85,7 +85,7 @@
                               initializeApp();
                           }
                           else if (permissionStatus.state === "prompt") {
-                              document.getElementById('displaynamefield').innerHTML = "您並未授權!";
+                              document.getElementById('displaynamefield').innerHTML = "您並未授權，請先完成授權程序!";
                               liff.permission.requestAll();
                           }
                           else {

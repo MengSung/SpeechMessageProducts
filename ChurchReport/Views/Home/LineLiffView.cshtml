@@ -299,7 +299,7 @@
     <link href="~/css/Gallery.css" rel="stylesheet" />
     <link href="~/css/WeeklyReport.css" rel="stylesheet" />
 
-    <script src="https://static.line-scdn.net/liff/edge/2.1/sdk.js"></script>
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 
     <script>
 
@@ -331,7 +331,8 @@
                           }
                           else if (permissionStatus.state === "prompt")
                           {
-                              document.getElementById('displaynamefield').innerHTML = "您並未授權!";
+                              document.getElementById('displaynamefield').innerHTML = "您並未授權，請先完成授權程序!";
+                              document.getElementById('remind').innerHTML = "";
                               liff.permission.requestAll();
                           }
                           else
