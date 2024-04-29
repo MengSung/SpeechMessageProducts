@@ -354,19 +354,9 @@ namespace ChurchReport.Tools
                 //}
 
                 // 奉獻地點
-                //if (QpayModel.DedicateLocation != null)
-                //{
-                //    // 奉獻地點值不為NULL，所以應該是行政人員輸入而來的 parentcustomerid
-
-                //    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeToCreated, "new_dedicate_location", QpayModel.DedicateLocation);
-                //}
-                //else
-                //{
-                //    // 奉獻地點值為NULL，所以應該是信用卡或ATM、匯款而來的
-                //    // 奉獻地點就要依據連絡人所屬教會設定
-                //    // 取得連絡人所屬教會
-                //    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeToCreated, "new_dedicate_location", this.m_ToolUtilityClass.GetEntityLookupDisplayName(ref aContact, "parentcustomerid"));
-                //}
+                // 奉獻地點就要依據連絡人所屬教會設定
+                // 取得連絡人所屬教會
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeToCreated, "new_dedicate_location", this.m_ToolUtilityClass.GetEntityLookupDisplayName(ref aContact, "parentcustomerid"));
 
                 // 奉獻備註
                 //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeToCreated, "new_explain", QpayModel.Explain);

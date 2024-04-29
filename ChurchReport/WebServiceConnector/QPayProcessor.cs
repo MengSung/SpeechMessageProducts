@@ -531,7 +531,7 @@ namespace ChurchReport.WebServiceConnector
                     Guid aCreatedFeeId = CreateFee(aContact, QpayModel, true);
 
                     // 奉獻感謝與通知
-                    SendGratitudeLineMessage(aContact, QpayModel);
+                    //SendGratitudeLineMessage(aContact, QpayModel);
 
                     //String Result = "感謝" + this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContact, "fullname") + "您的奉獻";
                     String Result = "上傳成功<br/>" +
