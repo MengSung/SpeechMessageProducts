@@ -18,5 +18,3 @@ namespace ChurchReport.Controllers
         }
     }
 }
-
-F
