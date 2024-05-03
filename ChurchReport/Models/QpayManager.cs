@@ -1016,7 +1016,7 @@ namespace ChurchReport.Models
             //m_QpayModel.DedicationBookingList.Add(new DedicationBooking
             //{
             //    EntityId = "002",
-            //    DedicationCategory = "感恩奉獻",
+            //    DedicationCategory = "感恩獻金",
             //    DedicationBookingStatus = "進行中",
             //    AmountPerStage = "6000",                    // 每期金額
             //    TotalStages = "12期",
@@ -1218,7 +1218,7 @@ namespace ChurchReport.Models
                 case 100000000:
                     return "月定獻金";
                 case 100000001:
-                    return "感恩奉獻";
+                    return "感恩獻金";
                 case 100000003:
                     return "建殿奉獻";
                 case 100000002:
@@ -1242,7 +1242,7 @@ namespace ChurchReport.Models
                 case 100000000:
                     return "月定獻金";
                 case 100000001:
-                    return "感恩奉獻";
+                    return "感恩獻金";
                 case 100000003:
                     return "建殿奉獻";
                 case 100000002:
