@@ -340,7 +340,7 @@ namespace ChurchReport.Models
                 }
 
                 //奉獻類別
-                m_QpayModel.Category = "十一奉獻";
+                m_QpayModel.Category = "月定獻金";
                 //付款方式
                 m_QpayModel.PayWay = "信用卡";
                 //奉獻日期
@@ -461,7 +461,7 @@ namespace ChurchReport.Models
                     m_QpayModel.Ntbt = "不願意上傳國稅局";
                 }
 
-                m_QpayModel.Category = "十一奉獻";
+                m_QpayModel.Category = "月定獻金";
                 m_QpayModel.PayWay = "信用卡";
                 //奉獻分堂
                 m_QpayModel.DedicateLocation = "南崁基督長老教會";
@@ -1003,7 +1003,7 @@ namespace ChurchReport.Models
             //m_QpayModel.DedicationBookingList.Add(new DedicationBooking
             //{
             //    EntityId = "001",
-            //    DedicationCategory = "十一奉獻",
+            //    DedicationCategory = "月定獻金",
             //    DedicationBookingStatus = "進行中",
             //    AmountPerStage = "5000",                    // 每期金額
             //    TotalStages = "12期",
@@ -1216,7 +1216,7 @@ namespace ChurchReport.Models
             switch (this.m_ToolUtilityClass.GetOptionSetAttribute(aFeeEntity, "new_category"))
             {
                 case 100000000:
-                    return "十一奉獻";
+                    return "月定獻金";
                 case 100000001:
                     return "感恩奉獻";
                 case 100000003:
@@ -1232,7 +1232,7 @@ namespace ChurchReport.Models
                 case 100000008:
                     return "特別奉獻";
                 default:
-                    return "十一奉獻";
+                    return "月定獻金";
             }
         }
         public String ConvertToCategory(int OptionSetValue)
@@ -1240,7 +1240,7 @@ namespace ChurchReport.Models
             switch (OptionSetValue)
             {
                 case 100000000:
-                    return "十一奉獻";
+                    return "月定獻金";
                 case 100000001:
                     return "感恩奉獻";
                 case 100000003:
@@ -1256,7 +1256,7 @@ namespace ChurchReport.Models
                 case 100000008:
                     return "特別奉獻";
                 default:
-                    return "十一奉獻";
+                    return "月定獻金";
             }
         }
         public String ConvertToDedicationBookingStatus(int OptionSetValue)
@@ -1274,7 +1274,7 @@ namespace ChurchReport.Models
                 case 100000004:
                     return "已取消";
                 default:
-                    return "十一奉獻";
+                    return "月定獻金";
             }
         }
         public String ProcessSpecialCategoryString(String SpecialCategory)

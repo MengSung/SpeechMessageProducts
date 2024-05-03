@@ -310,7 +310,7 @@ namespace ChurchReport.WebServiceConnector
 
             switch (Value)
             {
-                case "十一奉獻":
+                case "月定獻金":
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000000);
                     break;
                 case "感恩奉獻":
@@ -344,7 +344,7 @@ namespace ChurchReport.WebServiceConnector
 
             switch (Value)
             {
-                case "十一奉獻":
+                case "月定獻金":
                     this.m_ToolUtilityClass.SetEntityStringAttribute(aFeeEntity, "new_accounting_code", "4111100");
                     break;
                 case "建堂奉獻":
@@ -378,7 +378,7 @@ namespace ChurchReport.WebServiceConnector
 
             switch (Value)
             {
-                case "十一奉獻":
+                case "月定獻金":
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, AttributeName, 100000000);
                     break;
                 case "建堂奉獻":
