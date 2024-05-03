@@ -9,7 +9,8 @@ namespace ChurchReport.Models
     {
         public QpayModel()
         { }
-
+        
+        //public String LoginFullName { get; set; }                       //輸入人員姓名
         public String FullName { get; set; }                            //姓名
         public String Mobile { get; set; }                              //手機
         public String DedicationNumber { get; set; }                    //奉獻編號

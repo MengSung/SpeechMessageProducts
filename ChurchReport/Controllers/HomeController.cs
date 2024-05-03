@@ -129,6 +129,9 @@ namespace ChurchReport.Controllers
                     m_InMemoryDataContextSmallGroup.AppointmentsListManager.m_Account = aGalleryViewModel.Account;
                     m_InMemoryDataContextSmallGroup.AppointmentsListManager.m_Password = aGalleryViewModel.Password;
 
+                    // 儲存登入的連絡人實體紀錄
+                    m_InMemoryDataContextSmallGroup.AppointmentsListManager.m_LoginContact = aLoginContact;
+
                     // 設定多個組長處理需要的資料
                     m_InMemoryDataContextSmallGroup.ListManager.SetupListManager(aGalleryViewModel.Account, aGalleryViewModel.Password, DateTime.Now);
 
@@ -5502,7 +5505,7 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                return await m_InMemoryDataContextSmallGroup.QpayManager.SaveKeyInDedication(QpayModel);
+                return await m_InMemoryDataContextSmallGroup.QpayManager.SaveKeyInDedication(QpayModel, m_InMemoryDataContextSmallGroup.AppointmentsListManager.m_LoginContact);
             }
             catch (System.Exception e)
             {

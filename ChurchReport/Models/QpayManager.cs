@@ -31,6 +31,10 @@ namespace ChurchReport.Models
 
         private QPayProcessor m_QPayProcessor = new QPayProcessor();
 
+        // 登入的連絡人
+        public Entity m_LoginContact;
+
+        // 收費單的連絡人
         public Entity m_Contact;
 
         public String LoginType { get; set; } = "網頁登入";   //登入方式
@@ -58,6 +62,36 @@ namespace ChurchReport.Models
         {
             try
             {
+                if (QpayModel.ClickType == "查詢")
+                {
+                    return await QueryKeyInDedication(QpayModel);
+                }
+                else
+                {
+                    return await UpdateKeyInDedication(QpayModel);
+                }
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                //m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "南崁基督長老教會: 錯誤 => " + ErrorString);
+
+                //return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
+                throw e;
+            }
+        }
+        public async Task<IActionResult> SaveKeyInDedication(QpayModel QpayModel, Entity aLoginContact)
+        {
+            try
+            {
+                this.m_LoginContact = aLoginContact;
+                m_QPayProcessor.m_LoginContact = aLoginContact;
+
                 if (QpayModel.ClickType == "查詢")
                 {
                     return await QueryKeyInDedication(QpayModel);
@@ -1217,18 +1251,22 @@ namespace ChurchReport.Models
             {
                 case 100000000:
                     return "月定獻金";
-                case 100000001:
-                    return "感恩獻金";
-                case 100000003:
-                    return "建殿奉獻";
                 case 100000002:
-                    return "慈惠奉獻";
-                case 100000005:
-                    return "宣教奉獻";
+                    return "感恩獻金";
+                case 100000001:
+                    return "節期獻金";
+                case 100000003:
+                    return "對內獻金";
                 case 100000004:
-                    return "醫治中心";
+                    return "對外獻金";
                 case 100000006:
-                    return "其他奉獻";
+                    return "建堂獻金";
+                case 100000005:
+                    return "慈善獻金";
+                case 100000009:
+                    return "獎學獻金";
+                case 100000007:
+                    return "宣教獻金(聖餐)";
                 case 100000008:
                     return "特別奉獻";
                 default:
@@ -1241,18 +1279,22 @@ namespace ChurchReport.Models
             {
                 case 100000000:
                     return "月定獻金";
-                case 100000001:
-                    return "感恩獻金";
-                case 100000003:
-                    return "建殿奉獻";
                 case 100000002:
-                    return "慈惠奉獻";
-                case 100000005:
-                    return "宣教奉獻";
+                    return "感恩獻金";
+                case 100000001:
+                    return "節期獻金";
+                case 100000003:
+                    return "對內獻金";
                 case 100000004:
-                    return "醫治中心";
+                    return "對外獻金";
                 case 100000006:
-                    return "其他奉獻";
+                    return "建堂獻金";
+                case 100000005:
+                    return "慈善獻金";
+                case 100000009:
+                    return "獎學獻金";
+                case 100000007:
+                    return "宣教獻金(聖餐)";
                 case 100000008:
                     return "特別奉獻";
                 default:
@@ -1274,7 +1316,7 @@ namespace ChurchReport.Models
                 case 100000004:
                     return "已取消";
                 default:
-                    return "月定獻金";
+                    return "尚未啟動";
             }
         }
         public String ProcessSpecialCategoryString(String SpecialCategory)

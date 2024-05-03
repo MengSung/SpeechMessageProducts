@@ -1,4 +1,5 @@
 ﻿using ChurchReport.WebServiceConnector;
+using Microsoft.Xrm.Sdk;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,6 +15,8 @@ namespace ChurchReport.Models
 
         public String m_Account ="";
         public String m_Password = "";
+
+        public Entity m_LoginContact = new Entity();
 
         public string GroupId { get; set; } = "";
         public string RoomId { get; set; } = "";
