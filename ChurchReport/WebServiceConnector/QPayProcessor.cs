@@ -328,7 +328,7 @@ namespace ChurchReport.WebServiceConnector
                 case "對外獻金":
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000004);
                     break;
-                case "建堂獻金":
+                case "建築獻金":
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000006);
                     break;
                 case "慈善獻金":
@@ -402,7 +402,7 @@ namespace ChurchReport.WebServiceConnector
                 case "對外獻金":
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000004);
                     break;
-                case "建堂獻金":
+                case "建築獻金":
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000006);
                     break;
                 case "慈善獻金":

@@ -17,8 +17,8 @@
                     .DisplayTime(20000)
                     .MaxWidth(200)
             )
-
     </div>
+
     <div id="PopupContainer">
         @(Html.DevExtreme().Popup()
                 .ID("popup")
@@ -92,6 +92,7 @@
             }
         </script>
     </div>
+
     <div id="LoadPanel">
         @(Html.DevExtreme().LoadPanel()
                     .ID("loadPanel")
@@ -112,84 +113,85 @@
 <form data-ajax="true" data-ajax-begin="onBegin" data-ajax-success="onSuccess" asp-action="SaveKeyInDedication" asp-controller="Home" method="post">
     <div id="form-container-query">
         @(Html.DevExtreme().Form<QpayModel>()
-                 .ID("form1")
-                 .ColCount(1)
-                 .Items(items =>
-                 {
-                     items.AddSimpleFor(m => m.DedicationDate)
-                           //.DataField("LastName")
-                           .Label(l => l.Text("奉獻日期"))
-                           .Editor(e => e
-                               .DateBox()
-                               .Width(135)
-                               .Disabled(false)
-                               .DisplayFormat("yyyy/M/d")
-                               .Placeholder("輸入奉獻日期")
-                               .FocusStateEnabled(true)
-                          );
+     .ID("form1")
+     .ColCount(1)
+     .Items(items =>
+     {
+         items.AddSimpleFor(m => m.DedicationDate)
+               //.DataField("LastName")
+               .Label(l => l.Text("奉獻日期"))
+               .Editor(e => e
+                   .DateBox()
+                   .Width(135)
+                   .Disabled(false)
+                   .DisplayFormat("yyyy/M/d")
+                   .Placeholder("輸入奉獻日期")
+                   .FocusStateEnabled(true)
+              );
 
-                     items.AddSimpleFor(m => m.DedicationNumber)
-                            //.DataField("LastName")
-                            .Label(l => l.Text("奉獻編號"))
-                            .Editor(e => e
-                                .TextBox()
-                                .Width(120)
-                                .Disabled(false)
-                                .Placeholder("輸入奉獻編號")
-                                .FocusStateEnabled(true)
-                           );
+         items.AddSimpleFor(m => m.DedicationNumber)
+                //.DataField("LastName")
+                .Label(l => l.Text("奉獻編號"))
+                .Editor(e => e
+                    .TextBox()
+                    .Width(120)
+                    .Disabled(false)
+                    .Placeholder("輸入奉獻編號")
+                    .FocusStateEnabled(true)
+               );
 
-                     items.AddSimpleFor(m => m.NationId)
-                           //.DataField("LastName")
-                           .Label(l => l.Text("身份證字號"))
-                           .Editor(e => e
-                               .TextBox()
-                               .Width(120)
-                               .Disabled(false)
-                               .Placeholder("輸入身份證字號")
-                               .FocusStateEnabled(true)
-                          );
+         items.AddSimpleFor(m => m.NationId)
+               //.DataField("LastName")
+               .Label(l => l.Text("身份證字號"))
+               .Editor(e => e
+                   .TextBox()
+                   .Width(120)
+                   .Disabled(false)
+                   .Placeholder("輸入身份證字號")
+                   .FocusStateEnabled(true)
+              );
 
-                     items.AddSimpleFor(m=>m.FullName)
-                        //.DataField("LastName")
-                        .Label(l => l.Text("姓名"))
-                        .Editor(e => e
-                            .TextBox()
-                            .Width(120)
-                            .Disabled(false)
-                            .Placeholder("輸入姓名")
-                       );
+         items.AddSimpleFor(m=>m.FullName)
+            //.DataField("LastName")
+            .Label(l => l.Text("姓名"))
+            .Editor(e => e
+                .TextBox()
+                .Width(120)
+                .Disabled(false)
+                .Placeholder("輸入姓名")
+           );
 
-                     items.AddSimpleFor(m => m.Mobile)
-                            .Label(l => l.Text("電話號碼"))
-                            .Editor(e => e
-                                .TextBox()
-                                .Width(120)
-                                //.Mask("(X000) 000-000")
-                                .MaskRules(new { X = new JS("/[02-9]/") })
-                                .Placeholder("輸入電話號碼")
-                            );
+         items.AddSimpleFor(m=>m.Mobile)
+                .Label(l => l.Text("電話號碼"))
+                .Editor(e => e
+                    .TextBox()
+                    .Width(120)
+                    //.Mask("(X000) 000-000")
+                    .MaskRules(new { X = new JS("/[02-9]/") })
+                    .Placeholder("輸入電話號碼")
+                );
+         items.AddSimpleFor(m => m.LastSixDigit)
+                .Label(l => l.Text("帳戶後六碼"))
+                .Editor(e => e
+                    .TextBox()
+                    .Width(120)
+                    //.Mask("(X000) 000-000")
+                    .MaskRules(new { X = new JS("/[02-9]/") })
+                    .Placeholder("輸入帳戶後六碼")
+                );
 
-                     items.AddSimpleFor(m => m.LastSixDigit)
-                            .Label(l => l.Text("帳戶後六碼"))
-                            .Editor(e => e
-                                .TextBox()
-                                .Width(120)
-                                //.Mask("(X000) 000-000")
-                                .MaskRules(new { X = new JS("/[02-9]/") })
-                                .Placeholder("輸入帳戶後六碼")
-                            );
+         items.AddSimpleFor(m => m.ChurchName)
+               .Label(l => l.Text("所屬教會"))
+               .Visible(false)
+               .Editor(e => e
+                   .TextBox()
+                   .Width(120)
+                   .Placeholder("所屬教會")
+                   .Disabled(true)
+         );
 
-                     items.AddSimpleFor(m => m.ChurchName)
-                           .Label(l => l.Text("所屬教會"))
-                           .Editor(e => e
-                               .TextBox()
-                               .Width(120)
-                               .Placeholder("所屬教會")
-                               .Disabled(true)
-                     );
 
-                 })
+     })
         .OnContentReady
         (@<text>
             function(e)
@@ -250,8 +252,6 @@
                                 columns.AddFor(m => m.NationId).Caption("身分證字號").Width(100).MinWidth(100).Fixed(true);
                                 columns.AddFor(m => m.FullName).Caption("姓名").Width(100).MinWidth(100).Fixed(true);
                                 columns.AddFor(m => m.Mobile).Caption("電話").Width(100).MinWidth(100);
-                                columns.AddFor(m => m.SmallGroupName).Caption("所屬小組").Width(100).MinWidth(100);
-                                columns.AddFor(m => m.ChurchName).Caption("所屬教會").Width(100).MinWidth(100);
                             })
                             .DataSource(d => d
                             .WebApi()
@@ -330,12 +330,12 @@
                        "節期獻金",
                        "對內獻金",
                        "對外獻金",
-                       "建堂獻金",
+                       "建築獻金",
                        "慈善獻金",
                        "獎學獻金",
                        "宣教獻金(聖餐)",
                        "特別奉獻",
-                   }
+                    }
                 //.DisplayExpr("Name")
                 )
                 .Placeholder("請選擇奉獻類別")
@@ -358,7 +358,20 @@
             //        //.Value("特別")
             //    );
 
-
+            items.AddSimpleFor
+                (m => m.Others)
+                    .Label(l => l.Text("項目"))
+                    .Visible(false)
+                    .Name("OtherDedication")
+                    .Editor
+                    (
+                        e => e
+                        .Autocomplete()
+                        .Width(250)
+                        .DataSource(Model.OtherCategoryArray)
+                        .Placeholder("請選擇奉獻類別")
+                    //.Value("特別")
+                    );
             items.AddSimpleFor
                 (m => m.Others)
                     .Label(l => l.Text("宣教對象"))
@@ -403,7 +416,6 @@
                         .Placeholder("請輸入其他奉獻內容")
                     //.Value("特別")
                     );
-
             items.AddSimpleFor(m => m.Amount)
                     //.DataField("LastName")
                     .Label(l => l.Text("奉獻金額"))
@@ -425,15 +437,15 @@
                             .DataSource(new string[]
                             {
                                 "現金",
-                                "信用卡",
-                                //"ATM轉帳/匯款",
+                                //"信用卡",
                                 "銀行轉帳",
+                                //"郵政劃撥",
+                                //"其它",
                             }
                         //.DisplayExpr("Name")
                         )
                         .Value("現金")
                     );
-
             items.AddSimpleFor(m => m.Explain)
                 //.DataField("LastName")
                 .Label(l => l.Text("備註").Visible(true))
@@ -443,7 +455,6 @@
                     //.Disabled(true)
                     .Placeholder("請輸入備註")
                );
-
             items.AddSimpleFor(m => m.ClickType)
                     //.DataField("LastName")
                     .Label(l => l.Text("查詢或上傳").Visible(false))
@@ -477,8 +488,10 @@
     </div>
 </form>
 
-<div id="samenamecontainer_script" style="font-family:標楷體;font-size:100%; color: darkslateblue; text-align:left;font-weight:bold">
+<div id="samenamecontainer" style="font-family:標楷體;font-size:100%; color: darkslateblue; text-align:left;font-weight:bold">
     <h5 id="resultfield"></h5>
+
+
     <script>
         window.onload = function (e) {
             $("#form1").dxForm("instance").updateData('DedicationNumber', "");
@@ -552,29 +565,19 @@
         var GlobalCategory = "";
 
         function OnCategorySelectBoxValueChanged(e) {
-            if (e.value == "宣教奉獻") {
-                $("#form2").dxForm("instance").itemOption("OtherDedicationSelectionBox", 'visible', true);
-                $("#form2").dxForm("instance").itemOption("SpecialDedicationSelectionBox", 'visible', false);
-                $("#form2").dxForm("instance").itemOption("OtherDedication", 'visible', false);
-            }
-            else if (e.value == "代收代轉") {
+            if (e.value == "其他" || e.value == "節期獻金" || e.value == "對內獻金" ) {
                 $("#form2").dxForm("instance").itemOption("OtherDedication", 'visible', true);
                 $("#form2").dxForm("instance").itemOption("SpecialDedicationSelectionBox", 'visible', false);
                 $("#form2").dxForm("instance").itemOption("OtherDedicationSelectionBox", 'visible', false);
-            }
-            else if (e.value == "其他奉獻") {
-                $("#form2").dxForm("instance").itemOption("OtherDedication", 'visible', true);
-                $("#form2").dxForm("instance").itemOption("SpecialDedicationSelectionBox", 'visible', false);
-                $("#form2").dxForm("instance").itemOption("OtherDedicationSelectionBox", 'visible', false);
+
             }
             else if (e.value == "特別奉獻") {
-                $("#form2").dxForm("instance").itemOption("SpecialDedicationSelectionBox", 'visible', true);
                 $("#form2").dxForm("instance").itemOption("OtherDedication", 'visible', false);
+                $("#form2").dxForm("instance").itemOption("SpecialDedicationSelectionBox", 'visible', true);
                 $("#form2").dxForm("instance").itemOption("OtherDedicationSelectionBox", 'visible', false);
             }
+
             else {
-                $("#form2").dxForm("instance").itemOption("OtherDedicationSelectionBox", 'visible', false);
-                $("#form2").dxForm("instance").itemOption("SpecialDedicationSelectionBox", 'visible', false);
                 $("#form2").dxForm("instance").itemOption("OtherDedication", 'visible', false);
             }
         }
@@ -625,8 +628,6 @@
                     $("#form1").dxForm("instance").getEditor('DedicationNumber').focus();
                     document.getElementById("samenamecontainer").style.display = "none";//隱藏
 
-                    //$("#popup").dxPopup("instance").show();
-
                     document.getElementById('resultfield').innerHTML = data.DedicationResult;
                 }
                 else {
@@ -638,8 +639,6 @@
                     $("#form1").dxForm("instance").updateData('NationId', data.NationId);
                     $("#form1").dxForm("instance").updateData('FullName', data.FullName);
                     $("#form1").dxForm("instance").updateData('Mobile', data.Mobile);
-                    $("#form1").dxForm("instance").updateData('LastSixDigit', data.LastSixDigit);
-                    $("#form1").dxForm("instance").updateData('ChurchName', data.ChurchName);
 
                     //$("#form1").dxForm("instance").getEditor('SameNameList').reload();
                     //$("#form1").dxForm("instance").getEditor('SameNameList').refresh();
@@ -653,6 +652,7 @@
                     //$("#SameNameList").dxDataGrid("instance").refresh();
 
                     //window.location.href = "/Home/KeyInDedicationFeeViewWeb/";
+                    document.getElementById('resultfield').innerHTML = "";
                 }
             }
             else if (data.status == 2) {
@@ -661,6 +661,7 @@
                 $("#form1").dxForm("instance").updateData('FullName', "");
                 $("#form1").dxForm("instance").updateData('Mobile', "");
                 $("#form2").dxForm("instance").updateData('Amount', "");
+                $("#form2").dxForm("instance").updateData('Explain', "");
                 $("#form1").dxForm("instance").updateData('LastSixDigit', "");
                 $("#form1").dxForm("instance").getEditor('DedicationNumber').focus();
 
@@ -728,12 +729,11 @@
             return locale != null ? locale : "tw";
         }
     </script>
-</div>
 
-<link href="~/css/Scheduler.css" rel="stylesheet" />
-<link href="~/css/Site.css" rel="stylesheet" />
+    <link href="~/css/Scheduler.css" rel="stylesheet" />
+    <link href="~/css/Site.css" rel="stylesheet" />
 
-<script src="~/lib/jquery-ajax-unobtrusive/jquery.unobtrusive-ajax.js"></script>
-<link href="~/css/Gallery.css" rel="stylesheet" />
-<script src="~/js/devextreme/devextreme-intl.min.js"></script>
-<script src="~/js/devextreme/localization/dx.messages.zh-tw.js"></script>
+    <script src="~/lib/jquery-ajax-unobtrusive/jquery.unobtrusive-ajax.js"></script>
+    <link href="~/css/Gallery.css" rel="stylesheet" />
+    <script src="~/js/devextreme/devextreme-intl.min.js"></script>
+    <script src="~/js/devextreme/localization/dx.messages.zh-tw.js"></script>
