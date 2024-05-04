@@ -368,9 +368,28 @@
                         e => e
                         .Autocomplete()
                         .Width(250)
-                        .DataSource(Model.OtherCategoryArray)
+                        .DataSource(new string[]
+                            {
+                                "新春",
+                                "復活節    ",
+                                "母親節    ",
+                                "父親節    ",
+                                "感恩節    ",
+                                "聖誔節    ",
+                                "兒童牧區  ",
+                                "學青牧區  ",
+                                "松年牧區  ",
+                                "敬拜團    ",
+                                "聖歌隊    ",
+                                "週末兒童營",
+                                "彩虹事工  ",
+                                "得勝者    ",
+                                "來逗陣    ",
+                            }
+                        )
+                        //.DataSource(Model.OtherCategoryArray)
                         .Placeholder("請選擇奉獻類別")
-                    //.Value("特別")
+                        //.Value("特別")
                     );
             items.AddSimpleFor
                 (m => m.Others)
