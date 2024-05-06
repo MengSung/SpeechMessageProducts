@@ -42,12 +42,8 @@
                     .DataSource(new string[]
                     {
                        "月定獻金",
-                       "感恩獻金",
-                       "建殿奉獻",
-                       "慈惠奉獻",
-                       "醫治中心",
-                       "宣教奉獻",
-                       "其他奉獻",
+                       "建築奉獻",
+                       "建築認獻",
                        "特別奉獻",
                     }
                     //.DisplayExpr("Name")
@@ -129,9 +125,9 @@
                                 "信用卡",
                                 "ATM轉帳/匯款",
                                 "信用卡定期定額(每個月)",
-                                "行動支付",
-                                "銀聯卡",
-                                "LinePay",
+                                //"行動支付",
+                                //"銀聯卡",
+                                //"LinePay",
                             }
                             //.DisplayExpr("Name")
                         )
@@ -174,6 +170,17 @@
                         .Placeholder("選取的信用卡")
                    );
 
+            items.AddSimpleFor(m => m.Explain)
+                    //.DataField("LastName")
+                    .Label(l => l.Text("附註").Visible(true))
+                    .Editor(e => e
+                        .TextArea()
+                        .Width(200)
+                        .Height(60)
+                        .Visible(true)
+                        //.Disabled(true)
+                        .Placeholder("請輸入附註")
+                   );
 
         })
         .OnContentReady
@@ -400,10 +407,11 @@
             <div class="col-12 text-left col-md-8">
                 <div class="section-head text-left space30">
                     <h3 class="mbr-section-title pb-5 mbr-fonts-style display-5 text-left">南崁基督長老教會</h3>
-                    @*<h3 class="mbr-section-title pb-5 mbr-fonts-style display-5 text-left">地址:320桃園市中壢區杭州路71號72號6樓</h3>
-                    <h3 class="mbr-section-title pb-5 mbr-fonts-style display-5 text-left">電話:(03) 4561011</h3>
-                    <h3 class="mbr-section-title pb-5 mbr-fonts-style display-5 text-left">統編: 19600644</h3>*@
-                    <h3 class="mbr-section-title pb-5 mbr-fonts-style display-5 text-left">*請點擊您想了解的奉獻說明*</h3>
+                    <h3 class="mbr-section-title pb-5 mbr-fonts-style display-5 text-left">地址: 桃園市蘆竹區新南路一段14巷13號</h3>
+                    <h3 class="mbr-section-title pb-5 mbr-fonts-style display-5 text-left">電話: (03) 322-6082</h3>
+                    <h3 class="mbr-section-title pb-5 mbr-fonts-style display-5 text-left">信箱：nkchurch2013@gmail.com</h3>
+                    <h3 class="mbr-section-title pb-5 mbr-fonts-style display-5 text-left">統編: 72613669</h3>
+                    <h3 class="mbr-section-title pb-5 mbr-fonts-style display-5 text-left">*若有任何奉獻問題，請洽詢張姊妹*</h3>
                 </div>
                 <div class="clearfix"></div>
                 <div id="bootstrap-accordion_7" class="panel-group accordionStyles accordion" role="tablist" aria-multiselectable="true">
@@ -486,7 +494,7 @@
                         <div class="card-header" role="tab" id="headingThree">
                             <a role="button" class="collapsed panel-title text-black" data-toggle="collapse" data-parent="#bootstrap-accordion_7" data-core="" href="#collapse6_7" aria-expanded="false" aria-controls="collapse6">
                                 <h4 class="mbr-fonts-style display-5">
-                                    <span class="sign mbr-iconfont mbri-arrow-down inactive"></span> 若有任何奉獻問題，請洽詢劉亞蘭姊妹
+                                    <span class="sign mbr-iconfont mbri-arrow-down inactive"></span> 若有任何奉獻問題，請洽詢張姊妹
                                 </h4>
                             </a>
                         </div>
@@ -494,7 +502,7 @@
                         <div id="collapse6_7" class="panel-collapse noScroll collapse " role="tabpanel" aria-labelledby="headingOne">
                             <div class="panel-body p-4">
                                 <p class="mbr-fonts-style panel-text display-7">
-                                    若有任何奉獻問題，請洽詢劉亞蘭姊妹
+                                    若有任何奉獻問題，請洽詢張姊妹
                                 </p>
                             </div>
                         </div>

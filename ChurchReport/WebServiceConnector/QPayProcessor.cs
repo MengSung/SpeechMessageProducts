@@ -331,6 +331,14 @@ namespace ChurchReport.WebServiceConnector
                 case "建築獻金":
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000006);
                     break;
+                case "建築奉獻":
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000006);
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeEntity, "new_others", "建築奉獻");
+                    break;
+                case "建築認獻":
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000006);
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeEntity, "new_others", "建築認獻");
+                    break;
                 case "慈善獻金":
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000005);
                     break;
