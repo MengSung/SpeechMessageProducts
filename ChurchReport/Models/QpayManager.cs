@@ -1267,6 +1267,16 @@ namespace ChurchReport.Models
                     return "獎學獻金";
                 case 100000007:
                     return "宣教獻金(聖餐)";
+                case 100000010:
+                    return "禮拜獻金";
+                case 100000011:
+                    return "利息收入";
+                case 100000013:
+                    return "借入款";
+                case 100000014:
+                    return "補助款";
+                case 100000015:
+                    return "專帳其他收入(利息)";
                 case 100000008:
                     return "特別奉獻";
                 default:
@@ -1295,6 +1305,16 @@ namespace ChurchReport.Models
                     return "獎學獻金";
                 case 100000007:
                     return "宣教獻金(聖餐)";
+                case 100000010:
+                    return "禮拜獻金";
+                case 100000011:
+                    return "利息收入";
+                case 100000013:
+                    return "借入款";
+                case 100000014:
+                    return "補助款";
+                case 100000015:
+                    return "專帳其他收入(利息)";
                 case 100000008:
                     return "特別奉獻";
                 default:

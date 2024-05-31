@@ -286,8 +286,11 @@ namespace ChurchReport.WebServiceConnector
                 // 收費單收費日期
                 this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aFeeToCreated, "new_pay_date", QpayModel.DedicationDate.ToLocalTime());
 
-                // 奉獻類別
+                // 收入項目
                 SetFeePayCategory(QpayModel.Category, ref aFeeToCreated);
+
+                // 收入類別
+                SetIncomeCategory(QpayModel.Category, ref aFeeToCreated);
 
                 //會計科目
                 //SetAccountingCode(QpayModel.Category, ref aFeeToCreated);
@@ -348,12 +351,41 @@ namespace ChurchReport.WebServiceConnector
                 case "宣教獻金(聖餐)":
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000007);
                     break;
+                case "禮拜獻金":
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000010);
+                    break;
+                case "利息收入":
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000011);
+                    break;
+                case "其他收入":
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000012);
+                    break;
+                case "借入款":
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000013);
+                    break;
+                case "補助款":
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000014);
+                    break;
+                case "專帳其他收入(利息)":
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000015);
+                    break;
                 case "特別奉獻":
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000008);
                     break;
                 default:
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000000);
                     break;
+            }
+        }
+        public void SetIncomeCategory(String Value, ref Entity aFeeEntity)
+        {
+            if (Value == "月定獻金" || Value == "禮拜獻金" || Value == "聖餐獻金" || Value == "節期獻金" || Value == "感恩獻金" || Value == "利息收入" || Value == "月定獻金" || Value == "其他收入")
+            { 
+                this.m_ToolUtilityClass.SetEntityStringAttribute(aFeeEntity, "new_income_category", "經常費收入");
+            }
+            else
+            {
+                this.m_ToolUtilityClass.SetEntityStringAttribute(aFeeEntity, "new_income_category", "專帳收入");
             }
         }
         public void SetAccountingCode(String Value, ref Entity aFeeEntity)
@@ -421,6 +453,24 @@ namespace ChurchReport.WebServiceConnector
                     break;
                 case "宣教獻金(聖餐)":
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000007);
+                    break;
+                case "禮拜獻金":
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000010);
+                    break;
+                case "利息收入":
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000011);
+                    break;
+                case "其他收入":
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000012);
+                    break;
+                case "借入款":
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000013);
+                    break;
+                case "補助款":
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000014);
+                    break;
+                case "專帳其他收入(利息)":
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000015);
                     break;
                 case "特別奉獻":
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000008);
@@ -700,6 +750,9 @@ namespace ChurchReport.WebServiceConnector
 
                 // 奉獻類別
                 SetFeePayCategory(QpayModel.Category, ref aFeeToCreated);
+
+                // 收入類別
+                SetIncomeCategory(QpayModel.Category, ref aFeeToCreated);
 
                 //會計科目
                 //SetAccountingCode(QpayModel.Category, ref aFeeToCreated);
