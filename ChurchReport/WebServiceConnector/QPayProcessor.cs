@@ -31,9 +31,9 @@ namespace ChurchReport.WebServiceConnector
         #region 資料區
         // 商店編號
         // SANDBOX 測試用
-        string m_ShopNo = "NA0149_001";
+        //string m_ShopNo = "NA0149_001";
         // 永豐金流正式環境
-        //string m_ShopNo = "DA3009_001";
+        string m_ShopNo = "DA4195_001";
 
         #region 公司內部開發
         // 使用 ChurchReport 當作 WebHook
@@ -369,7 +369,7 @@ namespace ChurchReport.WebServiceConnector
                 case "專帳其他收入(利息)":
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000015);
                     break;
-                case "特別奉獻":
+                case "特別獻金":
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000008);
                     break;
                 default:
@@ -379,7 +379,7 @@ namespace ChurchReport.WebServiceConnector
         }
         public void SetIncomeCategory(String Value, ref Entity aFeeEntity)
         {
-            if (Value == "月定獻金" || Value == "禮拜獻金" || Value == "聖餐獻金" || Value == "節期獻金" || Value == "感恩獻金" || Value == "利息收入" || Value == "月定獻金" || Value == "其他收入")
+            if (Value == "月定獻金" || Value == "禮拜獻金" || Value == "聖餐獻金" || Value == "節期獻金" || Value == "感恩獻金" || Value == "特別獻金" || Value == "利息收入" || Value == "對內獻金" || Value == "其他收入")
             { 
                 this.m_ToolUtilityClass.SetEntityStringAttribute(aFeeEntity, "new_income_category", "經常費收入");
             }
@@ -414,7 +414,7 @@ namespace ChurchReport.WebServiceConnector
                 case "慈惠奉獻":
                     this.m_ToolUtilityClass.SetEntityStringAttribute(aFeeEntity, "new_accounting_code", "4116100");
                     break;
-                case "特別奉獻":
+                case "特別獻金":
                     this.m_ToolUtilityClass.SetEntityStringAttribute(aFeeEntity, "new_accounting_code", "4117100");
                     break;
                 default:
@@ -428,55 +428,63 @@ namespace ChurchReport.WebServiceConnector
             switch (Value)
             {
                 case "月定獻金":
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000000);
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, AttributeName, 100000000);
                     break;
                 case "感恩獻金":
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000002);
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, AttributeName, 100000002);
                     break;
                 case "節期獻金":
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000001);
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, AttributeName, 100000001);
                     break;
                 case "對內獻金":
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000003);
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, AttributeName, 100000003);
                     break;
                 case "對外獻金":
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000004);
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, AttributeName, 100000004);
                     break;
                 case "建築獻金":
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000006);
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, AttributeName, 100000006);
+                    break;
+                case "建築奉獻":
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, AttributeName, 100000006);
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeEntity, "new_others", "建築奉獻");
+                    break;
+                case "建築認獻":
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, AttributeName, 100000006);
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeEntity, "new_others", "建築認獻");
                     break;
                 case "慈善獻金":
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000005);
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, AttributeName, 100000005);
                     break;
                 case "獎學獻金":
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000009);
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, AttributeName, 100000009);
                     break;
                 case "宣教獻金(聖餐)":
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000007);
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, AttributeName, 100000007);
                     break;
                 case "禮拜獻金":
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000010);
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, AttributeName, 100000010);
                     break;
                 case "利息收入":
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000011);
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, AttributeName, 100000011);
                     break;
                 case "其他收入":
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000012);
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, AttributeName, 100000012);
                     break;
                 case "借入款":
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000013);
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, AttributeName, 100000013);
                     break;
                 case "補助款":
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000014);
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, AttributeName, 100000014);
                     break;
                 case "專帳其他收入(利息)":
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000015);
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, AttributeName, 100000015);
                     break;
-                case "特別奉獻":
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000008);
+                case "特別獻金":
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, AttributeName, 100000008);
                     break;
                 default:
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000000);
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, AttributeName, 100000000);
                     break;
             }
         }

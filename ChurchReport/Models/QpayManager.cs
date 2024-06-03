@@ -21,9 +21,9 @@ namespace ChurchReport.Models
         #region 資料區
         // 商店編號
         // SANDBOX 測試用
-        string m_ShopNo = "NA0149_001";
+        //string m_ShopNo = "NA0149_001";
         // 永豐金流正式環境
-        //string m_ShopNo = "DA3009_001";
+        string m_ShopNo = "DA4195_001";
 
         private ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
 
@@ -1278,7 +1278,7 @@ namespace ChurchReport.Models
                 case 100000015:
                     return "專帳其他收入(利息)";
                 case 100000008:
-                    return "特別奉獻";
+                    return "特別獻金";
                 default:
                     return "月定獻金";
             }
@@ -1316,7 +1316,7 @@ namespace ChurchReport.Models
                 case 100000015:
                     return "專帳其他收入(利息)";
                 case 100000008:
-                    return "特別奉獻";
+                    return "特別獻金";
                 default:
                     return "月定獻金";
             }
