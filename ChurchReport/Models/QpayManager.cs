@@ -1265,6 +1265,8 @@ namespace ChurchReport.Models
                     return "慈善獻金";
                 case 100000009:
                     return "獎學獻金";
+                case 100000017:
+                    return "聖餐獻金";
                 case 100000007:
                     return "宣教獻金(聖餐)";
                 case 100000010:
@@ -1303,6 +1305,8 @@ namespace ChurchReport.Models
                     return "慈善獻金";
                 case 100000009:
                     return "獎學獻金";
+                case 100000017:
+                    return "聖餐獻金";
                 case 100000007:
                     return "宣教獻金(聖餐)";
                 case 100000010:
