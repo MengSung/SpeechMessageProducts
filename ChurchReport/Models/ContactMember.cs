@@ -63,6 +63,13 @@ namespace ChurchReport.Models {
             set;
         }
 
+        // 洗禮狀態(長老教會專用)
+        public string BaptizedSituation
+        {
+            get;
+            set;
+        }
+
         #endregion
 
         public bool ModifyFlag { get; set; }

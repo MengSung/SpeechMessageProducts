@@ -426,6 +426,13 @@ namespace ChurchReport.WebServiceConnector
                             aSpiritualIdentity = ConvertIndexToSpiritualIdentity(this.m_ToolUtilityClass.GetOptionSetAttribute(aContactEntity, "new_spiriitual_identity"));
                         }
 
+                        // 組員的受洗禮狀態(長老教會專用)
+                        String aBaptizedSituation = "";
+                        if (aContactEntity.Attributes.Contains("new_baptized_situation"))
+                        {
+                            aBaptizedSituation = ConvertIndexToBaptizedSituation(this.m_ToolUtilityClass.GetOptionSetAttribute(aContactEntity, "new_baptized_situation"));
+                        }
+
                         // 組員的個人附註
                         String aDescription = "";
                         if (aContactEntity.Attributes.Contains("description"))
@@ -640,6 +647,7 @@ namespace ChurchReport.WebServiceConnector
                                     Industry = aIndustry,
                                     EquipmentStatus = aEquipmentStatus,
                                     SpiritualIdentity = aSpiritualIdentity,
+                                    BaptizedSituation = aBaptizedSituation,
                                     BestLeader = this.m_ToolUtilityClass.GetEntityLookupDisplayName(aContactEntity, "new_contact_contact_spiritleader"),// 屬靈認領者
                                     BestIntroducer = this.m_ToolUtilityClass.GetEntityStringAttribute(aContactEntity, "new_best_introducer"),
                                     BestRelationship = this.m_ToolUtilityClass.GetEntityStringAttribute(aContactEntity, "new_best_relationship"),
@@ -786,6 +794,7 @@ namespace ChurchReport.WebServiceConnector
                 Industry = this.m_ToolUtilityClass.GetEntityStringAttribute(this.m_ContactEntity, "new_industry"),
                 EquipmentStatus = this.m_ToolUtilityClass.GetEntityStringAttribute(this.m_ContactEntity, "new_equipment_status"),
                 SpiritualIdentity = ConvertIndexToSpiritualIdentity(this.m_ToolUtilityClass.GetOptionSetAttribute(this.m_ContactEntity, "new_spiriitual_identity")),
+                BaptizedSituation = ConvertIndexToBaptizedSituation(this.m_ToolUtilityClass.GetOptionSetAttribute(this.m_ContactEntity, "new_baptized_situation")),
 
                 #endregion
                 Status = this.ConvertIndexToIdentity(this.m_ToolUtilityClass.GetOptionSetAttribute(ref m_ContactEntity, "customertypecode")), // 委身類型
@@ -1367,6 +1376,13 @@ namespace ChurchReport.WebServiceConnector
                             aSpiritualIdentity = ConvertIndexToSpiritualIdentity(this.m_ToolUtilityClass.GetOptionSetAttribute(ContactEntity, "new_spiriitual_identity"));
                         }
 
+                        // 組員的受洗禮狀態(長老教會專用)
+                        String aBaptizedSituation = "";
+                        if (ContactEntity.Attributes.Contains("new_baptized_situation"))
+                        {
+                            aBaptizedSituation = ConvertIndexToBaptizedSituation(this.m_ToolUtilityClass.GetOptionSetAttribute(ContactEntity, "new_baptized_situation"));
+                        }
+
                         // 組員的個人附註
                         String aDescription = "";
                         if ( ContactEntity.Attributes.Contains("description"))
@@ -1411,6 +1427,7 @@ namespace ChurchReport.WebServiceConnector
                                     Industry = aIndustry,
                                     EquipmentStatus = aEquipmentStatus,
                                     SpiritualIdentity = aSpiritualIdentity,
+                                    BaptizedSituation = aBaptizedSituation,
                                     BestLeader = this.m_ToolUtilityClass.GetEntityLookupDisplayName(ContactEntity, "new_contact_contact_spiritleader"),// 屬靈認領者
                                     BestIntroducer = this.m_ToolUtilityClass.GetEntityStringAttribute(ContactEntity, "new_best_introducer"),
                                     BestRelationship = this.m_ToolUtilityClass.GetEntityStringAttribute(ContactEntity, "new_best_relationship"),
@@ -1507,6 +1524,13 @@ namespace ChurchReport.WebServiceConnector
                 aSpiritualIdentity = ConvertIndexToSpiritualIdentity(this.m_ToolUtilityClass.GetOptionSetAttribute(this.m_ContactEntity, "new_spiriitual_identity"));
             }
 
+            // 組員的受洗禮狀態(長老教會專用)
+            String aBaptizedSituation = "";
+            if (m_ContactEntity.Attributes.Contains("new_baptized_situation"))
+            {
+                aBaptizedSituation = ConvertIndexToBaptizedSituation(this.m_ToolUtilityClass.GetOptionSetAttribute(m_ContactEntity, "new_baptized_situation"));
+            }
+
             // 組員的個人附註
             String aDescription = "";
             if ( m_ContactEntity.Attributes.Contains("description"))
@@ -1551,6 +1575,7 @@ namespace ChurchReport.WebServiceConnector
                         Industry = aIndustry,
                         EquipmentStatus = aEquipmentStatus,
                         SpiritualIdentity = aSpiritualIdentity,
+                        BaptizedSituation = aBaptizedSituation,
                         BestLeader = this.m_ToolUtilityClass.GetEntityLookupDisplayName(m_ContactEntity, "new_contact_contact_spiritleader"),// 屬靈認領者
                         BestIntroducer = this.m_ToolUtilityClass.GetEntityStringAttribute(m_ContactEntity, "new_best_introducer"),
                         BestRelationship = this.m_ToolUtilityClass.GetEntityStringAttribute(m_ContactEntity, "new_best_relationship"),
@@ -2712,6 +2737,25 @@ namespace ChurchReport.WebServiceConnector
                     return "未信主";
                 default:
                     return "-未知-";
+            }
+        }
+
+        private String ConvertIndexToBaptizedSituation(int BaptizedSituation)// 洗禮狀態(長老教會專用)
+        {
+            switch (BaptizedSituation)
+            {
+                case 100000000:
+                    return "堅信禮(籍在)";
+                case 100000001:
+                    return "成人禮(籍在)";
+                case 100000002:
+                    return "成人禮(籍在)";
+                case 100000003:
+                    return "小兒禮(籍不在)";
+                case 100000004:
+                    return "未受洗(籍不在)";
+                default:
+                    return "未受洗(籍不在)";
             }
         }
         #endregion

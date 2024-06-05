@@ -2775,6 +2775,12 @@ namespace ChurchReport.WebServiceConnector
                 ModifyFlag = true;
             }
 
+            if (SetBaptizedSituationByUpload(ref aContactEntity, ref aMember) == true)
+            {
+                // 有透過手動更改受洗狀態
+                ModifyFlag = true;
+            }
+
             // 設定 BEST 是否決志
             if (aMember.Decision == true)
             {
@@ -4789,7 +4795,7 @@ namespace ChurchReport.WebServiceConnector
                 // 先找到系統的委身類型指標
                 int aIdentity = this.m_ToolUtilityClass.GetOptionSetAttribute(ref aContact, "customertypecode");
 
-                //// 在轉換回報的委身類型指標 SpiritualIdentity
+                //// 在轉換回報的委身類型指標 
                 int CustomerTypeCode = ConvertIdentityToIndex(aMember.Status);
 
                 if (aIdentity > 0)
@@ -5202,6 +5208,65 @@ namespace ChurchReport.WebServiceConnector
             }
         }
         #endregion
+
+        #region 設定組員的洗禮狀態(長老教會專用)
+        public bool SetBaptizedSituationByUpload(ref Entity aContact, ref Member aMember)
+        {
+            try
+            {
+                // 先找到系統的組員的洗禮狀態(長老教會專用)指標
+                int aBaptizedSituation = this.m_ToolUtilityClass.GetOptionSetAttribute(ref aContact, "new_baptized_situation");
+
+                //// 在轉換回報的受洗狀態指標 BaptizedSituation 
+                int aBaptizedSituationCode = ConvertBaptizedSituationToIndex(aMember.BaptizedSituation);
+
+                if (aMember.BaptizedSituation != "")
+                {
+                    if (aBaptizedSituation != aBaptizedSituationCode)
+                    {
+                        // 洗禮狀態系統原來的與小組長上傳的有不一致
+                        this.m_ToolUtilityClass.SetOptionSetAttribute(ref aContact, "new_baptized_situation", aBaptizedSituationCode);
+
+                        return true;
+                    }
+                    else
+                    {
+                        // 洗禮狀態系統原來的和小組長上傳的一致
+                        return false;
+                    }
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+
+                throw e;
+            }
+        }
+        private int ConvertBaptizedSituationToIndex(String BaptizedSituation)
+        {
+            switch (BaptizedSituation)
+            {
+                case "堅信禮(籍在)":
+                    return 100000000;
+                case "成人禮(籍在)":
+                    return 100000001;
+                case "轉籍(籍在)":
+                    return 100000002;
+                case "小兒禮(籍不在)":
+                    return 100000003;
+                case "未受洗(籍不在)":
+                    return 100000004;
+                default:
+                    return -999999999;
+            }
+        }
+        #endregion
+
         #region 字典處理函式庫
         private void ResetDictionary(DateTime aSunday)
         {

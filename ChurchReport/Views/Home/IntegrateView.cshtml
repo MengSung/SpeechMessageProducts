@@ -830,14 +830,24 @@ else
                                                         //.DisplayExpr("Name")
                                                         //.ValueExpr("ID")
                                                         );
-                                columns.AddFor(m => m.EquipmentStatus).Caption("裝備狀態").Alignment(HorizontalAlignment.Center).Width(60).MinWidth(60).AllowSorting(true).AllowEditing(false);
+                                //columns.AddFor(m => m.EquipmentStatus).Caption("裝備狀態").Alignment(HorizontalAlignment.Center).Width(60).MinWidth(60).AllowSorting(true).AllowEditing(false);
                                 //columns.AddFor(m => m.SpiritualIdentity).Caption("受洗狀態").Alignment(HorizontalAlignment.Center).Width(100).MinWidth(60).AllowSorting(true).AllowEditing(true);
-                                columns.AddFor(m => m.SpiritualIdentity)
+@*                                 columns.AddFor(m => m.SpiritualIdentity)
                                                         .Caption("受洗狀態").Alignment(HorizontalAlignment.Center)
                                                         .AllowEditing(true)
                                                         .Width(110).MinWidth(100).DataType(GridColumnDataType.String)
                                                         .Lookup(lookup => lookup
                                                         .DataSource(new string[] { "-未知-", "基督徒", "已決志", "慕道友", "未信者" })
+                                                        //.DisplayExpr("Name")
+                                                        //.ValueExpr("ID")
+                                                        );
+ *@                                
+                                columns.AddFor(m => m.BaptizedSituation)
+                                                        .Caption("洗禮狀態").Alignment(HorizontalAlignment.Center)
+                                                        .AllowEditing(false)
+                                                        .Width(110).MinWidth(100).DataType(GridColumnDataType.String)
+                                                        .Lookup(lookup => lookup
+                                                        .DataSource(new string[] { "堅信禮(籍在)", "成人禮(籍在)", "轉籍(籍在)", "小兒禮(籍不在)", "未受洗(籍不在)" })
                                                         //.DisplayExpr("Name")
                                                         //.ValueExpr("ID")
                                                         );
@@ -1008,6 +1018,17 @@ else
                                             //.DisplayExpr("Name")
                                             //.ValueExpr("ID")
                                             );
+
+                            columns.AddFor(m => m.BaptizedSituation)
+                                        .Caption("洗禮狀態").Alignment(HorizontalAlignment.Center)
+                                        .AllowEditing(false)
+                                        .Width(110).MinWidth(100).DataType(GridColumnDataType.String)
+                                        .Lookup(lookup => lookup
+                                        .DataSource(new string[] { "堅信禮(籍在)", "成人禮(籍在)", "轉籍(籍在)", "小兒禮(籍不在)", "未受洗(籍不在)" })
+                                        //.DisplayExpr("Name")
+                                        //.ValueExpr("ID")
+                                        );
+
                                 //columns.AddFor(m => m.EquipmentStatus).Caption("裝備狀態").Alignment(HorizontalAlignment.Center).Width(60).MinWidth(60).AllowSorting(true).AllowEditing(false);
                                 //columns.AddFor(m => m.SpiritualIdentity).Caption("受洗狀態").Alignment(HorizontalAlignment.Center).Width(100).MinWidth(60).AllowSorting(true).AllowEditing(false);
                                 //columns.AddFor(m => m.Sunday).Caption("主日").DataType(GridColumnDataType.Boolean).Width(45).MinWidth(45);

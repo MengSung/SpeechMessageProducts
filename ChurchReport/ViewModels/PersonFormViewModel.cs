@@ -37,6 +37,7 @@ namespace ChurchReport.ViewModels
         public String Industry { get; set; } // 職業及專長
         public String EquipmentStatus { get; set; } // 裝備狀態
         public String SpiritualIdentity { get; set; } // 受洗狀態
+        public String BaptizedSituation { get; set; } // 洗禮狀態(長老教會專用)
 
         public String PresentRecordId { get; set; } // 建立新人時也會新增建立的靈修出席紀錄單的ID
 

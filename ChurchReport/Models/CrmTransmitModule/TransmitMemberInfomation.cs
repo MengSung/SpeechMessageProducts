@@ -154,6 +154,14 @@ namespace ChurchReport.Models.CrmTransmitModule
             set { m_SpiritualIdentity = value; }
         }
 
+        // 洗禮狀態(長老教會專用)
+        string m_BaptizedSituation = "";
+        public string BaptizedSituation
+        {
+            get { return m_BaptizedSituation; }
+            set { m_BaptizedSituation = value; }
+        }
+
         #endregion
         string m_Note = "";
         public string Note
@@ -619,6 +627,14 @@ namespace ChurchReport.Models.CrmTransmitModule
         {
             get { return m_SpiritualIdentity; }
             set { m_SpiritualIdentity = value; }
+        }
+
+        // 洗禮狀態(長老教會專用)
+        string m_BaptizedSituation = "";
+        public string BaptizedSituation
+        {
+            get { return m_BaptizedSituation; }
+            set { m_BaptizedSituation = value; }
         }
 
         string m_PresentRecordId = "";
