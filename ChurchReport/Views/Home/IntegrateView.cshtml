@@ -883,6 +883,7 @@ else
 
                                 columns.AddFor(m => m.AssignedGroup)
                                         .Caption("指派小組")
+                                        .Visible(false)
                                         .Width(120).MinWidth(30)
                                         .Lookup(lookup => lookup
                                         .DataSource(Model.GroupArray)
@@ -1102,6 +1103,7 @@ else
 
                                 columns.AddFor(m => m.AssignedGroup)
                                     .Caption("指派小組")
+                                    .Visible(false)
                                     .Width(150).MinWidth(30)
                                     .Lookup(lookup => lookup
                                     .DataSource(Model.GroupArray)
