@@ -43,6 +43,9 @@ namespace ChurchReport.Tools
         private const String B2 = "163EC08BC1624854";
         private const String HASH_CODE = A1 + "," + A2 + "," + B1 + "," + B2;
 
+        private const String X_KEY_ID = "1cf7c745-3163-499b-ba60-a0f4f0b3a716";
+        //private const String X_KEY_ID = "1cf7c745-3163-9999-ba60-a0f4f0b3a716";
+
         #region Public method
         #region 訂單建立 (虛擬帳號、信用卡)
         /// <summary>
@@ -352,6 +355,7 @@ namespace ChurchReport.Tools
 
             using (var client = new HttpClient())
             {
+                client.DefaultRequestHeaders.Add("X-KeyID", X_KEY_ID);
                 responce = client.PostAsJsonAsync(url, req).Result;
             }
 
