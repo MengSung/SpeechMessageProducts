@@ -25,6 +25,7 @@ namespace ChurchReport.Tools
 
         // SANDBOX 測試用
         //private static string _site = "https://sandbox.sinopac.com/QPay.WebAPI/api/";
+        //private static string _site = "https://apisbx.sinopac.com/funBIZ-Sbx/QPay.WebAPI/api/";
 
         ////// SANDBOX 測試用
         //private const String A1 = "5E854757C751413F";
@@ -34,10 +35,7 @@ namespace ChurchReport.Tools
         //private const String HASH_CODE = A1 + "," + A2 + "," + B1 + "," + B2;
 
         // 永豐金流正式環境
-        //<add key = "QPayWebAPIUrl" value="https://apisbx.sinopac.com/funBIZ-Sbx/QPay.WebAPI/api/" />
-
         //private static string _site = "https://funbiz.sinopac.com/QPay.WebAPI/api/";
-        //private static string _site = "https://apisbx.sinopac.com/funBIZ-Sbx/QPay.WebAPI/api/";
         private static string _site = "https://api.sinopac.com/funBIZ/QPay.WebAPI/api/";
 
         //private static ConfigurationBuilder m_ConfigurationBuilder = (ConfigurationBuilder)new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("appsettings.json");
