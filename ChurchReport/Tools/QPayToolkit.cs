@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
 using QPay.Domain;
 using System;
 using System.Collections.Generic;
@@ -33,7 +34,18 @@ namespace ChurchReport.Tools
         //private const String HASH_CODE = A1 + "," + A2 + "," + B1 + "," + B2;
 
         // 永豐金流正式環境
-        private static string _site = "https://funbiz.sinopac.com/QPay.WebAPI/api/";
+        //<add key = "QPayWebAPIUrl" value="https://apisbx.sinopac.com/funBIZ-Sbx/QPay.WebAPI/api/" />
+
+        //private static string _site = "https://funbiz.sinopac.com/QPay.WebAPI/api/";
+        //private static string _site = "https://apisbx.sinopac.com/funBIZ-Sbx/QPay.WebAPI/api/";
+        private static string _site = "https://api.sinopac.com/funBIZ/QPay.WebAPI/api/";
+
+        //private static ConfigurationBuilder m_ConfigurationBuilder = (ConfigurationBuilder)new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("appsettings.json");
+        //static IConfiguration configuration;
+
+        //configuration = m_ConfigurationBuilder..Build();
+
+        //m_LinePayClient = new LinePayClient(configuration["LinePay:ChannelId"], configuration["LinePay:ChannelSecret"], bool.Parse(configuration["LinePay:IsSandbox"]));
 
         //永豐金流正式環境
         //永豐金流寄給南崁基督長老教會的HASH CODE
@@ -44,7 +56,6 @@ namespace ChurchReport.Tools
         private const String HASH_CODE = A1 + "," + A2 + "," + B1 + "," + B2;
 
         private const String X_KEY_ID = "1cf7c745-3163-499b-ba60-a0f4f0b3a716";
-        //private const String X_KEY_ID = "1cf7c745-3163-9999-ba60-a0f4f0b3a716";
 
         #region Public method
         #region 訂單建立 (虛擬帳號、信用卡)
@@ -384,6 +395,7 @@ namespace ChurchReport.Tools
 
             using (var client = new HttpClient())
             {
+                client.DefaultRequestHeaders.Add("X-KeyID", X_KEY_ID);
                 response = client.PostAsJsonAsync(url, req).Result;
             }
 
