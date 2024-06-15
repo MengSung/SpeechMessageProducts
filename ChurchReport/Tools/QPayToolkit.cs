@@ -38,8 +38,8 @@ namespace ChurchReport.Tools
         //private static string _site = "https://funbiz.sinopac.com/QPay.WebAPI/api/";
         private static string _site = "https://api.sinopac.com/funBIZ/QPay.WebAPI/api/";
 
-        //private static ConfigurationBuilder m_ConfigurationBuilder = (ConfigurationBuilder)new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("appsettings.json");
-        //static IConfiguration configuration;
+        static ConfigurationBuilder m_ConfigurationBuilder = (ConfigurationBuilder)new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("appsettings.json");
+        static IConfiguration m_Configuration = m_ConfigurationBuilder.Build();
 
         //configuration = m_ConfigurationBuilder..Build();
 
@@ -54,6 +54,7 @@ namespace ChurchReport.Tools
         private const String HASH_CODE = A1 + "," + A2 + "," + B1 + "," + B2;
 
         private const String X_KEY_ID = "1cf7c745-3163-499b-ba60-a0f4f0b3a716";
+        private static String X_KEY_ID_2 = m_Configuration["LinePay:ChannelId"];
 
         #region Public method
         #region 訂單建立 (虛擬帳號、信用卡)
