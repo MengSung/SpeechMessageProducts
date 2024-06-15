@@ -4,11 +4,13 @@ using ChurchReport.WebServiceConnector;
 using Line.Messaging;
 using LineMessagingProcessor;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Xrm.Sdk;
 using QPay.Domain;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Threading.Tasks;
 using ToolUtilityNameSpace;
 // These namespaces are found in the Microsoft.Xrm.Sdk.dll assembly
@@ -19,11 +21,15 @@ namespace ChurchReport.Models
     public class QpayManager : Controller
     {
         #region 資料區
+        static ConfigurationBuilder m_ConfigurationBuilder = (ConfigurationBuilder)new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("appsettings.json");
+        static IConfiguration m_Configuration = m_ConfigurationBuilder.Build();
+
         // 商店編號
         // SANDBOX 測試用
         //string m_ShopNo = "NA0149_001";
         // 永豐金流正式環境
-        string m_ShopNo = "DA4195_001";
+        //string m_ShopNo = "DA4195_001";
+        string m_ShopNo = m_Configuration["Sinopac:ShopNo"];
 
         private ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
 

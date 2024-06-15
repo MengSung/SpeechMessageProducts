@@ -21,6 +21,9 @@ namespace ChurchReport.Tools
 {
     public static class QPayToolkit
     {
+        static ConfigurationBuilder m_ConfigurationBuilder = (ConfigurationBuilder)new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("appsettings.json");
+        static IConfiguration m_Configuration = m_ConfigurationBuilder.Build();
+
         private static string _currentVersion = "1.0.0";
 
         // SANDBOX 測試用
@@ -36,10 +39,8 @@ namespace ChurchReport.Tools
 
         // 永豐金流正式環境
         //private static string _site = "https://funbiz.sinopac.com/QPay.WebAPI/api/";
-        private static string _site = "https://api.sinopac.com/funBIZ/QPay.WebAPI/api/";
-
-        static ConfigurationBuilder m_ConfigurationBuilder = (ConfigurationBuilder)new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("appsettings.json");
-        static IConfiguration m_Configuration = m_ConfigurationBuilder.Build();
+        //private static string _site = "https://api.sinopac.com/funBIZ/QPay.WebAPI/api/";
+        private static string _site = m_Configuration["Sinopac:Site"];
 
         //configuration = m_ConfigurationBuilder..Build();
 
@@ -47,14 +48,18 @@ namespace ChurchReport.Tools
 
         //永豐金流正式環境
         //永豐金流寄給南崁基督長老教會的HASH CODE
-        private const String A1 = "B83DCBFA2D994F19";
-        private const String A2 = "6ED32787DA504871";
-        private const String B1 = "13E56D7A39AB4768";
-        private const String B2 = "163EC08BC1624854";
-        private const String HASH_CODE = A1 + "," + A2 + "," + B1 + "," + B2;
+        //private const String A1 = "B83DCBFA2D994F19";
+        //private const String A2 = "6ED32787DA504871";
+        //private const String B1 = "13E56D7A39AB4768";
+        //private const String B2 = "163EC08BC1624854";
+        private static String A1 = m_Configuration["Sinopac:A1"];
+        private static String A2 = m_Configuration["Sinopac:A2"];
+        private static String B1 = m_Configuration["Sinopac:B1"];
+        private static String B2 = m_Configuration["Sinopac:B2"];
+        private static String HASH_CODE = A1 + "," + A2 + "," + B1 + "," + B2;
 
-        private const String X_KEY_ID = "1cf7c745-3163-499b-ba60-a0f4f0b3a716";
-        private static String X_KEY_ID_2 = m_Configuration["LinePay:ChannelId"];
+        //private const String X_KEY_ID = "1cf7c745-3163-499b-ba60-a0f4f0b3a716";
+        private static String X_KEY_ID = m_Configuration["Sinopac:XKeyID"];
 
         #region Public method
         #region 訂單建立 (虛擬帳號、信用卡)

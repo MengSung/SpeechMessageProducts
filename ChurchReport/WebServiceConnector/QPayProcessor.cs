@@ -29,11 +29,15 @@ namespace ChurchReport.WebServiceConnector
     public class QPayProcessor
     {
         #region 資料區
+        static ConfigurationBuilder m_ConfigurationBuilder = (ConfigurationBuilder)new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("appsettings.json");
+        static IConfiguration m_Configuration = m_ConfigurationBuilder.Build();
+
         // 商店編號
         // SANDBOX 測試用
         //string m_ShopNo = "NA0149_001";
         // 永豐金流正式環境
-        string m_ShopNo = "DA4195_001";
+        //string m_ShopNo = "DA4195_001";
+        string m_ShopNo = m_Configuration["Sinopac:ShopNo"];
 
         #region 公司內部開發
         // 使用 ChurchReport 當作 WebHook
