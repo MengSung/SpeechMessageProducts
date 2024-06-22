@@ -765,7 +765,6 @@ namespace ChurchReport.WebServiceConnector
             this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactEntity, "new_ig_account", aPersonalInfomationViewModel.Instagram);         //instagram帳號
             this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactEntity, "emailaddress1", aPersonalInfomationViewModel.Email);             //電子郵件
             this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactEntity, "new_last_six_digit", aPersonalInfomationViewModel.LastSixDigit); // 銀行帳戶後六碼
-            //this.m_ToolUtilityClass.SetEntityBoolAttribute(ref aContactEntity, "new_ntbt_ornot", aPersonalInfomationViewModel.NtbtOrNot);          // 是否上傳國稅局
             this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactEntity, "address2_line1", aPersonalInfomationViewModel.Address);          // 地址
             this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactEntity, "new_personal_id", aPersonalInfomationViewModel.PersonalId);      // 身份證字號
 
@@ -800,6 +799,12 @@ namespace ChurchReport.WebServiceConnector
             if (aPersonalInfomationViewModel.BirthDate.Year != 1919)
             {
                 this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aContactEntity, "birthdate", aPersonalInfomationViewModel.BirthDate);
+            }
+
+            // 進教會日期
+            if (aPersonalInfomationViewModel.HireDate.Year != 1919)
+            {
+                this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aContactEntity, "new_enter_church_date", aPersonalInfomationViewModel.HireDate);
             }
 
             // 性別
