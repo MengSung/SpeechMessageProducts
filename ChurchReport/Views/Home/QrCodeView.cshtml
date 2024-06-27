@@ -150,9 +150,12 @@
                                     document.getElementById('classindexfield').innerHTML = "課堂資訊: " + data.classindex;
                                     //document.getElementById('onboardtypefield').innerHTML   = "簽到退時間: "  + data.onboardtype;
                                     document.getElementById('onboardtypefield').innerHTML = data.onboardtype;
+                                    document.getElementById('displaynamefield').innerHTML = "";
                                 }
                                 else {
                                     document.getElementById('classnamefield').innerHTML = data.result;
+                                    document.getElementById('displaynamefield').innerHTML = "";
+
                                 }
                             },
 
