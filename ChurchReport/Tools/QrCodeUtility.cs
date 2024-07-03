@@ -58,6 +58,19 @@ namespace ChurchReport.Tools
         private const String SAVED_FLAG_FIELD = @"new_saved_flag";
 
         #endregion
+        #region 除錯用參數
+        private const int TOTAL_LEVEL = 1;//改變這個值，就會改追蹤的階層，值越小越不會追蹤，若是 TOTAL_LEVEL = 3 ，則大於 3 的 LEVEL，例如 : LEVEL_4、LEVEL_5 就不會被追蹤
+        //private const int TOTAL_LEVEL = 5;//改變這個值，就會改追蹤的階層，值越大越會追蹤，若是 TOTAL_LEVEL = 3 ，則大於 3 的 LEVEL，例如 : LEVEL_4、LEVEL_5 就不會被追蹤
+        private const int LEVEL_1 = 1; // 比較容易被看到的，可能是比較大範圍的部分
+        private const int LEVEL_2 = 2;
+        private const int LEVEL_3 = 3;
+        private const int LEVEL_4 = 4;
+        private const int LEVEL_5 = 5; // 比較不會被看到的，可能是比較細節的部分
+        // 如果 TRACE_LEVEL >= TRACE_LEVEL_GROUND 就會進行追蹤
+        // 如果 TRACE_LEVEL < TRACE_LEVEL_GROUND 就不會進行追蹤
+        //int TRACE_LEVEL = 5;
+        //int TRACE_LEVEL_GROUND = 3;
+        #endregion
         #endregion
         #region 初始化
         public QrCodeUtility()
@@ -76,6 +89,8 @@ namespace ChurchReport.Tools
             try
             {
                 #region 設定區域變數
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "003 : 南崁基督長老教會: 資訊 => " + DisplayName + "，" + UserName);
+
                 m_UserLineId = UserLineId;
 
                 // 取得掃描者全名
@@ -90,6 +105,8 @@ namespace ChurchReport.Tools
                     return;
                 }
                 m_UserName = UserName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref m_Contact, "fullname");
+
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "004 : 南崁基督長老教會: 資訊 => " + m_UserName);
 
                 // 取得課程
                 string[] arr = QrCodeIdString.Split('_');
@@ -108,6 +125,8 @@ namespace ChurchReport.Tools
 
                     // 設定是簽到還是簽退
                     m_OnboardType = arr[2];
+
+                    m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "005 : 南崁基督長老教會: 資訊 => " + m_OnboardType);
 
                     // 在上課紀錄單進行簽到退
                     SigningLesson(m_Lesson, ClassName, UserName, m_Contact.Id.ToString(), m_ClassIndex, m_OnboardType);
@@ -146,6 +165,8 @@ namespace ChurchReport.Tools
         {
             try
             {
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "006 : 南崁基督長老教會: 資訊 => " + m_OnboardType);
+
                 // 取得與課程相關的上課紀錄
                 //EntityCollection aStorLessonsEntityCollection = m_ToolUtilityClass.QueryEntityList("new_disciple_lessons", "new_disciple_lessonsid", aLesson.Id.ToString(), "new_new_disciple_lessons_new_stor_les", "new_stor_lessons");
                 EntityCollection aStorLessonsEntityCollection = m_ToolUtilityClass.RetrieveStorLessonsByFetchXml( LessonName, aLesson.Id.ToString(), UserName, UserId );
@@ -155,16 +176,24 @@ namespace ChurchReport.Tools
                     // 有找到上課紀錄單
                     Entity RetrievedStorLessons = this.m_ToolUtilityClass.RetrieveEntity("new_stor_lessons", aStorLessonsEntityCollection.Entities[0].Id);
 
+                    m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "007 : 南崁基督長老教會: 資訊 => " + "SigningProcess( RetrievedStorLessons, ClassIndex, OnboardType );");
+
                     // 進行簽到或是簽退或是報名
                     SigningProcess( RetrievedStorLessons, ClassIndex, OnboardType );
+
+                    m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "008 : 南崁基督長老教會: 資訊 => " + m_OnboardType);
 
                     return true;
                 }
                 else
                 {
+                    m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "009 : 南崁基督長老教會: 資訊 => " + m_OnboardType);
+
                     // 沒找到上課紀錄單
                     if (m_ClassIndex.Contains("enroll") == true)
                     {
+                        m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "010 : 南崁基督長老教會: 資訊 => " + m_OnboardType);
+
                         #region 沒找到上課紀錄單，但是是課程報名所以要建立一個上課紀錄單
                         // 建立一個上課紀錄單
                         Entity CreatededStorLessons = this.m_ToolUtilityClass.RetrieveEntity("new_stor_lessons", CreateNewStorLesson(m_Contact, ref aLesson));
@@ -179,6 +208,9 @@ namespace ChurchReport.Tools
                         SigningProcess(CreatededStorLessons, ClassIndex, OnboardType);
 
                         #endregion
+
+                        m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "011 : 南崁基督長老教會: 資訊 => " + m_OnboardType);
+
                     }
                     else
                     {
@@ -193,6 +225,8 @@ namespace ChurchReport.Tools
             catch (System.Exception Exception)
             {
                 String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
+
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
 
                 throw Exception;
             }
@@ -260,6 +294,8 @@ namespace ChurchReport.Tools
             catch (System.Exception Exception)
             {
                 String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
+
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
 
                 throw Exception;
             }

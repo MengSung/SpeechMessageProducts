@@ -4457,7 +4457,11 @@ namespace ChurchReport.Controllers
 
                 LineMessagingProcessor.UserProfile aUserProfile = new LineMessagingProcessor.UserProfile();
 
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "001 : 南崁基督長老教會: 資訊 => " + DisplayName + "，" + UserName);
+
                 aQrCodeUtility.SetupQrCodeIdString(m_InMemoryDataContextSmallGroup.ListManager.QrCodeId, DisplayName, UserLineId, ref ClassName, ref UserName, ref ClassIndex, ref OnboardType);
+
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "002: 南崁基督長老教會: 資訊 => " + DisplayName + "，" + ClassName + "，" + UserName + "，" + ClassIndex + "，" + OnboardType);
 
                 //aQrCodeUtility.SetupQrCodeIdString(m_InMemoryDataContextSmallGroup.ListManager.QrCodeId);
 
