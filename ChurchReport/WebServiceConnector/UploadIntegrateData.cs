@@ -3415,7 +3415,7 @@ namespace ChurchReport.WebServiceConnector
                         }
 
                         #region 更新個人聚會與靈修記錄
-                        //this.m_ToolUtilityClass.UpdateEntity(ref aMachedPresentRecordEntity);
+                        this.m_ToolUtilityClass.UpdateEntity(ref aMachedPresentRecordEntity);
                         #endregion
 
                     }
