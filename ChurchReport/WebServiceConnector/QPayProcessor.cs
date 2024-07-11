@@ -342,9 +342,9 @@ namespace ChurchReport.WebServiceConnector
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000006);
                     this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeEntity, "new_others", "建築奉獻");
                     break;
-                case "建築認獻":
+                case "建堂認獻":
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000006);
-                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeEntity, "new_others", "建築認獻");
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeEntity, "new_others", "建堂認獻");
                     break;
                 case "慈善獻金":
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000005);
@@ -456,9 +456,9 @@ namespace ChurchReport.WebServiceConnector
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, AttributeName, 100000006);
                     this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeEntity, "new_others", "建築奉獻");
                     break;
-                case "建築認獻":
+                case "建堂認獻":
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, AttributeName, 100000006);
-                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeEntity, "new_others", "建築認獻");
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeEntity, "new_others", "建堂認獻");
                     break;
                 case "慈善獻金":
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, AttributeName, 100000005);
