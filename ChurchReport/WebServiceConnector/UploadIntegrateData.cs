@@ -3886,7 +3886,7 @@ namespace ChurchReport.WebServiceConnector
                                 // 12.未入組 = 100,000,010
                                 // 13.暫不入組 = 100,000,012
                                 // 14.結案 = 100,000,011
-                                // 新朋友和外教會是要列入分母的
+                                // 新朋友和未入組是要列入分母的
                                 if (aCustomerTypeCode.Value != 100000005 && aCustomerTypeCode.Value != 10000007 && aCustomerTypeCode.Value != 100000001)
                                 {
                                     return true;
