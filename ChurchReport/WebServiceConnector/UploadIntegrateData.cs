@@ -3874,22 +3874,27 @@ namespace ChurchReport.WebServiceConnector
                                 //    return false;
                                 //}
 
+                                // 這邊每間教會都不一樣，要客製化尋巡一巡
                                 // 所有的委身類型都是要列入計算統計的
-                                return true;
-                                // 如果是新朋友或是未入組則不列入累積，內壢南崁基督長老教會
-                                // 10.不穩定組員   =   100,000,008
-                                // 11.新朋友       =   100,000,009
-                                // 12.未入組       =   100,000,010
-                                // 13.暫不入組     =   100,000,012
-                                // 14.結案         =   100,000,011
-                                //if (aCustomerTypeCode.Value != 100000008 && aCustomerTypeCode.Value != 100000009 && aCustomerTypeCode.Value != 100000010 && aCustomerTypeCode.Value != 100000012 && aCustomerTypeCode.Value != 100000011 )
-                                //{
-                                //    return true;
-                                //}
-                                //else
-                                //{
-                                //    return false;
-                                //}
+                                //return true;
+
+                                //如果是新朋友或是未入組則不列入累積，內壢南崁基督長老教會
+                                // 08. 幸福BEST = 100,000,005
+                                // 11. 外教會 = 100,000,007
+                                // 10.不穩定組員 = 100,000,008
+                                // 11.新朋友 = 100,000,009
+                                // 12.未入組 = 100,000,010
+                                // 13.暫不入組 = 100,000,012
+                                // 14.結案 = 100,000,011
+                                // 新朋友和外教會是要列入分母的
+                                if (aCustomerTypeCode.Value != 100000005 && aCustomerTypeCode.Value != 10000007 && aCustomerTypeCode.Value != 100000001)
+                                {
+                                    return true;
+                                }
+                                else
+                                {
+                                    return false;
+                                }
                             }
                             else
                             {
