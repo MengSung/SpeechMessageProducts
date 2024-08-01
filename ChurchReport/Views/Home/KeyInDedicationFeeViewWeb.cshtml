@@ -394,6 +394,10 @@
                                 "來逗陣",
                                 "建築奉獻",
                                 "建堂認獻",
+                                "第一堂禮拜獻金",
+                                "第二堂禮拜獻金",
+                                "學青禮拜獻金",
+                                "合併禮拜獻金",
                             }
                         )
                         //.DataSource(Model.OtherCategoryArray)
@@ -595,7 +599,7 @@
         var GlobalCategory = "";
 
         function OnCategorySelectBoxValueChanged(e) {
-            if (e.value == "其他" || e.value == "節期獻金" || e.value == "對內獻金" || e.value == "建築獻金") {
+            if (e.value == "其他" || e.value == "節期獻金" || e.value == "對內獻金" || e.value == "建築獻金" || e.value == "禮拜獻金") {
                 $("#form2").dxForm("instance").itemOption("OtherDedication", 'visible', true);
                 $("#form2").dxForm("instance").itemOption("SpecialDedicationSelectionBox", 'visible', false);
                 $("#form2").dxForm("instance").itemOption("OtherDedicationSelectionBox", 'visible', false);
