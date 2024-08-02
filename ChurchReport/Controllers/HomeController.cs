@@ -1096,6 +1096,7 @@ namespace ChurchReport.Controllers
 
                 Task.Factory.StartNew(() => m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.UploadIntegrateData
                 (
+                    m_InMemoryDataContextSmallGroup.ListManager.m_SelectDate,
                     m_InMemoryDataContextSmallGroup.ListManager.m_Account,
                     m_InMemoryDataContextSmallGroup.ListManager.m_Password,
                     m_InMemoryDataContextSmallGroup.ListManager.LoginType,
@@ -1417,6 +1418,7 @@ namespace ChurchReport.Controllers
 
                 Task.Factory.StartNew(() => m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.UploadIntegrateData
                 (
+                    m_InMemoryDataContextSmallGroup.ListManager.m_SelectDate,
                     m_InMemoryDataContextSmallGroup.ListManager.m_Account,
                     m_InMemoryDataContextSmallGroup.ListManager.m_Password,
                     m_InMemoryDataContextSmallGroup.ListManager.LoginType,
@@ -1451,6 +1453,7 @@ namespace ChurchReport.Controllers
 
                     Task.Factory.StartNew(() => m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.UploadIntegrateData
                     (
+                        m_InMemoryDataContextSmallGroup.ListManager.m_SelectDate,
                         m_InMemoryDataContextSmallGroup.ListManager.m_Account,
                         m_InMemoryDataContextSmallGroup.ListManager.m_Password,
                         m_InMemoryDataContextSmallGroup.ListManager.LoginType,
@@ -1993,6 +1996,7 @@ namespace ChurchReport.Controllers
 
                 Task.Factory.StartNew(() => m_InMemoryDataContextSmallGroup.ListManager.m_ListSmallGroupWeeklyReport.UploadIntegrateData
                 (
+                    m_InMemoryDataContextSmallGroup.ListManager.m_SelectDate,
                     m_InMemoryDataContextSmallGroup.ListManager.m_Account,
                     m_InMemoryDataContextSmallGroup.ListManager.m_Password,
                     m_InMemoryDataContextSmallGroup.ListManager.LoginType,

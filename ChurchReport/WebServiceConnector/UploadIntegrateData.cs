@@ -113,17 +113,18 @@ namespace ChurchReport.WebServiceConnector
         /// <param name="aSmallGroupData"></param>
         /// <param name="WeeklyReportData"></param>
         /// <param name="WeeklyReportAnalysis"></param>
-        public void UploadData(String Account, String Password, String LoginType, String GroupType, String ListEntityId, ref String WeeklyReportEntityId, DateTime aSmallGroupDate, SmallGroupData aSmallGroupData, ref String WeeklyReportData, ref String WeeklyReportAnalysis, String HappyWeekIndex, String HappyWeekTopic, bool PauseCheckBox)
+        public void UploadData( DateTime aSelectedDate, String Account, String Password, String LoginType, String GroupType, String ListEntityId, ref String WeeklyReportEntityId, DateTime aSmallGroupDate, SmallGroupData aSmallGroupData, ref String WeeklyReportData, ref String WeeklyReportAnalysis, String HappyWeekIndex, String HappyWeekTopic, bool PauseCheckBox)
         {
             try
             {
+                //ListManager
                 // 設定初始值
                 m_LoginType = LoginType;
                 m_GroupType = GroupType;
 
                 // 設定參數，設定主日日期，找到操作使用者登入的ENTITY及ID
                 this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "設定參數");
-                SetupCommonParameter(Account, Password, aSmallGroupDate, ListEntityId, WeeklyReportEntityId);
+                SetupCommonParameter(aSelectedDate, Account, Password, aSmallGroupDate, ListEntityId, WeeklyReportEntityId);
 
                 Entity aGraceLeaderWeeklyReportEntity = null;// 區長的週報
 
@@ -502,7 +503,7 @@ namespace ChurchReport.WebServiceConnector
                 throw Exception;
             }
         }
-        private void SetupCommonParameter(String Account, String Password, DateTime aSmallGroupDate, String ListEntityId, String WeeklyReportEntityId)
+        private void SetupCommonParameter(DateTime aSelectDate, String Account, String Password, DateTime aSmallGroupDate, String ListEntityId, String WeeklyReportEntityId)
         {
             try
             {
@@ -518,12 +519,12 @@ namespace ChurchReport.WebServiceConnector
                 if (DayOfWeek != 6)
                 {
                     // 如果不是星期六則是上個星期天
-                    m_Sunday = DateTime.Now.AddDays(-DayOfWeek);
+                    m_Sunday = aSelectDate.AddDays(-DayOfWeek);
                 }
                 else
                 {
                     // 如果是星期六則是下個星期天
-                    m_Sunday = DateTime.Now.AddDays(1);
+                    m_Sunday = aSelectDate.AddDays(1);
                 }
                 #endregion
 

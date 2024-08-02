@@ -89,12 +89,12 @@ namespace ChurchReport.WebServiceConnector
             if (DayOfWeek != 6)
             {
                 // 如果不是星期六則是上個星期天
-                m_Sunday = DateTime.Now.AddDays(-DayOfWeek);
+                m_Sunday = aDownloadDate.AddDays(-DayOfWeek);
             }
             else
             {
                 // 如果是星期六則是下個星期天
-                m_Sunday = DateTime.Now.AddDays(1);
+                m_Sunday = aDownloadDate.AddDays(1);
             }
             #endregion
 

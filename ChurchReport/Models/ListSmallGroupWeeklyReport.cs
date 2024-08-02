@@ -72,7 +72,7 @@ namespace ChurchReport.Models
 
         #endregion
         #endregion
-        public void UploadIntegrateData(String Account, String Password, String LoginType, SmallGroupData aSmallGroupData, String aWeeklyReportData, String HappyWeekIndex, String HappyWeekTopic, bool PauseCheckBox)
+        public void UploadIntegrateData( DateTime aSelectedDate, String Account, String Password, String LoginType, SmallGroupData aSmallGroupData, String aWeeklyReportData, String HappyWeekIndex, String HappyWeekTopic, bool PauseCheckBox)
         {
             WeeklyReportData = aWeeklyReportData;
             HappyWeekIndex = HappyWeekIndex;
@@ -80,7 +80,7 @@ namespace ChurchReport.Models
             PauseCheckBox = PauseCheckBox;
 
             //ChurchReport.Models.ListSmallGroupWeeklyReport
-            m_UploadIntegrateData.UploadData(Account, Password, LoginType, GroupType, ListEntityId, ref WeeklyReportEntityId, SundayPrayers, aSmallGroupData, ref WeeklyReportData, ref WeeklyReportAnalysis, HappyWeekIndex, HappyWeekTopic, PauseCheckBox);
+            m_UploadIntegrateData.UploadData(aSelectedDate, Account, Password, LoginType, GroupType, ListEntityId, ref WeeklyReportEntityId, SundayPrayers, aSmallGroupData, ref WeeklyReportData, ref WeeklyReportAnalysis, HappyWeekIndex, HappyWeekTopic, PauseCheckBox);
 
             return;
         }
@@ -288,7 +288,27 @@ namespace ChurchReport.Models
                 #endregion
 
                 #region 設定主日聚會日期
-                m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aPresentRecord, "new_sunday_date", DateTime.Now.AddDays(-(int)DateTime.Now.DayOfWeek));
+                #region 先根據日期尋找當週主日日期
+                // 其值的範圍從 0 (表示 DayOfWeek.Sunday) 為 6 (表示 DayOfWeek.Saturday)。
+                int DayOfWeek = (int)DateTime.Now.DayOfWeek;
+
+                // 當週的星期日為認定的主日
+                //this.m_Sunday = DateTime.Now.AddDays(-DayOfWeek);
+                DateTime aSunday;
+                // 每周以星期六為第一日
+                if (DayOfWeek != 6)
+                {
+                    // 如果不是星期六則是上個星期天
+                    aSunday = DateTime.Now.AddDays(-DayOfWeek);
+                }
+                else
+                {
+                    // 如果是星期六則是下個星期天
+                    aSunday = DateTime.Now.AddDays(1);
+                }
+                #endregion
+
+                m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aPresentRecord, "new_sunday_date", aSunday);
                 #endregion
 
                 #region 設定小組聚會日期
