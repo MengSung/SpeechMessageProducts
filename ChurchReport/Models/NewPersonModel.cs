@@ -49,10 +49,33 @@ namespace ChurchReport.Models
             {
                 m_PersonFormViewModel.GroupArray.Add(aWeeklyReportRecord.Name);
 
-                if(aWeeklyReportRecord.ListEntityId == ActiveListId)
+                if (aWeeklyReportRecord.ListEntityId == ActiveListId)
                 {
                     m_PersonFormViewModel.Position = aWeeklyReportRecord.Name;
                 }
+            }
+        }
+        public void SetupGroupArray(List<WeeklyReportRecord> aWeeklyReportRecordListData, String ActiveListId, String LoginType)
+        {
+            m_PersonFormViewModel.GroupArray.Clear();
+
+            if (LoginType != "個人回報")
+            {
+                foreach (WeeklyReportRecord aWeeklyReportRecord in aWeeklyReportRecordListData)
+                {
+                    m_PersonFormViewModel.GroupArray.Add(aWeeklyReportRecord.Name);
+
+                    if (aWeeklyReportRecord.ListEntityId == ActiveListId)
+                    {
+                        m_PersonFormViewModel.Position = aWeeklyReportRecord.Name;
+                    }
+                }
+            }
+            else
+            {
+                //如果是個人新增新人就固定進入"新人關懷小組"
+                m_PersonFormViewModel.GroupArray.Add("新人關懷小組");
+                m_PersonFormViewModel.Position = "新人關懷小組";
             }
         }
         public String UploadNewPerson( String Account, String Password, PersonFormViewModel aPersonFormViewModel)

@@ -3402,7 +3402,8 @@ namespace ChurchReport.Controllers
                 }
 
                 // 設定要加入的小組名稱
-                m_InMemoryDataContextSmallGroup.NewPersonModel.SetupGroupArray(m_InMemoryDataContextSmallGroup.ListManager.m_MultiGroupList.m_WeeklyReportRecordListData, m_InMemoryDataContextSmallGroup.ListManager.ActiveListId);
+                //m_InMemoryDataContextSmallGroup.NewPersonModel.SetupGroupArray(m_InMemoryDataContextSmallGroup.ListManager.m_MultiGroupList.m_WeeklyReportRecordListData, m_InMemoryDataContextSmallGroup.ListManager.ActiveListId);
+                m_InMemoryDataContextSmallGroup.NewPersonModel.SetupGroupArray(m_InMemoryDataContextSmallGroup.ListManager.m_MultiGroupList.m_WeeklyReportRecordListData, m_InMemoryDataContextSmallGroup.ListManager.ActiveListId, m_InMemoryDataContextSmallGroup.ListManager.LoginType);
 
                 return View(m_InMemoryDataContextSmallGroup.NewPersonModel.m_PersonFormViewModel);
             }
