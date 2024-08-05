@@ -55,6 +55,7 @@
           "Microsoft.CrmSdk.CoreAssemblies": "8.2.0.2",
           "Microsoft.VisualStudio.Web.BrowserLink.Loader": "14.1.0",
           "ToolUtility": "1.0.0",
+          "LinePay.Reference": "1.0.0.0",
           "Microsoft.CSharp.Reference": "4.0.0.0",
           "Microsoft.Win32.Primitives.Reference": "4.0.3.0",
           "System.AppContext.Reference": "4.1.2.0",
@@ -2170,6 +2171,11 @@
         "compile": {
           "Trace.dll": {}
         }
+      },
+      "LinePay.Reference/1.0.0.0": {
+        "compile": {
+          "LinePay.dll": {}
+        }
       }
     },
     ".NETFramework,Version=v4.7.1/win7-x86": {
@@ -2193,6 +2199,7 @@
           "Microsoft.CrmSdk.CoreAssemblies": "8.2.0.2",
           "Microsoft.VisualStudio.Web.BrowserLink.Loader": "14.1.0",
           "ToolUtility": "1.0.0",
+          "LinePay.Reference": "1.0.0.0",
           "Microsoft.CSharp.Reference": "4.0.0.0",
           "Microsoft.Win32.Primitives.Reference": "4.0.3.0",
           "System.AppContext.Reference": "4.1.2.0",
@@ -3659,6 +3666,11 @@
           "Trace.dll": {}
         }
       },
+      "LinePay.Reference/1.0.0.0": {
+        "runtime": {
+          "LinePay.dll": {}
+        }
+      },
       "RestSharp/105.2.3.0": {
         "runtime": {
           "RestSharp.dll": {}
@@ -4102,7 +4114,7 @@
     "Microsoft.CodeAnalysis.Analyzers/1.1.0": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-JvzO/F5u/ixLstjoiMZsEpbtNIyDgyrHgef2UnUfUTs69EvX2L7DKWLbgRGLw6J8kVKbK6/yQ4iGSRZZaNd/6A==",
+      "sha512": "sha512-HS3iRWZKcUw/8eZ/08GXKY2Bn7xNzQPzf8gRPHGSowX7u7XXu9i9YEaBeBNKUXWfI7qjvT2zXtLUvbN0hds8vg==",
       "path": "microsoft.codeanalysis.analyzers/1.1.0",
       "hashPath": "microsoft.codeanalysis.analyzers.1.1.0.nupkg.sha512"
     },
@@ -4515,7 +4527,7 @@
     "System.Diagnostics.StackTrace/4.3.0": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-qifq5wy0PbQDGlb1UyCMPAxXBofTQNgP5NtyefIWsAoybFIaEj8lzQ5rVV6nuJQB/7e2lOKbaCbwEQg3Hjd3IA==",
+      "sha512": "sha512-BiHg0vgtd35/DM9jvtaC1eKRpWZxr0gcQd643ABG7GnvSlf5pOkY2uyd42mMOJoOmKvnpNj0F4tuoS1pacTwYw==",
       "path": "system.diagnostics.stacktrace/4.3.0",
       "hashPath": "system.diagnostics.stacktrace.4.3.0.nupkg.sha512"
     },
@@ -4858,14 +4870,14 @@
     "System.Threading.Tasks.Parallel/4.3.0": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-J4x/7jlXtXkTT1BH/bDqqRhlx+hIXyQJUouifOc7t34uee+FTXR1LCKekZX1xpJyluHE1ZKEV0tQQiErpH43XQ==",
+      "sha512": "sha512-cbjBNZHf/vQCfcdhzx7knsiygoCKgxL8mZOeocXZn5gWhCdzHIq6bYNKWX0LAJCWYP7bds4yBK8p06YkP0oa0g==",
       "path": "system.threading.tasks.parallel/4.3.0",
       "hashPath": "system.threading.tasks.parallel.4.3.0.nupkg.sha512"
     },
     "System.Threading.Thread/4.3.0": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-YvxJA2xZKmVgMy8/eC+Bo+957KVS7tSiJ3PLUcH3J/49uLkI10LudLhYxatOCNXJrG7Ukv8iKZmmi8aGJeW0ew==",
+      "sha512": "sha512-OHmbT+Zz065NKII/ZHcH9XO1dEuLGI1L2k7uYss+9C1jLxTC9kTZZuzUOyXHayRk+dft9CiDf3I/QZ0t8JKyBQ==",
       "path": "system.threading.thread/4.3.0",
       "hashPath": "system.threading.thread.4.3.0.nupkg.sha512"
     },
@@ -4940,6 +4952,11 @@
     },
     "Trace/1.0.0": {
       "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "LinePay.Reference/1.0.0.0": {
+      "type": "reference",
       "serviceable": false,
       "sha512": ""
     },

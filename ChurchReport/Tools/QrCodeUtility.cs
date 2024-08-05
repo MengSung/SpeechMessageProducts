@@ -49,8 +49,8 @@ namespace ChurchReport.Tools
 
         private DateTime m_SigningTime;
         // 客製化
-        // 南崁基督長老教會
-        private const String CHANNEL_ACCESS_TOKEN = @"m7bC4vm/2pA8VEBbHZ1YHdr0iz4fmOMWqT1jEZg+62DFvGEEfY7JEJ7up5gNdpJ3DSZHFmr+YZpEu02B15B4ZMx7s03ZeLqZi1lSmpxsA04Zi6cOJlQemlXjlUMlh+HOKb3BfOhOPY+hYtMbH2tUXQdB04t89/1O/w1cDnyilFU=";
+        // 迦南基督長老教會
+        private const String CHANNEL_ACCESS_TOKEN = @"ZruImm1O8UprkbqAbxKlD/s1Y2gKPfN2lMgyGtC7LOyEgtufMIBoOzhDb998UiVcNHx+KKnrzXp4KUKYdfxWbBEjWhS9hbzuc4x/LDuGdeAbnrqi6o/UjUlOgXSZV1NzAw3hoSfwrNPN0fSJpEBZCAdB04t89/1O/w1cDnyilFU=";
 
 
         // 神學生預設費用
@@ -76,7 +76,7 @@ namespace ChurchReport.Tools
         public QrCodeUtility()
         {
             // 客製化，請選擇
-            // 南崁基督長老教會(免費版)
+            // 迦南基督長老教會(免費版)
             this.m_LineMessagingClient = new LineMessagingClient(CHANNEL_ACCESS_TOKEN);
 
             // 客製化
@@ -89,7 +89,7 @@ namespace ChurchReport.Tools
             try
             {
                 #region 設定區域變數
-                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "003 : 南崁基督長老教會: 資訊 => " + DisplayName + "，" + UserName);
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "003 : 迦南基督長老教會: 資訊 => " + DisplayName + "，" + UserName);
 
                 m_UserLineId = UserLineId;
 
@@ -100,13 +100,13 @@ namespace ChurchReport.Tools
                     // 透過 LINE ID 找不到此好友，可能還沒加入官LINE@
                     //this.AddNewFriend( DisplayName, UserLineId );
 
-                    OnboardType = "錯誤 : " + DisplayName + "還沒有加入南崁基督長老教會的 Line@" ;
+                    OnboardType = "錯誤 : " + DisplayName + "還沒有加入迦南基督長老教會的 Line@" ;
 
                     return;
                 }
                 m_UserName = UserName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref m_Contact, "fullname");
 
-                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "004 : 南崁基督長老教會: 資訊 => " + m_UserName);
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "004 : 迦南基督長老教會: 資訊 => " + m_UserName);
 
                 // 取得課程
                 string[] arr = QrCodeIdString.Split('_');
@@ -126,7 +126,7 @@ namespace ChurchReport.Tools
                     // 設定是簽到還是簽退
                     m_OnboardType = arr[2];
 
-                    m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "005 : 南崁基督長老教會: 資訊 => " + m_OnboardType);
+                    m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "005 : 迦南基督長老教會: 資訊 => " + m_OnboardType);
 
                     // 在上課紀錄單進行簽到退
                     SigningLesson(m_Lesson, ClassName, UserName, m_Contact.Id.ToString(), m_ClassIndex, m_OnboardType);
@@ -165,7 +165,7 @@ namespace ChurchReport.Tools
         {
             try
             {
-                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "006 : 南崁基督長老教會: 資訊 => " + m_OnboardType);
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "006 : 迦南基督長老教會: 資訊 => " + m_OnboardType);
 
                 // 取得與課程相關的上課紀錄
                 //EntityCollection aStorLessonsEntityCollection = m_ToolUtilityClass.QueryEntityList("new_disciple_lessons", "new_disciple_lessonsid", aLesson.Id.ToString(), "new_new_disciple_lessons_new_stor_les", "new_stor_lessons");
@@ -176,23 +176,23 @@ namespace ChurchReport.Tools
                     // 有找到上課紀錄單
                     Entity RetrievedStorLessons = this.m_ToolUtilityClass.RetrieveEntity("new_stor_lessons", aStorLessonsEntityCollection.Entities[0].Id);
 
-                    m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "007 : 南崁基督長老教會: 資訊 => " + "SigningProcess( RetrievedStorLessons, ClassIndex, OnboardType );");
+                    m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "007 : 迦南基督長老教會: 資訊 => " + "SigningProcess( RetrievedStorLessons, ClassIndex, OnboardType );");
 
                     // 進行簽到或是簽退或是報名
                     SigningProcess( RetrievedStorLessons, ClassIndex, OnboardType );
 
-                    m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "008 : 南崁基督長老教會: 資訊 => " + m_OnboardType);
+                    m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "008 : 迦南基督長老教會: 資訊 => " + m_OnboardType);
 
                     return true;
                 }
                 else
                 {
-                    m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "009 : 南崁基督長老教會: 資訊 => " + m_OnboardType);
+                    m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "009 : 迦南基督長老教會: 資訊 => " + m_OnboardType);
 
                     // 沒找到上課紀錄單
                     if (m_ClassIndex.Contains("enroll") == true)
                     {
-                        m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "010 : 南崁基督長老教會: 資訊 => " + m_OnboardType);
+                        m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "010 : 迦南基督長老教會: 資訊 => " + m_OnboardType);
 
                         #region 沒找到上課紀錄單，但是是課程報名所以要建立一個上課紀錄單
                         // 建立一個上課紀錄單
@@ -209,7 +209,7 @@ namespace ChurchReport.Tools
 
                         #endregion
 
-                        m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "011 : 南崁基督長老教會: 資訊 => " + m_OnboardType);
+                        m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "011 : 迦南基督長老教會: 資訊 => " + m_OnboardType);
 
                     }
                     else

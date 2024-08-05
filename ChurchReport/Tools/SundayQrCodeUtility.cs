@@ -43,8 +43,8 @@ namespace ChurchReport.Tools
         static readonly object m_UpdateSundayWeeklyReportLocker = new object();//避免多人同時輸入"小組出席"，會產生2個週報或是改變"委身類型"、"裝備狀態"                                                                 //private const bool RACE_LEADER_CAN_CREATE_WEEKLYREPORT = false; // 族系組長能否幫小組長建立週報，false 不可以
 
         // 客製化
-        // 南崁基督長老教會
-        private const String CHANNEL_ACCESS_TOKEN = @"m7bC4vm/2pA8VEBbHZ1YHdr0iz4fmOMWqT1jEZg+62DFvGEEfY7JEJ7up5gNdpJ3DSZHFmr+YZpEu02B15B4ZMx7s03ZeLqZi1lSmpxsA04Zi6cOJlQemlXjlUMlh+HOKb3BfOhOPY+hYtMbH2tUXQdB04t89/1O/w1cDnyilFU=";
+        // 迦南基督長老教會
+        private const String CHANNEL_ACCESS_TOKEN = @"ZruImm1O8UprkbqAbxKlD/s1Y2gKPfN2lMgyGtC7LOyEgtufMIBoOzhDb998UiVcNHx+KKnrzXp4KUKYdfxWbBEjWhS9hbzuc4x/LDuGdeAbnrqi6o/UjUlOgXSZV1NzAw3hoSfwrNPN0fSJpEBZCAdB04t89/1O/w1cDnyilFU=";
 
         // 掃描 QR CODE之後是否發送 LINE通知
         private const bool SEND_LINE_NOTIFICATION = false;
@@ -55,7 +55,7 @@ namespace ChurchReport.Tools
         public SundayQrCodeUtility()
         {
             // 客製化，請選擇
-            // 南崁基督長老教會(免費版)
+            // 迦南基督長老教會(免費版)
             this.m_LineMessagingClient = new LineMessagingClient(CHANNEL_ACCESS_TOKEN);
 
             // 客製化
@@ -79,7 +79,7 @@ namespace ChurchReport.Tools
                     // 透過 LINE ID 找不到此好友，可能還沒加入官LINE@
                     //this.AddNewFriend(DisplayName, UserLineId);
 
-                    OnboardType = "錯誤 : " + DisplayName + "還沒有加入南崁基督長老教會的 Line@";
+                    OnboardType = "錯誤 : " + DisplayName + "還沒有加入迦南基督長老教會的 Line@";
 
                     return;
                 }

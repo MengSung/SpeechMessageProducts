@@ -52,8 +52,8 @@ namespace ChurchReport.Tools
 
         private DateTime m_SigningTime;
         // 客製化
-        // 南崁基督長老教會
-        private const String CHANNEL_ACCESS_TOKEN = @"m7bC4vm/2pA8VEBbHZ1YHdr0iz4fmOMWqT1jEZg+62DFvGEEfY7JEJ7up5gNdpJ3DSZHFmr+YZpEu02B15B4ZMx7s03ZeLqZi1lSmpxsA04Zi6cOJlQemlXjlUMlh+HOKb3BfOhOPY+hYtMbH2tUXQdB04t89/1O/w1cDnyilFU=";
+        // 迦南基督長老教會
+        private const String CHANNEL_ACCESS_TOKEN = @"ZruImm1O8UprkbqAbxKlD/s1Y2gKPfN2lMgyGtC7LOyEgtufMIBoOzhDb998UiVcNHx+KKnrzXp4KUKYdfxWbBEjWhS9hbzuc4x/LDuGdeAbnrqi6o/UjUlOgXSZV1NzAw3hoSfwrNPN0fSJpEBZCAdB04t89/1O/w1cDnyilFU=";
 
         // 神學生預設費用
         private const decimal GOD_STUDENT_FEE = 400;
@@ -65,7 +65,7 @@ namespace ChurchReport.Tools
         public SmallGroupQrCodeUtility()
         {
             // 客製化，請選擇
-            // 南崁基督長老教會(免費版)
+            // 迦南基督長老教會(免費版)
             this.m_LineMessagingClient = new LineMessagingClient(CHANNEL_ACCESS_TOKEN);
 
             // 客製化
@@ -89,7 +89,7 @@ namespace ChurchReport.Tools
                     // 如果好友不存在，則新增好友，新加入好友
                     AddNewFriend(DisplayName, UserLineId);
 
-                    //OnboardType = "錯誤 : " + DisplayName + "還沒有加入南崁基督長老教會的 Line@";
+                    //OnboardType = "錯誤 : " + DisplayName + "還沒有加入迦南基督長老教會的 Line@";
 
                     //return;
                 }
@@ -347,7 +347,7 @@ namespace ChurchReport.Tools
                 //this.m_ToolUtilityClass.SetEntityStringAttribute(ref m_Contact, "new_line_status_message", aUserProfile.StatusMessage);
                 this.m_ToolUtilityClass.SetEntityBoolAttribute(ref m_Contact, "new_line_register", false);
 
-                // 委身類型客製化，客製委身類型欄位，每間教會委身類型都不一樣，南崁基督長老教會豐富教會=>"新朋友" = 100000000
+                // 委身類型客製化，客製委身類型欄位，每間教會委身類型都不一樣，迦南基督長老教會豐富教會=>"新朋友" = 100000000
                 // 設定成為 新朋友 的委身類型
                 this.m_ToolUtilityClass.SetOptionSetAttribute(ref m_Contact, "customertypecode", 100000000);
 
@@ -401,7 +401,7 @@ namespace ChurchReport.Tools
                         Entity aNewContactEntity = this.m_ToolUtilityClass.RetrieveEntity("contact", NewContactEntityId);
                         EntityReference aListEntityReference = new EntityReference("list", aListEntity.Id);
 
-                        // 南崁基督長老教會
+                        // 迦南基督長老教會
                         this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aNewContactEntity, "new_list_contact", ref aListEntityReference);
 
                         this.m_ToolUtilityClass.UpdateEntity(ref aNewContactEntity);

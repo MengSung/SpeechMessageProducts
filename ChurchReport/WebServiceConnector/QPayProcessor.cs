@@ -35,23 +35,27 @@ namespace ChurchReport.WebServiceConnector
         // 商店編號
         // SANDBOX 測試用
         //string m_ShopNo = "NA0149_001";
+        private string m_ShopNo = m_Configuration["Sandbox:ShopNo"];
+
         // 永豐金流正式環境
         //string m_ShopNo = "DA4195_001";
-        private string m_ShopNo = m_Configuration["Sinopac:ShopNo"];
+        //private string m_ShopNo = m_Configuration["Sinopac:ShopNo"];
 
         #region 公司內部開發
         // 使用 ChurchReport 當作 WebHook
         //private const String RETURN_URL = "https://nankanchurchback.speechmessage.com.tw:480/api/QPayCard/QPayReturnUrl";
         //private const String BACKEND_URL = "http://QPbackendback.speechmessage.com.tw/api/QPayAtm/QPayBackendUrl";// 公司內部開發
+        private readonly String RETURN_URL = m_Configuration["RETURN_URL"];
+        private readonly String BACKEND_URL = m_Configuration["BACKEND_URL"];// 公司內部開發
         #endregion
         #region 雲端機房
-        private const String RETURN_URL = "https://nankanchurch.speechmessage.com.tw:335/api/QPayCard/QPayReturnUrl";
-        private const String BACKEND_URL = "http://QPaybackend.speechmessage.com.tw/api/QPayAtm/QPayBackendUrl"; // 雲端機房
+        //private const String RETURN_URL = "https://nankanchurch.speechmessage.com.tw:335/api/QPayCard/QPayReturnUrl";
+        //private const String BACKEND_URL = "http://QPaybackend.speechmessage.com.tw/api/QPayAtm/QPayBackendUrl"; // 雲端機房
         #endregion
 
-        // 客製化
-        // 南崁基督長老教會
-        private const String CHANNEL_ACCESS_TOKEN = @"m7bC4vm/2pA8VEBbHZ1YHdr0iz4fmOMWqT1jEZg+62DFvGEEfY7JEJ7up5gNdpJ3DSZHFmr+YZpEu02B15B4ZMx7s03ZeLqZi1lSmpxsA04Zi6cOJlQemlXjlUMlh+HOKb3BfOhOPY+hYtMbH2tUXQdB04t89/1O/w1cDnyilFU=";
+        //  
+        // 迦南基督長老教會
+        private const String CHANNEL_ACCESS_TOKEN = @"ZruImm1O8UprkbqAbxKlD/s1Y2gKPfN2lMgyGtC7LOyEgtufMIBoOzhDb998UiVcNHx+KKnrzXp4KUKYdfxWbBEjWhS9hbzuc4x/LDuGdeAbnrqi6o/UjUlOgXSZV1NzAw3hoSfwrNPN0fSJpEBZCAdB04t89/1O/w1cDnyilFU=";
 
         //private LinePayClient m_LinePayClient { get; }
 
@@ -72,7 +76,7 @@ namespace ChurchReport.WebServiceConnector
         public Entity m_LoginContact;
 
         // 客製化
-        private const String QPAY_ORGANIZATION = "nankanchurch";
+        private readonly String QPAY_ORGANIZATION = m_Configuration["QPAY_ORGANIZATION"];
 
         #endregion
         #region 初始化
@@ -1356,7 +1360,7 @@ namespace ChurchReport.WebServiceConnector
                     B22 = "48737E77D6864915";
                     return A21 + "," + A22 + "," + B21 + "," + B22;
                 case "DA4195_001":
-                    // 南崁基督長老教會
+                    // 迦南基督長老教會
                     A21 = "B83DCBFA2D994F19";
                     A22 = "6ED32787DA504871";
                     B21 = "13E56D7A39AB4768";
