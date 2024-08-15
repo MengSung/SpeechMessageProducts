@@ -45,13 +45,14 @@ namespace ChurchReport.WebServiceConnector
         // 使用 ChurchReport 當作 WebHook
         //private const String RETURN_URL = "https://nankanchurchback.speechmessage.com.tw:480/api/QPayCard/QPayReturnUrl";
         //private const String BACKEND_URL = "http://QPbackendback.speechmessage.com.tw/api/QPayAtm/QPayBackendUrl";// 公司內部開發
-        private readonly String RETURN_URL = m_Configuration["RETURN_URL"];
-        private readonly String BACKEND_URL = m_Configuration["BACKEND_URL"];// 公司內部開發
         #endregion
         #region 雲端機房
         //private const String RETURN_URL = "https://nankanchurch.speechmessage.com.tw:335/api/QPayCard/QPayReturnUrl";
         //private const String BACKEND_URL = "http://QPaybackend.speechmessage.com.tw/api/QPayAtm/QPayBackendUrl"; // 雲端機房
         #endregion
+
+        private readonly String RETURN_URL = m_Configuration["RETURN_URL"];
+        private readonly String BACKEND_URL = m_Configuration["BACKEND_URL"];// 公司內部開發
 
         //  
         // 迦南基督長老教會
