@@ -389,7 +389,6 @@
                                 "感恩節",
                                 "聖誔節",
                                 "清明節",
-                                "父親節",
                                 "重陽節",
                                 "培靈",
                                 "佈道",
@@ -605,6 +604,7 @@
         function OnCategorySelectBoxValueChanged(e) {
             if (e.value == "其他" || e.value == "節期獻金" || e.value == "對內獻金" || e.value == "建築獻金" || e.value == "禮拜獻金") {
                 $("#form2").dxForm("instance").itemOption("OtherDedication", 'visible', true);
+                $("#form2").dxForm("instance").updateData('OtherDedication', "");
                 $("#form2").dxForm("instance").itemOption("SpecialDedicationSelectionBox", 'visible', false);
                 $("#form2").dxForm("instance").itemOption("OtherDedicationSelectionBox", 'visible', false);
 
@@ -612,11 +612,15 @@
             else if (e.value == "特別獻金") {
                 $("#form2").dxForm("instance").itemOption("OtherDedication", 'visible', false);
                 $("#form2").dxForm("instance").itemOption("SpecialDedicationSelectionBox", 'visible', true);
+                $("#form2").dxForm("instance").updateData('SpecialDedicationSelectionBox', "");
                 $("#form2").dxForm("instance").itemOption("OtherDedicationSelectionBox", 'visible', false);
             }
 
             else {
                 $("#form2").dxForm("instance").itemOption("OtherDedication", 'visible', false);
+                $("#form2").dxForm("instance").itemOption("SpecialDedicationSelectionBox", 'visible', false);
+                $("#form2").dxForm("instance").updateData('OtherDedication', "");
+                $("#form2").dxForm("instance").updateData('SpecialDedicationSelectionBox', "");
             }
         }
         function moveEditColumnToLeft(dataGrid) {
