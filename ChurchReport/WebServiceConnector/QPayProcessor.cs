@@ -360,8 +360,20 @@ namespace ChurchReport.WebServiceConnector
                 case "聖餐獻金":
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000017);
                     break;
-                case "宣教獻金(聖餐)":
+                case "宣教基金":
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000007);
+                    break;
+                case "松年大學":
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000018);
+                    break;
+                case "友愛基金":
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000019);
+                    break;
+                case "生日助學金":
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000020);
+                    break;
+                case "青年宣教基金":
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000021);
                     break;
                 case "禮拜獻金":
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000010);
@@ -375,7 +387,7 @@ namespace ChurchReport.WebServiceConnector
                 case "借入款":
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000013);
                     break;
-                case "補助款":
+                case "補助金":
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000014);
                     break;
                 case "專帳其他收入(利息)":
@@ -383,6 +395,9 @@ namespace ChurchReport.WebServiceConnector
                     break;
                 case "特別獻金":
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000008);
+                    break;
+                case "償還借款準備金":
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000016);
                     break;
                 default:
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000000);
@@ -474,8 +489,20 @@ namespace ChurchReport.WebServiceConnector
                 case "聖餐獻金":
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, AttributeName, 100000017);
                     break;
-                case "宣教獻金(聖餐)":
+                case "宣教基金":
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, AttributeName, 100000007);
+                    break;
+                case "松年大學":
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, AttributeName, 100000018);
+                    break;
+                case "友愛基金":
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, AttributeName, 100000019);
+                    break;
+                case "生日助學金":
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, AttributeName, 100000020);
+                    break;
+                case "青年宣教基金":
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, AttributeName, 100000021);
                     break;
                 case "禮拜獻金":
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, AttributeName, 100000010);
@@ -489,7 +516,7 @@ namespace ChurchReport.WebServiceConnector
                 case "借入款":
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, AttributeName, 100000013);
                     break;
-                case "補助款":
+                case "補助金":
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, AttributeName, 100000014);
                     break;
                 case "專帳其他收入(利息)":
@@ -497,6 +524,9 @@ namespace ChurchReport.WebServiceConnector
                     break;
                 case "特別獻金":
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, AttributeName, 100000008);
+                    break;
+                case "償還借款準備金":
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, AttributeName, 100000016);
                     break;
                 default:
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, AttributeName, 100000000);

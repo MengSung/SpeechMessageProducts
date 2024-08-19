@@ -1275,7 +1275,15 @@ namespace ChurchReport.Models
                 case 100000017:
                     return "聖餐獻金";
                 case 100000007:
-                    return "宣教獻金(聖餐)";
+                    return "宣教基金";
+                case 100000018:
+                    return "松年大學";
+                case 100000019:
+                    return "友愛基金";
+                case 100000020:
+                    return "生日助學金";
+                case 100000021:
+                    return "青年宣教基金";
                 case 100000010:
                     return "禮拜獻金";
                 case 100000011:
@@ -1283,11 +1291,13 @@ namespace ChurchReport.Models
                 case 100000013:
                     return "借入款";
                 case 100000014:
-                    return "補助款";
+                    return "補助金";
                 case 100000015:
                     return "專帳其他收入(利息)";
                 case 100000008:
                     return "特別獻金";
+                case 100000016:
+                    return "償還借款準備金";
                 default:
                     return "月定獻金";
             }
@@ -1315,7 +1325,15 @@ namespace ChurchReport.Models
                 case 100000017:
                     return "聖餐獻金";
                 case 100000007:
-                    return "宣教獻金(聖餐)";
+                    return "宣教基金";
+                case 100000018:
+                    return "松年大學";
+                case 100000019:
+                    return "友愛基金";
+                case 100000020:
+                    return "生日助學金";
+                case 100000021:
+                    return "青年宣教基金";
                 case 100000010:
                     return "禮拜獻金";
                 case 100000011:
@@ -1323,11 +1341,13 @@ namespace ChurchReport.Models
                 case 100000013:
                     return "借入款";
                 case 100000014:
-                    return "補助款";
+                    return "補助金";
                 case 100000015:
                     return "專帳其他收入(利息)";
                 case 100000008:
                     return "特別獻金";
+                case 100000016:
+                    return "償還借款準備金";
                 default:
                     return "月定獻金";
             }
