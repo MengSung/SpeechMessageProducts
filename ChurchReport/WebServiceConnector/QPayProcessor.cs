@@ -973,7 +973,7 @@ namespace ChurchReport.WebServiceConnector
                         return this.m_ToolUtilityClass.RetrieveEntityByField("contact", "telephone2", QpayModel.Mobile);
                     }
                 }
-                else if (QpayModel.FullName != "")
+                else if ( QpayModel.FullName != "" && QpayModel.FullName != null )
                 {
                     // 連絡人沒有奉獻編號及行動電話，但是有姓名
                     EntityCollection aContactEntitycollection = this.m_ToolUtilityClass.RetrieveContactEntityByFullNameCollection(QpayModel.FullName);
