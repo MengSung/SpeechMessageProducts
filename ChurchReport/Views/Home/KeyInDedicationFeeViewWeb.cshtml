@@ -312,6 +312,7 @@
                         "迦南基督長老教會",
                     }
                 )
+                .Value("迦南基督長老教會")
                 .Placeholder("請選擇奉獻地點")
             );
             items.AddSimpleFor
@@ -334,6 +335,8 @@
                        "其他收入",
                        "建築獻金",
                        "對外獻金",
+                       "對外獻金-本宗",
+                       "對外獻金-非本宗",
                        "獎學獻金",
                        "宣教基金",
                        "松年大學",
@@ -401,7 +404,35 @@
                                 "第一堂禮拜獻金",
                                 "第二堂禮拜獻金",
                                 "合併禮拜獻金",
-                            }
+                                "迦光教會",
+                                "獅潭教會",
+                                "台灣教會公報社",
+                                "聖經學院",
+                                "竹中宣教基金",
+                                "總會原住民事工",
+                                "台南神學院",
+                                "傳播基金會",
+                                "竹中大專事工",
+                                "客宣事工奉獻",
+                                "玉山神學院",
+                                "竹中松年事工",
+                                "台灣神學院",
+                                "竹中教育事工",
+                                "退休傳教師",
+                                "台中中清教會",
+                                "退休傳教師台灣基督長老教會台灣女子神學院",
+                                "頭城基督教會",
+                                "蘆竹教會",
+                                "大竹教會",
+                                "壽豐教會",
+                                "更生團契",
+                                "少年之家",
+                                "1919急難救助",
+                                "台灣聖經公會",
+                                "敏盛醫療",
+                                "全人協會",
+                                "其他",
+                             }
                         )
                         //.DataSource(Model.OtherCategoryArray)
                         .Placeholder("請選擇奉獻類別")
@@ -602,9 +633,10 @@
         var GlobalCategory = "";
 
         function OnCategorySelectBoxValueChanged(e) {
-            if (e.value == "其他" || e.value == "節期獻金" || e.value == "對內獻金" || e.value == "建築獻金" || e.value == "禮拜獻金") {
+            if (e.value == "其他" || e.value == "節期獻金" || e.value == "對內獻金" || e.value == "建築獻金" || e.value == "禮拜獻金" || e.value == "對外獻金-本宗" || e.value == "對外獻金-非本宗") 
+            {
                 $("#form2").dxForm("instance").itemOption("OtherDedication", 'visible', true);
-                $("#form2").dxForm("instance").updateData('OtherDedication', "");
+                $("#form2").dxForm("instance").updateData("OtherDedication", "");
                 $("#form2").dxForm("instance").itemOption("SpecialDedicationSelectionBox", 'visible', false);
                 $("#form2").dxForm("instance").itemOption("OtherDedicationSelectionBox", 'visible', false);
 
@@ -612,13 +644,14 @@
             else if (e.value == "特別獻金") {
                 $("#form2").dxForm("instance").itemOption("OtherDedication", 'visible', false);
                 $("#form2").dxForm("instance").itemOption("SpecialDedicationSelectionBox", 'visible', true);
-                $("#form2").dxForm("instance").updateData('SpecialDedicationSelectionBox', "");
+                $("#form2").dxForm("instance").updateData("SpecialDedicationSelectionBox", "");
                 $("#form2").dxForm("instance").itemOption("OtherDedicationSelectionBox", 'visible', false);
             }
 
             else {
                 $("#form2").dxForm("instance").itemOption("OtherDedication", 'visible', false);
                 $("#form2").dxForm("instance").itemOption("SpecialDedicationSelectionBox", 'visible', false);
+                $("#form2").dxForm("instance").itemOption("OtherDedicationSelectionBox", 'visible', false);
                 $("#form2").dxForm("instance").updateData('OtherDedication', "");
                 $("#form2").dxForm("instance").updateData('SpecialDedicationSelectionBox', "");
             }

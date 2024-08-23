@@ -1264,8 +1264,10 @@ namespace ChurchReport.Models
                     return "節期獻金";
                 case 100000003:
                     return "對內獻金";
+                case 100000022:
+                    return "對外獻金(本宗)";
                 case 100000004:
-                    return "對外獻金";
+                    return "對外獻金(非本宗)";
                 case 100000006:
                     return "建築獻金";
                 case 100000005:
@@ -1314,8 +1316,10 @@ namespace ChurchReport.Models
                     return "節期獻金";
                 case 100000003:
                     return "對內獻金";
+                case 100000022:
+                    return "對外獻金-本宗";
                 case 100000004:
-                    return "對外獻金";
+                    return "對外獻金-非本宗";
                 case 100000006:
                     return "建築獻金";
                 case 100000005:

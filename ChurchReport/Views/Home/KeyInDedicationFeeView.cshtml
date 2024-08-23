@@ -333,7 +333,8 @@
                         "利息收入",
                         "其他收入",
                         "建築獻金",
-                        "對外獻金",
+                        "對外獻金-本宗",
+                        "對外獻金-非本宗",
                         "獎學獻金",
                         "宣教基金",
                         "松年大學",
@@ -565,29 +566,29 @@
 
         function OnCategorySelectBoxValueChanged(e) {
             if (e.value == "宣教奉獻") {
+                $("#form2").dxForm("instance").itemOption("OtherDedication", 'visible', false);
                 $("#form2").dxForm("instance").itemOption("OtherDedicationSelectionBox", 'visible', true);
                 $("#form2").dxForm("instance").itemOption("SpecialDedicationSelectionBox", 'visible', false);
-                $("#form2").dxForm("instance").itemOption("OtherDedication", 'visible', false);
             }
             else if (e.value == "代收代轉") {
                 $("#form2").dxForm("instance").itemOption("OtherDedication", 'visible', true);
-                $("#form2").dxForm("instance").itemOption("SpecialDedicationSelectionBox", 'visible', false);
                 $("#form2").dxForm("instance").itemOption("OtherDedicationSelectionBox", 'visible', false);
+                $("#form2").dxForm("instance").itemOption("SpecialDedicationSelectionBox", 'visible', false);
             }
             else if (e.value == "其他奉獻") {
                 $("#form2").dxForm("instance").itemOption("OtherDedication", 'visible', true);
-                $("#form2").dxForm("instance").itemOption("SpecialDedicationSelectionBox", 'visible', false);
                 $("#form2").dxForm("instance").itemOption("OtherDedicationSelectionBox", 'visible', false);
+                $("#form2").dxForm("instance").itemOption("SpecialDedicationSelectionBox", 'visible', false);
             }
             else if (e.value == "特別獻金") {
-                $("#form2").dxForm("instance").itemOption("SpecialDedicationSelectionBox", 'visible', true);
                 $("#form2").dxForm("instance").itemOption("OtherDedication", 'visible', false);
                 $("#form2").dxForm("instance").itemOption("OtherDedicationSelectionBox", 'visible', false);
+                $("#form2").dxForm("instance").itemOption("SpecialDedicationSelectionBox", 'visible', true);
             }
             else {
+                $("#form2").dxForm("instance").itemOption("OtherDedication", 'visible', false);
                 $("#form2").dxForm("instance").itemOption("OtherDedicationSelectionBox", 'visible', false);
                 $("#form2").dxForm("instance").itemOption("SpecialDedicationSelectionBox", 'visible', false);
-                $("#form2").dxForm("instance").itemOption("OtherDedication", 'visible', false);
             }
         }
         function moveEditColumnToLeft(dataGrid) {

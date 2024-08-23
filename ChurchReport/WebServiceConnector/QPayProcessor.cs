@@ -337,8 +337,11 @@ namespace ChurchReport.WebServiceConnector
                 case "對內獻金":
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000003);
                     break;
-                case "對外獻金":
+                case "對外獻金-本宗":
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000004);
+                    break;
+                case "對外獻金-非本宗":
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000022);
                     break;
                 case "建築獻金":
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000006);
@@ -466,8 +469,11 @@ namespace ChurchReport.WebServiceConnector
                 case "對內獻金":
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, AttributeName, 100000003);
                     break;
-                case "對外獻金":
+                case "對外獻金-本宗":
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, AttributeName, 100000004);
+                    break;
+                case "對外獻金-非本宗":
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, AttributeName, 100000022);
                     break;
                 case "建築獻金":
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, AttributeName, 100000006);
