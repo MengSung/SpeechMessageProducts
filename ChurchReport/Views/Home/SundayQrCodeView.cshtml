@@ -113,7 +113,7 @@
     async function initializeApp() {
         await liff.getProfile()
             .then(function (profile) {
-                document.getElementById('sundayfield').innerHTML = "親愛的" + DisplayName + "<br />您已掃描了QR Code" + "請您耐心等候約5~10秒，不要關閉網頁!";
+                document.getElementById('sundayfield').innerHTML = "親愛的" + profile.displayName + "<br />您已掃描了QR Code" + "請您耐心等候約5~10秒，不要關閉網頁!";
                 DisplayName = profile.displayName;
                 UserId = profile.userId;
                 //alert("測試 UserId =" + UserId);

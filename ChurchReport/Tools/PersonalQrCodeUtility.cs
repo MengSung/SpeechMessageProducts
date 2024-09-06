@@ -116,18 +116,16 @@ namespace ChurchReport.Tools
                 int DayOfWeek = (int)DateTime.Now.DayOfWeek;
 
                 // 當週的星期日為認定的主日
-                //this.m_Sunday = DateTime.Now.AddDays(-DayOfWeek);
-                DateTime aSunday;
                 // 每周以星期六為第一日
                 if (DayOfWeek != 6)
                 {
                     // 如果不是星期六則是上個星期天
-                    aSunday = DateTime.Now.AddDays(-DayOfWeek);
+                    m_Sunday = DateTime.Now.AddDays(-DayOfWeek);
                 }
                 else
                 {
                     // 如果是星期六則是下個星期天
-                    aSunday = DateTime.Now.AddDays(1);
+                    m_Sunday = DateTime.Now.AddDays(1);
                 }
                 #endregion
 
