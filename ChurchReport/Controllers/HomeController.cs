@@ -3918,11 +3918,8 @@ namespace ChurchReport.Controllers
             {
                 //¯u¥¿µù¥U¦b Line Developer
                 var images = new List<string>();
-                images.Add(Url.Content("~/assets/images/tpehoc-005.jpg"));
-                images.Add(Url.Content("~/assets/images/tpehoc-006.jpg"));
-                images.Add(Url.Content("~/assets/images/tpehoc-007.jpg"));
-                images.Add(Url.Content("~/assets/images/tpehoc-008.jpg"));
-                images.Add(Url.Content("~/assets/images/tpehoc-009.jpg"));
+                images.Add(Url.Content("~/assets/images/tycanaan_001.png"));
+                images.Add(Url.Content("~/assets/images/tycanaan_002.jpg"));
 
                 m_InMemoryDataContextSmallGroup.LineBindingViewModel.Images = images;
 
