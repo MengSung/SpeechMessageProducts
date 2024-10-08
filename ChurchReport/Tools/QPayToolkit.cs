@@ -29,21 +29,21 @@ namespace ChurchReport.Tools
         // SANDBOX 測試用
         //private static string _site = "https://sandbox.sinopac.com/QPay.WebAPI/api/";
         //private static string _site = "https://apisbx.sinopac.com/funBIZ-Sbx/QPay.WebAPI/api/";
-        //private static string _site = m_Configuration["Sinopac:Site"];
-        private static string _site = m_Configuration["Sandbox:Site"];
+        private static string _site = m_Configuration["Sinopac:Site"];
+        //private static string _site = m_Configuration["Sandbox:Site"];
 
         //// SANDBOX 測試用
         //private const String A1 = "5E854757C751413F";
         //private const String A2 = "D743D0EB06904837";
         //private const String B1 = "08169D5445644513";
         //private const String B2 = "8E52B5A180EE4399";
-        private static String A1 = m_Configuration["Sandbox:A1"];
-        private static String A2 = m_Configuration["Sandbox:A2"];
-        private static String B1 = m_Configuration["Sandbox:B1"];
-        private static String B2 = m_Configuration["Sandbox:B2"];
+        //private static String A1 = m_Configuration["Sandbox:A1"];
+        //private static String A2 = m_Configuration["Sandbox:A2"];
+        //private static String B1 = m_Configuration["Sandbox:B1"];
+        //private static String B2 = m_Configuration["Sandbox:B2"];
 
         //private const String HASH_CODE = A1 + "," + A2 + "," + B1 + "," + B2;
-        private static String HASH_CODE = A1 + "," + A2 + "," + B1 + "," + B2;
+        //private static String HASH_CODE = A1 + "," + A2 + "," + B1 + "," + B2;
 
         // 永豐金流正式環境
         //private static string _site = "https://funbiz.sinopac.com/QPay.WebAPI/api/";
@@ -60,11 +60,11 @@ namespace ChurchReport.Tools
         //private const String A2 = "6ED32787DA504871";
         //private const String B1 = "13E56D7A39AB4768";
         //private const String B2 = "163EC08BC1624854";
-        //private static String A1 = m_Configuration["Sinopac:A1"];
-        //private static String A2 = m_Configuration["Sinopac:A2"];
-        //private static String B1 = m_Configuration["Sinopac:B1"];
-        //private static String B2 = m_Configuration["Sinopac:B2"];
-        //private static String HASH_CODE = A1 + "," + A2 + "," + B1 + "," + B2;
+        private static String A1 = m_Configuration["Sinopac:A1"];
+        private static String A2 = m_Configuration["Sinopac:A2"];
+        private static String B1 = m_Configuration["Sinopac:B1"];
+        private static String B2 = m_Configuration["Sinopac:B2"];
+        private static String HASH_CODE = A1 + "," + A2 + "," + B1 + "," + B2;
 
         //private const String X_KEY_ID = "1cf7c745-3163-499b-ba60-a0f4f0b3a716";
         private static String X_KEY_ID = m_Configuration["Sinopac:XKeyID"];

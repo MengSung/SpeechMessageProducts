@@ -27,10 +27,10 @@ namespace ChurchReport.Models
         // 商店編號
         // SANDBOX 測試用
         //string m_ShopNo = "NA0149_001";
-        string m_ShopNo = m_Configuration["Sandbox:ShopNo"];
+        //string m_ShopNo = m_Configuration["Sandbox:ShopNo"];
         // 永豐金流正式環境
         //string m_ShopNo = "DA4195_001";
-        //string m_ShopNo = m_Configuration["Sinopac:ShopNo"];
+        string m_ShopNo = m_Configuration["Sinopac:ShopNo"];
 
         private ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
 

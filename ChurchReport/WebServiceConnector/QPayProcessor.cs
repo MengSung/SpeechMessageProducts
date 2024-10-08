@@ -35,11 +35,11 @@ namespace ChurchReport.WebServiceConnector
         // 商店編號
         // SANDBOX 測試用
         //string m_ShopNo = "NA0149_001";
-        private string m_ShopNo = m_Configuration["Sandbox:ShopNo"];
+        //private string m_ShopNo = m_Configuration["Sandbox:ShopNo"];
 
         // 永豐金流正式環境
         //string m_ShopNo = "DA4195_001";
-        //private string m_ShopNo = m_Configuration["Sinopac:ShopNo"];
+        private string m_ShopNo = m_Configuration["Sinopac:ShopNo"];
 
         #region 公司內部開發
         // 使用 ChurchReport 當作 WebHook
