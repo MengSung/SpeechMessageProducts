@@ -591,6 +591,25 @@ namespace ChurchReport.Models
         {
             try
             {
+                //控管節期獻金
+                if (QpayModel.Category != null && QpayModel.Category == "節期獻金")
+                {
+                    if (QpayModel.Others == null || QpayModel.Others =="")
+                    {
+                        return Json(new { status = "2", message = "錯誤:沒有選擇節期!" });
+                    }
+                }
+
+                //控管特別獻金
+                if (QpayModel.Category != null && QpayModel.Category == "特別獻金")
+                {
+                    if (QpayModel.Others == null || QpayModel.Others == "")
+                    {
+                        return Json(new { status = "2", message = "錯誤:沒有選擇特別獻金的項目!" });
+                    }
+                }
+
+                //控管奉獻金額
                 if (QpayModel.Amount != null && QpayModel.Amount > 0)
                 {
                     String DedicationResult = await m_QPayProcessor.CreateFeeAsync(m_Contact, QpayModel);
