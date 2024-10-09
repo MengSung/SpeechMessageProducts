@@ -1397,11 +1397,18 @@ namespace ChurchReport.WebServiceConnector
                     B22 = "48737E77D6864915";
                     return A21 + "," + A22 + "," + B21 + "," + B22;
                 case "DA4195_001":
-                    // 迦南基督長老教會
+                    // 南崁基督長老教會
                     A21 = "B83DCBFA2D994F19";
                     A22 = "6ED32787DA504871";
                     B21 = "13E56D7A39AB4768";
                     B22 = "163EC08BC1624854";
+                    return A21 + "," + A22 + "," + B21 + "," + B22;
+                case "DA4272_001":
+                    // 迦南基督長老教會
+                    A21 = "00DC1BDACCB645C6";
+                    A22 = "185B6F59F737462E";
+                    B21 = "6F9C2936E8524F76";
+                    B22 = "8BB48C2260304E29";
                     return A21 + "," + A22 + "," + B21 + "," + B22;
                 default:
                     return "5E854757C751413F,D743D0EB06904837,08169D5445644513,8E52B5A180EE4399";
