@@ -1350,9 +1350,9 @@ namespace ChurchReport.Tools
 
                     // 回傳 LINE 要用到的訊息
                     return
-                    "課程名稱: " + m_ClassName + Environment.NewLine +
+                    "名稱: " + m_ClassName + Environment.NewLine +
                     "姓名: " + m_UserName + Environment.NewLine +
-                    "課堂資訊: " + LocalClassIndex + Environment.NewLine +
+                    "資訊: " + LocalClassIndex + Environment.NewLine +
                     SigningTypeAndTime;
                 }
                 else
@@ -1362,9 +1362,9 @@ namespace ChurchReport.Tools
 
                     // 回傳 LINE 要用到的訊息
                     return
-                    "課程名稱: " + m_ClassName + Environment.NewLine +
+                    "名稱: " + m_ClassName + Environment.NewLine +
                     "姓名: " + m_UserName + Environment.NewLine +
-                    "課堂資訊: " + LocalClassIndex + Environment.NewLine +
+                    "資訊: " + LocalClassIndex + Environment.NewLine +
                     SigningTypeAndTime + Environment.NewLine +
                     "可是您尚未註冊過喔!";
                 }
