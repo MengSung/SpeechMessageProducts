@@ -298,17 +298,18 @@ namespace ChurchReport.WebServiceConnector
                 // 收入項目
                 SetFeePayCategory(QpayModel.Category, ref aFeeToCreated);
 
+                // 收費單奉獻其他類別
+                if (QpayModel.Category == "其他")
+                {
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeToCreated, "new_others", QpayModel.Others);
+                }
+
                 // 收入類別
                 SetIncomeCategory(QpayModel.Category, ref aFeeToCreated);
 
                 //會計科目
                 //SetAccountingCode(QpayModel.Category, ref aFeeToCreated);
 
-                // 收費單奉獻其他類別
-                if (QpayModel.Category == "其他")
-                {
-                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeToCreated, "new_others", QpayModel.Others);
-                }
 
                 #endregion
             }
@@ -410,8 +411,26 @@ namespace ChurchReport.WebServiceConnector
         public void SetIncomeCategory(String Value, ref Entity aFeeEntity)
         {
             if (Value == "月定獻金" || Value == "禮拜獻金" || Value == "聖餐獻金" || Value == "節期獻金" || Value == "感恩獻金" || Value == "特別獻金" || Value == "利息收入" || Value == "對內獻金" || Value == "其他收入")
-            { 
-                this.m_ToolUtilityClass.SetEntityStringAttribute(aFeeEntity, "new_income_category", "經常費收入");
+            {
+                if (Value != "特別獻金")
+                {
+                    // 不是特別獻金，則是經常費收入
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(aFeeEntity, "new_income_category", "經常費收入");
+                }
+                else
+                {
+                    // 處理特別獻金
+                    if (this.m_ToolUtilityClass.GetEntityStringAttribute(aFeeEntity, "new_others") != "")
+                     {
+                        // 奉獻其他類別有資料則是專帳收入
+                        this.m_ToolUtilityClass.SetEntityStringAttribute(aFeeEntity, "new_income_category", "專帳收入");
+                    }
+                    else
+                    {
+                        // 奉獻其他類別有資料則是經常費收入
+                        this.m_ToolUtilityClass.SetEntityStringAttribute(aFeeEntity, "new_income_category", "經常費收入");
+                    }
+                }
             }
             else
             {
@@ -807,6 +826,12 @@ namespace ChurchReport.WebServiceConnector
                 // 收費單收費日期
                 this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aFeeToCreated, "new_pay_date", QpayModel.DedicationDate.ToLocalTime());
 
+                // 收費單奉獻其他類別
+                if (QpayModel.Others != "" && QpayModel.Others != null)
+                {
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeToCreated, "new_others", QpayModel.Others);
+                }
+
                 // 奉獻類別
                 SetFeePayCategory(QpayModel.Category, ref aFeeToCreated);
 
@@ -820,12 +845,6 @@ namespace ChurchReport.WebServiceConnector
                 if (m_LoginContact != null)
                 {
                     this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aFeeToCreated, "new_keyin_contact_new_fee", "contact", this.m_LoginContact.Id);
-                }
-
-                // 收費單奉獻其他類別
-                if (QpayModel.Others != "" && QpayModel.Others != null)
-                {
-                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeToCreated, "new_others", QpayModel.Others);
                 }
 
                 // 奉獻地點
