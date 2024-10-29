@@ -1265,8 +1265,14 @@ namespace ChurchReport.Models
                     return "ATM轉帳";
                 case 100000003:
                     return "超商付款";
+                case 100000005:
+                    return "LinePay";
                 case 100000006:
                     return "銀行轉帳";
+                case 100000007:
+                    return "行動支付";
+                case 100000008:
+                    return "銀聯卡";
                 default:
                     return "未知";
             }
