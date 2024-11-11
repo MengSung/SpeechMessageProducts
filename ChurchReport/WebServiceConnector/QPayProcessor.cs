@@ -864,6 +864,8 @@ namespace ChurchReport.WebServiceConnector
 
                 // 奉獻備註
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeToCreated, "new_explain", QpayModel.Explain);
+                // 週報專用備註
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeToCreated, "new_weekly_note", QpayModel.WeeklyNote);
 
                 #endregion
             }
@@ -951,6 +953,9 @@ namespace ChurchReport.WebServiceConnector
 
                 // 奉獻備註
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aDedicationBookingToCreated, "new_explain", QpayModel.Explain);
+
+                // 週報專用備註
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aDedicationBookingToCreated, "new_weekly_note", QpayModel.WeeklyNote);
 
                 #endregion
             }
