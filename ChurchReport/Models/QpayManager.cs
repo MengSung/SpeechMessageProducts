@@ -1325,6 +1325,8 @@ namespace ChurchReport.Models
                     return "特別獻金";
                 case 100000016:
                     return "償還借款準備金";
+                case 100000023:
+                    return "週年獻金";
                 default:
                     return "月定獻金";
             }
@@ -1377,6 +1379,8 @@ namespace ChurchReport.Models
                     return "特別獻金";
                 case 100000016:
                     return "償還借款準備金";
+                case 100000023:
+                    return "週年獻金";
                 default:
                     return "月定獻金";
             }
