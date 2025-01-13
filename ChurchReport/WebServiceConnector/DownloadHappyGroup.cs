@@ -1449,7 +1449,7 @@ namespace ChurchReport.WebServiceConnector
                         // 動態名單
                         EntityReference aListEntityReference = new EntityReference("list", aListEntity.Id);
 
-                        // 內壢新莊靈糧堂
+                        // 新莊靈糧堂
                         //this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aNewContactEntity, "new_cell_list_contact", ref aListEntityReference);
                         // 新莊靈糧堂
                         this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref NewBestContactEntity, "new_list_contact", ref aListEntityReference);
@@ -1934,7 +1934,7 @@ namespace ChurchReport.WebServiceConnector
                 //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_name", Note);
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_explanation", Note);
 
-                // 內壢新莊靈糧堂
+                // 新莊靈糧堂
                 //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_memo", aMemberInfomation.Note);
                 #endregion
                 #region 設定行動電話
@@ -2081,7 +2081,7 @@ namespace ChurchReport.WebServiceConnector
                 //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_name", aBestRecord.Note);
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_explanation", Note);
 
-                // 內壢新莊靈糧堂
+                // 新莊靈糧堂
                 //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_memo", aMemberInfomation.Note);
                 #endregion
                 #region 設定行動電話
@@ -2455,7 +2455,7 @@ namespace ChurchReport.WebServiceConnector
                     this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecordEntity, "new_explanation", aBestRecord.Note);
                 }
 
-                // 內壢新莊靈糧堂
+                // 新莊靈糧堂
                 //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_memo", aMemberInfomation.Note);
                 #endregion
                 #region 設定行動電話
@@ -2603,7 +2603,7 @@ namespace ChurchReport.WebServiceConnector
                     this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecordEntity, "new_explanation", aBestRecord.Note);
                 }
 
-                // 內壢新莊靈糧堂
+                // 新莊靈糧堂
                 //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_memo", aMemberInfomation.Note);
                 #endregion
                 #region 設定行動電話

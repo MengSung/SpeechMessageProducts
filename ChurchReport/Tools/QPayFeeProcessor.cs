@@ -23,7 +23,7 @@ namespace ChurchReport.Tools
         ToolUtilityClass m_ToolUtilityClass;
 
         // 客製化
-        // 迦南基督長老教會 2.0
+        // 新莊靈糧堂 2.0
         private const String SPEECHMESSAGE_CHANNEL_ACCESS_TOKEN = @"ZruImm1O8UprkbqAbxKlD/s1Y2gKPfN2lMgyGtC7LOyEgtufMIBoOzhDb998UiVcNHx+KKnrzXp4KUKYdfxWbBEjWhS9hbzuc4x/LDuGdeAbnrqi6o/UjUlOgXSZV1NzAw3hoSfwrNPN0fSJpEBZCAdB04t89/1O/w1cDnyilFU=";
 
         // 胡夢嵩回傳　EXCEPTION　專用的ＩＤ
@@ -172,7 +172,7 @@ namespace ChurchReport.Tools
                             Entity aStorLessons = this.m_ToolUtilityClass.RetrieveEntity("new_stor_lessons", aStorLessonsId);
 
                             #region 報名狀態
-                            // 有審核的教會=>報名成功:迦南基督長老教會
+                            // 有審核的教會=>報名成功:新莊靈糧堂
                             this.m_ToolUtilityClass.SetOptionSetAttribute(ref aStorLessons, "new_enroll_status", 100000008);
                             #endregion
 

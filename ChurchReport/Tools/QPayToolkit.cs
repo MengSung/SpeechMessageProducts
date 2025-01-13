@@ -55,7 +55,7 @@ namespace ChurchReport.Tools
         //m_LinePayClient = new LinePayClient(configuration["LinePay:ChannelId"], configuration["LinePay:ChannelSecret"], bool.Parse(configuration["LinePay:IsSandbox"]));
 
         //永豐金流正式環境
-        //永豐金流寄給迦南基督長老教會的HASH CODE
+        //永豐金流寄給新莊靈糧堂的HASH CODE
         //private const String A1 = "B83DCBFA2D994F19";
         //private const String A2 = "6ED32787DA504871";
         //private const String B1 = "13E56D7A39AB4768";

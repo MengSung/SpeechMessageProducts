@@ -55,7 +55,7 @@ namespace ChurchReport.WebServiceConnector
         private readonly String BACKEND_URL = m_Configuration["BACKEND_URL"];// 公司內部開發
 
         //  
-        // 迦南基督長老教會
+        // 新莊靈糧堂
         private const String CHANNEL_ACCESS_TOKEN = @"ZruImm1O8UprkbqAbxKlD/s1Y2gKPfN2lMgyGtC7LOyEgtufMIBoOzhDb998UiVcNHx+KKnrzXp4KUKYdfxWbBEjWhS9hbzuc4x/LDuGdeAbnrqi6o/UjUlOgXSZV1NzAw3hoSfwrNPN0fSJpEBZCAdB04t89/1O/w1cDnyilFU=";
 
         //private LinePayClient m_LinePayClient { get; }
@@ -1431,7 +1431,7 @@ namespace ChurchReport.WebServiceConnector
                     B22 = "163EC08BC1624854";
                     return A21 + "," + A22 + "," + B21 + "," + B22;
                 case "DA4272_001":
-                    // 迦南基督長老教會
+                    // 新莊靈糧堂
                     A21 = "00DC1BDACCB645C6";
                     A22 = "185B6F59F737462E";
                     B21 = "6F9C2936E8524F76";

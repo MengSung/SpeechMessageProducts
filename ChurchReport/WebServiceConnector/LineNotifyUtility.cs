@@ -38,7 +38,7 @@ namespace ChurchReport.WebServiceConnector
         private const String CRM_TYPE = "DYNAMICS365";
 
         // 客製化
-        // 迦南基督長老教會
+        // 新莊靈糧堂
         private const String CHANNEL_ACCESS_TOKEN = @"ZruImm1O8UprkbqAbxKlD/s1Y2gKPfN2lMgyGtC7LOyEgtufMIBoOzhDb998UiVcNHx+KKnrzXp4KUKYdfxWbBEjWhS9hbzuc4x/LDuGdeAbnrqi6o/UjUlOgXSZV1NzAw3hoSfwrNPN0fSJpEBZCAdB04t89/1O/w1cDnyilFU=";
 
         // 胡夢嵩回傳　EXCEPTION　專用的ＩＤ
@@ -50,7 +50,7 @@ namespace ChurchReport.WebServiceConnector
         public LineNotifyUtility()
         {
             // 客製化，請選擇
-            // 迦南基督長老教會(免費版)
+            // 新莊靈糧堂(免費版)
             this.m_LineMessagingClient = new LineMessagingClient(CHANNEL_ACCESS_TOKEN);
 
             //m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
