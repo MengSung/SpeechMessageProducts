@@ -1449,9 +1449,9 @@ namespace ChurchReport.WebServiceConnector
                         // 動態名單
                         EntityReference aListEntityReference = new EntityReference("list", aListEntity.Id);
 
-                        // 內壢迦南基督長老教會
+                        // 內壢新莊靈糧堂
                         //this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aNewContactEntity, "new_cell_list_contact", ref aListEntityReference);
-                        // 迦南基督長老教會
+                        // 新莊靈糧堂
                         this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref NewBestContactEntity, "new_list_contact", ref aListEntityReference);
 
                         this.m_ToolUtilityClass.UpdateEntity(ref NewBestContactEntity);
@@ -1527,7 +1527,7 @@ namespace ChurchReport.WebServiceConnector
 
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aQueryBestContactEntity, "mobilephone", aBestRecord.MobilePhone);
 
-                // 委身類型客製化，客製委身類型欄位，每間教會委身類型都不一樣，迦南基督長老教會=>"幸福小組BEST" = 100000005
+                // 委身類型客製化，客製委身類型欄位，每間教會委身類型都不一樣，新莊靈糧堂=>"幸福小組BEST" = 100000005
                 // 設定成為 BEST 的委身類型
                 this.m_ToolUtilityClass.SetOptionSetAttribute(ref aQueryBestContactEntity, "customertypecode", 100000005);
 
@@ -1928,13 +1928,13 @@ namespace ChurchReport.WebServiceConnector
                 #region 設定附註或是代禱事項
 
                 // 轉換版本
-                // 迦南基督長老教會
+                // 新莊靈糧堂
 
 
                 //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_name", Note);
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_explanation", Note);
 
-                // 內壢迦南基督長老教會
+                // 內壢新莊靈糧堂
                 //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_memo", aMemberInfomation.Note);
                 #endregion
                 #region 設定行動電話
@@ -2077,11 +2077,11 @@ namespace ChurchReport.WebServiceConnector
                 #region 設定附註或是代禱事項
 
                 // 轉換版本
-                // 迦南基督長老教會
+                // 新莊靈糧堂
                 //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_name", aBestRecord.Note);
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_explanation", Note);
 
-                // 內壢迦南基督長老教會
+                // 內壢新莊靈糧堂
                 //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_memo", aMemberInfomation.Note);
                 #endregion
                 #region 設定行動電話
@@ -2448,14 +2448,14 @@ namespace ChurchReport.WebServiceConnector
                 #region 設定附註或是代禱事項
 
                 // 轉換版本
-                // 迦南基督長老教會
+                // 新莊靈糧堂
                 if (aBestRecord.Note != null)
                 {
                     //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecordEntity, "new_name", aBestRecord.Note);
                     this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecordEntity, "new_explanation", aBestRecord.Note);
                 }
 
-                // 內壢迦南基督長老教會
+                // 內壢新莊靈糧堂
                 //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_memo", aMemberInfomation.Note);
                 #endregion
                 #region 設定行動電話
@@ -2596,14 +2596,14 @@ namespace ChurchReport.WebServiceConnector
                 #region 設定附註或是代禱事項
 
                 // 轉換版本
-                // 迦南基督長老教會
+                // 新莊靈糧堂
                 if (aBestRecord.Note != null)
                 {
                     //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecordEntity, "new_name", aBestRecord.Note);
                     this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecordEntity, "new_explanation", aBestRecord.Note);
                 }
 
-                // 內壢迦南基督長老教會
+                // 內壢新莊靈糧堂
                 //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_memo", aMemberInfomation.Note);
                 #endregion
                 #region 設定行動電話
@@ -2688,7 +2688,7 @@ namespace ChurchReport.WebServiceConnector
         #endregion
         #region 轉換下拉選項
 
-        // 客製化，迦南基督長老教會幸福小組專屬主題
+        // 客製化，新莊靈糧堂幸福小組專屬主題
         private String ConvertIndexToTopic(int FollowUpWeekIndex)
         {
             switch (FollowUpWeekIndex)

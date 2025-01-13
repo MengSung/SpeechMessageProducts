@@ -1106,7 +1106,7 @@ namespace ChurchReport.WebServiceConnector
             };
 
         }
-        // 迦南基督長老教會
+        // 新莊靈糧堂
         // 委身類型客製化
         private String ConvertIndexToIdentity(int Identity)
         {

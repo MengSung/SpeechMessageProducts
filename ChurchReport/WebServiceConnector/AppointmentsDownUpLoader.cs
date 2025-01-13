@@ -277,7 +277,7 @@ namespace ChurchReport.WebServiceConnector
                 //}
                 #endregion
 
-                // 迦南基督長老教會版本是只有差勤簽核及場地預約，所以就"全部"都要顯示
+                // 新莊靈糧堂版本是只有差勤簽核及場地預約，所以就"全部"都要顯示
                 Appointment aAppointment = SetupAppointment(aAppointmentEntity, AppointmentType, CategoryId, LeaveId, LocationId);
                 aAppointmentsList.Add(aAppointment);
 
