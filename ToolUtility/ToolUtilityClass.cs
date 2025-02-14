@@ -2696,8 +2696,8 @@ namespace ToolUtilityNameSpace
                                         <value>100000004</value>
                                         <value>100000006</value>
                                       </condition>
-                                      <condition attribute='createdon' operator='on-or-after'  value=" + StartDateString + @" />
-                                      <condition attribute='createdon' operator='on-or-before' value=" + EndDateString + @" />
+                                      <condition attribute='new_pay_date' operator='on-or-after'  value=" + StartDateString + @" />
+                                      <condition attribute='new_pay_date' operator='on-or-before' value=" + EndDateString + @" />
                                     </filter>
                                   </entity>
                                 </fetch>";
