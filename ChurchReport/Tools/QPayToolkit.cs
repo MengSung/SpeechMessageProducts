@@ -30,8 +30,8 @@ namespace ChurchReport.Tools
         //private static string _site = "https://sandbox.sinopac.com/QPay.WebAPI/api/";
         //private static string _site = "https://apisbx.sinopac.com/funBIZ-Sbx/QPay.WebAPI/api/";
         //private static string _site = m_Configuration["Sinopac:Site"];
-        //private static string _site = m_Configuration["Sandbox:Site_Xkey"];
-        private static string _site = m_Configuration["Sandbox:Site"];
+        private static string _site = m_Configuration["Sandbox:Site_Xkey"];
+        //private static string _site = m_Configuration["Sandbox:Site"];
 
         //// SANDBOX 測試用
         private static String A1 = m_Configuration["Sandbox:A1"];
