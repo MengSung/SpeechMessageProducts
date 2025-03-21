@@ -436,6 +436,22 @@ namespace ChurchReport.WebServiceConnector
                 aFee.Lesson14 = this.m_ToolUtilityClass.GetEntityBoolAttribute(ref aStorLessons, "new_14_present");
                 aFee.Lesson15 = this.m_ToolUtilityClass.GetEntityBoolAttribute(ref aStorLessons, "new_15_present");
 
+                aFee.Lesson16 = this.m_ToolUtilityClass.GetEntityBoolAttribute(ref aStorLessons, "new_16_present");
+                aFee.Lesson17 = this.m_ToolUtilityClass.GetEntityBoolAttribute(ref aStorLessons, "new_17_present");
+                aFee.Lesson18 = this.m_ToolUtilityClass.GetEntityBoolAttribute(ref aStorLessons, "new_18_present");
+                aFee.Lesson19 = this.m_ToolUtilityClass.GetEntityBoolAttribute(ref aStorLessons, "new_19_present");
+                aFee.Lesson20 = this.m_ToolUtilityClass.GetEntityBoolAttribute(ref aStorLessons, "new_20_present");
+                aFee.Lesson21 = this.m_ToolUtilityClass.GetEntityBoolAttribute(ref aStorLessons, "new_21_present");
+                aFee.Lesson22 = this.m_ToolUtilityClass.GetEntityBoolAttribute(ref aStorLessons, "new_22_present");
+                aFee.Lesson23 = this.m_ToolUtilityClass.GetEntityBoolAttribute(ref aStorLessons, "new_23_present");
+                aFee.Lesson24 = this.m_ToolUtilityClass.GetEntityBoolAttribute(ref aStorLessons, "new_24_present");
+                aFee.Lesson25 = this.m_ToolUtilityClass.GetEntityBoolAttribute(ref aStorLessons, "new_25_present");
+                aFee.Lesson26 = this.m_ToolUtilityClass.GetEntityBoolAttribute(ref aStorLessons, "new_26_present");
+                aFee.Lesson27 = this.m_ToolUtilityClass.GetEntityBoolAttribute(ref aStorLessons, "new_27_present");
+                aFee.Lesson28 = this.m_ToolUtilityClass.GetEntityBoolAttribute(ref aStorLessons, "new_28_present");
+                aFee.Lesson29 = this.m_ToolUtilityClass.GetEntityBoolAttribute(ref aStorLessons, "new_29_present");
+                aFee.Lesson30 = this.m_ToolUtilityClass.GetEntityBoolAttribute(ref aStorLessons, "new_30_present");
+
                 aFee.HomeWorkA = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aStorLessons, "new_finishhomework_date1").ToLocalTime();
                 aFee.HomeWorkB = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aStorLessons, "new_finishhomework_date2").ToLocalTime();
                 aFee.HomeWorkC = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aStorLessons, "new_finishhomework_date3").ToLocalTime();
@@ -721,6 +737,62 @@ namespace ChurchReport.WebServiceConnector
                     break;
                 case "Lesson15":
                     this.m_ToolUtilityClass.SetEntityBoolAttribute(ref aStorLessonEntity, "new_15_present", Convert.ToBoolean(Value));
+                    this.m_ToolUtilityClass.UpdateEntity(ref aStorLessonEntity);
+                    break;
+                case "Lesson16":
+                    this.m_ToolUtilityClass.SetEntityBoolAttribute(ref aStorLessonEntity, "new_16_present", Convert.ToBoolean(Value));
+                    this.m_ToolUtilityClass.UpdateEntity(ref aStorLessonEntity);
+                    break;
+                case "Lesson17":
+                    this.m_ToolUtilityClass.SetEntityBoolAttribute(ref aStorLessonEntity, "new_17_present", Convert.ToBoolean(Value));
+                    this.m_ToolUtilityClass.UpdateEntity(ref aStorLessonEntity);
+                    break;
+                case "Lesson18":
+                    this.m_ToolUtilityClass.SetEntityBoolAttribute(ref aStorLessonEntity, "new_18_present", Convert.ToBoolean(Value));
+                    this.m_ToolUtilityClass.UpdateEntity(ref aStorLessonEntity);
+                    break;
+                case "Lesson19":
+                    this.m_ToolUtilityClass.SetEntityBoolAttribute(ref aStorLessonEntity, "new_19_present", Convert.ToBoolean(Value));
+                    this.m_ToolUtilityClass.UpdateEntity(ref aStorLessonEntity);
+                    break;
+                case "Lesson20":
+                    this.m_ToolUtilityClass.SetEntityBoolAttribute(ref aStorLessonEntity, "new_20_present", Convert.ToBoolean(Value));
+                    this.m_ToolUtilityClass.UpdateEntity(ref aStorLessonEntity);
+                    break;
+                case "Lesson21":
+                    this.m_ToolUtilityClass.SetEntityBoolAttribute(ref aStorLessonEntity, "new_21_present", Convert.ToBoolean(Value));
+                    this.m_ToolUtilityClass.UpdateEntity(ref aStorLessonEntity);
+                    break;
+                case "Lesson22":
+                    this.m_ToolUtilityClass.SetEntityBoolAttribute(ref aStorLessonEntity, "new_22_present", Convert.ToBoolean(Value));
+                    this.m_ToolUtilityClass.UpdateEntity(ref aStorLessonEntity);
+                    break;
+                case "Lesson23":
+                    this.m_ToolUtilityClass.SetEntityBoolAttribute(ref aStorLessonEntity, "new_23_present", Convert.ToBoolean(Value));
+                    this.m_ToolUtilityClass.UpdateEntity(ref aStorLessonEntity);
+                    break;
+                case "Lesson24":
+                    this.m_ToolUtilityClass.SetEntityBoolAttribute(ref aStorLessonEntity, "new_24_present", Convert.ToBoolean(Value));
+                    this.m_ToolUtilityClass.UpdateEntity(ref aStorLessonEntity);
+                    break;
+                case "Lesson25":
+                    this.m_ToolUtilityClass.SetEntityBoolAttribute(ref aStorLessonEntity, "new_25_present", Convert.ToBoolean(Value));
+                    this.m_ToolUtilityClass.UpdateEntity(ref aStorLessonEntity);
+                    break;
+                case "Lesson26":
+                    this.m_ToolUtilityClass.SetEntityBoolAttribute(ref aStorLessonEntity, "new_26_present", Convert.ToBoolean(Value));
+                    this.m_ToolUtilityClass.UpdateEntity(ref aStorLessonEntity);
+                    break;
+                case "Lesson27":
+                    this.m_ToolUtilityClass.SetEntityBoolAttribute(ref aStorLessonEntity, "new_27_present", Convert.ToBoolean(Value));
+                    this.m_ToolUtilityClass.UpdateEntity(ref aStorLessonEntity);
+                    break;
+                case "Lesson28":
+                    this.m_ToolUtilityClass.SetEntityBoolAttribute(ref aStorLessonEntity, "new_29_present", Convert.ToBoolean(Value));
+                    this.m_ToolUtilityClass.UpdateEntity(ref aStorLessonEntity);
+                    break;
+                case "Lesson30":
+                    this.m_ToolUtilityClass.SetEntityBoolAttribute(ref aStorLessonEntity, "new_30_present", Convert.ToBoolean(Value));
                     this.m_ToolUtilityClass.UpdateEntity(ref aStorLessonEntity);
                     break;
                 case "HomeWorkA":

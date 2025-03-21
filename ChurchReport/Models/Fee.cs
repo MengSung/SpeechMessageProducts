@@ -46,6 +46,23 @@ namespace ChurchReport.Models
         public bool Lesson13 { get; set; }       // 第十三課點名
         public bool Lesson14 { get; set; }       // 第十四課點名
         public bool Lesson15 { get; set; }       // 第十五課點名
+
+        public bool Lesson16 { get; set; }       // 第十六課點名
+        public bool Lesson17 { get; set; }       // 第十七課點名
+        public bool Lesson18 { get; set; }       // 第十八課點名
+        public bool Lesson19 { get; set; }       // 第十九課點名
+        public bool Lesson20 { get; set; }       // 第二十課點名
+        public bool Lesson21 { get; set; }       // 第二十一課點名
+        public bool Lesson22 { get; set; }       // 第二十二課點名
+        public bool Lesson23 { get; set; }       // 第二十三課點名
+        public bool Lesson24 { get; set; }       // 第二十四課點名
+        public bool Lesson25 { get; set; }       // 第二十五課點名
+        public bool Lesson26 { get; set; }       // 第二十六課點名
+        public bool Lesson27 { get; set; }       // 第二十七課點名
+        public bool Lesson28 { get; set; }       // 第二十八課點名
+        public bool Lesson29 { get; set; }       // 第二十九課點名
+        public bool Lesson30 { get; set; }       // 第三十課點名
+
         #endregion
         #region 作業繳交
         [Required()]
