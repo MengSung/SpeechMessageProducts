@@ -356,6 +356,81 @@ namespace ChurchReport.WebServiceConnector
             {
                 aClassName.Lesson15 = "第十五課";
             }
+            aClassName.Lesson16 = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDiscipleLessons, "new_l16_name");
+            if (aClassName.Lesson16 == "")
+            {
+                aClassName.Lesson16 = "第十六課";
+            }
+            aClassName.Lesson17 = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDiscipleLessons, "new_l17_name");
+            if (aClassName.Lesson17 == "")
+            {
+                aClassName.Lesson17 = "第十七課";
+            }
+            aClassName.Lesson18 = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDiscipleLessons, "new_l18_name");
+            if (aClassName.Lesson18 == "")
+            {
+                aClassName.Lesson18 = "第十八課";
+            }
+            aClassName.Lesson19 = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDiscipleLessons, "new_l19_name");
+            if (aClassName.Lesson19 == "")
+            {
+                aClassName.Lesson19 = "第十九課";
+            }
+            aClassName.Lesson20 = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDiscipleLessons, "new_l20_name");
+            if (aClassName.Lesson20 == "")
+            {
+                aClassName.Lesson20 = "第二十課";
+            }
+            aClassName.Lesson21 = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDiscipleLessons, "new_l21_name");
+            if (aClassName.Lesson21 == "")
+            {
+                aClassName.Lesson21 = "第二十一課";
+            }
+            aClassName.Lesson22 = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDiscipleLessons, "new_l22_name");
+            if (aClassName.Lesson22 == "")
+            {
+                aClassName.Lesson22 = "第二十二課";
+            }
+            aClassName.Lesson23 = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDiscipleLessons, "new_l23_name");
+            if (aClassName.Lesson23 == "")
+            {
+                aClassName.Lesson23 = "第二十三課";
+            }
+            aClassName.Lesson24 = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDiscipleLessons, "new_l24_name");
+            if (aClassName.Lesson24 == "")
+            {
+                aClassName.Lesson24 = "第二十四課";
+            }
+            aClassName.Lesson25 = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDiscipleLessons, "new_l25_name");
+            if (aClassName.Lesson25 == "")
+            {
+                aClassName.Lesson25 = "第二十五課";
+            }
+            aClassName.Lesson26 = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDiscipleLessons, "new_l26_name");
+            if (aClassName.Lesson26 == "")
+            {
+                aClassName.Lesson26 = "第二十六課";
+            }
+            aClassName.Lesson27 = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDiscipleLessons, "new_l27_name");
+            if (aClassName.Lesson27 == "")
+            {
+                aClassName.Lesson27 = "第二十七課";
+            }
+            aClassName.Lesson28 = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDiscipleLessons, "new_l28_name");
+            if (aClassName.Lesson28 == "")
+            {
+                aClassName.Lesson28 = "第二十八課";
+            }
+            aClassName.Lesson29 = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDiscipleLessons, "new_l29_name");
+            if (aClassName.Lesson29 == "")
+            {
+                aClassName.Lesson29 = "第二十九課";
+            }
+            aClassName.Lesson30 = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDiscipleLessons, "new_l30_name");
+            if (aClassName.Lesson30 == "")
+            {
+                aClassName.Lesson30 = "第三十課";
+            }
 
 
             aClassName.HomeWorkA = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDiscipleLessons, "new_homework1");
@@ -788,6 +863,10 @@ namespace ChurchReport.WebServiceConnector
                     this.m_ToolUtilityClass.UpdateEntity(ref aStorLessonEntity);
                     break;
                 case "Lesson28":
+                    this.m_ToolUtilityClass.SetEntityBoolAttribute(ref aStorLessonEntity, "new_28_present", Convert.ToBoolean(Value));
+                    this.m_ToolUtilityClass.UpdateEntity(ref aStorLessonEntity);
+                    break;
+                case "Lesson29":
                     this.m_ToolUtilityClass.SetEntityBoolAttribute(ref aStorLessonEntity, "new_29_present", Convert.ToBoolean(Value));
                     this.m_ToolUtilityClass.UpdateEntity(ref aStorLessonEntity);
                     break;

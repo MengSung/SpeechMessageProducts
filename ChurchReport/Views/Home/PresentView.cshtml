@@ -581,15 +581,31 @@ return locale != null ? locale : "tw";
     var Colume18 = "第十三課";
     var Colume19 = "第十四課";
     var Colume20 = "第十五課";
-    var Colume21 = "作業A";
-    var Colume22 = "作業B";
-    var Colume23 = "作業C";
-    var Colume24 = "作業D";
-    var Colume25 = "作業E";
+    var Colume21 = "第十六課";
+    var Colume22 = "第十七課";
+    var Colume23 = "第十八課";
+    var Colume24 = "第十九課";
+    var Colume25 = "第二十課";
+    var Colume26 = "第二十一課";
+    var Colume27 = "第二十二課";
+    var Colume28 = "第二十三課";
+    var Colume29 = "第二十四課";
+    var Colume30 = "第二十五課";
+    var Colume31 = "第二十六課";
+    var Colume32 = "第二十七課";
+    var Colume33 = "第二十八課";
+    var Colume34 = "第二十九課";
+    var Colume35 = "第三十課";
+
+    var Colume36 = "作業A";
+    var Colume37 = "作業B";
+    var Colume38 = "作業C";
+    var Colume39 = "作業D";
+    var Colume40 = "作業E";
 
 function ProcessColumeHeader(columns) {
-    for (var i = 0; i < columns.length; i++)
-    {
+    //for (var i = 0; i < columns.length; i++)
+    //{
         //Colume0 = "課程名稱";
         //Colume1 = "姓名";
         //Colume2 = "行動電話";
@@ -697,7 +713,84 @@ function ProcessColumeHeader(columns) {
 
             Colume25 =  ViewBag28;
         }
-    }
+
+        ViewBag29 = @Html.Raw(JsonConvert.SerializeObject(ViewBag.Colume29) as String);
+        if (ViewBag29 != "") {
+
+            Colume26 =  ViewBag29;
+        }
+        ViewBag30 = @Html.Raw(JsonConvert.SerializeObject(ViewBag.Colume30) as String);
+        if (ViewBag30 != "") {
+
+            Colume27 =  ViewBag30;
+        }
+            ViewBag31 = @Html.Raw(JsonConvert.SerializeObject(ViewBag.Colume31) as String);
+            if (ViewBag31 != "") {
+
+                Colume28 =  ViewBag31;
+            }
+            ViewBag32 = @Html.Raw(JsonConvert.SerializeObject(ViewBag.Colume32) as String);
+            if (ViewBag32 != "") {
+
+                Colume29 =  ViewBag32;
+            }
+            ViewBag33 = @Html.Raw(JsonConvert.SerializeObject(ViewBag.Colume33) as String);
+            if (ViewBag33 != "") {
+
+                Colume30 =  ViewBag33;
+            }
+            ViewBag34 = @Html.Raw(JsonConvert.SerializeObject(ViewBag.Colume34) as String);
+            if (ViewBag34 != "") {
+
+                Colume31 =  ViewBag34;
+            }
+            ViewBag35 = @Html.Raw(JsonConvert.SerializeObject(ViewBag.Colume35) as String);
+            if (ViewBag35 != "") {
+
+                Colume32 =  ViewBag35;
+            }
+            ViewBag36 = @Html.Raw(JsonConvert.SerializeObject(ViewBag.Colume36) as String);
+            if (ViewBag36 != "") {
+
+                Colume33 =  ViewBag36;
+            }
+            ViewBag37 = @Html.Raw(JsonConvert.SerializeObject(ViewBag.Colume37) as String);
+            if (ViewBag37 != "") {
+
+                Colume34 =  ViewBag37;
+            }
+            ViewBag38 = @Html.Raw(JsonConvert.SerializeObject(ViewBag.Colume38) as String);
+            if (ViewBag38 != "") {
+
+                Colume35 =  ViewBag38;
+            }
+            ViewBag39 = @Html.Raw(JsonConvert.SerializeObject(ViewBag.Colume39) as String);
+            if (ViewBag39 != "") {
+
+                Colume36 =  ViewBag39;
+            }
+            ViewBag40 = @Html.Raw(JsonConvert.SerializeObject(ViewBag.Colume40) as String);
+            if (ViewBag40 != "") {
+
+                Colume37 =  ViewBag40;
+            }
+            ViewBag41 = @Html.Raw(JsonConvert.SerializeObject(ViewBag.Colume41) as String);
+            if (ViewBag41 != "") {
+
+                Colume38 =  ViewBag41;
+            }
+            ViewBag42 = @Html.Raw(JsonConvert.SerializeObject(ViewBag.Colume42) as String);
+            if (ViewBag42 != "") {
+
+                Colume39 =  ViewBag42;
+            }
+            ViewBag43 = @Html.Raw(JsonConvert.SerializeObject(ViewBag.Colume43) as String);
+            if (ViewBag43 != "") {
+
+                Colume40 =  ViewBag43;
+            }
+
+    //}
 }
 
 function onCustomizeColumns(columns)
@@ -841,15 +934,108 @@ function onCustomizeColumns(columns)
     { columns[23].width = Colume23.length * 20; }
 
 
-
-
-
-
     columns[24].caption = Colume24;
-    columns[24].width = Colume24.length * 25;
+    if (Colume24.length > 6)
+    { columns[24].width = Colume24.length * 10; }
+    else
+    { columns[24].width = Colume24.length * 20; }
+
 
     columns[25].caption = Colume25;
-    columns[25].width = Colume25.length * 25;
+    if (Colume25.length > 6)
+    { columns[25].width = Colume25.length * 10; }
+    else
+    { columns[25].width = Colume25.length * 20; }
+
+    columns[26].caption = Colume26;
+    if (Colume26.length > 6)
+    { columns[26].width = Colume26.length * 10; }
+    else
+    { columns[26].width = Colume26.length * 20; }
+
+    columns[27].caption = Colume27;
+    if (Colume27.length > 6)
+    { columns[27].width = Colume27.length * 10; }
+    else
+    { columns[27].width = Colume27.length * 20; }
+
+   columns[28].caption = Colume28;
+   if (Colume28.length > 6)
+   { columns[28].width = Colume28.length * 10; }
+   else
+   { columns[28].width = Colume28.length * 20; }
+
+    columns[29].caption = Colume29;
+    if (Colume29.length > 6)
+    { columns[29].width = Colume29.length * 10; }
+    else
+    { columns[29].width = Colume29.length * 20; }
+
+    columns[30].caption = Colume30;
+    if (Colume30.length > 6)
+    { columns[30].width = Colume30.length * 10; }
+    else
+    { columns[30].width = Colume30.length * 20; }
+
+    columns[31].caption = Colume31;
+    if (Colume31.length > 6)
+    { columns[31].width = Colume31.length * 10; }
+    else
+    { columns[31].width = Colume31.length * 20; }
+
+    columns[32].caption = Colume32;
+    if (Colume32.length > 6)
+    { columns[32].width = Colume32.length * 10; }
+    else
+    { columns[32].width = Colume32.length * 20; }
+
+    columns[33].caption = Colume33;
+    if (Colume33.length > 6)
+    { columns[33].width = Colume33.length * 10; }
+    else
+    { columns[33].width = Colume33.length * 20; }
+
+    columns[34].caption = Colume34;
+    if (Colume34.length > 6)
+    { columns[34].width = Colume34.length * 10; }
+    else
+    { columns[34].width = Colume34.length * 20; }
+
+    columns[35].caption = Colume35;
+    if (Colume35.length > 6)
+    { columns[35].width = Colume35.length * 10; }
+    else
+    { columns[35].width = Colume35.length * 20; }
+
+    columns[36].caption = Colume36;
+    if (Colume36.length > 6)
+    { columns[36].width = Colume36.length * 10; }
+    else
+    { columns[36].width = Colume36.length * 20; }
+
+    columns[37].caption = Colume37;
+    if (Colume37.length > 6)
+    { columns[37].width = Colume37.length * 10; }
+    else
+    { columns[37].width = Colume37.length * 20; }
+
+    columns[38].caption = Colume38;
+    if (Colume38.length > 6)
+    { columns[38].width = Colume38.length * 10; }
+    else
+    { columns[38].width = Colume38.length * 20; }
+
+    columns[39].caption = Colume39;
+    if (Colume39.length > 6)
+    { columns[39].width = Colume39.length * 10; }
+    else
+    { columns[39].width = Colume39.length * 20; }
+
+    columns[40].caption = Colume40;
+    if (Colume40.length > 6)
+    { columns[40].width = Colume40.length * 10; }
+    else
+    { columns[40].width = Colume40.length * 20; }
 
 }
 
