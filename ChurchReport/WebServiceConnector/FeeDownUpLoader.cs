@@ -147,7 +147,7 @@ namespace ChurchReport.WebServiceConnector
             // 取得與登入者需要收費的課程，課程結束後7日還會出現讚點名繳費網站
             EntityCollection aDiscipleLessonsEntityCollection = GetDiscipleLessonsEntityCollection();
 
-            if (aDiscipleLessonsEntityCollection != null)
+            if ( aDiscipleLessonsEntityCollection != null && aDiscipleLessonsEntityCollection.Entities.Count > 0)
             {
                 //處理一個一個的課程
                 ProcesseLessonsList(ref aDiscipleLessonsEntityCollection, ref Result, ref aClassName);
@@ -168,27 +168,27 @@ namespace ChurchReport.WebServiceConnector
         }
         public EntityCollection GetDiscipleLessonsEntityCollection()
         {
+            EntityCollection aDiscipleLessonsEntity = new EntityCollection();
             // 是否是講員
             EntityCollection aDiscipleLessonsEntityCollection = m_ToolUtilityClass.QueryEntityListByDate("contact", "contactid", this.m_ContactEntity.Id.ToString(), "new_contact_teacher_new_disciple_less", "new_disciple_lessons");
             if (aDiscipleLessonsEntityCollection.Entities.Count > 0)
             {
-                return aDiscipleLessonsEntityCollection;
+                aDiscipleLessonsEntity.Entities.Add(aDiscipleLessonsEntityCollection.Entities[0]);
             }
             // 是否是收費點名人員
             aDiscipleLessonsEntityCollection = m_ToolUtilityClass.QueryEntityListByDate("contact", "contactid", this.m_ContactEntity.Id.ToString(), "new_contact_new_disciple_lessons_fee", "new_disciple_lessons");
             if (aDiscipleLessonsEntityCollection.Entities.Count > 0)
             {
-                return aDiscipleLessonsEntityCollection;
+                aDiscipleLessonsEntity.Entities.Add(aDiscipleLessonsEntityCollection.Entities[0]);
             }
             // 是否是收費點名人員助理
             aDiscipleLessonsEntityCollection = m_ToolUtilityClass.QueryEntityListByDate("contact", "contactid", this.m_ContactEntity.Id.ToString(), "new_contact_new_disciple_lessons_assi", "new_disciple_lessons");
             if (aDiscipleLessonsEntityCollection.Entities.Count > 0)
             {
-                return aDiscipleLessonsEntityCollection;
+                aDiscipleLessonsEntity.Entities.Add(aDiscipleLessonsEntityCollection.Entities[0]);
             }
 
-
-            return null;
+            return aDiscipleLessonsEntity;
             // 取得與登入者需要收費的課程，課程結束後7日還會出現讚點名繳費網站
 
         }
