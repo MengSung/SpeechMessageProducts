@@ -23,7 +23,7 @@ namespace ChurchReport.Tools
         ToolUtilityClass m_ToolUtilityClass;
 
         // 客製化
-        // 新莊靈糧堂 2.0
+        // 聖谷行道會 2.0
         private const String SPEECHMESSAGE_CHANNEL_ACCESS_TOKEN = @"O7kDZ6nG5nenmU7D2z5LzmKgRM9Pf/5/r08Z6zVlmduhTwbfV8HNObv0YceKtM5oiAvTeL3IaiSK8UEh7Y4fS+FSroM/PfHmEEIcvwmMSud3tZUASMEeLVKCy8bL38PfAws2toVIWsTf+qwcrXyHbgdB04t89/1O/w1cDnyilFU=";
 
         // 胡夢嵩回傳　EXCEPTION　專用的ＩＤ
@@ -179,7 +179,7 @@ namespace ChurchReport.Tools
                             Entity aStorLessons = this.m_ToolUtilityClass.RetrieveEntity("new_stor_lessons", aStorLessonsId);
 
                             #region 報名狀態
-                            // 有審核的教會=>報名成功:新莊靈糧堂
+                            // 有審核的教會=>報名成功:聖谷行道會
                             this.m_ToolUtilityClass.SetOptionSetAttribute(ref aStorLessons, "new_enroll_status", 100000008);
                             #endregion
 

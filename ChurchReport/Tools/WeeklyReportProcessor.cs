@@ -1032,11 +1032,11 @@ namespace ChurchReport.Tools
                 #endregion
                 #region 設定附註或是代禱事項
 
-                // 新莊靈糧堂
+                // 聖谷行道會
                 //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_name", aMemberInfomation.Note);
                 //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_explanation", aMemberInfomation.PrayItem);
 
-                // 新莊靈糧堂
+                // 聖谷行道會
                 //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_memo", aMemberInfomation.Note);
                 #endregion
                 #region 設定小組是否暫停
@@ -1138,7 +1138,7 @@ namespace ChurchReport.Tools
                                 ClearIdentity = this.ConvertIndexToClearIdentity(aCustomerTypeCode.Value);
 
                                 // 版本轉換
-                                //// 如果是新朋友、未入組、外教會則不列入累積，新莊靈糧堂
+                                //// 如果是新朋友、未入組、外教會則不列入累積，聖谷行道會
                                 if (aCustomerTypeCode.Value != 100000004 && aCustomerTypeCode.Value != 100000000 && aCustomerTypeCode.Value != 100000007)
                                 {
                                     return true;
@@ -1148,7 +1148,7 @@ namespace ChurchReport.Tools
                                     return false;
                                 }
 
-                                // 如果是新朋友或是未入組則不列入累積，新莊靈糧堂
+                                // 如果是新朋友或是未入組則不列入累積，聖谷行道會
                                 // 10.不穩定組員   =   100,000,008
                                 // 11.新朋友       =   100,000,009
                                 // 12.未入組       =   100,000,010
@@ -1205,7 +1205,7 @@ namespace ChurchReport.Tools
                 int aCustomerTypeCodeValue = this.m_ToolUtilityClass.GetOptionSetAttribute(ref aContactEntity, "customertypecode");
                 //OptionSetValue aCustomerTypeCode = aContactEntity.Attributes["customertypecode"] as OptionSetValue;
 
-                // 如果是新朋友或是未入組則不列入累積，新莊靈糧堂
+                // 如果是新朋友或是未入組則不列入累積，聖谷行道會
                 if (aCustomerTypeCodeValue != 100000004 && aCustomerTypeCodeValue != 100000000 && aCustomerTypeCodeValue != 100000007 && aCustomerTypeCodeValue != EMPTY_VALUE)
                 {
                     return true;
@@ -1216,7 +1216,7 @@ namespace ChurchReport.Tools
                 }
 
 
-                // 如果是新朋友或是未入組則不列入累積，新莊靈糧堂
+                // 如果是新朋友或是未入組則不列入累積，聖谷行道會
                 // 10.不穩定組員   =   100,000,008
                 // 11.新朋友       =   100,000,009
                 // 12.未入組       =   100,000,010
@@ -1244,7 +1244,7 @@ namespace ChurchReport.Tools
         #endregion
         #endregion
         #region 設定委身類型
-        // 新莊靈糧堂
+        // 聖谷行道會
         // 委身類型客製化
         private int ConvertIdentityToIndex(String Identity)
         {
@@ -1278,7 +1278,7 @@ namespace ChurchReport.Tools
                     return 100000000;
             }
         }
-        // 新莊靈糧堂
+        // 聖谷行道會
         // 委身類型客製化
         private String ConvertIndexToIdentity(int Identity)
         {

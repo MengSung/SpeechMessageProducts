@@ -42,7 +42,7 @@ namespace ChurchReport.WebServiceConnector
         private const String CRM_TYPE = "DYNAMICS365";
 
         // 客製化
-        // 新莊靈糧堂
+        // 聖谷行道會
         private const String CHANNEL_ACCESS_TOKEN = @"O7kDZ6nG5nenmU7D2z5LzmKgRM9Pf/5/r08Z6zVlmduhTwbfV8HNObv0YceKtM5oiAvTeL3IaiSK8UEh7Y4fS+FSroM/PfHmEEIcvwmMSud3tZUASMEeLVKCy8bL38PfAws2toVIWsTf+qwcrXyHbgdB04t89/1O/w1cDnyilFU=";
 
         // 胡夢嵩回傳　EXCEPTION　專用的ＩＤ

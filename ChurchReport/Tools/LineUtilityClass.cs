@@ -33,7 +33,7 @@ namespace ChurchReport.Tools
             #region Channel Access Token 設定
 
             // 客製化
-            // 新莊靈糧堂 Line 2.0
+            // 聖谷行道會 Line 2.0
             private const String FBLLC_CHANNEL_ACCESS_TOKEN = "O7kDZ6nG5nenmU7D2z5LzmKgRM9Pf/5/r08Z6zVlmduhTwbfV8HNObv0YceKtM5oiAvTeL3IaiSK8UEh7Y4fS+FSroM/PfHmEEIcvwmMSud3tZUASMEeLVKCy8bL38PfAws2toVIWsTf+qwcrXyHbgdB04t89/1O/w1cDnyilFU=";
             private const String FBLLC_BACK_CHANNEL_ACCESS_TOKEN = "O7kDZ6nG5nenmU7D2z5LzmKgRM9Pf/5/r08Z6zVlmduhTwbfV8HNObv0YceKtM5oiAvTeL3IaiSK8UEh7Y4fS+FSroM/PfHmEEIcvwmMSud3tZUASMEeLVKCy8bL38PfAws2toVIWsTf+qwcrXyHbgdB04t89/1O/w1cDnyilFU=";
             #endregion
@@ -54,7 +54,7 @@ namespace ChurchReport.Tools
             private const String m_Default_ThumbnailImageUrl = "https://web.opendrive.com/api/v1/download/file.json/ODdfMzk3Nzc5Nl8?inline=1";
             // 楊梅靈糧堂模板預設的圖片
             private const String m_Yangmeillc_ThumbnailImageUrl = "https://web.opendrive.com/api/v1/download/file.json/ODdfMzk3Nzc5Nl8?inline=1";
-            // 新莊靈糧堂模板預設的圖片
+            // 聖谷行道會模板預設的圖片
             private const String m_TpeHoc_ThumbnailImageUrl = "https://od.lk/s/ODdfNTg5ODc5OF8/2017_06_sermon_6-18.jpg";
 
             #endregion

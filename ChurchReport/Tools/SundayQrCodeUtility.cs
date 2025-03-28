@@ -43,7 +43,7 @@ namespace ChurchReport.Tools
         static readonly object m_UpdateSundayWeeklyReportLocker = new object();//避免多人同時輸入"小組出席"，會產生2個週報或是改變"委身類型"、"裝備狀態"                                                                 //private const bool RACE_LEADER_CAN_CREATE_WEEKLYREPORT = false; // 族系組長能否幫小組長建立週報，false 不可以
 
         // 客製化
-        // 新莊靈糧堂
+        // 聖谷行道會
         private const String CHANNEL_ACCESS_TOKEN = @"O7kDZ6nG5nenmU7D2z5LzmKgRM9Pf/5/r08Z6zVlmduhTwbfV8HNObv0YceKtM5oiAvTeL3IaiSK8UEh7Y4fS+FSroM/PfHmEEIcvwmMSud3tZUASMEeLVKCy8bL38PfAws2toVIWsTf+qwcrXyHbgdB04t89/1O/w1cDnyilFU=";
 
         // 掃描 QR CODE之後是否發送 LINE通知
@@ -55,7 +55,7 @@ namespace ChurchReport.Tools
         public SundayQrCodeUtility()
         {
             // 客製化，請選擇
-            // 新莊靈糧堂(免費版)
+            // 聖谷行道會(免費版)
             this.m_LineMessagingClient = new LineMessagingClient(CHANNEL_ACCESS_TOKEN);
 
             // 客製化
@@ -79,7 +79,7 @@ namespace ChurchReport.Tools
                     // 透過 LINE ID 找不到此好友，可能還沒加入官LINE@
                     //this.AddNewFriend(DisplayName, UserLineId);
 
-                    OnboardType = "錯誤 : " + DisplayName + "還沒有加入新莊靈糧堂的 Line@";
+                    OnboardType = "錯誤 : " + DisplayName + "還沒有加入聖谷行道會的 Line@";
 
                     return;
                 }

@@ -1106,7 +1106,7 @@ namespace ChurchReport.WebServiceConnector
             };
 
         }
-        // 新莊靈糧堂
+        // 聖谷行道會
         // 委身類型客製化
         private String ConvertIndexToIdentity(int Identity)
         {

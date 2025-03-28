@@ -55,7 +55,7 @@ namespace ChurchReport.WebServiceConnector
         private readonly String BACKEND_URL = m_Configuration["BACKEND_URL"];// 公司內部開發
 
         //  
-        // 新莊靈糧堂
+        // 聖谷行道會
         private const String CHANNEL_ACCESS_TOKEN = @"O7kDZ6nG5nenmU7D2z5LzmKgRM9Pf/5/r08Z6zVlmduhTwbfV8HNObv0YceKtM5oiAvTeL3IaiSK8UEh7Y4fS+FSroM/PfHmEEIcvwmMSud3tZUASMEeLVKCy8bL38PfAws2toVIWsTf+qwcrXyHbgdB04t89/1O/w1cDnyilFU=";
 
         //private LinePayClient m_LinePayClient { get; }
@@ -1431,7 +1431,7 @@ namespace ChurchReport.WebServiceConnector
                     B22 = "163EC08BC1624854";
                     return A21 + "," + A22 + "," + B21 + "," + B22;
                 case "DA4272_001":
-                    // 新莊靈糧堂
+                    // 聖谷行道會
                     A21 = "00DC1BDACCB645C6";
                     A22 = "185B6F59F737462E";
                     B21 = "6F9C2936E8524F76";

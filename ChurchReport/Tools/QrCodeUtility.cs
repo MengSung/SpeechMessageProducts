@@ -49,7 +49,7 @@ namespace ChurchReport.Tools
 
         private DateTime m_SigningTime;
         // 客製化
-        // 新莊靈糧堂
+        // 聖谷行道會
         private const String CHANNEL_ACCESS_TOKEN = @"O7kDZ6nG5nenmU7D2z5LzmKgRM9Pf/5/r08Z6zVlmduhTwbfV8HNObv0YceKtM5oiAvTeL3IaiSK8UEh7Y4fS+FSroM/PfHmEEIcvwmMSud3tZUASMEeLVKCy8bL38PfAws2toVIWsTf+qwcrXyHbgdB04t89/1O/w1cDnyilFU=";
 
 
@@ -76,7 +76,7 @@ namespace ChurchReport.Tools
         public QrCodeUtility()
         {
             // 客製化，請選擇
-            // 新莊靈糧堂(免費版)
+            // 聖谷行道會(免費版)
             this.m_LineMessagingClient = new LineMessagingClient(CHANNEL_ACCESS_TOKEN);
 
             // 客製化
@@ -89,7 +89,7 @@ namespace ChurchReport.Tools
             try
             {
                 #region 設定區域變數
-                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "003 : 新莊靈糧堂: 資訊 => " + DisplayName + "，" + UserName);
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "003 : 聖谷行道會: 資訊 => " + DisplayName + "，" + UserName);
 
                 m_UserLineId = UserLineId;
 
@@ -100,13 +100,13 @@ namespace ChurchReport.Tools
                     // 透過 LINE ID 找不到此好友，可能還沒加入官LINE@
                     //this.AddNewFriend( DisplayName, UserLineId );
 
-                    OnboardType = "錯誤 : " + DisplayName + "還沒有加入新莊靈糧堂的 Line@" ;
+                    OnboardType = "錯誤 : " + DisplayName + "還沒有加入聖谷行道會的 Line@" ;
 
                     return;
                 }
                 m_UserName = UserName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref m_Contact, "fullname");
 
-                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "004 : 新莊靈糧堂: 資訊 => " + m_UserName);
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "004 : 聖谷行道會: 資訊 => " + m_UserName);
 
                 // 取得課程
                 string[] arr = QrCodeIdString.Split('_');
@@ -126,7 +126,7 @@ namespace ChurchReport.Tools
                     // 設定是簽到還是簽退
                     m_OnboardType = arr[2];
 
-                    m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "005 : 新莊靈糧堂: 資訊 => " + m_OnboardType);
+                    m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "005 : 聖谷行道會: 資訊 => " + m_OnboardType);
 
                     // 在上課紀錄單進行簽到退
                     SigningLesson(m_Lesson, ClassName, UserName, m_Contact.Id.ToString(), m_ClassIndex, m_OnboardType);
@@ -165,7 +165,7 @@ namespace ChurchReport.Tools
         {
             try
             {
-                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "006 : 新莊靈糧堂: 資訊 => " + m_OnboardType);
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "006 : 聖谷行道會: 資訊 => " + m_OnboardType);
 
                 // 取得與課程相關的上課紀錄
                 //EntityCollection aStorLessonsEntityCollection = m_ToolUtilityClass.QueryEntityList("new_disciple_lessons", "new_disciple_lessonsid", aLesson.Id.ToString(), "new_new_disciple_lessons_new_stor_les", "new_stor_lessons");
@@ -176,23 +176,23 @@ namespace ChurchReport.Tools
                     // 有找到上課紀錄單
                     Entity RetrievedStorLessons = this.m_ToolUtilityClass.RetrieveEntity("new_stor_lessons", aStorLessonsEntityCollection.Entities[0].Id);
 
-                    m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "007 : 新莊靈糧堂: 資訊 => " + "SigningProcess( RetrievedStorLessons, ClassIndex, OnboardType );");
+                    m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "007 : 聖谷行道會: 資訊 => " + "SigningProcess( RetrievedStorLessons, ClassIndex, OnboardType );");
 
                     // 進行簽到或是簽退或是報名
                     SigningProcess( RetrievedStorLessons, ClassIndex, OnboardType );
 
-                    m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "008 : 新莊靈糧堂: 資訊 => " + m_OnboardType);
+                    m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "008 : 聖谷行道會: 資訊 => " + m_OnboardType);
 
                     return true;
                 }
                 else
                 {
-                    m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "009 : 新莊靈糧堂: 資訊 => " + m_OnboardType);
+                    m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "009 : 聖谷行道會: 資訊 => " + m_OnboardType);
 
                     // 沒找到上課紀錄單
                     if (m_ClassIndex.Contains("enroll") == true)
                     {
-                        m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "010 : 新莊靈糧堂: 資訊 => " + m_OnboardType);
+                        m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "010 : 聖谷行道會: 資訊 => " + m_OnboardType);
 
                         #region 沒找到上課紀錄單，但是是課程報名所以要建立一個上課紀錄單
                         // 建立一個上課紀錄單
@@ -209,7 +209,7 @@ namespace ChurchReport.Tools
 
                         #endregion
 
-                        m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "011 : 新莊靈糧堂: 資訊 => " + m_OnboardType);
+                        m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "011 : 聖谷行道會: 資訊 => " + m_OnboardType);
 
                     }
                     else

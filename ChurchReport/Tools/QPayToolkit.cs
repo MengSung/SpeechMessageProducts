@@ -46,7 +46,7 @@ namespace ChurchReport.Tools
         //m_LinePayClient = new LinePayClient(configuration["LinePay:ChannelId"], configuration["LinePay:ChannelSecret"], bool.Parse(configuration["LinePay:IsSandbox"]));
 
         //永豐金流正式環境
-        //永豐金流寄給新莊靈糧堂的HASH CODE
+        //永豐金流寄給聖谷行道會的HASH CODE
         //private static String A1 = m_Configuration["Sinopac:A1"];
         //private static String A2 = m_Configuration["Sinopac:A2"];
         //private static String B1 = m_Configuration["Sinopac:B1"];
