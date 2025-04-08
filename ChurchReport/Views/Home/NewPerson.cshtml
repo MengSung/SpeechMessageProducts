@@ -196,6 +196,7 @@
             items.AddSimpleFor(m => m.HireDate)
                 //.DataField("HireDate")
                 .Label(l => l.Text("進教會日期"))
+                .IsRequired(false)
                 .Editor(
                         e => e.DateBox()//.Value(new JS("null"))
                         .DisplayFormat("yyyy/M/d")
