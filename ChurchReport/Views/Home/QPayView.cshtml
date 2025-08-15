@@ -1,472 +1,325 @@
 ﻿@using ChurchReport.Models
 @model QpayModel
-@*<div class="long-title"><h3>奉獻資訊</h3></div>*@
 
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="generator" content="Mobirise v4.5.2, mobirise.com">
     <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
     <link rel="shortcut icon" href="~/assets/images/logo4.png" type="image/x-icon">
-    <meta name="description" content="">
-
+    
+    <!-- CSS 引用 -->
     <link rel="stylesheet" href="~/assets/web/assets/mobirise-icons/mobirise-icons.css">
     <link rel="stylesheet" href="~/assets/tether/tether.min.css">
-
     <link rel="stylesheet" href="~/assets/theme/css/style.css">
     <link rel="stylesheet" href="~/assets/mobirise/css/mbr-additional.css" type="text/css">
-    <link href="~/css/devextreme/dx.generic.custom-scheme.css" rel="stylesheet" />
+    <link href="~/css/devextreme/dx.generic.custom-scheme.css" rel="stylesheet">
+    <link href="~/css/Gallery.css" rel="stylesheet">
+    <link href="~/css/WeeklyReport.css" rel="stylesheet">
+    <link href="~/css/Scheduler.css" rel="stylesheet">
+    <link href="~/css/Site.css" rel="stylesheet">
 </head>
 
-<div style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
+<!-- 奉獻者資訊 -->
+<div class="dedication-header" style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
     <h4 id="displaynamefield">@Model.FullName 奉獻編號:@Model.DedicationNumber</h4>
 </div>
 
+<!-- 奉獻表單 -->
 <form data-ajax="true" data-ajax-begin="onBegin" data-ajax-success="onSuccess" asp-action="SaveQPayDedication" asp-controller="Home" method="post">
+    <!-- 表單主體 -->
     <div id="form-container">
         @(Html.DevExtreme().Form<QpayModel>()
         .ID("form")
         .ColCount(1)
         .Items(items =>
         {
-
-            items.AddSimpleFor
-            (m => m.Category)
+            // 奉獻類別
+            items.AddSimpleFor(m => m.Category)
                 .Label(l => l.Text("類別"))
-                //.Name("Category")
-                .Editor
-                (
-                    e => e
+                .Editor(e => e
                     .SelectBox()
                     .Width(200)
-                    .DataSource(new string[]
-                    {
-                        "月定獻金",
-                        "感恩獻金",
-                        "節期獻金",
-                        "建築獻金",
-                        "宣教基金",
-                        "週年獻金",
-                        "松年大學",
-                        "友愛基金",
-                        "生日助學金",
-                        "特別獻金",
+                    .DataSource(new string[] {
+                        "月定獻金", "感恩獻金", "節期獻金", "建築獻金", 
+                        "宣教基金", "週年獻金", "松年大學", "友愛基金",
+                        "生日助學金", "特別獻金"
+                    })
+                    .OnValueChanged("OnCategorySelectBoxValueChanged")
+                );
 
-                        //"禮拜獻金",
-                        //"利息收入",
-                        //"其他收入",
-                        //"對外獻金",
-                        //"對外獻金-本宗",
-                        //"對外獻金-非本宗",
-                        //"獎學獻金",
-                        //"青年宣教基金",
-                        //"對內獻金",
-                        //"慈善獻金",
-                        //"借入款",
-                        //"補助金",
-                        //"專帳其他收入(利息)",
-                        //"償還借款準備金",
-                        //"聖餐獻金",
-                        //"特別獻金",
-                    }
-                    //.DisplayExpr("Name")
-                )
-                //.Placeholder("請選擇奉獻類別")
-                //.Value(Model.Category)
-                .OnValueChanged("OnCategorySelectBoxValueChanged")
-            );
+            // 宣教對象選項
+            items.AddSimpleFor(m => m.Others)
+                .Label(l => l.Text("宣教對象"))
+                .Visible(false)
+                .Name("OtherDedicationSelectionBox")
+                .Editor(e => e
+                    .SelectBox()
+                    .Width(200)
+                    .DataSource(Model.OtherCategoryArray)
+                    .Placeholder("請選擇宣教對象")
+                );
 
-            items.AddSimpleFor
-                (m => m.Others)
-                    .Label(l => l.Text("宣教對象"))
-                    .Visible(false)
-                    .Name("OtherDedicationSelectionBox")
-                    .Editor
-                    (
-                        e => e
-                        .SelectBox()
-                        .Width(200)
-                        .DataSource(Model.OtherCategoryArray)
-                        .Placeholder("請選擇宣教對象")
-                    //.Value("特別")
-                    );
+            // 特別獻金項目
+            items.AddSimpleFor(m => m.Others)
+                .Label(l => l.Text("特別獻金項目"))
+                .Visible(false)
+                .Name("SpecialDedicationSelectionBox")
+                .Editor(e => e
+                    .SelectBox()
+                    .Width(200)
+                    .DataSource(Model.SpecialCategoryArray)
+                    .Placeholder("請選擇特別獻金項目")
+                );
 
-            items.AddSimpleFor
-                    (m => m.Others)
-                        .Label(l => l.Text("特別獻金項目"))
-                        .Visible(false)
-                        .Name("SpecialDedicationSelectionBox")
-                        .Editor
-                        (
-                            e => e
-                            .SelectBox()
-                            .Width(200)
-                            .DataSource(Model.SpecialCategoryArray)
-                            .Placeholder("請選擇特別獻金項目")
-                        //.Value("特別")
-                        );
+            // 其他奉獻內容
+            items.AddSimpleFor(m => m.Others)
+                .Label(l => l.Text("其他奉獻內容"))
+                .Visible(false)
+                .Name("OtherDedication")
+                .Editor(e => e
+                    .Autocomplete()
+                    .Width(200)
+                    .DataSource(Model.OtherCategoryArray)
+                    .Placeholder("請輸入其他奉獻內容")
+                );
 
-            items.AddSimpleFor
-                (m => m.Others)
-                    .Label(l => l.Text("其他奉獻內容"))
-                    .Visible(false)
-                    .Name("OtherDedication")
-                    .Editor
-                    (
-                        e => e
-                        .Autocomplete()
-                        .Width(200)
-                        .DataSource(Model.OtherCategoryArray)
-                        .Placeholder("請輸入其他奉獻內容")
-                    //.Value("特別")
-                    );
+            // 節期選項
+            items.AddSimpleFor(m => m.Others)
+                .Label(l => l.Text("節期"))
+                .Visible(false)
+                .Name("HolidayDedicationSelectionBox")
+                .Editor(e => e
+                    .SelectBox()
+                    .Width(250)
+                    .DataSource(new string[] {
+                        "元旦", "新春", "清明節", "復活節", "母親節",
+                        "父親節", "重陽節", "感恩節", "聖誕節"
+                    })
+                    .Placeholder("請選擇節期")
+                );
 
-                items.AddSimpleFor
-                    (m => m.Others)
-                    .Label(l => l.Text("節期"))
-                    .Visible(false)
-                    .Name("HolidayDedicationSelectionBox")
-                    .Editor
-                    (
-                        e => e
-                        .SelectBox()
-                        .Width(250)
-                        .DataSource
-                        (
-                            new string[]
-                            {
-                                "元旦",
-                                "新春",
-                                "清明節",
-                                "復活節",
-                                "母親節",
-                                "父親節",
-                                "重陽節",
-                                "感恩節",
-                                "聖誕節",
-                            }
-                        )
-                        //.DataSource(Model.OtherCategoryArray)
-                        .Placeholder("請選擇節期")
-                        //.Value("特別")
-                    );
-
+            // 奉獻金額
             items.AddSimpleFor(m => m.Amount)
-                    //.DataField("LastName")
-                    .Label(l => l.Text("奉獻金額"))
-                    .Name("DedicationAmount")
-                    .Editor(e => e
-                        .NumberBox()
-                        .Disabled(false)
-                        .Width(200)
-                        .OnContentReady("OnAmountContentReady")
-                        .Placeholder("輸入奉獻金額")
-                    );
+                .Label(l => l.Text("奉獻金額"))
+                .Name("DedicationAmount")
+                .Editor(e => e
+                    .NumberBox()
+                    .Width(200)
+                    .OnContentReady("OnAmountContentReady")
+                    .Placeholder("輸入奉獻金額")
+                );
 
-            items.AddSimpleFor
-                    (m => m.PayWay)
-                        .Label(l => l.Text("付款方式"))
-                        .Name("PayWaySelectBox")
-                        .Editor
-                        (
-                            e => e
-                            .SelectBox()
-                            .Width(200)
-                            .DataSource(new string[]
-                            {
-                                "信用卡",
-                                "ATM轉帳/匯款",
-                                "信用卡定期定額(每個月)",
-                                //"行動支付",
-                                //"銀聯卡",
-                                "LinePay",
-                            }
-                            //.DisplayExpr("Name")
-                        )
-                        .OnValueChanged("OnPayWaySelectBoxValueChanged")
-                    //.Value("信用卡")
-                    );
+            // 付款方式
+            items.AddSimpleFor(m => m.PayWay)
+                .Label(l => l.Text("付款方式"))
+                .Name("PayWaySelectBox")
+                .Editor(e => e
+                    .SelectBox()
+                    .Width(200)
+                    .DataSource(new string[] {
+                        "信用卡", "ATM轉帳/匯款", "信用卡定期定額(每個月)", "LinePay"
+                    })
+                    .OnValueChanged("OnPayWaySelectBoxValueChanged") // 移到 Editor 內
+                );
 
-            items.AddSimpleFor
-                    (m => m.DeductTotalNumber)
-                        //.Label(l => l.Text("定期定額總期數,每個月自動進行奉獻"))
-                        .Label(l => l.Text("總期數"))
-                        .Visible(false)
-                        .Name("DeductTotalNumberSelectionBox")
-                        .Editor
-                        (
-                            e => e
-                            .SelectBox()
-                            .Width(200)
-                            .DataSource(new string[]
-                            {
-                                "3個月",
-                                "6個月",
-                                "12個月",
-                                "18個月",
-                                "24個月",
-                            }
-                            //.DisplayExpr("Name")
-                        )
-                    .Value("12個月")
-                    );
+            // 定期定額總期數
+            items.AddSimpleFor(m => m.DeductTotalNumber)
+                .Label(l => l.Text("總期數"))
+                .Visible(false)
+                .Name("DeductTotalNumberSelectionBox")
+                .Editor(e => e
+                    .SelectBox()
+                    .Width(200)
+                    .DataSource(new string[] {
+                        "3個月", "6個月", "12個月", "18個月", "24個月"
+                    })
+                    .Value("12個月") // 這裡設定預設值
+                );
 
-
+            // 選取的信用卡
             items.AddSimpleFor(m => m.SelectedCreditCard)
-                    //.DataField("LastName")
-                    .Label(l => l.Text("選取的信用卡").Visible(false))
-                    .Editor(e => e
-                        .TextBox()
-                        .Width(120).Visible(false)
-                        //.Disabled(true)
-                        .Placeholder("選取的信用卡")
-                   );
+                .Label(l => l.Text("選取的信用卡").Visible(false))
+                .Editor(e => e
+                    .TextBox()
+                    .Width(120)
+                    .Visible(false)
+                    .Placeholder("選取的信用卡")
+                );
 
+            // 附註
             items.AddSimpleFor(m => m.Explain)
-                    //.DataField("LastName")
-                    .Label(l => l.Text("附註").Visible(true))
-                    .Editor(e => e
-                        .TextArea()
-                        .Width(200)
-                        .Height(60)
-                        .Visible(true)
-                        //.Disabled(true)
-                        .Placeholder("請輸入附註")
-                   );
-
+                .Label(l => l.Text("附註"))
+                .Editor(e => e
+                    .TextArea()
+                    .Width(200)
+                    .Height(60)
+                    .Placeholder("請輸入附註")
+                );
         })
-        .OnContentReady
-        (@<text>
-            function(e)
-            {
+        .OnContentReady(@<text>
+            function(e) {
                 e.component.validate();
             }
         </text>)
-
         .FormData(Model)
         )
-
     </div>
-    <div id="creditcardlistcontainer" style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
-        <h5 id="creditcardlist">您可以刪除不想用的信用卡<br />請選擇這次要用哪張信用卡奉獻</h5>
+
+    <!-- 信用卡列表 -->
+    <div id="creditcardlistcontainer" class="card-list" style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
+        <h5>您可以刪除不想用的信用卡<br>請選擇這次要用哪張信用卡奉獻</h5>
         @(Html.DevExtreme().DataGrid<CreditCard>()
-                .ID("CreditCardGrid")
-                //.Width("50%")
-                .Width("auto")
-                //.Width("inherit")
-                .ShowBorders(true)
-                //.ColumnAutoWidth(true)
-                .ColumnWidth(20)
-                //.Paging(p => p.PageSize(10))
-                .Paging(paging => paging.Enabled(false))
-                .AllowColumnResizing(true)
-                .ColumnResizingMode(ColumnResizingMode.Widget)
-                .ColumnFixing(c => c.Enabled(true))
-                .LoadPanel(l => l.Text("更新資料中...").Enabled(false))
-                //.SearchPanel(s => s.Visible(false).Placeholder("搜尋.."))
-                //.Export(e=>e.Enabled(false).AllowExportSelectedData(true))
-                .ShowColumnLines(true)
-                .ShowRowLines(true)
-                //.RowAlternationEnabled(true)
-                .ShowBorders(true)
-                //.RemoteOperations(false)
-                //.TwoWayBindingEnabled(true)
-                .Selection(selection => selection.Mode(SelectionMode.Single))
-                //.Selection(selection => selection.Mode(SelectionMode.Multiple))
-                //.Selection(selection => selection.Mode(SelectionMode.None))
-                .OnRowClick("OnRowClick")
-                .OnSelectionChanged("OnRowSelectionChanged")
-                .OnInitialized("DataGridOnInitialized")
-                .HoverStateEnabled(true)
-                //.OnContentReady("onCreditCardGridContentReady")
-                .Editing(editing =>
-                {
-                    //editing.Mode(GridEditMode.Batch);
-                    //editing.Mode(GridEditMode.Row);
-                    //editing.Mode(GridEditMode.Cell);
-                    //editing.Mode(GridEditMode.Batch);
-                    //editing.Mode(GridEditMode.Form);
-                    //editing.Mode(GridEditMode.Popup);
-                    //editing.AllowUpdating(true);
-                    //editing.AllowAdding(true);
-                    editing.AllowDeleting(true);
-                    editing.Texts(a => a.SaveAllChanges("上傳檔案").AddRow("新增").CancelAllChanges("取消變更").SaveRowChanges("儲存").CancelRowChanges("取消").EditRow("選擇").DeleteRow("刪除"));
-                })
-
-                .Columns(columns =>
-                {
-                    columns.AddFor(m => m.CreditCardNumber).Caption("卡號").Width(150).MinWidth(80).Alignment(HorizontalAlignment.Center).Fixed(true);
-                    columns.AddFor(m => m.ExpireDate).Caption("過期日").Width(80).MinWidth(50).Alignment(HorizontalAlignment.Center);
-                })
-                .DataSource(d => d
-                            .WebApi()
-                            .Controller("Home")
-                            .LoadAction("LoadCreditCardList")
-                            //.InsertAction("InsertPresentRecord")
-                            .DeleteAction("DeleteCreditCard")
-                            //.UpdateAction("UpdatePresentRecord")
-                            .Key("CCToken")
-                            //.LoadParams(new { id = @ViewBag.ListId }))
-                    )
-                .SelectedRowKeys(new int[] { 1 })
-                .OnContentReady("onCreditCardGridContentReady")
-                // 此處設定是讓選項偏左邊一排
-                //.OnContentReady("moveEditColumnToLeft")
-                //此處設定是鉛筆形狀還是"編輯"字樣
-                //.OnCellPrepared("cell_prepared")
-                //.OnCellPrepared("cell_prepared_background_color")
+            .ID("CreditCardGrid")
+            .Width("auto")
+            .ShowBorders(true)
+            .ColumnWidth(20)
+            .Paging(paging => paging.Enabled(false))
+            .AllowColumnResizing(true)
+            .ColumnResizingMode(ColumnResizingMode.Widget)
+            .ColumnFixing(c => c.Enabled(true))
+            .LoadPanel(l => l.Text("更新資料中...").Enabled(false))
+            .ShowColumnLines(true)
+            .ShowRowLines(true)
+            .ShowBorders(true)
+            .Selection(selection => selection.Mode(SelectionMode.Single))
+            .OnRowClick("OnRowClick")
+            .OnSelectionChanged("OnRowSelectionChanged")
+            .OnInitialized("DataGridOnInitialized")
+            .HoverStateEnabled(true)
+            .Editing(editing => {
+                editing.AllowDeleting(true);
+                editing.Texts(a => a.DeleteRow("刪除").ConfirmDeleteMessage("您確定要刪除這個信用卡嗎?"));
+            })
+            .Columns(columns => {
+                columns.AddFor(m => m.CreditCardNumber).Caption("卡號").Width(150).MinWidth(80).Alignment(HorizontalAlignment.Center).Fixed(true);
+                columns.AddFor(m => m.ExpireDate).Caption("過期日").Width(80).MinWidth(50).Alignment(HorizontalAlignment.Center);
+            })
+            .DataSource(d => d
+                .WebApi()
+                .Controller("Home")
+                .LoadAction("LoadCreditCardList")
+                .DeleteAction("DeleteCreditCard")
+                .Key("CCToken")
+            )
+            .SelectedRowKeys(new int[] { 1 })
+            .OnContentReady("onCreditCardGridContentReady")
         )
-        <br />
     </div>
-    <div class="dx-field" style="text-align: left;">
+
+    <!-- 按鈕區域 -->
+    <div class="button-area dx-field" style="text-align: left;">
         <div id="buttonContainer" class="dx-button-icon">
             @(Html.DevExtreme().Button()
-                    .Text("用上面選擇的信用卡奉獻")
-                    .Type(ButtonType.Success)
-                    .ID("save-button2")
-                    .UseSubmitBehavior(true)
-                    .OnClick("ShowLoadPanel")
+                .Text("用上面選擇的信用卡奉獻")
+                .Type(ButtonType.Success)
+                .ID("save-button2")
+                .UseSubmitBehavior(true)
+                .OnClick("ShowLoadPanel")
             )
             @(Html.DevExtreme().Button()
-                    .Text("用其他信用卡奉獻")
-                    .Type(ButtonType.Default)
-                    //.Icon("fa fa-envelope-o")
-                    //.Icon(Url.Content("~/images/button/weather.png"))
-                    //.Icon("check")
-                    .ID("save-button3")
-                    .UseSubmitBehavior(true)
-                    .StylingMode(ButtonStylingMode.Contained)
-                    .OnClick("UseOtherCreditCard")
+                .Text("用其他信用卡奉獻")
+                .Type(ButtonType.Default)
+                .ID("save-button3")
+                .UseSubmitBehavior(true)
+                .StylingMode(ButtonStylingMode.Contained)
+                .OnClick("UseOtherCreditCard")
             )
         </div>
-        <br />
     </div>
-    <div style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
+
+    <!-- ATM資訊區域 -->
+    <div class="atm-info" style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
         <h5 id="atmfield"></h5>
     </div>
-    <div id="dedicationbookinglistcontainer" style="font-family:標楷體;font-size:100%; color:chocolate; text-align:left;font-weight:bold">
-        <h5 id="creditcardlist">定期定額清單</h5>
+
+    <!-- 定期定額清單 -->
+    <div id="dedicationbookinglistcontainer" class="booking-list" style="font-family:標楷體;font-size:100%; color:chocolate; text-align:left;font-weight:bold">
+        <h5>定期定額清單</h5>
         @(Html.DevExtreme().DataGrid<DedicationBooking>()
-                .ID("DedicationBookingGrid")
-                //.Width("60%")
-                .Width("auto")
-                //.Width("inherit")
-                //.ColumnAutoWidth(true)
-                .ColumnWidth(5)
-                //.Paging(p => p.PageSize(10))
-                //.Paging(paging => paging.Enabled(false))
-                //.AllowColumnResizing(true)
-                //.ColumnResizingMode(ColumnResizingMode.Widget)
-                //.ColumnFixing(c => c.Enabled(true))
-                .LoadPanel(l => l.Text("更新資料中...").Enabled(false))
-                //.SearchPanel(s => s.Visible(false).Placeholder("搜尋.."))
-                //.Export(e=>e.Enabled(false).AllowExportSelectedData(true))
-                .ShowColumnLines(true)
-                .ShowRowLines(true)
-                //.RowAlternationEnabled(true)
-                .ShowBorders(true)
-                //.RemoteOperations(false)
-                //.TwoWayBindingEnabled(true)
-                .Selection(selection => selection.Mode(SelectionMode.Single))
-                //.Selection(selection => selection.Mode(SelectionMode.Multiple))
-                //.Selection(selection => selection.Mode(SelectionMode.None))
-                //.OnRowClick("OnRowClick")
-                .OnSelectionChanged("OnRowSelectionChanged")
-                //.OnInitialized("DataGridOnInitialized")
-                //.HoverStateEnabled(true)
-                //.OnContentReady("onCreditCardGridContentReady")
-                .Editing(editing =>
-                {
-                    //editing.Mode(GridEditMode.Batch);
-                    //editing.Mode(GridEditMode.Row);
-                    editing.Mode(GridEditMode.Cell);
-                    //editing.Mode(GridEditMode.Batch);
-                    //editing.Mode(GridEditMode.Form);
-                    //editing.Mode(GridEditMode.Popup);
-                    //editing.AllowUpdating(true);
-                    //editing.AllowAdding(true);
-                    editing.RefreshMode(GridEditRefreshMode.Reshape);
-                    editing.AllowDeleting(true);
-                    editing.Texts(a => a.SaveAllChanges("上傳檔案").AddRow("新增").CancelAllChanges("取消變更").SaveRowChanges("儲存").CancelRowChanges("取消").EditRow("選擇").DeleteRow("取消").ConfirmDeleteMessage("您是否確定取消這個定期定額?").ConfirmDeleteTitle("取消定期定額"));
-                })
-
-                .Columns(columns =>
-                {
-                    columns.AddFor(m => m.DedicationCategory).Caption("奉獻類別").Width(70).MinWidth(75).Alignment(HorizontalAlignment.Center).Fixed(true);
-                    columns.AddFor(m => m.DedicationBookingStatus).Caption("狀態").Width(70).MinWidth(50).Alignment(HorizontalAlignment.Center);
-                    columns.AddFor(m => m.AmountPerStage).Caption("每期金額").Width(75).MinWidth(50).Alignment(HorizontalAlignment.Center);
-                    columns.AddFor(m => m.TotalStages).Caption("總期數").Width(70).MinWidth(50).Alignment(HorizontalAlignment.Center);
-                    columns.AddFor(m => m.DedicationAmount).Caption("應付總金額").Width(85).MinWidth(50).Alignment(HorizontalAlignment.Center);
-                    columns.AddFor(m => m.PaidPeriod).Caption("目前期數").Width(75).MinWidth(50).Alignment(HorizontalAlignment.Center);
-                    columns.AddFor(m => m.RollupPaidFee).Caption("已付金額").Width(80).MinWidth(50).Alignment(HorizontalAlignment.Center);
-                    columns.AddFor(m => m.StartDate).Caption("開始日期").Width(80).MinWidth(50).Alignment(HorizontalAlignment.Center);
-                    columns.AddFor(m => m.EndDate).Caption("結束日期").Width(80).MinWidth(50).Alignment(HorizontalAlignment.Center);
-                })
-                .DataSource(d => d
-                            .WebApi()
-                            .Controller("Home")
-                            .LoadAction("LoadDedicationBookingList")
-                            //.InsertAction("InsertPresentRecord")
-                            .DeleteAction("DeleteDedicationBooking")
-                            //.UpdateAction("UpdatePresentRecord")
-                            .Key("EntityId")
-                            //.LoadParams(new { id = @ViewBag.ListId }))
-                    )
-                .SelectedRowKeys(new int[] { 1 })
-                .OnContentReady("onDedicationBookingGridContentReady")
-                //.OnRowPrepared("onDedicationBookingRowPrepared")
-                // 此處設定是讓選項偏左邊一排
-                //.OnContentReady("moveEditColumnToLeft")
-                //此處設定是鉛筆形狀還是"編輯"字樣
-                //.OnCellPrepared("cell_prepared")
-                //.OnCellPrepared("cell_prepared_background_color")
-                )
-        <br />
+            .ID("DedicationBookingGrid")
+            .Width("auto")
+            .ColumnWidth(5)
+            .LoadPanel(l => l.Text("更新資料中...").Enabled(false))
+            .ShowColumnLines(true)
+            .ShowRowLines(true)
+            .ShowBorders(true)
+            .Selection(selection => selection.Mode(SelectionMode.Single))
+            .OnSelectionChanged("OnRowSelectionChanged")
+            .Editing(editing => {
+                editing.Mode(GridEditMode.Cell);
+                editing.RefreshMode(GridEditRefreshMode.Reshape);
+                editing.AllowDeleting(true);
+                editing.Texts(a => a.DeleteRow("取消").ConfirmDeleteMessage("您是否確定取消這個定期定額?").ConfirmDeleteTitle("取消定期定額"));
+            })
+            .Columns(columns => {
+                columns.AddFor(m => m.DedicationCategory).Caption("奉獻類別").Width(70).MinWidth(75).Alignment(HorizontalAlignment.Center).Fixed(true);
+                columns.AddFor(m => m.DedicationBookingStatus).Caption("狀態").Width(70).MinWidth(50).Alignment(HorizontalAlignment.Center);
+                columns.AddFor(m => m.AmountPerStage).Caption("每期金額").Width(75).MinWidth(50).Alignment(HorizontalAlignment.Center);
+                columns.AddFor(m => m.TotalStages).Caption("總期數").Width(70).MinWidth(50).Alignment(HorizontalAlignment.Center);
+                columns.AddFor(m => m.DedicationAmount).Caption("應付總金額").Width(85).MinWidth(50).Alignment(HorizontalAlignment.Center);
+                columns.AddFor(m => m.PaidPeriod).Caption("目前期數").Width(75).MinWidth(50).Alignment(HorizontalAlignment.Center);
+                columns.AddFor(m => m.RollupPaidFee).Caption("已付金額").Width(80).MinWidth(50).Alignment(HorizontalAlignment.Center);
+                columns.AddFor(m => m.StartDate).Caption("開始日期").Width(80).MinWidth(50).Alignment(HorizontalAlignment.Center);
+                columns.AddFor(m => m.EndDate).Caption("結束日期").Width(80).MinWidth(50).Alignment(HorizontalAlignment.Center);
+            })
+            .DataSource(d => d
+                .WebApi()
+                .Controller("Home")
+                .LoadAction("LoadDedicationBookingList")
+                .DeleteAction("DeleteDedicationBooking")
+                .Key("EntityId")
+            )
+            .SelectedRowKeys(new int[] { 1 })
+            .OnContentReady("onDedicationBookingGridContentReady")
+        )
     </div>
-
 </form>
-<div class="dx-field">
+
+<!-- 通知元件 -->
+<div class="notification-area dx-field">
+    <!-- Toast通知 -->
     <div id="ToastContainer">
         @(Html.DevExtreme().Toast()
-                .ID("toast")
-                .Position(p => p
-                    .At(HorizontalAlignment.Center, VerticalAlignment.Center)
-                    .Offset(0, 50))
-                    .Message("上傳成功了!")
-                    .DisplayTime(20000)
-                    .MaxWidth(200)
-            )
-
+            .ID("toast")
+            .Position(p => p.At(HorizontalAlignment.Center, VerticalAlignment.Center).Offset(0, 50))
+            .Message("上傳成功了!")
+            .DisplayTime(20000)
+            .MaxWidth(200)
+        )
     </div>
+    <!-- 載入面板 -->
     <div id="LoadPanel">
         @(Html.DevExtreme().LoadPanel()
-                    .ID("loadPanel")
-                    .ShadingColor("rgba(0,0,0,0.4)")
-                    .Position(p => p.Of("#form-container"))
-                    .Visible(false)
-                    .ShowIndicator(true)
-                    .ShowPane(true)
-                    .Shading(true)
-                    .CloseOnOutsideClick(false)
-                    .Message("上傳資料中...")
-                    .Animation(l => l.Show(k => k.Easing(AnimationEasing.Swing)))
-            )
+            .ID("loadPanel")
+            .ShadingColor("rgba(0,0,0,0.4)")
+            .Position(p => p.Of("#form-container"))
+            .Visible(false)
+            .ShowIndicator(true)
+            .ShowPane(true)
+            .Shading(true)
+            .CloseOnOutsideClick(false)
+            .Message("上傳資料中...")
+            .Animation(l => l.Show(k => k.Easing(AnimationEasing.Swing)))
+        )
     </div>
 </div>
-<section class="accordion1 cid-qEXSX9hqvd" id="accordion1-7" data-rv-view="84">
+
+<!-- 教會資訊與奉獻說明 -->
+<section class="church-info accordion1 cid-qEXSX9hqvd" id="accordion1-7">
     <div class="container">
         <div class="media-container-row">
             <div class="col-12 text-left col-md-8">
+                <!-- 教會聯絡資訊 -->
                 <div class="section-head text-left space30">
-                    <h3 class="mbr-section-title pb-5 mbr-fonts-style display-5 text-left">聖谷行道會</h3>
-                    <h3 class="mbr-section-title pb-5 mbr-fonts-style display-5 text-left">地址: 231新北市新店區安興路91巷5號4樓</h3>
-                    <h3 class="mbr-section-title pb-5 mbr-fonts-style display-5 text-left">電話: 02-2211-1556</h3>
-                    <h3 class="mbr-section-title pb-5 mbr-fonts-style display-5 text-left">信箱：sunnyvale.church@gmail.com</h3>
-                    <h3 class="mbr-section-title pb-5 mbr-fonts-style display-5 text-left">統編: 20004335</h3>
-                    <h3 class="mbr-section-title pb-5 mbr-fonts-style display-5 text-left">*若有任何奉獻問題，請洽詢曾淑芬姊妹*</h3>
+                    <h3 class="mbr-section-title pb-3 mbr-fonts-style display-5 text-left">聖谷行道會</h3>
+                    <h3 class="mbr-section-title pb-3 mbr-fonts-style display-5 text-left">地址: 231新北市新店區安興路91巷5號4樓</h3>
+                    <h3 class="mbr-section-title pb-3 mbr-fonts-style display-5 text-left">電話: 02-2211-1556</h3>
+                    <h3 class="mbr-section-title pb-3 mbr-fonts-style display-5 text-left">信箱：sunnyvale.church@gmail.com</h3>
+                    <h3 class="mbr-section-title pb-3 mbr-fonts-style display-5 text-left">統編: 20004335</h3>
+                    <h3 class="mbr-section-title pb-3 mbr-fonts-style display-5 text-left">*若有任何奉獻問題，請洽詢曾淑芬姊妹*</h3>
                 </div>
-                <div class="clearfix"></div>
+                <!-- 奉獻資訊手風琴選單 -->
                 <div id="bootstrap-accordion_7" class="panel-group accordionStyles accordion" role="tablist" aria-multiselectable="true">
+                    <!-- 月定獻金 -->
                     <div class="card text-left">
                         <div class="card-header" role="tab" id="headingOne">
                             <a role="button" class="panel-title collapsed text-black" data-toggle="collapse" data-parent="#bootstrap-accordion_7" data-core="" href="#collapse1_7" aria-expanded="false" aria-controls="collapse1">
@@ -475,12 +328,12 @@
                                 </h4>
                             </a>
                         </div>
-                        <div id="collapse1_7" class="panel-collapse noScroll collapse " role="tabpanel" aria-labelledby="headingOne">
+                        <div id="collapse1_7" class="panel-collapse noScroll collapse" role="tabpanel" aria-labelledby="headingOne">
                             <div class="panel-body p-4">
                                 <p class="mbr-fonts-style panel-text display-5">
                                     月定獻金是基督徒應盡的責任和義務。
                                     所以上帝挑戰我們，當我們願意將十分之一奉獻給上帝時，
-                                    上帝將會傾倒更多的祝福在我們的身上。
+                                    上帝將會傾倒更大的祝福在我們的身上。
 
                                     萬軍之耶和華說：你們要將當納的十分之一全然送入倉庫，使我家有糧，
                                     以此試試我，是否為你們敞開天上的窗戶，傾福與你們，甚至無處可容。
@@ -489,6 +342,7 @@
                             </div>
                         </div>
                     </div>
+                    <!-- 建殿奉獻 -->
                     <div class="card">
                         <div class="card-header" role="tab" id="headingTwo">
                             <a role="button" class="collapsed panel-title text-black" data-toggle="collapse" data-parent="#bootstrap-accordion_7" data-core="" href="#collapse2_7" aria-expanded="false" aria-controls="collapse2">
@@ -496,17 +350,17 @@
                                     <span class="sign mbr-iconfont mbri-arrow-down inactive"></span>建殿奉獻
                                 </h4>
                             </a>
-
                         </div>
                         <div id="collapse2_7" class="panel-collapse noScroll collapse" role="tabpanel" aria-labelledby="headingTwo">
                             <div class="panel-body p-4">
                                 <p class="mbr-fonts-style panel-text display-5">
-                                    2014年神藉著豐盛「 恩典」帶領我們成立「聖谷行道會」從恩典到奇蹟的這段旅程，讓我們著實看見神奇妙又信實的作為。
+                                    2014年神藉著豐盛「恩典」帶領我們成立「聖谷行道會」從恩典到奇蹟的這段旅程，讓我們著實看見神奇妙又信實的作為。
                                     為了滿足場地以及相關軟硬體等財務需求，邀請聖谷行道會的小組組員朋友們，透過「建堂奉獻」一起支持、建造神國的家。
                                 </p>
                             </div>
                         </div>
                     </div>
+                    <!-- 感恩獻金 -->
                     <div class="card">
                         <div class="card-header" role="tab" id="headingThree">
                             <a role="button" class="collapsed text-black panel-title" data-toggle="collapse" data-parent="#bootstrap-accordion_7" data-core="" href="#collapse3_7" aria-expanded="false" aria-controls="collapse3">
@@ -524,15 +378,16 @@
                             </div>
                         </div>
                     </div>
+                    <!-- 宣教奉獻 -->
                     <div class="card">
-                        <div class="card-header" role="tab" id="headingThree">
+                        <div class="card-header" role="tab" id="headingFour">
                             <a role="button" class="collapsed panel-title text-black" data-toggle="collapse" data-parent="#bootstrap-accordion_7" data-core="" href="#collapse4_7" aria-expanded="false" aria-controls="collapse4">
                                 <h4 class="mbr-fonts-style display-5">
                                     <span class="sign mbr-iconfont mbri-arrow-down inactive"></span>宣教奉獻
                                 </h4>
                             </a>
                         </div>
-                        <div id="collapse4_7" class="panel-collapse noScroll collapse" role="tabpanel" aria-labelledby="headingThree">
+                        <div id="collapse4_7" class="panel-collapse noScroll collapse" role="tabpanel" aria-labelledby="headingFour">
                             <div class="panel-body p-4">
                                 <p class="mbr-fonts-style panel-text display-5">
                                     「使萬民成為主的門徒」是上帝的心意，也是託付給教會的大使命。
@@ -542,502 +397,235 @@
                             </div>
                         </div>
                     </div>
+                    <!-- 聯繫資訊 -->
                     <div class="card">
-                        <div class="card-header" role="tab" id="headingThree">
+                        <div class="card-header" role="tab" id="headingFive">
                             <a role="button" class="collapsed panel-title text-black" data-toggle="collapse" data-parent="#bootstrap-accordion_7" data-core="" href="#collapse6_7" aria-expanded="false" aria-controls="collapse6">
                                 <h4 class="mbr-fonts-style display-5">
-                                    <span class="sign mbr-iconfont mbri-arrow-down inactive"></span> 若有任何奉獻問題，請洽詢曾淑芬姊妹
+                                    <span class="sign mbr-iconfont mbri-arrow-down inactive"></span>若有任何奉獻問題，請洽詢曾淑芬姊妹
                                 </h4>
                             </a>
                         </div>
-
-                        <div id="collapse6_7" class="panel-collapse noScroll collapse " role="tabpanel" aria-labelledby="headingOne">
+                        <div id="collapse6_7" class="panel-collapse noScroll collapse" role="tabpanel" aria-labelledby="headingFive">
                             <div class="panel-body p-4">
                                 <p class="mbr-fonts-style panel-text display-7">
                                     若有任何奉獻問題，請洽詢李主任
                                 </p>
                             </div>
                         </div>
-
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </section>
+
+<!-- JavaScript 區域 -->
 <script>
-    //網頁載入
-    window.onload = function (e) {
-        //document.getElementById("creditcardlistcontainer").style.display = "none";//隱藏
-        //document.getElementById("creditcardlistcontainer").style.display = "";//顯示
-    };
-</script>
-<script>
+    // 初始化與工具函數
     function getLoadPanelInstance() {
         return $("#loadPanel").dxLoadPanel("instance");
     }
-    function ShowLoadPanel(arg) {
+
+    function ShowLoadPanel() {
         getLoadPanelInstance().show();
     }
+
     function UseOtherCreditCard() {
         getLoadPanelInstance().show();
-
         $("#form").dxForm("instance").updateData('SelectedCreditCard', "");
     }
 
-    function ShowToast(LocalToastMessage, Type, DisplayTime) {
-        //debugger;
-        var ToastInstance = $("#toast").dxToast("instance");
-        ToastInstance.option('message', LocalToastMessage);
-        ToastInstance.option('type', Type);
-        ToastInstance.option('displayTime', DisplayTime);
-        ToastInstance.option('white-space', 'pre-line');
-        ToastInstance.option('closeOnClick', true);
-        ToastInstance.show();
+    function ShowToast(message, type, displayTime) {
+        var toast = $("#toast").dxToast("instance");
+        toast.option('message', message);
+        toast.option('type', type);
+        toast.option('displayTime', displayTime);
+        toast.option('white-space', 'pre-line');
+        toast.option('closeOnClick', true);
+        toast.show();
     }
-    function moveEditColumnToLeft(dataGrid) {
-        dataGrid.columnOption("command:edit", {
-            visibleIndex: -1,
-            width: 50
+
+    // 表單事件處理
+    function OnCategorySelectBoxValueChanged(e) {
+        // 隱藏所有相關欄位
+        $("#form").dxForm("instance").itemOption("OtherDedicationSelectionBox", 'visible', false);
+        $("#form").dxForm("instance").itemOption("HolidayDedicationSelectionBox", 'visible', false);
+        $("#form").dxForm("instance").itemOption("SpecialDedicationSelectionBox", 'visible', false);
+        $("#form").dxForm("instance").itemOption("OtherDedication", 'visible', false);
+
+        // 根據選擇顯示對應欄位
+        if (e.value == "節期獻金") {
+            $("#form").dxForm("instance").itemOption("HolidayDedicationSelectionBox", 'visible', true);
+        } else if (e.value == "特別獻金") {
+            $("#form").dxForm("instance").itemOption("SpecialDedicationSelectionBox", 'visible', true);
+        }
+
+        // 設定金額欄位寬度
+        $("#form").dxForm("instance").itemOption('DedicationAmount', {
+            editorOptions: { width: 200 }
         });
     }
-    function cell_prepared(e) {
-        if (e.rowType === "data" && e.column.command === "edit") {
-            var isEditing = e.row.isEditing,
-                $links = e.cellElement.find(".dx-link");
 
-            $links.text("");
-
-            if (isEditing) {
-                $links.filter(".dx-link-save").addClass("dx-icon-save");
-                $links.filter(".dx-link-cancel").addClass("dx-icon-revert");
-            }
-            else {
-                $links.filter(".dx-link-edit").addClass("dx-icon-edit");
-                $links.filter(".dx-link-delete").addClass("dx-icon-trash");
-            }
+    function OnPayWaySelectBoxValueChanged(e) {
+        // 重置介面
+        resetPaymentUI();
+        
+        // 根據付款方式處理UI
+        switch(e.value) {
+            case "信用卡":
+                handleCreditCardPayment();
+                break;
+            case "信用卡定期定額(每個月)":
+                handleCreditCardSubscription();
+                break;
+            default:
+                handleOtherPayment();
+                break;
         }
-
     }
-</script>
-<script>
-    OtherPayWay = ["ATM轉帳/匯款"]
-
-    DefaultPayWay = [
-        "信用卡",
-        "ATM轉帳/匯款",
-        "信用卡定期定額(每個月)",
-        "行動支付",
-        //"銀聯卡",
-        "LinePay",
-    ]
-
-    // 觸發事件管理
-    function OnCategorySelectBoxValueChanged(e) {
-
-            if (e.value == "節期獻金" ) 
-            {
-                $("#form").dxForm("instance").itemOption("SpecialDedicationSelectionBox", 'visible', false);
-                $("#form").dxForm("instance").itemOption("HolidayDedicationSelectionBox", 'visible', true);
-                $("#form").dxForm("instance").itemOption("OtherDedication", 'visible', false);
-                $("#form").dxForm("instance").itemOption("OtherDedicationSelectionBox", 'visible', false);
-
-
-                $("#form").dxForm("instance").itemOption('DedicationAmount', {
-                    editorOptions: {
-                        width: 200
-                    },
-                });
-            }
-
-            else if (e.value == "特別獻金") 
-            {
-                $("#form").dxForm("instance").itemOption("SpecialDedicationSelectionBox", 'visible', true);
-                $("#form").dxForm("instance").itemOption("HolidayDedicationSelectionBox", 'visible', false);
-                $("#form").dxForm("instance").itemOption("OtherDedication", 'visible', false);
-                $("#form").dxForm("instance").itemOption("OtherDedicationSelectionBox", 'visible', false);
-
-
-                $("#form").dxForm("instance").itemOption('DedicationAmount', {
-                    editorOptions: {
-                        width: 200
-                    },
-                });
-            }
-
-            else 
-            {
-                $("#form").dxForm("instance").itemOption("OtherDedicationSelectionBox", 'visible', false);
-                $("#form").dxForm("instance").itemOption("HolidayDedicationSelectionBox", 'visible', false);
-                $("#form").dxForm("instance").itemOption("SpecialDedicationSelectionBox", 'visible', false);
-                $("#form").dxForm("instance").itemOption("OtherDedication", 'visible', false);
-
-                $("#form").dxForm("instance").itemOption('DedicationAmount', {
-                    editorOptions: {
-                        width: 200
-                    },
-            });
-
-        }
-
-
+    
+    function resetPaymentUI() {
+        // 清空ATM欄位
+        document.getElementById('atmfield').innerHTML = "";
+        
+        // 重設金額欄位
+        $("#form").dxForm("instance").itemOption('DedicationAmount', {
+            editorOptions: { width: 200 }
+        });
+        $("#form").dxForm("instance").itemOption("DedicationAmount", "label", { text: "奉獻金額" });
+        $("#form").dxForm("instance").itemOption("DedicationAmount", "editorOptions", { placeholder: "輸入奉獻金額" });
+        
+        // 隱藏總期數
+        $("#form").dxForm("instance").itemOption("DeductTotalNumberSelectionBox", 'visible', false);
     }
-    function OnPayWaySelectBoxValueChanged(e)
-    {
-        if (e.value == "信用卡" )
-        {
-            //處理信用卡清單網格，奉獻按鈕顯示管制
-            var creditcarditems = $("#CreditCardGrid").dxDataGrid("instance").getDataSource().items();
-            if (creditcarditems.length > 0) {
-                // 有信用卡清單
-                document.getElementById("creditcardlistcontainer").style.display = "";//顯示信用卡清單網格
-
-                $("#CreditCardGrid").dxDataGrid("instance").selectRows('@(Model.SelectedCreditCard)', true);
-
-                $("#save-button3").dxButton("instance").option("visible", true);
-                $("#save-button2").dxButton("instance").option("text", "用上面選擇的信用卡奉獻");
-
-            }
-            else {
-                document.getElementById("creditcardlistcontainer").style.display = "none";//隱藏信用卡
-
-                $("#save-button3").dxButton("instance").option("visible", false);
-                $("#save-button2").dxButton("instance").option("text", "奉獻");
-
-            }
-
-            document.getElementById("dedicationbookinglistcontainer").style.display = "none";//隱藏定期定額
-
-            // 隱藏總期數
-            $("#form").dxForm("instance").itemOption("DeductTotalNumberSelectionBox", 'visible', false);
-            $("#form").dxForm("instance").itemOption("DedicationAmount", "label", { text: "奉獻金額" });
-            $("#form").dxForm("instance").itemOption("DedicationAmount", "editorOptions", { placeholder: "輸入奉獻金額" });
-
-            document.getElementById('atmfield').innerHTML = "";
-
-            $("#form").dxForm("instance").itemOption('DedicationAmount', {
-                editorOptions: {
-                    width: 200
-                },
-            });
-
-        }
-        else if (e.value == "ATM轉帳/匯款")
-        {
-            document.getElementById("creditcardlistcontainer").style.display = "none";//隱藏信用卡
-            document.getElementById("dedicationbookinglistcontainer").style.display = "none";//隱藏定期定額
-            // 隱藏總期數
-            $("#form").dxForm("instance").itemOption("DeductTotalNumberSelectionBox", 'visible', false);
-            $("#form").dxForm("instance").itemOption("DedicationAmount", "label", { text: "奉獻金額" });
-            $("#form").dxForm("instance").itemOption("DedicationAmount", "editorOptions", { placeholder: "輸入奉獻金額" });
-
-            $("#save-button3").dxButton("instance").option("visible", false);
-            $("#save-button2").dxButton("instance").option("text", "奉獻");
-
-            document.getElementById('atmfield').innerHTML = "";
-
-            $("#form").dxForm("instance").itemOption('DedicationAmount', {
-                editorOptions: {
-                    width: 200
-                },
-            });
-
-        }
-        else if (e.value == "信用卡定期定額(每個月)")
-        {
-            //處理信用卡清單網格，奉獻按鈕顯示管制
-            var creditcarditems = $("#CreditCardGrid").dxDataGrid("instance").getDataSource().items();
-            if (creditcarditems.length > 0) {
-                // 有信用卡清單
-                document.getElementById("creditcardlistcontainer").style.display = "";//顯示信用卡清單網格
-
-                $("#CreditCardGrid").dxDataGrid("instance").selectRows('@(Model.SelectedCreditCard)', true);
-
-                $("#save-button3").dxButton("instance").option("visible", true);
-                $("#save-button2").dxButton("instance").option("text", "用上面選擇的信用卡奉獻");
-
-            }
-            else {
-                document.getElementById("creditcardlistcontainer").style.display = "none";//隱藏信用卡
-
-                $("#save-button3").dxButton("instance").option("visible", false);
-                $("#save-button2").dxButton("instance").option("text", "奉獻");
-
-            }
-
-            //信用卡定期定額網格
-            var items = $("#DedicationBookingGrid").dxDataGrid("instance").getDataSource().items();
-            if (items.length > 0)
-            {
-                document.getElementById("dedicationbookinglistcontainer").style.display = "";//顯示定期定額
-                //$("#DedicationBookingGrid").dxDataGrid("instance").selectRows( '@(Model.SelectedDedicationBooking)', true);
-            }
-
-            // 顯示總期數
-            $("#form").dxForm("instance").itemOption("DeductTotalNumberSelectionBox", 'visible', true);
-            $("#form").dxForm("instance").itemOption("DedicationAmount", "label", { text: "每月金額" });
-            $("#form").dxForm("instance").itemOption("DedicationAmount", "editorOptions", { placeholder: "每月的奉獻金額" });
-
-
-            document.getElementById('atmfield').innerHTML = "";
-
-            $("#form").dxForm("instance").itemOption('DedicationAmount', {
-                editorOptions: {
-                    width: 200
-                },
-            });
-
-        }
-        else if (e.value == "行動支付") {
-            document.getElementById("creditcardlistcontainer").style.display = "none";//隱藏信用卡
-            document.getElementById("dedicationbookinglistcontainer").style.display = "none";//隱藏定期定額
-           // 隱藏總期數
-            $("#form").dxForm("instance").itemOption("DeductTotalNumberSelectionBox", 'visible', false);
-            $("#form").dxForm("instance").itemOption("DedicationAmount", "label", { text: "奉獻金額" });
-            $("#form").dxForm("instance").itemOption("DedicationAmount", "editorOptions", { placeholder: "輸入奉獻金額" });
-
-            $("#save-button3").dxButton("instance").option("visible", false);
-            $("#save-button2").dxButton("instance").option("text", "奉獻");
-
-            document.getElementById('atmfield').innerHTML = "";
-
-            $("#form").dxForm("instance").itemOption('DedicationAmount', {
-                editorOptions: {
-                    width: 200
-                },
-            });
-
-        }
-        else if (e.value == "銀聯卡") {
-            document.getElementById("creditcardlistcontainer").style.display = "none";//隱藏信用卡
-            document.getElementById("dedicationbookinglistcontainer").style.display = "none";//隱藏定期定額
-            // 隱藏總期數
-            $("#form").dxForm("instance").itemOption("DeductTotalNumberSelectionBox", 'visible', false);
-            $("#form").dxForm("instance").itemOption("DedicationAmount", "label", { text: "奉獻金額" });
-            $("#form").dxForm("instance").itemOption("DedicationAmount", "editorOptions", { placeholder: "輸入奉獻金額" });
-
-            $("#save-button2").dxButton("instance").option("visible", false);
-            $("#save-button3").dxButton("instance").option("text", "奉獻");
+    
+    function handleCreditCardPayment() {
+        var creditcards = $("#CreditCardGrid").dxDataGrid("instance").getDataSource().items();
+        if (creditcards.length > 0) {
+            document.getElementById("creditcardlistcontainer").style.display = "";
+            $("#CreditCardGrid").dxDataGrid("instance").selectRows('@(Model.SelectedCreditCard)', true);
             $("#save-button3").dxButton("instance").option("visible", true);
-
-            document.getElementById('atmfield').innerHTML = "";
-
-            $("#form").dxForm("instance").itemOption('DedicationAmount', {
-                editorOptions: {
-                    width: 200
-                },
-            });
-
-        }
-        else if (e.value == "LinePay") {
-            document.getElementById("creditcardlistcontainer").style.display = "none";//隱藏信用卡
-            document.getElementById("dedicationbookinglistcontainer").style.display = "none";//隱藏定期定額
-            // 隱藏總期數
-            $("#form").dxForm("instance").itemOption("DeductTotalNumberSelectionBox", 'visible', false);
-            $("#form").dxForm("instance").itemOption("DedicationAmount", "label", { text: "奉獻金額" });
-            $("#form").dxForm("instance").itemOption("DedicationAmount", "editorOptions", { placeholder: "輸入奉獻金額" });
-
+            $("#save-button2").dxButton("instance").option("text", "用上面選擇的信用卡奉獻");
+        } else {
+            document.getElementById("creditcardlistcontainer").style.display = "none";
             $("#save-button3").dxButton("instance").option("visible", false);
             $("#save-button2").dxButton("instance").option("text", "奉獻");
-
-            document.getElementById('atmfield').innerHTML = "";
-
-            $("#form").dxForm("instance").itemOption('DedicationAmount', {
-                editorOptions: {
-                    width: 200
-                },
-            });
-
         }
-       else {}
+        document.getElementById("dedicationbookinglistcontainer").style.display = "none";
     }
-    function OnAmountContentReady(e) {
+    
+    function handleCreditCardSubscription() {
+        handleCreditCardPayment();
+        
+        // 顯示定期定額列表
+        var bookings = $("#DedicationBookingGrid").dxDataGrid("instance").getDataSource().items();
+        if (bookings.length > 0) {
+            document.getElementById("dedicationbookinglistcontainer").style.display = "";
+        }
+        
+        // 設定為定期定額模式
+        $("#form").dxForm("instance").itemOption("DeductTotalNumberSelectionBox", 'visible', true);
+        $("#form").dxForm("instance").itemOption("DedicationAmount", "label", { text: "每月金額" });
+        $("#form").dxForm("instance").itemOption("DedicationAmount", "editorOptions", { placeholder: "每月的奉獻金額" });
+    }
+    
+    function handleOtherPayment() {
+        document.getElementById("creditcardlistcontainer").style.display = "none";
+        document.getElementById("dedicationbookinglistcontainer").style.display = "none";
+        $("#save-button3").dxButton("instance").option("visible", false);
+        $("#save-button2").dxButton("instance").option("text", "奉獻");
+    }
 
-        //debugger;
-        //alert(e.component._options.value);
-        //alert(e.component.option("value"));
-        //if (e.component._options.value == 0)
+    // 金額欄位處理
+    function OnAmountContentReady(e) {
         if (e.component.option("value") == 0) {
             e.component.option("value", "");
-            //e.component._options.value = null;
-            //alert(e.component._options.value);
         }
     }
-    function DataGridOnInitialized(e)
-    {
+
+    // 資料網格處理
+    function DataGridOnInitialized(e) {
         e.component.columnOption("command:edit", "width", 50);
     }
-    //var selectionChangedRaised = false;
-    //var FirstLoad = true;
-    function OnRowClick(selectedItems) {
 
-        //alert("OnRowClick!001-0" + selectedItems);
+    function OnRowClick(selectedItems) {
         var data = selectedItems.selectedRowsData[0];
         if (data) {
-
-            //alert("OnRowClick!信用卡:" + data.CCToken);
             $("#form").dxForm("instance").updateData('SelectedCreditCard', data.CCToken);
         }
     }
+
     function OnRowSelectionChanged(selectedItems) {
         var data = selectedItems.selectedRowsData[0];
         if (data) {
             $("#form").dxForm("instance").updateData('SelectedCreditCard', data.CCToken);
         }
     }
-    function onCreditCardGridContentReady(e)
-    {
-        //debugger;
+
+    function onCreditCardGridContentReady(e) {
         var items = e.component.getDataSource().items();
-        //alert(items.length);
-
         if (items.length > 0) {
-            document.getElementById("creditcardlistcontainer").style.display = "";//顯示信用卡
-            document.getElementById("dedicationbookinglistcontainer").style.display = "none";//隱藏定期定額
-
-            //alert('@(Model.SelectedCreditCard)');
-            //用Key來選行，以下語法都是可以的
+            document.getElementById("creditcardlistcontainer").style.display = "";
+            document.getElementById("dedicationbookinglistcontainer").style.display = "none";
             e.component.selectRows('@(Model.SelectedCreditCard)', true);
-            //e.component.selectRows( ['@(Model.SelectedCreditCard)', '@(Model.SelectedCreditCard)'], true);
-            //用Index來選行，以下語法都是可以的
-            //e.component.selectRowsByIndexes(0);
-            //e.component.selectRowsByIndexes( [0,1]);
-        }
-        else
-        {
-            document.getElementById("creditcardlistcontainer").style.display = "none";//隱藏信用卡
-            document.getElementById("dedicationbookinglistcontainer").style.display = "none";//隱藏定期定額
-
-            //document.getElementById("creditcardlistcontainer").remove();//隱藏
-
-            //var element = document.getElementById("creditcardlistcontainer");
-            //element.parentNode.removeChild(element);
-
+        } else {
+            document.getElementById("creditcardlistcontainer").style.display = "none";
+            document.getElementById("dedicationbookinglistcontainer").style.display = "none";
             $("#save-button3").dxButton("instance").option("visible", false);
             $("#save-button2").dxButton("instance").option("text", "奉獻");
         }
-        //$("input[name='myHiddenInput']").val(JSON.stringify(items));
-        //myHiddenInput - is the name of your hidden input
     }
-    function onDedicationBookingGridContentReady(e)
-    {
+
+    function onDedicationBookingGridContentReady(e) {
         e.component.columnOption("command:edit", {
             visibleIndex: -1,
             width: 50
         });
-
-        //debugger;
-        @*var items = e.component.getDataSource().items();
-        //alert(items.length);
-
-        if ( items.length > 0 ) {
-            //document.getElementById("creditcardlistcontainer").style.display = "";//顯示信用卡
-            //document.getElementById("dedicationbookinglistcontainer").style.display = "";//顯示定期定額
-
-            //用Key來選行，以下語法都是可以的
-            //e.component.selectRows( '@(Model.SelectedDedicationBooking)', true);
-        }
-        else
-        {
-            //document.getElementById("dedicationbookinglistcontainer").style.display = "none";//隱藏
-        }*@
     }
-    function onDedicationBookingRowPrepared(e)
-    {
-        e.component.rowElement.style.height = "50px";
-    }
-</script>
-<script type="text/javascript">
-    // Ajax 區塊
+
+    // AJAX回調處理
     function onBegin() {
+        // 表單送出前處理
     }
 
     function onSuccess(data) {
-
         getLoadPanelInstance().hide();
 
         if (data.status == 1) {
             if (data.PayWay == "信用卡") {
-                //alert("成功 3");
                 ShowToast(data.message, "success", 2000);
-
-                // 方法1
-                //window.open(data.DedicationResult);
-                //window.open(data.DedicationResult, "_blank");
-
-                // 方法2
                 window.location.href = data.DedicationResult;
-
-                // 方法3
-                //setTimeout('window.open(data.DedicationResult, "_blank");', 500); // 延遲時間不能太短 否則也會被攔截
-
-                // 方法4
-                //var mywin = window.open("about:blank", "redirect");
-                //var someCallback = function (url) {
-                //    mywin.open(url, "redirect");
-                //};
-
-                // 方法5
-                //var tempwindow = window.open('_blank'); // 先打開頁面
-                //tempwindow.location = data.DedicationResult; // 後更改頁面地址
-
-            }
-            else {
+            } else {
                 ShowToast(data.message, "success", 2000);
                 document.getElementById('atmfield').innerHTML = data.DedicationResult;
             }
-        }
-        else {
+        } else {
             ShowToast(data.message, "error", 3000);
             document.getElementById('atmfield').innerHTML = data.message;
         }
     }
 
-    function onComplete(data) {
-        if (data.status == 1) {
-        }
-        else {
-        }
-    }
-</script>
-<script>
-    //中文化
+    // DevExtreme本地化設定
     var dictionary = {
         "zh-tw": {
-            "dxScheduler-switcherAgenda": "會議內容", // 在這裡可以做最後的字典對應
+            "dxScheduler-switcherAgenda": "會議內容",
             "Month": "月",
             "Subject": "主題",
             "Company": "Company",
             "Amount": "Amount",
             "PaymentDate": "Payment Date",
             "dxDataGrid-editingConfirmDeleteMessage": "您確定要刪除這個信用卡嗎?",
-        },
+        }
     };
+    
     DevExpress.localization.loadMessages(dictionary);
-    var formatMessage = DevExpress.localization.formatMessage;
-
-    var locale = getLocale();
-    //DevExpress.localization.locale(navigator.language || navigator.browserLanguage);
+    var locale = "zh-tw";
+    sessionStorage.setItem("locale", locale);
     DevExpress.localization.locale(locale);
-
-    function changeLocale(data) {
-        setLocale(data.value);
-        document.location.reload();
-    }
-
-    function getLocale() {
-        //debugger;
-        //sessionStorage.setItem("locale", 'zh');
-        sessionStorage.setItem("locale", 'zh-tw');
-        var locale = sessionStorage.getItem("locale");
-        return locale != null ? locale : "tw";
-    }
 </script>
-<link href="~/css/Gallery.css" rel="stylesheet" />
-<link href="~/css/WeeklyReport.css" rel="stylesheet" />
-<link href="~/css/Scheduler.css" rel="stylesheet" />
-<link href="~/css/Site.css" rel="stylesheet" />
 
+<!-- 外部腳本引用 -->
 <script src="~/lib/jquery-ajax-unobtrusive/jquery.unobtrusive-ajax.js"></script>
 <script src="~/js/devextreme/devextreme-intl.min.js"></script>
 <script src="~/js/devextreme/localization/dx.messages.zh-tw.js"></script>
