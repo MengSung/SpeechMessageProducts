@@ -1,4 +1,4 @@
-using System;
+using ChurchReport.Tools;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Serialization;
+using System;
 //using Microsoft.Extensions.DependencyInjection;
 
 namespace ChurchReport
@@ -32,6 +33,10 @@ namespace ChurchReport
             //services.AddSingleton<ITempDataProvider, CookieTempDataProvider>();
             //services.AddCookieTempData();
             services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+
+            // 註冊服務，告訴 DI 容器：當有任何類別需要 IQPayToolkit 時，
+            // 請提供一個 QPayToolkitWrapper 的實例給它。
+            services.AddScoped<IQPayToolkit, QPayToolkitWrapper>();
 
             //services.AddSession
             //(

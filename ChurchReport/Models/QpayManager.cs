@@ -37,7 +37,7 @@ namespace ChurchReport.Models
 
         public QpayModel m_QpayModel { get; set; } = new QpayModel();
 
-        private QPayProcessor m_QPayProcessor = new QPayProcessor();
+        private QPayProcessor m_QPayProcessor;
 
         // 登入的連絡人
         public Entity m_LoginContact;
@@ -55,7 +55,7 @@ namespace ChurchReport.Models
 
         #endregion
         #region 初始化
-        public QpayManager()
+        public QpayManager(IQPayToolkit qpayService)
         {
             // 客製化，請選擇
             // 聖谷行道會(免費版)
@@ -63,6 +63,9 @@ namespace ChurchReport.Models
 
             // 客製化
             m_PushUtility = new PushUtility(m_LineMessagingClient);
+
+            m_QPayProcessor = new QPayProcessor(qpayService);
+
         }
         #endregion
         #region Line 單獨登入

@@ -1,4 +1,5 @@
-﻿using ChurchReport.ViewModel;
+﻿using ChurchReport.Tools;
+using ChurchReport.ViewModel;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
 using System;
@@ -32,15 +33,19 @@ namespace ChurchReport.Models
         private HttpContext m_HttpContext;
         private ISession m_Session;
 
+        private readonly IQPayToolkit _qpayService;
+
         #endregion
         #region 初始化
-        public InMemoryDataContextSmallGroup(IHttpContextAccessor contextAccessor, IMemoryCache memoryCache)
+        public InMemoryDataContextSmallGroup(IHttpContextAccessor contextAccessor, IMemoryCache memoryCache, IQPayToolkit qpayService)
         {
             _memoryCache = memoryCache;
 
             m_ContextAccessor = (HttpContextAccessor)contextAccessor;
             m_HttpContext = m_ContextAccessor.HttpContext;
             m_Session = m_ContextAccessor.HttpContext.Session;
+
+            _qpayService = qpayService;
         }
         #endregion
         #region 多個組長處理區
@@ -570,7 +575,7 @@ namespace ChurchReport.Models
                     //options.SetSize(1);
                     //options.Size = 1024;
 
-                    m_QpayManager = new QpayManager();
+                    m_QpayManager = new QpayManager(_qpayService);
                     _memoryCache.Set<QpayManager>(key, m_QpayManager, options);
 
                     m_Session.SetInt32("dirty", 1);

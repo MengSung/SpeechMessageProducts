@@ -76,18 +76,22 @@ namespace ChurchReport.WebServiceConnector
         // 登入的連絡人
         public Entity m_LoginContact;
 
+        IQPayToolkit m_QPayService;
+
         // 客製化
         private readonly String QPAY_ORGANIZATION = m_Configuration["QPAY_ORGANIZATION"];
 
         #endregion
         #region 初始化
-        public QPayProcessor()
+        public QPayProcessor(IQPayToolkit qpayService)
         {
             this.m_LineMessagingClient = new LineMessagingClient(CHANNEL_ACCESS_TOKEN);
 
             // 客製化
             m_PushUtility = new PushUtility(m_LineMessagingClient);
             m_ReplyUtility = new ReplyUtility(m_LineMessagingClient);
+
+            m_QPayService = qpayService;
         }
         public QPayProcessor(LineMessagingClient aLineMessagingClient, PushUtility aPushUtility, ReplyUtility aReplyUtility)
         {
@@ -1192,8 +1196,10 @@ namespace ChurchReport.WebServiceConnector
                 }
             };
 
-            QPayToolkitWrapper aQPayToolkitWrapper = new QPayToolkitWrapper();
-            CreOrder retObj = aQPayToolkitWrapper.OrderCreate(creOrderReq);
+            //QPayToolkitWrapper aQPayToolkitWrapper = new QPayToolkitWrapper();
+            //CreOrder retObj = aQPayToolkitWrapper.OrderCreate(creOrderReq);
+
+            CreOrder retObj = m_QPayService.OrderCreate(creOrderReq);
 
             //CreOrder retObj = QPayToolkit.OrderCreate(creOrderReq);
 

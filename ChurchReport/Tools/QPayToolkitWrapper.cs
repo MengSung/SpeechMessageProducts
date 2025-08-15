@@ -8,6 +8,7 @@ namespace ChurchReport.Tools
     /// </summary>
     public class QPayToolkitWrapper : IQPayToolkit
     {
+
         public CreOrder OrderCreate(CreOrderReq req)
         {
             return QPayToolkit.OrderCreate(req);
@@ -50,7 +51,8 @@ namespace ChurchReport.Tools
 
         CreOrder IQPayToolkit.OrderCreate(CreOrderReq req)
         {
-            throw new System.NotImplementedException();
+            return QPayToolkit.OrderCreate(req);
+            //throw new System.NotImplementedException();
         }
 
         QryOrderUnCaptured IQPayToolkit.OrderUnCapturedQuery(QryOrderUnCapturedReq req)
