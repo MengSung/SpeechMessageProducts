@@ -33,11 +33,11 @@ namespace ChurchReport.Models
         private HttpContext m_HttpContext;
         private ISession m_Session;
 
-        private readonly IQPayToolkit _qpayService;
+        private readonly IPayment m_PamentService;
 
         #endregion
         #region 初始化
-        public InMemoryDataContextSmallGroup(IHttpContextAccessor contextAccessor, IMemoryCache memoryCache, IQPayToolkit qpayService)
+        public InMemoryDataContextSmallGroup(IHttpContextAccessor contextAccessor, IMemoryCache memoryCache, IPayment PamentService)
         {
             _memoryCache = memoryCache;
 
@@ -45,7 +45,7 @@ namespace ChurchReport.Models
             m_HttpContext = m_ContextAccessor.HttpContext;
             m_Session = m_ContextAccessor.HttpContext.Session;
 
-            _qpayService = qpayService;
+            m_PamentService = PamentService;
         }
         #endregion
         #region 多個組長處理區
@@ -575,7 +575,7 @@ namespace ChurchReport.Models
                     //options.SetSize(1);
                     //options.Size = 1024;
 
-                    m_QpayManager = new QpayManager(_qpayService);
+                    m_QpayManager = new QpayManager(m_PamentService);
                     _memoryCache.Set<QpayManager>(key, m_QpayManager, options);
 
                     m_Session.SetInt32("dirty", 1);

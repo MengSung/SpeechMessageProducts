@@ -76,14 +76,14 @@ namespace ChurchReport.WebServiceConnector
         // 登入的連絡人
         public Entity m_LoginContact;
 
-        IQPayToolkit m_QPayService;
+        IPayment m_PaymentService;
 
         // 客製化
         private readonly String QPAY_ORGANIZATION = m_Configuration["QPAY_ORGANIZATION"];
 
         #endregion
         #region 初始化
-        public QPayProcessor(IQPayToolkit qpayService)
+        public QPayProcessor(IPayment aPaymentService)
         {
             this.m_LineMessagingClient = new LineMessagingClient(CHANNEL_ACCESS_TOKEN);
 
@@ -91,7 +91,7 @@ namespace ChurchReport.WebServiceConnector
             m_PushUtility = new PushUtility(m_LineMessagingClient);
             m_ReplyUtility = new ReplyUtility(m_LineMessagingClient);
 
-            m_QPayService = qpayService;
+            m_PaymentService = aPaymentService;
         }
         public QPayProcessor(LineMessagingClient aLineMessagingClient, PushUtility aPushUtility, ReplyUtility aReplyUtility)
         {
@@ -1199,7 +1199,7 @@ namespace ChurchReport.WebServiceConnector
             //QPayToolkitWrapper aQPayToolkitWrapper = new QPayToolkitWrapper();
             //CreOrder retObj = aQPayToolkitWrapper.OrderCreate(creOrderReq);
 
-            CreOrder retObj = m_QPayService.OrderCreate(creOrderReq);
+            CreOrder retObj = m_PaymentService.OrderCreate(creOrderReq);
 
             //CreOrder retObj = QPayToolkit.OrderCreate(creOrderReq);
 
@@ -1231,7 +1231,7 @@ namespace ChurchReport.WebServiceConnector
                 }
             };
 
-            return QPayToolkit.OrderCreate(creOrderReq);
+            return m_PaymentService.OrderCreate(creOrderReq);
 
         }
         public async Task<QryOrder> OrderQuery(String aOrderNo)
@@ -1242,7 +1242,7 @@ namespace ChurchReport.WebServiceConnector
                 OrderNo = aOrderNo
             };
 
-            QryOrder retObj = QPayToolkit.OrderQuery(orderQueryReq);
+            QryOrder retObj = m_PaymentService.OrderQuery(orderQueryReq);
 
             return retObj;
         }
@@ -1254,7 +1254,7 @@ namespace ChurchReport.WebServiceConnector
                 PayToken = aPayToken
             };
 
-            QryOrderPay retObj = QPayToolkit.OrderPayQuery(orderPayQueryReq);
+            QryOrderPay retObj = m_PaymentService.OrderPayQuery(orderPayQueryReq);
 
             return retObj;
         }
@@ -1266,7 +1266,7 @@ namespace ChurchReport.WebServiceConnector
                 PayToken = aPayToken
             };
 
-            QryOrderPay retObj = QPayToolkit.OrderPayQuery(orderPayQueryReq, ConvertShopNoToHashCodeAndSite(aShopNo));
+            QryOrderPay retObj = m_PaymentService.OrderPayQuery(orderPayQueryReq, ConvertShopNoToHashCodeAndSite(aShopNo));
 
             return retObj;
         }
@@ -1278,7 +1278,7 @@ namespace ChurchReport.WebServiceConnector
                 BillDate = aPayDate
             };
 
-            QryBill retObj = QPayToolkit.BillQuery(billQueryReq);
+            QryBill retObj = m_PaymentService.BillQuery(billQueryReq);
 
             //ltResponse.Text = QPayCommon.SerializeToJson(retObj);
             return retObj;
@@ -1293,7 +1293,7 @@ namespace ChurchReport.WebServiceConnector
                 PayType = aPayType
             };
 
-            QryAllot retObj = QPayToolkit.AllotQuery(allotQueryReq);
+            QryAllot retObj = m_PaymentService.AllotQuery(allotQueryReq);
 
             //ltResponse.Text = QPayCommon.SerializeToJson(retObj);
             return retObj;
@@ -1305,7 +1305,7 @@ namespace ChurchReport.WebServiceConnector
                 ShopNo = m_ShopNo
             };
 
-            QryOrderUnCaptured retObj = QPayToolkit.OrderUnCapturedQuery(orderUnCapturedReq);
+            QryOrderUnCaptured retObj = m_PaymentService.OrderUnCapturedQuery(orderUnCapturedReq);
 
             //ltResponse.Text = QPayCommon.SerializeToJson(retObj);
             return retObj;
@@ -1319,7 +1319,7 @@ namespace ChurchReport.WebServiceConnector
                 Command = aCommand
             };
 
-            OrderMaintain retObj = QPayToolkit.OrderMaintain(orderMaintainReq);
+            OrderMaintain retObj = m_PaymentService.OrderMaintain(orderMaintainReq);
 
             //ltResponse.Text = QPayCommon.SerializeToJson(retObj);
             return retObj;

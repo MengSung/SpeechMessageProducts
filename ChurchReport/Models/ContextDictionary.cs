@@ -13,7 +13,7 @@ namespace ChurchReport.Models
     {
         public static Dictionary<String, InMemoryDataContextSmallGroup> StaticContextDictionary = new Dictionary<String, InMemoryDataContextSmallGroup>();
 
-        public static InMemoryDataContextSmallGroup GetInMemoryDataContextSmallGroup(IHttpContextAccessor httpContextAccessor, IMemoryCache memoryCache, IQPayToolkit qpayService)
+        public static InMemoryDataContextSmallGroup GetInMemoryDataContextSmallGroup(IHttpContextAccessor httpContextAccessor, IMemoryCache memoryCache, IPayment aPaymentService)
         {
             try
             {
@@ -28,7 +28,7 @@ namespace ChurchReport.Models
                 else
                 {
                     // 關鍵( Key )還沒有在字典裡
-                    InMemoryDataContextSmallGroup aInMemoryDataContextSmallGroup = new InMemoryDataContextSmallGroup(httpContextAccessor, memoryCache, qpayService);
+                    InMemoryDataContextSmallGroup aInMemoryDataContextSmallGroup = new InMemoryDataContextSmallGroup(httpContextAccessor, memoryCache, aPaymentService);
 
                     // 一個人會開多個幸福小組
                     //foreach (HappyGroupWeeklyReportListClass aHappyGroupWeeklyReportListClass in aInMemoryDataContextSmallGroup.HappyGroupDataManager.m_ActiveHappyGroupListClass.HappyGroupWeeklyReportListClass)

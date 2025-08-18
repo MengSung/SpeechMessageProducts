@@ -55,7 +55,7 @@ namespace ChurchReport.Models
 
         #endregion
         #region 初始化
-        public QpayManager(IQPayToolkit qpayService)
+        public QpayManager(IPayment aPaymentService)
         {
             // 客製化，請選擇
             // 聖谷行道會(免費版)
@@ -64,7 +64,7 @@ namespace ChurchReport.Models
             // 客製化
             m_PushUtility = new PushUtility(m_LineMessagingClient);
 
-            m_QPayProcessor = new QPayProcessor(qpayService);
+            m_QPayProcessor = new QPayProcessor(aPaymentService);
 
         }
         #endregion

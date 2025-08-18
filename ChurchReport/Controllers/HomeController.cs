@@ -35,7 +35,7 @@ namespace ChurchReport.Controllers
         private readonly Disposable _disposable;
 
         //private ContextDictionary m_ContextDictionary = new ContextDictionary();
-        private readonly IQPayToolkit _qpayService;
+        private readonly IPayment m_PaymentService;
 
         #region 除錯用參數
         private const int TOTAL_LEVEL = 1;//改變這個值，就會改追蹤的階層，值越小越不會追蹤，若是 TOTAL_LEVEL = 3 ，則大於 3 的 LEVEL，例如 : LEVEL_4、LEVEL_5 就不會被追蹤
@@ -52,11 +52,11 @@ namespace ChurchReport.Controllers
         #endregion
         #endregion
         #region 初始化
-        public HomeController(IHttpContextAccessor httpContextAccessor, IMemoryCache memoryCache, IQPayToolkit qpayService)
+        public HomeController(IHttpContextAccessor httpContextAccessor, IMemoryCache memoryCache, IPayment qpayService)
         {
             m_InMemoryDataContextSmallGroup = new InMemoryDataContextSmallGroup(httpContextAccessor, memoryCache, qpayService);
 
-            _qpayService = qpayService; // DI 容器自動注入 QPayToolkitWrapper
+            m_PaymentService = qpayService; // DI 容器自動注入 QPayToolkitWrapper
 
             //m_InMemoryDataContextSmallGroup = ContextDictionary.GetInMemoryDataContextSmallGroup(httpContextAccessor, memoryCache);
             //m_InMemoryDataContextSmallGroup = m_ContextDictionary.GetInMemoryDataContextSmallGroup(httpContextAccessor, memoryCache);
