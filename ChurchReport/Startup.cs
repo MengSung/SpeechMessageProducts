@@ -36,7 +36,8 @@ namespace ChurchReport
 
             // 註冊服務，告訴 DI 容器：當有任何類別需要 IQPayToolkit 時，
             // 請提供一個 QPayToolkitWrapper 的實例給它。
-            services.AddScoped<IQPayToolkit, QPayToolkitWrapper>();
+            //services.AddScoped<IPayment, QPayToolkitWrapper>();
+            services.AddScoped<IPayment, MyPayToolkitWrapper>();
 
             //services.AddSession
             //(

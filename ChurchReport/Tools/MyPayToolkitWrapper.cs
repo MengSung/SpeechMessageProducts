@@ -6,52 +6,52 @@ namespace ChurchReport.Tools
     /// <summary>
     /// QPayToolkit 包裝類別，實作 IQPayToolkit 介面
     /// </summary>
-    public class QPayToolkitWrapper : IPayment
+    public class MyPayToolkitWrapper : IPayment
     {
 
         public CreOrder OrderCreate(CreOrderReq req)
         {
-            return QPayToolkit.OrderCreate(req);
+            return MyPayToolkit.OrderCreate(req);
         }
 
         public QryOrderUnCaptured OrderUnCapturedQuery(QryOrderUnCapturedReq req)
         {
-            return QPayToolkit.OrderUnCapturedQuery(req);
+            return MyPayToolkit.OrderUnCapturedQuery(req);
         }
 
         public OrderMaintain OrderMaintain(OrderMaintainReq req)
         {
-            return QPayToolkit.OrderMaintain(req);
+            return MyPayToolkit.OrderMaintain(req);
         }
 
         public QryOrder OrderQuery(QryOrderReq req)
         {
-            return QPayToolkit.OrderQuery(req);
+            return MyPayToolkit.OrderQuery(req);
         }
 
         public QryOrderPay OrderPayQuery(QryOrderPayReq req)
         {
-            return QPayToolkit.OrderPayQuery(req);
+            return MyPayToolkit.OrderPayQuery(req);
         }
 
         public QryOrderPay OrderPayQuery(QryOrderPayReq req, string hashCode)
         {
-            return QPayToolkit.OrderPayQuery(req, hashCode);
+            return MyPayToolkit.OrderPayQuery(req, hashCode);
         }
 
         public QryBill BillQuery(QryBillReq req)
         {
-            return QPayToolkit.BillQuery(req);
+            return MyPayToolkit.BillQuery(req);
         }
 
         public QryAllot AllotQuery(QryAllotReq req)
         {
-            return QPayToolkit.AllotQuery(req);
+            return MyPayToolkit.AllotQuery(req);
         }
 
         CreOrder IPayment.OrderCreate(CreOrderReq req)
         {
-            return QPayToolkit.OrderCreate(req);
+            return MyPayToolkit.OrderCreate(req);
             //throw new System.NotImplementedException();
         }
 
