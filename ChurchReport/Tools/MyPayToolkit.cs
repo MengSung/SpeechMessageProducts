@@ -42,11 +42,11 @@ namespace ChurchReport.Tools
         /// <summary>
         /// 特約商店商務代號
         /// </summary>
-        public string storeUid = "289151880002";
+        public string storeUid = "130544850001";
         /// <summary>
         /// 特約商店金鑰或認證碼
         /// </summary>
-        public string storeKey = "KYTjd9ACcjGaTK6V3zWmMkyrQS08Ndcx";
+        public string storeKey = "m4KNdB8NtuIc6mJa1XAYX3W1jWoHQCgy";
         /// <summary>
         /// 串接交易位置
         /// </summary>
