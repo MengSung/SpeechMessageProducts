@@ -1159,10 +1159,13 @@ namespace ChurchReport.WebServiceConnector
                 }
             };
 
+            string aResult = m_PaymentService.Simulate();
+
             //QPayToolkitWrapper aQPayToolkitWrapper = new QPayToolkitWrapper();
             //CreOrder retObj = aQPayToolkitWrapper.OrderCreate(creOrderReq);
             //CreOrder retObj = QPayToolkit.OrderCreate(creOrderReq);
             CreOrder retObj = m_PaymentService.OrderCreate(creOrderReq);
+
 
             var Result = QPayCommon.SerializeToJson(retObj);
 
@@ -1196,6 +1199,8 @@ namespace ChurchReport.WebServiceConnector
                     CCToken = CCToken
                 }
             };
+
+            string aResult = m_PaymentService.Simulate();
 
             //QPayToolkitWrapper aQPayToolkitWrapper = new QPayToolkitWrapper();
             //CreOrder retObj = aQPayToolkitWrapper.OrderCreate(creOrderReq);

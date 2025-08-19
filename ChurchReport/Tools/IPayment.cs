@@ -1,6 +1,18 @@
 using QPay.Domain;
 using System;
-
+using System.Collections.Specialized;
+using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.Collections;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Security.Cryptography;
+using System.Text;
+using System.Web;
+using System.Dynamic;
 namespace ChurchReport.Tools
 {
     /// <summary>
@@ -8,6 +20,20 @@ namespace ChurchReport.Tools
     /// </summary>
     public interface IPayment
     {
+        /// <summary>
+        /// 取得 POST 資料
+        /// </summary>
+        /// <returns>POST 資料</returns>
+        NameValueCollection GetPostData();
+
+        /// <summary>
+        /// Sends a POST request with the specified parameters and returns the server's response as a string.
+        /// </summary>
+        /// <param name="pars">A collection of key-value pairs representing the parameters to include in the POST request. Cannot be null.</param>
+        /// <returns>The response from the server as a string.</returns>
+        string Post(NameValueCollection pars);
+
+        String Simulate();
         /// <summary>
         /// 訂單建立 (虛擬帳號、信用卡)
         /// </summary>

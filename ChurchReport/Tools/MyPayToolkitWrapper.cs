@@ -1,5 +1,17 @@
 using ChurchReport.Tools;
 using QPay.Domain;
+using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.Collections;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Security.Cryptography;
+using System.Text;
+using System.Web;
+using System.Dynamic;
 
 namespace ChurchReport.Tools
 {
@@ -8,10 +20,32 @@ namespace ChurchReport.Tools
     /// </summary>
     public class MyPayToolkitWrapper : IPayment
     {
+        StoreOrder simulator = new StoreOrder();
+
+        public NameValueCollection GetPostData()
+        {
+            return simulator.GetPostData();
+        }
+
+        public string Post(NameValueCollection pars)
+        {
+            return simulator.Post(pars);
+        }
+
+        public String Simulate()
+        {
+            //StoreOrder simulator = new StoreOrder();
+            //僅限走https的Tls 1.2以上版本
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+            //發送至遠端
+            return simulator.Post(simulator.GetPostData());
+            //return MyPayToolkit.OrderCreate(req); 
+
+        }
 
         public CreOrder OrderCreate(CreOrderReq req)
         {
-            return MyPayToolkit.OrderCreate(req);
+            return MyPayToolkit.OrderCreate(req); 
         }
 
         public QryOrderUnCaptured OrderUnCapturedQuery(QryOrderUnCapturedReq req)

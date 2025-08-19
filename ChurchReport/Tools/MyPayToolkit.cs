@@ -17,14 +17,258 @@ using System.Text;
 using System.Threading.Tasks;
 using Hex = ChurchReport.Tools.QPayCommon.HexEncoding;
 
+using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.Collections;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Security.Cryptography;
+using System.Text;
+using System.Web;
+using System.Dynamic;
+
+
+namespace MyPay
+{
+}
+
 namespace ChurchReport.Tools
 {
+    public class StoreOrder
+    {
+        /// <summary>
+        /// 特約商店商務代號
+        /// </summary>
+        public string storeUid = "289151880002";
+        /// <summary>
+        /// 特約商店金鑰或認證碼
+        /// </summary>
+        public string storeKey = "KYTjd9ACcjGaTK6V3zWmMkyrQS08Ndcx";
+        /// <summary>
+        /// 串接交易位置
+        /// </summary>
+        public string url = "https://ka.usecase.cc/api/init";
+        /// 取得串接欄位資料
+        /// </summary>
+        private dynamic GetRawData()
+        {
+
+            ArrayList items = new ArrayList();
+
+            dynamic item = new ExpandoObject();
+            item.id = "1";
+            item.name = "商品名稱";
+            item.cost = "10";
+            item.amount = "1";
+            item.total = "10";
+
+            items.Add(item);
+
+            dynamic rawData = new ExpandoObject();
+            rawData.store_uid = this.storeUid;
+            rawData.items = items;
+            rawData.cost = "10";
+            rawData.user_id = "phper";
+            rawData.order_id = "1234567890";
+            rawData.ip = "127.0.0.1"; // 此為消費者IP，會做為驗證用
+            rawData.pfn = "0";
+
+            return rawData;
+        }
+        /// <summary>
+        /// 取得服務位置
+        /// </summary>
+        private ServiceRequest GetService()
+        {
+            ServiceRequest rawData = new ServiceRequest();
+            rawData.service_name = "api";
+            rawData.cmd = "api/orders";
+            return rawData;
+        }
+        /// <summary>
+        /// 取得送出欄位資料
+        /// </summary>
+        public NameValueCollection GetPostData()
+        {
+            string data_json = JsonConvert.SerializeObject(GetRawData(), Formatting.None);
+            string svr_json = JsonConvert.SerializeObject(GetService(), Formatting.None); ; //依API種類調整
+
+            //產生AES向量
+            var IV = GetBytesIV();
+
+            //進行加密
+            var data_encode = Encrypt(data_json, this.storeKey, IV);
+            var svr_encode = Encrypt(svr_json, this.storeKey, IV);
+
+            //請注意使用的 Http Post 套件是否會自動加上UrlEncode，本Post範例為原始方式，故須加上UrlEncode
+            //若自行使用的套件會自動補上UrlEncode，則請忽略下面的UrlEncode，避免做了兩次UrlEncode
+            string data_toUrlEncode = HttpUtility.UrlEncode(data_encode);
+            string svr_toUrlEncode = HttpUtility.UrlEncode(svr_encode);
+
+            NameValueCollection postData = new NameValueCollection();
+            postData["store_uid"] = this.storeUid;
+            postData["service"] = svr_toUrlEncode;
+            postData["encry_data"] = data_toUrlEncode;
+            return postData;
+        }
+        /// <summary>
+        /// AES 256 加密
+        /// </summary>
+        /// <param name="data"></param>
+        /// <param name="key"></param>
+        /// <param name="byteIV"></param>
+        /// <returns></returns>
+        private string Encrypt(string data, string key, byte[] byteIV)
+        {
+            var byteKey = System.Text.Encoding.UTF8.GetBytes(key);
+            var enBytes = AES_Encrypt(data, byteKey, byteIV);
+            return Convert.ToBase64String(BytesAdd(byteIV, enBytes));
+        }
+        /// <summary>
+        /// AES 256 加密處理
+        /// </summary>
+        /// <param name="original"></param>
+        /// <param name="key"></param>
+        /// <param name="iv"></param>
+        /// <returns></returns>
+        private byte[] AES_Encrypt(string original, byte[] key, byte[] iv)
+        {
+            try
+            {
+                var data = Encoding.UTF8.GetBytes(original);
+
+                var cipher = Aes.Create().CreateEncryptor(key, iv);
+
+                var de = cipher.TransformFinalBlock(data, 0, data.Length);
+                return de;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+        /// <summary>
+        /// 轉換Bytes
+        /// </summary>
+        /// <param name="a"></param>
+        /// <param name="arryB"></param>
+        /// <returns></returns>
+        private byte[] BytesAdd(byte[] a, params byte[][] arryB)
+        {
+            List<byte> c = new List<byte>();
+            c.AddRange(a);
+            arryB.ToList().ForEach(b => {
+                c.AddRange(b);
+            });
+            return c.ToArray();
+        }
+        /// <summary>
+        /// 產生AES的IV
+        /// </summary>
+        /// <returns></returns>
+        private static byte[] GetBytesIV()
+        {
+            var aes = System.Security.Cryptography.AesCryptoServiceProvider.Create();
+            aes.KeySize = 256;
+            aes.GenerateIV();
+            return aes.IV;
+        }
+        /// <summary>
+        /// 資料 POST 到主機
+        /// </summary>
+        /// <param name="pars"></param>
+        /// <returns></returns>
+        public string Post(NameValueCollection pars)
+        {
+            string result = string.Empty;
+            string param = string.Empty;
+            if (pars.Count > 0)
+            {
+                pars.AllKeys.ToList().ForEach(key => {
+                    param += key + "=" + pars[key] + "&";
+                });
+                if (param[param.Length - 1] == '&')
+                {
+                    param = param.Remove(param.Length - 1);
+                }
+            }
+            byte[] bs = Encoding.UTF8.GetBytes(param);
+
+            try
+            {
+                HttpWebRequest req = (HttpWebRequest)HttpWebRequest.Create(this.url);
+                req.Method = "POST";
+                req.ContentType = "application/x-www-form-urlencoded";
+                req.ContentLength = bs.Length;
+                using (Stream reqStream = req.GetRequestStream())
+                {
+                    reqStream.Write(bs, 0, bs.Length);
+                }
+                using (WebResponse wr = req.GetResponse())
+                {
+                    Encoding myEncoding = Encoding.GetEncoding("UTF-8");
+                    using (StreamReader myStreamReader = new StreamReader(wr.GetResponseStream(), myEncoding))
+                    {
+                        result = myStreamReader.ReadToEnd();
+                    }
+                }
+
+                req = null;
+            }
+            catch (WebException ex)
+            {
+                throw new WebException(ex.Message + "params : " + param, ex, ex.Status, ex.Response);
+            }
+            return result;
+        }
+
+
+    }
+    /// <summary>
+    /// 串接服務請求欄位
+    /// </summary>
+    public class ServiceRequest
+    {
+        public string service_name { get; set; }
+        public string cmd { get; set; }
+    }
+
     public static class MyPayToolkit
     {
         static ConfigurationBuilder m_ConfigurationBuilder = (ConfigurationBuilder)new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("appsettings.json");
         static IConfiguration m_Configuration = m_ConfigurationBuilder.Build();
 
         private static string _currentVersion = "1.0.0";
+
+        #region
+        /// <summary>
+        /// 特約商店串接-PayPage金流交易
+        /// </summary>
+        #endregion
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         // SANDBOX 測試用
         //private static string _site = "https://sandbox.sinopac.com/QPay.WebAPI/api/";
@@ -54,6 +298,7 @@ namespace ChurchReport.Tools
         //private static String HASH_CODE = A1 + "," + A2 + "," + B1 + "," + B2;
 
         //private static String X_KEY_ID = m_Configuration["Sinopac:XKeyID"];
+
 
         #region Public method
         #region 訂單建立 (虛擬帳號、信用卡)
