@@ -1,17 +1,18 @@
+using ChurchReport.Models;
 using ChurchReport.Tools;
-using QPay.Domain;
 using Newtonsoft.Json;
+using QPay.Domain;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.Collections;
+using System.Dynamic;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using System.Web;
-using System.Dynamic;
 
 namespace ChurchReport.Tools
 {
@@ -27,12 +28,12 @@ namespace ChurchReport.Tools
             return simulator.GetPostData();
         }
 
-        public string Post(NameValueCollection pars)
+        public PayPageResponse Post(NameValueCollection pars)
         {
             return simulator.Post(pars);
         }
 
-        public String Simulate()
+        public PayPageResponse Simulate()
         {
             //StoreOrder simulator = new StoreOrder();
             //僅限走https的Tls 1.2以上版本
