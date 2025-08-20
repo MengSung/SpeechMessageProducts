@@ -29,6 +29,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Web;
 using System.Dynamic;
+using ChurchReport.Models;
 
 
 namespace MyPay
@@ -181,10 +182,13 @@ namespace ChurchReport.Tools
         /// </summary>
         /// <param name="pars"></param>
         /// <returns></returns>
-        public string Post(NameValueCollection pars)
+        public PayPageResponse Post(NameValueCollection pars)
         {
             string result = string.Empty;
             string param = string.Empty;
+
+            PayPageResponse retObj;
+
             if (pars.Count > 0)
             {
                 pars.AllKeys.ToList().ForEach(key => {
@@ -213,6 +217,8 @@ namespace ChurchReport.Tools
                     using (StreamReader myStreamReader = new StreamReader(wr.GetResponseStream(), myEncoding))
                     {
                         result = myStreamReader.ReadToEnd();
+                        // 將結果反序列 成為CLASS
+                        retObj = JsonConvert.DeserializeObject<PayPageResponse>(result);
                     }
                 }
 
@@ -222,7 +228,7 @@ namespace ChurchReport.Tools
             {
                 throw new WebException(ex.Message + "params : " + param, ex, ex.Status, ex.Response);
             }
-            return result;
+            return retObj;
         }
 
 

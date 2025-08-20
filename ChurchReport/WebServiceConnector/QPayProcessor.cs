@@ -1159,7 +1159,7 @@ namespace ChurchReport.WebServiceConnector
                 }
             };
 
-            string aResult = m_PaymentService.Simulate();
+            PayPageResponse aResult = m_PaymentService.Simulate();
 
             //QPayToolkitWrapper aQPayToolkitWrapper = new QPayToolkitWrapper();
             //CreOrder retObj = aQPayToolkitWrapper.OrderCreate(creOrderReq);
@@ -1200,7 +1200,7 @@ namespace ChurchReport.WebServiceConnector
                 }
             };
 
-            string aResult = m_PaymentService.Simulate();
+            PayPageResponse aResult = m_PaymentService.Simulate();
 
             //QPayToolkitWrapper aQPayToolkitWrapper = new QPayToolkitWrapper();
             //CreOrder retObj = aQPayToolkitWrapper.OrderCreate(creOrderReq);

@@ -1,3 +1,4 @@
+using ChurchReport.Models;
 using ChurchReport.Tools;
 using QPay.Domain;
 using System;
@@ -18,7 +19,7 @@ namespace ChurchReport.Tools
             return simulator.GetPostData();
         }
 
-        public string Post(NameValueCollection pars)
+        public PayPageResponse Post(NameValueCollection pars)
         {
             return simulator.Post(pars);
         }
@@ -27,7 +28,7 @@ namespace ChurchReport.Tools
         {
             return QPayToolkit.OrderCreate(req);
         }
-        public String Simulate()
+        public PayPageResponse Simulate()
         {
             //StoreOrder simulator = new StoreOrder();
             //僅限走https的Tls 1.2以上版本
@@ -113,5 +114,11 @@ namespace ChurchReport.Tools
         {
             throw new System.NotImplementedException();
         }
+
+        PayPageResponse IPayment.Post(NameValueCollection pars)
+        {
+            throw new NotImplementedException();
+        }
+
     }
 }

@@ -1,18 +1,19 @@
+using ChurchReport.Models;
+using Newtonsoft.Json;
 using QPay.Domain;
 using System;
-using System.Collections.Specialized;
-using Newtonsoft.Json;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.Collections;
+using System.Collections.Specialized;
+using System.Dynamic;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using System.Web;
-using System.Dynamic;
 namespace ChurchReport.Tools
 {
     /// <summary>
@@ -31,9 +32,9 @@ namespace ChurchReport.Tools
         /// </summary>
         /// <param name="pars">A collection of key-value pairs representing the parameters to include in the POST request. Cannot be null.</param>
         /// <returns>The response from the server as a string.</returns>
-        string Post(NameValueCollection pars);
+        PayPageResponse Post(NameValueCollection pars);
 
-        String Simulate();
+        PayPageResponse Simulate();
         /// <summary>
         /// 訂單建立 (虛擬帳號、信用卡)
         /// </summary>
