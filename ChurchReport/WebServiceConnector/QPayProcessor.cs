@@ -1159,7 +1159,7 @@ namespace ChurchReport.WebServiceConnector
                 }
             };
 
-            PayPageResponse aResult = m_PaymentService.Simulate();
+            CreOrder aRetObj = m_PaymentService.Simulate();
 
             //QPayToolkitWrapper aQPayToolkitWrapper = new QPayToolkitWrapper();
             //CreOrder retObj = aQPayToolkitWrapper.OrderCreate(creOrderReq);
@@ -1167,7 +1167,7 @@ namespace ChurchReport.WebServiceConnector
             CreOrder retObj = m_PaymentService.OrderCreate(creOrderReq);
 
 
-            var Result = QPayCommon.SerializeToJson(retObj);
+            var Result = QPayCommon.SerializeToJson(aRetObj);
 
             return retObj;
 
@@ -1200,7 +1200,7 @@ namespace ChurchReport.WebServiceConnector
                 }
             };
 
-            PayPageResponse aResult = m_PaymentService.Simulate();
+            CreOrder aRetObj = m_PaymentService.Simulate();
 
             //QPayToolkitWrapper aQPayToolkitWrapper = new QPayToolkitWrapper();
             //CreOrder retObj = aQPayToolkitWrapper.OrderCreate(creOrderReq);
@@ -1209,7 +1209,7 @@ namespace ChurchReport.WebServiceConnector
 
             CreOrder retObj = m_PaymentService.OrderCreate(creOrderReq);
 
-            var Result = QPayCommon.SerializeToJson(retObj);
+            var Result = QPayCommon.SerializeToJson(aRetObj);
 
             return retObj;
 

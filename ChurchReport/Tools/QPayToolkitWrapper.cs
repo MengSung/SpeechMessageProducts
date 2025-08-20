@@ -12,6 +12,7 @@ namespace ChurchReport.Tools
     /// </summary>
     public class QPayToolkitWrapper : IPayment
     {
+        #region 實作成員資料
         StoreOrder simulator = new StoreOrder();
 
         public NameValueCollection GetPostData()
@@ -28,15 +29,9 @@ namespace ChurchReport.Tools
         {
             return QPayToolkit.OrderCreate(req);
         }
-        public PayPageResponse Simulate()
+        public CreOrder Simulate()
         {
-            //StoreOrder simulator = new StoreOrder();
-            //僅限走https的Tls 1.2以上版本
-            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-            //發送至遠端
-            return simulator.Post(simulator.GetPostData());
-            //return MyPayToolkit.OrderCreate(req); 
-
+            return new CreOrder();
         }
 
         public QryOrderUnCaptured OrderUnCapturedQuery(QryOrderUnCapturedReq req)
@@ -119,6 +114,6 @@ namespace ChurchReport.Tools
         {
             throw new NotImplementedException();
         }
-
+        #endregion
+        }
     }
-}

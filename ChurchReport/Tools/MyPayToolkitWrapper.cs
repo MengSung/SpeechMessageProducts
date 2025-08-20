@@ -21,6 +21,8 @@ namespace ChurchReport.Tools
     /// </summary>
     public class MyPayToolkitWrapper : IPayment
     {
+        #region 實作成員資料
+
         StoreOrder simulator = new StoreOrder();
 
         public NameValueCollection GetPostData()
@@ -33,14 +35,15 @@ namespace ChurchReport.Tools
             return simulator.Post(pars);
         }
 
-        public PayPageResponse Simulate()
+        public CreOrder Simulate()
         {
             //StoreOrder simulator = new StoreOrder();
             //僅限走https的Tls 1.2以上版本
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
             //發送至遠端
-            return simulator.Post(simulator.GetPostData());
-            //return MyPayToolkit.OrderCreate(req); 
+            //return simulator.Post(simulator.GetPostData());
+
+            return ConvertToCreOrder(simulator.Post(simulator.GetPostData()));
 
         }
 
@@ -124,5 +127,31 @@ namespace ChurchReport.Tools
         {
             throw new System.NotImplementedException();
         }
+        #endregion
+        #region 其他方法
+        // 這裡可以添加其他輔助方法或工具方法
+        // 例如：驗證、格式化等
+        private CreOrder ConvertToCreOrder(PayPageResponse response)
+        {
+            // 將 PayPageResponse 轉換為 CreOrder
+            if (response == null)
+            {
+                throw new ArgumentNullException(nameof(response), "PayPageResponse cannot be null");
+            }
+
+            CreOrder creOrder = new CreOrder
+            {
+                OrderNo = response.uid,
+                CardParam = new CreOrderCardParamRes
+                {
+                    CardPayURL = response.url,
+                }
+            };
+
+            return creOrder;
+        }
+
+        #endregion 其他方法
+
     }
 }
