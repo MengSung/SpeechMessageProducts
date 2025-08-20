@@ -1169,7 +1169,7 @@ namespace ChurchReport.WebServiceConnector
 
             var Result = QPayCommon.SerializeToJson(aRetObj);
 
-            return retObj;
+            return aRetObj;
 
         }
         public async Task<CreOrder> CreOrderCard(int Amount, String ProductName, String OrderDate, String FeeId, String PayType, String PayTypeSub, String Staging, int DeductTotalNum, String PeriodType, int DeductFreq, String CreditCategory, String CCToken = null)
@@ -1211,7 +1211,7 @@ namespace ChurchReport.WebServiceConnector
 
             var Result = QPayCommon.SerializeToJson(aRetObj);
 
-            return retObj;
+            return aRetObj;
 
         }
         public async Task<CreOrder> CreateOrderATM(int Amount, String ProductName, String OrderDate, String FeeId)
