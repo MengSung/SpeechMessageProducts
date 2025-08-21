@@ -75,40 +75,6 @@ namespace ChurchReport.Tools
             return rawData;
         }
 
-        /// <summary>
-        /// 根據提供的參數取得串接欄位資料
-        /// </summary>
-        /// <param name="customData">自定義參數數據</param>
-        /// <returns>處理後的動態對象</returns>
-        private dynamic GetRawData(ExpandoObject customData)
-        {
-            ArrayList items = new ArrayList();
-
-            // 從 customData 中提取商品資訊，如果沒有則使用預設值
-            var dataDict = (IDictionary<string, object>)customData;
-            
-            // 建立商品項目
-            dynamic item = new ExpandoObject();
-            item.id = dataDict.ContainsKey("product_id") ? dataDict["product_id"].ToString() : "1";
-            item.name = dataDict.ContainsKey("product_name") ? dataDict["product_name"].ToString() : "商品名稱";
-            item.cost = dataDict.ContainsKey("product_cost") ? dataDict["product_cost"].ToString() : "10";
-            item.amount = dataDict.ContainsKey("product_amount") ? dataDict["product_amount"].ToString() : "1";
-            item.total = dataDict.ContainsKey("product_total") ? dataDict["product_total"].ToString() : "10";
-
-            items.Add(item);
-
-            // 建立原始資料
-            dynamic rawData = new ExpandoObject();
-            rawData.store_uid = dataDict.ContainsKey("store_uid") ? dataDict["store_uid"].ToString() : this.storeUid;
-            rawData.items = items;
-            rawData.cost = dataDict.ContainsKey("total_cost") ? dataDict["total_cost"].ToString() : "10";
-            rawData.user_id = dataDict.ContainsKey("user_id") ? dataDict["user_id"].ToString() : "phper";
-            rawData.order_id = dataDict.ContainsKey("order_id") ? dataDict["order_id"].ToString() : "1234567890";
-            rawData.ip = dataDict.ContainsKey("client_ip") ? dataDict["client_ip"].ToString() : "127.0.0.1";
-            rawData.pfn = dataDict.ContainsKey("pfn") ? dataDict["pfn"].ToString() : "0";
-
-            return rawData;
-        }
 
         /// <summary>
         /// 取得服務位置
@@ -123,10 +89,10 @@ namespace ChurchReport.Tools
         /// <summary>
         /// 取得送出欄位資料
         /// </summary>
-        public NameValueCollection GetPostData()
+        public NameValueCollection GetPostData(ExpandoObject customData)
         {
-            ExpandoObject customData = new ExpandoObject();
-            string data_json = JsonConvert.SerializeObject(GetRawData(customData), Formatting.None);
+            //string data_json = JsonConvert.SerializeObject(GetRawData(customData), Formatting.None);
+            string data_json = JsonConvert.SerializeObject(customData, Formatting.None);
             string svr_json = JsonConvert.SerializeObject(GetService(), Formatting.None); ; //依API種類調整
 
             //產生AES向量

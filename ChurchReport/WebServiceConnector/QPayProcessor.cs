@@ -1,27 +1,26 @@
-﻿using Line.Pay;
-using Line.Pay.Models;
-using System;
-using System.Threading.Tasks;
-using Microsoft.Xrm.Sdk;
-
-using ChurchReport.Models;
-
-using ToolUtilityNameSpace;
-using Microsoft.Extensions.Configuration;
-using System.IO;
-
-using QPay.Domain;
-using System;
-using System.Threading.Tasks;
+﻿using ChurchReport.Models;
+using ChurchReport.Tools;
 using Line.Messaging;
 using Line.Pay;
+using Line.Pay;
 using Line.Pay.Models;
+using Line.Pay.Models;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Xrm.Sdk;
+using Microsoft.Xrm.Sdk;
+using QPay.Domain;
 using System;
+using System;
+using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Dynamic;
+using System.IO;
 using System.IO;
 using System.Threading.Tasks;
-using ChurchReport.Tools;
+using System.Threading.Tasks;
+using System.Threading.Tasks;
+using ToolUtilityNameSpace;
 using UserProfile = Line.Messaging.UserProfile;
 
 namespace ChurchReport.WebServiceConnector
@@ -1159,13 +1158,9 @@ namespace ChurchReport.WebServiceConnector
                 }
             };
 
-            CreOrder aRetObj = m_PaymentService.CreateOrder();
+            CreOrder aRetObj = m_PaymentService.CreateOrder(GetRawData(Amount, ProductName, OrderDate, FeeId, PayType, PayTypeSub));
 
-            //QPayToolkitWrapper aQPayToolkitWrapper = new QPayToolkitWrapper();
-            //CreOrder retObj = aQPayToolkitWrapper.OrderCreate(creOrderReq);
-            //CreOrder retObj = QPayToolkit.OrderCreate(creOrderReq);
-            CreOrder retObj = m_PaymentService.OrderCreate(creOrderReq);
-
+            //CreOrder retObj = m_PaymentService.OrderCreate(creOrderReq);
 
             var Result = QPayCommon.SerializeToJson(aRetObj);
 
@@ -1200,14 +1195,9 @@ namespace ChurchReport.WebServiceConnector
                 }
             };
 
-            CreOrder aRetObj = m_PaymentService.CreateOrder();
+            CreOrder aRetObj = m_PaymentService.CreateOrder(GetRawData(Amount, ProductName, OrderDate, FeeId, PayType, PayTypeSub));
 
-            //QPayToolkitWrapper aQPayToolkitWrapper = new QPayToolkitWrapper();
-            //CreOrder retObj = aQPayToolkitWrapper.OrderCreate(creOrderReq);
             //CreOrder retObj = m_PaymentService.OrderCreate(creOrderReq);
-            //CreOrder retObj = QPayToolkit.OrderCreate(creOrderReq);
-
-            CreOrder retObj = m_PaymentService.OrderCreate(creOrderReq);
 
             var Result = QPayCommon.SerializeToJson(aRetObj);
 
@@ -1366,6 +1356,35 @@ namespace ChurchReport.WebServiceConnector
             #endregion
         }
         #endregion
+        #region 高鉅金流工具區
+        private dynamic GetRawData(int Amount, String ProductName, String OrderDate, String FeeId, String PayType, String PayTypeSub)
+        {
+
+            ArrayList items = new ArrayList();
+
+            dynamic item = new ExpandoObject();
+            item.id = FeeId;
+            item.name = ProductName;
+            item.cost = Amount;
+            item.amount = "1";
+            item.total = Amount;
+
+            items.Add(item);
+
+            dynamic rawData = new ExpandoObject();
+            rawData.store_uid = "130544850001";
+            rawData.items = items;
+            rawData.cost = Amount;
+            rawData.user_id = "胡夢嵩";
+            rawData.order_id = FeeId;
+            rawData.ip = "127.0.0.1"; // 此為消費者IP，會做為驗證用
+            rawData.pfn = "0";
+
+            return rawData;
+        }
+
+        #endregion
+
         #region 永豐金流工具區
         private string ConvertShopNoToHashCodeAndSite(String aShopNo)
         {

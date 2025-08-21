@@ -21,23 +21,23 @@ namespace ChurchReport.Tools
     /// </summary>
     public class MyPayToolkitWrapper : IPayment
     {
-        #region 實作成員資料
+        #region 高鉅金流實作成員資料
 
-        StoreOrder simulator = new StoreOrder();
+        StoreOrder aStoreOrder = new StoreOrder();
 
         public NameValueCollection GetPostData()
         {
-            return simulator.GetPostData();
+            return aStoreOrder.GetPostData(GetRawData());
         }
 
         public PayPageResponse Post(NameValueCollection pars)
         {
-            return simulator.Post(pars);
+            return aStoreOrder.Post(pars);
         }
 
         // 將Simulate修改名稱
 
-        public CreOrder CreateOrder()
+        public CreOrder CreateOrder(dynamic customData)
         {
             //StoreOrder simulator = new StoreOrder();
             //僅限走https的Tls 1.2以上版本
@@ -45,10 +45,37 @@ namespace ChurchReport.Tools
             //發送至遠端
             //return simulator.Post(simulator.GetPostData());
 
-            return ConvertToCreOrder(simulator.Post(simulator.GetPostData()));
+            return ConvertToCreOrder(aStoreOrder.Post(aStoreOrder.GetPostData(customData)));
 
         }
 
+        private dynamic GetRawData()
+        {
+
+            ArrayList items = new ArrayList();
+
+            dynamic item = new ExpandoObject();
+            item.id = "1";
+            item.name = "商品名稱";
+            item.cost = "10";
+            item.amount = "1";
+            item.total = "10";
+
+            items.Add(item);
+
+            dynamic rawData = new ExpandoObject();
+            rawData.store_uid = "130544850001";
+            rawData.items = items;
+            rawData.cost = "10";
+            rawData.user_id = "phper";
+            rawData.order_id = "1234567890";
+            rawData.ip = "127.0.0.1"; // 此為消費者IP，會做為驗證用
+            rawData.pfn = "0";
+
+            return rawData;
+        }
+        #endregion 實作成員資料
+        #region 永豐金流
         public CreOrder OrderCreate(CreOrderReq req)
         {
             return MyPayToolkit.OrderCreate(req); 
@@ -130,7 +157,7 @@ namespace ChurchReport.Tools
             throw new System.NotImplementedException();
         }
         #endregion
-        #region 其他方法
+        #region 工具區
         // 這裡可以添加其他輔助方法或工具方法
         // 例如：驗證、格式化等
         private CreOrder ConvertToCreOrder(PayPageResponse response)
@@ -154,6 +181,5 @@ namespace ChurchReport.Tools
         }
 
         #endregion 其他方法
-
     }
 }

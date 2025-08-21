@@ -38,7 +38,7 @@ namespace ChurchReport.Tools
         /// 訂單建立 (虛擬帳號、信用卡)
         /// </summary>
         /// <returns></returns>
-        CreOrder CreateOrder();
+        CreOrder CreateOrder(dynamic customDataa);
 
         /// <summary>
         /// 訂單建立 (虛擬帳號、信用卡)
