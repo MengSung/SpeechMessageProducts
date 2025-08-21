@@ -35,7 +35,9 @@ namespace ChurchReport.Tools
             return simulator.Post(pars);
         }
 
-        public CreOrder Simulate()
+        // 將Simulate修改名稱
+
+        public CreOrder CreateOrder()
         {
             //StoreOrder simulator = new StoreOrder();
             //僅限走https的Tls 1.2以上版本

@@ -29,7 +29,7 @@ namespace ChurchReport.Tools
         {
             return QPayToolkit.OrderCreate(req);
         }
-        public CreOrder Simulate()
+        public CreOrder CreateOrder()
         {
             return new CreOrder();
         }

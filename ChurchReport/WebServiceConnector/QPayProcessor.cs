@@ -1159,7 +1159,7 @@ namespace ChurchReport.WebServiceConnector
                 }
             };
 
-            CreOrder aRetObj = m_PaymentService.Simulate();
+            CreOrder aRetObj = m_PaymentService.CreateOrder();
 
             //QPayToolkitWrapper aQPayToolkitWrapper = new QPayToolkitWrapper();
             //CreOrder retObj = aQPayToolkitWrapper.OrderCreate(creOrderReq);
@@ -1200,7 +1200,7 @@ namespace ChurchReport.WebServiceConnector
                 }
             };
 
-            CreOrder aRetObj = m_PaymentService.Simulate();
+            CreOrder aRetObj = m_PaymentService.CreateOrder();
 
             //QPayToolkitWrapper aQPayToolkitWrapper = new QPayToolkitWrapper();
             //CreOrder retObj = aQPayToolkitWrapper.OrderCreate(creOrderReq);

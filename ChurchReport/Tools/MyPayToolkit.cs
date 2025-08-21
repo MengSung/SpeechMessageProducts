@@ -31,11 +31,6 @@ using System.Web;
 using System.Dynamic;
 using ChurchReport.Models;
 
-
-namespace MyPay
-{
-}
-
 namespace ChurchReport.Tools
 {
     public class StoreOrder
@@ -79,6 +74,42 @@ namespace ChurchReport.Tools
 
             return rawData;
         }
+
+        /// <summary>
+        /// 根據提供的參數取得串接欄位資料
+        /// </summary>
+        /// <param name="customData">自定義參數數據</param>
+        /// <returns>處理後的動態對象</returns>
+        private dynamic GetRawData(ExpandoObject customData)
+        {
+            ArrayList items = new ArrayList();
+
+            // 從 customData 中提取商品資訊，如果沒有則使用預設值
+            var dataDict = (IDictionary<string, object>)customData;
+            
+            // 建立商品項目
+            dynamic item = new ExpandoObject();
+            item.id = dataDict.ContainsKey("product_id") ? dataDict["product_id"].ToString() : "1";
+            item.name = dataDict.ContainsKey("product_name") ? dataDict["product_name"].ToString() : "商品名稱";
+            item.cost = dataDict.ContainsKey("product_cost") ? dataDict["product_cost"].ToString() : "10";
+            item.amount = dataDict.ContainsKey("product_amount") ? dataDict["product_amount"].ToString() : "1";
+            item.total = dataDict.ContainsKey("product_total") ? dataDict["product_total"].ToString() : "10";
+
+            items.Add(item);
+
+            // 建立原始資料
+            dynamic rawData = new ExpandoObject();
+            rawData.store_uid = dataDict.ContainsKey("store_uid") ? dataDict["store_uid"].ToString() : this.storeUid;
+            rawData.items = items;
+            rawData.cost = dataDict.ContainsKey("total_cost") ? dataDict["total_cost"].ToString() : "10";
+            rawData.user_id = dataDict.ContainsKey("user_id") ? dataDict["user_id"].ToString() : "phper";
+            rawData.order_id = dataDict.ContainsKey("order_id") ? dataDict["order_id"].ToString() : "1234567890";
+            rawData.ip = dataDict.ContainsKey("client_ip") ? dataDict["client_ip"].ToString() : "127.0.0.1";
+            rawData.pfn = dataDict.ContainsKey("pfn") ? dataDict["pfn"].ToString() : "0";
+
+            return rawData;
+        }
+
         /// <summary>
         /// 取得服務位置
         /// </summary>
@@ -94,7 +125,8 @@ namespace ChurchReport.Tools
         /// </summary>
         public NameValueCollection GetPostData()
         {
-            string data_json = JsonConvert.SerializeObject(GetRawData(), Formatting.None);
+            ExpandoObject customData = new ExpandoObject();
+            string data_json = JsonConvert.SerializeObject(GetRawData(customData), Formatting.None);
             string svr_json = JsonConvert.SerializeObject(GetService(), Formatting.None); ; //依API種類調整
 
             //產生AES向量
@@ -254,43 +286,21 @@ namespace ChurchReport.Tools
         /// 特約商店串接-PayPage金流交易
         /// </summary>
         #endregion
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         // SANDBOX 測試用
         //private static string _site = "https://sandbox.sinopac.com/QPay.WebAPI/api/";
         //private static string _site = "https://apisbx.sinopac.com/funBIZ-Sbx/QPay.WebAPI/api/";
         //private static string _site = m_Configuration["Sinopac:Site"];
         //private static string _site = m_Configuration["Sandbox:Site_Xkey"];
-        private static string _site = m_Configuration["Sandbox:Site"];
+        //private static string _site = m_Configuration["Sandbox:Site"];
 
         //// SANDBOX 測試用
-        private static String A1 = m_Configuration["Sandbox:A1"];
-        private static String A2 = m_Configuration["Sandbox:A2"];
-        private static String B1 = m_Configuration["Sandbox:B1"];
-        private static String B2 = m_Configuration["Sandbox:B2"];
-        private static String HASH_CODE = A1 + "," + A2 + "," + B1 + "," + B2;
+        //private static String A1 = m_Configuration["Sandbox:A1"];
+        //private static String A2 = m_Configuration["Sandbox:A2"];
+        //private static String B1 = m_Configuration["Sandbox:B1"];
+        //private static String B2 = m_Configuration["Sandbox:B2"];
+        //private static String HASH_CODE = A1 + "," + A2 + "," + B1 + "," + B2;
 
-        private static String X_KEY_ID = m_Configuration["Sandbox:XKeyID"];
+        //private static String X_KEY_ID = m_Configuration["Sandbox:XKeyID"];
 
         // 永豐金流正式環境
         //m_LinePayClient = new LinePayClient(configuration["LinePay:ChannelId"], configuration["LinePay:ChannelSecret"], bool.Parse(configuration["LinePay:IsSandbox"]));
@@ -419,181 +429,11 @@ namespace ChurchReport.Tools
 
         #region Private method
         #region 取得QPay Web API response
-        private static TResult GetQPayResponse<TReq, TResult>(TReq request, APIService apiService) where TReq : IQPayReq
+        private static TResult GetQPayResponse<TReq, TResult>(TReq request, APIService apiService, string hashCode = null) where TReq : IQPayReq
         {
-            //string shopNo = request.ShopNo;
-            string shopNo = request.ShopNo;
-            //由appSettings取得指定商店雜湊值  ex <add key="AA0001" value="...,...,...,..."/>
-            //string apiKeyData = ConfigurationManager.AppSettings.Get(shopNo);
-            //if (string.IsNullOrEmpty(apiKeyData))
-            //    throw new Exception("AppSettings.config 中不存在指定商店API Keys");
-
-            //將取得雜湊值以逗號(,)分隔並轉小寫，產生string陣列
-            //string[] apiKeys = apiKeyData.ToLower().Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
-            string[] apiKeys = HASH_CODE.ToLower().Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
-            //string[] apiKeys = "5E854757C751413F,D743D0EB06904837,08169D5445644513,8E52B5A180EE4399".ToLower().Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
-            //string[] apiKeys = "D1695F439A69448F,7E460E920A184845,DEA83EFB714943F3,DC237C5C69914F0C".ToLower().Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
-
-            //產生取Nonce Request
-            NonceReq nonceReq = new NonceReq(shopNo);
-
-            //發送Request並取得Nonce Responce
-            NonceRes nonceRes = GetNonce(nonceReq).Result;
-
-            if (string.IsNullOrEmpty(nonceRes.Nonce))
-                throw new Exception("Nonce值為null或空值");
-
-            int i;
-            //1.移除雜湊中的"-"
-            //2.取得雜湊的前16碼
-            //3.將步驟2結果轉為16進制byte陣列
-            List<byte[]> keyList = apiKeys.ToList().Select(x => Hex.GetBytes(x.Replace("-", "").Substring(0, 16), out i)).ToList();
-
-            string
-                sha256,
-                iv,
-                //1.分別將 雜湊A1 XOR 雜湊A2, 雜湊B1 XOR 雜湊B2
-                //2.將步驟1的兩個結果各自轉為16進制字串 S1, S2
-                //3.AESKey = S1 + S2
-                aesKey = Hex.ToString(QPayCommon.XOR(keyList[0], keyList[1])) + Hex.ToString(QPayCommon.XOR(keyList[2], keyList[3])),
-                //之前取得之Nonce
-                nonce = nonceRes.Nonce,
-                //序列化之Request物件
-                innerJson = QPayCommon.SerializeToJson(request),
-                //利用 AESKey, Nonce進行AESCBC加密，加密內文(提供out SHA256及 out iv可供後續驗證)
-                msg = QPayCommon.EncryptAesData(aesKey, innerJson, nonce, out sha256, out iv);
-
-            //產生WebAPIMessage
-            WebAPIMessage req = new WebAPIMessage()
-            {
-                Version = _currentVersion,
-                ShopNo = shopNo,
-                APIService = apiService.ToString(),
-                Nonce = nonce,
-                Message = msg,
-                //利用Request物件, AESKey及Nonce組成Sign值
-                Sign = request.GenerateSign(aesKey, nonce)
-            };
-
             try
             {
-                QPayCommon.InfoLog(string.Format("呼叫商業收付API Order/{0} , Request:{1}", req.APIService, QPayCommon.SerializeToJson(req)));
-
-                //呼叫商業收付Web API
-                WebAPIMessage result = NewAPI<WebAPIMessage>("Order", req).Result;
-
-                QPayCommon.InfoLog(string.Format("呼叫商業收付API Order/{0} , Response:{1}", req.APIService, QPayCommon.SerializeToJson(result)));
-
-                //利用 AESKey, Nonce進行AESCBC解密，解密內文(提供out SHA256及 out iv可供後續驗證)
-                string decodedMsg = QPayCommon.DecryptAesData(aesKey, result.Message, result.Nonce, out sha256, out iv);
-
-                QPayCommon.InfoLog("Response Message:" + decodedMsg);
-
-                //反序列化取得Response物件
-                TResult innerResult = JsonConvert.DeserializeObject<TResult>(decodedMsg);
-
-                //Sign值驗證
-                string responseSign = innerResult.GenerateSign(aesKey, result.Nonce);
-                if (responseSign != result.Sign)
-                {
-                    string validateFailMsg = "sign value validate fail!! response sign value:" + result.Sign + ", calculate sign value:" + responseSign;
-
-                    QPayCommon.ExceptionLog(validateFailMsg);
-                    throw new Exception(validateFailMsg);
-                }
-
-                return innerResult;
-            }
-            catch (Exception ex)
-            {
-                QPayCommon.ExceptionLog(null, ex);
-                throw ex;
-            }
-        }
-        private static TResult GetQPayResponse<TReq, TResult>(TReq request, APIService apiService, String HashCode) where TReq : IQPayReq
-        {
-            //string shopNo = request.ShopNo;
-            string shopNo = request.ShopNo;
-            //由appSettings取得指定商店雜湊值  ex <add key="AA0001" value="...,...,...,..."/>
-            //string apiKeyData = ConfigurationManager.AppSettings.Get(shopNo);
-            //if (string.IsNullOrEmpty(apiKeyData))
-            //    throw new Exception("AppSettings.config 中不存在指定商店API Keys");
-
-            //將取得雜湊值以逗號(,)分隔並轉小寫，產生string陣列
-            //string[] apiKeys = apiKeyData.ToLower().Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
-            //string[] apiKeys = "5E854757C751413F,D743D0EB06904837,08169D5445644513,8E52B5A180EE4399".ToLower().Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
-            //string[] apiKeys = apiKeyData.ToLower().Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
-            string[] apiKeys = HashCode.ToLower().Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
-            //string[] apiKeys = "5E854757C751413F,D743D0EB06904837,08169D5445644513,8E52B5A180EE4399".ToLower().Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
-            //string[] apiKeys = "D1695F439A69448F,7E460E920A184845,DEA83EFB714943F3,DC237C5C69914F0C".ToLower().Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
-
-            //產生取Nonce Request
-            NonceReq nonceReq = new NonceReq(shopNo);
-
-            //發送Request並取得Nonce Responce
-            NonceRes nonceRes = GetNonce(nonceReq).Result;
-
-            if (string.IsNullOrEmpty(nonceRes.Nonce))
-                throw new Exception("Nonce值為null或空值");
-
-            int i;
-            //1.移除雜湊中的"-"
-            //2.取得雜湊的前16碼
-            //3.將步驟2結果轉為16進制byte陣列
-            List<byte[]> keyList = apiKeys.ToList().Select(x => Hex.GetBytes(x.Replace("-", "").Substring(0, 16), out i)).ToList();
-
-            string
-                sha256,
-                iv,
-                //1.分別將 雜湊A1 XOR 雜湊A2, 雜湊B1 XOR 雜湊B2
-                //2.將步驟1的兩個結果各自轉為16進制字串 S1, S2
-                //3.AESKey = S1 + S2
-                aesKey = Hex.ToString(QPayCommon.XOR(keyList[0], keyList[1])) + Hex.ToString(QPayCommon.XOR(keyList[2], keyList[3])),
-                //之前取得之Nonce
-                nonce = nonceRes.Nonce,
-                //序列化之Request物件
-                innerJson = QPayCommon.SerializeToJson(request),
-                //利用 AESKey, Nonce進行AESCBC加密，加密內文(提供out SHA256及 out iv可供後續驗證)
-                msg = QPayCommon.EncryptAesData(aesKey, innerJson, nonce, out sha256, out iv);
-
-            //產生WebAPIMessage
-            WebAPIMessage req = new WebAPIMessage()
-            {
-                Version = _currentVersion,
-                ShopNo = shopNo,
-                APIService = apiService.ToString(),
-                Nonce = nonce,
-                Message = msg,
-                //利用Request物件, AESKey及Nonce組成Sign值
-                Sign = request.GenerateSign(aesKey, nonce)
-            };
-
-            try
-            {
-                QPayCommon.InfoLog(string.Format("呼叫商業收付API Order/{0} , Request:{1}", req.APIService, QPayCommon.SerializeToJson(req)));
-
-                //呼叫商業收付Web API
-                WebAPIMessage result = NewAPI<WebAPIMessage>("Order", req).Result;
-
-                QPayCommon.InfoLog(string.Format("呼叫商業收付API Order/{0} , Response:{1}", req.APIService, QPayCommon.SerializeToJson(result)));
-
-                //利用 AESKey, Nonce進行AESCBC解密，解密內文(提供out SHA256及 out iv可供後續驗證)
-                string decodedMsg = QPayCommon.DecryptAesData(aesKey, result.Message, result.Nonce, out sha256, out iv);
-
-                QPayCommon.InfoLog("Response Message:" + decodedMsg);
-
-                //反序列化取得Response物件
-                TResult innerResult = JsonConvert.DeserializeObject<TResult>(decodedMsg);
-
-                //Sign值驗證
-                string responseSign = innerResult.GenerateSign(aesKey, result.Nonce);
-                if (responseSign != result.Sign)
-                {
-                    string validateFailMsg = "sign value validate fail!! response sign value:" + result.Sign + ", calculate sign value:" + responseSign;
-
-                    QPayCommon.ExceptionLog(validateFailMsg);
-                    throw new Exception(validateFailMsg);
-                }
+                TResult innerResult = Activator.CreateInstance<TResult>();
 
                 return innerResult;
             }
@@ -606,62 +446,7 @@ namespace ChurchReport.Tools
         #endregion
 
         #region APIClient
-        #region 呼叫Nonce API(一次性數值)
-        private static async Task<NonceRes> GetNonce(NonceReq req)
-        {
-            string url = _site + "Nonce";
 
-            HttpResponseMessage responce;
-
-            using (var client = new HttpClient())
-            {
-                client.DefaultRequestHeaders.Add("X-KeyID", X_KEY_ID);
-                responce = client.PostAsJsonAsync(url, req).Result;
-            }
-
-            NonceRes res = new NonceRes();
-
-            if (responce.IsSuccessStatusCode)
-            {
-                res = await responce.Content.ReadAsAsync<NonceRes>();
-            }
-            else
-            {
-                QPayCommon.ExceptionLog("Get nonce failed. StatusCode : " + responce.StatusCode);
-                res = new NonceRes();
-            }
-
-            return res;
-        }
-        #endregion
-
-        #region 呼叫商店API
-        private static async Task<T> NewAPI<T>(string route, WebAPIMessage req) where T : new()
-        {
-            string url = _site + route;
-
-            HttpResponseMessage response;
-
-            using (var client = new HttpClient())
-            {
-                client.DefaultRequestHeaders.Add("X-KeyID", X_KEY_ID);
-                response = client.PostAsJsonAsync(url, req).Result;
-            }
-
-            T res;
-            if (response.IsSuccessStatusCode)
-            {
-                res = await response.Content.ReadAsAsync<T>();
-            }
-            else
-            {
-                QPayCommon.ExceptionLog(string.Format("Call API {0} failed. StatusCode : {1}", req.APIService, response.StatusCode));
-                throw new Exception(response.Content.ReadAsStringAsync().Result);
-            }
-
-            return res;
-        }
-        #endregion
         #endregion
         #endregion
     }

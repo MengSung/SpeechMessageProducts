@@ -34,7 +34,12 @@ namespace ChurchReport.Tools
         /// <returns>The response from the server as a string.</returns>
         PayPageResponse Post(NameValueCollection pars);
 
-        CreOrder Simulate();
+        /// <summary>
+        /// 訂單建立 (虛擬帳號、信用卡)
+        /// </summary>
+        /// <returns></returns>
+        CreOrder CreateOrder();
+
         /// <summary>
         /// 訂單建立 (虛擬帳號、信用卡)
         /// </summary>
