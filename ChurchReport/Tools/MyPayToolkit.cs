@@ -93,7 +93,7 @@ namespace ChurchReport.Tools
         {
             //string data_json = JsonConvert.SerializeObject(GetRawData(customData), Formatting.None);
             string data_json = JsonConvert.SerializeObject(customData, Formatting.None);
-            string svr_json = JsonConvert.SerializeObject(GetService(), Formatting.None); ; //依API種類調整
+            string svr_json = JsonConvert.SerializeObject(GetService(), Formatting.None);//依API種類調整
 
             //產生AES向量
             var IV = GetBytesIV();

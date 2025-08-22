@@ -15,45 +15,10 @@ namespace ChurchReport.Tools
     public class QPayToolkitWrapper : IPayment
     {
         #region 實作成員資料
-        StoreOrder simulator = new StoreOrder();
         public CreOrder CreateOrder(dynamic customData)
         {
+            // 只是讓編譯過關
             return new CreOrder();
-        }
-
-        public NameValueCollection GetPostData()
-        {
-            return simulator.GetPostData(GetRawData());
-        }
-        private dynamic GetRawData()
-        {
-
-            ArrayList items = new ArrayList();
-
-            dynamic item = new ExpandoObject();
-            item.id = "1";
-            item.name = "商品名稱";
-            item.cost = "10";
-            item.amount = "1";
-            item.total = "10";
-
-            items.Add(item);
-
-            dynamic rawData = new ExpandoObject();
-            rawData.store_uid = "130544850001";
-            rawData.items = items;
-            rawData.cost = "10";
-            rawData.user_id = "phper";
-            rawData.order_id = "1234567890";
-            rawData.ip = "127.0.0.1"; // 此為消費者IP，會做為驗證用
-            rawData.pfn = "0";
-
-            return rawData;
-        }
-
-        public PayPageResponse Post(NameValueCollection pars)
-        {
-            return simulator.Post(pars);
         }
 
         public CreOrder OrderCreate(CreOrderReq req)
@@ -137,10 +102,6 @@ namespace ChurchReport.Tools
             throw new System.NotImplementedException();
         }
 
-        PayPageResponse IPayment.Post(NameValueCollection pars)
-        {
-            throw new NotImplementedException();
-        }
         #endregion
         }
     }

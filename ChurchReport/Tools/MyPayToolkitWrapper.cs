@@ -23,17 +23,7 @@ namespace ChurchReport.Tools
     {
         #region 高鉅金流實作成員資料
 
-        StoreOrder aStoreOrder = new StoreOrder();
-
-        public NameValueCollection GetPostData()
-        {
-            return aStoreOrder.GetPostData(GetRawData());
-        }
-
-        public PayPageResponse Post(NameValueCollection pars)
-        {
-            return aStoreOrder.Post(pars);
-        }
+        StoreOrder MyPayStoreOrder = new StoreOrder();
 
         // 將Simulate修改名稱
 
@@ -45,7 +35,7 @@ namespace ChurchReport.Tools
             //發送至遠端
             //return simulator.Post(simulator.GetPostData());
 
-            return ConvertToCreOrder(aStoreOrder.Post(aStoreOrder.GetPostData(customData)));
+            return ConvertToCreOrder(MyPayStoreOrder.Post(MyPayStoreOrder.GetPostData(customData)));
 
         }
 
