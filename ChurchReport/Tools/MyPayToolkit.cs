@@ -89,11 +89,11 @@ namespace ChurchReport.Tools
         /// <summary>
         /// 取得送出欄位資料
         /// </summary>
-        public NameValueCollection GetPostData(ExpandoObject customData)
+        public NameValueCollection GetPostData(ExpandoObject customData, ServiceRequest Service)
         {
             //string data_json = JsonConvert.SerializeObject(GetRawData(customData), Formatting.None);
             string data_json = JsonConvert.SerializeObject(customData, Formatting.None);
-            string svr_json = JsonConvert.SerializeObject(GetService(), Formatting.None);//依API種類調整
+            string svr_json = JsonConvert.SerializeObject(Service, Formatting.None);//依API種類調整
 
             //產生AES向量
             var IV = GetBytesIV();
@@ -231,15 +231,6 @@ namespace ChurchReport.Tools
 
 
     }
-    /// <summary>
-    /// 串接服務請求欄位
-    /// </summary>
-    public class ServiceRequest
-    {
-        public string service_name { get; set; }
-        public string cmd { get; set; }
-    }
-
     public static class MyPayToolkit
     {
         static ConfigurationBuilder m_ConfigurationBuilder = (ConfigurationBuilder)new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("appsettings.json");

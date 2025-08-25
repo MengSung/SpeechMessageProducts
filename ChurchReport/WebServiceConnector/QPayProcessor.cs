@@ -1158,7 +1158,7 @@ namespace ChurchReport.WebServiceConnector
                 }
             };
 
-            CreOrder aRetObj = m_PaymentService.CreateOrder(GetRawData(Amount, ProductName, OrderDate, FeeId, PayType, PayTypeSub));
+            CreOrder aRetObj = m_PaymentService.CreateOrder(GetRawData(Amount, ProductName, OrderDate, FeeId, PayType, PayTypeSub), GetService());
 
             //CreOrder retObj = m_PaymentService.OrderCreate(creOrderReq);
 
@@ -1195,7 +1195,7 @@ namespace ChurchReport.WebServiceConnector
                 }
             };
 
-            CreOrder aRetObj = m_PaymentService.CreateOrder(GetRawData(Amount, ProductName, OrderDate, FeeId, PayType, PayTypeSub));
+            CreOrder aRetObj = m_PaymentService.CreateOrder(GetRawData(Amount, ProductName, OrderDate, FeeId, PayType, PayTypeSub), GetService());
 
             //CreOrder retObj = m_PaymentService.OrderCreate(creOrderReq);
 
@@ -1380,6 +1380,13 @@ namespace ChurchReport.WebServiceConnector
             rawData.ip = "127.0.0.1"; // 此為消費者IP，會做為驗證用
             rawData.pfn = "0";
 
+            return rawData;
+        }
+        private ServiceRequest GetService()
+        {
+            ServiceRequest rawData = new ServiceRequest();
+            rawData.service_name = "api";
+            rawData.cmd = "api/orders";
             return rawData;
         }
 

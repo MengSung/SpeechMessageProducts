@@ -15,7 +15,7 @@ namespace ChurchReport.Tools
     public class QPayToolkitWrapper : IPayment
     {
         #region 實作成員資料
-        public CreOrder CreateOrder(dynamic customData)
+        public CreOrder CreateOrder(dynamic customData, ServiceRequest Service)
         {
             // 只是讓編譯過關
             return new CreOrder();
