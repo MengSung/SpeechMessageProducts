@@ -1357,41 +1357,83 @@ namespace ChurchReport.WebServiceConnector
         }
         #endregion
         #region 高鉅金流工具區
+        /// <summary>
+        /// 取得高鉅金流付款所需的原始資料
+        /// </summary>
+        /// <param name="Amount">付款金額</param>
+        /// <param name="ProductName">商品名稱</param>
+        /// <param name="OrderDate">訂單日期</param>
+        /// <param name="FeeId">收費單ID</param>
+        /// <param name="PayType">付款類型 (C:信用卡, A:ATM, M:行動支付, L:LinePay)</param>
+        /// <param name="PayTypeSub">付款子類型 (ONE:一次付清, REGULAR:定期定額, CUP:銀聯卡)</param>
+        /// <returns>包含付款資訊的動態物件</returns>
         private dynamic GetRawData(int Amount, String ProductName, String OrderDate, String FeeId, String PayType, String PayTypeSub)
         {
-
+            // 建立商品項目清單
             ArrayList items = new ArrayList();
 
+            // 建立單一商品項目
             dynamic item = new ExpandoObject();
-            item.id = FeeId;
-            item.name = ProductName;
-            item.cost = Amount;
-            item.amount = "1";
-            item.total = Amount;
+            item.id = FeeId;           // 商品ID使用收費單ID
+            item.name = ProductName;   // 商品名稱
+            item.cost = Amount;        // 商品單價
+            item.amount = "1";         // 商品數量固定為1
+            item.total = Amount;       // 商品總價
 
+            // 將商品項目加入清單
             items.Add(item);
 
+            // 建立付款原始資料物件
             dynamic rawData = new ExpandoObject();
-            rawData.store_uid = "130544850001";
-            rawData.items = items;
-            rawData.cost = Amount;
-            rawData.user_id = "胡夢嵩";
-            rawData.order_id = FeeId;
-            rawData.ip = "127.0.0.1"; // 此為消費者IP，會做為驗證用
-            rawData.pfn = "0";
+            
+            // 設定原始資料屬性
+            SetRawDataProperties(rawData, Amount, FeeId, items);
 
             return rawData;
         }
+
+        /// <summary>
+        /// 設定付款原始資料的屬性
+        /// </summary>
+        /// <param name="rawData">付款原始資料物件</param>
+        /// <param name="Amount">付款金額</param>
+        /// <param name="FeeId">收費單ID</param>
+        /// <param name="items">商品項目清單</param>
+        private void SetRawDataProperties(dynamic rawData, int Amount, String FeeId, ArrayList items)
+        {
+            // 設定商店代號 - 從設定檔取得MyPay商店ID
+            rawData.store_uid = m_Configuration["MyPay:Store_Id"];
+            // 設定商品清單
+            rawData.items = items;
+            // 設定總金額
+            rawData.cost = Amount;
+            // 設定使用者ID (目前固定為"胡夢嵩")
+            rawData.user_id = "胡夢嵩";
+            // 設定訂單編號 (使用收費單ID)
+            rawData.order_id = FeeId;
+            // 設定消費者IP位址 - 從設定檔取得，用於驗證
+            rawData.ip = m_Configuration["MyPay:IP"];  // 此為消費者IP，會做為驗證用
+            // 設定付款流程編號 (0表示一般付款流程)
+            rawData.pfn = "0";
+        }
+
+
+        /// <summary>
+        /// 取得高鉅金流服務請求設定
+        /// </summary>
+        /// <returns>包含服務名稱和指令的ServiceRequest物件</returns>
         private ServiceRequest GetService()
         {
+            // 建立服務請求物件
             ServiceRequest rawData = new ServiceRequest();
-            rawData.service_name = "api";
-            rawData.cmd = "api/orders";
+            // 設定服務名稱 - 從設定檔取得
+            rawData.service_name = m_Configuration["MyPay:ServiceName"];
+            // 設定API指令 - 從設定檔取得
+            rawData.cmd = m_Configuration["MyPay:CMD"];
+            
             return rawData;
         }
-
         #endregion
-
         #region 永豐金流工具區
         private string ConvertShopNoToHashCodeAndSite(String aShopNo)
         {
