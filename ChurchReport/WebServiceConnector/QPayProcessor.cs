@@ -28,9 +28,12 @@ namespace ChurchReport.WebServiceConnector
     public class QPayProcessor
     {
         #region 資料區
+        #region 設定與配置
         private static ConfigurationBuilder m_ConfigurationBuilder = (ConfigurationBuilder)new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("appsettings.json");
         private static IConfiguration m_Configuration = m_ConfigurationBuilder.Build();
+        #endregion
 
+        #region 商店設定
         // 商店編號
         // SANDBOX 測試用
         //string m_ShopNo = "NA0149_001";
@@ -39,7 +42,9 @@ namespace ChurchReport.WebServiceConnector
         // 永豐金流正式環境
         //string m_ShopNo = "DA4195_001";
         //private string m_ShopNo = m_Configuration["Sinopac:ShopNo"];
+        #endregion
 
+        #region 環境設定
         #region 公司內部開發
         // 使用 ChurchReport 當作 WebHook
         //private const String RETURN_URL = "https://nankanchurchback.speechmessage.com.tw:480/api/QPayCard/QPayReturnUrl";
@@ -52,55 +57,40 @@ namespace ChurchReport.WebServiceConnector
 
         private readonly String RETURN_URL = m_Configuration["RETURN_URL"];
         private readonly String BACKEND_URL = m_Configuration["BACKEND_URL"];// 公司內部開發
+        #endregion
 
-        //  
+        #region LINE Bot 設定
         // 聖谷行道會
         private const String CHANNEL_ACCESS_TOKEN = @"OMjL23DpFRDgphgN7JdzA7uCpv1wb4hXtsGh4FzxP8tHzeMyYOr/ry3BBqaRNJpVUhR6wPHLN4Wa4QiG5i3P5T/Y07swP5OjfCz9DKwTYC7T4mPb8x54pwtcqK1lIdgNm6skdZnu99fBsupEcbZLBAdB04t89/1O/w1cDnyilFU=";
 
         //private LinePayClient m_LinePayClient { get; }
 
         private LineMessagingClient m_LineMessagingClient { get; }
-        ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
-
-        //private LineNotifyUtility m_LineNotifyUtility = new LineNotifyUtility();
-
         private PushUtility m_PushUtility { get; }
         private ReplyUtility m_ReplyUtility { get; }
 
+        //private LineNotifyUtility m_LineNotifyUtility = new LineNotifyUtility();
+        #endregion
+
+        #region 工具與服務
+        ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
+        IPayment m_PaymentService;
+        #endregion
+
+        #region 業務資料
         //private String m_LocalCardOrderNo = "";
         //private String m_LocalAtmOrderNo = "";
-
         //private DateTime m_AtmExpireDate;
 
         // 登入的連絡人
         public Entity m_LoginContact;
+        #endregion
 
-        IPayment m_PaymentService;
-
+        #region 客製化設定
         // 客製化
         private readonly String QPAY_ORGANIZATION = m_Configuration["QPAY_ORGANIZATION"];
-
         #endregion
-        #region 初始化
-        public QPayProcessor(IPayment aPaymentService)
-        {
-            this.m_LineMessagingClient = new LineMessagingClient(CHANNEL_ACCESS_TOKEN);
-
-            // 客製化
-            m_PushUtility = new PushUtility(m_LineMessagingClient);
-            m_ReplyUtility = new ReplyUtility(m_LineMessagingClient);
-
-            m_PaymentService = aPaymentService;
-        }
-        public QPayProcessor(LineMessagingClient aLineMessagingClient, PushUtility aPushUtility, ReplyUtility aReplyUtility)
-        {
-            m_LineMessagingClient = aLineMessagingClient;
-            //m_LinePayClient = LinePayClient;
-
-            m_PushUtility = aPushUtility;
-            m_ReplyUtility = aReplyUtility;
-        }
-        #endregion
+        #endregion        
         #region 建立收費單
         public async Task<string> CreateFeeAsync(Entity LineLoginContact, QpayModel QpayModel)
         {
@@ -120,12 +110,12 @@ namespace ChurchReport.WebServiceConnector
                     if (QpayModel.PayWay == "信用卡")
                     {
                         // 信用卡
-                        CreatedCardOrder = await CreOrderCard(QpayModel.Amount, QpayModel.Category + "-" + QpayModel.FullName, DateTime.Now.ToString("yyyyMMddhhmmssfff"), aCreatedFeeId.ToString(), "C", "ONE", "", 0, "M", 1, "收費單", QpayModel.SelectedCreditCard);
+                        CreatedCardOrder = await CreOrderCard(QpayModel.Amount, QpayModel.Category + "-" + QpayModel.FullName, DateTime.Now.ToString("yyyyMMddhhmmssfff"), aCreatedFeeId.ToString(), "C", "ONE", "", 0, "M", 1, "收費單", LineLoginContact, QpayModel.SelectedCreditCard);
                     }
                     else
                     {
                         // 銀聯卡
-                        CreatedCardOrder = await CreOrderCard(QpayModel.Amount, QpayModel.Category + "-" + QpayModel.FullName, DateTime.Now.ToString("yyyyMMddhhmmssfff"), aCreatedFeeId.ToString(), "C", "CUP", "", 0, "M", 1, "收費單", QpayModel.SelectedCreditCard);
+                        CreatedCardOrder = await CreOrderCard(QpayModel.Amount, QpayModel.Category + "-" + QpayModel.FullName, DateTime.Now.ToString("yyyyMMddhhmmssfff"), aCreatedFeeId.ToString(), "C", "CUP", "", 0, "M", 1, "收費單", LineLoginContact, QpayModel.SelectedCreditCard);
                     }
                     if (CreatedCardOrder.CardParam != null && CreatedCardOrder.CardParam.CardPayURL != null)
                     {
@@ -151,7 +141,7 @@ namespace ChurchReport.WebServiceConnector
                     Guid aCreatedDedicationBookingId = CreateDedicationBooking(LineLoginContact, QpayModel);
                     Entity aDedicationBookingToUpdate = this.m_ToolUtilityClass.RetrieveEntity("new_dedication_booking", aCreatedDedicationBookingId);
 
-                    CreOrder CreatedCardOrder = await CreOrderCard(QpayModel.Amount, QpayModel.Category + "-" + QpayModel.FullName, DateTime.Now.ToString("yyyyMMddhhmmssfff"), aCreatedDedicationBookingId.ToString(), "C", "REGULAR", "", TransferToDeductTotalNum(QpayModel.DeductTotalNumber), "M", 1, "認獻單", QpayModel.SelectedCreditCard);
+                    CreOrder CreatedCardOrder = await CreOrderCard(QpayModel.Amount, QpayModel.Category + "-" + QpayModel.FullName, DateTime.Now.ToString("yyyyMMddhhmmssfff"), aCreatedDedicationBookingId.ToString(), "C", "REGULAR", "", TransferToDeductTotalNum(QpayModel.DeductTotalNumber), "M", 1, "認獻單", LineLoginContact, QpayModel.SelectedCreditCard);
 
                     if (CreatedCardOrder.CardParam != null && CreatedCardOrder.CardParam.CardPayURL != null)
                     {
@@ -196,7 +186,7 @@ namespace ChurchReport.WebServiceConnector
                     Guid aCreatedFeeId = CreateFee(LineLoginContact, QpayModel, false);
                     Entity aFeeToUpdate = this.m_ToolUtilityClass.RetrieveEntity("new_fee", aCreatedFeeId);
 
-                    CreOrder CreatedCardOrder = await CreOrderCard(QpayModel.Amount, QpayModel.Category + "-" + QpayModel.FullName, DateTime.Now.ToString("yyyyMMddhhmmssfff"), aCreatedFeeId.ToString(), "M", "ONE", "", 0, "M", 1, "收費單", QpayModel.SelectedCreditCard);
+                    CreOrder CreatedCardOrder = await CreOrderCard(QpayModel.Amount, QpayModel.Category + "-" + QpayModel.FullName, DateTime.Now.ToString("yyyyMMddhhmmssfff"), aCreatedFeeId.ToString(), "M", "ONE", "", 0, "M", 1, "收費單", LineLoginContact, QpayModel.SelectedCreditCard);
 
                     if (CreatedCardOrder.MobileParam != null && CreatedCardOrder.MobileParam.MobilePayURL != null)
                     {
@@ -224,7 +214,7 @@ namespace ChurchReport.WebServiceConnector
                     Guid aCreatedFeeId = CreateFee(LineLoginContact, QpayModel, false);
                     Entity aFeeToUpdate = this.m_ToolUtilityClass.RetrieveEntity("new_fee", aCreatedFeeId);
 
-                    CreOrder CreatedCardOrder = await CreOrderCard(QpayModel.Amount, QpayModel.Category + "-" + QpayModel.FullName, DateTime.Now.ToString("yyyyMMddhhmmssfff"), aCreatedFeeId.ToString(), "L", "ONE", "", 0, "M", 1, "收費單", QpayModel.SelectedCreditCard);
+                    CreOrder CreatedCardOrder = await CreOrderCard(QpayModel.Amount, QpayModel.Category + "-" + QpayModel.FullName, DateTime.Now.ToString("yyyyMMddhhmmssfff"), aCreatedFeeId.ToString(), "L", "ONE", "", 0, "M", 1, "收費單", LineLoginContact, QpayModel.SelectedCreditCard);
 
                     if (CreatedCardOrder.MobileParam != null && CreatedCardOrder.MobileParam.MobilePayURL != null)
                     {
@@ -1131,44 +1121,12 @@ namespace ChurchReport.WebServiceConnector
 
         #endregion
         #region 永豐金流工具區
-        public async Task<CreOrder> CreOrderCard(int Amount, String ProductName, String OrderDate, String FeeId, String PayType, String PayTypeSub, String Staging, int DeductTotalNum, String PeriodType, int DeductFreq, String CCToken = null)
+        public async Task<CreOrder> CreOrderCard(int Amount, String ProductName, String OrderDate, String FeeId, String PayType, String PayTypeSub, String Staging, int DeductTotalNum, String PeriodType, int DeductFreq, String CreditCategory, Entity LineLoginContact, String CCToken = null)
         {
-            //設定參數
-            CreOrderReq creOrderReq = new CreOrderReq()
-            {
-                ShopNo = m_ShopNo,
-                OrderNo = PayType + OrderDate,
-                Amount = Amount * 100,
-                CurrencyID = "TWD",
-                PrdtName = ProductName,
-                ReturnURL = RETURN_URL,
-                BackendURL = BACKEND_URL,
-                PayType = PayType, //支付方式
-                Param1 = FeeId,
-                Param2 = QPAY_ORGANIZATION,
-                CardParam = new CreOrderCardParamReq()
-                {
-                    AutoBilling = "Y",
-                    PayTypeSub = PayTypeSub,
-                    Staging = Staging,
-                    DeductTotalNum = DeductTotalNum,
-                    PeriodType = PeriodType,
-                    DeductFreq = DeductFreq,
-                    CCToken = CCToken
-                }
-            };
+            // 高鉅金流
+            CreOrder aRetObj = m_PaymentService.CreateOrder(GetRawData(Amount, ProductName, OrderDate, FeeId, PayType, PayTypeSub, LineLoginContact), GetService());
 
-            CreOrder aRetObj = m_PaymentService.CreateOrder(GetRawData(Amount, ProductName, OrderDate, FeeId, PayType, PayTypeSub), GetService());
-
-            //CreOrder retObj = m_PaymentService.OrderCreate(creOrderReq);
-
-            var Result = QPayCommon.SerializeToJson(aRetObj);
-
-            return aRetObj;
-
-        }
-        public async Task<CreOrder> CreOrderCard(int Amount, String ProductName, String OrderDate, String FeeId, String PayType, String PayTypeSub, String Staging, int DeductTotalNum, String PeriodType, int DeductFreq, String CreditCategory, String CCToken = null)
-        {
+            // 永豐金流
             //設定參數
             CreOrderReq creOrderReq = new CreOrderReq()
             {
@@ -1195,10 +1153,9 @@ namespace ChurchReport.WebServiceConnector
                 }
             };
 
-            CreOrder aRetObj = m_PaymentService.CreateOrder(GetRawData(Amount, ProductName, OrderDate, FeeId, PayType, PayTypeSub), GetService());
-
             //CreOrder retObj = m_PaymentService.OrderCreate(creOrderReq);
 
+            // 高鉅金流
             var Result = QPayCommon.SerializeToJson(aRetObj);
 
             return aRetObj;
@@ -1367,31 +1324,83 @@ namespace ChurchReport.WebServiceConnector
         /// <param name="PayType">付款類型 (C:信用卡, A:ATM, M:行動支付, L:LinePay)</param>
         /// <param name="PayTypeSub">付款子類型 (ONE:一次付清, REGULAR:定期定額, CUP:銀聯卡)</param>
         /// <returns>包含付款資訊的動態物件</returns>
-        private dynamic GetRawData(int Amount, String ProductName, String OrderDate, String FeeId, String PayType, String PayTypeSub)
+        private dynamic GetRawData(int Amount, String ProductName, String OrderDate, String FeeId, String PayType, String PayTypeSub, Entity LineLoginContact)
         {
-            // 建立商品項目清單
-            ArrayList items = new ArrayList();
+            // 建立商品項目清單 - 使用 ProductItem 強型別
+            ArrayList items = CreateProductItems(FeeId, ProductName, Amount);
 
-            // 建立單一商品項目
-            dynamic item = new ExpandoObject();
-            item.id = FeeId;           // 商品ID使用收費單ID
-            item.name = ProductName;   // 商品名稱
-            item.cost = Amount;        // 商品單價
-            item.amount = "1";         // 商品數量固定為1
-            item.total = Amount;       // 商品總價
-
-            // 將商品項目加入清單
-            items.Add(item);
+            //// 建立產品項目陣列，包含多種奉獻類型
+            //// 每個ProductItem包含：id(產品編號)、name(奉獻類型名稱)、cost(單價)、amount(數量)
+            //ProductItem[] products = 
+            //{
+            //    // 月定獻金：產品編號001，單價1000元，數量1
+            //    new ProductItem { id = "001", name = "月定獻金", cost = 1000, amount = 1 },
+            //    // 感恩獻金：產品編號002，單價500元，數量2
+            //    new ProductItem { id = "002", name = "感恩獻金", cost = 500, amount = 2 }
+            //};
+            
+            //// 呼叫CreateMultipleProductItems方法，將產品陣列轉換為ArrayList格式
+            //// 此方法會計算每個產品的總價(cost * amount)並建立完整的商品清單
+            //ArrayList items = CreateMultipleProductItems(products);
 
             // 建立付款原始資料物件
             dynamic rawData = new ExpandoObject();
             
             // 設定原始資料屬性
-            SetRawDataProperties(rawData, Amount, FeeId, items);
+            SetRawDataProperties(rawData, Amount, FeeId, items, LineLoginContact);
 
             return rawData;
         }
 
+
+        /// <summary>
+        /// 建立產品項目清單 - 使用 ProductItem 強型別
+        /// </summary>
+        /// <param name="FeeId">收費單ID</param>
+        /// <param name="ProductName">商品名稱</param>
+        /// <param name="Amount">商品單價與總價</param>
+        /// <param name="imageUrl">商品圖片連結(可選，主要用於LINE Pay)</param>
+        /// <returns>包含產品項目的ArrayList</returns>
+        private ArrayList CreateProductItems(String FeeId, String ProductName, int Amount, String imageUrl = null)
+        {
+            // 建立商品項目清單
+            ArrayList items = new ArrayList();
+
+            // 建立產品項目 - 使用強型別 ProductItem
+            ProductItem productItem = new ProductItem
+            {
+                id = FeeId,           // 商品ID使用收費單ID
+                name = ProductName,   // 商品名稱
+                cost = Amount,        // 商品單價
+                amount = 1,           // 商品數量固定為1
+                total = Amount,       // 商品總價 (單價 * 數量)
+                image_url = imageUrl  // 商品圖片連結(可選)
+            };
+
+            // 將商品項目加入清單
+            items.Add(productItem);
+
+            return items;
+        }
+
+        /// <summary>
+        /// 建立多項產品項目清單
+        /// </summary>
+        /// <param name="products">產品項目陣列</param>
+        /// <returns>包含多個產品項目的ArrayList</returns>
+        private ArrayList CreateMultipleProductItems(ProductItem[] products)
+        {
+            ArrayList items = new ArrayList();
+
+            foreach (ProductItem product in products)
+            {
+                // 確保總價計算正確
+                product.total = product.cost * product.amount;
+                items.Add(product);
+            }
+
+            return items;
+        }
         /// <summary>
         /// 設定付款原始資料的屬性
         /// </summary>
@@ -1399,25 +1408,111 @@ namespace ChurchReport.WebServiceConnector
         /// <param name="Amount">付款金額</param>
         /// <param name="FeeId">收費單ID</param>
         /// <param name="items">商品項目清單</param>
-        private void SetRawDataProperties(dynamic rawData, int Amount, String FeeId, ArrayList items)
+        //private void SetRawDataProperties(dynamic rawData, int Amount, String FeeId, ArrayList items)
+        //{
+        //    // 設定商店代號 - 從設定檔取得MyPay商店ID
+        //    rawData.store_uid = m_Configuration["MyPay:Store_Id"];
+        //    // 設定商品清單
+        //    rawData.items = items;
+        //    // 設定總金額
+        //    rawData.cost = Amount;
+        //    // 設定使用者ID (目前固定為"胡夢嵩")
+        //    rawData.user_id = "胡夢嵩";
+        //    // 設定訂單編號 (使用收費單ID)
+        //    rawData.order_id = FeeId;
+        //    // 設定消費者IP位址 - 從設定檔取得，用於驗證
+        //    rawData.ip = m_Configuration["MyPay:IP"];  // 此為消費者IP，會做為驗證用
+        //    // 設定付款流程編號 (0表示一般付款流程)
+        //    rawData.pfn = "0";
+        //}
+
+        private void SetRawDataProperties(dynamic rawData, int Amount, String FeeId, ArrayList items, Entity LineLoginContact)
         {
+            #region 基本商店資訊
             // 設定商店代號 - 從設定檔取得MyPay商店ID
             rawData.store_uid = m_Configuration["MyPay:Store_Id"];
-            // 設定商品清單
-            rawData.items = items;
+            #endregion
+
+            #region 消費者資訊
+            // 設定使用者ID 
+            rawData.user_id = LineLoginContact.Id;
+            // 消費者姓名，電子錢包交易必要欄位
+            // 可以考慮從實際登入的連絡人取得姓名
+            rawData.user_name = m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "fullname")
+                               ?? m_Configuration["MyPay:UserName"]
+                               ?? "預設使用者";            
+            // 消費者真實姓名，電子錢包交易必要欄位
+            rawData.user_real_name = m_Configuration["MyPay:UserRealName"] ?? "胡夢嵵";
+            // 消費者郵遞區號
+            rawData.user_zipcode = m_Configuration["MyPay:UserZipcode"] ?? "";
+            // 消費者帳單地址
+            rawData.user_address = m_Configuration["MyPay:UserAddress"] ?? "";
+            // 證號類型
+            rawData.user_sn_type = m_Configuration["MyPay:UserSnType"] ?? "";
+            // 付款人身分證/統一證號/護照號碼
+            rawData.user_sn = m_Configuration["MyPay:UserSn"] ?? "";
+            // 消費者家用電話
+            rawData.user_phone = m_Configuration["MyPay:UserPhone"] ?? "";
+            // 消費者行動電話國碼，電子錢包交易必要欄位
+            rawData.user_cellphone_code = m_Configuration["MyPay:UserCellphoneCode"] ?? "886";
+            // 消費者行動電話，電子錢包交易必要欄位
+            rawData.user_cellphone = m_Configuration["MyPay:UserCellphone"] ?? "";
+            // 消費者 E-Mail，電子錢包交易必要欄位
+            rawData.user_email = m_Configuration["MyPay:UserEmail"] ?? "";
+            // 消費者生日
+            rawData.user_birthday = m_Configuration["MyPay:UserBirthday"] ?? "";
+            #endregion
+
+            #region 訂單資訊
             // 設定總金額
             rawData.cost = Amount;
-            // 設定使用者ID (目前固定為"胡夢嵩")
-            rawData.user_id = "胡夢嵩";
+            // 預設交易幣別(預設為TWD新台幣)
+            rawData.currency = m_Configuration["MyPay:Currency"] ?? "TWD";
+            // 啟用dcc(自動換匯)
+            rawData.enable_dcc = Convert.ToInt32(m_Configuration["MyPay:EnableDcc"] ?? "0");
             // 設定訂單編號 (使用收費單ID)
             rawData.order_id = FeeId;
             // 設定消費者IP位址 - 從設定檔取得，用於驗證
             rawData.ip = m_Configuration["MyPay:IP"];  // 此為消費者IP，會做為驗證用
+                                                       
+            // 訂單內物品數
+            rawData.item = items.Count.ToString();
+
+            // 設定商品清單
+            rawData.items = items;
+            #endregion
+
+            #region 付款設定
             // 設定付款流程編號 (0表示一般付款流程)
             rawData.pfn = "0";
+            // 消費者操作介面類型 pc/app
+            rawData.interface_type = m_Configuration["MyPay:InterfaceType"] ?? "pc";
+            // 折價金額 (預設0)
+            rawData.discount = m_Configuration["MyPay:Discount"] ?? "0";
+            // 交易成功導頁網址
+            rawData.success_returl = m_Configuration["MyPay:SuccessReturl"] ?? "";
+            // 交易失敗導頁網址
+            rawData.failure_returl = m_Configuration["MyPay:FailureReturl"] ?? "";
+            // 虛擬帳號與超商代碼使用之有效天數
+            rawData.limit_pay_days = Convert.ToInt32(m_Configuration["MyPay:LimitPayDays"] ?? "7");
+            // 運費
+            rawData.shipping_fee = m_Configuration["MyPay:ShippingFee"] ?? "0";
+            #endregion
+
+            #region 發票設定 (可選)
+            // 發票設定 (可選)
+            if (m_Configuration.GetSection("MyPay:Invoice").Exists())
+            {
+                rawData.issue_invoice_state = m_Configuration["MyPay:Invoice:IssueInvoiceState"]; // 開立發票
+                rawData.invoice_input_type = m_Configuration["MyPay:Invoice:InvoiceInputType"]; // 電子發票開立類型
+                rawData.invoice_tax_id = m_Configuration["MyPay:Invoice:InvoiceTaxId"]; // 統一編號
+                rawData.invoice_love_code = m_Configuration["MyPay:Invoice:InvoiceLoveCode"]; // 愛心碼
+                rawData.invoice_b2b_title = m_Configuration["MyPay:Invoice:InvoiceB2bTitle"]; // 發票抬頭
+                rawData.invoice_b2b_id = m_Configuration["MyPay:Invoice:InvoiceB2bId"]; // 統一編號
+                rawData.invoice_b2b_address = m_Configuration["MyPay:Invoice:InvoiceB2bAddress"]; // 發票地址
+            }
+            #endregion
         }
-
-
         /// <summary>
         /// 取得高鉅金流服務請求設定
         /// </summary>
