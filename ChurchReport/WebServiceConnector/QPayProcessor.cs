@@ -90,7 +90,27 @@ namespace ChurchReport.WebServiceConnector
         // 客製化
         private readonly String QPAY_ORGANIZATION = m_Configuration["QPAY_ORGANIZATION"];
         #endregion
-        #endregion        
+        #endregion
+        #region 初始化
+        public QPayProcessor(IPayment aPaymentService)
+        {
+            this.m_LineMessagingClient = new LineMessagingClient(CHANNEL_ACCESS_TOKEN);
+
+            // 客製化
+            m_PushUtility = new PushUtility(m_LineMessagingClient);
+            m_ReplyUtility = new ReplyUtility(m_LineMessagingClient);
+
+            m_PaymentService = aPaymentService;
+        }
+        public QPayProcessor(LineMessagingClient aLineMessagingClient, PushUtility aPushUtility, ReplyUtility aReplyUtility)
+        {
+            m_LineMessagingClient = aLineMessagingClient;
+            //m_LinePayClient = LinePayClient;
+
+            m_PushUtility = aPushUtility;
+            m_ReplyUtility = aReplyUtility;
+        }
+        #endregion
         #region 建立收費單
         public async Task<string> CreateFeeAsync(Entity LineLoginContact, QpayModel QpayModel)
         {
@@ -1436,31 +1456,70 @@ namespace ChurchReport.WebServiceConnector
             #region 消費者資訊
             // 設定使用者ID 
             rawData.user_id = LineLoginContact.Id;
+
             // 消費者姓名，電子錢包交易必要欄位
-            // 可以考慮從實際登入的連絡人取得姓名
-            rawData.user_name = m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "fullname")
+            // 使用 m_ToolUtilityClass 從實際登入的連絡人取得姓名
+            rawData.user_name = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "fullname")
                                ?? m_Configuration["MyPay:UserName"]
-                               ?? "預設使用者";            
+                               ?? "預設使用者";
+
             // 消費者真實姓名，電子錢包交易必要欄位
-            rawData.user_real_name = m_Configuration["MyPay:UserRealName"] ?? "胡夢嵵";
-            // 消費者郵遞區號
-            rawData.user_zipcode = m_Configuration["MyPay:UserZipcode"] ?? "";
-            // 消費者帳單地址
-            rawData.user_address = m_Configuration["MyPay:UserAddress"] ?? "";
-            // 證號類型
+            // 優先使用連絡人的真實姓名，如無則使用設定檔
+            rawData.user_real_name = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "fullname")
+                                   ?? m_Configuration["MyPay:UserRealName"]
+                                   ?? "胡夢嵵";
+
+            // 消費者郵遞區號 - 從連絡人地址取得
+            rawData.user_zipcode = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "address1_postalcode")
+                                 ?? m_Configuration["MyPay:UserZipcode"]
+                                 ?? "";
+
+            // 消費者帳單地址 - 從連絡人地址取得
+            String address1_line1 = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "address1_line1") ?? "";
+            String address1_line2 = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "address1_line2") ?? "";
+            String address1_line3 = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "address1_line3") ?? "";
+            String fullAddress = (address1_line1 + address1_line2 + address1_line3).Trim();
+            rawData.user_address = !String.IsNullOrEmpty(fullAddress) ? fullAddress
+                                 : m_Configuration["MyPay:UserAddress"] ?? "";
+
+            // 證號類型 - 從設定檔取得
             rawData.user_sn_type = m_Configuration["MyPay:UserSnType"] ?? "";
-            // 付款人身分證/統一證號/護照號碼
-            rawData.user_sn = m_Configuration["MyPay:UserSn"] ?? "";
-            // 消費者家用電話
-            rawData.user_phone = m_Configuration["MyPay:UserPhone"] ?? "";
+
+            // 付款人身分證/統一證號/護照號碼 - 從連絡人取得
+            rawData.user_sn = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "new_personal_id")
+                            ?? m_Configuration["MyPay:UserSn"]
+                            ?? "";
+
+            // 消費者家用電話 - 從連絡人取得
+            rawData.user_phone = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "telephone1")
+                                ?? m_Configuration["MyPay:UserPhone"]
+                                ?? "";
+
             // 消費者行動電話國碼，電子錢包交易必要欄位
             rawData.user_cellphone_code = m_Configuration["MyPay:UserCellphoneCode"] ?? "886";
-            // 消費者行動電話，電子錢包交易必要欄位
-            rawData.user_cellphone = m_Configuration["MyPay:UserCellphone"] ?? "";
-            // 消費者 E-Mail，電子錢包交易必要欄位
-            rawData.user_email = m_Configuration["MyPay:UserEmail"] ?? "";
-            // 消費者生日
-            rawData.user_birthday = m_Configuration["MyPay:UserBirthday"] ?? "";
+
+            // 消費者行動電話，電子錢包交易必要欄位 - 從連絡人取得
+            rawData.user_cellphone = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "mobilephone")
+                                    ?? this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "telephone2")
+                                    ?? m_Configuration["MyPay:UserCellphone"]
+                                    ?? "";
+
+            // 消費者 E-Mail，電子錢包交易必要欄位 - 從連絡人取得
+            rawData.user_email = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "emailaddress1")
+                                ?? m_Configuration["MyPay:UserEmail"]
+                                ?? "";
+
+            // 消費者生日 - 從連絡人取得
+            try
+            {
+                DateTime birthDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref LineLoginContact, "birthdate");
+                rawData.user_birthday = birthDate != DateTime.MinValue ? birthDate.ToString("yyyy-MM-dd")
+                                       : m_Configuration["MyPay:UserBirthday"] ?? "";
+            }
+            catch
+            {
+                rawData.user_birthday = m_Configuration["MyPay:UserBirthday"] ?? "";
+            }
             #endregion
 
             #region 訂單資訊
@@ -1474,7 +1533,7 @@ namespace ChurchReport.WebServiceConnector
             rawData.order_id = FeeId;
             // 設定消費者IP位址 - 從設定檔取得，用於驗證
             rawData.ip = m_Configuration["MyPay:IP"];  // 此為消費者IP，會做為驗證用
-                                                       
+
             // 訂單內物品數
             rawData.item = items.Count.ToString();
 
@@ -1486,7 +1545,7 @@ namespace ChurchReport.WebServiceConnector
             // 設定付款流程編號 (0表示一般付款流程)
             rawData.pfn = "0";
             // 消費者操作介面類型 pc/app
-            rawData.interface_type = m_Configuration["MyPay:InterfaceType"] ?? "pc";
+            rawData.interface_type = m_Configuration["MyPay:InterfaceType"] ?? "app";
             // 折價金額 (預設0)
             rawData.discount = m_Configuration["MyPay:Discount"] ?? "0";
             // 交易成功導頁網址
