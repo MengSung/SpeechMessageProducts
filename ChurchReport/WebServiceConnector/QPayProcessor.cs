@@ -10,15 +10,12 @@ using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk;
 using QPay.Domain;
 using System;
-using System;
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.IO;
-using System.IO;
-using System.Threading.Tasks;
-using System.Threading.Tasks;
+using System.Security.Cryptography;
+using System.Text;
 using System.Threading.Tasks;
 using ToolUtilityNameSpace;
 using UserProfile = Line.Messaging.UserProfile;
@@ -1548,10 +1545,12 @@ namespace ChurchReport.WebServiceConnector
             rawData.interface_type = m_Configuration["MyPay:InterfaceType"] ?? "app";
             // 折價金額 (預設0)
             rawData.discount = m_Configuration["MyPay:Discount"] ?? "0";
-            // 交易成功導頁網址
+            // 交易成功導頁網址 - 高鉅金流會在此網址顯示成功頁面給用戶
             rawData.success_returl = m_Configuration["MyPay:SuccessReturl"] ?? "";
-            // 交易失敗導頁網址
+            // 交易失敗導頁網址 - 高鉅金流會在此網址顯示失敗頁面給用戶
             rawData.failure_returl = m_Configuration["MyPay:FailureReturl"] ?? "";
+            // 高鉅金流後端回調網址 - 用於接收交易完成回傳資訊
+            rawData.notify_url = "https://sunnyvalech.speechmessage.com.tw:603/api/MyPay/return";
             // 虛擬帳號與超商代碼使用之有效天數
             rawData.limit_pay_days = Convert.ToInt32(m_Configuration["MyPay:LimitPayDays"] ?? "7");
             // 運費
@@ -1586,6 +1585,247 @@ namespace ChurchReport.WebServiceConnector
             rawData.cmd = m_Configuration["MyPay:CMD"];
             
             return rawData;
+        }
+        #endregion
+        #region 高鉅金流 PayPage 回傳處理
+        /// <summary>
+        /// 驗證高鉅金流回傳的 Hash 簽名
+        /// </summary>
+        /// <param name="returnModel">回傳資料</param>
+        /// <returns>驗證結果</returns>
+        public bool VerifyMyPayHash(MyPayReturnModel returnModel)
+        {
+            try
+            {
+                string key = m_Configuration["MyPay:Key"];
+                string iv = m_Configuration["MyPay:IV"];
+
+                if (string.IsNullOrEmpty(key) || string.IsNullOrEmpty(iv))
+                {
+                    String ErrorString = $"ERROR: MyPay Key 或 IV 設定為空 - {DateTime.Now}";
+                    return false;
+                }
+
+                // 根據高鉅金流文檔的簽名計算規則
+                // 簽名組合：KEY + transaction_id + order_id + state + IV
+                string rawData = $"{key}{returnModel.transaction_id}{returnModel.order_id}{returnModel.state}{iv}";
+
+                // 使用 SHA256 計算 Hash
+                using (SHA256 sha256 = SHA256.Create())
+                {
+                    byte[] bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(rawData));
+                    StringBuilder hashBuilder = new StringBuilder();
+
+                    foreach (byte b in bytes)
+                    {
+                        hashBuilder.Append(b.ToString("x2"));
+                    }
+
+                    string calculatedHash = hashBuilder.ToString().ToUpper();
+                    return calculatedHash.Equals(returnModel.hash, StringComparison.OrdinalIgnoreCase);
+                }
+            }
+            catch (Exception ex)
+            {
+                String ErrorString = $"ERROR: VerifyMyPayHash - {DateTime.Now} - {ex}";
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// 處理高鉅金流回傳資訊並更新 Dynamics 365
+        /// </summary>
+        /// <param name="returnModel">回傳資料</param>
+        /// <returns>處理結果</returns>
+        public async Task<bool> ProcessMyPayReturn(MyPayReturnModel returnModel)
+        {
+            try
+            {
+                // 嘗試解析 order_id 成 Guid
+                if (!Guid.TryParse(returnModel.order_id, out Guid entityId))
+                {
+                    String ErrorString = $"ERROR: 無法解析 order_id 為 Guid: {returnModel.order_id}";
+                    return false;
+                }
+
+                // 先查詢收費單
+                Entity entity = this.m_ToolUtilityClass.RetrieveEntity("new_fee", entityId);
+                string entityType = "new_fee";
+
+                // 如果找不到收費單，嘗試查詢認獻單
+                if (entity == null)
+                {
+                    entity = this.m_ToolUtilityClass.RetrieveEntity("new_dedication_booking", entityId);
+                    entityType = "new_dedication_booking";
+                    
+                    if (entity == null)
+                    {
+                        String ErrorString = $"ERROR: 找不到對應的收費單或認獻單: {returnModel.order_id}";
+                        return false;
+                    }
+                }
+
+                // 檢查是否已處理過此交易 (冪等性處理)
+                string existingTransactionId = this.m_ToolUtilityClass.GetEntityStringAttribute(entity, "new_mypay_transaction_id");
+                if (!string.IsNullOrEmpty(existingTransactionId) && existingTransactionId == returnModel.transaction_id)
+                {
+                    // 已處理過此交易，直接回傳成功
+                    return true;
+                }
+
+                // 記錄交易ID (用於避免重複處理)
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref entity, "new_mypay_transaction_id", returnModel.transaction_id);
+
+                // 根據交易結果進行不同處理
+                if (returnModel.state == "1") // 交易成功
+                {
+                    await ProcessSuccessfulMyPayReturn(entity, entityType, returnModel);
+                }
+                else // 交易失敗
+                {
+                    await ProcessFailedMyPayReturn(entity, entityType, returnModel);
+                }
+
+                // 更新實體到 Dynamics 365
+                this.m_ToolUtilityClass.UpdateEntity(entity);
+
+                // 發送LINE通知 (可選)
+                await SendMyPaymentNotification(entity, entityType, returnModel);
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                String ErrorString = $"ERROR: ProcessMyPayReturn - {DateTime.Now} - {ex}";
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// 處理高鉅金流付款成功的情況
+        /// </summary>
+        /// <param name="entity">要更新的實體</param>
+        /// <param name="entityType">實體類型</param>
+        /// <param name="returnModel">回傳資料</param>
+        private async Task ProcessSuccessfulMyPayReturn(Entity entity, string entityType, MyPayReturnModel returnModel)
+        {
+            if (entityType == "new_fee")
+            {
+                // 處理收費單付款成功
+                // 更新付款狀態為已付款
+                SetPayStatus("信用卡已繳費", ref entity);
+
+                // 更新實收金額
+                if (returnModel.cost.HasValue && returnModel.cost.Value > 0)
+                {
+                    this.m_ToolUtilityClass.SetEntityMoneyAttribute(ref entity, "new_fee_really_paid", new Money(returnModel.cost.Value));
+                }
+                else
+                {
+                    // 如果未回傳金額，使用應收金額
+                    Money shouldPay = this.m_ToolUtilityClass.GetEntityMoneyAttribute(entity, "new_fee_shoud_pay");
+                    if (shouldPay != null && shouldPay.Value > 0)
+                    {
+                        this.m_ToolUtilityClass.SetEntityMoneyAttribute(ref entity, "new_fee_really_paid", shouldPay);
+                    }
+                }
+
+                // 更新付款日期
+                this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref entity, "new_pay_date", DateTime.Now.ToLocalTime());
+            }
+            else if (entityType == "new_dedication_booking")
+            {
+                // 處理認獻單付款成功
+                // 認獻單狀態設為已啟動
+                this.m_ToolUtilityClass.SetOptionSetAttribute(ref entity, "new_dedication_booking_status", 100000001); // 已啟動
+            }
+
+            // 更新備註，記錄成功訊息
+            string currentNote = this.m_ToolUtilityClass.GetEntityStringAttribute(entity, "new_explain") ?? "";
+            string newNote = $"{currentNote}\n[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] 高鉅金流付款成功\n" +
+                           $"交易號: {returnModel.transaction_id}\n" +
+                           $"金額: {returnModel.cost ?? 0} 元\n" +
+                           $"訊息: {returnModel.msg}";
+            this.m_ToolUtilityClass.SetEntityStringAttribute(ref entity, "new_explain", newNote);
+        }
+
+        /// <summary>
+        /// 處理高鉅金流付款失敗的情況
+        /// </summary>
+        /// <param name="entity">要更新的實體</param>
+        /// <param name="entityType">實體類型</param>
+        /// <param name="returnModel">回傳資料</param>
+        private async Task ProcessFailedMyPayReturn(Entity entity, string entityType, MyPayReturnModel returnModel)
+        {
+            // 更新備註，記錄失敗原因
+            string currentNote = this.m_ToolUtilityClass.GetEntityStringAttribute(entity, "new_explain") ?? "";
+            string newNote = $"{currentNote}\n[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] 高鉅金流付款失敗\n" +
+                           $"交易號: {returnModel.transaction_id}\n" +
+                           $"失敗原因: {returnModel.msg}";
+            this.m_ToolUtilityClass.SetEntityStringAttribute(ref entity, "new_explain", newNote);
+
+            // 可以選擇是否要將付款狀態設為失敗，或保持原狀態
+            // 如果有付款失敗的狀態選項，可以在這裡設定
+        }
+
+        /// <summary>
+        /// 發送高鉅金流付款結果通知
+        /// </summary>
+        /// <param name="entity">實體</param>
+        /// <param name="entityType">實體類型</param>
+        /// <param name="returnModel">回傳資料</param>
+        private async Task SendMyPaymentNotification(Entity entity, string entityType, MyPayReturnModel returnModel)
+        {
+            try
+            {
+                // 取得關聯聯絡人
+                Guid contactId = Guid.Empty;
+
+                if (entityType == "new_fee")
+                {
+                    contactId = this.m_ToolUtilityClass.GetEntityLookupAttribute(entity, "new_contact_new_fee");
+                }
+                else if (entityType == "new_dedication_booking")
+                {
+                    contactId = this.m_ToolUtilityClass.GetEntityLookupAttribute(entity, "new_contact_new_dedication_booking");
+                }
+
+                if (contactId != Guid.Empty)
+                {
+                    Entity contact = this.m_ToolUtilityClass.RetrieveEntity("contact", contactId);
+                    if (contact != null)
+                    {
+                        string lineId = this.m_ToolUtilityClass.GetEntityStringAttribute(contact, "new_lineid");
+
+                        if (!string.IsNullOrEmpty(lineId))
+                        {
+                            string message;
+                            if (returnModel.state == "1")
+                            {
+                                // 付款成功訊息
+                                message = $"您好，您的奉獻已經成功完成！\n" +
+                                         $"交易號: {returnModel.transaction_id}\n" +
+                                         $"金額: {returnModel.cost ?? 0} 元\n" +
+                                         $"感謝您的奉獻！";
+                            }
+                            else
+                            {
+                                // 付款失敗訊息
+                                message = $"您好，您的奉獻交易處理失敗。\n" +
+                                         $"原因: {returnModel.msg}\n" +
+                                         $"請稍後再試或聯繫教會辦公室。";
+                            }
+
+                            await m_PushUtility.SendMessage(lineId, message);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // 推送失敗不影響主流程，只記錄錯誤
+                String ErrorString = $"ERROR: SendMyPaymentNotification - {DateTime.Now} - {ex}";
+            }
         }
         #endregion
         #region 永豐金流工具區

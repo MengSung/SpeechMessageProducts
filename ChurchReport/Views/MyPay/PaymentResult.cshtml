@@ -1,0 +1,99 @@
+@{
+    ViewData["Title"] = "付款結果";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@{
+    string message = "";
+    bool isSuccess = false;
+    
+    if (ViewBag.Message != null)
+    {
+        message = ViewBag.Message.ToString();
+        isSuccess = ViewBag.IsSuccess != null ? (bool)ViewBag.IsSuccess : false;
+    }
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header text-center">
+                    <h3>付款結果</h3>
+                </div>
+                <div class="card-body text-center">
+                    @if (isSuccess)
+                    {
+                        <div class="alert alert-success" role="alert">
+                            <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                            <h4 class="alert-heading">付款成功！</h4>
+                            <p class="mb-0">@message</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-danger" role="alert">
+                            <i class="fas fa-times-circle fa-3x text-danger mb-3"></i>
+                            <h4 class="alert-heading">付款失敗</h4>
+                            <p class="mb-0">@message</p>
+                        </div>
+                    }
+
+                    @if (ViewBag.OrderId != null && !string.IsNullOrEmpty(ViewBag.OrderId.ToString()))
+                    {
+                        <hr>
+                        <p class="text-muted">
+                            <small>訂單編號: @ViewBag.OrderId</small>
+                        </p>
+                    }
+
+                    <div class="mt-4">
+                        <a href="@Url.Action("Index", "Home")" class="btn btn-primary">
+                            <i class="fas fa-home"></i> 返回首頁
+                        </a>
+                        @if (isSuccess)
+                        {
+                            <a href="@Url.Action("DedicationFeeView", "Home")" class="btn btn-success ml-2">
+                                <i class="fas fa-list"></i> 查看奉獻記錄
+                            </a>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            @if (isSuccess)
+            {
+                <div class="card mt-3">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="fas fa-info-circle text-info"></i> 溫馨提醒
+                        </h5>
+                        <p class="card-text">
+                            您的奉獻已經成功完成，相關收據將透過 LINE 通知您。<br>
+                            如需紙本收據，請聯繫教會辦公室。<br>
+                            感謝您對教會事工的支持與奉獻！
+                        </p>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="card mt-3">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="fas fa-question-circle text-warning"></i> 需要協助？
+                        </h5>
+                        <p class="card-text">
+                            如果多次嘗試仍無法完成付款，請聯繫教會辦公室。<br>
+                            您也可以選擇其他付款方式完成奉獻。<br>
+                            教會辦公室將協助您解決付款問題。
+                        </p>
+                        <a href="@Url.Action("QPayView", "Home")" class="btn btn-outline-primary">
+                            <i class="fas fa-redo"></i> 重新付款
+                        </a>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
