@@ -1,14 +1,854 @@
 ﻿using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Reflection.Metadata;
+using System.Globalization;
 
 namespace ChurchReport.Models
 {
     /// <summary>
     /// 高鉅金流 PayPage 交易完成回傳資訊模型
     /// 根據高鉅金流官方文檔的回傳欄位規格
+    /// 包含『交易完成回傳資訊』、『非即時交易回傳資訊』、『訂單確認回傳資訊`
     /// </summary>
+    public class MyPayReturnModel
+    {
+        #region 核心必要欄位 (Core Required Fields)
+
+        /// <summary>
+        /// Payment Hub之交易流水號
+        /// </summary>
+        public string uid { get; set; }
+
+        /// <summary>
+        /// 交易驗証碼
+        /// </summary>
+        public string key { get; set; }
+
+        /// <summary>
+        /// 主要交易回傳碼(retcode)
+        /// </summary>
+        public string prc { get; set; }
+
+        /// <summary>
+        /// 貴特店系統的訂單編號
+        /// </summary>
+        [Required]
+        public string order_id { get; set; }
+
+        #endregion
+
+        #region 交易基本資訊 (Transaction Basic Info)
+
+        /// <summary>
+        /// 交易完成時間(YYYYMMDDHHmmss)
+        /// </summary>
+        public string finishtime { get; set; }
+
+        /// <summary>
+        /// 總交易金額
+        /// </summary>
+        public string cost { get; set; }
+
+        /// <summary>
+        /// 原交易幣別
+        /// </summary>
+        public string currency { get; set; }
+
+        /// <summary>
+        /// 實際交易金額
+        /// </summary>
+        public string actual_cost { get; set; }
+
+        /// <summary>
+        /// 實際交易幣別
+        /// </summary>
+        public string actual_currency { get; set; }
+
+        /// <summary>
+        /// 請求交易點數/金額
+        /// </summary>
+        public string price { get; set; }
+
+        /// <summary>
+        /// 實際交易點數/金額
+        /// </summary>
+        public string actual_price { get; set; }
+
+        /// <summary>
+        /// 交易產品代碼
+        /// </summary>
+        public string recharge_code { get; set; }
+
+        /// <summary>
+        /// 愛心捐款金額
+        /// </summary>
+        public string love_cost { get; set; }
+
+        /// <summary>
+        /// 回傳訊息
+        /// </summary>
+        public string retmsg { get; set; }
+
+        /// <summary>
+        /// 付費方法
+        /// </summary>
+        public string pfn { get; set; }
+
+        /// <summary>
+        /// 交易類型，參考『交易類型定義』值
+        /// </summary>
+        public int? trans_type { get; set; }
+
+        #endregion
+
+        #region 消費者資訊 (Consumer Information)
+
+        /// <summary>
+        /// 消費者帳號
+        /// </summary>
+        public string user_id { get; set; }
+
+        #endregion
+
+        #region 信用卡相關資訊 (Credit Card Information)
+
+        /// <summary>
+        /// 銀行端口回傳碼
+        /// </summary>
+        public string cardno { get; set; }
+
+        /// <summary>
+        /// 授權碼
+        /// </summary>
+        public string acode { get; set; }
+
+        /// <summary>
+        /// 信用卡卡別，參考『信用卡別類型』值
+        /// </summary>
+        public string card_type { get; set; }
+
+        /// <summary>
+        /// 發卡行
+        /// </summary>
+        public string issuing_bank { get; set; }
+
+        /// <summary>
+        /// 發卡銀行代碼
+        /// </summary>
+        public string issuing_bank_uid { get; set; }
+
+        /// <summary>
+        /// 紅利資訊 JSON 格式，參考『紅利資訊』值
+        /// </summary>
+        public string redeem { get; set; }
+
+        /// <summary>
+        /// 信用卡分期資訊 JSON 格式，參考『分期資訊』值
+        /// </summary>
+        public string installment { get; set; }
+
+        #endregion
+
+        #region 交易服務相關 (Transaction Service Related)
+
+        /// <summary>
+        /// 是否為經銷商代收費模式，參考『是否為經銷商代收費模式』值
+        /// </summary>
+        public int? is_agent_charge { get; set; }
+
+        /// <summary>
+        /// 交易服務類型，參考『交易服務類型』值
+        /// </summary>
+        public int? transaction_mode { get; set; }
+
+        /// <summary>
+        /// 交易之金融服務商
+        /// </summary>
+        public string supplier_name { get; set; }
+
+        /// <summary>
+        /// 交易之金融服務商代碼，參考『金流供應商代碼』值
+        /// </summary>
+        public string supplier_code { get; set; }
+
+        #endregion
+
+        #region 定期定額相關資訊 (Recurring Payment Information)
+
+        /// <summary>
+        /// 定期定額式/定期分期式扣款名稱
+        /// </summary>
+        public string payment_name { get; set; }
+
+        /// <summary>
+        /// 定期定額式/定期分期式扣繳期數
+        /// </summary>
+        public string nois { get; set; }
+
+        /// <summary>
+        /// 1.定期定額式扣款編號
+        /// 2.定期分期式扣款編號
+        /// </summary>
+        public string group_id { get; set; }
+
+        #endregion
+
+        #region 虛擬帳號/超商代碼相關資訊 (Virtual Account/CVS Information)
+
+        /// <summary>
+        /// 銀行代碼 (虛擬帳號資訊)
+        /// </summary>
+        public string bank_id { get; set; }
+
+        /// <summary>
+        /// 有效日期(YYYYMMDDHHmmss) (虛擬帳號、超商代碼、無卡分期資訊)
+        /// </summary>
+        public string expired_date { get; set; }
+
+        /// <summary>
+        /// 虛擬帳號、超商代碼 資料格式類型，參考『閘道內容回傳格式類型』值
+        /// </summary>
+        public int? result_type { get; set; }
+
+        /// <summary>
+        /// 資料內容所屬支付名稱，參考『資料內容所屬支付名稱』值
+        /// </summary>
+        public string result_content_type { get; set; }
+
+        /// <summary>
+        /// 虛擬帳號、超商代碼 資料內容
+        /// 參考值：『虛擬帳號回傳欄位』、『ibon』、『FamiPort』、『Life-ET』、『超商條碼繳費`
+        /// </summary>
+        public string result_content { get; set; }
+
+        #endregion
+
+        #region 自訂回傳參數 (Custom Return Parameters)
+
+        /// <summary>
+        /// 自訂回傳參數 1
+        /// </summary>
+        public string echo_0 { get; set; }
+
+        /// <summary>
+        /// 自訂回傳參數 2
+        /// </summary>
+        public string echo_1 { get; set; }
+
+        /// <summary>
+        /// 自訂回傳參數 3
+        /// </summary>
+        public string echo_2 { get; set; }
+
+        /// <summary>
+        /// 自訂回傳參數 4
+        /// </summary>
+        public string echo_3 { get; set; }
+
+        /// <summary>
+        /// 自訂回傳參數 5
+        /// </summary>
+        public string echo_4 { get; set; }
+
+        #endregion
+
+        #region 舊版相容欄位 (Legacy Compatibility Fields)
+
+        /// <summary>
+        /// 交易狀態 (1:成功, 0:失敗) - 舊版相容
+        /// </summary>
+        [Required]
+        public string state { get; set; }
+
+        /// <summary>
+        /// 回傳訊息 - 舊版相容
+        /// </summary>
+        [Required]
+        public string msg { get; set; }
+
+        /// <summary>
+        /// 商店代號 - 舊版相容
+        /// </summary>
+        [Required]
+        public string store_uid { get; set; }
+
+        /// <summary>
+        /// 金流平台交易單號 - 舊版相容
+        /// </summary>
+        [Required]
+        public string transaction_id { get; set; }
+
+        /// <summary>
+        /// 簽名驗證碼 - 舊版相容
+        /// </summary>
+        [Required]
+        public string hash { get; set; }
+
+        /// <summary>
+        /// 付款人姓名 - 舊版相容
+        /// </summary>
+        public string user_name { get; set; }
+
+        /// <summary>
+        /// 付款人真實姓名 - 舊版相容
+        /// </summary>
+        public string user_real_name { get; set; }
+
+        /// <summary>
+        /// 付款人電話 - 舊版相容
+        /// </summary>
+        public string user_phone { get; set; }
+
+        /// <summary>
+        /// 付款人電子郵件 - 舊版相容
+        /// </summary>
+        public string user_email { get; set; }
+
+        /// <summary>
+        /// 付款方式類型 - 舊版相容
+        /// </summary>
+        public string pay_type { get; set; }
+
+        /// <summary>
+        /// 發票號碼 - 舊版相容
+        /// </summary>
+        public string invoice_number { get; set; }
+
+        #endregion
+
+        #region 新增的處理函數 (New Processing Functions)
+
+        /// <summary>
+        /// 處理所有高鉅金流回傳欄位的主要函數
+        /// 根據 CopilotPrompt.txt 的完整參數規格實現
+        /// 包含『交易完成回傳資訊』、『非即時交易回傳資訊』、『訂單確認回傳資訊`
+        /// </summary>
+        /// <returns>處理結果摘要</returns>
+        public MyPayProcessingResult ProcessAllReturnFields()
+        {
+            try
+            {
+                var result = new MyPayProcessingResult
+                {
+                    IsSuccess = true,
+                    ProcessingTime = DateTime.Now,
+                    TransactionId = this.uid ?? this.transaction_id,
+                    OrderId = this.order_id
+                };
+
+                // 處理核心必要欄位
+                result.CoreFields = ProcessCoreFields();
+
+                // 處理交易基本資訊
+                result.TransactionInfo = ProcessTransactionInfo();
+
+                // 處理消費者資訊
+                result.ConsumerInfo = ProcessConsumerInfo();
+
+                // 處理信用卡資訊
+                result.CreditCardInfo = ProcessCreditCardInfo();
+
+                // 處理交易服務相關
+                result.ServiceInfo = ProcessServiceInfo();
+
+                // 虞處理定期定額資訊
+                result.RecurringInfo = ProcessRecurringPaymentInfo();
+
+                // 處理虛擬帳號/超商代碼資訊
+                result.VirtualAccountInfo = ProcessVirtualAccountInfo();
+
+                // 處理自訂參數
+                result.CustomParameters = ProcessCustomParameters();
+
+                // 生成處理摘要
+                result.Summary = GenerateProcessingSummary(result);
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                return new MyPayProcessingResult
+                {
+                    IsSuccess = false,
+                    ErrorMessage = $"處理失敗: {ex.Message}",
+                    ProcessingTime = DateTime.Now,
+                    TransactionId = this.uid ?? this.transaction_id,
+                    OrderId = this.order_id
+                };
+            }
+        }
+
+        /// <summary>
+        /// 處理核心必要欄位
+        /// </summary>
+        private CoreFieldsInfo ProcessCoreFields()
+        {
+            return new CoreFieldsInfo
+            {
+                Uid = this.uid,
+                Key = this.key,
+                Prc = this.prc,
+                OrderId = this.order_id,
+                IsValid = !string.IsNullOrEmpty(this.uid) && !string.IsNullOrEmpty(this.order_id)
+            };
+        }
+
+        /// <summary>
+        /// 處理交易基本資訊
+        /// </summary>
+        private TransactionInfo ProcessTransactionInfo()
+        {
+            var info = new TransactionInfo
+            {
+                FinishTime = this.finishtime,
+                Cost = this.cost,
+                Currency = this.currency,
+                ActualCost = this.actual_cost,
+                ActualCurrency = this.actual_currency,
+                Price = this.price,
+                ActualPrice = this.actual_price,
+                RechargeCode = this.recharge_code,
+                LoveCost = this.love_cost,
+                ReturnMessage = this.retmsg,
+                PaymentMethod = this.pfn,
+                TransactionType = this.trans_type
+            };
+
+            // 解析交易完成時間
+            if (!string.IsNullOrEmpty(this.finishtime) && this.finishtime.Length == 14)
+            {
+                if (DateTime.TryParseExact(this.finishtime, "yyyyMMddHHmmss", 
+                    CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime parsedTime))
+                {
+                    info.ParsedFinishTime = parsedTime;
+                }
+            }
+
+            // 解析金額
+            if (!string.IsNullOrEmpty(this.cost) && decimal.TryParse(this.cost, out decimal amount))
+            {
+                info.ParsedCost = amount;
+            }
+
+            if (!string.IsNullOrEmpty(this.actual_cost) && decimal.TryParse(this.actual_cost, out decimal actualAmount))
+            {
+                info.ParsedActualCost = actualAmount;
+            }
+
+            return info;
+        }
+
+        /// <summary>
+        /// 處理消費者資訊
+        /// </summary>
+        private ConsumerInfo ProcessConsumerInfo()
+        {
+            return new ConsumerInfo
+            {
+                UserId = this.user_id,
+                UserName = this.user_name,
+                UserRealName = this.user_real_name,
+                UserPhone = this.user_phone,
+                UserEmail = this.user_email
+            };
+        }
+
+        /// <summary>
+        /// 處理信用卡資訊
+        /// </summary>
+        private CreditCardInfo ProcessCreditCardInfo()
+        {
+            return new CreditCardInfo
+            {
+                CardNo = this.cardno,
+                AuthCode = this.acode,
+                CardType = this.card_type,
+                IssuingBank = this.issuing_bank,
+                IssuingBankUid = this.issuing_bank_uid,
+                RedeemInfo = this.redeem,
+                InstallmentInfo = this.installment
+            };
+        }
+
+        /// <summary>
+        /// 處理交易服務相關資訊
+        /// </summary>
+        private ServiceInfo ProcessServiceInfo()
+        {
+            return new ServiceInfo
+            {
+                IsAgentCharge = this.is_agent_charge,
+                TransactionMode = this.transaction_mode,
+                SupplierName = this.supplier_name,
+                SupplierCode = this.supplier_code
+            };
+        }
+
+        /// <summary>
+        /// 處理定期定額資訊
+        /// </summary>
+        private RecurringInfo ProcessRecurringPaymentInfo()
+        {
+            return new RecurringInfo
+            {
+                PaymentName = this.payment_name,
+                NumberOfInstallments = this.nois,
+                GroupId = this.group_id
+            };
+        }
+
+        /// <summary>
+        /// 處理虛擬帳號/超商代碼資訊
+        /// </summary>
+        private VirtualAccountInfo ProcessVirtualAccountInfo()
+        {
+            var info = new VirtualAccountInfo
+            {
+                BankId = this.bank_id,
+                ExpiredDate = this.expired_date,
+                ResultType = this.result_type,
+                ResultContentType = this.result_content_type,
+                ResultContent = this.result_content
+            };
+
+            // 解析到期日
+            if (!string.IsNullOrEmpty(this.expired_date) && this.expired_date.Length >= 8)
+            {
+                var dateStr = this.expired_date.Length == 14 ? this.expired_date : this.expired_date.Substring(0, 8);
+                var format = this.expired_date.Length == 14 ? "yyyyMMddHHmmss" : "yyyyMMdd";
+                
+                if (DateTime.TryParseExact(dateStr, format, 
+                    CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime parsedDate))
+                {
+                    info.ParsedExpiredDate = parsedDate;
+                }
+            }
+
+            return info;
+        }
+
+        /// <summary>
+        /// 處理自訂回傳參數
+        /// </summary>
+        private CustomParametersInfo ProcessCustomParameters()
+        {
+            return new CustomParametersInfo
+            {
+                Echo0 = this.echo_0,
+                Echo1 = this.echo_1,
+                Echo2 = this.echo_2,
+                Echo3 = this.echo_3,
+                Echo4 = this.echo_4
+            };
+        }
+
+        /// <summary>
+        /// 生成處理摘要
+        /// </summary>
+        private string GenerateProcessingSummary(MyPayProcessingResult result)
+        {
+            var summary = $"高鉅金流交易處理摘要 [{DateTime.Now:yyyy-MM-dd HH:mm:ss}]\n";
+            summary += $"交易ID: {result.TransactionId}\n";
+            summary += $"訂單ID: {result.OrderId}\n";
+            summary += $"核心欄位有效: {result.CoreFields.IsValid}\n";
+            
+            if (result.TransactionInfo.ParsedCost.HasValue)
+            {
+                summary += $"交易金額: {result.TransactionInfo.ParsedCost.Value:C}\n";
+            }
+            
+            if (result.TransactionInfo.ParsedFinishTime.HasValue)
+            {
+                summary += $"完成時間: {result.TransactionInfo.ParsedFinishTime.Value:yyyy-MM-dd HH:mm:ss}\n";
+            }
+            
+            if (!string.IsNullOrEmpty(result.CreditCardInfo.CardType))
+            {
+                summary += $"付款方式: {result.CreditCardInfo.CardType}\n";
+            }
+            
+            if (!string.IsNullOrEmpty(result.VirtualAccountInfo.BankId))
+            {
+                summary += $"銀行代碼: {result.VirtualAccountInfo.BankId}\n";
+            }
+
+            return summary;
+        }
+
+        /// <summary>
+        /// 驗證所有必要欄位是否完整
+        /// </summary>
+        /// <returns>驗證結果</returns>
+        public ValidationResult ValidateAllFields()
+        {
+            var result = new ValidationResult { IsValid = true };
+
+            // 驗證核心必要欄位
+            if (string.IsNullOrEmpty(this.order_id))
+            {
+                result.Errors.Add("order_id 是必要欄位，不能為空");
+                result.IsValid = false;
+            }
+
+            // 驗證舊版相容的必要欄位
+            if (string.IsNullOrEmpty(this.state))
+            {
+                result.Errors.Add("state 是必要欄位，不能為空");
+                result.IsValid = false;
+            }
+
+            if (string.IsNullOrEmpty(this.msg))
+            {
+                result.Errors.Add("msg 是必要欄位，不能為空");
+                result.IsValid = false;
+            }
+
+            if (string.IsNullOrEmpty(this.store_uid))
+            {
+                result.Errors.Add("store_uid 是必要欄位，不能為空");
+                result.IsValid = false;
+            }
+
+            if (string.IsNullOrEmpty(this.transaction_id))
+            {
+                result.Errors.Add("transaction_id 是必要欄位，不能為空");
+                result.IsValid = false;
+            }
+
+            if (string.IsNullOrEmpty(this.hash))
+            {
+                result.Errors.Add("hash 是必要欄位，不能為空");
+                result.IsValid = false;
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// 取得所有欄位的鍵值對字典
+        /// </summary>
+        /// <returns>欄位字典</returns>
+        public Dictionary<string, object> GetAllFieldsDictionary()
+        {
+            var fields = new Dictionary<string, object>();
+
+            // 核心必要欄位
+            fields.Add(nameof(uid), uid);
+            fields.Add(nameof(key), key);
+            fields.Add(nameof(prc), prc);
+            fields.Add(nameof(order_id), order_id);
+
+            // 交易基本資訊
+            fields.Add(nameof(finishtime), finishtime);
+            fields.Add(nameof(cost), cost);
+            fields.Add(nameof(currency), currency);
+            fields.Add(nameof(actual_cost), actual_cost);
+            fields.Add(nameof(actual_currency), actual_currency);
+            fields.Add(nameof(price), price);
+            fields.Add(nameof(actual_price), actual_price);
+            fields.Add(nameof(recharge_code), recharge_code);
+            fields.Add(nameof(love_cost), love_cost);
+            fields.Add(nameof(retmsg), retmsg);
+            fields.Add(nameof(pfn), pfn);
+            fields.Add(nameof(trans_type), trans_type);
+
+            // 消費者資訊
+            fields.Add(nameof(user_id), user_id);
+
+            // 信用卡資訊
+            fields.Add(nameof(cardno), cardno);
+            fields.Add(nameof(acode), acode);
+            fields.Add(nameof(card_type), card_type);
+            fields.Add(nameof(issuing_bank), issuing_bank);
+            fields.Add(nameof(issuing_bank_uid), issuing_bank_uid);
+            fields.Add(nameof(redeem), redeem);
+            fields.Add(nameof(installment), installment);
+
+            // 交易服務相關
+            fields.Add(nameof(is_agent_charge), is_agent_charge);
+            fields.Add(nameof(transaction_mode), transaction_mode);
+            fields.Add(nameof(supplier_name), supplier_name);
+            fields.Add(nameof(supplier_code), supplier_code);
+
+            // 定期定額資訊
+            fields.Add(nameof(payment_name), payment_name);
+            fields.Add(nameof(nois), nois);
+            fields.Add(nameof(group_id), group_id);
+
+            // 虛擬帳號/超商代碼資訊
+            fields.Add(nameof(bank_id), bank_id);
+            fields.Add(nameof(expired_date), expired_date);
+            fields.Add(nameof(result_type), result_type);
+            fields.Add(nameof(result_content_type), result_content_type);
+            fields.Add(nameof(result_content), result_content);
+
+            // 自訂回傳參數
+            fields.Add(nameof(echo_0), echo_0);
+            fields.Add(nameof(echo_1), echo_1);
+            fields.Add(nameof(echo_2), echo_2);
+            fields.Add(nameof(echo_3), echo_3);
+            fields.Add(nameof(echo_4), echo_4);
+
+            // 舊版相容欄位
+            fields.Add(nameof(state), state);
+            fields.Add(nameof(msg), msg);
+            fields.Add(nameof(store_uid), store_uid);
+            fields.Add(nameof(transaction_id), transaction_id);
+            fields.Add(nameof(hash), hash);
+            fields.Add(nameof(user_name), user_name);
+            fields.Add(nameof(user_real_name), user_real_name);
+            fields.Add(nameof(user_phone), user_phone);
+            fields.Add(nameof(user_email), user_email);
+            fields.Add(nameof(pay_type), pay_type);
+            fields.Add(nameof(invoice_number), invoice_number);
+
+            return fields;
+        }
+
+        #endregion
+    }
+
+    #region 輔助類別 (Helper Classes)
+
+    /// <summary>
+    /// 高鉅金流處理結果類別
+    /// </summary>
+    public class MyPayProcessingResult
+    {
+        public bool IsSuccess { get; set; }
+        public string ErrorMessage { get; set; }
+        public DateTime ProcessingTime { get; set; }
+        public string TransactionId { get; set; }
+        public string OrderId { get; set; }
+        public CoreFieldsInfo CoreFields { get; set; }
+        public TransactionInfo TransactionInfo { get; set; }
+        public ConsumerInfo ConsumerInfo { get; set; }
+        public CreditCardInfo CreditCardInfo { get; set; }
+        public ServiceInfo ServiceInfo { get; set; }
+        public RecurringInfo RecurringInfo { get; set; }
+        public VirtualAccountInfo VirtualAccountInfo { get; set; }
+        public CustomParametersInfo CustomParameters { get; set; }
+        public string Summary { get; set; }
+    }
+
+    /// <summary>
+    /// 核心欄位資訊
+    /// </summary>
+    public class CoreFieldsInfo
+    {
+        public string Uid { get; set; }
+        public string Key { get; set; }
+        public string Prc { get; set; }
+        public string OrderId { get; set; }
+        public bool IsValid { get; set; }
+    }
+
+    /// <summary>
+    /// 交易資訊
+    /// </summary>
+    public class TransactionInfo
+    {
+        public string FinishTime { get; set; }
+        public DateTime? ParsedFinishTime { get; set; }
+        public string Cost { get; set; }
+        public decimal? ParsedCost { get; set; }
+        public string Currency { get; set; }
+        public string ActualCost { get; set; }
+        public decimal? ParsedActualCost { get; set; }
+        public string ActualCurrency { get; set; }
+        public string Price { get; set; }
+        public string ActualPrice { get; set; }
+        public string RechargeCode { get; set; }
+        public string LoveCost { get; set; }
+        public string ReturnMessage { get; set; }
+        public string PaymentMethod { get; set; }
+        public int? TransactionType { get; set; }
+    }
+
+    /// <summary>
+    /// 消費者資訊
+    /// </summary>
+    public class ConsumerInfo
+    {
+        public string UserId { get; set; }
+        public string UserName { get; set; }
+        public string UserRealName { get; set; }
+        public string UserPhone { get; set; }
+        public string UserEmail { get; set; }
+    }
+
+    /// <summary>
+    /// 信用卡資訊
+    /// </summary>
+    public class CreditCardInfo
+    {
+        public string CardNo { get; set; }
+        public string AuthCode { get; set; }
+        public string CardType { get; set; }
+        public string IssuingBank { get; set; }
+        public string IssuingBankUid { get; set; }
+        public string RedeemInfo { get; set; }
+        public string InstallmentInfo { get; set; }
+    }
+
+    /// <summary>
+    /// 服務資訊
+    /// </summary>
+    public class ServiceInfo
+    {
+        public int? IsAgentCharge { get; set; }
+        public int? TransactionMode { get; set; }
+        public string SupplierName { get; set; }
+        public string SupplierCode { get; set; }
+    }
+
+    /// <summary>
+    /// 定期定額資訊
+    /// </summary>
+    public class RecurringInfo
+    {
+        public string PaymentName { get; set; }
+        public string NumberOfInstallments { get; set; }
+        public string GroupId { get; set; }
+    }
+
+    /// <summary>
+    /// 虛擬帳號資訊
+    /// </summary>
+    public class VirtualAccountInfo
+    {
+        public string BankId { get; set; }
+        public string ExpiredDate { get; set; }
+        public DateTime? ParsedExpiredDate { get; set; }
+        public int? ResultType { get; set; }
+        public string ResultContentType { get; set; }
+        public string ResultContent { get; set; }
+    }
+
+    /// <summary>
+    /// 自訂參數資訊
+    /// </summary>
+    public class CustomParametersInfo
+    {
+        public string Echo0 { get; set; }
+        public string Echo1 { get; set; }
+        public string Echo2 { get; set; }
+        public string Echo3 { get; set; }
+        public string Echo4 { get; set; }
+    }
+
+    /// <summary>
+    /// 驗證結果
+    /// </summary>
+    public class ValidationResult
+    {
+        public bool IsValid { get; set; }
+        public List<string> Errors { get; set; } = new List<string>();
+    }
+
+    #endregion
 
     //    📋 欄位分類說明
     //🔴 必要欄位(Required Fields)

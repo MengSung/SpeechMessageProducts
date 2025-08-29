@@ -263,7 +263,7 @@ namespace ChurchReport.WebServiceConnector
                 #endregion
             }
             catch (System.Exception e)
-            { 
+            {
                 String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
 
                 //Monitor.Exit(this);
@@ -1297,7 +1297,7 @@ namespace ChurchReport.WebServiceConnector
         }
         public String GetLastCCToken(Entity aContact)
         {
-            #region// 取得連絡人信用卡資訊
+            #region 取得連絡人信用卡資訊
 
             String VisaInfo = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContact, "new_visa_info");
 
@@ -1332,6 +1332,101 @@ namespace ChurchReport.WebServiceConnector
         }
         #endregion
         #region 高鉅金流工具區
+        private string ConvertShopNoToHashCodeAndSite(String aShopNo)
+        {
+            String A21 = "";
+            String A22 = "";
+            String B21 = "";
+            String B22 = "";
+
+            //客製化
+            switch (aShopNo)
+            {
+                case "DA1626_001":
+                    // 永和禮拜堂"板橋民族分行"
+                    return "D1695F439A69448F,7E460E920A184845,DEA83EFB714943F3,DC237C5C69914F0C";
+                case "DA1626_003":
+                    // 永和禮拜堂"永和分行"
+                    return "2C5D55945FCF4767,76052054D7054EA6,13F282F8A0F5475D,D782B4F1893A4334";
+                case "DA2424_001":
+                    // iM行動教會
+                    return "9825732578154B95,C89A75CD59D0430F,DAB73CB2A41E47FF,B09695CE58FA4774";
+                case "DA2659_001":
+                    // 台北得勝靈糧堂
+                    return "C8DAEA50FFB64CF4,F141E5BBE21B4D47,A922E0C106D14C35,CA22A88D1032412F";
+                case "NA0149_001":
+                    // 音訊教會 SandBox
+                    return "5E854757C751413F,D743D0EB06904837,08169D5445644513,8E52B5A180EE4399";
+                case "DA2890_001":
+                    // 忠孝路長老教會
+                    return "BDC962CCC8AB4AE2,946D46DBDDDE43E0,6038DFB03B4342AE,B1F64046CB2E44FC";
+                case "DA3033_001":
+                    // 東湖禮拜堂
+                    return "4B1657DE6F3547A3,3AB478872D0A49C7,0748F400DD834C07,6506CD86B0174396";
+                case "DA3190_001":
+                    // 楊梅靈糧堂
+                    String A11 = "1E582BECE43F421A";
+                    String A12 = "8F6ACB29B8EF4C67";
+                    String B11 = "8C06D1D49C544C51";
+                    String B12 = "041D9136AA9647F2";
+                    return A11 + "," + A12 + "," + B11 + "," + B12;
+                case "DA3189_001":
+                    // 以利亞之家
+                    A21 = "A88FB80292D6420D";
+                    A22 = "3844DD3B214D487C";
+                    B21 = "27BC1983D2914C11";
+                    B22 = "32D5A23910734C93";
+                    return A21 + "," + A22 + "," + B21 + "," + B22;
+                case "DA3412_001":
+                    // 南崁長老教會
+                    A21 = "2B27264C1D794727";
+                    A22 = "7C91CB903482427D";
+                    B21 = "7360D573A5A34184";
+                    B22 = "3C85541425624385";
+                    return A21 + "," + A22 + "," + B21 + "," + B22;
+                case "DA3806_001":
+                    // 好消息協會
+                    A21 = "81F5DAFEAFD343EC";
+                    A22 = "80BA10061E59467B";
+                    B21 = "B5F2CBA592004D2D";
+                    B22 = "D6D805E2CF514E12";
+                    return A21 + "," + A22 + "," + B21 + "," + B22;
+                case "DA3855_002":
+                    // 法國號靈糧堂
+                    A21 = "08B9715C313F4ABB";
+                    A22 = "E8AC362AB9174D3C";
+                    B21 = "81D71D28D7E04414";
+                    B22 = "927ADFBE9F854C81";
+                    return A21 + "," + A22 + "," + B21 + "," + B22;
+                case "DA4001_001":
+                    // 社團法人台灣基督教天母豐盛協會
+                    A21 = "B2FC3849C9F6487C";
+                    A22 = "6ADDD7D7CCFC48BA";
+                    B21 = "2F83CE17C6044E3D";
+                    B22 = "48737E77D6864915";
+                    return A21 + "," + A22 + "," + B21 + "," + B22;
+                case "DA4195_001":
+                    // 南崁基督長老教會
+                    A21 = "B83DCBFA2D994F19";
+                    A22 = "6ED32787DA504871";
+                    B21 = "13E56D7A39AB4768";
+                    B22 = "163EC08BC1624854";
+                    return A21 + "," + A22 + "," + B21 + "," + B22;
+                case "DA4272_001":
+                    // 聖谷行道會
+                    A21 = "00DC1BDACCB645C6";
+                    A22 = "185B6F59F737462E";
+                    B21 = "6F9C2936E8524F76";
+                    B22 = "8BB48C2260304E29";
+                    return A21 + "," + A22 + "," + B21 + "," + B22;
+                default:
+                    return "5E854757C751413F,D743D0EB06904837,08169D5445644513,8E52B5A180EE4399";
+            }
+        }
+        #endregion
+
+
+        #region 高鉅金流工具區
         /// <summary>
         /// 取得高鉅金流付款所需的原始資料
         /// </summary>
@@ -1356,14 +1451,14 @@ namespace ChurchReport.WebServiceConnector
             //    // 感恩獻金：產品編號002，單價500元，數量2
             //    new ProductItem { id = "002", name = "感恩獻金", cost = 500, amount = 2 }
             //};
-            
+
             //// 呼叫CreateMultipleProductItems方法，將產品陣列轉換為ArrayList格式
             //// 此方法會計算每個產品的總價(cost * amount)並建立完整的商品清單
             //ArrayList items = CreateMultipleProductItems(products);
 
             // 建立付款原始資料物件
             dynamic rawData = new ExpandoObject();
-            
+
             // 設定原始資料屬性
             SetRawDataProperties(rawData, Amount, FeeId, items, LineLoginContact);
 
@@ -1584,7 +1679,7 @@ namespace ChurchReport.WebServiceConnector
             rawData.service_name = m_Configuration["MyPay:ServiceName"];
             // 設定API指令 - 從設定檔取得
             rawData.cmd = m_Configuration["MyPay:CMD"];
-            
+
             return rawData;
         }
         #endregion
@@ -1658,7 +1753,7 @@ namespace ChurchReport.WebServiceConnector
                 {
                     entity = this.m_ToolUtilityClass.RetrieveEntity("new_dedication_booking", entityId);
                     entityType = "new_dedication_booking";
-                    
+
                     if (entity == null)
                     {
                         String ErrorString = $"ERROR: 找不到對應的收費單或認獻單: {returnModel.order_id}";
@@ -1717,9 +1812,9 @@ namespace ChurchReport.WebServiceConnector
                 SetPayStatus("信用卡已繳費", ref entity);
 
                 // 更新實收金額
-                if (returnModel.cost.HasValue && returnModel.cost.Value > 0)
+                if (!string.IsNullOrEmpty(returnModel.cost) && decimal.TryParse(returnModel.cost, out decimal costValue) && costValue > 0)
                 {
-                    this.m_ToolUtilityClass.SetEntityMoneyAttribute(ref entity, "new_fee_really_paid", new Money(returnModel.cost.Value));
+                    this.m_ToolUtilityClass.SetEntityMoneyAttribute(ref entity, "new_fee_really_paid", new Money(costValue));
                 }
                 else
                 {
@@ -1744,9 +1839,9 @@ namespace ChurchReport.WebServiceConnector
             // 更新備註，記錄成功訊息
             string currentNote = this.m_ToolUtilityClass.GetEntityStringAttribute(entity, "new_explain") ?? "";
             string newNote = $"{currentNote}\n[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] 高鉅金流付款成功\n" +
-                           $"交易號: {returnModel.transaction_id}\n" +
-                           $"金額: {returnModel.cost ?? 0} 元\n" +
-                           $"訊息: {returnModel.msg}";
+                 $"交易號: {returnModel.transaction_id}\n" +
+                 $"金額: {(string.IsNullOrEmpty(returnModel.cost) ? "0" : returnModel.cost)} 元\n" +
+                 $"訊息: {returnModel.msg}";
             this.m_ToolUtilityClass.SetEntityStringAttribute(ref entity, "new_explain", newNote);
         }
 
@@ -1805,9 +1900,9 @@ namespace ChurchReport.WebServiceConnector
                             {
                                 // 付款成功訊息
                                 message = $"您好，您的奉獻已經成功完成！\n" +
-                                         $"交易號: {returnModel.transaction_id}\n" +
-                                         $"金額: {returnModel.cost ?? 0} 元\n" +
-                                         $"感謝您的奉獻！";
+                                          $"交易號: {returnModel.transaction_id}\n" +
+                                          $"金額: {(string.IsNullOrEmpty(returnModel.cost) ? "0" : returnModel.cost)} 元\n" +
+                                          $"感謝您的奉獻！";
                             }
                             else
                             {
@@ -1828,7 +1923,6 @@ namespace ChurchReport.WebServiceConnector
                 String ErrorString = $"ERROR: SendMyPaymentNotification - {DateTime.Now} - {ex}";
             }
         }
-
 
 
 
@@ -1947,99 +2041,7 @@ namespace ChurchReport.WebServiceConnector
         //}
         #endregion
         #endregion
-        #region 永豐金流工具區
-        private string ConvertShopNoToHashCodeAndSite(String aShopNo)
-        {
-            String A21 = "";
-            String A22 = "";
-            String B21 = "";
-            String B22 = "";
 
-            //客製化
-            switch (aShopNo)
-            {
-                case "DA1626_001":
-                    // 永和禮拜堂"板橋民族分行"
-                    return "D1695F439A69448F,7E460E920A184845,DEA83EFB714943F3,DC237C5C69914F0C";
-                case "DA1626_003":
-                    // 永和禮拜堂"永和分行"
-                    return "2C5D55945FCF4767,76052054D7054EA6,13F282F8A0F5475D,D782B4F1893A4334";
-                case "DA2424_001":
-                    // iM行動教會
-                    return "9825732578154B95,C89A75CD59D0430F,DAB73CB2A41E47FF,B09695CE58FA4774";
-                case "DA2659_001":
-                    // 台北得勝靈糧堂
-                    return "C8DAEA50FFB64CF4,F141E5BBE21B4D47,A922E0C106D14C35,CA22A88D1032412F";
-                case "NA0149_001":
-                    // 音訊教會 SandBox
-                    return "5E854757C751413F,D743D0EB06904837,08169D5445644513,8E52B5A180EE4399";
-                case "DA2890_001":
-                    // 忠孝路長老教會
-                    return "BDC962CCC8AB4AE2,946D46DBDDDE43E0,6038DFB03B4342AE,B1F64046CB2E44FC";
-                case "DA3033_001":
-                    // 東湖禮拜堂
-                    return "4B1657DE6F3547A3,3AB478872D0A49C7,0748F400DD834C07,6506CD86B0174396";
-                case "DA3190_001":
-                    // 楊梅靈糧堂
-                    String A11 = "1E582BECE43F421A";
-                    String A12 = "8F6ACB29B8EF4C67";
-                    String B11 = "8C06D1D49C544C51";
-                    String B12 = "041D9136AA9647F2";
-                    return A11 + "," + A12 + "," + B11 + "," + B12;
-                case "DA3189_001":
-                    // 以利亞之家
-                    A21 = "A88FB80292D6420D";
-                    A22 = "3844DD3B214D487C";
-                    B21 = "27BC1983D2914C11";
-                    B22 = "32D5A23910734C93";
-                    return A21 + "," + A22 + "," + B21 + "," + B22;
-                case "DA3412_001":
-                    // 南崁長老教會
-                    A21 = "2B27264C1D794727";
-                    A22 = "7C91CB903482427D";
-                    B21 = "7360D573A5A34184";
-                    B22 = "3C85541425624385";
-                    return A21 + "," + A22 + "," + B21 + "," + B22;
-                case "DA3806_001":
-                    // 好消息協會
-                    A21 = "81F5DAFEAFD343EC";
-                    A22 = "80BA10061E59467B";
-                    B21 = "B5F2CBA592004D2D";
-                    B22 = "D6D805E2CF514E12";
-                    return A21 + "," + A22 + "," + B21 + "," + B22;
-                case "DA3855_002":
-                    // 法國號靈糧堂
-                    A21 = "08B9715C313F4ABB";
-                    A22 = "E8AC362AB9174D3C";
-                    B21 = "81D71D28D7E04414";
-                    B22 = "927ADFBE9F854C81";
-                    return A21 + "," + A22 + "," + B21 + "," + B22;
-                case "DA4001_001":
-                    // 社團法人台灣基督教天母豐盛協會
-                    A21 = "B2FC3849C9F6487C";
-                    A22 = "6ADDD7D7CCFC48BA";
-                    B21 = "2F83CE17C6044E3D";
-                    B22 = "48737E77D6864915";
-                    return A21 + "," + A22 + "," + B21 + "," + B22;
-                case "DA4195_001":
-                    // 南崁基督長老教會
-                    A21 = "B83DCBFA2D994F19";
-                    A22 = "6ED32787DA504871";
-                    B21 = "13E56D7A39AB4768";
-                    B22 = "163EC08BC1624854";
-                    return A21 + "," + A22 + "," + B21 + "," + B22;
-                case "DA4272_001":
-                    // 聖谷行道會
-                    A21 = "00DC1BDACCB645C6";
-                    A22 = "185B6F59F737462E";
-                    B21 = "6F9C2936E8524F76";
-                    B22 = "8BB48C2260304E29";
-                    return A21 + "," + A22 + "," + B21 + "," + B22;
-                default:
-                    return "5E854757C751413F,D743D0EB06904837,08169D5445644513,8E52B5A180EE4399";
-            }
-        }
-        #endregion
         #region 工具區
         /// <summary>
         /// 實現阿拉伯數字到大寫中文的轉換，金額轉為大寫金額
