@@ -13,6 +13,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Dynamic;
+using System.Globalization;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
@@ -1825,6 +1826,123 @@ namespace ChurchReport.WebServiceConnector
             {
                 // 推送失敗不影響主流程，只記錄錯誤
                 String ErrorString = $"ERROR: SendMyPaymentNotification - {DateTime.Now} - {ex}";
+            }
+        }
+
+
+
+
+
+        private async Task ProcessSuccessfulPayment(Entity entity, MyPayReturnModel returnModel)
+        {
+            // 處理基本交易資訊
+            ProcessBasicTransactionInfo(entity, returnModel);
+
+            // 處理信用卡資訊
+            ProcessCreditCardInfo(entity, returnModel);
+
+            // 處理虛擬帳號資訊
+            ProcessVirtualAccountInfo(entity, returnModel);
+
+            // 處理定期定額資訊
+            ProcessRecurringPaymentInfo(entity, returnModel);
+
+            // 處理發票資訊
+            ProcessInvoiceInfo(entity, returnModel);
+        }
+
+        private void ProcessBasicTransactionInfo(Entity entity, MyPayReturnModel returnModel)
+        {
+            // 更新付款狀態
+            if (!string.IsNullOrEmpty(returnModel.pfn))
+            {
+                SetPaymentMethod(returnModel.pfn, ref entity);
+            }
+
+            // 更新交易金額
+            if (!string.IsNullOrEmpty(returnModel.cost))
+            {
+                if (int.TryParse(returnModel.cost, out int amount))
+                {
+                    this.m_ToolUtilityClass.SetEntityMoneyAttribute(ref entity, "new_fee_really_paid", new Money(amount));
+                }
+            }
+
+            // 更新交易完成時間
+            if (!string.IsNullOrEmpty(returnModel.finishtime))
+            {
+                if (DateTime.TryParseExact(returnModel.finishtime, "yyyyMMddHHmmss", null, DateTimeStyles.None, out DateTime finishTime))
+                {
+                    this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref entity, "new_pay_date", finishTime);
+                }
+            }
+
+            // 記錄交易資訊
+            string transactionInfo = $"高鉅金流交易資訊:\n" +
+                                   $"交易流水號: {returnModel.uid}\n" +
+                                   $"交易完成時間: {returnModel.finishtime}\n" +
+                                   $"金融服務商: {returnModel.supplier_name}\n" +
+                                   $"實際金額: {returnModel.actual_cost} {returnModel.actual_currency}";
+
+            this.m_ToolUtilityClass.SetEntityStringAttribute(ref entity, "new_mypay_transaction_details", transactionInfo);
+        }
+
+        private void ProcessCreditCardInfo(Entity entity, MyPayReturnModel returnModel)
+        {
+            if (!string.IsNullOrEmpty(returnModel.card_type))
+            {
+                // 儲存信用卡資訊
+                string cardInfo = $"卡別: {returnModel.card_type}\n" +
+                                 $"發卡行: {returnModel.issuing_bank}\n" +
+                                 $"授權碼: {returnModel.acode}\n" +
+                                 $"卡號: ****-****-****-{returnModel.cardno}";
+
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref entity, "new_mypay_card_info", cardInfo);
+
+                // 處理分期資訊
+                if (!string.IsNullOrEmpty(returnModel.installment))
+                {
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref entity, "new_installment_info", returnModel.installment);
+                }
+
+                // 處理紅利資訊
+                if (!string.IsNullOrEmpty(returnModel.redeem))
+                {
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref entity, "new_redeem_info", returnModel.redeem);
+                }
+            }
+        }
+
+        private void ProcessVirtualAccountInfo(Entity entity, MyPayReturnModel returnModel)
+        {
+            if (!string.IsNullOrEmpty(returnModel.bank_id))
+            {
+                // 儲存虛擬帳號資訊
+                string atmInfo = $"銀行代碼: {returnModel.bank_id}\n" +
+                                $"到期日: {returnModel.expired_date}\n" +
+                                $"帳號資訊: {returnModel.result_content}";
+
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref entity, "new_virtual_account_info", atmInfo);
+            }
+        }
+
+        private void ProcessRecurringPaymentInfo(Entity entity, MyPayReturnModel returnModel)
+        {
+            if (!string.IsNullOrEmpty(returnModel.group_id))
+            {
+                // 儲存定期定額資訊
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref entity, "new_recurring_group_id", returnModel.group_id);
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref entity, "new_recurring_payment_name", returnModel.payment_name);
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref entity, "new_recurring_periods", returnModel.nois);
+            }
+        }
+
+        private void ProcessInvoiceInfo(Entity entity, MyPayReturnModel returnModel)
+        {
+            // 處理發票相關資訊 (根據您的 MyPayReturnModel 中的發票欄位)
+            if (!string.IsNullOrEmpty(returnModel.invoice_number))
+            {
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref entity, "new_invoice_number", returnModel.invoice_number);
             }
         }
         #endregion
