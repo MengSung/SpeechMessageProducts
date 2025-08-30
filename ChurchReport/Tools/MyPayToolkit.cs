@@ -35,6 +35,10 @@ namespace ChurchReport.Tools
 {
     public class StoreOrder
     {
+        #region 設定與配置
+        private static ConfigurationBuilder m_ConfigurationBuilder = (ConfigurationBuilder)new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("appsettings.json");
+        private static IConfiguration m_Configuration = m_ConfigurationBuilder.Build();
+        #endregion
         /// <summary>
         /// 特約商店商務代號
         /// </summary>
@@ -47,6 +51,17 @@ namespace ChurchReport.Tools
         /// 串接交易位置
         /// </summary>
         public string url = "https://ka.usecase.cc/api/init";
+
+        /// <summary>
+        /// 初始化 StoreOrder 實例，從設定檔載入 MyPay 相關設定
+        /// </summary>
+        public StoreOrder()
+        {
+            this.storeUid = m_Configuration["MyPay:Store_Id"];
+            this.storeKey = m_Configuration["MyPay:Key"];
+            this.url = m_Configuration["MyPay:Url"];
+        }
+
         /// 取得串接欄位資料
         /// </summary>
         private dynamic GetRawData()
