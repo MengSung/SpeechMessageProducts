@@ -9,7 +9,8 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Serialization;
 using System;
-//using Microsoft.Extensions.DependencyInjection;
+using System.Globalization;
+using Microsoft.AspNetCore.Localization;
 
 namespace ChurchReport
 {
@@ -34,8 +35,8 @@ namespace ChurchReport
             //services.AddCookieTempData();
             services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
-            // 註冊服務，告訴 DI 容器：當有任何類別需要 IQPayToolkit 時，
-            // 請提供一個 QPayToolkitWrapper 的實例給它。
+            // 註冊付款服務，可透過 DI 容器注入。當需要 IQPayToolkit 時，
+            // 會提供一個 QPayToolkitWrapper 實作來滿足需求。
             //services.AddScoped<IPayment, QPayToolkitWrapper>();
             services.AddScoped<IPayment, MyPayToolkitWrapper>();
 
@@ -108,20 +109,22 @@ namespace ChurchReport
                 app.UseExceptionHandler("/Home/Error");
             }
 
-            //var supportedCultures = new[]
-            //{
-            //    new CultureInfo("en"),
-            //    new CultureInfo("en-US"),
-            //    new CultureInfo("zh"),
-            //    new CultureInfo("zh-TW")
-            //};
-            //app.UseRequestLocalization(new RequestLocalizationOptions
-            //{
-            //    DefaultRequestCulture = new RequestCulture("zh-TW"),
-            //    SupportedCultures = supportedCultures,
-            //    SupportedUICultures = supportedCultures
-            //});
-
+            // 配置中文語系支援
+            var supportedCultures = new[]
+            {
+                new CultureInfo("zh-TW"),
+                new CultureInfo("zh-CN"), 
+                new CultureInfo("zh"),
+                new CultureInfo("en"),
+                new CultureInfo("en-US")
+            };
+            
+            app.UseRequestLocalization(new RequestLocalizationOptions
+            {
+                DefaultRequestCulture = new RequestCulture("zh-TW"),
+                SupportedCultures = supportedCultures,
+                SupportedUICultures = supportedCultures
+            });
 
             app.UseStaticFiles();
             app.UseSession();
