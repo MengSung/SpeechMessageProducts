@@ -1,10 +1,9 @@
 ﻿<!DOCTYPE html>
 
-<html lang="zh-TW">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="description" content="">
     <meta name="author" content="">
@@ -55,7 +54,9 @@
     <script src="~/lib/devextreme-aspnet-data/js/dx.aspnet.data.js"></script>
     <script src="~/js/devextreme/aspnet/dx.aspnet.mvc.js"></script>
 
+    <meta charset="utf-8" />
     <meta name="robots" content="noindex">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="~/lib/devextreme/css/dx.common.css" />
     <link rel="stylesheet" href="~/lib/devextreme/css/dx.spa.css" />
     <link rel="stylesheet" href="~/css/demo-template.css" />
@@ -102,25 +103,25 @@
 
     <script>
 
-                             // Use $.getJSO    N instead of $.get if your server is not configured to return the
-                             // right MIME type for .json files.
-                             //$.when(
-                             //    $.get("cldr/main/en/ca-gregorian.json"),
-                             //    $.get("cldr/s    upplemental/likelySubtags.j    son"),
-                             //    $.get("cldr/    supplemental/timeData.json"    ),
-                             //    $.get("cldr/supp    lemental/weekData.json")
-                             //    ).then(function () {
+                                 // Use $.getJSO    N instead of $.get if your server is not configured to return the
+                                 // right MIME type for .json files.
+                                 //$.when(
+                                 //    $.get("cldr/main/en/ca-gregorian.json"),
+                                 //    $.get("cldr/s    upplemental/likelySubtags.j    son"),
+                                 //    $.get("cldr/    supplemental/timeData.json"    ),
+                                 //    $.get("cldr/supp    lemental/weekData.json")
+                                 //    ).then(function () {
 
-                             //        // Normalize $.ge    t results, we only need the JSO    N, not the request statuses    .
-                             //    return [].slice.a    pply(arguments, [0]).map(fu    nction (result) {
-                             //            return result[0];
-                             //        });
+                                 //        // Normalize $.ge    t results, we only need the JSO    N, not the request statuses    .
+                                 //    return [].slice.a    pply(arguments, [0]).map(fu    nction (result) {
+                                 //            return result[0];
+                                 //        });
 
-                             //}).then(Glo    balize.load).then(function () {
+                                 //}).then(Glo    balize.load).then(function () {
 
-                             //    // Your code goes here.
+                                 //    // Your code goes here.
 
-                             //});
+                                 //});
     </script>
     @*<meta charset="utf-8" />
         <meta name="robots" content="noindex">
@@ -199,7 +200,7 @@
                             <li><a href="/Home/NewPerson">新增新人</a></li>
                             <li><a href="/Home/PersonalInfomationView">個人相關資料</a></li>
                             <li><a href="/Home/Login">登入</a></li>
-                             @if (@ViewBag.UserType == "行政同工")
+                            @if (@ViewBag.UserType == "行政同工")
                             {
                                 @*<li><a href="/Home/Scheduler/差勤簽核">差勤簽核</a></li>*@
                                 @*<li><a href="http://mrbs.yhchurch.info/">場地及資源預約</a></li>*@
@@ -483,14 +484,14 @@
 </body>
 
 @*<script>
-    //session end
-    var sessionTimeoutWarning = @Session.Timeout- 1; //when session end 1 minute before this code makes redirect
+        //session end
+        var sessionTimeoutWarning = @Session.Timeout- 1; //when session end 1 minute before this code makes redirect
 
-    var sTimeout = parseInt(sessionTimeoutWarning) * 60 * 1;
-    setTimeout('SessionEnd()', sTimeout);
+        var sTimeout = parseInt(sessionTimeoutWarning) * 60 * 1;
+        setTimeout('SessionEnd()', sTimeout);
 
-    function SessionEnd() {
-        window.location = "/Home/Login"; //Redirect to LogOff, and then redirect to Login
-    }
-</script>*@
-</html></html>
+        function SessionEnd() {
+            window.location = "/Home/Login"; //Redirect to LogOff, and then redirect to Login
+        }
+    </script>*@
+</html>
