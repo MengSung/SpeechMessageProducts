@@ -1646,7 +1646,8 @@ namespace ChurchReport.WebServiceConnector
             // 交易失敗導頁網址 - 高鉅金流會在此網址顯示失敗頁面給用戶
             rawData.failure_returl = m_Configuration["MyPay:FailureReturl"] ?? "";
             // 高鉅金流後端回調網址 - 用於接收交易完成回傳資訊
-            rawData.notify_url = "https://sunnyvalech.speechmessage.com.tw:603/api/MyPay/return";
+            //rawData.notify_url = "https://sunnyvalechback.speechmessage.com.tw:8888/api/MyPay/return";
+            rawData.notify_url = m_Configuration["MyPay:ReturnUrl"] ?? "";
             // 虛擬帳號與超商代碼使用之有效天數
             rawData.limit_pay_days = Convert.ToInt32(m_Configuration["MyPay:LimitPayDays"] ?? "7");
             // 運費
