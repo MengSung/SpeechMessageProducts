@@ -1,5 +1,5 @@
 @{
-    ViewData["Title"] = "付款結�?";
+    ViewData["Title"] = "付款結�?";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -33,14 +33,14 @@
         <div class="col-md-8">
             <div class="card">
                 <div class="card-header text-center">
-                    <h3>付款結�?</h3>
+                    <h3>付款結�?</h3>
                 </div>
                 <div class="card-body text-center">
                     @if (isSuccess)
                     {
                         <div class="alert alert-success" role="alert">
                             <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
-                            <h4 class="alert-heading">付款?��?�?/h4>
+                            <h4 class="alert-heading">付款?��?�?/h4>
                             <p class="mb-0">@message</p>
                         </div>
                     }
@@ -48,7 +48,7 @@
                     {
                         <div class="alert alert-danger" role="alert">
                             <i class="fas fa-times-circle fa-3x text-danger mb-3"></i>
-                            <h4 class="alert-heading">付款失�?</h4>
+                            <h4 class="alert-heading">付款失�?</h4>
                             <p class="mb-0">@message</p>
                         </div>
                     }
@@ -57,18 +57,18 @@
                     {
                         <hr>
                         <p class="text-muted">
-                            <small>訂單編�?: @ViewBag.OrderId</small>
+                            <small>訂單編�?: @ViewBag.OrderId</small>
                         </p>
                     }
 
                     <div class="mt-4">
                         <a href="@Url.Action("Index", "Home")" class="btn btn-primary">
-                            <i class="fas fa-home"></i> 返�?首�?
+                            <i class="fas fa-home"></i> 返�?首�?
                         </a>
                         @if (isSuccess)
                         {
                             <a href="@Url.Action("DedicationFeeView", "Home")" class="btn btn-success ml-2">
-                                <i class="fas fa-list"></i> ?��?奉獻記�?
+                                <i class="fas fa-list"></i> ?��?奉獻記�?
                             </a>
                         }
                     </div>
@@ -80,12 +80,12 @@
                 <div class="card mt-3">
                     <div class="card-body">
                         <h5 class="card-title">
-                            <i class="fas fa-info-circle text-info"></i> 溫馨?��?
+                            <i class="fas fa-info-circle text-info"></i> 溫馨?��?
                         </h5>
                         <p class="card-text">
-                            ?��?奉獻已�??��?完�?，相?�收?��??��? LINE ?�知?��?br>
-                            如�?紙本?��?，�??�繫?��?辦公室�?br>
-                            ?��??��??��?事工?�支?��?奉獻�?
+                            ?��?奉獻已�??��?完�?，相?�收?��??��? LINE ?�知?��?br>
+                            如�?紙本?��?，�??�繫?��?辦公室�?br>
+                            ?��??��??��?事工?�支?��?奉獻�?
                         </p>
                     </div>
                 </div>
@@ -95,15 +95,15 @@
                 <div class="card mt-3">
                     <div class="card-body">
                         <h5 class="card-title">
-                            <i class="fas fa-question-circle text-warning"></i> ?�要�??��?
+                            <i class="fas fa-question-circle text-warning"></i> ?�要�??��?
                         </h5>
                         <p class="card-text">
-                            如�?多次?�試仍無法�??��?款�?請聯繫�??�辦?�室??br>
-                            ?��??�以?��??��?付款?��?完�?奉獻??br>
-                            ?��?辦公室�??�助?�解決�?款�?題�?
+                            如�?多次?�試仍無法�??��?款�?請聯繫�??�辦?�室??br>
+                            ?��??�以?��??��?付款?��?完�?奉獻??br>
+                            ?��?辦公室�??�助?�解決�?款�?題�?
                         </p>
                         <a href="@Url.Action("QPayView", "Home")" class="btn btn-outline-primary">
-                            <i class="fas fa-redo"></i> ?�新付款
+                            <i class="fas fa-redo"></i> ?�新付款
                         </a>
                     </div>
                 </div>
