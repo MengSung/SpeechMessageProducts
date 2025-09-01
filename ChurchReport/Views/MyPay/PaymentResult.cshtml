@@ -63,7 +63,7 @@
                     }
 
                     <div class="mt-4">
-                            <a href="@Url.Action("QPayView", "Home")" class="btn btn-primary">
+                            <a href="@Url.Action("QPayView/網頁登入", "Home")" class="btn btn-primary">
                             <i class="fas fa-home"></i> 回奉獻頁面
                         </a>
                         @if (isSuccess)
@@ -96,14 +96,14 @@
                 <div class="card mt-3">
                     <div class="card-body">
                         <h5 class="card-title">
-                            <i class="fas fa-question-circle text-warning"></i> ?�要�??��?
+                            <i class="fas fa-question-circle text-warning"></i> 付款失敗
                         </h5>
                         <p class="card-text">
                             如果多次嘗試仍無法完成付款，請聯繫教會辦公室。<br>
                             您也可以選擇其他付款方式完成奉獻。<br>
                             教會辦公室將協助您解決付款問題。
                         </p>
-                        <a href="@Url.Action("QPayView", "Home")" class="btn btn-outline-primary">
+                        <a href="@Url.Action("QPayView/網頁登入", "Home")" class="btn btn-outline-primary">
                             <i class="fas fa-redo"></i>重新付款
                         </a>
                     </div>
