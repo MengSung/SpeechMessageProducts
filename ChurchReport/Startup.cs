@@ -35,11 +35,22 @@ namespace ChurchReport
             //services.AddCookieTempData();
             services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
-            // 註冊付款服務，可透過 DI 容器注入。當需要 IQPayToolkit 時，
-            // 會提供一個 QPayToolkitWrapper 實作來滿足需求。
-            //services.AddScoped<IPayment, QPayToolkitWrapper>();
-            services.AddScoped<IPayment, MyPayToolkitWrapper>();
-
+            if (Configuration["PAY_PROVIDER"] == "永豐金流")
+            {
+                // 註冊付款服務，可透過 DI 容器注入。當需要 IQPayToolkit 時，
+                // 會提供一個 QPayToolkitWrapper 實作來滿足需求。
+                services.AddScoped<IPayment, QPayToolkitWrapper>();
+            }
+            else if (Configuration["PAY_PROVIDER"] == "高鉅金流")
+            { 
+                //未來若有其他金流業者可在此加入
+                services.AddScoped<IPayment, MyPayToolkitWrapper>();
+            }
+            else 
+            { 
+                //未來若有其他金流業者可在此加入
+                services.AddScoped<IPayment, MyPayToolkitWrapper>();
+            }
             //services.AddSession
             //(
             //    options => options.IdleTimeout = TimeSpan.FromMinutes(30)

@@ -1141,42 +1141,58 @@ namespace ChurchReport.WebServiceConnector
         #region 永豐金流工具區
         public async Task<CreOrder> CreOrderCard(int Amount, String ProductName, String OrderDate, String FeeId, String PayType, String PayTypeSub, String Staging, int DeductTotalNum, String PeriodType, int DeductFreq, String CreditCategory, Entity LineLoginContact, String CCToken = null)
         {
-            // 高鉅金流
-            CreOrder aRetObj = m_PaymentService.CreateOrder(GetRawData(Amount, ProductName, OrderDate, FeeId, PayType, PayTypeSub, LineLoginContact), GetService());
-
-            // 永豐金流
-            //設定參數
-            CreOrderReq creOrderReq = new CreOrderReq()
+            if (m_Configuration["PAY_PROVIDER"] == "永豐金流")
             {
-                ShopNo = m_ShopNo,
-                OrderNo = PayType + OrderDate,
-                Amount = Amount * 100,
-                CurrencyID = "TWD",
-                PrdtName = ProductName,
-                ReturnURL = RETURN_URL,
-                BackendURL = BACKEND_URL,
-                PayType = PayType, //支付方式
-                Param1 = FeeId,
-                Param2 = QPAY_ORGANIZATION,
-                Param3 = CreditCategory,
-                CardParam = new CreOrderCardParamReq()
+                // 永豐金流
+                //設定參數
+                CreOrderReq creOrderReq = new CreOrderReq()
                 {
-                    AutoBilling = "Y",
-                    PayTypeSub = PayTypeSub,
-                    Staging = Staging,
-                    DeductTotalNum = DeductTotalNum,
-                    PeriodType = PeriodType,
-                    DeductFreq = DeductFreq,
-                    CCToken = CCToken
-                }
-            };
+                    ShopNo = m_ShopNo,
+                    OrderNo = PayType + OrderDate,
+                    Amount = Amount * 100,
+                    CurrencyID = "TWD",
+                    PrdtName = ProductName,
+                    ReturnURL = RETURN_URL,
+                    BackendURL = BACKEND_URL,
+                    PayType = PayType, //支付方式
+                    Param1 = FeeId,
+                    Param2 = QPAY_ORGANIZATION,
+                    Param3 = CreditCategory,
+                    CardParam = new CreOrderCardParamReq()
+                    {
+                        AutoBilling = "Y",
+                        PayTypeSub = PayTypeSub,
+                        Staging = Staging,
+                        DeductTotalNum = DeductTotalNum,
+                        PeriodType = PeriodType,
+                        DeductFreq = DeductFreq,
+                        CCToken = CCToken
+                    }
+                };
 
-            //CreOrder retObj = m_PaymentService.OrderCreate(creOrderReq);
+                CreOrder retObj = m_PaymentService.OrderCreate(creOrderReq);
+                return retObj;
+            }
+            else if (m_Configuration["PAY_PROVIDER"] == "高鉅金流")
+            {
+               //高鉅金流
+               CreOrder aRetObj = m_PaymentService.CreateOrder(GetRawData(Amount, ProductName, OrderDate, FeeId, PayType, PayTypeSub, LineLoginContact), GetService());
 
-            // 高鉅金流
-            var Result = QPayCommon.SerializeToJson(aRetObj);
+               //高鉅金流
+               var Result = QPayCommon.SerializeToJson(aRetObj);
 
-            return aRetObj;
+                return aRetObj;
+            }
+            else
+            {
+                // 高鉅金流
+                CreOrder aRetObj = m_PaymentService.CreateOrder(GetRawData(Amount, ProductName, OrderDate, FeeId, PayType, PayTypeSub, LineLoginContact), GetService());
+
+                // 高鉅金流
+                var Result = QPayCommon.SerializeToJson(aRetObj);
+
+                return aRetObj;
+            }
 
         }
         public async Task<CreOrder> CreateOrderATM(int Amount, String ProductName, String OrderDate, String FeeId)
