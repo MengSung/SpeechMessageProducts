@@ -1440,8 +1440,6 @@ namespace ChurchReport.WebServiceConnector
             }
         }
         #endregion
-
-
         #region 高鉅金流工具區
         /// <summary>
         /// 取得高鉅金流付款所需的原始資料
@@ -1557,6 +1555,10 @@ namespace ChurchReport.WebServiceConnector
 
         private void SetRawDataProperties(dynamic rawData, int Amount, String FeeId, ArrayList items, Entity LineLoginContact)
         {
+            #region 組織單位
+            rawData.echo_0 = m_Configuration["QPAY_ORGANIZATION"];
+            #endregion
+
             #region 基本商店資訊
             // 設定商店代號 - 從設定檔取得MyPay商店ID
             rawData.store_uid = m_Configuration["MyPay:Store_Id"];
@@ -2058,7 +2060,6 @@ namespace ChurchReport.WebServiceConnector
         //}
         #endregion
         #endregion
-
         #region 工具區
         /// <summary>
         /// 實現阿拉伯數字到大寫中文的轉換，金額轉為大寫金額

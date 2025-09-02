@@ -26,7 +26,7 @@ namespace ChurchReport.Controllers
         /// </summary>
         /// <param name="returnModel">高鉅金流回傳的表單資料</param>
         /// <returns>處理結果</returns>
-        [HttpPost("return")]
+        [HttpPost("MyPayReturn")]
         public async Task<IActionResult> PaymentReturn([FromForm] MyPayReturnModel returnModel)
         {
             _logger.LogInformation($"收到高鉅金流回傳，OrderID: {returnModel?.order_id}, 狀態: {returnModel?.state}");
@@ -51,7 +51,8 @@ namespace ChurchReport.Controllers
                     // 記錄警告訊息，包含訂單編號以便追蹤問題
                     _logger.LogWarning($"回傳資料缺少必要欄位: {returnModel.order_id}");
                     // 回傳 400 Bad Request 狀態碼給金流平台
-                    return BadRequest("回傳資料缺少必要欄位");
+                    return Content("8888", "text/p;ain");
+                    //return BadRequest("回傳資料缺少必要欄位");
                 }
 
                 // 建立 QPayProcessor 實例來處理回傳
@@ -65,7 +66,9 @@ namespace ChurchReport.Controllers
                     // 驗證失敗表示資料可能被篡改或來源不可信，記錄警告以便安全稽核
                     _logger.LogWarning($"回傳資訊驗證失敗: {returnModel.order_id}");
                     // 回傳 400 Bad Request 拒絕處理，保護系統安全
-                    return BadRequest("驗證失敗");
+                    return Content("8888", "text/p;ain");
+
+                    //return BadRequest("驗證失敗");
                 }
 
                 // 2. 處理回傳資訊並更新系統
@@ -77,7 +80,7 @@ namespace ChurchReport.Controllers
 
                     // 根據高鉅金流官方文檔要求，成功處理後回傳 "888"
                     // 這讓金流平台知道我們已經成功接收並處理了回調通知
-                    return Ok("888");
+                    return Content("8888", "text/p;ain");
 
                     //// 對於 POST 回調，回傳 200 OK 給金流平台
                     //// 根據交易狀態回傳對應的成功/失敗訊息
@@ -97,13 +100,15 @@ namespace ChurchReport.Controllers
                     // 系統處理回傳資訊時發生錯誤，記錄警告並回傳 500 錯誤
                     // 讓金流平台知道需要重新發送通知
                     _logger.LogWarning($"處理回傳失敗: {returnModel.order_id}");
-                    return StatusCode(500, "處理失敗");
+                    //return StatusCode(500, "處理失敗");
+                    return Content("8888", "text/p;ain");
                 }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"處理回傳異常: {returnModel?.order_id}");
-                return StatusCode(500, "處理異常");
+                return Content("8888", "text/p;ain");
+                //return StatusCode(500, "處理異常");
             }
         }
 
