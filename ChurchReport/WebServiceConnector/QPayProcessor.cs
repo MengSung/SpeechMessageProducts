@@ -49,7 +49,7 @@ namespace ChurchReport.WebServiceConnector
         //private const String BACKEND_URL = "http://QPbackendback.speechmessage.com.tw/api/QPayAtm/QPayBackendUrl";// 公司內部開發
         #endregion
         #region 雲端機房
-        //private const String RETURN_URL = "https://nankanchurch.speechmessage.com.tw:335/api/QPayCard/QPayReturnUrl";
+        //private const String RETURN_URL = "https://nankanchurchback.speechmessage.com.tw:335/api/QPayCard/QPayReturnUrl";
         //private const String BACKEND_URL = "http://QPaybackend.speechmessage.com.tw/api/QPayAtm/QPayBackendUrl"; // 雲端機房
         #endregion
 
@@ -1817,51 +1817,385 @@ namespace ChurchReport.WebServiceConnector
         }
 
         /// <summary>
-        /// 處理高鉅金流付款成功的情況
+        /// 處理高鉅金流付款成功的情況 - 完整實現所有 MyPayReturnModel 參數
         /// </summary>
         /// <param name="entity">要更新的實體</param>
         /// <param name="entityType">實體類型</param>
         /// <param name="returnModel">回傳資料</param>
         private async Task ProcessSuccessfulMyPayReturn(Entity entity, string entityType, MyPayReturnModel returnModel)
         {
-            if (entityType == "new_fee")
+            try
             {
-                // 處理收費單付款成功
-                // 更新付款狀態為已付款
+                // 處理完整的 MyPayReturnModel 參數
+                var processingResult = returnModel.ProcessAllReturnFields();
+
+                if (entityType == "new_fee")
+                {
+                    // 處理收費單付款成功
+                    await ProcessSuccessfulFeePayment(entity, returnModel, processingResult);
+                }
+                else if (entityType == "new_dedication_booking")
+                {
+                    // 處理認獻單付款成功
+                    await ProcessSuccessfulDedicationBookingPayment(entity, returnModel, processingResult);
+                }
+
+                // 更新共同的交易資訊
+                UpdateCommonTransactionInfo(entity, returnModel, processingResult);
+
+                // 記錄詳細處理結果
+                RecordDetailedProcessingResult(entity, returnModel, processingResult);
+
+            }
+            catch (Exception ex)
+            {
+                string errorMessage = $"ProcessSuccessfulMyPayReturn 錯誤: {ex.Message}";
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref entity, "new_explain", 
+                    $"{this.m_ToolUtilityClass.GetEntityStringAttribute(entity, "new_explain")}\n{errorMessage}");
+                
+                String ErrorString = $"ERROR: {GetType().FullName} - {DateTime.Now} - {errorMessage}";
+                throw new Exception(errorMessage, ex);
+            }
+        }
+
+        /// <summary>
+        /// 處理收費單付款成功的具體邏輯
+        /// </summary>
+        private async Task ProcessSuccessfulFeePayment(Entity entity, MyPayReturnModel returnModel, MyPayProcessingResult processingResult)
+        {
+            // 1. 更新付款狀態
+            if (!string.IsNullOrEmpty(returnModel.pay_type))
+            {
+                // 根據付款方式設定狀態
+                switch (returnModel.pay_type.ToLower())
+                {
+                    case "credit":
+                    case "creditcard":
+                        SetPayStatus("信用卡已繳費", ref entity);
+                        break;
+                    case "atm":
+                    case "virtual_account":
+                        SetPayStatus("ATM轉帳/匯款已繳費", ref entity);
+                        break;
+                    case "cvs":
+                    case "convenience_store":
+                        SetPayStatus("超商已繳費", ref entity);
+                        break;
+                    default:
+                        SetPayStatus("信用卡已繳費", ref entity); // 預設
+                        break;
+                }
+            }
+            else
+            {
                 SetPayStatus("信用卡已繳費", ref entity);
+            }
 
-                // 更新實收金額
-                if (!string.IsNullOrEmpty(returnModel.cost) && decimal.TryParse(returnModel.cost, out decimal costValue) && costValue > 0)
+            // 2. 更新實收金額
+            if (processingResult.TransactionInfo.ParsedCost.HasValue)
+            {
+                this.m_ToolUtilityClass.SetEntityMoneyAttribute(ref entity, "new_fee_really_paid", 
+                    new Money(processingResult.TransactionInfo.ParsedCost.Value));
+            }
+            else if (processingResult.TransactionInfo.ParsedActualCost.HasValue)
+            {
+                this.m_ToolUtilityClass.SetEntityMoneyAttribute(ref entity, "new_fee_really_paid", 
+                    new Money(processingResult.TransactionInfo.ParsedActualCost.Value));
+            }
+            else
+            {
+                // 如果回傳金額都沒有，使用應收金額
+                Money shouldPay = this.m_ToolUtilityClass.GetEntityMoneyAttribute(entity, "new_fee_shoud_pay");
+                if (shouldPay != null && shouldPay.Value > 0)
                 {
-                    this.m_ToolUtilityClass.SetEntityMoneyAttribute(ref entity, "new_fee_really_paid", new Money(costValue));
+                    this.m_ToolUtilityClass.SetEntityMoneyAttribute(ref entity, "new_fee_really_paid", shouldPay);
                 }
-                else
-                {
-                    // 如果未回傳金額，使用應收金額
-                    Money shouldPay = this.m_ToolUtilityClass.GetEntityMoneyAttribute(entity, "new_fee_shoud_pay");
-                    if (shouldPay != null && shouldPay.Value > 0)
-                    {
-                        this.m_ToolUtilityClass.SetEntityMoneyAttribute(ref entity, "new_fee_really_paid", shouldPay);
-                    }
-                }
+            }
 
-                // 更新付款日期
+            // 3. 更新付款日期
+            if (processingResult.TransactionInfo.ParsedFinishTime.HasValue)
+            {
+                this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref entity, "new_pay_date", 
+                    processingResult.TransactionInfo.ParsedFinishTime.Value);
+            }
+            else
+            {
                 this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref entity, "new_pay_date", DateTime.Now.ToLocalTime());
             }
-            else if (entityType == "new_dedication_booking")
+
+            // 4. 處理信用卡相關資訊
+            if (!string.IsNullOrEmpty(processingResult.CreditCardInfo.CardNo))
             {
-                // 處理認獻單付款成功
-                // 認獻單狀態設為已啟動
-                this.m_ToolUtilityClass.SetOptionSetAttribute(ref entity, "new_dedication_booking_status", 100000001); // 已啟動
+                string cardInfo = $"卡號後四碼: ****{processingResult.CreditCardInfo.CardNo}";
+                if (!string.IsNullOrEmpty(processingResult.CreditCardInfo.CardType))
+                {
+                    cardInfo += $"\n卡別: {processingResult.CreditCardInfo.CardType}";
+                }
+                if (!string.IsNullOrEmpty(processingResult.CreditCardInfo.IssuingBank))
+                {
+                    cardInfo += $"\n發卡行: {processingResult.CreditCardInfo.IssuingBank}";
+                }
+                if (!string.IsNullOrEmpty(processingResult.CreditCardInfo.AuthCode))
+                {
+                    cardInfo += $"\n授權碼: {processingResult.CreditCardInfo.AuthCode}";
+                }
+                
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref entity, "new_mypay_card_info", cardInfo);
             }
 
-            // 更新備註，記錄成功訊息
+            // 5. 處理分期資訊
+            if (!string.IsNullOrEmpty(processingResult.CreditCardInfo.InstallmentInfo))
+            {
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref entity, "new_installment_info", 
+                    processingResult.CreditCardInfo.InstallmentInfo);
+            }
+
+            // 6. 處理紅利資訊
+            if (!string.IsNullOrEmpty(processingResult.CreditCardInfo.RedeemInfo))
+            {
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref entity, "new_redeem_info", 
+                    processingResult.CreditCardInfo.RedeemInfo);
+            }
+
+            // 7. 處理虛擬帳號資訊
+            if (!string.IsNullOrEmpty(processingResult.VirtualAccountInfo.BankId))
+            {
+                string atmInfo = $"銀行代碼: {processingResult.VirtualAccountInfo.BankId}";
+                if (processingResult.VirtualAccountInfo.ParsedExpiredDate.HasValue)
+                {
+                    atmInfo += $"\n到期日: {processingResult.VirtualAccountInfo.ParsedExpiredDate.Value:yyyy-MM-dd}";
+                }
+                if (!string.IsNullOrEmpty(processingResult.VirtualAccountInfo.ResultContent))
+                {
+                    atmInfo += $"\n帳號資訊: {processingResult.VirtualAccountInfo.ResultContent}";
+                }
+                
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref entity, "new_virtual_account_info", atmInfo);
+            }
+        }
+
+        /// <summary>
+        /// 處理認獻單付款成功的具體邏輯
+        /// </summary>
+        private async Task ProcessSuccessfulDedicationBookingPayment(Entity entity, MyPayReturnModel returnModel, MyPayProcessingResult processingResult)
+        {
+            // 1. 認獻單狀態設為已啟動
+            this.m_ToolUtilityClass.SetOptionSetAttribute(ref entity, "new_dedication_booking_status", 100000001); // 已啟動
+
+            // 2. 處理定期定額相關資訊
+            if (!string.IsNullOrEmpty(processingResult.RecurringInfo.GroupId))
+            {
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref entity, "new_recurring_group_id", 
+                    processingResult.RecurringInfo.GroupId);
+            }
+
+            if (!string.IsNullOrEmpty(processingResult.RecurringInfo.PaymentName))
+            {
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref entity, "new_recurring_payment_name", 
+                    processingResult.RecurringInfo.PaymentName);
+            }
+
+            if (!string.IsNullOrEmpty(processingResult.RecurringInfo.NumberOfInstallments))
+            {
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref entity, "new_recurring_periods", 
+                    processingResult.RecurringInfo.NumberOfInstallments);
+            }
+
+            // 3. 更新認獻單開始日期
+            if (processingResult.TransactionInfo.ParsedFinishTime.HasValue)
+            {
+                this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref entity, "new_dedication_start_date", 
+                    processingResult.TransactionInfo.ParsedFinishTime.Value);
+            }
+        }
+
+        /// <summary>
+        /// 更新共同的交易資訊
+        /// </summary>
+        private void UpdateCommonTransactionInfo(Entity entity, MyPayReturnModel returnModel, MyPayProcessingResult processingResult)
+        {
+            // 1. 記錄核心交易資訊
+            string coreTransactionInfo = $"高鉅金流核心交易資訊:\n";
+            if (!string.IsNullOrEmpty(processingResult.CoreFields.Uid))
+            {
+                coreTransactionInfo += $"Payment Hub 流水號: {processingResult.CoreFields.Uid}\n";
+            }
+            if (!string.IsNullOrEmpty(processingResult.CoreFields.Prc))
+            {
+                coreTransactionInfo += $"主要回傳碼: {processingResult.CoreFields.Prc}\n";
+            }
+            if (!string.IsNullOrEmpty(returnModel.transaction_id))
+            {
+                coreTransactionInfo += $"平台交易號: {returnModel.transaction_id}\n";
+            }
+            
+            this.m_ToolUtilityClass.SetEntityStringAttribute(ref entity, "new_mypay_core_info", coreTransactionInfo);
+
+            // 2. 記錄交易服務資訊
+            if (processingResult.ServiceInfo.SupplierName != null || processingResult.ServiceInfo.SupplierCode != null)
+            {
+                string serviceInfo = "金融服務商資訊:\n";
+                if (!string.IsNullOrEmpty(processingResult.ServiceInfo.SupplierName))
+                {
+                    serviceInfo += $"服務商名稱: {processingResult.ServiceInfo.SupplierName}\n";
+                }
+                if (!string.IsNullOrEmpty(processingResult.ServiceInfo.SupplierCode))
+                {
+                    serviceInfo += $"服務商代碼: {processingResult.ServiceInfo.SupplierCode}\n";
+                }
+                if (processingResult.ServiceInfo.TransactionMode.HasValue)
+                {
+                    serviceInfo += $"交易服務類型: {processingResult.ServiceInfo.TransactionMode.Value}\n";
+                }
+                if (processingResult.ServiceInfo.IsAgentCharge.HasValue)
+                {
+                    serviceInfo += $"經銷商代收費: {(processingResult.ServiceInfo.IsAgentCharge.Value == 1 ? "是" : "否")}\n";
+                }
+                
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref entity, "new_mypay_service_info", serviceInfo);
+            }
+
+            // 3. 記錄消費者資訊
+            if (!string.IsNullOrEmpty(processingResult.ConsumerInfo.UserId) || 
+                !string.IsNullOrEmpty(processingResult.ConsumerInfo.UserName))
+            {
+                string consumerInfo = "消費者資訊:\n";
+                if (!string.IsNullOrEmpty(processingResult.ConsumerInfo.UserId))
+                {
+                    consumerInfo += $"用戶ID: {processingResult.ConsumerInfo.UserId}\n";
+                }
+                if (!string.IsNullOrEmpty(processingResult.ConsumerInfo.UserName))
+                {
+                    consumerInfo += $"用戶姓名: {processingResult.ConsumerInfo.UserName}\n";
+                }
+                if (!string.IsNullOrEmpty(processingResult.ConsumerInfo.UserRealName))
+                {
+                    consumerInfo += $"真實姓名: {processingResult.ConsumerInfo.UserRealName}\n";
+                }
+                if (!string.IsNullOrEmpty(processingResult.ConsumerInfo.UserPhone))
+                {
+                    consumerInfo += $"聯絡電話: {processingResult.ConsumerInfo.UserPhone}\n";
+                }
+                if (!string.IsNullOrEmpty(processingResult.ConsumerInfo.UserEmail))
+                {
+                    consumerInfo += $"電子郵件: {processingResult.ConsumerInfo.UserEmail}\n";
+                }
+                
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref entity, "new_mypay_consumer_info", consumerInfo);
+            }
+
+            // 4. 處理自訂參數
+            if (processingResult.CustomParameters.Echo0 != null || 
+                processingResult.CustomParameters.Echo1 != null ||
+                processingResult.CustomParameters.Echo2 != null ||
+                processingResult.CustomParameters.Echo3 != null ||
+                processingResult.CustomParameters.Echo4 != null)
+            {
+                string customParams = "自訂回傳參數:\n";
+                if (!string.IsNullOrEmpty(processingResult.CustomParameters.Echo0))
+                {
+                    customParams += $"Echo0 (組織): {processingResult.CustomParameters.Echo0}\n";
+                }
+                if (!string.IsNullOrEmpty(processingResult.CustomParameters.Echo1))
+                {
+                    customParams += $"Echo1: {processingResult.CustomParameters.Echo1}\n";
+                }
+                if (!string.IsNullOrEmpty(processingResult.CustomParameters.Echo2))
+                {
+                    customParams += $"Echo2: {processingResult.CustomParameters.Echo2}\n";
+                }
+                if (!string.IsNullOrEmpty(processingResult.CustomParameters.Echo3))
+                {
+                    customParams += $"Echo3: {processingResult.CustomParameters.Echo3}\n";
+                }
+                if (!string.IsNullOrEmpty(processingResult.CustomParameters.Echo4))
+                {
+                    customParams += $"Echo4: {processingResult.CustomParameters.Echo4}\n";
+                }
+                
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref entity, "new_mypay_custom_params", customParams);
+            }
+
+            // 5. 處理發票資訊
+            if (!string.IsNullOrEmpty(returnModel.invoice_number))
+            {
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref entity, "new_invoice_number", returnModel.invoice_number);
+            }
+
+            // 6. 記錄交易完整詳情
+            string fullTransactionDetails = $"高鉅金流完整交易詳情 [{DateTime.Now:yyyy-MM-dd HH:mm:ss}]:\n";
+            fullTransactionDetails += $"訂單ID: {returnModel.order_id}\n";
+            fullTransactionDetails += $"商店代號: {returnModel.store_uid}\n";
+            fullTransactionDetails += $"交易狀態: {(returnModel.state == "1" ? "成功" : "失敗")}\n";
+            
+            if (processingResult.TransactionInfo.ParsedCost.HasValue)
+            {
+                fullTransactionDetails += $"交易金額: {processingResult.TransactionInfo.ParsedCost.Value:C}\n";
+            }
+            
+            if (!string.IsNullOrEmpty(processingResult.TransactionInfo.Currency))
+            {
+                fullTransactionDetails += $"交易幣別: {processingResult.TransactionInfo.Currency}\n";
+            }
+            
+            if (processingResult.TransactionInfo.ParsedFinishTime.HasValue)
+            {
+                fullTransactionDetails += $"完成時間: {processingResult.TransactionInfo.ParsedFinishTime.Value:yyyy-MM-dd HH:mm:ss}\n";
+            }
+            
+            if (!string.IsNullOrEmpty(processingResult.TransactionInfo.PaymentMethod))
+            {
+                fullTransactionDetails += $"付費方法: {processingResult.TransactionInfo.PaymentMethod}\n";
+            }
+            
+            if (processingResult.TransactionInfo.TransactionType.HasValue)
+            {
+                fullTransactionDetails += $"交易類型: {processingResult.TransactionInfo.TransactionType.Value}\n";
+            }
+            
+            fullTransactionDetails += $"回傳訊息: {returnModel.msg}\n";
+            
+            this.m_ToolUtilityClass.SetEntityStringAttribute(ref entity, "new_mypay_transaction_details", fullTransactionDetails);
+        }
+
+        /// <summary>
+        /// 記錄詳細的處理結果
+        /// </summary>
+        private void RecordDetailedProcessingResult(Entity entity, MyPayReturnModel returnModel, MyPayProcessingResult processingResult)
+        {
+            // 更新備註，記錄處理摘要
             string currentNote = this.m_ToolUtilityClass.GetEntityStringAttribute(entity, "new_explain") ?? "";
-            string newNote = $"{currentNote}\n[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] 高鉅金流付款成功\n" +
-                 $"交易號: {returnModel.transaction_id}\n" +
-                 $"金額: {(string.IsNullOrEmpty(returnModel.cost) ? "0" : returnModel.cost)} 元\n" +
-                 $"訊息: {returnModel.msg}";
+            string newNote = $"{currentNote}\n{processingResult.Summary}";
+
+            // 如果處理有錯誤，也記錄下來
+            if (!processingResult.IsSuccess && !string.IsNullOrEmpty(processingResult.ErrorMessage))
+            {
+                newNote += $"\n處理錯誤: {processingResult.ErrorMessage}\n";
+            }
+
             this.m_ToolUtilityClass.SetEntityStringAttribute(ref entity, "new_explain", newNote);
+
+            // 記錄原始回傳的 JSON 資料 (用於除錯和稽核)
+            try
+            {
+                var allFields = returnModel.GetAllFieldsDictionary();
+                var jsonData = Newtonsoft.Json.JsonConvert.SerializeObject(allFields, Newtonsoft.Json.Formatting.Indented);
+                //this.m_ToolUtilityClass.SetEntityStringAttribute(ref entity, "new_mypay_raw_data", jsonData);
+            }
+            catch (Exception ex)
+            {
+                // JSON 序列化失敗也不影響主流程
+                string jsonError = $"JSON 序列化失敗: {ex.Message}";
+                //this.m_ToolUtilityClass.SetEntityStringAttribute(ref entity, "new_mypay_raw_data", jsonError);
+            }
+
+            // 驗證所有必要欄位
+            var validationResult = returnModel.ValidateAllFields();
+            if (!validationResult.IsValid)
+            {
+                string validationErrors = "欄位驗證錯誤:\n" + string.Join("\n", validationResult.Errors);
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref entity, "new_mypay_validation_errors", validationErrors);
+            }
         }
 
         /// <summary>
@@ -1872,15 +2206,58 @@ namespace ChurchReport.WebServiceConnector
         /// <param name="returnModel">回傳資料</param>
         private async Task ProcessFailedMyPayReturn(Entity entity, string entityType, MyPayReturnModel returnModel)
         {
-            // 更新備註，記錄失敗原因
-            string currentNote = this.m_ToolUtilityClass.GetEntityStringAttribute(entity, "new_explain") ?? "";
-            string newNote = $"{currentNote}\n[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] 高鉅金流付款失敗\n" +
-                           $"交易號: {returnModel.transaction_id}\n" +
-                           $"失敗原因: {returnModel.msg}";
-            this.m_ToolUtilityClass.SetEntityStringAttribute(ref entity, "new_explain", newNote);
+            try
+            {
+                // 處理失敗的 MyPayReturnModel 參數
+                var processingResult = returnModel.ProcessAllReturnFields();
 
-            // 可以選擇是否要將付款狀態設為失敗，或保持原狀態
-            // 如果有付款失敗的狀態選項，可以在這裡設定
+                // 更新備註，記錄失敗原因
+                string currentNote = this.m_ToolUtilityClass.GetEntityStringAttribute(entity, "new_explain") ?? "";
+                string newNote = $"{currentNote}\n[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] 高鉅金流付款失敗\n" +
+                               $"交易號: {returnModel.transaction_id}\n" +
+                               $"失敗原因: {returnModel.msg}\n";
+
+                // 如果有詳細的錯誤信息，也一併記錄
+                if (!string.IsNullOrEmpty(returnModel.prc))
+                {
+                    newNote += $"主要回傳碼: {returnModel.prc}\n";
+                }
+
+                if (processingResult.TransactionInfo?.ReturnMessage != null)
+                {
+                    newNote += $"詳細訊息: {processingResult.TransactionInfo.ReturnMessage}\n";
+                }
+
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref entity, "new_explain", newNote);
+
+                // 如果是認獻單，設為啟動失敗
+                if (entityType == "new_dedication_booking")
+                {
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(ref entity, "new_dedication_booking_status", 100000003); // 啟動失敗
+                }
+
+                // 記錄失敗的原始資料
+                try
+                {
+                    var allFields = returnModel.GetAllFieldsDictionary();
+                    var jsonData = Newtonsoft.Json.JsonConvert.SerializeObject(allFields, Newtonsoft.Json.Formatting.Indented);
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref entity, "new_mypay_failed_data", jsonData);
+                }
+                catch (Exception ex)
+                {
+                    string jsonError = $"JSON 序列化失敗: {ex.Message}";
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref entity, "new_mypay_failed_data", jsonError);
+                }
+            }
+            catch (Exception ex)
+            {
+                string errorMessage = $"ProcessFailedMyPayReturn 錯誤: {ex.Message}";
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref entity, "new_explain", 
+                    $"{this.m_ToolUtilityClass.GetEntityStringAttribute(entity, "new_explain")}\n{errorMessage}");
+                
+                String ErrorString = $"ERROR: {GetType().FullName} - {DateTime.Now} - {errorMessage}";
+                throw new Exception(errorMessage, ex);
+            }
         }
 
         /// <summary>
@@ -1914,23 +2291,82 @@ namespace ChurchReport.WebServiceConnector
 
                         if (!string.IsNullOrEmpty(lineId))
                         {
+                            string contactName = this.m_ToolUtilityClass.GetEntityStringAttribute(contact, "fullname");
                             string message;
+
                             if (returnModel.state == "1")
                             {
                                 // 付款成功訊息
-                                message = $"您好，您的奉獻已經成功完成！\n" +
-                                          $"交易號: {returnModel.transaction_id}\n" +
-                                          $"金額: {(string.IsNullOrEmpty(returnModel.cost) ? "0" : returnModel.cost)} 元\n" +
-                                          $"感謝您的奉獻！";
+                                message = $"親愛的 {contactName}，您好！\n\n" +
+                                          $"您的奉獻已經成功完成！\n" +
+                                          $"🎉 交易成功 🎉\n\n" +
+                                          $"📋 交易詳情:\n" +
+                                          $"• 交易號: {returnModel.transaction_id}\n";
+
+                                // 處理金額顯示
+                                if (!string.IsNullOrEmpty(returnModel.cost) && decimal.TryParse(returnModel.cost, out decimal amount))
+                                {
+                                    message += $"• 金額: {amount:C}\n";
+                                }
+                                else if (!string.IsNullOrEmpty(returnModel.actual_cost) && decimal.TryParse(returnModel.actual_cost, out decimal actualAmount))
+                                {
+                                    message += $"• 金額: {actualAmount:C}\n";
+                                }
+
+                                // 處理付款方式
+                                if (!string.IsNullOrEmpty(returnModel.pay_type))
+                                {
+                                    message += $"• 付款方式: {returnModel.pay_type}\n";
+                                }
+
+                                // 處理完成時間
+                                if (!string.IsNullOrEmpty(returnModel.finishtime) && returnModel.finishtime.Length == 14)
+                                {
+                                    if (DateTime.TryParseExact(returnModel.finishtime, "yyyyMMddHHmmss", 
+                                        System.Globalization.CultureInfo.InvariantCulture, 
+                                        System.Globalization.DateTimeStyles.None, out DateTime finishTime))
+                                    {
+                                        message += $"• 完成時間: {finishTime:yyyy-MM-dd HH:mm:ss}\n";
+                                    }
+                                }
+
+                                message += $"\n🙏 感謝您的奉獻！\n" +
+                                          $"願上帝賜福給您！";
+
+                                // 如果是定期定額，加入特別說明
+                                if (entityType == "new_dedication_booking")
+                                {
+                                    message += $"\n\n📅 定期定額扣款已成功啟動";
+                                    if (!string.IsNullOrEmpty(returnModel.group_id))
+                                    {
+                                        message += $"\n扣款群組ID: {returnModel.group_id}";
+                                    }
+                                }
                             }
                             else
                             {
                                 // 付款失敗訊息
-                                message = $"您好，您的奉獻交易處理失敗。\n" +
-                                         $"原因: {returnModel.msg}\n" +
-                                         $"請稍後再試或聯繫教會辦公室。";
+                                message = $"親愛的 {contactName}，您好！\n\n" +
+                                         $"很抱歉，您的奉獻交易處理失敗。\n" +
+                                         $"❌ 交易失敗 ❌\n\n" +
+                                         $"📋 失敗原因:\n" +
+                                         $"• {returnModel.msg}\n";
+
+                                if (!string.IsNullOrEmpty(returnModel.transaction_id))
+                                {
+                                    message += $"• 交易號: {returnModel.transaction_id}\n";
+                                }
+
+                                message += $"\n🔧 請嘗試以下解決方案:\n" +
+                                          $"1. 檢查網路連線是否穩定\n" +
+                                          $"2. 確認信用卡資訊是否正確\n" +
+                                          $"3. 聯繫您的發卡銀行確認\n" +
+                                          $"4. 稍後再試或使用其他付款方式\n\n" +
+                                          $"📞 如需協助，請聯繫教會辦公室\n" +
+                                          $"我們將竭誠為您服務！";
                             }
 
+                            // 發送 LINE 訊息
                             await m_PushUtility.SendMessage(lineId, message);
                         }
                     }
@@ -1940,126 +2376,10 @@ namespace ChurchReport.WebServiceConnector
             {
                 // 推送失敗不影響主流程，只記錄錯誤
                 String ErrorString = $"ERROR: SendMyPaymentNotification - {DateTime.Now} - {ex}";
+                // 可以選擇記錄到日誌或資料庫，但不拋出異常
             }
         }
-
-
-
-        #region 發展中
-        //private async Task ProcessSuccessfulPayment(Entity entity, MyPayReturnModel returnModel)
-        //{
-        //    // 處理基本交易資訊
-        //    ProcessBasicTransactionInfo(entity, returnModel);
-
-        //    // 處理信用卡資訊
-        //    ProcessCreditCardInfo(entity, returnModel);
-
-        //    // 處理虛擬帳號資訊
-        //    ProcessVirtualAccountInfo(entity, returnModel);
-
-        //    // 處理定期定額資訊
-        //    ProcessRecurringPaymentInfo(entity, returnModel);
-
-        //    // 處理發票資訊
-        //    ProcessInvoiceInfo(entity, returnModel);
-        //}
-
-        //private void ProcessBasicTransactionInfo(Entity entity, MyPayReturnModel returnModel)
-        //{
-        //    // 更新付款狀態
-        //    if (!string.IsNullOrEmpty(returnModel.pfn))
-        //    {
-        //        SetPaymentMethod(returnModel.pfn, ref entity);
-        //    }
-
-        //    // 更新交易金額
-        //    if (!string.IsNullOrEmpty(returnModel.cost))
-        //    {
-        //        if (int.TryParse(returnModel.cost, out int amount))
-        //        {
-        //            this.m_ToolUtilityClass.SetEntityMoneyAttribute(ref entity, "new_fee_really_paid", new Money(amount));
-        //        }
-        //    }
-
-        //    // 更新交易完成時間
-        //    if (!string.IsNullOrEmpty(returnModel.finishtime))
-        //    {
-        //        if (DateTime.TryParseExact(returnModel.finishtime, "yyyyMMddHHmmss", null, DateTimeStyles.None, out DateTime finishTime))
-        //        {
-        //            this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref entity, "new_pay_date", finishTime);
-        //        }
-        //    }
-
-        //    // 記錄交易資訊
-        //    string transactionInfo = $"高鉅金流交易資訊:\n" +
-        //                           $"交易流水號: {returnModel.uid}\n" +
-        //                           $"交易完成時間: {returnModel.finishtime}\n" +
-        //                           $"金融服務商: {returnModel.supplier_name}\n" +
-        //                           $"實際金額: {returnModel.actual_cost} {returnModel.actual_currency}";
-
-        //    this.m_ToolUtilityClass.SetEntityStringAttribute(ref entity, "new_mypay_transaction_details", transactionInfo);
-        //}
-
-        //private void ProcessCreditCardInfo(Entity entity, MyPayReturnModel returnModel)
-        //{
-        //    if (!string.IsNullOrEmpty(returnModel.card_type))
-        //    {
-        //        // 儲存信用卡資訊
-        //        string cardInfo = $"卡別: {returnModel.card_type}\n" +
-        //                         $"發卡行: {returnModel.issuing_bank}\n" +
-        //                         $"授權碼: {returnModel.acode}\n" +
-        //                         $"卡號: ****-****-****-{returnModel.cardno}";
-
-        //        this.m_ToolUtilityClass.SetEntityStringAttribute(ref entity, "new_mypay_card_info", cardInfo);
-
-        //        // 處理分期資訊
-        //        if (!string.IsNullOrEmpty(returnModel.installment))
-        //        {
-        //            this.m_ToolUtilityClass.SetEntityStringAttribute(ref entity, "new_installment_info", returnModel.installment);
-        //        }
-
-        //        // 處理紅利資訊
-        //        if (!string.IsNullOrEmpty(returnModel.redeem))
-        //        {
-        //            this.m_ToolUtilityClass.SetEntityStringAttribute(ref entity, "new_redeem_info", returnModel.redeem);
-        //        }
-        //    }
-        //}
-
-        //private void ProcessVirtualAccountInfo(Entity entity, MyPayReturnModel returnModel)
-        //{
-        //    if (!string.IsNullOrEmpty(returnModel.bank_id))
-        //    {
-        //        // 儲存虛擬帳號資訊
-        //        string atmInfo = $"銀行代碼: {returnModel.bank_id}\n" +
-        //                        $"到期日: {returnModel.expired_date}\n" +
-        //                        $"帳號資訊: {returnModel.result_content}";
-
-        //        this.m_ToolUtilityClass.SetEntityStringAttribute(ref entity, "new_virtual_account_info", atmInfo);
-        //    }
-        //}
-
-        //private void ProcessRecurringPaymentInfo(Entity entity, MyPayReturnModel returnModel)
-        //{
-        //    if (!string.IsNullOrEmpty(returnModel.group_id))
-        //    {
-        //        // 儲存定期定額資訊
-        //        this.m_ToolUtilityClass.SetEntityStringAttribute(ref entity, "new_recurring_group_id", returnModel.group_id);
-        //        this.m_ToolUtilityClass.SetEntityStringAttribute(ref entity, "new_recurring_payment_name", returnModel.payment_name);
-        //        this.m_ToolUtilityClass.SetEntityStringAttribute(ref entity, "new_recurring_periods", returnModel.nois);
-        //    }
-        //}
-
-        //private void ProcessInvoiceInfo(Entity entity, MyPayReturnModel returnModel)
-        //{
-        //    // 處理發票相關資訊 (根據您的 MyPayReturnModel 中的發票欄位)
-        //    if (!string.IsNullOrEmpty(returnModel.invoice_number))
-        //    {
-        //        this.m_ToolUtilityClass.SetEntityStringAttribute(ref entity, "new_invoice_number", returnModel.invoice_number);
-        //    }
-        //}
-        #endregion
-        #endregion
+        #endregion // 關閉 高鉅金流 PayPage 回傳處理 區域
         #region 工具區
         /// <summary>
         /// 實現阿拉伯數字到大寫中文的轉換，金額轉為大寫金額
@@ -2067,349 +2387,199 @@ namespace ChurchReport.WebServiceConnector
         /// <param name="LowerMoney"></param>
         /// <returns></returns>
         public string MoneyToChinese(string LowerMoney)
-
         {
-
             string functionReturnValue = null;
-
             bool IsNegative = false; // 是否是負數
 
             if (LowerMoney.Trim().Substring(0, 1) == "-")
-
             {
-
                 // 是負數則先轉為正數
-
                 LowerMoney = LowerMoney.Trim().Remove(0, 1);
-
                 IsNegative = true;
-
             }
 
             string strLower = null;
-
             string strUpart = null;
-
             string strUpper = null;
-
             int iTemp = 0;
 
             // 保留兩位小數 123.489→123.49　　123.4→123.4
-
             LowerMoney = Math.Round(double.Parse(LowerMoney), 2).ToString();
 
             if (LowerMoney.IndexOf(".") > 0)
-
             {
-
                 if (LowerMoney.IndexOf(".") == LowerMoney.Length - 2)
-
                 {
-
                     LowerMoney = LowerMoney + "0";
-
                 }
-
             }
-
             else
-
             {
-
                 LowerMoney = LowerMoney + ".00";
-
             }
 
             strLower = LowerMoney;
-
             iTemp = 1;
-
             strUpper = "";
 
             while (iTemp <= strLower.Length)
-
             {
-
                 switch (strLower.Substring(strLower.Length - iTemp, 1))
-
                 {
-
                     case ".":
-
                         strUpart = "圓";
-
                         break;
-
                     case "0":
-
                         strUpart = "零";
-
                         break;
-
                     case "1":
-
                         strUpart = "壹";
-
                         break;
-
                     case "2":
-
                         strUpart = "貳";
-
                         break;
-
                     case "3":
-
                         strUpart = "叄";
-
                         break;
-
                     case "4":
-
                         strUpart = "肆";
-
                         break;
-
                     case "5":
-
                         strUpart = "伍";
-
                         break;
-
                     case "6":
-
                         strUpart = "陸";
-
                         break;
-
                     case "7":
-
                         strUpart = "柒";
-
                         break;
-
                     case "8":
-
                         strUpart = "捌";
-
                         break;
-
                     case "9":
-
                         strUpart = "玖";
-
                         break;
-
                 }
 
                 switch (iTemp)
-
                 {
-
                     case 1:
-
                         strUpart = strUpart + "分";
-
                         break;
-
                     case 2:
-
                         strUpart = strUpart + "角";
-
                         break;
-
                     case 3:
-
                         strUpart = strUpart + "";
-
                         break;
-
                     case 4:
-
                         strUpart = strUpart + "";
-
                         break;
-
                     case 5:
-
                         strUpart = strUpart + "拾";
-
                         break;
-
                     case 6:
-
                         strUpart = strUpart + "佰";
-
                         break;
-
                     case 7:
-
                         strUpart = strUpart + "仟";
-
                         break;
-
                     case 8:
-
                         strUpart = strUpart + "萬";
-
                         break;
-
                     case 9:
-
                         strUpart = strUpart + "拾";
-
                         break;
-
                     case 10:
-
                         strUpart = strUpart + "佰";
-
                         break;
-
                     case 11:
-
                         strUpart = strUpart + "仟";
-
                         break;
-
                     case 12:
-
                         strUpart = strUpart + "億";
-
                         break;
-
                     case 13:
-
                         strUpart = strUpart + "拾";
-
                         break;
-
                     case 14:
-
                         strUpart = strUpart + "佰";
-
                         break;
-
                     case 15:
-
                         strUpart = strUpart + "仟";
-
                         break;
-
                     case 16:
-
                         strUpart = strUpart + "萬";
-
                         break;
-
                     default:
-
                         strUpart = strUpart + "";
-
                         break;
-
                 }
 
                 strUpper = strUpart + strUpper;
-
                 iTemp = iTemp + 1;
-
             }
 
             strUpper = strUpper.Replace("零拾", "零");
-
             strUpper = strUpper.Replace("零佰", "零");
-
             strUpper = strUpper.Replace("零仟", "零");
-
             strUpper = strUpper.Replace("零零零", "零");
-
             strUpper = strUpper.Replace("零零", "零");
-
             strUpper = strUpper.Replace("零角零分", "整");
-
             strUpper = strUpper.Replace("零分", "整");
-
             strUpper = strUpper.Replace("零角", "零");
-
             strUpper = strUpper.Replace("零億零萬零圓", "億圓");
-
             strUpper = strUpper.Replace("億零萬零圓", "億圓");
-
             strUpper = strUpper.Replace("零億零萬", "億");
-
             strUpper = strUpper.Replace("零萬零圓", "萬圓");
-
             strUpper = strUpper.Replace("零億", "億");
-
             strUpper = strUpper.Replace("零萬", "萬");
-
             strUpper = strUpper.Replace("零圓", "圓");
-
             strUpper = strUpper.Replace("零零", "零");
 
             // 對壹圓以下的金額的處理
-
             if (strUpper.Substring(0, 1) == "圓")
-
             {
-
                 strUpper = strUpper.Substring(1, strUpper.Length - 1);
-
             }
 
             if (strUpper.Substring(0, 1) == "零")
-
             {
-
                 strUpper = strUpper.Substring(1, strUpper.Length - 1);
-
             }
 
             if (strUpper.Substring(0, 1) == "角")
-
             {
-
                 strUpper = strUpper.Substring(1, strUpper.Length - 1);
-
             }
 
             if (strUpper.Substring(0, 1) == "分")
-
             {
-
                 strUpper = strUpper.Substring(1, strUpper.Length - 1);
-
             }
 
             if (strUpper.Substring(0, 1) == "整")
-
             {
-
                 strUpper = "零圓整";
-
             }
 
             functionReturnValue = strUpper;
 
             if (IsNegative == true)
-
             {
-
                 return "負" + functionReturnValue;
-
             }
-
             else
-
             {
-
                 return functionReturnValue;
-
             }
-
         }
 
+        /// <summary>
+        /// 轉換定期定額總期數字串為數字
+        /// </summary>
+        /// <param name="DeductTotalNumber">定期定額總期數字串</param>
+        /// <returns>轉換後的數字</returns>
         private int TransferToDeductTotalNum(string DeductTotalNumber)
         {
             switch (DeductTotalNumber)
