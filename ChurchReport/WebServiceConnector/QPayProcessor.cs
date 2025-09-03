@@ -1792,7 +1792,7 @@ namespace ChurchReport.WebServiceConnector
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref entity, "new_mypay_transaction_id", returnModel.transaction_id);
 
                 // 根據交易結果進行不同處理
-                if (returnModel.state == "1") // 交易成功
+                if (returnModel.retmsg == "付款完成") // 交易成功
                 {
                     await ProcessSuccessfulMyPayReturn(entity, entityType, returnModel);
                 }
@@ -2294,7 +2294,7 @@ namespace ChurchReport.WebServiceConnector
                             string contactName = this.m_ToolUtilityClass.GetEntityStringAttribute(contact, "fullname");
                             string message;
 
-                            if (returnModel.state == "1")
+                            if (returnModel.retmsg == "付款完成")
                             {
                                 // 付款成功訊息
                                 message = $"親愛的 {contactName}，您好！\n\n" +

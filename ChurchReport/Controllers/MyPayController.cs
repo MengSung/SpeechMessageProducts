@@ -51,7 +51,7 @@ namespace ChurchReport.Controllers
                     // 記錄警告訊息，包含訂單編號以便追蹤問題
                     _logger.LogWarning($"回傳資料缺少必要欄位: {returnModel.order_id}");
                     // 回傳 400 Bad Request 狀態碼給金流平台
-                    return BadRequest("回傳資料缺少必要欄位");
+                    //return BadRequest("回傳資料缺少必要欄位");
                 }
 
                 // 建立 QPayProcessor 實例來處理回傳
@@ -97,7 +97,8 @@ namespace ChurchReport.Controllers
                     // 系統處理回傳資訊時發生錯誤，記錄警告並回傳 500 錯誤
                     // 讓金流平台知道需要重新發送通知
                     _logger.LogWarning($"處理回傳失敗: {returnModel.order_id}");
-                    return StatusCode(500, "處理失敗");
+                    return Ok("888");
+                    //return StatusCode(500, "處理失敗");
                 }
             }
             catch (Exception ex)
