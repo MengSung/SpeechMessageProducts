@@ -26,7 +26,7 @@ namespace ChurchReport.Controllers
         /// </summary>
         /// <param name="returnModel">高鉅金流回傳的表單資料</param>
         /// <returns>處理結果</returns>
-        [HttpPost("return")]
+        [HttpPost("MyPayReturn")]
         public async Task<IActionResult> PaymentReturn([FromForm] MyPayReturnModel returnModel)
         {
             _logger.LogInformation($"收到高鉅金流回傳，OrderID: {returnModel?.order_id}, 狀態: {returnModel?.state}");
