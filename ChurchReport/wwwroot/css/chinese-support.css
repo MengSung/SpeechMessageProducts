@@ -1,0 +1,79 @@
+/* 
+   ===================================================================
+   中文字型支援 CSS 文件
+   功能：確保中文字元在所有瀏覽器中正確顯示
+   ===================================================================
+*/
+
+/* 全局字型設定 - 確保中文字元正確顯示 */
+* {
+    font-family: "Microsoft JhengHei", "微軟正黑體", "SimHei", "黑體", "Arial Unicode MS", "標楷體", "新細明體", "PMingLiU", Arial, sans-serif !important;
+}
+
+/* 針對 HTML 和 body 元素的特殊設定 */
+html, body {
+    font-family: "Microsoft JhengHei", "微軟正黑體", "SimHei", "黑體", "Arial Unicode MS", "標楷體", "新細明體", "PMingLiU", Arial, sans-serif !important;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* DevExtreme 元件的中文字型支援 */
+.dx-widget, 
+.dx-datagrid,
+.dx-datagrid-headers,
+.dx-datagrid-rowsview,
+.dx-textbox,
+.dx-texteditor-input,
+.dx-checkbox-text,
+.dx-button-text,
+.dx-popup-title,
+.dx-toast-message {
+    font-family: "Microsoft JhengHei", "微軟正黑體", "SimHei", "黑體", "Arial Unicode MS", "標楷體", "新細明體", "PMingLiU", Arial, sans-serif !important;
+}
+
+/* 確保表格標題和內容正確顯示中文 */
+.dx-header-row td,
+.dx-data-row td,
+.dx-group-row td {
+    font-family: "Microsoft JhengHei", "微軟正黑體", "SimHei", "黑體", "Arial Unicode MS", "標楷體", "新細明體", "PMingLiU", Arial, sans-serif !important;
+}
+
+/* 標題和標籤的字型設定 */
+h1, h2, h3, h4, h5, h6,
+label, span, div, p {
+    font-family: "Microsoft JhengHei", "微軟正黑體", "SimHei", "黑體", "Arial Unicode MS", "標楷體", "新細明體", "PMingLiU", Arial, sans-serif !important;
+}
+
+/* 輸入框和選擇框的字型設定 */
+input, select, textarea, button {
+    font-family: "Microsoft JhengHei", "微軟正黑體", "SimHei", "黑體", "Arial Unicode MS", "標楷體", "新細明體", "PMingLiU", Arial, sans-serif !important;
+}
+
+/* 針對特定的小組和個人報表區域 */
+.general-group-grids,
+.small-group-section,
+.new-person-follow-up-section {
+    font-family: "Microsoft JhengHei", "微軟正黑體", "SimHei", "黑體", "Arial Unicode MS", "標楷體", "新細明體", "PMingLiU", Arial, sans-serif !important;
+}
+
+/* 強制所有文字內容使用正確編碼 */
+.general-group-grids h5,
+.small-group-section h5,
+.new-person-follow-up-section h5 {
+    font-family: "Microsoft JhengHei", "微軟正黑體", "SimHei", "黑體", "Arial Unicode MS", "標楷體", "新細明體", "PMingLiU", Arial, sans-serif !important;
+    font-weight: bold;
+    color: inherit;
+}
+
+/* DevExtreme Lookup 和下拉選單的字型 */
+.dx-lookup-popup-content,
+.dx-selectbox-popup-wrapper,
+.dx-dropdowneditor-overlay {
+    font-family: "Microsoft JhengHei", "微軟正黑體", "SimHei", "黑體", "Arial Unicode MS", "標楷體", "新細明體", "PMingLiU", Arial, sans-serif !important;
+}
+
+/* 確保所有下拉選項正確顯示中文 */
+.dx-list-item-content,
+.dx-item-content {
+    font-family: "Microsoft JhengHei", "微軟正黑體", "SimHei", "黑體", "Arial Unicode MS", "標楷體", "新細明體", "PMingLiU", Arial, sans-serif !important;
+}
