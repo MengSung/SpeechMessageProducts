@@ -1,0 +1,50 @@
+@model ChurchReport.Models.ListSmallGroupWeeklyReport
+
+@* Render upload button by login and group type *@
+@if (Model.LoginType == "小組長")
+{
+    if (Model.GroupType == "一般小組")
+    {
+        @(Html.DevExtreme().Button()
+            .ID("save-button-general")
+            .Text("上傳")
+            .Height(50)
+            .Width(100)
+            .Type(ButtonType.Success)
+            .Icon("check")
+            .UseSubmitBehavior(false)
+            .OnClick("onUploadClickGeneral")
+        )
+    }
+    else
+    {
+        @(Html.DevExtreme().Button()
+            .ID("save-button-happy")
+            .Text("上傳")
+            .Height(50)
+            .Width(100)
+            .Type(ButtonType.Success)
+            .Icon("check")
+            .UseSubmitBehavior(false)
+            .OnClick("onUploadClickHappy")
+        )
+    }
+}
+else
+{
+    @(Html.DevExtreme().Button()
+        .ID("save-button-individual")
+        .Text("上傳")
+        .Height(50)
+        .Width(100)
+        .Type(ButtonType.Success)
+        .Icon("check")
+        .UseSubmitBehavior(false)
+        .OnClick("onUploadClickIndividual")
+    )
+}
+
+<style>
+    /* Minimal styling for layout */
+    .dx-button { margin: 4px; }
+</style>

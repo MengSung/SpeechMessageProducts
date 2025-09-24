@@ -1,0 +1,431 @@
+@*
+    ===================================================================
+    載入面板 Partial View
+    功能：統一管理載入指示器元件
+    編碼：UTF-8
+    ===================================================================
+*@
+
+@* ===== 主要載入面板 ===== *@
+<div class="loading-panel-main">
+    @(Html.DevExtreme().LoadPanel()
+        .ID("loadPanel")
+        .ShadingColor("rgba(0,0,0,0.5)")
+        .Position(p => p.Of("#all-section"))
+        .Visible(false)
+        .ShowIndicator(true)
+        .ShowPane(true)
+        .Shading(true)
+        .CloseOnOutsideClick(false)
+        .Message("處理中，請稍候...")
+        .Height(120)
+        .Width(300)
+        .Animation(a => a
+            .Show(s => s
+                .Type(AnimationType.FadeIn)
+                .Duration(300)
+                .Easing(AnimationEasing.Swing)
+            )
+            .Hide(h => h
+                .Type(AnimationType.FadeOut)
+                .Duration(200)
+                .Easing(AnimationEasing.Swing)
+            )
+        )
+        .OnShown("loadPanel_shown")
+        .OnHidden("loadPanel_hidden")
+    )
+</div>
+
+@* ===== 圖表載入面板 ===== *@
+<div class="loading-panel-chart">
+    @(Html.DevExtreme().LoadPanel()
+        .ID("chartLoadPanel")
+        .ShadingColor("rgba(255,255,255,0.8)")
+        .Position(p => p.Of("#chart-section"))
+        .Visible(false)
+        .ShowIndicator(true)
+        .ShowPane(true)
+        .Shading(true)
+        .CloseOnOutsideClick(false)
+        .Message("載入圖表資料...")
+        .Height(100)
+        .Width(250)
+    )
+</div>
+
+@* ===== 資料網格載入面板 ===== *@
+<div class="loading-panel-grid">
+    @(Html.DevExtreme().LoadPanel()
+        .ID("gridLoadPanel")
+        .ShadingColor("rgba(0,0,0,0.3)")
+        .Position(p => p.Of(".data-grid-section"))
+        .Visible(false)
+        .ShowIndicator(true)
+        .ShowPane(true)
+        .Shading(true)
+        .CloseOnOutsideClick(false)
+        .Message("更新資料中...")
+        .Height(100)
+        .Width(200)
+    )
+</div>
+
+@* ===== 上傳專用載入面板 ===== *@
+<div class="loading-panel-upload">
+    @(Html.DevExtreme().LoadPanel()
+        .ID("uploadLoadPanel")
+        .ShadingColor("rgba(76, 175, 80, 0.2)")
+        .Position(p => p.Of(".upload-button-area"))
+        .Visible(false)
+        .ShowIndicator(true)
+        .ShowPane(true)
+        .Shading(true)
+        .CloseOnOutsideClick(false)
+        .Message("上傳資料中...")
+        .Height(80)
+        .Width(180)
+    )
+</div>
+
+<style>
+    /* ===== 載入面板容器樣式 ===== */
+    .loading-panel-main,
+    .loading-panel-chart,
+    .loading-panel-grid,
+    .loading-panel-upload {
+        position: relative;
+        z-index: 9999;
+    }
+
+    /* ===== 載入面板內容客製化 ===== */
+    .dx-loadpanel-content {
+        border-radius: 12px !important;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2) !important;
+        backdrop-filter: blur(5px) !important;
+        -webkit-backdrop-filter: blur(5px) !important;
+    }
+
+    /* 載入面板背景 */
+    .dx-loadpanel-pane {
+        background: rgba(255, 255, 255, 0.95) !important;
+        border: 1px solid rgba(0, 0, 0, 0.1) !important;
+    }
+
+    /* 載入指示器樣式 */
+    .dx-loadindicator {
+        width: 48px !important;
+        height: 48px !important;
+    }
+
+    .dx-loadindicator-icon {
+        border-width: 4px !important;
+        border-color: #2196f3 transparent transparent transparent !important;
+    }
+
+    /* 載入訊息文字樣式 */
+    .dx-loadpanel-message {
+        font-family: 'Microsoft JhengHei', 'PingFang TC', sans-serif !important;
+        font-size: 14px !important;
+        font-weight: 500 !important;
+        color: #333 !important;
+        margin-top: 15px !important;
+        text-align: center !important;
+    }
+
+    /* 圖表載入面板特殊樣式 */
+    #chartLoadPanel .dx-loadpanel-pane {
+        background: rgba(33, 150, 243, 0.05) !important;
+        border: 1px solid rgba(33, 150, 243, 0.2) !important;
+    }
+
+    #chartLoadPanel .dx-loadindicator-icon {
+        border-color: #1976d2 transparent transparent transparent !important;
+    }
+
+    /* 資料網格載入面板特殊樣式 */
+    #gridLoadPanel .dx-loadpanel-pane {
+        background: rgba(158, 158, 158, 0.05) !important;
+        border: 1px solid rgba(158, 158, 158, 0.2) !important;
+    }
+
+    #gridLoadPanel .dx-loadindicator-icon {
+        border-color: #757575 transparent transparent transparent !important;
+    }
+
+    /* 上傳載入面板特殊樣式 */
+    #uploadLoadPanel .dx-loadpanel-pane {
+        background: rgba(76, 175, 80, 0.05) !important;
+        border: 1px solid rgba(76, 175, 80, 0.2) !important;
+    }
+
+    #uploadLoadPanel .dx-loadindicator-icon {
+        border-color: #4caf50 transparent transparent transparent !important;
+    }
+
+    /* 響應式設計 */
+    @@media (max-width: 768px) {
+        .dx-loadpanel-content {
+            max-width: 90vw !important;
+            max-height: 90vh !important;
+        }
+
+        .dx-loadpanel-message {
+            font-size: 13px !important;
+            margin-top: 12px !important;
+        }
+
+        .dx-loadindicator {
+            width: 40px !important;
+            height: 40px !important;
+        }
+
+        .dx-loadindicator-icon {
+            border-width: 3px !important;
+        }
+    }
+
+    @@media (max-width: 480px) {
+        .dx-loadpanel-message {
+            font-size: 12px !important;
+            margin-top: 10px !important;
+        }
+
+        .dx-loadindicator {
+            width: 36px !important;
+            height: 36px !important;
+        }
+    }
+
+    /* 高對比模式支援 */
+    @@media (prefers-contrast: high) {
+        .dx-loadpanel-pane {
+            background: rgba(255, 255, 255, 1) !important;
+            border: 2px solid #000 !important;
+        }
+
+        .dx-loadpanel-message {
+            color: #000 !important;
+            font-weight: 700 !important;
+        }
+
+        .dx-loadindicator-icon {
+            border-color: #000 transparent transparent transparent !important;
+        }
+    }
+
+    /* 暗色主題支援 */
+    @@media (prefers-color-scheme: dark) {
+        .dx-loadpanel-pane {
+            background: rgba(66, 66, 66, 0.95) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        }
+
+        .dx-loadpanel-message {
+            color: #fff !important;
+        }
+
+        .dx-loadindicator-icon {
+            border-color: #90caf9 transparent transparent transparent !important;
+        }
+    }
+
+    /* 減少動畫效果模式 */
+    @@media (prefers-reduced-motion: reduce) {
+        .dx-loadpanel,
+        .dx-loadindicator {
+            animation: none !important;
+            transition: none !important;
+        }
+
+        .dx-loadindicator-icon {
+            animation-duration: 0.01ms !important;
+        }
+    }
+</style>
+
+<script>
+    // ===== 載入面板相關輔助函式 =====
+    var LoadPanelHelpers = {
+        /*
+         * 顯示主要載入面板
+         * message - 自訂訊息
+         */
+        showMain: function(message) {
+            try {
+                var loadPanel = $("#loadPanel").dxLoadPanel("instance");
+                if (loadPanel) {
+                    if (message) {
+                        loadPanel.option("message", message);
+                    }
+                    loadPanel.show();
+                }
+            } catch (error) {
+                console.error("顯示主要載入面板錯誤:", error);
+            }
+        },
+
+        /*
+         * 隱藏主要載入面板
+         */
+        hideMain: function() {
+            try {
+                var loadPanel = $("#loadPanel").dxLoadPanel("instance");
+                if (loadPanel) {
+                    loadPanel.hide();
+                }
+            } catch (error) {
+                console.error("隱藏主要載入面板錯誤:", error);
+            }
+        },
+
+        /*
+         * 顯示圖表載入面板
+         */
+        showChart: function() {
+            try {
+                var chartLoadPanel = $("#chartLoadPanel").dxLoadPanel("instance");
+                if (chartLoadPanel) {
+                    chartLoadPanel.show();
+                }
+            } catch (error) {
+                console.error("顯示圖表載入面板錯誤:", error);
+            }
+        },
+
+        /*
+         * 隱藏圖表載入面板
+         */
+        hideChart: function() {
+            try {
+                var chartLoadPanel = $("#chartLoadPanel").dxLoadPanel("instance");
+                if (chartLoadPanel) {
+                    chartLoadPanel.hide();
+                }
+            } catch (error) {
+                console.error("隱藏圖表載入面板錯誤:", error);
+            }
+        },
+
+        /*
+         * 顯示資料網格載入面板
+         */
+        showGrid: function() {
+            try {
+                var gridLoadPanel = $("#gridLoadPanel").dxLoadPanel("instance");
+                if (gridLoadPanel) {
+                    gridLoadPanel.show();
+                }
+            } catch (error) {
+                console.error("顯示資料網格載入面板錯誤:", error);
+            }
+        },
+
+        /*
+         * 隱藏資料網格載入面板
+         */
+        hideGrid: function() {
+            try {
+                var gridLoadPanel = $("#gridLoadPanel").dxLoadPanel("instance");
+                if (gridLoadPanel) {
+                    gridLoadPanel.hide();
+                }
+            } catch (error) {
+                console.error("隱藏資料網格載入面板錯誤:", error);
+            }
+        },
+
+        /*
+         * 顯示上傳載入面板
+         */
+        showUpload: function() {
+            try {
+                var uploadLoadPanel = $("#uploadLoadPanel").dxLoadPanel("instance");
+                if (uploadLoadPanel) {
+                    uploadLoadPanel.show();
+                }
+            } catch (error) {
+                console.error("顯示上傳載入面板錯誤:", error);
+            }
+        },
+
+        /*
+         * 隱藏上傳載入面板
+         */
+        hideUpload: function() {
+            try {
+                var uploadLoadPanel = $("#uploadLoadPanel").dxLoadPanel("instance");
+                if (uploadLoadPanel) {
+                    uploadLoadPanel.hide();
+                }
+            } catch (error) {
+                console.error("隱藏上傳載入面板錯誤:", error);
+            }
+        },
+
+        /*
+         * 隱藏所有載入面板
+         */
+        hideAll: function() {
+            try {
+                this.hideMain();
+                this.hideChart();
+                this.hideGrid();
+                this.hideUpload();
+            } catch (error) {
+                console.error("隱藏所有載入面板錯誤:", error);
+            }
+        }
+    };
+
+    // ===== 載入面板事件處理函式 =====
+    
+    /*
+     * 載入面板顯示後事件處理
+     */
+    function loadPanel_shown(e) {
+        try {
+            // 禁用頁面滾動
+            document.body.style.overflow = 'hidden';
+            
+            // 記錄載入開始時間（用於效能監控）
+            if (typeof window.loadStartTime === 'undefined') {
+                window.loadStartTime = Date.now();
+            }
+            
+            console.log("載入面板已顯示");
+        } catch (error) {
+            console.error("載入面板顯示事件處理錯誤:", error);
+        }
+    }
+
+    /*
+     * 載入面板隱藏後事件處理
+     */
+    function loadPanel_hidden(e) {
+        try {
+            // 恢復頁面滾動
+            document.body.style.overflow = '';
+            
+            // 計算載入時間（用於效能監控）
+            if (typeof window.loadStartTime !== 'undefined') {
+                var loadTime = Date.now() - window.loadStartTime;
+                console.log("載入完成，耗時:", loadTime + "ms");
+                delete window.loadStartTime;
+            }
+            
+            console.log("載入面板已隱藏");
+        } catch (error) {
+            console.error("載入面板隱藏事件處理錯誤:", error);
+        }
+    }
+
+    // 將 LoadPanelHelpers 綁定到 window 物件供外部使用
+    if (typeof window !== 'undefined') {
+        window.LoadPanelHelpers = LoadPanelHelpers;
+        
+        // 向後相容的全域函式
+        window.showLoadingPanel = LoadPanelHelpers.showMain;
+        window.hideLoadingPanel = LoadPanelHelpers.hideMain;
+    }
+</script>

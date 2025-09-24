@@ -1,0 +1,41 @@
+@*
+  Toast 通知元件 Partial View (UTF-8)
+*@
+
+@{
+    var reUploadMsg = "請再按一次上傳鈕!";
+}
+
+<div>
+    @(Html.DevExtreme().Toast()
+        .ID("Toast")
+        .Position(p => p.At(HorizontalAlignment.Center, VerticalAlignment.Center).Offset(0, 50))
+        .CloseOnOutsideClick(true)
+        .DisplayTime(3000)
+        .MaxWidth(400)
+    )
+</div>
+
+<div>
+    @(Html.DevExtreme().Toast()
+        .ID("ToastReUpload")
+        .Position(p => p.At(HorizontalAlignment.Center, VerticalAlignment.Center).Offset(0, 50))
+        .Message(reUploadMsg)
+        .DisplayTime(5000)
+        .Type(ToastType.Warning)
+        .MaxWidth(500)
+        .CloseOnOutsideClick(true)
+    )
+</div>
+
+<div>
+    @(Html.DevExtreme().Toast()
+        .ID("SelectDateToast")
+        .Position(p => p.At(HorizontalAlignment.Center, VerticalAlignment.Center).Offset(0, 50))
+        .Message("日期格式錯誤，格式範例: 2018/6/5")
+        .DisplayTime(5000)
+        .Type(ToastType.Error)
+        .MaxWidth(350)
+        .CloseOnOutsideClick(true)
+    )
+</div>
