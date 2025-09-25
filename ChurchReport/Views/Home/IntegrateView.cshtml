@@ -153,106 +153,62 @@
                 <div class="upload-section">
                     @if (Model.LoginType == "小組長")
                     {
-                        @if (Model.GroupType == "一般小組")
-                        {
-                            @* 一般小組上傳按鈕 *@
-                            <div class="upload-button-container">
-                                @(Html.DevExtreme().Button()
-                                    .Text("上傳").Height(50).Width(80).Icon("check")
-                                    .Type(ButtonType.Success)
-                                    .ID("save-button")
-                                    .UseSubmitBehavior(false)
-                                    .OnClick(@<text>
-                                        function(arg) {
-                                            var SmallGroupDataGrid = $("#SmallGroupgridContainer").dxDataGrid("instance");
-                                            var NewPersonDataGrid = $("#NewPersonGridContainer").dxDataGrid("instance");
-                                            var ButtonContainer = $("#save-button").dxButton("instance");
+                        @* 小組長上傳鈕 *@
+                        <div class="upload-button-container">
+                            @(Html.DevExtreme().Button()
+                                .Text("上傳").Height(50).Width(80).Icon("check")
+                                .Type(ButtonType.Success)
+                                .ID("save-button")
+                                .UseSubmitBehavior(false)
+                                .OnClick(@<text>
+                                    function(arg) {
+                                        var SmallGroupDataGrid = $("#SmallGroupgridContainer").length ? $("#SmallGroupgridContainer").dxDataGrid("instance") : null;
+                                        var NewPersonDataGrid = $("#NewPersonGridContainer").length ? $("#NewPersonGridContainer").dxDataGrid("instance") : null;
+                                        var ButtonContainer = $("#save-button").dxButton("instance");
 
-                                            $("#SmallGroupgridContainer").dxDataGrid("instance").saveEditData();
-                                            $("#NewPersonGridContainer").dxDataGrid("instance").saveEditData();
+                                        if (SmallGroupDataGrid && SmallGroupDataGrid.saveEditData) {
+                                            SmallGroupDataGrid.saveEditData();
+                                        }
+                                        if (NewPersonDataGrid && NewPersonDataGrid.saveEditData) {
+                                            NewPersonDataGrid.saveEditData();
+                                        }
 
-                                            $("#loadPanel").dxLoadPanel("instance").show();
-                                            ButtonContainer.option("disabled", true);
+                                        $("#loadPanel").dxLoadPanel("instance").show();
+                                        ButtonContainer.option("disabled", true);
 
-                                            $.ajax({
-                                                url: '@Url.Action("SaveIntegrate", "Home")',
-                                                data: {
-                                                    WeeklyReportData: $("#WeeklyReportTextData").dxTextArea("instance").option('text'),
-                                                    CheckBox: $("#CheckBoxId").dxCheckBox("instance").option("value")
-                                                },
-                                                type: 'POST',
-                                                success: function (response) {
+                                        $.ajax({
+                                            url: '@Url.Action("SaveIntegrate", "Home")',
+                                            data: {
+                                                WeeklyReportData: $("#WeeklyReportTextData").dxTextArea("instance").option('text'),
+                                                CheckBox: $("#CheckBoxId").dxCheckBox("instance").option("value")
+                                            },
+                                            type: 'POST',
+                                            success: function (response) {
+                                                if (SmallGroupDataGrid && SmallGroupDataGrid.refresh) {
                                                     SmallGroupDataGrid.refresh();
+                                                }
+                                                if (NewPersonDataGrid && NewPersonDataGrid.refresh) {
                                                     NewPersonDataGrid.refresh();
-                                                    $("#loadPanel").dxLoadPanel("instance").hide();
-                                                    ButtonContainer.option("disabled", false);
-
-                                                    if (response.status == 1) {
-                                                        ShowToast(response.message, "success", 2000);
-                                                    } else {
-                                                        ShowToast(response.message, "error", 5000);
-                                                    }
-                                                },
-                                                error: function (xhr, status, error) {
-                                                    $("#loadPanel").dxLoadPanel("instance").hide();
-                                                    ButtonContainer.option("disabled", false);
-                                                    ShowToast("上傳失敗: " + error, "error", 5000);
                                                 }
-                                            });
-                                        }
-                                    </text>)
-                                )
-                            </div>
-                        }
-                        else
-                        {
-                            @* 幸福小組上傳按鈕 *@
-                            <div class="upload-button-container">
-                                @(Html.DevExtreme().Button()
-                                    .Text("上傳").Height(50).Width(80).Icon("check")
-                                    .Type(ButtonType.Success)
-                                    .ID("save-button")
-                                    .UseSubmitBehavior(false)
-                                    .OnClick(@<text>
-                                        function(arg) {
-                                            var HappyGroupDataGrid = $("#HappyGroupGridContainer").dxDataGrid("instance");
-                                            var ButtonContainer = $("#save-button").dxButton("instance");
+                                                $("#loadPanel").dxLoadPanel("instance").hide();
+                                                ButtonContainer.option("disabled", false);
 
-                                            $("#HappyGroupGridContainer").dxDataGrid("instance").saveEditData();
-
-                                            $("#loadPanel").dxLoadPanel("instance").show();
-                                            ButtonContainer.option("disabled", true);
-
-                                            $.ajax({
-                                                url: '@Url.Action("SaveIntegrate", "Home")',
-                                                data: {
-                                                    WeeklyReportData: $("#WeeklyReportTextData").dxTextArea("instance").option('text'),
-                                                    HappyWeekIndex: $("#HappyWeekIndex").dxSelectBox("instance").option('text'),
-                                                    HappyWeekTopic: $("#HappyWeekTopic").dxSelectBox("instance").option('text')
-                                                },
-                                                type: 'POST',
-                                                success: function (response) {
-                                                    HappyGroupDataGrid.refresh();
-                                                    $("#loadPanel").dxLoadPanel("instance").hide();
-                                                    ButtonContainer.option("disabled", false);
-
-                                                    if (response.status == 1) {
-                                                        ShowToast(response.message, "success", 2000);
-                                                    } else {
-                                                        ShowToast(response.message, "error", 5000);
-                                                    }
-                                                },
-                                                error: function (xhr, status, error) {
-                                                    $("#loadPanel").dxLoadPanel("instance").hide();
-                                                    ButtonContainer.option("disabled", false);
-                                                    ShowToast("上傳失敗: " + error, "error", 5000);
+                                                if (response.status == 1) {
+                                                    ShowToast(response.message, "success", 2000);
+                                                } else {
+                                                    ShowToast(response.message, "error", 5000);
                                                 }
-                                            });
-                                        }
-                                    </text>)
-                                )
-                            </div>
-                        }
+                                            },
+                                            error: function (xhr, status, error) {
+                                                $("#loadPanel").dxLoadPanel("instance").hide();
+                                                ButtonContainer.option("disabled", false);
+                                                ShowToast("上傳失敗: " + error, "error", 5000);
+                                            }
+                                        });
+                                    }
+                                </text>)
+                            )
+                        </div>
                     }
                     else
                     {
@@ -265,10 +221,12 @@
                                 .UseSubmitBehavior(false)
                                 .OnClick(@<text>
                                     function(arg) {
-                                        var IndividualGrid = $("#IndividualGridContainer").dxDataGrid("instance");
+                                        var IndividualGrid = $("#IndividualGridContainer").length ? $("#IndividualGridContainer").dxDataGrid("instance") : null;
                                         var ButtonContainer = $("#save-button").dxButton("instance");
 
-                                        $("#IndividualGridContainer").dxDataGrid("instance").saveEditData();
+                                        if (IndividualGrid && IndividualGrid.saveEditData) {
+                                            IndividualGrid.saveEditData();
+                                        }
 
                                         $("#loadPanel").dxLoadPanel("instance").show();
                                         ButtonContainer.option("disabled", true);
@@ -423,7 +381,7 @@
         <div class="data-grid-section">
             @if (Model.LoginType == "小組長")
             {
-                @if (Model.GroupType == "一般小組")
+                if (Model.GroupType == "一般小組")
                 {
                     @* 一般小組網格 *@
                     @Html.Partial("_GeneralGroupGrids", Model)
