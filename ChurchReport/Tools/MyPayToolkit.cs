@@ -33,7 +33,7 @@ using ChurchReport.Models;
 
 namespace ChurchReport.Tools
 {
-    public class StoreOrder
+    public class MyPayStoreOrder
     {
         #region 設定與配置
         private static ConfigurationBuilder m_ConfigurationBuilder = (ConfigurationBuilder)new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("appsettings.json");
@@ -55,7 +55,7 @@ namespace ChurchReport.Tools
         /// <summary>
         /// 初始化 StoreOrder 實例，從設定檔載入 MyPay 相關設定
         /// </summary>
-        public StoreOrder()
+        public MyPayStoreOrder()
         {
             this.storeUid = m_Configuration["MyPay:Store_Id"];
             this.storeKey = m_Configuration["MyPay:Key"];
