@@ -1,0 +1,54 @@
+@*
+    ===================================================================
+    Toast 通知元件集合
+    功能：包含各種狀態通知的 Toast 元件
+    ===================================================================
+*@
+
+<div id="ToastContainer" class="toast-components">
+    @* 成功上傳通知 *@
+    @(Html.DevExtreme().Toast()
+        .ID("toast")
+        .Position(p => p
+            .At(HorizontalAlignment.Center, VerticalAlignment.Center)
+            .Offset(0, 50))
+        .Message("Upload success")
+        .DisplayTime(2000)
+        .MaxWidth(200)
+    )
+    
+    @* 通用 Toast 通知 *@
+    @(Html.DevExtreme().Toast()
+        .ID("Toast")
+        .Position(p => p
+            .At(HorizontalAlignment.Center, VerticalAlignment.Center)
+            .Offset(0, 50))
+        .CloseOnOutsideClick(true)
+        .DisplayTime(2000)
+        .MaxWidth(200)
+    )
+    
+    @* 重新上傳提示 *@
+    @(Html.DevExtreme().Toast()
+        .ID("ToastReUpload")
+        .Position(p => p
+            .At(HorizontalAlignment.Center, VerticalAlignment.Center)
+            .Offset(0, 50))
+        .Message("Please click upload again")
+        .DisplayTime(5000)
+        .Type(ToastType.Error)
+        .MaxWidth(500)
+    )
+    
+    @* 日期格式錯誤提示 *@
+    @(Html.DevExtreme().Toast()
+        .ID("SelectDateToast")
+        .Position(p => p
+            .At(HorizontalAlignment.Center, VerticalAlignment.Center)
+            .Offset(0, 50))
+        .Message("Date format error, e.g. 2018/6/5")
+        .DisplayTime(5000)
+        .Type(ToastType.Error)
+        .MaxWidth(300)
+    )
+</div>

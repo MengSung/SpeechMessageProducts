@@ -1,0 +1,39 @@
+@*
+    ===================================================================
+    小組日誌元件
+    功能：提供小組長填寫週報和查看出席分析的功能
+    ===================================================================
+*@
+
+@model ChurchReport.Models.ListSmallGroupWeeklyReport
+
+<div class="weekly-report-journal">
+    @* 小組日誌輸入區 *@
+    <div class="journal-section">
+        <div style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
+            <h5>小組日誌:</h5>
+        </div>
+        
+        @(Html.DevExtreme().TextArea()
+            .ID("WeeklyReportTextData")
+            .Value(Model.WeeklyReportData)
+            .Height(200)
+            .Placeholder("請輸入本週小組活動記錄...")
+        )
+    </div>
+    
+    @* 出席記錄分析區 *@
+    <div class="attendance-analysis-section">
+        <div style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
+            <h5>小組出席紀錄:</h5>
+        </div>
+        
+        @(Html.DevExtreme().TextArea()
+            .ID("WeeklyReportTextAnalysis")
+            .Value(Model.WeeklyReportAnalysis)
+            .Height(350)
+            .Disabled(true)
+            .Placeholder("系統自動產生的出席分析...")
+        )
+    </div>
+</div>

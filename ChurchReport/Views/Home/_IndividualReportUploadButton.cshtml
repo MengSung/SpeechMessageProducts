@@ -1,0 +1,72 @@
+@*
+    ===================================================================
+    個人報告上傳按鈕元件
+    功能：處理個人報告的資料上傳
+    ===================================================================
+*@
+
+<div id="buttonContainer" class="dx-button-icon individual-report-upload" style="float: left; width:30%; text-align: left; background-color:white;">
+    @(Html.DevExtreme().Button()
+        .Text("上傳")
+        .Height(50)
+        .Width(80)
+        .Icon("check")
+        .Type(ButtonType.Success)
+        .ID("save-button")
+        .UseSubmitBehavior(false)
+        .OnClick(@<text>
+            function(arg) {
+                // 取得個人資料網格實例
+                var IndividualGrid = $("#IndividualGridContainer").dxDataGrid("instance");
+                var ButtonContainer = $("#save-button").dxButton("instance");
+                var IndividualGridFlag = IndividualGrid.hasEditData(); // 檢查是否有未儲存的編輯資料
+
+                // 儲存編輯資料
+                $("#IndividualGridContainer").dxDataGrid("instance").saveEditData();
+
+                if (true) {
+                    // 顯示載入面板
+                    $("#loadPanel").dxLoadPanel("instance").show();
+                    
+                    // 停用上傳按鈕
+                    ButtonContainer.option("disabled", true);
+
+                    // 執行 AJAX 上傳
+                    $.ajax({
+                        url: '@Url.Action("SavePersonReport", "Home")',
+                        data: { 
+                            WeeklyReportData: "" 
+                        },
+                        type: 'POST',
+                        success: function (arg) {
+                            // 隱藏載入面板
+                            $("#loadPanel").dxLoadPanel("instance").hide();
+                            
+                            // 恢復上傳按鈕
+                            ButtonContainer.option("disabled", false);
+
+                            // 顯示結果訊息
+                            if (arg.status == 1) {
+                                ShowToast(arg.message, "success", 2000);
+                            } else {
+                                ShowToast(arg.message, "error", 5000);
+                            }
+                        },
+                        error: function (obj) {
+                            // 錯誤處理
+                            $("#loadPanel").dxLoadPanel("instance").hide();
+                            ButtonContainer.option("disabled", false);
+                            ShowToast("上傳時發生錯誤", "error", 3000);
+                        }
+                    });
+                } else {
+                    // 資料驗證失敗，顯示重新上傳提示
+                    $("#loadPanel").dxLoadPanel("instance").hide();
+                    var IndividualGrid = $("#IndividualGridContainer").dxDataGrid("instance");
+                    IndividualGrid.saveEditData();
+                    $("#ToastReUpload").dxToast("instance").show();
+                }
+            }
+        </text>)
+    )
+</div>

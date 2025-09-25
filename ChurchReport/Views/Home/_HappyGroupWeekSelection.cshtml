@@ -1,0 +1,81 @@
+@*
+    ===================================================================
+    幸福小組週次主題選擇元件
+    功能：提供幸福小組的週次和主題選擇功能
+    ===================================================================
+*@
+
+@model ChurchReport.Models.ListSmallGroupWeeklyReport
+
+<div class="happy-group-week-selection">
+    <br />
+    <div style="font-family:標楷體;font-size:100%; color:darkcyan; font-weight:bold">
+        <h5>幸福小組週次及主題:</h5>
+    </div>
+    
+    <div class="week-selection-container">
+        @* 週次選擇 *@
+        <div class="week-index-selector">
+            @(Html.DevExtreme().SelectBox()
+                .ID("HappyWeekIndex")
+                .Value(Model.HappyWeekIndex)
+                .DataSource(new string[]
+                {
+                    "第一週", "第二週", "第三週", "第四週", "第五週",
+                    "第六週", "第七週", "第八週", "第九週", "第十週"
+                })
+                .Width(150)
+                .OnValueChanged(@<text>
+                    function(arg) {
+                        $("#loadPanel").dxLoadPanel("instance").show();
+
+                        $.ajax({
+                            url: '@Url.Action("UpdateHappyWeekIndex", "Home")',
+                            data: { HappyWeekIndex: arg.value },
+                            type: 'GET',
+                            success: function (arg) {
+                                $("#loadPanel").dxLoadPanel("instance").hide();
+                            },
+                            error: function (obj) {
+                                $("#loadPanel").dxLoadPanel("instance").hide();
+                                ShowToast("更新週次時發生錯誤", "error", 3000);
+                            }
+                        });
+                    }
+                </text>)
+            )
+        </div>
+        
+        @* 主題選擇 *@
+        <div class="week-topic-selector">
+            @(Html.DevExtreme().SelectBox()
+                .ID("HappyWeekTopic")
+                .Value(Model.HappyWeekTopic)
+                .DataSource(new string[]
+                {
+                    "", "預備週", "真幸福", "真相大白", "萬世巨星",
+                    "幸福連線", "當上帝來敲門", "十字架的勝利", "釋放與自由", "幸福的教會"
+                })
+                .Width(150)
+                .OnValueChanged(@<text>
+                    function(arg) {
+                        $("#loadPanel").dxLoadPanel("instance").show();
+
+                        $.ajax({
+                            url: '@Url.Action("UpdateHappyWeekTopic", "Home")',
+                            data: { HappyWeekTopic: arg.value },
+                            type: 'GET',
+                            success: function (arg) {
+                                $("#loadPanel").dxLoadPanel("instance").hide();
+                            },
+                            error: function (obj) {
+                                $("#loadPanel").dxLoadPanel("instance").hide();
+                                ShowToast("更新主題時發生錯誤", "error", 3000);
+                            }
+                        });
+                    }
+                </text>)
+            )
+        </div>
+    </div>
+</div>

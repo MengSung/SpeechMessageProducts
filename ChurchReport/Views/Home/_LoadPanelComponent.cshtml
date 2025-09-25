@@ -1,0 +1,21 @@
+@*
+    ===================================================================
+    載入面板元件
+    功能：顯示資料處理中的載入動畫
+    ===================================================================
+*@
+
+<div id="LoadPanel" class="load-panel-component">
+    @(Html.DevExtreme().LoadPanel()
+        .ID("loadPanel")
+        .ShadingColor("rgba(0,0,0,0.4)")
+        .Position(p => p.Of("#all-section"))
+        .Visible(false)
+        .ShowIndicator(true)
+        .ShowPane(true)
+        .Shading(true)
+        .CloseOnOutsideClick(false)
+        .Message("更新資料中...")
+        .Animation(l => l.Show(k => k.Easing(AnimationEasing.Swing)))
+    )
+</div>

@@ -1,0 +1,395 @@
+@*
+    ===================================================================
+    一般小組資料網格集合
+    功能：包含「小組是否暫停」選項、「小組牧養」資料網格以及「新人跟進關懷」資料網格
+    注意：本檔案僅整理排版與加入說明註解，不變更原有邏輯與功能
+    ===================================================================
+*@
+@using ChurchReport.Models
+@model ChurchReport.Models.ListSmallGroupWeeklyReport
+
+<div class="general-group-grids">
+    @* 1) 小組是否暫停：以 CheckBox 綁定 Model.PauseCheckBox *@
+    <div id="PauseOrNot" class="pause-option" style="height:100%; width:100%; overflow: hidden;">
+        <div style="font-size:100%; color:mediumslateblue; text-align:left;font-weight:bold">
+            <h5>小組是否暫停</h5>
+        </div>
+        @(Html.DevExtreme()
+            .CheckBox()
+            .ID("CheckBoxId")
+            .Value(Model.PauseCheckBox)
+        )
+    </div>
+
+    @* 2) 小組牧養資料網格：在 DisplayFlag 為 true 時顯示 *@
+    @if (Model.m_SmallGroupDataList.m_SmallGroupData.DisplayFlag == true)
+    {
+        <div class="small-group-section">
+            <div style="font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
+                <h5>小組牧養:</h5>
+            </div>
+
+            <div id="smallgroup-grid">
+                @(
+                    Html.DevExtreme()
+                        .DataGrid<Member>()
+                        .ID("SmallGroupgridContainer")
+
+                        @* 視覺與版面 *@
+                        .ShowBorders(true)
+                        .ColumnAutoWidth(true)
+                        .ColumnHidingEnabled(true)
+                        .ShowColumnLines(true)
+                        .ShowRowLines(true)
+                        .RowAlternationEnabled(true)
+
+                        @* 性能與操作體驗 *@
+                        .RemoteOperations(false)                 @* 於前端處理排序/分頁 *@
+                        .RepaintChangesOnly(true)
+                        .CacheEnabled(true)
+                        .Scrolling(s => s
+                            .Mode(GridScrollingMode.Virtual)
+                            .RowRenderingMode(GridRowRenderingMode.Virtual)
+                        )
+                        .Paging(p => p.PageSize(100).Enabled(true))
+                        .Sorting(s => s.Mode(GridSortingMode.Single))
+                        .AllowColumnResizing(true)
+                        .ColumnResizingMode(ColumnResizingMode.Widget)
+                        .ColumnFixing(c => c.Enabled(true))
+                        .LoadPanel(l => l.Text("更新資料中...").Enabled(false))
+                        .SearchPanel(s => s.Visible(false).Placeholder("搜尋.."))
+
+                        @* 分組設定：保留功能但隱藏 GroupPanel，避免使用者自行拖放分組 *@
+                        .Grouping(g => g
+                            .ContextMenuEnabled(true)
+                            .ExpandMode(GridGroupingExpandMode.RowClick)
+                        )
+                        .GroupPanel(p => p
+                            .EmptyPanelText("請把小組名稱拉到這裡")
+                            .Visible(false)
+                            .AllowColumnDragging(true)
+                        )
+
+                        @* 編輯設定：採用 Cell 模式，允許更新，不允許刪除 *@
+                        .Editing(editing =>
+                        {
+                            editing.Mode(GridEditMode.Cell);
+                            editing.AllowUpdating(true);
+                            editing.AllowDeleting(false);
+                            editing.Texts(a => a
+                                .SaveAllChanges("上傳檔案")
+                                .AddRow("新增")
+                                .CancelAllChanges("取消變更")
+                                .SaveRowChanges("儲存")
+                                .CancelRowChanges("取消")
+                                .EditRow("編輯")
+                                .DeleteRow("刪除")
+                            );
+                            editing.RefreshMode(GridEditRefreshMode.Repaint);
+                        })
+
+                        @* 欄位定義 *@
+                        .Columns(columns =>
+                        {
+                            // 基本出席資訊
+                            columns.AddFor(m => m.FullName)
+                                   .Caption("姓名")
+                                   .Fixed(true)
+                                   .Width(60)
+                                   .MinWidth(20)
+                                   .Alignment(HorizontalAlignment.Left)
+                                   .AllowSorting(false)
+                                   .AllowEditing(false);
+
+                            columns.AddFor(m => m.Sunday)
+                                   .Caption("主日")
+                                   .Width(45)
+                                   .MinWidth(45)
+                                   .AllowSorting(false);
+
+                            columns.AddFor(m => m.SmallGroup)
+                                   .Caption("小組")
+                                   .Width(45)
+                                   .MinWidth(45)
+                                   .AllowSorting(false);
+
+                            // 客製 - 委身類型：以 Lookup 顯示清單文字
+                            columns.Add().DataField("Status")
+                                   .Caption("會員身分")
+                                   .Alignment(HorizontalAlignment.Center)
+                                   .AllowEditing(true)
+                                   .Width(70)
+                                   .MinWidth(30)
+                                   .DataType(GridColumnDataType.Number)
+                                   .Lookup(lookup => lookup
+                                       .DataSource(new string[] { "牧師師母", "區牧", "小區長", "小組長", "副小組長", "核心同工", "小組組員", "未入組", "新朋友", "外教會", "結案" })
+                                   );
+
+                            // 洗禮狀態：唯讀
+                            columns.AddFor(m => m.BaptizedSituation)
+                                   .Caption("洗禮狀態")
+                                   .Alignment(HorizontalAlignment.Center)
+                                   .AllowEditing(false)
+                                   .Width(110)
+                                   .MinWidth(100)
+                                   .DataType(GridColumnDataType.String)
+                                   .Lookup(lookup => lookup
+                                       .DataSource(new string[] { "堅信禮(籍在)", "成人禮(籍在)", "轉籍(籍在)", "小兒禮(籍不在)", "未受洗(籍不在)" })
+                                   );
+
+                            // 代禱事項：可輸入欄位
+                            columns.AddFor(m => m.PrayItem)
+                                   .Caption("代禱事項")
+                                   .MinWidth(90);
+
+                            // 指派小組：使用後端提供之清單，預設隱藏
+                            columns.AddFor(m => m.AssignedGroup)
+                                   .Caption("指派小組")
+                                   .Visible(false)
+                                   .Width(120)
+                                   .MinWidth(30)
+                                   .Lookup(lookup => lookup
+                                       .DataSource(Model.GroupArray)
+                                   );
+                        })
+
+                        @* 資料來源：呼叫 HomeController WebAPI 端點 *@
+                        .DataSource(d => d
+                            .WebApi()
+                            .Controller("Home")
+                            .LoadAction("LoadIntegrate")
+                            .InsertAction("InsertPresentRecord")
+                            .DeleteAction("DeletePresentRecord")
+                            .UpdateAction("UpdateSmallGroupPresentRecord")
+                            .Key("PresentRecordId")
+                            .LoadParams(new { id = @ViewBag.ListId })
+                        )
+
+                        @* 事件：內容就緒、儲存格顯示自訂 *@
+                        .OnContentReady(@<text>
+                            function(e) {
+                                // 將編輯欄位移至左側，維持既有使用體驗
+                                moveEditColumnToLeft(e.component);
+                                // ShowToast(ReMindMessage, 'warning', 20000);
+                            }
+                        </text>)
+                        .OnCellPrepared("cell_prepared")        @* 鉛筆圖示/文字等自訂顯示 *@
+                )
+            </div>
+        </div>
+    }
+
+    @* 3) 新人跟進關懷資料網格：在 DisplayFlag 為 true 時顯示 *@
+    @if (Model.m_SmallGroupDataList.m_NewPersonFollowUpData.DisplayFlag == true)
+    {
+        <div class="new-person-follow-up-section">
+            <div style="font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
+                <h5>新人跟進關懷:</h5>
+            </div>
+
+            <div id="newpersonal-data-grid">
+                @(
+                    Html.DevExtreme()
+                        .DataGrid<Member>()
+                        .ID("NewPersonGridContainer")
+
+                        @* 視覺與版面 *@
+                        .ShowBorders(true)
+                        .ShowColumnLines(true)
+                        .ShowRowLines(true)
+                        .RowAlternationEnabled(true)
+                        .ColumnHidingEnabled(true)
+
+                        @* 性能與操作體驗 *@
+                        .RemoteOperations(false)
+                        .RepaintChangesOnly(true)
+                        .CacheEnabled(true)
+                        .Scrolling(s => s
+                            .Mode(GridScrollingMode.Virtual)
+                            .RowRenderingMode(GridRowRenderingMode.Virtual)
+                        )
+                        .Paging(paging => paging.PageSize(10).Enabled(true))
+                        .AllowColumnResizing(true)
+                        .ColumnResizingMode(ColumnResizingMode.Widget)
+                        .ColumnFixing(c => c.Enabled(true))
+                        .LoadPanel(l => l.Text("更新資料中...").Enabled(false))
+                        .SearchPanel(s => s.Visible(false).Placeholder("搜尋.."))
+                        .Export(e => e.Enabled(false).AllowExportSelectedData(true))
+                        .TwoWayBindingEnabled(true)
+                        .Visible(Model.m_SmallGroupDataList.m_NewPersonFollowUpData.DisplayFlag)
+
+                        @* 分組設定 *@
+                        .Grouping(g => g
+                            .ContextMenuEnabled(true)
+                            .ExpandMode(GridGroupingExpandMode.RowClick)
+                        )
+                        .GroupPanel(p => p
+                            .EmptyPanelText("請把小組名稱拉到這裡")
+                            .Visible(false)    @* 避免使用者自行決定分組 *@
+                            .AllowColumnDragging(true)
+                        )
+
+                        @* 事件（列表互動） *@
+                        .OnSelectionChanged("OnRowSelectionChanged")
+                        .OnEditorPrepared("OnEditorPrepared")
+
+                        @* 編輯設定：採用 Cell 模式，允許更新，不允許刪除 *@
+                        .Editing(editing =>
+                        {
+                            editing.Mode(GridEditMode.Cell);
+                            editing.AllowUpdating(true);
+                            editing.AllowDeleting(false);
+                            editing.Texts(a => a
+                                .SaveAllChanges("上傳檔案")
+                                .AddRow("新增")
+                                .CancelAllChanges("取消變更")
+                                .SaveRowChanges("儲存")
+                                .CancelRowChanges("取消")
+                                .EditRow("編輯")
+                                .DeleteRow("刪除")
+                            );
+                            editing.RefreshMode(GridEditRefreshMode.Repaint);
+                        })
+
+                        @* 欄位定義 *@
+                        .Columns(columns =>
+                        {
+                            // 基本資料
+                            columns.AddFor(m => m.FullName)
+                                   .Caption("姓名")
+                                   .Fixed(true)
+                                   .Width(60)
+                                   .MinWidth(20)
+                                   .Alignment(HorizontalAlignment.Left)
+                                   .AllowEditing(false);
+
+                            columns.AddFor(m => m.Sunday)
+                                   .Caption("主日")
+                                   .DataType(GridColumnDataType.Boolean)
+                                   .Width(45)
+                                   .MinWidth(45);
+
+                            columns.AddFor(m => m.SmallGroup)
+                                   .Caption("小組")
+                                   .DataType(GridColumnDataType.Boolean)
+                                   .Width(45)
+                                   .MinWidth(45);
+
+                            // 會員身分（委身類型）
+                            columns.Add().DataField("Status")
+                                   .Caption("會員身分")
+                                   .Alignment(HorizontalAlignment.Center)
+                                   .AllowEditing(true)
+                                   .Width(70)
+                                   .MinWidth(30)
+                                   .DataType(GridColumnDataType.Number)
+                                   .Lookup(lookup => lookup
+                                       .DataSource(new string[] { "牧師師母", "區牧", "小區長", "小組長", "副小組長", "核心同工", "小組組員", "未入組", "新朋友", "外教會", "結案" })
+                                   );
+
+                            // 洗禮狀態：唯讀
+                            columns.AddFor(m => m.BaptizedSituation)
+                                   .Caption("洗禮狀態")
+                                   .Alignment(HorizontalAlignment.Center)
+                                   .AllowEditing(false)
+                                   .Width(110)
+                                   .MinWidth(100)
+                                   .DataType(GridColumnDataType.String)
+                                   .Lookup(lookup => lookup
+                                       .DataSource(new string[] { "堅信禮(籍在)", "成人禮(籍在)", "轉籍(籍在)", "小兒禮(籍不在)", "未受洗(籍不在)" })
+                                   );
+
+                            // 跟進相關欄位
+                            columns.AddFor(m => m.FollowUpOption)
+                                   .Caption("跟進方式")
+                                   .Width(120)
+                                   .MinWidth(30)
+                                   .Lookup(lookup => lookup
+                                       .DataSource(new string[] {
+                                           "電話",
+                                           "探訪",
+                                           "Line/FB",
+                                           "出遊/吃飯",
+                                           "懷鄉/其他課程",
+                                           "約談",
+                                           "沒跟進",
+                                           "其他"
+                                       })
+                                   );
+
+                            columns.Add()
+                                   .DataField("FollowUpResult")
+                                   .Caption("跟進結果")
+                                   .Width(120)
+                                   .MinWidth(30)
+                                   .Lookup(lookup => lookup
+                                       .DataSource(new string[] {
+                                           "未選擇",
+                                           "熱情回應",
+                                           "渴慕認識信仰",
+                                           "沒聯絡上",
+                                           "反應冷淡",
+                                           "考慮中，繼續跟進",
+                                           "入小組",
+                                           "來主日",
+                                           "其他"
+                                       })
+                                   );
+
+                            columns.Add()
+                                   .DataField("FollowUpNextStep")
+                                   .Caption("下一步驟")
+                                   .Width(120)
+                                   .MinWidth(30)
+                                   .Lookup(lookup => lookup
+                                       .DataSource(new string[] {
+                                           "未選擇",
+                                           "繼續跟進",
+                                           "轉介"
+                                       })
+                                   );
+
+                            columns.AddFor(m => m.PrayItem)
+                                   .Caption("跟進關懷說明")
+                                   .MinWidth(150);
+
+                            columns.AddFor(m => m.Description)
+                                   .Caption("附註說明")
+                                   .MinWidth(300);
+
+                            columns.AddFor(m => m.AssignedGroup)
+                                   .Caption("指派小組")
+                                   .Visible(false)
+                                   .Width(150)
+                                   .MinWidth(30)
+                                   .Lookup(lookup => lookup
+                                       .DataSource(Model.GroupArray)
+                                   );
+                        })
+
+                        @* 資料來源：呼叫 HomeController WebAPI 端點（新人跟進） *@
+                        .DataSource(d => d
+                            .WebApi()
+                            .Controller("Home")
+                            .LoadAction("LoadNewPersonFollowUp")
+                            .InsertAction("InsertNewPresentRecord")
+                            .DeleteAction("DeleteNewPresentRecord")
+                            .UpdateAction("UpdateNewPresentRecord")
+                            .Key("PresentRecordId")
+                            .LoadParams(new { id = @ViewBag.ListId })
+                        )
+
+                        @* 事件：內容就緒與單元格顯示 *@
+                        .OnContentReady(@<text>
+                            function(e) {
+                                // 將編輯欄位移至左側，維持既有使用體驗
+                                moveEditColumnToLeft(e.component);
+                                // ShowToast(ReMindMessage, 'warning', 20000);
+                            }
+                        </text>)
+                        .OnCellPrepared("cell_prepared")        @* 鉛筆圖示/文字等自訂顯示 *@
+                )
+            </div>
+        </div>
+    }
+</div>

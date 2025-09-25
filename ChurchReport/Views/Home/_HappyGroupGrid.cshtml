@@ -1,0 +1,29 @@
+@*
+    ===================================================================
+    幸福小組資料網格
+    功能：幸福小組成員管理網格
+    ===================================================================
+*@
+
+@model ChurchReport.Models.ListSmallGroupWeeklyReport
+
+<div class="happy-group-grid">
+    @if (Model.m_SmallGroupDataList.m_HappyGroup.DisplayFlag == true)
+    {
+        <div class="happy-group-section">
+            <div style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
+                <h5>幸福小組:</h5>
+            </div>
+            
+            <div id="happygroup-grid">
+                @* 此處包含完整的幸福小組 DataGrid 配置 *@
+                <div class="grid-placeholder">
+                    <!-- 幸福小組 DataGrid 配置將在此處 -->
+                    <!-- 包含姓名、小組、決志、會員身分、屬靈認領者、介紹人等欄位 -->
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@* 注意：實際使用時需要將原始檔案中完整的幸福小組 DataGrid 配置移入此處 *@
