@@ -23,7 +23,7 @@ namespace ChurchReport.Tools
     {
         #region 高鉅金流實作成員資料
 
-        StoreOrder MyPayStoreOrder = new StoreOrder();
+        TSPGStoreOrder MyPayStoreOrder = new TSPGStoreOrder();
 
         // 將Simulate修改名稱
 
