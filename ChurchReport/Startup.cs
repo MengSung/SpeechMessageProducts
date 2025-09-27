@@ -42,14 +42,23 @@ namespace ChurchReport
                 services.AddScoped<IPayment, QPayToolkitWrapper>();
             }
             else if (Configuration["PAY_PROVIDER"] == "高鉅金流")
-            { 
-                //未來若有其他金流業者可在此加入
+            {
+                // 註冊高鉅金流服務
                 services.AddScoped<IPayment, MyPayToolkitWrapper>();
             }
-            else 
+            else if (Configuration["PAY_PROVIDER"] == "台新金流")
+            {
+                // 註冊高鉅金流服務
+                services.AddScoped<IPayment, TspgToolkitWrapper>();
+
+                // 註冊 TSPG Webhook 處理器
+                services.AddScoped<TSPGWebhookHandler>();
+            }
+            else
             { 
-                //未來若有其他金流業者可在此加入
-                services.AddScoped<IPayment, MyPayToolkitWrapper>();
+                // 預設使用高鉅金流
+                services.AddScoped<IPayment, TspgToolkitWrapper>();
+                services.AddScoped<TSPGWebhookHandler>();
             }
             //services.AddSession
             //(

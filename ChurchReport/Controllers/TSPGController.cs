@@ -13,13 +13,11 @@ namespace ChurchReport.Controllers
     [ApiController]
     public class TSPGController : ControllerBase
     {
-        private readonly TSPGApiClient _tspgApiClient;
         private readonly TSPGWebhookHandler _webhookHandler;
 
-        public TSPGController()
+        public TSPGController(TSPGWebhookHandler webhookHandler)
         {
-            _tspgApiClient = new TSPGApiClient();
-            _webhookHandler = new TSPGWebhookHandler();
+            _webhookHandler = webhookHandler;
         }
 
         #region Webhook 端點
@@ -97,7 +95,7 @@ namespace ChurchReport.Controllers
         /// <returns>返回頁面</returns>
         [HttpGet("payment-return")]
         [HttpPost("payment-return")]
-        public async Task<IActionResult> PaymentReturn()
+        public IActionResult PaymentReturn()
         {
             try
             {
@@ -129,7 +127,7 @@ namespace ChurchReport.Controllers
 
         #endregion
 
-        #region API 操作端點
+        #region API 操作端點 (使用 TspgToolkit 靜態方法)
 
         /// <summary>
         /// 建立付款訂單
@@ -137,7 +135,7 @@ namespace ChurchReport.Controllers
         /// <param name="request">付款請求</param>
         /// <returns>付款回應</returns>
         [HttpPost("create-payment")]
-        public async Task<IActionResult> CreatePayment([FromBody] TSPGPaymentRequest request)
+        public IActionResult CreatePayment([FromBody] TSPGPaymentRequest request)
         {
             try
             {
@@ -146,7 +144,7 @@ namespace ChurchReport.Controllers
                     return BadRequest(ModelState);
                 }
 
-                var response = await _tspgApiClient.CreatePaymentAsync(request);
+                var response = TspgToolkit.OrderCreate(request);
                 
                 if (response.code == "0000")
                 {
@@ -185,7 +183,7 @@ namespace ChurchReport.Controllers
         /// <param name="orderId">訂單編號</param>
         /// <returns>查詢結果</returns>
         [HttpGet("query-order/{orderId}")]
-        public async Task<IActionResult> QueryOrder(string orderId)
+        public IActionResult QueryOrder(string orderId)
         {
             try
             {
@@ -194,7 +192,7 @@ namespace ChurchReport.Controllers
                     return BadRequest(new { success = false, message = "訂單編號不能為空" });
                 }
 
-                var response = await _tspgApiClient.QueryOrderAsync(orderId);
+                var response = TspgToolkit.OrderQuery(orderId);
                 
                 return Ok(new
                 {
@@ -222,7 +220,7 @@ namespace ChurchReport.Controllers
         /// <param name="orderId">訂單編號</param>
         /// <returns>取消結果</returns>
         [HttpPost("cancel-order/{orderId}")]
-        public async Task<IActionResult> CancelOrder(string orderId)
+        public IActionResult CancelOrder(string orderId)
         {
             try
             {
@@ -231,7 +229,7 @@ namespace ChurchReport.Controllers
                     return BadRequest(new { success = false, message = "訂單編號不能為空" });
                 }
 
-                var response = await _tspgApiClient.CancelOrderAsync(orderId);
+                var response = TspgToolkit.CancelOrder(orderId);
                 
                 return Ok(new
                 {
@@ -257,7 +255,7 @@ namespace ChurchReport.Controllers
         /// <param name="request">退款請求</param>
         /// <returns>退款結果</returns>
         [HttpPost("refund")]
-        public async Task<IActionResult> Refund([FromBody] TSPGRefundRequest request)
+        public IActionResult Refund([FromBody] TSPGRefundRequest request)
         {
             try
             {
@@ -266,7 +264,7 @@ namespace ChurchReport.Controllers
                     return BadRequest(ModelState);
                 }
 
-                var response = await _tspgApiClient.RefundAsync(request);
+                var response = TspgToolkit.RefundOrder(request);
                 
                 return Ok(new
                 {
@@ -293,7 +291,7 @@ namespace ChurchReport.Controllers
         /// <param name="amount">請款金額 (可選)</param>
         /// <returns>請款結果</returns>
         [HttpPost("capture/{orderId}")]
-        public async Task<IActionResult> Capture(string orderId, [FromQuery] decimal? amount = null)
+        public IActionResult Capture(string orderId, [FromQuery] decimal? amount = null)
         {
             try
             {
@@ -302,7 +300,7 @@ namespace ChurchReport.Controllers
                     return BadRequest(new { success = false, message = "訂單編號不能為空" });
                 }
 
-                var response = await _tspgApiClient.CaptureAsync(orderId, amount);
+                var response = TspgToolkit.CaptureOrder(orderId, amount);
                 
                 return Ok(new
                 {
@@ -329,7 +327,7 @@ namespace ChurchReport.Controllers
         /// <param name="endDate">結束日期 (YYYY-MM-DD)</param>
         /// <returns>交易記錄</returns>
         [HttpGet("transaction-history")]
-        public async Task<IActionResult> GetTransactionHistory([FromQuery] string startDate, [FromQuery] string endDate)
+        public IActionResult GetTransactionHistory([FromQuery] string startDate, [FromQuery] string endDate)
         {
             try
             {
@@ -344,7 +342,7 @@ namespace ChurchReport.Controllers
                     return BadRequest(new { success = false, message = "日期格式不正確，請使用 YYYY-MM-DD 格式" });
                 }
 
-                var response = await _tspgApiClient.GetTransactionHistoryAsync(startDate, endDate);
+                var response = TspgToolkit.GetTransactionHistory(startDate, endDate);
                 
                 return Ok(new
                 {
@@ -369,7 +367,7 @@ namespace ChurchReport.Controllers
 
         #endregion
 
-        #region 測試端點
+        #region 測試 / 健康檢查
 
         /// <summary>
         /// API 健康狀態檢查
@@ -393,68 +391,25 @@ namespace ChurchReport.Controllers
         /// </summary>
         /// <returns>測試結果</returns>
         [HttpPost("test-webhook")]
-        public async Task<IActionResult> TestWebhook()
+        public IActionResult TestWebhook()
         {
-            try
+            var testNotification = new TSPGPaymentNotification
             {
-                // 建立測試通知資料
-                var testNotification = new TSPGPaymentNotification
-                {
-                    StoreUid = "test_store",
-                    OrderId = $"TEST_{DateTime.Now:yyyyMMddHHmmss}",
-                    TransactionId = $"TXN_{DateTime.Now:yyyyMMddHHmmss}",
-                    State = "1",
-                    Cost = 100,
-                    ActualCost = 100,
-                    Currency = "TWD",
-                    PayType = "credit",
-                    UserName = "測試用戶",
-                    UserEmail = "test@example.com",
-                    PayTime = DateTime.Now,
-                    ReturnMessage = "付款成功",
-                    Hash = "test_hash"
-                };
-
-                return Ok(new
-                {
-                    success = true,
-                    message = "測試 Webhook 資料已建立",
-                    test_data = testNotification
-                });
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Trace.WriteLine($"[TSPG] 測試 Webhook 失敗: {ex.Message}");
-                return StatusCode(500, new
-                {
-                    success = false,
-                    message = "測試失敗"
-                });
-            }
-        }
-
-        #endregion
-
-        #region 私有輔助方法
-
-        /// <summary>
-        /// 記錄 API 呼叫
-        /// </summary>
-        private void LogApiCall(string action, string orderId = "", object data = null)
-        {
-            var logMessage = $"[TSPG API] {DateTime.Now:yyyy-MM-dd HH:mm:ss} - {action}";
-            
-            if (!string.IsNullOrEmpty(orderId))
-            {
-                logMessage += $" (OrderId: {orderId})";
-            }
-
-            if (data != null)
-            {
-                logMessage += $" - Data: {Newtonsoft.Json.JsonConvert.SerializeObject(data)}";
-            }
-
-            System.Diagnostics.Trace.WriteLine(logMessage);
+                StoreUid = "test_store",
+                OrderId = $"TEST_{DateTime.Now:yyyyMMddHHmmss}",
+                TransactionId = $"TXN_{DateTime.Now:yyyyMMddHHmmss}",
+                State = "1",
+                Cost = 100,
+                ActualCost = 100,
+                Currency = "TWD",
+                PayType = "credit",
+                UserName = "測試用戶",
+                UserEmail = "test@example.com",
+                PayTime = DateTime.Now,
+                ReturnMessage = "付款成功",
+                Hash = "test_hash"
+            };
+            return Ok(new { success = true, message = "測試 Webhook 資料已建立", test_data = testNotification });
         }
 
         #endregion
