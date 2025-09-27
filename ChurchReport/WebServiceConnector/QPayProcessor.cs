@@ -1175,11 +1175,21 @@ namespace ChurchReport.WebServiceConnector
             }
             else if (m_Configuration["PAY_PROVIDER"] == "高鉅金流")
             {
-               //高鉅金流
-               CreOrder aRetObj = m_PaymentService.CreateOrder(GetRawData(Amount, ProductName, OrderDate, FeeId, PayType, PayTypeSub, LineLoginContact), GetService());
+                //高鉅金流
+                CreOrder aRetObj = m_PaymentService.CreateOrder(GetRawData(Amount, ProductName, OrderDate, FeeId, PayType, PayTypeSub, LineLoginContact), GetService());
 
-               //高鉅金流
-               var Result = QPayCommon.SerializeToJson(aRetObj);
+                //高鉅金流
+                var Result = QPayCommon.SerializeToJson(aRetObj);
+
+                return aRetObj;
+            }
+            else if (m_Configuration["PAY_PROVIDER"] == "台新金流")
+            {
+                //高鉅金流
+                CreOrder aRetObj = m_PaymentService.CreateOrder(GetRawData(Amount, ProductName, OrderDate, FeeId, PayType, PayTypeSub, LineLoginContact), GetService());
+
+                //高鉅金流
+                var Result = QPayCommon.SerializeToJson(aRetObj);
 
                 return aRetObj;
             }
