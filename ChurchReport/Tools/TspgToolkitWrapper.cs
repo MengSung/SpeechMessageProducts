@@ -335,48 +335,87 @@ namespace ChurchReport.Tools
         #region 轉換輔助方法
 
         /// <summary>
-        /// 將動態資料轉換為 TSPG 付款請求
+        /// 將動態資料轉換為 TSPG 付款請求 - 支援 REST API v2.14
         /// </summary>
         private TSPGPaymentRequest ConvertToTSPGPaymentRequest(dynamic customData)
         {
-            return new TSPGPaymentRequest
+            var request = new TSPGPaymentRequest();
+            
+            // 設定 REST API v2.14 必要欄位
+            // Mid 和 Tid 會在 TspgToolkit 中從配置檔案設定
+            
+            // 設定交易參數
+            request.Params = new TSPGPaymentParams
             {
-                OrderId = customData?.order_id ?? Guid.NewGuid().ToString("N"),
-                Amount = Convert.ToDecimal(customData?.cost ?? 0),
-                ProductName = customData?.product_name ?? "商品",
-                Currency = customData?.currency ?? "TWD",
-                PaymentType = customData?.pay_type ?? "credit",
-                ReturnUrl = customData?.return_url ?? "",
-                NotifyUrl = customData?.notify_url ?? "",
-                UserName = customData?.user_name ?? "",
-                UserEmail = customData?.user_email ?? "",
-                UserPhone = customData?.user_phone ?? "",
-                Echo0 = customData?.echo_0?.ToString() ?? "",
-                Echo1 = customData?.echo_1?.ToString() ?? "",
-                Echo2 = customData?.echo_2?.ToString() ?? "",
-                Echo3 = customData?.echo_3?.ToString() ?? "",
-                Echo4 = customData?.echo_4?.ToString() ?? ""
+                OrderNo = customData?.order_id ?? Guid.NewGuid().ToString("N"),
+                Amt = ConvertAmountToString(customData?.cost),
+                OrderDesc = customData?.product_name ?? "商品",
+                Cur = customData?.currency ?? "NTD",
+                Layout = customData?.pay_type == "mobile" ? "2" : "1", // 映射付款方式到版面類型
+                PostBackUrl = customData?.return_url ?? "",
+                ResultUrl = customData?.notify_url ?? "",
+                CardholderName = customData?.user_name ?? "",
+                CardholderEmail = customData?.user_email ?? ""
             };
+
+            // 設定持卡人手機號碼
+            if (!string.IsNullOrEmpty(customData?.user_phone?.ToString()))
+            {
+                request.Params.CardholderMobilePhone = new TSPGCardholderMobilePhone
+                {
+                    CountryCode = "886", // 台灣地區代碼
+                    PhoneNumber = customData.user_phone.ToString()
+                };
+            }
+
+            // 設定自訂參數 (保持向下相容性)
+            request.Echo0 = customData?.echo_0?.ToString() ?? "";
+            request.Echo1 = customData?.echo_1?.ToString() ?? "";
+            request.Echo2 = customData?.echo_2?.ToString() ?? "";
+            request.Echo3 = customData?.echo_3?.ToString() ?? "";
+            request.Echo4 = customData?.echo_4?.ToString() ?? "";
+
+            return request;
         }
 
         /// <summary>
-        /// 將永豐金流請求轉換為 TSPG 請求
+        /// 將永豐金流請求轉換為 TSPG 請求 - 支援 REST API v2.14
         /// </summary>
         private TSPGPaymentRequest ConvertCreOrderReqToTSPGRequest(CreOrderReq req)
         {
-            return new TSPGPaymentRequest
+            var request = new TSPGPaymentRequest();
+            
+            // 設定 REST API v2.14 必要欄位
+            // Mid 和 Tid 會在 TspgToolkit 中從配置檔案設定
+            
+            // 設定交易參數
+            request.Params = new TSPGPaymentParams
             {
-                OrderId = req.OrderNo,
-                Amount = req.Amount,
-                ProductName = req.PrdtName ?? "商品",
-                Currency = req.CurrencyID ?? "TWD",
-                PaymentType = req.PayType == "C" ? "credit" : "atm",
-                ReturnUrl = req.ReturnURL,
-                NotifyUrl = req.BackendURL,
-                Echo0 = req.Param1,
-                Echo1 = req.Param2,
-                Echo2 = req.Param3
+                OrderNo = req.OrderNo,
+                Amt = (req.Amount * 100).ToString(), // 永豐金流以元為單位，轉換為分
+                OrderDesc = req.PrdtName ?? "商品",
+                Cur = req.CurrencyID ?? "NTD",
+                Layout = req.PayType == "C" ? "1" : "2", // C=信用卡用一般網頁, 其他用行動版
+                PostBackUrl = req.ReturnURL,
+                ResultUrl = req.BackendURL
             };
+
+            // 設定自訂參數 (映射永豐金流參數)
+            request.Echo0 = req.Param1;
+            request.Echo1 = req.Param2;
+            request.Echo2 = req.Param3;
+
+            // 設定信用卡特定參數
+            if (req.PayType == "C" && req.CardParam != null)
+            {
+                // 如果有信用卡參數，可在此設定相關欄位
+                if (!string.IsNullOrEmpty(req.CardParam.AutoBilling) && req.CardParam.AutoBilling == "Y")
+                {
+                    request.Params.CaptFlag = "1"; // 同步請款
+                }
+            }
+
+            return request;
         }
 
         /// <summary>
@@ -433,6 +472,27 @@ namespace ChurchReport.Tools
         {
             // TODO: 實作 TSPG 撥款檔查詢邏輯
             return new List<AllotMain>();
+        }
+
+        /// <summary>
+        /// 轉換金額為字串格式 (以分為單位)
+        /// </summary>
+        /// <param name="amount">金額 (可能是 decimal, double, string 等)</param>
+        /// <returns>以分為單位的字串</returns>
+        private string ConvertAmountToString(dynamic amount)
+        {
+            try
+            {
+                if (amount == null) return "0";
+                
+                decimal amountDecimal = Convert.ToDecimal(amount);
+                int amountInCents = (int)(amountDecimal * 100);
+                return amountInCents.ToString();
+            }
+            catch
+            {
+                return "0";
+            }
         }
 
         #endregion
