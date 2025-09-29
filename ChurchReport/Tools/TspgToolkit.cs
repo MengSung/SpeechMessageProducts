@@ -52,7 +52,7 @@ namespace ChurchReport.Tools
             catch (Exception ex)
             {
                 System.Diagnostics.Trace.WriteLine($"[TSPG] OrderCreate Error: {ex.Message}");
-                return CreateErrorResponse(request?.OrderId, $"建立付款失敗: {ex.Message}");
+                return CreateErrorResponse(request?.Params?.OrderNo, $"建立付款失敗: {ex.Message}");
             }
         }
 

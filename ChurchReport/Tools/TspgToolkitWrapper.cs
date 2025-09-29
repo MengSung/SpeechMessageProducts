@@ -349,7 +349,7 @@ namespace ChurchReport.Tools
             {
                 OrderNo = customData?.order_id ?? Guid.NewGuid().ToString("N"),
                 Amt = ConvertAmountToString(customData?.cost),
-                OrderDesc = customData?.product_name ?? "坝珇",
+                OrderDesc = customData?.order_desc ?? "坝珇",
                 Cur = customData?.currency ?? "NTD",
                 Layout = customData?.pay_type == "mobile" ? "2" : "1", // 琈甮蹿よΑ摸
                 PostBackUrl = customData?.return_url ?? "",
@@ -368,12 +368,6 @@ namespace ChurchReport.Tools
                 };
             }
 
-            // 砞﹚璹把计 (玂甧┦)
-            request.Echo0 = customData?.echo_0?.ToString() ?? "";
-            request.Echo1 = customData?.echo_1?.ToString() ?? "";
-            request.Echo2 = customData?.echo_2?.ToString() ?? "";
-            request.Echo3 = customData?.echo_3?.ToString() ?? "";
-            request.Echo4 = customData?.echo_4?.ToString() ?? "";
 
             return request;
         }
@@ -399,11 +393,6 @@ namespace ChurchReport.Tools
                 PostBackUrl = req.ReturnURL,
                 ResultUrl = req.BackendURL
             };
-
-            // 砞﹚璹把计 (琈甮ッ伦瑈把计)
-            request.Echo0 = req.Param1;
-            request.Echo1 = req.Param2;
-            request.Echo2 = req.Param3;
 
             // 砞﹚獺ノ疭﹚把计
             if (req.PayType == "C" && req.CardParam != null)
