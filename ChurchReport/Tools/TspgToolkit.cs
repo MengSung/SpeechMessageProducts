@@ -37,7 +37,7 @@ namespace ChurchReport.Tools
         #region 公開 API 方法 (對應永豐金流介面)
 
         /// <summary>
-        /// 建立付款訂單 (對應 OrderCreate)
+        /// 建立付款訂單 (對應 OrderCreate) - 支援 TSPG REST API v2.14
         /// </summary>
         /// <param name="request">付款請求參數</param>
         /// <returns>付款回應</returns>
@@ -45,8 +45,9 @@ namespace ChurchReport.Tools
         {
             try
             {
-                var postData = BuildPaymentPostData(request);
-                return PostToTSPG("doPay.php", postData);
+                // 使用新的 REST API v2.14 格式
+                var jsonData = BuildPaymentPostData(request);
+                return PostToTSPG("auth.ashx", jsonData);
             }
             catch (Exception ex)
             {
@@ -56,7 +57,7 @@ namespace ChurchReport.Tools
         }
 
         /// <summary>
-        /// 查詢訂單狀態 (對應 OrderQuery)
+        /// 查詢訂單狀態 (對應 OrderQuery) - 支援 TSPG REST API v2.14
         /// </summary>
         /// <param name="orderId">訂單編號</param>
         /// <returns>查詢結果</returns>
@@ -64,8 +65,8 @@ namespace ChurchReport.Tools
         {
             try
             {
-                var postData = BuildQueryPostData(orderId);
-                return PostToTSPG("queryOrder.php", postData);
+                var jsonData = BuildQueryJsonData(orderId);
+                return PostToTSPG("query.ashx", jsonData);
             }
             catch (Exception ex)
             {
@@ -75,7 +76,7 @@ namespace ChurchReport.Tools
         }
 
         /// <summary>
-        /// 訂單維護操作 (對應 OrderMaintain)
+        /// 訂單維護操作 (對應 OrderMaintain) - 支援 TSPG REST API v2.14
         /// </summary>
         /// <param name="orderId">訂單編號</param>
         /// <param name="action">操作類型 (cancel/refund/capture)</param>
@@ -86,9 +87,9 @@ namespace ChurchReport.Tools
         {
             try
             {
-                var postData = BuildMaintainPostData(orderId, action, amount, reason);
+                var jsonData = BuildMaintainJsonData(orderId, action, amount, reason);
                 string endpoint = GetEndpointByAction(action);
-                return PostToTSPG(endpoint, postData);
+                return PostToTSPG(endpoint, jsonData);
             }
             catch (Exception ex)
             {
@@ -138,8 +139,8 @@ namespace ChurchReport.Tools
         {
             try
             {
-                var postData = BuildTransactionHistoryPostData(startDate, endDate);
-                var response = PostToTSPG("transactionHistory.php", postData);
+                var jsonData = BuildTransactionHistoryJsonData(startDate, endDate);
+                var response = PostToTSPG("history.ashx", jsonData);
                 
                 return new TSPGTransactionHistoryResponse
                 {
@@ -189,35 +190,108 @@ namespace ChurchReport.Tools
         #region 私有輔助方法
 
         /// <summary>
-        /// 建構付款 POST 資料
+        /// 建構付款 POST 資料 - 使用 TSPG REST API v2.14 格式
         /// </summary>
-        private static NameValueCollection BuildPaymentPostData(TSPGPaymentRequest request)
+        private static string BuildPaymentPostData(TSPGPaymentRequest request)
         {
-            var postData = new NameValueCollection
+            // 確保基本配置
+            request.Mid = request.Mid ?? _storeId;
+            request.Tid = request.Tid ?? GetConfigValue("TSPG:TerminalId", "T0000000");
+            
+            // 確保 Params 不為 null
+            if (request.Params == null)
+                request.Params = new TSPGPaymentParams();
+
+            // 設定預設值
+            if (string.IsNullOrEmpty(request.Params.Layout))
+                request.Params.Layout = "1";
+            if (string.IsNullOrEmpty(request.Params.Cur))
+                request.Params.Cur = "NTD";
+            if (string.IsNullOrEmpty(request.Params.CaptFlag))
+                request.Params.CaptFlag = "0";
+            if (string.IsNullOrEmpty(request.Params.ResultFlag))
+                request.Params.ResultFlag = "1";
+
+            // 序列化為 JSON
+            var jsonSettings = new JsonSerializerSettings
             {
-                ["store_uid"] = _storeId,
-                ["order_id"] = request.OrderId,
-                ["cost"] = request.Amount.ToString(),
-                ["product_name"] = request.ProductName,
-                ["return_url"] = request.ReturnUrl,
-                ["notify_url"] = request.NotifyUrl,
-                ["currency"] = request.Currency ?? "TWD",
-                ["pay_type"] = request.PaymentType ?? "credit"
+                NullValueHandling = NullValueHandling.Ignore,
+                DefaultValueHandling = DefaultValueHandling.Ignore
             };
 
-            // 可選欄位
-            if (!string.IsNullOrEmpty(request.UserName)) postData["user_name"] = request.UserName;
-            if (!string.IsNullOrEmpty(request.UserEmail)) postData["user_email"] = request.UserEmail;
-            if (!string.IsNullOrEmpty(request.UserPhone)) postData["user_phone"] = request.UserPhone;
-            if (!string.IsNullOrEmpty(request.Echo0)) postData["echo_0"] = request.Echo0;
-            if (!string.IsNullOrEmpty(request.Echo1)) postData["echo_1"] = request.Echo1;
-            if (!string.IsNullOrEmpty(request.Echo2)) postData["echo_2"] = request.Echo2;
-            if (!string.IsNullOrEmpty(request.Echo3)) postData["echo_3"] = request.Echo3;
-            if (!string.IsNullOrEmpty(request.Echo4)) postData["echo_4"] = request.Echo4;
+            return JsonConvert.SerializeObject(request, jsonSettings);
+        }
 
-            // 產生檢查碼
-            postData["hash"] = GeneratePaymentHash(postData);
-            return postData;
+        /// <summary>
+        /// 建構查詢 POST 資料 - 支援 REST API v2.14
+        /// </summary>
+        private static string BuildQueryJsonData(string orderId)
+        {
+            var queryRequest = new
+            {
+                sender = "rest",
+                ver = "1.0.0",
+                mid = _storeId,
+                tid = GetConfigValue("TSPG:TerminalId", "T0000000"),
+                pay_type = 1,
+                tx_type = 7, // 查詢
+                @params = new
+                {
+                    order_no = orderId
+                }
+            };
+
+            return JsonConvert.SerializeObject(queryRequest, new JsonSerializerSettings
+            {
+                NullValueHandling = NullValueHandling.Ignore
+            });
+        }
+
+        /// <summary>
+        /// 建構維護操作 POST 資料 - 支援 REST API v2.14
+        /// </summary>
+        private static string BuildMaintainJsonData(string orderId, string action, decimal? amount, string reason)
+        {
+            int txType = GetTransactionTypeByAction(action);
+            
+            var maintainRequest = new
+            {
+                sender = "rest",
+                ver = "1.0.0",
+                mid = _storeId,
+                tid = GetConfigValue("TSPG:TerminalId", "T0000000"),
+                pay_type = 1,
+                tx_type = txType,
+                @params = new
+                {
+                    order_no = orderId,
+                    amt = amount?.ToString("F2"),
+                    reason = reason
+                }
+            };
+
+            return JsonConvert.SerializeObject(maintainRequest, new JsonSerializerSettings
+            {
+                NullValueHandling = NullValueHandling.Ignore
+            });
+        }
+
+        /// <summary>
+        /// 根據操作類型取得交易類型代碼
+        /// </summary>
+        private static int GetTransactionTypeByAction(string action)
+        {
+            switch (action.ToLower())
+            {
+                case "cancel":
+                    return 8; // 取消授權
+                case "refund":
+                    return 5; // 退貨
+                case "capture":
+                    return 3; // 請款
+                default:
+                    return 7; // 查詢
+            }
         }
 
         /// <summary>
@@ -260,24 +334,35 @@ namespace ChurchReport.Tools
         }
 
         /// <summary>
-        /// 建構交易記錄查詢 POST 資料
+        /// 建構交易記錄查詢 JSON 資料 - REST API v2.14
         /// </summary>
-        private static NameValueCollection BuildTransactionHistoryPostData(string startDate, string endDate)
+        private static string BuildTransactionHistoryJsonData(string startDate, string endDate)
         {
-            var postData = new NameValueCollection
+            var historyRequest = new
             {
-                ["store_uid"] = _storeId,
-                ["start_date"] = startDate,
-                ["end_date"] = endDate
+                sender = "rest",
+                ver = "1.0.0",
+                mid = _storeId,
+                tid = GetConfigValue("TSPG:TerminalId", "T0000000"),
+                pay_type = 1,
+                tx_type = 7, // 查詢
+                @params = new
+                {
+                    start_date = startDate,
+                    end_date = endDate
+                }
             };
-            postData["hash"] = GenerateTransactionHistoryHash(startDate, endDate);
-            return postData;
+
+            return JsonConvert.SerializeObject(historyRequest, new JsonSerializerSettings
+            {
+                NullValueHandling = NullValueHandling.Ignore
+            });
         }
 
         /// <summary>
-        /// 發送 POST 請求到 TSPG
+        /// 發送 POST 請求到 TSPG - 支援 REST API v2.14 JSON 格式
         /// </summary>
-        private static PayPageResponse PostToTSPG(string endpoint, NameValueCollection postData)
+        private static PayPageResponse PostToTSPG(string endpoint, object postData)
         {
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
             
@@ -285,20 +370,75 @@ namespace ChurchReport.Tools
             {
                 using (var client = new WebClient())
                 {
-                    client.Headers[HttpRequestHeader.ContentType] = "application/x-www-form-urlencoded";
-                    client.Headers[HttpRequestHeader.UserAgent] = "ChurchReport-TSPG/1.0";
-                    
                     string url = _apiBaseUrl.TrimEnd('/') + "/" + endpoint.TrimStart('/');
-                    byte[] responseBytes = client.UploadValues(url, "POST", postData);
-                    string responseString = Encoding.UTF8.GetString(responseBytes);
                     
-                    return ParseResponse(responseString);
+                    if (postData is string jsonData)
+                    {
+                        // JSON 格式請求 (REST API v2.14)
+                        client.Headers[HttpRequestHeader.ContentType] = "application/json; charset=utf-8";
+                        client.Headers[HttpRequestHeader.UserAgent] = "ChurchReport-TSPG/2.14";
+                        
+                        byte[] responseBytes = client.UploadData(url, "POST", Encoding.UTF8.GetBytes(jsonData));
+                        string responseString = Encoding.UTF8.GetString(responseBytes);
+                        
+                        return ParseTSPGResponse(responseString);
+                    }
+                    else if (postData is NameValueCollection formData)
+                    {
+                        // 舊格式 form 請求 (向下相容)
+                        client.Headers[HttpRequestHeader.ContentType] = "application/x-www-form-urlencoded";
+                        client.Headers[HttpRequestHeader.UserAgent] = "ChurchReport-TSPG/1.0";
+                        
+                        byte[] responseBytes = client.UploadValues(url, "POST", formData);
+                        string responseString = Encoding.UTF8.GetString(responseBytes);
+                        
+                        return ParseResponse(responseString);
+                    }
+                    else
+                    {
+                        throw new ArgumentException("Unsupported postData type");
+                    }
                 }
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Trace.WriteLine($"[TSPG] PostToTSPG Error: {ex.Message}");
                 return new PayPageResponse { code = "9999", msg = ex.Message };
+            }
+        }
+
+        /// <summary>
+        /// 解析 TSPG REST API v2.14 JSON 回應
+        /// </summary>
+        private static PayPageResponse ParseTSPGResponse(string responseString)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(responseString))
+                    return new PayPageResponse { code = "9999", msg = "空白回應" };
+
+                // 嘗試解析 REST API v2.14 JSON 回應
+                if (responseString.StartsWith("{"))
+                {
+                    var tspgResponse = JsonConvert.DeserializeObject<TSPGApiResponse>(responseString);
+                    
+                    return new PayPageResponse
+                    {
+                        code = tspgResponse?.ret_code ?? "9999",
+                        msg = tspgResponse?.ret_msg ?? "未知錯誤",
+                        uid = tspgResponse?.Mid ?? string.Empty,
+                        key = tspgResponse?.Tid ?? string.Empty,
+                        url = tspgResponse?.Params?.hpp_url ?? string.Empty
+                    };
+                }
+
+                // 回退到舊格式解析
+                return ParseResponse(responseString);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"[TSPG] ParseTSPGResponse Error: {ex.Message}");
+                return new PayPageResponse { code = "9999", msg = $"回應解析錯誤: {ex.Message}" };
             }
         }
 
@@ -337,20 +477,22 @@ namespace ChurchReport.Tools
         }
 
         /// <summary>
-        /// 根據操作類型取得對應的端點
+        /// 根據操作類型取得對應的端點 - REST API v2.14
         /// </summary>
         private static string GetEndpointByAction(string action)
         {
-            switch (action)
+            switch (action.ToLower())
             {
                 case "cancel":
-                    return "cancelOrder.php";
+                    return "cancel.ashx"; // 取消授權
                 case "refund":
-                    return "refund.php";
+                    return "refund.ashx"; // 退貨
                 case "capture":
-                    return "capture.php";
+                    return "capture.ashx"; // 請款
+                case "query":
+                    return "query.ashx"; // 查詢
                 default:
-                    return "orderMaintain.php";
+                    return "maintain.ashx"; // 通用維護
             }
         }
 

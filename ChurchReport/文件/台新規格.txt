@@ -1,0 +1,584 @@
+4.2 交易請求 電文格式
+進行各項交易時，本付款服務所接受之
+JSON 訊息格式如下：
+{
+"sender":"string", 傳送端程式類型
+"ver":" 格式版本
+TSPG 網路特店暨線上授權服務系統
+付款服務使用手冊 REST API v2.14
+第23頁，共 61 頁
+"mid":"string","mid":"string", ----特店代號特店代號
+"s_mid":"string","s_mid":"string", ----子特店代號子特店代號
+"tid":"string","tid":"string", ----端末代號端末代號 "pay_type":"pay_type":intint,, ----付款類別付款類別 "tx_type":"tx_type":intint,, ----交易類別交易類別
+"params":"params": ----交易要求參數清單交易要求參數清單
+{{
+""參數名稱參數名稱1":"1":"參數值參數值",",
+""參數名稱參數名稱2":"2":"參數值參數值",",
+...,...,
+""參數名稱參數名稱n":"n":"參數值參數值""
+}}
+}
+}
+欄位欄位 資料型態資料型態 ((最大長度最大長度)) 說明說明 必要必要
+sender
+sender
+string
+string 傳送端程式類型傳送端程式類型 固定值：rest
+Y
+Y
+ver
+ver
+string
+string
+格式版本號
+格式版本號
+固定值：1.0.0
+Y
+Y
+mid
+mid
+string (15)
+string (15)
+特店代號
+特店代號
+(請依台新提供的測試/正式特店代號更新)
+※
+※若交易類型為若交易類型為99、、1010、、1111時，請使用台新提時，請使用台新提供之供之DCCDCC特店代號。特店代號。
+※
+※若交易類型為若交易類型為33、、44、、55、、66、、77、、88時，請使時，請使用原授權交易用原授權交易(1(1或或11)11)上送之特店代號。上送之特店代號。
+Y
+Y
+s_mid
+s_mid
+stri
+string (ng (1515))
+次
+次特店代號特店代號
+(非代收代付及大特店請勿傳入此參數)
+tid
+tid
+string (8)
+string (8)
+端末代號
+端末代號
+(請依台新提供的測試/正式端末機代號更新)
+Y
+Y
+pay_type
+pay_type
+int (1)
+int (1) 付款類別付款類別：： 1:1:信用卡信用卡
+Y
+Y
+tx_type
+tx_type
+int (1)
+int (1) ※※原授權交易為原授權交易為11(11(使用使用DCC)DCC)時，不支援時，不支援3:3:請款與請款與4:4:取消請款。取消請款。 交易類型：交易類型： 1:1:授權授權 3:3:請款請款
+Y
+Y
+TSPG 網路特店暨線上授權服務系統
+付款服務使用手冊 REST API v2.14
+第24頁，共 61 頁
+欄位欄位 資料型態資料型態 ((最大長度最大長度)) 說明說明 必要必要 4:4:取消請款取消請款 5:5:退貨退貨 6:6:取消退貨取消退貨 7:7:查詢查詢 8:8:取消授權取消授權
+params
+params
+--
+--
+交易要求參數清單
+交易要求參數清單
+包含一至多個交易要求參數
+包含一至多個交易要求參數，，依付款類別依付款類別、、交交易類別不同易類別不同有其對應有其對應的的要求參數定義要求參數定義。。
+Y
+Y
+4.3 交易回應電文格式交易回應電文格式
+進行各項交易時，本付款服務所回應之
+進行各項交易時，本付款服務所回應之JSONJSON訊息格式如下：訊息格式如下：
+{
+{
+"ver":"string","ver":"string", ----格式版本格式版本
+"mid":"string","mid":"string", ----特店代號特店代號
+"s_mid":"string","s_mid":"string", ----子特店代號子特店代號
+"tid":"string","tid":"string", ----端末代號端末代號 "pay_type":"pay_type":intint,, ----付款類別付款類別 "tx_type":"tx_type":intint,, ----交易類別交易類別 ""ret_valueret_value":":intint,, ----保留欄位，固定回保留欄位，固定回00
+"params":"params": ----交易回應參數清單交易回應參數清單
+{{
+""參數名稱參數名稱1":"1":"參數值參數值",",
+""參數名稱參數名稱2":"2":"參數值參數值",",
+...,...,
+""參數名稱參數名稱n":"n":"參數值參數值""
+}}
+}
+}
+欄位欄位 資料型態資料型態 ((最大長度最大長度)) 說明說明 必要必要
+ver
+ver
+string
+string
+格式版本號
+格式版本號
+(
+(與交易請求電文相同與交易請求電文相同))
+Y
+Y
+mid
+mid
+string (15)
+string (15)
+特店代號
+特店代號
+(
+(與與交易請求交易請求電文相同電文相同))
+Y
+Y
+s_mid
+s_mid
+stri
+string (ng (1515))
+子特店代號
+子特店代號
+(
+(與與交易請求交易請求電文相同電文相同))
+C
+C
+TSPG 網路特店暨線上授權服務系統
+付款服務使用手冊 REST API v2.14
+第25頁，共 61 頁
+欄位欄位 資料型態資料型態 ((最大長度最大長度)) 說明說明 必要必要
+tid
+tid
+string (8)
+string (8)
+端末代號
+端末代號
+(
+(與與交易請求交易請求電文相同電文相同))
+Y
+Y
+pay_type
+pay_type
+int (1)
+int (1) 付款類別付款類別 ((與與交易請求交易請求電文相同電文相同))
+Y
+Y
+tx_type
+tx_type
+int (1)
+int (1) 交易類別交易類別 ((與與交易請求交易請求電文相同電文相同))
+Y
+Y
+params
+params
+--
+--
+交易回應參數清單
+交易回應參數清單
+包含一至多個交易回應參數
+包含一至多個交易回應參數，，依付款類別依付款類別、、交交易類別不同有易類別不同有其對應的其對應的回應參數定義回應參數定義
+Y
+Y
+4.4 信用卡授權交易信用卡授權交易
+進行信用卡授權交易時所需呼叫的函式，使用時機請參考【
+進行信用卡授權交易時所需呼叫的函式，使用時機請參考【3.13.1信用卡授權交易信用卡授權交易】】。。 介面名稱介面名稱
+https:/
+https:///[API_ROOT][API_ROOT]/auth.ashx/auth.ashx HTTPHTTP方法方法
+POST
+POST 傳入參數傳入參數 參數清單子欄位參數清單子欄位 資料型態資料型態 ((最大長度最大長度)) 說明說明 必要必要
+layout
+layout
+string (1)
+string (1)
+客戶端版面類型
+客戶端版面類型
+1:
+1:一般網頁一般網頁
+2:
+2:行動裝置網頁行動裝置網頁
+Y
+Y
+order_no
+order_no
+string (23)
+string (23)
+訂單號碼
+訂單號碼
+Y
+Y
+amt
+amt
+string (12)
+string (12)
+交易金額
+交易金額
+包含兩位小數，如
+包含兩位小數，如100100代表代表1.001.00元。元。
+Y
+Y
+cur
+cur
+string (3)
+string (3)
+幣別
+幣別
+NTD:
+NTD: 新台幣新台幣
+Y
+Y
+order_desc
+order_desc
+string (40)
+string (40)
+訂單說明
+訂單說明
+此欄允許中文，
+此欄允許中文，請以請以UTFUTF--88編碼傳入。編碼傳入。
+Y
+Y
+capt_flag
+capt_flag
+string (1)
+string (1)
+授權同步請款標記
+授權同步請款標記
+0:
+0:不同步請款不同步請款
+1:
+1:同步請款同步請款
+(
+(若使用「若使用「TSPG TSPG 系統自動請款」作業方式，請設定為系統自動請款」作業方式，請設定為00；；DCCDCC交易一律由系統自動請款。當交易一律由系統自動請款。當DCCDCC交易且此設定為交易且此設定為11時。交易結束後不會同步請款時。交易結束後不會同步請款))
+Y
+Y
+result_flag
+result_flag
+string (1)
+string (1)
+回傳訊息標記
+回傳訊息標記
+0:
+0:不查詢交易詳情不查詢交易詳情
+1:
+1:查詢交易詳情查詢交易詳情
+Y
+Y
+TSPG 網路特店暨線上授權服務系統
+付款服務使用手冊 REST API v2.14
+第26頁，共 61 頁
+若為
+若為11，則，則TSPGTSPG會在傳送交易資料至「指定交易資料回會在傳送交易資料至「指定交易資料回傳網址傳網址(result_url)(result_url)」時，一併傳送本交易之詳細資料。」時，一併傳送本交易之詳細資料。
+post_back
+post_back_url_url
+string (255)
+string (255)
+指定接續網址
+指定接續網址
+Y
+Y
+result_url
+result_url
+string (255)
+string (255)
+指定交易資料回傳網址，須為
+指定交易資料回傳網址，須為https://https://
+Y
+Y
+ticket_no
+ticket_no
+string (20)
+string (20)
+機票號碼
+機票號碼
+pan
+pan
+string (19)
+string (19)
+卡號
+卡號
+若使用
+若使用HPPHPP，則不必填，則不必填值。若有輸入「卡號」值。若有輸入「卡號」欄位，則「到期日」必欄位，則「到期日」必填，「填，「CVC2/CVV2CVC2/CVV2」可填」可填可不填。可不填。
+C
+C
+exp_date
+exp_date
+string (4)
+string (4)
+到期日
+到期日
+(YYMM)
+(YYMM)
+C
+C
+cvv2
+cvv2
+string (3)
+string (3)
+CVC2/CVV2
+CVC2/CVV2
+C
+C
+instal
+install_periodl_period
+string (2)
+string (2)
+分期期數
+分期期數
+若不帶此欄位，或欄位值不帶此欄位，或欄位值為空值或空白，則表示不為分期交易。
+use_redeem
+use_redeem
+string (1)
+string (1)
+紅利交易標記
+紅利交易標記
+1:
+1:紅利交易紅利交易
+若不帶此欄位，或欄位值空白
+若不帶此欄位，或欄位值空白或空白，則表示不為紅利，則表示不為紅利交易。交易。
+threeDS_mc
+threeDS_mc
+Str
+Striing (2)ng (2)
+綁卡類
+綁卡類型型
+01:
+01:交易中綁卡交易中綁卡
+02:
+02:純綁卡交易純綁卡交易
+綁卡交易時帶入，有帶值時，
+綁卡交易時帶入，有帶值時，threeDS_rathreeDS_ra連帶必填，非連帶必填，非綁卡交易可略過不填。綁卡交易可略過不填。
+若不帶此欄位，或欄位值空白
+若不帶此欄位，或欄位值空白或空白，則表示為，則表示為非綁卡非綁卡交易。交易。
+C
+C
+threeDS_ra
+threeDS_ra
+Str
+String (2)ing (2)
+綁卡類
+綁卡類別別
+04:
+04:新增卡片新增卡片
+05:
+05:續綁卡片續綁卡片
+綁卡交易時帶入，有帶值時，
+綁卡交易時帶入，有帶值時，threeDS_threeDS_mmcc連帶必填，非連帶必填，非綁卡交易可略過不填。綁卡交易可略過不填。
+若不帶此欄位，或欄位值空白
+若不帶此欄位，或欄位值空白或空白，則表示為，則表示為非綁卡非綁卡交易。交易。
+C
+C
+city
+city
+string (3)
+string (3)
+縣市群組代碼
+縣市群組代碼
+請參照【
+請參照【5.35.3縣市群組代碼縣市群組代碼】】章節。章節。
+國旅卡專用欄位，若輸
+國旅卡專用欄位，若輸入任一欄位，則三者皆入任一欄位，則三者皆必填。必填。
+C
+C
+start_date
+start_date
+string (8)
+string (8)
+啟程日
+啟程日
+(MMddyyyy)
+(MMddyyyy)
+C
+C
+TSPG 網路特店暨線上授權服務系統
+付款服務使用手冊 REST API v2.14
+第27頁，共 61 頁
+end_date
+end_date
+string (8)
+string (8)
+回程日
+回程日
+(MMddyyyy)
+(MMddyyyy)
+C
+C
+cbr_
+cbr_indicatorindicator_fl_flagag
+string (1)
+string (1)
+行動裝置身分驗證
+行動裝置身分驗證標記標記
+0:
+0:不啟用不啟用
+1:1:啟用啟用
+行動裝置之身分驗證僅
+行動裝置之身分驗證僅支援驗證手機號碼。支援驗證手機號碼。
+不支援身份證號
+不支援身份證號//生日生日//居家電話居家電話//公司電話驗公司電話驗證。證。
+C
+C
+*
+*下述身分驗證查核機制，無論交易驗證成功與否，皆收取驗證費用。下述身分驗證查核機制，無論交易驗證成功與否，皆收取驗證費用。
+cust_id
+cust_id
+string (10)
+string (10)
+身份證號
+身份證號
+(
+(首字母大首字母大寫寫))
+台新持卡人身份驗證專
+台新持卡人身份驗證專用欄位。用欄位。他行卡可驗身他行卡可驗身分證號、生日、手機號分證號、生日、手機號碼。生日及手機號碼任碼。生日及手機號碼任一欄位有值時，身分證一欄位有值時，身分證號為必填。號為必填。
+若啟用
+若啟用行動裝置身分驗行動裝置身分驗證證標記標記，，僅支援驗證手僅支援驗證手機號碼機號碼。。
+C
+C
+b_day
+b_day
+string (8)
+string (8)
+生日
+生日
+(MMddyyyy)
+(MMddyyyy)
+C
+C
+cell_phone_no
+cell_phone_no
+string (10)
+string (10)
+手機號碼
+手機號碼
+(
+(皆為數字皆為數字))
+C
+C
+home_tel_no
+home_tel_no
+string (12)
+string (12)
+居家電話
+居家電話
+(
+(皆為數字皆為數字))
+C
+C
+office_tel_no
+office_tel_no
+string (12)
+string (12)
+公司電話
+公司電話
+(
+(皆為數字皆為數字))
+C
+C
+*
+*下述下述欄欄位為位為3D3D交易驗證專用交易驗證專用。。
+c
+cardholderardholder_name_name
+string(45)
+string(45)
+持卡人英文姓名
+持卡人英文姓名
+(
+(限半形字，內容可包含「限半形字，內容可包含「,,」、」、「「--」、「」、「..」、最後一碼不得空」、最後一碼不得空白白))
+持卡人於發卡行申辦信用卡時
+持卡人於發卡行申辦信用卡時留存的英文姓名留存的英文姓名
+特店自行產生付款頁面
+特店自行產生付款頁面時必填時必填
+若使用
+若使用HPPHPP，則不必填，則不必填值值
+C
+C
+c
+cardholderardholder_email_email
+string(254)
+string(254)
+持卡人
+持卡人emailemail
+(
+(限半形字，最後一碼不得空限半形字，最後一碼不得空白白))
+持卡人於發卡行申辦信用卡時
+持卡人於發卡行申辦信用卡時留存的留存的emailemail
+特店自行產生付款頁面
+特店自行產生付款頁面時，持卡人時，持卡人emailemail與持與持卡人手機號碼擇一必填卡人手機號碼擇一必填
+若使用
+若使用HPPHPP，，則不必填則不必填值值
+C
+C
+c
+cardholderardholder__mobilmobile_e_phonephone
+--
+--
+持卡人手機號碼
+持卡人手機號碼
+包含
+包含國碼與號碼國碼與號碼參數定義參數定義
+持卡人於發卡行申辦信用卡時
+持卡人於發卡行申辦信用卡時
+特店自行產生付款頁面
+特店自行產生付款頁面時，持卡人時，持卡人emailemail與持與持卡人手機號碼擇一必填卡人手機號碼擇一必填
+若使用
+若使用HPPHPP，則不必填，則不必填
+C
+C
+TSPG 網路特店暨線上授權服務系統
+付款服務使用手冊 REST API v2.14
+第28頁，共 61 頁
+留存的手機號碼
+留存的手機號碼
+值
+值
+country
+country__codecode
+string(3)
+string(3)
+國碼
+國碼
+(
+(皆為數字皆為數字))
+*
+*台灣地區為台灣地區為886886
+輸入
+輸入持卡人手機號碼持卡人手機號碼時時必填必填
+C
+C
+phone_
+phone_numbernumber
+string(15)
+string(15)
+號碼
+號碼
+(
+(皆為數字皆為數字))
+輸入
+輸入持卡人手機號碼持卡人手機號碼時時必填必填
+C
+C 回傳參數回傳參數 參數清單子欄位參數清單子欄位 資料型態資料型態 ((最大長度最大長度)) 說明說明 必要必要
+ret_code
+ret_code
+string (6)
+string (6)
+交易結果回應碼
+交易結果回應碼
+請參照【
+請參照【5.15.1回應碼回應碼((ret_coderet_code))說明說明】章節。】章節。
+Y
+Y
+ret_msg
+ret_msg
+string (300)
+string (300)
+回傳訊息
+回傳訊息
+hpp_url
+hpp_url
+string
+string (2048)(2048)
+付款網頁資訊
+付款網頁資訊
+若「交易結果回應碼
+若「交易結果回應碼(ret_code)(ret_code)」為」為0000，則此欄位必有，則此欄位必有值值，且需將持卡人瀏覽器，且需將持卡人瀏覽器redirectredirect至此至此hppUrlhppUrl。。
+C
+C 授權交易電文範例授權交易電文範例 授權交易請求電文授權交易請求電文 授權交易回應電文授權交易回應電文 {{ "sender":"rest","sender":"rest", "ver":"1.0.0","ver":"1.0.0", "mid":"999000123456789","mid":"999000123456789", "tid":"T0000000","tid":"T0000000", "pay_type":1,"pay_type":1, "tx_type":1,"tx_type":1, "params":"params": {{ "layout":"1","layout":"1", "order_no":"NO01234567","order_no":"NO01234567", "amt":"120000","amt":"120000", "cur""cur":"NTD",:"NTD", "order_desc":""order_desc":"測試測試3C3C網站購物網站購物",", "capt_flag":"0","capt_flag":"0", "result_flag":"1","result_flag":"1", "post_back_url":"http://www.abcd"post_back_url":"http://www.abcdshop.com/postback",shop.com/postback", "result_url":"https://www.abcdsh"result_url":"https://www.abcdshop.com/result"op.com/result",, ""ccardholderardholder_name_name":"":"Wang Wang {{ "ver":"1.0.0","ver":"1.0.0", "mid":"999000123456789","mid":"999000123456789", "tid":"T0000000","tid":"T0000000", "pay_type":1,"pay_type":1, "tx_type":1,"tx_type":1, "ret_value": 0,"ret_value": 0, "params":"params": {{ "ret_code":"00","ret_code":"00", "hpp_url":"https://abcd.ta"hpp_url":"https://abcd.taishinbank.com.tw/ishinbank.com.tw/pay.ashx"pay.ashx" }} }}
+TSPG 網路特店暨線上授權服務系統
+付款服務使用手冊 REST API v2.14
+第29頁，共 61 頁
+XiaomingXiaoming",", ""ccardholderardholder_email_email":"":"abc@gmail.cabc@gmail.comom",", ""ccardholderardholder__mobile_mobile_phonephone"":: {{ ""country_codecountry_code":"":"886886",", ""phone_phone_numbernumber":"":"919111111919111111"" }} }} }}
+4.5 信用卡其他交易信用卡其他交易

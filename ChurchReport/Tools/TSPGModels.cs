@@ -2,136 +2,490 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using Newtonsoft.Json;
 
 namespace ChurchReport.Tools
 {
     #region TSPG 請求模型
 
     /// <summary>
-    /// TSPG 付款請求模型
+    /// TSPG 付款請求模型 (支援 REST API v2.14 與舊版格式)
     /// </summary>
     public class TSPGPaymentRequest
     {
+        #region REST API v2.14 結構
+
         /// <summary>
-        /// 訂單編號 (必填)
+        /// 傳送端程式類型 (固定值: rest)
         /// </summary>
+        [JsonProperty("sender")]
+        public string Sender { get; set; } = "rest";
+
+        /// <summary>
+        /// 格式版本號 (固定值: 1.0.0)
+        /// </summary>
+        [JsonProperty("ver")]
+        public string Ver { get; set; } = "1.0.0";
+
+        /// <summary>
+        /// 特店代號 (必填)
+        /// </summary>
+        [JsonProperty("mid")]
         [Required]
-        [StringLength(50)]
-        public string OrderId { get; set; }
+        [StringLength(15)]
+        public string Mid { get; set; }
 
         /// <summary>
-        /// 付款金額 (必填)
+        /// 子特店代號 (非代收代付及大特店請勿傳入此參數)
         /// </summary>
+        [JsonProperty("s_mid")]
+        [StringLength(15)]
+        public string S_Mid { get; set; }
+
+        /// <summary>
+        /// 端末代號 (必填)
+        /// </summary>
+        [JsonProperty("tid")]
         [Required]
-        [Range(0.01, double.MaxValue)]
-        public decimal Amount { get; set; }
+        [StringLength(8)]
+        public string Tid { get; set; }
 
         /// <summary>
-        /// 商品名稱 (必填)
+        /// 付款類別 (1: 信用卡)
         /// </summary>
+        [JsonProperty("pay_type")]
         [Required]
-        [StringLength(60)]
-        public string ProductName { get; set; }
+        public int PayType { get; set; } = 1;
 
         /// <summary>
-        /// 付款完成後返回網址 (必填)
+        /// 交易類別 (1: 授權, 3: 請款, 4: 取消請款, 5: 退貨, 6: 取消退貨, 7: 查詢, 8: 取消授權)
         /// </summary>
+        [JsonProperty("tx_type")]
         [Required]
-        [Url]
-        [StringLength(255)]
-        public string ReturnUrl { get; set; }
+        public int TxType { get; set; } = 1;
 
         /// <summary>
-        /// 付款結果通知網址 (必填)
+        /// 交易要求參數清單
         /// </summary>
+        [JsonProperty("params")]
         [Required]
-        [Url]
-        [StringLength(255)]
-        public string NotifyUrl { get; set; }
+        public TSPGPaymentParams Params { get; set; } = new TSPGPaymentParams();
+
+        #endregion
+
+        #region 舊版相容性屬性 (保持向下相容)
 
         /// <summary>
-        /// 幣別 (預設 TWD)
+        /// 訂單編號 (必填) - 舊版相容性
         /// </summary>
-        [StringLength(3)]
-        public string Currency { get; set; } = "TWD";
+        [JsonIgnore]
+        public string OrderId
+        {
+            get => Params?.OrderNo ?? string.Empty;
+            set { if (Params != null) Params.OrderNo = value; }
+        }
 
         /// <summary>
-        /// 付款方式 (credit: 信用卡, atm: ATM, all: 全部)
+        /// 付款金額 (必填) - 舊版相容性
         /// </summary>
-        [StringLength(20)]
-        public string PaymentType { get; set; } = "credit";
+        [JsonIgnore]
+        public decimal Amount
+        {
+            get => decimal.TryParse(Params?.Amt, out var result) ? result / 100 : 0; // 從分轉回元
+            set { if (Params != null) Params.Amt = ((int)(value * 100)).ToString(); } // 轉為分
+        }
 
         /// <summary>
-        /// 使用者姓名 (可選)
+        /// 商品名稱 (必填) - 舊版相容性
         /// </summary>
-        [StringLength(50)]
-        public string UserName { get; set; }
+        [JsonIgnore]
+        public string ProductName
+        {
+            get => Params?.OrderDesc ?? string.Empty;
+            set { if (Params != null) Params.OrderDesc = value; }
+        }
 
         /// <summary>
-        /// 使用者電子郵件 (可選)
+        /// 付款完成後返回網址 (必填) - 舊版相容性
         /// </summary>
-        [EmailAddress]
-        [StringLength(100)]
-        public string UserEmail { get; set; }
+        [JsonIgnore]
+        public string ReturnUrl
+        {
+            get => Params?.PostBackUrl ?? string.Empty;
+            set { if (Params != null) Params.PostBackUrl = value; }
+        }
 
         /// <summary>
-        /// 使用者電話 (可選)
+        /// 付款結果通知網址 (必填) - 舊版相容性
         /// </summary>
-        [Phone]
-        [StringLength(20)]
-        public string UserPhone { get; set; }
+        [JsonIgnore]
+        public string NotifyUrl
+        {
+            get => Params?.ResultUrl ?? string.Empty;
+            set { if (Params != null) Params.ResultUrl = value; }
+        }
 
         /// <summary>
-        /// 自訂參數 1
+        /// 幣別 (預設 TWD) - 舊版相容性
         /// </summary>
-        [StringLength(255)]
+        [JsonIgnore]
+        public string Currency
+        {
+            get => Params?.Cur ?? "TWD";
+            set { if (Params != null) Params.Cur = value ?? "TWD"; }
+        }
+
+        /// <summary>
+        /// 付款方式 - 舊版相容性，映射到新版 Layout
+        /// </summary>
+        [JsonIgnore]
+        public string PaymentType
+        {
+            get => Params?.Layout == "2" ? "mobile" : "credit";
+            set { if (Params != null) Params.Layout = value == "mobile" ? "2" : "1"; }
+        }
+
+        /// <summary>
+        /// 使用者姓名 (可選) - 舊版相容性
+        /// </summary>
+        [JsonIgnore]
+        public string UserName
+        {
+            get => Params?.CardholderName ?? string.Empty;
+            set { if (Params != null) Params.CardholderName = value; }
+        }
+
+        /// <summary>
+        /// 使用者電子郵件 (可選) - 舊版相容性
+        /// </summary>
+        [JsonIgnore]
+        public string UserEmail
+        {
+            get => Params?.CardholderEmail ?? string.Empty;
+            set { if (Params != null) Params.CardholderEmail = value; }
+        }
+
+        /// <summary>
+        /// 使用者電話 (可選) - 舊版相容性
+        /// </summary>
+        [JsonIgnore]
+        public string UserPhone
+        {
+            get => Params?.CardholderMobilePhone?.PhoneNumber ?? string.Empty;
+            set 
+            { 
+                if (Params != null) 
+                {
+                    if (Params.CardholderMobilePhone == null)
+                        Params.CardholderMobilePhone = new TSPGCardholderMobilePhone();
+                    Params.CardholderMobilePhone.PhoneNumber = value;
+                }
+            }
+        }
+
+        /// <summary>
+        /// 自訂參數 1 - 舊版相容性
+        /// </summary>
+        [JsonIgnore]
         public string Echo0 { get; set; }
 
         /// <summary>
-        /// 自訂參數 2
+        /// 自訂參數 2 - 舊版相容性
         /// </summary>
-        [StringLength(255)]
+        [JsonIgnore]
         public string Echo1 { get; set; }
 
         /// <summary>
-        /// 自訂參數 3
+        /// 自訂參數 3 - 舊版相容性
         /// </summary>
-        [StringLength(255)]
+        [JsonIgnore]
         public string Echo2 { get; set; }
 
         /// <summary>
-        /// 自訂參數 4
+        /// 自訂參數 4 - 舊版相容性
         /// </summary>
-        [StringLength(255)]
+        [JsonIgnore]
         public string Echo3 { get; set; }
 
         /// <summary>
-        /// 自訂參數 5
+        /// 自訂參數 5 - 舊版相容性
         /// </summary>
-        [StringLength(255)]
+        [JsonIgnore]
         public string Echo4 { get; set; }
 
         /// <summary>
-        /// 付款截止時間 (可選，格式: yyyy-MM-dd HH:mm:ss)
+        /// 付款截止時間 (可選，格式: yyyy-MM-dd HH:mm:ss) - 舊版相容性
         /// </summary>
+        [JsonIgnore]
         public DateTime? ExpireTime { get; set; }
 
         /// <summary>
-        /// 是否啟用分期付款
+        /// 是否啟用分期付款 - 舊版相容性
         /// </summary>
-        public bool EnableInstallment { get; set; } = false;
+        [JsonIgnore]
+        public bool EnableInstallment 
+        {
+            get => !string.IsNullOrEmpty(Params?.InstallPeriod);
+            set { /* 設定邏輯可依需要實作 */ }
+        }
 
         /// <summary>
-        /// 分期期數 (若啟用分期付款)
+        /// 分期期數 (若啟用分期付款) - 舊版相容性
         /// </summary>
-        [Range(3, 24)]
-        public int? InstallmentPeriods { get; set; }
+        [JsonIgnore]
+        public int? InstallmentPeriods
+        {
+            get => int.TryParse(Params?.InstallPeriod, out var result) ? result : (int?)null;
+            set { if (Params != null) Params.InstallPeriod = value?.ToString(); }
+        }
 
         /// <summary>
-        /// 備註
+        /// 備註 - 舊版相容性
         /// </summary>
-        [StringLength(200)]
+        [JsonIgnore]
         public string Memo { get; set; }
+
+        #endregion
+    }
+
+    /// <summary>
+    /// TSPG 付款參數模型
+    /// </summary>
+    public class TSPGPaymentParams
+    {
+        /// <summary>
+        /// 客戶端版面類型 (1: 一般網頁, 2: 行動裝置網頁)
+        /// </summary>
+        [JsonProperty("layout")]
+        [Required]
+        [StringLength(1)]
+        public string Layout { get; set; } = "1";
+
+        /// <summary>
+        /// 訂單號碼 (必填)
+        /// </summary>
+        [JsonProperty("order_no")]
+        [Required]
+        [StringLength(23)]
+        public string OrderNo { get; set; }
+
+        /// <summary>
+        /// 交易金額 (包含兩位小數，如100代表1.00元)
+        /// </summary>
+        [JsonProperty("amt")]
+        [Required]
+        [StringLength(12)]
+        public string Amt { get; set; }
+
+        /// <summary>
+        /// 幣別 (NTD: 新台幣)
+        /// </summary>
+        [JsonProperty("cur")]
+        [Required]
+        [StringLength(3)]
+        public string Cur { get; set; } = "NTD";
+
+        /// <summary>
+        /// 訂單說明 (此欄允許中文，請以UTF-8編碼傳入)
+        /// </summary>
+        [JsonProperty("order_desc")]
+        [Required]
+        [StringLength(40)]
+        public string OrderDesc { get; set; }
+
+        /// <summary>
+        /// 授權同步請款標記 (0: 不同步請款, 1: 同步請款)
+        /// </summary>
+        [JsonProperty("capt_flag")]
+        [Required]
+        [StringLength(1)]
+        public string CaptFlag { get; set; } = "0";
+
+        /// <summary>
+        /// 回傳訊息標記 (0: 不查詢交易詳情, 1: 查詢交易詳情)
+        /// </summary>
+        [JsonProperty("result_flag")]
+        [Required]
+        [StringLength(1)]
+        public string ResultFlag { get; set; } = "1";
+
+        /// <summary>
+        /// 指定接續網址 (必填)
+        /// </summary>
+        [JsonProperty("post_back_url")]
+        [Required]
+        [StringLength(255)]
+        [Url]
+        public string PostBackUrl { get; set; }
+
+        /// <summary>
+        /// 指定交易資料回傳網址，須為 https:// (必填)
+        /// </summary>
+        [JsonProperty("result_url")]
+        [Required]
+        [StringLength(255)]
+        [Url]
+        public string ResultUrl { get; set; }
+
+        /// <summary>
+        /// 機票號碼 (可選)
+        /// </summary>
+        [JsonProperty("ticket_no")]
+        [StringLength(20)]
+        public string TicketNo { get; set; }
+
+        /// <summary>
+        /// 卡號 (若使用HPP，則不必填值)
+        /// </summary>
+        [JsonProperty("pan")]
+        [StringLength(19)]
+        public string Pan { get; set; }
+
+        /// <summary>
+        /// 到期日 (YYMM)
+        /// </summary>
+        [JsonProperty("exp_date")]
+        [StringLength(4)]
+        public string ExpDate { get; set; }
+
+        /// <summary>
+        /// CVC2/CVV2
+        /// </summary>
+        [JsonProperty("cvv2")]
+        [StringLength(3)]
+        public string Cvv2 { get; set; }
+
+        /// <summary>
+        /// 分期期數 (若不帶此欄位，或欄位值為空值或空白，則表示不為分期交易)
+        /// </summary>
+        [JsonProperty("install_period")]
+        [StringLength(2)]
+        public string InstallPeriod { get; set; }
+
+        /// <summary>
+        /// 紅利交易標記 (1: 紅利交易)
+        /// </summary>
+        [JsonProperty("use_redeem")]
+        [StringLength(1)]
+        public string UseRedeem { get; set; }
+
+        /// <summary>
+        /// 綁卡類型 (01: 交易中綁卡, 02: 純綁卡交易)
+        /// </summary>
+        [JsonProperty("threeDS_mc")]
+        [StringLength(2)]
+        public string ThreeDSMc { get; set; }
+
+        /// <summary>
+        /// 綁卡類別 (04: 新增卡片, 05: 續綁卡片)
+        /// </summary>
+        [JsonProperty("threeDS_ra")]
+        [StringLength(2)]
+        public string ThreeDSRa { get; set; }
+
+        /// <summary>
+        /// 縣市群組代碼 (國旅卡專用欄位)
+        /// </summary>
+        [JsonProperty("city")]
+        [StringLength(3)]
+        public string City { get; set; }
+
+        /// <summary>
+        /// 啟程日 (MMddyyyy) (國旅卡專用欄位)
+        /// </summary>
+        [JsonProperty("start_date")]
+        [StringLength(8)]
+        public string StartDate { get; set; }
+
+        /// <summary>
+        /// 回程日 (MMddyyyy) (國旅卡專用欄位)
+        /// </summary>
+        [JsonProperty("end_date")]
+        [StringLength(8)]
+        public string EndDate { get; set; }
+
+        /// <summary>
+        /// 行動裝置身分驗證標記 (0: 不啟用, 1: 啟用)
+        /// </summary>
+        [JsonProperty("cbr_indicator_flag")]
+        [StringLength(1)]
+        public string CbrIndicatorFlag { get; set; }
+
+        /// <summary>
+        /// 身份證號 (首字母大寫)
+        /// </summary>
+        [JsonProperty("cust_id")]
+        [StringLength(10)]
+        public string CustId { get; set; }
+
+        /// <summary>
+        /// 生日 (MMddyyyy)
+        /// </summary>
+        [JsonProperty("b_day")]
+        [StringLength(8)]
+        public string BDay { get; set; }
+
+        /// <summary>
+        /// 手機號碼 (皆為數字)
+        /// </summary>
+        [JsonProperty("cell_phone_no")]
+        [StringLength(10)]
+        public string CellPhoneNo { get; set; }
+
+        /// <summary>
+        /// 居家電話 (皆為數字)
+        /// </summary>
+        [JsonProperty("home_tel_no")]
+        [StringLength(12)]
+        public string HomeTelNo { get; set; }
+
+        /// <summary>
+        /// 公司電話 (皆為數字)
+        /// </summary>
+        [JsonProperty("office_tel_no")]
+        [StringLength(12)]
+        public string OfficeTelNo { get; set; }
+
+        /// <summary>
+        /// 持卡人英文姓名 (限半形字，內容可包含「,」、「-」、「.」、最後一碼不得空白)
+        /// </summary>
+        [JsonProperty("cardholder_name")]
+        [StringLength(45)]
+        public string CardholderName { get; set; }
+
+        /// <summary>
+        /// 持卡人email (限半形字，最後一碼不得空白)
+        /// </summary>
+        [JsonProperty("cardholder_email")]
+        [StringLength(254)]
+        [EmailAddress]
+        public string CardholderEmail { get; set; }
+
+        /// <summary>
+        /// 持卡人手機號碼
+        /// </summary>
+        [JsonProperty("cardholder_mobile_phone")]
+        public TSPGCardholderMobilePhone CardholderMobilePhone { get; set; }
+    }
+
+    /// <summary>
+    /// TSPG 持卡人手機號碼
+    /// </summary>
+    public class TSPGCardholderMobilePhone
+    {
+        /// <summary>
+        /// 國碼 (皆為數字，台灣地區為886)
+        /// </summary>
+        [JsonProperty("country_code")]
+        [StringLength(3)]
+        public string CountryCode { get; set; } = "886";
+
+        /// <summary>
+        /// 號碼 (皆為數字)
+        /// </summary>
+        [JsonProperty("phone_number")]
+        [StringLength(15)]
+        public string PhoneNumber { get; set; }
     }
 
     /// <summary>
@@ -726,6 +1080,112 @@ namespace ChurchReport.Tools
         /// 例外堆疊追蹤
         /// </summary>
         public string StackTrace { get; set; }
+    }
+
+    #endregion
+
+    #region TSPG REST API v2.14 回應模型
+
+    /// <summary>
+    /// TSPG REST API v2.14 回應模型
+    /// </summary>
+    public class TSPGApiResponse
+    {
+        /// <summary>
+        /// 格式版本號
+        /// </summary>
+        [JsonProperty("ver")]
+        public string Ver { get; set; }
+
+        /// <summary>
+        /// 特店代號
+        /// </summary>
+        [JsonProperty("mid")]
+        public string Mid { get; set; }
+
+        /// <summary>
+        /// 子特店代號
+        /// </summary>
+        [JsonProperty("s_mid")]
+        public string S_Mid { get; set; }
+
+        /// <summary>
+        /// 端末代號
+        /// </summary>
+        [JsonProperty("tid")]
+        public string Tid { get; set; }
+
+        /// <summary>
+        /// 付款類別
+        /// </summary>
+        [JsonProperty("pay_type")]
+        public int PayType { get; set; }
+
+        /// <summary>
+        /// 交易類別
+        /// </summary>
+        [JsonProperty("tx_type")]
+        public int TxType { get; set; }
+
+        /// <summary>
+        /// 保留欄位，固定回 0
+        /// </summary>
+        [JsonProperty("ret_value")]
+        public int RetValue { get; set; }
+
+        /// <summary>
+        /// 交易結果回應碼
+        /// </summary>
+        [JsonProperty("ret_code")]
+        public string ret_code { get; set; }
+
+        /// <summary>
+        /// 回傳訊息
+        /// </summary>
+        [JsonProperty("ret_msg")]
+        public string ret_msg { get; set; }
+
+        /// <summary>
+        /// 回應參數清單
+        /// </summary>
+        [JsonProperty("params")]
+        public TSPGApiResponseParams Params { get; set; }
+    }
+
+    /// <summary>
+    /// TSPG API 回應參數
+    /// </summary>
+    public class TSPGApiResponseParams
+    {
+        /// <summary>
+        /// 付款網頁資訊
+        /// </summary>
+        [JsonProperty("hpp_url")]
+        public string hpp_url { get; set; }
+
+        /// <summary>
+        /// 交易編號
+        /// </summary>
+        [JsonProperty("transaction_id")]
+        public string transaction_id { get; set; }
+
+        /// <summary>
+        /// 訂單編號
+        /// </summary>
+        [JsonProperty("order_no")]
+        public string order_no { get; set; }
+
+        /// <summary>
+        /// 交易金額
+        /// </summary>
+        [JsonProperty("amt")]
+        public string amt { get; set; }
+
+        /// <summary>
+        /// 幣別
+        /// </summary>
+        [JsonProperty("cur")]
+        public string cur { get; set; }
     }
 
     #endregion
