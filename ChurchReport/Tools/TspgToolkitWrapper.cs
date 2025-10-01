@@ -44,6 +44,47 @@ namespace ChurchReport.Tools
             }
         }
 
+        /// <summary>
+        /// 建立訂單 (依照 TSPGPaymentRequest) - 新增多載
+        /// </summary>
+        /// <param name="request">TSPGPaymentRequest 物件</param>
+        /// <returns>CreOrder 結果</returns>
+        public CreOrder CreateOrder(TSPGPaymentRequest request)
+        {
+            try
+            {
+                if (request == null)
+                    throw new ArgumentNullException(nameof(request));
+                if (request.Params == null)
+                    throw new ArgumentException("request.Params 不可為空", nameof(request));
+
+                // 呼叫 TSPG API
+                var response = TspgToolkit.OrderCreate(request);
+
+                // 建立對應 CreOrder (以原始請求的 OrderNo 為主)
+                return new CreOrder
+                {
+                    OrderNo = request.Params.OrderNo,
+                    Status = response.code == "0000" ? "S" : "F",
+                    Description = response.msg,
+                    CardParam = new CreOrderCardParamRes
+                    {
+                        CardPayURL = response.url
+                    }
+                };
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"TspgToolkitWrapper.CreateOrder(TSPGPaymentRequest) Error: {ex.Message}");
+                return new CreOrder
+                {
+                    OrderNo = request?.Params?.OrderNo ?? string.Empty,
+                    Status = "F",
+                    Description = $"訂單建立失敗: {ex.Message}"
+                };
+            }
+        }
+
         #endregion
 
         #region IPayment 介面實作
