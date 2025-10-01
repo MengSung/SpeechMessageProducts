@@ -26,12 +26,18 @@ namespace ChurchReport.Tools
 
         private static readonly string _currentVersion = "1.0.0";
 
-        // TSPG 金流配置參數
+        // TSPG 金流配置參數 (正式由組態提供，若無則使用預設)
         private static readonly string _storeId = GetConfigValue("TSPG:StoreId", "your_store_id");
         private static readonly string _storeKey = GetConfigValue("TSPG:StoreKey", "your_store_key");  
         private static readonly string _storeIV = GetConfigValue("TSPG:StoreIV", "your_store_iv");
         private static readonly string _apiBaseUrl = GetConfigValue("TSPG:ApiBaseUrl", "https://www.paymypay.com/api/");
         private static readonly bool _isTestMode = bool.TryParse(GetConfigValue("TSPG:TestMode", "true"), out var testMode) ? testMode : true;
+
+        // 申請單(測試環境)提供的常數
+        private const string TestApiRoot = "https://tspg-t.taishinbank.com.tw/tspgapi/restapi"; // 原文未含 https:// 這裡補上
+        private const string TestTerminalId = "T0000000";
+        private const string TestMerchant3D = "999812777000198";   // 啟用 3D
+        private const string TestMerchantNo3D = "999812777000199"; // 不啟用 3D
         #endregion
 
         #region 公開 API 方法 (對應永豐金流介面)
@@ -53,6 +59,37 @@ namespace ChurchReport.Tools
             {
                 System.Diagnostics.Trace.WriteLine($"[TSPG] OrderCreate Error: {ex.Message}");
                 return CreateErrorResponse(request?.Params?.OrderNo, $"建立付款失敗: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// 建立付款訂單 (測試環境專用) — 依照申請單 API_ROOT / 特店代號 / 端末代號 呼叫。
+        /// 兩組特店代號：啟用 3D / 不啟用 3D，透過 enable3D 參數切換。
+        /// </summary>
+        /// <param name="request">付款請求</param>
+        /// <param name="enable3D">true=使用啟用3D之特店代號，false=使用不啟用3D之特店代號</param>
+        /// <returns>付款回應</returns>
+        public static PayPageResponse OrderCreateTest(TSPGPaymentRequest request, bool enable3D)
+        {
+            try
+            {
+                if (request == null) throw new ArgumentNullException(nameof(request));
+                if (request.Params == null) throw new ArgumentException("request.Params 不可為空", nameof(request));
+
+                // 指定測試用特店與端末代號
+                request.Mid = enable3D ? TestMerchant3D : TestMerchantNo3D;
+                request.Tid = TestTerminalId;
+
+                // 若外部未指定 Layout / ResultFlag / CaptFlag 等欄位，BuildPaymentPostData 會補預設
+                var jsonData = BuildPaymentPostData(request);
+
+                // 使用測試 API Root 呼叫 (覆寫 _apiBaseUrl)
+                return PostToTSPGWithBaseUrl(TestApiRoot, "auth.ashx", jsonData);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"[TSPG] OrderCreateTest Error: {ex.Message}");
+                return CreateErrorResponse(request?.Params?.OrderNo, $"建立測試付款失敗: {ex.Message}");
             }
         }
 
@@ -194,9 +231,9 @@ namespace ChurchReport.Tools
         /// </summary>
         private static string BuildPaymentPostData(TSPGPaymentRequest request)
         {
-            // 確保基本配置
-            request.Mid = request.Mid ?? _storeId;
-            request.Tid = request.Tid ?? GetConfigValue("TSPG:TerminalId", "T0000000");
+            // 確保基本配置 (若 request 已指定測試參數則不覆寫)
+            request.Mid = string.IsNullOrEmpty(request.Mid) ? _storeId : request.Mid;
+            request.Tid = string.IsNullOrEmpty(request.Tid) ? GetConfigValue("TSPG:TerminalId", "T0000000") : request.Tid;
             
             // 確保 Params 不為 null
             if (request.Params == null)
@@ -364,13 +401,22 @@ namespace ChurchReport.Tools
         /// </summary>
         private static PayPageResponse PostToTSPG(string endpoint, object postData)
         {
+            return PostToTSPGWithBaseUrl(_apiBaseUrl, endpoint, postData);
+        }
+
+        /// <summary>
+        /// 以指定 BaseUrl 發送 POST (供測試環境覆寫使用)
+        /// </summary>
+        private static PayPageResponse PostToTSPGWithBaseUrl(string baseUrl, string endpoint, object postData)
+        {
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
             
             try
             {
                 using (var client = new WebClient())
                 {
-                    string url = _apiBaseUrl.TrimEnd('/') + "/" + endpoint.TrimStart('/');
+                    string root = baseUrl.TrimEnd('/');
+                    string url = root + "/" + endpoint.TrimStart('/');
                     
                     if (postData is string jsonData)
                     {
