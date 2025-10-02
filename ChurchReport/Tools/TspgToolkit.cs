@@ -314,6 +314,307 @@ namespace ChurchReport.Tools
             }, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
         }
 
+        /// <summary>
+        /// 發送 POST 請求到 TSPG - 增強版，包含重試機制和完整錯誤處理
+        /// </summary>
+        /// <param name="endpoint">API 端點</param>
+        /// <param name="postData">POST 資料</param>
+        /// <param name="maxRetries">最大重試次數</param>
+        /// <returns>TSPG 回應</returns>
+        private static PayPageResponse PostToTSPG(string endpoint, object postData, int maxRetries = 3)
+        {
+            string apiBase = GetConfigValue("TSPG:ApiBaseUrl", "");
+            if (string.IsNullOrEmpty(apiBase))
+            {
+                System.Diagnostics.Trace.WriteLine("[TSPG] 錯誤: ApiBaseUrl 設定為空");
+                return CreateErrorResponse("", "ApiBaseUrl 設定不正確");
+            }
+            return PostToTSPGWithBaseUrl(apiBase, endpoint, postData, maxRetries);
+        }
+
+        /// <summary>
+        /// 使用指定 BaseUrl 發送 POST 請求到 TSPG - 增強版
+        /// 包含重試機制、完整錯誤處理、連線管理和詳細日志
+        /// </summary>
+        /// <param name="baseUrl">API 基礎 URL</param>
+        /// <param name="endpoint">API 端點</param>
+        /// <param name="postData">POST 資料 (JSON 字串或 NameValueCollection)</param>
+        /// <param name="maxRetries">最大重試次數</param>
+        /// <param name="timeoutSeconds">請求超時時間(秒)</param>
+        /// <returns>TSPG 回應</returns>
+        private static PayPageResponse PostToTSPGWithBaseUrl(string baseUrl, string endpoint, object postData, int maxRetries = 3, int timeoutSeconds = 30)
+        {
+            // 參數驗證
+            if (string.IsNullOrWhiteSpace(baseUrl))
+            {
+                return CreateErrorResponse("", "BaseUrl 不可為空");
+            }
+            if (string.IsNullOrWhiteSpace(endpoint))
+            {
+                return CreateErrorResponse("", "Endpoint 不可為空");
+            }
+            if (postData == null)
+            {
+                return CreateErrorResponse("", "PostData 不可為空");
+            }
+
+            // 設定 SSL/TLS 協定
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
+            
+            // 建構完整 URL
+            string root = baseUrl.TrimEnd('/');
+            string cleanEndpoint = endpoint.TrimStart('/');
+            string fullUrl = $"{root}/{cleanEndpoint}";
+
+            // 記錄請求開始
+            System.Diagnostics.Trace.WriteLine($"[TSPG] 開始 POST 請求: {fullUrl}");
+            System.Diagnostics.Trace.WriteLine($"[TSPG] 最大重試次數: {maxRetries}, 超時時間: {timeoutSeconds}秒");
+
+            Exception lastException = null;
+            
+            for (int attempt = 1; attempt <= maxRetries + 1; attempt++)
+            {
+                try
+                {
+                    if (attempt > 1)
+                    {
+                        // 重試前等待 (指數退避)
+                        int delayMs = Math.Min(1000 * (int)Math.Pow(2, attempt - 2), 10000); // 最多等待 10 秒
+                        System.Diagnostics.Trace.WriteLine($"[TSPG] 第 {attempt} 次嘗試，等待 {delayMs}ms...");
+                        System.Threading.Thread.Sleep(delayMs);
+                    }
+
+                    System.Diagnostics.Trace.WriteLine($"[TSPG] 嘗試第 {attempt} 次請求...");
+
+                    using (var client = new WebClient())
+                    {
+                        // 設定基本標頭和超時
+                        client.Headers[HttpRequestHeader.UserAgent] = "ChurchReport-TSPG/2.14-Enhanced";
+                        client.Headers[HttpRequestHeader.Accept] = "application/json, text/plain, */*";
+                        client.Headers[HttpRequestHeader.AcceptEncoding] = "gzip, deflate";
+                        client.Headers[HttpRequestHeader.CacheControl] = "no-cache";
+                        client.Headers[HttpRequestHeader.Pragma] = "no-cache";
+                        client.Headers["X-Request-ID"] = Guid.NewGuid().ToString("N"); // 請求追蹤 ID
+
+                        // 設定超時 (WebClient 沒有直接的超時設定，需要使用 ServicePoint)
+                        var servicePoint = ServicePointManager.FindServicePoint(new Uri(fullUrl));
+                        servicePoint.ConnectionLeaseTimeout = timeoutSeconds * 1000;
+                        servicePoint.MaxIdleTime = timeoutSeconds * 1000;
+
+                        byte[] responseBytes = null;
+                        string responseString = "";
+
+                        if (postData is string jsonData)
+                        {
+                            // JSON 格式請求
+                            client.Headers[HttpRequestHeader.ContentType] = "application/json; charset=utf-8";
+                            
+                            System.Diagnostics.Trace.WriteLine($"[TSPG] 發送 JSON 資料長度: {jsonData.Length} 字元");
+                            if (jsonData.Length < 1000) // 只記錄較短的請求內容
+                            {
+                                System.Diagnostics.Trace.WriteLine($"[TSPG] JSON 內容: {jsonData}");
+                            }
+
+                            responseBytes = client.UploadData(fullUrl, "POST", Encoding.UTF8.GetBytes(jsonData));
+                        }
+                        else if (postData is NameValueCollection formData)
+                        {
+                            // Form 格式請求 (向下相容)
+                            client.Headers[HttpRequestHeader.ContentType] = "application/x-www-form-urlencoded; charset=utf-8";
+                            
+                            System.Diagnostics.Trace.WriteLine($"[TSPG] 發送 Form 資料欄位數: {formData.Count}");
+                            
+                            responseBytes = client.UploadValues(fullUrl, "POST", formData);
+                        }
+                        else
+                        {
+                            throw new ArgumentException($"不支援的 PostData 類型: {postData.GetType().Name}");
+                        }
+
+                        // 處理回應
+                        responseString = Encoding.UTF8.GetString(responseBytes);
+                        
+                        System.Diagnostics.Trace.WriteLine($"[TSPG] 第 {attempt} 次請求成功");
+                        System.Diagnostics.Trace.WriteLine($"[TSPG] 回應長度: {responseString.Length} 字元");
+                        
+                        if (responseString.Length < 2000) // 只記錄較短的回應內容
+                        {
+                            System.Diagnostics.Trace.WriteLine($"[TSPG] 回應內容: {responseString}");
+                        }
+                        else
+                        {
+                            System.Diagnostics.Trace.WriteLine($"[TSPG] 回應內容 (前500字元): {responseString.Substring(0, 500)}...");
+                        }
+
+                        // 解析回應
+                        PayPageResponse result;
+                        if (postData is string)
+                        {
+                            result = ParseTSPGResponse(responseString);
+                        }
+                        else
+                        {
+                            result = ParseResponse(responseString);
+                        }
+
+                        // 檢查回應是否有效
+                        if (result != null && !string.IsNullOrEmpty(result.code))
+                        {
+                            System.Diagnostics.Trace.WriteLine($"[TSPG] 請求完成，回應碼: {result.code}, 訊息: {result.msg}");
+                            return result;
+                        }
+                        else
+                        {
+                            System.Diagnostics.Trace.WriteLine("[TSPG] 警告: 回應格式不正確或為空");
+                            if (attempt <= maxRetries)
+                            {
+                                continue; // 重試
+                            }
+                            return CreateErrorResponse("", "回應格式不正確");
+                        }
+                    }
+                }
+                catch (WebException webEx)
+                {
+                    lastException = webEx;
+                    string errorDetail = ProcessWebException(webEx, attempt, maxRetries);
+                    
+                    System.Diagnostics.Trace.WriteLine($"[TSPG] 第 {attempt} 次請求 WebException: {errorDetail}");
+                    
+                    // 判斷是否應該重試
+                    if (ShouldRetryOnWebException(webEx) && attempt <= maxRetries)
+                    {
+                        continue; // 重試
+                    }
+                    else
+                    {
+                        return CreateErrorResponse("", $"網路請求失敗 (嘗試 {attempt} 次): {errorDetail}");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    lastException = ex;
+                    string errorMessage = $"第 {attempt} 次請求發生異常: {ex.GetType().Name}: {ex.Message}";
+                    System.Diagnostics.Trace.WriteLine($"[TSPG] {errorMessage}");
+                    
+                    // 對於一般異常，只在網路相關錯誤時重試
+                    if (IsNetworkRelatedError(ex) && attempt <= maxRetries)
+                    {
+                        continue; // 重試
+                    }
+                    else
+                    {
+                        return CreateErrorResponse("", $"請求異常 (嘗試 {attempt} 次): {ex.Message}");
+                    }
+                }
+            }
+
+            // 所有重試都失敗
+            string finalError = lastException != null 
+                ? $"所有重試失敗，最後錯誤: {lastException.Message}"
+                : "所有重試失敗，未知錯誤";
+                
+            System.Diagnostics.Trace.WriteLine($"[TSPG] {finalError}");
+            return CreateErrorResponse("", finalError);
+        }
+
+        /// <summary>
+        /// 處理 WebException 並提取詳細錯誤資訊
+        /// </summary>
+        private static string ProcessWebException(WebException webEx, int currentAttempt, int maxRetries)
+        {
+            string errorMessage = $"WebException: {webEx.Message}";
+            
+            try
+            {
+                if (webEx.Response is HttpWebResponse httpResponse)
+                {
+                    errorMessage += $" [HTTP {(int)httpResponse.StatusCode} {httpResponse.StatusCode}]";
+                    
+                    // 嘗試讀取錯誤回應內容
+                    try
+                    {
+                        using (var stream = httpResponse.GetResponseStream())
+                        using (var reader = new StreamReader(stream, Encoding.UTF8))
+                        {
+                            string errorContent = reader.ReadToEnd();
+                            if (!string.IsNullOrEmpty(errorContent))
+                            {
+                                if (errorContent.Length > 500)
+                                {
+                                    errorContent = errorContent.Substring(0, 500) + "...";
+                                }
+                                errorMessage += $" 回應內容: {errorContent}";
+                            }
+                        }
+                    }
+                    catch (Exception readEx)
+                    {
+                        errorMessage += $" (無法讀取錯誤回應: {readEx.Message})";
+                    }
+                }
+                else if (webEx.Response != null)
+                {
+                    errorMessage += $" 回應類型: {webEx.Response.GetType().Name}";
+                }
+            }
+            catch (Exception ex)
+            {
+                errorMessage += $" (處理 WebException 時發生錯誤: {ex.Message})";
+            }
+
+            return errorMessage;
+        }
+
+        /// <summary>
+        /// 判斷 WebException 是否應該重試
+        /// </summary>
+        private static bool ShouldRetryOnWebException(WebException webEx)
+        {
+            // 重試的條件
+            switch (webEx.Status)
+            {
+                case WebExceptionStatus.Timeout:
+                case WebExceptionStatus.ConnectFailure:
+                case WebExceptionStatus.ReceiveFailure:
+                case WebExceptionStatus.SendFailure:
+                case WebExceptionStatus.PipelineFailure:
+                case WebExceptionStatus.ConnectionClosed:
+                case WebExceptionStatus.KeepAliveFailure:
+                case WebExceptionStatus.UnknownError:
+                    return true;
+
+                case WebExceptionStatus.ProtocolError:
+                    // HTTP 錯誤碼判斷
+                    if (webEx.Response is HttpWebResponse httpResponse)
+                    {
+                        int statusCode = (int)httpResponse.StatusCode;
+                        // 5xx 伺服器錯誤和部分 4xx 錯誤可以重試
+                        return statusCode >= 500 || statusCode == 408 || statusCode == 429;
+                    }
+                    return false;
+
+                default:
+                    return false;
+            }
+        }
+
+        /// <summary>
+        /// 判斷異常是否為網路相關錯誤
+        /// </summary>
+        private static bool IsNetworkRelatedError(Exception ex)
+        {
+            return ex is System.Net.Sockets.SocketException ||
+                   ex is System.IO.IOException ||
+                   ex is System.TimeoutException ||
+                   (ex.Message != null && (
+                       ex.Message.Contains("timeout") ||
+                       ex.Message.Contains("connection") ||
+                       ex.Message.Contains("network") ||
+                       ex.Message.Contains("socket")
+                   ));
+        }
+
         private static PayPageResponse PostToTSPG(string endpoint, object postData)
         {
             string apiBase = GetConfigValue("TSPG:ApiBaseUrl", "");
