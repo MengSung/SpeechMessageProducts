@@ -75,7 +75,8 @@ namespace ChurchReport.Tools
                 request.Tid = _testTerminalId;
 
                 var jsonData = BuildPaymentPostData(request);
-                return PostToTSPGWithBaseUrl(_testApiRoot, "auth.ashx", jsonData);
+                //return PostToTSPGWithBaseUrl(_testApiRoot, "auth.ashx", jsonData);
+                return PostToTSPGWithHttpWebRequest(_testApiRoot, "auth.ashx", jsonData);
             }
             catch (Exception ex)
             {
@@ -357,6 +358,190 @@ namespace ChurchReport.Tools
             }
         }
 
+        /// <summary>
+        /// 使用 HttpWebRequest 方式發送 POST 請求到 TSPG
+        /// 提供更精細的控制選項，如超時設定、代理設定等
+        /// </summary>
+        /// <param name="baseUrl">API 基礎 URL</param>
+        /// <param name="endpoint">API 端點</param>
+        /// <param name="postData">POST 資料 (JSON 字串或 NameValueCollection)</param>
+        /// <param name="timeoutSeconds">請求超時時間(秒)，預設 30 秒</param>
+        /// <returns>TSPG 回應</returns>
+        private static PayPageResponse PostToTSPGWithHttpWebRequest(string baseUrl, string endpoint, object postData, int timeoutSeconds = 30)
+        {
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+            
+            try
+            {
+                string root = baseUrl.TrimEnd('/');
+                string url = root + "/" + endpoint.TrimStart('/');
+                
+                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
+                request.Method = "POST";
+                request.Timeout = timeoutSeconds * 1000; // 轉換為毫秒
+                request.ReadWriteTimeout = timeoutSeconds * 1000;
+                request.UserAgent = "ChurchReport-TSPG/2.14-HttpWebRequest";
+                request.Accept = "application/json, text/plain, */*";
+                request.KeepAlive = false; // 避免連線重用問題
+                
+                byte[] postBytes = null;
+                string contentType = "";
+                
+                if (postData is string jsonData)
+                {
+                    // JSON 格式請求
+                    contentType = "application/json; charset=utf-8";
+                    postBytes = Encoding.UTF8.GetBytes(jsonData);
+                }
+                else if (postData is NameValueCollection formData)
+                {
+                    // Form 格式請求 (向下相容舊版)
+                    contentType = "application/x-www-form-urlencoded; charset=utf-8";
+                    
+                    // 將 NameValueCollection 轉換為 URL 編碼字串
+                    var formParams = new List<string>();
+                    foreach (string key in formData.AllKeys)
+                    {
+                        string encodedKey = Uri.EscapeDataString(key);
+                        string encodedValue = Uri.EscapeDataString(formData[key] ?? "");
+                        formParams.Add($"{encodedKey}={encodedValue}");
+                    }
+                    string formString = string.Join("&", formParams);
+                    postBytes = Encoding.UTF8.GetBytes(formString);
+                }
+                else
+                {
+                    throw new ArgumentException("Unsupported postData type. Expected string (JSON) or NameValueCollection.", nameof(postData));
+                }
+                
+                request.ContentType = contentType;
+                request.ContentLength = postBytes.Length;
+                
+                // 寫入 POST 資料
+                using (Stream requestStream = request.GetRequestStream())
+                {
+                    requestStream.Write(postBytes, 0, postBytes.Length);
+                }
+                
+                // 取得回應
+                string responseString = "";
+                using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
+                {
+                    using (Stream responseStream = response.GetResponseStream())
+                    using (StreamReader reader = new StreamReader(responseStream, Encoding.UTF8))
+                    {
+                        responseString = reader.ReadToEnd();
+                    }
+                    
+                    // 記錄 HTTP 狀態碼 (用於除錯)
+                    System.Diagnostics.Trace.WriteLine($"[TSPG] HTTP Response Status: {response.StatusCode} ({(int)response.StatusCode})");
+                }
+                
+                // 解析回應
+                if (postData is string)
+                {
+                    // JSON 請求使用新版解析器
+                    return ParseTSPGResponse(responseString);
+                }
+                else
+                {
+                    // Form 請求使用舊版解析器
+                    return ParseResponse(responseString);
+                }
+            }
+            catch (WebException webEx)
+            {
+                string errorMessage = $"WebException: {webEx.Message}";
+                
+                // 嘗試讀取錯誤回應內容
+                if (webEx.Response != null)
+                {
+                    try
+                    {
+                        using (Stream errorStream = webEx.Response.GetResponseStream())
+                        using (StreamReader reader = new StreamReader(errorStream, Encoding.UTF8))
+                        {
+                            string errorContent = reader.ReadToEnd();
+                            if (!string.IsNullOrEmpty(errorContent))
+                            {
+                                errorMessage += $" Response: {errorContent}";
+                            }
+                        }
+                        
+                        // 記錄 HTTP 錯誤狀態碼
+                        if (webEx.Response is HttpWebResponse httpResponse)
+                        {
+                            errorMessage += $" Status: {httpResponse.StatusCode} ({(int)httpResponse.StatusCode})";
+                        }
+                    }
+                    catch (Exception readEx)
+                    {
+                        errorMessage += $" (無法讀取錯誤回應: {readEx.Message})";
+                    }
+                }
+                
+                System.Diagnostics.Trace.WriteLine($"[TSPG] PostToTSPGWithHttpWebRequest WebException: {errorMessage}");
+                return new PayPageResponse { code = "9999", msg = errorMessage };
+            }
+            catch (Exception ex)
+            {
+                string errorMessage = $"Exception: {ex.Message}";
+                System.Diagnostics.Trace.WriteLine($"[TSPG] PostToTSPGWithHttpWebRequest Error: {errorMessage}");
+                return new PayPageResponse { code = "9999", msg = errorMessage };
+            }
+        }
+
+        /// <summary>
+        /// 使用 HttpWebRequest 方式呼叫 TSPG (測試環境專用)
+        /// </summary>
+        /// <param name="request">TSPG 付款請求</param>
+        /// <param name="enable3D">是否啟用 3D 驗證</param>
+        /// <param name="timeoutSeconds">請求超時時間(秒)</param>
+        /// <returns>付款回應</returns>
+        public static PayPageResponse OrderCreateTestWithHttpWebRequest(TSPGPaymentRequest request, bool enable3D, int timeoutSeconds = 30)
+        {
+            try
+            {
+                if (request == null) throw new ArgumentNullException(nameof(request));
+                if (request.Params == null) throw new ArgumentException("request.Params 不可為空", nameof(request));
+
+                // 指定測試用特店與端末代號
+                request.Mid = enable3D ? _testMerchant3D : _testMerchantNo3D;
+                request.Tid = _testTerminalId;
+
+                var jsonData = BuildPaymentPostData(request);
+                
+                // 使用 HttpWebRequest 方式呼叫
+                return PostToTSPGWithHttpWebRequest(_testApiRoot, "auth.ashx", jsonData, timeoutSeconds);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"[TSPG] OrderCreateTestWithHttpWebRequest Error: {ex.Message}");
+                return CreateErrorResponse(request?.Params?.OrderNo, $"建立測試付款失敗 (HttpWebRequest): {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// 使用 HttpWebRequest 方式查詢訂單狀態
+        /// </summary>
+        /// <param name="orderId">訂單編號</param>
+        /// <param name="timeoutSeconds">請求超時時間(秒)</param>
+        /// <returns>查詢結果</returns>
+        public static PayPageResponse OrderQueryWithHttpWebRequest(string orderId, int timeoutSeconds = 30)
+        {
+            try
+            {
+                var jsonData = BuildQueryJsonData(orderId);
+                string apiBase = GetConfigValue("TSPG:ApiBaseUrl", "");
+                return PostToTSPGWithHttpWebRequest(apiBase, "query.ashx", jsonData, timeoutSeconds);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"[TSPG] OrderQueryWithHttpWebRequest Error: {ex.Message}");
+                return CreateErrorResponse(orderId, $"查詢訂單失敗 (HttpWebRequest): {ex.Message}");
+            }
+        }
+        
         private static PayPageResponse ParseTSPGResponse(string responseString)
         {
             try
