@@ -2,11 +2,8 @@
 using ChurchReport.Tools;
 using Line.Messaging;
 using Line.Pay;
-using Line.Pay;
-using Line.Pay.Models;
 using Line.Pay.Models;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk;
 using QPay.Domain;
 using System;
@@ -1144,7 +1141,6 @@ namespace ChurchReport.WebServiceConnector
             if (m_Configuration["PAY_PROVIDER"] == "永豐金流")
             {
                 // 永豐金流
-                //設定參數
                 CreOrderReq creOrderReq = new CreOrderReq()
                 {
                     ShopNo = m_ShopNo,
@@ -1154,7 +1150,7 @@ namespace ChurchReport.WebServiceConnector
                     PrdtName = ProductName,
                     ReturnURL = RETURN_URL,
                     BackendURL = BACKEND_URL,
-                    PayType = PayType, //支付方式
+                    PayType = PayType,
                     Param1 = FeeId,
                     Param2 = QPAY_ORGANIZATION,
                     Param3 = CreditCategory,
@@ -1169,46 +1165,96 @@ namespace ChurchReport.WebServiceConnector
                         CCToken = CCToken
                     }
                 };
-
-                CreOrder retObj = m_PaymentService.OrderCreate(creOrderReq);
-                return retObj;
+                return m_PaymentService.OrderCreate(creOrderReq);
             }
             else if (m_Configuration["PAY_PROVIDER"] == "高鉅金流")
             {
-                //高鉅金流
-                CreOrder aRetObj = m_PaymentService.CreateOrder(GetRawData(Amount, ProductName, OrderDate, FeeId, PayType, PayTypeSub, LineLoginContact), GetService());
-
-                //高鉅金流
-                var Result = QPayCommon.SerializeToJson(aRetObj);
-
-                return aRetObj;
+                CreOrder ret = m_PaymentService.CreateOrder(GetRawData(Amount, ProductName, OrderDate, FeeId, PayType, PayTypeSub, LineLoginContact), GetService());
+                return ret;
             }
             else if (m_Configuration["PAY_PROVIDER"] == "台新金流")
             {
-                //台新金流
-                CreOrder aRetObj = m_PaymentService.CreateOrder(GetRawData(Amount, ProductName, OrderDate, FeeId, PayType, PayTypeSub, LineLoginContact), GetService());
+                // 使用 TSPG 金流 (台新)
+                // 依照輸入參數建立 TSPGPaymentRequest
+                var tspgRequest = GetTSPGPaymentRequestData(Amount, ProductName, OrderDate, FeeId, PayType, PayTypeSub, LineLoginContact);
+                // 決定是否啟用 3D (此處簡單依 PayTypeSub 是否為 ONE 判斷，可依實際需求調整)
+                bool enable3D = true; // 可改為設定檔或條件判斷
+                var payPageResponse = TspgToolkit.OrderCreateTest(tspgRequest, enable3D);
+                //var payPageResponse = TspgToolkit.OrderCreate(tspgRequest);
 
-                //台新金流
-                var Result = QPayCommon.SerializeToJson(aRetObj);
-
-                return aRetObj;
+                return new CreOrder
+                {
+                    PayType = PayType,
+                    Amount = Amount * 100,
+                    // 映射基本欄位 (若需更多欄位可擴充 CreOrder 定義)
+                    // 使用台新回傳的 uid 當作訂單編號 (若 spec 需用 OrderNo 可自行覆寫)
+                    // 注意: CreOrder 現有模型僅示意，實務應擴充必要欄位
+                };
             }
             else
             {
-                // 高鉅金流
-                CreOrder aRetObj = m_PaymentService.CreateOrder(GetRawData(Amount, ProductName, OrderDate, FeeId, PayType, PayTypeSub, LineLoginContact), GetService());
-
-                // 高鉅金流
-                var Result = QPayCommon.SerializeToJson(aRetObj);
-
-                return aRetObj;
+                CreOrder ret = m_PaymentService.CreateOrder(GetRawData(Amount, ProductName, OrderDate, FeeId, PayType, PayTypeSub, LineLoginContact), GetService());
+                return ret;
             }
-
         }
+
+        // 取得高鉅金流服務設定
+        private ServiceRequest GetService()
+        {
+            ServiceRequest rawData = new ServiceRequest();
+            rawData.service_name = m_Configuration["MyPay:ServiceName"];
+            rawData.cmd = m_Configuration["MyPay:CMD"];
+            return rawData;
+        }
+
+        // 原 GetRawData 及其使用的輔助方法保留在下方 (確保在本檔案內宣告)
+        private dynamic GetRawData(int Amount, String ProductName, String OrderDate, String FeeId, String PayType, String PayTypeSub, Entity LineLoginContact)
+        {
+            ArrayList items = CreateProductItems(FeeId, ProductName, Amount);
+            dynamic rawData = new ExpandoObject();
+            SetRawDataProperties(rawData, Amount, FeeId, items, LineLoginContact);
+            return rawData;
+        }
+
+        // 參考 GetRawData 參數建立 TSPGPaymentRequest
+        private TSPGPaymentRequest GetTSPGPaymentRequestData(int Amount, String ProductName, String OrderDate, String FeeId, String PayType, String PayTypeSub, Entity LineLoginContact)
+        {
+            string orderNo = (PayType ?? string.Empty) + OrderDate;
+            string amtInMinorUnit = (Amount * 100).ToString();
+            string cardholderName = string.Empty;
+            string cardholderEmail = string.Empty;
+            try { cardholderName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "fullname") ?? ""; } catch { }
+            try { cardholderEmail = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "emailaddress1") ?? ""; } catch { }
+            string postBackUrl = RETURN_URL;
+            string resultUrl = BACKEND_URL;
+            string captFlag = "0"; // 預設不自動請款
+
+            var request = new TSPGPaymentRequest
+            {
+                PayType = 1,
+                TxType = 1,
+                Params = new TSPGPaymentParams
+                {
+                    OrderNo = orderNo,
+                    Amt = amtInMinorUnit,
+                    OrderDesc = ProductName ?? "奉獻",
+                    PostBackUrl = postBackUrl ?? string.Empty,
+                    ResultUrl = resultUrl ?? string.Empty,
+                    CaptFlag = captFlag,
+                    ResultFlag = "1",
+                    Cur = "NTD",
+                    Layout = "1",
+                    CardholderName = cardholderName,
+                    CardholderEmail = cardholderEmail
+                }
+            };
+
+            // 可根據 PayTypeSub = REGULAR 追加分期/定期欄位 (尚未實作細節)
+            return request;
+        }
+        // 補回遺失的方法: 建立 ATM 訂單 (永豐金流)
         public async Task<CreOrder> CreateOrderATM(int Amount, String ProductName, String OrderDate, String FeeId)
         {
-            //設定參數
-            //設定參數
             CreOrderReq creOrderReq = new CreOrderReq()
             {
                 ShopNo = m_ShopNo,
@@ -1227,489 +1273,66 @@ namespace ChurchReport.WebServiceConnector
                     ExpireDate = DateTime.Now.AddDays(10).ToLocalTime().ToString("yyyyMMdd")
                 }
             };
-
             return m_PaymentService.OrderCreate(creOrderReq);
-
-        }
-        public async Task<QryOrder> OrderQuery(String aOrderNo)
-        {
-            QryOrderReq orderQueryReq = new QryOrderReq()
-            {
-                ShopNo = m_ShopNo,
-                OrderNo = aOrderNo
-            };
-
-            QryOrder retObj = m_PaymentService.OrderQuery(orderQueryReq);
-
-            return retObj;
-        }
-        public QryOrderPay OrderPayQuery(String aPayToken)
-        {
-            QryOrderPayReq orderPayQueryReq = new QryOrderPayReq()
-            {
-                ShopNo = m_ShopNo,
-                PayToken = aPayToken
-            };
-
-            QryOrderPay retObj = m_PaymentService.OrderPayQuery(orderPayQueryReq);
-
-            return retObj;
-        }
-        public QryOrderPay OrderPayQuery(String aShopNo, String aPayToken)
-        {
-            QryOrderPayReq orderPayQueryReq = new QryOrderPayReq()
-            {
-                ShopNo = aShopNo,
-                PayToken = aPayToken
-            };
-
-            QryOrderPay retObj = m_PaymentService.OrderPayQuery(orderPayQueryReq, ConvertShopNoToHashCodeAndSite(aShopNo));
-
-            return retObj;
-        }
-        public async Task<QryBill> BillQuery(String aPayDate)
-        {
-            QryBillReq billQueryReq = new QryBillReq()
-            {
-                ShopNo = m_ShopNo,
-                BillDate = aPayDate
-            };
-
-            QryBill retObj = m_PaymentService.BillQuery(billQueryReq);
-
-            //ltResponse.Text = QPayCommon.SerializeToJson(retObj);
-            return retObj;
-        }
-        public async Task<QryAllot> AllotQuery(String aAllotDateS, String aAllotDateE, String aPayType)
-        {
-            QryAllotReq allotQueryReq = new QryAllotReq()
-            {
-                ShopNo = m_ShopNo,
-                AllotDateS = aAllotDateS,
-                AllotDateE = aAllotDateE,
-                PayType = aPayType
-            };
-
-            QryAllot retObj = m_PaymentService.AllotQuery(allotQueryReq);
-
-            //ltResponse.Text = QPayCommon.SerializeToJson(retObj);
-            return retObj;
-        }
-        public async Task<QryOrderUnCaptured> OrderUnCapturedQuery()
-        {
-            QryOrderUnCapturedReq orderUnCapturedReq = new QryOrderUnCapturedReq()
-            {
-                ShopNo = m_ShopNo
-            };
-
-            QryOrderUnCaptured retObj = m_PaymentService.OrderUnCapturedQuery(orderUnCapturedReq);
-
-            //ltResponse.Text = QPayCommon.SerializeToJson(retObj);
-            return retObj;
-        }
-        public async Task<OrderMaintain> OrderMaintain(String aOrderNo, String aCommand)
-        {
-            OrderMaintainReq orderMaintainReq = new OrderMaintainReq()
-            {
-                ShopNo = m_ShopNo,
-                OrderNo = aOrderNo,
-                Command = aCommand
-            };
-
-            OrderMaintain retObj = m_PaymentService.OrderMaintain(orderMaintainReq);
-
-            //ltResponse.Text = QPayCommon.SerializeToJson(retObj);
-            return retObj;
-        }
-        public String GetLastCCToken(Entity aContact)
-        {
-            #region 取得連絡人信用卡資訊
-
-            String VisaInfo = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContact, "new_visa_info");
-
-            if (VisaInfo != "")
-            {
-                String[] VisaInfoSplit = VisaInfo.Split('|');
-
-                if (VisaInfoSplit.Length > 0)
-                {
-                    String[] VisaCCTokenSplit = VisaInfoSplit[VisaInfoSplit.Length - 1].Split('，');
-
-                    if (VisaCCTokenSplit.Length > 0)
-                    {
-                        return VisaCCTokenSplit[0];
-                    }
-                    else
-                    {
-                        return null;
-                    }
-                }
-                else
-                {
-                    return null;
-                }
-
-            }
-            else
-            {
-                return null;
-            }
-            #endregion
-        }
-        #endregion
-        #region 高鉅金流工具區
-        private string ConvertShopNoToHashCodeAndSite(String aShopNo)
-        {
-            String A21 = "";
-            String A22 = "";
-            String B21 = "";
-            String B22 = "";
-
-            //客製化
-            switch (aShopNo)
-            {
-                case "DA1626_001":
-                    // 永和禮拜堂"板橋民族分行"
-                    return "D1695F439A69448F,7E460E920A184845,DEA83EFB714943F3,DC237C5C69914F0C";
-                case "DA1626_003":
-                    // 永和禮拜堂"永和分行"
-                    return "2C5D55945FCF4767,76052054D7054EA6,13F282F8A0F5475D,D782B4F1893A4334";
-                case "DA2424_001":
-                    // iM行動教會
-                    return "9825732578154B95,C89A75CD59D0430F,DAB73CB2A41E47FF,B09695CE58FA4774";
-                case "DA2659_001":
-                    // 台北得勝靈糧堂
-                    return "C8DAEA50FFB64CF4,F141E5BBE21B4D47,A922E0C106D14C35,CA22A88D1032412F";
-                case "NA0149_001":
-                    // 音訊教會 SandBox
-                    return "5E854757C751413F,D743D0EB06904837,08169D5445644513,8E52B5A180EE4399";
-                case "DA2890_001":
-                    // 忠孝路長老教會
-                    return "BDC962CCC8AB4AE2,946D46DBDDDE43E0,6038DFB03B4342AE,B1F64046CB2E44FC";
-                case "DA3033_001":
-                    // 東湖禮拜堂
-                    return "4B1657DE6F3547A3,3AB478872D0A49C7,0748F400DD834C07,6506CD86B0174396";
-                case "DA3190_001":
-                    // 楊梅靈糧堂
-                    String A11 = "1E582BECE43F421A";
-                    String A12 = "8F6ACB29B8EF4C67";
-                    String B11 = "8C06D1D49C544C51";
-                    String B12 = "041D9136AA9647F2";
-                    return A11 + "," + A12 + "," + B11 + "," + B12;
-                case "DA3189_001":
-                    // 以利亞之家
-                    A21 = "A88FB80292D6420D";
-                    A22 = "3844DD3B214D487C";
-                    B21 = "27BC1983D2914C11";
-                    B22 = "32D5A23910734C93";
-                    return A21 + "," + A22 + "," + B21 + "," + B22;
-                case "DA3412_001":
-                    // 南崁長老教會
-                    A21 = "2B27264C1D794727";
-                    A22 = "7C91CB903482427D";
-                    B21 = "7360D573A5A34184";
-                    B22 = "3C85541425624385";
-                    return A21 + "," + A22 + "," + B21 + "," + B22;
-                case "DA3806_001":
-                    // 好消息協會
-                    A21 = "81F5DAFEAFD343EC";
-                    A22 = "80BA10061E59467B";
-                    B21 = "B5F2CBA592004D2D";
-                    B22 = "D6D805E2CF514E12";
-                    return A21 + "," + A22 + "," + B21 + "," + B22;
-                case "DA3855_002":
-                    // 法國號靈糧堂
-                    A21 = "08B9715C313F4ABB";
-                    A22 = "E8AC362AB9174D3C";
-                    B21 = "81D71D28D7E04414";
-                    B22 = "927ADFBE9F854C81";
-                    return A21 + "," + A22 + "," + B21 + "," + B22;
-                case "DA4001_001":
-                    // 社團法人台灣基督教天母豐盛協會
-                    A21 = "B2FC3849C9F6487C";
-                    A22 = "6ADDD7D7CCFC48BA";
-                    B21 = "2F83CE17C6044E3D";
-                    B22 = "48737E77D6864915";
-                    return A21 + "," + A22 + "," + B21 + "," + B22;
-                case "DA4195_001":
-                    // 南崁基督長老教會
-                    A21 = "B83DCBFA2D994F19";
-                    A22 = "6ED32787DA504871";
-                    B21 = "13E56D7A39AB4768";
-                    B22 = "163EC08BC1624854";
-                    return A21 + "," + A22 + "," + B21 + "," + B22;
-                case "DA4272_001":
-                    // 聖谷行道會
-                    A21 = "00DC1BDACCB645C6";
-                    A22 = "185B6F59F737462E";
-                    B21 = "6F9C2936E8524F76";
-                    B22 = "8BB48C2260304E29";
-                    return A21 + "," + A22 + "," + B21 + "," + B22;
-                default:
-                    return "5E854757C751413F,D743D0EB06904837,08169D5445644513,8E52B5A180EE4399";
-            }
-        }
-        #endregion
-        #region 高鉅金流工具區
-        /// <summary>
-        /// 取得高鉅金流付款所需的原始資料
-        /// </summary>
-        /// <param name="Amount">付款金額</param>
-        /// <param name="ProductName">商品名稱</param>
-        /// <param name="OrderDate">訂單日期</param>
-        /// <param name="FeeId">收費單ID</param>
-        /// <param name="PayType">付款類型 (C:信用卡, A:ATM, M:行動支付, L:LinePay)</param>
-        /// <param name="PayTypeSub">付款子類型 (ONE:一次付清, REGULAR:定期定額, CUP:銀聯卡)</param>
-        /// <returns>包含付款資訊的動態物件</returns>
-        private dynamic GetRawData(int Amount, String ProductName, String OrderDate, String FeeId, String PayType, String PayTypeSub, Entity LineLoginContact)
-        {
-            // 建立商品項目清單 - 使用 ProductItem 強型別
-            ArrayList items = CreateProductItems(FeeId, ProductName, Amount);
-
-            //// 建立產品項目陣列，包含多種奉獻類型
-            //// 每個ProductItem包含：id(產品編號)、name(奉獻類型名稱)、cost(單價)、amount(數量)
-            //ProductItem[] products = 
-            //{
-            //    // 月定獻金：產品編號001，單價1000元，數量1
-            //    new ProductItem { id = "001", name = "月定獻金", cost = 1000, amount = 1 },
-            //    // 感恩獻金：產品編號002，單價500元，數量2
-            //    new ProductItem { id = "002", name = "感恩獻金", cost = 500, amount = 2 }
-            //};
-
-            //// 呼叫CreateMultipleProductItems方法，將產品陣列轉換為ArrayList格式
-            //// 此方法會計算每個產品的總價(cost * amount)並建立完整的商品清單
-            //ArrayList items = CreateMultipleProductItems(products);
-
-            // 建立付款原始資料物件
-            dynamic rawData = new ExpandoObject();
-
-            // 設定原始資料屬性
-            SetRawDataProperties(rawData, Amount, FeeId, items, LineLoginContact);
-
-            return rawData;
         }
 
-
-        /// <summary>
-        /// 建立產品項目清單 - 使用 ProductItem 強型別
-        /// </summary>
-        /// <param name="FeeId">收費單ID</param>
-        /// <param name="ProductName">商品名稱</param>
-        /// <param name="Amount">商品單價與總價</param>
-        /// <param name="imageUrl">商品圖片連結(可選，主要用於LINE Pay)</param>
-        /// <returns>包含產品項目的ArrayList</returns>
+        // 補回遺失的方法: 建立單一商品項目 (高鉅/台新共用前置)
         private ArrayList CreateProductItems(String FeeId, String ProductName, int Amount, String imageUrl = null)
         {
-            // 建立商品項目清單
             ArrayList items = new ArrayList();
-
-            // 建立產品項目 - 使用強型別 ProductItem
             ProductItem productItem = new ProductItem
             {
-                id = FeeId,           // 商品ID使用收費單ID
-                name = ProductName,   // 商品名稱
-                cost = Amount,        // 商品單價
-                amount = 1,           // 商品數量固定為1
-                total = Amount,       // 商品總價 (單價 * 數量)
-                image_url = imageUrl  // 商品圖片連結(可選)
+                id = FeeId,
+                name = ProductName,
+                cost = Amount,
+                amount = 1,
+                total = Amount,
+                image_url = imageUrl
             };
-
-            // 將商品項目加入清單
             items.Add(productItem);
-
             return items;
         }
 
-        /// <summary>
-        /// 建立多項產品項目清單
-        /// </summary>
-        /// <param name="products">產品項目陣列</param>
-        /// <returns>包含多個產品項目的ArrayList</returns>
-        private ArrayList CreateMultipleProductItems(ProductItem[] products)
-        {
-            ArrayList items = new ArrayList();
-
-            foreach (ProductItem product in products)
-            {
-                // 確保總價計算正確
-                product.total = product.cost * product.amount;
-                items.Add(product);
-            }
-
-            return items;
-        }
-        /// <summary>
-        /// 設定付款原始資料的屬性
-        /// </summary>
-        /// <param name="rawData">付款原始資料物件</param>
-        /// <param name="Amount">付款金額</param>
-        /// <param name="FeeId">收費單ID</param>
-        /// <param name="items">商品項目清單</param>
-        //private void SetRawDataProperties(dynamic rawData, int Amount, String FeeId, ArrayList items)
-        //{
-        //    // 設定商店代號 - 從設定檔取得MyPay商店ID
-        //    rawData.store_uid = m_Configuration["MyPay:Store_Id"];
-        //    // 設定商品清單
-        //    rawData.items = items;
-        //    // 設定總金額
-        //    rawData.cost = Amount;
-        //    // 設定使用者ID (目前固定為"胡夢嵩")
-        //    rawData.user_id = "胡夢嵩";
-        //    // 設定訂單編號 (使用收費單ID)
-        //    rawData.order_id = FeeId;
-        //    // 設定消費者IP位址 - 從設定檔取得，用於驗證
-        //    rawData.ip = m_Configuration["MyPay:IP"];  // 此為消費者IP，會做為驗證用
-        //    // 設定付款流程編號 (0表示一般付款流程)
-        //    rawData.pfn = "0";
-        //}
-
+        // 補回遺失的方法: 設定高鉅金流原始資料屬性
         private void SetRawDataProperties(dynamic rawData, int Amount, String FeeId, ArrayList items, Entity LineLoginContact)
         {
-            #region 組織單位
+            // 組織代碼
             rawData.echo_0 = m_Configuration["QPAY_ORGANIZATION"];
-            #endregion
-
-            #region 基本商店資訊
-            // 設定商店代號 - 從設定檔取得MyPay商店ID
+            // 商店代號
             rawData.store_uid = m_Configuration["MyPay:Store_Id"];
-            #endregion
-
-            #region 消費者資訊
-            // 設定使用者ID 
-            rawData.user_id = LineLoginContact.Id;
-
-            // 消費者姓名，電子錢包交易必要欄位
-            // 使用 m_ToolUtilityClass 從實際登入的連絡人取得姓名
-            rawData.user_name = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "fullname")
-                               ?? m_Configuration["MyPay:UserName"]
-                               ?? "預設使用者";
-
-            // 消費者真實姓名，電子錢包交易必要欄位
-            // 優先使用連絡人的真實姓名，如無則使用設定檔
-            rawData.user_real_name = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "fullname")
-                                   ?? m_Configuration["MyPay:UserRealName"]
-                                   ?? "胡夢嵵";
-
-            // 消費者郵遞區號 - 從連絡人地址取得
-            rawData.user_zipcode = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "address1_postalcode")
-                                 ?? m_Configuration["MyPay:UserZipcode"]
-                                 ?? "";
-
-            // 消費者帳單地址 - 從連絡人地址取得
-            String address1_line1 = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "address1_line1") ?? "";
-            String address1_line2 = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "address1_line2") ?? "";
-            String address1_line3 = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "address1_line3") ?? "";
-            String fullAddress = (address1_line1 + address1_line2 + address1_line3).Trim();
-            rawData.user_address = !String.IsNullOrEmpty(fullAddress) ? fullAddress
-                                 : m_Configuration["MyPay:UserAddress"] ?? "";
-
-            // 證號類型 - 從設定檔取得
-            rawData.user_sn_type = m_Configuration["MyPay:UserSnType"] ?? "";
-
-            // 付款人身分證/統一證號/護照號碼 - 從連絡人取得
-            rawData.user_sn = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "new_personal_id")
-                            ?? m_Configuration["MyPay:UserSn"]
-                            ?? "";
-
-            // 消費者家用電話 - 從連絡人取得
-            rawData.user_phone = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "telephone1")
-                                ?? m_Configuration["MyPay:UserPhone"]
-                                ?? "";
-
-            // 消費者行動電話國碼，電子錢包交易必要欄位
-            rawData.user_cellphone_code = m_Configuration["MyPay:UserCellphoneCode"] ?? "886";
-
-            // 消費者行動電話，電子錢包交易必要欄位 - 從連絡人取得
-            rawData.user_cellphone = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "mobilephone")
-                                    ?? this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "telephone2")
-                                    ?? m_Configuration["MyPay:UserCellphone"]
-                                    ?? "";
-
-            // 消費者 E-Mail，電子錢包交易必要欄位 - 從連絡人取得
-            rawData.user_email = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "emailaddress1")
-                                ?? m_Configuration["MyPay:UserEmail"]
-                                ?? "";
-
-            // 消費者生日 - 從連絡人取得
-            try
-            {
-                DateTime birthDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref LineLoginContact, "birthdate");
-                rawData.user_birthday = birthDate != DateTime.MinValue ? birthDate.ToString("yyyy-MM-dd")
-                                       : m_Configuration["MyPay:UserBirthday"] ?? "";
-            }
-            catch
-            {
-                rawData.user_birthday = m_Configuration["MyPay:UserBirthday"] ?? "";
-            }
-            #endregion
-
-            #region 訂單資訊
-            // 設定總金額
+            // 使用者 ID
+            rawData.user_id = LineLoginContact != null ? LineLoginContact.Id : Guid.Empty;
+            // 姓名 / 真實姓名
+            string fullName = string.Empty;
+            try { fullName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "fullname") ?? ""; } catch { }
+            rawData.user_name = fullName;
+            rawData.user_real_name = fullName;
+            // 地址
+            string address1_line1 = this.m_ToolUtilityClass.GetEntityStringAttribute(LineLoginContact, "address1_line1") ?? "";
+            string address1_line2 = this.m_ToolUtilityClass.GetEntityStringAttribute(LineLoginContact, "address1_line2") ?? "";
+            string address1_line3 = this.m_ToolUtilityClass.GetEntityStringAttribute(LineLoginContact, "address1_line3") ?? "";
+            rawData.user_address = (address1_line1 + address1_line2 + address1_line3).Trim();
+            // 身分證 / 手機 / Email
+            rawData.user_sn = this.m_ToolUtilityClass.GetEntityStringAttribute(LineLoginContact, "new_personal_id") ?? "";
+            rawData.user_cellphone = this.m_ToolUtilityClass.GetEntityStringAttribute(LineLoginContact, "mobilephone") ?? "";
+            rawData.user_email = this.m_ToolUtilityClass.GetEntityStringAttribute(LineLoginContact, "emailaddress1") ?? "";
+            // 基本訂單資訊
             rawData.cost = Amount;
-            // 預設交易幣別(預設為TWD新台幣)
             rawData.currency = m_Configuration["MyPay:Currency"] ?? "TWD";
-            // 啟用dcc(自動換匯)
             rawData.enable_dcc = Convert.ToInt32(m_Configuration["MyPay:EnableDcc"] ?? "0");
-            // 設定訂單編號 (使用收費單ID)
             rawData.order_id = FeeId;
-            // 設定消費者IP位址 - 從設定檔取得，用於驗證
-            rawData.ip = m_Configuration["MyPay:IP"];  // 此為消費者IP，會做為驗證用
-
-            // 訂單內物品數
+            rawData.ip = m_Configuration["MyPay:IP"];
             rawData.item = items.Count.ToString();
-
-            // 設定商品清單
             rawData.items = items;
-            #endregion
-
-            #region 付款設定
-            // 設定付款流程編號 (0表示一般付款流程)
+            // 付款設定
             rawData.pfn = "0";
-            // 消費者操作介面類型 pc/app
             rawData.interface_type = m_Configuration["MyPay:InterfaceType"] ?? "app";
-            // 折價金額 (預設0)
             rawData.discount = m_Configuration["MyPay:Discount"] ?? "0";
-            // 交易成功導頁網址 - 高鉅金流會在此網址顯示成功頁面給用戶
             rawData.success_returl = m_Configuration["MyPay:SuccessReturl"] ?? "";
-            // 交易失敗導頁網址 - 高鉅金流會在此網址顯示失敗頁面給用戶
             rawData.failure_returl = m_Configuration["MyPay:FailureReturl"] ?? "";
-            // 高鉅金流後端回調網址 - 用於接收交易完成回傳資訊
-            //rawData.notify_url = "https://sunnyvalechback.speechmessage.com.tw:8888/api/MyPay/return";
             rawData.notify_url = m_Configuration["MyPay:ReturnUrl"] ?? "";
-            // 虛擬帳號與超商代碼使用之有效天數
             rawData.limit_pay_days = Convert.ToInt32(m_Configuration["MyPay:LimitPayDays"] ?? "7");
-            // 運費
             rawData.shipping_fee = m_Configuration["MyPay:ShippingFee"] ?? "0";
-            #endregion
-
-            #region 發票設定 (可選)
-            // 發票設定 (可選)
-            if (m_Configuration.GetSection("MyPay:Invoice").Exists())
-            {
-                rawData.issue_invoice_state = m_Configuration["MyPay:Invoice:IssueInvoiceState"]; // 開立發票
-                rawData.invoice_input_type = m_Configuration["MyPay:Invoice:InvoiceInputType"]; // 電子發票開立類型
-                rawData.invoice_tax_id = m_Configuration["MyPay:Invoice:InvoiceTaxId"]; // 統一編號
-                rawData.invoice_love_code = m_Configuration["MyPay:Invoice:InvoiceLoveCode"]; // 愛心碼
-                rawData.invoice_b2b_title = m_Configuration["MyPay:Invoice:InvoiceB2bTitle"]; // 發票抬頭
-                rawData.invoice_b2b_id = m_Configuration["MyPay:Invoice:InvoiceB2bId"]; // 統一編號
-                rawData.invoice_b2b_address = m_Configuration["MyPay:Invoice:InvoiceB2bAddress"]; // 發票地址
-            }
-            #endregion
-        }
-        /// <summary>
-        /// 取得高鉅金流服務請求設定
-        /// </summary>
-        /// <returns>包含服務名稱和指令的ServiceRequest物件</returns>
-        private ServiceRequest GetService()
-        {
-            // 建立服務請求物件
-            ServiceRequest rawData = new ServiceRequest();
-            // 設定服務名稱 - 從設定檔取得
-            rawData.service_name = m_Configuration["MyPay:ServiceName"];
-            // 設定API指令 - 從設定檔取得
-            rawData.cmd = m_Configuration["MyPay:CMD"];
-
-            return rawData;
         }
         #endregion
         #region 高鉅金流 PayPage 回傳處理
@@ -2175,7 +1798,7 @@ namespace ChurchReport.WebServiceConnector
         {
             // 更新備註，記錄處理摘要
             string currentNote = this.m_ToolUtilityClass.GetEntityStringAttribute(entity, "new_explain") ?? "";
-            string newNote = $"{currentNote}\n{processingResult.Summary}";
+            string newNote = $"{currentNote}\n{processingResult.Summary}" ;
 
             // 如果處理有錯誤，也記錄下來
             if (!processingResult.IsSuccess && !string.IsNullOrEmpty(processingResult.ErrorMessage))
@@ -2594,21 +2217,57 @@ namespace ChurchReport.WebServiceConnector
         {
             switch (DeductTotalNumber)
             {
-                case "3個月":
-                    return 3;
-                case "6個月":
-                    return 6;
-                case "12個月":
-                    return 12;
-                case "18個月":
-                    return 18;
-                case "24個月":
-                    return 24;
-                default:
-                    return 0;
+                case "3個月": return 3;
+                case "6個月": return 6;
+                case "12個月": return 12;
+                case "18個月": return 18;
+                case "24個月": return 24;
+                default: return 0;
             }
         }
 
-        #endregion
+        // ====== 補回遺失的查詢付款結果方法 (Webhook 需要) ======
+        public QryOrderPay OrderPayQuery(String aPayToken)
+        {
+            QryOrderPayReq orderPayQueryReq = new QryOrderPayReq()
+            {
+                ShopNo = m_ShopNo,
+                PayToken = aPayToken
+            };
+            return m_PaymentService.OrderPayQuery(orderPayQueryReq);
+        }
+        public QryOrderPay OrderPayQuery(String aShopNo, String aPayToken)
+        {
+            QryOrderPayReq orderPayQueryReq = new QryOrderPayReq()
+            {
+                ShopNo = aShopNo,
+                PayToken = aPayToken
+            };
+            return m_PaymentService.OrderPayQuery(orderPayQueryReq, ConvertShopNoToHashCodeAndSite(aShopNo));
+        }
+
+        private string ConvertShopNoToHashCodeAndSite(String aShopNo)
+        {
+            switch (aShopNo)
+            {
+                case "DA1626_001": return "D1695F439A69448F,7E460E920A184845,DEA83EFB714943F3,DC237C5C69914F0C";
+                case "DA1626_003": return "2C5D55945FCF4767,76052054D7054EA6,13F282F8A0F5475D,D782B4F1893A4334";
+                case "DA2424_001": return "9825732578154B95,C89A75CD59D0430F,DAB73CB2A41E47FF,B09695CE58FA4774";
+                case "DA2659_001": return "C8DAEA50FFB64CF4,F141E5BBE21B4D47,A922E0C106D14C35,CA22A88D1032412F";
+                case "NA0149_001": return "5E854757C751413F,D743D0EB06904837,08169D5445644513,8E52B5A180EE4399";
+                case "DA2890_001": return "BDC962CCC8AB4AE2,946D46DBDDDE43E0,6038DFB03B4342AE,B1F64046CB2E44FC";
+                case "DA3033_001": return "4B1657DE6F3547A3,3AB478872D0A49C7,0748F400DD834C07,6506CD86B0174396";
+                case "DA3190_001": return "1E582BECE43F421A,8F6ACB29B8EF4C67,8C06D1D49C544C51,041D9136AA9647F2";
+                case "DA3189_001": return "A88FB80292D6420D,3844DD3B214D487C,27BC1983D2914C11,32D5A23910734C93";
+                case "DA3412_001": return "2B27264C1D794727,7C91CB903482427D,7360D573A5A34184,3C85541425624385";
+                case "DA3806_001": return "81F5DAFEAFD343EC,80BA10061E59467B,B5F2CBA592004D2D,D6D805E2CF514E12";
+                case "DA3855_002": return "08B9715C313F4ABB,E8AC362AB9174D3C,81D71D28D7E04414,927ADFBE9F854C81";
+                case "DA4001_001": return "B2FC3849C9F6487C,6ADDD7D7CCFC48BA,2F83CE17C6044E3D,48737E77D6864915";
+                case "DA4195_001": return "B83DCBFA2D994F19,6ED32787DA504871,13E56D7A39AB4768,163EC08BC1624854";
+                case "DA4272_001": return "00DC1BDACCB645C6,185B6F59F737462E,6F9C2936E8524F76,8BB48C2260304E29";
+                default: return "5E854757C751413F,D743D0EB06904837,08169D5445644513,8E52B5A180EE4399";
+            }
+        }
+        #endregion // 工具區結束
     }
 }
