@@ -1136,6 +1136,115 @@ namespace ChurchReport.WebServiceConnector
 
         #endregion
         #region 永豐金流工具區
+        
+        /// <summary>
+        /// 將 PayPageResponse 轉換為 CreOrder
+        /// 用於統一台新金流(TSPG)與其他金流系統的回傳格式
+        /// </summary>
+        /// <param name="payPageResponse">PayPageResponse 金流回應</param>
+        /// <param name="payType">付款類型 (C=信用卡, A=ATM, M=行動支付, L=LinePay)</param>
+        /// <param name="orderNo">訂單編號 (如果 PayPageResponse 沒有提供，則使用此值)</param>
+        /// <returns>CreOrder 統一格式</returns>
+        private CreOrder ConvertPayPageResponseToCreOrder(PayPageResponse payPageResponse, string payType = "C", string orderNo = null)
+        {
+            try
+            {
+                if (payPageResponse == null)
+                {
+                    return new CreOrder
+                    {
+                        OrderNo = orderNo ?? string.Empty,
+                        Status = "F",
+                        Description = "PayPageResponse 為 null",
+                        CardParam = null,
+                        ATMParam = null,
+                        MobileParam = null
+                    };
+                }
+
+                // 判斷交易是否成功
+                // TSPG: code="0000" 表示成功
+                // 永豐: Status="S" 表示成功
+                bool isSuccess = payPageResponse.code == "0000" || payPageResponse.code == "00";
+                string status = isSuccess ? "S" : "F";
+                
+                // 建立基本的 CreOrder 物件
+                var creOrder = new CreOrder
+                {
+                    OrderNo = !string.IsNullOrEmpty(payPageResponse.order_no) 
+                        ? payPageResponse.order_no 
+                        : (payPageResponse.uid ?? orderNo ?? string.Empty),
+                    Status = status,
+                    Description = payPageResponse.msg ?? "未知錯誤",
+                    PayType = payType
+                };
+
+                // 根據付款類型設定對應的參數物件
+                switch (payType?.ToUpper())
+                {
+                    case "C": // 信用卡
+                        creOrder.CardParam = new CreOrderCardParamRes
+                        {
+                            CardPayURL = payPageResponse.url ?? string.Empty,
+                            // 如果有 transaction_id，也可以存起來
+                            // (CreOrderCardParamRes 可能需要擴充欄位)
+                        };
+                        break;
+
+                    case "A": // ATM 轉帳
+                        creOrder.ATMParam = new CreOrderATMParamRes
+                        {
+                            AtmPayNo = payPageResponse.key ?? string.Empty,
+                            // 其他 ATM 相關欄位可以從 payPageResponse 中提取
+                        };
+                        break;
+
+                    case "M": // 行動支付
+                    case "L": // LinePay
+                        creOrder.MobileParam = new CreOrderMobileParamRes
+                        {
+                            MobilePayURL = payPageResponse.url ?? string.Empty
+                        };
+                        break;
+
+                    default:
+                        // 預設當作信用卡處理
+                        creOrder.CardParam = new CreOrderCardParamRes
+                        {
+                            CardPayURL = payPageResponse.url ?? string.Empty
+                        };
+                        break;
+                }
+
+                // 記錄轉換日誌
+                System.Diagnostics.Trace.WriteLine($"[QPayProcessor] ConvertPayPageResponseToCreOrder:");
+                System.Diagnostics.Trace.WriteLine($"  - PayType: {payType}");
+                System.Diagnostics.Trace.WriteLine($"  - OrderNo: {creOrder.OrderNo}");
+                System.Diagnostics.Trace.WriteLine($"  - Status: {creOrder.Status}");
+                System.Diagnostics.Trace.WriteLine($"  - Code: {payPageResponse.code}");
+                System.Diagnostics.Trace.WriteLine($"  - Message: {payPageResponse.msg}");
+                if (!string.IsNullOrEmpty(payPageResponse.url))
+                {
+                    System.Diagnostics.Trace.WriteLine($"  - PayURL: {payPageResponse.url}");
+                }
+
+                return creOrder;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"[QPayProcessor] ConvertPayPageResponseToCreOrder Error: {ex.Message}");
+                return new CreOrder
+                {
+                    OrderNo = orderNo ?? string.Empty,
+                    Status = "F",
+                    Description = $"轉換失敗: {ex.Message}",
+                    CardParam = null,
+                    ATMParam = null,
+                    MobileParam = null
+                };
+            }
+        }
+
         public async Task<CreOrder> CreOrderCard(int Amount, String ProductName, String OrderDate, String FeeId, String PayType, String PayTypeSub, String Staging, int DeductTotalNum, String PeriodType, int DeductFreq, String CreditCategory, Entity LineLoginContact, String CCToken = null)
         {
             if (m_Configuration["PAY_PROVIDER"] == "永豐金流")
@@ -1177,19 +1286,15 @@ namespace ChurchReport.WebServiceConnector
                 // 使用 TSPG 金流 (台新)
                 // 依照輸入參數建立 TSPGPaymentRequest
                 var tspgRequest = GetTSPGPaymentRequestData(Amount, ProductName, OrderDate, FeeId, PayType, PayTypeSub, LineLoginContact);
+                
                 // 決定是否啟用 3D (此處簡單依 PayTypeSub 是否為 ONE 判斷，可依實際需求調整)
                 bool enable3D = false; // 可改為設定檔或條件判斷
+                
+                // 呼叫 TSPG API (測試環境)
                 var payPageResponse = TspgToolkit.OrderCreateTest(tspgRequest, enable3D);
-                //var payPageResponse = TspgToolkit.OrderCreate(tspgRequest);
-
-                return new CreOrder
-                {
-                    PayType = PayType,
-                    Amount = Amount * 100,
-                    // 映射基本欄位 (若需更多欄位可擴充 CreOrder 定義)
-                    // 使用台新回傳的 uid 當作訂單編號 (若 spec 需用 OrderNo 可自行覆寫)
-                    // 注意: CreOrder 現有模型僅示意，實務應擴充必要欄位
-                };
+                
+                // 使用新的轉換函數將 PayPageResponse 轉換為 CreOrder
+                return ConvertPayPageResponseToCreOrder(payPageResponse, PayType, PayType + OrderDate);
             }
             else
             {
@@ -1291,7 +1396,7 @@ namespace ChurchReport.WebServiceConnector
             string resultUrl = BACKEND_URL ?? string.Empty; // 接收交易結果的後端網址
             
             // ===== 交易參數設定 =====
-            string captFlag = "0"; // 預設不自動請款（0: 不同步請款, 1: 同步請款）
+            string captFlag = "0"; // 預設不自動請款（0: 不同步請款, 1: 同步請款)
             string layout = "1"; // 預設一般網頁（1: 一般網頁, 2: 行動裝置網頁）
             
             // 根據 UserAgent 或其他條件判斷是否為行動裝置（可選）
