@@ -31,5 +31,15 @@ namespace ChurchReport.Models
         /// 交易網址
         /// </summary>
         public string url { get; set; }
+
+        /// <summary>
+        /// 交易編號 (TSPG 專用)
+        /// </summary>
+        public string transaction_id { get; set; }
+
+        /// <summary>
+        /// 訂單編號 (TSPG 專用)
+        /// </summary>
+        public string order_no { get; set; }
     }
 }

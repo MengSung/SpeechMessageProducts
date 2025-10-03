@@ -984,6 +984,18 @@ namespace ChurchReport.Tools
     public class TSPGApiResponseParams
     {
         /// <summary>
+        /// 交易結果回應碼 (也可能在 params 內)
+        /// </summary>
+        [JsonProperty("ret_code")]
+        public string ret_code { get; set; }
+
+        /// <summary>
+        /// 回傳訊息 (也可能在 params 內)
+        /// </summary>
+        [JsonProperty("ret_msg")]
+        public string ret_msg { get; set; }
+
+        /// <summary>
         /// 付款網頁資訊
         /// </summary>
         [JsonProperty("hpp_url")]

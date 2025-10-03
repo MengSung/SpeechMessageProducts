@@ -847,24 +847,133 @@ namespace ChurchReport.Tools
         {
             try
             {
-                if (string.IsNullOrEmpty(responseString)) return new PayPageResponse { code = "9999", msg = "空白回應" };
+                if (string.IsNullOrEmpty(responseString))
+                {
+                    System.Diagnostics.Trace.WriteLine("[TSPG] ParseTSPGResponse: 回應字串為空");
+                    return new PayPageResponse { code = "9999", msg = "空白回應" };
+                }
+
+                System.Diagnostics.Trace.WriteLine($"[TSPG] ParseTSPGResponse: 開始解析回應，長度 {responseString.Length}");
+                if (responseString.Length < 500)
+                {
+                    System.Diagnostics.Trace.WriteLine($"[TSPG] 回應內容: {responseString}");
+                }
+
+                // 嘗試解析 JSON 格式的 TSPG REST API v2.14 回應
                 if (responseString.StartsWith("{"))
                 {
                     var tspgResponse = JsonConvert.DeserializeObject<TSPGApiResponse>(responseString);
-                    return new PayPageResponse
+                    
+                    if (tspgResponse != null)
                     {
-                        code = tspgResponse?.ret_code ?? "9999",
-                        msg = tspgResponse?.ret_msg ?? "未知錯誤",
-                        uid = tspgResponse?.Mid ?? string.Empty,
-                        key = tspgResponse?.Tid ?? string.Empty,
-                        url = tspgResponse?.Params?.hpp_url ?? string.Empty
-                    };
+                        // 提取 ret_code (位於 params 物件內)
+                        string retCode = tspgResponse.ret_code ?? tspgResponse.Params?.ret_code ?? string.Empty;
+                        string retMsg = tspgResponse.ret_msg ?? tspgResponse.Params?.ret_msg ?? "無相關資訊";
+                        
+                        // 提取 hpp_url (付款頁面網址)
+                        string hppUrl = tspgResponse.Params?.hpp_url ?? string.Empty;
+                        
+                        // 提取其他欄位
+                        string transactionId = tspgResponse.Params?.transaction_id ?? string.Empty;
+                        string orderNo = tspgResponse.Params?.order_no ?? string.Empty;
+                        
+                        // 記錄解析結果
+                        System.Diagnostics.Trace.WriteLine($"[TSPG] 解析成功:");
+                        System.Diagnostics.Trace.WriteLine($"  - ret_code: {retCode}");
+                        System.Diagnostics.Trace.WriteLine($"  - ret_msg: {retMsg}");
+                        System.Diagnostics.Trace.WriteLine($"  - mid: {tspgResponse.Mid}");
+                        System.Diagnostics.Trace.WriteLine($"  - tid: {tspgResponse.Tid}");
+                        
+                        if (!string.IsNullOrEmpty(hppUrl))
+                        {
+                            System.Diagnostics.Trace.WriteLine($"  - hpp_url: {hppUrl}");
+                        }
+                        else
+                        {
+                            System.Diagnostics.Trace.WriteLine("  - 警告: 回應中沒有 hpp_url");
+                        }
+                        
+                        if (!string.IsNullOrEmpty(transactionId))
+                        {
+                            System.Diagnostics.Trace.WriteLine($"  - transaction_id: {transactionId}");
+                        }
+                        
+                        if (!string.IsNullOrEmpty(orderNo))
+                        {
+                            System.Diagnostics.Trace.WriteLine($"  - order_no: {orderNo}");
+                        }
+
+                        // 判斷是否成功
+                        // 台新 TSPG 成功代碼: "00" 或空值
+                        // 其他代碼表示錯誤
+                        bool isSuccess = string.IsNullOrEmpty(retCode) || 
+                                       retCode == "00" || 
+                                       retCode == "0" ||
+                                       retCode == "0000";
+                        
+                        // 統一回應碼格式 (轉換為 4 位數)
+                        string finalCode;
+                        if (isSuccess)
+                        {
+                            finalCode = "0000"; // 成功
+                        }
+                        else if (retCode.Length > 0)
+                        {
+                            // 保留原始錯誤碼
+                            finalCode = retCode;
+                        }
+                        else
+                        {
+                            finalCode = "9999"; // 未知錯誤
+                        }
+                        
+                        System.Diagnostics.Trace.WriteLine($"[TSPG] 最終狀態: code={finalCode}, 成功={isSuccess}");
+
+                        // 轉換為 PayPageResponse 格式
+                        return new PayPageResponse
+                        {
+                            code = finalCode,
+                            msg = retMsg,
+                            uid = tspgResponse.Mid ?? string.Empty,
+                            key = tspgResponse.Tid ?? string.Empty,
+                            url = hppUrl, // 付款頁面網址 (最重要)
+                            transaction_id = transactionId,
+                            order_no = orderNo
+                        };
+                    }
+                    else
+                    {
+                        System.Diagnostics.Trace.WriteLine("[TSPG] 警告: JSON 反序列化結果為 null");
+                        return new PayPageResponse { code = "9999", msg = "JSON 反序列化失敗" };
+                    }
                 }
+                else
+                {
+                    System.Diagnostics.Trace.WriteLine("[TSPG] 回應不是 JSON 格式，嘗試使用舊版 QueryString 解析器");
+                }
+
+                // 如果不是 JSON 或解析失敗，嘗試舊版 QueryString 格式
                 return ParseResponse(responseString);
+            }
+            catch (JsonException jsonEx)
+            {
+                System.Diagnostics.Trace.WriteLine($"[TSPG] JSON 解析錯誤: {jsonEx.Message}");
+                System.Diagnostics.Trace.WriteLine($"[TSPG] 錯誤位置: {jsonEx.StackTrace}");
+                if (responseString.Length < 1000)
+                {
+                    System.Diagnostics.Trace.WriteLine($"[TSPG] 原始回應: {responseString}");
+                }
+                return new PayPageResponse { code = "9999", msg = $"JSON 解析錯誤: {jsonEx.Message}" };
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Trace.WriteLine($"[TSPG] ParseTSPGResponse Error: {ex.Message}");
+                System.Diagnostics.Trace.WriteLine($"[TSPG] ParseTSPGResponse 發生異常: {ex.GetType().Name}");
+                System.Diagnostics.Trace.WriteLine($"[TSPG] 錯誤訊息: {ex.Message}");
+                System.Diagnostics.Trace.WriteLine($"[TSPG] 堆疊追蹤: {ex.StackTrace}");
+                if (responseString.Length < 1000)
+                {
+                    System.Diagnostics.Trace.WriteLine($"[TSPG] 原始回應: {responseString}");
+                }
                 return new PayPageResponse { code = "9999", msg = $"回應解析錯誤: {ex.Message}" };
             }
         }
