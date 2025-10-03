@@ -1243,7 +1243,7 @@ namespace ChurchReport.WebServiceConnector
                 try 
                 { 
                     // 姓名
-                    cardholderName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "fullname") ?? string.Empty;
+                    //cardholderName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "fullname") ?? string.Empty;
                     
                     // Email
                     cardholderEmail = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "emailaddress1") ?? string.Empty;
