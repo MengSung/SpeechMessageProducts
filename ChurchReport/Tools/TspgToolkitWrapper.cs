@@ -12,7 +12,7 @@ namespace ChurchReport.Tools
     /// </summary>
     public class TspgToolkitWrapper : IPayment
     {
-        #region 高鉅金流實作成員資料
+        #region 台新金流實作成員資料
 
         /// <summary>
         /// 建立訂單 (原有方法，保持相容性)
