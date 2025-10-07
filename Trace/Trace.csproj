@@ -29,7 +29,7 @@
     <OldToolsVersion>4.0</OldToolsVersion>
     <IsWebBootstrapper>true</IsWebBootstrapper>
     <SignAssembly>true</SignAssembly>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
     <PublishUrl>http://localhost/Trace/</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Web</InstallFrom>
