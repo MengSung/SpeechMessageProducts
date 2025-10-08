@@ -1390,10 +1390,10 @@ namespace ChurchReport.WebServiceConnector
                     // 可以選擇記錄到日誌
                 }
             }
-            
-            // ===== 回傳網址設定 =====
-            string postBackUrl = RETURN_URL ?? string.Empty; // 使用者完成付款後的導向頁面
-            string resultUrl = BACKEND_URL ?? string.Empty; // 接收交易結果的後端網址
+
+            // ===== 回傳網址設定 ===== POST_BACK_URL
+            string postBackUrl = m_Configuration["TSPG:POST_BACK_URL"] ?? string.Empty; // 使用者完成付款後的導向頁面
+            string resultUrl = m_Configuration["TSPG:RESULT_URL"] ?? string.Empty; // 接收交易結果的後端網址
             
             // ===== 交易參數設定 =====
             string captFlag = "0"; // 預設不自動請款（0: 不同步請款, 1: 同步請款)
