@@ -1,0 +1,211 @@
+﻿@{
+    var qs = System.Web.HttpContext.Current != null ? System.Web.HttpContext.Current.Request.QueryString : null;
+    string errorTitle = ViewBag.ErrorTitle as string ?? (qs?["title"]) ?? "付款失敗";
+    string errorMessage = ViewBag.ErrorMessage as string ?? (qs?["message"]) ?? "很抱歉，付款過程中發生錯誤，請稍後再試。";
+    string errorCode = qs?["code"];
+    string errorDetails = qs?["details"];
+    string errorTimestamp = qs?["timestamp"];
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="generator" content="Mobirise v4.9.7, mobirise.com">
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
+    <link rel="shortcut icon" href="~/assets/images/logo4.png" type="image/x-icon">
+    <meta name="description" content="付款錯誤 - 聖谷行道會">
+
+    <title>付款錯誤 - 聖谷行道會</title>
+    <link rel="stylesheet" href="~/assets/web/assets/mobirise-icons/mobirise-icons.css">
+    <link rel="stylesheet" href="~/assets/tether/tether.min.css">
+    <link rel="stylesheet" href="~/assets/bootstrap/css/bootstrap-grid.min.css">
+    <link rel="stylesheet" href="~/assets/bootstrap/css/bootstrap-reboot.min.css">
+    <link rel="stylesheet" href="~/assets/soundcloud-plugin/style.css">
+    <link rel="stylesheet" href="~/assets/theme/css/style.css">
+    <link rel="stylesheet" href="~/assets/mobirise/css/mbr-additional.css" type="text/css">
+
+    <style>
+        .error-container {
+            min-height: 70vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        .error-icon {
+            font-size: 4rem;
+            color: #dc3545;
+            margin-bottom: 1rem;
+        }
+
+        .error-title {
+            color: #dc3545;
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .error-message {
+            color: #6c757d;
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+            text-align: center;
+            max-width: 600px;
+            line-height: 1.6;
+        }
+
+        .error-code {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 0.25rem;
+            padding: 0.5rem 1rem;
+            font-family: monospace;
+            font-size: 0.9rem;
+            color: #495057;
+            margin-bottom: 1.5rem;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 0.75rem 2rem;
+            border-radius: 0.5rem;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+        }
+
+            .btn-primary:hover {
+                background-color: #0056b3;
+                color: white;
+                text-decoration: none;
+            }
+
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+
+            .btn-secondary:hover {
+                background-color: #545b62;
+                color: white;
+                text-decoration: none;
+            }
+
+        .btn-outline-primary {
+            border: 2px solid #007bff;
+            color: #007bff;
+            background: transparent;
+        }
+
+            .btn-outline-primary:hover {
+                background-color: #007bff;
+                color: white;
+            }
+
+        .error-details {
+            background: #f8f9fa;
+            border-left: 4px solid #dc3545;
+            padding: 1rem;
+            margin-top: 1rem;
+            border-radius: 0 0.25rem 0.25rem 0;
+            max-width: 600px;
+        }
+
+        .error-timestamp {
+            font-size: 0.85rem;
+            color: #6c757d;
+            margin-top: 1rem;
+        }
+
+        @@media (max-width: 576px) {
+            .error-title {
+                font-size: 1.5rem;
+            }
+
+            .btn-group {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .btn {
+                width: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <section class="cid-qTkA127IK8 mbr-parallax-background" id="header2-1">
+        <div class="container">
+            <div class="error-container">
+                <div class="error-icon"><i class="mbri-error" aria-hidden="true"></i></div>
+                <h1 class="error-title">@errorTitle</h1>
+                <div class="error-message">@errorMessage</div>
+                @if (!string.IsNullOrEmpty(errorCode))
+                {
+                    <div class="error-code">錯誤代碼: @errorCode</div>
+                }
+                <div class="btn-group">
+                    <button onclick="history.back()" class="btn btn-outline-primary"><i class="mbri-left" aria-hidden="true"></i> 返回上頁</button>
+                    <a href="/Home/QPayView/功能登入" class="btn btn-primary"><i class="mbri-refresh" aria-hidden="true"></i> 重新付款</a>
+                    <a href="/Home/Login" class="btn btn-secondary"><i class="mbri-home" aria-hidden="true"></i> 回到首頁</a>
+                </div>
+                @if (!string.IsNullOrEmpty(errorDetails))
+                {
+                    <div class="error-details"><strong>詳細資訊：</strong><br />@errorDetails</div>
+                }
+                <div class="error-timestamp">
+                    發生時間: @DateTime.Now.ToString("yyyy年MM月dd日 HH:mm:ss")
+                    @if (!string.IsNullOrEmpty(errorTimestamp))
+                    {
+                        <text><br />錯誤ID: @errorTimestamp</text>
+                    }
+                </div>
+                <div class="error-details" style="margin-top: 2rem;">
+                    <strong>需要協助嗎？</strong><br />如果問題持續發生，請聯絡我們：<br />📞 電話: (請填入教會電話)<br />📧 Email: (請填入教會Email)<br />💬 或透過 LINE 官方帐号聯絡
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script src="~/assets/web/assets/jquery/jquery.min.js"></script>
+    <script src="~/assets/popper/popper.min.js"></script>
+    <script src="~/assets/tether/tether.min.js"></script>
+    <script src="~/assets/bootstrap/js/bootstrap.min.js"></script>
+    <script src="~/assets/smoothscroll/smooth-scroll.js"></script>
+    <script src="~/assets/parallax/jarallax.min.js"></script>
+    <script src="~/assets/theme/js/script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Payment Error Page Loaded');
+            var referrer = document.referrer;
+            if (referrer.includes('tspg') || referrer.includes('sinopac')) console.log('來自金流系統的錯誤');
+        });
+        function retryPayment() {
+            if (typeof(Storage) !== 'undefined') { localStorage.removeItem('paymentData'); sessionStorage.removeItem('paymentData'); }
+            window.location.href = '/Home/QPayView/功能登入';
+        }
+        function reportProblem() {
+            var errorInfo = { title: '@errorTitle', message: '@errorMessage', code: '@errorCode', timestamp: '@errorTimestamp', userAgent: navigator.userAgent, currentUrl: window.location.href, referrer: document.referrer };
+            console.log('Error Report:', errorInfo);
+            alert('錯誤資訊已記錄，客服人員會盡快協助您處理。');
+        }
+    </script>
+</body>
+</html>

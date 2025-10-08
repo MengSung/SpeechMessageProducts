@@ -5300,6 +5300,12 @@ namespace ChurchReport.Controllers
             #endregion
         }
         #endregion
+        public IActionResult PaymentError(string title, string message, string code, string details, string timestamp)
+        {
+            ViewBag.ErrorTitle = title;
+            ViewBag.ErrorMessage = message;
+            return View(); // 會自動對應 Views/Home/PaymentError.cshtml
+        }
         #endregion
         #region 奉獻收費清單
         #region Line 單獨登入

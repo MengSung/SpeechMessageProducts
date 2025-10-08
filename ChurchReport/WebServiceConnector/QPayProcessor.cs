@@ -1156,7 +1156,10 @@ namespace ChurchReport.WebServiceConnector
                         OrderNo = orderNo ?? string.Empty,
                         Status = "F",
                         Description = "PayPageResponse 為 null",
-                        CardParam = null,
+                        CardParam = new CreOrderCardParamRes
+                        {
+                            CardPayURL = GetErrorPageUrl("系統錯誤", "金流回應為空值，請稍後再試或聯繫客服")
+                        },
                         ATMParam = null,
                         MobileParam = null
                     };
@@ -1185,25 +1188,44 @@ namespace ChurchReport.WebServiceConnector
                     case "C": // 信用卡
                         creOrder.CardParam = new CreOrderCardParamRes
                         {
-                            CardPayURL = payPageResponse.url ?? string.Empty,
-                            // 如果有 transaction_id，也可以存起來
-                            // (CreOrderCardParamRes 可能需要擴充欄位)
+                            CardPayURL = isSuccess 
+                                ? (payPageResponse.url ?? string.Empty)
+                                : GetErrorPageUrl("信用卡付款失敗", payPageResponse.msg ?? "未知錯誤")
                         };
                         break;
 
                     case "A": // ATM 轉帳
                         creOrder.ATMParam = new CreOrderATMParamRes
                         {
-                            AtmPayNo = payPageResponse.key ?? string.Empty,
-                            // 其他 ATM 相關欄位可以從 payPageResponse 中提取
+                            AtmPayNo = isSuccess 
+                                ? (payPageResponse.key ?? string.Empty)
+                                : string.Empty
                         };
+                        // ATM 失敗時也可以提供錯誤頁面 URL
+                        if (!isSuccess)
+                        {
+                            creOrder.CardParam = new CreOrderCardParamRes
+                            {
+                                CardPayURL = GetErrorPageUrl("ATM轉帳建立失敗", payPageResponse.msg ?? "未知錯誤")
+                            };
+                        }
                         break;
 
                     case "M": // 行動支付
+                        creOrder.MobileParam = new CreOrderMobileParamRes
+                        {
+                            MobilePayURL = isSuccess 
+                                ? (payPageResponse.url ?? string.Empty)
+                                : GetErrorPageUrl("行動支付失敗", payPageResponse.msg ?? "未知錯誤")
+                        };
+                        break;
+
                     case "L": // LinePay
                         creOrder.MobileParam = new CreOrderMobileParamRes
                         {
-                            MobilePayURL = payPageResponse.url ?? string.Empty
+                            MobilePayURL = isSuccess 
+                                ? (payPageResponse.url ?? string.Empty)
+                                : GetErrorPageUrl("LinePay付款失敗", payPageResponse.msg ?? "未知錯誤")
                         };
                         break;
 
@@ -1211,7 +1233,9 @@ namespace ChurchReport.WebServiceConnector
                         // 預設當作信用卡處理
                         creOrder.CardParam = new CreOrderCardParamRes
                         {
-                            CardPayURL = payPageResponse.url ?? string.Empty
+                            CardPayURL = isSuccess 
+                                ? (payPageResponse.url ?? string.Empty)
+                                : GetErrorPageUrl("付款失敗", payPageResponse.msg ?? "未知錯誤")
                         };
                         break;
                 }
@@ -1223,9 +1247,13 @@ namespace ChurchReport.WebServiceConnector
                 System.Diagnostics.Trace.WriteLine($"  - Status: {creOrder.Status}");
                 System.Diagnostics.Trace.WriteLine($"  - Code: {payPageResponse.code}");
                 System.Diagnostics.Trace.WriteLine($"  - Message: {payPageResponse.msg}");
-                if (!string.IsNullOrEmpty(payPageResponse.url))
+                if (isSuccess && !string.IsNullOrEmpty(payPageResponse.url))
                 {
                     System.Diagnostics.Trace.WriteLine($"  - PayURL: {payPageResponse.url}");
+                }
+                else if (!isSuccess)
+                {
+                    System.Diagnostics.Trace.WriteLine($"  - ErrorURL: {creOrder.CardParam?.CardPayURL ?? creOrder.MobileParam?.MobilePayURL}");
                 }
 
                 return creOrder;
@@ -1238,13 +1266,51 @@ namespace ChurchReport.WebServiceConnector
                     OrderNo = orderNo ?? string.Empty,
                     Status = "F",
                     Description = $"轉換失敗: {ex.Message}",
-                    CardParam = null,
+                    CardParam = new CreOrderCardParamRes
+                    {
+                        CardPayURL = GetErrorPageUrl("系統錯誤", $"轉換失敗: {ex.Message}")
+                    },
                     ATMParam = null,
                     MobileParam = null
                 };
             }
         }
 
+        /// <summary>
+        /// 產生錯誤頁面 URL，包含錯誤標題和錯誤訊息
+        /// </summary>
+        /// <param name="errorTitle">錯誤標題</param>
+        /// <param name="errorMessage">錯誤詳細訊息</param>
+        /// <returns>錯誤頁面 URL</returns>
+        private string GetErrorPageUrl(string errorTitle, string errorMessage)
+        {
+            try
+            {
+                // 從設定檔取得錯誤頁面基礎 URL
+                string baseErrorUrl = m_Configuration["ERROR_PAGE_URL"] ?? "error-page";
+                
+                // URL 編碼錯誤訊息，避免特殊字元問題
+                string encodedTitle = Uri.EscapeDataString(errorTitle ?? "付款失敗");
+                string encodedMessage = Uri.EscapeDataString(errorMessage ?? "未知錯誤");
+                
+                // 組合完整的錯誤頁面 URL
+                string errorPageUrl = $"{baseErrorUrl}?title={encodedTitle}&message={encodedMessage}&timestamp={DateTime.Now:yyyyMMddHHmmss}";
+                
+                // 記錄錯誤頁面 URL 產生
+                System.Diagnostics.Trace.WriteLine($"[QPayProcessor] Generated Error Page URL:");
+                System.Diagnostics.Trace.WriteLine($"  - Title: {errorTitle}");
+                System.Diagnostics.Trace.WriteLine($"  - Message: {errorMessage}");
+                System.Diagnostics.Trace.WriteLine($"  - URL: {errorPageUrl}");
+                
+                return errorPageUrl;
+            }
+            catch (Exception ex)
+            {
+                // 如果產生錯誤頁面 URL 時發生例外，回傳基本的錯誤頁面
+                System.Diagnostics.Trace.WriteLine($"[QPayProcessor] GetErrorPageUrl Exception: {ex.Message}");
+                return "/payment-error?title=系統錯誤&message=無法產生錯誤頁面";
+            }
+        }
         public async Task<CreOrder> CreOrderCard(int Amount, String ProductName, String OrderDate, String FeeId, String PayType, String PayTypeSub, String Staging, int DeductTotalNum, String PeriodType, int DeductFreq, String CreditCategory, Entity LineLoginContact, String CCToken = null)
         {
             if (m_Configuration["PAY_PROVIDER"] == "永豐金流")
