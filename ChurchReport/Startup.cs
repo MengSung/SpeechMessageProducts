@@ -11,6 +11,9 @@ using Newtonsoft.Json.Serialization;
 using System;
 using System.Globalization;
 using Microsoft.AspNetCore.Localization;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
 
 namespace ChurchReport
 {
@@ -119,45 +122,24 @@ namespace ChurchReport
             loggerFactory.AddConsole(Configuration.GetSection("Logging"));
             loggerFactory.AddDebug();
 
-            if (env.IsDevelopment())
+            // 建立 Logs/Trace.log
+            var logsDir = Path.Combine(env.ContentRootPath, "Logs");
+            Directory.CreateDirectory(logsDir);
+            var tracePath = Path.Combine(logsDir, "Trace.log");
+            if (!Trace.Listeners.OfType<TextWriterTraceListener>().Any(l =>
+                (l.Writer as StreamWriter)?.BaseStream is FileStream fs && fs.Name == tracePath))
             {
-                app.UseDeveloperExceptionPage();
-                app.UseBrowserLink();
-            }
-            else
-            {
-                app.UseExceptionHandler("/Home/Error");
+                Trace.Listeners.Add(new TextWriterTraceListener(tracePath));
+                Trace.AutoFlush = true;
             }
 
-            // 配置中文語系支援
-            var supportedCultures = new[]
-            {
-                new CultureInfo("zh-TW"),
-                new CultureInfo("zh-CN"), 
-                new CultureInfo("zh"),
-                new CultureInfo("en"),
-                new CultureInfo("en-US")
-            };
-            
-            app.UseRequestLocalization(new RequestLocalizationOptions
-            {
-                DefaultRequestCulture = new RequestCulture("zh-TW"),
-                SupportedCultures = supportedCultures,
-                SupportedUICultures = supportedCultures
-            });
+            if (env.IsDevelopment()) { app.UseDeveloperExceptionPage(); app.UseBrowserLink(); }
+            else { app.UseExceptionHandler("/Home/Error"); }
 
             app.UseStaticFiles();
             app.UseSession();
-
-            DevExtreme.AspNet.Mvc.Compatibility.Validation.IgnoreRequiredForBoolean = true;
-
-            app.UseMvc(routes =>
-            {
-                routes.MapRoute(
-                    name: "default",
-                    template: "{controller=Home}/{action=Login}/{id?}");
-                //template: "{controller=Home}/{action=SmallGroupReportView}/{id?}"); 
-            });
+            app.UseAuthentication();
+            app.UseMvc(routes => { routes.MapRoute("default", "{controller=Home}/{action=Login}/{id?}"); });
         }
     }
 }
