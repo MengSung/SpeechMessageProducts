@@ -44,7 +44,9 @@
                        "感恩奉獻",
                        "建堂奉獻",
                        "宣教奉獻",
+                       "愛心奉獻",
                        "特別獻金",
+
                     })
                     .OnValueChanged("OnCategorySelectBoxValueChanged")
                 );
@@ -119,7 +121,8 @@
                     .SelectBox()
                     .Width(200)
                     .DataSource(new string[] {
-                        "信用卡", "ATM轉帳/匯款", "信用卡定期定額(每個月)", "LinePay"
+                        "信用卡"
+                        //"信用卡", "ATM轉帳/匯款", "信用卡定期定額(每個月)", "LinePay"
                     })
                     .OnValueChanged("OnPayWaySelectBoxValueChanged") // 移到 Editor 內
                 );
@@ -313,12 +316,12 @@
             <div class="col-12 text-left col-md-8">
                 <!-- 教會聯絡資訊 -->
                 <div class="section-head text-left space30">
-                    <h3 class="mbr-section-title pb-3 mbr-fonts-style display-5 text-left">聖谷行道會</h3>
-                    <h3 class="mbr-section-title pb-3 mbr-fonts-style display-5 text-left">地址: 231新北市新店區安興路91巷5號4樓</h3>
-                    <h3 class="mbr-section-title pb-3 mbr-fonts-style display-5 text-left">電話: 02-2211-1556</h3>
-                    <h3 class="mbr-section-title pb-3 mbr-fonts-style display-5 text-left">信箱：sunnyvale.church@gmail.com</h3>
-                    <h3 class="mbr-section-title pb-3 mbr-fonts-style display-5 text-left">統編: 20004335</h3>
-                    <h3 class="mbr-section-title pb-3 mbr-fonts-style display-5 text-left">*若有任何奉獻問題，請洽詢曾淑芬姊妹*</h3>
+                    <h3 class="mbr-section-title pb-1 mbr-fonts-style display-24 text-left">聖谷行道會</h3>
+                    <h3 class="mbr-section-title pb-1 mbr-fonts-style display-24 text-left">地址: 231新北市新店區安興路91巷5號4樓</h3>
+                    <h3 class="mbr-section-title pb-1 mbr-fonts-style display-24 text-left">電話: 02-2211-1556</h3>
+                    <h3 class="mbr-section-title pb-1 mbr-fonts-style display-24 text-left">信箱：sunnyvale.church@gmail.com</h3>
+                    <h3 class="mbr-section-title pb-1 mbr-fonts-style display-24 text-left">統編: 20004335</h3>
+                    <h3 class="mbr-section-title pb-1 mbr-fonts-style display-24 text-left">*若有任何奉獻問題，請洽詢曾淑芬姊妹*</h3>
                 </div>
                 <!-- 奉獻資訊手風琴選單 -->
                 <div id="bootstrap-accordion_7" class="panel-group accordionStyles accordion" role="tablist" aria-multiselectable="true">
@@ -350,7 +353,7 @@
                         <div class="card-header" role="tab" id="headingTwo">
                             <a role="button" class="collapsed panel-title text-black" data-toggle="collapse" data-parent="#bootstrap-accordion_7" data-core="" href="#collapse2_7" aria-expanded="false" aria-controls="collapse2">
                                 <h4 class="mbr-fonts-style display-5">
-                                    <span class="sign mbr-iconfont mbri-arrow-down inactive"></span>建殿奉獻
+                                    <span class="sign mbr-iconfont mbri-arrow-down inactive"></span>建堂奉獻
                                 </h4>
                             </a>
                         </div>
@@ -408,13 +411,6 @@
                                     <span class="sign mbr-iconfont mbri-arrow-down inactive"></span>若有任何奉獻問題，請洽詢曾淑芬姊妹
                                 </h4>
                             </a>
-                        </div>
-                        <div id="collapse6_7" class="panel-collapse noScroll collapse" role="tabpanel" aria-labelledby="headingFive">
-                            <div class="panel-body p-4">
-                                <p class="mbr-fonts-style panel-text display-7">
-                                    若有任何奉獻問題，請洽詢李主任
-                                </p>
-                            </div>
                         </div>
                     </div>
                 </div>
