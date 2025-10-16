@@ -42,7 +42,7 @@ namespace ChurchReport.WebServiceConnector
                 {
                     //ProductName = "全人醫治",
                     //ProductName = "幸福茶會",
-                    //ProductName = "月定獻金",
+                    //ProductName = "十一奉獻",
                     ProductName = DedicationModel.Category,
 
                     //ProductImageUrl = "https://upload.cc/i1/2019/01/09/j2fmYa.jpg",

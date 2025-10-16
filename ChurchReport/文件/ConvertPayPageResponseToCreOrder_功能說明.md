@@ -101,7 +101,7 @@ MobileParam = new CreOrderMobileParamRes
 // 建立 TSPG 付款請求
 var tspgRequest = GetTSPGPaymentRequestData(
     Amount: 1000,
-    ProductName: "月定獻金",
+    ProductName: "十一奉獻",
     OrderDate: "20241225120000",
     FeeId: "fee-12345",
     PayType: "C",

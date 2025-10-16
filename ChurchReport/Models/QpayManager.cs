@@ -385,7 +385,7 @@ namespace ChurchReport.Models
                 }
 
                 //奉獻類別
-                m_QpayModel.Category = "月定獻金";
+                m_QpayModel.Category = "十一奉獻";
                 //付款方式
                 m_QpayModel.PayWay = "信用卡";
                 //奉獻日期
@@ -506,7 +506,7 @@ namespace ChurchReport.Models
                     m_QpayModel.Ntbt = "不願意上傳國稅局";
                 }
 
-                m_QpayModel.Category = "月定獻金";
+                m_QpayModel.Category = "十一奉獻";
                 m_QpayModel.PayWay = "信用卡";
                 //奉獻分堂
                 m_QpayModel.DedicateLocation = "聖谷行道會";
@@ -1067,7 +1067,7 @@ namespace ChurchReport.Models
             //m_QpayModel.DedicationBookingList.Add(new DedicationBooking
             //{
             //    EntityId = "001",
-            //    DedicationCategory = "月定獻金",
+            //    DedicationCategory = "十一奉獻",
             //    DedicationBookingStatus = "進行中",
             //    AmountPerStage = "5000",                    // 每期金額
             //    TotalStages = "12期",
@@ -1080,7 +1080,7 @@ namespace ChurchReport.Models
             //m_QpayModel.DedicationBookingList.Add(new DedicationBooking
             //{
             //    EntityId = "002",
-            //    DedicationCategory = "感恩獻金",
+            //    DedicationCategory = "感恩奉獻",
             //    DedicationBookingStatus = "進行中",
             //    AmountPerStage = "6000",                    // 每期金額
             //    TotalStages = "12期",
@@ -1285,108 +1285,44 @@ namespace ChurchReport.Models
         {
             switch (this.m_ToolUtilityClass.GetOptionSetAttribute(aFeeEntity, "new_category"))
             {
-                case 100000000:
-                    return "月定獻金";
-                case 100000002:
-                    return "感恩獻金";
-                case 100000001:
-                    return "節期獻金";
-                case 100000003:
-                    return "對內獻金";
-                case 100000004:
-                    return "對外獻金(本宗)";
-                case 100000022:
-                    return "對外獻金(非本宗)";
-                case 100000006:
-                    return "建築獻金";
-                case 100000005:
-                    return "慈善獻金";
-                case 100000009:
-                    return "獎學獻金";
-                case 100000017:
-                    return "聖餐獻金";
-                case 100000007:
-                    return "宣教基金";
-                case 100000018:
-                    return "松年大學";
-                case 100000019:
-                    return "友愛基金";
-                case 100000020:
-                    return "生日助學金";
-                case 100000021:
-                    return "青年宣教基金";
                 case 100000010:
-                    return "禮拜獻金";
-                case 100000011:
-                    return "利息收入";
-                case 100000013:
-                    return "借入款";
-                case 100000014:
-                    return "補助金";
-                case 100000015:
-                    return "專帳其他收入(利息)";
+                    return "主日奉獻";
+                case 100000000:
+                    return "十一奉獻";
+                case 100000002:
+                    return "感恩奉獻";
+                case 100000006:
+                    return "建堂奉獻";
+                case 100000007:
+                    return "宣教奉獻";
+                case 100000019:
+                    return "愛心奉獻";
                 case 100000008:
                     return "特別獻金";
-                case 100000016:
-                    return "償還借款準備金";
-                case 100000023:
-                    return "週年獻金";
                 default:
-                    return "月定獻金";
+                    return "十一奉獻";
             }
         }
         public String ConvertToCategory(int OptionSetValue)
         {
             switch (OptionSetValue)
             {
-                case 100000000:
-                    return "月定獻金";
-                case 100000002:
-                    return "感恩獻金";
-                case 100000001:
-                    return "節期獻金";
-                case 100000003:
-                    return "對內獻金";
-                case 100000022:
-                    return "對外獻金-本宗";
-                case 100000004:
-                    return "對外獻金-非本宗";
-                case 100000006:
-                    return "建築獻金";
-                case 100000005:
-                    return "慈善獻金";
-                case 100000009:
-                    return "獎學獻金";
-                case 100000017:
-                    return "聖餐獻金";
-                case 100000007:
-                    return "宣教基金";
-                case 100000018:
-                    return "松年大學";
-                case 100000019:
-                    return "友愛基金";
-                case 100000020:
-                    return "生日助學金";
-                case 100000021:
-                    return "青年宣教基金";
                 case 100000010:
-                    return "禮拜獻金";
-                case 100000011:
-                    return "利息收入";
-                case 100000013:
-                    return "借入款";
-                case 100000014:
-                    return "補助金";
-                case 100000015:
-                    return "專帳其他收入(利息)";
+                    return "主日奉獻";
+                case 100000000:
+                    return "十一奉獻";
+                case 100000002:
+                    return "感恩奉獻";
+                case 100000006:
+                    return "建堂奉獻";
+                case 100000007:
+                    return "宣教奉獻";
+                case 100000019:
+                    return "愛心奉獻";
                 case 100000008:
                     return "特別獻金";
-                case 100000016:
-                    return "償還借款準備金";
-                case 100000023:
-                    return "週年獻金";
                 default:
-                    return "月定獻金";
+                    return "十一奉獻";
             }
         }
         public String ConvertToDedicationBookingStatus(int OptionSetValue)

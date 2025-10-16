@@ -69,9 +69,7 @@ namespace ChurchReport.Controllers
             try
             {
                 var images = new List<string>();
-                images.Add(Url.Content("~/assets/images/sunnyvalech_001.jpeg"));
-                images.Add(Url.Content("~/assets/images/sunnyvalech_002.jpeg"));
-                images.Add(Url.Content("~/assets/images/sunnyvalech_003.jpeg"));
+                images.Add(Url.Content("~/assets/images/sunnyvalech.jpg"));
 
                 return View(new GalleryViewModel
                 {
@@ -332,9 +330,7 @@ namespace ChurchReport.Controllers
                 var images = new List<string>();
 
                 // 官網整合串連金流奉獻跑馬燈
-                images.Add(Url.Content("~/assets/images/sunnyvalech_001.jpeg"));
-                images.Add(Url.Content("~/assets/images/sunnyvalech_002.jpeg"));
-                images.Add(Url.Content("~/assets/images/sunnyvalech_003.jpeg"));
+                images.Add(Url.Content("~/assets/images/sunnyvalech.jpg"));
 
                 return View(new GalleryViewModel
                 {
@@ -409,9 +405,7 @@ namespace ChurchReport.Controllers
             try
             {
                 var images = new List<string>();
-                images.Add(Url.Content("~/assets/images/sunnyvalech_001.jpeg"));
-                images.Add(Url.Content("~/assets/images/sunnyvalech_002.jpeg"));
-                images.Add(Url.Content("~/assets/images/sunnyvalech_003.jpeg"));
+                images.Add(Url.Content("~/assets/images/sunnyvalech.jpg"));
 
                 m_InMemoryDataContextSmallGroup.LineBindingViewModel.Images = images;
 
@@ -3711,9 +3705,7 @@ namespace ChurchReport.Controllers
             {
                 //真正註冊在 Line Developer
                 var images = new List<string>();
-                images.Add(Url.Content("~/assets/images/sunnyvalech_001.jpeg"));
-                images.Add(Url.Content("~/assets/images/sunnyvalech_002.jpeg"));
-                images.Add(Url.Content("~/assets/images/sunnyvalech_003.jpeg"));
+                images.Add(Url.Content("~/assets/images/sunnyvalech.jpg"));
 
                 m_InMemoryDataContextSmallGroup.LineBindingViewModel.Images = images;
 
@@ -3867,9 +3859,7 @@ namespace ChurchReport.Controllers
         public IActionResult BindingResultView(string LineBindingResult)
         {
             var images = new List<string>();
-            images.Add(Url.Content("~/assets/images/sunnyvalech_001.jpeg"));
-            images.Add(Url.Content("~/assets/images/sunnyvalech_002.jpeg"));
-            images.Add(Url.Content("~/assets/images/sunnyvalech_003.jpeg"));
+            images.Add(Url.Content("~/assets/images/sunnyvalech.jpg"));
 
             m_InMemoryDataContextSmallGroup.LineBindingViewModel.Images = images;
 
@@ -3944,9 +3934,7 @@ namespace ChurchReport.Controllers
             {
                 //真正註冊在 Line Developer
                 var images = new List<string>();
-                images.Add(Url.Content("~/assets/images/sunnyvalech_001.jpeg"));
-                images.Add(Url.Content("~/assets/images/sunnyvalech_002.jpeg"));
-                images.Add(Url.Content("~/assets/images/sunnyvalech_003.jpeg"));
+                images.Add(Url.Content("~/assets/images/sunnyvalech.jpg"));
 
                 m_InMemoryDataContextSmallGroup.LineBindingViewModel.Images = images;
 
@@ -4053,9 +4041,7 @@ namespace ChurchReport.Controllers
             try
             {
                 var images = new List<string>();
-                images.Add(Url.Content("~/assets/images/sunnyvalech_001.jpeg"));
-                images.Add(Url.Content("~/assets/images/sunnyvalech_002.jpeg"));
-                images.Add(Url.Content("~/assets/images/sunnyvalech_003.jpeg"));
+                images.Add(Url.Content("~/assets/images/sunnyvalech.jpg"));
 
                 m_InMemoryDataContextSmallGroup.LineBindingViewModel.Images = images;
 
