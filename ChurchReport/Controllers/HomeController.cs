@@ -5756,9 +5756,7 @@ namespace ChurchReport.Controllers
             try
             {
                 var images = new List<string>();
-                images.Add(Url.Content("~/assets/images/sunnyvalech_001.jpeg"));
-                images.Add(Url.Content("~/assets/images/sunnyvalech_002.jpeg"));
-                images.Add(Url.Content("~/assets/images/sunnyvalech_003.jpeg"));
+                images.Add(Url.Content("~/assets/images/sunnyvalech.jpg"));
 
                 m_InMemoryDataContextSmallGroup.LineBindingViewModel.Images = images;
 
