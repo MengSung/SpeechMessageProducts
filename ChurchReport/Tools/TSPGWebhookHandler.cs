@@ -147,13 +147,106 @@ namespace ChurchReport.Tools
 
         private void MapFormToNotification(IFormCollection form, TSPGPaymentNotification n)
         {
-            n.StoreUid = form["store_uid"]; n.OrderId = form["order_id"]; n.TransactionId = form["transaction_id"]; n.State = form["state"]; n.Cost = decimal.TryParse(form["cost"], out var cost) ? cost : 0; n.ActualCost = decimal.TryParse(form["actual_cost"], out var actualCost) ? actualCost : 0; n.Currency = form["currency"]; n.PayType = form["pay_type"]; n.UserName = form["user_name"]; n.UserEmail = form["user_email"]; n.UserPhone = form["user_phone"]; n.ReturnMessage = form["retmsg"]; n.Hash = form["hash"]; if (string.IsNullOrEmpty(n.Hash)) n.Hash = form["ret_hash"]; if (string.IsNullOrEmpty(n.Hash)) n.Hash = form["signature"]; n.Echo0 = form["echo_0"]; n.Echo1 = form["echo_1"]; n.Echo2 = form["echo_2"]; n.Echo3 = form["echo_3"]; n.Echo4 = form["echo_4"]; n.CardNo = form["cardno"]; n.AuthCode = form["acode"]; n.CardType = form["card_type"]; n.IssuingBank = form["issuing_bank"]; if (DateTime.TryParse(form["pay_time"], out var payTime)) n.PayTime = payTime; else n.PayTime = DateTime.Now; }
+            n.StoreUid = form["store_uid"]; 
+            n.S_Mid = form["s_mid"]; 
+            n.OrderId = form["order_id"]; 
+            n.OrderNo = form["order_no"]; 
+            n.TransactionId = form["transaction_id"]; 
+            n.TxType = form["tx_type"]; 
+            n.State = form["state"]; 
+            n.RetCode = form["ret_code"]; 
+            n.RetMsg = form["ret_msg"]; 
+            n.Cost = decimal.TryParse(form["cost"], out var cost) ? cost : 0; 
+            n.ActualCost = decimal.TryParse(form["actual_cost"], out var actualCost) ? actualCost : 0; 
+            n.Currency = form["currency"]; 
+            n.PayType = form["pay_type"]; 
+            n.UserName = form["user_name"]; 
+            n.UserEmail = form["user_email"]; 
+            n.UserPhone = form["user_phone"]; 
+            n.ReturnMessage = form["retmsg"]; 
+            n.Hash = form["hash"]; 
+            if (string.IsNullOrEmpty(n.Hash)) n.Hash = form["ret_hash"]; 
+            if (string.IsNullOrEmpty(n.Hash)) n.Hash = form["signature"]; 
+            n.Echo0 = form["echo_0"]; 
+            n.Echo1 = form["echo_1"]; 
+            n.Echo2 = form["echo_2"]; 
+            n.Echo3 = form["echo_3"]; 
+            n.Echo4 = form["echo_4"]; 
+            n.CardNo = form["cardno"]; 
+            n.AuthCode = form["acode"]; 
+            n.AuthIdResp = form["auth_id_resp"]; 
+            n.CardType = form["card_type"]; 
+            n.IssuingBank = form["issuing_bank"]; 
+            if (DateTime.TryParse(form["pay_time"], out var payTime)) n.PayTime = payTime; else n.PayTime = DateTime.Now; 
+        }
         private void MapQueryToNotification(NameValueCollection query, TSPGPaymentNotification n)
         {
-            n.StoreUid = query["store_uid"]; n.OrderId = query["order_id"]; n.TransactionId = query["transaction_id"]; n.State = query["state"]; n.Cost = decimal.TryParse(query["cost"], out var cost) ? cost : 0; n.ActualCost = decimal.TryParse(query["actual_cost"], out var actualCost) ? actualCost : 0; n.Currency = query["currency"]; n.PayType = query["pay_type"]; n.UserName = query["user_name"]; n.UserEmail = query["user_email"]; n.UserPhone = query["user_phone"]; n.ReturnMessage = query["retmsg"]; n.Hash = query["hash"]; if (string.IsNullOrEmpty(n.Hash)) n.Hash = query["ret_hash"]; if (string.IsNullOrEmpty(n.Hash)) n.Hash = query["signature"]; n.Echo0 = query["echo_0"]; n.Echo1 = query["echo_1"]; n.Echo2 = query["echo_2"]; n.Echo3 = query["echo_3"]; n.Echo4 = query["echo_4"]; n.CardNo = query["cardno"]; n.AuthCode = query["acode"]; n.CardType = query["card_type"]; n.IssuingBank = query["issuing_bank"]; if (DateTime.TryParse(query["pay_time"], out var payTime)) n.PayTime = payTime; else n.PayTime = DateTime.Now; }
+            n.StoreUid = query["store_uid"]; 
+            n.S_Mid = query["s_mid"]; 
+            n.OrderId = query["order_id"]; 
+            n.OrderNo = query["order_no"]; 
+            n.TransactionId = query["transaction_id"]; 
+            n.TxType = query["tx_type"]; 
+            n.State = query["state"]; 
+            n.RetCode = query["ret_code"]; 
+            n.RetMsg = query["ret_msg"]; 
+            n.Cost = decimal.TryParse(query["cost"], out var cost) ? cost : 0; 
+            n.ActualCost = decimal.TryParse(query["actual_cost"], out var actualCost) ? actualCost : 0; 
+            n.Currency = query["currency"]; 
+            n.PayType = query["pay_type"]; 
+            n.UserName = query["user_name"]; 
+            n.UserEmail = query["user_email"]; 
+            n.UserPhone = query["user_phone"]; 
+            n.ReturnMessage = query["retmsg"]; 
+            n.Hash = query["hash"]; 
+            if (string.IsNullOrEmpty(n.Hash)) n.Hash = query["ret_hash"]; 
+            if (string.IsNullOrEmpty(n.Hash)) n.Hash = query["signature"]; 
+            n.Echo0 = query["echo_0"]; 
+            n.Echo1 = query["echo_1"]; 
+            n.Echo2 = query["echo_2"]; 
+            n.Echo3 = query["echo_3"]; 
+            n.Echo4 = query["echo_4"]; 
+            n.CardNo = query["cardno"]; 
+            n.AuthCode = query["acode"]; 
+            n.AuthIdResp = query["auth_id_resp"]; 
+            n.CardType = query["card_type"]; 
+            n.IssuingBank = query["issuing_bank"]; 
+            if (DateTime.TryParse(query["pay_time"], out var payTime)) n.PayTime = payTime; else n.PayTime = DateTime.Now; 
+        }
         private void MapQueryToNotification(IQueryCollection query, TSPGPaymentNotification n)
         {
-            n.StoreUid = query["store_uid"]; n.OrderId = query["order_id"]; n.TransactionId = query["transaction_id"]; n.State = query["state"]; n.Cost = decimal.TryParse(query["cost"], out var cost) ? cost : 0; n.ActualCost = decimal.TryParse(query["actual_cost"], out var actualCost) ? actualCost : 0; n.Currency = query["currency"]; n.PayType = query["pay_type"]; n.UserName = query["user_name"]; n.UserEmail = query["user_email"]; n.UserPhone = query["user_phone"]; n.ReturnMessage = query["retmsg"]; n.Hash = query["hash"]; if (string.IsNullOrEmpty(n.Hash)) n.Hash = query["ret_hash"]; if (string.IsNullOrEmpty(n.Hash)) n.Hash = query["signature"]; n.Echo0 = query["echo_0"]; n.Echo1 = query["echo_1"]; n.Echo2 = query["echo_2"]; n.Echo3 = query["echo_3"]; n.Echo4 = query["echo_4"]; n.CardNo = query["cardno"]; n.AuthCode = query["acode"]; n.CardType = query["card_type"]; n.IssuingBank = query["issuing_bank"]; if (DateTime.TryParse(query["pay_time"], out var payTime)) n.PayTime = payTime; else n.PayTime = DateTime.Now; }
+            n.StoreUid = query["store_uid"]; 
+            n.S_Mid = query["s_mid"]; 
+            n.OrderId = query["order_id"]; 
+            n.OrderNo = query["order_no"]; 
+            n.TransactionId = query["transaction_id"]; 
+            n.TxType = query["tx_type"]; 
+            n.State = query["state"]; 
+            n.RetCode = query["ret_code"]; 
+            n.RetMsg = query["ret_msg"]; 
+            n.Cost = decimal.TryParse(query["cost"], out var cost) ? cost : 0; 
+            n.ActualCost = decimal.TryParse(query["actual_cost"], out var actualCost) ? actualCost : 0; 
+            n.Currency = query["currency"]; 
+            n.PayType = query["pay_type"]; 
+            n.UserName = query["user_name"]; 
+            n.UserEmail = query["user_email"]; 
+            n.UserPhone = query["user_phone"]; 
+            n.ReturnMessage = query["retmsg"]; 
+            n.Hash = query["hash"]; 
+            if (string.IsNullOrEmpty(n.Hash)) n.Hash = query["ret_hash"]; 
+            if (string.IsNullOrEmpty(n.Hash)) n.Hash = query["signature"]; 
+            n.Echo0 = query["echo_0"]; 
+            n.Echo1 = query["echo_1"]; 
+            n.Echo2 = query["echo_2"]; 
+            n.Echo3 = query["echo_3"]; 
+            n.Echo4 = query["echo_4"]; 
+            n.CardNo = query["cardno"]; 
+            n.AuthCode = query["acode"]; 
+            n.AuthIdResp = query["auth_id_resp"]; 
+            n.CardType = query["card_type"]; 
+            n.IssuingBank = query["issuing_bank"]; 
+            if (DateTime.TryParse(query["pay_time"], out var payTime)) n.PayTime = payTime; else n.PayTime = DateTime.Now; 
+        }
 
         private void MapJsonToNotification(JObject json, TSPGPaymentNotification n)
         {
@@ -182,9 +275,14 @@ namespace ChurchReport.Tools
             }
 
             n.StoreUid = V("store_uid", "storeUid");
+            n.S_Mid = V("s_mid", "sMid", "s_mid");
             n.OrderId = V("order_id", "orderId", "uid", "order");
+            n.OrderNo = V("order_no", "orderNo", "order_id", "orderId");
             n.TransactionId = V("transaction_id", "transactionId", "tx_id", "txn_id");
+            n.TxType = V("tx_type", "txType", "transaction_type");
             n.State = V("state", "result", "status");
+            n.RetCode = V("ret_code", "retCode", "return_code", "code");
+            n.RetMsg = V("ret_msg", "retMsg", "return_message", "message", "msg");
             n.Cost = VD("cost", "amount");
             n.ActualCost = VD("actual_cost", "actualCost", "paid_amount");
             n.Currency = V("currency");
@@ -201,6 +299,7 @@ namespace ChurchReport.Tools
             n.Echo4 = V("echo_4", "echo4");
             n.CardNo = V("cardno", "card_no", "cardNo");
             n.AuthCode = V("acode", "auth_code", "authCode");
+            n.AuthIdResp = V("auth_id_resp", "authIdResp", "auth_id", "authId");
             n.CardType = V("card_type", "cardType");
             n.IssuingBank = V("issuing_bank", "issuingBank");
             n.PayTime = VDT("pay_time", "payTime");

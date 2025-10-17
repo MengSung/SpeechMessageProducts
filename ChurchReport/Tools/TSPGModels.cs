@@ -716,9 +716,19 @@ namespace ChurchReport.Tools
         public string StoreUid { get; set; }
 
         /// <summary>
+        /// 子特店代號
+        /// </summary>
+        public string S_Mid { get; set; }
+
+        /// <summary>
         /// 訂單編號
         /// </summary>
         public string OrderId { get; set; }
+
+        /// <summary>
+        /// 訂單號碼 (REST API v2.14 格式)
+        /// </summary>
+        public string OrderNo { get; set; }
 
         /// <summary>
         /// 交易編號
@@ -726,9 +736,24 @@ namespace ChurchReport.Tools
         public string TransactionId { get; set; }
 
         /// <summary>
+        /// 交易類別 (REST API v2.14 格式)
+        /// </summary>
+        public string TxType { get; set; }
+
+        /// <summary>
         /// 付款狀態 (1: 成功, 0: 失敗)
         /// </summary>
         public string State { get; set; }
+
+        /// <summary>
+        /// 交易結果回應碼 (REST API v2.14 格式)
+        /// </summary>
+        public string RetCode { get; set; }
+
+        /// <summary>
+        /// 回傳訊息 (REST API v2.14 格式)
+        /// </summary>
+        public string RetMsg { get; set; }
 
         /// <summary>
         /// 付款金額
@@ -798,9 +823,14 @@ namespace ChurchReport.Tools
         public string IssuingBank { get; set; }
 
         /// <summary>
+        /// 授權碼回應 (REST API v2.14 格式)
+        /// </summary>
+        public string AuthIdResp { get; set; }
+
+        /// <summary>
         /// 是否付款成功
         /// </summary>
-        public bool IsPaymentSuccess => State == "1";
+        public bool IsPaymentSuccess => State == "1" || RetCode == "0000";
     }
 
     #endregion
