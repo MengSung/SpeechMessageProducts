@@ -51,7 +51,7 @@ namespace ChurchReport.Controllers
             catch (Exception ex)
             {
                 System.Diagnostics.Trace.WriteLine($"[TSPG] 付款通知處理例外: {ex.Message}");
-                return StatusCode(500, "ERROR");
+                return StatusCode(500, "付款通知處理錯誤:"+ ex.Message);
             }
         }
 
@@ -84,7 +84,7 @@ namespace ChurchReport.Controllers
             catch (Exception ex)
             {
                 System.Diagnostics.Trace.WriteLine($"[TSPG] 退款通知處理例外: {ex.Message}");
-                return StatusCode(500, "ERROR");
+                return StatusCode(500, "退款通知處理錯誤:"+ ex.Message);
             }
         }
 
