@@ -538,7 +538,7 @@ namespace ChurchReport.Controllers
                 queryString += $"&dcc_amount={notification.ChAmt.Value}&dcc_currency={Uri.EscapeDataString(notification.ChCurrency ?? "")}&exchange_rate={notification.ExRate ?? 0}";
             }
 
-            return Redirect($"/PaymentSuccess?{queryString}");
+            return Redirect($"/payment-success?{queryString}");
         }
 
         /// <summary>

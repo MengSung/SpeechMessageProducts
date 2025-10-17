@@ -1,24 +1,24 @@
-@{
+ï»¿@{
     ViewBag.Title = "Payment Success";
 }
 <div class="container" style="max-width:680px;margin:40px auto;font-family:Segoe UI, Arial, sans-serif;">
-    <h2>¥I´Ú¦¨¥\</h2>
-    <p>·PÁÂ±zªº¥I´Ú¡A¥æ©ö¤w§¹¦¨¡C</p>
+    <h2>ä»˜æ¬¾æˆåŠŸ</h2>
+    <p>æ„Ÿè¬æ‚¨çš„ä»˜æ¬¾ï¼Œäº¤æ˜“å·²å®Œæˆã€‚</p>
 
     <div style="margin-top:20px">
-        <div><strong>­q³æ½s¸¹</strong>¡G@ViewBag.OrderId</div>
-        <div><strong>¥æ©ö¸¹</strong>¡G@ViewBag.TransactionId</div>
-        <div><strong>ª÷ÃB</strong>¡G@ViewBag.Amount</div>
-        <div><strong>±ÂÅv½X</strong>¡G@ViewBag.AuthCode</div>
-        <div><strong>¥æ©öÃş«¬</strong>¡G@ViewBag.TxType</div>
+        <div><strong>è¨‚å–®ç·¨è™Ÿ</strong>ï¼š@ViewBag.OrderId</div>
+        <div><strong>äº¤æ˜“è™Ÿ</strong>ï¼š@ViewBag.TransactionId</div>
+        <div><strong>é‡‘é¡</strong>ï¼š@ViewBag.Amount</div>
+        <div><strong>æˆæ¬Šç¢¼</strong>ï¼š@ViewBag.AuthCode</div>
+        <div><strong>äº¤æ˜“é¡å‹</strong>ï¼š@ViewBag.TxType</div>
         @if (ViewBag.DccAmount != null)
         {
-            <div><strong>DCC ª÷ÃB</strong>¡G@ViewBag.DccAmount @ViewBag.DccCurrency</div>
-            <div><strong>¶×²v</strong>¡G@ViewBag.ExchangeRate</div>
+            <div><strong>DCC é‡‘é¡</strong>ï¼š@ViewBag.DccAmount @ViewBag.DccCurrency</div>
+            <div><strong>åŒ¯ç‡</strong>ï¼š@ViewBag.ExchangeRate</div>
         }
     </div>
 
     <div style="margin-top:24px">
-        <a href="/" class="btn btn-primary">¦^­º­¶</a>
+        <a href="/" class="btn btn-primary">å›é¦–é </a>
     </div>
 </div>
