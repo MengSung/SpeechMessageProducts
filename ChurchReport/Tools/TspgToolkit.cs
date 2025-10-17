@@ -875,7 +875,27 @@ namespace ChurchReport.Tools
                         
                         // 提取其他欄位 - order_no 可能在根層級或 params 內
                         string transactionId = tspgResponse.Params?.transaction_id ?? string.Empty;
-                        string orderNo = tspgResponse.order_no  ?? tspgResponse.Params?.ORDERNO ?? string.Empty;
+                        string orderNo = tspgResponse.order_no ?? tspgResponse.Params?.ORDERNO ?? string.Empty;
+                        
+                        // 如果 order_no 包含 "ORDERNO=" 格式，提取其後的字串
+                        if ( string.IsNullOrEmpty(orderNo) && hppUrl.Contains("ORDERNO="))
+                        {
+                            int startIndex = hppUrl.IndexOf("ORDERNO=", StringComparison.Ordinal) + 8; // "ORDERNO=" 長度為 8
+                            if (startIndex < hppUrl.Length)
+                            {
+                                // 提取 ORDERNO= 之後的字串，可能包含 & 分隔符
+                                int endIndex = hppUrl.IndexOf('&', startIndex);
+                                if (endIndex > startIndex)
+                                {
+                                    orderNo = hppUrl.Substring(startIndex, endIndex - startIndex);
+                                }
+                                else
+                                {
+                                    orderNo = hppUrl.Substring(startIndex);
+                                }
+                                orderNo = orderNo.Trim();
+                            }
+                        }
                         
                         // 記錄解析結果
                         System.Diagnostics.Trace.WriteLine($"[TSPG] 解析成功:");
@@ -898,7 +918,7 @@ namespace ChurchReport.Tools
                             System.Diagnostics.Trace.WriteLine($"  - transaction_id: {transactionId}");
                         }
                         
-                        if (!string.IsNullOrEmpty(orderNo))
+                        if (!string.IsNullOrEmpty(hppUrl))
                         {
                             System.Diagnostics.Trace.WriteLine($"  - order_no: {orderNo}");
                         }
