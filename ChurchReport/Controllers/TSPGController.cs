@@ -1,4 +1,5 @@
 using ChurchReport.Tools;
+using Line.Messaging;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Xrm.Sdk;
 using System;
@@ -537,8 +538,13 @@ namespace ChurchReport.Controllers
                 toolUtility = new ToolUtilityClass("DYNAMICS365");
                 
                 // 查詢 new_q_pay_card_order_no 等於 OrderNo 的收費單
-
                 Entity updatedFeeEntity = toolUtility.RetrieveEntityByField("new_fee", "new_q_pay_card_order_no", orderNo);
+
+                if (updatedFeeEntity == null)
+                {
+                    System.Diagnostics.Trace.WriteLine($"[TSPG] 找不到對應的收費單 - OrderNo: {orderNo}");
+                    return;
+                }
 
                 // 更新付款狀態為已付款 (100000001 = 信用卡已繳費)
                 toolUtility.SetOptionSetAttribute(ref updatedFeeEntity, "new_pay_status", 100000001);
@@ -569,6 +575,9 @@ namespace ChurchReport.Controllers
                 toolUtility.UpdateEntity(ref updatedFeeEntity);
 
                 System.Diagnostics.Trace.WriteLine($"[TSPG] 成功更新收費單 - OrderNo: {orderNo}, FeeId: {updatedFeeEntity.Id}");
+
+                // 取得連絡人並發送 LINE 訊息
+                SendPaymentNotificationToContact(toolUtility, updatedFeeEntity, notification, amount);
             }
             catch (Exception ex)
             {
@@ -578,6 +587,115 @@ namespace ChurchReport.Controllers
             {
                 // 手動釋放資源
                 toolUtility?.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// 發送付款通知訊息給連絡人
+        /// </summary>
+        private void SendPaymentNotificationToContact(ToolUtilityClass toolUtility, Entity feeEntity, TSPGPaymentNotification notification, decimal amount)
+        {
+            try
+            {
+                // 從收費單取得連絡人 Lookup (new_contact_new_fee)
+                var contactId = toolUtility.GetEntityLookupAttribute(feeEntity, "new_contact_new_fee");
+                
+                if (contactId == Guid.Empty)
+                {
+                    System.Diagnostics.Trace.WriteLine("[TSPG] 收費單沒有關聯的連絡人");
+                    return;
+                }
+
+                // 取得連絡人實體
+                Entity contactEntity = toolUtility.RetrieveEntity("contact", contactId);
+                
+                if (contactEntity == null)
+                {
+                    System.Diagnostics.Trace.WriteLine($"[TSPG] 找不到連絡人 - ContactId: {contactId}");
+                    return;
+                }
+
+                // 取得連絡人的 LINE ID
+                string lineId = toolUtility.GetEntityStringAttribute(contactEntity, "new_lineid");
+                
+                if (string.IsNullOrEmpty(lineId))
+                {
+                    System.Diagnostics.Trace.WriteLine($"[TSPG] 連絡人沒有 LINE ID - ContactId: {contactId}");
+                    return;
+                }
+
+                // 取得連絡人姓名
+                string fullName = toolUtility.GetEntityStringAttribute(contactEntity, "fullname");
+
+                // 組成 LINE 訊息內容
+                var orderNo = notification.OrderNo ?? notification.OrderId;
+                var messageContent = BuildPaymentSuccessMessage(fullName, orderNo, amount, notification);
+
+                // 發送 LINE 訊息
+                SendLineMessage(lineId, messageContent);
+
+                System.Diagnostics.Trace.WriteLine($"[TSPG] 已發送付款通知 LINE 訊息 - ContactId: {contactId}, LineId: {lineId}");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"[TSPG] 發送 LINE 訊息失敗 - 錯誤: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// 建立付款成功訊息內容
+        /// </summary>
+        private string BuildPaymentSuccessMessage(string fullName, string orderNo, decimal amount, TSPGPaymentNotification notification)
+        {
+            var message = $"【TSPG 付款成功通知】{Environment.NewLine}{Environment.NewLine}";
+            message += $"親愛的 {fullName}，您好！{Environment.NewLine}{Environment.NewLine}";
+            message += $"您的奉獻已成功完成，感謝您的支持！{Environment.NewLine}{Environment.NewLine}";
+            message += $"付款資訊：{Environment.NewLine}";
+            message += $"??????????????{Environment.NewLine}";
+            message += $"訂單編號：{orderNo}{Environment.NewLine}";
+            message += $"付款金額：NT$ {amount:N0}{Environment.NewLine}";
+            message += $"付款時間：{DateTime.Now:yyyy/MM/dd HH:mm:ss}{Environment.NewLine}";
+            message += $"付款方式：信用卡{Environment.NewLine}";
+            
+            if (!string.IsNullOrEmpty(notification.AuthIdResp))
+            {
+                message += $"授權碼：{notification.AuthIdResp}{Environment.NewLine}";
+            }
+            
+            if (!string.IsNullOrEmpty(notification.TransactionId))
+            {
+                message += $"交易編號：{notification.TransactionId}{Environment.NewLine}";
+            }
+            
+            message += $"??????????????{Environment.NewLine}{Environment.NewLine}";
+            message += $"願上帝賜福與您！";
+
+            return message;
+        }
+
+        /// <summary>
+        /// 發送 LINE 訊息
+        /// </summary>
+        private void SendLineMessage(string lineId, string message)
+        {
+            try
+            {
+                // LINE Channel Access Token (從設定檔讀取或使用預設值)
+                const string CHANNEL_ACCESS_TOKEN = @"OMjL23DpFRDgphgN7JdzA7uCpv1wb4hXtsGh4FzxP8tHzeMyYOr/ry3BBqaRNJpVUhR6wPHLN4Wa4QiG5i3P5T/Y07swP5OjfCz9DKwTYC7T4mPb8x54pwtcqK1lIdgNm6skdZnu99fBsupEcbZLBAdB04t89/1O/w1cDnyilFU=";
+
+                // 建立 LINE Messaging Client
+                var lineMessagingClient = new Line.Messaging.LineMessagingClient(CHANNEL_ACCESS_TOKEN);
+                var pushUtility = new PushUtility(lineMessagingClient);
+
+                // 發送訊息 (同步方式)
+                pushUtility.SendMessage(lineId, message).Wait();
+
+                System.Diagnostics.Trace.WriteLine($"[TSPG] LINE 訊息已發送 - LineId: {lineId}");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"[TSPG] LINE 訊息發送失敗 - 錯誤: {ex.Message}");
+                throw;
             }
         }
 
