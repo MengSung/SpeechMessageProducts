@@ -1,9 +1,11 @@
 using ChurchReport.Tools;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Xrm.Sdk;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using ToolUtilityNameSpace;
 
 namespace ChurchReport.Controllers
 {
@@ -517,11 +519,77 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
+        /// 依據OrderNo更新收費單狀態
+        /// </summary>
+        private void UpdateFeeEntityByOrderNo(TSPGPaymentNotification notification)
+        {
+            ToolUtilityClass toolUtility = null;
+            try
+            {
+                var orderNo = notification.OrderNo ?? notification.OrderId;
+                if (string.IsNullOrEmpty(orderNo))
+                {
+                    System.Diagnostics.Trace.WriteLine("[TSPG] 訂單編號為空，無法更新收費單");
+                    return;
+                }
+
+                // 使用 ToolUtilityClass 查詢收費單
+                toolUtility = new ToolUtilityClass("DYNAMICS365");
+                
+                // 查詢 new_q_pay_card_order_no 等於 OrderNo 的收費單
+
+                Entity updatedFeeEntity = toolUtility.RetrieveEntityByField("new_fee", "new_q_pay_card_order_no", orderNo);
+
+                // 更新付款狀態為已付款 (100000001 = 信用卡已繳費)
+                toolUtility.SetOptionSetAttribute(ref updatedFeeEntity, "new_pay_status", 100000001);
+
+                // 更新實收金額 (new_fee_really_paid)
+                var amount = notification.Cost > 0 ? notification.Cost : notification.ActualCost;
+                toolUtility.SetEntityMoneyAttribute(ref updatedFeeEntity, "new_fee_really_paid", new Money(amount));
+
+                // 計算差額 (應收金額 - 實收金額)
+                var shouldPayMoney = toolUtility.GetEntityMoneyAttribute(updatedFeeEntity, "new_fee_shoud_pay");
+                var differenceFee = shouldPayMoney.Value - amount;
+                toolUtility.SetEntityMoneyAttribute(ref updatedFeeEntity, "new_difference_fee_paid", new Money(differenceFee));
+
+                // 設定付款日期
+                toolUtility.SetEntityDateTimeAttribute(ref updatedFeeEntity, "new_pay_date", DateTime.Now);
+
+                // 設定付款方式為信用卡
+                toolUtility.SetOptionSetAttribute(ref updatedFeeEntity, "new_pay_way", 100000001); // 100000001 = 信用卡
+
+                // 更新收費單說明
+                var originalDescription = toolUtility.GetEntityStringAttribute(updatedFeeEntity, "new_description");
+                var newDescription = originalDescription + Environment.NewLine +
+                    $"[TSPG付款成功] 訂單號:{orderNo}, 交易號:{notification.TransactionId}, " +
+                    $"金額:{amount}, 授權碼:{notification.AuthIdResp}, 時間:{DateTime.Now}";
+                toolUtility.SetEntityStringAttribute(ref updatedFeeEntity, "new_description", newDescription);
+
+                // 儲存更新
+                toolUtility.UpdateEntity(ref updatedFeeEntity);
+
+                System.Diagnostics.Trace.WriteLine($"[TSPG] 成功更新收費單 - OrderNo: {orderNo}, FeeId: {updatedFeeEntity.Id}");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"[TSPG] 更新收費單失敗 - 錯誤: {ex.Message}");
+            }
+            finally
+            {
+                // 手動釋放資源
+                toolUtility?.Dispose();
+            }
+        }
+
+        /// <summary>
         /// 處理付款成功的返回
         /// </summary>
         private IActionResult HandleSuccessfulPaymentReturn(TSPGPaymentNotification notification)
         {
             System.Diagnostics.Trace.WriteLine($"[TSPG] 付款成功 - 訂單: {notification.OrderNo}, 授權碼: {notification.AuthIdResp}");
+            
+            // 更新收費單狀態
+            UpdateFeeEntityByOrderNo(notification);
             
             // 構建成功頁面URL參數
             var orderId = notification.OrderNo ?? notification.OrderId;
