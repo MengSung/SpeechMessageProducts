@@ -1042,6 +1042,12 @@ namespace ChurchReport.Tools
         public string ret_msg { get; set; }
 
         /// <summary>
+        /// 訂單編號 (可能在根層級或 params 內)
+        /// </summary>
+        [JsonProperty("order_no")]
+        public string order_no { get; set; }
+
+        /// <summary>
         /// 回應參數清單
         /// </summary>
         [JsonProperty("params")]
@@ -1080,8 +1086,12 @@ namespace ChurchReport.Tools
         /// <summary>
         /// 訂單編號
         /// </summary>
-        [JsonProperty("order_no")]
-        public string order_no { get; set; }
+        //[JsonProperty("order_no")]
+        //public string order_no { get; set; }
+
+        [JsonProperty("ORDERNO")]
+        public string ORDERNO { get; set; }
+
 
         /// <summary>
         /// 交易金額

@@ -866,16 +866,16 @@ namespace ChurchReport.Tools
                     
                     if (tspgResponse != null)
                     {
-                        // 提取 ret_code (位於 params 物件內)
+                        // 提取 ret_code (位於 params 物件內或根層級)
                         string retCode = tspgResponse.ret_code ?? tspgResponse.Params?.ret_code ?? string.Empty;
                         string retMsg = tspgResponse.ret_msg ?? tspgResponse.Params?.ret_msg ?? "無相關資訊";
                         
                         // 提取 hpp_url (付款頁面網址)
                         string hppUrl = tspgResponse.Params?.hpp_url ?? string.Empty;
                         
-                        // 提取其他欄位
+                        // 提取其他欄位 - order_no 可能在根層級或 params 內
                         string transactionId = tspgResponse.Params?.transaction_id ?? string.Empty;
-                        string orderNo = tspgResponse.Params?.order_no ?? string.Empty;
+                        string orderNo = tspgResponse.order_no  ?? tspgResponse.Params?.ORDERNO ?? string.Empty;
                         
                         // 記錄解析結果
                         System.Diagnostics.Trace.WriteLine($"[TSPG] 解析成功:");
