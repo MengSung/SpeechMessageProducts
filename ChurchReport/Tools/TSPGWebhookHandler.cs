@@ -177,7 +177,18 @@ namespace ChurchReport.Tools
             n.AuthIdResp = form["auth_id_resp"]; 
             n.CardType = form["card_type"]; 
             n.IssuingBank = form["issuing_bank"]; 
-            if (DateTime.TryParse(form["pay_time"], out var payTime)) n.PayTime = payTime; else n.PayTime = DateTime.Now; 
+            if (DateTime.TryParse(form["pay_time"], out var payTime)) n.PayTime = payTime; else n.PayTime = DateTime.Now;
+            
+            // 玡硄疭把计
+            n.First6DigitOfPan = form["first_6_digit_of_pan"];
+            n.Last4DigitOfPan = form["last_4_digit_of_pan"];
+            n.CarrierId2 = form["carrierId2"];
+            
+            // DCC ユ盡ノ把计
+            if (decimal.TryParse(form["ch_amt"], out var chAmt)) n.ChAmt = chAmt;
+            n.ChCurrency = form["ch_currency"];
+            if (decimal.TryParse(form["ex_rate"], out var exRate)) n.ExRate = exRate;
+            if (decimal.TryParse(form["markup_rate"], out var markupRate)) n.MarkupRate = markupRate;
         }
         private void MapQueryToNotification(NameValueCollection query, TSPGPaymentNotification n)
         {
@@ -211,7 +222,18 @@ namespace ChurchReport.Tools
             n.AuthIdResp = query["auth_id_resp"]; 
             n.CardType = query["card_type"]; 
             n.IssuingBank = query["issuing_bank"]; 
-            if (DateTime.TryParse(query["pay_time"], out var payTime)) n.PayTime = payTime; else n.PayTime = DateTime.Now; 
+            if (DateTime.TryParse(query["pay_time"], out var payTime)) n.PayTime = payTime; else n.PayTime = DateTime.Now;
+            
+            // 玡硄疭把计
+            n.First6DigitOfPan = query["first_6_digit_of_pan"];
+            n.Last4DigitOfPan = query["last_4_digit_of_pan"];
+            n.CarrierId2 = query["carrierId2"];
+            
+            // DCC ユ盡ノ把计
+            if (decimal.TryParse(query["ch_amt"], out var chAmt)) n.ChAmt = chAmt;
+            n.ChCurrency = query["ch_currency"];
+            if (decimal.TryParse(query["ex_rate"], out var exRate)) n.ExRate = exRate;
+            if (decimal.TryParse(query["markup_rate"], out var markupRate)) n.MarkupRate = markupRate;
         }
         private void MapQueryToNotification(IQueryCollection query, TSPGPaymentNotification n)
         {
@@ -245,7 +267,18 @@ namespace ChurchReport.Tools
             n.AuthIdResp = query["auth_id_resp"]; 
             n.CardType = query["card_type"]; 
             n.IssuingBank = query["issuing_bank"]; 
-            if (DateTime.TryParse(query["pay_time"], out var payTime)) n.PayTime = payTime; else n.PayTime = DateTime.Now; 
+            if (DateTime.TryParse(query["pay_time"], out var payTime)) n.PayTime = payTime; else n.PayTime = DateTime.Now;
+            
+            // 玡硄疭把计
+            n.First6DigitOfPan = query["first_6_digit_of_pan"];
+            n.Last4DigitOfPan = query["last_4_digit_of_pan"];
+            n.CarrierId2 = query["carrierId2"];
+            
+            // DCC ユ盡ノ把计
+            if (decimal.TryParse(query["ch_amt"], out var chAmt)) n.ChAmt = chAmt;
+            n.ChCurrency = query["ch_currency"];
+            if (decimal.TryParse(query["ex_rate"], out var exRate)) n.ExRate = exRate;
+            if (decimal.TryParse(query["markup_rate"], out var markupRate)) n.MarkupRate = markupRate;
         }
 
         private void MapJsonToNotification(JObject json, TSPGPaymentNotification n)
@@ -266,6 +299,12 @@ namespace ChurchReport.Tools
             {
                 var s = V(keys);
                 return decimal.TryParse(s, out var d) ? d : 0m;
+            }
+
+            decimal? VDN(params string[] keys)
+            {
+                var s = V(keys);
+                return decimal.TryParse(s, out var d) ? (decimal?)d : null;
             }
 
             DateTime VDT(params string[] keys)
@@ -303,6 +342,17 @@ namespace ChurchReport.Tools
             n.CardType = V("card_type", "cardType");
             n.IssuingBank = V("issuing_bank", "issuingBank");
             n.PayTime = VDT("pay_time", "payTime");
+            
+            // 玡硄疭把计
+            n.First6DigitOfPan = V("first_6_digit_of_pan", "first6DigitOfPan", "cardPrefix");
+            n.Last4DigitOfPan = V("last_4_digit_of_pan", "last4DigitOfPan", "cardSuffix");
+            n.CarrierId2 = V("carrierId2", "carrier_id_2", "carrierIdTwo");
+            
+            // DCC ユ盡ノ把计
+            n.ChAmt = VDN("ch_amt", "chAmt", "cardholderAmount");
+            n.ChCurrency = V("ch_currency", "chCurrency", "cardholderCurrency");
+            n.ExRate = VDN("ex_rate", "exRate", "exchangeRate");
+            n.MarkupRate = VDN("markup_rate", "markupRate");
         }
         #endregion
 

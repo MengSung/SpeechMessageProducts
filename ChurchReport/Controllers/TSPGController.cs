@@ -1,6 +1,8 @@
 using ChurchReport.Tools;
 using Microsoft.AspNetCore.Mvc;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace ChurchReport.Controllers
@@ -21,6 +23,68 @@ namespace ChurchReport.Controllers
         }
 
         #region Webhook 端點
+        /// <summary>
+        /// 付款完成返回頁面端點 (post_back_url - 前台通知)
+        /// 用戶付款完成後的返回頁面，TSPG會將交易結果透過HTTP POST或GET方式傳送至此
+        /// 此為前台通知，持卡人網頁會被重新導向至此
+        /// </summary>
+        /// <returns>返回頁面</returns>
+        [HttpGet("post-back")]
+        [HttpPost("post-back")]
+        public IActionResult PostBack()
+        {
+            try
+            {
+                var notification = new TSPGPaymentNotification();
+
+                // === 基本參數 ===
+                notification.S_Mid = GetParam("s_mid");
+                notification.RetCode = GetParam("ret_code");
+                notification.TxType = GetParam("tx_type");
+                notification.OrderNo = GetParam("order_no");
+                notification.OrderId = GetParam("order_id") ?? GetParam("order_no");
+                notification.RetMsg = GetParam("ret_msg");
+                notification.AuthIdResp = GetParam("auth_id_resp");
+                notification.State = GetParam("state");
+                notification.TransactionId = GetParam("transaction_id");
+
+                // === 前台通知特殊參數 (需事先向台新申請) ===
+                notification.First6DigitOfPan = GetParam("first_6_digit_of_pan");
+                notification.Last4DigitOfPan = GetParam("last_4_digit_of_pan");
+                notification.CarrierId2 = GetParam("carrierId2");
+
+                // === DCC 交易專用參數 (僅DCC交易回傳) ===
+                notification.ChAmt = GetDecimalParam("ch_amt");
+                notification.ChCurrency = GetParam("ch_currency");
+                notification.ExRate = GetDecimalParam("ex_rate");
+                notification.MarkupRate = GetDecimalParam("markup_rate");
+
+                // === 其他可能參數 ===
+                notification.Hash = GetParam("hash") ?? GetParam("signature");
+                notification.Cost = GetDecimalParam("cost") ?? GetDecimalParam("amt") ?? 0;
+                notification.ActualCost = GetDecimalParam("actual_cost") ?? notification.Cost;
+                notification.PayType = GetParam("pay_type");
+                notification.Currency = GetParam("currency") ?? GetParam("cur");
+
+                // 記錄前台通知資訊
+                LogPostBackNotification(notification);
+
+                // 根據狀態決定重導向頁面
+                if (notification.IsPaymentSuccess)
+                {
+                    return HandleSuccessfulPaymentReturn(notification);
+                }
+                else
+                {
+                    return HandleFailedPaymentReturn(notification);
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"[TSPG] 付款返回處理例外: {ex.Message}");
+                return Redirect("/payment-error");
+            }
+        }
 
         /// <summary>
         /// 付款結果通知端點
@@ -88,42 +152,6 @@ namespace ChurchReport.Controllers
             }
         }
 
-        /// <summary>
-        /// 付款完成返回頁面端點
-        /// 用戶付款完成後的返回頁面
-        /// </summary>
-        /// <returns>返回頁面</returns>
-        [HttpGet("payment-return")]
-        [HttpPost("payment-return")]
-        public IActionResult PaymentReturn()
-        {
-            try
-            {
-                // 讀取返回參數
-                var orderId = Request.Query["order_id"].ToString();
-                var state = Request.Query["state"].ToString();
-                var transactionId = Request.Query["transaction_id"].ToString();
-
-                // 記錄返回資訊
-                System.Diagnostics.Trace.WriteLine($"[TSPG] 付款返回 - 訂單: {orderId}, 狀態: {state}, 交易號: {transactionId}");
-
-                // 根據狀態決定重導向頁面
-                if (state == "1") // 付款成功
-                {
-                    return Redirect($"/payment-success?order_id={orderId}&transaction_id={transactionId}");
-                }
-                else // 付款失敗或取消
-                {
-                    var errorMsg = Request.Query["retmsg"].ToString();
-                    return Redirect($"/payment-failed?order_id={orderId}&error={Uri.EscapeDataString(errorMsg)}");
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Trace.WriteLine($"[TSPG] 付款返回處理例外: {ex.Message}");
-                return Redirect("/payment-error");
-            }
-        }
 
         #endregion
 
@@ -410,6 +438,112 @@ namespace ChurchReport.Controllers
                 Hash = "test_hash"
             };
             return Ok(new { success = true, message = "測試 Webhook 資料已建立", test_data = testNotification });
+        }
+
+        #endregion
+
+        #region 輔助方法
+
+        /// <summary>
+        /// 從Request中取得參數值 (支援GET和POST)
+        /// </summary>
+        private string GetParam(string key)
+        {
+            // 先嘗試從Form取得 (POST)
+            if (Request.Method == "POST" && Request.HasFormContentType && Request.Form.ContainsKey(key))
+            {
+                return Request.Form[key].ToString();
+            }
+            
+            // 再嘗試從Query取得 (GET)
+            if (Request.Query.ContainsKey(key))
+            {
+                return Request.Query[key].ToString();
+            }
+            
+            return null;
+        }
+
+        /// <summary>
+        /// 從Request中取得decimal參數值
+        /// </summary>
+        private decimal? GetDecimalParam(string key)
+        {
+            var value = GetParam(key);
+            if (!string.IsNullOrWhiteSpace(value) && decimal.TryParse(value, out var result))
+            {
+                return result;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// 記錄前台通知資訊
+        /// </summary>
+        private void LogPostBackNotification(TSPGPaymentNotification notification)
+        {
+            var logMessage = $"[TSPG PostBackUrl] " +
+                $"訂單: {notification.OrderNo ?? notification.OrderId}, " +
+                $"交易號: {notification.TransactionId}, " +
+                $"狀態: {notification.State}, " +
+                $"結果碼: {notification.RetCode}, " +
+                $"交易類型: {notification.TxType}";
+
+            if (!string.IsNullOrEmpty(notification.First6DigitOfPan) || !string.IsNullOrEmpty(notification.Last4DigitOfPan))
+            {
+                logMessage += $", 卡號: {notification.First6DigitOfPan}******{notification.Last4DigitOfPan}";
+            }
+
+            if (!string.IsNullOrEmpty(notification.CarrierId2))
+            {
+                logMessage += $", 載具: {notification.CarrierId2}";
+            }
+
+            if (notification.ChAmt.HasValue)
+            {
+                logMessage += $", DCC金額: {notification.ChAmt} {notification.ChCurrency}, 匯率: {notification.ExRate}";
+            }
+
+            System.Diagnostics.Trace.WriteLine(logMessage);
+        }
+
+        /// <summary>
+        /// 處理付款成功的返回
+        /// </summary>
+        private IActionResult HandleSuccessfulPaymentReturn(TSPGPaymentNotification notification)
+        {
+            System.Diagnostics.Trace.WriteLine($"[TSPG] 付款成功 - 訂單: {notification.OrderNo}, 授權碼: {notification.AuthIdResp}");
+            
+            // 構建成功頁面URL
+            var orderId = notification.OrderNo ?? notification.OrderId;
+            var txnId = notification.TransactionId ?? "";
+            var amount = notification.Cost.ToString();
+            var authCode = notification.AuthIdResp ?? "";
+            var txType = notification.TxType ?? "";
+
+            var queryString = $"order_id={Uri.EscapeDataString(orderId)}&transaction_id={Uri.EscapeDataString(txnId)}&amount={amount}&auth_code={Uri.EscapeDataString(authCode)}&tx_type={Uri.EscapeDataString(txType)}";
+
+            // 如果有DCC資訊，也傳遞過去
+            if (notification.ChAmt.HasValue)
+            {
+                queryString += $"&dcc_amount={notification.ChAmt.Value}&dcc_currency={Uri.EscapeDataString(notification.ChCurrency ?? "")}&exchange_rate={notification.ExRate ?? 0}";
+            }
+
+            return Redirect($"/payment-success?{queryString}");
+        }
+
+        /// <summary>
+        /// 處理付款失敗的返回
+        /// </summary>
+        private IActionResult HandleFailedPaymentReturn(TSPGPaymentNotification notification)
+        {
+            System.Diagnostics.Trace.WriteLine($"[TSPG] 付款失敗 - 訂單: {notification.OrderNo}, 錯誤: {notification.RetMsg}");
+            
+            var errorMsg = notification.RetMsg ?? "付款失敗";
+            var orderId = notification.OrderNo ?? notification.OrderId ?? "UNKNOWN";
+            var retCode = notification.RetCode ?? "";
+            
+            return Redirect($"/payment-failed?order_id={Uri.EscapeDataString(orderId)}&error={Uri.EscapeDataString(errorMsg)}&ret_code={Uri.EscapeDataString(retCode)}");
         }
 
         #endregion

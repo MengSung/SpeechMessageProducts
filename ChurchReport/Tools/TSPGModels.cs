@@ -737,6 +737,7 @@ namespace ChurchReport.Tools
 
         /// <summary>
         /// 交易類別 (REST API v2.14 格式)
+        /// 1:授權 3:請款 4:取消請款 5:退貨 6:取消退貨 7:查詢 8:取消授權
         /// </summary>
         public string TxType { get; set; }
 
@@ -827,10 +828,49 @@ namespace ChurchReport.Tools
         /// </summary>
         public string AuthIdResp { get; set; }
 
+        // ===== 前台通知 (post_back_url) 特殊參數 =====
+        
+        /// <summary>
+        /// 卡號前6碼 (前台通知專用，需事先向台新申請)
+        /// </summary>
+        public string First6DigitOfPan { get; set; }
+
+        /// <summary>
+        /// 卡號後4碼 (前台通知專用，需事先向台新申請)
+        /// </summary>
+        public string Last4DigitOfPan { get; set; }
+
+        /// <summary>
+        /// 信用卡載具資訊 (前台通知專用，非必有值)
+        /// </summary>
+        public string CarrierId2 { get; set; }
+
+        // ===== DCC 交易專用參數 (僅DCC交易回傳) =====
+        
+        /// <summary>
+        /// 交易金額 (以持卡人母國幣別計算)，僅DCC交易回傳此參數
+        /// </summary>
+        public decimal? ChAmt { get; set; }
+
+        /// <summary>
+        /// 持卡人母國幣別 (ISO 4217 Numeric Code)，僅DCC交易回傳此參數
+        /// </summary>
+        public string ChCurrency { get; set; }
+
+        /// <summary>
+        /// 轉換匯率 (1元台幣對持卡人本國幣別的匯率)，僅DCC交易回傳此參數
+        /// </summary>
+        public decimal? ExRate { get; set; }
+
+        /// <summary>
+        /// 貼水費率(%)，僅DCC交易回傳此參數
+        /// </summary>
+        public decimal? MarkupRate { get; set; }
+
         /// <summary>
         /// 是否付款成功
         /// </summary>
-        public bool IsPaymentSuccess => State == "1" || RetCode == "0000";
+        public bool IsPaymentSuccess => State == "1" || RetCode == "0000" || RetCode == "00";
     }
 
     #endregion
