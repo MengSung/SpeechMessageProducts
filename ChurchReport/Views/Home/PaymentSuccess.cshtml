@@ -1,0 +1,24 @@
+@{
+    ViewBag.Title = "Payment Success";
+}
+<div class="container" style="max-width:680px;margin:40px auto;font-family:Segoe UI, Arial, sans-serif;">
+    <h2>付款成功</h2>
+    <p>感謝您的付款，交易已完成。</p>
+
+    <div style="margin-top:20px">
+        <div><strong>訂單編號</strong>：@ViewBag.OrderId</div>
+        <div><strong>交易號</strong>：@ViewBag.TransactionId</div>
+        <div><strong>金額</strong>：@ViewBag.Amount</div>
+        <div><strong>授權碼</strong>：@ViewBag.AuthCode</div>
+        <div><strong>交易類型</strong>：@ViewBag.TxType</div>
+        @if (ViewBag.DccAmount != null)
+        {
+            <div><strong>DCC 金額</strong>：@ViewBag.DccAmount @ViewBag.DccCurrency</div>
+            <div><strong>匯率</strong>：@ViewBag.ExchangeRate</div>
+        }
+    </div>
+
+    <div style="margin-top:24px">
+        <a href="/" class="btn btn-primary">回首頁</a>
+    </div>
+</div>

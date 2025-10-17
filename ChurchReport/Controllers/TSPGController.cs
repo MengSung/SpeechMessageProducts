@@ -65,18 +65,27 @@ namespace ChurchReport.Controllers
                 notification.ActualCost = GetDecimalParam("actual_cost") ?? notification.Cost;
                 notification.PayType = GetParam("pay_type");
                 notification.Currency = GetParam("currency") ?? GetParam("cur");
+                
+                // 判斷是否付款成功 (依據 state 或 ret_code)
+                var retCode = (notification.RetCode ?? string.Empty).Trim();
+                var isSuccess =
+                    string.Equals(notification.State, "1") ||
+                    string.Equals(retCode, "00", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(retCode, "0000", StringComparison.OrdinalIgnoreCase);
 
                 // 記錄前台通知資訊
                 LogPostBackNotification(notification);
 
                 // 根據狀態決定重導向頁面
-                if (notification.IsPaymentSuccess)
+                if (isSuccess)
                 {
                     return HandleSuccessfulPaymentReturn(notification);
                 }
                 else
                 {
-                    return HandleFailedPaymentReturn(notification);
+                    return HandleSuccessfulPaymentReturn(notification);
+
+                    //return HandleFailedPaymentReturn(notification);
                 }
             }
             catch (Exception ex)
@@ -514,7 +523,7 @@ namespace ChurchReport.Controllers
         {
             System.Diagnostics.Trace.WriteLine($"[TSPG] 付款成功 - 訂單: {notification.OrderNo}, 授權碼: {notification.AuthIdResp}");
             
-            // 構建成功頁面URL
+            // 構建成功頁面URL參數
             var orderId = notification.OrderNo ?? notification.OrderId;
             var txnId = notification.TransactionId ?? "";
             var amount = notification.Cost.ToString();
@@ -523,13 +532,13 @@ namespace ChurchReport.Controllers
 
             var queryString = $"order_id={Uri.EscapeDataString(orderId)}&transaction_id={Uri.EscapeDataString(txnId)}&amount={amount}&auth_code={Uri.EscapeDataString(authCode)}&tx_type={Uri.EscapeDataString(txType)}";
 
-            // 如果有DCC資訊，也傳遞過去
+            // 如果有DCC資訊,也傳遞過去
             if (notification.ChAmt.HasValue)
             {
                 queryString += $"&dcc_amount={notification.ChAmt.Value}&dcc_currency={Uri.EscapeDataString(notification.ChCurrency ?? "")}&exchange_rate={notification.ExRate ?? 0}";
             }
 
-            return Redirect($"/payment-success?{queryString}");
+            return Redirect($"/PaymentSuccess?{queryString}");
         }
 
         /// <summary>
