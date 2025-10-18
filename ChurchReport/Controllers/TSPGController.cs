@@ -550,12 +550,15 @@ namespace ChurchReport.Controllers
                 toolUtility.SetOptionSetAttribute(ref updatedFeeEntity, "new_pay_status", 100000001);
 
                 // 更新實收金額 (new_fee_really_paid)
-                var amount = notification.Cost > 0 ? notification.Cost : notification.ActualCost;
-                toolUtility.SetEntityMoneyAttribute(ref updatedFeeEntity, "new_fee_really_paid", new Money(amount));
+                //var amount = notification.Cost > 0 ? notification.Cost : notification.ActualCost;
+                var amount = toolUtility.GetEntityMoneyAttribute(updatedFeeEntity, "new_fee_shoud_pay");
+
+                //待更正: 這邊應該是要設定為 amount 而不是應收金額
+                toolUtility.SetEntityMoneyAttribute(ref updatedFeeEntity, "new_fee_really_paid", toolUtility.GetEntityMoneyAttribute(updatedFeeEntity, "new_fee_shoud_pay"));
 
                 // 計算差額 (應收金額 - 實收金額)
                 var shouldPayMoney = toolUtility.GetEntityMoneyAttribute(updatedFeeEntity, "new_fee_shoud_pay");
-                var differenceFee = shouldPayMoney.Value - amount;
+                var differenceFee = shouldPayMoney.Value - amount.Value;
                 toolUtility.SetEntityMoneyAttribute(ref updatedFeeEntity, "new_difference_fee_paid", new Money(differenceFee));
 
                 // 設定付款日期
@@ -577,7 +580,7 @@ namespace ChurchReport.Controllers
                 System.Diagnostics.Trace.WriteLine($"[TSPG] 成功更新收費單 - OrderNo: {orderNo}, FeeId: {updatedFeeEntity.Id}");
 
                 // 取得連絡人並發送 LINE 訊息
-                SendPaymentNotificationToContact(toolUtility, updatedFeeEntity, notification, amount);
+                SendPaymentNotificationToContact(toolUtility, updatedFeeEntity, notification, amount.Value);
             }
             catch (Exception ex)
             {
@@ -651,7 +654,7 @@ namespace ChurchReport.Controllers
             message += $"親愛的 {fullName}，您好！{Environment.NewLine}{Environment.NewLine}";
             message += $"您的奉獻已成功完成，感謝您的支持！{Environment.NewLine}{Environment.NewLine}";
             message += $"付款資訊：{Environment.NewLine}";
-            message += $"??????????????{Environment.NewLine}";
+            //message += $"??????????????{Environment.NewLine}";
             message += $"訂單編號：{orderNo}{Environment.NewLine}";
             message += $"付款金額：NT$ {amount:N0}{Environment.NewLine}";
             message += $"付款時間：{DateTime.Now:yyyy/MM/dd HH:mm:ss}{Environment.NewLine}";
@@ -667,7 +670,7 @@ namespace ChurchReport.Controllers
                 message += $"交易編號：{notification.TransactionId}{Environment.NewLine}";
             }
             
-            message += $"??????????????{Environment.NewLine}{Environment.NewLine}";
+            //message += $"??????????????{Environment.NewLine}{Environment.NewLine}";
             message += $"願上帝賜福與您！";
 
             return message;
@@ -708,11 +711,22 @@ namespace ChurchReport.Controllers
             
             // 更新收費單狀態
             UpdateFeeEntityByOrderNo(notification);
-            
+
+            var orderNo = notification.OrderNo ?? notification.OrderId;
+            // 使用 ToolUtilityClass 查詢收費單
+            ToolUtilityClass toolUtility = new ToolUtilityClass("DYNAMICS365");
+
+            // 查詢 new_q_pay_card_order_no 等於 OrderNo 的收費單
+            Entity updatedFeeEntity = toolUtility.RetrieveEntityByField("new_fee", "new_q_pay_card_order_no", orderNo);
+
             // 構建成功頁面URL參數
             var orderId = notification.OrderNo ?? notification.OrderId;
             var txnId = notification.TransactionId ?? "";
-            var amount = notification.Cost.ToString();
+
+            //待修正 
+            //var amount = notification.Cost.ToString();
+            var amount = toolUtility.GetEntityMoneyAttribute(updatedFeeEntity, "new_fee_shoud_pay").Value.ToString();
+
             var authCode = notification.AuthIdResp ?? "";
             var txType = notification.TxType ?? "";
 
