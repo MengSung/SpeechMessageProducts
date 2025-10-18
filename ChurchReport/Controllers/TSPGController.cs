@@ -725,7 +725,7 @@ namespace ChurchReport.Controllers
 
             //«Ý­×¥¿ 
             //var amount = notification.Cost.ToString();
-            var amount = toolUtility.GetEntityMoneyAttribute(updatedFeeEntity, "new_fee_shoud_pay").Value.ToString();
+            var amount = Convert.ToInt32(toolUtility.GetEntityMoneyAttribute(updatedFeeEntity, "new_fee_shoud_pay").Value).ToString();
 
             var authCode = notification.AuthIdResp ?? "";
             var txType = notification.TxType ?? "";
