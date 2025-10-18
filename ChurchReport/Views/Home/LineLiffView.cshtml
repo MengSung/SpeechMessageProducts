@@ -46,127 +46,176 @@
     <script src="~/lib/devextreme-aspnet-data/js/dx.aspnet.data.js"></script>
     <script src="~/js/devextreme/aspnet/dx.aspnet.mvc.js"></script>
 
+    <style>
+        /* Page background and base styles */
+        html, body { height: 100%; }
+        body {
+            background: linear-gradient(135deg, #f0f4ff 0%, #ffffff 40%, #f7f9ff 100%);
+            color: #2c3e50;
+        }
+
+        /* Header */
+        .cr-header {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(6px);
+            border-bottom: 1px solid rgba(0,0,0,0.06);
+        }
+        .cr-brand { font-weight: 700; letter-spacing: .5px; }
+        .cr-subtext { color: #6c757d; font-size: .95rem; }
+
+        /* Card */
+        .cr-card {
+            max-width: 820px;
+            width: 100%;
+            border-radius: 18px;
+            overflow: hidden;
+            animation: fadeIn .6s ease-out both;
+        }
+        .cr-card .card-body { padding: 1.25rem 1.5rem 1.75rem; }
+
+        /* Gallery wrapper */
+        .cr-gallery {
+            border-bottom: 1px solid rgba(0,0,0,0.06);
+            background: #fff;
+        }
+        .cr-gallery .dx-widget { border-radius: 12px; }
+
+        /* Status */
+        #displaynamefield { min-height: 2.2rem; color: #34495e; }
+
+        /* Utilities */
+        .text-center-important { text-align: center !important; }
+
+        @@keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+
 </head>
 
 <body>
 
-    <div class="widget-container" style="padding: 10px;">
-        @(Html.DevExtreme().Gallery()
-                        .ID("gallery")
-                        .DataSource(Model.Images)
-                        .Height("250px")
-                        //.Width(600)
-                        //.InitialItemWidth(250)
-                        .StretchImages(true)
-                        .Loop(true)
-                        .SlideshowDelay(1500)
-        )
-    </div>
-
-    @*<div class="long-title"><h3 id="displaynamefield"></h3></div>*@
-    @*<p id="demo2">測試</p>*@
-    @*<p id="displaynamefield"></p>*@
-
-    <div class="long-title"><h3 id="displaynamefield"></h3></div>
-    <div class="long-title"><h3 id="remind">請輸入真實姓名</h3></div>
-
-    <form data-ajax="true" data-ajax-begin="onBegin" data-ajax-success="onSuccess" asp-action="ProcessLineBinding" asp-controller="Home" method="post" style="text-align: center;">
-
-        <div class="dx-field" style="text-align: center;">
-            <div class="form-container-class" id="form-container" style="text-align: center;">
-                @(Html.DevExtreme().Form<LineBindingViewModel>()
-                               .ID("form")
-                               .Items(items =>
-                               {
-                                   items.AddSimpleFor(m => m.FullName)
-                                       .Label(l => l.Text("主要姓名"))
-                                       .Editor(e => e
-                                           .TextBox()
-                                           .Mode(TextBoxMode.Text)
-                                           .Disabled(false)
-                                           .Placeholder("輸入姓名(必填)")
-                                           .ShowClearButton(true)
-                                      //.Width(200)
-                                      )
-                                        .ValidationRules(r => r
-                                                .AddRequired()
-                                                .Message("主要姓名必填")
-                                            );
-                                   items.AddSimpleFor(m => m.OtherName)
-                                       .Label(l => l.Text("其他姓名"))
-                                       .Editor(e => e
-                                           .TextBox()
-                                           .Mode(TextBoxMode.Text)
-                                           .Disabled(false)
-                                           .Placeholder("輸入其他姓名(選填)")
-                                           .ShowClearButton(true)
-                                      //.Width(200)
-                                      );
-
-                                   items.AddSimpleFor(m => m.Mobile)
-                                       .Label(l => l.Text("行動電話"))
-                                       .Editor(e => e
-                                           .TextBox()
-                                           .Mode(TextBoxMode.Text)
-                                           .Disabled(false)
-                                           .Placeholder("輸入行動電話(必填)")
-                                           .ShowClearButton(true)
-                                      //.Width(200)
-                                      )
-                                      .ValidationRules(r => r
-                                                .AddRequired()
-                                                .Message("行動電話必填")
-                                            );
-
-
-                                   items.AddSimpleFor(m => m.LineUserId)
-                                       .Label(l => l.Text("Line Id").Visible(false))
-                                       .Editor(e => e
-                                           .TextBox()
-                                           .Mode(TextBoxMode.Text)
-                                           .Disabled(false)
-                                           .Placeholder("輸入行動電話")
-                                           .ShowClearButton(true)
-                                           .Value(Model.LineUserId)
-                                           .Visible(false)
-                                      //.Width(200)
-                                      );
-
-                               })
-                )
+    <header class="cr-header py-3 mb-4">
+        <div class="container">
+            <div class="d-flex align-items-center justify-content-between">
+                <div class="cr-brand h4 mb-0">聖谷行道會</div>
+                <div class="cr-subtext">LINE 身分綁定註冊</div>
             </div>
         </div>
-        <div class="dx-field" style="text-align: center;">
-            <div id="buttonContainer" class="dx-button-icon">
-                @(Html.DevExtreme().Button()
-                                .Text("註冊")
-                                //.Type(ButtonType.Success)
-                                //.Type(ButtonType.Normal)
-                                .Type(ButtonType.Default)
-                                .ID("register-button")
-                                .UseSubmitBehavior(true)
-                                .OnClick("Register")
-                                .Width(100)
-                )
+    </header>
+
+    <main class="container d-flex justify-content-center pb-5">
+        <div class="cr-card card shadow-lg border-0 w-100">
+            <div class="cr-gallery p-3 pb-0">
+                <div class="widget-container">
+                    @(Html.DevExtreme().Gallery()
+                                    .ID("gallery")
+                                    .DataSource(Model.Images)
+                                    .Height("250px")
+                                    .StretchImages(true)
+                                    .Loop(true)
+                                    .SlideshowDelay(1500)
+                    )
+                </div>
             </div>
-            <div id="LoadPanel">
-                @(Html.DevExtreme().LoadPanel()
-                                .ID("loadPanel")
-                                .ShadingColor("rgba(0,0,0,0.4)")
-                                .Position(p => p.Of("#form-container"))
-                                .Visible(false)
-                                .ShowIndicator(true)
-                                .ShowPane(true)
-                                .Shading(true)
-                                .CloseOnOutsideClick(false)
-                                .Message("註冊中...")
-                                .Delay(5000)
-                                .Animation(l => l.Show(k => k.Easing(AnimationEasing.Swing)))
-                )
+            <div class="card-body">
+                <h5 id="displaynamefield" class="text-center mb-2"></h5>
+                <p id="remind" class="text-center cr-subtext mb-4">請輸入真實姓名</p>
+
+                <form data-ajax="true" data-ajax-begin="onBegin" data-ajax-success="onSuccess" asp-action="ProcessLineBinding" asp-controller="Home" method="post" class="text-center-important">
+                    <div class="dx-field">
+                        <div class="form-container-class" id="form-container">
+                            @(Html.DevExtreme().Form<LineBindingViewModel>()
+                                           .ID("form")
+                                           .Items(items =>
+                                           {
+                                               items.AddSimpleFor(m => m.FullName)
+                                                   .Label(l => l.Text("主要姓名"))
+                                                   .Editor(e => e
+                                                       .TextBox()
+                                                       .Mode(TextBoxMode.Text)
+                                                       .Disabled(false)
+                                                       .Placeholder("輸入姓名(必填)")
+                                                       .ShowClearButton(true)
+                                                  )
+                                                    .ValidationRules(r => r
+                                                            .AddRequired()
+                                                            .Message("主要姓名必填")
+                                                        );
+                                               items.AddSimpleFor(m => m.OtherName)
+                                                   .Label(l => l.Text("其他姓名"))
+                                                   .Editor(e => e
+                                                       .TextBox()
+                                                       .Mode(TextBoxMode.Text)
+                                                       .Disabled(false)
+                                                       .Placeholder("輸入其他姓名(選填)")
+                                                       .ShowClearButton(true)
+                                                  );
+
+                                               items.AddSimpleFor(m => m.Mobile)
+                                                   .Label(l => l.Text("行動電話"))
+                                                   .Editor(e => e
+                                                       .TextBox()
+                                                       .Mode(TextBoxMode.Text)
+                                                       .Disabled(false)
+                                                       .Placeholder("輸入行動電話(必填)")
+                                                       .ShowClearButton(true)
+                                                  )
+                                                  .ValidationRules(r => r
+                                                            .AddRequired()
+                                                            .Message("行動電話必填")
+                                                        );
+
+
+                                               items.AddSimpleFor(m => m.LineUserId)
+                                                   .Label(l => l.Text("Line Id").Visible(false))
+                                                   .Editor(e => e
+                                                       .TextBox()
+                                                       .Mode(TextBoxMode.Text)
+                                                       .Disabled(false)
+                                                       .Placeholder("輸入行動電話")
+                                                       .ShowClearButton(true)
+                                                       .Value(Model.LineUserId)
+                                                       .Visible(false)
+                                                  );
+
+                                           })
+                            )
+                        </div>
+                    </div>
+
+                    <div class="dx-field">
+                        <div id="buttonContainer" class="dx-button-icon mb-3">
+                            @(Html.DevExtreme().Button()
+                                            .Text("註冊")
+                                            .Type(ButtonType.Default)
+                                            .ID("register-button")
+                                            .UseSubmitBehavior(true)
+                                            .OnClick("Register")
+                                            .Width(120)
+                            )
+                        </div>
+                        <div id="LoadPanel">
+                            @(Html.DevExtreme().LoadPanel()
+                                            .ID("loadPanel")
+                                            .ShadingColor("rgba(0,0,0,0.4)")
+                                            .Position(p => p.Of("#form-container"))
+                                            .Visible(false)
+                                            .ShowIndicator(true)
+                                            .ShowPane(true)
+                                            .Shading(true)
+                                            .CloseOnOutsideClick(false)
+                                            .Message("註冊中...")
+                                            .Delay(5000)
+                                            .Animation(l => l.Show(k => k.Easing(AnimationEasing.Swing)))
+                            )
+                        </div>
+                    </div>
+                </form>
             </div>
         </div>
-
-    </form>
+    </main>
 
     <div id="ToastContainer">
         @(Html.DevExtreme().Toast()
@@ -176,7 +225,8 @@
                         .Offset(0, 50))
                         .Message("以利亞")
                         .DisplayTime(2000)
-                        .MaxWidth(200)
+                        .MaxWidth(220)
+                        .CloseOnOutsideClick(true)
         )
 
     </div>
