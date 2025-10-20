@@ -1,125 +1,62 @@
 ﻿@*
     ===================================================================
     聖谷行道會 - 綜合報表檢視頁面 (IntegrateView)
-    功能說明：
-    - 支援小組長和個人兩種登入模式
-    - 一般小組和幸福小組的不同操作介面
-    - 數據圖表展示、日期選擇、上傳功能
-    - 新人跟進關懷管理
-    最佳化：
-    - UTF-8編碼支援
-    - 模組化結構
-    - 效能優化
-    - 中文字型支援
     ===================================================================
 *@
-
-@{
-    String DataStatus = "上傳成功了!";
-    String ReUpload = "請再按一次上傳鈕!";
-}
-
 @using ChurchReport.Models
 @model ChurchReport.Models.ListSmallGroupWeeklyReport
 
-@* 顯示小組狀態標題 *@
+@* 小組狀態標題 *@
 <div class="group-status-header">
-    @if (Model.SundayPrayers.Year != 2000)
-    {
-        <div class="status-title active">
-            <h4>@(Model.ListEntityName)</h4>
-        </div>
-    }
-    else
-    {
-        <div class="status-title inactive">
-            <h4>@(Model.ListEntityName + "尚未回報")</h4>
-        </div>
-    }
+    <div class="status-title @(Model.SundayPrayers.Year != 2000 ? "active" : "inactive")">
+        <h4>@(Model.ListEntityName + (Model.SundayPrayers.Year == 2000 ? "尚未回報" : ""))</h4>
+    </div>
 </div>
 
 <form data-ajax="true" data-ajax-begin="onBegin" data-ajax-success="onSuccess" asp-action="SaveIntegrate" asp-controller="Home" method="post">
     <div id="all-section" class="main-content-wrapper">
 
-        @* ===== 小組長專用圖表區域 ===== *@
+        @* 小組長專用圖表 *@
         @if (Model.LoginType == "小組長")
         {
             <div id="smallgroupchart" class="chart-section">
-                @( Html.DevExtreme().Chart()
+                @(Html.DevExtreme().Chart()
                     .ID("smallgroupchart")
                     .Export(e => e.Enabled(false))
-                    .Size( s=>s.Height(220))
+                    .Size(s => s.Height(220))
                     .CommonSeriesSettings(s => s
                         .ArgumentField("SundayDate")
                         .Type(SeriesType.Spline)
                         .HoverMode(ChartSeriesHoverMode.AllArgumentPoints)
                         .SelectionMode(ChartSeriesSelectionMode.AllArgumentPoints)
-                        .Label(l => l
-                            .Visible(true)
-                            .Format(f => f
-                                .Type(Format.FixedPoint)
-                                .Precision(0)
-                            )
-                            .Font(v=>v.Size(10))
-                        )
+                        .Label(l => l.Visible(true).Format(f => f.Type(Format.FixedPoint).Precision(0)).Font(v => v.Size(10)))
                     )
                     .Series(s => {
                         s.Add().ValueField("SundayNumber").Name("主日人數").Color("#e7d19a");
                         s.Add().ValueField("SmallNumber").Name("小組人數");
                     })
-                    .ValueAxis(a => a
-                        .Add()
-                        .Title(t => t.Text("人數"))
-                        .Position(Position.Left)
-                    )
+                    .ValueAxis(a => a.Add().Title(t => t.Text("人數")).Position(Position.Left))
                     .Palette(VizPalette.Violet)
                     .Tooltip(t => t.Enabled(true))
-                    .Title(t => t
-                        .Text("聚會人數")
-                        .Font(f => f
-                            .Size(12)
-                            .Weight(300)
-                            .Color("darkblue")
-                        )
-                        .Margin(m => m
-                            .Top(5)
-                            .Bottom(5)
-                        )
-                    )
-                    .Legend(l => l
-                        .VerticalAlignment(VerticalEdge.Bottom)
-                        .HorizontalAlignment(HorizontalAlignment.Center)
-                    )
-                    .OnPointClick(@<text>
-                                function(e) {
-                                e.target.select();
-                                }
-                    </text>)
-                    .DataSource(d => d
-                    .WebApi()
-                    .Controller("Home")
-                    .LoadAction("GetChartDataList")
-                    .Key("WeeklyReportEntityId")
-                    .LoadParams(new { WeeklyReportId = @ViewBag.ListId })
-                    )
+                    .Title(t => t.Text("聚會人數").Font(f => f.Size(12).Weight(300).Color("darkblue")).Margin(m => m.Top(5).Bottom(5)))
+                    .Legend(l => l.VerticalAlignment(VerticalEdge.Bottom).HorizontalAlignment(HorizontalAlignment.Center))
+                    .OnPointClick(@<text>function(e) { e.target.select(); }</text>)
+                    .DataSource(d => d.WebApi().Controller("Home").LoadAction("GetChartDataList").Key("WeeklyReportEntityId").LoadParams(new { WeeklyReportId = @ViewBag.ListId }))
                 )
             </div>
         }
 
-        @* ===== 週期時間顯示 ===== *@
-        <div class="period-display">
-            @Model.SundayPeriod
-        </div>
+        @* 週期時間 *@
+        <div class="period-display">@Model.SundayPeriod</div>
 
-        @* ===== 日期選擇和上傳按鈕區域 ===== *@
+        @* 控制面板 *@
         <div class="control-panel">
             <div class="control-wrapper">
-                @* 日期選擇區 *@
+                @* 日期選擇 *@
                 <div class="date-section">
                     <label class="date-label">小組日期</label>
                     <div class="date-input">
-                        @(Html.DevExtreme()
-                            .DateBoxFor(m => m.SundayPrayers)
+                        @(Html.DevExtreme().DateBoxFor(m => m.SundayPrayers)
                             .Type(DateBoxType.Date)
                             .Value(Model.SundayPrayers)
                             .Width(200)
@@ -129,16 +66,15 @@
                             .OnValueChanged(@<text>
                                 function(arg) {
                                     $("#loadPanel").dxLoadPanel("instance").show();
-                                    
                                     $.ajax({
                                         url: '@Url.Action("UpdateIntegrateDate", "Home")',
                                         data: { SelectedDate: getODataLocalDateFilter(arg.value) },
                                         type: 'GET',
-                                        success: function (response) {
+                                        success: function(response) {
                                             $("#loadPanel").dxLoadPanel("instance").hide();
                                             window.location.href = "/Home/IntegrateView/" + response.ActiveListId;
                                         },
-                                        error: function (xhr, status, error) {
+                                        error: function(xhr, status, error) {
                                             $("#loadPanel").dxLoadPanel("instance").hide();
                                             ShowToast("日期更新失敗: " + error, "error", 5000);
                                         }
@@ -149,32 +85,30 @@
                     </div>
                 </div>
 
-                @* ===== 上傳按鈕區域 ===== *@
+                @* 上傳按鈕 *@
                 <div class="upload-section">
-                    @if (Model.LoginType == "小組長")
-                    {
-                        @* 小組長上傳鈕 *@
-                        <div class="upload-button-container">
+                    <div class="upload-button-container">
+                        @if (Model.LoginType == "小組長")
+                        {
                             @(Html.DevExtreme().Button()
                                 .Text("上傳").Height(50).Width(80).Icon("check")
                                 .Type(ButtonType.Success)
                                 .ID("save-button")
                                 .UseSubmitBehavior(false)
                                 .OnClick(@<text>
-                                    function(arg) {
-                                        var SmallGroupDataGrid = $("#SmallGroupgridContainer").length ? $("#SmallGroupgridContainer").dxDataGrid("instance") : null;
-                                        var NewPersonDataGrid = $("#NewPersonGridContainer").length ? $("#NewPersonGridContainer").dxDataGrid("instance") : null;
-                                        var ButtonContainer = $("#save-button").dxButton("instance");
+                                    function() {
+                                        var grids = {
+                                            small: $("#SmallGroupgridContainer").length ? $("#SmallGroupgridContainer").dxDataGrid("instance") : null,
+                                            newPerson: $("#NewPersonGridContainer").length ? $("#NewPersonGridContainer").dxDataGrid("instance") : null
+                                        };
+                                        var button = $("#save-button").dxButton("instance");
 
-                                        if (SmallGroupDataGrid && SmallGroupDataGrid.saveEditData) {
-                                            SmallGroupDataGrid.saveEditData();
-                                        }
-                                        if (NewPersonDataGrid && NewPersonDataGrid.saveEditData) {
-                                            NewPersonDataGrid.saveEditData();
-                                        }
+                                        Object.values(grids).forEach(function(grid) {
+                                            if (grid && grid.saveEditData) grid.saveEditData();
+                                        });
 
                                         $("#loadPanel").dxLoadPanel("instance").show();
-                                        ButtonContainer.option("disabled", true);
+                                        button.option("disabled", true);
 
                                         $.ajax({
                                             url: '@Url.Action("SaveIntegrate", "Home")',
@@ -183,148 +117,97 @@
                                                 CheckBox: $("#CheckBoxId").dxCheckBox("instance").option("value")
                                             },
                                             type: 'POST',
-                                            success: function (response) {
-                                                if (SmallGroupDataGrid && SmallGroupDataGrid.refresh) {
-                                                    SmallGroupDataGrid.refresh();
-                                                }
-                                                if (NewPersonDataGrid && NewPersonDataGrid.refresh) {
-                                                    NewPersonDataGrid.refresh();
-                                                }
+                                            success: function(response) {
+                                                Object.values(grids).forEach(function(grid) {
+                                                    if (grid && grid.refresh) grid.refresh();
+                                                });
                                                 $("#loadPanel").dxLoadPanel("instance").hide();
-                                                ButtonContainer.option("disabled", false);
-
-                                                if (response.status == 1) {
-                                                    ShowToast(response.message, "success", 2000);
-                                                } else {
-                                                    ShowToast(response.message, "error", 5000);
-                                                }
+                                                button.option("disabled", false);
+                                                ShowToast(response.message, response.status == 1 ? "success" : "error", response.status == 1 ? 2000 : 5000);
                                             },
-                                            error: function (xhr, status, error) {
+                                            error: function(xhr, status, error) {
                                                 $("#loadPanel").dxLoadPanel("instance").hide();
-                                                ButtonContainer.option("disabled", false);
+                                                button.option("disabled", false);
                                                 ShowToast("上傳失敗: " + error, "error", 5000);
                                             }
                                         });
                                     }
                                 </text>)
                             )
-                        </div>
-                    }
-                    else
-                    {
-                        @* 個人報告上傳按鈕 *@
-                        <div class="upload-button-container">
+                        }
+                        else
+                        {
                             @(Html.DevExtreme().Button()
                                 .Text("上傳").Height(50).Width(80).Icon("check")
                                 .Type(ButtonType.Success)
                                 .ID("save-button")
                                 .UseSubmitBehavior(false)
                                 .OnClick(@<text>
-                                    function(arg) {
-                                        var IndividualGrid = $("#IndividualGridContainer").length ? $("#IndividualGridContainer").dxDataGrid("instance") : null;
-                                        var ButtonContainer = $("#save-button").dxButton("instance");
+                                    function() {
+                                        var grid = $("#IndividualGridContainer").length ? $("#IndividualGridContainer").dxDataGrid("instance") : null;
+                                        var button = $("#save-button").dxButton("instance");
 
-                                        if (IndividualGrid && IndividualGrid.saveEditData) {
-                                            IndividualGrid.saveEditData();
-                                        }
+                                        if (grid && grid.saveEditData) grid.saveEditData();
 
                                         $("#loadPanel").dxLoadPanel("instance").show();
-                                        ButtonContainer.option("disabled", true);
+                                        button.option("disabled", true);
 
                                         $.ajax({
                                             url: '@Url.Action("SavePersonReport", "Home")',
                                             data: { WeeklyReportData: "" },
                                             type: 'POST',
-                                            success: function (response) {
+                                            success: function(response) {
                                                 $("#loadPanel").dxLoadPanel("instance").hide();
-                                                ButtonContainer.option("disabled", false);
-
-                                                if (response.status == 1) {
-                                                    ShowToast(response.message, "success", 2000);
-                                                } else {
-                                                    ShowToast(response.message, "error", 5000);
-                                                }
+                                                button.option("disabled", false);
+                                                ShowToast(response.message, response.status == 1 ? "success" : "error", response.status == 1 ? 2000 : 5000);
                                             },
-                                            error: function (xhr, status, error) {
+                                            error: function(xhr, status, error) {
                                                 $("#loadPanel").dxLoadPanel("instance").hide();
-                                                ButtonContainer.option("disabled", false);
+                                                button.option("disabled", false);
                                                 ShowToast("上傳失敗: " + error, "error", 5000);
                                             }
                                         });
                                     }
                                 </text>)
                             )
-                        </div>
-                    }
+                        }
+                    </div>
                 </div>
             </div>
         </div>
 
-        @* ===== Toast 通知元件區域 ===== *@
+        @* Toast 通知元件 *@
         <div class="toast-components">
-            @(Html.DevExtreme().Toast()
-                .ID("Toast")
-                .Position(p => p
-                    .At(HorizontalAlignment.Center, VerticalAlignment.Center)
-                    .Offset(0, 50))
-                .CloseOnOutsideClick(true)
-                .DisplayTime(2000)
-                .MaxWidth(300)
-            )
-            @(Html.DevExtreme().Toast()
-                .ID("ToastReUpload")
-                .Position(p => p
-                    .At(HorizontalAlignment.Center, VerticalAlignment.Center)
-                    .Offset(0, 50))
-                .Message(ReUpload)
-                .DisplayTime(5000)
-                .Type(ToastType.Error)
-                .MaxWidth(500)
-            )
-            @(Html.DevExtreme().Toast()
-                .ID("SelectDateToast")
-                .Position(p => p
-                    .At(HorizontalAlignment.Center, VerticalAlignment.Center)
-                    .Offset(0, 50))
-                .Message("日期格式錯誤，格式範例: 2018/6/5")
-                .DisplayTime(5000)
-                .Type(ToastType.Error)
-                .MaxWidth(300)
-            )
+            @(Html.DevExtreme().Toast().ID("Toast")
+                .Position(p => p.At(HorizontalAlignment.Center, VerticalAlignment.Center).Offset(0, 50))
+                .CloseOnOutsideClick(true).DisplayTime(2000).MaxWidth(300))
+            @(Html.DevExtreme().Toast().ID("ToastReUpload")
+                .Position(p => p.At(HorizontalAlignment.Center, VerticalAlignment.Center).Offset(0, 50))
+                .Message("請再按一次上傳鈕!").DisplayTime(5000).Type(ToastType.Error).MaxWidth(500))
+            @(Html.DevExtreme().Toast().ID("SelectDateToast")
+                .Position(p => p.At(HorizontalAlignment.Center, VerticalAlignment.Center).Offset(0, 50))
+                .Message("日期格式錯誤，格式範例: 2018/6/5").DisplayTime(5000).Type(ToastType.Error).MaxWidth(300))
         </div>
 
-        @* ===== 載入面板元件 ===== *@
+        @* 載入面板 *@
         <div class="load-panel-component">
-            @(Html.DevExtreme().LoadPanel()
-                .ID("loadPanel")
+            @(Html.DevExtreme().LoadPanel().ID("loadPanel")
                 .ShadingColor("rgba(0,0,0,0.4)")
                 .Position(p => p.Of("#all-section"))
-                .Visible(false)
-                .ShowIndicator(true)
-                .ShowPane(true)
-                .Shading(true)
-                .CloseOnOutsideClick(false)
-                .Message("更新資料中...")
-                .Animation(l => l.Show(k => k.Easing(AnimationEasing.Swing)))
-            )
+                .Visible(false).ShowIndicator(true).ShowPane(true).Shading(true)
+                .CloseOnOutsideClick(false).Message("更新資料中...")
+                .Animation(l => l.Show(k => k.Easing(AnimationEasing.Swing))))
         </div>
 
-        @* ===== 幸福小組週次主題選擇區 ===== *@
+        @* 幸福小組週次主題選擇 *@
         @if (Model.GroupType == "幸福小組")
         {
             <div class="happy-group-selection">
-                <div class="section-title">
-                    <h5>幸福小組週次及主題:</h5>
-                </div>
+                <div class="section-title"><h5>幸福小組週次及主題:</h5></div>
                 <div class="selection-wrapper">
                     <div class="week-index-selector">
-                        @(Html.DevExtreme().SelectBox()
-                            .ID("HappyWeekIndex")
-                            .Value(Model.HappyWeekIndex)
-                            .DataSource(new string[] {
-                                "第一週", "第二週", "第三週", "第四週", "第五週",
-                                "第六週", "第七週", "第八週", "第九週", "第十週"
-                            })
+                        @(Html.DevExtreme().SelectBox().ID("HappyWeekIndex").Value(Model.HappyWeekIndex)
+                            .DataSource(new string[] { "第一週", "第二週", "第三週", "第四週", "第五週", "第六週", "第七週", "第八週", "第九週", "第十週" })
                             .Width(150)
                             .OnValueChanged(@<text>
                                 function(arg) {
@@ -333,26 +216,18 @@
                                         url: '@Url.Action("UpdateHappyWeekIndex", "Home")',
                                         data: { HappyWeekIndex: arg.value },
                                         type: 'GET',
-                                        success: function (response) {
-                                            $("#loadPanel").dxLoadPanel("instance").hide();
-                                        },
-                                        error: function (xhr, status, error) {
+                                        success: function() { $("#loadPanel").dxLoadPanel("instance").hide(); },
+                                        error: function(xhr, status, error) {
                                             $("#loadPanel").dxLoadPanel("instance").hide();
                                             ShowToast("更新失敗: " + error, "error", 5000);
                                         }
                                     });
                                 }
-                            </text>)
-                        )
+                            </text>))
                     </div>
                     <div class="topic-selector">
-                        @(Html.DevExtreme().SelectBox()
-                            .ID("HappyWeekTopic")
-                            .Value(Model.HappyWeekTopic)
-                            .DataSource(new string[] {
-                                "", "預備週", "真幸福", "真相大白", "萬世巨星",
-                                "幸福連線", "當上帝來敲門", "十字架的勝利", "釋放與自由", "幸福的教會"
-                            })
+                        @(Html.DevExtreme().SelectBox().ID("HappyWeekTopic").Value(Model.HappyWeekTopic)
+                            .DataSource(new string[] { "", "預備週", "真幸福", "真相大白", "萬世巨星", "幸福連線", "當上帝來敲門", "十字架的勝利", "釋放與自由", "幸福的教會" })
                             .Width(150)
                             .OnValueChanged(@<text>
                                 function(arg) {
@@ -361,92 +236,64 @@
                                         url: '@Url.Action("UpdateHappyWeekTopic", "Home")',
                                         data: { HappyWeekTopic: arg.value },
                                         type: 'GET',
-                                        success: function (response) {
-                                            $("#loadPanel").dxLoadPanel("instance").hide();
-                                        },
-                                        error: function (xhr, status, error) {
+                                        success: function() { $("#loadPanel").dxLoadPanel("instance").hide(); },
+                                        error: function(xhr, status, error) {
                                             $("#loadPanel").dxLoadPanel("instance").hide();
                                             ShowToast("更新失敗: " + error, "error", 5000);
                                         }
                                     });
                                 }
-                            </text>)
-                        )
+                            </text>))
                     </div>
                 </div>
             </div>
         }
 
-        @* ===== 資料網格區域 ===== *@
+        @* 資料網格 *@
         <div class="data-grid-section">
             @if (Model.LoginType == "小組長")
             {
                 if (Model.GroupType == "一般小組")
                 {
-                    @* 一般小組網格 *@
                     @Html.Partial("_GeneralGroupGrids", Model)
                 }
                 else
                 {
-                    @* 幸福小組網格 *@
                     @Html.Partial("_HappyGroupGrid", Model)
                 }
             }
             else
             {
-                @* 個人回報網格 *@
                 @Html.Partial("_IndividualReportGrid", Model)
             }
         </div>
 
-        @* ===== 小組日誌區域 (僅小組長可見) ===== *@
+        @* 小組日誌 (僅小組長) *@
         @if (Model.LoginType == "小組長")
         {
             <div class="journal-section">
-                <div class="section-title">
-                    <h5>小組日誌:</h5>
-                </div>
-                @(Html.DevExtreme().TextArea()
-                    .ID("WeeklyReportTextData")
-                    .Value(Model.WeeklyReportData)
-                    .Height(200)
-                )
+                <div class="section-title"><h5>小組日誌:</h5></div>
+                @(Html.DevExtreme().TextArea().ID("WeeklyReportTextData").Value(Model.WeeklyReportData).Height(200))
                 
-                <div class="section-title">
-                    <h5>小組出席紀錄:</h5>
-                </div>
-                @(Html.DevExtreme().TextArea()
-                    .ID("WeeklyReportTextAnalysis")
-                    .Value(Model.WeeklyReportAnalysis)
-                    .Height(350)
-                    .Disabled(true)
-                )
+                <div class="section-title"><h5>小組出席紀錄:</h5></div>
+                @(Html.DevExtreme().TextArea().ID("WeeklyReportTextAnalysis").Value(Model.WeeklyReportAnalysis).Height(350).Disabled(true))
             </div>
         }
 
     </div>
 </form>
 
-@* ===== JavaScript 函式區域 ===== *@
+@* JavaScript 函式 *@
 <script>
-    // ===== DevExtreme DataGrid 相關函式 =====
-    
-    // 將編輯欄移到左側
+    // DevExtreme DataGrid 函式
     function moveEditColumnToLeft(dataGrid) {
-        dataGrid.columnOption("command:edit", {
-            visibleIndex: -1,
-            width: 50
-        });
+        dataGrid.columnOption("command:edit", { visibleIndex: -1, width: 50 });
     }
     
-    // 自定義編輯按鈕圖標
     function cell_prepared(e) {
         if (e.rowType === "data" && e.column.command === "edit") {
-            var isEditing = e.row.isEditing,
-                $links = e.cellElement.find(".dx-link");
-
+            var isEditing = e.row.isEditing, $links = e.cellElement.find(".dx-link");
             $links.text("");
-
             if (isEditing) {
                 $links.filter(".dx-link-save").addClass("dx-icon-save");
                 $links.filter(".dx-link-cancel").addClass("dx-icon-revert");
@@ -457,131 +304,56 @@
         }
     }
 
-    // ===== 日期處理相關函式 =====
-    
-    // 日期格式驗證
+    // 日期處理函式
     function OnDateboxChange(e) {
         if (e.component._$validationMessage == null) {
             UploadDateFormat = "格式正確";
-        }
-        else {
+        } else {
             UploadDateFormat = "格式錯誤";
             $("#SelectDateToast").dxToast("instance").show();
-            return;
         }
     }
 
-    // 日期過濾器
     function getODataLocalDateFilter(date) {
-        if (date == null) {
-            date = new Date();
-        }
-
-        var monthString;
-        var rawMonth = (date.getMonth() + 1).toString();
-        monthString = rawMonth.length == 1 ? "0" + rawMonth : rawMonth;
-
-        var dateString;
-        var rawDate = date.getDate().toString();
-        dateString = rawDate.length == 1 ? "0" + rawDate : rawDate;
-
-        return date.getFullYear() + "/" + rawMonth + "/" + rawDate;
+        if (date == null) date = new Date();
+        var month = (date.getMonth() + 1).toString();
+        var day = date.getDate().toString();
+        return date.getFullYear() + "/" + month + "/" + day;
     }
 
-    // ===== 載入面板相關函式 =====
-    
+    // 載入面板函式
     function getLoadPanelInstance() {
         return $("#loadPanel").dxLoadPanel("instance");
     }
 
-    function button_click() {
-        getLoadPanelInstance().show();
-    }
+    function button_click() { getLoadPanelInstance().show(); }
+    function loadPanel_shown(e) { }
+    function loadPanel_hidden() { }
 
-    function loadPanel_shown(e) {
-        // 可在此處添加載入面板顯示後的處理邏輯
-    }
-
-    function loadPanel_hidden() {
-        // 可在此處添加載入面板隱藏後的處理邏輯
-    }
-
-    // ===== AJAX 相關函式 =====
-    
-    function SaveIntegrateWeeklyReport(arg) {
-        getLoadPanelInstance().show();
-    }
-
-    // AJAX 開始事件處理
-    function onBegin() {
-        // 可在此處添加 AJAX 開始前的處理邏輯
-    }
-
-    // AJAX 成功事件處理
+    // AJAX 事件處理
+    function SaveIntegrateWeeklyReport(arg) { getLoadPanelInstance().show(); }
+    function onBegin() { }
     function onSuccess(data) {
         getLoadPanelInstance().hide();
+        DevExpress.ui.notify(data.message, data.status == 1 ? "success" : "error", data.status == 1 ? 2000 : 5000);
+    }
+    function onComplete(data) { }
 
-        if (data.status == 1) {
-            DevExpress.ui.notify(data.message, "success", 2000);
-        }
-        else {
-            DevExpress.ui.notify(data.message, "error", 5000);
-        }
+    // 工具函式
+    function ShowToast(message, type, displayTime) {
+        var toast = $("#Toast").dxToast("instance");
+        toast.option({ message: message, type: type, displayTime: displayTime, 'white-space': 'pre-line', closeOnClick: true });
+        toast.show();
     }
 
-    // AJAX 完成事件處理
-    function onComplete(data) {
-        // 可在此處添加 AJAX 完成後的處理邏輯
-    }
+    function OnRowSelectionChanged(selectedItems) { }
+    function OnEditorPrepared(options) { }
 
-    // ===== 通用工具函式 =====
-    
-    // 顯示 Toast 訊息
-    function ShowToast(LocalToastMessage, Type, DisplayTime) {
-        var ToastInstance = $("#Toast").dxToast("instance");
-        ToastInstance.option('message', LocalToastMessage);
-        ToastInstance.option('type', Type);
-        ToastInstance.option('displayTime', DisplayTime);
-        ToastInstance.option('white-space', 'pre-line');
-        ToastInstance.option('closeOnClick', true);
-        ToastInstance.show();
-    }
-
-    // 選擇項目變更事件處理
-    function OnRowSelectionChanged(selectedItems) {
-        // 可在此處添加行選擇變更的處理邏輯
-    }
-
-    // 編輯器準備事件處理
-    function OnEditorPrepared(options) {
-        // 可在此處添加編輯器準備的處理邏輯
-    }
-
-
-</script>
-
-    <!--本地中文化-->
-    <script src="~/js/devextreme/devextreme-intl.min.js"></script>
-    <script src="~/js/devextreme/localization/dx.messages.zh-tw.js"></script>
-
-    <script>var DataUploadStatus = "尚未上傳喔!";</script>
-    <script>var UploadDateFormat = "格式正確!";</script>
-    <script src="~/js/DataGridAjax.js"></script>
-    <script src="~/js/SelectDate.js"></script>
-    <script src="~/js/DropDownBox.js"></script>
-    <script src="~/js/DataGridAjax.js"></script>
-    <script src="~/js/LoadPanel.js"></script>
-    <script src="~/lib/jquery-ajax-unobtrusive/jquery.unobtrusive-ajax.js"></script>
-    <link href="~/css/SmallGroupReportController.css" rel="stylesheet" />
-    <link href="~/css/WeeklyReport.css" rel="stylesheet" />
-
-@* ===== DevExpress 本地化設定 ===== *@
-<script>
-    // 全域變數設定
+    // 全域變數
     var DataUploadStatus = "尚未上傳喔!";
     var UploadDateFormat = "格式正確!";
 
-    // DevExtreme 本地化字典
+    // DevExtreme 本地化
     var dictionary = {
         "zh-tw": {
             "dxScheduler-switcherAgenda": "會議內容",
@@ -590,220 +362,66 @@
             "Company": "Company",
             "Amount": "Amount",
             "PaymentDate": "Payment Date"
-        },
+        }
     };
     
     DevExpress.localization.loadMessages(dictionary);
-    var formatMessage = DevExpress.localization.formatMessage;
-
-    var locale = getLocale();
-    DevExpress.localization.locale(locale);
+    DevExpress.localization.locale(getLocale());
 
     function changeLocale(data) {
-        setLocale(data.value);
+        sessionStorage.setItem("locale", data.value);
         document.location.reload();
     }
 
     function getLocale() {
         sessionStorage.setItem("locale", 'zh-tw');
-        var locale = sessionStorage.getItem("locale");
-        return locale != null ? locale : "tw";
+        return sessionStorage.getItem("locale") || "tw";
     }
 </script>
 
-@* ===== 樣式定義 ===== *@
+@* 外部資源 *@
+<script src="~/js/devextreme/devextreme-intl.min.js"></script>
+<script src="~/js/devextreme/localization/dx.messages.zh-tw.js"></script>
+<script src="~/js/DataGridAjax.js"></script>
+<script src="~/js/SelectDate.js"></script>
+<script src="~/js/DropDownBox.js"></script>
+<script src="~/js/LoadPanel.js"></script>
+<script src="~/lib/jquery-ajax-unobtrusive/jquery.unobtrusive-ajax.js"></script>
+<link href="~/css/SmallGroupReportController.css" rel="stylesheet" />
+<link href="~/css/WeeklyReport.css" rel="stylesheet" />
+
+@* 樣式 *@
 <style>
-    /* 狀態標題樣式 */
-    .group-status-header {
-        margin-bottom: 20px;
-    }
+    .group-status-header { margin-bottom: 20px; }
+    .status-title { padding: 10px; border-radius: 5px; text-align: center; }
+    .status-title.active { color: cadetblue; font-weight: bold; }
+    .status-title.inactive { color: cadetblue; background-color: powderblue; font-weight: bold; }
+    .main-content-wrapper { height: 100%; width: 100%; overflow: hidden; }
+    .chart-section { margin-bottom: 20px; }
+    .period-display { font-size: 100%; color: crimson; text-align: left; background-color: powderblue; font-weight: bold; padding: 10px; margin: 10px 0; border-radius: 3px; }
+    .control-panel { margin: 20px 0; padding: 15px; background: #f9f9f9; border-radius: 5px; }
+    .control-wrapper { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+    .date-section { display: flex; align-items: center; gap: 10px; flex: 1; }
+    .date-label { font-size: 100%; color: darkslateblue; font-weight: bold; white-space: nowrap; min-width: 80px; }
+    .date-input { min-width: 200px; }
+    .upload-section { flex: 0 0 auto; }
+    .upload-button-container { text-align: center; }
+    .happy-group-selection { margin: 20px 0; padding: 15px; background: #f0f8ff; border-radius: 5px; }
+    .selection-wrapper { display: flex; gap: 20px; flex-wrap: wrap; }
+    .week-index-selector, .topic-selector { flex: 1; min-width: 150px; }
+    .section-title { color: darkcyan; font-weight: bold; margin-bottom: 10px; }
+    .data-grid-section { margin-top: 20px; }
+    .journal-section { margin-top: 30px; padding: 15px; background: #f8f8f8; border-radius: 5px; }
+    .toast-components, .load-panel-component { position: relative; }
     
-    .status-title {
-        padding: 10px;
-        border-radius: 5px;
-        text-align: center;
-    }
-    
-    .status-title.active {
-        color: cadetblue;
-        font-weight: bold;
-    }
-    
-    .status-title.inactive {
-        color: cadetblue;
-        background-color: powderblue;
-        font-weight: bold;
-    }
-
-    /* 主要內容區域 */
-    .main-content-wrapper {
-        height: 100%;
-        width: 100%;
-        overflow: hidden;
-    }
-
-    /* 圖表區域 */
-    .chart-section {
-        margin-bottom: 20px;
-    }
-
-    /* 週期顯示樣式 */
-    .period-display {
-        font-size: 100%;
-        color: crimson;
-        text-align: left;
-        background-color: powderblue;
-        font-weight: bold;
-        padding: 10px;
-        margin: 10px 0;
-        border-radius: 3px;
-    }
-
-    /* 控制面板樣式 */
-    .control-panel {
-        margin: 20px 0;
-        padding: 15px;
-        background: #f9f9f9;
-        border-radius: 5px;
-    }
-    
-    .control-wrapper {
-        display: flex;
-        align-items: center;
-        gap: 20px;
-        flex-wrap: wrap;
-    }
-
-    /* 日期選擇區域 */
-    .date-section {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        flex: 1;
-    }
-    
-    .date-label {
-        font-size: 100%;
-        color: darkslateblue;
-        font-weight: bold;
-        white-space: nowrap;
-        min-width: 80px;
-    }
-    
-    .date-input {
-        min-width: 200px;
-    }
-
-    /* 上傳按鈕區域 */
-    .upload-section {
-        flex: 0 0 auto;
-    }
-
-    .upload-button-container {
-        text-align: center;
-    }
-
-    /* 幸福小組選擇區域 */
-    .happy-group-selection {
-        margin: 20px 0;
-        padding: 15px;
-        background: #f0f8ff;
-        border-radius: 5px;
-    }
-
-    .selection-wrapper {
-        display: flex;
-        gap: 20px;
-        flex-wrap: wrap;
-    }
-
-    .week-index-selector,
-    .topic-selector {
-        flex: 1;
-        min-width: 150px;
-    }
-
-    /* 區段標題 */
-    .section-title {
-        color: darkcyan;
-        font-weight: bold;
-        margin-bottom: 10px;
-    }
-
-    /* 資料網格區域 */
-    .data-grid-section {
-        margin-top: 20px;
-    }
-
-    /* 日誌區域 */
-    .journal-section {
-        margin-top: 30px;
-        padding: 15px;
-        background: #f8f8f8;
-        border-radius: 5px;
-    }
-
-    /* Toast 元件 */
-    .toast-components {
-        position: relative;
-    }
-
-    /* 載入面板 */
-    .load-panel-component {
-        position: relative;
-    }
-
-    /* 響應式設計 */
     @@media (max-width: 768px) {
-        .control-wrapper {
-            flex-direction: column;
-            align-items: stretch;
-        }
-        
-        .date-section {
-            flex-direction: column;
-            align-items: stretch;
-        }
-        
-        .date-input {
-            min-width: auto;
-        }
-
-        .selection-wrapper {
-            flex-direction: column;
-        }
-
-        .week-index-selector,
-        .topic-selector {
-            min-width: auto;
-        }
+        .control-wrapper, .date-section { flex-direction: column; align-items: stretch; }
+        .date-input { min-width: auto; }
+        .selection-wrapper { flex-direction: column; }
+        .week-index-selector, .topic-selector { min-width: auto; }
     }
-
+    
     @@media (max-width: 480px) {
-        .control-panel {
-            padding: 10px;
-        }
-
-        .happy-group-selection {
-            padding: 10px;
-        }
-
-        .journal-section {
-            padding: 10px;
-        }
+        .control-panel, .happy-group-selection, .journal-section { padding: 10px; }
     }
 </style>
-
-@* 
-    ===================================================================
-    注意事項：
-    1. 此頁面已模組化，依賴多個 Partial Views
-    2. 所有 JavaScript 函式已分類整理
-    3. 本地化設定已統一管理
-    4. 樣式已優化並支援響應式設計
-    5. 確保 UTF-8 編碼格式
-    6. 改善了錯誤處理和使用者體驗
-    7. 移除了重複的 <head> 標籤和資源引用
-    8. 統一了 CSS 類別命名和結構
-    ===================================================================
-*@
