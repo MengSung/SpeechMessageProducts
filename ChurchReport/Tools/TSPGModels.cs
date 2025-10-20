@@ -85,7 +85,7 @@ namespace ChurchReport.Tools
         [JsonProperty("layout")]
         [Required]
         [StringLength(1)]
-        public string Layout { get; set; } = "1";
+        public string Layout { get; set; } = "2";
 
         /// <summary>
         /// ­q³æ¸¹½X (¥²¶ñ)

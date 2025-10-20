@@ -1350,12 +1350,13 @@ namespace ChurchReport.WebServiceConnector
             
             // ===== 交易參數設定 =====
             string captFlag = "0"; // 預設不自動請款（0: 不同步請款, 1: 同步請款)
-            string layout = "1"; // 預設一般網頁（1: 一般網頁, 2: 行動裝置網頁）
-            
+            //string layout = "1"; // 預設一般網頁（1: 一般網頁, 2: 行動裝置網頁）
+            string layout = m_Configuration["TSPG:Layout"]; // 預設一般網頁（1: 一般網頁, 2: 行動裝置網頁）
+
             // 根據 UserAgent 或其他條件判斷是否為行動裝置（可選）
             // 這裡可以加入判斷邏輯，例如：
             // if (IsMobileDevice()) layout = "2";
-            
+
             // ===== 建立 TSPGPaymentRequest 物件 =====
             var request = new TSPGPaymentRequest
             {
