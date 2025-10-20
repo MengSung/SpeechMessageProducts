@@ -1051,6 +1051,10 @@ namespace ChurchReport.WebServiceConnector
                 // TSPG: code="0000" 表示成功
                 // 永豐: Status="S" 表示成功
                 bool isSuccess = payPageResponse.code == "0000" || payPageResponse.code == "00";
+
+                // 因為尚未上線，目前暫時無法使用信用卡支付，所以還原為null
+                payPageResponse.url = null;
+
                 string status = isSuccess ? "S" : "F";
                 
                 // 建立基本的 CreOrder 物件
@@ -1072,7 +1076,8 @@ namespace ChurchReport.WebServiceConnector
                         {
                             CardPayURL = isSuccess 
                                 ? (payPageResponse.url ?? string.Empty)
-                                : GetErrorPageUrl("信用卡付款失敗", payPageResponse.msg ?? "未知錯誤")
+                                //: GetErrorPageUrl("信用卡付款失敗", payPageResponse.msg ?? "未知錯誤")
+                                : GetErrorPageUrl("目前暫時無法使用信用卡支付!", payPageResponse.msg ?? "，感謝您!")
                         };
                         break;
 
