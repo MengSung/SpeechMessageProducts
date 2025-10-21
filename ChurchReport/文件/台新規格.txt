@@ -668,3 +668,171 @@ Content-Length: 179
  567","auth_id_resp":"001241","rrn":"128417503172"}} 
 ◼ 參數說明： 
 請參照【4.9 信用卡授權交易回應後台通知】。 
+
+
+
+參照【5.1回應碼(ret_code)說明】章節。 
+Y 
+ret_msg string 回傳訊息  
+order_no string (23) 訂單號碼 Y 
+auth_id_resp string (6) 授權碼 
+若他行卡身分驗證交易失敗，請對照【5.1.3 
+他行卡身分驗證失敗授權碼對照表】 
+Y 
+rrn string (12) 調單號碼 Y 
+carrierId2 string (50) 信用卡載具資訊 若「交易結果
+回應碼
+(ret_code)
+」為00時，
+此欄位有值。 
+C 
+order_status string (2) 訂單狀態碼 
+請參照【5.1.5手機身分驗
+證授權碼對照表 
+回應碼 說明 授權碼
+00 驗證成功 六碼授權碼
+05 驗證失敗 固定值
+ 
+當交易請求
+電文之回傳
+訊息標記
+(result_fl
+ ag)為0時，
+欄位值為空。 
+C 
+ 
+TSPG網路特店暨線上授權服務系統 
+付款服務使用手冊REST API v2.14 
+ 
+第39頁，共61頁 
+ 
+訂單狀態碼
+(order_status)說明】
+章節。 
+auth_type string (3) 授權方式 
+SSL:SSL授權 
+3D:3D驗證 
+C 
+cur string (3) 幣別 
+NTD:新台幣 
+C 
+purchase_date string (19) 採購日期 
+(yyyy-MM-dd HH:mm:ss) 
+C 
+tx_amt string (12) 交易金額 
+包含兩位小數，如100代表
+1.00元。 
+C 
+settle_amt string (12) 請款金額 
+包含兩位小數，如100代表
+1.00元。 
+C 
+settle_seq string (12) 請款批號 C 
+settle_date string (10) 請款日期 
+(yyyy-MM-dd) 
+C 
+refund_trans_a
+ mt 
+string (12) 退貨金額 
+包含兩位小數，如100代表
+1.00元。 
+C 
+refund_rrn string (12) 退貨調單編號 C 
+refund_auth_id
+ _resp 
+string (6) 退貨授權碼 C 
+refund_date string (10) 退貨日期 
+(yyyy-MM-dd) 
+C 
+redeem_order_n
+ o 
+string (12) 紅利訂單編號 C 
+redeem_pt string (7) 折抵點數 C 
+redeem_amt string (12) 折抵金額 
+包含兩位小數，如100代表
+1.00元。 
+C 
+post_redeem_am
+ t 
+string (12) 實付金額 
+包含兩位小數，如100代表
+1.00元。 
+C 
+post_redeem_pt string (7) 剩餘點數 C 
+install_order_ string (12) 分期訂單號碼 C 
+ 
+TSPG網路特店暨線上授權服務系統 
+付款服務使用手冊REST API v2.14 
+ 
+第40頁，共61頁 
+ 
+no 
+install_period string (2) 分期期數 C 
+install_down_p
+ ay 
+string (12) 首期金額 
+包含兩位小數，如100代表
+1.00元。 
+C 
+install_pay string (12) 每期金額 
+包含兩位小數，如100代表
+1.00元。 
+C 
+install_down_p
+ ay_fee 
+string (12) 首期手續費 
+包含兩位小數，如100代表
+1.00元。 
+C 
+install_pay_fe
+ e 
+string (12) 每期手續費 
+包含兩位小數，如100代表
+1.00元。 
+C 
+first_6_digit_
+ of_pan 
+string (6) 信用卡卡號前6碼 C 
+last_4_digit_o
+ f_pan 
+string (4) 信用卡卡號後4碼 C 
+ch_amt string (12) 交易金額(以持卡人母國幣
+別計算) 
+ 
+*持卡人母國幣別小數位數
+請參考【5.4 DCC Currency 
+List】 
+*已計入貼水費率 
+DCC交易時才
+會回傳。 
+C 
+ch_currency string (3) 持卡人母國幣別(ISO 4217 
+Numeric Code) 
+C 
+ex_rate string (10) 轉換匯率 (1元台幣對持卡
+人母國幣別的匯率) 
+*已計入貼水費率 
+C 
+markup_rate string (5) 貼水費率(%) 
+*回傳之ch_amt及ex_rate
+均已計入貼水費率 
+C 
+後台通知回應電文範例 
+{ 
+  "ver":"1.0.0", 
+  "mid":"999000123456789", 
+  "tid":"T0000000", 
+TSPG 網路特店暨線上授權服務系統 
+付款服務使用手冊REST API v2.14 
+"pay_type":1, 
+"tx_type":1, 
+"params": 
+{ 
+"ret_code":"00", 
+"order_no":"NO01234567", 
+"auth_id_resp":"001241", 
+"rrn":"128417503172", 
+"carrierId2":"432198hV10AmV1/SHjbun1BtQeDAeeXppEF85HdVfIdY4ANJ0=" 
+} 
+} 
+第41頁，共61頁

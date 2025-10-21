@@ -99,8 +99,9 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// 付款結果通知端點
-        /// 接收來自 TSPG 的付款結果通知
+        /// 付款結果通知端點 (後台通知 - result_url)
+        /// 接收來自 TSPG 的付款結果通知 (JSON 格式)
+        /// 規格參考：4.9 信用卡授權交易回應後台通知
         /// </summary>
         /// <returns>處理結果</returns>
         [HttpPost("payment-notify")]
@@ -109,62 +110,193 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                var result = await _webhookHandler.HandlePaymentNotificationAsync(Request);
-                
-                if (result.IsSuccess)
+                // 讀取 JSON 請求內容
+                string requestBody = null;
+                using (var reader = new System.IO.StreamReader(Request.Body, System.Text.Encoding.UTF8))
                 {
-                    // 記錄成功處理
-                    System.Diagnostics.Trace.WriteLine($"[TSPG] 付款通知處理成功 - 訂單: {result.Notification?.OrderId}");
-                    return Ok(result.ResponseContent);
+                    requestBody = await reader.ReadToEndAsync();
+                }
+
+                System.Diagnostics.Trace.WriteLine($"[TSPG PaymentNotify] 收到後台通知: {requestBody}");
+
+                // 解析 JSON 結構
+                dynamic jsonData = Newtonsoft.Json.JsonConvert.DeserializeObject(requestBody);
+
+                // 建立通知物件
+                var notification = new TSPGPaymentNotification();
+
+                // === 基本欄位 (外層) ===
+                notification.StoreUid = jsonData.ver?.ToString();  // 格式版本
+                notification.S_Mid = jsonData.mid?.ToString();     // 特店代號
+                
+                if (jsonData.s_mid != null)
+                {
+                    notification.S_Mid = jsonData.s_mid.ToString(); // 子特店代號
+                }
+
+                string tid = jsonData.tid?.ToString();          // 端末代號
+                int? payType = jsonData.pay_type;        // 付款類別 (1:信用卡)
+                int? txType = jsonData.tx_type;            // 交易類別
+                notification.TxType = txType?.ToString();
+
+                // === params 參數清單 ===
+                var paramsData = jsonData.@params;
+                
+                if (paramsData != null)
+                {
+                    // 必要參數
+                    notification.RetCode = paramsData.ret_code?.ToString();// 交易結果回應碼
+                    notification.RetMsg = paramsData.ret_msg?.ToString();           // 回傳訊息
+                    notification.OrderNo = paramsData.order_no?.ToString();         // 訂單號碼
+                    notification.OrderId = notification.OrderNo;
+                    notification.AuthIdResp = paramsData.auth_id_resp?.ToString();  // 授權碼
+                    notification.TransactionId = paramsData.rrn?.ToString();        // 調單號碼 (RRN)
+
+                    // 條件必要參數
+                    notification.CarrierId2 = paramsData.carrierId2?.ToString();    // 信用卡載具資訊
+                    notification.State = paramsData.order_status?.ToString(); // 訂單狀態碼
+   
+                    string authType = paramsData.auth_type?.ToString();       // 授權方式 (SSL/3D)
+                    notification.Currency = paramsData.cur?.ToString();      // 幣別
+            
+                    string purchaseDate = paramsData.purchase_date?.ToString();     // 採購日期 (yyyy-MM-dd HH:mm:ss)
+                    if (!string.IsNullOrEmpty(purchaseDate) && DateTime.TryParse(purchaseDate, out var parsedDate))
+                    {
+                        notification.PayTime = parsedDate;
+                    }
+
+                    // === 金額相關欄位 ===
+                    string txAmtStr = paramsData.tx_amt?.ToString();        // 交易金額
+                    if (!string.IsNullOrEmpty(txAmtStr) && decimal.TryParse(txAmtStr, out var txAmt))
+                    {
+                        notification.Cost = txAmt / 100;  // 金額包含兩位小數，需除以100
+                        notification.ActualCost = notification.Cost;
+                    }
+
+                    string settleAmtStr = paramsData.settle_amt?.ToString();        // 請款金額
+                    string settleSeq = paramsData.settle_seq?.ToString();           // 請款批號
+                    string settleDate = paramsData.settle_date?.ToString();         // 請款日期
+
+                    // === 退貨相關欄位 ===
+                    string refundTransAmtStr = paramsData.refund_trans_amt?.ToString(); // 退貨金額
+                    string refundRrn = paramsData.refund_rrn?.ToString();           // 退貨調單編號
+                    string refundAuthIdResp = paramsData.refund_auth_id_resp?.ToString(); // 退貨授權碼
+                    string refundDate = paramsData.refund_date?.ToString();         // 退貨日期
+
+                    // === 紅利相關欄位 ===
+                    string redeemOrderNo = paramsData.redeem_order_no?.ToString();  // 紅利訂單編號
+                    string redeemPt = paramsData.redeem_pt?.ToString();      // 折抵點數
+                    string redeemAmtStr = paramsData.redeem_amt?.ToString();        // 折抵金額
+                    string postRedeemAmtStr = paramsData.post_redeem_amt?.ToString(); // 實付金額
+                    string postRedeemPt = paramsData.post_redeem_pt?.ToString();    // 剩餘點數
+
+                    // === 分期相關欄位 ===
+                    string installOrderNo = paramsData.install_order_no?.ToString();    // 分期訂單號碼
+                    string installPeriod = paramsData.install_period?.ToString(); // 分期期數
+                    string installDownPayStr = paramsData.install_down_pay?.ToString(); // 首期金額
+                    string installPayStr = paramsData.install_pay?.ToString();          // 每期金額
+                    string installDownPayFeeStr = paramsData.install_down_pay_fee?.ToString(); // 首期手續費
+                    string installPayFeeStr = paramsData.install_pay_fee?.ToString();   // 每期手續費
+
+                    // === 卡號資訊 ===
+                    notification.First6DigitOfPan = paramsData.first_6_digit_of_pan?.ToString(); // 卡號前6碼
+                    notification.Last4DigitOfPan = paramsData.last_4_digit_of_pan?.ToString();   // 卡號後4碼
+
+                    // === DCC 交易專用參數 ===
+                    string chAmtStr = paramsData.ch_amt?.ToString();     // DCC 交易金額
+                    if (!string.IsNullOrEmpty(chAmtStr) && decimal.TryParse(chAmtStr, out var chAmt))
+                    {
+                        notification.ChAmt = chAmt;
+                    }
+
+                    notification.ChCurrency = paramsData.ch_currency?.ToString();   // 持卡人母國幣別
+            
+                    string exRateStr = paramsData.ex_rate?.ToString();  // 轉換匯率
+                    if (!string.IsNullOrEmpty(exRateStr) && decimal.TryParse(exRateStr, out var exRate))
+                    {
+                        notification.ExRate = exRate;
+                    }
+
+                    string markupRateStr = paramsData.markup_rate?.ToString();      // 貼水費率
+                    if (!string.IsNullOrEmpty(markupRateStr) && decimal.TryParse(markupRateStr, out var markupRate))
+                    {
+                        notification.MarkupRate = markupRate;
+                    }
+                }
+
+                // 判斷交易是否成功
+                bool isSuccess = notification.RetCode == "00";
+
+                // 記錄後台通知詳細資訊
+                LogBackendNotification(notification, tid, payType, txType, requestBody);
+
+                // 處理付款通知
+                if (isSuccess)
+                {
+                    // 更新收費單狀態
+                    UpdateFeeEntityByOrderNo(notification);
+                    
+                    System.Diagnostics.Trace.WriteLine($"[TSPG PaymentNotify] 付款成功處理完成 - 訂單: {notification.OrderNo}");
+                    
+                    // 回應成功 (TSPG 期望的回應格式)
+                    return Ok(new { status = "success", message = "通知已接收並處理" });
                 }
                 else
                 {
-                    // 記錄處理失敗
-                    System.Diagnostics.Trace.WriteLine($"[TSPG] 付款通知處理失敗 - 錯誤: {result.ErrorMessage}");
-                    return BadRequest(result.ResponseContent);
+                    System.Diagnostics.Trace.WriteLine($"[TSPG PaymentNotify] 付款失敗 - 訂單: {notification.OrderNo}, 錯誤: {notification.RetMsg}");
+                    
+                    // 即使失敗也要回應成功，表示通知已收到
+                    return Ok(new { status = "received", message = "付款失敗通知已接收" });
                 }
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Trace.WriteLine($"[TSPG] 付款通知處理例外: {ex.Message}");
-                return StatusCode(500, "付款通知處理錯誤:"+ ex.Message);
+                System.Diagnostics.Trace.WriteLine($"[TSPG PaymentNotify] 處理例外: {ex.Message}");
+                System.Diagnostics.Trace.WriteLine($"[TSPG PaymentNotify] 例外堆疊: {ex.StackTrace}");
+        
+                // 回應錯誤，但 TSPG 可能會重試
+                return StatusCode(500, new { status = "error", message = "處理錯誤: " + ex.Message });
             }
         }
 
         /// <summary>
-        /// 退款結果通知端點
-        /// 接收來自 TSPG 的退款結果通知
+        /// 記錄後台通知詳細資訊
         /// </summary>
-        /// <returns>處理結果</returns>
-        [HttpPost("refund-notify")]
-        [HttpGet("refund-notify")]
-        public async Task<IActionResult> RefundNotify()
+        private void LogBackendNotification(TSPGPaymentNotification notification, string tid, int? payType, int? txType, string rawJson)
         {
-            try
+            var logMessage = $"[TSPG Backend Notification] " +
+              $"訂單: {notification.OrderNo}, " +
+                $"調單號: {notification.TransactionId}, " +
+                $"授權碼: {notification.AuthIdResp}, " +
+                $"結果碼: {notification.RetCode}, " +
+                $"訊息: {notification.RetMsg}, " +
+                $"交易類型: {notification.TxType}, " +
+                $"端末: {tid}, " +
+              $"付款類別: {payType}";
+
+            if (notification.Cost > 0)
             {
-                var result = await _webhookHandler.HandleRefundNotificationAsync(Request);
-                
-                if (result.IsSuccess)
-                {
-                    // 記錄成功處理
-                    System.Diagnostics.Trace.WriteLine($"[TSPG] 退款通知處理成功 - 訂單: {result.Notification?.OrderId}");
-                    return Ok(result.ResponseContent);
-                }
-                else
-                {
-                    // 記錄處理失敗
-                    System.Diagnostics.Trace.WriteLine($"[TSPG] 退款通知處理失敗 - 錯誤: {result.ErrorMessage}");
-                    return BadRequest(result.ResponseContent);
-                }
+                logMessage += $", 金額: {notification.Cost}";
             }
-            catch (Exception ex)
+
+            if (!string.IsNullOrEmpty(notification.First6DigitOfPan) || !string.IsNullOrEmpty(notification.Last4DigitOfPan))
             {
-                System.Diagnostics.Trace.WriteLine($"[TSPG] 退款通知處理例外: {ex.Message}");
-                return StatusCode(500, "退款通知處理錯誤:"+ ex.Message);
+                logMessage += $", 卡號: {notification.First6DigitOfPan}******{notification.Last4DigitOfPan}";
+          }
+
+            if (!string.IsNullOrEmpty(notification.CarrierId2))
+          {
+                logMessage += $", 載具: {notification.CarrierId2}";
             }
+
+            if (notification.ChAmt.HasValue)
+            {
+                logMessage += $", DCC金額: {notification.ChAmt} {notification.ChCurrency}, 匯率: {notification.ExRate}, 貼水: {notification.MarkupRate}%";
+            }
+
+            System.Diagnostics.Trace.WriteLine(logMessage);
+            System.Diagnostics.Trace.WriteLine($"[TSPG Backend Notification] 原始JSON: {rawJson}");
         }
-
-
         #endregion
 
         #region API 操作端點 (使用 TspgToolkit 靜態方法)
@@ -524,76 +656,76 @@ namespace ChurchReport.Controllers
         /// </summary>
         private void UpdateFeeEntityByOrderNo(TSPGPaymentNotification notification)
         {
-            ToolUtilityClass toolUtility = null;
+   ToolUtilityClass toolUtility = null;
             try
             {
-                var orderNo = notification.OrderNo ?? notification.OrderId;
-                if (string.IsNullOrEmpty(orderNo))
-                {
-                    System.Diagnostics.Trace.WriteLine("[TSPG] 訂單編號為空，無法更新收費單");
-                    return;
-                }
+        var orderNo = notification.OrderNo ?? notification.OrderId;
+        if (string.IsNullOrEmpty(orderNo))
+        {
+     System.Diagnostics.Trace.WriteLine("[TSPG] 訂單編號為空，無法更新收費單");
+           return;
+      }
 
-                // 使用 ToolUtilityClass 查詢收費單
-                toolUtility = new ToolUtilityClass("DYNAMICS365");
-                
-                // 查詢 new_q_pay_card_order_no 等於 OrderNo 的收費單
-                Entity updatedFeeEntity = toolUtility.RetrieveEntityByField("new_fee", "new_q_pay_card_order_no", orderNo);
+           // 使用 ToolUtilityClass 查詢收費單
+         toolUtility = new ToolUtilityClass("DYNAMICS365");
+       
+          // 查詢 new_q_pay_card_order_no 等於 OrderNo 的收費單
+       Entity updatedFeeEntity = toolUtility.RetrieveEntityByField("new_fee", "new_q_pay_card_order_no", orderNo);
 
-                if (updatedFeeEntity == null)
-                {
-                    System.Diagnostics.Trace.WriteLine($"[TSPG] 找不到對應的收費單 - OrderNo: {orderNo}");
-                    return;
-                }
+     if (updatedFeeEntity == null)
+ {
+          System.Diagnostics.Trace.WriteLine($"[TSPG] 找不到對應的收費單 - OrderNo: {orderNo}");
+         return;
+     }
 
                 // 更新付款狀態為已付款 (100000001 = 信用卡已繳費)
-                toolUtility.SetOptionSetAttribute(ref updatedFeeEntity, "new_pay_status", 100000001);
+  toolUtility.SetOptionSetAttribute(ref updatedFeeEntity, "new_pay_status", 100000001);
 
-                // 更新實收金額 (new_fee_really_paid)
-                //var amount = notification.Cost > 0 ? notification.Cost : notification.ActualCost;
-                var amount = toolUtility.GetEntityMoneyAttribute(updatedFeeEntity, "new_fee_shoud_pay");
+            // 更新實收金額 (new_fee_really_paid)
+    //var amount = notification.Cost > 0 ? notification.Cost : notification.ActualCost;
+           var amount = toolUtility.GetEntityMoneyAttribute(updatedFeeEntity, "new_fee_shoud_pay");
 
-                //待更正: 這邊應該是要設定為 amount 而不是應收金額
-                toolUtility.SetEntityMoneyAttribute(ref updatedFeeEntity, "new_fee_really_paid", toolUtility.GetEntityMoneyAttribute(updatedFeeEntity, "new_fee_shoud_pay"));
+     //待更正: 這邊應該是要設定為 amount 而不是應收金額
+    toolUtility.SetEntityMoneyAttribute(ref updatedFeeEntity, "new_fee_really_paid", toolUtility.GetEntityMoneyAttribute(updatedFeeEntity, "new_fee_shoud_pay"));
 
-                // 計算差額 (應收金額 - 實收金額)
-                var shouldPayMoney = toolUtility.GetEntityMoneyAttribute(updatedFeeEntity, "new_fee_shoud_pay");
-                var differenceFee = shouldPayMoney.Value - amount.Value;
-                toolUtility.SetEntityMoneyAttribute(ref updatedFeeEntity, "new_difference_fee_paid", new Money(differenceFee));
+           // 計算差額 (應收金額 - 實收金額)
+     var shouldPayMoney = toolUtility.GetEntityMoneyAttribute(updatedFeeEntity, "new_fee_shoud_pay");
+        var differenceFee = shouldPayMoney.Value - amount.Value;
+     toolUtility.SetEntityMoneyAttribute(ref updatedFeeEntity, "new_difference_fee_paid", new Money(differenceFee));
 
-                // 設定付款日期
-                toolUtility.SetEntityDateTimeAttribute(ref updatedFeeEntity, "new_pay_date", DateTime.Now);
+     // 設定付款日期
+          toolUtility.SetEntityDateTimeAttribute(ref updatedFeeEntity, "new_pay_date", DateTime.Now);
 
-                // 設定付款方式為信用卡
-                toolUtility.SetOptionSetAttribute(ref updatedFeeEntity, "new_pay_way", 100000001); // 100000001 = 信用卡
+    // 設定付款方式為信用卡
+        toolUtility.SetOptionSetAttribute(ref updatedFeeEntity, "new_pay_way", 100000001); // 100000001 = 信用卡
 
-                // 更新收費單說明
+        // 更新收費單說明
                 var originalDescription = toolUtility.GetEntityStringAttribute(updatedFeeEntity, "new_description");
-                var newDescription = originalDescription + Environment.NewLine +
-                    $"[TSPG付款成功] 訂單號:{orderNo}, 交易號:{notification.TransactionId}, " +
-                    $"金額:{amount}, 授權碼:{notification.AuthIdResp}, 時間:{DateTime.Now}";
+          var newDescription = originalDescription + Environment.NewLine +
+   $"[TSPG付款成功] 訂單號:{orderNo}, 交易號:{notification.TransactionId}, " +
+ $"金額:{amount}, 授權碼:{notification.AuthIdResp}, 時間:{DateTime.Now}";
                 toolUtility.SetEntityStringAttribute(ref updatedFeeEntity, "new_description", newDescription);
 
-                // 儲存更新
-                toolUtility.UpdateEntity(ref updatedFeeEntity);
+        // 儲存更新
+   toolUtility.UpdateEntity(ref updatedFeeEntity);
 
                 System.Diagnostics.Trace.WriteLine($"[TSPG] 成功更新收費單 - OrderNo: {orderNo}, FeeId: {updatedFeeEntity.Id}");
 
-                // 取得連絡人並發送 LINE 訊息
-                SendPaymentNotificationToContact(toolUtility, updatedFeeEntity, notification, amount.Value);
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Trace.WriteLine($"[TSPG] 更新收費單失敗 - 錯誤: {ex.Message}");
-            }
+     // 取得連絡人並發送 LINE 訊息
+     SendPaymentNotificationToContact(toolUtility, updatedFeeEntity, notification, amount.Value);
+   }
+      catch (Exception ex)
+{
+       System.Diagnostics.Trace.WriteLine($"[TSPG] 更新收費單失敗 - 錯誤: {ex.Message}");
+         }
             finally
-            {
-                // 手動釋放資源
-                toolUtility?.Dispose();
+   {
+      // 手動釋放資源
+    toolUtility?.Dispose();
             }
         }
 
-        /// <summary>
+   /// <summary>
         /// 發送付款通知訊息給連絡人
         /// </summary>
         private void SendPaymentNotificationToContact(ToolUtilityClass toolUtility, Entity feeEntity, TSPGPaymentNotification notification, decimal amount)
