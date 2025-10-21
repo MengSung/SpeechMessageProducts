@@ -95,7 +95,7 @@ namespace ChurchReport.Tools
             try
             {
                 var jsonData = BuildQueryJsonData(orderId);
-                return PostToTSPG("query.ashx", jsonData);
+                return PostToTSPG("other.ashx", jsonData);
             }
             catch (Exception ex)
             {

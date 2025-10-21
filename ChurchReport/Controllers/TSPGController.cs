@@ -110,6 +110,9 @@ namespace ChurchReport.Controllers
 
                 bool isSuccess = IsPaymentSuccess(notification.RetCode, notification.State); // 判斷付款是否成功
 
+                // 查詢訂單狀態以更新內部系統
+                QueryOrder(notification.OrderNo);
+                
                 // 根據付款狀態導向對應頁面
                 return isSuccess
                     ? HandleSuccessfulPaymentReturn(notification)
