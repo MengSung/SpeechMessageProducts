@@ -74,9 +74,9 @@ namespace ChurchReport.Controllers
         /// 接收來自 TSPG 的付款結果通知 (JSON 格式)
         /// 規格參考：4.9 信用卡授權交易回應後台通知
         /// </summary>
-        [HttpPost("payment-notify")]
-        [HttpGet("payment-notify")]
-        public async Task<IActionResult> PaymentNotify()
+        [HttpPost("result-url")]
+        [HttpGet("result-url")]
+        public async Task<IActionResult> ResultUrl()
         {
             string requestBody = null;
 

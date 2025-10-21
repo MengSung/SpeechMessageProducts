@@ -49,6 +49,7 @@
     <None Remove="wwwroot\js\FeeDataGridAjax.js" />
     <Content Include="bower.json" />
     <Content Include="Properties\launchSettings.json" />
+    <Content Include="文件\QPayView_README.md" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Microsoft.Crm.Sdk.Proxy">
