@@ -3,6 +3,8 @@ using Line.Messaging;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Xrm.Sdk;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using ToolUtilityNameSpace;
 
@@ -53,10 +55,10 @@ namespace ChurchReport.Controllers
         private const string DYNAMICS_CONNECTION_NAME = "DYNAMICS365";
         // 狀態常數: 信用卡已繳費
         // CRM 中 new_pay_status 欄位的選項集值，表示付款已完成
-        private const int PAYMENT_STATUS_PAID =100000001;
+        private const int PAYMENT_STATUS_PAID = 100000001;
         //付款方式常數: 信用卡
         // CRM 中 new_pay_way 欄位的選項集值，表示使用信用卡付款
-        private const int PAYMENT_METHOD_CREDIT_CARD =100000001;
+        private const int PAYMENT_METHOD_CREDIT_CARD = 100000001;
         #endregion
 
         #region 私有欄位
@@ -79,25 +81,23 @@ namespace ChurchReport.Controllers
 
         #region Webhook端點
         /// <summary>
-        ///付款完成返回頁面端點 (post_back_url - 前台通知)
+        /// 付款完成返回頁面端點 (post_back_url - 前台通知)
         /// 用戶付款完成後的返回頁面，TSPG會將交易結果透過HTTP POST或GET方式傳送至此
         /// 此為前台通知，持卡人網頁會被重新導向至此
         /// </summary>
         /// <remarks>
-        ///處理流程：
-        ///1. 解析 TSPG 傳送的前台通知參數 (Form 或 QueryString)
-        ///2. 記錄完整的通知資訊到日誌系統
-        ///3. 根據 retCode 或 state 判斷付款是否成功
-        ///4. 根據付款狀態重新導向到成功或失敗頁面
+        /// 處理流程：
+        /// 1. 解析 TSPG 傳送的前台通知參數 (Form 或 QueryString)
+        /// 2. 記錄完整的通知資訊到日誌系統
+        /// 3. 根據 retCode 或 state 判斷付款是否成功
+        /// 4. 根據付款狀態重新導向到成功或失敗頁面
         ///
-        ///注意：目前實作中成功與失敗都導向成功頁面 (TODO: 應修正為 HandleFailedPaymentReturn)
-        ///
-        ///TSPG 前台通知參數範例：
-        ///- ret_code: "00" (成功) 或其他錯誤碼
-        ///- order_no: 訂單編號
-        ///- transaction_id: 交易編號
-        ///- auth_id_resp: 授權碼
-        ///- state: "1" (成功)
+        /// TSPG 前台通知參數範例：
+        /// - ret_code: "00" (成功) 或其他錯誤碼
+        /// - order_no: 訂單編號
+        /// - transaction_id: 交易編號
+        /// - auth_id_resp: 授權碼
+        /// - state: "1" (成功)
         /// </remarks>
         [HttpGet("post-back")]
         [HttpPost("post-back")]
@@ -113,7 +113,7 @@ namespace ChurchReport.Controllers
                 // 根據付款狀態導向對應頁面
                 return isSuccess
                     ? HandleSuccessfulPaymentReturn(notification)
-                    : HandleSuccessfulPaymentReturn(notification); // TODO: 應改為 HandleFailedPaymentReturn
+                    : HandleFailedPaymentReturn(notification); // 修正：失敗時導向失敗處理
             }
             catch (Exception ex)
             {
@@ -123,36 +123,36 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        ///付款結果通知端點 (後台通知 - result_url)
+        /// 付款結果通知端點 (後台通知 - result_url)
         /// 接收來自 TSPG 的付款結果通知 (JSON 格式)
         /// 規格參考：4.9 信用卡授權交易回應後台通知
         /// </summary>
         /// <remarks>
-        ///處理流程：
-        ///1. 非同步讀取 HTTP 請求的 JSON Body 內容
-        ///2. 記錄完整的原始 JSON 請求到日誌系統
-        ///3. 解析 JSON 結構，提取所有必要參數
-        ///4. 根據 retCode 判斷交易是否成功 (00=成功)
-        ///5. 若成功：更新 CRM 收費單狀態並發送 LINE 通知
-        ///6. 若失敗：僅記錄失敗資訊，不更新 CRM
-        ///7. 回應 TSPG 狀態確認 (TSPG 會重試失敗的通知)
+        /// 處理流程：
+        /// 1. 非同步讀取 HTTP 請求的 JSON Body 內容
+        /// 2. 記錄完整的原始 JSON 請求到日誌系統
+        /// 3. 解析 JSON 結構，提取所有必要參數
+        /// 4. 根據 retCode 判斷交易是否成功 (00=成功)
+        /// 5. 若成功：更新 CRM 收費單狀態並發送 LINE 通知
+        /// 6. 若失敗：僅記錄失敗資訊，不更新 CRM
+        /// 7. 回應 TSPG 狀態確認 (TSPG 會重試失敗的通知)
         ///
-        ///TSPG 後台通知 JSON 結構：
-        ///{
-        ///  "ver": "1.0",
-        ///  "mid": "特店代號",
-        ///  "tid": "端末代號",
-        ///  "pay_type": 1,
-        ///  "tx_type": 1,
-        ///  "params": {
-        ///    "ret_code": "00",
-        ///    "order_no": "訂單編號",
-        ///    "auth_id_resp": "授權碼",
-        ///    "rrn": "交易編號",
-        ///    "tx_amt": 交易金額(分),
-        ///    ...
-        ///  }
-        ///}
+        /// TSPG 後台通知 JSON 結構：
+        /// {
+        ///   "ver": "1.0",
+        ///   "mid": "特店代號",
+        ///   "tid": "端末代號",
+        ///   "pay_type": 1,
+        ///   "tx_type": 1,
+        ///   "params": {
+        ///     "ret_code": "00",
+        ///     "order_no": "訂單編號",
+        ///     "auth_id_resp": "授權碼",
+        ///     "rrn": "交易編號",
+        ///     "tx_amt": 交易金額(分),
+        ///     ...
+        ///   }
+        /// }
         /// </remarks>
         [HttpPost("result-url")]
         [HttpGet("result-url")]
@@ -225,6 +225,7 @@ namespace ChurchReport.Controllers
 
         /// <summary>
         /// 查詢訂單狀態 (呼叫 TspgToolkit.OrderQuery)
+        /// 對應台新規格：4.5 信用卡其他交易 - 交易類別 7:查詢
         /// </summary>
         /// <param name="orderId">訂單編號</param>
         /// <remarks>
@@ -233,12 +234,61 @@ namespace ChurchReport.Controllers
         /// 2. 呼叫 TspgToolkit.OrderQuery 查詢訂單
         /// 3. 返回統一格式的查詢結果
         ///
-        /// 回應包含：
-        /// - success: 是否查詢成功
-        /// - order_id: 訂單編號
-        /// - status_code: TSPG 狀態碼
-        /// - message: 狀態訊息
-        /// - data: 完整的 TSPG 回應物件
+        /// 台新規格參數說明 (4.5 信用卡其他交易)：
+        /// 輸入參數：
+        /// - order_no: 訂單號碼 (必要)
+        /// - result_flag: 回傳訊息標記 (可選)
+        ///   * 0: 不查詢交易詳情
+        ///   * 1: 查詢交易詳情
+        ///
+        /// 回傳參數 (當 result_flag=1 時)：
+        /// - ret_code: 交易結果回應碼 (參照 5.1)
+        /// - ret_msg: 回傳訊息
+        /// - auth_id_resp: 授權碼
+        /// - rrn: 調單號碼
+        /// - order_status: 訂單狀態碼 (參照 5.2)
+        /// - auth_type: 授權方式 (SSL/3D)
+        /// - cur: 幣別 (NTD)
+        /// - purchase_date: 採購日期 (yyyy-MM-dd HH:mm:ss)
+        /// - tx_amt: 交易金額 (包含兩位小數)
+        /// - settle_amt: 請款金額
+        /// - settle_seq: 請款批號
+        /// - settle_date: 請款日期
+        /// - refund_trans_amt: 退貨金額
+        /// - refund_rrn: 退貨調單編號
+        /// - refund_auth_id_resp: 退貨授權碼
+        /// - refund_date: 退貨日期
+        /// - install_period: 分期期數
+        /// - ch_amt: DCC 交易金額 (DCC 交易時回傳)
+        /// - ch_currency: 持卡人母國幣別
+        /// - ex_rate: 轉換匯率
+        /// - markup_rate: 貼水費率(%)
+        ///
+        /// 回應範例：
+        /// {
+        ///   "success": true,
+        ///   "order_id": "NO01234567",
+        ///   "status_code": "00",
+        ///   "message": "查詢成功",
+        ///   "data": {
+        ///     "ver": "1.0.0",
+        ///     "mid": "999000123456789",
+        ///     "tid": "T0000000",
+        ///     "pay_type": 1,
+        ///     "tx_type": 7,
+        ///     "params": {
+        ///       "ret_code": "00",
+        ///       "order_no": "NO01234567",
+        ///       "auth_id_resp": "001241",
+        ///       "rrn": "128417503172",
+        ///       "order_status": "01",
+        ///       "auth_type": "SSL",
+        ///       "cur": "NTD",
+        ///       "purchase_date": "2024-01-15 14:30:25",
+        ///       "tx_amt": "120000"
+        ///     }
+        ///   }
+        /// }
         ///
         /// 用於檢查訂單付款狀態或除錯
         /// </remarks>
@@ -247,176 +297,333 @@ namespace ChurchReport.Controllers
         {
             try
             {
+                // 1. 驗證訂單編號
                 if (string.IsNullOrWhiteSpace(orderId))
-                    return BadRequest(new { success = false, message = "訂單編號不能為空" });
-
-                var response = TspgToolkit.OrderQuery(orderId); // 查詢訂單
-                return Ok(new
                 {
-                    success = response.code == "0000",
-                    order_id = response.uid,
+                    LogWarning("QueryOrder", "訂單編號為空");
+                    return BadRequest(new
+                    {
+                        success = false,
+                        message = "訂單編號不能為空",
+                        error_code = "INVALID_PARAM"
+                    });
+                }
+
+                LogInfo("QueryOrder", $"開始查詢訂單 - OrderId: {orderId}");
+
+                // 2. 呼叫 TSPG 查詢 API
+                var response = TspgToolkit.OrderQuery(orderId);
+
+                // 3. 記錄查詢結果
+                if (response != null)
+                {
+                    LogInfo("QueryOrder", $"查詢完成 - OrderId: {orderId}, Code: {response.code}, Message: {response.msg}");
+                }
+                else
+                {
+                    LogWarning("QueryOrder", $"查詢回應為 null - OrderId: {orderId}");
+                    return StatusCode(500, new
+                    {
+                        success = false,
+                        message = "查詢失敗，無回應資料",
+                        order_id = orderId
+                    });
+                }
+
+                // 4. 判斷查詢是否成功
+                bool isSuccess = response.code == "0000" || response.code == "00";
+
+                // 5. 建立回應物件
+                var result = new
+                {
+                    success = isSuccess,
+                    order_id = response.uid ?? orderId,
                     status_code = response.code,
-                    message = response.msg,
-                    data = response
-                });
+                    message = response.msg ?? (isSuccess ? "查詢成功" : "查詢失敗"),
+                    data = response,
+                    query_time = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
+                };
+
+                // 6. 根據結果返回適當的 HTTP 狀態碼
+                if (isSuccess)
+                {
+                    return Ok(result);
+                }
+                else
+                {
+                    // 查詢失敗但 API 有回應，返回 200 但 success=false
+                    LogWarning("QueryOrder", $"訂單查詢失敗 - OrderId: {orderId}, Code: {response.code}");
+                    return Ok(result);
+                }
             }
             catch (Exception ex)
             {
+                LogError("QueryOrder", $"查詢訂單發生例外 - OrderId: {orderId}", ex);
                 return HandleApiError("查詢訂單", ex);
             }
         }
 
         /// <summary>
-        ///取消訂單 (呼叫 TspgToolkit.CancelOrder)
+        /// 查詢訂單詳細資訊 (包含完整交易記錄)
+        /// 對應台新規格：4.5 信用卡其他交易 - 交易類別 7:查詢 (result_flag=1)
         /// </summary>
         /// <param name="orderId">訂單編號</param>
+        /// <param name="includeHistory">是否包含歷史記錄</param>
         /// <remarks>
-        /// 處理流程：
-        /// 1. 驗證訂單編號參數
-        /// 2. 呼叫 TspgToolkit.CancelOrder 取消訂單
-        /// 3. 使用 CreateSimpleApiResponse 返回結果
+        /// 此端點提供更詳細的訂單資訊查詢
+        /// 包含：
+        /// - 訂單基本資訊
+        /// - 授權資訊
+        /// - 請款資訊
+        /// - 退貨資訊
+        /// - 分期資訊
+        /// - DCC 交易資訊
+        /// - CRM 收費單狀態 (如果存在)
         ///
-        /// 注意：取消訂單通常在付款前進行
-        /// 已付款的訂單應使用退款功能
-        ///
-        /// 適用場景：用戶取消購物車、系統逾時取消等
+        /// 適用場景：
+        /// - 客服查詢完整交易記錄
+        /// - 對帳作業
+        /// - 交易稽核
         /// </remarks>
-        [HttpPost("cancel-order/{orderId}")]
-        public IActionResult CancelOrder(string orderId)
+        [HttpGet("query-order-detail/{orderId}")]
+        public IActionResult QueryOrderDetail(string orderId, [FromQuery] bool includeHistory = false)
         {
+            ToolUtilityClass toolUtility = null;
             try
             {
+                // 1. 驗證訂單編號
                 if (string.IsNullOrWhiteSpace(orderId))
-                    return BadRequest(new { success = false, message = "訂單編號不能為空" });
-
-                var response = TspgToolkit.CancelOrder(orderId); //取消訂單
-                return CreateSimpleApiResponse(response);
-            }
-            catch (Exception ex)
-            {
-                return HandleApiError("取消訂單", ex);
-            }
-        }
-
-        /// <summary>
-        ///申請退款 (呼叫 TspgToolkit.RefundOrder)
-        /// </summary>
-        /// <param name="request">退款請求物件，包含退款金額等資訊</param>
-        /// <remarks>
-        /// 處理流程：
-        /// 1. 驗證請求模型
-        /// 2. 呼叫 TspgToolkit.RefundOrder 申請退款
-        /// 3. 使用 CreateSimpleApiResponse 返回結果
-        ///
-        /// 退款請求物件應包含：
-        /// - 訂單編號
-        /// - 退款金額
-        /// - 退款原因等
-        ///
-        /// 注意：退款通常有時間限制和金額限制
-        /// 應在 CRM 中記錄退款記錄
-        /// </remarks>
-        [HttpPost("refund")]
-        public IActionResult Refund([FromBody] TSPGRefundRequest request)
-        {
-            try
-            {
-                if (!ModelState.IsValid)
-                    return BadRequest(ModelState);
-
-                var response = TspgToolkit.RefundOrder(request); //申請退款
-                return CreateSimpleApiResponse(response);
-            }
-            catch (Exception ex)
-            {
-                return HandleApiError("申請退款", ex);
-            }
-        }
-
-        /// <summary>
-        /// 信用卡請款 (呼叫 TspgToolkit.CaptureOrder)
-        /// </summary>
-        /// <param name="orderId">訂單編號</param>
-        /// <param name="amount">請款金額 (可選，若不指定則請款全部金額)</param>
-        /// <remarks>
-        /// 處理流程：
-        /// 1. 驗證訂單編號參數
-        /// 2. 呼叫 TspgToolkit.CaptureOrder 進行請款
-        /// 3. 使用 CreateSimpleApiResponse 返回結果
-        ///
-        /// 請款說明：
-        /// - 預授權交易後需要手動請款
-        /// - amount 參數可指定部分請款金額
-        /// - 若不指定 amount，則請款全部預授權金額
-        ///
-        /// 適用場景：分期付款、預授權後請款等
-        /// </remarks>
-        [HttpPost("capture/{orderId}")]
-        public IActionResult Capture(string orderId, [FromQuery] decimal? amount = null)
-        {
-            try
-            {
-                if (string.IsNullOrWhiteSpace(orderId))
-                    return BadRequest(new { success = false, message = "訂單編號不能為空" });
-
-                var response = TspgToolkit.CaptureOrder(orderId, amount); // 請款
-                return CreateSimpleApiResponse(response);
-            }
-            catch (Exception ex)
-            {
-                return HandleApiError("請款", ex);
-            }
-        }
-
-        /// <summary>
-        ///取得交易記錄 (呼叫 TspgToolkit.GetTransactionHistory)
-        /// </summary>
-        /// <param name="startDate">開始日期 (YYYY-MM-DD)</param>
-        /// <param name="endDate">結束日期 (YYYY-MM-DD)</param>
-        /// <remarks>
-        /// 處理流程：
-        /// 1. 驗證日期參數格式
-        /// 2. 呼叫 TspgToolkit.GetTransactionHistory 取得交易記錄
-        /// 3. 返回包含總筆數和交易清單的結果
-        ///
-        /// 日期格式驗證：
-        /// - 參數不能為空
-        /// - 必須為有效日期格式
-        ///
-        /// 回應包含：
-        /// - success: 是否查詢成功
-        /// - message: 查詢訊息
-        /// - start_date/end_date: 查詢日期範圍
-        /// - total_count: 總交易筆數
-        /// - transactions: 交易記錄清單
-        ///
-        /// 用於對帳、報表生成等管理功能
-        /// </remarks>
-        [HttpGet("transaction-history")]
-        public IActionResult GetTransactionHistory([FromQuery] string startDate, [FromQuery] string endDate)
-        {
-            try
-            {
-                if (string.IsNullOrWhiteSpace(startDate) || string.IsNullOrWhiteSpace(endDate))
-                    return BadRequest(new { success = false, message = "開始日期和結束日期不能為空" });
-
-                if (!DateTime.TryParse(startDate, out _) || !DateTime.TryParse(endDate, out _))
-                    return BadRequest(new { success = false, message = "日期格式不正確，請使用 YYYY-MM-DD 格式" });
-
-                var response = TspgToolkit.GetTransactionHistory(startDate, endDate); // 查詢交易記錄
-                return Ok(new
                 {
-                    success = response.Code == "0000",
-                    message = response.Message,
-                    start_date = startDate,
-                    end_date = endDate,
-                    total_count = response.TotalCount,
-                    transactions = response.Transactions
-                });
+                    return BadRequest(new
+                    {
+                        success = false,
+                        message = "訂單編號不能為空"
+                    });
+                }
+
+                LogInfo("QueryOrderDetail", $"開始查詢訂單詳情 - OrderId: {orderId}, IncludeHistory: {includeHistory}");
+
+                // 2. 查詢 TSPG 訂單狀態
+                var tspgResponse = TspgToolkit.OrderQuery(orderId);
+
+                if (tspgResponse == null)
+                {
+                    return StatusCode(500, new
+                    {
+                        success = false,
+                        message = "無法查詢 TSPG 訂單資訊"
+                    });
+                }
+
+                bool isTspgSuccess = tspgResponse.code == "0000" || tspgResponse.code == "00";
+
+                // 3. 查詢 CRM 收費單資訊 (如果存在)
+                Entity feeEntity = null;
+                object crmInfo = null;
+
+                try
+                {
+                    toolUtility = new ToolUtilityClass(DYNAMICS_CONNECTION_NAME);
+                    feeEntity = toolUtility.RetrieveEntityByField("new_fee", "new_q_pay_card_order_no", orderId);
+
+                    if (feeEntity != null)
+                    {
+                        var payStatus = toolUtility.GetOptionSetAttribute(feeEntity, "new_pay_status");
+                        var payWay = toolUtility.GetOptionSetAttribute(feeEntity, "new_pay_way");
+                        var shouldPay = toolUtility.GetEntityMoneyAttribute(feeEntity, "new_fee_shoud_pay");
+                        var reallyPaid = toolUtility.GetEntityMoneyAttribute(feeEntity, "new_fee_really_paid");
+                        var payDate = toolUtility.GetEntityDateTimeAttribute(feeEntity, "new_pay_date");
+
+                        crmInfo = new
+                        {
+                            fee_id = feeEntity.Id.ToString(),
+                            pay_status = payStatus,
+                            pay_status_name = GetPaymentStatusName(payStatus),
+                            pay_way = payWay,
+                            pay_way_name = GetPaymentMethodName(payWay),
+                            should_pay_amount = shouldPay?.Value,
+                            really_paid_amount = reallyPaid?.Value,
+                            pay_date = payDate != DateTime.MinValue ? payDate.ToString("yyyy-MM-dd HH:mm:ss") : null
+                        };
+
+                        LogInfo("QueryOrderDetail", $"找到對應的 CRM 收費單 - FeeId: {feeEntity.Id}");
+                    }
+                    else
+                    {
+                        LogWarning("QueryOrderDetail", $"找不到對應的 CRM 收費單 - OrderNo: {orderId}");
+                    }
+                }
+                catch (Exception crmEx)
+                {
+                    LogWarning("QueryOrderDetail", $"查詢 CRM 資料時發生錯誤: {crmEx.Message}");
+                }
+
+                // 4. 建立完整回應
+                var detailResponse = new
+                {
+                    success = isTspgSuccess,
+                    order_id = orderId,
+                    tspg_data = new
+                    {
+                        status_code = tspgResponse.code,
+                        message = tspgResponse.msg,
+                        transaction_id = tspgResponse.transaction_id,
+                        order_no = tspgResponse.order_no,
+                        full_response = tspgResponse
+                    },
+                    crm_data = crmInfo,
+                    query_time = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
+                    include_history = includeHistory
+                };
+
+                LogInfo("QueryOrderDetail", $"訂單詳情查詢完成 - OrderId: {orderId}");
+
+                return Ok(detailResponse);
             }
             catch (Exception ex)
             {
-                return HandleApiError("取得交易記錄", ex);
+                LogError("QueryOrderDetail", $"查詢訂單詳情發生例外 - OrderId: {orderId}", ex);
+                return HandleApiError("查詢訂單詳情", ex);
+            }
+            finally
+            {
+                toolUtility?.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// 批次查詢多筆訂單狀態
+        /// </summary>
+        /// <param name="orderIds">訂單編號清單 (以逗號分隔)</param>
+        /// <remarks>
+        /// 用於批次查詢多筆訂單的狀態
+        /// 適用場景：
+        /// - 對帳作業
+        /// - 批次訂單狀態檢查
+        /// - 報表生成
+        ///
+        /// 請求範例：
+        /// GET /api/tspg/query-orders?orderIds=ORDER001,ORDER002,ORDER003
+        ///
+        /// 回應範例：
+        /// {
+        ///   "success": true,
+        ///   "total_count": 3,
+        ///   "success_count": 2,
+        ///   "failed_count": 1,
+        ///   "orders": [
+        ///     {
+        ///       "order_id": "ORDER001",
+        ///       "success": true,
+        ///       "status_code": "00",
+        ///       "message": "查詢成功"
+        ///     },
+        ///     ...
+        ///   ]
+        /// }
+        /// </remarks>
+        [HttpGet("query-orders")]
+        public IActionResult QueryMultipleOrders([FromQuery] string orderIds)
+        {
+            try
+            {
+                // 1. 驗證參數
+                if (string.IsNullOrWhiteSpace(orderIds))
+                {
+                    return BadRequest(new
+                    {
+                        success = false,
+                        message = "訂單編號清單不能為空"
+                    });
+                }
+
+                // 2. 解析訂單編號清單
+                var orderIdList = orderIds.Split(new[] { ',', ';', '|' }, StringSplitOptions.RemoveEmptyEntries)
+                    .Select(id => id.Trim())
+                    .Where(id => !string.IsNullOrWhiteSpace(id))
+                    .Distinct()
+                    .ToList();
+
+                if (orderIdList.Count == 0)
+                {
+                    return BadRequest(new
+                    {
+                        success = false,
+                        message = "沒有有效的訂單編號"
+                    });
+                }
+
+                // 限制批次查詢數量
+                if (orderIdList.Count > 100)
+                {
+                    return BadRequest(new
+                    {
+                        success = false,
+                        message = "單次最多只能查詢 100 筆訂單"
+                    });
+                }
+
+                LogInfo("QueryMultipleOrders", $"開始批次查詢 {orderIdList.Count} 筆訂單");
+
+                // 3. 逐筆查詢
+                var results = new List<object>();
+                int successCount = 0;
+                int failedCount = 0;
+
+                foreach (var orderId in orderIdList)
+                {
+                    try
+                    {
+                        var response = TspgToolkit.OrderQuery(orderId);
+                        bool isSuccess = response != null && (response.code == "0000" || response.code == "00");
+
+                        if (isSuccess) successCount++;
+                        else failedCount++;
+
+                        results.Add(new
+                        {
+                            order_id = orderId,
+                            success = isSuccess,
+                            status_code = response?.code ?? "9999",
+                            message = response?.msg ?? "查詢失敗",
+                            transaction_id = response?.transaction_id
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                        failedCount++;
+                        results.Add(new
+                        {
+                            order_id = orderId,
+                            success = false,
+                            status_code = "9999",
+                            message = $"查詢異常: {ex.Message}",
+                            transaction_id = (string)null
+                        });
+
+                        LogWarning("QueryMultipleOrders", $"查詢訂單 {orderId} 時發生錯誤: {ex.Message}");
+                    }
+                }
+
+                // 4. 建立回應
+                var batchResponse = new
+                {
+                    success = true,
+                    total_count = orderIdList.Count,
+                    success_count = successCount,
+                    failed_count = failedCount,
+                    orders = results,
+                    query_time = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
+                };
+
+                LogInfo("QueryMultipleOrders", $"批次查詢完成 - 總數: {orderIdList.Count}, 成功: {successCount}, 失敗: {failedCount}");
+
+                return Ok(batchResponse);
+            }
+            catch (Exception ex)
+            {
+                LogError("QueryMultipleOrders", "批次查詢訂單發生例外", ex);
+                return HandleApiError("批次查詢訂單", ex);
             }
         }
         #endregion
@@ -480,8 +687,8 @@ namespace ChurchReport.Controllers
                 OrderId = $"TEST_{DateTime.Now:yyyyMMddHHmmss}",
                 TransactionId = $"TXN_{DateTime.Now:yyyyMMddHHmmss}",
                 State = "1",
-                Cost =100,
-                ActualCost =100,
+                Cost = 100,
+                ActualCost = 100,
                 Currency = "TWD",
                 PayType = "credit",
                 UserName = "測試用戶",
@@ -497,7 +704,7 @@ namespace ChurchReport.Controllers
 
         #region 通知解析方法
         /// <summary>
-        ///解析前台通知參數 (Form 或 QueryString)
+        /// 解析前台通知參數 (Form 或 QueryString)
         /// </summary>
         /// <returns>TSPGPaymentNotification物件</returns>
         /// <remarks>
@@ -535,15 +742,15 @@ namespace ChurchReport.Controllers
                 ExRate = GetDecimalParam("ex_rate"),
                 MarkupRate = GetDecimalParam("markup_rate"),
                 Hash = GetParam("hash") ?? GetParam("signature"),
-                Cost = GetDecimalParam("cost") ?? GetDecimalParam("amt") ??0,
-                ActualCost = GetDecimalParam("actual_cost") ?? (GetDecimalParam("cost") ?? GetDecimalParam("amt") ??0),
+                Cost = GetDecimalParam("cost") ?? GetDecimalParam("amt") ?? 0,
+                ActualCost = GetDecimalParam("actual_cost") ?? (GetDecimalParam("cost") ?? GetDecimalParam("amt") ?? 0),
                 PayType = GetParam("pay_type"),
                 Currency = GetParam("currency") ?? GetParam("cur")
             };
         }
 
         /// <summary>
-        ///解析後台通知（JSON 格式）
+        /// 解析後台通知（JSON 格式）
         /// </summary>
         /// <param name="requestBody">JSON 字串</param>
         /// <returns>TSPGPaymentNotification物件</returns>
@@ -601,7 +808,7 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        ///解析後台通知的 params 資料 (所有欄位)
+        /// 解析後台通知的 params 資料 (所有欄位)
         /// </summary>
         /// <param name="notification">TSPGPaymentNotification物件</param>
         /// <param name="paramsData">params 動態物件</param>
@@ -659,7 +866,7 @@ namespace ChurchReport.Controllers
             string txAmtStr = paramsData.tx_amt?.ToString();
             if (!string.IsNullOrEmpty(txAmtStr) && decimal.TryParse(txAmtStr, out var txAmt))
             {
-                notification.Cost = txAmt /100; // 金額包含兩位小數
+                notification.Cost = txAmt / 100; // 金額包含兩位小數
                 notification.ActualCost = notification.Cost;
             }
 
@@ -672,7 +879,7 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        ///解析 DCC交易參數 (DCC 金額、幣別、匯率、貼水)
+        /// 解析 DCC交易參數 (DCC 金額、幣別、匯率、貼水)
         /// </summary>
         /// <param name="notification">TSPGPaymentNotification物件</param>
         /// <param name="paramsData">params 動態物件</param>
@@ -1152,7 +1359,7 @@ namespace ChurchReport.Controllers
             {
                 queryString += $"&dcc_amount={notification.ChAmt.Value}" +
                     $"&dcc_currency={Uri.EscapeDataString(notification.ChCurrency ?? "")}" +
-                    $"&exchange_rate={notification.ExRate ??0}";
+                    $"&exchange_rate={notification.ExRate ?? 0}";
             }
             return queryString;
         }
@@ -1208,8 +1415,8 @@ namespace ChurchReport.Controllers
             return BadRequest(new
             {
                 success = false,
-                error_code = response.code,      // TSPG 錯誤碼
-                message = response.msg           // 錯誤訊息
+                error_code = response.code, // TSPG 錯誤碼
+                message = response.msg  // 錯誤訊息
             });
         }
 
@@ -1266,6 +1473,42 @@ namespace ChurchReport.Controllers
                 success = false,
                 message = "系統錯誤，請稍後再試"
             });
+        }
+
+        /// <summary>
+        /// 取得付款狀態顯示名稱
+        /// </summary>
+        /// <param name="statusCode">付款狀態代碼</param>
+        /// <returns>狀態顯示名稱</returns>
+        private string GetPaymentStatusName(int statusCode)
+        {
+            switch (statusCode)
+            {
+                case 100000000: return "未繳費";
+                case 100000001: return "已繳費";
+                case 100000002: return "部分繳費";
+                case 100000003: return "已退款";
+                default: return $"未知狀態({statusCode})";
+            }
+        }
+
+        /// <summary>
+        /// 取得付款方式顯示名稱
+        /// </summary>
+        /// <param name="methodCode">付款方式代碼</param>
+        /// <returns>方式顯示名稱</returns>
+        private string GetPaymentMethodName(int methodCode)
+        {
+            switch (methodCode)
+            {
+                case 100000000: return "現金";
+                case 100000001: return "信用卡";
+                case 100000002: return "匯款";
+                case 100000003: return "支票";
+                case 100000004: return "LINE Pay";
+                case 100000005: return "其他";
+                default: return $"未知方式({methodCode})";
+            }
         }
         #endregion
 
@@ -1375,7 +1618,7 @@ namespace ChurchReport.Controllers
                 $"交易類型: {notification.TxType}, " +
                 $"端末: {tid}, " +
                 $"付款類別: {payType}";
-            if (notification.Cost >0)
+            if (notification.Cost > 0)
             {
                 message += $", 金額: {notification.Cost}";
             }

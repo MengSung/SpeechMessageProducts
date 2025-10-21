@@ -836,3 +836,325 @@ TSPG 網路特店暨線上授權服務系統
 } 
 } 
 第41頁，共61頁
+
+
+
+
+
+
+4.5 信用卡其他交易 
+進行除授權外之其他信用卡交易時所需呼叫的函式，使用時機與方法根據交易類型請分別參
+照【3.2信用卡授權取消】、【3.3信用卡請款交易】、【3.4信用卡請款取消】、【3.5信用卡
+退貨交易】、【3.6信用卡退貨取消】、【3.7信用卡查詢交易】。 
+介面名稱 https://[API_ROOT]/other.ashx 
+HTTP方法 POST 
+傳入參數 參數清單子欄位 資料型態 
+(最大長度) 
+說明 必
+要 
+order_no string (23) 訂單號碼 Y 
+amt string (12) 交易金額 
+包含兩位小數，如100代表1.00元。 
+若「交易類別(tx_type)」為3、4、5、6時，
+此欄位為必要欄位。 
+C 
+result_flag string (1) 回傳訊息標記 
+0:不查詢交易詳情 
+1:查詢交易詳情 
+C 
+回傳參數 參數清單子欄位 資料型態 
+(最大長度) 
+說明 必
+要 
+ret_code string (6) 交易結果回應碼 
+請參照【5.1回應碼(ret_code)說明】章節。 
+Y 
+ret_msg string (300) 回傳訊息  
+auth_id_resp string (6) 授權碼 當交易請求
+電文之回傳
+訊息標記
+(result_fl
+ C 
+rrn string (12) 調單號碼 C 
+order_status string (2) 訂單狀態碼 
+請參照【5.2訂單狀態碼
+C 
+ 
+TSPG網路特店暨線上授權服務系統 
+付款服務使用手冊REST API v2.14 
+ 
+第30頁，共61頁 
+ 
+(order_status)說明】章節。 ag)為0或未
+帶值時，欄位
+值為空。 
+auth_type string (3) 授權方式 
+SSL:SSL授權 
+3D:3D驗證 
+C 
+cur string (3) 幣別 
+NTD:新台幣 
+C 
+purchase_date string (19) 採購日期 
+(yyyy-MM-dd HH:mm:ss) 
+C 
+tx_amt string (12) 交易金額 
+包含兩位小數，如100代表
+1.00元。 
+C 
+settle_amt string (12) 請款金額 
+包含兩位小數，如100代表
+1.00元。 
+C 
+settle_seq string (12) 請款批號 C 
+settle_date string (10) 請款日期 
+(yyyy-MM-dd) 
+C 
+refund_trans_a
+ mt 
+string (12) 退貨金額 
+包含兩位小數，如100代表
+1.00元。 
+C 
+refund_rrn string (12) 退貨調單編號 C 
+refund_auth_id
+ _resp 
+string (6) 退貨授權碼 C 
+refund_date string (10) 退貨日期 
+(yyyy-MM-dd) 
+C 
+redeem_order_n
+ o 
+string (12) 紅利訂單編號 C 
+redeem_pt string (7) 折抵點數 C 
+redeem_amt string (12) 折抵金額 
+包含兩位小數，如100代表
+1.00元。 
+C 
+post_redeem_am
+ t 
+string (12) 實付金額 
+包含兩位小數，如100代表
+1.00元。 
+C 
+post_redeem_pt string (7) 剩餘點數 C 
+install_order_
+ no 
+string (12) 分期訂單號碼 C 
+install_period string (2) 分期期數 C 
+ 
+TSPG網路特店暨線上授權服務系統 
+付款服務使用手冊REST API v2.14 
+ 
+第31頁，共61頁 
+ 
+install_down_p
+ ay 
+string (12) 首期金額 
+包含兩位小數，如100代表
+1.00元。 
+C 
+install_pay string (12) 每期金額 
+包含兩位小數，如100代表
+1.00元。 
+C 
+install_down_p
+ ay_fee 
+string (12) 首期手續費 
+包含兩位小數，如100代表
+1.00元。 
+C 
+install_pay_fe
+ e 
+string (12) 每期手續費 
+包含兩位小數，如100代表
+1.00元。 
+C 
+ch_amt string (12) 交易金額(以持卡人母國幣
+別計算) 
+ 
+*持卡人母國幣別小數位數
+請參考【5.4 DCC Currency 
+List】 
+DCC交易查詢
+時才會回傳。 
+C 
+ch_currency string (3) 持卡人母國幣別(ISO 4217 
+Numeric Code) 
+請參考【5.4 DCC Currency 
+List】 
+C 
+ex_rate string (10) 轉換匯率 (1元台幣對持卡
+人本國幣別的匯率) 
+C 
+markup_rate string (5) 貼水費率(%) C 
+請款交易電文範例 
+請款交易請求電文 請款交易回應電文 
+{ 
+  "sender":"rest", 
+  "ver":"1.0.0", 
+  "mid":"999000123456789", 
+  "tid":"T0000000", 
+  "pay_type":1, 
+  "tx_type":3, 
+  "params": 
+  { 
+ "order_no":"NO01234567", 
+ "amt":"120000" 
+{ 
+  "ver":"1.0.0", 
+  "mid":"999000123456789", 
+  "tid":"T0000000", 
+  "pay_type":1, 
+  "tx_type":3, 
+  "params": 
+  { 
+ "ret_code":"00" 
+  } 
+} 
+ 
+TSPG網路特店暨線上授權服務系統 
+付款服務使用手冊REST API v2.14 
+ 
+第32頁，共61頁 
+ 
+  } 
+} 
+退貨交易電文範例 
+退貨交易請求電文 退貨交易回應電文 
+{ 
+  "sender":"rest", 
+  "ver":"1.0.0", 
+  "mid":"999000123456789", 
+  "tid":"T0000000", 
+  "pay_type":1, 
+  "tx_type":5, 
+  "params": 
+  { 
+ "order_no":"NO01234567", 
+ "amt":"120000", 
+  } 
+} 
+{ 
+  "ver":"1.0.0", 
+  "mid":"999000123456789", 
+  "tid":"T0000000", 
+  "pay_type":1, 
+  "tx_type":5, 
+  "params": 
+  { 
+ "ret_code":"00" 
+  } 
+} 
+查詢交易電文範例 
+查詢交易請求電文 查詢交易回應電文 
+{ 
+  "sender":"rest", 
+  "ver":"1.0.0", 
+  "mid":"999000123456789", 
+  "tid":"T0000000", 
+  "pay_type":1, 
+  "tx_type":7, 
+  "params": 
+  { 
+ "order_no":"NO01234567" 
+  } 
+} 
+{ 
+  "ver":"1.0.0", 
+  "mid":"999000123456789", 
+  "tid":"T0000000", 
+  "pay_type":1, 
+  "tx_type":7, 
+  "params": 
+  { 
+ "ret_code":"00" 
+  } 
+} 
+取消請款交易電文範例 
+取消請款交易請求電文 取消請款交易回應電文 
+{ 
+  "sender":"rest", 
+  "ver":"1.0.0", 
+  "mid":"999000123456789", 
+  "tid":"T0000000", 
+{ 
+  "ver":"1.0.0", 
+  "mid":"999000123456789", 
+  "tid":"T0000000", 
+  "pay_type":1, 
+ 
+TSPG網路特店暨線上授權服務系統 
+付款服務使用手冊REST API v2.14 
+ 
+第33頁，共61頁 
+ 
+  "pay_type":1, 
+  "tx_type":4, 
+  "params": 
+  { 
+ "order_no":"NO01234567", 
+ "amt":"120000" 
+  } 
+} 
+  "tx_type":4, 
+  "params": 
+  { 
+ "ret_code":"00" 
+  } 
+} 
+取消退貨交易電文範例 
+取消退貨交易請求電文 取消退貨交易回應電文 
+{ 
+  "sender":"rest", 
+  "ver":"1.0.0", 
+  "mid":"999000123456789", 
+  "tid":"T0000000", 
+  "pay_type":1, 
+  "tx_type":6, 
+  "params": 
+  { 
+ "order_no":"NO01234567", 
+ "amt":"120000" 
+  } 
+} 
+{ 
+  "ver":"1.0.0", 
+  "mid":"999000123456789", 
+  "tid":"T0000000", 
+  "pay_type":1, 
+  "tx_type":6, 
+  "params": 
+  { 
+ "ret_code":"00" 
+  } 
+} 
+取消授權交易電文範例 
+取消授權交易請求電文 取消授權交易回應電文 
+{ 
+  "sender":"rest", 
+  "ver":"1.0.0", 
+  "mid":"999000123456789", 
+  "tid":"T0000000", 
+  "pay_type":1, 
+  "tx_type":8, 
+  "params": 
+  { 
+ "order_no":"NO01234567" 
+  } 
+} 
+{ 
+  "ver":"1.0.0", 
+  "mid":"999000123456789", 
+  "tid":"T0000000", 
+  "pay_type":1, 
+  "tx_type":8, 
+  "params": 
+  { 
+ "ret_code":"00" 
+  } 
+} 
+ 
+TSPG網路特店暨線上授權服務系統 
+付款服務使用手冊REST API v2.14 
+ 
