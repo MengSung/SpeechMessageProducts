@@ -17,47 +17,54 @@ namespace ChurchReport.Controllers
     public class TSPGController : ControllerBase
     {
         #region 常數定義
-
+        // LINE Channel Access Token (用於發送 LINE 通知)
         private const string LINE_CHANNEL_ACCESS_TOKEN = @"OMjL23DpFRDgphgN7JdzA7uCpv1wb4hXtsGh4FzxP8tHzeMyYOr/ry3BBqaRNJpVUhR6wPHLN4Wa4QiG5i3P5T/Y07swP5OjfCz9DKwTYC7T4mPb8x54pwtcqK1lIdgNm6skdZnu99fBsupEcbZLBAdB04t89/1O/w1cDnyilFU=";
+        // Dynamics365連線名稱 (用於 CRM 操作)
         private const string DYNAMICS_CONNECTION_NAME = "DYNAMICS365";
-        private const int PAYMENT_STATUS_PAID = 100000001;  // 信用卡已繳費
-        private const int PAYMENT_METHOD_CREDIT_CARD = 100000001;  // 信用卡
-
+        // 狀態常數: 信用卡已繳費
+        private const int PAYMENT_STATUS_PAID =100000001;
+        //付款方式常數: 信用卡
+        private const int PAYMENT_METHOD_CREDIT_CARD =100000001;
         #endregion
 
         #region 私有欄位
-
+        // Webhook 處理器 (依賴注入)
         private readonly TSPGWebhookHandler _webhookHandler;
-
         #endregion
 
         #region 建構函式
-
+        /// <summary>
+        /// 建構子，注入 Webhook Handler
+        /// </summary>
         public TSPGController(TSPGWebhookHandler webhookHandler)
         {
             _webhookHandler = webhookHandler;
         }
-
         #endregion
 
-        #region Webhook 端點
-
+        #region Webhook端點
         /// <summary>
-        /// 付款完成返回頁面端點 (post_back_url - 前台通知)
+        ///付款完成返回頁面端點 (post_back_url - 前台通知)
         /// 用戶付款完成後的返回頁面，TSPG會將交易結果透過HTTP POST或GET方式傳送至此
         /// 此為前台通知，持卡人網頁會被重新導向至此
         /// </summary>
+        /// <remarks>
+        ///1.解析前台通知參數
+        ///2. 記錄通知日誌
+        ///3. 根據付款狀態決定導向成功或失敗頁面
+        /// </remarks>
         [HttpGet("post-back")]
         [HttpPost("post-back")]
         public IActionResult PostBack()
         {
             try
             {
-                var notification = ParsePostBackNotification();
-                LogPostBackNotification(notification);
+                var notification = ParsePostBackNotification(); //解析前台通知所有參數
+                LogPostBackNotification(notification); // 記錄日誌
 
-                bool isSuccess = IsPaymentSuccess(notification.RetCode, notification.State);
+                bool isSuccess = IsPaymentSuccess(notification.RetCode, notification.State); // 判斷付款是否成功
 
+                // 根據付款狀態導向對應頁面
                 return isSuccess
                     ? HandleSuccessfulPaymentReturn(notification)
                     : HandleSuccessfulPaymentReturn(notification); // TODO: 應改為 HandleFailedPaymentReturn
@@ -70,27 +77,32 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// 付款結果通知端點 (後台通知 - result_url)
+        ///付款結果通知端點 (後台通知 - result_url)
         /// 接收來自 TSPG 的付款結果通知 (JSON 格式)
         /// 規格參考：4.9 信用卡授權交易回應後台通知
         /// </summary>
+        /// <remarks>
+        ///1.解析 JSON 請求內容
+        ///2.解析所有回傳參數
+        ///3. 根據付款狀態更新收費單與發送通知
+        ///4. 回應 TSPG 狀態
+        /// </remarks>
         [HttpPost("result-url")]
         [HttpGet("result-url")]
         public async Task<IActionResult> ResultUrl()
         {
             string requestBody = null;
-
             try
             {
-                requestBody = await ReadRequestBodyAsync();
+                requestBody = await ReadRequestBodyAsync(); //讀取 JSON內容
                 LogInfo("PaymentNotify", $"收到後台通知: {requestBody}");
 
-                var notification = ParseBackendNotification(requestBody);
+                var notification = ParseBackendNotification(requestBody); //解析所有參數
                 bool isSuccess = notification.RetCode == "00";
 
                 if (isSuccess)
                 {
-                    UpdateFeeEntityByOrderNo(notification);
+                    UpdateFeeEntityByOrderNo(notification); // 更新收費單與發送通知
                     LogInfo("PaymentNotify", $"付款成功處理完成 - 訂單: {notification.OrderNo}");
                     return Ok(new { status = "success", message = "通知已接收並處理" });
                 }
@@ -106,14 +118,13 @@ namespace ChurchReport.Controllers
                 return StatusCode(500, new { status = "error", message = $"處理錯誤: {ex.Message}" });
             }
         }
-
         #endregion
 
         #region API 操作端點
-
         /// <summary>
-        /// 建立付款訂單
+        /// 建立付款訂單 (呼叫 TspgToolkit.OrderCreate)
         /// </summary>
+        /// <param name="request">付款請求物件</param>
         [HttpPost("create-payment")]
         public IActionResult CreatePayment([FromBody] TSPGPaymentRequest request)
         {
@@ -122,7 +133,7 @@ namespace ChurchReport.Controllers
                 if (!ModelState.IsValid)
                     return BadRequest(ModelState);
 
-                var response = TspgToolkit.OrderCreate(request);
+                var response = TspgToolkit.OrderCreate(request); // 呼叫金流建立訂單
                 return CreateApiResponse(response);
             }
             catch (Exception ex)
@@ -132,8 +143,9 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// 查詢訂單狀態
+        /// 查詢訂單狀態 (呼叫 TspgToolkit.OrderQuery)
         /// </summary>
+        /// <param name="orderId">訂單編號</param>
         [HttpGet("query-order/{orderId}")]
         public IActionResult QueryOrder(string orderId)
         {
@@ -142,7 +154,7 @@ namespace ChurchReport.Controllers
                 if (string.IsNullOrWhiteSpace(orderId))
                     return BadRequest(new { success = false, message = "訂單編號不能為空" });
 
-                var response = TspgToolkit.OrderQuery(orderId);
+                var response = TspgToolkit.OrderQuery(orderId); // 查詢訂單
                 return Ok(new
                 {
                     success = response.code == "0000",
@@ -159,8 +171,9 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// 取消訂單
+        ///取消訂單 (呼叫 TspgToolkit.CancelOrder)
         /// </summary>
+        /// <param name="orderId">訂單編號</param>
         [HttpPost("cancel-order/{orderId}")]
         public IActionResult CancelOrder(string orderId)
         {
@@ -169,7 +182,7 @@ namespace ChurchReport.Controllers
                 if (string.IsNullOrWhiteSpace(orderId))
                     return BadRequest(new { success = false, message = "訂單編號不能為空" });
 
-                var response = TspgToolkit.CancelOrder(orderId);
+                var response = TspgToolkit.CancelOrder(orderId); //取消訂單
                 return CreateSimpleApiResponse(response);
             }
             catch (Exception ex)
@@ -179,8 +192,9 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// 申請退款
+        ///申請退款 (呼叫 TspgToolkit.RefundOrder)
         /// </summary>
+        /// <param name="request">退款請求物件</param>
         [HttpPost("refund")]
         public IActionResult Refund([FromBody] TSPGRefundRequest request)
         {
@@ -189,7 +203,7 @@ namespace ChurchReport.Controllers
                 if (!ModelState.IsValid)
                     return BadRequest(ModelState);
 
-                var response = TspgToolkit.RefundOrder(request);
+                var response = TspgToolkit.RefundOrder(request); //申請退款
                 return CreateSimpleApiResponse(response);
             }
             catch (Exception ex)
@@ -199,8 +213,10 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// 信用卡請款
+        /// 信用卡請款 (呼叫 TspgToolkit.CaptureOrder)
         /// </summary>
+        /// <param name="orderId">訂單編號</param>
+        /// <param name="amount">請款金額 (可選)</param>
         [HttpPost("capture/{orderId}")]
         public IActionResult Capture(string orderId, [FromQuery] decimal? amount = null)
         {
@@ -209,7 +225,7 @@ namespace ChurchReport.Controllers
                 if (string.IsNullOrWhiteSpace(orderId))
                     return BadRequest(new { success = false, message = "訂單編號不能為空" });
 
-                var response = TspgToolkit.CaptureOrder(orderId, amount);
+                var response = TspgToolkit.CaptureOrder(orderId, amount); // 請款
                 return CreateSimpleApiResponse(response);
             }
             catch (Exception ex)
@@ -219,8 +235,10 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// 取得交易記錄
+        ///取得交易記錄 (呼叫 TspgToolkit.GetTransactionHistory)
         /// </summary>
+        /// <param name="startDate">開始日期 (YYYY-MM-DD)</param>
+        /// <param name="endDate">結束日期 (YYYY-MM-DD)</param>
         [HttpGet("transaction-history")]
         public IActionResult GetTransactionHistory([FromQuery] string startDate, [FromQuery] string endDate)
         {
@@ -232,7 +250,7 @@ namespace ChurchReport.Controllers
                 if (!DateTime.TryParse(startDate, out _) || !DateTime.TryParse(endDate, out _))
                     return BadRequest(new { success = false, message = "日期格式不正確，請使用 YYYY-MM-DD 格式" });
 
-                var response = TspgToolkit.GetTransactionHistory(startDate, endDate);
+                var response = TspgToolkit.GetTransactionHistory(startDate, endDate); // 查詢交易記錄
                 return Ok(new
                 {
                     success = response.Code == "0000",
@@ -248,13 +266,11 @@ namespace ChurchReport.Controllers
                 return HandleApiError("取得交易記錄", ex);
             }
         }
-
         #endregion
 
         #region 測試與健康檢查
-
         /// <summary>
-        /// API 健康狀態檢查
+        /// API 健康狀態檢查 (可用於監控)
         /// </summary>
         [HttpGet("health")]
         public IActionResult Health()
@@ -269,7 +285,7 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// 測試 Webhook 端點
+        /// 測試 Webhook端點 (產生測試資料)
         /// </summary>
         [HttpPost("test-webhook")]
         public IActionResult TestWebhook()
@@ -280,8 +296,8 @@ namespace ChurchReport.Controllers
                 OrderId = $"TEST_{DateTime.Now:yyyyMMddHHmmss}",
                 TransactionId = $"TXN_{DateTime.Now:yyyyMMddHHmmss}",
                 State = "1",
-                Cost = 100,
-                ActualCost = 100,
+                Cost =100,
+                ActualCost =100,
                 Currency = "TWD",
                 PayType = "credit",
                 UserName = "測試用戶",
@@ -293,19 +309,18 @@ namespace ChurchReport.Controllers
 
             return Ok(new { success = true, message = "測試 Webhook 資料已建立", test_data = testNotification });
         }
-
         #endregion
 
         #region 通知解析方法
-
         /// <summary>
-        /// 解析前台通知參數
+        ///解析前台通知參數 (Form 或 QueryString)
         /// </summary>
+        /// <returns>TSPGPaymentNotification物件</returns>
         private TSPGPaymentNotification ParsePostBackNotification()
         {
+            //依據台新規格，解析所有可能參數
             return new TSPGPaymentNotification
             {
-                // 基本參數
                 S_Mid = GetParam("s_mid"),
                 RetCode = GetParam("ret_code"),
                 TxType = GetParam("tx_type"),
@@ -315,32 +330,29 @@ namespace ChurchReport.Controllers
                 AuthIdResp = GetParam("auth_id_resp"),
                 State = GetParam("state"),
                 TransactionId = GetParam("transaction_id"),
-
-                // 特殊參數（需事先向台新申請）
                 First6DigitOfPan = GetParam("first_6_digit_of_pan"),
                 Last4DigitOfPan = GetParam("last_4_digit_of_pan"),
                 CarrierId2 = GetParam("carrierId2"),
-
-                // DCC 交易參數
                 ChAmt = GetDecimalParam("ch_amt"),
                 ChCurrency = GetParam("ch_currency"),
                 ExRate = GetDecimalParam("ex_rate"),
                 MarkupRate = GetDecimalParam("markup_rate"),
-
-                // 其他參數
                 Hash = GetParam("hash") ?? GetParam("signature"),
-                Cost = GetDecimalParam("cost") ?? GetDecimalParam("amt") ?? 0,
-                ActualCost = GetDecimalParam("actual_cost") ?? (GetDecimalParam("cost") ?? GetDecimalParam("amt") ?? 0),
+                Cost = GetDecimalParam("cost") ?? GetDecimalParam("amt") ??0,
+                ActualCost = GetDecimalParam("actual_cost") ?? (GetDecimalParam("cost") ?? GetDecimalParam("amt") ??0),
                 PayType = GetParam("pay_type"),
                 Currency = GetParam("currency") ?? GetParam("cur")
             };
         }
 
         /// <summary>
-        /// 解析後台通知（JSON 格式）
+        ///解析後台通知（JSON 格式）
         /// </summary>
+        /// <param name="requestBody">JSON 字串</param>
+        /// <returns>TSPGPaymentNotification物件</returns>
         private TSPGPaymentNotification ParseBackendNotification(string requestBody)
         {
+            //依據台新規格，解析所有外層與 params參數
             dynamic jsonData = Newtonsoft.Json.JsonConvert.DeserializeObject(requestBody);
             var notification = new TSPGPaymentNotification();
 
@@ -353,7 +365,7 @@ namespace ChurchReport.Controllers
             int? payType = jsonData.pay_type;
             int? txType = jsonData.tx_type;
 
-            // params 參數清單
+            // params參數清單
             var paramsData = jsonData.@params;
             if (paramsData != null)
             {
@@ -365,8 +377,10 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// 解析後台通知的 params 資料
+        ///解析後台通知的 params 資料 (所有欄位)
         /// </summary>
+        /// <param name="notification">TSPGPaymentNotification物件</param>
+        /// <param name="paramsData">params 動態物件</param>
         private void ParseBackendParamsData(TSPGPaymentNotification notification, dynamic paramsData)
         {
             // 必要參數
@@ -393,7 +407,7 @@ namespace ChurchReport.Controllers
             string txAmtStr = paramsData.tx_amt?.ToString();
             if (!string.IsNullOrEmpty(txAmtStr) && decimal.TryParse(txAmtStr, out var txAmt))
             {
-                notification.Cost = txAmt / 100;  // 金額包含兩位小數
+                notification.Cost = txAmt /100; // 金額包含兩位小數
                 notification.ActualCost = notification.Cost;
             }
 
@@ -401,13 +415,15 @@ namespace ChurchReport.Controllers
             notification.First6DigitOfPan = paramsData.first_6_digit_of_pan?.ToString();
             notification.Last4DigitOfPan = paramsData.last_4_digit_of_pan?.ToString();
 
-            // DCC 交易參數
+            // DCC交易參數
             ParseDccParameters(notification, paramsData);
         }
 
         /// <summary>
-        /// 解析 DCC 交易參數
+        ///解析 DCC交易參數 (DCC 金額、幣別、匯率、貼水)
         /// </summary>
+        /// <param name="notification">TSPGPaymentNotification物件</param>
+        /// <param name="paramsData">params 動態物件</param>
         private void ParseDccParameters(TSPGPaymentNotification notification, dynamic paramsData)
         {
             string chAmtStr = paramsData.ch_amt?.ToString();
@@ -415,15 +431,12 @@ namespace ChurchReport.Controllers
             {
                 notification.ChAmt = chAmt;
             }
-
             notification.ChCurrency = paramsData.ch_currency?.ToString();
-
             string exRateStr = paramsData.ex_rate?.ToString();
             if (!string.IsNullOrEmpty(exRateStr) && decimal.TryParse(exRateStr, out var exRate))
             {
                 notification.ExRate = exRate;
             }
-
             string markupRateStr = paramsData.markup_rate?.ToString();
             if (!string.IsNullOrEmpty(markupRateStr) && decimal.TryParse(markupRateStr, out var markupRate))
             {
@@ -432,8 +445,9 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// 讀取請求內容
+        /// 讀取請求內容 (支援 UTF-8)
         /// </summary>
+        /// <returns>請求內容字串</returns>
         private async Task<string> ReadRequestBodyAsync()
         {
             using (var reader = new System.IO.StreamReader(Request.Body, System.Text.Encoding.UTF8))
@@ -441,7 +455,6 @@ namespace ChurchReport.Controllers
                 return await reader.ReadToEndAsync();
             }
         }
-
         #endregion
 
         #region 參數取得方法
@@ -449,24 +462,26 @@ namespace ChurchReport.Controllers
         /// <summary>
         /// 從 Request 中取得參數值（支援 GET 和 POST）
         /// </summary>
+        /// <param name="key">參數名稱</param>
+        /// <returns>參數值</returns>
         private string GetParam(string key)
         {
             if (Request.Method == "POST" && Request.HasFormContentType && Request.Form.ContainsKey(key))
             {
                 return Request.Form[key].ToString();
             }
-
             if (Request.Query.ContainsKey(key))
             {
                 return Request.Query[key].ToString();
             }
-
             return null;
         }
 
         /// <summary>
-        /// 從 Request 中取得 decimal 參數值
+        /// 從 Request 中取得 decimal參數值
         /// </summary>
+        /// <param name="key">參數名稱</param>
+        /// <returns>decimal?參數值</returns>
         private decimal? GetDecimalParam(string key)
         {
             var value = GetParam(key);
@@ -476,14 +491,15 @@ namespace ChurchReport.Controllers
             }
             return null;
         }
-
         #endregion
 
         #region 業務邏輯處理
-
         /// <summary>
-        /// 判斷付款是否成功
+        /// 判斷付款是否成功 (根據 retCode 或 state)
         /// </summary>
+        /// <param name="retCode">回應碼</param>
+        /// <param name="state">狀態</param>
+        /// <returns>是否成功</returns>
         private bool IsPaymentSuccess(string retCode, string state)
         {
             retCode = (retCode ?? string.Empty).Trim();
@@ -493,12 +509,12 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// 更新收費單狀態
+        /// 更新收費單狀態 (依據訂單號查詢並更新付款資訊)
         /// </summary>
+        /// <param name="notification">TSPGPaymentNotification物件</param>
         private void UpdateFeeEntityByOrderNo(TSPGPaymentNotification notification)
         {
             ToolUtilityClass toolUtility = null;
-
             try
             {
                 var orderNo = notification.OrderNo ?? notification.OrderId;
@@ -507,21 +523,16 @@ namespace ChurchReport.Controllers
                     LogWarning("UpdateFeeEntity", "訂單編號為空，無法更新收費單");
                     return;
                 }
-
                 toolUtility = new ToolUtilityClass(DYNAMICS_CONNECTION_NAME);
                 Entity feeEntity = toolUtility.RetrieveEntityByField("new_fee", "new_q_pay_card_order_no", orderNo);
-
                 if (feeEntity == null)
                 {
                     LogWarning("UpdateFeeEntity", $"找不到對應的收費單 - OrderNo: {orderNo}");
                     return;
                 }
-
                 UpdateFeeEntityFields(toolUtility, feeEntity, notification);
                 toolUtility.UpdateEntity(ref feeEntity);
-
                 LogInfo("UpdateFeeEntity", $"成功更新收費單 - OrderNo: {orderNo}, FeeId: {feeEntity.Id}");
-
                 // 發送 LINE 通知
                 var amount = toolUtility.GetEntityMoneyAttribute(feeEntity, "new_fee_shoud_pay");
                 SendPaymentNotificationToContact(toolUtility, feeEntity, notification, amount.Value);
@@ -537,37 +548,39 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// 更新收費單欄位
+        /// 更新收費單欄位 (付款狀態、金額、日期、說明)
         /// </summary>
+        /// <param name="toolUtility">CRM 工具</param>
+        /// <param name="feeEntity">收費單 Entity</param>
+        /// <param name="notification">TSPGPaymentNotification物件</param>
         private void UpdateFeeEntityFields(ToolUtilityClass toolUtility, Entity feeEntity, TSPGPaymentNotification notification)
         {
             var shouldPayMoney = toolUtility.GetEntityMoneyAttribute(feeEntity, "new_fee_shoud_pay");
             var orderNo = notification.OrderNo ?? notification.OrderId;
-
             // 更新付款狀態
             toolUtility.SetOptionSetAttribute(ref feeEntity, "new_pay_status", PAYMENT_STATUS_PAID);
-
             // 更新實收金額（TODO: 應該使用實際金額而非應收金額）
             toolUtility.SetEntityMoneyAttribute(ref feeEntity, "new_fee_really_paid", shouldPayMoney);
-
             // 計算差額
             toolUtility.SetEntityMoneyAttribute(ref feeEntity, "new_difference_fee_paid", new Money(0));
-
             // 設定付款日期和方式
             toolUtility.SetEntityDateTimeAttribute(ref feeEntity, "new_pay_date", DateTime.Now);
             toolUtility.SetOptionSetAttribute(ref feeEntity, "new_pay_way", PAYMENT_METHOD_CREDIT_CARD);
-
             // 更新說明
             var originalDescription = toolUtility.GetEntityStringAttribute(feeEntity, "new_description");
             var newDescription = $"{originalDescription}{Environment.NewLine}" +
-                $"[TSPG付款成功] 訂單號:{orderNo}, 交易號:{notification.TransactionId}, " +
+                $"[TSPG付款成功] 訂單號:{orderNo},交易號:{notification.TransactionId}, " +
                 $"金額:{shouldPayMoney}, 授權碼:{notification.AuthIdResp}, 時間:{DateTime.Now}";
             toolUtility.SetEntityStringAttribute(ref feeEntity, "new_description", newDescription);
         }
 
         /// <summary>
-        /// 發送付款通知給連絡人
+        /// 發送付款通知給連絡人 (LINE)
         /// </summary>
+        /// <param name="toolUtility">CRM 工具</param>
+        /// <param name="feeEntity">收費單 Entity</param>
+        /// <param name="notification">TSPGPaymentNotification物件</param>
+        /// <param name="amount">金額</param>
         private void SendPaymentNotificationToContact(ToolUtilityClass toolUtility, Entity feeEntity,
             TSPGPaymentNotification notification, decimal amount)
         {
@@ -579,25 +592,21 @@ namespace ChurchReport.Controllers
                     LogWarning("SendNotification", "收費單沒有關聯的連絡人");
                     return;
                 }
-
                 Entity contactEntity = toolUtility.RetrieveEntity("contact", contactId);
                 if (contactEntity == null)
                 {
                     LogWarning("SendNotification", $"找不到連絡人 - ContactId: {contactId}");
                     return;
                 }
-
                 string lineId = toolUtility.GetEntityStringAttribute(contactEntity, "new_lineid");
                 if (string.IsNullOrEmpty(lineId))
                 {
                     LogWarning("SendNotification", $"連絡人沒有 LINE ID - ContactId: {contactId}");
                     return;
                 }
-
                 string fullName = toolUtility.GetEntityStringAttribute(contactEntity, "fullname");
                 var orderNo = notification.OrderNo ?? notification.OrderId;
                 var message = BuildPaymentSuccessMessage(fullName, orderNo, amount, notification);
-
                 SendLineMessage(lineId, message);
                 LogInfo("SendNotification", $"已發送付款通知 LINE 訊息 - ContactId: {contactId}, LineId: {lineId}");
             }
@@ -608,12 +617,17 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// 建立付款成功訊息
+        /// 建立付款成功訊息 (LINE)
         /// </summary>
+        /// <param name="fullName">收款人姓名</param>
+        /// <param name="orderNo">訂單編號</param>
+        /// <param name="amount">金額</param>
+        /// <param name="notification">TSPGPaymentNotification物件</param>
+        /// <returns>訊息內容</returns>
         private string BuildPaymentSuccessMessage(string fullName, string orderNo, decimal amount,
             TSPGPaymentNotification notification)
         {
-            var message = $"【TSPG 付款成功通知】{Environment.NewLine}{Environment.NewLine}";
+            var message = $"【TSPG付款成功通知】{Environment.NewLine}{Environment.NewLine}";
             message += $"親愛的 {fullName}，您好！{Environment.NewLine}{Environment.NewLine}";
             message += $"您的奉獻已成功完成，感謝您的支持！{Environment.NewLine}{Environment.NewLine}";
             message += $"付款資訊：{Environment.NewLine}";
@@ -621,24 +635,23 @@ namespace ChurchReport.Controllers
             message += $"付款金額：NT$ {amount:N0}{Environment.NewLine}";
             message += $"付款時間：{DateTime.Now:yyyy/MM/dd HH:mm:ss}{Environment.NewLine}";
             message += $"付款方式：信用卡{Environment.NewLine}";
-
             if (!string.IsNullOrEmpty(notification.AuthIdResp))
             {
                 message += $"授權碼：{notification.AuthIdResp}{Environment.NewLine}";
             }
-
             if (!string.IsNullOrEmpty(notification.TransactionId))
             {
                 message += $"交易編號：{notification.TransactionId}{Environment.NewLine}";
             }
-
             message += $"{Environment.NewLine}願上帝賜福與您！";
             return message;
         }
 
         /// <summary>
-        /// 發送 LINE 訊息
+        /// 發送 LINE 訊息 (同步)
         /// </summary>
+        /// <param name="lineId">LINE ID</param>
+        /// <param name="message">訊息內容</param>
         private void SendLineMessage(string lineId, string message)
         {
             try
@@ -654,27 +667,24 @@ namespace ChurchReport.Controllers
                 throw;
             }
         }
-
         #endregion
 
         #region 返回處理方法
-
         /// <summary>
-        /// 處理付款成功的返回
+        /// 處理付款成功的返回 (導向成功頁面)
         /// </summary>
+        /// <param name="notification">TSPGPaymentNotification物件</param>
+        /// <returns>Redirect 結果</returns>
         private IActionResult HandleSuccessfulPaymentReturn(TSPGPaymentNotification notification)
         {
             ToolUtilityClass toolUtility = null;
             try
             {
                 LogInfo("PaymentReturn", $"付款成功 - 訂單: {notification.OrderNo}, 授權碼: {notification.AuthIdResp}");
-
                 UpdateFeeEntityByOrderNo(notification);
-
                 var orderNo = notification.OrderNo ?? notification.OrderId;
                 toolUtility = new ToolUtilityClass(DYNAMICS_CONNECTION_NAME);
                 Entity feeEntity = toolUtility.RetrieveEntityByField("new_fee", "new_q_pay_card_order_no", orderNo);
-
                 var queryString = BuildSuccessQueryString(notification, toolUtility, feeEntity);
                 return Redirect($"/payment-success?{queryString}");
             }
@@ -690,24 +700,28 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// 處理付款失敗的返回
+        /// 處理付款失敗的返回 (導向失敗頁面)
         /// </summary>
+        /// <param name="notification">TSPGPaymentNotification物件</param>
+        /// <returns>Redirect 結果</returns>
         private IActionResult HandleFailedPaymentReturn(TSPGPaymentNotification notification)
         {
             LogInfo("PaymentReturn", $"付款失敗 - 訂單: {notification.OrderNo}, 錯誤: {notification.RetMsg}");
-
             var errorMsg = notification.RetMsg ?? "付款失敗";
             var orderId = notification.OrderNo ?? notification.OrderId ?? "UNKNOWN";
             var retCode = notification.RetCode ?? "";
-
             return Redirect($"/payment-failed?order_id={Uri.EscapeDataString(orderId)}" +
                 $"&error={Uri.EscapeDataString(errorMsg)}" +
                 $"&ret_code={Uri.EscapeDataString(retCode)}");
         }
 
         /// <summary>
-        /// 建立成功頁面查詢字串
+        /// 建立成功頁面查詢字串 (包含 DCC 資訊)
         /// </summary>
+        /// <param name="notification">TSPGPaymentNotification物件</param>
+        /// <param name="toolUtility">CRM 工具</param>
+        /// <param name="feeEntity">收費單 Entity</param>
+        /// <returns>查詢字串</returns>
         private string BuildSuccessQueryString(TSPGPaymentNotification notification,
             ToolUtilityClass toolUtility, Entity feeEntity)
         {
@@ -716,55 +730,67 @@ namespace ChurchReport.Controllers
             var amount = Convert.ToInt32(toolUtility.GetEntityMoneyAttribute(feeEntity, "new_fee_shoud_pay").Value).ToString();
             var authCode = notification.AuthIdResp ?? "";
             var txType = notification.TxType ?? "";
-
             var queryString = $"order_id={Uri.EscapeDataString(orderId)}" +
                 $"&transaction_id={Uri.EscapeDataString(txnId)}" +
                 $"&amount={amount}" +
                 $"&auth_code={Uri.EscapeDataString(authCode)}" +
                 $"&tx_type={Uri.EscapeDataString(txType)}";
-
             // DCC 資訊
             if (notification.ChAmt.HasValue)
             {
                 queryString += $"&dcc_amount={notification.ChAmt.Value}" +
                     $"&dcc_currency={Uri.EscapeDataString(notification.ChCurrency ?? "")}" +
-                    $"&exchange_rate={notification.ExRate ?? 0}";
+                    $"&exchange_rate={notification.ExRate ??0}";
             }
-
             return queryString;
         }
-
         #endregion
 
         #region API 回應輔助方法
-
         /// <summary>
-        /// 建立 API 回應
+        /// 建立 API 回應 (含付款網址)
+        /// 根據 TSPG 回應物件的狀態，建立對應的 HTTP 回應
+        /// 成功時返回 200 OK 與付款網址，失敗時返回 400 BadRequest 與錯誤資訊
         /// </summary>
+        /// <param name="response">TSPG 回應物件，包含 code、uid、url、msg 等屬性</param>
+        /// <returns>
+        /// IActionResult:
+        /// - 成功 (code == "0000"): Ok() 包含 { success: true, order_id, payment_url, message }
+        /// - 失敗: BadRequest() 包含 { success: false, error_code, message }
+        /// </returns>
+        /// <remarks>
+        /// 此方法用於統一處理 TSPG API 呼叫的回應格式
+        /// 主要用於建立付款訂單的 API 端點
+        /// </remarks>
         private IActionResult CreateApiResponse(dynamic response)
         {
+            // 檢查 TSPG 回應碼是否為成功 (0000)
             if (response.code == "0000")
             {
+                // 成功回應：返回付款網址等資訊
                 return Ok(new
                 {
                     success = true,
-                    order_id = response.uid,
-                    payment_url = response.url,
-                    message = response.msg
+                    order_id = response.uid,      // 訂單編號
+                    payment_url = response.url,   // 付款網址 (用戶將被導向此網址進行付款)
+                    message = response.msg        // 成功訊息
                 });
             }
 
+            // 失敗回應：返回錯誤資訊
             return BadRequest(new
             {
                 success = false,
-                error_code = response.code,
-                message = response.msg
+                error_code = response.code,      // TSPG 錯誤碼
+                message = response.msg           // 錯誤訊息
             });
         }
 
         /// <summary>
-        /// 建立簡單 API 回應
+        /// 建立簡單 API 回應 (不含付款網址)
         /// </summary>
+        /// <param name="response">TSPG 回應物件</param>
+        /// <returns>IActionResult</returns>
         private IActionResult CreateSimpleApiResponse(dynamic response)
         {
             return Ok(new
@@ -776,8 +802,11 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// 處理 API 錯誤
+        /// 處理 API 錯誤 (統一格式)
         /// </summary>
+        /// <param name="operation">操作名稱</param>
+        /// <param name="ex">例外</param>
+        /// <returns>IActionResult</returns>
         private IActionResult HandleApiError(string operation, Exception ex)
         {
             LogError("API", $"{operation}失敗", ex);
@@ -787,14 +816,13 @@ namespace ChurchReport.Controllers
                 message = "系統錯誤，請稍後再試"
             });
         }
-
         #endregion
 
         #region 日誌記錄方法
-
         /// <summary>
-        /// 記錄前台通知
+        /// 記錄前台通知 (格式化日誌)
         /// </summary>
+        /// <param name="notification">TSPGPaymentNotification物件</param>
         private void LogPostBackNotification(TSPGPaymentNotification notification)
         {
             var logMessage = BuildPostBackLogMessage(notification);
@@ -802,8 +830,10 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// 建立前台通知日誌訊息
+        /// 建立前台通知日誌訊息 (格式化)
         /// </summary>
+        /// <param name="notification">TSPGPaymentNotification物件</param>
+        /// <returns>日誌字串</returns>
         private string BuildPostBackLogMessage(TSPGPaymentNotification notification)
         {
             var message = $"[TSPG PostBackUrl] " +
@@ -812,28 +842,29 @@ namespace ChurchReport.Controllers
                 $"狀態: {notification.State}, " +
                 $"結果碼: {notification.RetCode}, " +
                 $"交易類型: {notification.TxType}";
-
             if (!string.IsNullOrEmpty(notification.First6DigitOfPan) || !string.IsNullOrEmpty(notification.Last4DigitOfPan))
             {
                 message += $", 卡號: {notification.First6DigitOfPan}******{notification.Last4DigitOfPan}";
             }
-
             if (!string.IsNullOrEmpty(notification.CarrierId2))
             {
                 message += $", 載具: {notification.CarrierId2}";
             }
-
             if (notification.ChAmt.HasValue)
             {
                 message += $", DCC金額: {notification.ChAmt} {notification.ChCurrency}, 匯率: {notification.ExRate}";
             }
-
             return message;
         }
 
         /// <summary>
-        /// 記錄後台通知
+        /// 記錄後台通知 (格式化日誌)
         /// </summary>
+        /// <param name="notification">TSPGPaymentNotification物件</param>
+        /// <param name="tid">端末代號</param>
+        /// <param name="payType">付款類別</param>
+        /// <param name="txType">交易類別</param>
+        /// <param name="rawJson">原始 JSON</param>
         private void LogBackendNotification(TSPGPaymentNotification notification, string tid,
             int? payType, int? txType, string rawJson)
         {
@@ -843,8 +874,13 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// 建立後台通知日誌訊息
+        /// 建立後台通知日誌訊息 (格式化)
         /// </summary>
+        /// <param name="notification">TSPGPaymentNotification物件</param>
+        /// <param name="tid">端末代號</param>
+        /// <param name="payType">付款類別</param>
+        /// <param name="txType">交易類別</param>
+        /// <returns>日誌字串</returns>
         private string BuildBackendLogMessage(TSPGPaymentNotification notification, string tid,
             int? payType, int? txType)
         {
@@ -857,50 +893,52 @@ namespace ChurchReport.Controllers
                 $"交易類型: {notification.TxType}, " +
                 $"端末: {tid}, " +
                 $"付款類別: {payType}";
-
-            if (notification.Cost > 0)
+            if (notification.Cost >0)
             {
                 message += $", 金額: {notification.Cost}";
             }
-
             if (!string.IsNullOrEmpty(notification.First6DigitOfPan) || !string.IsNullOrEmpty(notification.Last4DigitOfPan))
             {
                 message += $", 卡號: {notification.First6DigitOfPan}******{notification.Last4DigitOfPan}";
             }
-
             if (!string.IsNullOrEmpty(notification.CarrierId2))
             {
                 message += $", 載具: {notification.CarrierId2}";
             }
-
             if (notification.ChAmt.HasValue)
             {
                 message += $", DCC金額: {notification.ChAmt} {notification.ChCurrency}, " +
                     $"匯率: {notification.ExRate}, 貼水: {notification.MarkupRate}%";
             }
-
             return message;
         }
 
         /// <summary>
-        /// 記錄資訊
+        /// 記錄資訊 (一般訊息)
         /// </summary>
+        /// <param name="method">方法名稱</param>
+        /// <param name="message">訊息內容</param>
         private void LogInfo(string method, string message)
         {
             System.Diagnostics.Trace.WriteLine($"[TSPG {method}] {message}");
         }
 
         /// <summary>
-        /// 記錄警告
+        /// 記錄警告 (警告訊息)
         /// </summary>
+        /// <param name="method">方法名稱</param>
+        /// <param name="message">訊息內容</param>
         private void LogWarning(string method, string message)
         {
             System.Diagnostics.Trace.WriteLine($"[TSPG {method}] 警告: {message}");
         }
 
         /// <summary>
-        /// 記錄錯誤
+        /// 記錄錯誤 (例外訊息與堆疊)
         /// </summary>
+        /// <param name="method">方法名稱</param>
+        /// <param name="message">錯誤訊息</param>
+        /// <param name="ex">例外</param>
         private void LogError(string method, string message, Exception ex)
         {
             System.Diagnostics.Trace.WriteLine($"[TSPG {method}] {message}: {ex.Message}");
