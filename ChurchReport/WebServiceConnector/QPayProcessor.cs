@@ -1052,7 +1052,7 @@ namespace ChurchReport.WebServiceConnector
                 // 永豐: Status="S" 表示成功
                 bool isSuccess = payPageResponse.code == "0000" || payPageResponse.code == "00";
 
-                // 因為尚未上線，目前暫時無法使用信用卡支付，所以還原為null
+                // TODO:因為尚未上線，目前暫時無法使用信用卡支付，所以還原為null
                 payPageResponse.url = null;
 
                 string status = isSuccess ? "S" : "F";

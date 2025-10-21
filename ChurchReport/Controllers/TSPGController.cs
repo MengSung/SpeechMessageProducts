@@ -12,30 +12,65 @@ namespace ChurchReport.Controllers
     /// TSPG (台新金流) API 控制器
     /// 處理來自台新金流的 Webhook 通知和其他 API 操作
     /// </summary>
+    /// <remarks>
+    /// 此控制器負責整合台新金流支付系統，提供完整的支付處理功能：
+    ///
+    /// 主要功能：
+    /// 1. Webhook 通知處理 - 接收並處理 TSPG 的前台和後台通知
+    /// 2. 訂單管理 - 建立、查詢、取消訂單
+    /// 3. 支付操作 - 退款、請款等
+    /// 4. CRM 整合 - 自動更新 Dynamics365 收費單狀態
+    /// 5. 通知服務 - 透過 LINE Bot 發送付款成功通知
+    ///
+    /// 架構特點：
+    /// - 使用 ASP.NET Core Web API
+    /// - 依賴注入 (TSPGWebhookHandler)
+    /// - 統一的錯誤處理和日誌記錄
+    /// - 支援前台通知 (post_back_url) 和後台通知 (result_url)
+    /// - 完整的 DCC (動態貨幣轉換) 支援
+    ///
+    /// 安全考量：
+    /// - 敏感資料 (如卡號) 只記錄部分資訊
+    /// - 使用 HTTPS 確保資料傳輸安全
+    /// - 驗證請求來源和參數完整性
+    ///
+    /// 依賴服務：
+    /// - TspgToolkit: 台新金流 SDK
+    /// - ToolUtilityClass: CRM 操作工具
+    /// - Line.Messaging: LINE Bot API
+    /// - TSPGWebhookHandler: Webhook 處理服務
+    /// </remarks>
     [Route("api/[controller]")]
     [ApiController]
     public class TSPGController : ControllerBase
     {
         #region 常數定義
         // LINE Channel Access Token (用於發送 LINE 通知)
+        // 此 Token 用於驗證 LINE Bot API 呼叫，應妥善保管避免洩露
         private const string LINE_CHANNEL_ACCESS_TOKEN = @"OMjL23DpFRDgphgN7JdzA7uCpv1wb4hXtsGh4FzxP8tHzeMyYOr/ry3BBqaRNJpVUhR6wPHLN4Wa4QiG5i3P5T/Y07swP5OjfCz9DKwTYC7T4mPb8x54pwtcqK1lIdgNm6skdZnu99fBsupEcbZLBAdB04t89/1O/w1cDnyilFU=";
         // Dynamics365連線名稱 (用於 CRM 操作)
+        // 指定 CRM 連線配置名稱，對應 appsettings.json 中的連線字串
         private const string DYNAMICS_CONNECTION_NAME = "DYNAMICS365";
         // 狀態常數: 信用卡已繳費
+        // CRM 中 new_pay_status 欄位的選項集值，表示付款已完成
         private const int PAYMENT_STATUS_PAID =100000001;
         //付款方式常數: 信用卡
+        // CRM 中 new_pay_way 欄位的選項集值，表示使用信用卡付款
         private const int PAYMENT_METHOD_CREDIT_CARD =100000001;
         #endregion
 
         #region 私有欄位
         // Webhook 處理器 (依賴注入)
+        // 用於處理 TSPG Webhook 通知的服務類別
         private readonly TSPGWebhookHandler _webhookHandler;
         #endregion
 
         #region 建構函式
         /// <summary>
         /// 建構子，注入 Webhook Handler
+        /// ASP.NET Core 依賴注入容器會自動提供 TSPGWebhookHandler 實例
         /// </summary>
+        /// <param name="webhookHandler">TSPG Webhook 處理器實例</param>
         public TSPGController(TSPGWebhookHandler webhookHandler)
         {
             _webhookHandler = webhookHandler;
@@ -49,9 +84,20 @@ namespace ChurchReport.Controllers
         /// 此為前台通知，持卡人網頁會被重新導向至此
         /// </summary>
         /// <remarks>
-        ///1.解析前台通知參數
-        ///2. 記錄通知日誌
-        ///3. 根據付款狀態決定導向成功或失敗頁面
+        ///處理流程：
+        ///1. 解析 TSPG 傳送的前台通知參數 (Form 或 QueryString)
+        ///2. 記錄完整的通知資訊到日誌系統
+        ///3. 根據 retCode 或 state 判斷付款是否成功
+        ///4. 根據付款狀態重新導向到成功或失敗頁面
+        ///
+        ///注意：目前實作中成功與失敗都導向成功頁面 (TODO: 應修正為 HandleFailedPaymentReturn)
+        ///
+        ///TSPG 前台通知參數範例：
+        ///- ret_code: "00" (成功) 或其他錯誤碼
+        ///- order_no: 訂單編號
+        ///- transaction_id: 交易編號
+        ///- auth_id_resp: 授權碼
+        ///- state: "1" (成功)
         /// </remarks>
         [HttpGet("post-back")]
         [HttpPost("post-back")]
@@ -82,10 +128,31 @@ namespace ChurchReport.Controllers
         /// 規格參考：4.9 信用卡授權交易回應後台通知
         /// </summary>
         /// <remarks>
-        ///1.解析 JSON 請求內容
-        ///2.解析所有回傳參數
-        ///3. 根據付款狀態更新收費單與發送通知
-        ///4. 回應 TSPG 狀態
+        ///處理流程：
+        ///1. 非同步讀取 HTTP 請求的 JSON Body 內容
+        ///2. 記錄完整的原始 JSON 請求到日誌系統
+        ///3. 解析 JSON 結構，提取所有必要參數
+        ///4. 根據 retCode 判斷交易是否成功 (00=成功)
+        ///5. 若成功：更新 CRM 收費單狀態並發送 LINE 通知
+        ///6. 若失敗：僅記錄失敗資訊，不更新 CRM
+        ///7. 回應 TSPG 狀態確認 (TSPG 會重試失敗的通知)
+        ///
+        ///TSPG 後台通知 JSON 結構：
+        ///{
+        ///  "ver": "1.0",
+        ///  "mid": "特店代號",
+        ///  "tid": "端末代號",
+        ///  "pay_type": 1,
+        ///  "tx_type": 1,
+        ///  "params": {
+        ///    "ret_code": "00",
+        ///    "order_no": "訂單編號",
+        ///    "auth_id_resp": "授權碼",
+        ///    "rrn": "交易編號",
+        ///    "tx_amt": 交易金額(分),
+        ///    ...
+        ///  }
+        ///}
         /// </remarks>
         [HttpPost("result-url")]
         [HttpGet("result-url")]
@@ -124,7 +191,21 @@ namespace ChurchReport.Controllers
         /// <summary>
         /// 建立付款訂單 (呼叫 TspgToolkit.OrderCreate)
         /// </summary>
-        /// <param name="request">付款請求物件</param>
+        /// <param name="request">付款請求物件，包含訂單資訊</param>
+        /// <remarks>
+        /// 處理流程：
+        /// 1. 驗證請求模型 (ModelState)
+        /// 2. 呼叫 TspgToolkit.OrderCreate 建立訂單
+        /// 3. 使用 CreateApiResponse 統一處理回應
+        ///
+        /// 請求物件 (TSPGPaymentRequest) 應包含：
+        /// - 訂單基本資訊 (金額、商品等)
+        /// - 回呼網址 (post_back_url, result_url)
+        /// - 客戶資訊等
+        ///
+        /// 成功回應包含付款網址，用戶將被導向 TSPG 付款頁面
+        /// 失敗時返回錯誤資訊
+        /// </remarks>
         [HttpPost("create-payment")]
         public IActionResult CreatePayment([FromBody] TSPGPaymentRequest request)
         {
@@ -146,6 +227,21 @@ namespace ChurchReport.Controllers
         /// 查詢訂單狀態 (呼叫 TspgToolkit.OrderQuery)
         /// </summary>
         /// <param name="orderId">訂單編號</param>
+        /// <remarks>
+        /// 處理流程：
+        /// 1. 驗證訂單編號參數
+        /// 2. 呼叫 TspgToolkit.OrderQuery 查詢訂單
+        /// 3. 返回統一格式的查詢結果
+        ///
+        /// 回應包含：
+        /// - success: 是否查詢成功
+        /// - order_id: 訂單編號
+        /// - status_code: TSPG 狀態碼
+        /// - message: 狀態訊息
+        /// - data: 完整的 TSPG 回應物件
+        ///
+        /// 用於檢查訂單付款狀態或除錯
+        /// </remarks>
         [HttpGet("query-order/{orderId}")]
         public IActionResult QueryOrder(string orderId)
         {
@@ -174,6 +270,17 @@ namespace ChurchReport.Controllers
         ///取消訂單 (呼叫 TspgToolkit.CancelOrder)
         /// </summary>
         /// <param name="orderId">訂單編號</param>
+        /// <remarks>
+        /// 處理流程：
+        /// 1. 驗證訂單編號參數
+        /// 2. 呼叫 TspgToolkit.CancelOrder 取消訂單
+        /// 3. 使用 CreateSimpleApiResponse 返回結果
+        ///
+        /// 注意：取消訂單通常在付款前進行
+        /// 已付款的訂單應使用退款功能
+        ///
+        /// 適用場景：用戶取消購物車、系統逾時取消等
+        /// </remarks>
         [HttpPost("cancel-order/{orderId}")]
         public IActionResult CancelOrder(string orderId)
         {
@@ -194,7 +301,21 @@ namespace ChurchReport.Controllers
         /// <summary>
         ///申請退款 (呼叫 TspgToolkit.RefundOrder)
         /// </summary>
-        /// <param name="request">退款請求物件</param>
+        /// <param name="request">退款請求物件，包含退款金額等資訊</param>
+        /// <remarks>
+        /// 處理流程：
+        /// 1. 驗證請求模型
+        /// 2. 呼叫 TspgToolkit.RefundOrder 申請退款
+        /// 3. 使用 CreateSimpleApiResponse 返回結果
+        ///
+        /// 退款請求物件應包含：
+        /// - 訂單編號
+        /// - 退款金額
+        /// - 退款原因等
+        ///
+        /// 注意：退款通常有時間限制和金額限制
+        /// 應在 CRM 中記錄退款記錄
+        /// </remarks>
         [HttpPost("refund")]
         public IActionResult Refund([FromBody] TSPGRefundRequest request)
         {
@@ -216,7 +337,20 @@ namespace ChurchReport.Controllers
         /// 信用卡請款 (呼叫 TspgToolkit.CaptureOrder)
         /// </summary>
         /// <param name="orderId">訂單編號</param>
-        /// <param name="amount">請款金額 (可選)</param>
+        /// <param name="amount">請款金額 (可選，若不指定則請款全部金額)</param>
+        /// <remarks>
+        /// 處理流程：
+        /// 1. 驗證訂單編號參數
+        /// 2. 呼叫 TspgToolkit.CaptureOrder 進行請款
+        /// 3. 使用 CreateSimpleApiResponse 返回結果
+        ///
+        /// 請款說明：
+        /// - 預授權交易後需要手動請款
+        /// - amount 參數可指定部分請款金額
+        /// - 若不指定 amount，則請款全部預授權金額
+        ///
+        /// 適用場景：分期付款、預授權後請款等
+        /// </remarks>
         [HttpPost("capture/{orderId}")]
         public IActionResult Capture(string orderId, [FromQuery] decimal? amount = null)
         {
@@ -239,6 +373,25 @@ namespace ChurchReport.Controllers
         /// </summary>
         /// <param name="startDate">開始日期 (YYYY-MM-DD)</param>
         /// <param name="endDate">結束日期 (YYYY-MM-DD)</param>
+        /// <remarks>
+        /// 處理流程：
+        /// 1. 驗證日期參數格式
+        /// 2. 呼叫 TspgToolkit.GetTransactionHistory 取得交易記錄
+        /// 3. 返回包含總筆數和交易清單的結果
+        ///
+        /// 日期格式驗證：
+        /// - 參數不能為空
+        /// - 必須為有效日期格式
+        ///
+        /// 回應包含：
+        /// - success: 是否查詢成功
+        /// - message: 查詢訊息
+        /// - start_date/end_date: 查詢日期範圍
+        /// - total_count: 總交易筆數
+        /// - transactions: 交易記錄清單
+        ///
+        /// 用於對帳、報表生成等管理功能
+        /// </remarks>
         [HttpGet("transaction-history")]
         public IActionResult GetTransactionHistory([FromQuery] string startDate, [FromQuery] string endDate)
         {
@@ -272,6 +425,21 @@ namespace ChurchReport.Controllers
         /// <summary>
         /// API 健康狀態檢查 (可用於監控)
         /// </summary>
+        /// <remarks>
+        /// 提供系統健康檢查端點
+        /// 用於：
+        /// - 負載平衡器健康檢查
+        /// - 監控系統狀態檢查
+        /// - 容器化部署的健康探針
+        ///
+        /// 回應包含：
+        /// - status: "healthy" (固定值)
+        /// - timestamp: 當前時間
+        /// - version: API 版本
+        /// - service: 服務名稱
+        ///
+        /// 此端點不依賴外部服務，始終返回成功狀態
+        /// </remarks>
         [HttpGet("health")]
         public IActionResult Health()
         {
@@ -287,6 +455,22 @@ namespace ChurchReport.Controllers
         /// <summary>
         /// 測試 Webhook端點 (產生測試資料)
         /// </summary>
+        /// <remarks>
+        /// 提供測試用的 Webhook 資料生成端點
+        /// 用於：
+        /// - 開發階段測試 Webhook 處理邏輯
+        /// - 模擬 TSPG 通知資料
+        /// - 驗證通知解析和處理流程
+        ///
+        /// 生成的測試資料包含：
+        /// - 基本交易資訊 (訂單號、交易號等)
+        /// - 付款狀態 (state = "1" 表示成功)
+        /// - 測試金額 (100 元)
+        /// - 測試時間戳記
+        ///
+        /// 注意：此為測試端點，不應在生產環境使用
+        /// 生產環境應只接受來自 TSPG 的真實通知
+        /// </remarks>
         [HttpPost("test-webhook")]
         public IActionResult TestWebhook()
         {
@@ -316,6 +500,19 @@ namespace ChurchReport.Controllers
         ///解析前台通知參數 (Form 或 QueryString)
         /// </summary>
         /// <returns>TSPGPaymentNotification物件</returns>
+        /// <remarks>
+        /// 從 HTTP 請求中解析 TSPG 前台通知的所有參數
+        /// 支援 GET (QueryString) 和 POST (Form) 兩種提交方式
+        /// 參數來源優先順序：POST Form > QueryString
+        ///
+        /// 解析的參數包括：
+        /// - 基本參數：s_mid, ret_code, tx_type, order_no, order_id, ret_msg, auth_id_resp, state, transaction_id
+        /// - 特殊參數：first_6_digit_of_pan, last_4_digit_of_pan, carrierId2 (需事先向台新申請)
+        /// - DCC 參數：ch_amt, ch_currency, ex_rate, markup_rate
+        /// - 其他參數：hash/signature, cost/amt, actual_cost, pay_type, currency/cur
+        ///
+        /// 金額處理：TSPG 金額以分為單位，解析時除以100轉換為元
+        /// </remarks>
         private TSPGPaymentNotification ParsePostBackNotification()
         {
             //依據台新規格，解析所有可能參數
@@ -350,6 +547,33 @@ namespace ChurchReport.Controllers
         /// </summary>
         /// <param name="requestBody">JSON 字串</param>
         /// <returns>TSPGPaymentNotification物件</returns>
+        /// <remarks>
+        /// 解析 TSPG 後台通知的 JSON 格式資料
+        /// JSON 結構包含外層和 params 巢狀物件
+        ///
+        /// 外層欄位：
+        /// - ver: 版本號
+        /// - s_mid/mid: 特店代號
+        /// - tx_type: 交易類型
+        /// - tid: 端末代號
+        /// - pay_type: 付款類別
+        /// - params: 參數物件 (包含詳細交易資訊)
+        ///
+        /// params 欄位：
+        /// - ret_code: 回應碼
+        /// - order_no: 訂單編號
+        /// - auth_id_resp: 授權碼
+        /// - rrn: 交易編號
+        /// - tx_amt: 交易金額 (分)
+        /// - purchase_date: 交易日期
+        /// - 其他參數...
+        ///
+        /// 處理邏輯：
+        /// 1. 使用 Newtonsoft.Json 反序列化 JSON
+        /// 2. 提取外層基本欄位
+        /// 3. 解析 params 物件中的詳細參數
+        /// 4. 記錄後台通知日誌
+        /// </remarks>
         private TSPGPaymentNotification ParseBackendNotification(string requestBody)
         {
             //依據台新規格，解析所有外層與 params參數
@@ -381,6 +605,34 @@ namespace ChurchReport.Controllers
         /// </summary>
         /// <param name="notification">TSPGPaymentNotification物件</param>
         /// <param name="paramsData">params 動態物件</param>
+        /// <remarks>
+        /// 解析 JSON params 物件中的所有交易參數
+        ///
+        /// 必要參數：
+        /// - ret_code: 回應碼 ("00"=成功)
+        /// - ret_msg: 回應訊息
+        /// - order_no: 訂單編號
+        /// - auth_id_resp: 授權碼
+        /// - rrn: 交易編號 (Retrieval Reference Number)
+        ///
+        /// 條件參數：
+        /// - carrierId2: 載具資訊
+        /// - order_status: 訂單狀態
+        /// - cur: 貨幣代碼
+        ///
+        /// 日期處理：
+        /// - purchase_date: 解析為 DateTime 物件
+        ///
+        /// 金額處理：
+        /// - tx_amt: TSPG 以分為單位，除以100轉換為元
+        /// - 設定 Cost 和 ActualCost
+        ///
+        /// 卡號資訊：
+        /// - first_6_digit_of_pan: 卡號前6碼
+        /// - last_4_digit_of_pan: 卡號後4碼
+        ///
+        /// DCC 參數：交由 ParseDccParameters 處理
+        /// </remarks>
         private void ParseBackendParamsData(TSPGPaymentNotification notification, dynamic paramsData)
         {
             // 必要參數
@@ -424,6 +676,18 @@ namespace ChurchReport.Controllers
         /// </summary>
         /// <param name="notification">TSPGPaymentNotification物件</param>
         /// <param name="paramsData">params 動態物件</param>
+        /// <remarks>
+        /// 解析動態貨幣轉換 (DCC) 相關參數
+        ///
+        /// DCC 參數：
+        /// - ch_amt: DCC 金額 (以分為單位)
+        /// - ch_currency: DCC 幣別代碼
+        /// - ex_rate: 匯率
+        /// - markup_rate: 貼水率 (百分比)
+        ///
+        /// DCC 允許持卡人在外國使用本地貨幣結帳
+        /// 系統會顯示本地貨幣金額和原始貨幣金額供比較
+        /// </remarks>
         private void ParseDccParameters(TSPGPaymentNotification notification, dynamic paramsData)
         {
             string chAmtStr = paramsData.ch_amt?.ToString();
@@ -448,6 +712,11 @@ namespace ChurchReport.Controllers
         /// 讀取請求內容 (支援 UTF-8)
         /// </summary>
         /// <returns>請求內容字串</returns>
+        /// <remarks>
+        /// 非同步讀取 HTTP 請求的 Body 內容
+        /// 使用 UTF-8 編碼確保中文字符正確處理
+        /// 使用 StreamReader 進行安全的串流讀取
+        /// </remarks>
         private async Task<string> ReadRequestBodyAsync()
         {
             using (var reader = new System.IO.StreamReader(Request.Body, System.Text.Encoding.UTF8))
@@ -463,7 +732,22 @@ namespace ChurchReport.Controllers
         /// 從 Request 中取得參數值（支援 GET 和 POST）
         /// </summary>
         /// <param name="key">參數名稱</param>
-        /// <returns>參數值</returns>
+        /// <returns>參數值，若不存在則返回 null</returns>
+        /// <remarks>
+        /// 統一的參數取得方法，支援兩種 HTTP 請求方式：
+        ///
+        /// 1. POST 請求 (Form 資料)：
+        ///    - 檢查 Request.HasFormContentType
+        ///    - 從 Request.Form 取得參數值
+        ///    - 適用於前台通知的 Form 提交
+        ///
+        /// 2. GET 請求 (QueryString)：
+        ///    - 從 Request.Query 取得參數值
+        ///    - 適用於前台通知的 GET 請求或測試
+        ///
+        /// 優先順序：POST Form > GET QueryString
+        /// 這樣設計確保 POST 資料優先於 QueryString
+        /// </remarks>
         private string GetParam(string key)
         {
             if (Request.Method == "POST" && Request.HasFormContentType && Request.Form.ContainsKey(key))
@@ -481,7 +765,20 @@ namespace ChurchReport.Controllers
         /// 從 Request 中取得 decimal參數值
         /// </summary>
         /// <param name="key">參數名稱</param>
-        /// <returns>decimal?參數值</returns>
+        /// <returns>decimal? 參數值，若不存在或解析失敗則返回 null</returns>
+        /// <remarks>
+        /// 將字串參數轉換為 decimal 型別
+        /// 處理流程：
+        /// 1. 使用 GetParam 取得字串值
+        /// 2. 檢查字串是否為空或空白
+        /// 3. 使用 decimal.TryParse 進行安全轉換
+        /// 4. 轉換成功返回 decimal 值，否則返回 null
+        ///
+        /// 安全考量：
+        /// - 使用 TryParse 避免拋出例外
+        /// - 允許 null 返回，呼叫端需處理
+        /// - 適用於金額、匯率等數值參數
+        /// </remarks>
         private decimal? GetDecimalParam(string key)
         {
             var value = GetParam(key);
@@ -497,9 +794,17 @@ namespace ChurchReport.Controllers
         /// <summary>
         /// 判斷付款是否成功 (根據 retCode 或 state)
         /// </summary>
-        /// <param name="retCode">回應碼</param>
-        /// <param name="state">狀態</param>
-        /// <returns>是否成功</returns>
+        /// <param name="retCode">TSPG 回應碼，"00" 表示成功</param>
+        /// <param name="state">交易狀態，"1" 表示成功</param>
+        /// <returns>true=成功，false=失敗</returns>
+        /// <remarks>
+        /// 成功條件：
+        /// 1. state == "1" (TSPG 交易狀態成功)
+        /// 2. retCode == "00" (TSPG 回應碼成功)
+        /// 3. retCode == "0000" (TSPG 回應碼成功，4位格式)
+        ///
+        /// 任一條件滿足即視為成功
+        /// </remarks>
         private bool IsPaymentSuccess(string retCode, string state)
         {
             retCode = (retCode ?? string.Empty).Trim();
@@ -511,7 +816,21 @@ namespace ChurchReport.Controllers
         /// <summary>
         /// 更新收費單狀態 (依據訂單號查詢並更新付款資訊)
         /// </summary>
-        /// <param name="notification">TSPGPaymentNotification物件</param>
+        /// <param name="notification">TSPGPaymentNotification物件，包含所有交易資訊</param>
+        /// <remarks>
+        /// 處理流程：
+        /// 1. 驗證訂單編號是否存在
+        /// 2. 連接到 Dynamics365 CRM 系統
+        /// 3. 根據訂單號查詢對應的收費單 (new_fee 實體)
+        /// 4. 若找不到收費單，記錄警告並結束
+        /// 5. 更新收費單欄位 (狀態、金額、日期等)
+        /// 6. 儲存變更到 CRM
+        /// 7. 發送 LINE 付款成功通知給連絡人
+        /// 8. 記錄成功日誌
+        ///
+        /// 異常處理：記錄錯誤但不拋出例外，避免影響 TSPG 通知處理
+        /// 資源管理：確保 ToolUtilityClass 正確釋放
+        /// </remarks>
         private void UpdateFeeEntityByOrderNo(TSPGPaymentNotification notification)
         {
             ToolUtilityClass toolUtility = null;
@@ -550,9 +869,20 @@ namespace ChurchReport.Controllers
         /// <summary>
         /// 更新收費單欄位 (付款狀態、金額、日期、說明)
         /// </summary>
-        /// <param name="toolUtility">CRM 工具</param>
-        /// <param name="feeEntity">收費單 Entity</param>
+        /// <param name="toolUtility">CRM 工具實例</param>
+        /// <param name="feeEntity">收費單 Entity 物件</param>
         /// <param name="notification">TSPGPaymentNotification物件</param>
+        /// <remarks>
+        /// 更新欄位清單：
+        /// - new_pay_status: 設定為 PAYMENT_STATUS_PAID (已繳費)
+        /// - new_fee_really_paid: 設定為應收金額 (TODO: 應使用實際付款金額)
+        /// - new_difference_fee_paid: 設定為 0 (差額)
+        /// - new_pay_date: 設定為當前日期時間
+        /// - new_pay_way: 設定為 PAYMENT_METHOD_CREDIT_CARD (信用卡)
+        /// - new_description: 附加 TSPG 付款成功資訊
+        ///
+        /// 注意：目前實作中實收金額使用應收金額，這可能不正確
+        /// </remarks>
         private void UpdateFeeEntityFields(ToolUtilityClass toolUtility, Entity feeEntity, TSPGPaymentNotification notification)
         {
             var shouldPayMoney = toolUtility.GetEntityMoneyAttribute(feeEntity, "new_fee_shoud_pay");
@@ -577,10 +907,23 @@ namespace ChurchReport.Controllers
         /// <summary>
         /// 發送付款通知給連絡人 (LINE)
         /// </summary>
-        /// <param name="toolUtility">CRM 工具</param>
-        /// <param name="feeEntity">收費單 Entity</param>
+        /// <param name="toolUtility">CRM 工具實例</param>
+        /// <param name="feeEntity">收費單 Entity 物件</param>
         /// <param name="notification">TSPGPaymentNotification物件</param>
-        /// <param name="amount">金額</param>
+        /// <param name="amount">付款金額</param>
+        /// <remarks>
+        /// 處理流程：
+        /// 1. 從收費單取得關聯的連絡人 ID (new_contact_new_fee)
+        /// 2. 驗證連絡人是否存在
+        /// 3. 從連絡人實體取得 LINE ID (new_lineid)
+        /// 4. 驗證 LINE ID 是否存在
+        /// 5. 從連絡人取得姓名 (fullname)
+        /// 6. 建立付款成功訊息內容
+        /// 7. 透過 LINE Bot API 發送訊息
+        /// 8. 記錄發送結果
+        ///
+        /// 異常處理：記錄錯誤但不拋出例外，避免影響主要付款流程
+        /// </remarks>
         private void SendPaymentNotificationToContact(ToolUtilityClass toolUtility, Entity feeEntity,
             TSPGPaymentNotification notification, decimal amount)
         {
@@ -624,6 +967,17 @@ namespace ChurchReport.Controllers
         /// <param name="amount">金額</param>
         /// <param name="notification">TSPGPaymentNotification物件</param>
         /// <returns>訊息內容</returns>
+        /// <remarks>
+        /// 訊息格式包含：
+        /// - 問候語與姓名
+        /// - 付款成功確認
+        /// - 感謝奉獻
+        /// - 詳細付款資訊 (訂單號、金額、時間、方式)
+        /// - 選用資訊 (授權碼、交易編號)
+        /// - 祝福語
+        ///
+        /// 使用 Environment.NewLine 確保跨平台換行
+        /// </remarks>
         private string BuildPaymentSuccessMessage(string fullName, string orderNo, decimal amount,
             TSPGPaymentNotification notification)
         {
@@ -652,6 +1006,16 @@ namespace ChurchReport.Controllers
         /// </summary>
         /// <param name="lineId">LINE ID</param>
         /// <param name="message">訊息內容</param>
+        /// <remarks>
+        /// 使用 Line.Messaging 套件發送推播訊息
+        /// 處理流程：
+        /// 1. 建立 LineMessagingClient 實例 (使用 Channel Access Token)
+        /// 2. 建立 PushUtility 實例
+        /// 3. 同步發送訊息 (Wait())
+        /// 4. 記錄發送結果
+        ///
+        /// 異常處理：記錄錯誤並重新拋出，確保上層知道發送失敗
+        /// </remarks>
         private void SendLineMessage(string lineId, string message)
         {
             try
@@ -675,6 +1039,25 @@ namespace ChurchReport.Controllers
         /// </summary>
         /// <param name="notification">TSPGPaymentNotification物件</param>
         /// <returns>Redirect 結果</returns>
+        /// <remarks>
+        /// 處理流程：
+        /// 1. 記錄付款成功資訊
+        /// 2. 更新收費單狀態 (重複確保，因為後台通知可能尚未處理)
+        /// 3. 重新查詢收費單以取得最新資訊
+        /// 4. 建立成功頁面的查詢字串參數
+        /// 5. 重新導向到前端成功頁面 (/payment-success)
+        ///
+        /// 查詢字串參數包含：
+        /// - order_id: 訂單編號
+        /// - transaction_id: 交易編號
+        /// - amount: 付款金額
+        /// - auth_code: 授權碼
+        /// - tx_type: 交易類型
+        /// - DCC 相關參數 (如適用)
+        ///
+        /// 異常處理：記錄錯誤並導向錯誤頁面
+        /// 資源管理：確保 ToolUtilityClass 正確釋放
+        /// </remarks>
         private IActionResult HandleSuccessfulPaymentReturn(TSPGPaymentNotification notification)
         {
             ToolUtilityClass toolUtility = null;
@@ -704,6 +1087,19 @@ namespace ChurchReport.Controllers
         /// </summary>
         /// <param name="notification">TSPGPaymentNotification物件</param>
         /// <returns>Redirect 結果</returns>
+        /// <remarks>
+        /// 處理流程：
+        /// 1. 記錄付款失敗資訊
+        /// 2. 建立失敗頁面的查詢字串參數
+        /// 3. 重新導向到前端失敗頁面 (/payment-failed)
+        ///
+        /// 查詢字串參數包含：
+        /// - order_id: 訂單編號
+        /// - error: 錯誤訊息
+        /// - ret_code: TSPG 回應碼
+        ///
+        /// 注意：失敗時不更新 CRM，只記錄日誌
+        /// </remarks>
         private IActionResult HandleFailedPaymentReturn(TSPGPaymentNotification notification)
         {
             LogInfo("PaymentReturn", $"付款失敗 - 訂單: {notification.OrderNo}, 錯誤: {notification.RetMsg}");
@@ -722,6 +1118,22 @@ namespace ChurchReport.Controllers
         /// <param name="toolUtility">CRM 工具</param>
         /// <param name="feeEntity">收費單 Entity</param>
         /// <returns>查詢字串</returns>
+        /// <remarks>
+        /// 建立前端成功頁面所需的 URL 參數
+        /// 基本參數：
+        /// - order_id: 訂單編號
+        /// - transaction_id: 交易編號
+        /// - amount: 付款金額 (從 CRM 取得)
+        /// - auth_code: 授權碼
+        /// - tx_type: 交易類型
+        ///
+        /// DCC 參數 (動態貨幣轉換)：
+        /// - dcc_amount: DCC 金額
+        /// - dcc_currency: DCC 幣別
+        /// - exchange_rate: 匯率
+        ///
+        /// 使用 Uri.EscapeDataString 進行 URL 編碼
+        /// </remarks>
         private string BuildSuccessQueryString(TSPGPaymentNotification notification,
             ToolUtilityClass toolUtility, Entity feeEntity)
         {
@@ -761,6 +1173,21 @@ namespace ChurchReport.Controllers
         /// <remarks>
         /// 此方法用於統一處理 TSPG API 呼叫的回應格式
         /// 主要用於建立付款訂單的 API 端點
+        ///
+        /// 成功回應範例：
+        /// {
+        ///   "success": true,
+        ///   "order_id": "ORDER001",
+        ///   "payment_url": "https://payment.tspg.com/pay/...",
+        ///   "message": "訂單建立成功"
+        /// }
+        ///
+        /// 失敗回應範例：
+        /// {
+        ///   "success": false,
+        ///   "error_code": "1001",
+        ///   "message": "參數錯誤"
+        /// }
         /// </remarks>
         private IActionResult CreateApiResponse(dynamic response)
         {
@@ -791,6 +1218,17 @@ namespace ChurchReport.Controllers
         /// </summary>
         /// <param name="response">TSPG 回應物件</param>
         /// <returns>IActionResult</returns>
+        /// <remarks>
+        /// 用於查詢、取消、退款等操作的統一回應格式
+        /// 不包含 payment_url，只返回基本操作結果
+        ///
+        /// 回應格式：
+        /// {
+        ///   "success": true/false,
+        ///   "order_id": "訂單編號",
+        ///   "message": "操作結果訊息"
+        /// }
+        /// </remarks>
         private IActionResult CreateSimpleApiResponse(dynamic response)
         {
             return Ok(new
@@ -807,6 +1245,19 @@ namespace ChurchReport.Controllers
         /// <param name="operation">操作名稱</param>
         /// <param name="ex">例外</param>
         /// <returns>IActionResult</returns>
+        /// <remarks>
+        /// 當 TSPG API 呼叫發生例外時的統一錯誤處理
+        /// 返回 500 Internal Server Error 與通用錯誤訊息
+        /// 記錄詳細錯誤資訊到日誌系統
+        ///
+        /// 回應格式：
+        /// {
+        ///   "success": false,
+        ///   "message": "系統錯誤，請稍後再試"
+        /// }
+        ///
+        /// 注意：不暴露內部錯誤細節給用戶端
+        /// </remarks>
         private IActionResult HandleApiError(string operation, Exception ex)
         {
             LogError("API", $"{operation}失敗", ex);
@@ -823,6 +1274,11 @@ namespace ChurchReport.Controllers
         /// 記錄前台通知 (格式化日誌)
         /// </summary>
         /// <param name="notification">TSPGPaymentNotification物件</param>
+        /// <remarks>
+        /// 記錄 TSPG 前台通知的所有重要資訊
+        /// 使用 BuildPostBackLogMessage 建立格式化的日誌字串
+        /// 透過 System.Diagnostics.Trace.WriteLine 輸出到追蹤系統
+        /// </remarks>
         private void LogPostBackNotification(TSPGPaymentNotification notification)
         {
             var logMessage = BuildPostBackLogMessage(notification);
@@ -834,6 +1290,15 @@ namespace ChurchReport.Controllers
         /// </summary>
         /// <param name="notification">TSPGPaymentNotification物件</param>
         /// <returns>日誌字串</returns>
+        /// <remarks>
+        /// 日誌格式：[TSPG PostBackUrl] 訂單: XXX, 交易號: XXX, 狀態: XXX, 結果碼: XXX, 交易類型: XXX
+        /// 額外資訊：
+        /// - 卡號資訊 (前6碼+後4碼，隱藏中間數字)
+        /// - 載具資訊
+        /// - DCC 交易資訊 (金額、幣別、匯率)
+        ///
+        /// 隱私保護：卡號只顯示前6碼和後4碼
+        /// </remarks>
         private string BuildPostBackLogMessage(TSPGPaymentNotification notification)
         {
             var message = $"[TSPG PostBackUrl] " +
@@ -865,6 +1330,11 @@ namespace ChurchReport.Controllers
         /// <param name="payType">付款類別</param>
         /// <param name="txType">交易類別</param>
         /// <param name="rawJson">原始 JSON</param>
+        /// <remarks>
+        /// 記錄 TSPG 後台通知的詳細資訊
+        /// 包含格式化的通知摘要和完整的原始 JSON
+        /// 有助於除錯和稽核追蹤
+        /// </remarks>
         private void LogBackendNotification(TSPGPaymentNotification notification, string tid,
             int? payType, int? txType, string rawJson)
         {
@@ -881,6 +1351,18 @@ namespace ChurchReport.Controllers
         /// <param name="payType">付款類別</param>
         /// <param name="txType">交易類別</param>
         /// <returns>日誌字串</returns>
+        /// <remarks>
+        /// 日誌格式包含：
+        /// - 基本交易資訊 (訂單號、交易號、授權碼等)
+        /// - 回應狀態 (結果碼、訊息)
+        /// - 交易類型資訊 (交易類型、端末、付款類別)
+        /// - 金額資訊
+        /// - 卡號資訊 (隱私保護)
+        /// - 載具資訊
+        /// - DCC 資訊 (金額、幣別、匯率、貼水)
+        ///
+        /// 隱私保護：卡號只顯示前6碼和後4碼
+        /// </remarks>
         private string BuildBackendLogMessage(TSPGPaymentNotification notification, string tid,
             int? payType, int? txType)
         {
@@ -918,6 +1400,11 @@ namespace ChurchReport.Controllers
         /// </summary>
         /// <param name="method">方法名稱</param>
         /// <param name="message">訊息內容</param>
+        /// <remarks>
+        /// 記錄一般資訊訊息
+        /// 格式：[TSPG 方法名稱] 訊息內容
+        /// 用於追蹤正常處理流程
+        /// </remarks>
         private void LogInfo(string method, string message)
         {
             System.Diagnostics.Trace.WriteLine($"[TSPG {method}] {message}");
@@ -928,6 +1415,11 @@ namespace ChurchReport.Controllers
         /// </summary>
         /// <param name="method">方法名稱</param>
         /// <param name="message">訊息內容</param>
+        /// <remarks>
+        /// 記錄警告訊息
+        /// 格式：[TSPG 方法名稱] 警告: 訊息內容
+        /// 用於記錄可預期的異常情況，如找不到資料等
+        /// </remarks>
         private void LogWarning(string method, string message)
         {
             System.Diagnostics.Trace.WriteLine($"[TSPG {method}] 警告: {message}");
@@ -939,6 +1431,15 @@ namespace ChurchReport.Controllers
         /// <param name="method">方法名稱</param>
         /// <param name="message">錯誤訊息</param>
         /// <param name="ex">例外</param>
+        /// <remarks>
+        /// 記錄錯誤訊息和完整的堆疊追蹤
+        /// 格式：
+        /// [TSPG 方法名稱] 錯誤訊息: 例外訊息
+        /// [TSPG 方法名稱] 堆疊: 堆疊追蹤
+        ///
+        /// 用於記錄未預期的錯誤情況
+        /// 有助於問題診斷和除錯
+        /// </remarks>
         private void LogError(string method, string message, Exception ex)
         {
             System.Diagnostics.Trace.WriteLine($"[TSPG {method}] {message}: {ex.Message}");
