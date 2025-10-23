@@ -29,7 +29,7 @@ namespace ChurchReport.Tools
         // 測試環境參數 (仍保留，可從組態覆蓋)
         private static readonly string _testApiRoot = GetConfigValue("TSPG:TestApiRoot", "https://tspg-t.taishinbank.com.tw/tspgapi/restapi");
         private static readonly string _testTerminalId = GetConfigValue("TSPG:TestTerminalId", "T0000000");
-        private static readonly string _testMerchant3D = GetConfigValue("TSPG:TestMerchant3D", "999812777000198");
+        private static readonly string _testMerchant3D = GetConfigValue("TSPG:TestMerchant3D", "999812777000199");
         private static readonly string _testMerchantNo3D = GetConfigValue("TSPG:TestMerchantNo3D", "999812777000199");
         #endregion
 
