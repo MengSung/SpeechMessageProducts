@@ -14,6 +14,8 @@
 
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.css" />
     <link rel="stylesheet" href="~/css/site.css" />
+    <!-- Font Awesome 圖標庫 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <link href="~/css/devextreme/dx.common.css" rel="stylesheet" />
     @*<link href="~/css/devextreme/dx.light.css" rel="stylesheet" />*@
     @*<link href="~/css/devextreme/dx.carmine.compact.css" rel="stylesheet" />*@
@@ -52,6 +54,12 @@
         .navbar-custom .navbar-nav > li > a:focus {
             background-color: rgba(255, 255, 255, 0.1);
             color: #fff;
+        }
+                /* Navbar 圖示樣式 */
+        .navbar-custom .navbar-nav > li > a i {
+            margin-right: 8px;
+            width: 20px;
+            text-align: center;
         }
         .navbar-custom .navbar-toggle {
             border-color: rgba(255, 255, 255, 0.5);
@@ -247,10 +255,10 @@
                         @if (@ViewBag.MultiGroupIndex == "SingleMultiGroupView")
                         {
                             <!--多個牧養回報-->
-                            <li><a href="/Home/MultiGroupView/MultiGroup">回報統計</a></li>
-                            <li><a href="/Home/NewPerson">新增新人</a></li>
-                            <li><a href="/Home/PersonalInfomationView">個人相關資料</a></li>
-                            <li><a href="/Home/Login">登入</a></li>
+                            <li><a href="/Home/MultiGroupView/MultiGroup"><i class="fas fa-chart-bar"></i>回報統計</a></li>
+                            <li><a href="/Home/NewPerson"><i class="fas fa-user-plus"></i>新增新人</a></li>
+                            <li><a href="/Home/PersonalInfomationView"><i class="fas fa-user"></i>個人相關資料</a></li>
+                                     <li><a href="/Home/Login"><i class="fas fa-sign-in-alt"></i>登入</a></li>
                             @if (@ViewBag.UserType == "行政同工")
                             {
                                 @*<li><a href="/Home/Scheduler/差勤簽核">差勤簽核</a></li>*@
@@ -266,11 +274,11 @@
                             }
                             @if (@ViewBag.FeeType == "有繳費點名")
                             {
-                                <li><a href="/Home/PresentFeeListView">課程清單</a></li>
+                                <li><a href="/Home/PresentFeeListView"><i class="fas fa-list"></i>課程清單</a></li>
                                 @if (@ViewBag.FeeDataListCount == "繳費與點名已有資料")
                                 {
-                                    <li><a href="/Home/FeeView">繳費</a></li>
-                                    <li><a href="/Home/PresentView">點名</a></li>
+                                    <li><a href="/Home/FeeView"><i class="fas fa-credit-card"></i>繳費</a></li>
+                                    <li><a href="/Home/PresentView"><i class="fas fa-clipboard-check"></i>點名</a></li>
                                 }
                             }
                         }
@@ -282,12 +290,12 @@
                                 <!--小組長回報-->
                                 if (@ViewBag.MultiGroupIndex == "IntegrateView")
                                 {
-                                    <li><a href="/Home/IntegrateView/IntegrateView">小組回報</a></li>
+                                    <li><a href="/Home/IntegrateView/IntegrateView"><i class="fas fa-users"></i>小組回報</a></li>
                                 }
                                 if (@ViewBag.MultiGroupIndex == "HybridView")
                                 {
-                                    <li><a href="/Home/MultiGroupView/MultiGroup">回報統計</a></li>
-                                    <li><a href="/Home/IntegrateView/IntegrateView">小組回報</a></li>
+                                    <li><a href="/Home/MultiGroupView/MultiGroup"><i class="fas fa-chart-bar"></i>回報統計</a></li>
+                                    <li><a href="/Home/IntegrateView/IntegrateView"><i class="fas fa-users"></i>小組回報</a></li>
                                 }
                                 @if (@ViewBag.HappyType == "有幸福小組名單")
                                 {
@@ -299,17 +307,17 @@
                                         <li>@*<a href="/Home/SmallGroupReportView/AccountPassword">小組牧養</a>*@</li>
                                         @*<li><a href="/Home/IntegrateView/AccountPassword">牧養回報</a></li>*@
                                         @*<li><a href="/Home/MultiGroupView/MultiGroup">牧養回報</a></li>*@
-                                        <li><a href="/Home/NewPerson">新增新人</a></li>
-                                        <li><a href="/Home/PersonalInfomationView">個人相關資料</a></li>
+                                        <li><a href="/Home/NewPerson"><i class="fas fa-user-plus"></i>新增新人</a></li>
+                                        <li><a href="/Home/PersonalInfomationView"><i class="fas fa-user"></i>個人相關資料</a></li>
                                         @*<li><a href="/Home/NewPersonFollowUpView">關懷新人</a></li>*@
                                         @*<li><a href="/Home/HappyGroup">幸福小組回報</a></li>*@
                                         @*<li><a href="/Home/WeeklyReport">小組日誌</a></li>*@
-                                        <li><a href="/Home/MaintainPersonInfomationView">組員資訊</a></li>
+                                        <li><a href="/Home/MaintainPersonInfomationView"><i class="fas fa-address-book"></i>組員資訊</a></li>
                                         @*<li><a href="/Home/Scheduler/差勤簽核">差勤簽核</a></li>*@
-                                        <li><a href="/Home/PresentFeeListView">課程清單</a></li>
-                                        <li><a href="/Home/FeeManagerView">繳費與點名</a></li>
-                                        <li><a href="/Home/FeeView">繳費</a></li>
-                                        <li><a href="/Home/PresentView">點名</a></li>
+                                        <li><a href="/Home/PresentFeeListView"><i class="fas fa-list"></i>課程清單</a></li>
+                                        <li><a href="/Home/FeeManagerView"><i class="fas fa-money-bill"></i>繳費與點名</a></li>
+                                        <li><a href="/Home/FeeView"><i class="fas fa-credit-card"></i>繳費</a></li>
+                                        <li><a href="/Home/PresentView"><i class="fas fa-clipboard-check"></i>點名</a></li>
                                     }
                                     else
                                     {
@@ -317,12 +325,12 @@
                                         <li>@*<a href="/Home/SmallGroupReportView/AccountPassword">小組牧養</a>*@</li>
                                         @*<li><a href="/Home/IntegrateView/AccountPassword">牧養回報</a></li>*@
                                         @*<li><a href="/Home/MultiGroupView/MultiGroup">牧養回報</a></li>*@
-                                        <li><a href="/Home/NewPerson">新增新人</a></li>
-                                        <li><a href="/Home/PersonalInfomationView">個人相關資料</a></li>
+                                        <li><a href="/Home/NewPerson"><i class="fas fa-user-plus"></i>新增新人</a></li>
+                                        <li><a href="/Home/PersonalInfomationView"><i class="fas fa-user"></i>個人相關資料</a></li>
                                         @*<li><a href="/Home/NewPersonFollowUpView">關懷新人</a></li>*@
                                         @*<li><a href="/Home/HappyGroup">幸福小組回報</a></li>*@
                                         @*<li><a href="/Home/WeeklyReport">小組日誌</a></li>*@
-                                        <li><a href="/Home/MaintainPersonInfomationView">組員資訊</a></li>
+                                        <li><a href="/Home/MaintainPersonInfomationView"><i class="fas fa-address-book"></i>組員資訊</a></li>
                                         @*<li><a href="/Home/Scheduler/差勤簽核">差勤簽核</a></li>*@
                                         @*<li><a href="/Home/FeeManagerView">繳費與點名</a></li>*@
 
@@ -347,17 +355,17 @@
                                         <li>@*<a href="/Home/SmallGroupReportView/AccountPassword">小組牧養</a>*@</li>
                                         @*<li><a href="/Home/IntegrateView/AccountPassword">牧養回報</a></li>*@
                                         @*<li><a href="/Home/MultiGroupView/MultiGroup">牧養回報</a></li>*@
-                                        <li><a href="/Home/NewPerson">新增新人</a></li>
-                                        <li><a href="/Home/PersonalInfomationView">個人相關資料</a></li>
+                                        <li><a href="/Home/NewPerson"><i class="fas fa-user-plus"></i>新增新人</a></li>
+                                        <li><a href="/Home/PersonalInfomationView"><i class="fas fa-user"></i>個人相關資料</a></li>
                                         @*<li><a href="/Home/NewPersonFollowUpView">關懷新人</a></li>*@
                                         @*<li><a href="/Home/HappyGroup">幸福小組回報</a></li>*@
                                         @*<li><a href="/Home/WeeklyReport">小組日誌</a></li>*@
-                                        <li><a href="/Home/MaintainPersonInfomationView">組員資訊</a></li>
-                                        <li><a href="/Home/PresentFeeListView">課程清單</a></li>
+                                        <li><a href="/Home/MaintainPersonInfomationView"><i class="fas fa-address-book"></i>組員資訊</a></li>
+                                        <li><a href="/Home/PresentFeeListView"><i class="fas fa-list"></i>課程清單</a></li>
                                         @if (@ViewBag.FeeDataListCount == "繳費與點名已有資料")
                                         {
-                                            <li><a href="/Home/FeeView">繳費</a></li>
-                                            <li><a href="/Home/PresentView">點名</a></li>
+                                            <li><a href="/Home/FeeView"><i class="fas fa-credit-card"></i>繳費</a></li>
+                                            <li><a href="/Home/PresentView"><i class="fas fa-clipboard-check"></i>點名</a></li>
                                         }
                                     }
                                     else
@@ -366,12 +374,12 @@
                                         <li>@*<a href="/Home/SmallGroupReportView/AccountPassword">小組牧養</a>*@</li>
                                         @*<li><a href="/Home/IntegrateView/AccountPassword">牧養回報</a></li>*@
                                         @*<li><a href="/Home/MultiGroupView/MultiGroup">牧養回報</a></li>*@
-                                        <li><a href="/Home/NewPerson">新增新人</a></li>
-                                        <li><a href="/Home/PersonalInfomationView">個人相關資料</a></li>
+                                        <li><a href="/Home/NewPerson"><i class="fas fa-user-plus"></i>新增新人</a></li>
+                                        <li><a href="/Home/PersonalInfomationView"><i class="fas fa-user"></i>個人相關資料</a></li>
                                         @*<li><a href="/Home/NewPersonFollowUpView">關懷新人</a></li>*@
                                         @*<li><a href="/Home/HappyGroup">幸福小組回報</a></li>*@
                                         @*<li><a href="/Home/WeeklyReport">小組日誌</a></li>*@
-                                        <li><a href="/Home/MaintainPersonInfomationView">組員資訊</a></li>
+                                        <li><a href="/Home/MaintainPersonInfomationView"><i class="fas fa-address-book"></i>組員資訊</a></li>
                                         @*<li><a href="/Home/FeeManagerView">繳費與點名</a></li>*@
                                     }
 
@@ -399,15 +407,15 @@
                                     {
                                         // 不是小組長，有幸福小組名單，有繳費點名
                                         @*<li><a href="/Home/IntegrateView/Personal">個人回報</a></li>*@
-                                        <li><a href="/Home/PersonalReport">個人回報</a></li>
+                                        <li><a href="/Home/PersonalReport"><i class="fas fa-file-alt"></i>個人回報</a></li>
                                         @*<li><a href="/Home/MaintainPersonInfomationView">組員資訊</a></li>*@
-                                        <li><a href="/Home/NewPerson">新增新人</a></li>
-                                        <li><a href="/Home/PersonalInfomationView">個人相關資料</a></li>
+                                        <li><a href="/Home/NewPerson"><i class="fas fa-user-plus"></i>新增新人</a></li>
+                                        <li><a href="/Home/PersonalInfomationView"><i class="fas fa-user"></i>個人相關資料</a></li>
                                         @*<li><a href="/Home/HappyGroup">幸福小組回報</a></li>*@
                                         @if (@ViewBag.FeeDataListCount == "繳費與點名已有資料")
                                         {
-                                            <li><a href="/Home/FeeView">繳費</a></li>
-                                            <li><a href="/Home/PresentView">點名</a></li>
+                                            <li><a href="/Home/FeeView"><i class="fas fa-credit-card"></i>繳費</a></li>
+                                            <li><a href="/Home/PresentView"><i class="fas fa-clipboard-check"></i>點名</a></li>
                                         }
 
                                     }
@@ -415,10 +423,10 @@
                                     {
                                         // 不是小組長，有幸福小組名單，無繳費點名
                                         @*<li><a href="/Home/IntegrateView/Personal">個人回報</a></li>*@
-                                        <li><a href="/Home/PersonalReport">個人回報</a></li>
+                                        <li><a href="/Home/PersonalReport"><i class="fas fa-file-alt"></i>個人回報</a></li>
                                         @*<li><a href="/Home/MaintainPersonInfomationView">組員資訊</a></li>*@
-                                        <li><a href="/Home/NewPerson">新增新人</a></li>
-                                        <li><a href="/Home/PersonalInfomationView">個人相關資料</a></li>
+                                        <li><a href="/Home/NewPerson"><i class="fas fa-user-plus"></i>新增新人</a></li>
+                                        <li><a href="/Home/PersonalInfomationView"><i class="fas fa-user"></i>個人相關資料</a></li>
                                         @*<li><a href="/Home/HappyGroup">幸福小組回報</a></li>*@
                                         @*<li><a href="/Home/FeeManagerView">繳費與點名</a></li>*@
                                     }
@@ -432,15 +440,15 @@
                                         @*<li><a href="/Home/IntegrateView/Personal">個人回報</a></li>*@
                                         <li><a href="/Home/PersonalReport">個人回報</a></li>
                                         @*<li><a href="/Home/MaintainPersonInfomationView">組員資訊</a></li>*@
-                                        <li><a href="/Home/NewPerson">新增新人</a></li>
-                                        <li><a href="/Home/PersonalInfomationView">個人相關資料</a></li>
+                                        <li><a href="/Home/NewPerson"><i class="fas fa-user-plus"></i>新增新人</a></li>
+                                        <li><a href="/Home/PersonalInfomationView"><i class="fas fa-user"></i>個人相關資料</a></li>
                                         @*<li><a href="/Home/HappyGroup">幸福小組回報</a></li>*@
                                         @*<li><a href="/Home/Scheduler/差勤簽核">差勤簽核</a></li>*@
-                                        <li><a href="/Home/PresentFeeListView">課程清單</a></li>
+                                        <li><a href="/Home/PresentFeeListView"><i class="fas fa-list"></i>課程清單</a></li>
                                         @if (@ViewBag.FeeDataListCount == "繳費與點名已有資料")
                                         {
-                                            <li><a href="/Home/FeeView">繳費</a></li>
-                                            <li><a href="/Home/PresentView">點名</a></li>
+                                            <li><a href="/Home/FeeView"><i class="fas fa-credit-card"></i>繳費</a></li>
+                                            <li><a href="/Home/PresentView"><i class="fas fa-clipboard-check"></i>點名</a></li>
                                         }
                                     }
                                     else
@@ -449,8 +457,8 @@
                                         @*<li><a href="/Home/IntegrateView/Personal">個人回報</a></li>*@
                                         <li><a href="/Home/PersonalReport">個人回報</a></li>
                                         @*<li><a href="/Home/MaintainPersonInfomationView">組員資訊</a></li>*@
-                                        <li><a href="/Home/NewPerson">新增新人</a></li>
-                                        <li><a href="/Home/PersonalInfomationView">個人相關資料</a></li>
+                                        <li><a href="/Home/NewPerson"><i class="fas fa-user-plus"></i>新增新人</a></li>
+                                        <li><a href="/Home/PersonalInfomationView"><i class="fas fa-user"></i>個人相關資料</a></li>
                                         @*<li><a href="/Home/HappyGroup">幸福小組回報</a></li>*@
                                         @*<li><a href="/Home/Scheduler/差勤簽核">差勤簽核</a></li>*@
                                         @*<li><a href="/Home/FeeManagerView">繳費與點名</a></li>*@
@@ -471,18 +479,16 @@
                         }
 
                         <!--必定要顯示的項目-->
-                        <li><a href="/Home/QPayView/網頁登入">奉獻</a></li>
-                        <li><a href="/Home/DedicationFeeViewWeb">奉獻收費清單</a></li>
-                        <li><a href="/Home/EquipmentView">裝備狀態</a></li>
-                        @*<li><a href="/Home/ChurchRoot">名單管理</a></li>*@
-                        @*<li><a href="/Home/MasterDetailView">員工狀態</a></li>*@
+    <li><a href="/Home/QPayView/網頁登入"><i class="fas fa-donate"></i>奉獻</a></li>
+      <li><a href="/Home/DedicationFeeViewWeb"><i class="fas fa-receipt"></i>奉獻收費清單</a></li>
+     <li><a href="/Home/EquipmentView"><i class="fas fa-tools"></i>裝備狀態</a></li>
 
-                        @if (@ViewBag.IsAOfficeWorker == "是的")
-                        {
-                            <li><a href="/Home/KeyInDedicationFeeView">奉獻管理</a></li>
-                            <li><a href="/Home/DedicationFeeAuditViewWeb">奉獻稽核</a></li>
-                        }
-                        <li><a href="/Home/Login">登入</a></li>
+   @if (@ViewBag.IsAOfficeWorker == "是的")
+      {
+  <li><a href="/Home/KeyInDedicationFeeView"><i class="fas fa-keyboard"></i>奉獻管理</a></li>
+  <li><a href="/Home/DedicationFeeAuditViewWeb"><i class="fa-solid fa-shield-halved"></i>奉獻稽核</a></li>
+    }
+   <li><a href="/Home/Login"><i class="fas fa-sign-in-alt"></i>登入</a></li>
                     }
                     else
                     {
