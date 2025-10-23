@@ -27,57 +27,74 @@
 
     <!-- 自定義 Navbar 樣式 -->
     <style>
+        /* Navbar 主體樣式 - 漸層背景和陰影 */
         .navbar-custom {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); /* 紫色到藍色的漸層 */
             border: none;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* 輕微陰影效果 */
         }
+
+        /* Navbar 品牌區域 - LOGO 和文字 */
         .navbar-custom .navbar-brand {
-            color: #fff;
-            font-weight: bold;
-            font-size: 1.5em;
-            padding: 8px 15px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
+            color: #fff; /* 白色文字 */
+            font-weight: bold; /* 粗體 */
+            font-size: 1.5em; /* 放大字體 */
+            padding: 8px 15px; /* 內邊距 */
+            display: flex; /* Flexbox 布局 */
+            align-items: center; /* 垂直居中 */
+            gap: 12px; /* LOGO 與文字間距 */
         }
+
+        /* LOGO 圖片樣式 */
         .navbar-custom .navbar-brand img {
-            height: 40px;
-            max-width: 100%;
-            object-fit: contain;
+            height: 40px; /* LOGO 高度 */
+            max-width: 100%; /* 最大寬度 */
+            object-fit: contain; /* 保持寬高比 */
         }
+
+        /* 菜單項目基本樣式 */
         .navbar-custom .navbar-nav > li > a {
-            color: #fff;
-            transition: background-color 0.3s ease;
+            color: #fff; /* 白色文字 */
+            transition: background-color 0.3s ease; /* 背景色過渡效果 */
         }
+
+        /* 菜單項目懸停和聚焦樣式 */
         .navbar-custom .navbar-nav > li > a:hover,
         .navbar-custom .navbar-nav > li > a:focus {
-            background-color: rgba(255, 255, 255, 0.1);
-            color: #fff;
+            background-color: rgba(255, 255, 255, 0.1); /* 半透明白色背景 */
+            color: #fff; /* 保持白色文字 */
         }
-                /* Navbar 圖示樣式 */
+
+        /* Navbar 圖示樣式 */
         .navbar-custom .navbar-nav > li > a i {
-            margin-right: 8px;
-            width: 20px;
-            text-align: center;
+            margin-right: 8px; /* 圖示右邊距 */
+            width: 20px; /* 圖示寬度 */
+            text-align: center; /* 居中對齊 */
         }
+
+        /* 行動化切換按鈕樣式 */
         .navbar-custom .navbar-toggle {
-            border-color: rgba(255, 255, 255, 0.5);
+            border-color: rgba(255, 255, 255, 0.5); /* 半透明白色邊框 */
         }
+
         .navbar-custom .navbar-toggle .icon-bar {
-            background-color: #fff;
+            background-color: #fff; /* 白色條紋 */
         }
+
+        /* Navbar 折疊區域樣式 */
         .navbar-custom .navbar-collapse {
-            border-top: none;
+            border-top: none; /* 移除頂部邊框 */
         }
+
+        /* 行動化媒體查詢 - 小螢幕適應 */
         @@media (max-width: 767px) {
             .navbar-custom .navbar-nav {
-                background-color: rgba(0, 0, 0, 0.1);
-                margin: 0;
+                background-color: rgba(0, 0, 0, 0.1); /* 半透明黑色背景 */
+                margin: 0; /* 移除邊距 */
             }
             .navbar-custom .navbar-nav > li > a {
-                padding: 15px 20px;
-                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                padding: 15px 20px; /* 增加內邊距 */
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* 底部邊框 */
             }
         }
     </style>
@@ -234,20 +251,26 @@
 <body>
 
     <nav class="navbar navbar-custom navbar-fixed-top">
+        <!-- 容器 - 限制寬度並居中 -->
         <div class="container">
+            <!-- Navbar 標題區域 -->
             <div class="navbar-header">
+                <!-- 行動化切換按鈕 -->
                 <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
                     <span class="sr-only">Toggle navigation</span>
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
+                <!-- 品牌連結 - 包含 LOGO 和文字 -->
                 <a class="navbar-brand" href="/">
                     <img src="~/assets/images/SunnyLogo.png" alt="聖谷行道會 Logo" title="聖谷行道會" />
-                            聖谷行道會
-                 </a>
+                    聖谷行道會
+                </a>
             </div>
+            <!-- 菜單折疊區域 -->
             <div id="navbar" class="collapse navbar-collapse">
+                <!-- 導航菜單列表 -->
                 <ul class="nav navbar-nav">
                     @if (@ViewBag.DisplayNavigation != "不顯示牧養回報項目")
                     {
@@ -407,7 +430,7 @@
                                     {
                                         // 不是小組長，有幸福小組名單，有繳費點名
                                         @*<li><a href="/Home/IntegrateView/Personal">個人回報</a></li>*@
-                                        <li><a href="/Home/PersonalReport"><i class="fas fa-file-alt"></i>個人回報</a></li>
+                                        @*<li><a href="/Home/PersonalReport"><i class="fas fa-file-alt"></i>個人回報</a></li>*@
                                         @*<li><a href="/Home/MaintainPersonInfomationView">組員資訊</a></li>*@
                                         <li><a href="/Home/NewPerson"><i class="fas fa-user-plus"></i>新增新人</a></li>
                                         <li><a href="/Home/PersonalInfomationView"><i class="fas fa-user"></i>個人相關資料</a></li>
@@ -423,7 +446,7 @@
                                     {
                                         // 不是小組長，有幸福小組名單，無繳費點名
                                         @*<li><a href="/Home/IntegrateView/Personal">個人回報</a></li>*@
-                                        <li><a href="/Home/PersonalReport"><i class="fas fa-file-alt"></i>個人回報</a></li>
+                                        @*<li><a href="/Home/PersonalReport"><i class="fas fa-file-alt"></i>個人回報</a></li>*@
                                         @*<li><a href="/Home/MaintainPersonInfomationView">組員資訊</a></li>*@
                                         <li><a href="/Home/NewPerson"><i class="fas fa-user-plus"></i>新增新人</a></li>
                                         <li><a href="/Home/PersonalInfomationView"><i class="fas fa-user"></i>個人相關資料</a></li>
@@ -438,7 +461,7 @@
                                     {
                                         // 不是小組長，無幸福小組名單，有繳費點名
                                         @*<li><a href="/Home/IntegrateView/Personal">個人回報</a></li>*@
-                                        <li><a href="/Home/PersonalReport">個人回報</a></li>
+                                        @*<li><a href="/Home/PersonalReport">個人回報</a></li>*@
                                         @*<li><a href="/Home/MaintainPersonInfomationView">組員資訊</a></li>*@
                                         <li><a href="/Home/NewPerson"><i class="fas fa-user-plus"></i>新增新人</a></li>
                                         <li><a href="/Home/PersonalInfomationView"><i class="fas fa-user"></i>個人相關資料</a></li>
@@ -455,7 +478,7 @@
                                     {
                                         // 不是小組長，無幸福小組名單，無繳費點名
                                         @*<li><a href="/Home/IntegrateView/Personal">個人回報</a></li>*@
-                                        <li><a href="/Home/PersonalReport">個人回報</a></li>
+                                        @*<li><a href="/Home/PersonalReport">個人回報</a></li>*@
                                         @*<li><a href="/Home/MaintainPersonInfomationView">組員資訊</a></li>*@
                                         <li><a href="/Home/NewPerson"><i class="fas fa-user-plus"></i>新增新人</a></li>
                                         <li><a href="/Home/PersonalInfomationView"><i class="fas fa-user"></i>個人相關資料</a></li>
