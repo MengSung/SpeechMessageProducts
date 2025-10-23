@@ -27,455 +27,454 @@
     <link href="~/css/QPayView.css" rel="stylesheet">
 </head>
 
-<!-- 頁面主容器 -->
-<div class="qpay-container">
-    <!-- ==================== 奉獻者資訊 ==================== -->
-    <div class="dedication-header">
-        <h4 id="displaynamefield">
-            <i class="mbri-user" style="margin-right: 10px;"></i>
-            @Model.FullName <span style="margin: 0 15px;">|</span> 
-            <i class="mbri-numbered-list" style="margin-right: 10px;"></i>
-            奉獻編號: @Model.DedicationNumber
-        </h4>
-    </div>
+<!-- 頁面主容器 - 添加 qpay-page 作用域 class -->
+<div class="qpay-page">
+    <div class="qpay-container">
+        <!-- ==================== 奉獻者資訊 ==================== -->
+<div class="dedication-header">
+  <h4 id="displaynamefield">
+       <i class="mbri-user" style="margin-right: 10px;"></i>
+    @Model.FullName <span style="margin: 0 15px;">|</span> 
+         <i class="mbri-numbered-list" style="margin-right: 10px;"></i>
+          奉獻編號: @Model.DedicationNumber
+      </h4>
+        </div>
 
-    <!-- ==================== 奉獻表單 ==================== -->
-    <form data-ajax="true" 
-          data-ajax-begin="onBegin" 
-          data-ajax-success="onSuccess" 
-          asp-action="SaveQPayDedication" 
-          asp-controller="Home" 
-          method="post">
-        
-        <div id="form-container">
-            <h5 style="color: #20b2aa; margin-bottom: 25px; font-weight: 600; font-size: 1.3rem;">
-                <i class="mbri-edit" style="margin-right: 10px;"></i>奉獻資訊
-            </h5>
-            @(Html.DevExtreme().Form<QpayModel>()
-                .ID("form")
-                .ColCount(1)
-                .FormData(Model)
+        <!-- ==================== 奉獻表單 ==================== -->
+        <form data-ajax="true" 
+    data-ajax-begin="onBegin" 
+      data-ajax-success="onSuccess" 
+ asp-action="SaveQPayDedication" 
+           asp-controller="Home" 
+   method="post">
+    
+            <div id="form-container">
+              <h5 style="color: #20b2aa; margin-bottom: 25px; font-weight: 600; font-size: 1.3rem;">
+     <i class="mbri-edit" style="margin-right: 10px;"></i>奉獻資訊
+      </h5>
+       @(Html.DevExtreme().Form<QpayModel>()
+        .ID("form")
+                    .ColCount(1)
+  .FormData(Model)
                 .OnContentReady(@<text>
-                    function(e) {
-                        e.component.validate();
-                    }
-                </text>)
-                .Items(items =>
-                {
-                    // 奉獻類別
-                    items.AddSimpleFor(m => m.Category)
-                        .Label(l => l.Text("奉獻類別"))
-                        .Editor(e => e
-                            .SelectBox()
-                            .Width(200)
-                            .DataSource(new string[] {
-                                "主日奉獻", "十一奉獻", "感恩奉獻", "建堂奉獻",
-                                "宣教奉獻", "愛心奉獻", "特別獻金"
-                            })
-                            .OnValueChanged("OnCategorySelectBoxValueChanged")
-                        );
+    function(e) {
+       e.component.validate();
+   }
+         </text>)
+ .Items(items =>
+   {
+  // 奉獻類別
+         items.AddSimpleFor(m => m.Category)
+          .Label(l => l.Text("奉獻類別"))
+                    .Editor(e => e
+           .SelectBox()
+       .Width(200)
+            .DataSource(new string[] {
+              "主日奉獻", "十一奉獻", "感恩奉獻", "建堂奉獻",
+         "宣教奉獻", "愛心奉獻", "特別獻金"
+ })
+               .OnValueChanged("OnCategorySelectBoxValueChanged")
+       );
 
-                    // 宣教對象
-                    items.AddSimpleFor(m => m.Others)
-                        .Label(l => l.Text("宣教對象"))
-                        .Visible(false)
-                        .Name("OtherDedicationSelectionBox")
-                        .Editor(e => e
-                            .SelectBox()
-                            .Width(200)
-                            .DataSource(Model.OtherCategoryArray)
-                            .Placeholder("請選擇宣教對象")
-                        );
+                   // 宣教對象
+   items.AddSimpleFor(m => m.Others)
+              .Label(l => l.Text("宣教對象"))
+     .Visible(false)
+           .Name("OtherDedicationSelectionBox")
+ .Editor(e => e
+     .SelectBox()
+      .Width(200)
+  .DataSource(Model.OtherCategoryArray)
+   .Placeholder("請選擇宣教對象")
+       );
 
-                    // 特別獻金項目
-                    items.AddSimpleFor(m => m.Others)
-                        .Label(l => l.Text("特別獻金項目"))
-                        .Visible(false)
-                        .Name("SpecialDedicationSelectionBox")
-                        .Editor(e => e
-                            .SelectBox()
-                            .Width(200)
-                            .DataSource(Model.SpecialCategoryArray)
-                            .Placeholder("請選擇特別獻金項目")
-                        );
+      // 特別獻金項目
+          items.AddSimpleFor(m => m.Others)
+            .Label(l => l.Text("特別獻金項目"))
+       .Visible(false)
+    .Name("SpecialDedicationSelectionBox")
+    .Editor(e => e
+       .SelectBox()
+        .Width(200)
+             .DataSource(Model.SpecialCategoryArray)
+           .Placeholder("請選擇特別獻金項目")
+ );
 
-                    // 其他奉獻內容
-                    items.AddSimpleFor(m => m.Others)
-                        .Label(l => l.Text("其他奉獻內容"))
-                        .Visible(false)
-                        .Name("OtherDedication")
-                        .Editor(e => e
-                            .Autocomplete()
-                            .Width(200)
-                            .DataSource(Model.OtherCategoryArray)
-                            .Placeholder("請輸入其他奉獻內容")
-                        );
+     // 其他奉獻內容
+             items.AddSimpleFor(m => m.Others)
+  .Label(l => l.Text("其他奉獻內容"))
+       .Visible(false)
+      .Name("OtherDedication")
+                .Editor(e => e
+  .Autocomplete()
+      .Width(200)
+           .DataSource(Model.OtherCategoryArray)
+     .Placeholder("請輸入其他奉獻內容")
+  );
 
-                    // 節期選項
-                    items.AddSimpleFor(m => m.Others)
-                        .Label(l => l.Text("節期"))
-                        .Visible(false)
-                        .Name("HolidayDedicationSelectionBox")
-                        .Editor(e => e
-                            .SelectBox()
-                            .Width(250)
-                            .DataSource(new string[] {
-                                "元旦", "新春", "清明節", "復活節", "母親節",
-                                "父親節", "重陽節", "感恩節", "聖誕節"
-                            })
-                            .Placeholder("請選擇節期")
-                        );
+             // 節期選項
+        items.AddSimpleFor(m => m.Others)
+   .Label(l => l.Text("節期"))
+      .Visible(false)
+     .Name("HolidayDedicationSelectionBox")
+          .Editor(e => e
+             .SelectBox()
+           .Width(250)
+   .DataSource(new string[] {
+        "元旦", "新春", "清明節", "復活節", "母親節",
+         "父親節", "重陽節", "感恩節", "聖誕節"
+         })
+         .Placeholder("請選擇節期")
+    );
 
-                    // 奉獻金額
-                    items.AddSimpleFor(m => m.Amount)
-                        .Label(l => l.Text("奉獻金額"))
-                        .Name("DedicationAmount")
-                        .Editor(e => e
-                            .NumberBox()
-                            .Width(200)
-                            .OnContentReady("OnAmountContentReady")
-                            .Placeholder("請輸入奉獻金額")
-                        );
+          // 奉獻金額
+ items.AddSimpleFor(m => m.Amount)
+     .Label(l => l.Text("奉獻金額"))
+           .Name("DedicationAmount")
+         .Editor(e => e
+         .NumberBox()
+         .Width(200)
+  .OnContentReady("OnAmountContentReady")
+        .Placeholder("請輸入奉獻金額")
+           );
 
-                    // 付款方式
-                    items.AddSimpleFor(m => m.PayWay)
-                        .Label(l => l.Text("付款方式"))
-                        .Name("PayWaySelectBox")
-                        .Editor(e => e
-                            .SelectBox()
-                            .Width(200)
-                            .DataSource(new string[] { "信用卡" })
-                            .OnValueChanged("OnPayWaySelectBoxValueChanged")
-                        );
+           // 付款方式
+    items.AddSimpleFor(m => m.PayWay)
+     .Label(l => l.Text("付款方式"))
+   .Name("PayWaySelectBox")
+     .Editor(e => e
+        .SelectBox()
+         .Width(200)
+    .DataSource(new string[] { "信用卡" })
+      .OnValueChanged("OnPayWaySelectBoxValueChanged")
+         );
 
-                    // 定期定額總期數
-                    items.AddSimpleFor(m => m.DeductTotalNumber)
-                        .Label(l => l.Text("總期數"))
-                        .Visible(false)
-                        .Name("DeductTotalNumberSelectionBox")
-                        .Editor(e => e
-                            .SelectBox()
-                            .Width(200)
-                            .DataSource(new string[] {
-                                "3個月", "6個月", "12個月", "18個月", "24個月"
-                            })
-                            .Value("12個月")
-                        );
+  // 定期定額總期數
+        items.AddSimpleFor(m => m.DeductTotalNumber)
+          .Label(l => l.Text("總期數"))
+              .Visible(false)
+   .Name("DeductTotalNumberSelectionBox")
+        .Editor(e => e
+        .SelectBox()
+ .Width(200)
+      .DataSource(new string[] {
+      "3個月", "6個月", "12個月", "18個月", "24個月"
+        })
+ .Value("12個月")
+       );
 
-                    // 選取的信用卡（隱藏欄位）
-                    items.AddSimpleFor(m => m.SelectedCreditCard)
-                        .Label(l => l.Text("選取的信用卡").Visible(false))
-                        .Editor(e => e
-                            .TextBox()
-                            .Width(120)
-                            .Visible(false)
-                            .Placeholder("選取的信用卡")
-                        );
+// 選取的信用卡（隱藏欄位）
+      items.AddSimpleFor(m => m.SelectedCreditCard)
+              .Label(l => l.Text("選取的信用卡").Visible(false))
+            .Editor(e => e
+            .TextBox()
+  .Width(120)
+         .Visible(false)
+         .Placeholder("選取的信用卡")
+     );
 
-                    // 附註
-                    items.AddSimpleFor(m => m.Explain)
-                        .Label(l => l.Text("備註說明"))
-                        .Editor(e => e
-                            .TextArea()
-                            .Width(200)
-                            .Height(60)
-                            .Placeholder("您可以在此輸入特別說明或留言")
-                        );
-                })
-            )
-        </div>
+    // 附註
+               items.AddSimpleFor(m => m.Explain)
+       .Label(l => l.Text("備註說明"))
+     .Editor(e => e
+            .TextArea()
+   .Width(200)
+            .Height(60)
+    .Placeholder("您可以在此輸入特別說明或留言")
+             );
+           })
+  )
+            </div>
 
-        <!-- ==================== 信用卡列表 ==================== -->
-        <div id="creditcardlistcontainer" class="card-list">
-            <h5>
+    <!-- ==================== 信用卡列表 ==================== -->
+            <div id="creditcardlistcontainer" class="card-list">
+ <h5>
                 <i class="mbri-credit-card" style="margin-right: 10px;"></i>
-                我的信用卡
-            </h5>
+        我的信用卡
+                </h5>
             <p style="color: #666; margin-bottom: 20px; font-size: 0.95rem;">
-                <i class="mbri-info" style="margin-right: 5px;"></i>
-                您可以刪除不想使用的信用卡，並選擇本次要使用的信用卡進行奉獻
-            </p>
-            @(Html.DevExtreme().DataGrid<CreditCard>()
-                .ID("CreditCardGrid")
-                .Width("auto")
-                .ShowBorders(true)
-                .ColumnWidth(20)
-                .Paging(paging => paging.Enabled(false))
-                .AllowColumnResizing(true)
-                .ColumnResizingMode(ColumnResizingMode.Widget)
-                .ColumnFixing(c => c.Enabled(true))
-                .LoadPanel(l => l.Text("Loading...").Enabled(false))
-                .ShowColumnLines(true)
-                .ShowRowLines(true)
-                .ShowBorders(true)
-                .Selection(selection => selection.Mode(SelectionMode.Single))
-                .OnRowClick("OnRowClick")
-                .OnSelectionChanged("OnRowSelectionChanged")
-                .OnInitialized("DataGridOnInitialized")
-                .OnContentReady("onCreditCardGridContentReady")
-                .HoverStateEnabled(true)
-                .Editing(editing => {
-                    editing.AllowDeleting(true);
-                    editing.Texts(a => a
-                        .DeleteRow("Delete")
-                        .ConfirmDeleteMessage("Are you sure to delete this card?")
-                    );
-                })
-                .Columns(columns => {
-                    columns.AddFor(m => m.CreditCardNumber)
-                        .Caption("信用卡號")
-                        .Width(150)
-                        .MinWidth(80)
-                        .Alignment(HorizontalAlignment.Center)
-                        .Fixed(true);
-                    columns.AddFor(m => m.ExpireDate)
-                        .Caption("到期日")
-                        .Width(80)
-                        .MinWidth(50)
-                        .Alignment(HorizontalAlignment.Center);
-                })
-                .DataSource(d => d
-                    .WebApi()
-                    .Controller("Home")
-                    .LoadAction("LoadCreditCardList")
-                    .DeleteAction("DeleteCreditCard")
-                    .Key("CCToken")
-                )
-                .SelectedRowKeys(new int[] { 1 })
+        <i class="mbri-info" style="margin-right: 5px;"></i>
+           您可以刪除不想使用的信用卡，並選擇本次要使用的信用卡進行奉獻
+        </p>
+      @(Html.DevExtreme().DataGrid<CreditCard>()
+               .ID("CreditCardGrid")
+          .Width("auto")
+            .ShowBorders(true)
+                    .ColumnWidth(20)
+   .Paging(paging => paging.Enabled(false))
+     .AllowColumnResizing(true)
+          .ColumnResizingMode(ColumnResizingMode.Widget)
+      .ColumnFixing(c => c.Enabled(true))
+        .LoadPanel(l => l.Text("Loading...").Enabled(false))
+    .ShowColumnLines(true)
+    .ShowRowLines(true)
+           .ShowBorders(true)
+       .Selection(selection => selection.Mode(SelectionMode.Single))
+        .OnRowClick("OnRowClick")
+             .OnSelectionChanged("OnRowSelectionChanged")
+        .OnInitialized("DataGridOnInitialized")
+   .OnContentReady("onCreditCardGridContentReady")
+  .HoverStateEnabled(true)
+      .Editing(editing => {
+         editing.AllowDeleting(true);
+      editing.Texts(a => a
+                .DeleteRow("Delete")
+      .ConfirmDeleteMessage("Are you sure to delete this card?")
+     );
+   })
+        .Columns(columns => {
+  columns.AddFor(m => m.CreditCardNumber)
+     .Caption("信用卡號")
+   .Width(150)
+             .MinWidth(80)
+  .Alignment(HorizontalAlignment.Center)
+           .Fixed(true);
+          columns.AddFor(m => m.ExpireDate)
+             .Caption("到期日")
+                  .Width(80)
+       .MinWidth(50)
+    .Alignment(HorizontalAlignment.Center);
+          })
+           .DataSource(d => d
+           .WebApi()
+  .Controller("Home")
+      .LoadAction("LoadCreditCardList")
+          .DeleteAction("DeleteCreditCard")
+      .Key("CCToken")
+     )
+           .SelectedRowKeys(new int[] { 1 })
             )
         </div>
 
-        <!-- ==================== 按鈕區域 ==================== -->
-        <div class="button-area dx-field">
-            <div id="buttonContainer">
-                @(Html.DevExtreme().Button()
-                    .Text("確認奉獻")
-                    .Icon("check")
-                    .Type(ButtonType.Success)
-                    .ID("save-button2")
-                    .Width(180)                     // 新增：縮小按鈕寬度
-                    .UseSubmitBehavior(true)
-                    .OnClick("ShowLoadPanel")
+       <!-- ==================== 按鈕區域 ==================== -->
+  <div class="button-area dx-field">
+      <div id="buttonContainer">
+           @(Html.DevExtreme().Button()
+         .Text("確認奉獻")
+     .Icon("check")
+     .Type(ButtonType.Success)
+    .ID("save-button2")
+            .Width(180)
+            .UseSubmitBehavior(true)
+         .OnClick("ShowLoadPanel")
+         )
+ @(Html.DevExtreme().Button()
+          .Text("使用其他信用卡")
+  .Icon("plus")
+            .Type(ButtonType.Default)
+           .ID("save-button3")
+    .Width(140)
+ .UseSubmitBehavior(true)
+   .StylingMode(ButtonStylingMode.Contained)
+       .OnClick("UseOtherCreditCard")
+       )
+ </div>
+      </div>
+
+      <!-- ==================== ATM資訊區域 ==================== -->
+   <div class="atm-info">
+      <h5 id="atmfield"></h5>
+         </div>
+
+     <!-- ==================== 定期定額清單 ==================== -->
+         <div id="dedicationbookinglistcontainer" class="booking-list">
+     <h5>
+         <i class="mbri-timer" style="margin-right: 10px;"></i>
+           定期定額奉獻清單
+ </h5>
+      <p style="color: #666; margin-bottom: 20px; font-size: 0.95rem;">
+    <i class="mbri-info" style="margin-right: 5px;"></i>
+                    您可以在此查看和管理您的定期定額奉獻項目
+         </p>
+       @(Html.DevExtreme().DataGrid<DedicationBooking>()
+     .ID("DedicationBookingGrid")
+   .Width("auto")
+   .ColumnWidth(5)
+    .LoadPanel(l => l.Text("Loading...").Enabled(false))
+    .ShowColumnLines(true)
+       .ShowRowLines(true)
+        .ShowBorders(true)
+ .Selection(selection => selection.Mode(SelectionMode.Single))
+        .OnSelectionChanged("OnRowSelectionChanged")
+     .OnContentReady("onDedicationBookingGridContentReady")
+      .Editing(editing => {
+         editing.Mode(GridEditMode.Cell);
+   editing.RefreshMode(GridEditRefreshMode.Reshape);
+         editing.AllowDeleting(true);
+    editing.Texts(a => a
+         .DeleteRow("Cancel")
+     .ConfirmDeleteMessage("Are you sure to cancel this subscription?")
+         .ConfirmDeleteTitle("Cancel Subscription")
+  );
+     })
+      .Columns(columns => {
+       columns.AddFor(m => m.DedicationCategory).Caption("奉獻類別").Width(70).MinWidth(75).Alignment(HorizontalAlignment.Center).Fixed(true);
+       columns.AddFor(m => m.DedicationBookingStatus).Caption("狀態").Width(70).MinWidth(50).Alignment(HorizontalAlignment.Center);
+             columns.AddFor(m => m.AmountPerStage).Caption("每期金額").Width(75).MinWidth(50).Alignment(HorizontalAlignment.Center);
+    columns.AddFor(m => m.TotalStages).Caption("總期數").Width(70).MinWidth(50).Alignment(HorizontalAlignment.Center);
+         columns.AddFor(m => m.DedicationAmount).Caption("應付總金額").Width(85).MinWidth(50).Alignment(HorizontalAlignment.Center);
+          columns.AddFor(m => m.PaidPeriod).Caption("目前期數").Width(75).MinWidth(50).Alignment(HorizontalAlignment.Center);
+   columns.AddFor(m => m.RollupPaidFee).Caption("已付金額").Width(80).MinWidth(50).Alignment(HorizontalAlignment.Center);
+       columns.AddFor(m => m.StartDate).Caption("開始日期").Width(80).MinWidth(50).Alignment(HorizontalAlignment.Center);
+      columns.AddFor(m => m.EndDate).Caption("結束日期").Width(80).MinWidth(50).Alignment(HorizontalAlignment.Center);
+       })
+   .DataSource(d => d
+      .WebApi()
+    .Controller("Home")
+           .LoadAction("LoadDedicationBookingList")
+      .DeleteAction("DeleteDedicationBooking")
+         .Key("EntityId")
+      )
+        .SelectedRowKeys(new int[] { 1 })
+          )
+   </div>
+        </form>
+
+        <!-- ==================== 通知元件 ==================== -->
+        <div class="notification-area dx-field">
+      <div id="ToastContainer">
+       @(Html.DevExtreme().Toast()
+            .ID("toast")
+          .Position(p => p.At(HorizontalAlignment.Center, VerticalAlignment.Center).Offset(0, 50))
+           .Message("Upload success")
+  .DisplayTime(20000)
+          .MaxWidth(200)
+         )
+  </div>
+      
+            <div id="LoadPanel">
+    @(Html.DevExtreme().LoadPanel()
+        .ID("loadPanel")
+           .ShadingColor("rgba(0,0,0,0.4)")
+     .Position(p => p.Of("#form-container"))
+         .Visible(false)
+   .ShowIndicator(true)
+      .ShowPane(true)
+       .Shading(true)
+           .CloseOnOutsideClick(false)
+     .Message("Processing...")
+       .Animation(l => l.Show(k => k.Easing(AnimationEasing.Swing)))
                 )
-                @(Html.DevExtreme().Button()
-                    .Text("使用其他信用卡")
-                    .Icon("plus")
-                    .Type(ButtonType.Default)
-                    .ID("save-button3")
-                    .Width(140)                     // 新增：縮小按鈕寬度
-                    .UseSubmitBehavior(true)
-                    .StylingMode(ButtonStylingMode.Contained)
-                    .OnClick("UseOtherCreditCard")
-                )
-            </div>
+      </div>
         </div>
 
-        <!-- ==================== ATM資訊區域 ==================== -->
-@*         <div class="atm-info">
-            <h5 id="atmfield"></h5>
-        </div>
- *@
-        <!-- ==================== 定期定額清單 ==================== -->
-        <div id="dedicationbookinglistcontainer" class="booking-list">
-            <h5>
-                <i class="mbri-timer" style="margin-right: 10px;"></i>
-                定期定額奉獻清單
-            </h5>
-            <p style="color: #666; margin-bottom: 20px; font-size: 0.95rem;">
-                <i class="mbri-info" style="margin-right: 5px;"></i>
-                您可以在此查看和管理您的定期定額奉獻項目
-            </p>
-            @(Html.DevExtreme().DataGrid<DedicationBooking>()
-                .ID("DedicationBookingGrid")
-                .Width("auto")
-                .ColumnWidth(5)
-                .LoadPanel(l => l.Text("Loading...").Enabled(false))
-                .ShowColumnLines(true)
-                .ShowRowLines(true)
-                .ShowBorders(true)
-                .Selection(selection => selection.Mode(SelectionMode.Single))
-                .OnSelectionChanged("OnRowSelectionChanged")
-                .OnContentReady("onDedicationBookingGridContentReady")
-                .Editing(editing => {
-                    editing.Mode(GridEditMode.Cell);
-                    editing.RefreshMode(GridEditRefreshMode.Reshape);
-                    editing.AllowDeleting(true);
-                    editing.Texts(a => a
-                        .DeleteRow("Cancel")
-                        .ConfirmDeleteMessage("Are you sure to cancel this subscription?")
-                        .ConfirmDeleteTitle("Cancel Subscription")
-                    );
-                })
-                .Columns(columns => {
-                    columns.AddFor(m => m.DedicationCategory).Caption("奉獻類別").Width(70).MinWidth(75).Alignment(HorizontalAlignment.Center).Fixed(true);
-                    columns.AddFor(m => m.DedicationBookingStatus).Caption("狀態").Width(70).MinWidth(50).Alignment(HorizontalAlignment.Center);
-                    columns.AddFor(m => m.AmountPerStage).Caption("每期金額").Width(75).MinWidth(50).Alignment(HorizontalAlignment.Center);
-                    columns.AddFor(m => m.TotalStages).Caption("總期數").Width(70).MinWidth(50).Alignment(HorizontalAlignment.Center);
-                    columns.AddFor(m => m.DedicationAmount).Caption("應付總金額").Width(85).MinWidth(50).Alignment(HorizontalAlignment.Center);
-                    columns.AddFor(m => m.PaidPeriod).Caption("目前期數").Width(75).MinWidth(50).Alignment(HorizontalAlignment.Center);
-                    columns.AddFor(m => m.RollupPaidFee).Caption("已付金額").Width(80).MinWidth(50).Alignment(HorizontalAlignment.Center);
-                    columns.AddFor(m => m.StartDate).Caption("開始日期").Width(80).MinWidth(50).Alignment(HorizontalAlignment.Center);
-                    columns.AddFor(m => m.EndDate).Caption("結束日期").Width(80).MinWidth(50).Alignment(HorizontalAlignment.Center);
-                })
-                .DataSource(d => d
-                    .WebApi()
-                    .Controller("Home")
-                    .LoadAction("LoadDedicationBookingList")
-                    .DeleteAction("DeleteDedicationBooking")
-                    .Key("EntityId")
-                )
-                .SelectedRowKeys(new int[] { 1 })
-            )
-        </div>
-    </form>
-
-    <!-- ==================== 通知元件 ==================== -->
-    <div class="notification-area dx-field">
-        <div id="ToastContainer">
-            @(Html.DevExtreme().Toast()
-                .ID("toast")
-                .Position(p => p.At(HorizontalAlignment.Center, VerticalAlignment.Center).Offset(0, 50))
-                .Message("Upload success")
-                .DisplayTime(20000)
-                .MaxWidth(200)
-            )
-        </div>
-        
-        <div id="LoadPanel">
-            @(Html.DevExtreme().LoadPanel()
-                .ID("loadPanel")
-                .ShadingColor("rgba(0,0,0,0.4)")
-                .Position(p => p.Of("#form-container"))
-                .Visible(false)
-                .ShowIndicator(true)
-                .ShowPane(true)
-                .Shading(true)
-                .CloseOnOutsideClick(false)
-                .Message("Processing...")
-                .Animation(l => l.Show(k => k.Easing(AnimationEasing.Swing)))
-            )
-        </div>
-    </div>
-
-    <!-- 教會資訊與奉獻說明（暫時移除以修正編譯問題） -->
-    <!-- TODO: 修正編碼後再恢復此區塊 -->
-    <!-- ==================== 教會資訊與奉獻說明 ==================== -->
-<section class="church-info accordion1 cid-qEXSX9hqvd" id="accordion1-7">
-    <div class="container">
+        <!-- ==================== 教會資訊與奉獻說明 ==================== -->
+        <section class="church-info accordion1 cid-qEXSX9hqvd" id="accordion1-7">
+  <div class="container">
         <div class="media-container-row">
-            <div class="col-12 text-left col-md-8">
-                <!-- 教會聯絡資訊 -->
-                <div class="section-head text-left space30">
-                    <h3 class="mbr-section-title pb-1 mbr-fonts-style display-24 text-left">聖谷行道會</h3>
-                    <h3 class="mbr-section-title pb-1 mbr-fonts-style display-24 text-left">地址: 231新北市新店區安興路91巷5號4樓</h3>
-                    <h3 class="mbr-section-title pb-1 mbr-fonts-style display-24 text-left">電話: 02-2211-1556</h3>
-                    <h3 class="mbr-section-title pb-1 mbr-fonts-style display-24 text-left">信箱：sunnyvale.church@gmail.com</h3>
-                    <h3 class="mbr-section-title pb-1 mbr-fonts-style display-24 text-left">統編: 20004335</h3>
-                    <h3 class="mbr-section-title pb-1 mbr-fonts-style display-24 text-left">*若有任何奉獻問題，請洽詢曾淑芬姊妹*</h3>
-                </div>
-                
-                <!-- 奉獻資訊手風琴選單 -->
-                <div id="bootstrap-accordion_7" class="panel-group accordionStyles accordion" role="tablist" aria-multiselectable="true">
-                    <!-- 十一奉獻 -->
-                    <div class="card text-left">
-                        <div class="card-header" role="tab" id="headingOne">
-                            <a role="button" class="panel-title collapsed text-black" data-toggle="collapse" data-parent="#bootstrap-accordion_7" data-core="" href="#collapse1_7" aria-expanded="false" aria-controls="collapse1">
-                                <h4 class="mbr-fonts-style display-5">
-                                    <span class="sign mbr-iconfont mbri-arrow-down inactive"></span>十一奉獻
-                                </h4>
-                            </a>
-                        </div>
-                        <div id="collapse1_7" class="panel-collapse noScroll collapse" role="tabpanel" aria-labelledby="headingOne">
-                            <div class="panel-body p-4">
-                                <p class="mbr-fonts-style panel-text display-5">
-                                    十一奉獻是基督徒應盡的責任和義務。
-                                    所以上帝挑戰我們，當我們願意將十分之一奉獻給上帝時，
-                                    上帝將會傾倒更大的祝福在我們的身上。
+      <div class="col-12 text-left col-md-8">
+          <!-- 教會聯絡資訊 -->
+             <div class="section-head text-left space30">
+       <h3 class="mbr-section-title pb-1 mbr-fonts-style display-24 text-left">聖谷行道會</h3>
+    <h3 class="mbr-section-title pb-1 mbr-fonts-style display-24 text-left">地址: 231新北市新店區安興路91巷5號4樓</h3>
+  <h3 class="mbr-section-title pb-1 mbr-fonts-style display-24 text-left">電話: 02-2211-1556</h3>
+            <h3 class="mbr-section-title pb-1 mbr-fonts-style display-24 text-left">信箱：sunnyvale.church@gmail.com</h3>
+           <h3 class="mbr-section-title pb-1 mbr-fonts-style display-24 text-left">統編: 20004335</h3>
+        <h3 class="mbr-section-title pb-1 mbr-fonts-style display-24 text-left">*若有任何奉獻問題，請洽詢曾淑芬姊妹*</h3>
+   </div>
+               
+      <!-- 奉獻資訊手風琴選單 -->
+       <div id="bootstrap-accordion_7" class="panel-group accordionStyles accordion" role="tablist" aria-multiselectable="true">
+     <!-- 十一奉獻 -->
+       <div class="card text-left">
+                <div class="card-header" role="tab" id="headingOne">
+      <a role="button" class="panel-title collapsed text-black" data-toggle="collapse" data-parent="#bootstrap-accordion_7" data-core="" href="#collapse1_7" aria-expanded="false" aria-controls="collapse1">
+          <h4 class="mbr-fonts-style display-5">
+  <span class="sign mbr-iconfont mbri-arrow-down inactive"></span>十一奉獻
+    </h4>
+      </a>
+             </div>
+        <div id="collapse1_7" class="panel-collapse noScroll collapse" role="tabpanel" aria-labelledby="headingOne">
+       <div class="panel-body p-4">
+ <p class="mbr-fonts-style panel-text display-5">
+              十一奉獻是基督徒應盡的責任和義務。
+             所以上帝挑戰我們，當我們願意將十分之一奉獻給上帝時，
+           上帝將會傾倒更大的祝福在我們的身上。
 
-                                    萬軍之耶和華說：你們要將當納的十分之一全然送入倉庫，使我家有糧，
-                                    以此試試我，是否為你們敞開天上的窗戶，傾福與你們，甚至無處可容。
-                                    ─ 瑪拉基書3:10
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- 建殿奉獻 -->
-                    <div class="card">
-                        <div class="card-header" role="tab" id="headingTwo">
-                            <a role="button" class="collapsed panel-title text-black" data-toggle="collapse" data-parent="#bootstrap-accordion_7" data-core="" href="#collapse2_7" aria-expanded="false" aria-controls="collapse2">
-                                <h4 class="mbr-fonts-style display-5">
-                                    <span class="sign mbr-iconfont mbri-arrow-down inactive"></span>建堂奉獻
-                                </h4>
-                            </a>
-                        </div>
-                        <div id="collapse2_7" class="panel-collapse noScroll collapse" role="tabpanel" aria-labelledby="headingTwo">
-                            <div class="panel-body p-4">
-                                <p class="mbr-fonts-style panel-text display-5">
-                                    因著神的憐憫，「聖谷行道會」從恩典到奇蹟的這段旅程，讓我們著實看見神奇妙又信實的作為。
-                                    為了滿足場地以及相關軟硬體等財務需求，邀請聖谷行道會的弟兄姊妹們，透過「建堂奉獻」一起支持、建造神國的家。
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- 感恩奉獻 -->
-                    <div class="card">
-                        <div class="card-header" role="tab" id="headingThree">
-                            <a role="button" class="collapsed text-black panel-title" data-toggle="collapse" data-parent="#bootstrap-accordion_7" data-core="" href="#collapse3_7" aria-expanded="false" aria-controls="collapse3">
-                                <h4 class="mbr-fonts-style display-5">
-                                    <span class="sign mbr-iconfont mbri-arrow-down inactive"></span>感恩奉獻
-                                </h4>
-                            </a>
-                        </div>
-                        <div id="collapse3_7" class="panel-collapse noScroll collapse" role="tabpanel" aria-labelledby="headingThree">
-                            <div class="panel-body p-4">
-                                <p class="mbr-fonts-style panel-text display-5">
-                                    上帝的祝福讓我們學習凡事謝恩，而獻上財物則是我們感謝上帝的一種方式。
-                                    我們鼓勵每個人都應該照自己心裡所願來奉獻，不猶豫、不勉強，因為上帝喜愛樂意奉獻的人。
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- 宣教奉獻 -->
-                    <div class="card">
-                        <div class="card-header" role="tab" id="headingFour">
-                            <a role="button" class="collapsed panel-title text-black" data-toggle="collapse" data-parent="#bootstrap-accordion_7" data-core="" href="#collapse4_7" aria-expanded="false" aria-controls="collapse4">
-                                <h4 class="mbr-fonts-style display-5">
-                                    <span class="sign mbr-iconfont mbri-arrow-down inactive"></span>宣教奉獻
-                                </h4>
-                            </a>
-                        </div>
-                        <div id="collapse4_7" class="panel-collapse noScroll collapse" role="tabpanel" aria-labelledby="headingFour">
-                            <div class="panel-body p-4">
-                                <p class="mbr-fonts-style panel-text display-5">
-                                    「使萬民成為主的門徒」是上帝的心意，也是託付給教會的大使命。
-                                    根據統計，目前全球仍有31億、約41%的未得之民（缺乏基督教會、宣教士、聖經等信仰資源，而從未接觸福音者），宣教的需要永遠都是刻不容緩！
-                                    也許不是每個人都會被上帝呼召成為「宣教士」，但每個人都可以透過奉獻來做「宣教事」。
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- 聯繫資訊 -->
-                    <div class="card">
-                        <div class="card-header" role="tab" id="headingFive">
-                            <a role="button" class="collapsed panel-title text-black" data-toggle="collapse" data-parent="#bootstrap-accordion_7" data-core="" href="#collapse6_7" aria-expanded="false" aria-controls="collapse6">
-                                <h4 class="mbr-fonts-style display-5">
-                                    <span class="sign mbr-iconfont mbri-arrow-down inactive"></span>若有任何奉獻問題，請洽詢曾淑芬姊妹
-                                </h4>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
+         萬軍之耶和華說：你們要將當納的十分之一全然送入倉庫，使我家有糧，
+  以此試試我，是否為你們敞開天上的窗戶，傾福與你們，甚至無處可容。
+─ 瑪拉基書3:10
+                </p>
+   </div>
+         </div>
+     </div>
+  
+  <!-- 建殿奉獻 -->
+          <div class="card">
+       <div class="card-header" role="tab" id="headingTwo">
+        <a role="button" class="collapsed panel-title text-black" data-toggle="collapse" data-parent="#bootstrap-accordion_7" data-core="" href="#collapse2_7" aria-expanded="false" aria-controls="collapse2">
+      <h4 class="mbr-fonts-style display-5">
+           <span class="sign mbr-iconfont mbri-arrow-down inactive"></span>建堂奉獻
+     </h4>
+  </a>
+           </div>
+         <div id="collapse2_7" class="panel-collapse noScroll collapse" role="tabpanel" aria-labelledby="headingTwo">
+    <div class="panel-body p-4">
+           <p class="mbr-fonts-style panel-text display-5">
+              因著神的憐憫，「聖谷行道會」從恩典到奇蹟的這段旅程，讓我們著實看見神奇妙又信實的作為。
+     為了滿足場地以及相關軟硬體等財務需求，邀請聖谷行道會的弟兄姊妹們，透過「建堂奉獻」一起支持、建造神國的家。
+    </p>
+       </div>
+  </div>
+   </div>
+    
+       <!-- 感恩奉獻 -->
+     <div class="card">
+        <div class="card-header" role="tab" id="headingThree">
+    <a role="button" class="collapsed text-black panel-title" data-toggle="collapse" data-parent="#bootstrap-accordion_7" data-core="" href="#collapse3_7" aria-expanded="false" aria-controls="collapse3">
+      <h4 class="mbr-fonts-style display-5">
+     <span class="sign mbr-iconfont mbri-arrow-down inactive"></span>感恩奉獻
+    </h4>
+         </a>
         </div>
+            <div id="collapse3_7" class="panel-collapse noScroll collapse" role="tabpanel" aria-labelledby="headingThree">
+         <div class="panel-body p-4">
+            <p class="mbr-fonts-style panel-text display-5">
+          上帝的祝福讓我們學習凡事謝恩，而獻上財物則是我們感謝上帝的一種方式。
+    我們鼓勵每個人都應該照自己心裡所願來奉獻，不猶豫、不勉強，因為上帝喜愛樂意奉獻的人。
+             </p>
+           </div>
+      </div>
+        </div>
+       
+     <!-- 宣教奉獻 -->
+ <div class="card">
+         <div class="card-header" role="tab" id="headingFour">
+   <a role="button" class="collapsed panel-title text-black" data-toggle="collapse" data-parent="#bootstrap-accordion_7" data-core="" href="#collapse4_7" aria-expanded="false" aria-controls="collapse4">
+          <h4 class="mbr-fonts-style display-5">
+      <span class="sign mbr-iconfont mbri-arrow-down inactive"></span>宣教奉獻
+         </h4>
+    </a>
+      </div>
+                 <div id="collapse4_7" class="panel-collapse noScroll collapse" role="tabpanel" aria-labelledby="headingFour">
+            <div class="panel-body p-4">
+                <p class="mbr-fonts-style panel-text display-5">
+                 「使萬民成為主的門徒」是上帝的心意，也是託付給教會的大使命。
+  根據統計，目前全球仍有31億、約41%的未得之民（缺乏基督教會、宣教士、聖經等信仰資源，而從未接觸福音者），宣教的需要永遠都是刻不容緩！
+     也許不是每個人都會被上帝呼召成為「宣教士」，但每個人都可以透過奉獻來做「宣教事」。
+  </p>
+             </div>
+          </div>
+     </div>
+     
+     <!-- 聯繫資訊 -->
+              <div class="card">
+     <div class="card-header" role="tab" id="headingFive">
+     <a role="button" class="collapsed panel-title text-black" data-toggle="collapse" data-parent="#bootstrap-accordion_7" data-core="" href="#collapse6_7" aria-expanded="false" aria-controls="collapse6">
+                 <h4 class="mbr-fonts-style display-5">
+          <span class="sign mbr-iconfont mbri-arrow-down inactive"></span>若有任何奉獻問題，請洽詢曾淑芬姊妹
+          </h4>
+              </a>
+       </div>
+     </div>
     </div>
-</section>
-
+              </div>
+     </div>
+        </section>
+    </div>
 </div>
 
+<!-- External Scripts -->
 <script src="~/lib/jquery-ajax-unobtrusive/jquery.unobtrusive-ajax.js"></script>
 <script src="~/js/devextreme/devextreme-intl.min.js"></script>
 <script src="~/js/devextreme/localization/dx.messages.zh-tw.js"></script>
@@ -486,25 +485,26 @@
 <script src="~/assets/mbr-switch-arrow/mbr-switch-arrow.js"></script>
 <script src="~/assets/theme/js/script.js"></script>
 
+<!-- QPayView Custom Scripts -->
 <script>
-    // 工具函數
+    // ==================== 工具函數 ====================
     function getLoadPanelInstance() { return $("#loadPanel").dxLoadPanel("instance"); }
     function getFormInstance() { return $("#form").dxForm("instance"); }
-    function getToastInstance() { return $("#toast").dxToast("instance"); }
+function getToastInstance() { return $("#toast").dxToast("instance"); }
     function ShowLoadPanel() { getLoadPanelInstance().show(); }
-    function UseOtherCreditCard() { ShowLoadPanel(); getFormInstance().updateData('SelectedCreditCard', ""); }
+  function UseOtherCreditCard() { ShowLoadPanel(); getFormInstance().updateData('SelectedCreditCard', ""); }
     
-    function ShowToast(message, type, displayTime) {
+  function ShowToast(message, type, displayTime) {
         var toast = getToastInstance();
         toast.option({ message: message, type: type, displayTime: displayTime, 'white-space': 'pre-line', closeOnClick: true });
         toast.show();
     }
 
-    // 表單欄位處理
+    // ==================== 表單欄位處理 ====================
     function hideAllDedicationFields() {
-        var form = getFormInstance();
+     var form = getFormInstance();
         form.itemOption("OtherDedicationSelectionBox", 'visible', false);
-        form.itemOption("HolidayDedicationSelectionBox", 'visible', false);
+ form.itemOption("HolidayDedicationSelectionBox", 'visible', false);
         form.itemOption("SpecialDedicationSelectionBox", 'visible', false);
         form.itemOption("OtherDedication", 'visible', false);
     }
@@ -515,140 +515,143 @@
         if (e.value == "節期獻金") {
             form.itemOption("HolidayDedicationSelectionBox", 'visible', true);
         } else if (e.value == "特別獻金") {
-            form.itemOption("SpecialDedicationSelectionBox", 'visible', true);
+        form.itemOption("SpecialDedicationSelectionBox", 'visible', true);
         }
         form.itemOption('DedicationAmount', { editorOptions: { width: 200 } });
     }
 
     function OnAmountContentReady(e) {
-        if (e.component.option("value") == 0) {
-            e.component.option("value", "");
-        }
+   if (e.component.option("value") == 0) {
+        e.component.option("value", "");
+     }
     }
 
-    // 付款方式處理
+    // ==================== 付款方式處理 ====================
     function resetPaymentUI() {
         var form = getFormInstance();
         document.getElementById('atmfield').innerHTML = "";
         form.itemOption('DedicationAmount', { editorOptions: { width: 200 } });
         form.itemOption("DedicationAmount", "label", { text: "奉獻金額" });
-        form.itemOption("DedicationAmount", "editorOptions", { placeholder: "請輸入奉獻金額" });
+     form.itemOption("DedicationAmount", "editorOptions", { placeholder: "請輸入奉獻金額" });
         form.itemOption("DeductTotalNumberSelectionBox", 'visible', false);
     }
     
     function handleCreditCardPayment() {
-        var creditcards = $("#CreditCardGrid").dxDataGrid("instance").getDataSource().items();
+   var creditcards = $("#CreditCardGrid").dxDataGrid("instance").getDataSource().items();
         var creditCardContainer = document.getElementById("creditcardlistcontainer");
         var bookingContainer = document.getElementById("dedicationbookinglistcontainer");
         
-        if (creditcards.length > 0) {
+ if (creditcards.length > 0) {
             creditCardContainer.style.display = "";
-            $("#CreditCardGrid").dxDataGrid("instance").selectRows('@(Model.SelectedCreditCard)', true);
-            $("#save-button3").dxButton("instance").option("visible", true);
-            $("#save-button2").dxButton("instance").option("text", "確認奉獻");
-        } else {
-            creditCardContainer.style.display = "none";
+     $("#CreditCardGrid").dxDataGrid("instance").selectRows('@(Model.SelectedCreditCard)', true);
+       $("#save-button3").dxButton("instance").option("visible", true);
+     $("#save-button2").dxButton("instance").option("text", "確認奉獻");
+     } else {
+     creditCardContainer.style.display = "none";
             $("#save-button3").dxButton("instance").option("visible", false);
-            $("#save-button2").dxButton("instance").option("text", "確認奉獻");
+          $("#save-button2").dxButton("instance").option("text", "確認奉獻");
         }
-        bookingContainer.style.display = "none";
+ bookingContainer.style.display = "none";
     }
     
     function handleCreditCardSubscription() {
         handleCreditCardPayment();
         var form = getFormInstance();
         var bookings = $("#DedicationBookingGrid").dxDataGrid("instance").getDataSource().items();
-        if (bookings.length > 0) {
-            document.getElementById("dedicationbookinglistcontainer").style.display = "";
-        }
+   if (bookings.length > 0) {
+       document.getElementById("dedicationbookinglistcontainer").style.display = "";
+    }
         form.itemOption("DeductTotalNumberSelectionBox", 'visible', true);
-        form.itemOption("DedicationAmount", "label", { text: "每月金額" });
+      form.itemOption("DedicationAmount", "label", { text: "每月金額" });
         form.itemOption("DedicationAmount", "editorOptions", { placeholder: "請輸入每月的奉獻金額" });
     }
     
     function handleOtherPayment() {
-        document.getElementById("creditcardlistcontainer").style.display = "none";
+   document.getElementById("creditcardlistcontainer").style.display = "none";
         document.getElementById("dedicationbookinglistcontainer").style.display = "none";
         $("#save-button3").dxButton("instance").option("visible", false);
-        $("#save-button2").dxButton("instance").option("text", "確認奉獻");
+     $("#save-button2").dxButton("instance").option("text", "確認奉獻");
     }
 
     function OnPayWaySelectBoxValueChanged(e) {
         resetPaymentUI();
         switch(e.value) {
-            case "信用卡": handleCreditCardPayment(); break;
-            case "信用卡定期定額(每個月)": handleCreditCardSubscription(); break;
+   case "信用卡": handleCreditCardPayment(); break;
+  case "信用卡定期定額(每個月)": handleCreditCardSubscription(); break;
             default: handleOtherPayment(); break;
         }
     }
 
-    // 資料網格事件處理
+    // ==================== 資料網格事件處理 ====================
     function DataGridOnInitialized(e) { e.component.columnOption("command:edit", "width", 50); }
+    
     function OnRowClick(selectedItems) {
-        var data = selectedItems.selectedRowsData[0];
+    var data = selectedItems.selectedRowsData[0];
         if (data) { getFormInstance().updateData('SelectedCreditCard', data.CCToken); }
     }
+    
     function OnRowSelectionChanged(selectedItems) {
         var data = selectedItems.selectedRowsData[0];
-        if (data) { getFormInstance().updateData('SelectedCreditCard', data.CCToken); }
+ if (data) { getFormInstance().updateData('SelectedCreditCard', data.CCToken); }
     }
 
     function onCreditCardGridContentReady(e) {
         var items = e.component.getDataSource().items();
         var creditCardContainer = document.getElementById("creditcardlistcontainer");
-        var bookingContainer = document.getElementById("dedicationbookinglistcontainer");
+     var bookingContainer = document.getElementById("dedicationbookinglistcontainer");
         
         if (items.length > 0) {
-            creditCardContainer.style.display = "";
+      creditCardContainer.style.display = "";
+    bookingContainer.style.display = "none";
+    e.component.selectRows('@(Model.SelectedCreditCard)', true);
+   } else {
+     creditCardContainer.style.display = "none";
             bookingContainer.style.display = "none";
-            e.component.selectRows('@(Model.SelectedCreditCard)', true);
-        } else {
-            creditCardContainer.style.display = "none";
-            bookingContainer.style.display = "none";
-            $("#save-button3").dxButton("instance").option("visible", false);
-            $("#save-button2").dxButton("instance").option("text", "確認奉獻");
+     $("#save-button3").dxButton("instance").option("visible", false);
+         $("#save-button2").dxButton("instance").option("text", "確認奉獻");
         }
     }
 
     function onDedicationBookingGridContentReady(e) {
-        e.component.columnOption("command:edit", { visibleIndex: -1, width: 50 });
+     e.component.columnOption("command:edit", { visibleIndex: -1, width: 50 });
     }
 
-    // AJAX回調處理
+    // ==================== AJAX 回調處理 ====================
     function onBegin() {}
+    
     function onSuccess(data) {
-        getLoadPanelInstance().hide();
+     getLoadPanelInstance().hide();
         if (data.status == 1) {
-            if (data.PayWay == "信用卡") {
+       if (data.PayWay == "信用卡") {
                 ShowToast(data.message, "success", 2000);
-                window.location.href = data.DedicationResult;
+         window.location.href = data.DedicationResult;
             } else {
-                ShowToast(data.message, "success", 2000);
-                document.getElementById('atmfield').innerHTML = data.DedicationResult;
-            }
-        } else {
-            ShowToast(data.message, "error", 3000);
-            document.getElementById('atmfield').innerHTML = data.message;
+        ShowToast(data.message, "success", 2000);
+  document.getElementById('atmfield').innerHTML = data.DedicationResult;
+        }
+   } else {
+     ShowToast(data.message, "error", 3000);
+          document.getElementById('atmfield').innerHTML = data.message;
         }
     }
 
-    // DevExtreme本地化設定
+    // ==================== DevExtreme 本地化設定 ====================
     (function initializeLocalization() {
         var dictionary = {
-            "zh-tw": {
+    "zh-tw": {
                 "dxScheduler-switcherAgenda": "會議內容",
-                "Month": "月",
-                "Subject": "主題",
+       "Month": "月",
+     "Subject": "主題",
                 "Company": "Company",
                 "Amount": "Amount",
-                "PaymentDate": "Payment Date",
-                "dxDataGrid-editingConfirmDeleteMessage": "您確定要刪除這張信用卡嗎?",
-            }
-        };
+  "PaymentDate": "Payment Date",
+      "dxDataGrid-editingConfirmDeleteMessage": "您確定要刪除這張信用卡嗎?",
+         }
+    };
         DevExpress.localization.loadMessages(dictionary);
-        var locale = "zh-tw";
+var locale = "zh-tw";
         sessionStorage.setItem("locale", locale);
         DevExpress.localization.locale(locale);
-    })();
+ })();
 </script>
 

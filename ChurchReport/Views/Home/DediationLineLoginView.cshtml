@@ -45,95 +45,95 @@
     <script src="~/js/devextreme/aspnet/dx.aspnet.mvc.js"></script>
 
     <style>
-        /* Elegant, subtle background */
-        body.elegant-bg {
-            min-height: 100vh;
-            background: linear-gradient(135deg, #f7f8fc 0%, #eef3ff 100%);
-            color: #2d3748;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji", sans-serif;
+        /* 作用域限制：只影響 DediationLineLoginView 頁面 */
+        body.dediation-line-login {
+       min-height: 100vh;
+      background: linear-gradient(135deg, #f7f8fc 0%, #eef3ff 100%);
+         color: #2d3748;
+     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji", sans-serif;
         }
 
-        .hero {
-            padding: 32px 0 16px 0;
-            text-align: center;
+        body.dediation-line-login .hero {
+      padding: 32px 0 16px 0;
+          text-align: center;
         }
 
-        .hero-title {
-            font-weight: 600;
+        body.dediation-line-login .hero-title {
+  font-weight: 600;
             letter-spacing: 0.5px;
             color: #1a202c;
-            margin-bottom: 6px;
+   margin-bottom: 6px;
         }
 
-        .hero-sub {
-            color: #718096;
-            font-size: 14px;
-            margin-bottom: 16px;
+   body.dediation-line-login .hero-sub {
+    color: #718096;
+   font-size: 14px;
+   margin-bottom: 16px;
         }
 
-        .gallery-wrap {
-            padding: 0 16px 8px 16px;
-        }
+     body.dediation-line-login .gallery-wrap {
+      padding: 0 16px 8px 16px;
+   }
 
-        .glass-card {
+      body.dediation-line-login .glass-card {
             background: rgba(255, 255, 255, 0.85);
             border-radius: 16px;
-            box-shadow: 0 10px 25px rgba(30, 41, 59, 0.08);
+ box-shadow: 0 10px 25px rgba(30, 41, 59, 0.08);
             backdrop-filter: saturate(140%) blur(6px);
             -webkit-backdrop-filter: saturate(140%) blur(6px);
-            overflow: hidden;
-        }
+       overflow: hidden;
+      }
 
-        .card-body-soft {
+body.dediation-line-login .card-body-soft {
             padding: 24px;
         }
 
-        .info-list {
-            list-style: none;
-            padding-left: 0;
+        body.dediation-line-login .info-list {
+    list-style: none;
+    padding-left: 0;
             margin: 0;
-        }
+     }
 
-        .info-list li {
+        body.dediation-line-login .info-list li {
             display: flex;
-            align-items: baseline;
-            padding: 6px 0;
-            border-bottom: 1px dashed #e2e8f0;
+     align-items: baseline;
+        padding: 6px 0;
+   border-bottom: 1px dashed #e2e8f0;
+     }
+
+body.dediation-line-login .info-list li:last-child {
+  border-bottom: 0;
         }
 
-        .info-list li:last-child {
-            border-bottom: 0;
+        body.dediation-line-login .info-label {
+    min-width: 72px;
+   color: #4a5568;
+font-weight: 600;
+  margin-right: 8px;
         }
 
-        .info-label {
-            min-width: 72px;
-            color: #4a5568;
-            font-weight: 600;
-            margin-right: 8px;
+        body.dediation-line-login .info-value { color: #2d3748; }
+
+        body.dediation-line-login .hint { color: #718096; font-size: 13px; margin-top: 12px; }
+
+        body.dediation-line-login .status-line {
+       margin: 8px 0 0 0;
+          font-size: 14px;
+     color: #2b6cb0;
+     font-weight: 600;
+       text-align: center;
         }
 
-        .info-value { color: #2d3748; }
-
-        .hint { color: #718096; font-size: 13px; margin-top: 12px; }
-
-        .status-line {
-            margin: 8px 0 0 0;
-            font-size: 14px;
-            color: #2b6cb0;
-            font-weight: 600;
-            text-align: center;
-        }
-
-        .footer-note { font-size: 12px; color: #a0aec0; text-align: center; padding: 16px 0 8px; }
+        body.dediation-line-login .footer-note { font-size: 12px; color: #a0aec0; text-align: center; padding: 16px 0 8px; }
 
         @@media (min-width: 768px) {
-            .card-body-soft { padding: 28px 32px; }
-        }
+    body.dediation-line-login .card-body-soft { padding: 28px 32px; }
+      }
     </style>
 
 </head>
 
-<body class="elegant-bg">
+<body class="dediation-line-login">
 
     <div class="hero">
         <h2 class="hero-title">聖谷行道會</h2>
