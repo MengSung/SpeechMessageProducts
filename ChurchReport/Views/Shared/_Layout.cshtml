@@ -91,10 +91,29 @@
             .navbar-custom .navbar-nav {
                 background-color: rgba(0, 0, 0, 0.1); /* 半透明黑色背景 */
                 margin: 0; /* 移除邊距 */
+                /* 強制垂直排列 */
+                float: none !important;
+                display: block !important;
+                width: 100% !important;
+            }
+            .navbar-custom .navbar-nav > li {
+                /*取消水平排列造成的 float/inline 排版 */
+                float: none !important;
+                display: block !important;
+                width: 100% !important;
+                clear: both !important;
             }
             .navbar-custom .navbar-nav > li > a {
                 padding: 15px 20px; /* 增加內邊距 */
                 border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* 底部邊框 */
+                /* 強制每個項目佔滿一行 */
+                display: block !important;
+                width: 100% !important;
+                box-sizing: border-box;
+            }
+            /* 若有外部樣式將 .navbar-nav 設為 flex，強制改為縱向 */
+            .navbar-custom .navbar-nav {
+                display: block !important; /*取代 flex */
             }
         }
     </style>

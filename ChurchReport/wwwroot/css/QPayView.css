@@ -1,5 +1,15 @@
-/* ==================== QPayView 頁面專屬樣式 ==================== */
-/* 注意：所有樣式都應該在 .qpay-page 作用域下，避免影響其他頁面 */
+/* ==================== QPayView 專屬樣式 ==================== */
+/* 注意：所有樣式都包在 .qpay-page 作用域下，避免影響其他頁面 */
+
+/* ===== 確保不影響全域 navbar 樣式 ===== */
+/* 重要：QPayView 不應該修改 navbar 的行為 */
+.qpay-page .navbar,
+.qpay-page .navbar-nav,
+.qpay-page .navbar-collapse {
+    /* 明確指定不繼承任何可能影響 navbar 的樣式 */
+  all: initial;
+    font-family: inherit;
+}
 
 /* ===== 變數設定 ===== */
 .qpay-page {
@@ -9,17 +19,17 @@
     --danger-color: #dc3545;
     --light-bg: #f8f9fa;
     --border-color: #dee2e6;
-    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
     --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.15);
-    --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.2);
-    --border-radius: 8px;
+  --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.2);
+--border-radius: 8px;
     --transition: all 0.3s ease;
 }
 
 /* ===== 主容器 ===== */
 .qpay-page .qpay-container {
     max-width: 1200px;
-    margin: 0 auto;
+  margin: 0 auto;
     padding: 20px;
     background: #f8f9fa;
     min-height: 100vh;
@@ -29,7 +39,7 @@
 .qpay-page .dedication-header {
     background: linear-gradient(135deg, var(--primary-color) 0%, #1e90ff 100%);
     color: white !important;
- padding: 20px 30px;
+    padding: 20px 30px;
     border-radius: var(--border-radius);
     margin-bottom: 30px;
     box-shadow: var(--shadow-md);
@@ -44,13 +54,13 @@
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
 }
 
-/* ===== 表單區 ===== */
+/* ===== 表單 ===== */
 .qpay-page #form-container {
     background: white;
     padding: 30px;
     border-radius: var(--border-radius);
     box-shadow: var(--shadow-md);
-margin-bottom: 30px;
+    margin-bottom: 30px;
     animation: fadeIn 0.8s ease;
 }
 
@@ -67,19 +77,19 @@ margin-bottom: 30px;
 /* ===== 信用卡列表 ===== */
 .qpay-page .card-list {
     background: white;
- padding: 25px;
+    padding: 25px;
     border-radius: var(--border-radius);
     box-shadow: var(--shadow-md);
     margin-bottom: 30px;
-  border-left: 4px solid var(--primary-color);
-    animation: fadeInLeft 0.8s ease;
+    border-left: 4px solid var(--primary-color);
+animation: fadeInLeft 0.8s ease;
 }
 
 .qpay-page .card-list h5 {
     color: var(--primary-color) !important;
     font-size: 1.2rem;
-    margin-bottom: 20px;
-  font-weight: 600;
+margin-bottom: 20px;
+    font-weight: 600;
 }
 
 .qpay-page #CreditCardGrid {
@@ -99,20 +109,20 @@ margin-bottom: 30px;
 
 /* ===== 按鈕區域 ===== */
 .qpay-page .button-area {
-    margin: 30px 0;
- animation: fadeInUp 0.8s ease;
+ margin: 30px 0;
+    animation: fadeInUp 0.8s ease;
 }
 
 .qpay-page #buttonContainer {
     display: flex;
-  gap: 8px;
-    flex-wrap: wrap;
+    gap: 8px;
+ flex-wrap: wrap;
 }
 
 .qpay-page #buttonContainer .dx-button {
     flex: 0 0 auto;
     min-width: 120px;
-  box-shadow: var(--shadow-sm);
+box-shadow: var(--shadow-sm);
     transition: var(--transition);
 }
 
@@ -141,9 +151,9 @@ margin-bottom: 30px;
 }
 
 .qpay-page .atm-info h5 {
-    color: #856404 !important;
+color: #856404 !important;
     font-size: 1.1rem;
-margin: 0;
+ margin: 0;
 }
 
 /* ===== 定期定額清單 ===== */
@@ -153,13 +163,13 @@ margin: 0;
     border-radius: var(--border-radius);
     box-shadow: var(--shadow-md);
     margin-bottom: 30px;
-    border-left: 4px solid var(--secondary-color);
- animation: fadeInRight 0.8s ease;
+  border-left: 4px solid var(--secondary-color);
+    animation: fadeInRight 0.8s ease;
 }
 
 .qpay-page .booking-list h5 {
     color: var(--secondary-color) !important;
-  font-size: 1.2rem;
+    font-size: 1.2rem;
     margin-bottom: 20px;
     font-weight: 600;
 }
@@ -176,7 +186,7 @@ margin: 0;
 
 .qpay-page #DedicationBookingGrid .dx-row:hover {
     background-color: rgba(210, 105, 30, 0.1);
-  transition: var(--transition);
+    transition: var(--transition);
 }
 
 /* ===== 通知區域 ===== */
@@ -223,7 +233,7 @@ margin: 0;
     font-size: 1.8rem;
     color: var(--primary-color) !important;
     font-weight: 700;
-  margin-bottom: 20px;
+    margin-bottom: 20px;
 }
 
 /* ===== 手風琴選單 ===== */
@@ -243,15 +253,15 @@ margin: 0;
 .qpay-page .accordion .card-header {
     background: linear-gradient(to right, var(--primary-color), #1e90ff);
     border: none;
-  padding: 0;
+    padding: 0;
 }
 
 .qpay-page .accordion .card-header a {
     display: block;
     padding: 15px 20px;
-  color: white !important;
- text-decoration: none;
-    transition: var(--transition);
+    color: white !important;
+    text-decoration: none;
+transition: var(--transition);
 }
 
 .qpay-page .accordion .card-header a:hover {
@@ -271,7 +281,7 @@ margin: 0;
 }
 
 .qpay-page .accordion .card-header a[aria-expanded="true"] .sign {
-    transform: rotate(180deg);
+  transform: rotate(180deg);
 }
 
 .qpay-page .accordion .panel-body {
@@ -288,7 +298,7 @@ margin: 0;
 /* ===== 動畫效果 ===== */
 @keyframes fadeIn {
     from {
-      opacity: 0;
+        opacity: 0;
     }
     to {
         opacity: 1;
@@ -298,17 +308,17 @@ margin: 0;
 @keyframes fadeInDown {
     from {
         opacity: 0;
-        transform: translateY(-20px);
+ transform: translateY(-20px);
     }
-    to {
+  to {
         opacity: 1;
-   transform: translateY(0);
+        transform: translateY(0);
     }
 }
 
 @keyframes fadeInUp {
     from {
- opacity: 0;
+        opacity: 0;
         transform: translateY(20px);
     }
     to {
@@ -319,19 +329,8 @@ margin: 0;
 
 @keyframes fadeInLeft {
     from {
- opacity: 0;
-     transform: translateX(-20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}
-
-@keyframes fadeInRight {
-    from {
         opacity: 0;
-        transform: translateX(20px);
+        transform: translateX(-20px);
     }
     to {
         opacity: 1;
@@ -339,14 +338,25 @@ margin: 0;
     }
 }
 
+@keyframes fadeInRight {
+    from {
+      opacity: 0;
+ transform: translateX(20px);
+    }
+  to {
+        opacity: 1;
+  transform: translateX(0);
+    }
+}
+
 /* ===== 響應式設計 ===== */
 @media (max-width: 768px) {
     .qpay-page .dedication-header {
-   padding: 15px 20px;
+      padding: 15px 20px;
     }
     
     .qpay-page .dedication-header h4 {
-        font-size: 1.2rem;
+      font-size: 1.2rem;
     }
     
     .qpay-page #form-container {
@@ -354,23 +364,23 @@ margin: 0;
     }
     
     .qpay-page .card-list,
- .qpay-page .booking-list {
+    .qpay-page .booking-list {
         padding: 20px;
     }
     
     .qpay-page #buttonContainer {
-        flex-direction: column;
+     flex-direction: column;
     }
     
     .qpay-page #buttonContainer .dx-button {
-        width: 100%;
+      width: 100%;
     }
     
     .qpay-page .section-head {
         padding: 20px;
-}
-  
-    .qpay-page .section-head h3 {
+    }
+    
+  .qpay-page .section-head h3 {
         font-size: 1rem;
     }
 
@@ -381,93 +391,11 @@ margin: 0;
 
 @media (max-width: 480px) {
     .qpay-page .dedication-header h4 {
-        font-size: 1rem;
+      font-size: 1rem;
     }
     
     .qpay-page #form-container {
         padding: 15px;
     }
     
- .qpay-page .card-list h5,
-    .qpay-page .booking-list h5 {
-        font-size: 1rem;
-    }
-}
-
-/* ===== DevExtreme 元件樣式覆寫 ===== */
-.qpay-page .dx-texteditor.dx-editor-outlined {
-    border-radius: 6px;
-    transition: var(--transition);
-}
-
-.qpay-page .dx-texteditor.dx-state-focused {
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(32, 178, 170, 0.1);
-}
-
-.qpay-page .dx-selectbox .dx-texteditor-input {
-    padding: 8px 12px;
-}
-
-.qpay-page .dx-numberbox .dx-texteditor-input {
-    padding: 8px 12px;
-}
-
-.qpay-page .dx-textarea {
-    border-radius: 6px;
-}
-
-.qpay-page .dx-button {
-    border-radius: 6px;
-    font-weight: 500;
-    padding: 10px 20px;
-    text-transform: none;
-}
-
-/* ===== 載入動畫 ===== */
-.qpay-page .dx-loadpanel-content {
-    background: white;
-    border-radius: var(--border-radius);
-    padding: 30px;
-}
-
-.qpay-page .dx-loadindicator-icon {
-    color: var(--primary-color);
-}
-
-/* ===== 工具提示 ===== */
-.qpay-page .dx-tooltip-wrapper .dx-overlay-content {
-    border-radius: 6px;
-    box-shadow: var(--shadow-md);
-}
-
-/* ===== 自訂捲軸 ===== */
-.qpay-page ::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
-}
-
-.qpay-page ::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 5px;
-}
-
-.qpay-page ::-webkit-scrollbar-thumb {
-    background: linear-gradient(135deg, var(--primary-color), #1e90ff);
-    border-radius: 5px;
-}
-
-.qpay-page ::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(135deg, #1e90ff, var(--primary-color));
-}
-
-/* ===== 陰影效果 ===== */
-.qpay-page .card-shadow {
-    box-shadow: var(--shadow-md);
-    transition: var(--transition);
-}
-
-.qpay-page .card-shadow:hover {
-    box-shadow: var(--shadow-lg);
-    transform: translateY(-2px);
-}
+    .qpay-page .card-list
