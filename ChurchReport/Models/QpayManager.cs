@@ -639,8 +639,8 @@ namespace ChurchReport.Models
                     {
                         PayWay = "信用卡";
                         // TODO:因為尚未上線，目前暫時無法使用信用卡支付，所以還原為null
-                        //return Json(new { status = "2", message = "因為尚未上線，目前暫時無法使用信用卡支付!", DedicationResult = DedicationResult, PayWay = PayWay });
-                        return Json(new { status = "1", message = "正在處理您的奉獻中.....", DedicationResult = DedicationResult, PayWay = PayWay });
+                        return Json(new { status = "2", message = "因為尚未上線，目前暫時無法使用信用卡支付!", DedicationResult = DedicationResult, PayWay = PayWay });
+                        //return Json(new { status = "1", message = "正在處理您的奉獻中.....", DedicationResult = DedicationResult, PayWay = PayWay });
                     }
                     else
                     {
