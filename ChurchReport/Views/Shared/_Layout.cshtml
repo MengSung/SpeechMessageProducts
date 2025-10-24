@@ -1,5 +1,4 @@
 ﻿<!DOCTYPE html>
-
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
@@ -12,18 +11,16 @@
     <title>聖谷行道會</title>
     <link href="~/favicon.ico" rel="shortcut icon" type="image/x-icon" />
 
+    <!-- Bootstrap 樣式 -->
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.css" />
+    <!-- 自定義樣式 -->
     <link rel="stylesheet" href="~/css/site.css" />
     <!-- Font Awesome 圖標庫 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+    <!-- DevExtreme 樣式 -->
     <link href="~/css/devextreme/dx.common.css" rel="stylesheet" />
-    @*<link href="~/css/devextreme/dx.light.css" rel="stylesheet" />*@
-    @*<link href="~/css/devextreme/dx.carmine.compact.css" rel="stylesheet" />*@
-    @*<link href="~/css/devextreme/dx.contrast.compact.css" rel="stylesheet" />*@
-    @*<link href="~/css/devextreme/dx.dark.compact.css" rel="stylesheet" />*@
-    @*<link href="~/css/devextreme/dx.darkmoon.compact.css" rel="stylesheet" />*@
     <link href="~/css/devextreme/dx.light.compact.css" rel="stylesheet" />
-    @*<link href="~/css/devextreme/dx.greenmist.compact.css" rel="stylesheet" />*@
 
     <!-- 自定義 Navbar 樣式 -->
     <style>
@@ -97,7 +94,7 @@
                 width: 100% !important;
             }
             .navbar-custom .navbar-nav > li {
-                /*取消水平排列造成的 float/inline 排版 */
+                /* 取消水平排列造成的 float/inline 排版 */
                 float: none !important;
                 display: block !important;
                 width: 100% !important;
@@ -113,64 +110,30 @@
             }
             /* 若有外部樣式將 .navbar-nav 設為 flex，強制改為縱向 */
             .navbar-custom .navbar-nav {
-                display: block !important; /*取代 flex */
+                display: block !important; /* 取代 flex */
             }
         }
     </style>
 
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.5/jszip.min.js"></script>
-
+    <!-- JavaScript 載入 -->
+    <!-- jQuery 和 Bootstrap JS -->
     <script src="~/lib/jquery/dist/jquery.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.js"></script>
 
-    @*<script src="~/js/devextreme/cldr.js"></script>
-        <script src="~/js/devextreme/cldr/event.js"></script>
-        <script src="~/js/devextreme/cldr/supplemental.js"></script>
-        <script src="~/js/devextreme/cldr/unresolved.js"></script>
-
-        <script src="~/js/devextreme/globalize.js"></script>
-        <script src="~/js/devextreme/globalize/message.js"></script>
-        <script src="~/js/devextreme/globalize/number.js"></script>
-        <script src="~/js/devextreme/globalize/currency.js"></script>
-        <script src="~/js/devextreme/globalize/date.js"></script>*@
-
-    @* JSZip for client side export *@
-    @*<script src="~/js/devextreme/jszip.js"></script>*@
-
-
-    @* 台灣中文化的檔案 *@
-    @*<script type="text/javascript" src="js/localization/dx.messages.de.js"></script>*@
-    @*<script src="~/js/devextreme/localization/dx.messages.zh-tw.js"></script>*@
-    @*<script src="~/js/devextreme/localization/dx.messages.en.js"></script>*@
-
-    @RenderSection("Localization", false)
-
+    <!-- DevExtreme 相關 JS -->
+    @RenderSection("Localization", false) <!-- 台灣中文化檔案載入區 -->
     <script src="~/js/devextreme/dx.all.js"></script>
     <script src="~/js/devextreme/vectormap-data/world.js"></script>
     <script src="~/lib/devextreme-aspnet-data/js/dx.aspnet.data.js"></script>
     <script src="~/js/devextreme/aspnet/dx.aspnet.mvc.js"></script>
 
+    <!-- 其他 JS 資源 -->
     <meta name="robots" content="noindex">
     <link rel="stylesheet" href="~/lib/devextreme/css/dx.common.css" />
     <link rel="stylesheet" href="~/lib/devextreme/css/dx.spa.css" />
     <link rel="stylesheet" href="~/css/demo-template.css" />
 
-    @*@{
-            string theme = Context.Request.Query["theme"];
-
-            if(string.IsNullOrEmpty(theme)) {
-                theme = "light";
-            }
-
-            var device = "desktop";
-            if(theme.StartsWith("ios")) {
-                device = "iPhone";
-            } else if(theme.StartsWith("android")) {
-                device = "androidPhone";
-            }
-        }*@
-    @*<link rel="stylesheet" href="~/lib/devextreme/css/dx.@(theme).css" />*@
-
+    <!-- Globalize/CLDR 支援（在地化） -->
     <script src="~/lib/devextreme/js/cldr.min.js"></script>
     <script src="~/lib/devextreme/js/cldr/event.min.js"></script>
     <script src="~/lib/devextreme/js/cldr/supplemental.min.js"></script>
@@ -182,95 +145,34 @@
     <script src="~/lib/devextreme/js/globalize/date.min.js"></script>
     <script src="~/lib/devextreme/js/globalize/message.min.js"></script>
 
+    <!-- JSZip for client side export -->
     <script src="~/lib/jszip/dist/jszip.js"></script>
 
-    <script src="~/lib/devextreme/js/dx.all.js"></script>
-    <script src="~/lib/devextreme/js/vectormap-data/world.js"></script>
+    <!-- 其他 vectormap 資料 -->
     <script src="~/lib/devextreme/js/vectormap-data/usa.js"></script>
 
-    <script src="~/lib/devextreme-aspnet-data/js/dx.aspnet.data.js"></script>
-    <script src="~/lib/devextreme/js/aspnet/dx.aspnet.mvc.js"></script>
-
-    @*<script>
-                    DevExpress.devices.current("@device");
-        </script>*@
-
+    <!-- 自定義腳本 -->
     <script>
-
-        // Use $.getJSO    N instead of $.get if your server is not configured to return the
-        // right MIME type for .json files.
-        //$.when(
-        //    $.get("cldr/main/en/ca-gregorian.json"),
-        //    $.get("cldr/s    upplemental/likelySubtags.j    son"),
-        //    $.get("cldr/    supplemental/timeData.json"    ),
-        //    $.get("cldr/supp    lemental/weekData.json")
-        //    ).then(function () {
-
-        //        // Normalize $.ge    t results, we only need the JSO    N, not the request statuses    .
-        //    return [].slice.a    pply(arguments, [0]).map(fu    nction (result) {
-        //            return result[0];
-        //        });
-
-        //}).then(Glo    balize.load).then(function () {
-
-        //    // Your code goes here.
-
-        //});
+        // 使用 $.getJSON 而非 $.get，若伺服器未配置正確 MIME type for .json files
+        // $.when(
+        //     $.get("cldr/main/en/ca-gregorian.json"),
+        //     $.get("cldr/supplemental/likelySubtags.json"),
+        //     $.get("cldr/supplemental/timeData.json"),
+        //     $.get("cldr/supplemental/weekData.json")
+        // ).then(function () {
+        //     // Normalize $.get results, we only need the JSON, not the request statuses.
+        //     return [].slice.apply(arguments, [0]).map(function (result) {
+        //         return result[0];
+        //     });
+        // }).then(Globalize.load).then(function () {
+        //     // Your code goes here.
+        // });
     </script>
-    @*<meta charset="utf-8" />
-        <meta name="robots" content="noindex">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" href="~/lib/devextreme/css/dx.common.css" />
-        <link rel="stylesheet" href="~/lib/devextreme/css/dx.spa.css" />
-        <link rel="stylesheet" href="~/css/demo-template.css" />*@
-    @*@{
-            string theme = Context.Request.Query["theme"];
-
-            if(string.IsNullOrEmpty(theme)) {
-                theme = "light";
-            }
-
-            var device = "desktop";
-            if(theme.StartsWith("ios")) {
-                device = "iPhone";
-            } else if(theme.StartsWith("android")) {
-                device = "androidPhone";
-            }
-        }*@
-    @*<link rel="stylesheet" href="~/lib/devextreme/css/dx.@(theme).css" />*@
-
-    @*<script src="~/lib/jquery/dist/jquery.js"></script>*@
-
-    @*<script src="~/lib/devextreme/js/cldr.min.js"></script>
-        <script src="~/lib/devextreme/js/cldr/event.min.js"></script>
-        <script src="~/lib/devextreme/js/cldr/supplemental.min.js"></script>
-        <script src="~/lib/devextreme/js/cldr/unresolved.min.js"></script>
-
-        <script src="~/lib/devextreme/js/globalize.min.js"></script>
-        <script src="~/lib/devextreme/js/globalize/number.min.js"></script>
-        <script src="~/lib/devextreme/js/globalize/currency.min.js"></script>
-        <script src="~/lib/devextreme/js/globalize/date.min.js"></script>
-        <script src="~/lib/devextreme/js/globalize/message.min.js"></script>*@
-
-    @*<script src="~/lib/jszip/dist/jszip.js"></script>
-
-        <script src="~/lib/devextreme/js/dx.all.js"></script>
-        <script src="~/lib/devextreme/js/vectormap-data/world.js"></script>
-        <script src="~/lib/devextreme/js/vectormap-data/usa.js"></script>
-
-        <script src="~/lib/devextreme-aspnet-data/js/dx.aspnet.data.js"></script>
-        <script src="~/lib/devextreme/js/aspnet/dx.aspnet.mvc.js"></script>*@
-
-    @*<script>
-            DevExpress.devices.current("@device");
-        </script>*@
-
 </head>
 
 <body>
-
+    <!-- 導航列 -->
     <nav class="navbar navbar-custom navbar-fixed-top">
-        <!-- 容器 - 限制寬度並居中 -->
         <div class="container">
             <!-- Navbar 標題區域 -->
             <div class="navbar-header">
@@ -293,26 +195,29 @@
                 <ul class="nav navbar-nav">
                     @if (@ViewBag.DisplayNavigation != "不顯示牧養回報項目")
                     {
-                        <!--顯示牧養回報項目-->
+                        <!-- 顯示牧養回報項目 -->
                         @if (@ViewBag.MultiGroupIndex == "SingleMultiGroupView")
                         {
-                            <!--多個牧養回報-->
+                            <!-- 多個牧養回報 -->
                             <li><a href="/Home/MultiGroupView/MultiGroup"><i class="fas fa-chart-bar"></i>回報統計</a></li>
                             <li><a href="/Home/NewPerson"><i class="fas fa-user-plus"></i>新增新人</a></li>
                             <li><a href="/Home/PersonalInfomationView"><i class="fas fa-user"></i>個人相關資料</a></li>
-                                     <li><a href="/Home/Login"><i class="fas fa-sign-in-alt"></i>登入</a></li>
+                            <li><a href="/Home/Login"><i class="fas fa-sign-in-alt"></i>登入</a></li>
                             @if (@ViewBag.UserType == "行政同工")
                             {
-                                @*<li><a href="/Home/Scheduler/差勤簽核">差勤簽核</a></li>*@
-                                @*<li><a href="http://mrbs.yhchurch.info/">場地及資源預約</a></li>*@
+                                <!-- 行政同工專用項目（註解） -->
+                                <!-- <li><a href="/Home/Scheduler/差勤簽核">差勤簽核</a></li> -->
+                                <!-- <li><a href="http://mrbs.yhchurch.info/">場地及資源預約</a></li> -->
                             }
                             else
                             {
-                                @*<li><a href="http://mrbs.yhchurch.info/">場地及資源預約</a></li>*@
+                                <!-- 非行政同工項目（註解） -->
+                                <!-- <li><a href="http://mrbs.yhchurch.info/">場地及資源預約</a></li> -->
                             }
                             @if (@ViewBag.HappyType == "有幸福小組名單")
                             {
-                                @*<li><a href="/Home/HappyGroup">幸福小組回報</a></li>*@
+                                <!-- 幸福小組項目（註解） -->
+                                <!-- <li><a href="/Home/HappyGroup">幸福小組回報</a></li> -->
                             }
                             @if (@ViewBag.FeeType == "有繳費點名")
                             {
@@ -326,10 +231,10 @@
                         }
                         else
                         {
-                            <!--單一牧養回報項目-->
+                            <!-- 單一牧養回報項目 -->
                             @if (@ViewBag.LoginType == "小組長")
                             {
-                                <!--小組長回報-->
+                                <!-- 小組長回報 -->
                                 if (@ViewBag.MultiGroupIndex == "IntegrateView")
                                 {
                                     <li><a href="/Home/IntegrateView/IntegrateView"><i class="fas fa-users"></i>小組回報</a></li>
@@ -341,11 +246,10 @@
                                 }
                                 @if (@ViewBag.HappyType == "有幸福小組名單")
                                 {
-                                    <!--小組長回報，有幸福小組名單-->
+                                    <!-- 小組長回報，有幸福小組名單 -->
                                     @if (@ViewBag.FeeType == "有繳費點名")
                                     {
-                                        <!--小組長回報，有幸福小組名單，有繳費點名-->
-                                        // 小組長，有幸福小組名單，有繳費點名
+                                        <!-- 小組長，有幸福小組名單，有繳費點名 -->
                                         <li>@*<a href="/Home/SmallGroupReportView/AccountPassword">小組牧養</a>*@</li>
                                         @*<li><a href="/Home/IntegrateView/AccountPassword">牧養回報</a></li>*@
                                         @*<li><a href="/Home/MultiGroupView/MultiGroup">牧養回報</a></li>*@
@@ -363,7 +267,7 @@
                                     }
                                     else
                                     {
-                                        // 小組長，有幸福小組名單，無繳費點名
+                                        <!-- 小組長，有幸福小組名單，無繳費點名 -->
                                         <li>@*<a href="/Home/SmallGroupReportView/AccountPassword">小組牧養</a>*@</li>
                                         @*<li><a href="/Home/IntegrateView/AccountPassword">牧養回報</a></li>*@
                                         @*<li><a href="/Home/MultiGroupView/MultiGroup">牧養回報</a></li>*@
@@ -375,7 +279,6 @@
                                         <li><a href="/Home/MaintainPersonInfomationView"><i class="fas fa-address-book"></i>組員資訊</a></li>
                                         @*<li><a href="/Home/Scheduler/差勤簽核">差勤簽核</a></li>*@
                                         @*<li><a href="/Home/FeeManagerView">繳費與點名</a></li>*@
-
                                     }
 
                                     @if (@ViewBag.UserType == "行政同工")
@@ -390,10 +293,10 @@
                                 }
                                 else
                                 {
-                                    <!--小組長，無幸福小組名單-->
+                                    <!-- 小組長，無幸福小組名單 -->
                                     @if (@ViewBag.FeeType == "有繳費點名")
                                     {
-                                        // 小組長，無幸福小組名單，有繳費點名
+                                        <!-- 小組長，無幸福小組名單，有繳費點名 -->
                                         <li>@*<a href="/Home/SmallGroupReportView/AccountPassword">小組牧養</a>*@</li>
                                         @*<li><a href="/Home/IntegrateView/AccountPassword">牧養回報</a></li>*@
                                         @*<li><a href="/Home/MultiGroupView/MultiGroup">牧養回報</a></li>*@
@@ -403,6 +306,7 @@
                                         @*<li><a href="/Home/HappyGroup">幸福小組回報</a></li>*@
                                         @*<li><a href="/Home/WeeklyReport">小組日誌</a></li>*@
                                         <li><a href="/Home/MaintainPersonInfomationView"><i class="fas fa-address-book"></i>組員資訊</a></li>
+                                        @*<li><a href="/Home/Scheduler/差勤簽核">差勤簽核</a></li>*@
                                         <li><a href="/Home/PresentFeeListView"><i class="fas fa-list"></i>課程清單</a></li>
                                         @if (@ViewBag.FeeDataListCount == "繳費與點名已有資料")
                                         {
@@ -412,7 +316,7 @@
                                     }
                                     else
                                     {
-                                        // 小組長，無幸福小組名單，無繳費點名
+                                        <!-- 小組長，無幸福小組名單，無繳費點名 -->
                                         <li>@*<a href="/Home/SmallGroupReportView/AccountPassword">小組牧養</a>*@</li>
                                         @*<li><a href="/Home/IntegrateView/AccountPassword">牧養回報</a></li>*@
                                         @*<li><a href="/Home/MultiGroupView/MultiGroup">牧養回報</a></li>*@
@@ -447,7 +351,7 @@
 
                                     @if (@ViewBag.FeeType == "有繳費點名")
                                     {
-                                        // 不是小組長，有幸福小組名單，有繳費點名
+                                        <!-- 不是小組長，有幸福小組名單，有繳費點名 -->
                                         @*<li><a href="/Home/IntegrateView/Personal">個人回報</a></li>*@
                                         @*<li><a href="/Home/PersonalReport"><i class="fas fa-file-alt"></i>個人回報</a></li>*@
                                         @*<li><a href="/Home/MaintainPersonInfomationView">組員資訊</a></li>*@
@@ -463,7 +367,7 @@
                                     }
                                     else
                                     {
-                                        // 不是小組長，有幸福小組名單，無繳費點名
+                                        <!-- 不是小組長，有幸福小組名單，無繳費點名 -->
                                         @*<li><a href="/Home/IntegrateView/Personal">個人回報</a></li>*@
                                         @*<li><a href="/Home/PersonalReport"><i class="fas fa-file-alt"></i>個人回報</a></li>*@
                                         @*<li><a href="/Home/MaintainPersonInfomationView">組員資訊</a></li>*@
@@ -478,7 +382,7 @@
                                 {
                                     @if (@ViewBag.FeeType == "有繳費點名")
                                     {
-                                        // 不是小組長，無幸福小組名單，有繳費點名
+                                        <!-- 不是小組長，無幸福小組名單，有繳費點名 -->
                                         @*<li><a href="/Home/IntegrateView/Personal">個人回報</a></li>*@
                                         @*<li><a href="/Home/PersonalReport">個人回報</a></li>*@
                                         @*<li><a href="/Home/MaintainPersonInfomationView">組員資訊</a></li>*@
@@ -495,7 +399,7 @@
                                     }
                                     else
                                     {
-                                        // 不是小組長，無幸福小組名單，無繳費點名
+                                        <!-- 不是小組長，無幸福小組名單，無繳費點名 -->
                                         @*<li><a href="/Home/IntegrateView/Personal">個人回報</a></li>*@
                                         @*<li><a href="/Home/PersonalReport">個人回報</a></li>*@
                                         @*<li><a href="/Home/MaintainPersonInfomationView">組員資訊</a></li>*@
@@ -520,38 +424,40 @@
                             }
                         }
 
-                        <!--必定要顯示的項目-->
-    <li><a href="/Home/QPayView/網頁登入"><i class="fas fa-donate"></i>奉獻</a></li>
-      <li><a href="/Home/DedicationFeeViewWeb"><i class="fas fa-receipt"></i>奉獻收費清單</a></li>
-     <li><a href="/Home/EquipmentView"><i class="fas fa-tools"></i>裝備狀態</a></li>
+                        <!-- 必定要顯示的項目 -->
+                        <li><a href="/Home/QPayView/網頁登入"><i class="fas fa-donate"></i>奉獻</a></li>
+                        <li><a href="/Home/DedicationFeeViewWeb"><i class="fas fa-receipt"></i>奉獻收費清單</a></li>
+                        <li><a href="/Home/EquipmentView"><i class="fas fa-tools"></i>裝備狀態</a></li>
 
-   @if (@ViewBag.IsAOfficeWorker == "是的")
-      {
-  <li><a href="/Home/KeyInDedicationFeeView"><i class="fas fa-keyboard"></i>奉獻管理</a></li>
-  <li><a href="/Home/DedicationFeeAuditViewWeb"><i class="fa-solid fa-shield-halved"></i>奉獻稽核</a></li>
-    }
-   <li><a href="/Home/Login"><i class="fas fa-sign-in-alt"></i>登入</a></li>
+                        @if (@ViewBag.IsAOfficeWorker == "是的")
+                        {
+                            <li><a href="/Home/KeyInDedicationFeeView"><i class="fas fa-keyboard"></i>奉獻管理</a></li>
+                            <li><a href="/Home/DedicationFeeAuditViewWeb"><i class="fa-solid fa-shield-halved"></i>奉獻稽核</a></li>
+                        }
+                        <li><a href="/Home/Login"><i class="fas fa-sign-in-alt"></i>登入</a></li>
                     }
                     else
                     {
-                        <!--不顯示牧養回報項目-->
+                        <!-- 不顯示牧養回報項目 -->
                         @if (@ViewBag.SchedulerView == "單純行事曆")
                         {
                             @if (@ViewBag.UserType == "行政同工")
                             {
-                                @*<li><a href="http://mrbs.yhchurch.info/">場地及資源預約</a></li>*@
-                                @*<li><a href="/Home/Scheduler/差勤簽核">差勤簽核</a></li>*@
+                                <!-- 行政同工專用項目（註解） -->
+                                <!-- <li><a href="http://mrbs.yhchurch.info/">場地及資源預約</a></li> -->
+                                <!-- <li><a href="/Home/Scheduler/差勤簽核">差勤簽核</a></li> -->
                             }
                             else
                             {
-                                @*<li><a href="http://mrbs.yhchurch.info/">場地及資源預約</a></li>*@
+                                <!-- 非行政同工項目（註解） -->
+                                <!-- <li><a href="http://mrbs.yhchurch.info/">場地及資源預約</a></li> -->
                             }
                         }
                         else
                         {
                             @if (@ViewBag.DedicationType == "奉獻管理")
                             {
-                                <!--教會職稱是:會計，所以有-->
+                                <!-- 教會職稱是:會計，所以有 -->
                                 <li><a href="/Home/QPayView/網頁登入"><i class="fas fa-donate"></i>奉獻</a></li>
                                 <li><a href="/Home/DedicationFeeViewWeb"><i class="fas fa-receipt"></i>奉獻收費清單</a></li>
 
@@ -568,7 +474,7 @@
                             }
                             else
                             {
-                                <!--三條槓下拉什麼都沒有-->
+                                <!-- 三條槓下拉什麼都沒有 -->
                             }
                         }
                     }
@@ -577,20 +483,22 @@
         </div>
     </nav>
 
+    <!-- 主要內容區域 -->
     <div class="container">
         @RenderBody()
     </div>
 </body>
 
+<!-- 會話結束腳本（註解） -->
 @*<script>
-    //session end
-    var sessionTimeoutWarning = @Session.Timeout- 1; //when session end 1 minute before this code makes redirect
+    // session end
+    var sessionTimeoutWarning = @Session.Timeout - 1; // when session end 1 minute before this code makes redirect
 
     var sTimeout = parseInt(sessionTimeoutWarning) * 60 * 1;
     setTimeout('SessionEnd()', sTimeout);
 
     function SessionEnd() {
-        window.location = "/Home/Login"; //Redirect to LogOff, and then redirect to Login
+        window.location = "/Home/Login"; // Redirect to LogOff, and then redirect to Login
     }
 </script>*@
-</html></html>
+</html>
