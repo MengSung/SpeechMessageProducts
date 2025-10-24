@@ -5,7 +5,7 @@
     ViewBag.Title = "線上奉獻 - 聖谷行道會";
 }
 
-<!-- 頁面頭部：包含元數據和樣式鏈接 -->
+<!-- ==================== 頁面頭部 ==================== -->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
@@ -25,7 +25,7 @@
     <link href="~/css/QPayView.css?v=20251024" rel="stylesheet">
 </head>
 
-<!-- 頁面主容器 - 添加 qpay-page 作用域 class -->
+<!-- ==================== 頁面主容器 ==================== -->
 <div class="qpay-page">
     <div class="qpay-container">
         <!-- ==================== 奉獻者資訊 ==================== -->
@@ -361,114 +361,82 @@
         </div>
 
         <!-- ==================== 教會資訊與奉獻說明 ==================== -->
-        <section class="church-info accordion1 cid-qEXSX9hqvd" id="accordion1-7">
+        <section class="church-info" id="church-info">
             <div class="container">
-                <div class="media-container-row">
-                    <div class="col-12 text-left col-md-8">
-                        <!-- 教會聯絡資訊 -->
-                        <div class="section-head text-left space30">
-                            <h3 class="mbr-section-title pb-1 mbr-fonts-style display-24 text-left">聖谷行道會</h3>
-                            <h3 class="mbr-section-title pb-1 mbr-fonts-style display-24 text-left">地址: 231新北市新店區安興路91巷5號4樓</h3>
-                            <h3 class="mbr-section-title pb-1 mbr-fonts-style display-24 text-left">電話: 02-2211-1556</h3>
-                            <h3 class="mbr-section-title pb-1 mbr-fonts-style display-24 text-left">信箱：sunnyvale.church@gmail.com</h3>
-                            <h3 class="mbr-section-title pb-1 mbr-fonts-style display-24 text-left">統編: 20004335</h3>
-                            <h3 class="mbr-section-title pb-1 mbr-fonts-style display-24 text-left">*若有任何奉獻問題，請洽詢曾淑芬姊妹*</h3>
-                        </div>
-                        
-                        <!-- 奉獻資訊手風琴選單 -->
-                        <div id="bootstrap-accordion_7" class="panel-group accordionStyles accordion" role="tablist" aria-multiselectable="true">
-                            <!-- 十一奉獻 -->
-                            <div class="card text-left">
-                                <div class="card-header" role="tab" id="headingOne">
-                                    <a role="button" class="panel-title collapsed text-black" data-toggle="collapse" data-parent="#bootstrap-accordion_7" data-core="" href="#collapse1_7" aria-expanded="false" aria-controls="collapse1">
-                                        <h4 class="mbr-fonts-style display-5">
-                                            <span class="sign mbr-iconfont mbri-arrow-down inactive"></span>十一奉獻
-                                        </h4>
-                                    </a>
-                                </div>
-                                <div id="collapse1_7" class="panel-collapse noScroll collapse" role="tabpanel" aria-labelledby="headingOne">
-                                    <div class="panel-body p-4">
-                                        <p class="mbr-fonts-style panel-text display-5">
-                                            十一奉獻是基督徒應盡的責任和義務。
-                                            所以上帝挑戰我們，當我們願意將十分之一奉獻給上帝時，
-                                            上帝將會傾倒更大的祝福在我們的身上。
+                <div class="info-grid">
+                    <!-- 聯絡資訊卡 -->
+                    <div class="info-card contact-card">
+                        <h5><i class="fas fa-church" aria-hidden="true"></i> 教會聯絡資訊</h5>
+                        <ul class="contact-list">
+                            <li><i class="fas fa-map-marker-alt" aria-hidden="true"></i><span>地址：231 新北市新店區安興路91 巷5 號4 樓</span></li>
+                            <li><i class="fas fa-phone" aria-hidden="true"></i><span>電話：02-2211-1556</span></li>
+                            <li><i class="fas fa-envelope" aria-hidden="true"></i><span>信箱：sunnyvale.church@gmail.com</span></li>
+                            <li><i class="fas fa-id-card" aria-hidden="true"></i><span>統編：20004335</span></li>
+                            <li><i class="fas fa-info-circle" aria-hidden="true"></i><span>若有任何奉獻問題，請洽詢曾淑芬姊妹</span></li>
+                        </ul>
+                    </div>
 
-                                            萬軍之耶和華說：你們要將當納的十分之一全然送入倉庫，使我家有糧，
-                                            以此試試我，是否為你們敞開天上的窗戶，傾福與你們，甚至無處可容。
-                                            ─ 瑪拉基書3:10
-                                        </p>
-                                    </div>
+                    <!-- 奉獻說明卡（原生手風琴） -->
+                    <div class="info-card">
+                        <h5><i class="fas fa-hand-holding-heart" aria-hidden="true"></i> 奉獻說明</h5>
+                        <div class="accordion-clean">
+                            <details>
+                                <summary>
+                                    <span><i class="fas fa-seedling"></i> 十一奉獻</span>
+                                    <i class="fas fa-chevron-down chevron" aria-hidden="true"></i>
+                                </summary>
+                                <div class="content">
+                                    <p>
+                                        十一奉獻是基督徒應盡的責任和義務。
+                                        所以上帝挑戰我們，當我們願意將十分之一奉獻給上帝時，
+                                        上帝將會傾倒更大的祝福在我們的身上。
+
+                                        萬軍之耶和華說：你們要將當納的十分之一全然送入倉庫，使我家有糧，
+                                        以此試試我，是否為你們敞開天上的窗戶，傾福與你們，甚至無處可容。
+                                        ─ 瑪拉基書3:10
+                                    </p>
                                 </div>
-                            </div>
-                            
-                            <!-- 建堂奉獻 -->
-                            <div class="card">
-                                <div class="card-header" role="tab" id="headingTwo">
-                                    <a role="button" class="collapsed panel-title text-black" data-toggle="collapse" data-parent="#bootstrap-accordion_7" data-core="" href="#collapse2_7" aria-expanded="false" aria-controls="collapse2">
-                                        <h4 class="mbr-fonts-style display-5">
-                                            <span class="sign mbr-iconfont mbri-arrow-down inactive"></span>建堂奉獻
-                                        </h4>
-                                    </a>
+                            </details>
+
+                            <details>
+                                <summary>
+                                    <span><i class="fas fa-building"></i> 建堂奉獻</span>
+                                    <i class="fas fa-chevron-down chevron" aria-hidden="true"></i>
+                                </summary>
+                                <div class="content">
+                                    <p>
+                                        因著神的憐憫，「聖谷行道會」從恩典到奇蹟的這段旅程，讓我們著實看見神奇妙又信實的作為。
+                                        為了滿足場地以及相關軟硬體等財務需求，邀請聖谷行道會的弟兄姊妹們，透過「建堂奉獻」一起支持、建造神國的家。
+                                    </p>
                                 </div>
-                                <div id="collapse2_7" class="panel-collapse noScroll collapse" role="tabpanel" aria-labelledby="headingTwo">
-                                    <div class="panel-body p-4">
-                                        <p class="mbr-fonts-style panel-text display-5">
-                                            因著神的憐憫，「聖谷行道會」從恩典到奇蹟的這段旅程，讓我們著實看見神奇妙又信實的作為。
-                                            為了滿足場地以及相關軟硬體等財務需求，邀請聖谷行道會的弟兄姊妹們，透過「建堂奉獻」一起支持、建造神國的家。
-                                        </p>
-                                    </div>
+                            </details>
+
+                            <details>
+                                <summary>
+                                    <span><i class="fas fa-heart"></i> 感恩奉獻</span>
+                                    <i class="fas fa-chevron-down chevron" aria-hidden="true"></i>
+                                </summary>
+                                <div class="content">
+                                    <p>
+                                        上帝的祝福讓我們學習凡事謝恩，而獻上財物則是我們感謝上帝的一種方式。
+                                        我們鼓勵每個人都應該照自己心裡所願來奉獻，不猶豫、不勉強，因為上帝喜愛樂意奉獻的人。
+                                    </p>
                                 </div>
-                            </div>
-                            
-                            <!-- 感恩奉獻 -->
-                            <div class="card">
-                                <div class="card-header" role="tab" id="headingThree">
-                                    <a role="button" class="collapsed text-black panel-title" data-toggle="collapse" data-parent="#bootstrap-accordion_7" data-core="" href="#collapse3_7" aria-expanded="false" aria-controls="collapse3">
-                                        <h4 class="mbr-fonts-style display-5">
-                                            <span class="sign mbr-iconfont mbri-arrow-down inactive"></span>感恩奉獻
-                                        </h4>
-                                    </a>
+                            </details>
+
+                            <details>
+                                <summary>
+                                    <span><i class="fas fa-globe-asia"></i> 宣教奉獻</span>
+                                    <i class="fas fa-chevron-down chevron" aria-hidden="true"></i>
+                                </summary>
+                                <div class="content">
+                                    <p>
+                                        「使萬民成為主的門徒」是上帝的心意，也是託付給教會的大使命。
+                                        根據統計，目前全球仍有31億、約41%的未得之民（缺乏基督教會、宣教士、聖經等信仰資源，而從未接觸福音者），宣教的需要永遠都是刻不容緩！
+                                        也許不是每個人都會被上帝呼召成為「宣教士」，但每個人都可以透過奉獻來做「宣教事」。
+                                    </p>
                                 </div>
-                                <div id="collapse3_7" class="panel-collapse noScroll collapse" role="tabpanel" aria-labelledby="headingThree">
-                                    <div class="panel-body p-4">
-                                        <p class="mbr-fonts-style panel-text display-5">
-                                            上帝的祝福讓我們學習凡事謝恩，而獻上財物則是我們感謝上帝的一種方式。
-                                            我們鼓勵每個人都應該照自己心裡所願來奉獻，不猶豫、不勉強，因為上帝喜愛樂意奉獻的人。
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <!-- 宣教奉獻 -->
-                            <div class="card">
-                                <div class="card-header" role="tab" id="headingFour">
-                                    <a role="button" class="collapsed panel-title text-black" data-toggle="collapse" data-parent="#bootstrap-accordion_7" data-core="" href="#collapse4_7" aria-expanded="false" aria-controls="collapse4">
-                                        <h4 class="mbr-fonts-style display-5">
-                                            <span class="sign mbr-iconfont mbri-arrow-down inactive"></span>宣教奉獻
-                                        </h4>
-                                    </a>
-                                </div>
-                                <div id="collapse4_7" class="panel-collapse noScroll collapse" role="tabpanel" aria-labelledby="headingFour">
-                                    <div class="panel-body p-4">
-                                        <p class="mbr-fonts-style panel-text display-5">
-                                            「使萬民成為主的門徒」是上帝的心意，也是託付給教會的大使命。
-                                            根據統計，目前全球仍有31億、約41%的未得之民（缺乏基督教會、宣教士、聖經等信仰資源，而從未接觸福音者），宣教的需要永遠都是刻不容緩！
-                                            也許不是每個人都會被上帝呼召成為「宣教士」，但每個人都可以透過奉獻來做「宣教事」。
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <!-- 聯繫資訊 -->
-                            <div class="card">
-                                <div class="card-header" role="tab" id="headingFive">
-                                    <a role="button" class="collapsed panel-title text-black" data-toggle="collapse" data-parent="#bootstrap-accordion_7" data-core="" href="#collapse6_7" aria-expanded="false" aria-controls="collapse6">
-                                        <h4 class="mbr-fonts-style display-5">
-                                            <span class="sign mbr-iconfont mbri-arrow-down inactive"></span>若有任何奉獻問題，請洽詢曾淑芬姊妹
-                                        </h4>
-                                    </a>
-                                </div>
-                            </div>
+                            </details>
                         </div>
                     </div>
                 </div>
@@ -477,13 +445,13 @@
     </div>
 </div>
 
-<!-- 外部腳本 -->
+<!-- ==================== 外部腳本 ==================== -->
 <script src="~/lib/jquery-ajax-unobtrusive/jquery.unobtrusive-ajax.js"></script>
 <script src="~/js/devextreme/devextreme-intl.min.js"></script>
 <script src="~/js/devextreme/localization/dx.messages.zh-tw.js"></script>
 <!-- 移除會與全域 Bootstrap 衝突的外部 JS：Popper/Tether/Bootstrap/Mobirise -->
 
-<!-- QPayView 自定義腳本 -->
+<!-- ==================== QPayView 自定義腳本 ==================== -->
 <script>
     // ==================== 工具函數 ====================
     // 獲取 LoadPanel 實例
