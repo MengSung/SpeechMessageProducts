@@ -10,214 +10,272 @@
 
     <title>聖谷行道會</title>
     <link href="~/favicon.ico" rel="shortcut icon" type="image/x-icon" />
-
-    <!-- Bootstrap 樣式 -->
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.css" />
-    <!-- 自定義樣式 -->
     <link rel="stylesheet" href="~/css/site.css" />
-    <!-- Font Awesome 圖標庫 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-
-    <!-- DevExtreme 樣式 -->
     <link href="~/css/devextreme/dx.common.css" rel="stylesheet" />
     <link href="~/css/devextreme/dx.light.compact.css" rel="stylesheet" />
 
     <!-- 自定義 Navbar 樣式 -->
     <style>
-        /* Navbar 主體樣式 - 漸層背景和陰影 */
+        /* 側邊欄樣式 */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 250px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            overflow-y: auto;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar.collapsed {
+            transform: translateX(-250px);
+        }
+
+        /* Navbar 主體樣式 */
         .navbar-custom {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); /* 紫色到藍色的漸層 */
+            background: transparent;
             border: none;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* 輕微陰影效果 */
+            box-shadow: none;
         }
 
-        /* Navbar 品牌區域 - LOGO 和文字 */
+        /* Navbar 品牌區域 */
         .navbar-custom .navbar-brand {
-            color: #fff; /* 白色文字 */
-            font-weight: bold; /* 粗體 */
-            font-size: 1.5em; /* 放大字體 */
-            padding: 8px 15px; /* 內邊距 */
-            display: flex; /* Flexbox 布局 */
-            align-items: center; /* 垂直居中 */
-            gap: 12px; /* LOGO 與文字間距 */
+            color: #fff;
+            font-weight: bold;
+            font-size: 1.5em;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        /* LOGO 圖片樣式 */
         .navbar-custom .navbar-brand img {
-            height: 40px; /* LOGO 高度 */
-            max-width: 100%; /* 最大寬度 */
-            object-fit: contain; /* 保持寬高比 */
+            height: 40px;
+            max-width: 100%;
+            object-fit: contain;
         }
 
-        /* 菜單項目基本樣式 */
+        /* 菜單項目樣式 */
+        .navbar-custom .navbar-nav {
+            margin: 0;
+        }
+
         .navbar-custom .navbar-nav > li > a {
-            color: #fff; /* 白色文字 */
-            transition: background-color 0.3s ease; /* 背景色過渡效果 */
+            color: #fff;
+            padding: 15px 20px;
+            transition: background-color 0.3s ease;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        /* 菜單項目懸停和聚焦樣式 */
         .navbar-custom .navbar-nav > li > a:hover,
         .navbar-custom .navbar-nav > li > a:focus {
-            background-color: rgba(255, 255, 255, 0.1); /* 半透明白色背景 */
-            color: #fff; /* 保持白色文字 */
+            background-color: rgba(255, 255, 255, 0.1);
+            color: #fff;
         }
 
-        /* Navbar 圖示樣式 */
         .navbar-custom .navbar-nav > li > a i {
-            margin-right: 8px; /* 圖示右邊距 */
-            width: 20px; /* 圖示寬度 */
-            text-align: center; /* 居中對齊 */
+            margin-right: 8px;
+            width: 20px;
+            text-align: center;
         }
 
-        /* 行動化切換按鈕樣式 */
-        .navbar-custom .navbar-toggle {
-            border-color: rgba(255, 255, 255, 0.5); /* 半透明白色邊框 */
+        /* 漢堡選單按鈕 */
+        .hamburger-btn {
+            background: transparent;
+            border: none;
+            color: #fff;
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
         }
 
-        .navbar-custom .navbar-toggle .icon-bar {
-            background-color: #fff; /* 白色條紋 */
+        .hamburger-btn:hover {
+            background-color: rgba(255, 255, 255, 0.1);
         }
 
-        /* Navbar 折疊區域樣式 */
-        .navbar-custom .navbar-collapse {
-            border-top: none; /* 移除頂部邊框 */
+        .hamburger-btn i {
+            font-size: 18px;
         }
 
-        /* 行動化媒體查詢 - 小螢幕適應 */
+        /* 行動化頂部標題欄樣式 */
+        .mobile-header {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            z-index: 1001;
+            align-items: center;
+            padding: 0 15px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .mobile-brand {
+            color: #fff;
+            font-weight: bold;
+            font-size: 1.2em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .mobile-brand img {
+            height: 30px;
+            max-width: 100%;
+            object-fit: contain;
+        }
+
+        /* 內容區域 */
+        .main-content {
+            margin-left: 250px;
+            padding: 20px;
+            padding-top: 20px;
+            transition: margin-left 0.3s ease;
+        }
+
+        .main-content.shifted {
+            margin-left: 0;
+        }
+
+        /* 覆蓋層 */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            display: none;
+        }
+
+        /* 行動化媒體查詢 */
         @@media (max-width: 767px) {
-            .navbar-custom .navbar-nav {
-                background-color: rgba(0, 0, 0, 0.1); /* 半透明黑色背景 */
-                margin: 0; /* 移除邊距 */
-                /* 強制垂直排列 */
-                float: none !important;
-                display: block !important;
-                width: 100% !important;
+            .sidebar {
+                transform: translateX(-250px);
             }
-            .navbar-custom .navbar-nav > li {
-                /* 取消水平排列造成的 float/inline 排版 */
-                float: none !important;
-                display: block !important;
-                width: 100% !important;
-                clear: both !important;
+
+            .sidebar.collapsed {
+                transform: translateX(-250px);
             }
-            .navbar-custom .navbar-nav > li > a {
-                padding: 15px 20px; /* 增加內邊距 */
-                border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* 底部邊框 */
-                /* 強制每個項目佔滿一行 */
-                display: block !important;
-                width: 100% !important;
-                box-sizing: border-box;
+
+            .sidebar.open {
+                transform: translateX(0);
             }
-            /* 若有外部樣式將 .navbar-nav 設為 flex，強制改為縱向 */
-            .navbar-custom .navbar-nav {
-                display: block !important; /* 取代 flex */
+
+            .mobile-header {
+                display: flex;
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding-top: 80px;
+            }
+
+            .overlay {
+                display: block;
+                opacity: 0;
+                pointer-events: none;
+                transition: opacity 0.3s ease;
+            }
+
+            .overlay.active {
+                opacity: 1;
+                pointer-events: auto;
             }
         }
     </style>
 
-    <!-- JavaScript 載入 -->
-    <!-- jQuery 和 Bootstrap JS -->
     <script src="~/lib/jquery/dist/jquery.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.js"></script>
-
-    <!-- DevExtreme 相關 JS -->
-    @RenderSection("Localization", false) <!-- 台灣中文化檔案載入區 -->
+    @RenderSection("Localization", false)
     <script src="~/js/devextreme/dx.all.js"></script>
     <script src="~/js/devextreme/vectormap-data/world.js"></script>
     <script src="~/lib/devextreme-aspnet-data/js/dx.aspnet.data.js"></script>
     <script src="~/js/devextreme/aspnet/dx.aspnet.mvc.js"></script>
-
-    <!-- 其他 JS 資源 -->
     <meta name="robots" content="noindex">
     <link rel="stylesheet" href="~/lib/devextreme/css/dx.common.css" />
     <link rel="stylesheet" href="~/lib/devextreme/css/dx.spa.css" />
     <link rel="stylesheet" href="~/css/demo-template.css" />
-
-    <!-- Globalize/CLDR 支援（在地化） -->
     <script src="~/lib/devextreme/js/cldr.min.js"></script>
     <script src="~/lib/devextreme/js/cldr/event.min.js"></script>
     <script src="~/lib/devextreme/js/cldr/supplemental.min.js"></script>
     <script src="~/lib/devextreme/js/cldr/unresolved.min.js"></script>
-
     <script src="~/lib/devextreme/js/globalize.min.js"></script>
     <script src="~/lib/devextreme/js/globalize/number.min.js"></script>
     <script src="~/lib/devextreme/js/globalize/currency.min.js"></script>
     <script src="~/lib/devextreme/js/globalize/date.min.js"></script>
     <script src="~/lib/devextreme/js/globalize/message.min.js"></script>
-
-    <!-- JSZip for client side export -->
     <script src="~/lib/jszip/dist/jszip.js"></script>
-
-    <!-- 其他 vectormap 資料 -->
     <script src="~/lib/devextreme/js/vectormap-data/usa.js"></script>
 
-    <!-- 自定義腳本 -->
     <script>
-        // 使用 $.getJSON 而非 $.get，若伺服器未配置正確 MIME type for .json files
-        // $.when(
-        //     $.get("cldr/main/en/ca-gregorian.json"),
-        //     $.get("cldr/supplemental/likelySubtags.json"),
-        //     $.get("cldr/supplemental/timeData.json"),
-        //     $.get("cldr/supplemental/weekData.json")
-        // ).then(function () {
-        //     // Normalize $.get results, we only need the JSON, not the request statuses.
-        //     return [].slice.apply(arguments, [0]).map(function (result) {
-        //         return result[0];
-        //     });
-        // }).then(Globalize.load).then(function () {
-        //     // Your code goes here.
-        // });
+        $(document).ready(function() {
+            $('.hamburger-btn').click(function() {
+                $('.sidebar').toggleClass('open');
+                $('.overlay').toggleClass('active');
+            });
+
+            $('.overlay').click(function() {
+                $('.sidebar').removeClass('open');
+                $('.overlay').removeClass('active');
+            });
+        });
     </script>
 </head>
 
 <body>
-    <!-- 導航列 -->
-    <nav class="navbar navbar-custom navbar-fixed-top">
-        <div class="container">
-            <!-- Navbar 標題區域 -->
+    <!-- 行動化頂部標題欄 -->
+    <div class="mobile-header">
+        <a class="mobile-brand" href="/">
+            <img src="~/assets/images/SunnyLogo.png" alt="聖谷行道會 Logo" title="聖谷行道會" />
+            聖谷行道會
+        </a>
+        <button class="hamburger-btn" type="button">
+            <i class="fas fa-bars"></i>
+        </button>
+    </div>
+
+    <!-- 覆蓋層 -->
+    <div class="overlay"></div>
+
+    <!-- 側邊欄 -->
+    <div class="sidebar" id="sidebar">
+        <nav class="navbar navbar-custom">
             <div class="navbar-header">
-                <!-- 行動化切換按鈕 -->
-                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-                    <span class="sr-only">Toggle navigation</span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                </button>
-                <!-- 品牌連結 - 包含 LOGO 和文字 -->
                 <a class="navbar-brand" href="/">
                     <img src="~/assets/images/SunnyLogo.png" alt="聖谷行道會 Logo" title="聖谷行道會" />
                     聖谷行道會
                 </a>
             </div>
-            <!-- 菜單折疊區域 -->
-            <div id="navbar" class="collapse navbar-collapse">
-                <!-- 導航菜單列表 -->
+            <div class="navbar-collapse">
                 <ul class="nav navbar-nav">
                     @if (@ViewBag.DisplayNavigation != "不顯示牧養回報項目")
                     {
-                        <!-- 顯示牧養回報項目 -->
                         @if (@ViewBag.MultiGroupIndex == "SingleMultiGroupView")
                         {
-                            <!-- 多個牧養回報 -->
                             <li><a href="/Home/MultiGroupView/MultiGroup"><i class="fas fa-chart-bar"></i>回報統計</a></li>
                             <li><a href="/Home/NewPerson"><i class="fas fa-user-plus"></i>新增新人</a></li>
                             <li><a href="/Home/PersonalInfomationView"><i class="fas fa-user"></i>個人相關資料</a></li>
                             <li><a href="/Home/Login"><i class="fas fa-sign-in-alt"></i>登入</a></li>
                             @if (@ViewBag.UserType == "行政同工")
                             {
-                                <!-- 行政同工專用項目（註解） -->
-                                <!-- <li><a href="/Home/Scheduler/差勤簽核">差勤簽核</a></li> -->
-                                <!-- <li><a href="http://mrbs.yhchurch.info/">場地及資源預約</a></li> -->
                             }
                             else
                             {
-                                <!-- 非行政同工項目（註解） -->
-                                <!-- <li><a href="http://mrbs.yhchurch.info/">場地及資源預約</a></li> -->
                             }
                             @if (@ViewBag.HappyType == "有幸福小組名單")
                             {
-                                <!-- 幸福小組項目（註解） -->
-                                <!-- <li><a href="/Home/HappyGroup">幸福小組回報</a></li> -->
                             }
                             @if (@ViewBag.FeeType == "有繳費點名")
                             {
@@ -231,10 +289,8 @@
                         }
                         else
                         {
-                            <!-- 單一牧養回報項目 -->
                             @if (@ViewBag.LoginType == "小組長")
                             {
-                                <!-- 小組長回報 -->
                                 if (@ViewBag.MultiGroupIndex == "IntegrateView")
                                 {
                                     <li><a href="/Home/IntegrateView/IntegrateView"><i class="fas fa-users"></i>小組回報</a></li>
@@ -246,20 +302,11 @@
                                 }
                                 @if (@ViewBag.HappyType == "有幸福小組名單")
                                 {
-                                    <!-- 小組長回報，有幸福小組名單 -->
                                     @if (@ViewBag.FeeType == "有繳費點名")
                                     {
-                                        <!-- 小組長，有幸福小組名單，有繳費點名 -->
-                                        <li>@*<a href="/Home/SmallGroupReportView/AccountPassword">小組牧養</a>*@</li>
-                                        @*<li><a href="/Home/IntegrateView/AccountPassword">牧養回報</a></li>*@
-                                        @*<li><a href="/Home/MultiGroupView/MultiGroup">牧養回報</a></li>*@
                                         <li><a href="/Home/NewPerson"><i class="fas fa-user-plus"></i>新增新人</a></li>
                                         <li><a href="/Home/PersonalInfomationView"><i class="fas fa-user"></i>個人相關資料</a></li>
-                                        @*<li><a href="/Home/NewPersonFollowUpView">關懷新人</a></li>*@
-                                        @*<li><a href="/Home/HappyGroup">幸福小組回報</a></li>*@
-                                        @*<li><a href="/Home/WeeklyReport">小組日誌</a></li>*@
                                         <li><a href="/Home/MaintainPersonInfomationView"><i class="fas fa-address-book"></i>組員資訊</a></li>
-                                        @*<li><a href="/Home/Scheduler/差勤簽核">差勤簽核</a></li>*@
                                         <li><a href="/Home/PresentFeeListView"><i class="fas fa-list"></i>課程清單</a></li>
                                         <li><a href="/Home/FeeManagerView"><i class="fas fa-money-bill"></i>繳費與點名</a></li>
                                         <li><a href="/Home/FeeView"><i class="fas fa-credit-card"></i>繳費</a></li>
@@ -267,46 +314,24 @@
                                     }
                                     else
                                     {
-                                        <!-- 小組長，有幸福小組名單，無繳費點名 -->
-                                        <li>@*<a href="/Home/SmallGroupReportView/AccountPassword">小組牧養</a>*@</li>
-                                        @*<li><a href="/Home/IntegrateView/AccountPassword">牧養回報</a></li>*@
-                                        @*<li><a href="/Home/MultiGroupView/MultiGroup">牧養回報</a></li>*@
                                         <li><a href="/Home/NewPerson"><i class="fas fa-user-plus"></i>新增新人</a></li>
                                         <li><a href="/Home/PersonalInfomationView"><i class="fas fa-user"></i>個人相關資料</a></li>
-                                        @*<li><a href="/Home/NewPersonFollowUpView">關懷新人</a></li>*@
-                                        @*<li><a href="/Home/HappyGroup">幸福小組回報</a></li>*@
-                                        @*<li><a href="/Home/WeeklyReport">小組日誌</a></li>*@
                                         <li><a href="/Home/MaintainPersonInfomationView"><i class="fas fa-address-book"></i>組員資訊</a></li>
-                                        @*<li><a href="/Home/Scheduler/差勤簽核">差勤簽核</a></li>*@
-                                        @*<li><a href="/Home/FeeManagerView">繳費與點名</a></li>*@
                                     }
-
                                     @if (@ViewBag.UserType == "行政同工")
                                     {
-                                        @*<li><a href="/Home/Scheduler/差勤簽核">差勤簽核</a></li>*@
-                                        @*<li><a href="http://mrbs.yhchurch.info/">場地及資源預約</a></li>*@
                                     }
                                     else
                                     {
-                                        @*<li><a href="http://mrbs.yhchurch.info/">場地及資源預約</a></li>*@
                                     }
                                 }
                                 else
                                 {
-                                    <!-- 小組長，無幸福小組名單 -->
                                     @if (@ViewBag.FeeType == "有繳費點名")
                                     {
-                                        <!-- 小組長，無幸福小組名單，有繳費點名 -->
-                                        <li>@*<a href="/Home/SmallGroupReportView/AccountPassword">小組牧養</a>*@</li>
-                                        @*<li><a href="/Home/IntegrateView/AccountPassword">牧養回報</a></li>*@
-                                        @*<li><a href="/Home/MultiGroupView/MultiGroup">牧養回報</a></li>*@
                                         <li><a href="/Home/NewPerson"><i class="fas fa-user-plus"></i>新增新人</a></li>
                                         <li><a href="/Home/PersonalInfomationView"><i class="fas fa-user"></i>個人相關資料</a></li>
-                                        @*<li><a href="/Home/NewPersonFollowUpView">關懷新人</a></li>*@
-                                        @*<li><a href="/Home/HappyGroup">幸福小組回報</a></li>*@
-                                        @*<li><a href="/Home/WeeklyReport">小組日誌</a></li>*@
                                         <li><a href="/Home/MaintainPersonInfomationView"><i class="fas fa-address-book"></i>組員資訊</a></li>
-                                        @*<li><a href="/Home/Scheduler/差勤簽核">差勤簽核</a></li>*@
                                         <li><a href="/Home/PresentFeeListView"><i class="fas fa-list"></i>課程清單</a></li>
                                         @if (@ViewBag.FeeDataListCount == "繳費與點名已有資料")
                                         {
@@ -316,80 +341,48 @@
                                     }
                                     else
                                     {
-                                        <!-- 小組長，無幸福小組名單，無繳費點名 -->
-                                        <li>@*<a href="/Home/SmallGroupReportView/AccountPassword">小組牧養</a>*@</li>
-                                        @*<li><a href="/Home/IntegrateView/AccountPassword">牧養回報</a></li>*@
-                                        @*<li><a href="/Home/MultiGroupView/MultiGroup">牧養回報</a></li>*@
                                         <li><a href="/Home/NewPerson"><i class="fas fa-user-plus"></i>新增新人</a></li>
                                         <li><a href="/Home/PersonalInfomationView"><i class="fas fa-user"></i>個人相關資料</a></li>
-                                        @*<li><a href="/Home/NewPersonFollowUpView">關懷新人</a></li>*@
-                                        @*<li><a href="/Home/HappyGroup">幸福小組回報</a></li>*@
-                                        @*<li><a href="/Home/WeeklyReport">小組日誌</a></li>*@
                                         <li><a href="/Home/MaintainPersonInfomationView"><i class="fas fa-address-book"></i>組員資訊</a></li>
-                                        @*<li><a href="/Home/FeeManagerView">繳費與點名</a></li>*@
                                     }
-
                                 }
                                 @if (@ViewBag.UserType == "行政同工")
                                 {
-                                    @*<li><a href="/Home/Scheduler/差勤簽核">差勤簽核</a></li>*@
-                                    @*<li><a href="http://mrbs.yhchurch.info/">場地及資源預約</a></li>*@
                                 }
                                 else
                                 {
-                                    @*<li><a href="http://mrbs.yhchurch.info/">場地及資源預約</a></li>*@
                                 }
                             }
                             else
                             {
                                 @if (@ViewBag.MultiGroupIndex == "HybridView")
                                 {
-                                    <li><a href="/Home/MultiGroupView/MultiGroup">回報統計</a></li>
+                                    <li><a href="/Home/MultiGroupView/MultiGroup"><i class="fas fa-chart-bar"></i>回報統計</a></li>
                                 }
                                 @if (@ViewBag.HappyType == "有幸福小組名單")
                                 {
-
                                     @if (@ViewBag.FeeType == "有繳費點名")
                                     {
-                                        <!-- 不是小組長，有幸福小組名單，有繳費點名 -->
-                                        @*<li><a href="/Home/IntegrateView/Personal">個人回報</a></li>*@
-                                        @*<li><a href="/Home/PersonalReport"><i class="fas fa-file-alt"></i>個人回報</a></li>*@
-                                        @*<li><a href="/Home/MaintainPersonInfomationView">組員資訊</a></li>*@
                                         <li><a href="/Home/NewPerson"><i class="fas fa-user-plus"></i>新增新人</a></li>
                                         <li><a href="/Home/PersonalInfomationView"><i class="fas fa-user"></i>個人相關資料</a></li>
-                                        @*<li><a href="/Home/HappyGroup">幸福小組回報</a></li>*@
                                         @if (@ViewBag.FeeDataListCount == "繳費與點名已有資料")
                                         {
                                             <li><a href="/Home/FeeView"><i class="fas fa-credit-card"></i>繳費</a></li>
                                             <li><a href="/Home/PresentView"><i class="fas fa-clipboard-check"></i>點名</a></li>
                                         }
-
                                     }
                                     else
                                     {
-                                        <!-- 不是小組長，有幸福小組名單，無繳費點名 -->
-                                        @*<li><a href="/Home/IntegrateView/Personal">個人回報</a></li>*@
-                                        @*<li><a href="/Home/PersonalReport"><i class="fas fa-file-alt"></i>個人回報</a></li>*@
-                                        @*<li><a href="/Home/MaintainPersonInfomationView">組員資訊</a></li>*@
                                         <li><a href="/Home/NewPerson"><i class="fas fa-user-plus"></i>新增新人</a></li>
                                         <li><a href="/Home/PersonalInfomationView"><i class="fas fa-user"></i>個人相關資料</a></li>
-                                        @*<li><a href="/Home/HappyGroup">幸福小組回報</a></li>*@
-                                        @*<li><a href="/Home/FeeManagerView">繳費與點名</a></li>*@
                                     }
-
                                 }
                                 else
                                 {
                                     @if (@ViewBag.FeeType == "有繳費點名")
                                     {
-                                        <!-- 不是小組長，無幸福小組名單，有繳費點名 -->
-                                        @*<li><a href="/Home/IntegrateView/Personal">個人回報</a></li>*@
-                                        @*<li><a href="/Home/PersonalReport">個人回報</a></li>*@
-                                        @*<li><a href="/Home/MaintainPersonInfomationView">組員資訊</a></li>*@
                                         <li><a href="/Home/NewPerson"><i class="fas fa-user-plus"></i>新增新人</a></li>
                                         <li><a href="/Home/PersonalInfomationView"><i class="fas fa-user"></i>個人相關資料</a></li>
-                                        @*<li><a href="/Home/HappyGroup">幸福小組回報</a></li>*@
-                                        @*<li><a href="/Home/Scheduler/差勤簽核">差勤簽核</a></li>*@
                                         <li><a href="/Home/PresentFeeListView"><i class="fas fa-list"></i>課程清單</a></li>
                                         @if (@ViewBag.FeeDataListCount == "繳費與點名已有資料")
                                         {
@@ -399,36 +392,21 @@
                                     }
                                     else
                                     {
-                                        <!-- 不是小組長，無幸福小組名單，無繳費點名 -->
-                                        @*<li><a href="/Home/IntegrateView/Personal">個人回報</a></li>*@
-                                        @*<li><a href="/Home/PersonalReport">個人回報</a></li>*@
-                                        @*<li><a href="/Home/MaintainPersonInfomationView">組員資訊</a></li>*@
                                         <li><a href="/Home/NewPerson"><i class="fas fa-user-plus"></i>新增新人</a></li>
                                         <li><a href="/Home/PersonalInfomationView"><i class="fas fa-user"></i>個人相關資料</a></li>
-                                        @*<li><a href="/Home/HappyGroup">幸福小組回報</a></li>*@
-                                        @*<li><a href="/Home/Scheduler/差勤簽核">差勤簽核</a></li>*@
-                                        @*<li><a href="/Home/FeeManagerView">繳費與點名</a></li>*@
                                     }
-                                    /**/
-
                                 }
                                 @if (@ViewBag.UserType == "行政同工")
                                 {
-                                    @*<li><a href="/Home/Scheduler/差勤簽核">差勤簽核</a></li>*@
-                                    @*<li><a href="http://mrbs.yhchurch.info/">場地及資源預約</a></li>*@
                                 }
                                 else
                                 {
-                                    @*<li><a href="http://mrbs.yhchurch.info/">場地及資源預約</a></li>*@
                                 }
                             }
                         }
-
-                        <!-- 必定要顯示的項目 -->
                         <li><a href="/Home/QPayView/網頁登入"><i class="fas fa-donate"></i>奉獻</a></li>
                         <li><a href="/Home/DedicationFeeViewWeb"><i class="fas fa-receipt"></i>奉獻收費清單</a></li>
                         <li><a href="/Home/EquipmentView"><i class="fas fa-tools"></i>裝備狀態</a></li>
-
                         @if (@ViewBag.IsAOfficeWorker == "是的")
                         {
                             <li><a href="/Home/KeyInDedicationFeeView"><i class="fas fa-keyboard"></i>奉獻管理</a></li>
@@ -438,29 +416,21 @@
                     }
                     else
                     {
-                        <!-- 不顯示牧養回報項目 -->
                         @if (@ViewBag.SchedulerView == "單純行事曆")
                         {
                             @if (@ViewBag.UserType == "行政同工")
                             {
-                                <!-- 行政同工專用項目（註解） -->
-                                <!-- <li><a href="http://mrbs.yhchurch.info/">場地及資源預約</a></li> -->
-                                <!-- <li><a href="/Home/Scheduler/差勤簽核">差勤簽核</a></li> -->
                             }
                             else
                             {
-                                <!-- 非行政同工項目（註解） -->
-                                <!-- <li><a href="http://mrbs.yhchurch.info/">場地及資源預約</a></li> -->
                             }
                         }
                         else
                         {
                             @if (@ViewBag.DedicationType == "奉獻管理")
                             {
-                                <!-- 教會職稱是:會計，所以有 -->
                                 <li><a href="/Home/QPayView/網頁登入"><i class="fas fa-donate"></i>奉獻</a></li>
                                 <li><a href="/Home/DedicationFeeViewWeb"><i class="fas fa-receipt"></i>奉獻收費清單</a></li>
-
                                 @if (@ViewBag.IsAOfficeWorker == "是的")
                                 {
                                     <li><a href="/Home/KeyInDedicationFeeView"><i class="fas fa-keyboard"></i>奉獻管理</a></li>
@@ -474,31 +444,17 @@
                             }
                             else
                             {
-                                <!-- 三條槓下拉什麼都沒有 -->
                             }
                         }
                     }
                 </ul>
             </div>
-        </div>
-    </nav>
+        </nav>
+    </div>
 
     <!-- 主要內容區域 -->
-    <div class="container">
+    <div class="main-content">
         @RenderBody()
     </div>
 </body>
-
-<!-- 會話結束腳本（註解） -->
-@*<script>
-    // session end
-    var sessionTimeoutWarning = @Session.Timeout - 1; // when session end 1 minute before this code makes redirect
-
-    var sTimeout = parseInt(sessionTimeoutWarning) * 60 * 1;
-    setTimeout('SessionEnd()', sTimeout);
-
-    function SessionEnd() {
-        window.location = "/Home/Login"; // Redirect to LogOff, and then redirect to Login
-    }
-</script>*@
 </html>
