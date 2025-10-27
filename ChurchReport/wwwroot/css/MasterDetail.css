@@ -1,13 +1,23 @@
-﻿.internal-grid {
-    padding-left: 0px;
-    padding-right: 0px;
+﻿/* ===================================================================
+ * 主從表格樣式表 (MasterDetail.css)
+ * 功能：定義主從表格的視覺樣式和佈局
+ * =================================================================== */
+
+/* ===== 內部表格 ===== */
+.internal-grid {
+  padding-left: 0px;   /* 左內邊距 */
+  padding-right: 0px;  /* 右內邊距 */
 }
 
-.dx-datagrid-content .dx-datagrid-table .dx-row .dx-command-expand { /*for width*/
-    width: 12px;
-    min-width: 10px;
+/* ===== 展開按鈕樣式 ===== */
+/* 設定展開/收起按鈕的寬度 */
+.dx-datagrid-content .dx-datagrid-table .dx-row .dx-command-expand {
+  width: 12px;       /* 按鈕寬度 */
+  min-width: 10px;   /* 最小寬度 */
 }
 
-/*.dx-datagrid-group-opened:before { 
+/* 註解：原本的群組展開圖示設定已註解掉
+.dx-datagrid-group-opened:before {
     content: "\f051";
-}*/
+}
+*/

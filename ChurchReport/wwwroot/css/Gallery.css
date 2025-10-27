@@ -1,16 +1,24 @@
-﻿#form-container {
-    margin: 10px;
+﻿/* ===================================================================
+ * 藝廊頁面樣式表 (Gallery.css)
+ * 功能：定義藝廊頁面的佈局和視覺樣式
+ * =================================================================== */
+
+/* ===== 表單容器 ===== */
+#form-container {
+  margin: 10px;  /* 設定表單容器的外邊距 */
 }
 
+/* ===== 按鈕區域 ===== */
 #button {
-    float: right;
-    margin-top: 20px;
+  float: right;      /* 按鈕右浮動 */
+  margin-top: 20px;  /* 按鈕上方邊距 */
 }
 
+/* ===== 長標題樣式 ===== */
 .long-title h3 {
-    font-family: 'Segoe UI Light', 'Helvetica Neue Light', 'Segoe UI', 'Helvetica Neue', 'Trebuchet MS', Verdana;
-    font-weight: 200;
-    font-size: 28px;
-    text-align: center;
-    margin-bottom: 20px;
+  font-family: 'Segoe UI Light', 'Helvetica Neue Light', 'Segoe UI', 'Helvetica Neue', 'Trebuchet MS', Verdana;
+  font-weight: 200;        /* 輕字體 */
+  font-size: 28px;         /* 大字體 */
+  text-align: center;      /* 文字置中 */
+  margin-bottom: 20px;     /* 下方邊距 */
 }
