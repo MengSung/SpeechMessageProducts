@@ -1,0 +1,174 @@
+﻿/* ===================================================================
+ * LineIdLoginView 頁面樣式表 (LineIdLoginView.css)
+ * 功能：定義 LINE ID 登入頁面的視覺樣式
+ * =================================================================== */
+
+/* ===== 全域樣式 ===== */
+html, body {
+  height: 100%;
+}
+
+body {
+  background: linear-gradient(135deg, #f0f4ff 0%, #ffffff 40%, #f7f9ff 100%);
+  color: #2c3e50;
+}
+
+/* ===== 藝廊區域 ===== */
+.widget-container {
+  padding: 10px;
+}
+
+/* ===== 長標題樣式 ===== */
+.long-title h3 {
+  font-family: 'Segoe UI Light', 'Helvetica Neue Light', 'Segoe UI', 'Helvetica Neue', 'Trebuchet MS', Verdana;
+  font-weight: 200;
+  font-size: 28px;
+  text-align: center;
+  margin-bottom: 20px;
+  color: #34495e;
+}
+
+#displaynamefield {
+  min-height: 2.2rem;
+  color: #34495e;
+}
+
+/* ===== 柔和卡片內容區域 ===== */
+.card-body-soft {
+  padding: 1rem 1.25rem;
+  background-color: #f8f9fa;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 0 0 18px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 120px;
+}
+
+/* ===== 資訊列表 ===== */
+.info-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.info-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.info-list li:last-child {
+  border-bottom: none;
+}
+
+.info-label {
+  font-weight: 600;
+  color: #495057;
+  flex: 0 0 80px;
+}
+
+.info-value {
+  color: #6c757d;
+  text-align: right;
+  flex: 1;
+  font-size: 1rem;
+  font-family: inherit;
+  letter-spacing: 0.5px;
+  white-space: nowrap;      /* 不換行，始終一整行顯示 */
+  overflow: visible;         /* 超出不隱藏 */
+  text-overflow: unset;    /* 不顯示省略號 */
+}
+
+/* ===== 頁尾註記 ===== */
+.footer-note {
+  text-align: center;
+  padding: 1rem;
+  background-color: #f8f9fa;
+  color: #6c757d;
+  font-size: 0.875rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+/* ===== Widget 容器 ===== */
+#WidgetContainer {
+  position: relative;
+}
+
+/* ===== 載入面板欄位 ===== */
+#LoadPanelField {
+  min-height: 2rem;
+}
+
+/* ===== 動畫效果 ===== */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ===== 響應式設計 ===== */
+/* 平板裝置 */
+@media (max-width: 768px) {
+  .card-body-soft {
+    min-height: 100px;
+    padding: 0.75rem 1rem;
+  }
+
+  .card-body-soft .row .col-md-7 {
+    margin-bottom: 1rem;
+  }
+
+  .info-list li {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .info-label {
+    flex: 0 0 70px;
+    min-width: 70px;
+  }
+
+  .info-value {
+    flex: 1;
+    text-align: left;
+    font-size: 0.95rem;
+    white-space: nowrap; /* 不換行，始終一整行顯示 */
+    overflow: visible; /* 超出不隱藏 */
+    text-overflow: unset; /* 不顯示省略號 */
+  }
+}
+
+/* 手機裝置 */
+@media (max-width: 480px) {
+  .card-body-soft {
+    border-radius: 0 0 12px 12px;
+    min-height: 80px;
+    padding: 0.5rem 0.75rem;
+  }
+
+  .info-list li {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 6px;
+    padding: 6px 0;
+  }
+
+  .info-label {
+    flex: 0 0 60px;
+    min-width: 60px;
+    font-size: 0.9rem;
+  }
+
+  .info-value {
+    flex: 1;
+    text-align: left;
+    font-size: 0.85rem;
+    white-space: nowrap; /* 不換行，始終一整行顯示 */
+    overflow: visible; /* 超出不隱藏 */
+    text-overflow: unset; /* 不顯示省略號 */
+  }
+}}}}}

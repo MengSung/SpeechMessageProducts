@@ -21,6 +21,7 @@
     <link rel="stylesheet" href="~/css/site.css" />
     <link href="~/css/devextreme/dx.common.css" rel="stylesheet" />
     <link href="~/css/devextreme/dx.light.css" rel="stylesheet" />
+    <link href="~/css/LineIdLoginView.css" rel="stylesheet" />
 
     <script src="~/lib/jquery/dist/jquery.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.js"></script>
@@ -62,6 +63,34 @@
     </div>
 
     <div class="long-title"><h3 id="displaynamefield"></h3></div>
+
+    <div class="card-body-soft">
+        <div class="row">
+            <div class="col-md-7">
+                <h5 style="font-weight:600; margin-bottom: 12px;">聯絡資訊</h5>
+                <ul class="info-list">
+                    <li>
+                        <span class="info-label">地址</span>
+                        <span class="info-value">新北市新店區安興路91巷5號</span>
+                    </li>
+                    <li>
+                        <span class="info-label">電話</span>
+                        <span class="info-value">02-2211-1556 (代表號)</span>
+                    </li>
+                    <li>
+                        <span class="info-label">信箱</span>
+                        <span class="info-value">sunnyvale.church@gmail.com</span>
+                    </li>
+                    <li>
+                        <span class="info-label">統編</span>
+                        <span class="info-value">20004335</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer-note">Copyright © @DateTime.Now.Year 聖谷行道會</div>
 
     <div id="WidgetContainer">
         @(Html.DevExtreme().Toast()
@@ -121,9 +150,6 @@
     </script>
 
     <script src="~/lib/jquery-ajax-unobtrusive/jquery.unobtrusive-ajax.js"></script>
-    <link href="~/css/Gallery.css" rel="stylesheet" />
-    <link href="~/css/WeeklyReport.css" rel="stylesheet" />
-
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script>
 
@@ -272,6 +298,7 @@
         }
 
     </script>
+
 </body>
 
 </html>

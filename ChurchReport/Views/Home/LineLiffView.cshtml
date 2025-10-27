@@ -23,6 +23,7 @@
     <link rel="stylesheet" href="~/css/site.css" />
     <link href="~/css/devextreme/dx.common.css" rel="stylesheet" />
     <link href="~/css/devextreme/dx.light.css" rel="stylesheet" />
+    <link href="~/css/LineLiffView.css" rel="stylesheet" />
 
     <script src="~/lib/jquery/dist/jquery.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.js"></script>
@@ -38,6 +39,8 @@
     <script src="~/js/devextreme/globalize/currency.js"></script>
     <script src="~/js/devextreme/globalize/date.js"></script>
 
+    <script src="~/js/devextreme/aspnet/dx.aspnet.mvc.js"></script>
+
     @* JSZip for client side export *@
     @*<script src="~/js/devextreme/jszip.js"></script>*@
 
@@ -45,52 +48,6 @@
     <script src="~/js/devextreme/vectormap-data/world.js"></script>
     <script src="~/lib/devextreme-aspnet-data/js/dx.aspnet.data.js"></script>
     <script src="~/js/devextreme/aspnet/dx.aspnet.mvc.js"></script>
-
-    <style>
-        /* Page background and base styles */
-        html, body { height: 100%; }
-        body {
-            background: linear-gradient(135deg, #f0f4ff 0%, #ffffff 40%, #f7f9ff 100%);
-            color: #2c3e50;
-        }
-
-        /* Header */
-        .cr-header {
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(6px);
-            border-bottom: 1px solid rgba(0,0,0,0.06);
-        }
-        .cr-brand { font-weight: 700; letter-spacing: .5px; }
-        .cr-subtext { color: #6c757d; font-size: .95rem; }
-
-        /* Card */
-        .cr-card {
-            max-width: 820px;
-            width: 100%;
-            border-radius: 18px;
-            overflow: hidden;
-            animation: fadeIn .6s ease-out both;
-        }
-        .cr-card .card-body { padding: 1.25rem 1.5rem 1.75rem; }
-
-        /* Gallery wrapper */
-        .cr-gallery {
-            border-bottom: 1px solid rgba(0,0,0,0.06);
-            background: #fff;
-        }
-        .cr-gallery .dx-widget { border-radius: 12px; }
-
-        /* Status */
-        #displaynamefield { min-height: 2.2rem; color: #34495e; }
-
-        /* Utilities */
-        .text-center-important { text-align: center !important; }
-
-        @@keyframes fadeIn {
-            from { opacity: 0; transform: translateY(8px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-    </style>
 
 </head>
 
@@ -214,6 +171,33 @@
                     </div>
                 </form>
             </div>
+            <div class="card-body-soft">
+                <div class="row">
+                    <div class="col-md-7">
+                        <h5 style="font-weight:600; margin-bottom: 12px;">聯絡資訊</h5>
+                        <ul class="info-list">
+                            <li>
+                                <span class="info-label">地址</span>
+                                <span class="info-value">新北市新店區安興路91巷5號</span>
+                            </li>
+                            <li>
+                                <span class="info-label">電話</span>
+                                <span class="info-value">02-2211-1556 (代表號)</span>
+                            </li>
+                            <li>
+                                <span class="info-label">信箱</span>
+                                <span class="info-value">sunnyvale.church@gmail.com</span>
+                            </li>
+                            <li>
+                                <span class="info-label">統編</span>
+                                <span class="info-value">20004335</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer-note">Copyright © @DateTime.Now.Year 聖谷行道會</div>
         </div>
     </main>
 
@@ -346,9 +330,6 @@
     </script>
 
     <script src="~/lib/jquery-ajax-unobtrusive/jquery.unobtrusive-ajax.js"></script>
-    <link href="~/css/Gallery.css" rel="stylesheet" />
-    <link href="~/css/WeeklyReport.css" rel="stylesheet" />
-
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 
     <script>
