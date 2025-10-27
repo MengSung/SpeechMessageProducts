@@ -10,9 +10,9 @@
 
 <div class="general-group-grids">
     @* 1) 小組是否暫停：以 CheckBox 綁定 Model.PauseCheckBox *@
-    <div id="PauseOrNot" class="pause-option" style="height:100%; width:100%; overflow: hidden;">
-        <div style="font-size:100%; color:mediumslateblue; text-align:left;font-weight:bold">
-            <h5>小組是否暫停</h5>
+    <div id="PauseOrNot" class="pause-option" style="display: flex; align-items: center; gap: 8px;">
+        <div style="font-size:100%; color:#fff; background: linear-gradient(135deg, #667eea0%, #764ba2100%); text-align:left; font-weight:bold; border-radius:3px; display:inline-block;">
+            <h5 style="margin:0; color:#667eea;">小組是否暫停</h5>
         </div>
         @(Html.DevExtreme()
             .CheckBox()
