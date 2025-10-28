@@ -1053,7 +1053,7 @@ namespace ChurchReport.WebServiceConnector
                 bool isSuccess = payPageResponse.code == "0000" || payPageResponse.code == "00";
 
                 // TODO:因為尚未上線，目前暫時無法使用信用卡支付，所以還原為null
-                payPageResponse.url = null;
+                //payPageResponse.url = null;
 
                 string status = isSuccess ? "S" : "F";
                 
@@ -1242,9 +1242,9 @@ namespace ChurchReport.WebServiceConnector
                 
                 // 決定是否啟用 3D (此處簡單依 PayTypeSub 是否為 ONE 判斷，可依實際需求調整)
                 bool enable3D = false; // 可改為設定檔或條件判斷
-                
+
                 // 呼叫 TSPG API (測試環境)
-                var payPageResponse = TspgToolkit.OrderCreateTest(tspgRequest, enable3D);
+                PayPageResponse payPageResponse = TspgToolkit.OrderCreateTest(tspgRequest, enable3D);
                 
                 // 使用新的轉換函數將 PayPageResponse 轉換為 CreOrder
                 return ConvertPayPageResponseToCreOrder(payPageResponse, PayType, PayType + OrderDate);
@@ -1292,7 +1292,7 @@ namespace ChurchReport.WebServiceConnector
             string mobilePhone = string.Empty;
             string homeTel = string.Empty;
             string officeTel = string.Empty;
-            string custId = string.Empty; // 身分證號
+            //string custId = string.Empty; // 身分證號
             string birthday = string.Empty; // 生日
             
             // 從 LineLoginContact 取得持卡人資訊
@@ -1322,12 +1322,12 @@ namespace ChurchReport.WebServiceConnector
                     officeTel = System.Text.RegularExpressions.Regex.Replace(officeTel, @"[^\d]", "");
                     
                     // 身分證號
-                    custId = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "new_personal_id") ?? string.Empty;
-                    if (!string.IsNullOrEmpty(custId) && custId.Length > 0)
-                    {
-                        // 確保首字母大寫
-                        custId = custId.ToUpper();
-                    }
+                    //custId = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "new_personal_id") ?? string.Empty;
+                    //if (!string.IsNullOrEmpty(custId) && custId.Length > 0)
+                    //{
+                    //    // 確保首字母大寫
+                    //    custId = custId.ToUpper();
+                    //}
                     
                     // 生日（轉換為 MMddyyyy 格式）
                     DateTime birthDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref LineLoginContact, "birthdate");
@@ -1400,7 +1400,7 @@ namespace ChurchReport.WebServiceConnector
                     OfficeTelNo = !string.IsNullOrEmpty(officeTel) ? officeTel : null, // 公司電話
                     
                     // === 持卡人身分驗證資訊 ===
-                    CustId = !string.IsNullOrEmpty(custId) ? custId : null, // 身分證號
+                    //CustId = !string.IsNullOrEmpty(custId) ? custId : null, // 身分證號
                     BDay = !string.IsNullOrEmpty(birthday) ? birthday : null, // 生日
                     
                     // === 分期付款資訊（根據 PayTypeSub 設定）===
