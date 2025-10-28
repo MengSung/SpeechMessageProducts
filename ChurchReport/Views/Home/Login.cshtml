@@ -1,14 +1,16 @@
-﻿<!DOCTYPE html>
+﻿@* 
+    這個視圖是登入頁面，使用 DevExtreme 組件來顯示圖片庫、表單和按鈕。
+    它處理用戶登入，並根據回應重定向到不同的視圖。
+*@
 
 @{
     Layout = null;
 }
 
-
 @model ChurchReport.ViewModel.GalleryViewModel
 
+<!DOCTYPE html>
 <html>
-
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta charset="utf-8">
@@ -19,14 +21,17 @@
     <title>聖谷行道會</title>
     <link href="~/favicon.ico" rel="shortcut icon" type="image/x-icon" />
 
+    <!-- Bootstrap 和 DevExtreme CSS -->
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.css" />
     <link rel="stylesheet" href="~/css/site.css" />
     <link href="~/css/devextreme/dx.common.css" rel="stylesheet" />
     <link href="~/css/devextreme/dx.light.css" rel="stylesheet" />
 
+    <!-- jQuery 和 Bootstrap JS -->
     <script src="~/lib/jquery/dist/jquery.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.js"></script>
 
+    <!-- DevExtreme 全球化腳本 -->
     <script src="~/js/devextreme/cldr.js"></script>
     <script src="~/js/devextreme/cldr/event.js"></script>
     <script src="~/js/devextreme/cldr/supplemental.js"></script>
@@ -38,28 +43,23 @@
     <script src="~/js/devextreme/globalize/currency.js"></script>
     <script src="~/js/devextreme/globalize/date.js"></script>
 
-    @* JSZip for client side export *@
+    @* JSZip for client side export (目前註釋掉) *@
     @*<script src="~/js/devextreme/jszip.js"></script>*@
 
+    <!-- DevExtreme 核心腳本 -->
     <script src="~/js/devextreme/dx.all.js"></script>
     <script src="~/js/devextreme/vectormap-data/world.js"></script>
     <script src="~/lib/devextreme-aspnet-data/js/dx.aspnet.data.js"></script>
     <script src="~/js/devextreme/aspnet/dx.aspnet.mvc.js"></script>
-
 </head>
 
-
 <body>
-
+    <!-- 圖片庫容器 -->
     <div class="widget-container" style="padding: 10px;">
         @(Html.DevExtreme().Gallery()
                 .ID("gallery")
                 .DataSource(Model.Images)
-                //.Height(250)
                 .Height("250px")
-                //.Height("100%")
-                //.Width(600)
-                //.InitialItemWidth(250)
                 .StretchImages(true)
                 .Loop(true)
                 .SlideshowDelay(1500)
@@ -68,42 +68,37 @@
         )
     </div>
 
-    @*<div class="long-title"><h3>聖谷行道會牧養系統</h3></div>*@
-    @*<h3 class="mbr-section-title pb-5 mbr-fonts-style display-5 text-center">地址:桃園市蘆竹區中山路72號6樓</h3>
-        <h3 class="mbr-section-title pb-5 mbr-fonts-style display-5 text-center">電子郵件:fbllc58@yahoo.com.tw</h3>
-        <h3 class="mbr-section-title pb-5 mbr-fonts-style display-5 text-center">電話:03-2126690</h3>
-        <div id="ToastContainer">*@
-
-
+    <!-- 標題 -->
     <div class="long-title"><h3>聖谷行道會</h3></div>
+
+    @* 舊的聯絡資訊 (目前註釋掉) *@
     @*<h3 class="mbr-section-title pb-5 mbr-fonts-style display-5 text-center">地址: 320桃園市中壢區杭州路71號</h3>
     <h3 class="mbr-section-title pb-5 mbr-fonts-style display-5 text-center">電話:03-4561011</h3>
     <h3 class="mbr-section-title pb-5 mbr-fonts-style display-5 text-center">統編: 19600644</h3>
     <h3 class="mbr-section-title pb-5 mbr-fonts-style display-5 text-center">電子郵件:blccjl@gmail.com</h3>*@
-    <div id="ToastContainer">
 
+    <!-- Toast 通知容器 -->
+    <div id="ToastContainer">
         @(Html.DevExtreme().Toast()
                             .ID("Toast")
                             .Position(p => p
                             .At(HorizontalAlignment.Center, VerticalAlignment.Center)
                             .Offset(0, 50))
-                            //.Shading(true)
-                            //.ShadingColor("red")
                             .CloseOnOutsideClick(true)
                             .DisplayTime(2000)
                             .MaxWidth(200)
             )
     </div>
 
+    <!-- 登入表單 -->
     <form data-ajax="true" data-ajax-begin="onBegin" data-ajax-success="onSuccess" asp-action="ProcessLogin" asp-controller="Home" method="post" style="text-align: center;">
-
         <div class="dx-field" style="text-align: center;">
             <div class="form-container-class" id="form-container" style="text-align: center;">
                 @(Html.DevExtreme().Form()
                         .ID("form")
                         .Items(items =>
                         {
-
+                            // 帳號欄位
                             items.AddSimple()
                                 .DataField("Account")
                                 .Label(l => l.Text("帳號"))
@@ -112,9 +107,9 @@
                                     .Disabled(false)
                                     .Placeholder("輸入帳號")
                                     .ShowClearButton(true)
-                               //.Width(200)
                                );
 
+                            // 密碼欄位
                             items.AddSimple()
                                 .DataField("Password")
                                 .Label(l => l.Text("密碼"))
@@ -124,29 +119,27 @@
                                     .Disabled(false)
                                     .Placeholder("輸入密碼")
                                     .ShowClearButton(true)
-                               //.Width(200)
                                );
-
                         })
                 )
             </div>
         </div>
+
         <div class="dx-field" style="text-align: center;">
             <div id="buttonContainer" class="dx-button-icon">
+                <!-- 登入按鈕 -->
                 @(Html.DevExtreme().Button()
                     .Text("登入")
-                    //.Type(ButtonType.Success)
-                    //.Type(ButtonType.Normal)
                     .Type(ButtonType.Default)
                     .ID("save-button")
                     .UseSubmitBehavior(true)
                     .OnClick("Login")
                     .Width(100)
                 )
+
+                <!-- 設定帳號密碼按鈕 (隱藏) -->
                 @(Html.DevExtreme().Button()
                             .Text("設定帳號密碼")
-                            //.Type(ButtonType.Success)
-                            //.Type(ButtonType.Normal)
                             .Type(ButtonType.Default)
                             .Visible(false)
                             .ID("register-button")
@@ -155,6 +148,8 @@
                             .Width(140)
                 )
             </div>
+
+            <!-- 載入面板 -->
             <div id="LoadPanel">
                 @(Html.DevExtreme().LoadPanel()
                             .ID("loadPanel")
@@ -167,87 +162,75 @@
                             .CloseOnOutsideClick(false)
                             .Message("登入中...")
                             .Animation(l => l.Show(k => k.Easing(AnimationEasing.Swing)))
-                    //.OnShown("loadPanel_shown")
-                    //.OnHidden("loadPanel_hidden")
                 )
             </div>
         </div>
     </form>
 
+    <!-- JavaScript 函數 -->
     <script>
+        // 獲取載入面板實例
         function getLoadPanelInstance() {
             return $("#loadPanel").dxLoadPanel("instance");
         }
 
+        // 按鈕點擊事件 (未使用)
         function button_click() {
             getLoadPanelInstance().show();
         }
 
+        // 載入面板顯示事件 (未實現)
         function loadPanel_shown(e) {
-            //    setTimeout(function () {
-            //        e.component.hide();
-            //    }, 3000);
+            // 可選：延遲隱藏
         }
 
+        // 載入面板隱藏事件 (未實現)
         function loadPanel_hidden() {
         }
 
+        // 登入按鈕點擊事件
         function Login(arg) {
-
             getLoadPanelInstance().show();
         }
 
+        // 註冊按鈕點擊事件
         function Register(arg) {
-
             window.location.href = "/Home/Register";
         }
-
     </script>
 
+    <!-- AJAX 相關腳本 -->
     <script type="text/javascript">
+        // AJAX 開始事件
         function onBegin() {
         }
 
+        // AJAX 成功事件
         function onSuccess(data) {
-
-            //debugger;
-
             getLoadPanelInstance().hide();
 
             if (data.DisplayViewType == "MultiGroupView") {
-                // 小組長或是個人回報
+                // 小組長或個人回報
                 ShowToast(data.message, "success", 2000);
-
-                //DevExpress.ui.notify(data.message, "success", 2000);
-
-                //window.location.href = "/Home/IntegrateView/AccountPassword";
                 window.location.href = "/Home/MultiGroupView/" + data.ActiveListId;
-                //window.location.href = data.LinePayUrl;
             }
             else if (data.DisplayViewType == "IntegrateView") {
-                // 小組長或是個人回報
+                // 小組長或個人回報
                 ShowToast(data.message, "success", 2000);
-
-                //DevExpress.ui.notify(data.message, "success", 2000);
-
                 window.location.href = "/Home/IntegrateView/" + data.ActiveListId;
-                //window.location.href = data.LinePayUrl;
             }
             else if (data.DisplayViewType == "HappyGroupView") {
                 // 單純幸福小組長回報
                 ShowToast(data.message, "success", 2000);
-
-                //DevExpress.ui.notify(data.message, "success", 2000);
-
                 window.location.href = "/Home/HappyGroup";
             }
             else {
+                // 錯誤情況
                 ShowToast(data.message, "error", 5000);
-
-                //DevExpress.ui.notify(data.message, "error", 3000);
             }
         }
 
+        // AJAX 完成事件 (未實現)
         function onComplete(data) {
             if (data.status == 1) {
             }
@@ -256,10 +239,9 @@
         }
     </script>
 
+    <!-- Toast 顯示函數 -->
     <script>
-
         function ShowToast(LocalToastMessage, Type, DisplayTime) {
-            //debugger;
             var ToastInstance = $("#Toast").dxToast("instance");
             ToastInstance.option('message', LocalToastMessage);
             ToastInstance.option('type', Type);
@@ -268,14 +250,11 @@
             ToastInstance.option('closeOnClick', true);
             ToastInstance.show();
         }
-
     </script>
 
+    <!-- 額外腳本和樣式 -->
     <script src="~/lib/jquery-ajax-unobtrusive/jquery.unobtrusive-ajax.js"></script>
     <link href="~/css/Gallery.css" rel="stylesheet" />
     <link href="~/css/WeeklyReport.css" rel="stylesheet" />
-
-
 </body>
-
 </html>
