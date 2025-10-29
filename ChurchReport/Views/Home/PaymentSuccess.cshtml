@@ -2,24 +2,135 @@
     ViewBag.Title = "付款成功";
 }
 
-<div class="container" style="max-width:680px;margin:40px auto;font-family:Segoe UI, Arial, sans-serif;">
-    <h2>付款成功</h2>
-    <p>感謝您的付款，交易已完成。</p>
-
-    <div style="margin-top:20px">
-        <div><strong>訂單編號</strong>：@ViewBag.OrderId</div>
-        <div><strong>交易號</strong>：@ViewBag.TransactionId</div>
-        <div><strong>金額</strong>：@ViewBag.Amount</div>
-        <div><strong>授權碼</strong>：@ViewBag.AuthCode</div>
-        <div><strong>交易類型</strong>：@ViewBag.TxType</div>
-        @if (ViewBag.DccAmount != null)
-        {
-            <div><strong>DCC 金額</strong>：@ViewBag.DccAmount @ViewBag.DccCurrency</div>
-            <div><strong>匯率</strong>：@ViewBag.ExchangeRate</div>
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>@ViewBag.Title</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 0;
+            margin: 0;
         }
+        .success-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+            max-width: 800px;
+            margin: 20px auto;
+        }
+        .success-header {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+        .success-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+        .details-section {
+            padding: 2rem;
+            font-size: 1.2rem;
+        }
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #eee;
+        }
+        .detail-item:last-child {
+            border-bottom: none;
+        }
+        .detail-label {
+            font-weight: 600;
+            color: #495057;
+        }
+        .detail-value {
+            color: #6c757d;
+        }
+        .btn-custom {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 25px;
+            padding: 0.75rem 2rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+        }
+        .btn-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="success-card">
+        <!-- 成功標題 -->
+        <div class="success-header">
+            <i class="fas fa-check-circle success-icon"></i>
+            <h2 class="mb-0">付款成功</h2>
+            <p class="mb-0 mt-2">感謝您的付款，交易已完成。</p>
+        </div>
+
+        <!-- 交易詳情 -->
+        <div class="details-section">
+            <h5 class="mb-4 text-center"><i class="fas fa-receipt me-2"></i>交易詳情</h5>
+
+            <div class="detail-item">
+                <span class="detail-label"><i class="fas fa-hashtag me-2"></i>訂單編號</span>
+                <span class="detail-value">@ViewBag.OrderId</span>
+            </div>
+
+            <div class="detail-item">
+                <span class="detail-label"><i class="fas fa-exchange-alt me-2"></i>交易號</span>
+                <span class="detail-value">@ViewBag.TransactionId</span>
+            </div>
+
+            <div class="detail-item">
+                <span class="detail-label"><i class="fas fa-dollar-sign me-2"></i>金額</span>
+                <span class="detail-value">@ViewBag.Amount</span>
+            </div>
+
+            <div class="detail-item">
+                <span class="detail-label"><i class="fas fa-key me-2"></i>授權碼</span>
+                <span class="detail-value">@ViewBag.AuthCode</span>
+            </div>
+
+            <div class="detail-item">
+                <span class="detail-label"><i class="fas fa-credit-card me-2"></i>交易類型</span>
+                <span class="detail-value">@ViewBag.TxType</span>
+            </div>
+
+            @if (ViewBag.DccAmount != null)
+            {
+                <div class="detail-item">
+                    <span class="detail-label"><i class="fas fa-globe me-2"></i>DCC 金額</span>
+                    <span class="detail-value">@ViewBag.DccAmount @ViewBag.DccCurrency</span>
+                </div>
+
+                <div class="detail-item">
+                    <span class="detail-label"><i class="fas fa-chart-line me-2"></i>匯率</span>
+                    <span class="detail-value">@ViewBag.ExchangeRate</span>
+                </div>
+            }
+
+            <!-- 返回按鈕 -->
+            <div class="text-center mt-4">
+                <a href="/" class="btn btn-custom text-white">
+                    <i class="fas fa-home me-2"></i>回首頁
+                </a>
+            </div>
+        </div>
     </div>
 
-    <div style="margin-top:24px">
-        <a href="/" class="btn btn-primary">回首頁</a>
-    </div>
-</div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
