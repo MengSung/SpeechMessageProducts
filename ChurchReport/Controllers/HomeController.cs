@@ -6513,11 +6513,34 @@ namespace ChurchReport.Controllers
 
         #endregion
         #endregion
-        #region PaymentSuccess
+        #region ¥I´Úª¬ºA¦^´_
         // Payment success landing page used by TSPGController redirect
         [HttpGet]
         [Route("/payment-success")]
         public IActionResult PaymentSuccess(
+            string order_id,
+            string transaction_id,
+            string amount,
+            string auth_code,
+            string tx_type,
+            decimal? dcc_amount,
+            string dcc_currency,
+            decimal? exchange_rate)
+        {
+            ViewBag.OrderId = order_id;
+            ViewBag.TransactionId = transaction_id;
+            ViewBag.Amount = amount;
+            ViewBag.AuthCode = auth_code;
+            ViewBag.TxType = tx_type;
+            ViewBag.DccAmount = dcc_amount;
+            ViewBag.DccCurrency = dcc_currency;
+            ViewBag.ExchangeRate = exchange_rate;
+            return View(); // renders Views/Home/PaymentSuccess.cshtml
+        }
+        // Payment success landing page used by TSPGController redirect
+        [HttpGet]
+        [Route("/payment-failed")]
+        public IActionResult PaymentError(
             string order_id,
             string transaction_id,
             string amount,
