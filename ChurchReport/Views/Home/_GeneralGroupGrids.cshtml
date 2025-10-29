@@ -126,17 +126,16 @@
                                    );
 
                             // 洗禮狀態：唯讀
-@*                             columns.AddFor(m => m.BaptizedSituation)
-                                   .Caption("洗禮狀態")
+                                columns.AddFor(m => m.SpiritualIdentity)
+                                   .Caption("信仰狀態")
                                    .Alignment(HorizontalAlignment.Center)
                                    .AllowEditing(false)
                                    .Width(110)
                                    .MinWidth(100)
                                    .DataType(GridColumnDataType.String)
                                    .Lookup(lookup => lookup
-                                       .DataSource(new string[] { "堅信禮(籍在)", "成人禮(籍在)", "轉籍(籍在)", "小兒禮(籍不在)", "未受洗(籍不在)" })
+                            .DataSource(new string[] { "-未知-", "基督徒", "已決志", "慕道友", "未信主" })
                                    );
- *@
                             // 代禱事項：可輸入欄位
                             columns.AddFor(m => m.PrayItem)
                                    .Caption("代禱事項")
@@ -288,17 +287,16 @@
                                    );
 
                             // 洗禮狀態：唯讀
-@*                             columns.AddFor(m => m.BaptizedSituation)
-                                   .Caption("洗禮狀態")
+                            columns.AddFor(m => m.SpiritualIdentity)
+                                   .Caption("信仰狀態")
                                    .Alignment(HorizontalAlignment.Center)
                                    .AllowEditing(false)
                                    .Width(110)
                                    .MinWidth(100)
                                    .DataType(GridColumnDataType.String)
                                    .Lookup(lookup => lookup
-                                       .DataSource(new string[] { "堅信禮(籍在)", "成人禮(籍在)", "轉籍(籍在)", "小兒禮(籍不在)", "未受洗(籍不在)" })
+                                   .DataSource(new string[] { "-未知-", "基督徒", "已決志", "慕道友", "未信主" })
                                    );
- *@
                             // 跟進相關欄位
                             columns.AddFor(m => m.FollowUpOption)
                                    .Caption("跟進方式")

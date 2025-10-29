@@ -194,14 +194,14 @@
                     .DataSource(new string[] { "牧師師母", "區牧", "小區長", "小組長", "副小組長", "核心同工", "小組組員", "未入組", "新朋友", "外教會", "結案" })
                     );
                 columns.Add().DataField("EquipmentStatus").Caption("裝備狀態").Alignment(HorizontalAlignment.Center).Fixed(false).Width(60).MinWidth(90).AllowEditing(false);
-@*                 columns.Add().DataField("BaptizedSituation")
-                    .Caption("洗禮狀態").Alignment(HorizontalAlignment.Center)
+                columns.Add().DataField("SpiritualIdentity")
+                    .Caption("信仰狀態").Alignment(HorizontalAlignment.Center)
                     .AllowEditing(true)
                     .Width(110).MinWidth(100).DataType(GridColumnDataType.String)
                     .Lookup(lookup => lookup
-                    .DataSource(new string[] { "堅信禮(籍在)", "成人禮(籍在)", "轉籍(籍在)", "小兒禮(籍不在)", "未受洗(籍不在)" })
+                    .DataSource(new string[] { "-未知-", "基督徒", "已決志", "慕道友", "未信主" })
                     );
- *@                columns.Add().DataField("Phone").Caption("行動電話").Fixed(false).Width(120).MinWidth(90).Alignment(HorizontalAlignment.Left);
+                columns.Add().DataField("Phone").Caption("行動電話").Fixed(false).Width(120).MinWidth(90).Alignment(HorizontalAlignment.Left);
                 columns.Add().DataField("BirthDate").Caption("生日").DataType(GridColumnDataType.Date)
                     .CalculateCellValue(@<text>
                                         function(row)
