@@ -240,9 +240,9 @@ namespace ChurchReport.Tools
         /// <summary>
         /// 身份證號 (首字母大寫)
         /// </summary>
-        //[JsonProperty("cust_id")]
-        //[StringLength(10)]
-        //public string CustId { get; set; }
+        [JsonProperty("cust_id")]
+        [StringLength(10)]
+        public string CustId { get; set; }
 
         /// <summary>
         /// 生日 (MMddyyyy)

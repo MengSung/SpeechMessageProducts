@@ -1053,7 +1053,7 @@ namespace ChurchReport.WebServiceConnector
                 bool isSuccess = payPageResponse.code == "0000" || payPageResponse.code == "00";
 
                 // TODO:因為尚未上線，目前暫時無法使用信用卡支付，所以還原為null
-                payPageResponse.url = null;
+                //payPageResponse.url = null;
 
                 string status = isSuccess ? "S" : "F";
                 
@@ -1304,22 +1304,22 @@ namespace ChurchReport.WebServiceConnector
                     //cardholderName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "fullname") ?? string.Empty;
                     
                     // Email
-                    cardholderEmail = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "emailaddress1") ?? string.Empty;
+                    //cardholderEmail = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "emailaddress1") ?? string.Empty;
                     
                     // 手機
-                    mobilePhone = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "mobilephone") ?? string.Empty;
+                    //mobilePhone = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "mobilephone") ?? string.Empty;
                     // 移除手機號碼的非數字字元
-                    mobilePhone = System.Text.RegularExpressions.Regex.Replace(mobilePhone, @"[^\d]", "");
+                    //mobilePhone = System.Text.RegularExpressions.Regex.Replace(mobilePhone, @"[^\d]", "");
                     // 若開頭是 0，移除 0（因為要搭配國碼 886）
-                    if (mobilePhone.StartsWith("0")) mobilePhone = mobilePhone.Substring(1);
+                    //if (mobilePhone.StartsWith("0")) mobilePhone = mobilePhone.Substring(1);
                     
                     // 居家電話
-                    homeTel = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "telephone1") ?? string.Empty;
-                    homeTel = System.Text.RegularExpressions.Regex.Replace(homeTel, @"[^\d]", "");
+                    //homeTel = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "telephone1") ?? string.Empty;
+                    //homeTel = System.Text.RegularExpressions.Regex.Replace(homeTel, @"[^\d]", "");
                     
                     // 公司電話
-                    officeTel = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "telephone2") ?? string.Empty;
-                    officeTel = System.Text.RegularExpressions.Regex.Replace(officeTel, @"[^\d]", "");
+                    //officeTel = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "telephone2") ?? string.Empty;
+                    //officeTel = System.Text.RegularExpressions.Regex.Replace(officeTel, @"[^\d]", "");
                     
                     // 身分證號
                     //custId = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "new_personal_id") ?? string.Empty;
@@ -1330,11 +1330,11 @@ namespace ChurchReport.WebServiceConnector
                     //}
                     
                     // 生日（轉換為 MMddyyyy 格式）
-                    DateTime birthDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref LineLoginContact, "birthdate");
-                    if (birthDate != DateTime.MinValue)
-                    {
-                        birthday = birthDate.ToString("MMddyyyy");
-                    }
+                    //DateTime birthDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref LineLoginContact, "birthdate");
+                    //if (birthDate != DateTime.MinValue)
+                    //{
+                    //    birthday = birthDate.ToString("MMddyyyy");
+                    //}
                 } 
                 catch (Exception ex) 
                 {
@@ -1382,51 +1382,53 @@ namespace ChurchReport.WebServiceConnector
                     ResultUrl = resultUrl, // 交易結果回傳網址
                     CaptFlag = captFlag, // 授權同步請款標記
                     ResultFlag = "1", // 回傳訊息標記（1: 查詢交易詳情）
-                    
+
+                    #region 為避免Post back URL錯誤，暫時註解掉
                     // === 持卡人資訊 ===
-                    CardholderName = !string.IsNullOrEmpty(cardholderName) ? cardholderName : null,
-                    CardholderEmail = !string.IsNullOrEmpty(cardholderEmail) ? cardholderEmail : null,
-                    
+                    //CardholderName = !string.IsNullOrEmpty(cardholderName) ? cardholderName : null,
+                    //CardholderEmail = !string.IsNullOrEmpty(cardholderEmail) ? cardholderEmail : null,
+
                     // === 手機號碼資訊 ===
-                    CardholderMobilePhone = !string.IsNullOrEmpty(mobilePhone) ? new TSPGCardholderMobilePhone
-                    {
-                        CountryCode = "886", // 台灣國碼
-                        PhoneNumber = mobilePhone
-                    } : null,
-                    
+                    //CardholderMobilePhone = !string.IsNullOrEmpty(mobilePhone) ? new TSPGCardholderMobilePhone
+                    //{
+                    //    CountryCode = "886", // 台灣國碼
+                    //    PhoneNumber = mobilePhone
+                    //} : null,
+
                     // === 持卡人聯絡資訊 ===
-                    CellPhoneNo = !string.IsNullOrEmpty(mobilePhone) ? mobilePhone : null, // 手機號碼
-                    HomeTelNo = !string.IsNullOrEmpty(homeTel) ? homeTel : null, // 居家電話
-                    OfficeTelNo = !string.IsNullOrEmpty(officeTel) ? officeTel : null, // 公司電話
-                    
+                    //CellPhoneNo = !string.IsNullOrEmpty(mobilePhone) ? mobilePhone : null, // 手機號碼
+                    //HomeTelNo = !string.IsNullOrEmpty(homeTel) ? homeTel : null, // 居家電話
+                    //OfficeTelNo = !string.IsNullOrEmpty(officeTel) ? officeTel : null, // 公司電話
+
                     // === 持卡人身分驗證資訊 ===
                     //CustId = !string.IsNullOrEmpty(custId) ? custId : null, // 身分證號
-                    BDay = !string.IsNullOrEmpty(birthday) ? birthday : null, // 生日
-                    
+                    //BDay = !string.IsNullOrEmpty(birthday) ? birthday : null, // 生日
+
                     // === 分期付款資訊（根據 PayTypeSub 設定）===
                     // 如果需要支援分期，在此處理
                     // InstallPeriod = PayTypeSub == "STAGING" ? "3" : null, // 分期期數範例
-                    
+
                     // === 紅利折抵資訊（根據 PayTypeSub 設定）===
                     // UseRedeem = PayTypeSub == "BONUS" ? "1" : null, // 紅利交易標記範例
-                    
+
                     // === 國旅卡相關欄位（如果適用）===
                     // City = null, // 縣市群組代碼
                     // StartDate = null, // 啟程日 (MMddyyyy)
                     // EndDate = null, // 回程日 (MMddyyyy)
-                    
+
                     // === 3D 驗證與綁卡相關（如果適用）===
                     // ThreeDSMc = null, // 綁卡類型
                     // ThreeDSRa = null, // 綁卡類別
-                    
+
                     // === 行動裝置身分驗證（如果需要）===
                     // CbrIndicatorFlag = "0", // 不啟用
-                    
+
                     // === 其他選填欄位 ===
                     // TicketNo = null, // 機票號碼
                     // Pan = null, // 卡號（使用 HPP 則不需填）
                     // ExpDate = null, // 到期日 (YYMM)
                     // Cvv2 = null, // CVC2/CVV2
+                    #endregion
                 }
             };
 
