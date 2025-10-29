@@ -126,7 +126,7 @@
                                    );
 
                             // 洗禮狀態：唯讀
-                            columns.AddFor(m => m.BaptizedSituation)
+@*                             columns.AddFor(m => m.BaptizedSituation)
                                    .Caption("洗禮狀態")
                                    .Alignment(HorizontalAlignment.Center)
                                    .AllowEditing(false)
@@ -136,7 +136,7 @@
                                    .Lookup(lookup => lookup
                                        .DataSource(new string[] { "堅信禮(籍在)", "成人禮(籍在)", "轉籍(籍在)", "小兒禮(籍不在)", "未受洗(籍不在)" })
                                    );
-
+ *@
                             // 代禱事項：可輸入欄位
                             columns.AddFor(m => m.PrayItem)
                                    .Caption("代禱事項")
@@ -288,7 +288,7 @@
                                    );
 
                             // 洗禮狀態：唯讀
-                            columns.AddFor(m => m.BaptizedSituation)
+@*                             columns.AddFor(m => m.BaptizedSituation)
                                    .Caption("洗禮狀態")
                                    .Alignment(HorizontalAlignment.Center)
                                    .AllowEditing(false)
@@ -298,7 +298,7 @@
                                    .Lookup(lookup => lookup
                                        .DataSource(new string[] { "堅信禮(籍在)", "成人禮(籍在)", "轉籍(籍在)", "小兒禮(籍不在)", "未受洗(籍不在)" })
                                    );
-
+ *@
                             // 跟進相關欄位
                             columns.AddFor(m => m.FollowUpOption)
                                    .Caption("跟進方式")
