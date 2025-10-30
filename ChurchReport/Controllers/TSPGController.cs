@@ -111,13 +111,17 @@ namespace ChurchReport.Controllers
                 bool isSuccess = IsPaymentSuccess(notification.RetCode, notification.State); // 判斷付款是否成功
                 //isSuccess = false;//測試用，強制失敗
 
-                // 查詢訂單狀態以更新內部系統
-                //QueryOrder(notification.OrderNo);
-
-                // 根據付款狀態導向對應頁面
-                return isSuccess
-                    ? HandleSuccessfulPaymentReturn(notification)
-                    : HandleFailedPaymentReturn(notification); // 修正：失敗時導向失敗處理
+                if(isSuccess )
+                {
+                    // 根據付款狀態導向對應頁面
+                    return HandleSuccessfulPaymentReturn(notification);// 修正：成功時導向成功處理
+                }
+                else 
+                {                    
+                    return QueryOrderStatus(notification.OrderNo)
+                        ? HandleSuccessfulPaymentReturn(notification)// 修正：成功時導向成功處理
+                        : HandleFailedPaymentReturn(notification); // 修正：失敗時導向失敗處理
+                }
             }
             catch (Exception ex)
             {
@@ -296,8 +300,10 @@ namespace ChurchReport.Controllers
         ///
         /// 用於檢查訂單付款狀態或除錯
         /// </remarks>
+        /// 用於檢查訂單付款狀態或除錯
+        /// </remarks>
         [HttpGet("query-order/{orderId}")]
-        public IActionResult QueryOrder(string orderId)
+        public bool QueryOrderStatus(string orderId)
         {
             try
             {
@@ -305,12 +311,7 @@ namespace ChurchReport.Controllers
                 if (string.IsNullOrWhiteSpace(orderId))
                 {
                     LogWarning("QueryOrder", "訂單編號為空");
-                    return BadRequest(new
-                    {
-                        success = false,
-                        message = "訂單編號不能為空",
-                        error_code = "INVALID_PARAM"
-                    });
+                    return false;
                 }
 
                 LogInfo("QueryOrder", $"開始查詢訂單 - OrderId: {orderId}");
@@ -326,12 +327,7 @@ namespace ChurchReport.Controllers
                 else
                 {
                     LogWarning("QueryOrder", $"查詢回應為 null - OrderId: {orderId}");
-                    return StatusCode(500, new
-                    {
-                        success = false,
-                        message = "查詢失敗，無回應資料",
-                        order_id = orderId
-                    });
+                    return false;
                 }
 
                 // 4. 判斷查詢是否成功
@@ -351,19 +347,19 @@ namespace ChurchReport.Controllers
                 // 6. 根據結果返回適當的 HTTP 狀態碼
                 if (isSuccess)
                 {
-                    return Ok(result);
+                    return true;
                 }
                 else
                 {
                     // 查詢失敗但 API 有回應，返回 200 但 success=false
                     LogWarning("QueryOrder", $"訂單查詢失敗 - OrderId: {orderId}, Code: {response.code}");
-                    return Ok(result);
+                    return false;
                 }
             }
             catch (Exception ex)
             {
                 LogError("QueryOrder", $"查詢訂單發生例外 - OrderId: {orderId}", ex);
-                return HandleApiError("查詢訂單", ex);
+                return false;
             }
         }
 
