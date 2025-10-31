@@ -23,7 +23,7 @@ namespace ChurchReport.Tools
     {
         #region 高鉅金流實作成員資料
 
-        TSPGStoreOrder MyPayStoreOrder = new TSPGStoreOrder();
+        MyPayStoreOrder MyPayStoreOrder = new MyPayStoreOrder();
 
         // 將Simulate修改名稱
 
@@ -114,25 +114,7 @@ namespace ChurchReport.Tools
         {
             try
             {
-                // 使用高鉅金流查詢未請款訂單
-                var response = MyPayStoreOrder.QueryOrder(req.OrderNo);
-                
-                return new QryOrderUnCaptured
-                {
-                    ShopNo = req.ShopNo,
-                    Date = DateTime.Now.ToString("yyyyMMddHHmm"),
-                    Status = response.code == "0000" ? "S" : "F",
-                    Description = response.msg,
-                    OrderList = new List<OrderUnCapturedInfo>
-                    {
-                        new OrderUnCapturedInfo
-                        {
-                            OrderNo = req.OrderNo,
-                            TSNo = response.uid,
-                            PayStatus = response.code == "0000" ? "Y" : "N"
-                        }
-                    }
-                };
+                return MyPayToolkit.OrderUnCapturedQuery(req);
             }
             catch (Exception ex)
             {
@@ -188,25 +170,7 @@ namespace ChurchReport.Tools
             try
             {
                 // 查詢訂單狀態
-                var response = MyPayStoreOrder.QueryOrder(req.OrderNo);
-                
-                return new QryOrder
-                {
-                    ShopNo = req.ShopNo,
-                    Date = DateTime.Now.ToString("yyyyMMddHHmm"),
-                    Status = response.code == "0000" ? "S" : "F",
-                    Description = response.msg,
-                    OrderList = new List<OrderInfo>
-                    {
-                        new OrderInfo
-                        {
-                            OrderNo = req.OrderNo,
-                            TSNo = response.uid,
-                            PayType = req.PayType,
-                            PayStatus = response.code == "0000" ? "Y" : "N"
-                        }
-                    }
-                };
+                throw new System.NotImplementedException();
             }
             catch (Exception ex)
             {
