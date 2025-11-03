@@ -437,17 +437,22 @@
  padding-right:0; /* keep flush to the right edge */
 }
 
-/* ===== Tighten top spacing so qpay-page sits closer to the top edge ===== */
-.qpay-page {
+/* ===== Minimize top spacing: make qpay-page stick to the top edge ===== */
+html, body {
  margin-top:0 !important;
  padding-top:0 !important;
 }
 
-.qpay-page .qpay-container {
- padding-top:6px !important; /* reduce inner top padding */
- margin-top:0 !important;
+.qpay-page {
+ margin-top:10px !important;
+ padding-top:10px !important;
 }
 
-.qpay-page .dedication-header {
- margin-top:0 !important; /* ensure header sticks near the top */
+.qpay-page .qpay-container {
+ padding-top:0 !important; /* no inner top gap */
+}
+
+/* Avoid margin-collapsing from the first child creating a top gap */
+.qpay-page .qpay-container > :first-child {
+ margin-top:0 !important;
 }

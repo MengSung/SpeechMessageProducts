@@ -282,8 +282,8 @@
                             <li><a href="/Home/MultiGroupView/MultiGroup"><i class="fas fa-chart-bar"></i>回報統計</a></li>
                             <li><a href="/Home/NewPerson"><i class="fas fa-user-plus"></i>新增新人</a></li>
                             <li><a href="/Home/PersonalInfomationView"><i class="fas fa-user"></i>個人相關資料</a></li>
-                            <li><a href="/Home/Login"><i class="fas fa-sign-in-alt"></i>登入</a></li>
-                            @if (@ViewBag.UserType == "行政同工")
+@*                             <li><a href="/Home/Login"><i class="fas fa-sign-in-alt"></i>登入</a></li>
+ *@                            @if (@ViewBag.UserType == "行政同工")
                             {
                             }
                             else
@@ -427,8 +427,8 @@
                             <li><a href="/Home/KeyInDedicationFeeView"><i class="fas fa-keyboard"></i>奉獻管理</a></li>
                             <li><a href="/Home/DedicationFeeAuditViewWeb"><i class="fa-solid fa-shield-halved"></i>奉獻稽核</a></li>
                         }
-                        <li><a href="/Home/Login"><i class="fas fa-sign-in-alt"></i>登入</a></li>
-                    }
+@*                         <li><a href="/Home/Login"><i class="fas fa-sign-in-alt"></i>登入</a></li>
+ *@                    }
                     else
                     {
                         @if (@ViewBag.SchedulerView == "單純行事曆")
