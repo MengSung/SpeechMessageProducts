@@ -385,3 +385,69 @@
     padding: 15px;
   }
 }
+
+/* ===== DevExtreme dropdown editor alignment overrides ===== */
+/* Make the input wrapper auto-size to its container and align flush with the right edge */
+.qpay-page .dx-dropdowneditor-input-wrapper {
+ width:100% !important; /* follow container width (auto self-adjust) */
+ margin-right:0 !important; /* remove default right gap before the button */
+ box-sizing: border-box;
+}
+
+/* Ensure text does not go under the dropdown button after removing the right margin */
+.qpay-page .dx-dropdowneditor .dx-texteditor-input {
+ padding-right:36px !important; /* approximate button width to keep text clear of the button */
+ box-sizing: border-box;
+}
+
+/* If clear button is enabled together with dropdown button, give a bit more space */
+.qpay-page .dx-dropdowneditor.dx-show-clear-button .dx-texteditor-input {
+ padding-right:56px !important;
+}
+
+/* ===== DevExtreme Form full-width alignment within form-container ===== */
+.qpay-page #form-container .dx-form,
+.qpay-page #form-container .dx-layout-manager {
+ width:100% !important; /* form auto self-adjusts to container and flush with right border */
+}
+
+.qpay-page #form-container .dx-field-item {
+ width:100%;
+}
+
+.qpay-page #form-container .dx-field-item-content {
+ flex:11 auto;
+ width:100% !important; /* make content cell span full remaining width */
+ box-sizing: border-box;
+}
+
+/* Make common editors expand to the available width so the right edge aligns with the container border */
+.qpay-page #form-container .dx-texteditor,
+.qpay-page #form-container .dx-numberbox,
+.qpay-page #form-container .dx-selectbox,
+.qpay-page #form-container .dx-autocomplete,
+.qpay-page #form-container .dx-textarea {
+ width:100% !important;
+ max-width:100%;
+ box-sizing: border-box;
+}
+
+/* Remove unexpected inner paddings on groups that could create right gaps */
+.qpay-page #form-container .dx-form-group-content {
+ padding-right:0; /* keep flush to the right edge */
+}
+
+/* ===== Tighten top spacing so qpay-page sits closer to the top edge ===== */
+.qpay-page {
+ margin-top:0 !important;
+ padding-top:0 !important;
+}
+
+.qpay-page .qpay-container {
+ padding-top:6px !important; /* reduce inner top padding */
+ margin-top:0 !important;
+}
+
+.qpay-page .dedication-header {
+ margin-top:0 !important; /* ensure header sticks near the top */
+}
