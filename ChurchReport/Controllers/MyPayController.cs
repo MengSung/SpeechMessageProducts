@@ -125,11 +125,11 @@ namespace ChurchReport.Controllers
         /// 1. 驗證訂單編號是否存在
         /// 2. 連接到 Dynamics365 CRM 系統
         /// 3. 根據訂單號查詢對應的收費單 (new_fee 實體)
-        /// 4. 若找不到收費單，記錄警告並顯示一般成功訊息
+        /// 4. 判斷收費單類型（奉獻 vs 課程繳費）
         /// 5. 更新收費單欄位 (狀態、金額、日期等)
         /// 6. 儲存變更到 CRM
-        /// 7. 發送 LINE 付款成功通知給連絡人
-        /// 8. 設定 ViewBag 資料並返回付款結果頁面
+        /// 7. 根據類型發送不同的 LINE 通知
+        /// 8. 根據類型返回不同的結果頁面
         /// </remarks>
         [HttpGet("success")]
         public IActionResult PaymentSuccess(
@@ -145,18 +145,19 @@ namespace ChurchReport.Controllers
 
                 // 基本訊息設定（即使後續處理失敗也要顯示）
                 ViewBag.OrderId = order_id;
-                ViewBag.Message = "付款成功！感謝您的奉獻。";
+                ViewBag.Message = "付款成功！感謝您的支持。";
                 ViewBag.IsSuccess = true;
                 ViewBag.TransactionId = transaction_id;
                 ViewBag.Amount = cost;
                 ViewBag.PaymentTime = DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss");
+                ViewBag.FeeType = "unknown"; // 預設類型
 
                 // 如果沒有訂單編號，直接返回基本成功訊息
                 if (string.IsNullOrWhiteSpace(order_id))
                 {
                     _logger.LogWarning("PaymentSuccess: 訂單編號為空");
                     ViewBag.FullName = "會友";
-                    ViewBag.DedicationCategory = "奉獻";
+                    ViewBag.DedicationCategory = "付款";
                     return View("PaymentResult");
                 }
 
@@ -170,7 +171,7 @@ namespace ChurchReport.Controllers
                 {
                     _logger.LogWarning($"PaymentSuccess: 找不到對應的收費單 - OrderId: {order_id}");
                     ViewBag.FullName = "會友";
-                    ViewBag.DedicationCategory = "奉獻";
+                    ViewBag.DedicationCategory = "付款";
                     return View("PaymentResult");
                 }
 
@@ -179,17 +180,20 @@ namespace ChurchReport.Controllers
                 // 從收費單取得連絡人資訊
                 var contactId = utility.GetEntityLookupAttribute(feeEntity, "new_contact_new_fee");
                 string fullName = "會友";
+                Entity contactEntity = null;
+                
                 if (contactId != Guid.Empty)
                 {
-                    Entity contactEntity = utility.RetrieveEntity("contact", contactId);
+                    contactEntity = utility.RetrieveEntity("contact", contactId);
                     if (contactEntity != null)
                     {
                         fullName = utility.GetEntityStringAttribute(contactEntity, "fullname") ?? "會友";
                     }
                 }
 
-                // 取得奉獻類別
-                string dedicationCategory = GetDedicationCategoryName(utility.GetOptionSetAttribute(feeEntity, "new_category"));
+                // 判斷收費單類型（根據特定欄位判斷是奉獻還是課程繳費）
+                FeeType feeType = DetermineFeeType(utility, feeEntity);
+                ViewBag.FeeType = feeType.ToString().ToLower();
 
                 // 取得應收金額
                 var shouldPayMoney = utility.GetEntityMoneyAttribute(feeEntity, "new_fee_shoud_pay");
@@ -199,10 +203,45 @@ namespace ChurchReport.Controllers
                     amount = parsedCost;
                 }
 
-                // 設定 ViewBag 詳細資訊
+                // 設定 ViewBag 基本資訊
                 ViewBag.FullName = fullName;
-                ViewBag.DedicationCategory = dedicationCategory;
                 ViewBag.Amount = amount.ToString("N0");
+
+                // 根據類型設定不同的資訊
+                string itemName = "";
+                string viewName = "";
+                
+                if (feeType == FeeType.Dedication)
+                {
+                    // 奉獻類型
+                    int categoryValue = utility.GetOptionSetAttribute(feeEntity, "new_category");
+                    itemName = GetDedicationCategoryName(categoryValue);
+                    ViewBag.DedicationCategory = itemName;
+                    ViewBag.Message = "付款成功！感謝您的奉獻。";
+                    viewName = "PaymentResult"; // 奉獻結果頁面
+                }
+                else if (feeType == FeeType.Course)
+                {
+                    // 課程繳費類型
+                    itemName = GetCourseName(utility, feeEntity);
+                    ViewBag.CourseName = itemName;
+                    ViewBag.Message = "付款成功！課程繳費已完成。";
+                    viewName = "CoursePaymentResult"; // 課程繳費結果頁面
+                    
+                    // 課程相關額外資訊
+                    string courseSchedule = utility.GetEntityStringAttribute(feeEntity, "new_course_schedule") ?? "";
+                    string courseLocation = utility.GetEntityStringAttribute(feeEntity, "new_course_location") ?? "";
+                    ViewBag.CourseSchedule = courseSchedule;
+                    ViewBag.CourseLocation = courseLocation;
+                }
+                else
+                {
+                    // 其他類型（一般繳費）
+                    itemName = utility.GetEntityStringAttribute(feeEntity, "new_name") ?? "繳費";
+                    ViewBag.ItemName = itemName;
+                    ViewBag.Message = "付款成功！";
+                    viewName = "PaymentResult"; // 一般結果頁面
+                }
 
                 // 更新收費單狀態
                 UpdateFeeEntityForSuccess(utility, feeEntity, order_id, transaction_id, cost);
@@ -211,10 +250,13 @@ namespace ChurchReport.Controllers
                 utility.UpdateEntity(ref feeEntity);
                 _logger.LogInformation($"PaymentSuccess: 成功更新收費單 - FeeId: {feeEntity.Id}");
 
-                // 發送 LINE 通知
-                SendPaymentSuccessNotification(utility, feeEntity, order_id, transaction_id, cost, fullName, dedicationCategory);
+                // 根據類型發送不同的 LINE 通知
+                SendPaymentNotificationByType(utility, feeEntity, order_id, transaction_id, cost, 
+                    fullName, itemName, feeType, amount, contactEntity);
 
-                return View("PaymentResult");
+                // 返回對應的視圖
+                // 如果 CoursePaymentResult 視圖不存在，會 fallback 到 PaymentResult
+                return View(viewName);
             }
             catch (Exception ex)
             {
@@ -222,13 +264,14 @@ namespace ChurchReport.Controllers
                 
                 // 即使發生錯誤，仍然顯示成功訊息給用戶（因為付款確實成功了）
                 ViewBag.OrderId = order_id;
-                ViewBag.Message = "付款成功！感謝您的奉獻。";
+                ViewBag.Message = "付款成功！感謝您的支持。";
                 ViewBag.IsSuccess = true;
                 ViewBag.TransactionId = transaction_id;
                 ViewBag.Amount = cost;
                 ViewBag.PaymentTime = DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss");
                 ViewBag.FullName = "會友";
-                ViewBag.DedicationCategory = "奉獻";
+                ViewBag.DedicationCategory = "付款";
+                ViewBag.FeeType = "unknown";
                 
                 return View("PaymentResult");
             }
@@ -237,6 +280,321 @@ namespace ChurchReport.Controllers
                 // 確保資源釋放
                 utility?.Dispose();
             }
+        }
+
+        /// <summary>
+        /// 收費單類型枚舉
+        /// </summary>
+        private enum FeeType
+        {
+            /// <summary>奉獻</summary>
+            Dedication,
+            /// <summary>課程繳費</summary>
+            Course,
+            /// <summary>其他一般繳費</summary>
+            Other
+        }
+
+        /// <summary>
+        /// 判斷收費單類型
+        /// </summary>
+        /// <param name="utility">CRM 工具實例</param>
+        /// <param name="feeEntity">收費單實體</param>
+        /// <returns>收費單類型</returns>
+        /// <remarks>
+        /// 判斷邏輯：
+        /// 1. 檢查是否有課程相關欄位 (new_course_id, new_course_name 等)
+        /// 2. 檢查收費單名稱是否包含「課程」、「報名」等關鍵字
+        /// 3. 檢查 new_category 是否為奉獻類別
+        /// 4. 預設為奉獻類型
+        /// </remarks>
+        private FeeType DetermineFeeType(ToolUtilityClass utility, Entity feeEntity)
+        {
+            try
+            {
+                // 方法1: 檢查是否有課程 Lookup 欄位
+                var courseId = utility.GetEntityLookupAttribute(feeEntity, "new_course_id");
+                if (courseId != Guid.Empty)
+                {
+                    _logger.LogInformation($"DetermineFeeType: 檢測到課程 ID，判定為課程繳費 - CourseId: {courseId}");
+                    return FeeType.Course;
+                }
+
+                // 方法2: 檢查收費單名稱是否包含課程相關關鍵字
+                string feeName = utility.GetEntityStringAttribute(feeEntity, "new_name") ?? "";
+                if (feeName.Contains("課程") || feeName.Contains("報名") || feeName.Contains("學費") || 
+                    feeName.Contains("培訓") || feeName.Contains("研習"))
+                {
+                    _logger.LogInformation($"DetermineFeeType: 收費單名稱包含課程關鍵字，判定為課程繳費 - Name: {feeName}");
+                    return FeeType.Course;
+                }
+
+                // 方法3: 檢查是否有課程名稱欄位
+                string courseName = utility.GetEntityStringAttribute(feeEntity, "new_course_name");
+                if (!string.IsNullOrWhiteSpace(courseName))
+                {
+                    _logger.LogInformation($"DetermineFeeType: 檢測到課程名稱欄位，判定為課程繳費 - CourseName: {courseName}");
+                    return FeeType.Course;
+                }
+
+                // 方法4: 檢查 new_category 是否為奉獻類別
+                int categoryValue = utility.GetOptionSetAttribute(feeEntity, "new_category");
+                if (categoryValue >= 100000000 && categoryValue <= 100000019)
+                {
+                    // 奉獻類別的值範圍（根據 GetDedicationCategoryName 的定義）
+                    _logger.LogInformation($"DetermineFeeType: 類別值在奉獻範圍內，判定為奉獻 - Category: {categoryValue}");
+                    return FeeType.Dedication;
+                }
+
+                // 預設判定為奉獻（因為這是教會系統，大部分應該是奉獻）
+                _logger.LogInformation($"DetermineFeeType: 無法明確判定類型，預設為奉獻");
+                return FeeType.Dedication;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "DetermineFeeType: 判斷收費單類型時發生錯誤，預設為奉獻");
+                return FeeType.Dedication;
+            }
+        }
+
+        /// <summary>
+        /// 取得課程名稱
+        /// </summary>
+        /// <param name="utility">CRM 工具實例</param>
+        /// <param name="feeEntity">收費單實體</param>
+        /// <returns>課程名稱</returns>
+        private string GetCourseName(ToolUtilityClass utility, Entity feeEntity)
+        {
+            try
+            {
+                // 優先從課程 Lookup 取得名稱
+                var courseId = utility.GetEntityLookupAttribute(feeEntity, "new_course_id");
+                if (courseId != Guid.Empty)
+                {
+                    Entity courseEntity = utility.RetrieveEntity("new_course", courseId);
+                    if (courseEntity != null)
+                    {
+                        string courseName = utility.GetEntityStringAttribute(courseEntity, "new_name");
+                        if (!string.IsNullOrWhiteSpace(courseName))
+                        {
+                            return courseName;
+                        }
+                    }
+                }
+
+                // 其次從收費單的課程名稱欄位取得
+                string courseNameField = utility.GetEntityStringAttribute(feeEntity, "new_course_name");
+                if (!string.IsNullOrWhiteSpace(courseNameField))
+                {
+                    return courseNameField;
+                }
+
+                // 最後從收費單名稱中提取
+                string feeName = utility.GetEntityStringAttribute(feeEntity, "new_name") ?? "課程";
+                return feeName;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "GetCourseName: 取得課程名稱時發生錯誤");
+                return "課程";
+            }
+        }
+
+        /// <summary>
+        /// 根據類型發送不同的付款通知
+        /// </summary>
+        /// <param name="utility">CRM 工具實例</param>
+        /// <param name="feeEntity">收費單實體</param>
+        /// <param name="orderId">訂單編號</param>
+        /// <param name="transactionId">交易編號</param>
+        /// <param name="cost">交易金額</param>
+        /// <param name="fullName">連絡人姓名</param>
+        /// <param name="itemName">項目名稱（奉獻類別或課程名稱）</param>
+        /// <param name="feeType">收費單類型</param>
+        /// <param name="amount">金額</param>
+        /// <param name="contactEntity">連絡人實體</param>
+        private void SendPaymentNotificationByType(
+            ToolUtilityClass utility,
+            Entity feeEntity,
+            string orderId,
+            string transactionId,
+            string cost,
+            string fullName,
+            string itemName,
+            FeeType feeType,
+            decimal amount,
+            Entity contactEntity)
+        {
+            try
+            {
+                // 取得關聯的連絡人 ID
+                var contactId = utility.GetEntityLookupAttribute(feeEntity, "new_contact_new_fee");
+                if (contactId == Guid.Empty)
+                {
+                    _logger.LogWarning($"SendNotification: 收費單沒有關聯的連絡人 - OrderId: {orderId}");
+                    return;
+                }
+
+                // 如果沒有傳入連絡人實體，重新查詢
+                if (contactEntity == null)
+                {
+                    contactEntity = utility.RetrieveEntity("contact", contactId);
+                    if (contactEntity == null)
+                    {
+                        _logger.LogWarning($"SendNotification: 找不到連絡人 - ContactId: {contactId}, OrderId: {orderId}");
+                        return;
+                    }
+                }
+
+                // 取得 LINE ID
+                string lineId = utility.GetEntityStringAttribute(contactEntity, "new_lineid");
+                if (string.IsNullOrWhiteSpace(lineId))
+                {
+                    _logger.LogWarning($"SendNotification: 連絡人沒有 LINE ID - ContactId: {contactId}, OrderId: {orderId}");
+                    return;
+                }
+
+                // 根據類型建立不同的訊息
+                string message = "";
+                if (feeType == FeeType.Dedication)
+                {
+                    message = BuildDedicationSuccessMessage(fullName, orderId, transactionId, amount, itemName, DateTime.Now);
+                }
+                else if (feeType == FeeType.Course)
+                {
+                    // 取得課程相關資訊
+                    string courseSchedule = utility.GetEntityStringAttribute(feeEntity, "new_course_schedule") ?? "";
+                    string courseLocation = utility.GetEntityStringAttribute(feeEntity, "new_course_location") ?? "";
+                    
+                    message = BuildCoursePaymentSuccessMessage(fullName, orderId, transactionId, amount, 
+                        itemName, courseSchedule, courseLocation, DateTime.Now);
+                }
+                else
+                {
+                    // 一般繳費訊息
+                    message = BuildGeneralPaymentSuccessMessage(fullName, orderId, transactionId, amount, itemName, DateTime.Now);
+                }
+
+                // 發送 LINE 訊息
+                SendLineMessage(lineId, message);
+
+                _logger.LogInformation($"SendNotification: 已發送付款通知 LINE 訊息 - ContactId: {contactId}, LineId: {lineId}, OrderId: {orderId}, Type: {feeType}");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"SendNotification: 發送 LINE 訊息失敗 - OrderId: {orderId}");
+                // 不拋出例外，讓主流程繼續執行
+            }
+        }
+
+        /// <summary>
+        /// 建立奉獻成功訊息內容 (LINE)
+        /// </summary>
+        private string BuildDedicationSuccessMessage(
+            string fullName,
+            string orderId,
+            string transactionId,
+            decimal amount,
+            string dedicationCategory,
+            DateTime paymentTime)
+        {
+            var message = $"【高鉅金流付款成功通知】{Environment.NewLine}{Environment.NewLine}";
+            message += $"親愛的 {fullName}，您好！{Environment.NewLine}{Environment.NewLine}";
+            message += $"您的奉獻已成功完成，感謝您的支持！{Environment.NewLine}{Environment.NewLine}";
+            message += $"付款資訊：{Environment.NewLine}";
+            message += $"姓名：{fullName}{Environment.NewLine}";
+            message += $"奉獻類別：{dedicationCategory}{Environment.NewLine}";
+            message += $"訂單編號：{orderId}{Environment.NewLine}";
+            
+            if (!string.IsNullOrWhiteSpace(transactionId))
+            {
+                message += $"交易編號：{transactionId}{Environment.NewLine}";
+            }
+            
+            message += $"付款金額：NT$ {amount:N0}{Environment.NewLine}";
+            message += $"付款時間：{paymentTime:yyyy/MM/dd HH:mm:ss}{Environment.NewLine}";
+            message += $"付款方式：信用卡{Environment.NewLine}";
+            message += $"{Environment.NewLine}願上帝賜福與您！";
+            
+            return message;
+        }
+
+        /// <summary>
+        /// 建立課程繳費成功訊息內容 (LINE)
+        /// </summary>
+        private string BuildCoursePaymentSuccessMessage(
+            string fullName,
+            string orderId,
+            string transactionId,
+            decimal amount,
+            string courseName,
+            string courseSchedule,
+            string courseLocation,
+            DateTime paymentTime)
+        {
+            var message = $"【高鉅金流付款成功通知】{Environment.NewLine}{Environment.NewLine}";
+            message += $"親愛的 {fullName}，您好！{Environment.NewLine}{Environment.NewLine}";
+            message += $"您的課程繳費已成功完成！{Environment.NewLine}{Environment.NewLine}";
+            message += $"課程資訊：{Environment.NewLine}";
+            message += $"姓名：{fullName}{Environment.NewLine}";
+            message += $"課程名稱：{courseName}{Environment.NewLine}";
+            
+            if (!string.IsNullOrWhiteSpace(courseSchedule))
+            {
+                message += $"上課時間：{courseSchedule}{Environment.NewLine}";
+            }
+            
+            if (!string.IsNullOrWhiteSpace(courseLocation))
+            {
+                message += $"上課地點：{courseLocation}{Environment.NewLine}";
+            }
+            
+            message += $"{Environment.NewLine}付款資訊：{Environment.NewLine}";
+            message += $"訂單編號：{orderId}{Environment.NewLine}";
+            
+            if (!string.IsNullOrWhiteSpace(transactionId))
+            {
+                message += $"交易編號：{transactionId}{Environment.NewLine}";
+            }
+            
+            message += $"繳費金額：NT$ {amount:N0}{Environment.NewLine}";
+            message += $"付款時間：{paymentTime:yyyy/MM/dd HH:mm:ss}{Environment.NewLine}";
+            message += $"付款方式：信用卡{Environment.NewLine}";
+            message += $"{Environment.NewLine}期待在課程中與您相見！";
+            
+            return message;
+        }
+
+        /// <summary>
+        /// 建立一般繳費成功訊息內容 (LINE)
+        /// </summary>
+        private string BuildGeneralPaymentSuccessMessage(
+            string fullName,
+            string orderId,
+            string transactionId,
+            decimal amount,
+            string itemName,
+            DateTime paymentTime)
+        {
+            var message = $"【高鉅金流付款成功通知】{Environment.NewLine}{Environment.NewLine}";
+            message += $"親愛的 {fullName}，您好！{Environment.NewLine}{Environment.NewLine}";
+            message += $"您的付款已成功完成！{Environment.NewLine}{Environment.NewLine}";
+            message += $"付款資訊：{Environment.NewLine}";
+            message += $"姓名：{fullName}{Environment.NewLine}";
+            message += $"項目：{itemName}{Environment.NewLine}";
+            message += $"訂單編號：{orderId}{Environment.NewLine}";
+            
+            if (!string.IsNullOrWhiteSpace(transactionId))
+            {
+                message += $"交易編號：{transactionId}{Environment.NewLine}";
+            }
+            
+            message += $"付款金額：NT$ {amount:N0}{Environment.NewLine}";
+            message += $"付款時間：{paymentTime:yyyy/MM/dd HH:mm:ss}{Environment.NewLine}";
+            message += $"付款方式：信用卡{Environment.NewLine}";
+            message += $"{Environment.NewLine}感謝您的支持！";
+            
+            return message;
         }
 
         /// <summary>
@@ -317,151 +675,6 @@ namespace ChurchReport.Controllers
                 _logger.LogError(ex, $"UpdateFeeEntity: 更新收費單欄位時發生錯誤 - OrderId: {orderId}");
                 throw;
             }
-        }
-
-        /// <summary>
-        /// 發送付款成功通知給連絡人 (LINE)
-        /// </summary>
-        /// <param name="toolUtility">CRM 工具實例</param>
-        /// <param name="feeEntity">收費單 Entity 物件</param>
-        /// <param name="orderId">訂單編號</param>
-        /// <param name="transactionId">交易編號</param>
-        /// <param name="cost">交易金額</param>
-        /// <param name="fullName">連絡人姓名（可選，若為 null 則從 CRM 取得）</param>
-        /// <param name="dedicationCategory">奉獻類別（可選，若為 null 則從 CRM 取得）</param>
-        /// <remarks>
-        /// 處理流程：
-        /// 1. 從收費單取得關聯的連絡人 ID (new_contact_new_fee)
-        /// 2. 驗證連絡人是否存在
-        /// 3. 從連絡人實體取得 LINE ID (new_lineid)
-        /// 4. 驗證 LINE ID 是否存在
-        /// 5. 從連絡人取得姓名 (fullname)
-        /// 6. 建立付款成功訊息內容
-        /// 7. 透過 LINE Bot API 發送訊息
-        /// 8. 記錄發送結果
-        ///
-        /// 異常處理：記錄錯誤但不拋出例外，避免影響主要付款流程
-        /// </remarks>
-        private void SendPaymentSuccessNotification(
-            ToolUtilityClass toolUtility, 
-            Entity feeEntity, 
-            string orderId, 
-            string transactionId,
-            string cost,
-            string fullName = null,
-            string dedicationCategory = null)
-        {
-            try
-            {
-                // 取得關聯的連絡人 ID
-                var contactId = toolUtility.GetEntityLookupAttribute(feeEntity, "new_contact_new_fee");
-                if (contactId == Guid.Empty)
-                {
-                    _logger.LogWarning($"SendNotification: 收費單沒有關聯的連絡人 - OrderId: {orderId}");
-                    return;
-                }
-
-                // 查詢連絡人實體
-                Entity contactEntity = toolUtility.RetrieveEntity("contact", contactId);
-                if (contactEntity == null)
-                {
-                    _logger.LogWarning($"SendNotification: 找不到連絡人 - ContactId: {contactId}, OrderId: {orderId}");
-                    return;
-                }
-
-                // 取得 LINE ID
-                string lineId = toolUtility.GetEntityStringAttribute(contactEntity, "new_lineid");
-                if (string.IsNullOrWhiteSpace(lineId))
-                {
-                    _logger.LogWarning($"SendNotification: 連絡人沒有 LINE ID - ContactId: {contactId}, OrderId: {orderId}");
-                    return;
-                }
-
-                // 取得姓名（如果沒有傳入，則從 CRM 取得）
-                if (string.IsNullOrWhiteSpace(fullName))
-                {
-                    fullName = toolUtility.GetEntityStringAttribute(contactEntity, "fullname") ?? "會友";
-                }
-
-                // 取得奉獻類別（如果沒有傳入，則從 CRM 取得）
-                if (string.IsNullOrWhiteSpace(dedicationCategory))
-                {
-                    int categoryValue = toolUtility.GetOptionSetAttribute(feeEntity, "new_category");
-                    dedicationCategory = GetDedicationCategoryName(categoryValue);
-                }
-
-                // 取得付款金額
-                var shouldPayMoney = toolUtility.GetEntityMoneyAttribute(feeEntity, "new_fee_shoud_pay");
-                decimal amount = shouldPayMoney?.Value ?? 0;
-
-                // 如果 cost 參數有值，優先使用
-                if (!string.IsNullOrWhiteSpace(cost) && decimal.TryParse(cost, out decimal parsedCost))
-                {
-                    amount = parsedCost;
-                }
-
-                // 建立付款成功訊息
-                var message = BuildPaymentSuccessMessage(fullName, orderId, transactionId, amount, dedicationCategory, DateTime.Now);
-
-                // 發送 LINE 訊息
-                SendLineMessage(lineId, message);
-
-                _logger.LogInformation($"SendNotification: 已發送付款通知 LINE 訊息 - ContactId: {contactId}, LineId: {lineId}, OrderId: {orderId}");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"SendNotification: 發送 LINE 訊息失敗 - OrderId: {orderId}");
-                // 不拋出例外，讓主流程繼續執行
-            }
-        }
-
-        /// <summary>
-        /// 建立付款成功訊息內容 (LINE)
-        /// </summary>
-        /// <param name="fullName">收款人姓名</param>
-        /// <param name="orderId">訂單編號</param>
-        /// <param name="transactionId">交易編號</param>
-        /// <param name="amount">金額</param>
-        /// <param name="dedicationCategory">奉獻類別</param>
-        /// <param name="paymentTime">付款時間</param>
-        /// <returns>訊息內容</returns>
-        /// <remarks>
-        /// 訊息格式包含：
-        /// - 標題（高鉅金流付款成功通知）
-        /// - 問候語與姓名
-        /// - 付款成功確認
-        /// - 感謝奉獻
-        /// - 詳細付款資訊 (姓名、奉獻類別、訂單號、金額、時間、方式)
-        /// - 交易編號
-        /// - 祝福語
-        /// </remarks>
-        private string BuildPaymentSuccessMessage(
-            string fullName, 
-            string orderId, 
-            string transactionId, 
-            decimal amount,
-            string dedicationCategory,
-            DateTime paymentTime)
-        {
-            var message = $"【高鉅金流付款成功通知】{Environment.NewLine}{Environment.NewLine}";
-            message += $"親愛的 {fullName}，您好！{Environment.NewLine}{Environment.NewLine}";
-            message += $"您的奉獻已成功完成，感謝您的支持！{Environment.NewLine}{Environment.NewLine}";
-            message += $"付款資訊：{Environment.NewLine}";
-            message += $"姓名：{fullName}{Environment.NewLine}";
-            message += $"奉獻類別：{dedicationCategory}{Environment.NewLine}";
-            message += $"訂單編號：{orderId}{Environment.NewLine}";
-            
-            if (!string.IsNullOrWhiteSpace(transactionId))
-            {
-                message += $"交易編號：{transactionId}{Environment.NewLine}";
-            }
-            
-            message += $"付款金額：NT$ {amount:N0}{Environment.NewLine}";
-            message += $"付款時間：{paymentTime:yyyy/MM/dd HH:mm:ss}{Environment.NewLine}";
-            message += $"付款方式：信用卡{Environment.NewLine}";
-            message += $"{Environment.NewLine}願上帝賜福與您！";
-            
-            return message;
         }
 
         /// <summary>

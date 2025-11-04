@@ -1,0 +1,1044 @@
+
+Search
+MYPAY LINK 站內付設計概要
+安全性設計
+資料驗證
+系統架構
+MYPAY LINK 目前提供之服務與格式
+附錄一：PFN（支付工具）參數表
+附錄二：交易狀態代碼
+附錄三：設定調整
+附錄四：資料加密方式說明
+附錄五：支援切換語系
+附錄六：測試區測試用信用卡卡號
+附錄七：支援交易幣別參數
+附錄八：支援退款支付類型
+附錄九：交易類型
+附錄十：國內信用卡發卡單位
+附錄十一：Apple Pay憑證使用注意事項
+附錄十二：eACH交易代碼
+MYPAY LINK 站內付設計概要
+安全性設計
+為讓支付可以更加緊密的整合在網站內或APP內交易流程內，我們設計出站內付(IAP模式)， 仍保持所有的付費要求發動都僅能從特約商店的網頁伺服器發出請求，透過HTTPS加密傳輸。交易資料不由消費者端送出，可確保資料不被消費者竄改。所有付費資訊經過 MYPAY LINK 匝道進行轉送處理，特約商店不需要處理消費者的付費流程以及安全控管。
+
+資料驗證
+交易參數中有一組由雜湊函式運算出的驗証碼，作為資料驗証用，以確保資料正確性。 大部分交易模式，特約商店在原頁面處理付費流程，特約商店只需確保與MYPAY LINK連線正常，即可確保交易安全以及確保資料安全。
+
+系統架構
+所有請求與查詢只能透過伺服器發動，由特約商店的網頁伺服器利用伺服端服務程式發動交易，以避免交易資料被消費者竄改或攔截。為確保交易安全，MYPAY LINK 僅能接受 https connection，並注意僅接受TLS1.2以上協定。
+
+MYPAY LINK 目前提供之服務與格式
+MYPAY LINK 提供六種資料傳遞與查詢方式，應用情境如下：
+
+(1)付費請求：消費者在特店進行購買商品的當下，特店向系統發動申請請求。
+
+(2)交易查詢：對交易狀況有所疑慮時，可隨時透過交易查詢服務，查看最新訂單狀態。
+
+(3)退款請求：消費者因交易糾紛等情形，申請退款請求後，特店可從後台執行此功能。
+
+(4)取消退款請求：當退款請求還在系統退款柱列等待退款時，可發動此API取消該退款請求。
+
+(5)電子發票查詢：可透過此方法查詢電子發票即時的開立狀態。
+
+(6)交易回報通知：訂單狀態發生變化時，系統會自動傳送回報通知。
+
+※為滿足不同商業模式，我們提供特約商店與經銷商兩種請求方式： 特約商店：使用特約商店網路交易請求參數 經銷商（如網路開店系統商）：代特約商店發動，則使用經銷商網路交易請求參數
+
+我們提供介接方式是透過https連線，只接受POST方式傳送交易資料。
+
+服務介接之基礎說明：
+(特約商店模式)
+API介接網址
+測試區
+https://pay.usecase.cc/api/init
+正式區
+https://ka.mypay.tw/api/init
+(經銷商模式)
+API介接網址
+測試區
+https://pay.usecase.cc/api/agent
+正式區
+https://ka.mypay.tw/api/agent
+MYPAY library
+載入網址
+測試區
+https://iap.usecase.cc/plugins/jQuery/jquery-3.3.1.min.js
+https://iap.usecase.cc/InAppPayment.js
+正式區
+https://iap.mypay.tw/plugins/jQuery/jquery-3.3.1.min.js
+https://iap.mypay.tw/InAppPayment.js
+資料加密方式
+AES 256編碼 + base64編碼(附錄四 資料加密方式)
+加密金鑰
+金鑰會透過mail發送，也可從管理後台取得
+InAppPaymentToken
+管理後台取得
+文字編碼
+一律使用UTF-8相容編碼
+付費請求
+為交易安全起見，付費請求分成兩階段 : 第一階段：特店網站發動請求，mypay回傳支付工具選項 第二階段：確認付款時，由特約商店伺服端發動付費請求
+
+整體流程圖 :
+
+
+第一階段發動請求，在client 端顯示支付工具頁面
+測試區:
+
+
+<script src="https://iap.usecase.cc/plugins/jQuery/jquery-3.3.1.min.js"></script>
+<script src="https://iap.usecase.cc/InAppPayment.js"></script>
+
+正式區:
+
+
+<script src="https://iap.mypay.tw/plugins/jQuery/jquery-3.3.1.min.js"></script>
+<script src="https://iap.mypay.tw/InAppPayment.js"></script>
+
+
+
+右側為特約商店/經銷商要載入的 MYPAY LINK javascript library
+
+在需要顯示支付工具的 html 的 head 引用
+
+InAppPayment
+付費請求第一個動作，初始化與顯示支付工具畫面。
+
+Config
+欄位	型態	說明	必須
+IAPToken	string	特店或經銷商的 InAppPaymentToken	必要
+EncryptedData	string	pfn與store_id 被 AES-256 金鑰加密後的密文	必要
+IAPPaymentPage	string	顯示支付工具畫面的元素，為 html tag 的 id	必要
+
+1.支付工具畫面會100%填滿元素的長寬。
+2.建議傳入id的元素高度最少 200 px，寬度最少400 px。
+3.如果需要隱藏顯示支付工具畫面，傳入id的元素，display設為none即可。
+StoreType	string	特店使用 "store"， 經銷商使用 "agent"	必要
+Checkout	string	消費者按下會使購買流程到下一步驟的按鈕。為 html tag 的 id	必要
+ 呼叫完InAppPayment後，Checkout會暫時無法點擊。直到消費者完成支付工具更細項的操作，Checkout才可以點擊。如果需要未完成操作就可以點擊，Checkout的css屬性pointer-events設成auto即可。
+IsShowInPaymentPage	string	決定交易結果的流程。"true"是交易結果網頁顯示在IAPPaymentPage內，"false"是導頁到交易結果網頁。	必要
+IsUseStorePage	string	決定交易結果網頁是否客製。"true"為使用特店/經銷商自己設計的交易結果網頁，"false"為使用MyPay預設的交易結果網頁。	必要
+
+交易結果回傳顯示有四種模式可選擇，由 IsShowInPaymentPage與IsUseStorePage決定。
+1.使用自行設計的交易結果頁面(轉頁) IsShowInPaymentPage設為"false"，IsUseStorePage設為"true"。
+2.使用MYPAY的交易結果頁面(轉頁) IsShowInPaymentPage設為"false"，IsUseStorePage設為"false"。
+3.在結帳頁面直接顯示特店設計的交易結果(無轉頁) 特店設計的交易結果顯示在IAPPaymentPage。IsShowInPaymentPage設為"true"，IsUseStorePage設為"true"。(特約商店/經銷商自行設計的網頁要允許能被嵌在iframe內)
+4.在結帳頁面直接顯示MYPAY的交易結果(無轉頁) MyPay的交易結果顯示在IAPPaymentPage。 IsShowInPaymentPage設為"true"，IsUseStorePage設為"false"。
+5.信用卡3D/支付寶/微信/Line Pay/Pi 錢包/街口支付皆直接轉導，IsShowInPaymentPage沒有作用。
+TotalPrice	string	訂單總金額，同交易資訊回報參數的cost	如果有使用 apple pay 或 google pay , 為必要的欄位
+EncryptedData
+欄位	型態	說明	必須
+store_uid	string	特約商店編號	必要
+pfn	string	支付工具	必要
+PaymentToolCss
+欄位	型態	說明	必須
+language	string	支付工具畫面顯示的語系，預設是繁體中文	必要
+currency	string	支付工具使用幣別，預設是新台幣	必要
+PaymentToolEvent
+欄位	型態	說明	必須
+errorHandler	javascript 函數物件	當使用 library 發生錯誤時會呼叫的函數	必要
+finishTransaction	javascript 函數物件	消費者完成 google pay 或 apple pay 操作流程後 , 會呼叫的函數。沒有傳入參數。	
+
+如果要使用此參數，請確保被呼叫的函數可以使 server 端發動付費請求(見第二階段 : 確認付款時，由特約商店伺服器發動付費請求)。
+errorHandler 傳入參數
+欄位	型態	說明
+code	int	錯誤代碼
+msg	string	錯誤訊息
+InAppPaymentObject
+InAppPaymentObject.getTradeToken
+取得TradeToken。 在特約商店/經銷商 server 端發動付費請求前呼叫。 呼叫後的回傳值傳送給特約商店/經銷商 server 端以利 server 端發動付費請求。
+
+TradeToken
+欄位	型態	說明
+TradeToken	string	經銷商/特約商店 server端發動付費請求需要的參數。取得後傳送至經銷商/特約商店 server，讓其發動付費請求。
+
+回傳值是""代表消費者支付工具欄位填寫未完成
+InAppPaymentObject.setPaymentToolCss
+修改支付工具畫面的 PaymentToolCss 設定。 消費者在結帳頁面切換文字語系或付款幣別時， 使用此函數來更改支付工具畫面顯示的語系或付款的貨幣別。
+
+Css
+欄位	型態	說明	必須
+language	string	支付工具畫面顯示的語系 (見附錄五 : 切換支援語系)	必要
+currency	string	支付工具使用幣別，預設是新台幣(附錄七 : 支援交易幣別參數)	必要
+InAppPaymentObject.showButton
+切換 Google pay、Apple pay或網站原本按鈕。 當 pfn 參數只傳 Google pay 或 Apple pay 才需要使用。 消費者切換不同的支付工具，按鈕可做對應的改變。
+
+button
+欄位	型態	說明	必須
+button	string	只接受"Checkout"、"GooglePay"與"ApplePay"。	必要
+
+傳入 Checkout 只顯示原本特店按紐(IAPPaymentPage 的 Config 內 Checkout 參數)。
+傳入 GooglePay 只顯示 Google pay 按鈕。
+傳入 ApplePay 只顯示 Apple pay 按鈕。
+第二階段確認付款時，由特約商店伺服端發動付費請求
+此交易請求參數內含交易訂單編號，與查詢用之金鑰，以及付費網址。貴司也可將此交易訂單編號綁定貴司的消費者訂單，我們會透過主動回報機制，以POST方式回報交易即時資訊，回報網址可以在管理系統中設定，啟動服務後，系統就會主動回傳訂單狀態。(右邊為經銷商與特約商店介接範例)
+
+ 系統會驗算商品單價與數量相乘後的金額是否正確，若錯誤，則無法進行交易。
+經銷商網路交易請求參數
+欄位	型態	說明
+agent_uid	string(16)	經銷商商務代號
+service	JSON	服務名稱
+encry_data	text	交易資訊欄位（JSON格式）加密資料，交易資訊欄位說明請參考下表格 - 交易資訊回報參數
+特約商店網路交易請求參數
+欄位	型態	說明
+store_uid	string(16)	特約商店商務代號
+service	JSON	服務名稱
+encry_data	text	交易資訊欄位（JSON格式）加密資料，交易資訊欄位說明請參考下表格-交易資訊回報參數
+交易資訊回報參數
+參數名稱	型態	說明	商品
+store_uid	string(16)	特約商店商務代號	必要
+items	array	商品資訊(請參考下方商品資訊欄位)	必要
+cost	int(7)	訂單總金額 = 物品之總價加總 + 折價 + 運費(如為定期定額交易，此為每一期的應扣金額)	必要
+currency	string(3)	預設交易幣別（如未填寫預設為TWD，可用幣別參數請參考附錄七）	
+order_id	string(50)	訂單編號（訂單編號最長為50bytes , 建議不要重複使用相同編號）	必要
+discount	int(7)	折價(數值帶負數)	
+shipping_fee	int(7)	運費	
+user_data	json object	消費者資訊(請參考下方消費者資訊欄位)	必要
+success_returl	string(200)	交易成功導頁網址，沒有參數，系統會以後台設定的網址導頁	
+failure_returl	string(200)	交易失敗導頁網址，沒有參數，系統會以後台設定的網址導頁	
+trade_token	string	消費者瀏覽器端呼叫 getTradeToken 所取得的字串	必要
+echo_0	string(100)	自訂回傳參數 1	
+echo_1	string(100)	自訂回傳參數 2	
+echo_2	string(100)	自訂回傳參數 3	
+echo_3	string(100)	自訂回傳參數 4	
+echo_4	string(100)	自訂回傳參數 5	
+agent_sms_fee_type	integer	經銷商代收費是否含簡訊費	0:否，1:是
+agent_charge_fee_type	integer	經銷商代收費是否含手續費	0:否，1:是
+agent_charge_fee	integer	經銷商代收費	費用金額
+is_agent_charge	integer	不為經銷商串接，請不要帶值，是否為經銷商代收費模式
+若 is_agent_charge 有指定，以指定優先
+若欄位agent_charge_fee有費用，或經銷商代收費是含簡訊費、或經銷商代收費含手續費，則預設為1
+若欄位agent_charge_fee無費用，且經銷商代收費不含簡訊費、或經銷商代收費不含手續費或參欄位都未使用則預設為0	0:否，1:是
+creditcard_is_automatic_payment	string(1)	0: 手動請款，1: 自動請款 (default)	
+消費者資訊
+欄位	型態	說明	必須
+user_id	string(200)	該消費者在特店中註冊帳號名稱	必要
+
+黑名單機制：被列入黑名單，則無法進行交易。
+風險管理機制：在特店模式中，可設定該帳號的交易次數、單筆金額與交易上限；若採代收代付模式，則無法自行設定。
+ip	string(15)	消費者網際網路來源 IP	必要
+user_name	string(100)	消費者姓名	必要
+user_real_name	string(100)	消費者真實姓名	必要
+user_address	string(100)	消費者地址	必要
+user_sn_type	int(1)	1:身分證,2:統一證號,3:護照號碼 (消費者是本國人為1,外國人2 or 3)	
+user_sn	string(16)	消費者身份證字號/統一證號/護照號碼	
+user_phone	int(16)	消費者家用電話(白天電話)	
+user_cellphone_code	string(3)	消費者行動電話國碼(預設886)	
+user_cellphone	int(16)	消費者行動電話	必要
+user_email	string(100)	消費者 E-Mail	必要
+user_birthday	string(8)	消費者生日(格式為 YYYYMMDD，如 20090916)	
+商品資訊
+欄位	型態	說明	必須
+id	string(20)	商品編號	必要
+name	string(20)	商品名稱	必要
+cost	string(10)	商品單價	必要
+amount	string(10)	商品數量	必要
+total	string(20)	商品小計	必要
+回傳資料 （JSON格式）
+欄位	說明
+key	交易驗証碼 查詢交易時會用到此參數
+uid	Payment Hub 之交易流水號 查詢交易時會用到此參數
+code	交易回傳碼
+cardno	銀行端口回傳碼
+acode	銀行交易授權碼
+order_id	貴特店系統的訂單編號
+user_id	消費者帳號
+cost	總交易金額
+currency	原交易幣別
+actual_cost	實際交易金額
+actual_currency	實際交易幣別
+pfn	付費方法
+finishtime	交易完成時間(YYYYMMDDHHmmss)
+msg	回傳訊息
+echo_0	自訂回傳參數 1
+echo_1	自訂回傳參數 2
+echo_2	自訂回傳參數 3
+echo_3	自訂回傳參數 4
+echo_4	自訂回傳參數 5
+result_type	支付方式CSTORECODE（超商代碼）和E_COLLECTION（虛擬帳號）有效
+result_content的格式：1 Url 2 Html 3 Xml 4 Json 5 Csv 6 Stream
+result_content	支付方式CSTORECODE（超商代碼）和E_COLLECTION（虛擬帳號）有效，欄位說明請參考下方result_content說明
+result_content說明
+E_COLLECTION（虛擬帳號）
+欄位	說明
+LimitExpiredDate	繳費期限
+BankCode	銀行代碼
+SourceCode	繳費代碼
+BusinessName	帳戶名稱
+Cost	繳費金額
+CSTORECODE（超商代碼）
+欄位	說明
+StoreCode	超商代碼；目前有FAMIPORT、IBON、LIFEET
+ImageCode	條碼類型；BARCODE-C39和QRCODE
+ResultCode	JSON格式;
+PinCode：繳費代碼（此代碼可以至超商設備輸入後列印繳費）
+BarCode1：第一列Barcode碼
+BarCode2：第二列Barcode碼
+BarCode3：第三列Barcode碼
+條碼類型：BARCODE-C39（FAMIPORT、LIFEET適用）
+需顯示三列條碼圖供超商掃描：BarCode1、BarCode2、BarCode3
+條碼類型：QRCODE(IBON適用)
+需顯示QRCODE，內容為PinCode碼。
+BusinessName	廠商代碼
+Cost	繳費金額
+LimitExpiredDate	繳費期限
+交易查詢
+系統通知交易結果異常，貴司而無法正常接收訂單時，可以透過我們提供的交易結果查詢服務，自行更新訂單狀態，以確保交易結果正確。 符合查詢規則時，則會回傳相關交易欄位，不符合查詢條件則回傳原查詢欄位。須符合條件才會回傳正確的查詢結果，交易查詢除了提供單筆查詢，也提供一次多筆查詢。
+
+ 查詢條件：
+1、MYPAY LINK之交易流水號與交易驗證碼要符合
+2、消費者有進行過交易動作
+經銷商交易查詢參數說明
+欄位	說明
+agent_uid	經銷商商務代號
+service	服務名稱，(JSON格式)加密資料
+encry_data	查詢交易編號欄位(JSON格式)加密資料（請參閱下表-查詢交易編號參數），若為多筆查詢欄位轉成陣列代入即可。
+特約商店交易查詢參數說明
+欄位	說明
+store_uid	特約商店商務代號
+service	服務名稱，(JSON格式)加密資料
+encry_data	查詢交易編號欄位(JSON格式)加密資料（請參閱下表-查詢交易編號參數），若為多筆查詢欄位轉成陣列代入即可。
+查詢交易編號參數
+欄位	說明
+key	交易驗証碼，此參數來源為交易請求的回傳參數（參閱交易請求回傳參數）
+uid	MYPAY LINK之交易流水號，此參數來源為交易請求的回傳參數（參閱交易請求回傳參數）
+回傳資料（JSON格式）
+欄位	說明
+key	交易驗証碼
+uid	MYPAY LINK之交易流水號
+prc	交易回傳碼
+cardno	卡號/VA/超商代碼
+acode	銀行交易授權碼/虛擬帳號/超商代碼
+order_id	貴特店系統的訂單編號
+user_id	消費者帳號
+cost	總交易金額
+currency	原交易幣別
+actual_cost	實際交易金額
+actual_currency	實際交易幣別
+love_cost	愛心捐款金額(幣別同實際交易幣別)
+retmsg	回傳訊息
+pfn	付費方法
+finishtime	交易完成時間(YYYYMMDDHHmmss)
+bank_id	VA繳費銀行代碼(虛擬帳號)
+expired_date	有效日期(虛擬帳號或超商代碼)
+invoice_state	發票開立狀態
+
+0.不處理(預設)
+1.等候處理中
+2.發票處理成功
+3.發票處理失敗
+4.作廢
+invoice_date	發票開立日期(YYYYMMDD)
+invoice_wordtrack	發票字軌
+invoice_number	發票號碼
+invoice_input_type	消費者發票選擇類型
+
+1.雲端發票
+2.發票捐贈
+3.B2B
+refund_order	非必回傳欄位，欄位型態內容為陣列。 查詢訂單時，若有發動過退款一次或多次成功，則此內容則含所有退款成功之退款訂單資訊。
+cancel_order	非必回傳欄位，欄位型態內容為陣列。 查詢訂單時，若有發動過取消訂單一次或多次成功，則此內容則含所有取消訂單成功之取消訂單資訊。
+echo_0	自訂回傳參數 1
+echo_1	自訂回傳參數 2
+echo_2	自訂回傳參數 3
+echo_3	自訂回傳參數 4
+echo_4	自訂回傳參數 5
+result_type	支付方式CSTORECODE（超商代碼）和E_COLLECTION（虛擬帳號）有效
+result_content的格式： 1 Url 2 Html 3 Xml 4 Json 5 Csv 6 Stream
+result_content	支付方式CSTORECODE（超商代碼）和E_COLLECTION（虛擬帳號）有效，欄位說明請參考上方交易result_content說明
+
+(1)可從後台訂單管理中的重新傳送交易與交易查詢功能，來更新貴司訂單狀態
+(2)若查無和交易資訊，僅會返回交易驗證碼、MYPAY LINK 之交易流水號
+退款請求
+若需要退款時，發動此API提出退款請求。此退款請求將會暫時保留在系統退款柱列中，隔天凌晨起處理退款作業。可退款訂單為依據該筆訂單交易方式，請參考附錄八。
+
+經銷商退款請求參數說明
+欄位	說明
+agent_uid	經銷商商務代號
+service	服務名稱，(JSON格式)加密資料
+encry_data	退款請求欄位(JSON格式)加密資料（請參閱下表單筆退款訂單參數或多筆退款訂單參數）。
+特約商店退款請求參數說明
+欄位	說明
+store_uid	特約商店商務代號
+service	服務名稱，(JSON格式)加密資料
+encry_data	退款請求欄位(JSON格式)加密資料（請參閱下表單筆退款訂單參數或多筆退款訂單參數）。
+單筆退款訂單參數
+欄位	說明
+store_uid	特約商店商務代號
+uid	MYPAY LINK之交易流水號，此參數來源為交易請求的回傳參數
+key	交易驗證碼，此參數來源為交易請求的回傳參數
+cost	退款金額（金額必須大於0，小於等於原訂單金額）。代收付模式可退款總金額上限為：撥款總額（不含手續費，匯費）90%
+多筆退款訂單參數
+欄位	說明
+store_uid	特約商店商務代號
+rows	陣列資料,每筆欄位內容請參考​ 多筆退款訂單rows欄位陣列​ 參數
+多筆退款訂單rows欄位陣列參數
+欄位	說明
+uid	MYPAY LINK之交易流水號，此參數來源為交易請求的回傳參數
+key	交易驗證碼，此參數來源為交易請求的回傳參數
+cost	退款金額（金額必須大於0，小於等於原訂單金額）。代收付模式可退款總金額上限為：撥款總額（不含手續費，匯費）90%
+回傳資料（JSON格式），如果多筆則回傳陣列格式資料
+欄位	說明
+key	交易驗證碼
+uid	MYPAY LINK 之交易流水號
+code	回傳碼
+msg	回傳訊息
+取消退款請求
+當天發動退款請求時，會在系統退款柱列等待退款。系統退款時間為隔天凌晨零時才發動退款，故在尚未做退款作業前，可發動此API請求，來取消(5)退款請求（也可透過管理介面來取消）。
+
+經銷商取消退款請求參數說明
+欄位	說明
+agent_uid	經銷商商務代號
+service	服務名稱，(JSON格式)加密資料
+encry_data	取消退款請求欄位(JSON格式)加密資料（請參閱下表單筆取消退款參數或多筆取消退款參數）。
+特約商店取消退款請求參數說明
+欄位	說明
+store_uid	特約商店商務代號
+service	服務名稱，(JSON格式)加密資料
+encry_data	取消退款請求欄位(JSON格式)加密資料（請參閱下表單筆取消退款參數或多筆取消退款參數）。
+單筆取消退款參數
+欄位	說明
+store_uid	特約商店商務代號
+uid	MYPAY LINK之交易流水號，此參數來源為交易請求的回傳參數（請參閱交易請求回傳參數）
+key	交易驗證碼，此參數來源為交易請求的回傳參數（參閱交易請求回傳參數）
+多筆取消退款參數
+欄位	說明
+store_uid	特約商店商務代號
+rows	陣列資料，每筆欄位內容請參考多筆取消退款訂單rows欄位陣列參數
+多筆取消退款訂單rows欄位陣列參數
+欄位	說明
+uid	MYPAY LINK之交易流水號，此參數來源為交易請求的回傳參數
+key	交易驗證碼，此參數來源為交易請求的回傳參數
+回傳資料（JSON格式），如果多筆則回傳陣列格式資料
+欄位	說明
+key	交易驗證碼
+uid	MYPAY LINK 之交易流水號
+code	回傳碼
+msg	回傳訊息
+電子發票查詢
+如您有申請透過MYPAY使用電子發票，則可以透過此方法查詢目前電子發票即時的開立狀態，而交易查詢則包含訂單完整資訊。您可以依您需求作個別查詢。符合查詢規則時，則會回傳相關交易欄位，不符合查詢條件則回傳原查詢欄位。須符合條件才會回傳正確的查詢結果，交易查詢除了提供單筆查詢，也提供一次多筆查詢。
+
+
+1、MYPAY LINK之交易流水號與交易驗證碼要符合
+2、消費者有進行過交易動作
+經銷商電子發票查詢參數說明
+欄位	說明
+agent_uid	經銷商商務代號
+service	服務名稱，(JSON格式)加密資料
+encry_data	查詢交易編號欄位(JSON格式)加密資料（請參閱下表-查詢交易編號參數），若為多筆查詢欄位轉成陣列代入即可。
+特約商店電子發票參數說明
+欄位	說明
+store_uid	特約商店商務代號
+service	服務名稱，(JSON格式)加密資料
+encry_data	查詢交易編號欄位(JSON格式)加密資料（請參閱下表-查詢交易編號參數），若為多筆查詢欄位轉成陣列代入即可。
+電子發票查詢參數
+欄位	說明
+key	交易驗証碼，此參數來源為交易請求的回傳參數（參閱交易請求回傳參數）
+uid	MYPAY LINK之交易流水號，此參數來源為交易請求的回傳參數（請參閱交易請求回傳參數）
+回傳資料（JSON格式）
+欄位	說明
+uid	MYPAY LINK之交易流水號
+key	交易驗証碼
+prc	最終訂單狀態（通常為：交易成功(250,290,600等)、退款(230)、以及部分退款，請參閱附錄二）
+order_id	貴特店系統的訂單編號
+payment_name	扣款名稱（定期定額/定期分期交易專用）
+nois	期數（定期定額/定期分期交易專用）
+group_id	定期定額/定期分期編號
+state	發票開立狀態 0.不處理(預設) 1等候處理中，2發票處理成功 3.發票處理失敗 4.作癈
+date	發票開立日期(YYYYMMDD)
+wordtrack	發票字軌
+number	發票號碼
+input_type	消費者發票選擇類型 1.雲端發票 2.發票捐贈 3.B2B
+echo_0	自訂回傳參數 1
+echo_1	自訂回傳參數 2
+echo_2	自訂回傳參數 3
+echo_3	自訂回傳參數 4
+echo_4	自訂回傳參數 5
+交易回傳格式
+您可在管理介面設定回報網址，系統會進行交易回報通知。 系統會主動通知系統設定之回報網址，若貴司系統接到回報後，沒有回傳確認，系統會每隔五分鐘通知一次，會進行連續四次通知，若仍然沒有回覆，將不再通知，但會寄送e-mail到技術人員信箱或指定信箱以利您後續處理。
+
+MYPAY LINK 提供三種回報類型： 這三種類型，MYPAY LINK 確認有這三個接收機制，才會開放系統上線。
+即時交易回報：消費者支付，不需要離開 MYPAY LINK 頁面即可完成交易。 使用訂單管理內的重送交易，也會透過此類型回傳。
+
+非即時交易回報：消費者支付，會離開 MYPAY LINK 頁面，方可完成交易。 當消費者繳完費用或超過繳費時間，MYPAY LINK 會發送通知。
+
+訂單確認回報：MYPAY LINK 無法以正常方式得知交易結果。當 MYPAY LINK 透過主動查詢或對帳等方式得知交易結果，以此交易回傳格式，主動回傳交易結果。當使用訂單功能內發動查詢功能，若訂單狀態有變更，也會透過此類型回傳。
+
+MYPAY LINK 也提供另二種回報類型，當您有使用這些服務時，也可以做接收機制。
+退款申請回報：當系統接收退款申請後，而處理退款完畢時，MYPAY LINK 會發送退款處理結果通知。退款會依據金流服務商提供支援，可退一次/多次，故回報退款時，將有獨立的退款UID，用以區別各次退款。
+
+電子發票通知回報：當訂單交易成功，或退款成功時，若有進行電子發票的開立或作廢，會依照 MYPAY LINK 的UID進行通報電子發票狀態。例：
+
+A、當交易成功後，會進行電子發票開立（會先收到交易回報，等電子發票開立完成時，電子發票進行回報）
+
+B、發動退款成功時，如果為全額退款（會先收到退款回報[退款UID]，而之後電子發票會進行原訂單UID發票作廢回報）。
+
+C、發動退款成功時，如果為部分退款（會先收到退款回報[退款UID]，而之後電子發票通知，會回報原訂單UID發票作廢，接著回報退款UID的電子發票資訊。）
+
+下表格為一筆訂單且多次退款範例示意：
+
+特店訂單編號	MYPAY LINK 的UID	開立時間	發票號碼	發票狀態
+201901010001	原訂單UID	2019-01-01	AA12345670	作廢
+201901010001	第一次部分退款UID	2019-01-02	AA12345671	作廢
+201901010001	第二次部分退款UID	2019-01-03	AA12345672	開立
+以上電子發票時間僅在開立發票有效時間內。
+
+貴司接收到資料時，請主動回傳字串【8888】四個字元，確認完成。若貴司沒有回傳，系統會間隔十五分鐘傳送一次持續四次，若仍未接受到貴司回傳確認字串，系統即會停止傳送，並發通知信到貴司指定信箱，以利貴司可即時處理系統連線異常問題。
+
+後台管理有提供變更接收網址等功能，也提供測試網址機制。
+
+以上電子發票時間僅在開立發票有效時間內。
+
+貴司接收到資料時，請主動回傳字串【8888】四個字元，確認完成。若貴司沒有回傳，系統會間隔十五分鐘傳送一次持續四次，若仍未接受到貴司回傳確認字串，系統即會停止傳送，並發通知信到貴司指定信箱，以利貴司可即時處理系統連線異常問題。
+
+後台管理有提供變更接收網址等功能，也提供測試網址機制。
+
+即時交易回報
+
+消費者進行交易時，會發動此回報，不需要離開頁面即可完成交易。 執行訂單管理內的重送交易時，也會透過此類型回傳。
+
+即時交易回報參數：
+
+欄位	說明
+key	交易驗証碼
+prc	交易回傳碼
+cardno	卡號/VA/超商代碼
+acode	銀行交易授權碼
+order_id	貴特店系統的訂單編號
+user_id	消費者帳號
+uid	MYPAY LINK之交易流水號
+cost	總交易金額
+currency	原交易幣別
+actual_cost	實際交易金額
+actual_currency	實際交易幣別
+love_cost	愛心捐款金額(幣別同實際交易幣別)
+retmsg	回傳訊息
+pfn	支付工具
+finishtime	交易完成時間(YYYYMMDDHHmmss)
+payment_name	扣款名稱（定期定額/定期分期交易專用）
+nois	期數　　（定期定額/定期分期交易專用）
+group_id	定期定額/定期分期編號
+echo_0	自訂回傳參數 1
+echo_1	自訂回傳參數 2
+echo_2	自訂回傳參數 3
+echo_3	自訂回傳參數 4
+echo_4	自訂回傳參數 5
+2.非即時交易回報
+
+在非第一階段的交易都發動此回報，會離開頁面，方可完成交易。 當消費者繳費完成、或超過繳費時間，MYPAY LINK 會發送通知。
+
+非即時交易回報參數：
+
+欄位	說明
+key	交易驗証碼
+prc	交易回傳碼
+acode	銀行交易授權碼
+finishtime	交易完成時間(YYYYMMDDHHmmss)
+uid	MYPAY LINK 交易流水號
+order_id	貴特店系統的訂單編號
+user_id	消費者帳號
+cost	總交易金額
+currency	原交易幣別
+actual_cost	實際交易金額
+actual_currency	實際交易幣別
+love_cost	愛心捐款金額(幣別同實際交易幣別)
+retmsg	回傳訊息
+pfn	支付工具
+payment_name	扣款名稱（定期定額/定期分期交易專用）
+nois	期數　　（定期定額/定期分期交易專用）
+group_id	定期定額/定期分期編號
+echo_0	自訂回傳參數 1
+echo_1	自訂回傳參數 2
+echo_2	自訂回傳參數 3
+echo_3	自訂回傳參數 4
+echo_4	自訂回傳參數 5
+3.訂單確認回報
+
+MYPAY LINK 無法以正常方式得知交易結果時，發動此回報。MYPAY LINK 透過主動查詢或對帳等方式，以此交易回傳格式，主動回傳交易結果。當使用訂單功能內發動查詢功能，若訂單狀態有變更，也會透過此類型回傳。
+
+訂單確認回報參數：
+
+欄位	說明
+key	交易驗証碼
+prc	交易回傳碼
+finishtime	交易完成時間(YYYYMMDDHHmmss)
+uid	MYPAYLINK 之交易流水號
+order_id	貴特店系統的訂單編號
+user_id	消費者帳號
+cost	總交易金額
+currency	原交易幣別
+actual_cost	實際交易金額
+actual_currency	實際交易幣別
+love_cost	愛心捐款金額（幣別同實際交易幣別）
+retmsg	回傳訊息
+pfn	支付工具
+payment_name	扣款名稱（定期定額/定期分期交易專用）
+nois	期數　　（定期定額/定期分期交易專用）
+group_id	定期定額/定期分期編號
+echo_0	自訂回傳參數 1
+echo_1	自訂回傳參數 2
+echo_2	自訂回傳參數 3
+echo_3	自訂回傳參數 4
+echo_4	自訂回傳參數 5
+4.退款申請回報
+
+系統接收到退款申請，處理完畢時，MYPAY LINK 會發送退款處理結果通知。退款依據金流服務商提供支援，可退一次/多次，故回報退款時，有獨立的退款UID，以區別各退款。
+
+退款結果回傳格式 :
+
+欄位	說明
+key	交易驗証碼
+prc	交易回傳碼
+finishtime	退款處理完成時間(YYYYMMDDHHmmss)
+uid	原MYPAYLINK 之交易流水號
+refund_uid	退款之交易流水號（若多次退款，每次皆會不同；退款失敗則無此編號）
+order_id	貴特店系統的訂單編號
+user_id	消費者帳號
+cost	申請之退款金額
+currency	申請之退款幣別
+actual_cost	實際退款金額
+actual_currency	實際退款幣別
+retmsg	回傳訊息
+pfn	支付工具
+payment_name	扣款名稱（定期定額/定期分期交易專用）
+nois	期數　　（定期定額/定期分期交易專用）
+group_id	定期定額/定期分期編號
+refund_type	退款類型（1.直接線上退款 2.手動退款(信用卡類) 3.手動退款(現金類)）
+expected_refund_date	預計退款日(YYYYMMDD)（退款類型為3時，才有此日期）
+echo_0	自訂回傳參數 1
+echo_1	自訂回傳參數 2
+echo_2	自訂回傳參數 3
+echo_3	自訂回傳參數 4
+echo_4	自訂回傳參數 5
+5.電子發票通知回報
+
+當訂單交易成功、或退款成功時，若有進行電子發票的開立或作廢，會依照 MYPAY LINK 的UID進行通報電子發票狀態。
+
+電子發票通知回傳格式 :
+
+欄位	說明
+uid	MYPAY LINK之交易流水號
+key	交易驗証碼
+prc	最終訂單狀態（通常為：交易成功(250,290,600等)、退款(230)、以及部分退款，請參閱附錄二）
+order_id	貴特店系統的訂單編號
+payment_name	扣款名稱（定期定額/定期分期交易專用）
+nois	期數　　（定期定額/定期分期交易專用）
+group_id	定期定額/定期分期編號
+state	發票開立狀態 0.不處理(預設) 1等候處理中，2發票處理成功 3.發票處理失敗 4.作癈
+date	發票開立日期(YYYYMMDD)
+wordtrack	發票字軌
+number	發票號碼
+input_type	消費者發票選擇類型
+1.雲端發票 2.發票捐贈 3.B2B
+echo_0	自訂回傳參數 1
+echo_1	自訂回傳參數 2
+echo_2	自訂回傳參數 3
+echo_3	自訂回傳參數 4
+echo_4	自訂回傳參數 5
+付費請求介接範例
+由於付費請求需要前後端程式的配合，理解如何使用的難度較高。所以提供一個簡單的介接範例。範例給予消費者操作流程如下:
+
+
+
+假設已經設定好 Apache 或 Nginx，把以下連結的 html code 存成 doc_demo.html 並放在 Apache 或 Nginx 網頁的目錄底下。
+
+doc_demo.html
+
+
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+
+
+<!-- 在此引入 MYPAY library -->
+
+
+
+</head>
+<body>
+
+
+    <div class="card text-center">
+        <div class="card-header">
+          購物車
+        </div>
+        <div class="card-body">
+          <h5 class="card-title">商品明細</h5>
+          <img src="https://s3-ap-northeast-1.amazonaws.com/usecase.mypay.static.content.bucket/upload/product/e45db9.jpg?250x250" class="card-img-top" style="height:300px;width:400px" >
+        </div>
+      </div>
+
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item active" aria-current="page">付款方式</li>
+        </ol>
+      </nav>
+
+      <div class="accordion" id="accordionExample">
+        <div class="card">
+          <div class="card-header" id="headingOne">
+            <h2 class="mb-0">
+              <!-- 消費者按下後顯示銀行選項的按鈕 -->
+              <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne" id="VA">
+                虛擬帳號
+              </button>
+            </h2>
+          </div>
+
+          <div id="collapseOne" class="collapse " aria-labelledby="headingOne" data-parent="#accordionExample" >
+            <!-- 銀行選項顯示 -->
+            <div class="card-body" id='VA_bank' >
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header" id="headingTwo">
+            <h2 class="mb-0">
+              <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                信用卡
+              </button>
+            </h2>
+          </div>
+          <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionExample" >
+            <div class="card-body" id="payment2">
+            </div>
+          </div>
+        </div>
+
+        </div>
+      </div>
+
+      <div class="card text-center">
+          <div class="card-body">
+            <button type="button" class="btn btn-primary" id="checkout">訂單送出</button>
+              </div>
+        </div>
+
+<!-- 使用 MYPAY library 函數的 js file -->
+<script src="./doc_demo.js"></script>
+
+</body>
+
+
+
+</html>
+doc_demo.html畫面 :
+
+
+
+在 head 內引用 MYPAY library
+
+
+
+這邊是以測試區為例子，正式上線請換成正式區。
+
+接著在同個目錄下新增 doc_demo.js
+
+操作流程有按下虛擬帳號與顯示銀行的流程，自然就是在虛擬帳號按鈕的 onclick 事件使指定的 html tag 顯示銀行。
+
+先記得虛擬帳號按鈕的 id :
+
+
+
+id 是 VA。 使用 InAppPayment 函數可以顯示銀行選項。先來看 InAppPayment 參數有哪些，如何帶入。 三個參數，總共有 12 個欄位要帶入。
+
+IAPToken : 在 MYPAY 金流管理系統有，跟 AES-256 金鑰同個頁面。
+
+
+(取得完整AES-256金鑰請按動作的顯示按鈕)
+
+IAPPaymentPage : 這邊是顯示銀行選項的位置。
+
+
+此欄位帶入'VA_bank'。
+
+StoreType : 此範例用特店介接，所以帶入"store"。
+
+Checkout : 這裡為訂單送出的按鈕。
+
+
+
+帶入"checkout"。
+
+IsShowInPaymentPage : 流程決定跳轉到 MYPAY 頁面顯示帳號號碼，不是在原頁顯示，所以帶入"false"。
+
+IsUseStorePage : 流程決定跳轉到 MYPAY 頁面顯示帳號號碼，不使用特店自行設計的頁面，所以帶入"false"。
+
+TotalPrice : 不是使用 google pay 或 apple pay，不用帶值。
+
+language : 在此範例是銀行選項的頁面，帶入"zh-TW"。
+
+currency : 貨幣。在台灣就用"TWD"。
+
+errorHandler : 錯誤處理的函數。範例簡單起見，單純在 console 打印收到的資料。
+
+finishTransaction : 不是 google pay 或 apple pay，不用帶值。
+
+EncryptedData : 晚點再說明此欄位要如何產生。
+
+依據以上的說明後，目前 doc_demo.js 寫好的 code 如右
+
+IAP 和 EncryptedData 放在 click 外是因為還有其它函數會用到。
+
+Is_init 是避免消費者每次點擊虛擬帳號選項就呼叫一次 InAppPayment，只有第一次按下才呼叫 InAppPayment。
+
+現在差在 EncryptedData，我們需要一個後端的程式來產生。這邊使用 php 來實現。
+
+需要加密的資料有 store_uid 與 pfn。如果是特店的話，store_uid 在 MYPAY 金流管理系統的基本資料維護有。
+
+
+
+pfn 請參考附錄一：PFN（支付工具）參數表。這邊 pfn=6。附帶一提，pfn 只給單一數字時，會出現畫面的是信用卡、信用卡紅利、超商代碼、虛擬帳號，會替換掉按鈕是 google pay 和 apple pay，其它都不會顯示畫面。
+
+EncryptedData 就是用金鑰加密store_uid和pfn得到的，右邊是 php 版的程式碼。
+
+存檔為 getEncryptedData.php 並放在目前的目錄底下。
+
+接下來 doc_demo.js 需要拿到此 EncryptedData。考量要在消費者點下虛擬帳號前準備好，那就在讀取網頁時把 EncryptedData 準備好。於是 doc_demo.js 增加以下程式碼 :
+
+接下來來處理訂單送出後的流程。消費者按下訂單送出後，通知特店 server 發動付費請求。 server 發動付費請求是特店 server 向 MYPAY 發動的，在 php 使用 curl 完成這件事。
+
+接下來要準備 server 端發動付費請求所需的參數。此範例是特店，所以 curl 要傳的資料有三大塊 : store_uid、service 和 encry_data。前兩個很固定，所以只討論 encry_data 中必要的欄位 :
+
+store_uid
+EncryptedData 提到過，所以不做說明。
+
+items
+
+商品資訊，簡單起見這邊給予固定的資料，實際上這應該跟購物車的內容有關。
+
+cost
+
+訂單總金額，計算參考交易資訊回報參數的項次3。
+
+order_id
+
+特店管理每筆訂單的編號，建議不要重複使用。
+
+user_data
+
+此範例是給固定的資料。通常是消費者相關的資料。
+
+success_returl
+
+此範例是使用 MYPAY 的交易結果頁，所以此欄位為空。如果要使用特店自行設計的， 請帶入轉導的網址。
+
+failure_returl
+
+說明同 success_returl，差別是交易失敗時才轉導此欄位。
+
+trade_token
+
+由 InAppPayment 回傳的物件使用 getTradeToken 產生的。由於 InAppPayment 是瀏覽器端的函數，所以要用某種方式送給 php 。此範例使用 get method 傳遞。
+
+於是整個 server 發動付費請求的 php code 如右
+
+將以上連結的 code 儲存到目前目錄並命名為 transaction.php。剩下就是 doc_demo.js 補上訂單送出的 onclick 事件與傳遞 trade_token 給 transaction.php。新增的程式碼如下
+
+
+
+右邊為完整的 doc_demo.js
+
+整個購物流程的截圖 :
+
+
+
+按下虛擬帳號
+
+
+
+選擇第一銀行
+
+
+
+按下訂單送出後的結果頁
+
+
+
+附錄一：PFN（支付工具）參數表
+設定消費者可選擇的支付工具有哪些，設定方式有三種，第一種為建議方案：
+
+所有支付：pfn=0，後台有開啟服務的支付工具都會顯示。
+多種支付：pfn=1,3,5，只顯示特定幾種編號的支付工具。
+單一支付：pfn=任單一編號，當pfn=1則僅能透過信用卡支付。
+資料傳遞可使用編號也可以使用代碼 。 例如：pfn=0跟pfn=all，一樣都會出現簽約的支付工具，之後可以在後台增加支付工具。 若一開始只有申請信用卡，也建議使用pfn=0，日後欲新增任何工具都可直接透過後台設定。
+
+ 當設定pfn=all、或是同時選擇「LINE Pay 線上及線下付款」、「Pi錢包 線上及線下付款」時，消費者在選擇支付工具的頁面只會出現LINE Pay或Pi錢包的「線上付款」選'項，因為「線下付款」是透過特約商店主動掃描的支付模式，因此不會與「線上付款」同時出現在消費者的選擇頁面。 若特約商店欲選擇線下付款，則不得選擇有線上付款的選項。
+編號	代碼	狀態	說明
+0	all	開發	消費者在mypay 選擇支付工具，建議實作功能即可，之後可在系統後台設定交易工具的新增與關閉
+測試交易會需要進行
+99	MobilePayAll	啟用	若指定此代碼，將等同於指定使用ALIPAY,PION, LINEPAYON三種行動支付方式
+98	OFFLINE	停用	限定在直接交易模式下，自動判別所有線下支付工具。目前支援之線下支付工具為Pi 拍錢包、WeCaht Pay、LINE Pay、JKOPay
+1	CREDITCARD	啟用	信用卡
+2	RECHARGE	停用	儲值交易，目前只有合庫儲值
+3	CSTORECODE	啟用	超商代碼
+4	WEBATM	開發	WEBATM
+5	TELECOM	停用	電信小額付款（電信帳單代收機制）
+6	E_COLLECTION	啟用	虛擬帳號 （ATM轉帳）
+7	UNIONPAY	停用	銀聯卡
+8	SVC	停用	點數卡（目前有GASH ,Imoney）
+9	ABROAD	停用	海外信用卡（非台灣發行信用卡）
+10	ALIPAY	開發	支付寶
+11	SMARTPAY	停用	Smart Pay
+12	MATM	停用	行動ATM（需要有藍牙讀卡機）
+13	WECHAT	啟用	微信支付
+14	DIRECTDEBIT	停用	定期扣款
+15	LINEPAYON	啟用	LINE線上付款（消費者主掃）
+16	LINEPAYOFF	停用	LINE線下付款（消費者被掃）
+17	QQ	停用	QQ支付
+18	QQH5	停用	QQ支付H5
+19	WECHATOFF	停用	微信支付線下
+20	APPLEPAY	啟用	Apple Pay
+21	GOOGLEPAY	啟用	Google Pay
+22	EACH	停用	eACH交易
+23	C_INSTALLMENT	停用	信用卡分期
+24	C_REDEEM	啟用	信用卡紅利
+25	CARDLESS	停用	無卡分期（由資融公司提供分期服務）
+26	COD	開發	貨到付款
+27	PION	啟用	Pi 拍錢包線上付款（消費者主掃）
+28	PIOFF	停用	Pi 拍錢包線下付款（消費者被掃）
+29	AMEX	停用	美國運通
+30	TAIWANPAY	開發	台灣Pay
+31	JKOON	啟用	街口支付線上付款（消費者主掃）
+32	JKOOF	停用	街口支付線下付款（消費者被掃）
+附錄二：交易狀態代碼
+以下回傳的狀態代碼均須處理，避免系統連線錯誤，MYPAY LINK回傳時，貴司系統無法判讀
+
+狀態代碼	狀態說明	詳細說明
+100	資料錯誤	MYPAYLINK收到資料，但是格式或資料錯誤
+200	資料正確	MYPAYLINK收到正確資料，會接續下一步交易
+
+
+220	取消成功	如申請取消，取消訂單狀態為取消成功
+230	退款成功	如申請退款，申請退款成功時狀態。
+250	付款成功	此次交易，消費者付款成功
+260	交易成功
+尚未付款完成	超商代碼繳費-請等候消費者繳費入帳完成付款或消費者放棄交易，MYPAY LINK會再傳送一次結果:
+250：代表消費者付款成功，此為最終結果
+380：代表消費者沒有在時限內去繳費，逾期未去繳費，視同交易失敗，此為最終結果
+265	訂單綁定	表示訂單編號生效，進入貸款頁面，但尚未註冊
+最後會在回傳狀態
+A0002：消費者放棄該筆交易，該筆交易視同交易失敗，為最終結果
+275：無卡分期-請等候審查通過
+270	交易成功
+尚未付款完成	虛擬帳號-請等候消費者繳費入帳
+完成付款或消費者放棄交易，MYPAY LINK會再傳送一次結果:
+250：代表消費者付款成功，此為最終結果
+380：代表消費者沒有在時限內去繳費，逾期未去繳費，視同交易失敗，此為最終結果
+275	交易成功
+待審核
+(核貸中)	無卡分期-請等候審查通過
+核貸或婉拒，MYPAY LINK會再傳送一次結果:
+250：代表該筆訂單已核貸，此為最終結果
+380：代表該筆訂單沒有在時限內完成審核，視同交易失敗，此為最終結果
+280	交易成功
+尚未付款完成	儲值/WEBATM-線上待付款，等待狀態，等到使用者線上完成交易後MYPAY LINK會再傳送一次結果
+250：代表消費者付款成功，此為最終結果
+300：代表消費者付款失敗
+290	交易成功
+但資訊不符	交易成功，但資訊不符(包含金額不符、已逾期...等)，該類型交易請特別注意
+
+
+300	交易失敗	金流服務商回傳交易失敗或該筆交易超過風險控管限制規則
+380	逾期交易	超商代碼或虛擬帳號交易，超過系統設定繳費期限
+若經MYPAY LINK查詢驗證後，有機會在變更狀態
+290：交易成功，但資訊不符
+原因有可能是服務商的參數規則漏洞或是系統時間差異造成
+400	系統錯誤訊息	若MYPAY LINK或上游服務商系統異常時
+600	結帳完成	視為付款完成，此狀態為上游服務商確認訂單後的狀態，表示該筆訂單會撥款
+透過MYPAY主動查詢或每日對帳機制
+操作訂單功能內發動查詢功能
+A0001	交易待確認	MYPAY LINK與金流服務商發生連線異常，待查詢後確認結果，會主動再次回傳交易結果
+250：代表消費者確實付款完成
+600：結帳完成
+300：金流服務商回傳交易失敗或超過風險控管限制規則交易
+A0002	放棄交易	畫面導向MYPAY LINK後，消費者即放棄該筆交易，該筆交易視同交易失敗，為最終結果
+B200	執行成功	處理成功執行
+B500	執行失敗	處理時，資料異常不予以處理
+附錄三：設定調整
+交易回傳設定
+
+
+交易金鑰重新發送與變更
+
+
+附錄四：資料加密方式說明
+1、所有的API送出HTTPs請求之欄位中，service 和 encry_data 欄位皆進行 AES256+BASE64 加密處理。 2、AES加密，格式為CBC，長度為256bits，金鑰長度32，IV長度16，傳遞內文為加密後組合IV並經過Base64轉換後傳出。
+
+方式： 使用自訂的AES256函式將JSON資料加密後，再將IV資料和此AES256加密後的JSON資料串聯後，使用base64再進行加密成ASCII字串即可完成加密。
+
+PHP加密示意： AesEncrypt -> base64_ecode($IV . $JSON)
+
+C#加密示意： AesEncrypt -> (bytes)IV+(bytes)Json -> toBase64
+
+附錄五：支援切換語系
+支援語系名稱	語系編碼
+繁體中文版	zh-TW(預設)
+簡體中文版	zh-CN
+英文版	en
+附錄六：測試區測試用信用卡卡號
+下面卡號僅限在測試區測試使用
+
+財金閘道
+
+Visa	MasterCard	JCB
+卡號	4907060600015101	5409740002370101	3567430050009107
+有效日期	1220	0419	0221
+安全碼	615	106	315
+3D交易密碼	fisc1234	Fisc1234	Fisc1234
+聯合信用卡中心閘道(其中MasterCard/JCB可測分期與紅利)
+
+Visa	MasterCard	JCB
+卡號	4938170130000003	5430450100001219	3560500100001218
+有效日期	1228	1218	1218
+安全碼	985	214	023
+3D交易密碼	nccc1234		
+附錄七：支援交易幣別參數
+幣別參數	說明
+TWD	新台幣
+CNY	人民幣
+附錄八：支援退款支付類型
+支付類型	支付閘道
+信用卡	合庫、玉山、一銀、台灣支付、台北富邦、Acer
+海外信用卡	合庫、玉山、一銀、台灣支付、台北富邦、Acer
+銀聯卡	合庫、玉山
+SmartPay	合庫、一銀
+附錄九：交易類型
+代碼	名稱	說明
+1	網路交易(預設)	由消費者輸入支付內容
+2	實體交易	商戶面對消費者時，由商戶輸入支付內容做消費
+附錄十：國內信用卡發卡單位
+銀行名稱	銀行代碼	銀行名稱	銀行代碼	銀行名稱	銀行代碼
+土地銀行	005	合作金庫	006	第一銀行	007
+華南銀行	008	彰化銀行	009	上海銀行	011
+台北富邦	012	國泰世華	013	高雄銀行	016
+兆豐銀行	017	花旗銀行	021	臺灣企銀	050
+渣打銀行	052	台中銀行	053	滙豐銀行	081
+華泰銀行	102	新光銀行	103	陽信銀行	108
+三信銀行	147	聯邦銀行	803	遠東銀行	805
+元大銀行	806	永豐銀行	807	玉山銀行	808
+凱基銀行	809	星展銀行	810	台新銀行	812
+日盛銀行	815	安泰銀行	816	中國信託	822
+台灣樂天	960	美國運通	975	台灣永旺	978
+附錄十一：Apple Pay憑證使用注意事項
+1.使用我方憑證：
+
+A.須提供我方一組Apple帳號加入sandbox。
+
+B.我方的MID是merchant.inapp.mypay
+
+2.使用自有憑證（代管):
+
+A.依Mac電腦生成ECC-256憑證檔案，傳給我司 P12檔案即可。另需自行設定sandbox避免測試交易時產生實際付款行為。
+
+附錄十二：eACH交易代碼
+名稱	交易代碼	名稱	交易代碼	名稱	交易代碼
+慈善捐款	530	購物（非電子支付機構）	560	網購退費	441
+分期款	902	保全費	903	貨款	904
+現金加值	908	租金（營利）	909	會費（營利）	910
+仲介服務	912	貸款	405	消費貸款	803
+htmljavascriptphpjavacsharp
