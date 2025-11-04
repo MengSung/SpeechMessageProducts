@@ -1,5 +1,6 @@
 
-Search
+https://www.mypay.com.tw/index.php/zh-tw/support-center/developers
+
 MYPAY LINK 站內付設計概要
 安全性設計
 資料驗證
