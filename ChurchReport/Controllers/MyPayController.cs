@@ -39,8 +39,8 @@ namespace ChurchReport.Controllers
         /// <summary>
         /// 金流伺服器回呼端點。處理後需回傳字串888代表已接收。
         /// </summary>
-        [HttpPost("MyPayReturn")]
-        public async Task<IActionResult> PaymentReturn([FromForm] MyPayReturnModel returnModel)
+        [HttpPost("MyPayNotify")]
+        public async Task<IActionResult> PaymentNotify([FromForm] MyPayReturnModel returnModel)
         {
             _logger.LogInformation($"收到高鉅金流回傳，OrderID: {returnModel?.order_id}, 狀態: {returnModel?.state}");
             try
