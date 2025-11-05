@@ -320,8 +320,8 @@ namespace ChurchReport.Controllers
         /// 付款成功頁面 (供用戶查看結果)
         /// GET /api/MyPay/success
         /// </summary>
-        [HttpGet("success")]
-        public IActionResult PaymentSuccess([FromQuery] string order_id = "")
+        [HttpGet("success_BACK")]
+        public IActionResult PaymentSuccessBACK([FromQuery] string order_id = "")
         {
             ViewBag.OrderId = order_id;
             ViewBag.Message = "付款成功！感謝您的奉獻。";
@@ -332,8 +332,8 @@ namespace ChurchReport.Controllers
         /// <summary>
         ///付款成功導向頁。顯示資訊並更新 CRM以及發送 LINE 通知。
         /// </summary>
-        [HttpGet("success_back")]
-        public IActionResult PaymentSuccessBack(
+        [HttpGet("success")]
+        public IActionResult PaymentSuccess(
             [FromQuery] string order_id = "",
             [FromQuery] string uid = "",
             [FromQuery] string key = "",
@@ -498,8 +498,8 @@ namespace ChurchReport.Controllers
         /// 付款失敗頁面 (供用戶查看結果)
         /// GET /api/MyPay/failure  
         /// </summary>
-        [HttpGet("failure")]
-        public IActionResult PaymentFailure([FromQuery] string order_id = "", [FromQuery] string msg = "")
+        [HttpGet("failure_BACK")]
+        public IActionResult PaymentFailureBACK([FromQuery] string order_id = "", [FromQuery] string msg = "")
         {
             ViewBag.OrderId = order_id;
             ViewBag.Message = !string.IsNullOrEmpty(msg) ? $"付款失敗：{msg}" : "付款失敗，請稍後再試或聯繫教會辦公室。";
@@ -510,8 +510,8 @@ namespace ChurchReport.Controllers
         /// <summary>
         ///付款失敗導向頁。顯示錯誤說明並將失敗紀錄寫回 CRM。
         /// </summary>
-        [HttpGet("failure_back")]
-        public IActionResult PaymentFailureBack(
+        [HttpGet("failure")]
+        public IActionResult PaymentFailure(
             [FromQuery] string order_id = "",
             [FromQuery] string msg = "",
             [FromQuery] string error_code = "",
