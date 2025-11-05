@@ -1211,38 +1211,229 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// 取得付款方式名稱
+        /// 取得付款方式名稱（依據高鋸金流規格 附錄一：PFN（支付工具）參數表）
         /// </summary>
         private string GetPaymentMethodName(string pfn)
         {
-            if (string.IsNullOrWhiteSpace(pfn)) return "未知";
-            switch (pfn)
+            if (string.IsNullOrWhiteSpace(pfn)) return "未知支付工具";
+            
+            // 將 pfn 轉為大寫以便比對
+            string pfnUpper = pfn.ToUpper();
+            
+            switch (pfnUpper)
             {
+                // 0 - 全部支付工具
                 case "0":
-                case "all": return "全部支付工具";
+                case "ALL": 
+                    return "全部支付工具";
+
+                // 1 - 信用卡
                 case "1":
-                case "CREDITCARD": return "信用卡";
+                case "CREDITCARD": 
+                    return "信用卡";
+
+                // 2 - WebATM
+                case "2":
+                case "WEBATM": 
+                    return "WebATM";
+
+                // 3 - 超商代碼
                 case "3":
-                case "CSTORECODE": return "超商代碼";
+                case "CSTORECODE": 
+                    return "超商代碼";
+
+                // 4 - 超商條碼
+                case "4":
+                case "CSTOREBAR": 
+                    return "超商條碼";
+
+                // 5 - 貨到付款
+                case "5":
+                case "COD": 
+                    return "貨到付款";
+
+                // 6 - 虛擬帳號
                 case "6":
-                case "E_COLLECTION": return "虛擬帳號";
+                case "E_COLLECTION": 
+                    return "虛擬帳號";
+
+                // 8 - 分期付款
+                case "8":
+                case "CREDITCARD_INSTALLMENT": 
+                    return "信用卡分期";
+
+                // 10 - 支付寶
                 case "10":
-                case "ALIPAY": return "支付寶";
+                case "ALIPAY": 
+                    return "支付寶";
+
+                // 11 - 財付通
+                case "11":
+                case "TENPAY": 
+                    return "財付通";
+
+                // 12 - 銀聯
+                case "12":
+                case "UNIONPAY": 
+                    return "銀聯";
+
+                // 13 - 微信支付
                 case "13":
-                case "WECHAT": return "微信支付";
+                case "WECHAT": 
+                    return "微信支付";
+
+                // 14 - ezPay電子錢包
+                case "14":
+                case "EZPAY": 
+                    return "ezPay電子錢包";
+
+                // 15 - LINE Pay
                 case "15":
-                case "LINEPAYON": return "LINE Pay";
+                case "LINEPAYON": 
+                    return "LINE Pay";
+
+                // 16 - 玉山Wallet
+                case "16":
+                case "ESUNWALLET": 
+                    return "玉山Wallet";
+
+                // 17 - Taiwan Pay
+                case "17":
+                case "TAIWANPAY": 
+                    return "Taiwan Pay";
+
+                // 18 - 街口支付(舊)
+                case "18":
+                case "JKOPAY": 
+                    return "街口支付";
+
+                // 19 - 無卡分期
+                case "19":
+                case "BNPL": 
+                    return "無卡分期";
+
+                // 20 - Apple Pay
                 case "20":
-                case "APPLEPAY": return "Apple Pay";
+                case "APPLEPAY": 
+                    return "Apple Pay";
+
+                // 21 - Google Pay
                 case "21":
-                case "GOOGLEPAY": return "Google Pay";
+                case "GOOGLEPAY": 
+                    return "Google Pay";
+
+                // 22 - Samsung Pay
+                case "22":
+                case "SAMSUNGPAY": 
+                    return "Samsung Pay";
+
+                // 23 - 定期定額
+                case "23":
+                case "CREDITCARD_REGULAR": 
+                    return "信用卡定期定額";
+
+                // 24 - 信用卡紅利
                 case "24":
-                case "C_REDEEM": return "信用卡紅利";
+                case "C_REDEEM": 
+                    return "信用卡紅利";
+
+                // 25 - 定期分期
+                case "25":
+                case "CREDITCARD_INSTALLMENT_REGULAR": 
+                    return "信用卡定期分期";
+
+                // 26 - 悠遊付
+                case "26":
+                case "EASYWALLETON": 
+                    return "悠遊付";
+
+                // 27 - Pi 拍錢包
                 case "27":
-                case "PION": return "Pi 拍錢包";
+                case "PION": 
+                    return "Pi 拍錢包";
+
+                // 28 - 全盈+PAY
+                case "28":
+                case "PAYNOW": 
+                    return "全盈+PAY";
+
+                // 29 - AFTEE先享後付
+                case "29":
+                case "AFTEE": 
+                    return "AFTEE先享後付";
+
+                // 30 - 7-11取貨付款
+                case "30":
+                case "C711": 
+                    return "7-11取貨付款";
+
+                // 31 - 街口支付
                 case "31":
-                case "JKOON": return "街口支付";
-                default: return $"付費方法 {pfn}";
+                case "JKOON": 
+                    return "街口支付";
+
+                // 32 - 橘子支付
+                case "32":
+                case "GASHPAY": 
+                    return "橘子支付";
+
+                // 33 - 國泰KOKO
+                case "33":
+                case "KOKO": 
+                    return "國泰KOKO";
+
+                // 34 - icash Pay
+                case "34":
+                case "ICASHPAY": 
+                    return "icash Pay";
+
+                // 35 - 台新PAY
+                case "35":
+                case "TSPAY": 
+                    return "台新PAY";
+
+                // 36 - 全家取貨付款
+                case "36":
+                case "CFAMILY": 
+                    return "全家取貨付款";
+
+                // 37 - 萊爾富取貨付款
+                case "37":
+                case "CHILIFE": 
+                    return "萊爾富取貨付款";
+
+                // 38 - OK超商取貨付款
+                case "38":
+                case "COK": 
+                    return "OK超商取貨付款";
+
+                // 39 - 全支付
+                case "39":
+                case "PXPAY": 
+                    return "全支付";
+
+                // 40 - 銀行APP
+                case "40":
+                case "BANKAPP": 
+                    return "銀行APP";
+
+                // 41 - 悠遊卡
+                case "41":
+                case "EASYCARD": 
+                    return "悠遊卡";
+
+                // 42 - 一卡通
+                case "42":
+                case "IPASS": 
+                    return "一卡通";
+
+                // 43 - 信用卡快速結帳
+                case "43":
+                case "CREDITCARD_FAST": 
+                    return "信用卡快速結帳";
+
+                default: 
+                    return $"支付工具 {pfn}";
             }
         }
 
