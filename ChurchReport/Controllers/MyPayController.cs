@@ -12,7 +12,7 @@ using ChurchReport.Tools;
 namespace ChurchReport.Controllers
 {
     /// <summary>
-    /// 高鉅金流 PayPage 回傳處理控制器
+    /// 金流 PayPage 回傳處理控制器
     /// - 接收金流回傳(MyPayReturn)
     /// - 顯示成功結果(success)
     /// - 顯示失敗結果(failure)
@@ -42,7 +42,7 @@ namespace ChurchReport.Controllers
         [HttpPost("MyPayNotify")]
         public async Task<IActionResult> PaymentNotify([FromForm] MyPayReturnModel returnModel)
         {
-            _logger.LogInformation($"[MyPay回傳] 收到高鉅金流回傳，OrderID: {returnModel?.order_id}, UID: {returnModel?.uid}, PRC: {returnModel?.prc}");
+            _logger.LogInformation($"[MyPay回傳] 收到金流回傳，OrderID: {returnModel?.order_id}, UID: {returnModel?.uid}, PRC: {returnModel?.prc}");
 
             ToolUtilityClass utility = null;
             try
@@ -108,19 +108,31 @@ namespace ChurchReport.Controllers
                 utility.UpdateEntity(ref feeEntity);
                 _logger.LogInformation($"[MyPay回傳] 收費單已更新 - FeeId: {feeEntity.Id}");
 
-                // 9. 發送LINE通知（僅成功時）
-                if (isSuccess && !string.IsNullOrWhiteSpace(lineId))
+                // 9. 發送LINE通知（成功或失敗都發送）
+                if (!string.IsNullOrWhiteSpace(lineId))
                 {
                     try
                     {
-                        SendLineNotificationByType(utility, feeEntity, returnModel, fullName, feeType, contactEntity);
-                        _logger.LogInformation($"[MyPay回傳] LINE通知已發送 - OrderId: {returnModel.order_id}");
+                        if (isSuccess)
+                        {
+                            SendLineNotificationByType(utility, feeEntity, returnModel, fullName, feeType, contactEntity);
+                            _logger.LogInformation($"[MyPay回傳] LINE成功通知已發送 - OrderId: {returnModel.order_id}");
+                        }
+                        else
+                        {
+                            SendLineFailureNotificationByType(utility, feeEntity, returnModel, fullName, feeType, contactEntity);
+                            _logger.LogInformation($"[MyPay回傳] LINE失敗通知已發送 - OrderId: {returnModel.order_id}");
+                        }
                     }
                     catch (Exception ex)
                     {
                         _logger.LogError(ex, $"[MyPay回傳] 發送LINE通知失敗 - OrderId: {returnModel.order_id}");
                         // 不中斷主流程
                     }
+                }
+                else
+                {
+                    _logger.LogWarning($"[MyPay回傳] LINE ID為空，無法發送通知 - OrderId: {returnModel.order_id}");
                 }
 
                 // 10. 回傳8888確認接收
@@ -147,7 +159,7 @@ namespace ChurchReport.Controllers
         /// </summary>
         private string BuildDedicationSuccessMessage(string fullName, string orderId, string transactionId, decimal amount, string dedicationCategory, DateTime paymentTime)
         {
-            var msg = $"【高鉅金流付款成功通知】{Environment.NewLine}{Environment.NewLine}" +
+            var msg = $"【金流付款成功通知】{Environment.NewLine}{Environment.NewLine}" +
                       $"親愛的 {fullName}，您好！{Environment.NewLine}{Environment.NewLine}" +
                       $"您的奉獻已成功完成，感謝您的支持！{Environment.NewLine}{Environment.NewLine}" +
                       $"付款資訊：{Environment.NewLine}" +
@@ -163,11 +175,36 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
+        /// 建立奉獻失敗訊息
+        /// </summary>
+        private string BuildDedicationFailureMessage(string fullName, string orderId, string transactionId, decimal amount, string dedicationCategory, DateTime paymentTime, string statusMessage)
+        {
+            var msg = $"【金流付款失敗通知】{Environment.NewLine}{Environment.NewLine}" +
+                      $"親愛的 {fullName}，您好！{Environment.NewLine}{Environment.NewLine}" +
+                      $"很抱歉，您的奉獻付款未能完成。{Environment.NewLine}{Environment.NewLine}" +
+                      $"失敗原因：{statusMessage}{Environment.NewLine}{Environment.NewLine}" +
+                      $"付款資訊：{Environment.NewLine}" +
+                      $"姓名：{fullName}{Environment.NewLine}" +
+                      $"奉獻類別：{dedicationCategory}{Environment.NewLine}" +
+                      $"訂單編號：{orderId}{Environment.NewLine}";
+            if (!string.IsNullOrWhiteSpace(transactionId))
+                msg += $"交易編號：{transactionId}{Environment.NewLine}";
+            msg += $"應付金額：NT$ {amount:N0}{Environment.NewLine}" +
+                   $"嘗試時間：{paymentTime:yyyy/MM/dd HH:mm:ss}{Environment.NewLine}{Environment.NewLine}" +
+                   $"您可以：{Environment.NewLine}" +
+                   $"1. 重新嘗試付款{Environment.NewLine}" +
+                   $"2. 更換其他信用卡{Environment.NewLine}" +
+                   $"3. 聯繫教會辦公室尋求協助{Environment.NewLine}{Environment.NewLine}" +
+                   $"如有任何問題，請隨時與我們聯繫。";
+            return msg;
+        }
+
+        /// <summary>
         /// 建立課程繳費成功訊息
         /// </summary>
         private string BuildCoursePaymentSuccessMessage(string fullName, string orderId, string transactionId, decimal amount, string courseName, string courseSchedule, string courseLocation, DateTime paymentTime)
         {
-            var msg = $"【高鉅金流付款成功通知】{Environment.NewLine}{Environment.NewLine}" +
+            var msg = $"【金流付款成功通知】{Environment.NewLine}{Environment.NewLine}" +
                       $"親愛的 {fullName}，您好！{Environment.NewLine}{Environment.NewLine}" +
                       $"您的課程繳費已成功完成！{Environment.NewLine}{Environment.NewLine}" +
                       $"課程資訊：{Environment.NewLine}" +
@@ -185,11 +222,38 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
+        /// 建立課程繳費失敗訊息
+        /// </summary>
+        private string BuildCoursePaymentFailureMessage(string fullName, string orderId, string transactionId, decimal amount, string courseName, string courseSchedule, string courseLocation, DateTime paymentTime, string statusMessage)
+        {
+            var msg = $"【金流付款失敗通知】{Environment.NewLine}{Environment.NewLine}" +
+                      $"親愛的 {fullName}，您好！{Environment.NewLine}{Environment.NewLine}" +
+                      $"很抱歉，您的課程繳費未能完成。{Environment.NewLine}{Environment.NewLine}" +
+                      $"失敗原因：{statusMessage}{Environment.NewLine}{Environment.NewLine}" +
+                      $"課程資訊：{Environment.NewLine}" +
+                      $"姓名：{fullName}{Environment.NewLine}" +
+                      $"課程名稱：{courseName}{Environment.NewLine}";
+            if (!string.IsNullOrWhiteSpace(courseSchedule)) msg += $"上課時間：{courseSchedule}{Environment.NewLine}";
+            if (!string.IsNullOrWhiteSpace(courseLocation)) msg += $"上課地點：{courseLocation}{Environment.NewLine}";
+            msg += $"{Environment.NewLine}付款資訊：{Environment.NewLine}" +
+                   $"訂單編號：{orderId}{Environment.NewLine}";
+            if (!string.IsNullOrWhiteSpace(transactionId)) msg += $"交易編號：{transactionId}{Environment.NewLine}";
+            msg += $"應繳金額：NT$ {amount:N0}{Environment.NewLine}" +
+                   $"嘗試時間：{paymentTime:yyyy/MM/dd HH:mm:ss}{Environment.NewLine}{Environment.NewLine}" +
+                   $"您可以：{Environment.NewLine}" +
+                   $"1. 重新嘗試付款{Environment.NewLine}" +
+                   $"2. 更換其他信用卡{Environment.NewLine}" +
+                   $"3. 聯繫教會辦公室尋求協助{Environment.NewLine}{Environment.NewLine}" +
+                   $"如有任何問題，請隨時與我們聯繫。";
+            return msg;
+        }
+
+        /// <summary>
         /// 建立一般繳費成功訊息
         /// </summary>
         private string BuildGeneralPaymentSuccessMessage(string fullName, string orderId, string transactionId, decimal amount, string itemName, DateTime paymentTime)
         {
-            var msg = $"【高鉅金流付款成功通知】{Environment.NewLine}{Environment.NewLine}" +
+            var msg = $"【金流付款成功通知】{Environment.NewLine}{Environment.NewLine}" +
                       $"親愛的 {fullName}，您好！{Environment.NewLine}{Environment.NewLine}" +
                       $"您的付款已成功完成！{Environment.NewLine}{Environment.NewLine}" +
                       $"付款資訊：{Environment.NewLine}" +
@@ -200,6 +264,30 @@ namespace ChurchReport.Controllers
             msg += $"付款金額：NT$ {amount:N0}{Environment.NewLine}" +
                    $"付款時間：{paymentTime:yyyy/MM/dd HH:mm:ss}{Environment.NewLine}" +
                    $"付款方式：信用卡{Environment.NewLine}{Environment.NewLine}感謝您的支持！";
+            return msg;
+        }
+
+        /// <summary>
+        /// 建立一般繳費失敗訊息
+        /// </summary>
+        private string BuildGeneralPaymentFailureMessage(string fullName, string orderId, string transactionId, decimal amount, string itemName, DateTime paymentTime, string statusMessage)
+        {
+            var msg = $"【金流付款失敗通知】{Environment.NewLine}{Environment.NewLine}" +
+                      $"親愛的 {fullName}，您好！{Environment.NewLine}{Environment.NewLine}" +
+                      $"很抱歉，您的付款未能完成。{Environment.NewLine}{Environment.NewLine}" +
+                      $"失敗原因：{statusMessage}{Environment.NewLine}{Environment.NewLine}" +
+                      $"付款資訊：{Environment.NewLine}" +
+                      $"姓名：{fullName}{Environment.NewLine}" +
+                      $"項目：{itemName}{Environment.NewLine}" +
+                      $"訂單編號：{orderId}{Environment.NewLine}";
+            if (!string.IsNullOrWhiteSpace(transactionId)) msg += $"交易編號：{transactionId}{Environment.NewLine}";
+            msg += $"應付金額：NT$ {amount:N0}{Environment.NewLine}" +
+                   $"嘗試時間：{paymentTime:yyyy/MM/dd HH:mm:ss}{Environment.NewLine}{Environment.NewLine}" +
+                   $"您可以：{Environment.NewLine}" +
+                   $"1. 重新嘗試付款{Environment.NewLine}" +
+                   $"2. 更換其他信用卡{Environment.NewLine}" +
+                   $"3. 聯繫教會辦公室尋求協助{Environment.NewLine}{Environment.NewLine}" +
+                   $"如有任何問題，請隨時與我們聯繫。";
             return msg;
         }
 
@@ -499,21 +587,28 @@ namespace ChurchReport.Controllers
         }
         #endregion
 
-        #region 狀態/文字 輔助
+        #region 狀態/文字/CRM更新輔助方法
+
+        /// <summary>
+        /// 判斷是否為成功的交易狀態
+        /// </summary>
         private bool IsSuccessfulPaymentStatus(string prc)
         {
             if (string.IsNullOrWhiteSpace(prc)) return false;
             switch (prc)
             {
-                case "250":
-                case "290":
-                case "600":
+                case "250": // 付款成功
+                case "290": // 交易成功但資訊不符
+                case "600": // 結帳完成
                     return true;
                 default:
                     return false;
             }
         }
 
+        /// <summary>
+        /// 建立失敗訊息
+        /// </summary>
         private string BuildFailureMessage(string msg, string errorCode, string retCode)
         {
             var message = "付款失敗";
@@ -533,6 +628,9 @@ namespace ChurchReport.Controllers
             return message;
         }
 
+        /// <summary>
+        /// 取得友善的錯誤訊息
+        /// </summary>
         private string GetFriendlyErrorMessage(string errorCode, string retCode)
         {
             string code = errorCode ?? retCode ?? "";
@@ -565,9 +663,10 @@ namespace ChurchReport.Controllers
                 default: return null;
             }
         }
-        #endregion
 
-        #region CRM 更新/通知
+        /// <summary>
+        /// 更新收費單（成功_success_back用）
+        /// </summary>
         private void UpdateFeeEntityForSuccessWithMyPay(
             ToolUtilityClass toolUtility,
             Entity feeEntity,
@@ -596,7 +695,7 @@ namespace ChurchReport.Controllers
                 var statusMessage = GetPaymentStatusMessage(prc);
                 var newDescription =
                     originalDescription + Environment.NewLine +
-                    "[高鉅金流付款成功]" + Environment.NewLine +
+                    "[金流付款成功]" + Environment.NewLine +
                     $"訂單號: {orderId}{Environment.NewLine}" +
                     $"交易流水號(UID): {uid}{Environment.NewLine}" +
                     $"交易驗證碼(Key): {key}{Environment.NewLine}" +
@@ -618,6 +717,9 @@ namespace ChurchReport.Controllers
             }
         }
 
+        /// <summary>
+        /// 更新收費單（失敗_failure_back用）
+        /// </summary>
         private void UpdateFeeEntityForFailure(
             ToolUtilityClass toolUtility,
             Entity feeEntity,
@@ -631,7 +733,7 @@ namespace ChurchReport.Controllers
                 var originalDescription = toolUtility.GetEntityStringAttribute(feeEntity, "new_description") ?? string.Empty;
                 var failureInfo =
                     originalDescription + Environment.NewLine +
-                    $"[高鉅金流付款失敗] 訂單號: {orderId}, " +
+                    $"[金流付款失敗] 訂單號: {orderId}, " +
                     $"時間: {DateTime.Now:yyyy-MM-dd HH:mm:ss}, " +
                     $"錯誤訊息: {errorMessage ?? "未提供"}, " +
                     $"錯誤代碼: {errorCode ?? retCode ?? "未提供"}";
@@ -646,6 +748,9 @@ namespace ChurchReport.Controllers
             }
         }
 
+        /// <summary>
+        /// 發送付款通知（success_back用）
+        /// </summary>
         private void SendPaymentNotificationByType(
             ToolUtilityClass utility,
             Entity feeEntity,
@@ -708,6 +813,7 @@ namespace ChurchReport.Controllers
                 _logger.LogError(ex, $"SendNotification: 發送 LINE失敗 - OrderId: {orderId}");
             }
         }
+
         #endregion
 
         #region 輔助方法
@@ -736,7 +842,7 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// 更新收費單欄位（支援所有高鉅金流回傳參數）
+        /// 更新收費單欄位（支援所有金流回傳參數）
         /// </summary>
         private void UpdateFeeEntityWithMyPayReturn(
             ToolUtilityClass toolUtility,
@@ -766,7 +872,7 @@ namespace ChurchReport.Controllers
                 var statusMessage = GetPaymentStatusMessage(model.prc);
 
                 var newDescription = originalDescription + Environment.NewLine +
-                    $"[高鉅金流回傳資訊 - {DateTime.Now:yyyy-MM-dd HH:mm:ss}]" + Environment.NewLine +
+                    $"[金流回傳資訊 - {DateTime.Now:yyyy-MM-dd HH:mm:ss}]" + Environment.NewLine +
                     $"====== 核心欄位 ======" + Environment.NewLine +
                     $"訂單號(order_id): {model.order_id}" + Environment.NewLine +
                     $"交易流水號(uid): {model.uid}" + Environment.NewLine +
@@ -921,6 +1027,88 @@ namespace ChurchReport.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"[MyPay回傳] 發送LINE通知失敗 - OrderId: {model.order_id}");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// 根據收費單類型發送不同的LINE失敗通知
+        /// </summary>
+        private void SendLineFailureNotificationByType(
+            ToolUtilityClass utility,
+            Entity feeEntity,
+            MyPayReturnModel model,
+            string fullName,
+            FeeType feeType,
+            Entity contactEntity)
+        {
+            try
+            {
+                if (contactEntity == null)
+                {
+                    _logger.LogWarning($"[MyPay回傳] ContactEntity為空，無法發送LINE失敗通知");
+                    return;
+                }
+
+                string lineId = utility.GetEntityStringAttribute(contactEntity, "new_lineid");
+                if (string.IsNullOrWhiteSpace(lineId))
+                {
+                    _logger.LogWarning($"[MyPay回傳] LINE ID為空，無法發送失敗通知");
+                    return;
+                }
+
+                // 解析金額
+                decimal amount = 0m;
+                var shouldPayMoney = utility.GetEntityMoneyAttribute(feeEntity, "new_fee_shoud_pay");
+                if (shouldPayMoney != null && shouldPayMoney.Value > 0)
+                {
+                    amount = shouldPayMoney.Value;
+                }
+                else if (!string.IsNullOrEmpty(model.actual_cost) && decimal.TryParse(model.actual_cost, out var actualCost))
+                {
+                    amount = actualCost;
+                }
+                else if (!string.IsNullOrEmpty(model.cost) && decimal.TryParse(model.cost, out var cost))
+                {
+                    amount = cost;
+                }
+
+                // 解析時間
+                DateTime paymentTime = ParseFinishTime(model.finishtime);
+
+                // 取得失敗原因
+                string statusMessage = GetPaymentStatusMessage(model.prc);
+
+                string message;
+                if (feeType == FeeType.Dedication)
+                {
+                    // 奉獻類型失敗訊息
+                    int categoryValue = utility.GetOptionSetAttribute(feeEntity, "new_category");
+                    string dedicationCategory = GetDedicationCategoryName(categoryValue);
+                    message = BuildDedicationFailureMessage(fullName, model.order_id, model.uid, amount, dedicationCategory, paymentTime, statusMessage);
+                }
+                else if (feeType == FeeType.Course)
+                {
+                    // 課程類型失敗訊息
+                    string courseName = GetCourseName(utility, feeEntity);
+                    string courseSchedule = utility.GetEntityStringAttribute(feeEntity, "new_course_schedule") ?? "";
+                    string courseLocation = utility.GetEntityStringAttribute(feeEntity, "new_course_location") ?? "";
+                    message = BuildCoursePaymentFailureMessage(fullName, model.order_id, model.uid, amount, courseName, courseSchedule, courseLocation, paymentTime, statusMessage);
+                }
+                else
+                {
+                    // 其他類型失敗訊息
+                    string itemName = utility.GetEntityStringAttribute(feeEntity, "new_name") ?? "繳費";
+                    message = BuildGeneralPaymentFailureMessage(fullName, model.order_id, model.uid, amount, itemName, paymentTime, statusMessage);
+                }
+
+                // 發送LINE訊息
+                SendLineMessage(lineId, message);
+                _logger.LogInformation($"[MyPay回傳] LINE失敗通知已發送 - LineId: {lineId}, OrderId: {model.order_id}");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"[MyPay回傳] 發送LINE失敗通知失敗 - OrderId: {model.order_id}");
                 throw;
             }
         }
