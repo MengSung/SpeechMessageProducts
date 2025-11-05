@@ -1579,7 +1579,7 @@ namespace ChurchReport.WebServiceConnector
             rawData.discount = m_Configuration["MyPay:Discount"] ?? "0";
             rawData.success_returl = m_Configuration["MyPay:SuccessReturl"] ?? "";
             rawData.failure_returl = m_Configuration["MyPay:FailureReturl"] ?? "";
-            rawData.notify_url = m_Configuration["MyPay:ReturnUrl"] ?? "";
+            rawData.notify_url = m_Configuration["MyPay:NotifyUrl"] ?? "";
             rawData.limit_pay_days = Convert.ToInt32(m_Configuration["MyPay:LimitPayDays"] ?? "7");
             rawData.shipping_fee = m_Configuration["MyPay:ShippingFee"] ?? "0";
         }
