@@ -700,7 +700,11 @@ namespace ChurchReport.Controllers
                     $"交易流水號(UID): {uid}{Environment.NewLine}" +
                     $"交易驗證碼(Key): {key}{Environment.NewLine}" +
                     $"交易狀態(PRC): {prc} ({statusMessage}){Environment.NewLine}" +
-                    $"付款方式(PFN): {paymentMethodName}{Environment.NewLine}" +
+                    $"====== 付款方式 ======{Environment.NewLine}" +
+                    $"支付工具代碼(PFN): {pfn}{Environment.NewLine}" +
+                    $"支付工具名稱: {paymentMethodName}{Environment.NewLine}" +
+                    $"付款方式編號: {PAYMENT_METHOD_CREDIT_CARD}{Environment.NewLine}" +
+                    $"======================={Environment.NewLine}" +
                     $"交易金額: {cost}{Environment.NewLine}" +
                     $"實際金額: {actualCost ?? cost}{Environment.NewLine}" +
                     $"卡號: {cardno}{Environment.NewLine}" +
@@ -708,7 +712,7 @@ namespace ChurchReport.Controllers
                     $"付款時間: {paymentTime:yyyy-MM-dd HH:mm:ss}";
 
                 toolUtility.SetEntityStringAttribute(ref feeEntity, "new_description", newDescription);
-                _logger.LogInformation($"UpdateFeeEntityWithMyPay: 更新完成 - FeeId: {feeEntity.Id}, OrderId: {orderId}");
+                _logger.LogInformation($"UpdateFeeEntityWithMyPay: 更新完成 - FeeId: {feeEntity.Id}, OrderId: {orderId}, 付款方式: {paymentMethodName}(PFN:{pfn})");
             }
             catch (Exception ex)
             {
