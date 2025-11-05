@@ -1130,26 +1130,60 @@ namespace ChurchReport.Controllers
             if (string.IsNullOrWhiteSpace(prc)) return "付款狀態未知";
             switch (prc)
             {
-                case "100": return "資料錯誤";
-                case "200": return "資料正確，處理中";
-                case "220": return "取消成功";
-                case "230": return "退款成功";
-                case "250": return "付款成功";
-                case "260": return "交易成功，尚未付款完成";
-                case "265": return "訂單綁定";
-                case "270": return "交易成功，尚未付款完成（虛擬帳號）";
-                case "275": return "交易成功，待審核（核貸中）";
-                case "280": return "交易成功，尚未付款完成（儲值/WEBATM）";
-                case "290": return "交易成功但資訊不符";
-                case "300": return "交易失敗";
-                case "380": return "逾期交易";
-                case "400": return "系統錯誤";
-                case "600": return "結帳完成";
-                case "A0001": return "交易待確認";
-                case "A0002": return "放棄交易";
-                case "B200": return "執行成功";
-                case "B500": return "執行失敗";
-                default: return $"未知狀態碼：{prc}";
+                // 100 系列 - 資料錯誤
+                case "100": 
+                    return "資料錯誤 - MYPAYLINK收到資料，但是格式或資料錯誤";
+
+                // 200 系列 - 處理中/成功狀態
+                case "200": 
+                    return "資料正確 - MYPAYLINK收到正確資料，會接續下一步交易";
+                case "220": 
+                    return "取消成功 - 如申請取消，取消訂單狀態為取消成功";
+                case "230": 
+                    return "退款成功 - 如申請退款，申請退款成功時狀態";
+                case "250": 
+                    return "付款成功 - 此次交易，消費者付款成功";
+                case "260": 
+                    return "交易成功，尚未付款完成 - 超商代碼繳費，請等候消費者繳費入帳完成付款或消費者放棄交易";
+                case "265": 
+                    return "訂單綁定 - 表示訂單編號生效，進入貸款頁面，但尚未註冊";
+                case "270": 
+                    return "交易成功，尚未付款完成 - 虛擬帳號，請等候消費者繳費入帳";
+                case "275": 
+                    return "交易成功，待審核（核貸中） - 無卡分期，請等候審查通過";
+                case "280": 
+                    return "交易成功，尚未付款完成 - 儲值/WEBATM，線上待付款，等待狀態";
+                case "290": 
+                    return "交易成功但資訊不符 - 交易成功，但資訊不符（包含金額不符、已逾期...等），該類型交易請特別注意";
+
+                // 300 系列 - 失敗狀態
+                case "300": 
+                    return "交易失敗 - 金流服務商回傳交易失敗或該筆交易超過風險控管限制規則";
+                case "380": 
+                    return "逾期交易 - 超商代碼或虛擬帳號交易，超過系統設定繳費期限";
+
+                // 400 系列 - 系統錯誤
+                case "400": 
+                    return "系統錯誤訊息 - 若MYPAY LINK或上游服務商系統異常時";
+
+                // 600 系列 - 完成狀態
+                case "600": 
+                    return "結帳完成 - 視為付款完成，此狀態為上游服務商確認訂單後的狀態，表示該筆訂單會撥款";
+
+                // A 系列 - 特殊狀態
+                case "A0001": 
+                    return "交易待確認 - MYPAY LINK與金流服務商發生連線異常，待查詢後確認結果";
+                case "A0002": 
+                    return "放棄交易 - 畫面導向MYPAY LINK後，消費者即放棄該筆交易，該筆交易視同交易失敗，為最終結果";
+
+                // B 系列 - 執行狀態
+                case "B200": 
+                    return "執行成功 - 處理成功執行";
+                case "B500": 
+                    return "執行失敗 - 處理時，資料異常不予以處理";
+
+                default: 
+                    return $"未知狀態碼：{prc} - 請參考高鋸金流官方文檔或聯繫客服";
             }
         }
 
