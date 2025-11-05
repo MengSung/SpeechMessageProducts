@@ -1496,3 +1496,1495 @@ Q.如何判斷第幾期與扣款是否成功 A. 1.扣款成功、失敗請看回
 學習卡
 測驗
 NotebookLM 提供的資訊未必正確，請查證回覆內容。
+
+模擬串接服務 - PayPage金流交易
+
+特約商店
+商務代號
+
+金鑰
+金鑰或認證碼
+iv值(16 bytes)，若未給予則自動隨機
+範例
+{
+    "store_uid": "289151880011",
+    "user_id": "userid",
+    "cost": 50,
+    "currency": "TWD",
+    "order_id": "O20251105104314",
+    "ip": "192.168.0.1",
+    "items": [
+        {
+            "id": "1",
+            "name": "商品名稱",
+            "cost": "50",
+            "amount": "1",
+            "total": "50"
+        }
+    ],
+    "pfn": "0",
+    "card_save_platform": 3,
+    "invoice_save_platform": 3
+}
+經銷商『PayPage金流交易』請求欄位
+Id	Name	Description	Type	Additional Information
+1	agent_uid	經銷商商務代號
+string	必填
+2	service	服務名稱
+string	必填
+{
+    "service_name": "api",
+    "cmd": "api\/orders"
+}
+JSON格式，AES256加密資料
+3	encry_data	『PayPage金流交易』欄位資料	string	必填
+『PayPage金流交易』欄位參考
+JSON格式，AES256加密資料
+特約商店『PayPage金流交易』請求欄位
+Id	Name	Description	Type	Additional Information
+1	store_uid	特約商店商務代號
+string	必填
+2	service	服務名稱
+string	必填
+{
+    "service_name": "api",
+    "cmd": "api\/orders"
+}
+JSON格式，AES256加密資料
+3	encry_data	『PayPage金流交易』欄位資料	string	必填
+『PayPage金流交易』欄位參考
+JSON格式，AES256加密資料
+『PayPage金流交易』欄位
+Id	Name	Description	Type	Additional Information
+1	store_uid	特約商店代碼	string	必填
+2	user_id	消費者帳號	string	必填
+3	user_name	消費者姓名	string	
+4	user_real_name	消費者真實姓名	string	
+5	user_english_name	消費者英文姓名	string	
+6	user_zipcode	消費者郵遞區號	string	
+7	user_address	消費者帳單地址	string	
+8	user_sn_type	證號類型	string	『證號類型』值參考
+9	user_sn	付款人身分證/統一證號/護照號碼	string	
+10	user_phone	消費者家用電話	string	
+11	user_cellphone_code	消費者行動電話國碼	string	
+12	user_cellphone	消費者行動電話	string	
+13	user_email	消費者 E-Mail	string	
+14	user_birthday	消費者生日	string	
+15	cost	訂單總金額
+= 物品之總價加總 + 折價 + 運費(如為定期定額交易，此為每一期的應扣金額)	string	必填
+16	currency	預設交易幣別(預設為TWD新台幣)	string	『幣別類型』值參考
+17	enable_dcc	啟用dcc(自動換匯)	integer	『自動換匯』值參考
+18	order_id	訂單編號（訂單編號最長為50bytes）	string	必填
+19	ip	消費者來源 IP	string	必填
+20	item	訂單內物品數	string	
+21	items	訂單物品項目	array	必填
+每筆『商品項目』欄位參考
+22	regular	定期定額付費，期數單位	string	『分期類型定義』值參考
+23	regular_total	總期數(如為 12 期即代入 12，如果不設定終止期，請代入 0)	string	
+24	regular_first_charge_date	定期扣款起扣日
+若未指定日期、或早於今日，則將判定為當日扣款
+格式為 YYYYMMDD，如 20090916	string	
+25	group_id	1.定期定額式扣款編號
+2.定期分期式扣款編號	string	
+26	echo_0	自訂回傳參數 1	string	
+27	echo_1	自訂回傳參數 2	string	
+28	echo_2	自訂回傳參數 3	string	
+29	echo_3	自訂回傳參數 4	string	
+30	echo_4	自訂回傳參數 5	string	
+31	pfn	預選付費方法	string	『付款方式』值參考
+32	actual_pay_mode	實際支付方式
+(當pfn為CASH-自行收款時，告知系統實際收款方式)	string	『自行收款付款方式(如有異動，K30也應該同步修改)』值參考
+33	interface	interface 對照表	string	
+34	discount	折價金額 (預設0)	string	
+35	success_returl	交易成功導頁網址	string	
+36	failure_returl	交易失敗導頁網址	string	
+37	limit_pay_days	虛擬帳號與超商代碼使用之有效天數	integer	
+38	shipping_fee	運費	string	
+39	enable_quickpay	啟用快速結帳	integer	『啟用快速結帳』值參考
+40	card_save_platform	卡號儲存於哪個平台，特約商店發動者，強制為3	int	1.經銷商
+3.特約商店
+41	enable_ewallet	啟用電子錢包	integer	『啟用電子錢包』值參考
+42	virtual_pan	電子錢包虛擬卡號	string	
+43	ewallet_type	電子錢包執行類型	integer	『電子錢包執行類型』值參考
+44	transaction_type	交易類型	integer	『交易類型』值參考
+45	creditcard_installment	國內信用卡分期顯示限定
+JSON 格式如下
+{
+"3": ["013", "822", "808"],
+"6": ["822", "812"]
+}	string	
+46	cardless_code	無卡分期商品代碼	string	
+47	cardless_installment	無卡分期顯示消費者可選擇之期數，格式為陣列，例：
+[3, 6, 9, 12]	string	
+48	each_code	eACH交易代碼(如果使用eACH必須指定交易代碼)	string	
+49	issue_invoice_state	開立發票	integer	『電子發票是否開立狀態』值參考
+50	invoice_ratetype	電子發票稅率別	integer	『電子發票稅率別』值參考
+51	invoice_tax_rate	電子發票稅率：預設0.05(零稅與免稅帶0)	float	
+52	invoice_remark	發票註記(依加值中心提供註記功能)	string	
+53	invoice_input_type	電子發票開立類型	integer	『電子發票開立類型』值參考
+54	invoice_cloud_type	「雲端發票」類型	string	當invoice_input_type為1，此狀態才有效
+『雲端發票類型』值參考
+55	invoice_tax_id	統一編號	string	當invoice_input_type為1，此欄位才有效，非必要
+56	invoice_mobile_code	手機條碼	string	當invoice_cloud_type為2，此欄位才有效
+57	invoice_natural_person	自然人憑證條碼	string	當invoice_cloud_type為3，此欄位才有效
+58	invoice_m_post_zone	EMail 紙本寄送郵遞區號	string	當invoice_cloud_type為4，此欄位才有效，非必須
+59	invoice_m_address	EMail 紙本寄送住址	string	當invoice_cloud_type為4，此欄位才有效，非必須
+60	invoice_love_code	愛心碼	string	當invoice_input_type為2，此欄位才有效
+61	invoice_b2b_title	發票抬頭	string	當invoice_input_type為3時，此欄位才有效
+62	invoice_b2b_id	統一編號	string	當invoice_input_type為3時，此欄位才有效
+63	invoice_b2b_post_zone	發票地址郵遞區號	string	
+64	invoice_b2b_address	發票地址	string	當invoice_input_type為3時，此欄位才有效
+65	invoice_b2b_title_force	若選擇實體發票時，發票抬頭無法異動。	string	『電子發票欄位異動』值參考
+66	invoice_b2b_id_force	若選擇實體發票時，統一編號無法異動。	string	『電子發票欄位異動』值參考
+67	invoice_b2b_address_force	若選擇實體發票時，預設地址無法異動。	integer	『電子發票欄位異動』值參考
+68	invoice_save_platform	發票儲存於哪個平台，特約商店發動者，強制為3	int	1.經銷商
+2.特約商店
+69	user_data	無卡分期消費者資訊	object	『無卡分期消費者資訊』欄位參考
+70	files_path	無卡分期上傳檔案路徑 (JSON多筆格式)	string	『無卡分期檔案』值參考
+71	price	儲值交易之交易金額/點數 (儲值交易以此欄位辨識交易金額/點數)	string	
+72	recharge_code	儲值交易時，使用當時儲值之儲值產品代碼	string	
+73	recharge_items	儲值交易用物品資訊	array	每筆『儲值扣值商品項目』欄位參考
+74	agent_sms_fee_type	經銷商代收費是否含簡訊費	integer	『含不含簡訊費』值參考
+75	agent_charge_fee_type	經銷商代收費是否含手續費	integer	『含不含手續費類型』值參考
+76	agent_charge_fee	經銷商代收費(代收費不為0時，才為代收費模式)	integer	
+77	is_agent_charge	是否為經銷商代收費模式
+若 is_agent_charge 有指定，以指定優先
+若欄位agent_charge_fee有費用，或經銷商代收費是含簡訊費、或經銷商代收費含手續費，則預設為1
+若欄位agent_charge_fee無費用，且經銷商代收費不含簡訊費、或經銷商代收費不含手續費或參欄位都未使用則預設為0	integer	『是否為經銷商代收費模式』值參考
+78	shipping_info	送貨資訊 (後付款為必填)	object	『後付款送貨資訊』欄位參考
+79	creditcard_is_automatic_payment	信用卡類交易時，是否使用自動請款模式(預設自動請款)	string	『信用卡自動請款類型』值參考
+『PayPage金流交易』回傳欄位
+Id	Name	Description	Type	Additional Information
+1	code	交易回傳碼	string	
+2	msg	回傳訊息	string	
+3	uid	金流交易訂單UID	string	
+4	key	交易驗証碼	string	
+5	url	交易網址	string	
+接收回報方式說明
+接收到資料時，請主動回傳字串【8888】四個字元，確認完成。若貴司沒有回傳，系統會間隔十五分鐘傳送一次持續四次，若仍未接受到貴司回傳確認字串，系統即會停止傳送。
+
+回報使用 HTTP Protocol的Post方式，內容格式為 application/x-www-form-urlencoded。
+
+『交易完成回傳資訊』回報欄位
+Id	Name	Description	Type	Additional Information
+1	uid	Payment Hub之交易流水號	string	
+2	key	交易驗証碼	string	
+3	prc	主要交易回傳碼(retcode)	string	
+4	finishtime	交易完成時間(YYYYMMDDHHmmss)	string	
+5	cardno	銀行端口回傳碼	string	
+6	acode	授權碼	string	
+7	card_type	信用卡卡別	string	『信用卡別類型』值參考
+8	issuing_bank	發卡行	string	
+9	issuing_bank_uid	發卡銀行代碼	string	
+10	is_agent_charge	是否為經銷商代收費模式	int	『是否為經銷商代收費模式』值參考
+11	transaction_mode	交易服務類型	integer	『交易服務類型』值參考
+12	supplier_name	交易之金融服務商	string	
+13	supplier_code	交易之金融服務商代碼	string	『金流供應商代碼』值參考
+14	order_id	貴特店系統的訂單編號	string	
+15	user_id	消費者帳號	string	
+16	cost	總交易金額	string	
+17	currency	原交易幣別	string	
+18	actual_cost	實際交易金額	string	
+19	actual_currency	實際交易幣別	string	
+20	voucher_paid	有償票券項目	array	每筆『有償票券項目』欄位參考
+21	voucher_free	無償票券項目	array	每筆『無償票券項目』欄位參考
+22	price	請求交易點數/金額	string	
+23	actual_price	實際交易點數/金額	string	
+24	recharge_code	交易產品代碼	string	
+25	love_cost	愛心捐款金額	string	
+26	retmsg	回傳訊息	string	
+27	pfn	付費方法	string	
+28	actual_pay_mode	實際支付方式
+(當pfn為CASH-自行收款時，告知系統實際收款方式)	string	『自行收款付款方式(如有異動，K30也應該同步修改)』值參考
+29	trans_type	交易類型	integer	『交易類型定義』值參考
+30	redeem	信用卡紅利資訊 JSON 格式	string	『紅利資訊』值參考
+31	installment	信用卡分期資訊 JSON 格式	string	『分期資訊』值參考
+32	payment_name	定期定額式/定期分期式扣款名稱	string	
+33	nois	定期定額式/定期分期式扣繳期數	string	
+34	group_id	1.定期定額式扣款編號
+2.定期分期式扣款編號	string	
+35	bank_id	銀行代碼
+虛擬帳號資訊	string	
+36	expired_date	有效日期(YYYYMMDDHHmmss)
+虛擬帳號、超商代碼、無卡分期資訊	string	
+37	result_type	虛擬帳號、超商代碼 資料格式類型	integer	『閘道內容回傳格式類型』值參考
+38	result_content_type	資料內容所屬支付名稱	string	『資料內容所屬支付名稱』值參考
+39	result_content	虛擬帳號、超商代碼 資料內容	string	『虛擬帳號回傳欄位』值參考
+『ibon』值參考
+『FamiPort』值參考
+『Life-ET』值參考
+『超商條碼繳費』值參考
+40	echo_0	自訂回傳參數 1	string	
+41	echo_1	自訂回傳參數 2	string	
+42	echo_2	自訂回傳參數 3	string	
+43	echo_3	自訂回傳參數 4	string	
+44	echo_4	自訂回傳參數 5	string	
+『非即時交易回傳資訊』回報欄位
+Id	Name	Description	Type	Additional Information
+1	uid	Payment Hub之交易流水號	string	
+2	key	交易驗証碼	string	
+3	prc	主要交易回傳碼(retcode)	string	
+4	cardno	銀行端口回傳碼	string	
+5	acode	授權碼	string	
+6	card_type	信用卡卡別	string	『信用卡別類型』值參考
+7	issuing_bank	發卡行	string	
+8	issuing_bank_uid	發卡銀行代碼	string	
+9	is_agent_charge	是否為經銷商代收費模式	int	『是否為經銷商代收費模式』值參考
+10	transaction_mode	交易服務類型	integer	『交易服務類型』值參考
+11	supplier_name	交易之金融服務商	string	
+12	supplier_code	交易之金融服務商代碼	string	『金流供應商代碼』值參考
+13	finishtime	交易完成時間(YYYYMMDDHHmmss)	string	
+14	order_id	貴特店系統的訂單編號	string	
+15	user_id	消費者帳號	string	
+16	cost	總交易金額	string	
+17	currency	原交易幣別	string	
+18	actual_cost	實際交易金額	string	
+19	actual_currency	實際交易幣別	string	
+20	voucher_paid	有償票券項目	array	每筆『有償票券項目』欄位參考
+21	voucher_free	無償票券項目	array	每筆『無償票券項目』欄位參考
+22	price	請求交易點數/金額	string	
+23	actual_price	實際交易點數/金額	string	
+24	recharge_code	交易產品代碼	string	
+25	love_cost	愛心捐款金額	string	
+26	retmsg	回傳訊息	string	
+27	pfn	付費方法	string	
+28	actual_pay_mode	實際支付方式
+(當pfn為CASH-自行收款時，告知系統實際收款方式)	string	『自行收款付款方式(如有異動，K30也應該同步修改)』值參考
+29	trans_type	交易類型	integer	『交易類型定義』值參考
+30	redeem	信用卡紅利資訊 JSON 格式	string	『紅利資訊』值參考
+31	installment	信用卡分期資訊 JSON 格式	string	『分期資訊』值參考
+32	payment_name	定期定額式/定期分期式扣款名稱	string	
+33	nois	定期定額式/定期分期式扣繳期數	string	
+34	group_id	1.定期定額式扣款編號
+2.定期分期式扣款編號	string	
+35	bank_id	銀行代碼
+虛擬帳號資訊	string	
+36	expired_date	有效日期(YYYYMMDDHHmmss)
+虛擬帳號、超商代碼、無卡分期資訊	string	
+37	result_type	虛擬帳號、超商代碼 資料格式類型	integer	『閘道內容回傳格式類型』值參考
+38	result_content_type	資料內容所屬支付名稱	string	『資料內容所屬支付名稱』值參考
+39	result_content	虛擬帳號、超商代碼 資料內容	string	『虛擬帳號回傳欄位』值參考
+『ibon』值參考
+『FamiPort』值參考
+『Life-ET』值參考
+『超商條碼繳費』值參考
+40	echo_0	自訂回傳參數 1	string	
+41	echo_1	自訂回傳參數 2	string	
+42	echo_2	自訂回傳參數 3	string	
+43	echo_3	自訂回傳參數 4	string	
+44	echo_4	自訂回傳參數 5	string	
+『訂單確認回傳資訊』回報欄位
+Id	Name	Description	Type	Additional Information
+1	uid	Payment Hub之交易流水號	string	
+2	key	交易驗証碼	string	
+3	prc	主要交易回傳碼(retcode)	string	
+4	finishtime	交易完成時間(YYYYMMDDHHmmss)	string	
+5	cardno	銀行端口回傳碼	string	
+6	acode	授權碼	string	
+7	card_type	信用卡卡別	string	『信用卡別類型』值參考
+8	issuing_bank	發卡行	string	
+9	issuing_bank_uid	發卡銀行代碼	string	
+10	is_agent_charge	是否為經銷商代收費模式	int	『是否為經銷商代收費模式』值參考
+11	transaction_mode	交易服務類型	integer	『交易服務類型』值參考
+12	supplier_name	交易之金融服務商	string	
+13	supplier_code	交易之金融服務商代碼	string	『金流供應商代碼』值參考
+14	order_id	貴特店系統的訂單編號	string	
+15	user_id	消費者帳號	string	
+16	cost	總交易金額	string	
+17	currency	原交易幣別	string	
+18	actual_cost	實際交易金額	string	
+19	actual_currency	實際交易幣別	string	
+20	voucher_paid	有償票券項目	array	每筆『有償票券項目』欄位參考
+21	voucher_free	無償票券項目	array	每筆『無償票券項目』欄位參考
+22	price	請求交易點數/金額	string	
+23	actual_price	實際交易點數/金額	string	
+24	recharge_code	交易產品代碼	string	
+25	love_cost	愛心捐款金額	string	
+26	retmsg	回傳訊息	string	
+27	pfn	付費方法	string	
+28	actual_pay_mode	實際支付方式
+(當pfn為CASH-自行收款時，告知系統實際收款方式)	string	『自行收款付款方式(如有異動，K30也應該同步修改)』值參考
+29	trans_type	交易類型	integer	『交易類型定義』值參考
+30	redeem	信用卡紅利資訊 JSON 格式	string	『紅利資訊』值參考
+31	installment	信用卡分期資訊 JSON 格式	string	『分期資訊』值參考
+32	payment_name	定期定額式/定期分期式扣款名稱	string	
+33	nois	定期定額式/定期分期式扣繳期數	string	
+34	group_id	1.定期定額式扣款編號
+2.定期分期式扣款編號	string	
+35	bank_id	銀行代碼
+虛擬帳號資訊	string	
+36	expired_date	有效日期(YYYYMMDDHHmmss)
+虛擬帳號、超商代碼、無卡分期資訊	string	
+37	result_type	虛擬帳號、超商代碼 資料格式類型	integer	『閘道內容回傳格式類型』值參考
+38	result_content_type	資料內容所屬支付名稱	string	『資料內容所屬支付名稱』值參考
+39	result_content	虛擬帳號、超商代碼 資料內容	string	『虛擬帳號回傳欄位』值參考
+『ibon』值參考
+『FamiPort』值參考
+『Life-ET』值參考
+『超商條碼繳費』值參考
+40	echo_0	自訂回傳參數 1	string	
+41	echo_1	自訂回傳參數 2	string	
+42	echo_2	自訂回傳參數 3	string	
+43	echo_3	自訂回傳參數 4	string	
+44	echo_4	自訂回傳參數 5	string	
+『證號類型』 值內容
+Value	Description	Type	Additional Information
+1	身份證字號(預設)	integer	
+2	統一證號	integer	
+3	護照號碼	integer	
+『幣別類型』 值內容
+Value	Description	Type	Additional Information
+TWD	新台幣(預設)	integer	
+CNY	人民幣	integer	
+『自動換匯』 值內容
+Value	Description	Type	Additional Information
+0	關閉(預設)	integer	
+1	開啟	integer	
+『商品項目』欄位
+Id	Name	Description	Type	Additional Information
+1	id	商品編號	string	必填
+2	name	商品名稱	string	必填
+3	cost	商品單價	integer	必填
+4	amount	商品數量	integer	必填
+5	total	商品小計	integer	必填
+6	image_url	商品圖片連結(僅LINEPay線上使用)	string	
+『分期類型定義』 值內容
+Value	Description	Type	Additional Information
+W	每週定期扣款	string	
+F	雙週定期扣款	string	
+M	每月定期扣款	string	
+S	每季定期扣款	string	
+H	每半年定期扣款	string	
+A	每一年定期扣款	string	
+O	一次性扣款	string	
+『付款方式』 值內容
+Value	Description	Type	Additional Information
+all	全部可用支付方式(預設)	string	
+MobilePayAll	指定下列線上行動支付方式
+支付寶、Pi 拍錢包、LINEPay、微信、街口支付、悠遊付	string	
+CREDITCARD	信用卡	string	
+CSTORECODE	超商代碼	string	
+WEBATM	WEBATM	string	
+E_COLLECTION	虛擬帳號	string	
+UNIONPAY	銀聯卡	string	
+SVC	點數卡(GASH ,Imoney)	string	
+ABROAD	海外信用卡	string	
+ALIPAY	支付寶	string	
+WECHAT	微信支付	string	
+DIRECTDEBIT	定期定額扣款	string	
+DIRECTDEBIT_ABROAD	定期定額扣款(國外信用卡)	string	
+LINEPAYON	LINE Pay線上付款	string	
+LINEPAYOFF	LINE Pay線下付款	string	
+WECHATOFF	微信支付線下	string	
+APPLEPAY	APPLE PAY	string	
+GOOGLEPAY	Google Pay	string	
+EACH	eACH交易	string	
+C_INSTALLMENT	信用卡分期	string	
+C_REDEEM	信用卡紅利	string	
+CARDLESS	無卡分期	string	
+PION	Pi 拍錢包線上	string	
+PIOFF	Pi 拍錢包線下	string	
+AMEX	美國運通	string	
+JKOON	街口支付線上	string	
+JKOOFF	街口支付線下	string	
+ALIPAYOFF	支付寶線下	string	
+M_RECHARGE	儲值交易	string	
+EASYWALLETON	悠遊付線上	string	
+EASYWALLETOFF	悠遊付線下	string	
+AFP	後付款	string	
+BARCODE	超商條碼繳費	string	
+CASH	自行收款	string	
+『自行收款付款方式(如有異動，K30也應該同步修改)』 值內容
+Value	Description	Type	Additional Information
+CASH	現金交易	string	
+ZINGALAPAY	銀角零卡	string	
+LINEPAY	LINE Pay	string	
+JKO	街口支付	string	
+PI	Pi 拍錢包	string	
+EASYWALLET	悠遊付	string	
+PXPAY	全支付	string	
+PLUSPAY	全盈支付	string	
+REMITTENCE	轉帳匯款(無分類)	string	
+REMITTENCE_000	轉帳匯款(中央銀行)	string	
+REMITTENCE_004	轉帳匯款(臺灣銀行)	string	
+REMITTENCE_005	轉帳匯款(土地銀行)	string	
+REMITTENCE_006	轉帳匯款(合作金庫)	string	
+REMITTENCE_007	轉帳匯款(第一銀行)	string	
+REMITTENCE_008	轉帳匯款(華南銀行)	string	
+REMITTENCE_009	轉帳匯款(彰化銀行)	string	
+REMITTENCE_011	轉帳匯款(上海銀行)	string	
+REMITTENCE_012	轉帳匯款(台北富邦)	string	
+REMITTENCE_013	轉帳匯款(國泰世華)	string	
+REMITTENCE_016	轉帳匯款(高雄銀行)	string	
+REMITTENCE_017	轉帳匯款(兆豐銀行)	string	
+REMITTENCE_018	轉帳匯款(農業金庫)	string	
+REMITTENCE_020	轉帳匯款(日商瑞穗銀行)	string	
+REMITTENCE_021	轉帳匯款(花旗銀行)	string	
+REMITTENCE_022	轉帳匯款(美國銀行)	string	
+REMITTENCE_023	轉帳匯款(盤谷銀行)	string	
+REMITTENCE_025	轉帳匯款(首都銀行)	string	
+REMITTENCE_029	轉帳匯款(新加坡大華銀行)	string	
+REMITTENCE_030	轉帳匯款(美商道富銀行)	string	
+REMITTENCE_037	轉帳匯款(法商法國興業銀行台北分行)	string	
+REMITTENCE_039	轉帳匯款(澳盛銀行)	string	
+REMITTENCE_048	轉帳匯款(王道銀行)	string	
+REMITTENCE_050	轉帳匯款(臺灣企銀)	string	
+REMITTENCE_052	轉帳匯款(渣打銀行)	string	
+REMITTENCE_053	轉帳匯款(台中銀行)	string	
+REMITTENCE_054	轉帳匯款(京城銀行)	string	
+REMITTENCE_060	轉帳匯款(兆豐票券)	string	
+REMITTENCE_061	轉帳匯款(中華票券)	string	
+REMITTENCE_062	轉帳匯款(國際票券)	string	
+REMITTENCE_066	轉帳匯款(萬通票券)	string	
+REMITTENCE_072	轉帳匯款(德意志銀行)	string	
+REMITTENCE_075	轉帳匯款(東亞銀行)	string	
+REMITTENCE_076	轉帳匯款(摩根大通銀行)	string	
+REMITTENCE_081	轉帳匯款(滙豐銀行)	string	
+REMITTENCE_082	轉帳匯款(巴黎銀行)	string	
+REMITTENCE_085	轉帳匯款(新加坡華僑銀行)	string	
+REMITTENCE_086	轉帳匯款(東方匯理銀行)	string	
+REMITTENCE_092	轉帳匯款(瑞士銀行)	string	
+REMITTENCE_093	轉帳匯款(安智銀行)	string	
+REMITTENCE_098	轉帳匯款(三菱東京日聯銀行)	string	
+REMITTENCE_101	轉帳匯款(瑞興銀行)	string	
+REMITTENCE_102	轉帳匯款(華泰銀行)	string	
+REMITTENCE_103	轉帳匯款(新光銀行)	string	
+REMITTENCE_104	轉帳匯款(台北五信)	string	
+REMITTENCE_108	轉帳匯款(陽信銀行)	string	
+REMITTENCE_114	轉帳匯款(基隆一信)	string	
+REMITTENCE_115	轉帳匯款(基隆二信)	string	
+REMITTENCE_118	轉帳匯款(板信銀行)	string	
+REMITTENCE_119	轉帳匯款(淡水一信)	string	
+REMITTENCE_120	轉帳匯款(淡水信合社)	string	
+REMITTENCE_124	轉帳匯款(宜蘭信合社)	string	
+REMITTENCE_127	轉帳匯款(桃園信合社)	string	
+REMITTENCE_130	轉帳匯款(新竹一信)	string	
+REMITTENCE_132	轉帳匯款(新竹三信)	string	
+REMITTENCE_146	轉帳匯款(台中二信)	string	
+REMITTENCE_147	轉帳匯款(三信銀行)	string	
+REMITTENCE_158	轉帳匯款(彰化一信)	string	
+REMITTENCE_161	轉帳匯款(彰化五信)	string	
+REMITTENCE_162	轉帳匯款(彰化六信)	string	
+REMITTENCE_163	轉帳匯款(彰化十信)	string	
+REMITTENCE_165	轉帳匯款(鹿港信合社)	string	
+REMITTENCE_178	轉帳匯款(嘉義三信)	string	
+REMITTENCE_188	轉帳匯款(台南三信)	string	
+REMITTENCE_204	轉帳匯款(高雄三信)	string	
+REMITTENCE_215	轉帳匯款(花蓮一信)	string	
+REMITTENCE_216	轉帳匯款(花蓮二信)	string	
+REMITTENCE_222	轉帳匯款(澎湖一信)	string	
+REMITTENCE_223	轉帳匯款(澎湖二信)	string	
+REMITTENCE_224	轉帳匯款(金門信合社)	string	
+REMITTENCE_321	轉帳匯款(三井住友銀行)	string	
+REMITTENCE_326	轉帳匯款(西班牙商西班牙對外銀行臺北分行)	string	
+REMITTENCE_329	轉帳匯款(印尼人民銀行)	string	
+REMITTENCE_330	轉帳匯款(韓亞銀行)	string	
+REMITTENCE_372	轉帳匯款(大慶票券)	string	
+REMITTENCE_380	轉帳匯款(中國銀行)	string	
+REMITTENCE_381	轉帳匯款(交通銀行)	string	
+REMITTENCE_382	轉帳匯款(中國建設銀行)	string	
+REMITTENCE_501	轉帳匯款(宜蘭縣蘇澳區漁會)	string	
+REMITTENCE_502	轉帳匯款(宜蘭縣頭城區漁會)	string	
+REMITTENCE_503	轉帳匯款(基隆漁會)	string	
+REMITTENCE_504	轉帳匯款(瑞芳/萬里漁會)	string	
+REMITTENCE_505	轉帳匯款(頭城/蘇澳漁會)	string	
+REMITTENCE_506	轉帳匯款(桃園漁會)	string	
+REMITTENCE_507	轉帳匯款(新竹漁會)	string	
+REMITTENCE_508	轉帳匯款(通苑區漁會)	string	
+REMITTENCE_510	轉帳匯款(農金資中心)	string	
+REMITTENCE_511	轉帳匯款(彰化區漁會)	string	
+REMITTENCE_512	轉帳匯款(雲林區漁會)	string	
+REMITTENCE_513	轉帳匯款(新北市瑞芳區漁會)	string	
+REMITTENCE_514	轉帳匯款(萬里區漁會)	string	
+REMITTENCE_515	轉帳匯款(嘉義區漁會)	string	
+REMITTENCE_516	轉帳匯款(基隆區漁會)	string	
+REMITTENCE_517	轉帳匯款(南市區漁會)	string	
+REMITTENCE_518	轉帳匯款(南縣區漁會)	string	
+REMITTENCE_519	轉帳匯款(新化區農會)	string	
+REMITTENCE_520	轉帳匯款(小港區漁會；高雄區漁會)	string	
+REMITTENCE_521	轉帳匯款(彌陀/永安/興達港/林園區漁會)	string	
+REMITTENCE_523	轉帳匯款(東港/琉球/林邊區漁會)	string	
+REMITTENCE_524	轉帳匯款(新港區漁會)	string	
+REMITTENCE_525	轉帳匯款(澎湖區漁會)	string	
+REMITTENCE_526	轉帳匯款(南農中心)	string	
+REMITTENCE_538	轉帳匯款(宜蘭市農會)	string	
+REMITTENCE_541	轉帳匯款(白河區農會)	string	
+REMITTENCE_542	轉帳匯款(麻豆區農會)	string	
+REMITTENCE_547	轉帳匯款(後壁區農會)	string	
+REMITTENCE_549	轉帳匯款(下營區農會)	string	
+REMITTENCE_551	轉帳匯款(官田區農會)	string	
+REMITTENCE_552	轉帳匯款(大內區農會)	string	
+REMITTENCE_556	轉帳匯款(學甲區農會)	string	
+REMITTENCE_557	轉帳匯款(新市區農會)	string	
+REMITTENCE_558	轉帳匯款(安定區農會)	string	
+REMITTENCE_559	轉帳匯款(山上區農會)	string	
+REMITTENCE_561	轉帳匯款(左鎮區農會)	string	
+REMITTENCE_562	轉帳匯款(仁德區農會)	string	
+REMITTENCE_564	轉帳匯款(關廟區農會)	string	
+REMITTENCE_565	轉帳匯款(龍崎區農會)	string	
+REMITTENCE_567	轉帳匯款(南化區農會)	string	
+REMITTENCE_568	轉帳匯款(七股區農會)	string	
+REMITTENCE_570	轉帳匯款(南投市農會)	string	
+REMITTENCE_573	轉帳匯款(埔里鎮農會)	string	
+REMITTENCE_574	轉帳匯款(竹山鎮農會)	string	
+REMITTENCE_575	轉帳匯款(中寮鄉農會)	string	
+REMITTENCE_577	轉帳匯款(魚池鄉農會)	string	
+REMITTENCE_578	轉帳匯款(水里鄉農會)	string	
+REMITTENCE_579	轉帳匯款(國姓鄉農會)	string	
+REMITTENCE_580	轉帳匯款(鹿谷鄉農會)	string	
+REMITTENCE_581	轉帳匯款(信義鄉農會)	string	
+REMITTENCE_582	轉帳匯款(仁愛鄉農會)	string	
+REMITTENCE_583	轉帳匯款(東山區農會)	string	
+REMITTENCE_585	轉帳匯款(頭城鎮農會)	string	
+REMITTENCE_586	轉帳匯款(羅東鎮農會)	string	
+REMITTENCE_587	轉帳匯款(礁溪鄉農會)	string	
+REMITTENCE_588	轉帳匯款(壯圍鄉農會)	string	
+REMITTENCE_589	轉帳匯款(員山鄉農會)	string	
+REMITTENCE_596	轉帳匯款(五結鄉農會)	string	
+REMITTENCE_598	轉帳匯款(蘇澳地區農會)	string	
+REMITTENCE_599	轉帳匯款(三星地區農會)	string	
+REMITTENCE_600	轉帳匯款(農金資訊股份有限公司)	string	
+REMITTENCE_602	轉帳匯款(中華民國農會中壢辦事處信用部)	string	
+REMITTENCE_603	轉帳匯款(基隆地區農會)	string	
+REMITTENCE_605	轉帳匯款(高雄市農會)	string	
+REMITTENCE_606	轉帳匯款(新北市農會)	string	
+REMITTENCE_607	轉帳匯款(宜蘭地區農會)	string	
+REMITTENCE_608	轉帳匯款(桃園地區農會)	string	
+REMITTENCE_609	轉帳匯款(中華民國農會)	string	
+REMITTENCE_610	轉帳匯款(新竹地區農會)	string	
+REMITTENCE_611	轉帳匯款(後龍農會)	string	
+REMITTENCE_612	轉帳匯款(豐原市農會；神岡鄉農會)	string	
+REMITTENCE_613	轉帳匯款(名間/集集農會)	string	
+REMITTENCE_614	轉帳匯款(彰化地區農會)	string	
+REMITTENCE_615	轉帳匯款(基隆市農會)	string	
+REMITTENCE_616	轉帳匯款(雲林地區農會)	string	
+REMITTENCE_617	轉帳匯款(嘉義地區農會)	string	
+REMITTENCE_618	轉帳匯款(台南地區農會)	string	
+REMITTENCE_619	轉帳匯款(高雄地區農會)	string	
+REMITTENCE_620	轉帳匯款(屏東地區農會)	string	
+REMITTENCE_621	轉帳匯款(花蓮地區農會)	string	
+REMITTENCE_622	轉帳匯款(台東地區農會)	string	
+REMITTENCE_623	轉帳匯款(台北市農會)	string	
+REMITTENCE_624	轉帳匯款(澎湖農會)	string	
+REMITTENCE_625	轉帳匯款(台中市農會)	string	
+REMITTENCE_627	轉帳匯款(連江縣農會)	string	
+REMITTENCE_628	轉帳匯款(鹿港鎮農會)	string	
+REMITTENCE_629	轉帳匯款(和美鎮農會)	string	
+REMITTENCE_631	轉帳匯款(溪湖鎮農會)	string	
+REMITTENCE_632	轉帳匯款(田中鎮農會)	string	
+REMITTENCE_633	轉帳匯款(北斗鎮農會)	string	
+REMITTENCE_635	轉帳匯款(線西鄉農會)	string	
+REMITTENCE_636	轉帳匯款(伸港鄉農會)	string	
+REMITTENCE_638	轉帳匯款(花壇鄉農會)	string	
+REMITTENCE_639	轉帳匯款(大村鄉農會)	string	
+REMITTENCE_642	轉帳匯款(社頭鄉農會)	string	
+REMITTENCE_643	轉帳匯款(二水鄉農會)	string	
+REMITTENCE_646	轉帳匯款(大城鄉農會)	string	
+REMITTENCE_647	轉帳匯款(溪州鄉農會)	string	
+REMITTENCE_649	轉帳匯款(埔鹽鄉農會)	string	
+REMITTENCE_650	轉帳匯款(福興鄉農會)	string	
+REMITTENCE_651	轉帳匯款(彰化市農會)	string	
+REMITTENCE_683	轉帳匯款(北港鎮農會)	string	
+REMITTENCE_685	轉帳匯款(土庫鎮農會)	string	
+REMITTENCE_693	轉帳匯款(東勢鄉農會)	string	
+REMITTENCE_696	轉帳匯款(水林鄉農會)	string	
+REMITTENCE_697	轉帳匯款(元長鄉農會)	string	
+REMITTENCE_698	轉帳匯款(麥寮鄉農會)	string	
+REMITTENCE_699	轉帳匯款(林內鄉農會)	string	
+REMITTENCE_700	轉帳匯款(中華郵政)	string	
+REMITTENCE_749	轉帳匯款(內埔地區農會)	string	
+REMITTENCE_762	轉帳匯款(大溪區農會)	string	
+REMITTENCE_763	轉帳匯款(桃園區農會)	string	
+REMITTENCE_764	轉帳匯款(平鎮區農會)	string	
+REMITTENCE_765	轉帳匯款(楊梅區農會)	string	
+REMITTENCE_766	轉帳匯款(大園區農會)	string	
+REMITTENCE_767	轉帳匯款(蘆竹區農會)	string	
+REMITTENCE_768	轉帳匯款(龜山區農會)	string	
+REMITTENCE_769	轉帳匯款(八德區農會)	string	
+REMITTENCE_770	轉帳匯款(新屋區農會)	string	
+REMITTENCE_771	轉帳匯款(龍潭區農會)	string	
+REMITTENCE_772	轉帳匯款(復興區農會)	string	
+REMITTENCE_773	轉帳匯款(觀音區農會)	string	
+REMITTENCE_775	轉帳匯款(土城區農會)	string	
+REMITTENCE_776	轉帳匯款(三重區農會)	string	
+REMITTENCE_777	轉帳匯款(中和地區農會)	string	
+REMITTENCE_778	轉帳匯款(淡水區農會)	string	
+REMITTENCE_779	轉帳匯款(樹林區農會)	string	
+REMITTENCE_780	轉帳匯款(鶯歌區農會)	string	
+REMITTENCE_781	轉帳匯款(三峽區農會)	string	
+REMITTENCE_785	轉帳匯款(蘆洲區農會)	string	
+REMITTENCE_786	轉帳匯款(五股區農會)	string	
+REMITTENCE_787	轉帳匯款(林口區農會)	string	
+REMITTENCE_788	轉帳匯款(泰山區農會)	string	
+REMITTENCE_789	轉帳匯款(坪林區農會)	string	
+REMITTENCE_790	轉帳匯款(八里區農會)	string	
+REMITTENCE_791	轉帳匯款(金山地區農會)	string	
+REMITTENCE_792	轉帳匯款(瑞芳地區農會)	string	
+REMITTENCE_793	轉帳匯款(新店地區農會)	string	
+REMITTENCE_795	轉帳匯款(深坑區農會)	string	
+REMITTENCE_796	轉帳匯款(石碇區農會)	string	
+REMITTENCE_797	轉帳匯款(平溪區農會)	string	
+REMITTENCE_798	轉帳匯款(石門區農會)	string	
+REMITTENCE_799	轉帳匯款(三芝區農會)	string	
+REMITTENCE_803	轉帳匯款(聯邦銀行)	string	
+REMITTENCE_805	轉帳匯款(遠東銀行)	string	
+REMITTENCE_806	轉帳匯款(元大銀行)	string	
+REMITTENCE_807	轉帳匯款(永豐銀行)	string	
+REMITTENCE_808	轉帳匯款(玉山銀行)	string	
+REMITTENCE_809	轉帳匯款(凱基銀行)	string	
+REMITTENCE_810	轉帳匯款(星展銀行)	string	
+REMITTENCE_812	轉帳匯款(台新銀行)	string	
+REMITTENCE_814	轉帳匯款(大眾銀行)	string	
+REMITTENCE_815	轉帳匯款(日盛銀行)	string	
+REMITTENCE_816	轉帳匯款(安泰銀行)	string	
+REMITTENCE_822	轉帳匯款(中國信託)	string	
+REMITTENCE_823	轉帳匯款(將來銀行)	string	
+REMITTENCE_824	轉帳匯款(LINE Bank)	string	
+REMITTENCE_826	轉帳匯款(樂天銀行)	string	
+REMITTENCE_860	轉帳匯款(中埔鄉農會)	string	
+REMITTENCE_866	轉帳匯款(阿里山鄉農會)	string	
+REMITTENCE_868	轉帳匯款(東勢區農會)	string	
+REMITTENCE_869	轉帳匯款(清水區農會)	string	
+REMITTENCE_870	轉帳匯款(梧棲區農會)	string	
+REMITTENCE_871	轉帳匯款(大甲區農會)	string	
+REMITTENCE_872	轉帳匯款(沙鹿區農會)	string	
+REMITTENCE_874	轉帳匯款(霧峰區農會)	string	
+REMITTENCE_875	轉帳匯款(太平區農會)	string	
+REMITTENCE_876	轉帳匯款(烏日區農會)	string	
+REMITTENCE_877	轉帳匯款(后里區農會)	string	
+REMITTENCE_878	轉帳匯款(大雅區農會)	string	
+REMITTENCE_879	轉帳匯款(潭子區農會)	string	
+REMITTENCE_880	轉帳匯款(石岡區農會)	string	
+REMITTENCE_881	轉帳匯款(新社區農會)	string	
+REMITTENCE_882	轉帳匯款(大肚區農會)	string	
+REMITTENCE_883	轉帳匯款(外埔區農會)	string	
+REMITTENCE_884	轉帳匯款(大安區農會)	string	
+REMITTENCE_885	轉帳匯款(龍井區農會)	string	
+REMITTENCE_886	轉帳匯款(和平區農會)	string	
+REMITTENCE_891	轉帳匯款(花蓮市農會)	string	
+REMITTENCE_895	轉帳匯款(瑞穗鄉農會)	string	
+REMITTENCE_896	轉帳匯款(玉溪地區農會)	string	
+REMITTENCE_897	轉帳匯款(鳳榮地區農會)	string	
+REMITTENCE_898	轉帳匯款(光豐地區農會)	string	
+REMITTENCE_901	轉帳匯款(大里市農會)	string	
+REMITTENCE_902	轉帳匯款(苗栗市農會)	string	
+REMITTENCE_903	轉帳匯款(汐止農會)	string	
+REMITTENCE_904	轉帳匯款(新莊農會)	string	
+REMITTENCE_906	轉帳匯款(頭份市農會)	string	
+REMITTENCE_907	轉帳匯款(竹南鎮農會)	string	
+REMITTENCE_908	轉帳匯款(通霄鎮農會)	string	
+REMITTENCE_909	轉帳匯款(苑裡鎮農會)	string	
+REMITTENCE_910	轉帳匯款(聯資中心)	string	
+REMITTENCE_912	轉帳匯款(冬山農會)	string	
+REMITTENCE_913	轉帳匯款(後龍鎮農會)	string	
+REMITTENCE_914	轉帳匯款(卓蘭鎮農會)	string	
+REMITTENCE_915	轉帳匯款(西湖鄉農會)	string	
+REMITTENCE_916	轉帳匯款(草屯農會)	string	
+REMITTENCE_917	轉帳匯款(公館鄉農會)	string	
+REMITTENCE_918	轉帳匯款(銅鑼鄉農會)	string	
+REMITTENCE_919	轉帳匯款(三義鄉農會)	string	
+REMITTENCE_920	轉帳匯款(造橋鄉農會)	string	
+REMITTENCE_921	轉帳匯款(南庄鄉農會)	string	
+REMITTENCE_922	轉帳匯款(臺南農會)	string	
+REMITTENCE_923	轉帳匯款(獅潭鄉農會)	string	
+REMITTENCE_924	轉帳匯款(頭屋鄉農會)	string	
+REMITTENCE_925	轉帳匯款(三灣鄉農會)	string	
+REMITTENCE_926	轉帳匯款(大湖地區農會)	string	
+REMITTENCE_928	轉帳匯款(板橋農會)	string	
+REMITTENCE_929	轉帳匯款(關西鎮農會)	string	
+REMITTENCE_930	轉帳匯款(新埔鎮農會)	string	
+REMITTENCE_931	轉帳匯款(竹北市農會)	string	
+REMITTENCE_932	轉帳匯款(湖口鄉農會)	string	
+REMITTENCE_933	轉帳匯款(芎林鄉農會)	string	
+REMITTENCE_934	轉帳匯款(寶山鄉農會)	string	
+REMITTENCE_935	轉帳匯款(峨眉鄉農會)	string	
+REMITTENCE_936	轉帳匯款(北埔鄉農會)	string	
+REMITTENCE_937	轉帳匯款(竹東地區農會)	string	
+REMITTENCE_938	轉帳匯款(橫山地區農會)	string	
+REMITTENCE_939	轉帳匯款(新豐鄉農會)	string	
+REMITTENCE_940	轉帳匯款(新竹市農會信用部)	string	
+REMITTENCE_951	轉帳匯款(北農中心)	string	
+REMITTENCE_952	轉帳匯款(南部地區農漁會)	string	
+REMITTENCE_953	轉帳匯款(田尾鄉農會)	string	
+REMITTENCE_954	轉帳匯款(中部地區農漁會)	string	
+REMITTENCE_960	轉帳匯款(台灣樂天)	string	
+REMITTENCE_975	轉帳匯款(美國運通)	string	
+REMITTENCE_978	轉帳匯款(台灣永旺)	string	
+REMITTENCE_984	轉帳匯款(北投區農會)	string	
+REMITTENCE_985	轉帳匯款(士林區農會)	string	
+REMITTENCE_986	轉帳匯款(內湖區農會)	string	
+REMITTENCE_987	轉帳匯款(南港區農會)	string	
+REMITTENCE_988	轉帳匯款(木柵區農會)	string	
+REMITTENCE_989	轉帳匯款(景美區農會)	string	
+REMITTENCE_995	轉帳匯款(關貿網路)	string	
+REMITTENCE_996	轉帳匯款(財政部國庫署)	string	
+REMITTENCE_997	轉帳匯款(南資中心)	string	
+ALIPAY_YUANTABANK	支付寶元大	string	
+ALIPAY_MEGABANK	支付寶兆豐	string	
+ALIPAY_TCB	支付寶合庫	string	
+WECHAT_SKBANK	微信支付新光	string	
+MOMO	Momo收款	string	
+SHOPEE	蝦皮拍賣收款	string	
+ETMALL	東森收款	string	
+PCSTORE	PChome商店街收款	string	
+PCHOME24H	PChome24H收款	string	
+RUTEN	露天拍賣收款	string	
+SHOPLINE	Shop line收款	string	
+FOODPANDA	熊貓收款	string	
+UBEREATS	Uber eats收款	string	
+CYBERBIZ	Cyberbiz收款	string	
+YAHOOBID	YAHOO拍賣收款	string	
+RAKUTEN	樂天市場收款	string	
+CAROUSELL	旋轉拍賣收款	string	
+FACEBOOKGROUPS	FB社團收款	string	
+PINKOI	Pinkoi收款	string	
+91APP	91APP收款	string	
+COD_MYPAY	MYPAY物流代收	string	
+COD_HCT	新竹物流代收	string	
+COD_TCAT	黑貓宅急便代收	string	
+COD_MYSHIP711	7-ELEVEN賣貨便代收	string	
+COD_FAMISTORE	好賣+代收	string	
+COD_HISHIPBUYER	萊賣貨代收	string	
+COD_KERRYTJ	嘉里大榮代收	string	
+CSTORECODE_IBON	超商代碼(IBON)	string	
+CSTORECODE_FAMIPORT	超商代碼(FamiPort)	string	
+CSTORECODE_LIFEET	超商代碼(Life-ET)	string	
+CSTORECODE_OKGO	超商代碼(OK GO)	string	
+ETICKET_EASYCARD	悠遊卡	string	
+ETICKET_IPASS	一卡通	string	
+ETICKET_ICASH	iCash	string	
+CRYPTO_BTC	比特幣	string	
+CRYPTO_ETH	乙太幣	string	
+TELECOM_CHT	中華電信代收	string	
+TELECOM_FET	遠傳電信代收	string	
+TELECOM_TWM	台灣大哥大代收	string	
+TELECOM_TSTAR	台灣之星代收	string	
+TELECOM_APT	亞太電信代收	string	
+ECPAY_CREDIT	綠界收款(信用卡)	string	
+ECPAY_WEBATM	綠界收款(網路ATM)	string	
+ECPAY_ATM	綠界收款(自動櫃員機)	string	
+ECPAY_CVS	綠界收款(超商代碼)	string	
+ECPAY_BARCODE	綠界收款(超商條碼)	string	
+ECPAY_TWQR	綠界收款(行動支付)	string	
+ECPAY_IN_STORE_PICKUP	綠界收款(超取)	string	
+NEWEBPAY_CREDIT	藍新收款(信用卡付款)	string	
+NEWEBPAY_VACC	藍新收款(銀行 ATM 轉帳付款)	string	
+NEWEBPAY_WEBATM	藍新收款(網路銀行轉帳付款)	string	
+NEWEBPAY_BARCODE	藍新收款(超商條碼繳費)	string	
+NEWEBPAY_CVS	藍新收款(超商代碼繳費)	string	
+NEWEBPAY_LINEPAY	藍新收款(LINE Pay 付款)	string	
+NEWEBPAY_ESUNWALLET	藍新收款(玉山 Wallet)	string	
+NEWEBPAY_TAIWANPAY	藍新收款(台灣 Pay)	string	
+NEWEBPAY_CVSCOM	藍新收款(超商取貨付款)	string	
+CREDITCARD_TCB	信用卡(合庫銀行)	string	
+CREDITCARD_ESUNBANK	信用卡(玉山銀行)	string	
+CREDITCARD_FIRSTBANK	信用卡(第一銀行)	string	
+CREDITCARD_FUBONBANK	信用卡(台北富邦銀行)	string	
+CREDITCARD_TSIB	信用卡(台新銀行)	string	
+CREDITCARD_NCCC	信用卡(聯信)	string	
+CREDITCARD_CTBC	信用卡(中信銀行)	string	
+CREDITCARD_KGIBANK	信用卡(凱基銀行)	string	
+CREDITCARD_YUANTABANK	信用卡(元大銀行)	string	
+CREDITCARD_CUB	信用卡(國泰世華銀行)	string	
+CREDITCARD_BANKSINOPAC	信用卡(永豐銀行)	string	
+CREDITCARD_MEGABANK	信用卡(兆豐銀行)	string	
+CREDITCARD_GLOBALPAYMENTS	信用卡(環匯亞太)	string	
+AMEX_TSIB	美國運通(台新銀行)	string	
+AMEX_CTBC	美國運通(中信銀行)	string	
+AMEX_NCCC	美國運通(聯信)	string	
+UNIONPAY_TCB	銀聯卡(合庫銀行)	string	
+UNIONPAY_ESUNBANK	銀聯卡(玉山銀行)	string	
+UNIONPAY_NCCC	銀聯卡(聯信)	string	
+UNIONPAY_TSIB	銀聯卡(台新銀行)	string	
+UNIONPAY_KGIBANK	銀聯卡(凱基銀行)	string	
+UNIONPAY_YUANTABANK	銀聯卡(元大銀行)	string	
+UNIONPAY_BANKSINOPAC	銀聯卡(永豐銀行)	string	
+UNIONPAY_CUB	銀聯卡(國泰世華銀行)	string	
+BARCODE_SKBANK	超商繳費條碼(新光銀行)	string	
+BARCODE_ESUNBANK	超商繳費條碼(玉山銀行)	string	
+BARCODE_CTBC	超商繳費條碼(中信銀行)	string	
+TWPAY_BOT	台灣Pay(台灣銀行)	string	
+TWPAY_LANDBANK	台灣Pay(台灣土地銀行)	string	
+TWPAY_TCB	台灣Pay(合庫銀行)	string	
+TWPAY_FIRSTBANK	台灣Pay(第一銀行)	string	
+TWPAY_HNCB	台灣Pay(華南銀行)	string	
+TWPAY_CHB	台灣Pay(彰化銀行)	string	
+TWPAY_SCSB	台灣Pay(上海商銀)	string	
+TWPAY_CUB	台灣Pay(國泰世華銀行)	string	
+TWPAY_MEGABANK	台灣Pay(兆豐銀行)	string	
+TWPAY_BOK	台灣Pay(高雄銀行)	string	
+TWPAY_TBB	台灣Pay(台灣企銀)	string	
+TWPAY_KTB	台灣Pay(京城銀行)	string	
+TWPAY_HWATAIBANK	台灣Pay(華泰銀行)	string	
+TWPAY_SUNNYBANK	台灣Pay(陽信銀行)	string	
+TWPAY_KSCC	台灣Pay(基隆二信)	string	
+TWPAY_TFCCBANK	台灣Pay(淡水一信)	string	
+TWPAY_HCFCBANK	台灣Pay(新竹一信)	string	
+TWPAY_TSCA	台灣Pay(台中二信)	string	
+TWPAY_CH6C	台灣Pay(彰化六信)	string	
+TWPAY_HL2C	台灣Pay(花蓮二信)	string	
+TWPAY_ESUNBANK	台灣Pay(玉山銀行)	string	
+TWPAY_TSIB	台灣Pay(台新銀行)	string	
+TWPAY_AFISC	台灣Pay(農金資)	string	
+TWPAY_YUANTABANK	台灣Pay(元大銀行)	string	
+TWPAY_CTBC	台灣Pay(中信銀行)	string	
+TWPAY_FAST	台灣Pay(南農中心)	string	
+TWPAY_SCU	台灣Pay(南資中心)	string	
+DS_SHINSHIN	欣欣大眾	string	
+DS_MINGYAO	明曜百貨	string	
+DS_DAYEH	大葉高島屋	string	
+DS_CHUNGYO	中友百貨	string	
+DS_KSSOGO	廣三SOGO百貨	string	
+DS_FOCUSQUARE	Focus時尚流行館	string	
+DS_NICEPLAZA	耐斯廣場	string	
+DS_DREAMMALL	夢時代購物中心	string	
+DS_UNIUSTYLE	統一時代百貨	string	
+DS_PARKLANES	金典綠園道商場	string	
+DS_CITYPLAZA	大都會廣場	string	
+DS_LIHPAOMALL	麗寶百貨廣場	string	
+DS_EDORAPARK	瀚星百貨	string	
+DS_BEYONDPLAZA	比漾廣場	string	
+DS_HAYASHI	林百貨	string	
+DS_SHINESQUARE	昕境廣場	string	
+DS_LANDMARKLIFEPLAZA	置地生活廣場	string	
+DS_TONLIN	統領廣場	string	
+DS_HONHUI	宏匯廣場	string	
+DS_TSRD	南紡購物中心	string	
+DS_FEDS_XINYIA13	遠東百貨-遠百信義 A13	string	
+DS_FEDS_BANQIAO	遠東百貨-板橋中山店	string	
+DS_FEDS_TAOYUAN	遠東百貨-桃園店	string	
+DS_FEDS_ZHUPEI	遠東百貨-竹北店	string	
+DS_FEDS_CHIAYI	遠東百貨-嘉義店	string	
+DS_FEDS_HUALIEN	遠東百貨-花蓮店	string	
+DS_FEDS_MEGACITY_BANQIAO	遠東百貨-MegaCity板橋大遠百	string	
+DS_FEDS_HSINCHU	遠東百貨-新竹大遠百	string	
+DS_FEDS_TOPCITY_TAICHUNG	遠東百貨-Top City台中大遠百	string	
+DS_FEDS_TAINAN_GONGYUAN	遠東百貨-台南大遠百公園店	string	
+DS_FEDS_TAINAN_CHENGKUNG	遠東百貨-台南大遠百成功店	string	
+DS_FEDS_KAOHSIUNG	遠東百貨-高雄大遠百	string	
+DS_SKM_XINYI	新光三越-台北信義新天地	string	
+DS_SKM_TAIPEI_STATION	新光三越-台北站前店	string	
+DS_SKM_TAIPEI_NANJING_W	新光三越-台北南西店	string	
+DS_SKM_TAIPEI_TIANMU	新光三越-台北天母店	string	
+DS_SKM_TAOYUAN_STATION	新光三越-桃園站前店	string	
+DS_SKM_TAICHUNG_PORT	新光三越-台中中港店	string	
+DS_SKM_CHIAYI_CHUIYANG	新光三越-嘉義垂楊店	string	
+DS_SKM_TAINAN_ZHONGSHAN	新光三越-台南中山店	string	
+DS_SKM_TAINAN_XIMEN	新光三越-台南西門店	string	
+DS_SKM_KAOHSIUNG_SANDUO	新光三越-高雄三多店	string	
+DS_SKM_KAOHSIUNG_ZUOYING	新光三越-高雄左營店	string	
+DS_SKM_PARK	新光三越-SKM Park Outlets 高雄草衙	string	
+DS_SOGO_TAIPEI_ZHONGXIAO	遠東SOGO百貨-台北忠孝館	string	
+DS_SOGO_TAIPEI_FUXING	遠東SOGO百貨-台北復興館	string	
+DS_SOGO_TAIPEI_DUNHUA	遠東SOGO百貨-台北敦化館	string	
+DS_SOGO_TIANMU	遠東SOGO百貨-天母店	string	
+DS_SOGO_ZHONGLI	遠東SOGO百貨-中壢店	string	
+DS_SOGO_HSINCHU	遠東SOGO百貨-新竹店	string	
+DS_SOGO_KAOHSIUNG	遠東SOGO百貨-高雄店	string	
+DS_PACIFIC_FENGYUAN	太平洋百貨-豐原	string	
+DS_PACIFIC_PINGTUNG	太平洋百貨-屏東	string	
+DS_PACIFIC_SUNNYPARK	太平洋百貨-Sunny Park日光廣場	string	
+DS_PACIFIC_PINGTUNG_GONGYONG	太平洋百貨-屏東驛站商場	string	
+DS_PACIFIC_PINGTUNG_GUANGFU	太平洋百貨-屏東轉運站商場	string	
+DS_PACIFIC_CHAOZHOU	太平洋百貨-潮州驛站商場	string	
+DS_HANSHIN_KAOHSIUNG	漢神百貨	string	
+DS_HANSHIN_ARENA	漢神巨蛋購物廣場	string	
+DS_BREEZE_CENTER	微風廣場	string	
+DS_BREEZE_TAIPEISTATION	微風台北車站	string	
+DS_BREEZE_NTUHOSPITAL	微風台大醫院商場	string	
+DS_BREEZE_NANJING	微風南京	string	
+DS_BREEZE_XINYI	微風信義	string	
+DS_BREEZE_SONGGAO	微風松高	string	
+DS_BREEZE_NANSHAN	微風南山	string	
+DS_BREEZE_TSGHOSPITAL	微風三總商店街	string	
+DS_BREEZE_ACADEMIASINICA	微風中央研究院	string	
+DS_GM_ZHONGHE	GlobalMall-新北中和	string	
+DS_GM_BANQIAO	GlobalMall-環球板橋車站	string	
+DS_GM_A8	GlobalMall-環球桃園A8	string	
+DS_GM_A19	GlobalMall-環球桃園A19	string	
+DS_GM_A9	GlobalMall-環球林口A9	string	
+DS_GM_NANGANG	GlobalMall-環球南港車站	string	
+DS_GM_XINZUOYING	GlobalMall-環球新左營車站	string	
+DS_GM_PINGTUNG	GlobalMall-環球屏東市	string	
+DS_TRK_MALL	大魯閣新時代購物中心	string	
+DS_TRK_SQUARE	大魯閣湳雅廣場	string	
+DS_TALEE_WUFU	大立大統五福店	string	
+DS_TALEE_A	大立百貨A館	string	
+DS_TALEE_B	大立百貨B館	string	
+DS_MITSUI_OUTLET_TAICHUNGPORT	MITSUI OUTLET PARK 台中港	string	
+DS_MITSUI_OUTLET_TAINAN	MITSUI OUTLET PARK 台南	string	
+DS_MITSUI_OUTLET_LINKOU	MITSUI OUTLET PARK 林口	string	
+DS_MITSUI_LALAPORT_TAICHUNG	Mitsui Shopping Park LaLaport 台中	string	
+『啟用快速結帳』 值內容
+Value	Description	Type	Additional Information
+0	關閉	integer	
+1	開啟(預設)	integer	
+『啟用電子錢包』 值內容
+Value	Description	Type	Additional Information
+0	關閉(預設)	integer	
+1	開啟	integer	
+『電子錢包執行類型』 值內容
+Value	Description	Type	Additional Information
+1	電子錢包前景交易(預設)	integer	
+2	電子錢包背景交易	integer	
+『交易類型』 值內容
+Value	Description	Type	Additional Information
+1	網路交易(預設)(消費者直接輸入支付內容)	string	
+2	實體交易 (商戶面對消費者時，由商戶輸入支付內容做消費)	string	
+『電子發票是否開立狀態』 值內容
+Value	Description	Type	Additional Information
+0	不開立電子發票	integer	
+1	開立電子發票	integer	
+2	依系統設定(預設)	integer	
+『電子發票稅率別』 值內容
+Value	Description	Type	Additional Information
+1	應稅(預設)	integer	
+2	零稅率	integer	
+3	免稅	integer	
+『電子發票開立類型』 值內容
+Value	Description	Type	Additional Information
+0	未使用電子發票開立	integer	
+1	雲端發票	integer	
+2	發票捐贈	integer	
+3	實體發票	integer	
+『雲端發票類型』 值內容
+Value	Description	Type	Additional Information
+0	未使用雲端發票類型	integer	
+2	手機條碼	integer	
+3	自然人憑證條碼	integer	
+4	以E-Mail寄送	integer	
+『電子發票欄位異動』 值內容
+Value	Description	Type	Additional Information
+0	可以異動(預設)	integer	
+1	不可異動	integer	
+『無卡分期消費者資訊』欄位
+Id	Name	Description	Type	Additional Information
+1	ip	消費者登入ip	string	
+2	user_id	該消費者在特店中註冊帳號名稱	string	
+3	user_name	消費者姓名	string	
+4	user_real_name	消費者真實姓名	string	
+5	user_english_name	消費者英文名稱	string	
+6	user_address_post_zone	消費者地址郵遞區號	string	
+7	user_address	消費者地址	string	
+8	user_sn_type	證號類型	string	『證號類型』值參考
+9	user_sn	消費者身份證字號/統一證號/護照號碼	string	
+10	issue_date	消費者發證(身分證)日期(YYYYMMDD)	string	
+11	issue_place	消費者領補換(身分證)地點
+10001:北縣,10002:宜縣,10003:桃縣,10004:竹縣,10005:苗縣,10006:中縣,10007:彰縣,10008:投縣,10009:雲縣,10010:嘉縣,10011:南縣,10012:高縣,10013:屏縣,10014:東縣,10015:花縣,10016:澎縣,10017:基市,10018:竹市,10020:嘉市,09007:連江,09020:金門,63000:北市,64000:高市,65000:新北市,66000:中市,67000:南市,68000:桃市	string	
+12	issue_type	消費者領補換(身分證件)類型
+0:領補發,1:初發,2:補發,3:換發	string	
+13	user_phone_code	消費者家用電話(白天電話):國碼(預設886)	string	
+14	user_phone_area_code	消費者家用電話(白天電話):區碼	string	
+15	user_phone	消費者家用電話(白天電話)	string	
+16	user_phone_ext	消費者家用電話(白天電話):分機	string	
+17	user_cellphone_code	消費者行動電話國碼(預設886)	string	
+18	user_cellphone	消費者行動電話	string	
+19	user_email	消費者 E-Mail	string	
+20	user_birthday	消費者生日(格式為 YYYYMMDD，如 20090916)	string	
+21	residence_address_post_zone	消費者戶籍地址:郵遞區號	string	
+22	residence_address	消費者戶籍地址:路街巷弄號樓室	string	
+23	residence_phone_area_code	消費者戶籍電話:區碼	string	
+24	residence_phone	消費者戶籍電話:號碼	string	
+25	residence_phone_ext	消費者戶籍電話:分機	string	
+26	bank_code	消費者銀行帳戶:銀行代碼	string	
+27	bank_branch_code	消費者銀行帳戶: 分行代碼	string	
+28	bank_account_name	消費者銀行帳戶:銀行帳戶名稱	string	
+29	bank_account_number	消費者銀行帳戶:銀行帳號	string	
+30	salary_bank_code	薪轉存摺銀行代碼	string	
+31	salary_bank_branch_code	薪轉存摺分行代碼	string	
+32	salary_bank_account_number	薪轉帳號	string	
+33	house_owner	消費者居住房屋:擁有者
+1:自有,2:配偶,3:親人,4租賃	string	
+34	living_years	消費者居住房屋-年數	string	
+35	living_months	消費者居住房屋-月數	string	
+36	mailing_address_post_zone	消費者通訊地址:郵遞區號	string	
+37	mailing_address	消費者通訊地址:路街巷弄號樓室	string	
+38	marital_status	消費者婚姻狀況
+1:單身,2:已婚,3:離婚	string	
+39	children	消費者擁有子女數	string	
+40	education_level	消費者教育程度
+1:博士,2:研究所,3:大學/大專,4:高中職,5:國中/國小	string	
+41	organization_type	工作組織類型
+1:公司,2.營登,3:財法,4:社法,5:公職	string	
+42	organization_id	消費者公司統一編號(營登/財法/社法)	string	
+43	organization_name	消費者公司名稱(服務單位)	string	
+44	organization_phone_area_code	消費者公司電話(服務單位電話):區碼	string	
+45	organization_phone	消費者公司電話(服務單位電話):電話號碼	string	
+46	organization_phone_ext	消費者公司電話(服務單位電話):分機號碼	string	
+47	organization_address_post_zone	消費者公司(服務單位)地址:郵遞區號	string	
+48	organization_address	消費者公司(服務單位)地址	string	
+49	employment_status	消費者就業狀態	string	
+50	career	消費者職務類型	string	
+51	subcareer	消費者次要職務類型	string	
+52	grade	消費者職等	string	
+53	working_years	消費者工作年資:年數	string	
+54	working_months	消費者工作年資:月數	string	
+55	monthly_salary	消費者月薪	string	
+56	legal_representative_name	消費者法定代理人:姓名	string	
+57	legal_representative_personal_id	消費者法定代理人:身分證字號	string	
+58	legal_representative_birthday	消費者法定代理人:出生日期	string	
+59	legal_representative_contact_address_post_zone	消費者法定代理人:聯絡地址:郵遞區號	string	
+60	legal_representative_contact_address	消費者法定代理人:聯絡地址:路街巷弄號樓	string	
+61	legal_representative_home_phone_area_code	消費者法定代理人:住家電話:區碼	string	
+62	legal_representative_home_phone	消費者法定代理人:住家電話:電話號碼	string	
+63	legal_representative_cellphone	消費者法定代理人:行動電話	string	
+64	contact_time	指定照會時間	string	
+65	payment_method	消費者繳款方式 (帶冒號後的值)
+電子帳單: 1
+超商簡訊繳款: 3	string	
+66	creditcard_status	消費者信用卡:狀態 (帶冒號後的值)
+沒辦過卡: 1
+無卡自停: 2
+協商繳款中: 3
+其他: 4	string	
+67	creditcard_status_remark	消費者信用卡:狀態說明	string	
+68	customer_creditcard_bank_code	消費者信用卡:發卡銀行代碼	string	
+69	creditcard_validdate_month	消費者信用卡:有效日期:月	string	
+70	creditcard_validdate_year	消費者信用卡:有效日期:年	string	
+71	contact_person_name	聯絡人:中文姓名	string	
+72	contact_person_relationship	聯絡人:關係
+1配偶 2父母 3兄弟姐妹 4其他親友 5同事 6朋友 7子女 8其他	string	
+73	contact_person_cellphone	聯絡人:行動電話	string	
+74	contact_person_phone_area_code	聯絡人:住宅電話:區碼	string	
+75	contact_person_phone	聯絡人:住宅電話:號碼	string	
+76	contact_person_phone_ext	聯絡人:住宅電話:分機	string	
+77	contact_person_organization_phone_area_code	聯絡人:公司電話:區碼	string	
+78	contact_person_organization_phone	聯絡人:公司電話:號碼	string	
+79	contact_person_organization_phone_ext	聯絡人:公司電話:分機	string	
+80	contact_person_confidentiality	聯絡人:是否保密照會?(是:1,否:0)	string	
+81	contact_person_meeting_time	聯絡人:照會時間(日期時間 YYYYMMDDHHMM)	string	
+82	contact_person2_name	聯絡人2:中文姓名	string	
+83	contact_person2_relationship	聯絡人2:關係
+1配偶 2父母 3兄弟姐妹 4其他親友 5同事 6朋友 7子女 8其他	string	
+84	contact_person2_cellphone	聯絡人2:行動電話	string	
+85	contact_person2_phone_area_code	聯絡人2:住宅電話:區碼	string	
+86	contact_person2_phone	聯絡人2:住宅電話:號碼	string	
+87	contact_person2_phone_ext	聯絡人2:住宅電話:分機	string	
+88	contact_person2_organization_phone_area_code	聯絡人2:公司電話:區碼	string	
+89	contact_person2_organization_phone	聯絡人2:公司電話:號碼	string	
+90	contact_person2_organization_phone_ext	聯絡人2:公司電話:分機	string	
+91	contact_person2_confidentiality	聯絡人2:是否保密照會?(是:1,否:0)	string	
+92	contact_person2_meeting_time	聯絡人2:照會時間(日期時間 YYYYMMDDHHMM)	string	
+93	guarantor_option	連帶保人:選項
+1.連帶保證人(需附保證人身分證正反面影本)
+2.配偶資料僅供參考
+3.法定代理人(需於法代欄位簽名)
+4.商品實際使用人	string	
+94	guarantor_name	連帶保人:姓名	string	
+95	guarantor_license_id	連帶保人:身分證字號	string	
+96	guarantor_issue_date	保證人發證(身分證)日期(YYYYMMDD)	string	
+97	guarantor_issue_place	保證人領補換(身分證)地點
+10001:北縣,10002:宜縣,10003:桃縣,10004:竹縣,10005:苗縣,10006:中縣,10007:彰縣,10008:投縣,10009:雲縣,10010:嘉縣,10011:南縣,10012:高縣,10013:屏縣,10014:東縣,10015:花縣,10016:澎縣,10017:基市,10018:竹市,10020:嘉市,09007:連江,09020:金門,63000:北市,64000:高市,65000:新北市,66000:中市,67000:南市,68000:桃市	string	
+98	guarantor_issue_type	保證人領補換(身分證件)類型
+0:領補發,1:初發,2:補發,3:換發	string	
+99	guarantor_birthday	連帶保人:出生日期(yyyy-mm-dd)	string	
+100	guarantor_cellphone	連帶保人:行動電話	string	
+101	guarantor_home_phone_area_code	連帶保人:住家電話:區碼	string	
+102	guarantor_home_phone	連帶保人:住家電話:號碼	string	
+103	guarantor_home_phone_ext	連帶保人:分機	string	
+104	guarantor_relationship	連帶保人:關係
+1配偶 2父母 3兄弟姐妹 4其他親友 5同事 6朋友 7子女 8其他	string	
+105	guarantor_address_post_zone	連帶保人:地址:郵遞區號	string	
+106	guarantor_address	連帶保人:地址	string	
+107	guarantor_organization_id	連帶保證人公司統編	string	
+108	guarantor_organization_name	連帶保人:公司名稱	string	
+109	guarantor_organization_phone_area_code	連帶保人:公司電話:區碼	string	
+110	guarantor_organization_phone	連帶保人:公司電話:號碼	string	
+111	guarantor_organization_phone_ext	連帶保人:公司電話:分機	string	
+112	guarantor_employment_status	連帶保人:就業狀態	string	
+113	guarantor_career	連帶保人:職務類型	string	
+114	guarantor_subcareer	連帶保人:次要職務類型	string	
+115	guarantor_grade	連帶保人:職等	string	
+116	guarantor_monthly_salary	連帶保證人月薪	string	
+117	guarantor_working_years	連帶保證人工作年資-年數	string	
+118	guarantor_working_months	連帶保證人工作年資-月數	string	
+119	guarantor_meeting_time	連帶保證人聯絡時間 (日期格式YYYYMMDDHHmm)	string	
+120	guarantor_salary_bank_code	連帶保證人薪轉存摺銀行代碼	string	
+121	guarantor_salary_bank_branch_code	連帶保證人薪轉存摺分行代碼	string	
+122	guarantor_salary_bank_account_number	連帶保證人薪轉帳號	string	
+123	motorcycle_license_number	機車行照牌照號碼	string	
+124	motorcycle_factory_date	機車出廠日期	string	
+125	motorcycle_displacement	機車排氣量	string	
+126	motorcycle_license_date	行照發證日期	string	
+127	dealer_note	經辦商備註欄	string	
+128	supplier_business_type	業務別代碼
+AA21=原車抵押
+AA22=借新還舊
+AA23=它行代償
+CA20=商品圓融	string	
+129	supplier_business_type_projects	專案代碼
+AA21 可用代碼為：DN45、DN46、DN47。
+AA22 可用代碼為：DM44、DM45。
+AA23 可用代碼為：DM66、DM67。
+CA20 可用代碼為：DM41、DM42、DN48	string	
+『無卡分期檔案』欄位
+Id	Name	Description	Type	Additional Information
+1	id	檔案索引名稱	string	
+2	path	檔案路徑	string	
+3	type	MIME 檔案類型	string	
+4	description	說明	string	
+『儲值扣值商品項目』欄位
+Id	Name	Description	Type	Additional Information
+1	id	儲值扣值商品編號(最長限32 Bytes)	string	必填
+2	name	儲值扣值商品名稱	string	必填
+3	price	商品單價使用點數	float	必填
+4	amount	儲值數量	float	必填
+5	total	儲值點數小計	float	必填
+『含不含簡訊費』 值內容
+Value	Description	Type	Additional Information
+1	含手續費	integer	
+0	不含手續費(預設)	integer	
+『含不含手續費類型』 值內容
+Value	Description	Type	Additional Information
+1	含手續費	integer	
+0	不含手續費(預設)	integer	
+『是否為經銷商代收費模式』 值內容
+Value	Description	Type	Additional Information
+1	是經銷商代收費模式	integer	
+0	不是經銷商代收費模式	integer	
+『後付款送貨資訊』欄位
+Id	Name	Description	Type	Additional Information
+1	shipment_type	配送方式	integer	『後付款送貨資訊』值參考
+2	company_name	寄送地公司名稱	string	
+3	department_name	寄送地部門名稱	string	
+4	name	收貨姓名	string	必填
+5	cvs	超商類型(超商店到店必填)	integer	『後付款超商取貨』值參考
+6	cvs_store	超商店號代碼(超商店到店必填)	string	
+7	cvs_store_name	超商店號名稱(超商店到店必填)	string	
+8	zip_code	收貨郵遞區號(純宅配必填)	string	
+9	ship_address	收貨地址(超商店到店為超商店址)	string	必填
+10	tel	收貨電話(超商店到店為超商電話)	string	必填
+『信用卡自動請款類型』 值內容
+Value	Description	Type	Additional Information
+0	自行請款	string	
+1	自動請款(預設)	string	
+『信用卡別類型』 值內容
+Value	Description	Type	Additional Information
+0	無法辨識或支付方式為非信用卡類	string	
+1	VISA	string	
+2	MasterCard	string	
+3	JCB	string	
+4	AMEX	string	
+『交易服務類型』 值內容
+Value	Description	Type	Additional Information
+0	尚未進行閘道交易	integer	
+1	代收代付	integer	
+2	特店模式	integer	
+『金流供應商代碼』 值內容
+Value	Description	Type	Additional Information
+A1	裕富數位資融	string	
+A2	三環亞洲	string	
+B0	新光銀行	string	
+B1	永豐銀行	string	
+B2	合作金庫	string	
+B3	台北富邦	string	
+B4	玉山銀行	string	
+B5	台新銀行	string	
+B6	聯合信用卡處理中心	string	
+B7	台中商銀	string	
+B8	中國信託商業銀行	string	
+B9	上海商業儲蓄銀行	string	
+BA	第一銀行	string	
+BB	元大商業銀行	string	
+BC	凱基銀行	string	
+BD	國泰世華商業銀行	string	
+BE	華泰商業銀行	string	
+BF	兆豐銀行	string	
+BG	環滙亞太	string	
+BH	彰化銀行	string	
+BI	土地銀行	string	
+S0	全網行銷股份有限公司(FamiPort)	string	
+S1	安源資訊股份有限公司(ibon)	string	
+S2	萊爾富國際股份有限公司(Hi-Life)	string	
+T0	高鉅科技	string	
+T1	藍新金流	string	
+T2	統一客樂得(黑貓Pay)		
+W0	統振	string	
+W1	遊戲橘子數位	string	
+W2	台灣連線(LINEPay)	string	
+W3	博經	string	
+W4	街口電子支付	string	
+W5	悠遊卡	string	
+W6	一卡通票證	string	
+W7	iCash	string	
+W8	全支付(PXPay plus)	string	
+W9	拍付國際資訊(Pi錢包)	string	
+WA	全盈支付(全盈+Pay)	string	
+E0	MYTIX	string	
+『有償票券項目』欄位
+Id	Name	Description	Type	Additional Information
+1	product_id	票券群組編號(最長限32 Bytes)	string	
+2	serial_number	票券券號(特約商店下的每一個票券群組的票券券號必須是唯一)	string	
+3	name	票券名稱	string	
+4	cost	票券金額	integer	
+5	issuer	發行者	string	『有價票券發行者』值參考
+6	refund_return_type	退款時，票券金額是否歸還	string	『退款時票券金額是否歸還』值參考
+『無償票券項目』欄位
+Id	Name	Description	Type	Additional Information
+1	product_id	票券群組編號(最長限32 Bytes)	string	
+2	serial_number	票券券號(特約商店下的每一個票券群組的票券券號必須是唯一)	string	
+3	name	票券名稱	string	
+4	cost	票券金額	integer	
+5	issuer	發行者	string	『免費票券發行者』值參考
+『交易類型定義』 值內容
+Value	Description	Type	Additional Information
+1	一般 (預設)	integer	
+2	分期	integer	
+3	紅利	integer	
+『紅利資訊』欄位
+Id	Name	Description	Type	Additional Information
+1	type	紅利類型	string	『紅利資訊類型』值參考
+2	used	紅利折抵點數	string	
+3	amount	自付金額	string	
+『分期資訊』欄位
+Id	Name	Description	Type	Additional Information
+1	period_number	分期期數	integer	
+2	total	應付總金額	integer	
+3	first	第一期應付金額	integer	
+4	every	第二期起每期應付金額	integer	
+『閘道內容回傳格式類型』 值內容
+Value	Description	Type	Additional Information
+0	無法辨識	integer	
+1	網址	integer	
+2	超連結本文	integer	
+3	xml	integer	
+4	json	integer	
+5	csv	integer	
+6	串流	integer	
+『資料內容所屬支付名稱』 值內容
+Value	Description	Type	Additional Information
+E_COLLECTION	虛擬帳號	string	
+IBON	iBON	string	
+FAMIPORT	FamiPort	string	
+LIFEET	LIFE-ET	string	
+WEBATM	WEBATM	string	
+CREDITCARD	信用卡	string	
+UNIONPAY	銀聯卡	string	
+SVC	點數卡(GASH ,Imoney)	string	
+ABROAD	海外信用卡	string	
+ALIPAY	支付寶	string	
+WECHAT	微信支付	string	
+LINEPAYON	LINE Pay線上付款	string	
+LINEPAYOFF	LINE Pay線下付款	string	
+WECHATOFF	微信支付線下	string	
+APPLEPAY	APPLE PAY	string	
+GOOGLEPAY	Google Pay	string	
+EACH	eACH交易	string	
+CARDLESS	無卡分期	string	
+PION	Pi 拍錢包線上	string	
+PIOFF	Pi 拍錢包線下	string	
+AMEX	美國運通	string	
+JKOON	街口支付線上	string	
+JKOOFF	街口支付線下	string	
+ALIPAYOFF	支付寶線下	string	
+EASYWALLETON	悠遊付線上	string	
+EASYWALLETOFF	悠遊付線下	string	
+TWPAYOFF	台灣Pay線下	string	
+PXPAYOFF	全支付線下	string	
+AFP	後付款	string	
+BARCODE	超商條碼繳費	string	
+IPASSMONEYON	一卡通線上代碼	string	
+IPASSMONEYOFF	一卡通線下代碼	string	
+『虛擬帳號回傳欄位』欄位
+Id	Name	Description	Type	Additional Information
+1	PinCode	虛擬帳號	string	
+2	LimitDate	繳費有效期限，格式YYYYMMDDHHmmss	string	
+3	BankCode	銀行代碼	string	
+『ibon』欄位
+Id	Name	Description	Type	Additional Information
+1	PinCode	超商代碼(可用qrcode被掃)	string	
+2	LimitDate	超商代碼繳費有效期限，格式YYYYMMDDHHmmss	string	
+3	BarCode1	三段條碼繳費條碼1(格式:Code-39 barcode)	string	
+4	BarCode2	三段條碼繳費條碼2(格式:Code-39 barcode)	string	
+5	BarCode3	三段條碼繳費條碼3(格式:Code-39 barcode)	string	
+6	BarcodeEndDate	三段條碼繳費期限，格式YYYYMMDDHHmmss	string	
+『FamiPort』欄位
+Id	Name	Description	Type	Additional Information
+1	PinCode	繳費代碼(可憑此代碼至設備列印繳費單)	string	
+2	LimitDate	繳費有效期限，格式YYYYMMDDHHmmss	string	
+3	BarCode1	三段條碼繳費條碼1(格式:Code-39 barcode)	string	
+4	BarCode2	三段條碼繳費條碼2(格式:Code-39 barcode)	string	
+5	BarCode3	三段條碼繳費條碼3(格式:Code-39 barcode)	string	
+6	BarcodeEndDate	三段條碼繳費期限，格式YYYYMMDDHHmmss	string	
+『Life-ET』欄位
+Id	Name	Description	Type	Additional Information
+1	PinCode	代碼(不可用來繳費)	string	
+2	LimitDate	繳費有效期限，格式YYYYMMDDHHmmss	string	
+3	BarCode1	三段條碼繳費條碼1(格式:Code-39 barcode)	string	
+4	BarCode2	三段條碼繳費條碼2(格式:Code-39 barcode)	string	
+5	BarCode3	三段條碼繳費條碼3(格式:Code-39 barcode)	string	
+『超商條碼繳費』欄位
+Id	Name	Description	Type	Additional Information
+1	BarCode1	繳費條碼1(格式:Code-39 barcode)	string	
+2	BarCode2	繳費條碼2(格式:Code-39 barcode)	string	
+3	BarCode3	繳費條碼3(格式:Code-39 barcode)	string	
+4	LimitDate	繳費有效期限，格式YYYYMMDDHHmmss	string	
+『後付款送貨資訊』 值內容
+Value	Description	Type	Additional Information
+2	純宅配	integer	
+4	超商店到店	integer	
+『後付款超商取貨』 值內容
+Value	Description	Type	Additional Information
+1	7-11	integer	
+2	全家	integer	
+『有價票券發行者』 值內容
+Value	Description	Type	Additional Information
+1	平台折價券(預設)	string	
+2	行銷合作夥伴折價券	string	
+『退款時票券金額是否歸還』 值內容
+Value	Description	Type	Additional Information
+1	票券金額給予特店(預設)	string	
+2	票券金額能歸還消費者	string	
+3	票券金額歸還經銷商	string	
+『免費票券發行者』 值內容
+Value	Description	Type	Additional Information
+1	平台折價券	string	
+2	行銷合作夥伴折價券	string	
+3	商店折價券	string	
+『紅利資訊類型』 值內容
+Value	Description	Type	Additional Information
+1	全額	integer	
+2	部分	integer	
+AES256資料加密方式說明
+1、所有的API送出HTTPs請求之欄位中，service 和 encry_data 欄位皆進行 AES256+BASE64 加密處理。
+2、AES加密，格式為CBC，長度為256bits，金鑰長度32，IV長度16，傳遞內文為加密後組合IV並經過Base64轉換後傳出。
+
+方式：
+使用自訂的AES256函式將JSON資料加密後，再將IV資料和此AES256加密後的JSON資料串聯後，使用base64再進行加密成ASCII字串即可完成加密。
+
+
+PHP加密示意：
+AesEncrypt -> base64_ecode($IV . $JSON)
+
+C#加密示意：
+AesEncrypt -> (bytes)IV+(bytes)Json -> toBase64
+
+Java加密示意：
+AesEncrypt -> (bytes)IV+(bytes)Json -> toBase64
+
+Node.js加密示意：
+AesEncrypt -> concat([IV,JSON], [IV_SIZE,JSON_SIZE]) -> toString('base64')
+Python加密示意：
+AesEncrypt -> (bytes)IV+(bytes)Json -> base64.b64encode
+範例程式碼
+特約商店
+經銷商
+PHP
+C#
+Java
+Node.js
+Python
+<?php
+/**
+ * 特約商店串接-PayPage金流交易
+ */
+final class StoreOrder
+{
+    /**
+     * 特約商店商務代號
+     * @var string
+     */
+    public $storeUid = "289151880002";
+    /**
+     * 特約商店金鑰或認證碼
+     * @var string
+     */
+    public $storeKey = "KYTjd9ACcjGaTK6V3zWmMkyrQS08Ndcx";
+    /**
+     * 串接交易位置
+     * @var string
+     */
+    public $url = "https://pay.usecase.cc/api/init";
+    /**
+     * 取得串接欄位資料
+     * @return array
+     */
+    public function getRawData()
+    {
+        $rawData = array();
+        $rawData['store_uid'] = $this->storeUid;
+        $rawData['items'] = [['id' => '1',
+            'name' => '商品名稱',
+            'cost' => '10',
+            'amount' => '1',
+            'total' => '10']];
+        $rawData['cost'] = 10;
+        $rawData['regular'] = "M";
+        $rawData['user_id'] = "phper";
+        $rawData['order_id'] = "1234567890";
+        $rawData['ip'] = "192.168.0.1"; // 此為消費者IP，會做為驗證用
+        $rawData['pfn'] = "0";
+
+        return $rawData;
+    }
+    /**
+     * 取得服務位置
+     * @return array
+     */
+    public function getService()
+    {
+        return array(
+            'service_name' => 'api',
+            'cmd' => 'api/orders'
+        );
+    }
+    /**
+     * AES 256 加密
+     * @param array $fields
+     * @param string $key
+     * @return string
+     */
+    public function encrypt($fields, $key)
+    {
+        $data = json_encode($fields);
+        $size = openssl_cipher_iv_length('AES-256-CBC');
+        $iv   = openssl_random_pseudo_bytes($size);
+        $data = openssl_encrypt($data, 'AES-256-CBC', $key, OPENSSL_RAW_DATA, $iv);
+        $data = base64_encode($iv . $data);
+        return $data;
+    }
+    /**
+     * 資料 POST 到主機
+     * @param array $postData
+     * @return mixed
+     */
+    public function post($postData = [])
+    {
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_URL, $this->url);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($postData));
+        $result = curl_exec($ch);
+        curl_close($ch);
+        return $result;
+    }
+    /**
+     * 取得送出欄位資料
+     * @return array
+     */
+    public function getPostData ()
+    {
+        $postData = array();
+        $postData['store_uid'] = $this->storeUid;
+        $postData['service'] = $this->encrypt($this->getService(), $this->storeKey);
+        $postData['encry_data'] = $this->encrypt($this->getRawData(), $this->storeKey);
+        return $postData;
+    }
+    /**
+     * 執行
+     */
+    public function run()
+    {
+        $json = $this->post($this->getPostData());
+        echo $json;
+    }
+}
+
+$StoreOrder = new StoreOrder();
+$StoreOrder->run();
+?>
+©2025 Wistek Technology Co.,Ltd. All Rights Reserved.

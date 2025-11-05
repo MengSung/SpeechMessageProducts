@@ -115,6 +115,7 @@ namespace ChurchReport.WebServiceConnector
 
                 // 產品名稱加入姓名
                 QpayModel.FullName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "fullname");
+                String OrderDate = DateTime.Now.ToString("yyyyMMddhhmmssfff");
 
                 if (QpayModel.PayWay == "信用卡" || QpayModel.PayWay == "銀聯卡")
                 {
@@ -122,20 +123,21 @@ namespace ChurchReport.WebServiceConnector
                     Entity aFeeToUpdate = this.m_ToolUtilityClass.RetrieveEntity("new_fee", aCreatedFeeId);
 
                     CreOrder CreatedCardOrder;
+
                     if (QpayModel.PayWay == "信用卡")
                     {
                         // 信用卡
-                        CreatedCardOrder = await CreOrderCard(QpayModel.Amount, QpayModel.Category + "-" + QpayModel.FullName, DateTime.Now.ToString("yyyyMMddhhmmssfff"), aCreatedFeeId.ToString(), "C", "ONE", "", 0, "M", 1, "收費單", LineLoginContact, QpayModel.SelectedCreditCard);
+                        CreatedCardOrder = await CreOrderCard(QpayModel.Amount, QpayModel.Category + "-" + QpayModel.FullName, OrderDate, aCreatedFeeId.ToString(), "C", "ONE", "", 0, "M", 1, "收費單", LineLoginContact, QpayModel.SelectedCreditCard);
                     }
                     else
                     {
                         // 銀聯卡
-                        CreatedCardOrder = await CreOrderCard(QpayModel.Amount, QpayModel.Category + "-" + QpayModel.FullName, DateTime.Now.ToString("yyyyMMddhhmmssfff"), aCreatedFeeId.ToString(), "C", "CUP", "", 0, "M", 1, "收費單", LineLoginContact, QpayModel.SelectedCreditCard);
+                        CreatedCardOrder = await CreOrderCard(QpayModel.Amount, QpayModel.Category + "-" + QpayModel.FullName, OrderDate, aCreatedFeeId.ToString(), "C", "CUP", "", 0, "M", 1, "收費單", LineLoginContact, QpayModel.SelectedCreditCard);
                     }
                     if (CreatedCardOrder.CardParam != null && CreatedCardOrder.CardParam.CardPayURL != null)
                     {
                         // 用剛剛建立的收費單，填寫訂單編號
-                        UpdateFee(ref aFeeToUpdate, CreatedCardOrder.OrderNo, "", "");
+                        UpdateFee(ref aFeeToUpdate, CreatedCardOrder.OrderNo, "C" + OrderDate, "", "");
 
                         return CreatedCardOrder.CardParam.CardPayURL;
                     }
@@ -156,14 +158,14 @@ namespace ChurchReport.WebServiceConnector
                     Guid aCreatedDedicationBookingId = CreateDedicationBooking(LineLoginContact, QpayModel);
                     Entity aDedicationBookingToUpdate = this.m_ToolUtilityClass.RetrieveEntity("new_dedication_booking", aCreatedDedicationBookingId);
 
-                    CreOrder CreatedCardOrder = await CreOrderCard(QpayModel.Amount, QpayModel.Category + "-" + QpayModel.FullName, DateTime.Now.ToString("yyyyMMddhhmmssfff"), aCreatedDedicationBookingId.ToString(), "C", "REGULAR", "", TransferToDeductTotalNum(QpayModel.DeductTotalNumber), "M", 1, "認獻單", LineLoginContact, QpayModel.SelectedCreditCard);
+                    CreOrder CreatedCardOrder = await CreOrderCard(QpayModel.Amount, QpayModel.Category + "-" + QpayModel.FullName, OrderDate, aCreatedDedicationBookingId.ToString(), "C", "REGULAR", "", TransferToDeductTotalNum(QpayModel.DeductTotalNumber), "M", 1, "認獻單", LineLoginContact, QpayModel.SelectedCreditCard);
 
                     if (CreatedCardOrder.CardParam != null && CreatedCardOrder.CardParam.CardPayURL != null)
                     {
                         if (CreatedCardOrder.Status == "S")
                         {
                             // 用剛剛建立的認獻單，填寫訂單編號， 更新收費單或是認獻單(因為欄位名稱一致)
-                            UpdateFee(ref aDedicationBookingToUpdate, CreatedCardOrder.OrderNo, "", "");
+                            UpdateFee(ref aDedicationBookingToUpdate, CreatedCardOrder.OrderNo, "C"+ OrderDate,"", "");
 
                             return CreatedCardOrder.CardParam.CardPayURL;
                         }
@@ -171,7 +173,7 @@ namespace ChurchReport.WebServiceConnector
                         {
                             // 信用卡繳費失敗!
                             // 用剛剛建立的認獻單，填寫訂單編號， 更新收費單或是認獻單(因為欄位名稱一致)
-                            UpdateFee(ref aDedicationBookingToUpdate, CreatedCardOrder.Description, "", "");
+                            UpdateFee(ref aDedicationBookingToUpdate, CreatedCardOrder.Description, "C" + OrderDate, "", "");
 
                             return "信用卡繳費失敗!" + CreatedCardOrder.Description;
                         }
@@ -201,18 +203,18 @@ namespace ChurchReport.WebServiceConnector
                     Guid aCreatedFeeId = CreateFee(LineLoginContact, QpayModel, false);
                     Entity aFeeToUpdate = this.m_ToolUtilityClass.RetrieveEntity("new_fee", aCreatedFeeId);
 
-                    CreOrder CreatedCardOrder = await CreOrderCard(QpayModel.Amount, QpayModel.Category + "-" + QpayModel.FullName, DateTime.Now.ToString("yyyyMMddhhmmssfff"), aCreatedFeeId.ToString(), "M", "ONE", "", 0, "M", 1, "收費單", LineLoginContact, QpayModel.SelectedCreditCard);
+                    CreOrder CreatedCardOrder = await CreOrderCard(QpayModel.Amount, QpayModel.Category + "-" + QpayModel.FullName, OrderDate, aCreatedFeeId.ToString(), "M", "ONE", "", 0, "M", 1, "收費單", LineLoginContact, QpayModel.SelectedCreditCard);
 
                     if (CreatedCardOrder.MobileParam != null && CreatedCardOrder.MobileParam.MobilePayURL != null)
                     {
                         // 用剛剛建立的收費單，填寫訂單編號
-                        UpdateFee(ref aFeeToUpdate, CreatedCardOrder.OrderNo, "", "");
+                        UpdateFee(ref aFeeToUpdate, CreatedCardOrder.OrderNo, "C" + OrderDate, "", "");
 
                         return CreatedCardOrder.MobileParam.MobilePayURL;
                     }
                     else
                     {
-                        UpdateFee(ref aFeeToUpdate, CreatedCardOrder.Description, "", "");
+                        UpdateFee(ref aFeeToUpdate, CreatedCardOrder.Description, "C" + OrderDate, "", "");
 
                         return "行動支付付款失敗!" + CreatedCardOrder.Description;
                     }
@@ -234,13 +236,13 @@ namespace ChurchReport.WebServiceConnector
                     if (CreatedCardOrder.MobileParam != null && CreatedCardOrder.MobileParam.MobilePayURL != null)
                     {
                         // 用剛剛建立的收費單，填寫訂單編號
-                        UpdateFee(ref aFeeToUpdate, CreatedCardOrder.OrderNo, "", "");
+                        UpdateFee(ref aFeeToUpdate, CreatedCardOrder.OrderNo, "C" + OrderDate, "", "");
 
                         return CreatedCardOrder.MobileParam.MobilePayURL;
                     }
                     else
                     {
-                        UpdateFee(ref aFeeToUpdate, CreatedCardOrder.Description, "", "");
+                        UpdateFee(ref aFeeToUpdate, CreatedCardOrder.Description, "C" + OrderDate, "", "");
 
                         return "LinePay付款失敗!" + CreatedCardOrder.Description;
                     }
@@ -250,7 +252,7 @@ namespace ChurchReport.WebServiceConnector
                     Guid aCreatedFeeId = CreateFee(LineLoginContact, QpayModel, false);
                     Entity aFeeToUpdate = this.m_ToolUtilityClass.RetrieveEntity("new_fee", aCreatedFeeId);
 
-                    return await ProcessAtm(aCreatedFeeId, aFeeToUpdate, QpayModel, "", LineLoginContact);
+                    return await ProcessAtm(aCreatedFeeId, aFeeToUpdate, QpayModel, "C" + OrderDate, "", LineLoginContact);
                 }
                 else
                 {
@@ -454,12 +456,12 @@ namespace ChurchReport.WebServiceConnector
                     break;
             }
         }
-        public void UpdateFee(ref Entity aFeeToUpdate, String CardOrderNo, String AtmOrderNo, String AtmPayNo)
+        public void UpdateFee(ref Entity aFeeToUpdate, String CardOrderNo, String OrderId, String AtmOrderNo, String AtmPayNo)
         {
             try
             {
                 #region 更新收費單或是認獻單(因為欄位名稱一致)
-                SetFeeParameter(aFeeToUpdate, CardOrderNo, AtmOrderNo, AtmPayNo);
+                SetFeeParameter(aFeeToUpdate, CardOrderNo, OrderId, AtmOrderNo, AtmPayNo);
 
                 this.m_ToolUtilityClass.UpdateEntity(aFeeToUpdate);
                 #endregion
@@ -472,7 +474,7 @@ namespace ChurchReport.WebServiceConnector
                 throw e;
             }
         }
-        public void SetFeeParameter(Entity aFeeToCreated, String CardOrderNo, String AtmOrderNo, String AtmPayNo)
+        public void SetFeeParameter(Entity aFeeToCreated, String CardOrderNo, String OrderId, String AtmOrderNo, String AtmPayNo)
         {
             try
             {
@@ -486,6 +488,8 @@ namespace ChurchReport.WebServiceConnector
 
                     // 信用卡訂單編號
                     this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeToCreated, "new_q_pay_card_order_no", CardOrderNo);
+                    // 信用卡訂單編號，高踞金流回傳用此欄位
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeToCreated, "new_q_pay_order_number", OrderId);
                 }
                 if (AtmOrderNo != "")
                 {
@@ -515,7 +519,7 @@ namespace ChurchReport.WebServiceConnector
                 throw e;
             }
         }
-        public async Task<string> ProcessAtm(Guid aCreatedFeeId, Entity aFeeToUpdate, QpayModel QpayModel, String LineId, Entity LineLoginContact)
+        public async Task<string> ProcessAtm(Guid aCreatedFeeId, Entity aFeeToUpdate, QpayModel QpayModel, String OrderId, String LineId, Entity LineLoginContact)
         {
             try
             {
@@ -525,7 +529,7 @@ namespace ChurchReport.WebServiceConnector
                 CreOrder CreatedAtmOrder = await CreateOrderATM(QpayModel.Amount, QpayModel.Category + "-" + QpayModel.FullName, DateTime.Now.ToString("yyyyMMddhhmmssfff"), aCreatedFeeId.ToString());
 
                 // 用剛剛建立的收費單，填寫訂單編號
-                UpdateFee(ref aFeeToUpdate, "", CreatedAtmOrder.OrderNo, CreatedAtmOrder.ATMParam.AtmPayNo);
+                UpdateFee(ref aFeeToUpdate, "", CreatedAtmOrder.OrderNo, OrderId, CreatedAtmOrder.ATMParam.AtmPayNo);
 
                 String AtmInfoToLine =
                         "姓名 : " + this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "fullname") + Environment.NewLine +
@@ -1231,7 +1235,7 @@ namespace ChurchReport.WebServiceConnector
             }
             else if (m_Configuration["PAY_PROVIDER"] == "高鉅金流")
             {
-                CreOrder ret = m_PaymentService.CreateOrder(GetRawData(Amount, ProductName, OrderDate, FeeId, PayType, PayTypeSub, LineLoginContact), GetService());
+                CreOrder ret = m_PaymentService.CreateOrder(GetRawData(Amount, ProductName, OrderDate, FeeId, PayType + OrderDate, PayType, PayTypeSub, LineLoginContact), GetService());
                 return ret;
             }
             else if (m_Configuration["PAY_PROVIDER"] == "台新金流")
@@ -1251,7 +1255,7 @@ namespace ChurchReport.WebServiceConnector
             }
             else
             {
-                CreOrder ret = m_PaymentService.CreateOrder(GetRawData(Amount, ProductName, OrderDate, FeeId, PayType, PayTypeSub, LineLoginContact), GetService());
+                CreOrder ret = m_PaymentService.CreateOrder(GetRawData(Amount, ProductName, OrderDate, FeeId, PayType + OrderDate, PayType, PayTypeSub, LineLoginContact), GetService());
                 return ret;
             }
         }
@@ -1266,11 +1270,11 @@ namespace ChurchReport.WebServiceConnector
         }
 
         // 原 GetRawData 及其使用的輔助方法保留在下方 (確保在本檔案內宣告)
-        private dynamic GetRawData(int Amount, String ProductName, String OrderDate, String FeeId, String PayType, String PayTypeSub, Entity LineLoginContact)
+        private dynamic GetRawData(int Amount, String ProductName, String OrderDate, String FeeId, String OrderId, String PayType, String PayTypeSub, Entity LineLoginContact)
         {
             ArrayList items = CreateProductItems(FeeId, ProductName, Amount);
             dynamic rawData = new ExpandoObject();
-            SetRawDataProperties(rawData, Amount, FeeId, items, LineLoginContact);
+            SetRawDataProperties(rawData, Amount, FeeId, OrderId, items, LineLoginContact);
             return rawData;
         }
 
@@ -1531,7 +1535,7 @@ namespace ChurchReport.WebServiceConnector
         /// <summary>
         /// 設定高鉅金流原始資料屬性
         /// </summary>
-        private void SetRawDataProperties(dynamic rawData, int Amount, String FeeId, ArrayList items, Entity LineLoginContact)
+        private void SetRawDataProperties(dynamic rawData, int Amount, String FeeId, String OrderId, ArrayList items, Entity LineLoginContact)
         {
             // 組織代碼
             rawData.echo_0 = QPAY_ORGANIZATION;
@@ -1568,7 +1572,7 @@ namespace ChurchReport.WebServiceConnector
             rawData.cost = Amount;
             rawData.currency = m_Configuration["MyPay:Currency"] ?? "TWD";
             rawData.enable_dcc = Convert.ToInt32(m_Configuration["MyPay:EnableDcc"] ?? "0");
-            rawData.order_id = FeeId;
+            rawData.order_id = OrderId;
             rawData.ip = m_Configuration["MyPay:IP"];
             rawData.item = items.Count.ToString();
             rawData.items = items;

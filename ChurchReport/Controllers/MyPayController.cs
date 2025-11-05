@@ -70,9 +70,11 @@ namespace ChurchReport.Controllers
                 bool isSuccess = IsSuccessfulPaymentStatus(returnModel.prc);
                 _logger.LogInformation($"[MyPay回傳] 交易狀態判定: PRC={returnModel.prc}, IsSuccess={isSuccess}");
 
-                // 5. 查詢收費單
+                // 5. 查詢收費單  
                 utility = new ToolUtilityClass(DYNAMICS_CONNECTION_NAME);
-                Entity feeEntity = utility.RetrieveEntityByField("new_fee", "new_q_pay_card_order_no", returnModel.order_id);
+                // 高踞金流回傳用此欄位
+                Entity feeEntity = utility.RetrieveEntityByField("new_fee", "new_q_pay_order_number", returnModel.order_id);
+                //Entity feeEntity = utility.RetrieveEntityByField("new_fee", "new_q_pay_card_order_no", returnModel.order_id);
 
                 if (feeEntity == null)
                 {
@@ -391,7 +393,10 @@ namespace ChurchReport.Controllers
 
                 //取得 CRM 資料
                 utility = new ToolUtilityClass(DYNAMICS_CONNECTION_NAME);
-                Entity feeEntity = utility.RetrieveEntityByField("new_fee", "new_q_pay_card_order_no", order_id);
+                // 高踞金流回傳用此欄位
+                Entity feeEntity = utility.RetrieveEntityByField("new_fee", "new_q_pay_order_number", order_id);
+                //Entity feeEntity = utility.RetrieveEntityByField("new_fee", "new_q_pay_card_order_no", order_id);
+
                 if (feeEntity == null)
                 {
                     _logger.LogWarning($"PaymentSuccess: 找不到對應收費單 - OrderId: {order_id}");
@@ -532,7 +537,9 @@ namespace ChurchReport.Controllers
                     try
                     {
                         utility = new ToolUtilityClass(DYNAMICS_CONNECTION_NAME);
-                        Entity feeEntity = utility.RetrieveEntityByField("new_fee", "new_q_pay_card_order_no", order_id);
+                        // 高踞金流回傳用此欄位
+                        Entity feeEntity = utility.RetrieveEntityByField("new_fee", "new_q_pay_order_number", order_id);
+                        //Entity feeEntity = utility.RetrieveEntityByField("new_fee", "new_q_pay_card_order_no", order_id);
                         if (feeEntity != null)
                         {
                             _logger.LogInformation($"PaymentFailure: 找到對應收費? - FeeId: {feeEntity.Id}");
