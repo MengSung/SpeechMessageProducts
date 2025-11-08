@@ -57,36 +57,60 @@
     <script src="~/js/devextreme/vectormap-data/world.js"></script>
     <script src="~/lib/devextreme-aspnet-data/js/dx.aspnet.data.js"></script>
     <script src="~/js/devextreme/aspnet/dx.aspnet.mvc.js"></script>
+
+    <style>
+        /* Hero 橫幅與覆蓋層 */
+        .hero-wrapper { position: relative; width:100%; height: 300px; overflow:hidden; }
+        .hero-overlay { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; color:#fff; padding:1rem; background: linear-gradient(135deg, rgba(0,0,0,.55), rgba(0,0,0,.25)); }
+        .hero-overlay h1 { font-size:1.9rem; letter-spacing:2px; font-weight:700; margin-bottom:.35rem; }
+        .hero-overlay .sub { font-size:.95rem; opacity:.95; margin-bottom:.5rem; }
+        .hero-overlay .verse { font-size:.95rem; line-height:1.4; max-width:680px; }
+        .hero-overlay .verse span { display:block; margin-top:.25rem; font-size:.78rem; opacity:.85; }
+        .logo-faith { font-size:2.2rem; margin-bottom:.35rem; color:#fff; animation: pulse 3.5s infinite; }
+        @@keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.08); } 100% { transform: scale(1); } }
+
+        /* 表單卡片樣式 */
+        .cr-card { border-radius: 18px; overflow:hidden; }
+        .cr-card .card-body { padding:1.25rem 1rem 1.5rem; }
+        #displaynamefield { font-weight:600; font-size:1.2rem; color:#35507d; }
+        #remind { color:#6b7280; }
+
+        /* Toast 置頂顯示 */
+        .dx-toast-content { border-radius: 10px; }
+
+        @@media (max-width: 575.98px) {
+            .hero-wrapper { height: 260px; }
+            .hero-overlay h1 { font-size:1.6rem; }
+        }
+    </style>
 </head>
 
-<body>
-    <!-- 頁面標題 -->
-    <header class="cr-header py-3 mb-4">
-        <div class="container">
-            <div class="d-flex align-items-center justify-content-between">
-                <div class="cr-brand h4 mb-0">聖谷行道會</div>
-                <div class="cr-subtext">LINE 身分綁定註冊</div>
-            </div>
+<body class="bg-light">
+    <!-- Hero：背景 Gallery 疊加經文 -->
+    <section class="hero-wrapper" aria-label="歡迎區">
+        <div class="position-absolute w-100 h-100" style="z-index:1;">
+            @(Html.DevExtreme().Gallery()
+                .ID("gallery")
+                .DataSource(Model.Images)
+                .Height("100%")
+                .StretchImages(true)
+                .Loop(true)
+                .SlideshowDelay(1800)
+                .ShowNavButtons(true)
+                .ShowIndicator(true)
+            )
         </div>
-    </header>
+        <div class="hero-overlay" role="banner">
+            <i class="fa-solid fa-dove logo-faith" aria-hidden="true"></i>
+            <h1>聖谷行道會</h1>
+            <div class="sub">LINE 身分綁定註冊</div>
+            <div class="verse">你要專心仰賴耶和華，不可倚靠自己的聰明。<span>— 箴言 3:5</span></div>
+        </div>
+    </section>
 
     <!-- 主要內容 -->
     <main class="container d-flex justify-content-center pb-5">
         <div class="cr-card card shadow-lg border-0 w-100">
-            <!-- 圖片庫 -->
-            <div class="cr-gallery p-3 pb-0">
-                <div class="widget-container">
-                    @(Html.DevExtreme().Gallery()
-                                    .ID("gallery")
-                                    .DataSource(Model.Images)
-                                    .Height("250px")
-                                    .StretchImages(true)
-                                    .Loop(true)
-                                    .SlideshowDelay(1500)
-                    )
-                </div>
-            </div>
-
             <!-- 註冊表單 -->
             <div class="card-body">
                 <h5 id="displaynamefield" class="text-center mb-2"></h5>
@@ -159,14 +183,14 @@
 
                     <!-- 按鈕和載入面板 -->
                     <div class="dx-field">
-                        <div id="buttonContainer" class="dx-button-icon mb-3">
+                        <div id="buttonContainer" class="dx-button-icon mb-3 d-flex justify-content-center">
                             @(Html.DevExtreme().Button()
                                             .Text("註冊")
                                             .Type(ButtonType.Default)
                                             .ID("register-button")
                                             .UseSubmitBehavior(true)
                                             .OnClick("Register")
-                                            .Width(120)
+                                            .Width(140)
                             )
                         </div>
                         <div id="LoadPanel">
@@ -192,7 +216,9 @@
             <div class="card-body-soft">
                 <div class="row">
                     <div class="col-md-7">
-                        <h5 style="font-weight:600; margin-bottom: 12px;">聯絡資訊</h5>
+                        <h5 style="font-weight:600; margin-bottom: 12px;">
+                            <i class="fa-solid fa-church me-1"></i>聯絡資訊
+                        </h5>
                         <ul class="info-list">
                             <li>
                                 <span class="info-label">地址</span>
@@ -225,11 +251,10 @@
         @(Html.DevExtreme().Toast()
                         .ID("Toast")
                         .Position(p => p
-                        .At(HorizontalAlignment.Center, VerticalAlignment.Center)
-                        .Offset(0, 50))
-                        .Message("以利亞")
-                        .DisplayTime(2000)
-                        .MaxWidth(220)
+                            .At(HorizontalAlignment.Center, VerticalAlignment.Top)
+                            .Offset(0, 80))
+                        .DisplayTime(2200)
+                        .MaxWidth(260)
                         .CloseOnOutsideClick(true)
         )
     </div>
